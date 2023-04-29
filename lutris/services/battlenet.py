@@ -113,8 +113,7 @@ class BattleNetService(BaseService):
         """Scan an existing EGS install for games"""
         bnet_game = get_game_by_field(self.client_installer, "slug")
         if not bnet_game:
-            logger.error("Battle.net is not installed in Lutris")
-            return
+            raise RuntimeError("Battle.net is not installed in Lutris")
         bnet_prefix = bnet_game["directory"].split("drive_c")[0]
         parser = BlizzardProductDbParser(bnet_prefix)
         for game in parser.games:

@@ -108,14 +108,12 @@ class Game(GObject.Object):
     def __init__(self, game_id=None):
         super().__init__()
         self._id = game_id  # pylint: disable=invalid-name
-        self.runner = None
-        self.config = None
 
         # Load attributes from database
         game_data = games_db.get_game_by_field(game_id, "id")
 
         self.slug = game_data.get("slug") or ""
-        self.runner_name = game_data.get("runner") or ""
+        self._runner_name = game_data.get("runner") or ""
         self.directory = game_data.get("directory") or ""
         self.name = game_data.get("name") or ""
         self.game_config_id = game_data.get("configpath") or ""
@@ -135,12 +133,13 @@ class Game(GObject.Object):
         self.appid = game_data.get("service_id")
         self.playtime = float(game_data.get("playtime") or 0.0)
 
-        if self.game_config_id:
-            self.load_config()
+        self._config = None
+        self._runner = None
+
         self.game_uuid = None
         self.game_thread = None
         self.antimicro_thread = None
-        self.prelaunch_pids = []
+        self.prelaunch_pids = None
         self.prelaunch_executor = None
         self.heartbeat = None
         self.killswitch = None
@@ -309,20 +308,55 @@ class Game(GObject.Object):
             return self.runner.resolve_game_path()
         return ""
 
-    def _get_runner(self):
-        """Return the runner instance for this game's configuration"""
-        try:
-            runner_class = import_runner(self.runner_name)
-            return runner_class(self.config)
-        except InvalidRunner:
-            logger.error("Unable to import runner %s for %s", self.runner_name, self.slug)
+    @property
+    def config(self):
+        if not self.is_installed or not self.game_config_id:
+            return None
+        if not self._config:
+            self._config = LutrisConfig(runner_slug=self.runner_name, game_config_id=self.game_config_id)
+        return self._config
 
-    def load_config(self):
-        """Load the game's configuration."""
-        if not self.is_installed:
-            return
-        self.config = LutrisConfig(runner_slug=self.runner_name, game_config_id=self.game_config_id)
-        self.runner = self._get_runner()
+    @config.setter
+    def config(self, value):
+        self._config = value
+        self._runner = None
+        if value:
+            self.game_config_id = value.game_config_id
+
+    def reload_config(self):
+        """Triggers the config to reload when next used; this also reloads the runner,
+        so that it will pick up the new configuration."""
+        self._config = None
+        self._runner = None
+
+    @property
+    def runner_name(self):
+        return self._runner_name
+
+    @runner_name.setter
+    def runner_name(self, value):
+        self._runner_name = value
+        if self._runner and self._runner.name != value:
+            self._runner = None
+
+    @property
+    def runner(self):
+        if not self.runner_name:
+            return None
+
+        if not self._runner:
+            try:
+                runner_class = import_runner(self.runner_name)
+                self._runner = runner_class(self.config)
+            except InvalidRunner:
+                logger.error("Unable to import runner %s for %s", self.runner_name, self.slug)
+        return self._runner
+
+    @runner.setter
+    def runner(self, value):
+        self._runner = value
+        if value:
+            self._runner_name = value.name
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
@@ -351,7 +385,8 @@ class Game(GObject.Object):
             # directories when we delete them
             self.runner.remove_game_data(app_id=self.appid, game_path=self.directory)
         self.is_installed = False
-        self.runner = None
+        self._config = None
+        self._runner = None
 
         if str(self.id) in LOG_BUFFERS:  # Reset game logs on removal
             log_buffer = LOG_BUFFERS[str(self.id)]
@@ -546,6 +581,9 @@ class Game(GObject.Object):
         if "error" in gameplay_info:
             raise self.get_config_error(gameplay_info)
 
+        if "working_dir" not in gameplay_info:
+            gameplay_info["working_dir"] = self.runner.working_dir
+
         config = launch_ui_delegate.select_game_launch_config(self)
 
         if config is None:
@@ -558,8 +596,8 @@ class Game(GObject.Object):
 
     @watch_game_errors(game_stop_result=False)
     def configure_game(self, launch_ui_delegate):
-        """Get the game ready to start, applying all the options
-        This methods sets the game_runtime_config attribute.
+        """Get the game ready to start, applying all the options.
+        This method sets the game_runtime_config attribute.
         """
         gameplay_info = self.get_gameplay_info(launch_ui_delegate)
         if not gameplay_info:  # if user cancelled- not an error
@@ -630,7 +668,7 @@ class Game(GObject.Object):
         if not launch_ui_delegate.check_game_launchable(self):
             return False
 
-        self.load_config()  # Reload the config before launching it.
+        self.reload_config()  # Reload the config before launching it.
         saves = self.config.game_level["game"].get("saves")
         if saves:
             sync_saves(self)
@@ -641,6 +679,10 @@ class Game(GObject.Object):
 
         self.state = self.STATE_LAUNCHING
         self.prelaunch_pids = system.get_running_pid_list()
+
+        if not self.prelaunch_pids:
+            logger.error("No prelaunch PIDs could be obtained. Game stop may be ineffective.")
+            self.prelaunch_pids = None
 
         self.emit("game-start")
 
@@ -735,6 +777,10 @@ class Game(GObject.Object):
 
     def get_game_pids(self):
         """Return a list of processes belonging to the Lutris game"""
+        if not self.game_uuid:
+            logger.error("No LUTRIS_GAME_UUID recorded. The game's PIDs cannot be computed.")
+            return set()
+
         new_pids = self.get_new_pids()
         game_pids = []
         game_folder = self.resolve_game_path()
@@ -743,6 +789,7 @@ class Game(GObject.Object):
             # pressure-vessel: This could potentially pick up PIDs not started by lutris?
             if game_folder in cmdline or "pressure-vessel" in cmdline:
                 game_pids.append(pid)
+
         return set(game_pids + [
             pid for pid in new_pids
             if Process(pid).environ.get("LUTRIS_GAME_UUID") == self.game_uuid
@@ -750,7 +797,11 @@ class Game(GObject.Object):
 
     def get_new_pids(self):
         """Return list of PIDs started since the game was launched"""
-        return set(system.get_running_pid_list()) - set(self.prelaunch_pids)
+        if self.prelaunch_pids:
+            return set(system.get_running_pid_list()) - set(self.prelaunch_pids)
+
+        logger.error("No prelaunch PIDs recorded. The game's PIDs cannot be computed.")
+        return set()
 
     def stop_game(self):
         """Cleanup after a game as stopped"""

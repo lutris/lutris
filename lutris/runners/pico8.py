@@ -167,7 +167,7 @@ class pico8(Runner):
                 if not self.game_config.get("main_file").startswith("http"):
                     pid = int(self.game_config.get("main_file"))
                     num = math.floor(pid / 10000)
-                    downloadUrl = ("https://www.lexaloffle.com/bbs/cposts/" + str(num) + "/" + str(pid) + ".p8.png")
+                    downloadUrl = "https://www.lexaloffle.com/bbs/cposts/" + str(num) + "/" + str(pid) + ".p8.png"
                 else:
                     downloadUrl = self.game_config.get("main_file")
                 cartPath = self.cart_path
@@ -207,7 +207,7 @@ class pico8(Runner):
                 self.runner_config.get("engine") + ".js",
             )
             if not os.path.exists(enginePath):
-                downloadUrl = ("https://www.lexaloffle.com/bbs/" + self.runner_config.get("engine") + ".js")
+                downloadUrl = "https://www.lexaloffle.com/bbs/" + self.runner_config.get("engine") + ".js"
                 system.create_folder(os.path.dirname(enginePath))
                 dl = Downloader(downloadUrl, enginePath, True)
                 dl.start()

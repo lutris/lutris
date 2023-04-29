@@ -263,8 +263,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                         # end of the install.
                         if self.installer.runner not in self.installer.script:
                             self.installer.script[self.installer.runner] = {}
-                        version = "{}-{}".format(default_wine["version"],
-                                                 default_wine["architecture"])
+                        if "architecture" in default_wine:
+                            version = "{}-{}".format(default_wine["version"],
+                                                     default_wine["architecture"])
+                        else:
+                            version = default_wine["version"]
                         params["version"] = \
                             self.installer.script[self.installer.runner]["version"] = version
                     else:
@@ -456,6 +459,14 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             "RESOLUTION_HEIGHT_HEX": hex(int(self.current_resolution[1])),
             "WINEBIN": self.get_wine_path(),
         }
+
+        # None values stringify as 'None', which is not what you want, so we'll
+        # remove then pre-emptively. This happens for game install scripts that have
+        # no 'self.target_path'.
+
+        for key in [key for key, value in replacements.items() if value is None]:
+            del replacements[key]
+
         replacements.update(self.installer.variables)
         # Add 'INPUT_<id>' replacements for user inputs with an id
         for input_data in self.user_inputs:

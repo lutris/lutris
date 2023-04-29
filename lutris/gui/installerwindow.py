@@ -144,15 +144,16 @@ class InstallerWindow(ModelessDialog,
         self.log_buffer = Gtk.TextBuffer()
         self.error_reporter = self.load_error_message_page
 
+        self.load_choose_installer_page()
+
         # And... go!
         self.show_all()
-
-        self.load_choose_installer_page()
         self.present()
 
     def add_start_button(self, label, handler=None, tooltip=None, sensitive=True):
         button = Gtk.Button.new_with_mnemonic(label)
         button.set_sensitive(sensitive)
+        button.set_no_show_all(True)
         if tooltip:
             button.set_tooltip_text(tooltip)
         if handler:
@@ -166,6 +167,7 @@ class InstallerWindow(ModelessDialog,
         """Add a button to the action buttons box"""
         button = Gtk.Button.new_with_mnemonic(label)
         button.set_sensitive(sensitive)
+        button.set_no_show_all(True)
         if tooltip:
             button.set_tooltip_text(tooltip)
         if handler:
@@ -179,6 +181,7 @@ class InstallerWindow(ModelessDialog,
         """Add a button to the menu in the header bar"""
         button = Gtk.ModelButton(label, visible=True, xalign=0.0)
         button.set_sensitive(sensitive)
+        button.set_no_show_all(True)
         if tooltip:
             button.set_tooltip_text(tooltip)
         if handler:

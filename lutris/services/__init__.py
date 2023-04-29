@@ -34,7 +34,8 @@ def get_services():
         "itchio": ItchIoService,
         "origin": OriginService,
         "ubisoft": UbisoftConnectService,
-        "amazon": AmazonService
+        "amazon": AmazonService,
+        "flathub": FlathubService
     }
     if BNET_ENABLED:
         _services["battlenet"] = BattleNetService
@@ -53,9 +54,7 @@ SERVICES = get_services()
 
 # Those services are not yet ready to be used
 WIP_SERVICES = {
-    "battlenet": BattleNetService,
     "mame": MAMEService,
-    "flathub": FlathubService
 }
 
 if os.environ.get("LUTRIS_ENABLE_ALL_SERVICES"):

@@ -8,15 +8,15 @@ from gi.repository import Gdk, Gtk, Pango
 # Lutris Modules
 from lutris import settings
 from lutris.gui.views import (
-    COL_ICON, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_NAME, COL_PLATFORM,
-    COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER_HUMAN_NAME, COL_YEAR, COLUMN_NAMES
+    COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_MEDIA_PATH,
+    COL_NAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER_HUMAN_NAME, COL_YEAR, COLUMN_NAMES
 )
 from lutris.gui.views.base import GameView
 from lutris.gui.views.store import sort_func
+from lutris.gui.widgets.cellrenderers import GridViewCellRendererImage
 
 
 class GameListView(Gtk.TreeView, GameView):
-
     """Show the main list of games."""
 
     __gsignals__ = GameView.__gsignals__
@@ -27,15 +27,18 @@ class GameListView(Gtk.TreeView, GameView):
 
         self.set_rules_hint(True)
 
-        # Icon column
+        # Image column
         if settings.SHOW_MEDIA:
-            image_cell = Gtk.CellRendererPixbuf()
-            self.media_column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON)
+            self.image_renderer = GridViewCellRendererImage()
+            self.media_column = Gtk.TreeViewColumn("", self.image_renderer,
+                                                   media_path=COL_MEDIA_PATH,
+                                                   is_installed=COL_INSTALLED)
             self.media_column.set_reorderable(True)
             self.media_column.set_sort_indicator(False)
             self.media_column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
             self.append_column(self.media_column)
         else:
+            self.image_renderer = None
             self.media_column = None
 
         self.set_game_store(store)
@@ -68,8 +71,14 @@ class GameListView(Gtk.TreeView, GameView):
         self.model = game_store.store
         self.set_model(self.model)
 
+        size = game_store.service_media.size
+
+        if self.image_renderer:
+            self.image_renderer.media_width = size[0]
+            self.image_renderer.media_height = size[1]
+
         if self.media_column:
-            media_width = game_store.service_media.size[0]
+            media_width = size[0]
             self.media_column.set_fixed_width(media_width)
 
     @staticmethod

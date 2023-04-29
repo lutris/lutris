@@ -45,8 +45,16 @@ class DLLManager:
         """Return version (latest known version if not provided)"""
         if self._version:
             return self._version
-        if self.versions:
-            return self.versions[0]
+        versions = self.versions
+        if versions:
+            recommended_versions = [v for v in versions if self.is_recommended_version(v)]
+            return recommended_versions[0] if recommended_versions else versions[0]
+
+    def is_recommended_version(self, version):
+        """True if the version given should be usable as the default; false if it
+        should not be the default, but may be selected by the user. If only
+        non-recommended versions exist, we'll still default to one of them, however."""
+        return True
 
     @property
     def path(self):
@@ -209,6 +217,29 @@ class DLLManager:
             for file in self.managed_appdata_files:
                 filename = os.path.basename(file)
                 yield appdata_dir, file, filename
+
+    def setup(self, enable):
+        """Enable or disable DLLs"""
+
+        # manual version only sets the dlls to native (in get_enabling_dll_overrides())
+        manager_version = self.version
+        if not manager_version or manager_version.lower() != "manual":
+            if enable:
+                self.enable()
+            else:
+                self.disable()
+
+    def get_enabling_dll_overrides(self):
+        """Returns aa dll-override dict for the dlls in this manager; these options will
+        enable the manager's dll, so call this only for enabled managers."""
+        overrides = {}
+
+        for dll in self.managed_dlls:
+            # We have to make sure that the dll exists before setting it to native
+            if self.dll_exists(dll):
+                overrides[dll] = "n"
+
+        return overrides
 
     def enable(self):
         """Enable Dlls for the current prefix"""

@@ -44,16 +44,22 @@ def matches_id(shortcut, game):
     return game_id == str(game.id)
 
 
+def get_shortcuts():
+    """Return all Steam shortcuts"""
+    shortcut_path = get_shortcuts_vdf_path()
+    if not shortcut_path or not os.path.exists(shortcut_path):
+        return []
+    with open(shortcut_path, "rb") as shortcut_file:
+        shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts']
+    return shortcuts
+
+
 def shortcut_exists(game):
     try:
-        shortcut_path = get_shortcuts_vdf_path()
-        if not shortcut_path or not os.path.exists(shortcut_path):
+        shortcuts = get_shortcuts()
+        if not shortcuts:
             return False
-
-        with open(shortcut_path, "rb") as shortcut_file:
-            shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-
-        return bool([s for s in shortcuts if matches_id(s, game)])
+        return bool([s for s in shortcuts.values() if matches_id(s, game)])
     except Exception as ex:
         logger.error("Failed to read shortcut vdf file: %s", ex)
         return False
@@ -104,6 +110,24 @@ def remove_shortcut(game):
         shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
 
 
+def generate_preliminary_id(game):
+    lutris_binary = shutil.which("lutris")
+    if lutris_binary == "/app/bin/lutris":
+        lutris_binary = "/usr/bin/flatpak"
+    exe = f'"{lutris_binary}"'
+    unique_id = ''.join([exe, game.name])
+    top = binascii.crc32(str.encode(unique_id, 'utf-8')) | 0x80000000
+    return (top << 32) | 0x02000000
+
+
+def generate_appid(game):
+    return str(generate_preliminary_id(game) >> 32)
+
+
+def generate_shortcut_id(game):
+    return (generate_preliminary_id(game) >> 32) - 0x100000000
+
+
 def generate_shortcut(game, launch_config_name):
     lutris_binary = shutil.which("lutris")
 
@@ -116,46 +140,33 @@ def generate_shortcut(game, launch_config_name):
     launch_options = shlex.quote(launch_options)
 
     if lutris_binary == "/app/bin/lutris":
-        lutris_binary = "flatpak"
+        lutris_binary = "/usr/bin/flatpak"
         launch_options = "run net.lutris.Lutris " + launch_options
     return {
-        'AllowDesktopConfig': 1,
-        'AllowOverlay': 1,
+        'appid': generate_shortcut_id(game),
         'AppName': game.name,
-        'Devkit': 0,
-        'DevkitGameID': '',
         'Exe': f'"{lutris_binary}"',
-        'IsHidden': 0,
-        'LastPlayTime': 0,
-        'LaunchOptions': launch_options,
-        'OpenVR': 0,
-        'ShortcutPath': '',
         'StartDir': f'"{os.path.dirname(lutris_binary)}"',
         'icon': resources.get_icon_path(game.slug),
-        'tags': {  # has been replaced by "collections" in steam. Tags are not visible in the UI anymore.
-            '0': "Lutris"   # to identify generated shortcuts
-        }
+        'LaunchOptions': launch_options,
+        'IsHidden': 0,
+        'AllowDesktopConfig': 1,
+        'AllowOverlay': 1,
+        'OpenVR': 0,
+        'Devkit': 0,
+        'DevkitOverrideAppID': 0,
+        'LastPlayTime': 0,
     }
 
 
-def get_steam_shortcut_id(game):
-    lutris_binary = shutil.which("lutris")
-    if lutris_binary == "/app/bin/lutris":
-        lutris_binary = "flatpak"
-    exe = f'"{lutris_binary}"'
-    unique_id = ''.join([exe, game.name])
-    return binascii.crc32(str.encode(unique_id)) | 0x80000000
-
-
 def set_artwork(game):
-    logger.debug("Setting artwork for %s Steam shortcut", game)
     config_path = get_config_path()
     if not config_path:
         return None
     artwork_path = os.path.join(config_path, "grid")
     if not os.path.exists(artwork_path):
         os.makedirs(artwork_path)
-    shortcut_id = get_steam_shortcut_id(game)
+    shortcut_id = generate_appid(game)
     source_cover = resources.get_cover_path(game.slug)
     source_banner = resources.get_banner_path(game.slug)
     target_cover = os.path.join(artwork_path, "{}p.jpg".format(shortcut_id))
@@ -163,11 +174,13 @@ def set_artwork(game):
     if not system.path_exists(target_cover, exclude_empty=True):
         try:
             shutil.copyfile(source_cover, target_cover)
+            logger.debug("Copied %s cover to %s", game, target_cover)
         except FileNotFoundError as ex:
             logger.error("Failed to copy cover to %s: %s", target_cover, ex)
     if not system.path_exists(target_banner, exclude_empty=True):
         try:
             shutil.copyfile(source_banner, target_banner)
+            logger.debug("Copied %s cover to %s", game, target_banner)
         except FileNotFoundError as ex:
             logger.error("Failed to copy banner to %s: %s", target_banner, ex)
 

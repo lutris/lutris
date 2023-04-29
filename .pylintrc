@@ -76,8 +76,7 @@ disable=
     wrong-import-position,
     import-outside-toplevel,
     duplicate-code,
-    consider-using-f-string,
-    no-self-use
+    consider-using-f-string
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -408,9 +407,3 @@ known-standard-library=
 # Force import order to recognize a module as part of a third party library.
 known-third-party=
 
-
-[EXCEPTIONS]
-
-# Exceptions that will emit a warning when being caught. Defaults to
-# "Exception"
-overgeneral-exceptions=Exception

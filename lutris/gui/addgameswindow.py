@@ -13,7 +13,6 @@ from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.installer import AUTO_WIN32_EXE, get_installers
 from lutris.scanners.lutris import scan_directory
 from lutris.util.jobs import AsyncCall
-from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.strings import gtk_safe, slugify
 
 
@@ -124,7 +123,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.install_from_setup_game_name_entry = Gtk.Entry()
         self.install_from_setup_game_slug_checkbox = Gtk.CheckButton(label="Identifier")
         self.install_from_setup_game_slug_entry = Gtk.Entry(sensitive=False)
-        self.install_from_setup_32bit_prefix_checkbox = None
+        self.installer_presets = Gtk.ListStore(str, str)
+        self.install_preset_dropdown = Gtk.ComboBox.new_with_model(self.installer_presets)
 
         self.install_script_file_chooser = FileChooserEntry(
             title=_("Select script"), action=Gtk.FileChooserAction.OPEN
@@ -438,13 +438,25 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         grid.attach(self._get_explanation_label(explanation), 0, 2, 2, 1)
 
-        if LINUX_SYSTEM.is_64_bit:
-            self.install_from_setup_32bit_prefix_checkbox = Gtk.CheckButton(
-                label=_("32-bit Wine prefix"))
+        preset_label = Gtk.Label(_("Installer preset:"), visible=True)
+        grid.attach(preset_label, 0, 3, 1, 1)
 
-            grid.attach(self.install_from_setup_32bit_prefix_checkbox, 0, 3, 2, 1)
-            self.install_from_setup_32bit_prefix_checkbox.set_valign(Gtk.Align.END)
-            self.install_from_setup_32bit_prefix_checkbox.set_vexpand(True)
+        self.installer_presets.append(["win10", _("Windows 10 64-bit (Default)")])
+        self.installer_presets.append(["win7", _("Windows 7 64-bit")])
+        self.installer_presets.append(["winxp", _("Windows XP 32-bit")])
+        self.installer_presets.append(["winxp-3dfx", _("Windows XP + 3DFX 32-bit")])
+        self.installer_presets.append(["win98", _("Windows 98 32-bit")])
+        self.installer_presets.append(["win98-3dfx", _("Windows 98 + 3DFX 32-bit")])
+
+        renderer_text = Gtk.CellRendererText()
+        self.install_preset_dropdown.pack_start(renderer_text, True)
+        self.install_preset_dropdown.add_attribute(renderer_text, "text", 1)
+        self.install_preset_dropdown.set_id_column(0)
+        self.install_preset_dropdown.set_active_id('win10')
+
+        grid.attach(self.install_preset_dropdown, 1, 3, 1, 1)
+        self.install_preset_dropdown.set_halign(Gtk.Align.START)
+
         grid.set_vexpand(True)
         return grid
 
@@ -462,7 +474,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
     def on_install_from_setup_game_name_changed(self, *_args):
         if not self.install_from_setup_game_slug_checkbox.get_active():
             name = self.install_from_setup_game_name_entry.get_text()
-            self.install_from_setup_game_slug_entry.set_text(slugify(name))
+            proposed_slug = slugify(name) if name else ""
+            self.install_from_setup_game_slug_entry.set_text(proposed_slug)
 
     @watch_errors()
     def _on_install_setup_continue(self, button):
@@ -477,11 +490,13 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         else:
             game_slug = slugify(name)
 
-        if (self.install_from_setup_32bit_prefix_checkbox
-                and not self.install_from_setup_32bit_prefix_checkbox.get_active()):
-            arch = "win64"
+        installer_preset = self.installer_presets[self.install_preset_dropdown.get_active()][0]
+        arch = "win32" if installer_preset.startswith(("win98", "winxp")) else "win64"
+        win_ver = installer_preset.split("-")[0]
+        if win_ver != "win10":
+            win_ver_task = {"task": {"name": "winetricks", "app": win_ver, "arch": arch}}
         else:
-            arch = "win32"
+            win_ver_task = None
 
         installer = {
             "name": name,
@@ -501,6 +516,10 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
                 ]
             }
         }
+        if win_ver_task:
+            installer["script"]["installer"].insert(0, win_ver_task)
+        if installer_preset.endswith("3dfx"):
+            installer["script"]["wine"] = {"dgvoodoo2": True}
         application = Gio.Application.get_default()
         application.show_installer_window([installer])
         self.destroy()

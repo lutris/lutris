@@ -69,6 +69,8 @@ def parse_version(version):
     Returns:
         tuple: (version number as list, prefix, suffix)
     """
+    version = version.replace("Proton7-", "Proton-7.")
+    version = version.replace("Proton8-", "Proton-8.")
     version_match = re.search(r"(\d[\d\.]+\d)", version)
     if not version_match:
         return [], "", ""

@@ -1,4 +1,4 @@
-lutris (0.5.13) UNRELEASED; urgency=medium
+lutris (0.5.13) jammy; urgency=medium
 
   * Add support for Proton
   * Add drag and drop on the main window. Dropped files will be matched
@@ -8,8 +8,10 @@ lutris (0.5.13) UNRELEASED; urgency=medium
   * Re-style the configuration, preferences, installer and add-games windows
   * Group configuration options into sections
   * Added checkbox to stop asking for the launch config for a game
+  * Added checkbox to sort installed games first
   * Support for launch-configs in shortcuts and the command line
-  * The add-games window can now create 32-bit WINE prefixes
+  * Show platform badges on banners and cover-art
+  * Installing games from setup files can now use different presets (Win98, 3DFX, ...)
   * Add filter field to runner list
   * Show game count in search bar
   * Workaround Humble Bundle authentication issues by allowing importing
@@ -19,6 +21,9 @@ lutris (0.5.13) UNRELEASED; urgency=medium
   * Improve detection of DOSBox games on GOG
   * Added "Unspecified" Vulkan ICD option
   * Removed ResidualVM (now merged into ScummVM)
+  * Detect obsolete Vulkan drivers, warn and default to DXVK 1.x for them
+  * Improved High-DPI support for custom media
+  * Performance improvements
 
  -- Mathieu Comandon <strider@strycore.com>  Fri, 10 Feb 2023 13:15:40 -0800
 

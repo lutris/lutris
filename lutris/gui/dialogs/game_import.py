@@ -33,15 +33,16 @@ class ImportGameDialog(ModelessDialog):
         self.error_labels = {}
         self.launch_buttons = {}
         self.platform = None
-        self.set_size_request(480, 240)
+        self.set_size_request(500, 560)
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
 
+        scrolledwindow = Gtk.ScrolledWindow(child=self.get_file_labels_listbox(files))
+        scrolledwindow.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         frame = Gtk.Frame(
             shadow_type=Gtk.ShadowType.ETCHED_IN,
-            child=self.get_file_labels_listbox(files))
-
+            child=scrolledwindow)
         self.get_content_area().pack_start(frame, True, True, 6)
 
         self.close_button = self.add_button(Gtk.STOCK_STOP, Gtk.ResponseType.CANCEL)

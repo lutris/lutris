@@ -1,7 +1,7 @@
 """Configuration dialog for client and system options"""
 from gettext import gettext as _
 
-from gi.repository import Gtk
+from gi.repository import GObject, Gtk
 
 from lutris.config import LutrisConfig
 from lutris.gui.config.boxes import SystemBox
@@ -14,12 +14,19 @@ from lutris.gui.config.sysinfo_box import SysInfoBox
 
 # pylint: disable=no-member
 class PreferencesDialog(GameDialogCommon):
+    __gsignals__ = {
+        "settings-changed": (GObject.SIGNAL_RUN_LAST, None, (str, )),
+    }
+
     def __init__(self, parent=None):
         super().__init__(_("Lutris settings"), parent=parent)
         self.set_border_width(0)
         self.set_default_size(1010, 600)
         self.lutris_config = LutrisConfig()
         self.page_generators = {}
+
+        self.accelerators = Gtk.AccelGroup()
+        self.add_accel_group(self.accelerators)
 
         hbox = Gtk.HBox(visible=True)
         sidebar = Gtk.ListBox(visible=True)
@@ -37,7 +44,7 @@ class PreferencesDialog(GameDialogCommon):
         self.vbox.pack_start(hbox, True, True, 0)
         self.vbox.set_border_width(0)  # keep everything flush with the window edge
         self.stack.add_named(
-            self.build_scrolled_window(PreferencesBox()),
+            self.build_scrolled_window(PreferencesBox(self.accelerators)),
             "prefs-stack"
         )
 

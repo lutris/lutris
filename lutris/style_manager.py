@@ -3,7 +3,6 @@ import enum
 from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
-from lutris.util.log import logger
 
 PORTAL_BUS_NAME = "org.freedesktop.portal.Desktop"
 PORTAL_OBJECT_PATH = "/org/freedesktop/portal/desktop"
@@ -66,28 +65,21 @@ class StyleManager(GObject.Object):
         )
 
     def _new_for_bus_cb(self, obj, result):
-        try:
-            proxy = obj.new_for_bus_finish(result)
-            if proxy:
-                proxy.connect("g-signal", self._on_settings_changed)
-                self._dbus_proxy = proxy
-                self._read_portal_setting()
-            else:
-                raise Exception("Could not start GDBusProxy")
-
-        except Exception as err:
-            logger.error("Unable to start Settings portal: %s", err)
+        proxy = obj.new_for_bus_finish(result)
+        if proxy:
+            proxy.connect("g-signal", self._on_settings_changed)
+            self._dbus_proxy = proxy
+            self._read_portal_setting()
+        else:
+            raise RuntimeError("Could not start GDBusProxy")
 
     def _call_cb(self, obj, result):
-        try:
-            values = obj.call_finish(result)
-            if values:
-                value = values[0]
-                self.color_scheme = self._read_value(value)
-            else:
-                raise Exception("Could not read color-scheme")
-        except Exception:
-            pass
+        values = obj.call_finish(result)
+        if values:
+            value = values[0]
+            self.color_scheme = self._read_value(value)
+        else:
+            raise RuntimeError("Could not read color-scheme")
 
     def _on_settings_changed(self, _proxy, _sender_name, signal_name, params):
         if signal_name != "SettingChanged":

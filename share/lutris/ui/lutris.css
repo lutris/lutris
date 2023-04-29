@@ -18,12 +18,27 @@
   border: 0;
 }
 
-.panel-button label {
-    font-weight: normal;
-}
-
 .info-pill {
   background-color: alpha(currentColor, .07);
   border-radius: 5px;
   padding: 3px 6px;
+}
+
+.section-frame:not(.frame-hidden) {
+	margin-top: 12px;
+	margin-bottom: 12px;
+	margin-left: 12px;
+	margin-right: 12px;
+}
+
+.section-frame:not(.frame-hidden) > box {
+	margin-bottom: 6px;
+}
+
+.section-frame.frame-hidden > border {
+	border: 0px;
+}
+
+.section-frame.frame-hidden > label {
+	font-size: 0px;
 }

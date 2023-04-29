@@ -104,7 +104,6 @@ class UbisoftConnectService(OnlineService):
         "cover": UbisoftCover,
     }
     default_format = "cover"
-    is_loading = False
 
     def __init__(self):
         super().__init__()
@@ -143,7 +142,6 @@ class UbisoftConnectService(OnlineService):
         return content
 
     def load(self):
-        self.is_loading = True
         self.client.authorise_with_stored_credentials(self.load_credentials())
         response = self.client.get_club_titles()
         games = response['data']['viewer']['ownedGames'].get('nodes', [])
@@ -162,12 +160,10 @@ class UbisoftConnectService(OnlineService):
             ubi_games.append(ubi_game)
         configuration_data = self.get_configurations()
         config_parser = UbisoftParser()
-        games = []
         for game in config_parser.parse_games(configuration_data):
             ubi_game = UbisoftGame.new_from_api(game)
             ubi_game.save()
             ubi_games.append(ubi_game)
-        self.is_loading = False
         return ubi_games
 
     def store_credentials(self, credentials):

@@ -52,8 +52,6 @@ class LutrisService(OnlineService):
     cache_path = os.path.join(settings.CACHE_DIR, "lutris")
     token_path = os.path.join(settings.CACHE_DIR, "auth-token")
 
-    is_loading = False
-
     @property
     def credential_files(self):
         """Return a list of all files used for authentication"""
@@ -98,10 +96,6 @@ class LutrisService(OnlineService):
         return []
 
     def load(self):
-        if self.is_loading:
-            logger.warning("Lutris games are already loading")
-            return
-        self.is_loading = True
         lutris_games = self.get_library()
         logger.debug("Loaded %s games from Lutris library", len(lutris_games))
         for game in lutris_games:
@@ -109,7 +103,6 @@ class LutrisService(OnlineService):
             lutris_game.save()
         logger.debug("Matching with already installed games")
         self.match_games()
-        self.is_loading = False
         logger.debug("Lutris games loaded")
         return lutris_games
 
@@ -123,6 +116,14 @@ class LutrisService(OnlineService):
             raise RuntimeError(_("Lutris has no installers for %s. Try using a different service instead.") % slug)
         application = Gio.Application.get_default()
         application.show_installer_window(installers)
+
+    def get_game_platforms(self, db_game):
+        details = db_game.get("details")
+        if details:
+            platforms = json.loads(details).get("platforms")
+            if platforms is not None:
+                return [p.get("name") for p in platforms]
+        return None
 
 
 def download_lutris_media(slug):

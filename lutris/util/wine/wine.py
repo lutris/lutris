@@ -231,6 +231,8 @@ def get_wine_version_exe(version):
         version = get_default_version()
     if not version:
         raise UnavailableRunnerError(_("Wine is not installed"))
+    if version in WINE_PATHS:
+        return WINE_PATHS[version]
     return os.path.join(WINE_DIR, "{}/bin/wine".format(version))
 
 

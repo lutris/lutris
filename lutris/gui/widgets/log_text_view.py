@@ -5,7 +5,7 @@ from gi.repository import Gtk
 class LogTextView(Gtk.TextView):
     # pylint: disable=no-member
 
-    def __init__(self, buffer=None, autoscroll=True):
+    def __init__(self, buffer=None, autoscroll=True, wrap_mode=Gtk.WrapMode.CHAR):
         super().__init__(visible=True)
 
         if buffer:
@@ -15,7 +15,7 @@ class LogTextView(Gtk.TextView):
         self.set_monospace(True)
         self.set_left_margin(10)
         self.scroll_max = 0
-        self.set_wrap_mode(Gtk.WrapMode.CHAR)
+        self.set_wrap_mode(wrap_mode)
         self.get_style_context().add_class("lutris-logview")
 
         self.mark = self.create_new_mark(self.props.buffer.get_start_iter())

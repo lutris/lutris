@@ -3,7 +3,7 @@
     COL_ID,
     COL_SLUG,
     COL_NAME,
-    COL_ICON,
+    COL_MEDIA_PATH,
     COL_YEAR,
     COL_RUNNER,
     COL_RUNNER_HUMAN_NAME,

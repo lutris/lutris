@@ -335,9 +335,9 @@ def find_winetricks(env=None, system_winetricks=False):
         if not winetricks_path:
             raise RuntimeError("No installation of winetricks found")
     else:
-        # We will use our own zentiy if available, which is here and it
+        # We will use our own zenity if available, which is here, and it
         # also needs a data file in this directory. We have to set the
-        # working_dir so it will find the data file.
+        # working_dir, so it will find the data file.
         working_dir = os.path.join(settings.RUNTIME_DIR, "winetricks")
 
         if not env:
@@ -436,6 +436,12 @@ def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
         "winetricks": winetricks_path,
     }
     env["WINEPREFIX"] = prefix
+    # Ensure scripts you run see the desired version of WINE too
+    # by putting it on the PATH.
+    wine_directory = os.path.split(wine_path)[0]
+    if wine_directory:
+        path = env.get("PATH", os.environ["PATH"])
+        env["PATH"] = "%s:%s" % (wine_directory, path)
     shell_command = get_shell_command(prefix, env, aliases)
     terminal = terminal or linux.get_default_terminal()
     system.execute([terminal, "-e", shell_command])

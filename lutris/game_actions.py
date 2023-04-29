@@ -36,7 +36,7 @@ class GameActions:
 
     @property
     def is_game_running(self):
-        return self.game and self.game.is_db_stored and bool(self.application.get_game_by_id(self.game.id))
+        return self.game and self.game.is_db_stored and bool(self.application.get_running_game_by_id(self.game.id))
 
     def on_game_state_changed(self, game):
         """Handler called when the game has changed state"""

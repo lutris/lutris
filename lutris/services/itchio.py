@@ -108,7 +108,6 @@ class ItchIoService(OnlineService):
         "sourcecode",
         "other"
     )
-    is_loading = False
 
     def login_callback(self, url):
         """Called after the user has logged in successfully"""
@@ -127,14 +126,10 @@ class ItchIoService(OnlineService):
 
     def load(self):
         """Load the user's itch.io library"""
-        if self.is_loading:
-            logger.info("itch.io games are already loading")
-            return
         if not self.is_connected():
             logger.error("User not connected to itch.io")
             return
 
-        self.is_loading = True
         library = self.get_games()
         games = []
         seen = set()
@@ -145,7 +140,6 @@ class ItchIoService(OnlineService):
             games.append(_game)
             _game.save()
             seen.add(game["title"])
-        self.is_loading = False
         return games
 
     def make_api_request(self, path, query=None):

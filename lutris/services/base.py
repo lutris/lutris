@@ -20,6 +20,7 @@ from lutris.installer import get_installers
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
+from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 
 PGA_DB = settings.PGA_DB
@@ -85,6 +86,7 @@ class BaseService(GObject.Object):
     medias = {}
     extra_medias = {}
     default_format = "icon"
+    is_loading = False
 
     __gsignals__ = {
         "service-games-load": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -123,16 +125,31 @@ class BaseService(GObject.Object):
             return False
         return launcher.is_installed
 
-    def reload(self):
-        """Refresh the service's games"""
-        self.emit("service-games-load")
-        try:
-            self.wipe_game_cache()
-            self.load()
-            self.load_icons()
-            self.add_installed_games()
-        finally:
+    def start_reload(self, reloaded_callback):
+        """Refresh the service's games, asynchronously. This raises signals, but
+        does so on the main thread- and runs the reload on a worker thread. It calls
+        reloaded_callback when done, passing any error (or None on success)"""
+        def do_reload():
+            if self.is_loading:
+                logger.warning("'%s' games are already loading", self.name)
+                return
+
+            try:
+                self.is_loading = True
+
+                self.wipe_game_cache()
+                self.load()
+                self.load_icons()
+                self.add_installed_games()
+            finally:
+                self.is_loading = False
+
+        def reload_cb(_result, error):
             self.emit("service-games-loaded")
+            reloaded_callback(error)
+
+        self.emit("service-games-load")
+        AsyncCall(do_reload, reload_cb)
 
     def load(self):
         logger.warning("Load method not implemented")
@@ -297,11 +314,19 @@ class BaseService(GObject.Object):
     def add_installed_games(self):
         """Services can implement this method to scan for locally
         installed games and add them to lutris.
+
+        This runs on a worker thread, and must trigger UI actions -
+        so no emitting signals here.
         """
 
     def get_game_directory(self, _installer):
         """Specific services should implement this"""
         return ""
+
+    def get_game_platforms(self, db_game):
+        """Interprets the database record for this game from this service
+        to extract its platform, or returns None if this is not available."""
+        return None
 
 
 class OnlineService(BaseService):

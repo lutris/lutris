@@ -1,5 +1,7 @@
+# Standard Library
 from gettext import gettext as _
 
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
@@ -10,8 +12,6 @@ class pcsx2(Runner):
     platforms = [_("Sony PlayStation 2")]
     runnable_alone = True
     runner_executable = "pcsx2/PCSX2"
-    arch = "i386"
-    require_libs = ["libOpenGL.so.0", "libgdk-x11-2.0.so.0", "libEGL.so.1"]
     game_options = [{
         "option": "main_file",
         "type": "file",
@@ -51,6 +51,9 @@ class pcsx2(Runner):
             "advanced": True,
         },
     ]
+
+    # PCSX2 currently uses an AppImage, no need for the runtime.
+    system_options_override = [{"option": "disable_runtime", "default": True}]
 
     def play(self):
         arguments = [self.get_executable()]

@@ -1,12 +1,14 @@
 """Shared config dialog stuff"""
 # pylint: disable=not-an-iterable
 import os
+import shutil
 from gettext import gettext as _
 
-from gi.repository import Gtk, Pango
+from gi.repository import GdkPixbuf, Gtk, Pango
 
 from lutris import runners, settings
 from lutris.config import LutrisConfig, make_game_config_id
+from lutris.exceptions import watch_errors
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
@@ -15,7 +17,8 @@ from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, Que
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
-from lutris.gui.widgets.utils import get_pixbuf
+from lutris.gui.widgets.scaled_image import ScaledImage
+from lutris.gui.widgets.utils import get_image_file_format, invalidate_media_caches
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.util.log import logger
@@ -204,6 +207,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
             box.hide()
         return box
 
+    @watch_errors()
     def on_reset_preferred_launch_config_clicked(self, _button, launch_config_box):
         game_config = self.game.config.game_level.get("game", {})
         game_config.pop("preferred_launch_config_name", None)
@@ -273,12 +277,11 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         return box
 
     def _set_image(self, image_format, image_button):
+        scale_factor = self.get_scale_factor()
         service_media = self.service_medias[image_format]
-        image = Gtk.Image()
         game_slug = self.slug or (self.game.slug if self.game else "")
-
-        pixbuf = service_media.get_pixbuf_for_game(game_slug, service_media.config_ui_size)
-        image.set_from_pixbuf(pixbuf)
+        media_path = service_media.get_media_path(game_slug)
+        image = ScaledImage.new_from_media_path(media_path, service_media.config_ui_size, scale_factor)
         image_button.set_image(image)
 
     def _get_runner_dropdown(self):
@@ -310,6 +313,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
             runner_liststore.append(("%s (%s)" % (runner.human_name, description), runner.name))
         return runner_liststore
 
+    @watch_errors()
     def on_slug_change_clicked(self, widget):
         if self.slug_entry.get_sensitive() is False:
             widget.set_label(_("Apply"))
@@ -317,6 +321,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         else:
             self.change_game_slug()
 
+    @watch_errors()
     def on_slug_entry_activate(self, _widget):
         self.change_game_slug()
 
@@ -330,6 +335,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self.slug_entry.set_sensitive(False)
         self.slug_change_button.set_label(_("Change"))
 
+    @watch_errors()
     def on_move_clicked(self, _button):
         new_location = DirectoryDialog("Select new location for the game",
                                        default_path=self.game.directory, parent=self)
@@ -339,6 +345,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         move_dialog.connect("game-moved", self.on_game_moved)
         move_dialog.move()
 
+    @watch_errors()
     def on_game_moved(self, dialog):
         """Show a notification when the game is moved"""
         new_directory = dialog.new_directory
@@ -354,11 +361,6 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
     def _build_game_tab(self):
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
-            if not self.game.runner or self.game.runner.name != self.runner_name:
-                try:
-                    self.game.runner = runners.import_runner(self.runner_name)()
-                except runners.InvalidRunner:
-                    pass
             self.game_box = self._build_options_tab(_("Game options"),
                                                     lambda: GameBox(self.lutris_config, self.game))
         elif self.runner_name:
@@ -414,7 +416,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         save_button.set_valign(Gtk.Align.CENTER)
         save_button.connect("clicked", self.on_save)
 
-        key, mod = Gtk.accelerator_parse("<Control>s")
+        key, mod = Gtk.accelerator_parse("<Primary>s")
         save_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
         # Advanced settings toggle
@@ -427,8 +429,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         switch_label = Gtk.Label(_("Advanced"), no_show_all=True, visible=True)
         switch = Gtk.Switch(no_show_all=True, visible=True)
         switch.set_state(settings.read_setting("show_advanced_options") == "True")
-        switch.connect("state_set", lambda _w, s:
-                       self.on_show_advanced_options_toggled(bool(s)))
+        switch.connect("state_set", lambda _w, s: self.on_show_advanced_options_toggled(bool(s)))
 
         switch_box.pack_start(switch_label, False, False, 0)
         switch_box.pack_end(switch, False, False, 0)
@@ -457,6 +458,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         if self.game:
             self.game_box.set_advanced_visibility(value)
 
+    @watch_errors()
     def on_runner_changed(self, widget):
         """Action called when runner drop down is changed."""
         new_runner_index = widget.get_active()
@@ -465,11 +467,11 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
                 {
                     "parent": self,
                     "question":
-                    _("Are you sure you want to change the runner for this game ? "
-                      "This will reset the full configuration for this game and "
-                      "is not reversible."),
+                        _("Are you sure you want to change the runner for this game ? "
+                          "This will reset the full configuration for this game and "
+                          "is not reversible."),
                     "title":
-                    _("Confirm runner change"),
+                        _("Confirm runner change"),
                 }
             )
 
@@ -515,7 +517,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         if response in (Gtk.ResponseType.CANCEL, response == Gtk.ResponseType.DELETE_EVENT):
             # Reload the config to clean out any changes we may have made
             if self.game:
-                self.game.load_config()
+                self.game.reload_config()
         if response != Gtk.ResponseType.NONE:
             self.destroy()
 
@@ -549,6 +551,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
             return False
         return True
 
+    @watch_errors()
     def on_save(self, _button):
         """Save game info and destroy widget. Return True if success."""
         if not self.is_valid():
@@ -569,26 +572,22 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         if not self.lutris_config.game_config_id:
             self.lutris_config.game_config_id = make_game_config_id(self.slug)
 
-        runner_class = runners.import_runner(self.runner_name)
-        runner = runner_class(self.lutris_config)
-
-        # extract icon for wine games
-        if self.runner_name == "wine" and "icon" not in self.game.custom_images:
-            runner.extract_icon_exe(self.slug)
-
         self.game.name = name
         self.game.slug = self.slug
         self.game.year = year
-        self.game.game_config_id = self.lutris_config.game_config_id
-        self.game.runner = runner
-        self.game.runner_name = self.runner_name
         self.game.is_installed = True
         self.game.config = self.lutris_config
+        self.game.runner_name = self.runner_name
+
+        if "icon" not in self.game.custom_images:
+            self.game.runner.extract_icon(self.slug)
+
         self.game.save()
         self.destroy()
         self.saved = True
         return True
 
+    @watch_errors()
     def on_custom_image_select(self, _widget, image_type):
         dialog = Gtk.FileChooserNative.new(
             _("Please choose a custom image"),
@@ -609,24 +608,41 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
             image_path = dialog.get_filename()
             service_media = self.service_medias[image_type]
             self.game.custom_images.add(image_type)
-            dest_path = service_media.get_absolute_path(slug)
+            dest_path = service_media.get_media_path(slug)
             file_format = service_media.file_format
-            size = service_media.custom_media_storage_size
-            pixbuf = get_pixbuf(image_path, size)
-            # JPEG encoding looks rather better at high quality;
-            # PNG encoding just ignores this option.
-            pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
+
+            if image_path != dest_path:
+                if file_format == get_image_file_format(image_path):
+                    shutil.copy(image_path, dest_path, follow_symlinks=True)
+                else:
+                    # If we must transcode the image, we'll scale the image up based on
+                    # the UI scale factor, to try to avoid blurriness. Of course this won't
+                    # work if the user changes the scaling later, but what can you do.
+                    scale_factor = self.get_scale_factor()
+                    width, height = service_media.custom_media_storage_size
+                    width = width * scale_factor
+                    height = height * scale_factor
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image_path, width, height)
+                    # JPEG encoding looks rather better at high quality;
+                    # PNG encoding just ignores this option.
+                    pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
+                invalidate_media_caches()
             self._set_image(image_type, self.image_buttons[image_type])
             service_media.update_desktop()
 
         dialog.destroy()
 
+    @watch_errors()
     def on_custom_image_reset_clicked(self, _widget, image_type):
         slug = self.slug or self.game.slug
         service_media = self.service_medias[image_type]
-        dest_path = service_media.get_absolute_path(slug)
+        dest_path = service_media.get_media_path(slug)
         self.game.custom_images.discard(image_type)
         if os.path.isfile(dest_path):
             os.remove(dest_path)
         download_lutris_media(self.game.slug)
+        invalidate_media_caches()
         self._set_image(image_type, self.image_buttons[image_type])
+
+    def on_watched_error(self, error):
+        dialogs.ErrorDialog(str(error), parent=self)

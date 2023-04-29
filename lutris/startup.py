@@ -27,7 +27,7 @@ from lutris.util.steam.shortcut import update_all_artwork
 from lutris.util.system import create_folder
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
-from lutris.util.wine.dxvk import DXVKManager
+from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION, DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.vkd3d import VKD3DManager
 
@@ -123,7 +123,7 @@ def check_libs(all_components=False):
         if settings.read_setting(setting) != "True":
             DontShowAgainDialog(
                 setting,
-                _("Missing vulkan libraries"),
+                _("Missing Vulkan libraries"),
                 secondary_message=_(
                     "Lutris was unable to detect Vulkan support for "
                     "the %s architecture.\n"
@@ -141,6 +141,53 @@ def check_vulkan():
     """Reports if Vulkan is enabled on the system"""
     if not vkquery.is_vulkan_supported():
         logger.warning("Vulkan is not available or your system isn't Vulkan capable")
+    else:
+        required_api_version = REQUIRED_VULKAN_API_VERSION
+        library_api_version = vkquery.get_vulkan_api_version()
+        if library_api_version and library_api_version < required_api_version:
+            logger.warning("Vulkan reports an API version of %s. "
+                           "%s is required for the latest DXVK.",
+                           vkquery.format_version(library_api_version),
+                           vkquery.format_version(library_api_version))
+            setting = "dismiss-obsolete-vulkan-api-warning"
+            if settings.read_setting(setting) != "True":
+                DontShowAgainDialog(
+                    setting,
+                    _("Obsolete Vulkan libraries"),
+                    secondary_message=_(
+                        "Lutris has detected that Vulkan API version %s is installed, "
+                        "but to use the latest DXVK version, %s is required.\n\n"
+                        "DXVK 1.x will be used instead."
+                    ) % (
+                        vkquery.format_version(library_api_version),
+                        vkquery.format_version(required_api_version)
+                    )
+                )
+                return
+
+        devices = vkquery.get_device_info()
+
+        if devices and devices[0].api_version < required_api_version:
+            logger.warning("Vulkan reports that the '%s' device has API version of %s. "
+                           "%s is required for the latest DXVK.",
+                           devices[0].name,
+                           vkquery.format_version(devices[0].api_version),
+                           vkquery.format_version(required_api_version))
+            setting = "dismiss-obsolete-vulkan-api-warning"
+            if settings.read_setting(setting) != "True":
+                DontShowAgainDialog(
+                    setting,
+                    _("Obsolete Vulkan driver support"),
+                    secondary_message=_(
+                        "Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
+                        "but to use the latest DXVK version, %s is required.\n\n"
+                        "DXVK 1.x will be used instead."
+                    ) % (
+                        devices[0].name,
+                        vkquery.format_version(devices[0].api_version),
+                        vkquery.format_version(required_api_version)
+                    )
+                )
 
 
 def check_gnome():
@@ -189,9 +236,6 @@ def init_lutris():
     """Run full initialization of Lutris"""
     logger.info("Starting Lutris %s", settings.VERSION)
     runners.inject_runners(load_json_runners())
-    # Load runner names and platforms
-    runners.RUNNER_NAMES = runners.get_runner_names()
-    runners.RUNNER_PLATFORMS = runners.get_platforms()
     init_dirs()
     try:
         syncdb()
@@ -217,7 +261,7 @@ class StartupRuntimeUpdater(RuntimeUpdater):
             key = dll_manager_class.__name__
             self.add_update(key, lambda c=dll_manager_class: self._update_dll_manager(c), hours=6)
 
-        self.add_update("media", self._update_media, hours=24)
+        self.add_update("media", self._update_media, hours=240)
 
     def _update_dll_manager(self, dll_manager_class):
         dll_manager = dll_manager_class()

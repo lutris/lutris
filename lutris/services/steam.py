@@ -81,7 +81,6 @@ class SteamService(BaseService):
         "cover": SteamCover,
     }
     default_format = "banner"
-    is_loading = False
     runner = "steam"
     excluded_appids = [
         "221410",  # Steam for Linux
@@ -92,10 +91,6 @@ class SteamService(BaseService):
 
     def load(self):
         """Return importable Steam games"""
-        if self.is_loading:
-            logger.warning("Steam games are already loading")
-            return
-        self.is_loading = True
         steamid = get_user_steam_id()
         if not steamid:
             logger.error("Unable to find SteamID from Steam config")
@@ -109,7 +104,6 @@ class SteamService(BaseService):
             game = self.game_class.new_from_steam_game(steam_game)
             game.save()
         self.match_games()
-        self.is_loading = False
         return steam_games
 
     def get_installer_files(self, installer, installer_file_id, _selected_extras):
@@ -199,6 +193,7 @@ class SteamService(BaseService):
             for game_id in game_ids:
                 steam_game = Game(game_id)
                 if not steam_game.playtime:
+                    # Unsafe to emit a signal from a worker thread!
                     steam_game.remove(no_signal=True)
                     steam_game.delete(no_signal=True)
                     stats["deduped"] += 1

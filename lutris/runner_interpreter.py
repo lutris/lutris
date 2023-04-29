@@ -61,7 +61,7 @@ def get_launch_parameters(runner, gameplay_info):
 
     prefix_command = system_config.get("prefix_command") or ""
     if prefix_command:
-        launch_arguments = (shlex.split(os.path.expandvars(prefix_command)) + launch_arguments)
+        launch_arguments = shlex.split(os.path.expandvars(prefix_command)) + launch_arguments
 
     single_cpu = system_config.get("single_cpu") or False
     if single_cpu:
@@ -118,6 +118,9 @@ def get_gamescope_args(launch_arguments, system_config):
         launch_arguments.insert(0, gamescope_fsr_sharpness)
         launch_arguments.insert(0, "--fsr-sharpness")
         launch_arguments.insert(0, "-U")
+    if system_config.get("gamescope_flags"):
+        gamescope_flags = system_config["gamescope_flags"]
+        launch_arguments.insert(0, gamescope_flags)
     if system_config.get("gamescope_window_mode"):
         gamescope_window_mode = system_config["gamescope_window_mode"]
         launch_arguments.insert(0, gamescope_window_mode)
@@ -143,17 +146,24 @@ def get_gamescope_args(launch_arguments, system_config):
 
 def export_bash_script(runner, gameplay_info, script_path):
     """Convert runner configuration into a bash script"""
-    if getattr(runner, 'prelaunch', None) is not None:
-        runner.prelaunch()
+    runner.prelaunch()
     command, env = get_launch_parameters(runner, gameplay_info)
     # Override TERM otherwise the script might not run
     env["TERM"] = "xterm"
     script_content = "#!/bin/bash\n\n\n"
+
     script_content += "# Environment variables\n"
+
     for name, value in env.items():
         script_content += 'export %s="%s"\n' % (name, value)
+
+    if "working_dir" in gameplay_info:
+        script_content += "\n# Working Directory\n"
+        script_content += "cd %s\n" % shlex.quote(gameplay_info["working_dir"])
+
     script_content += "\n# Command\n"
     script_content += " ".join([shlex.quote(c) for c in command])
+
     with open(script_path, "w", encoding='utf-8') as script_file:
         script_file.write(script_content)
 

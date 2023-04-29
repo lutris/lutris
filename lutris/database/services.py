@@ -14,6 +14,7 @@ class ServiceGameCollection:
     @classmethod
     def get_game(cls, service, appid):
         """Return a single game referred by its appid"""
+        logger.debug("Getting service game %s for %s", appid, service)
         if not service:
             raise ValueError("No service provided")
         if not appid:

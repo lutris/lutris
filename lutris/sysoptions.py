@@ -272,7 +272,7 @@ system_options = [  # pylint: disable=invalid-name
         "section": "Gamescope",
         "option": "gamescope",
         "type": "bool",
-        "label": _("Enable"),
+        "label": _("Enable Gamescope"),
         "default": False,
         "condition": bool(system.find_executable("gamescope")) and linux.LINUX_SYSTEM.nvidia_gamescope_support(),
         "help": _("Use gamescope to draw the game window isolated from your desktop.\n"
@@ -328,7 +328,7 @@ system_options = [  # pylint: disable=invalid-name
             (_("Windowed"), ""),
             (_("Borderless"), "-b"),
         ),
-        "default": "",
+        "default": "-f",
         "condition": bool(system.find_executable("gamescope")),
         "help": _("Run gamescope in fullscreen, windowed or borderless mode\n"
                   "Toggle fullscreen (-f) : Super + F"),
@@ -355,6 +355,18 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Set a frame-rate limit for gamescope specified in frames per second (-r).\n"
                   "\n"
                   "<b>Empty string:</b> Disabled"),
+    },
+    {
+        "section": "Gamescope",
+        "option": "gamescope_flags",
+        "label": _("Custom Settings"),
+        "advanced": True,
+        "type": "string",
+        "condition": bool(system.find_executable("gamescope")),
+        "help": _("Set additional flags for gamescope (if available).\n"
+                  "See 'gamescope --help' for a full list of options.\n"
+                  "\n"
+                  "<b>Empty String:</b> Disabled"),
     },
     {
         "section": "CPU",

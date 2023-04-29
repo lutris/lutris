@@ -7,6 +7,41 @@ from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.strings import split_arguments
 
+_supported_scale_factors = {
+    "hq": ["2", "3"],
+    "edge": ["2", "3"],
+    "advmame": ["2", "3"],
+    "sai": ["2"],
+    "supersai": ["2"],
+    "supereagle": ["2"],
+    "dotmatrix": ["2"],
+    "tv2x": ["2"],
+}
+
+
+def _get_opengl_warning(config):
+    if "scaler" in config and "renderer" in config:
+        renderer = config["renderer"]
+        if renderer and renderer != "software":
+            scaler = config["scaler"]
+            if scaler and scaler != "normal":
+                return _("<b>Warning</b> Scalers may not work with OpenGL rendering.")
+
+    return None
+
+
+def _get_scale_factor_warning(config):
+    """Generate a warning message for when the scaler and scale-factor can't be used together."""
+    if "scaler" in config and "scale-factor" in config:
+        scaler = config["scaler"]
+        if scaler in _supported_scale_factors:
+            scale_factor = config["scale-factor"]
+            if scale_factor not in _supported_scale_factors[scaler]:
+                return _("<b>Warning</b> The '%s' scaler does not work with a scale factor of %s.") % (
+                    scaler, scale_factor)
+
+    return None
+
 
 class scummvm(Runner):
     description = _("Engine for point-and-click games.")
@@ -37,9 +72,11 @@ class scummvm(Runner):
         "aspect": "--aspect-ratio",
         "subtitles": "--subtitles",
         "fullscreen": "--fullscreen",
-        "gfx-mode": "--gfx-mode=%s",
+        "scaler": "--scaler=%s",
         "scale-factor": "--scale-factor=%s",
+        "renderer": "--renderer=%s",
         "render-mode": "--render-mode=%s",
+        "stretch-mode": "--stretch-mode=%s",
         "filtering": "--filtering",
         "platform": "--platform=%s",
         "engine-speed": "--engine-speed=%s",
@@ -100,67 +137,103 @@ class scummvm(Runner):
             ),
         },
         {
-            "option": "gfx-mode",
+            "option": "scaler",
             "section": _("Graphics"),
             "label": _("Graphic scaler"),
             "type": "choice",
-            "default": "3x",
+            "default": "normal",
             "choices": [
-                ("1x", "1x"),
-                ("2x", "2x"),
-                ("3x", "3x"),
-                ("hq2x", "hq2x"),
-                ("hq3x", "hq3x"),
-                ("advmame2x", "advmame2x"),
-                ("advmame3x", "advmame3x"),
-                ("2xsai", "2xsai"),
-                ("super2xsai", "super2xsai"),
+                ("normal", "normal"),
+                ("hq", "hq"),
+                ("edge", "edge"),
+                ("advmame", "advmame"),
+                ("sai", "sai"),
+                ("supersai", "supersai"),
                 ("supereagle", "supereagle"),
-                ("tv2x", "tv2x"),
+                ("pm", "pm"),
                 ("dotmatrix", "dotmatrix"),
+                ("tv2x", "tv2x"),
+            ],
+            "warning": _get_opengl_warning,
+            "help":
+                _("The algorithm used to scale up the game's base "
+                  "resolution, resulting in different visual styles. "),
+        },
+        {
+            "option": "scale-factor",
+            "section": _("Graphics"),
+            "label": _("Scale factor"),
+            "type": "choice",
+            "default": "3",
+            "choices": [
+                ("1", "1"),
+                ("2", "2"),
+                ("3", "3"),
+                ("4", "4"),
+                ("5", "5"),
             ],
             "help":
-            _("The algorithm used to scale up the game's base "
-              "resolution, resulting in different visual styles. "),
+                _("Changes the resolution of the game. "
+                  "For example, a 2x scale will take a 320x200 "
+                  "resolution game and scale it up to 640x400. "),
+            "warning": _get_scale_factor_warning
         },
-        # {
-        #    "option": "scale-factor",
-        #    "section": _("Graphics"),
-        #    "label": _("Scaler factor"),
-        #    "type": "choice",
-        #    "choices": [
-        #        ("1", "1"),
-        #        ("2", "2"),
-        #        ("3", "3"),
-        #        ("4", "4"),
-        #        ("5", "5"),
-        #    ],
-        #    "help":
-        #    _("Changes the resolution of the game. "
-        #      "For example, a 2x scaler will take a 320x200 "
-        #      "resolution game and scale it up to 640x400. "),
-        # },
+        {
+            "option": "renderer",
+            "section": _("Graphics"),
+            "label": _("Renderer"),
+            "type": "choice",
+            "choices": [
+                (_("Auto"), ""),
+                (_("Software"), "software"),
+                (_("OpenGL"), "opengl"),
+                (_("OpenGL (with shaders)"), "opengl_shaders")
+            ],
+            "default": "",
+            "advanced": True,
+            "help": _("Changes the rendering method used for 3D games."),
+        },
         {
             "option": "render-mode",
             "section": _("Graphics"),
             "label": _("Render mode"),
             "type": "choice",
             "choices": [
-                ("hercGreen", "hercGreen"),
-                ("hercAmber", "hercAmber"),
-                ("cga", "cga"),
-                ("ega", "ega"),
-                ("vga", "vga"),
-                ("amiga", "amiga"),
-                ("fmtowns", "fmtowns"),
-                ("pc9821", "pc9821"),
-                ("pc9801", "pc9801"),
-                ("2gs", "2gs"),
-                ("atari", "atari"),
-                ("macintosh", "macintosh"),
+                (_("Auto"), ""),
+                (_("Hercules (Green)"), "hercGreen"),
+                (_("Hercules (Amber)"), "hercAmber"),
+                (_("CGA"), "cga"),
+                (_("EGA"), "ega"),
+                (_("VGA"), "vga"),
+                (_("Amiga"), "amiga"),
+                (_("FM Towns"), "fmtowns"),
+                (_("PC-9821"), "pc9821"),
+                (_("PC-9801"), "pc9801"),
+                (_("Apple IIgs"), "2gs"),
+                (_("Atari ST"), "atari"),
+                (_("Macintosh"), "macintosh"),
             ],
+            "default": "",
             "advanced": True,
-            "help": _("Changes how the game is rendered."),
+            "help": _("Changes the graphics hardware the game will target, if the game supports this."),
+        },
+        {
+            "option": "stretch-mode",
+            "section": _("Graphics"),
+            "label": _("Stretch mode"),
+            "type": "choice",
+            "choices": [
+                (_("Auto"), ""),
+                (_("Center"), "center"),
+                (_("Pixel Perfect"), "pixel-perfect"),
+                (_("Even Pixels"), "even-pixels"),
+                (_("Stretch"), "stretch"),
+                (_("Fit"), "fit"),
+                (_("Fit (force aspect ratio)"), "fit_force_aspect"),
+            ],
+            "default": "",
+            "advanced": True,
+            "help": _("Changes how the game is placed when the window is resized."),
         },
         {
             "option": "filtering",

@@ -11,7 +11,6 @@ IGNORED_PROCESSES = (
 
 
 class InvalidPid(Exception):
-
     """Exception raised when an operation on a non-existent PID is called"""
 
 
@@ -22,7 +21,6 @@ class Process:
     def __init__(self, pid):
         try:
             self.pid = int(pid)
-            self.error_cache = []
         except ValueError as err:
             raise InvalidPid("'%s' is not a valid pid" % pid) from err
 
@@ -37,9 +35,12 @@ class Process:
         try:
             with open(file_path, encoding='utf-8') as proc_file:
                 content = proc_file.read()
-        except (ProcessLookupError, FileNotFoundError, PermissionError):
+        except PermissionError:
             return ""
-        return content
+        except (ProcessLookupError, FileNotFoundError) as ex:
+            logger.debug(ex)
+            return ""
+        return content.strip("\x00")
 
     def get_stat(self, parsed=True):
         stat_filename = "/proc/{}/stat".format(self.pid)
@@ -112,15 +113,9 @@ class Process:
         """Return the process' environment variables"""
         environ_path = "/proc/{}/environ".format(self.pid)
         _environ_text = self._read_content(environ_path)
-        if not _environ_text:
+        if not _environ_text or "=" not in _environ_text:
             return {}
-        try:
-            return dict([line.split("=", 1) for line in _environ_text.split("\x00") if line])
-        except ValueError:
-            if environ_path not in self.error_cache:
-                logger.error("Failed to parse environment variables: %s", _environ_text)
-                self.error_cache.append(environ_path)
-            return {}
+        return dict([line.split("=", 1) for line in _environ_text.split("\x00") if line])
 
     @property
     def children(self):

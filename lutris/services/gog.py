@@ -89,8 +89,6 @@ class GOGService(OnlineService):
     token_path = os.path.join(settings.CACHE_DIR, ".gog.token")
     cache_path = os.path.join(settings.CACHE_DIR, "gog-library.json")
 
-    is_loading = False
-
     def __init__(self):
         super().__init__()
 
@@ -132,18 +130,13 @@ class GOGService(OnlineService):
 
     def load(self):
         """Load the user game library from the GOG API"""
-        if self.is_loading:
-            logger.warning("GOG games are already loading")
-            return
         if not self.is_connected():
             logger.error("User not connected to GOG")
             return
-        self.is_loading = True
         games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
         for game in games:
             game.save()
         self.match_games()
-        self.is_loading = False
         return games
 
     def login_callback(self, url):
@@ -647,3 +640,11 @@ class GOGService(OnlineService):
             }
             patch_installers.append(installer)
         return patch_installers
+
+    def get_game_platforms(self, db_game):
+        details = db_game.get("details")
+        if details:
+            worksOn = json.loads(details).get("worksOn")
+            if worksOn is not None:
+                return [name for name, works in worksOn.items() if works]
+        return None

@@ -6,40 +6,44 @@ from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util.linux import gather_system_info_str
 
 
-class SysInfoBox(Gtk.Fixed):
+class SysInfoBox(Gtk.Box):
     settings_options = {
         "hide_client_on_game_start": _("Minimize client when a game is launched"),
         "hide_text_under_icons": _("Hide text under icons"),
+        "hide_badges_on_icons": _("Hide badges on icons"),
         "show_tray_icon": _("Show Tray Icon"),
     }
 
     def __init__(self):
-        super().__init__(visible=True)
-        self.set_margin_top(40)
-        self.set_margin_right(30)
-        self.set_margin_left(30)
+        super().__init__(
+            orientation=Gtk.Orientation.VERTICAL,
+            visible=True,
+            spacing=6,
+            margin_top=40,
+            margin_bottom=40,
+            margin_right=100,
+            margin_left=100)
 
         self._clipboard_buffer = None
 
         sysinfo_frame = Gtk.Frame(visible=True)
-        sysinfo_frame.set_size_request(550, 455)
         scrolled_window = Gtk.ScrolledWindow(visible=True)
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
 
-        self.sysinfo_view = LogTextView(autoscroll=False)
+        self.sysinfo_view = LogTextView(autoscroll=False, wrap_mode=Gtk.WrapMode.NONE)
         self.sysinfo_view.set_cursor_visible(False)
         scrolled_window.add(self.sysinfo_view)
         sysinfo_frame.add(scrolled_window)
 
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
 
-        button_copy = Gtk.Button(_("Copy to clipboard"), visible=True)
+        button_copy = Gtk.Button(_("Copy to clipboard"), halign=Gtk.Align.START, visible=True)
         button_copy.connect("clicked", self._copy_text)
-        sysinfo_label = Gtk.Label(visible=True)
+        sysinfo_label = Gtk.Label(halign=Gtk.Align.START, visible=True)
         sysinfo_label.set_markup(_("<b>System information</b>"))
-        self.put(sysinfo_label, 60, 0)
-        self.put(sysinfo_frame, 60, 24)
-        self.put(button_copy, 60, 486)
+        self.pack_start(sysinfo_label, False, False, 0)  # 60, 0)
+        self.pack_start(sysinfo_frame, True, True, 0)  # 60, 24)
+        self.pack_start(button_copy, False, False, 0)  # 60, 486)
 
     def populate(self):
         sysinfo_str = gather_system_info_str()

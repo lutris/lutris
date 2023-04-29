@@ -226,7 +226,7 @@ class Message:
         elif wire_type == 5:
             data = stream.read(4)
         else:
-            raise Exception("unknown wire type (%d)" % wire_type)
+            raise TypeError("unknown wire type (%d)" % wire_type)
         return (field_number, wire_type, data)
 
     def lookup_id(self, _id):
@@ -250,7 +250,7 @@ class Message:
                 value = field_type()
                 value.decode(data)
             else:
-                raise Exception("field type must be a subclass of PrimativeType or Message")
+                raise TypeError("field type must be a subclass of PrimativeType or Message")
 
             if field_multiplicity == "repeated":
                 if getattr(self, field_name) is None:

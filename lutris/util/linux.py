@@ -496,7 +496,13 @@ def gather_system_info_str():
         graphics_dict["Vendor"] = "Unable to obtain glxinfo"
     # check Vulkan support
     if vkquery.is_vulkan_supported():
-        graphics_dict["Vulkan"] = "Supported"
+        graphics_dict["Vulkan Version"] = vkquery.format_version(vkquery.get_vulkan_api_version())
+
+        graphics_dict["Vulkan Drivers"] = ", ".join({
+            "%s (%s)" % (name, vkquery.format_version(version))
+            for name, version
+            in vkquery.get_device_info()
+        })
     else:
         graphics_dict["Vulkan"] = "Not Supported"
     system_info_readable["Graphics"] = graphics_dict

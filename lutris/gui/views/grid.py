@@ -2,9 +2,10 @@
 # pylint: disable=no-member
 from gi.repository import Gtk
 
-from lutris.gui.views import COL_ICON, COL_NAME
+from lutris import settings
+from lutris.gui.views import COL_INSTALLED, COL_MEDIA_PATH, COL_NAME, COL_PLATFORM
 from lutris.gui.views.base import GameView
-from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
+from lutris.gui.widgets.cellrenderers import GridViewCellRendererImage, GridViewCellRendererText
 from lutris.util.log import logger
 
 
@@ -18,7 +19,14 @@ class GameGridView(Gtk.IconView, GameView):
         GameView.__init__(self, store.service)
 
         self.set_column_spacing(6)
-        self.set_pixbuf_column(COL_ICON)
+        self._show_badges = True
+
+        if settings.SHOW_MEDIA:
+            self.image_renderer = GridViewCellRendererImage()
+            self.pack_start(self.image_renderer, False)
+            self._initialize_image_renderer_attributes()
+        else:
+            self.image_renderer = None
         self.set_item_padding(1)
         if hide_text:
             self.cell_renderer = None
@@ -39,9 +47,36 @@ class GameGridView(Gtk.IconView, GameView):
         self.model = game_store.store
         self.set_model(self.model)
 
+        size = game_store.service_media.size
+
+        if self.image_renderer:
+            self.image_renderer.media_width = size[0]
+            self.image_renderer.media_height = size[1]
+
         if self.cell_renderer:
-            cell_width = max(game_store.service_media.size[0], self.min_width)
+            cell_width = max(size[0], self.min_width)
             self.cell_renderer.set_width(cell_width)
+
+    @property
+    def show_badges(self):
+        return self._show_badges
+
+    @show_badges.setter
+    def show_badges(self, value):
+        if self._show_badges != value:
+            self._show_badges = value
+            self._initialize_image_renderer_attributes()
+            self.queue_draw()
+
+    def _initialize_image_renderer_attributes(self):
+        if self.image_renderer:
+            self.clear_attributes(self.image_renderer)
+            self.add_attribute(self.image_renderer, "media_path", COL_MEDIA_PATH)
+            if self.show_badges:
+                self.add_attribute(self.image_renderer, "platform", COL_PLATFORM)
+            else:
+                self.image_renderer.platform = None
+            self.add_attribute(self.image_renderer, "is_installed", COL_INSTALLED)
 
     def select(self):
         self.select_path(self.current_path)

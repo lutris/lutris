@@ -1,7 +1,5 @@
 from gi.repository import Gtk
 
-from lutris import runners
-
 
 class ContextualMenu(Gtk.Menu):
     def __init__(self, main_entries):
@@ -29,10 +27,12 @@ class ContextualMenu(Gtk.Menu):
     def get_runner_entries(self, game):
         if not game:
             return None
-        try:
-            runner = runners.import_runner(game.runner_name)(game.config)
-        except runners.InvalidRunner:
+
+        runner = game.runner
+
+        if not runner:
             return None
+
         return runner.context_menu_entries
 
     def popup(self, event, game_actions, game=None, service=None):
