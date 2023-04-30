@@ -11,7 +11,7 @@ class pcsx2(Runner):
     description = _("PlayStation 2 emulator")
     platforms = [_("Sony PlayStation 2")]
     runnable_alone = True
-    runner_executable = "pcsx2/pcsx2-qt"
+    runner_executable = "pcsx2/PCSX2"
     game_options = [{
         "option": "main_file",
         "type": "file",
