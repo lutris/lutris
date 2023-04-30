@@ -39,6 +39,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._is_installed = True
         self.cached_surfaces_new = {}
         self.cached_surfaces_old = {}
+        self.cached_surfaces_loaded = 0
         self.cycle_cache_idle_id = None
         self.cached_surface_generation = 0
 
@@ -215,9 +216,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
         We call this at idle time after rendering a cell; this should keep all the surfaces
         rendered at that time, so during scrolling the visible media are kept and scrolling is smooth.
-        At other times we may discard almost all surfaces, saving memory."""
-        self.cached_surfaces_old = self.cached_surfaces_new
-        self.cached_surfaces_new = {}
+        At other times we may discard almost all surfaces, saving memory.
+
+        We skip clearing anything if no surfaces have been loaded; this happens if drawing was
+        serviced entirely from cache. GTK may have redrawn just one image or something, so
+        let's not disturb the cache for that."""
+        if self.cached_surfaces_loaded > 0:
+            self.cached_surfaces_old = self.cached_surfaces_new
+            self.cached_surfaces_new = {}
+            self.cached_surfaces_loaded = 0
         self.cycle_cache_idle_id = None
 
     def get_cached_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
@@ -239,6 +246,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
         if not surface:
             surface = self.get_surface_by_path(widget, path, size, preserve_aspect_ratio)
+            if surface:
+                self.cached_surfaces_loaded += 1
 
         self.cached_surfaces_new[key] = surface
         return surface
