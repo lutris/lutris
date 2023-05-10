@@ -20,11 +20,12 @@ from lutris.runtime import RuntimeUpdater
 from lutris.scanners.lutris import build_path_cache
 from lutris.services import DEFAULT_SERVICES
 from lutris.services.lutris import sync_media
+from lutris.util.display import USE_DRI_PRIME
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.steam.shortcut import update_all_artwork
-from lutris.util.system import create_folder
+from lutris.util.system import create_folder, preload_vulkan_gpu_names
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION, DXVKManager
@@ -219,6 +220,7 @@ def run_all_checks():
     check_libs()
     check_vulkan()
     check_gnome()
+    preload_vulkan_gpu_names(USE_DRI_PRIME)
     fill_missing_platforms()
     build_path_cache()
 
