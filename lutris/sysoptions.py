@@ -117,7 +117,7 @@ def get_vulkan_gpu(icd_files, prime):
         subprocess_env["DRI_PRIME"] = "1"
 
     infocmd = "vulkaninfo --summary | grep deviceName | head -n 1 | tr -s '[:blank:]' | cut -d ' ' -f 3-"
-    with subprocess.Popen(infocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    with subprocess.Popen(infocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                           env=subprocess_env) as infoget:
         result = infoget.communicate()[0].decode("utf-8").strip()
     if "Failed to detect any valid GPUs" in result or "ERROR: [Loader Message]" in result:
