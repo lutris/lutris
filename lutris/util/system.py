@@ -575,7 +575,7 @@ def preload_vulkan_gpu_names(use_dri_prime):
             # ignore any errors from get_vulkan_gpu_name
             AsyncCall(get_vulkan_gpu_name, None, files, use_dri_prime, daemon=True)
     except Exception as ex:
-        logger.exception("Failed to preload Vulkan GPU Names: %s", str(ex))
+        logger.exception("Failed to preload Vulkan GPU Names: %s", ex)
 
 
 # cache this to avoid calling vulkaninfo repeatedly, shouldn't change at runtime

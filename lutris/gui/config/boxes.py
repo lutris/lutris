@@ -84,103 +84,106 @@ class ConfigBox(VBox):
 
         # Go thru all options.
         for option in self.options:
-            if "scope" in option:
-                if self.config_section not in option["scope"]:
-                    continue
-            option_key = option["option"]
-            value = self.config.get(option_key)
+            try:
+                if "scope" in option:
+                    if self.config_section not in option["scope"]:
+                        continue
+                option_key = option["option"]
+                value = self.config.get(option_key)
 
-            if callable(option.get("choices")) and option["type"] != "choice_with_search":
-                option["choices"] = option["choices"]()
-            if callable(option.get("condition")):
-                option["condition"] = option["condition"]()
+                if callable(option.get("choices")) and option["type"] != "choice_with_search":
+                    option["choices"] = option["choices"]()
+                if callable(option.get("condition")):
+                    option["condition"] = option["condition"]()
 
-            if option.get("section") != current_section:
-                current_section = option.get("section")
-                if current_section:
-                    frame = ConfigBox.SectionFrame(current_section)
-                    current_vbox = frame.vbox
-                    self.pack_start(frame, False, False, 0)
-                else:
-                    current_vbox = self
+                if option.get("section") != current_section:
+                    current_section = option.get("section")
+                    if current_section:
+                        frame = ConfigBox.SectionFrame(current_section)
+                        current_vbox = frame.vbox
+                        self.pack_start(frame, False, False, 0)
+                    else:
+                        current_vbox = self
 
-            self.wrapper = Gtk.Box()
-            self.wrapper.set_spacing(12)
-            self.wrapper.set_margin_bottom(6)
-            self.wrappers[option_key] = self.wrapper
+                self.wrapper = Gtk.Box()
+                self.wrapper.set_spacing(12)
+                self.wrapper.set_margin_bottom(6)
+                self.wrappers[option_key] = self.wrapper
 
-            # Set tooltip's "Default" part
-            default = option.get("default")
-            self.tooltip_default = default if isinstance(default, str) else None
+                # Set tooltip's "Default" part
+                default = option.get("default")
+                self.tooltip_default = default if isinstance(default, str) else None
 
-            # Generate option widget
-            self.option_widget = None
-            self.call_widget_generator(option, option_key, value, default)
+                # Generate option widget
+                self.option_widget = None
+                self.call_widget_generator(option, option_key, value, default)
 
-            # Reset button
-            reset_btn = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
-            reset_btn.set_valign(Gtk.Align.CENTER)
-            reset_btn.set_margin_bottom(6)
-            reset_btn.set_relief(Gtk.ReliefStyle.NONE)
-            reset_btn.set_tooltip_text(_("Reset option to global or default config"))
-            reset_btn.connect(
-                "clicked",
-                self.on_reset_button_clicked,
-                option,
-                self.option_widget,
-                self.wrapper,
-            )
-            self.reset_buttons[option_key] = reset_btn
-
-            placeholder = Gtk.Box()
-            placeholder.set_size_request(32, 32)
-
-            if option_key not in self.raw_config:
-                reset_btn.set_visible(False)
-                reset_btn.set_no_show_all(True)
-            placeholder.pack_start(reset_btn, False, False, 0)
-
-            # Tooltip
-            helptext = option.get("help")
-            if isinstance(self.tooltip_default, str):
-                helptext = helptext + "\n\n" if helptext else ""
-                helptext += _("<b>Default</b>: ") + _(self.tooltip_default)
-            if value != default and option_key not in self.raw_config:
-                helptext = helptext + "\n\n" if helptext else ""
-                helptext += _(
-                    "<i>(Italic indicates that this option is "
-                    "modified in a lower configuration level.)</i>"
+                # Reset button
+                reset_btn = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
+                reset_btn.set_valign(Gtk.Align.CENTER)
+                reset_btn.set_margin_bottom(6)
+                reset_btn.set_relief(Gtk.ReliefStyle.NONE)
+                reset_btn.set_tooltip_text(_("Reset option to global or default config"))
+                reset_btn.connect(
+                    "clicked",
+                    self.on_reset_button_clicked,
+                    option,
+                    self.option_widget,
+                    self.wrapper,
                 )
-            if helptext:
-                self.wrapper.props.has_tooltip = True
-                self.wrapper.connect("query-tooltip", self.on_query_tooltip, helptext)
+                self.reset_buttons[option_key] = reset_btn
 
-            hbox = Gtk.Box(visible=True)
-            option_container = hbox
-            hbox.set_margin_left(18)
-            hbox.pack_end(placeholder, False, False, 5)
-            # Grey out option if condition unmet
-            if "condition" in option and not option["condition"]:
-                hbox.set_sensitive(False)
+                placeholder = Gtk.Box()
+                placeholder.set_size_request(32, 32)
 
-            hbox.pack_start(self.wrapper, True, True, 0)
+                if option_key not in self.raw_config:
+                    reset_btn.set_visible(False)
+                    reset_btn.set_no_show_all(True)
+                placeholder.pack_start(reset_btn, False, False, 0)
 
-            if "warning" in option:
-                option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
-                option_container.pack_start(hbox, False, False, 0)
-                warning = ConfigBox.WarningBox(option["warning"])
-                warning.set_margin_left(18)
-                warning.set_margin_right(18)
-                warning.set_margin_bottom(6)
-                warning.update_warning(self.config)
-                self.warning_boxes[option_key] = warning
-                option_container.pack_start(warning, False, False, 0)
+                # Tooltip
+                helptext = option.get("help")
+                if isinstance(self.tooltip_default, str):
+                    helptext = helptext + "\n\n" if helptext else ""
+                    helptext += _("<b>Default</b>: ") + _(self.tooltip_default)
+                if value != default and option_key not in self.raw_config:
+                    helptext = helptext + "\n\n" if helptext else ""
+                    helptext += _(
+                        "<i>(Italic indicates that this option is "
+                        "modified in a lower configuration level.)</i>"
+                    )
+                if helptext:
+                    self.wrapper.props.has_tooltip = True
+                    self.wrapper.connect("query-tooltip", self.on_query_tooltip, helptext)
 
-            # Hide if advanced
-            if option.get("advanced"):
-                option_container.get_style_context().add_class("advanced")
+                hbox = Gtk.Box(visible=True)
+                option_container = hbox
+                hbox.set_margin_left(18)
+                hbox.pack_end(placeholder, False, False, 5)
+                # Grey out option if condition unmet
+                if "condition" in option and not option["condition"]:
+                    hbox.set_sensitive(False)
 
-            current_vbox.pack_start(option_container, False, False, 0)
+                hbox.pack_start(self.wrapper, True, True, 0)
+
+                if "warning" in option:
+                    option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+                    option_container.pack_start(hbox, False, False, 0)
+                    warning = ConfigBox.WarningBox(option["warning"])
+                    warning.set_margin_left(18)
+                    warning.set_margin_right(18)
+                    warning.set_margin_bottom(6)
+                    warning.update_warning(self.config)
+                    self.warning_boxes[option_key] = warning
+                    option_container.pack_start(warning, False, False, 0)
+
+                # Hide if advanced
+                if option.get("advanced"):
+                    option_container.get_style_context().add_class("advanced")
+
+                current_vbox.pack_start(option_container, False, False, 0)
+            except Exception as ex:
+                logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
         self.show_all()
 
         show_advanced = settings.read_setting("show_advanced_options") == "True"
