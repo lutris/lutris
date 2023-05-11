@@ -35,7 +35,7 @@ class GridViewCellRendererText(Gtk.CellRendererText):
         self.cached_width.clear()
 
     def do_get_preferred_width(self, widget):
-        text = self.props.text
+        text = self.props.text  # pylint:disable=no-member
         if self.fixed_width and text in self.cached_width:
             return self.cached_width[text]
 
@@ -47,7 +47,7 @@ class GridViewCellRendererText(Gtk.CellRendererText):
         return width
 
     def do_get_preferred_width_for_height(self, widget, width):
-        text = self.props.text
+        text = self.props.text  # pylint:disable=no-member
         if self.fixed_width and text in self.cached_width:
             return self.cached_width[text]
 
@@ -59,7 +59,7 @@ class GridViewCellRendererText(Gtk.CellRendererText):
         return width
 
     def do_get_preferred_height(self, widget):
-        text = self.props.text
+        text = self.props.text  # pylint:disable=no-member
         if self.fixed_width and text in self.cached_height:
             return self.cached_height[text]
 
@@ -71,7 +71,7 @@ class GridViewCellRendererText(Gtk.CellRendererText):
         return height
 
     def do_get_preferred_height_for_width(self, widget, width):
-        text = self.props.text
+        text = self.props.text  # pylint:disable=no-member
         if self.fixed_width and text in self.cached_height:
             return self.cached_height[text]
 

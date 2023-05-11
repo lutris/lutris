@@ -120,7 +120,7 @@ class dosbox(Runner):
     @property
     def main_file(self):
         return self.make_absolute(self.game_config.get("main_file"))
-        
+
     @property
     def libs_dir(self):
         path = os.path.join(settings.RUNNER_DIR, "dosbox/lib")
@@ -129,15 +129,15 @@ class dosbox(Runner):
     def get_command(self):
         return [
             self.get_executable(),
-               ]
-                       
+        ]
+
     def get_run_data(self):
         env = self.get_env()
         env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
             self.libs_dir,
             env.get("LD_LIBRARY_PATH")]))
-        return {"env": env, "command": self.get_command()}    
-    
+        return {"env": env, "command": self.get_command()}
+
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""

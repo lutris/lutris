@@ -60,9 +60,10 @@ def _get_dxvk_version_warning(config):
             devices = vkquery.get_device_info()
 
             if devices and devices[0].api_version < required_api_version:
-                return _("<b>Warning</b> Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
-                         "but to use the latest DXVK version, %s is required."
-                         ) % (
+                return _(
+                    "<b>Warning</b> Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
+                    "but to use the latest DXVK version, %s is required."
+                ) % (
                     devices[0].name,
                     vkquery.format_version(devices[0].api_version),
                     vkquery.format_version(required_api_version)
