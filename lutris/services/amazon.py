@@ -532,11 +532,13 @@ class AmazonService(OnlineService):
                 hashes.append(file_hash)
                 files.append({"path": file.path.decode().replace("\\", "/"), "size": file.size, "url": None})
 
-                hashpairs.append(dict(
-                    sourceHash=None,
-                    targetHash=dict(value=file_hash,
-                                    algorithm=HashAlgorithm.get_name(file.hash.algorithm)),
-                ))
+                hashpairs.append({
+                    'sourceHash': None,
+                    'targetHash': {
+                        'value': file_hash,
+                        'algorithm': HashAlgorithm.get_name(file.hash.algorithm)
+                    }
+                })
             for __, directory in enumerate(package.dirs):
                 if directory.path is not None:
                     directories.append(directory.path.decode().replace("\\", "/"))

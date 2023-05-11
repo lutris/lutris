@@ -3,11 +3,11 @@ import os
 import shlex
 from gettext import gettext as _
 
+from lutris import settings
 # Lutris Modules
 from lutris.runners.commands.dosbox import dosexec, makeconfig  # NOQA pylint: disable=unused-import
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris import settings
 
 
 class dosbox(Runner):

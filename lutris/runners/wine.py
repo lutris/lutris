@@ -4,8 +4,6 @@ import os
 import shlex
 from gettext import gettext as _
 
-from lutris.util.graphics import vkquery
-
 from lutris import runtime, settings
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
@@ -15,12 +13,13 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
+from lutris.util.graphics import vkquery
 from lutris.util.log import logger
 from lutris.util.steam.config import get_steam_dir
 from lutris.util.strings import parse_version, split_arguments
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
-from lutris.util.wine.dxvk import DXVKManager, REQUIRED_VULKAN_API_VERSION
+from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION, DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, ExtractIcon
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
