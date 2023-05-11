@@ -817,10 +817,11 @@ class wine(Runner):
             explicit_dpi = self.runner_config.get("ExplicitDpi")
             if explicit_dpi == "auto":
                 explicit_dpi = None
-            try:
-                explicit_dpi = int(explicit_dpi)
-            except:
-                explicit_dpi = None
+            else:
+                try:
+                    explicit_dpi = int(explicit_dpi)
+                except:
+                    explicit_dpi = None
             return explicit_dpi or get_default_dpi()
 
         return None
