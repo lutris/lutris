@@ -38,10 +38,13 @@ def get_default_dpi():
     """Computes the DPI to use for the primary monitor
     which we pass to WINE."""
     display = Gdk.Display.get_default()
-    monitor = display.get_primary_monitor()
-    scale = monitor.get_scale_factor()
-    dpi = 96 * scale
-    return int(dpi)
+    if display:
+        monitor = display.get_primary_monitor()
+        if monitor:
+            scale = monitor.get_scale_factor()
+            dpi = 96 * scale
+            return int(dpi)
+    return 96
 
 
 def restore_gamma():
