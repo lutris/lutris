@@ -25,7 +25,7 @@ lutris (0.5.13) jammy; urgency=medium
   * Improved High-DPI support for custom media
   * Performance improvements
 
- -- Mathieu Comandon <strider@strycore.com>  Fri, 10 Feb 2023 13:15:40 -0800
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Fri, 10 Feb 2023 13:15:40 -0800
 
 lutris (0.5.12) jammy; urgency=medium
 
