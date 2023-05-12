@@ -176,7 +176,10 @@ def remove_from_path_cache(game):
 def get_path_cache():
     """Return the contents of the path cache file"""
     with open(GAME_PATH_CACHE_PATH, encoding="utf-8") as cache_file:
-        return json.load(cache_file)
+        try:
+            return json.load(cache_file)
+        except json.JSONDecodeError:
+            return {}
 
 
 def get_missing_game_ids():
