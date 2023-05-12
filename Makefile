@@ -39,6 +39,9 @@ github-ppa:
 		-p"gpg --batch --passphrase "${PPA_GPG_PASSPHRASE}" --pinentry-mode loopback" \
 		--lintian-opts --suppress-tags malformed-debian-changelog-version
 
+build-deps-ubuntu:
+	sudo apt install devscripts debhelper dh-python meson
+
 build:
 	gbp buildpackage --git-debian-branch=${GITBRANCH}
 
