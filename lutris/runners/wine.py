@@ -574,14 +574,26 @@ class wine(Runner):
 
     @property
     def prefix_path(self):
-        """Return the absolute path of the Wine prefix"""
+        """Return the absolute path of the Wine prefix. Falls back to default WINE prefix."""
+        _prefix_path = self._get_raw_prefix_path()
+        if not _prefix_path:
+            logger.warning("No WINE prefix provided, falling back to system default WINE prefix.")
+            _prefix_path = DEFAULT_WINE_PREFIX
+        return os.path.expanduser(_prefix_path)
+
+    @property
+    def prefix_path_if_provided(self):
+        """Return the absolute path of the Wine prefix, if known. None if not."""
+        _prefix_path = self._get_raw_prefix_path()
+        if _prefix_path:
+            return os.path.expanduser(_prefix_path)
+
+    def _get_raw_prefix_path(self):
         _prefix_path = self.game_config.get("prefix") or os.environ.get("WINEPREFIX")
         if not _prefix_path and self.game_config.get("exe"):
             # Find prefix from game if we have one
             _prefix_path = find_prefix(self.game_exe)
-        if not _prefix_path:
-            _prefix_path = DEFAULT_WINE_PREFIX
-        return os.path.expanduser(_prefix_path)
+        return _prefix_path
 
     @property
     def game_exe(self):
@@ -824,35 +836,37 @@ class wine(Runner):
 
     def set_regedit_keys(self):
         """Reset regedit keys according to config."""
-        prefix_manager = WinePrefixManager(self.prefix_path)
-        # Those options are directly changed with the prefix manager and skip
-        # any calls to regedit.
-        managed_keys = {
-            "ShowCrashDialog": prefix_manager.set_crash_dialogs,
-            "Desktop": prefix_manager.set_virtual_desktop,
-            "WineDesktop": prefix_manager.set_desktop_size,
-        }
+        prefix = self.prefix_path_if_provided
+        if prefix:
+            prefix_manager = WinePrefixManager(prefix)
+            # Those options are directly changed with the prefix manager and skip
+            # any calls to regedit.
+            managed_keys = {
+                "ShowCrashDialog": prefix_manager.set_crash_dialogs,
+                "Desktop": prefix_manager.set_virtual_desktop,
+                "WineDesktop": prefix_manager.set_desktop_size,
+            }
 
-        for key, path in self.reg_keys.items():
-            value = self.runner_config.get(key) or "auto"
-            if not value or value == "auto" and key not in managed_keys:
-                prefix_manager.clear_registry_subkeys(path, key)
-            elif key in self.runner_config:
-                if key in managed_keys:
-                    # Do not pass fallback 'auto' value to managed keys
-                    if value == "auto":
-                        value = None
-                    managed_keys[key](value)
-                    continue
-                # Convert numeric strings to integers so they are saved as dword
-                if value.isdigit():
-                    value = int(value)
+            for key, path in self.reg_keys.items():
+                value = self.runner_config.get(key) or "auto"
+                if not value or value == "auto" and key not in managed_keys:
+                    prefix_manager.clear_registry_subkeys(path, key)
+                elif key in self.runner_config:
+                    if key in managed_keys:
+                        # Do not pass fallback 'auto' value to managed keys
+                        if value == "auto":
+                            value = None
+                        managed_keys[key](value)
+                        continue
+                    # Convert numeric strings to integers so they are saved as dword
+                    if value.isdigit():
+                        value = int(value)
 
-                prefix_manager.set_registry_key(path, key, value)
+                    prefix_manager.set_registry_key(path, key, value)
 
-        # We always configure the DPI, because if the user turns off DPI scaling, but it
-        # had been on the only way to implement that is to save 96 DPI into the registry.
-        prefix_manager.set_dpi(self.get_dpi())
+            # We always configure the DPI, because if the user turns off DPI scaling, but it
+            # had been on the only way to implement that is to save 96 DPI into the registry.
+            prefix_manager.set_dpi(self.get_dpi())
 
     def get_dpi(self):
         """Return the DPI to be used by Wine; returns None to allow Wine's own
@@ -898,17 +912,19 @@ class wine(Runner):
         ]
 
         managers = {}
+        prefix = self.prefix_path_if_provided
 
-        for manager_class, enabled_option, version_option in manager_classes:
-            enabled = bool(self.runner_config.get(enabled_option))
-            version = self.runner_config.get(version_option)
-            if enabled or not enabled_only:
-                manager = manager_class(
-                    self.prefix_path,
-                    arch=self.wine_arch,
-                    version=version
-                )
-                managers[manager] = enabled
+        if prefix:
+            for manager_class, enabled_option, version_option in manager_classes:
+                enabled = bool(self.runner_config.get(enabled_option))
+                version = self.runner_config.get(version_option)
+                if enabled or not enabled_only:
+                    manager = manager_class(
+                        prefix,
+                        arch=self.wine_arch,
+                        version=version
+                    )
+                    managers[manager] = enabled
 
         return managers
 
