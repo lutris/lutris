@@ -892,15 +892,17 @@ class wine(Runner):
             logger.warning("No valid prefix detected in %s, creating one...", self.prefix_path)
             create_prefix(self.prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
 
-        prefix_manager = WinePrefixManager(self.prefix_path)
-        if self.runner_config.get("autoconf_joypad", False):
-            prefix_manager.configure_joypads()
-        prefix_manager.create_user_symlinks()
-        self.sandbox(prefix_manager)
-        self.set_regedit_keys()
+        prefix = self.prefix_path_if_provided
+        if prefix:
+            prefix_manager = WinePrefixManager(prefix)
+            if self.runner_config.get("autoconf_joypad", False):
+                prefix_manager.configure_joypads()
+            prefix_manager.create_user_symlinks()
+            self.sandbox(prefix_manager)
+            self.set_regedit_keys()
 
-        for manager, enabled in self.get_dll_managers().items():
-            manager.setup(enabled)
+            for manager, enabled in self.get_dll_managers().items():
+                manager.setup(enabled)
 
     def get_dll_managers(self, enabled_only=False):
         """Returns the DLL managers in a dict; the keys are the managers themselves,
