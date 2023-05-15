@@ -188,6 +188,7 @@ def get_path_cache():
 
 def get_missing_game_ids():
     """Return a list of IDs for games that can't be found"""
+    logger.debug("Checking for missing games")
     missing_ids = []
     for game_id, path in get_path_cache().items():
         if not os.path.exists(path):
