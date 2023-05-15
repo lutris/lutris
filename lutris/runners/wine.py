@@ -35,6 +35,13 @@ DEFAULT_WINE_PREFIX = "~/.wine"
 MIN_SAFE_VERSION = "7.0"  # Wine installers must run with at least this version
 
 
+def _get_prefix_warning(config):
+    if not config.get("prefix"):
+        return _("Some Wine configuration options cannot be applied without an explicit prefix.")
+
+    return None
+
+
 def _get_dxvk_warning(config):
     if config.get("dxvk") and not vkquery.is_vulkan_supported():
         return _("Vulkan is not installed or is not supported by your system")
@@ -168,6 +175,7 @@ class wine(Runner):
             "option": "prefix",
             "type": "directory_chooser",
             "label": _("Wine prefix"),
+            "warning": _get_prefix_warning,
             "help": _(
                 'The prefix used by Wine.\n'
                 "It's a directory containing a set of files and "
