@@ -74,7 +74,7 @@ if [[ -z $PPA_GPG_KEY_ID ]]; then
     PPA_GPG_KEY_ID=$(echo "${PPA_GPG_PRIVATE_KEY}" | gpg --import-options show-only --import | sed -n '2s/^\s*//p')
     export PPA_GPG_KEY_ID
     echo "${PPA_GPG_KEY_ID}"
-    echo "${PPA_GPG_PRIVATE_KEY}" | gpg --batch --passphrase "${PPA_GPG_PASSPHRASE}" --import
+    echo "${PPA_GPG_PRIVATE_KEY}" | gpg --batch --passphrase ${PPA_GPG_PASSPHRASE} --import
     echo "::endgroup::"
 
     # May as well since we don't need after at this point.
