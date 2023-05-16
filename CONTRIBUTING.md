@@ -1,6 +1,10 @@
 Contributing to Lutris
 ======================
 
+IMPORTANT!
+
+If you contribute to Lutris on a somewhat regular basis, be sure to add yourself to the AUTHORS file!
+
 Finding features to work on
 ---------------------------
 
@@ -19,9 +23,7 @@ issues](https://github.com/lutris/lutris/issues?q=is%3Aissue+is%3Aopen+label%3A%
 that can't be reproduced on the developers setup. Other issues, tagged [need
 help](https://github.com/lutris/lutris/issues?q=is%3Aissue+is%3Aopen+label%3A%22need+help%22)
 might be a bit more technical to resolve but you can always have a look and see
-if they fit your area of expertise. Also, while not fully ready, we do
-appreciate receiving translations for other languages, support for i18n will
-come in a future update.
+if they fit your area of expertise.
 
 Note that Lutris is not a playground or a toy project. One cannot submit new
 features that aren't on the roadmap and submit a pull request for them without

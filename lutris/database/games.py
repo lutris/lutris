@@ -247,6 +247,7 @@ def get_unusued_game_name(game_name):
 
     return assigned_name
 
+
 def get_game_count(param, value):
     res = sql.db_select(settings.PGA_DB, "games", fields=("COUNT(id)",), condition=(param, value))
     if res:
