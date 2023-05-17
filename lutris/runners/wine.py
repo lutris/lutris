@@ -36,10 +36,14 @@ MIN_SAFE_VERSION = "7.0"  # Wine installers must run with at least this version
 
 
 def _get_prefix_warning(config):
-    if not config.get("prefix"):
-        return _("Some Wine configuration options cannot be applied without an explicit prefix.")
+    if config.get("prefix"):
+        return None
 
-    return None
+    exe = config.get("exe")
+    if exe and find_prefix(exe):
+        return None
+
+    return _("Some Wine configuration options cannot be applied, if no prefix can be found.")
 
 
 def _get_dxvk_warning(config):

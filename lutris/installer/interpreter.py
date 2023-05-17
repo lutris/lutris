@@ -228,6 +228,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                     _("Path %s not found, unable to create game folder. Is the disk mounted?"),
                     self.target_path,
                 ) from err
+
     def get_runners_to_install(self):
         """Check if the runner is installed before starting the installation
         Install the required runner(s) if necessary. This should handle runner

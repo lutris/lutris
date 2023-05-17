@@ -203,10 +203,14 @@ class ConfigBox(VBox):
             self.pack_start(self.warning_label, False, False, 0)
 
         def update_warning(self, config):
-            if callable(self.warning):
-                text = self.warning(config)
-            else:
-                text = self.warning
+            try:
+                if callable(self.warning):
+                    text = self.warning(config)
+                else:
+                    text = self.warning
+            except Exception as err:
+                logger.exception("Unable to generate configuration warning: %s", err)
+                text = str(err)
 
             if text:
                 self.warning_label.set_markup(str(text))
