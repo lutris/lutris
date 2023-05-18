@@ -120,7 +120,10 @@ def get_runner_human_name(runner_name):
     names."""
     if runner_name:
         if runner_name not in _cached_runner_human_names:
-            _cached_runner_human_names[runner_name] = import_runner(runner_name)().human_name
+            try:
+                _cached_runner_human_names[runner_name] = import_runner(runner_name)().human_name
+            except InvalidRunner:
+                _cached_runner_human_names[runner_name] = runner_name  # an obsolete runner
         return _cached_runner_human_names[runner_name]
 
     return ""
