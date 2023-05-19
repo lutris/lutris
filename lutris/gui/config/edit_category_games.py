@@ -19,7 +19,9 @@ class EditCategoryGamesDialog(GameDialogCommon):
 
         self.category = category['name']
         self.category_id = category['id']
-        self.avaiable_games = [Game(x['id']) for x in games_db.get_games(sorts=[("installed, name", "COLLATE NOCASE DESC")])]
+        self.avaiable_games = [Game(x['id']) for x in games_db.get_games(sorts=[("installed", "DESC"),
+                                                                                ("name", "COLLATE NOCASE ASC")
+                                                                                ])]
         self.category_games = [Game(x) for x in categories_db.get_game_ids_for_category(self.category)]
         self.grid = Gtk.Grid()
 
