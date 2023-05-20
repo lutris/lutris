@@ -18,6 +18,7 @@ addons:
       - libdbus-1-dev
       - python3-yaml
       - python3-gi
+      - python3-gi-cairo
       - python3-pil
       - python3-setproctitle
       - python3-distro
