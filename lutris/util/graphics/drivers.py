@@ -5,6 +5,7 @@ Everything in this module should rely on /proc or /sys only, no executable calls
 import contextlib
 import os
 import re
+from typing import Dict, Iterable, List
 
 from lutris.util.graphics.glxinfo import GlxInfo
 from lutris.util.log import logger
@@ -13,11 +14,11 @@ from lutris.util.system import read_process_output
 MIN_RECOMMENDED_NVIDIA_DRIVER = 415
 
 
-def get_nvidia_driver_info():
+def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
     """Return information about NVidia drivers"""
     version_file_path = "/proc/driver/nvidia/version"
     if not os.path.exists(version_file_path):
-        return
+        return {}
     with contextlib.suppress(OSError):
         with open(version_file_path, encoding="utf-8") as version_file:
             content = version_file.readlines()
@@ -46,15 +47,15 @@ def get_nvidia_driver_info():
     arch = read_process_output(["uname", "-m"])
     return {
         "nvrm": {
-            "vendor": glx_info.opengl_vendor,
+            "vendor": glx_info.opengl_vendor,  # type: ignore[attr-defined]
             "platform": platform,
             "arch": arch,
-            "version": glx_info.opengl_version.rsplit(maxsplit=1)[-1],
+            "version": glx_info.opengl_version.rsplit(maxsplit=1)[-1],  # type: ignore[attr-defined]
         }
     }
 
 
-def get_nvidia_gpu_ids():
+def get_nvidia_gpu_ids() -> List[str]:
     """Return the list of Nvidia GPUs"""
     with contextlib.suppress(OSError):
         return os.listdir("/proc/driver/nvidia/gpus")
@@ -65,7 +66,7 @@ def get_nvidia_gpu_ids():
     return [line.split(maxsplit=1)[0] for line in values]
 
 
-def get_nvidia_gpu_info(gpu_id):
+def get_nvidia_gpu_info(gpu_id: str) -> Dict[str, str]:
     """Return details about a GPU"""
     with contextlib.suppress(OSError):
         with open(
@@ -78,10 +79,16 @@ def get_nvidia_gpu_info(gpu_id):
             infos[key] = value.strip()
         return infos
     lspci_data = read_process_output(["lspci", "-v", "-s", gpu_id])
+    model_info = re.search(r"NVIDIA Corporation \w+ \[(.+?)\]", lspci_data)
+    if model_info:
+        model = model_info.group(1)
+    irq_info = re.search("IRQ ([0-9]+)", lspci_data)
+    if irq_info:
+        irq = irq_info.group(1)
+
     info = {
-        "Model": "NVIDIA "
-        + re.search(r"NVIDIA Corporation \w+ \[(.+?)\]", lspci_data).group(1),
-        "IRQ": re.search("IRQ ([0-9]+)", lspci_data).group(1),
+        "Model": f"NVIDIA {model}",
+        "IRQ": irq,
         "Bus Location": gpu_id,
     }
     for line in lspci_data.splitlines():
@@ -92,7 +99,7 @@ def get_nvidia_gpu_info(gpu_id):
     return info
 
 
-def is_nvidia():
+def is_nvidia() -> bool:
     """Return true if the Nvidia drivers are currently in use"""
     with contextlib.suppress(OSError):
         return os.path.exists("/proc/driver/nvidia")
@@ -101,14 +108,14 @@ def is_nvidia():
             modules = f.read()
         return bool(re.search(r"^nvidia ", modules, flags=re.MULTILINE))
     glx_info = GlxInfo()
-    return "NVIDIA" in glx_info.opengl_vendor
+    return "NVIDIA" in glx_info.opengl_vendor  # type: ignore[attr-defined]
 
 
-def get_gpus():
+def get_gpus() -> Iterable[str]:
     """Return GPUs connected to the system"""
     if not os.path.exists("/sys/class/drm"):
         logger.error("No GPU available on this system!")
-        return
+        return []
     try:
         cardlist = os.listdir("/sys/class/drm/")
     except PermissionError:
@@ -121,7 +128,7 @@ def get_gpus():
             yield cardname
 
 
-def get_gpu_info(card):
+def get_gpu_info(card: str) -> Dict[str, str]:
     """Return information about a GPU"""
     infos = {"DRIVER": "", "PCI_ID": "", "PCI_SUBSYS_ID": ""}
     try:
@@ -138,7 +145,7 @@ def get_gpu_info(card):
     return infos
 
 
-def is_amd():
+def is_amd() -> bool:
     """Return true if the system uses the AMD driver"""
     for card in get_gpus():
         if get_gpu_info(card)["DRIVER"] == "amdgpu":
@@ -146,7 +153,7 @@ def is_amd():
     return False
 
 
-def check_driver():
+def check_driver() -> None:
     """Report on the currently running driver"""
     if is_nvidia():
         driver_info = get_nvidia_driver_info()
@@ -167,7 +174,7 @@ def check_driver():
         )
 
 
-def is_outdated():
+def is_outdated() -> bool:
     if not is_nvidia():
         return False
     driver_info = get_nvidia_driver_info()

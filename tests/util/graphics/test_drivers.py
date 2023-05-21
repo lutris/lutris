@@ -126,7 +126,7 @@ class TestGetNvidiaDriverInfo(unittest.TestCase):
 
     @patch("os.path.exists", return_value=False)
     def test_returns_none_if_file_doesnt_exist(self, mock_path_exists):
-        self.assertIsNone(drivers.get_nvidia_driver_info())
+        self.assertEqual(drivers.get_nvidia_driver_info(), {})
 
     @patch("builtins.open")
     @patch("os.path.exists", return_value=True)
