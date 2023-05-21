@@ -1,16 +1,16 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: lutris
-Upstream-Contact: Mathieu Comandon <strider@strycore.com>
+Upstream-Contact: Mathieu Comandon <mathieucomandon@gmail.com>
 Upstream-Source: https://github.com/lutris
 
 Files: *
-Copyright: 2009 Mathieu Comandon <strider@strycore.com>
+Copyright: 2009 Mathieu Comandon <mathieucomandon@gmail.com>
 License: GPL-3.0-or-later
  On Debian systems, the complete text of the General Public License version 3
  can be found in "/usr/share/common-licenses/GPL-3".
 
 Files: share/metainfo/net.lutris.Lutris.metainfo.xml
-Copyright: Lutris Team <strider@lutris.net>
+Copyright: Lutris Team <mathieucomandon@gmail.com>
 License: CC0-1.0
  On Debian systems, the complete text of the CC0-1.0 license
  can be found in "/usr/share/common-licenses/CC0-1.0".

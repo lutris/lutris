@@ -20,11 +20,12 @@ from lutris.runtime import RuntimeUpdater
 from lutris.scanners.lutris import build_path_cache
 from lutris.services import DEFAULT_SERVICES
 from lutris.services.lutris import sync_media
+from lutris.util.display import USE_DRI_PRIME
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.steam.shortcut import update_all_artwork
-from lutris.util.system import create_folder
+from lutris.util.system import create_folder, preload_vulkan_gpu_names
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION, DXVKManager
@@ -143,51 +144,21 @@ def check_vulkan():
         logger.warning("Vulkan is not available or your system isn't Vulkan capable")
     else:
         required_api_version = REQUIRED_VULKAN_API_VERSION
-        library_api_version = vkquery.get_vulkan_api_version_tuple()
+        library_api_version = vkquery.get_vulkan_api_version()
         if library_api_version and library_api_version < required_api_version:
             logger.warning("Vulkan reports an API version of %s. "
                            "%s is required for the latest DXVK.",
-                           vkquery.format_version_tuple(library_api_version),
-                           vkquery.format_version_tuple(library_api_version))
-            setting = "dismiss-obsolete-vulkan-api-warning"
-            if settings.read_setting(setting) != "True":
-                DontShowAgainDialog(
-                    setting,
-                    _("Obsolete Vulkan libraries"),
-                    secondary_message=_(
-                        "Lutris has detected that Vulkan API version %s is installed, "
-                        "but to use the latest DXVK version, %s is required.\n\n"
-                        "DXVK 1.x will be used instead."
-                    ) % (
-                        vkquery.format_version_tuple(library_api_version),
-                        vkquery.format_version_tuple(required_api_version)
-                    )
-                )
-                return
+                           vkquery.format_version(library_api_version),
+                           vkquery.format_version(required_api_version))
 
-        max_dev_name, max_dev_api_version = vkquery.get_best_device_info()
+        devices = vkquery.get_device_info()
 
-        if max_dev_api_version and max_dev_api_version < required_api_version:
+        if devices and devices[0].api_version < required_api_version:
             logger.warning("Vulkan reports that the '%s' device has API version of %s. "
                            "%s is required for the latest DXVK.",
-                           max_dev_name,
-                           vkquery.format_version_tuple(max_dev_api_version),
-                           vkquery.format_version_tuple(required_api_version))
-            setting = "dismiss-obsolete-vulkan-api-warning"
-            if settings.read_setting(setting) != "True":
-                DontShowAgainDialog(
-                    setting,
-                    _("Obsolete Vulkan driver support"),
-                    secondary_message=_(
-                        "Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
-                        "but to use the latest DXVK version, %s is required.\n\n"
-                        "DXVK 1.x will be used instead."
-                    ) % (
-                        max_dev_name,
-                        vkquery.format_version_tuple(max_dev_api_version),
-                        vkquery.format_version_tuple(required_api_version)
-                    )
-                )
+                           devices[0].name,
+                           vkquery.format_version(devices[0].api_version),
+                           vkquery.format_version(required_api_version))
 
 
 def check_gnome():
@@ -219,6 +190,7 @@ def run_all_checks():
     check_libs()
     check_vulkan()
     check_gnome()
+    preload_vulkan_gpu_names(USE_DRI_PRIME)
     fill_missing_platforms()
     build_path_cache()
 

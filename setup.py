@@ -22,7 +22,7 @@ setup(
     version=VERSION,
     license='GPL-3',
     author='Mathieu Comandon',
-    author_email='strider@strycore.com',
+    author_email='mathieucomandon@gmail.com',
     packages=[
         'lutris',
         'lutris.database',

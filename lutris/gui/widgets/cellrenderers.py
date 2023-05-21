@@ -12,7 +12,8 @@ from lutris.gui.widgets.utils import (
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
-    """CellRendererText adjusted for grid view display, removes extra padding"""
+    """CellRendererText adjusted for grid view display, removes extra padding
+    and caches cell metrics for improved resize performance."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -20,9 +21,66 @@ class GridViewCellRendererText(Gtk.CellRendererText):
         self.props.wrap_mode = Pango.WrapMode.WORD
         self.props.xalign = 0.5
         self.props.yalign = 0
+        self.fixed_width = None
+        self.cached_height = {}
+        self.cached_width = {}
 
     def set_width(self, width):
+        self.fixed_width = width
         self.props.wrap_width = width
+        self.clear_caches()
+
+    def clear_caches(self):
+        self.cached_height.clear()
+        self.cached_width.clear()
+
+    def do_get_preferred_width(self, widget):
+        text = self.props.text  # pylint:disable=no-member
+        if self.fixed_width and text in self.cached_width:
+            return self.cached_width[text]
+
+        width = Gtk.CellRendererText.do_get_preferred_width(self, widget)
+
+        if self.fixed_width:
+            self.cached_width[text] = width
+
+        return width
+
+    def do_get_preferred_width_for_height(self, widget, width):
+        text = self.props.text  # pylint:disable=no-member
+        if self.fixed_width and text in self.cached_width:
+            return self.cached_width[text]
+
+        width = Gtk.CellRendererText.do_get_preferred_width_for_height(self, widget, width)
+
+        if self.fixed_width:
+            self.cached_width[text] = width
+
+        return width
+
+    def do_get_preferred_height(self, widget):
+        text = self.props.text  # pylint:disable=no-member
+        if self.fixed_width and text in self.cached_height:
+            return self.cached_height[text]
+
+        height = Gtk.CellRendererText.do_get_preferred_height(self, widget)
+
+        if self.fixed_width:
+            self.cached_height[text] = height
+
+        return height
+
+    def do_get_preferred_height_for_width(self, widget, width):
+        text = self.props.text  # pylint:disable=no-member
+        if self.fixed_width and text in self.cached_height:
+            return self.cached_height[text]
+
+        height = Gtk.CellRendererText.do_get_preferred_height_for_width(self, widget, width)
+
+        if self.fixed_width:
+            self.cached_height[text] = height
+
+        return height
 
 
 class GridViewCellRendererImage(Gtk.CellRenderer):
@@ -39,6 +97,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._is_installed = True
         self.cached_surfaces_new = {}
         self.cached_surfaces_old = {}
+        self.cached_surfaces_loaded = 0
         self.cycle_cache_idle_id = None
         self.cached_surface_generation = 0
 
@@ -115,15 +174,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
             if surface:
                 x, y = self.get_media_position(surface, cell_area)
-                surface_width = get_surface_size(surface)[0]
 
                 if alpha >= 1:
                     self.render_media(cr, widget, surface, x, y)
-                    self.render_platforms(cr, widget, x + surface_width, cell_area)
+                    self.render_platforms(cr, widget, surface, x, cell_area)
                 else:
                     cr.push_group()
                     self.render_media(cr, widget, surface, x, y)
-                    self.render_platforms(cr, widget, x + surface_width, cell_area)
+                    self.render_platforms(cr, widget, surface, x, cell_area)
                     cr.pop_group_to_source()
                     cr.paint_with_alpha(alpha)
 
@@ -131,6 +189,50 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             # we can then discard surfaces we aren't using anymore.
             if not self.cycle_cache_idle_id:
                 self.cycle_cache_idle_id = GLib.idle_add(self.cycle_cache)
+
+    @staticmethod
+    def is_bright_corner(surface, corner_size):
+        """Tests several pixels near the corner of the surface where the badges
+        are drawn. If all are 'bright', we'll render the badges differently. This
+        means all 4 components must be at least 128/255."""
+        surface_format = surface.get_format()
+
+        # We only use the ARGB32 format, so we just give up
+        # for anything else.
+        if surface_format != cairo.FORMAT_ARGB32:  # pylint:disable=no-member
+            return False
+
+        # Scale the corner according to the surface's scale factor -
+        # normally the same as our UI scale factor.
+        device_scale_x, device_scale_y = surface.get_device_scale()
+        corner_pixel_width = int(corner_size[0] * device_scale_x)
+        corner_pixel_height = int(corner_size[1] * device_scale_y)
+        pixel_width = surface.get_width()
+        pixel_height = surface.get_height()
+
+        def is_bright_pixel(x, y):
+            # Checks if a pixel is 'bright'; this does not care
+            # if the pixel is big or little endian- it just checks
+            # all four channels.
+            if 0 <= x < pixel_width and 0 <= y < pixel_height:
+                stride = surface.get_stride()
+                data = surface.get_data()
+
+                offset = (y * stride) + x * 4
+                pixel = data[offset: offset + 4]
+
+                for channel in pixel:
+                    if channel < 128:
+                        return False
+                return True
+            return False
+
+        return (
+            is_bright_pixel(pixel_width - 1, pixel_height - 1)
+            and is_bright_pixel(pixel_width - corner_pixel_width, pixel_height - 1)
+            and is_bright_pixel(pixel_width - 1, pixel_height - corner_pixel_height)
+            and is_bright_pixel(pixel_width - corner_pixel_width, pixel_height - corner_pixel_height)
+        )
 
     def get_media_position(self, surface, cell_area):
         """Computes the position of the upper left corner where we will render
@@ -162,7 +264,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         cr.rectangle(x, y, width, height)
         cr.fill()
 
-    def render_platforms(self, cr, widget, media_right, cell_area):
+    def render_platforms(self, cr, widget, surface, surface_x, cell_area):
         """Renders the stack of platform icons. They appear lined up vertically to the
         right of 'media_right', if that will fit in 'cell_area'."""
         platform = self.platform
@@ -176,23 +278,33 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             icon_paths = [get_runtime_icon_path(p + "-symbolic") for p in platforms]
             icon_paths = [path for path in icon_paths if path]
             if icon_paths:
-                self.render_badge_stack(cr, widget, icon_paths, icon_size, media_right, cell_area)
+                self.render_badge_stack(cr, widget, surface, surface_x, icon_paths, icon_size, cell_area)
 
-    def render_badge_stack(self, cr, widget, icon_paths, icon_size, media_right, cell_area):
+    def render_badge_stack(self, cr, widget, surface, surface_x, icon_paths, icon_size, cell_area):
         """Renders a vertical stack of badges, placed at the edge of the media, off to the right
         of 'media_right' if this will fit in the 'cell_area'. The icons in icon_paths are drawn from
         top to bottom, and spaced to fit in 'cell_area', even if they overlap because of this."""
-        def render_badge(badge_x, badge_y, path):
-            cr.rectangle(badge_x, badge_y, icon_size[0], icon_size[0])
-            cr.set_source_rgba(0.2, 0.2, 0.2, 0.6)
-            cr.fill()
-
-            icon = self.get_cached_surface_by_path(widget, path, size=icon_size)
-            cr.set_source_rgba(0.8, 0.8, 0.8, 0.6)
-            cr.mask_surface(icon, badge_x, badge_y)
 
         badge_width = icon_size[0]
         badge_height = icon_size[1]
+        on_bright_surface = GridViewCellRendererImage.is_bright_corner(surface, (badge_width, badge_height))
+
+        alpha = 0.6
+        bright_color = 0.8, 0.8, 0.8
+        dark_color = 0.2, 0.2, 0.2
+        back_color = bright_color if on_bright_surface else dark_color
+        fore_color = dark_color if on_bright_surface else bright_color
+
+        def render_badge(badge_x, badge_y, path):
+            cr.rectangle(badge_x, badge_y, icon_size[0], icon_size[0])
+            cr.set_source_rgba(back_color[0], back_color[1], back_color[2], alpha)
+            cr.fill()
+
+            icon = self.get_cached_surface_by_path(widget, path, size=icon_size)
+            cr.set_source_rgba(fore_color[0], fore_color[1], fore_color[2], alpha)
+            cr.mask_surface(icon, badge_x, badge_y)
+
+        media_right = surface_x + get_surface_size(surface)[0]
 
         x = media_right - badge_width
         spacing = (cell_area.height - badge_height * len(icon_paths)) / max(1, len(icon_paths) - 1)
@@ -215,9 +327,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
         We call this at idle time after rendering a cell; this should keep all the surfaces
         rendered at that time, so during scrolling the visible media are kept and scrolling is smooth.
-        At other times we may discard almost all surfaces, saving memory."""
-        self.cached_surfaces_old = self.cached_surfaces_new
-        self.cached_surfaces_new = {}
+        At other times we may discard almost all surfaces, saving memory.
+
+        We skip clearing anything if no surfaces have been loaded; this happens if drawing was
+        serviced entirely from cache. GTK may have redrawn just one image or something, so
+        let's not disturb the cache for that."""
+        if self.cached_surfaces_loaded > 0:
+            self.cached_surfaces_old = self.cached_surfaces_new
+            self.cached_surfaces_new = {}
+            self.cached_surfaces_loaded = 0
         self.cycle_cache_idle_id = None
 
     def get_cached_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
@@ -231,14 +349,17 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
         key = widget, path, size, preserve_aspect_ratio
 
-        surface = self.cached_surfaces_new.get(key)
-        if surface:
-            return surface
+        if key in self.cached_surfaces_new:
+            return self.cached_surfaces_new[key]
 
-        surface = self.cached_surfaces_old.get(key)
-
-        if not surface:
+        if key in self.cached_surfaces_old:
+            surface = self.cached_surfaces_old[key]
+        else:
             surface = self.get_surface_by_path(widget, path, size, preserve_aspect_ratio)
+            # We cache missing surfaces too, but only a successful load trigger
+            # cache cycling
+            if surface:
+                self.cached_surfaces_loaded += 1
 
         self.cached_surfaces_new[key] = surface
         return surface

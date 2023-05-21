@@ -76,7 +76,7 @@ class SearchableCombobox(Gtk.Bin):
 
     def _populate_combobox_choices_cb(self, _result, error):
         if error:
-            ErrorDialog(str(error), parent=self.get_toplevel())
+            ErrorDialog(error, parent=self.get_toplevel())
 
     @staticmethod
     def _on_combobox_scroll(combobox, _event):

@@ -36,8 +36,11 @@ github-ppa:
 	# so that _must_ be the last parameter.
 	echo "y" | debuild -S \
 		-k"${PPA_GPG_KEY_ID}" \
-		-p"gpg --batch --passphrase "${PPA_GPG_PASSPHRASE}" --pinentry-mode loopback" \
+		-p"gpg --batch --passphrase ${PPA_GPG_PASSPHRASE} --pinentry-mode loopback" \
 		--lintian-opts --suppress-tags malformed-debian-changelog-version
+
+build-deps-ubuntu:
+	sudo apt install devscripts debhelper dh-python meson
 
 build:
 	gbp buildpackage --git-debian-branch=${GITBRANCH}

@@ -645,4 +645,4 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self._set_image(image_type, self.image_buttons[image_type])
 
     def on_watched_error(self, error):
-        dialogs.ErrorDialog(str(error), parent=self)
+        dialogs.ErrorDialog(error, parent=self)

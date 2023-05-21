@@ -29,17 +29,18 @@ class GameGridView(Gtk.IconView, GameView):
             self.image_renderer = None
         self.set_item_padding(1)
         if hide_text:
-            self.cell_renderer = None
+            self.text_renderer = None
         else:
-            self.cell_renderer = GridViewCellRendererText()
-            self.pack_end(self.cell_renderer, False)
-            self.add_attribute(self.cell_renderer, "markup", COL_NAME)
+            self.text_renderer = GridViewCellRendererText()
+            self.pack_end(self.text_renderer, False)
+            self.add_attribute(self.text_renderer, "markup", COL_NAME)
 
         self.set_game_store(store)
 
         self.connect_signals()
         self.connect("item-activated", self.on_item_activated)
         self.connect("selection-changed", self.on_selection_changed)
+        self.connect("style-updated", self.on_style_updated)
 
     def set_game_store(self, game_store):
         self.game_store = game_store
@@ -53,9 +54,9 @@ class GameGridView(Gtk.IconView, GameView):
             self.image_renderer.media_width = size[0]
             self.image_renderer.media_height = size[1]
 
-        if self.cell_renderer:
+        if self.text_renderer:
             cell_width = max(size[0], self.min_width)
-            self.cell_renderer.set_width(cell_width)
+            self.text_renderer.set_width(cell_width)
 
     @property
     def show_badges(self):
@@ -104,3 +105,7 @@ class GameGridView(Gtk.IconView, GameView):
         selected_items = self.get_selected_item()
         if selected_items:
             self.emit("game-selected", selected_items)
+
+    def on_style_updated(self, widget):
+        if self.text_renderer:
+            self.text_renderer.clear_caches()

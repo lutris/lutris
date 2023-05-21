@@ -1,30 +1,12 @@
 """Options list for system config."""
-import functools
-import glob
 import os
-import re
-import shutil
-import subprocess
 from collections import OrderedDict
 from gettext import gettext as _
 
 from lutris import runners
 from lutris.util import linux, system
 from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME
-from lutris.util.log import logger
-
-# vulkan dirs used by distros or containers that aren't from:
-# https://github.com/KhronosGroup/Vulkan-Loader/blob/v1.3.235/docs/LoaderDriverInterface.md#driver-discovery-on-linux
-# don't include the /vulkan suffix
-FALLBACK_VULKAN_DATA_DIRS = [
-    "/usr/local/etc",  # standard site-local location
-    "/usr/local/share",  # standard site-local location
-    "/etc",  # standard location
-    "/usr/share",  # standard location
-    "/usr/lib/x86_64-linux-gnu/GL",  # Flatpak GL extension
-    "/usr/lib/i386-linux-gnu/GL",  # Flatpak GL32 extension
-    "/opt/amdgpu-pro/etc"  # AMD GPU Pro - TkG
-]
+from lutris.util.system import get_vk_icd_file_sets, get_vulkan_gpu_name
 
 
 def get_resolution_choices():
@@ -89,128 +71,17 @@ def get_optirun_choices():
     return choices
 
 
-# cache this to avoid calling vulkaninfo repeatedly, shouldn't change at runtime
-@functools.lru_cache
-def get_vulkan_gpus(icd_files):
-    """Runs vulkaninfo to determine the default and DRI_PRIME gpu if available"""
-
-    if not shutil.which("vulkaninfo"):
-        logger.warning("vulkaninfo not available, unable to list GPUs")
-        return "Unknown GPU"
-
-    gpu = get_vulkan_gpu(icd_files, False)
-    if USE_DRI_PRIME:
-        prime_gpu = get_vulkan_gpu(icd_files, True)
-        if prime_gpu != gpu:
-            gpu += f" (Discrete GPU: {prime_gpu})"
-    return gpu
-
-
-def get_vulkan_gpu(icd_files, prime):
-    """Runs vulkaninfo to find the primary GPU"""
-
-    subprocess_env = dict(os.environ)
-    if icd_files:
-        subprocess_env["VK_DRIVER_FILES"] = icd_files
-        subprocess_env["VK_ICD_FILENAMES"] = icd_files
-    if prime:
-        subprocess_env["DRI_PRIME"] = "1"
-
-    infocmd = "vulkaninfo --summary | grep deviceName | head -n 1 | tr -s '[:blank:]' | cut -d ' ' -f 3-"
-    with subprocess.Popen(infocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                          env=subprocess_env) as infoget:
-        result = infoget.communicate()[0].decode("utf-8").strip()
-    if "Failed to detect any valid GPUs" in result or "ERROR: [Loader Message]" in result:
-        return "No GPU"
-    # Shorten result to just the friendly name of the GPU
-    # vulkaninfo returns Vendor Friendly Name (Chip Developer Name)
-    # AMD Radeon Pro W6800 (RADV NAVI21) -> AMD Radeon Pro W6800
-    return re.sub(r"\s*\(.*?\)", "", result)
-
-
-def get_vk_icd_files():
-    """Returns available vulkan ICD files in the same search order as vulkan-loader"""
-    all_icd_search_paths = []
-
-    def add_icd_search_path(paths):
-        if paths:
-            # unixy env vars with multiple paths are : delimited
-            for path in paths.split(":"):
-                path = os.path.join(path, "vulkan")
-                if os.path.exists(path) and path not in all_icd_search_paths:
-                    all_icd_search_paths.append(path)
-
-    # Must match behavior of
-    # https://github.com/KhronosGroup/Vulkan-Loader/blob/v1.3.235/docs/LoaderDriverInterface.md#driver-discovery-on-linux
-    # (or a newer version of the same standard)
-
-    # 1.a XDG_CONFIG_HOME or ~/.config if unset
-    add_icd_search_path(os.getenv("XDG_CONFIG_HOME") or (f"{os.getenv('HOME')}/.config"))
-    # 1.b XDG_CONFIG_DIRS
-    add_icd_search_path(os.getenv("XDG_CONFIG_DIRS") or "/etc/xdg")
-
-    # 2, 3 SYSCONFDIR and EXTRASYSCONFDIR
-    # Compiled in default has both the same
-    add_icd_search_path("/etc")
-
-    # 4 XDG_DATA_HOME
-    add_icd_search_path(os.getenv("XDG_DATA_HOME") or (f"{os.getenv('HOME')}/.local/share"))
-
-    # 5 XDG_DATA_DIRS or fall back to /usr/local/share and /usr/share
-    add_icd_search_path(os.getenv("XDG_DATA_DIRS") or "/usr/local/share:/usr/share")
-
-    # FALLBACK
-    # dirs that aren't from the loader spec are searched last
-    for fallback_dir in FALLBACK_VULKAN_DATA_DIRS:
-        add_icd_search_path(fallback_dir)
-
-    all_icd_files = []
-
-    for data_dir in all_icd_search_paths:
-        path = os.path.join(data_dir, "icd.d", "*.json")
-        # sort here as directory enumeration order is not guaranteed in linux
-        # so it's consistent every time
-        icd_files = sorted(glob.glob(path))
-        if icd_files:
-            all_icd_files += icd_files
-
-    return all_icd_files
-
-
 def get_vk_icd_choices():
     """Return available Vulkan ICD loaders"""
-    intel = []
-    amdradv = []
-    nvidia = []
-    amdvlk = []
-    amdvlkpro = []
     # fallback in case any ICDs don't match a known type
-    unknown = []
+    icd_file_sets = get_vk_icd_file_sets()
 
-    all_icd_files = get_vk_icd_files()
-
-    # Add loaders for each vendor
-    for loader in all_icd_files:
-        if "intel" in loader:
-            intel.append(loader)
-        elif "radeon" in loader:
-            amdradv.append(loader)
-        elif "nvidia" in loader:
-            nvidia.append(loader)
-        elif "amd" in loader:
-            if "pro" in loader:
-                amdvlkpro.append(loader)
-            else:
-                amdvlk.append(loader)
-        else:
-            unknown.append(loader)
-
-    intel_files = ":".join(intel)
-    amdradv_files = ":".join(amdradv)
-    nvidia_files = ":".join(nvidia)
-    amdvlk_files = ":".join(amdvlk)
-    amdvlkpro_files = ":".join(amdvlkpro)
-    unknown_files = ":".join(unknown)
+    intel_files = ":".join(icd_file_sets["intel"])
+    amdradv_files = ":".join(icd_file_sets["amdradv"])
+    nvidia_files = ":".join(icd_file_sets["nvidia"])
+    amdvlk_files = ":".join(icd_file_sets["amdvlk"])
+    amdvlkpro_files = ":".join(icd_file_sets["amdvlkpro"])
+    unknown_files = ":".join(icd_file_sets["unknown"])
 
     # default choice should always be blank so the env var gets left as is
     # This ensures Lutris doesn't change the vulkan loader behavior unless you select
@@ -230,10 +101,10 @@ def get_vk_icd_choices():
             choices.append(("AMDVLK Open source", amdvlk_files))
     if amdvlkpro_files:
         choices.append(("AMDGPU-PRO Proprietary", amdvlkpro_files))
-    if unknown:
+    if unknown_files:
         choices.append(("Unknown Vendor", unknown_files))
 
-    choices = [(prefix + ": " + get_vulkan_gpus(files), files) for prefix, files in choices]
+    choices = [(prefix + ": " + get_vulkan_gpu_name(files, USE_DRI_PRIME), files) for prefix, files in choices]
 
     return choices
 

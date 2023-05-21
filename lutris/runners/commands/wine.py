@@ -247,7 +247,7 @@ def wineexec(  # noqa: C901
         exclude_processes = shlex.split(exclude_processes)
 
     if not runner:
-        runner = import_runner("wine")()
+        runner = import_runner("wine")(prefix=prefix, working_dir=working_dir, wine_arch=arch)
 
     if not wine_path:
         wine_path = runner.get_executable()

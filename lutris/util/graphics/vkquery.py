@@ -2,6 +2,7 @@
 # Vulkan detection by Patryk Obara (@dreamer)
 
 """Query Vulkan capabilities"""
+from collections import namedtuple
 # Standard Library
 from ctypes import (
     CDLL, POINTER, Structure, byref, c_char, c_char_p, c_float, c_int32, c_size_t, c_uint8, c_uint32, c_uint64,
@@ -31,6 +32,8 @@ VkInstance = c_void_p  # handle (struct ptr)
 VkPhysicalDevice = c_void_p  # handle (struct ptr)
 VkDeviceSize = c_uint64
 
+DeviceInfo = namedtuple('DeviceInfo', 'name api_version')
+
 
 def vk_make_version(major, minor, patch):
     """
@@ -38,7 +41,7 @@ def vk_make_version(major, minor, patch):
 
     https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#fundamentals-versionnum
     """
-    return c_uint32((major << 22) | (minor << 12) | patch)
+    return (major << 22) | (minor << 12) | patch
 
 
 def vk_api_version_major(version):
@@ -75,8 +78,8 @@ class VkApplicationInfo(Structure):
         super().__init__()
         self.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO
         self.pApplicationName = name.encode()
-        self.applicationVersion = vk_make_version(*version)
-        self.apiVersion = vk_make_version(1, 0, 0)
+        self.applicationVersion = c_uint32(vk_make_version(*version))
+        self.apiVersion = c_uint32(vk_make_version(1, 0, 0))
 
 
 class VkInstanceCreateInfo(Structure):
@@ -262,10 +265,11 @@ def is_vulkan_supported():
 
 
 @lru_cache(maxsize=None)
-def get_vulkan_api_version_tuple():
+def get_vulkan_api_version():
     """
     Queries libvulkan to get the API version; if this library is missing
-    it returns None. Returns a tuple of (major, minor, patch) version numbers.
+    it returns None. Returns an encoded Vulkan version integer; use
+    vk_api_version_major() and like methods to parse it.
     """
     try:
         vulkan = CDLL("libvulkan.so.1")
@@ -276,95 +280,79 @@ def get_vulkan_api_version_tuple():
         enumerate_instance_version = vulkan.vkEnumerateInstanceVersion
     except AttributeError:
         # Vulkan 1.0 did not have vkEnumerateInstanceVersion at all!
-        return 1, 0
+        return vk_make_version(1, 0, 0)
 
     version = c_uint32(0)
     result = enumerate_instance_version(byref(version))
-    if result == VK_SUCCESS:
-        return make_version_tuple(version.value)
-
-    return None
+    return version.value if result == VK_SUCCESS else None
 
 
 def get_device_info():
     """
-    Returns a dictionary of the physical devices known to Vulkan, omitting software
-    rendered devices. The keys are the device names, and the values are their API
-    version tuples.
+    Returns a list of the physical devices known to Vulkan, represented as
+    (name, api_version) named-tuples and the api_version numbers are encoded, so
+    use vk_api_version_major() and friends to parse them. They are sorted so the
+    highest version device is first, and software rendering devices are omitted.
     """
     try:
         vulkan = CDLL("libvulkan.so.1")
     except OSError:
-        return {}
+        return []
     app_info = VkApplicationInfo("vkinfo", version=(0, 1, 0))
     create_info = VkInstanceCreateInfo(app_info)
     instance = VkInstance()
     result = vulkan.vkCreateInstance(byref(create_info), 0, byref(instance))
     if result != VK_SUCCESS:
-        return {}
+        return []
     dev_count = c_uint32(0)
     result = vulkan.vkEnumeratePhysicalDevices(instance, byref(dev_count), 0)
     if result != VK_SUCCESS or dev_count.value <= 0:
-        return {}
+        return []
 
     devices = (VkPhysicalDevice * dev_count.value)()
     result = vulkan.vkEnumeratePhysicalDevices(instance, byref(dev_count), byref(devices))
     if result != VK_SUCCESS:
-        return {}
+        return []
 
     getPhysicalDeviceProperties = vulkan.vkGetPhysicalDeviceProperties
     getPhysicalDeviceProperties.restype = None
-    getPhysicalDeviceProperties.argtypes = [VkPhysicalDevice, c_void_p]  # pointer(VkPhysicalDeviceProperties)]
+    getPhysicalDeviceProperties.argtypes = [VkPhysicalDevice, c_void_p]
 
-    devices_dict = {}
+    device_info = []
     for physical_device in devices:
         dev_props = VkPhysicalDeviceProperties()
         getPhysicalDeviceProperties(physical_device, byref(dev_props))
 
         if dev_props.deviceType != VK_PHYSICAL_DEVICE_TYPE_CPU:
             name = dev_props.deviceName.decode("utf-8")
-            api_version = make_version_tuple(dev_props.apiVersion)
-            devices_dict[name] = api_version
+            device_info.append(DeviceInfo(name, dev_props.apiVersion))
 
     vulkan.vkDestroyInstance(instance, 0)
-    return devices_dict
-
-
-def get_best_device_info():
-    """Returns the name and version tuple of the device with the highest
-    version; this is the best tuple from the get_device_info() method, so
-    the key element is the name, and the value element is a version tuple.
-    Go nested tuples! If there are no devices at all, this returns
-    (None, None), but still a tuple."""
-    devices_dict = get_device_info()
-    if not devices_dict:
-        return None, None
-    by_version = sorted(
-        devices_dict.items(),
-        key=lambda t: t[1],
-        reverse=True
-    )
-    return by_version[0] if by_version else (None, None)
+    return sorted(device_info, key=lambda t: t.api_version, reverse=True)
 
 
 @lru_cache(maxsize=None)
-def get_expected_api_version_tuple():
+def get_expected_api_version():
     """Returns the version tuple of the API version we expect
     to have; it is the least of the Vulkan library API version, and
     the best device's API version."""
-    api_version = get_vulkan_api_version_tuple()
-    _best_dev_name, best_dev_version = get_best_device_info()
-    if best_dev_version:
-        return min(api_version, best_dev_version)
+    api_version = get_vulkan_api_version()
+
+    if not api_version:
+        return None
+
+    devices = get_device_info()
+    if devices:
+        return min(api_version, devices[0].api_version)
+
     return api_version
 
 
-def make_version_tuple(source_int):
-    major = vk_api_version_major(source_int)
-    minor = vk_api_version_minor(source_int)
-    patch = vk_api_version_patch(source_int)
-    return major, minor, patch
+def format_version(version):
+    if version:
+        major = vk_api_version_major(version)
+        minor = vk_api_version_minor(version)
+        patch = vk_api_version_patch(version)
+        return "%s.%s.%s" % (major, minor, patch)
 
-
-def format_version_tuple(version_tuple):
-    return "%s.%s.%s" % version_tuple
+    return "(none)"

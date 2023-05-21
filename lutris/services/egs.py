@@ -221,18 +221,23 @@ class EpicGamesStoreService(OnlineService):
 
     def start_session(self, exchange_code=None, authorization_code=None):
         if exchange_code:
-            params = dict(grant_type='exchange_code',
-                          exchange_code=exchange_code,
-                          token_type='eg1')
+            params = {
+                'grant_type': 'exchange_code',
+                'exchange_code': exchange_code,
+                'token_type': 'eg1'
+            }
         elif authorization_code:
-            params = dict(grant_type='authorization_code',
-                          code=authorization_code,
-                          token_type='eg1')
+            params = {
+                'grant_type': 'authorization_code',
+                'code': authorization_code,
+                'token_type': 'eg1'
+            }
         else:
-            params = dict(grant_type='refresh_token',
-                          refresh_token=self.session_data["refresh_token"],
-
-                          token_type='eg1')
+            params = {
+                'grant_type': 'refresh_token',
+                'refresh_token': self.session_data["refresh_token"],
+                'token_type': 'eg1'
+            }
 
         response = self.session.post(
             'https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/token',

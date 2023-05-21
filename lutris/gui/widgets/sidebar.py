@@ -15,6 +15,7 @@ from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.utils import has_stock_icon
 from lutris.installer.interpreter import ScriptInterpreter
+from lutris.runners import InvalidRunner
 from lutris.services import SERVICES
 from lutris.services.base import AuthTokenExpired, BaseService
 
@@ -166,7 +167,7 @@ class ServiceSidebarRow(SidebarRow):
                 self.service.logout()
                 self.service.login(parent=self.get_toplevel())
             else:
-                ErrorDialog(str(error), parent=self.get_toplevel())
+                ErrorDialog(error, parent=self.get_toplevel())
         GLib.timeout_add(2000, self.enable_refresh_button)
 
     def enable_refresh_button(self):
@@ -212,7 +213,11 @@ class RunnerSidebarRow(SidebarRow):
 
         # Creation is delayed because only installed runners can be imported
         # and all visible boxes should be installed.
-        self.runner = runners.import_runner(self.id)()
+        try:
+            self.runner = runners.import_runner(self.id)()
+        except InvalidRunner:
+            return entries
+
         if self.runner.multiple_versions:
             entries.append((
                 "system-software-install-symbolic",
@@ -243,7 +248,7 @@ class RunnerSidebarRow(SidebarRow):
                                      runner=self.runner, parent=self.get_toplevel())
 
     def on_watched_error(self, error):
-        dialogs.ErrorDialog(str(error), parent=self.get_toplevel())
+        dialogs.ErrorDialog(error, parent=self.get_toplevel())
 
 
 class SidebarHeader(Gtk.Box):

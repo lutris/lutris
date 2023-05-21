@@ -437,7 +437,7 @@ class AmazonService(OnlineService):
         if not response:
             logger.error("There was an error getting game manifest: %s", game_id)
             raise UnavailableGameError(_(
-                "Unable to get game manifest info, please check your Amazon credentials and internet connectivity"))
+                "Unable to get game manifest info"))
 
         return response
 
@@ -455,7 +455,7 @@ class AmazonService(OnlineService):
         except HTTPError as ex:
             logger.error("Failed http request %s", url)
             raise UnavailableGameError(_(
-                "Unable to get game manifest, please check your Amazon credentials and internet connectivity")) from ex
+                "Unable to get game manifest")) from ex
 
         content = request.content
 
@@ -471,8 +471,7 @@ class AmazonService(OnlineService):
         else:
             logger.error("Unknown compression algorithm found in manifest")
             raise UnavailableGameError(_(
-                "Unknown compression algorithm found in manifest, "
-                "please check your Amazon credentials and internet connectivity"))
+                "Unknown compression algorithm found in manifest"))
 
         manifest = Manifest()
         manifest.decode(raw_manifest)
@@ -532,11 +531,13 @@ class AmazonService(OnlineService):
                 hashes.append(file_hash)
                 files.append({"path": file.path.decode().replace("\\", "/"), "size": file.size, "url": None})
 
-                hashpairs.append(dict(
-                    sourceHash=None,
-                    targetHash=dict(value=file_hash,
-                                    algorithm=HashAlgorithm.get_name(file.hash.algorithm)),
-                ))
+                hashpairs.append({
+                    'sourceHash': None,
+                    'targetHash': {
+                        'value': file_hash,
+                        'algorithm': HashAlgorithm.get_name(file.hash.algorithm)
+                    }
+                })
             for __, directory in enumerate(package.dirs):
                 if directory.path is not None:
                     directories.append(directory.path.decode().replace("\\", "/"))
@@ -572,7 +573,7 @@ class AmazonService(OnlineService):
         except HTTPError as ex:
             logger.error("Failed http request %s", fuel_url)
             raise UnavailableGameError(_(
-                "Unable to get fuel.json file, please check your Amazon credentials and internet connectivity")) from ex
+                "Unable to get fuel.json file, please check your Amazon credentials")) from ex
 
         try:
             res_yaml_text = request.text

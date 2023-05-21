@@ -3,6 +3,7 @@ import os
 import shlex
 from gettext import gettext as _
 
+from lutris import settings
 # Lutris Modules
 from lutris.runners.commands.dosbox import dosexec, makeconfig  # NOQA pylint: disable=unused-import
 from lutris.runners.runner import Runner
@@ -14,8 +15,8 @@ class dosbox(Runner):
     description = _("MS-DOS emulator")
     platforms = [_("MS-DOS")]
     runnable_alone = True
-    runner_executable = "dosbox/bin/dosbox"
-    require_libs = ["libopusfile.so.0", ]
+    runner_executable = "dosbox/dosbox"
+    require_libs = []
     game_options = [
         {
             "option": "main_file",
@@ -121,6 +122,23 @@ class dosbox(Runner):
         return self.make_absolute(self.game_config.get("main_file"))
 
     @property
+    def libs_dir(self):
+        path = os.path.join(settings.RUNNER_DIR, "dosbox/lib")
+        return path if system.path_exists(path) else ""
+
+    def get_command(self):
+        return [
+            self.get_executable(),
+        ]
+
+    def get_run_data(self):
+        env = self.get_env()
+        env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
+            self.libs_dir,
+            env.get("LD_LIBRARY_PATH")]))
+        return {"env": env, "command": self.get_command()}
+
+    @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
         option = self.game_config.get("working_dir")
@@ -162,4 +180,4 @@ class dosbox(Runner):
         if args:
             command.extend(args)
 
-        return {"command": command}
+        return {"command": command, "ld_library_path": self.libs_dir}

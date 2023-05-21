@@ -535,13 +535,15 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def show_empty_label(self):
         """Display a label when the view is empty"""
         filter_text = self.filters.get("text")
+        has_uninstalled_games = games_db.get_game_count("installed", "0")
+        has_hidden_games = games_db.get_game_count("hidden", "1")
         if filter_text:
             if self.filters.get("category") == "favorite":
                 self.show_label(_("Add a game matching '%s' to your favorites to see it here.") % filter_text)
-            elif self.filters.get("installed"):
+            elif self.filters.get("installed") and has_uninstalled_games:
                 self.show_label(
                     _("No installed games matching '%s' found. Press Ctrl+I to show uninstalled games.") % filter_text)
-            elif self.filters.get("hidden") is False:  # but not if missing!
+            elif self.filters.get("hidden") is False and has_hidden_games:  # but not if missing!
                 self.show_label(_("No visible games matching '%s' found. Press Ctrl+H to show hidden games.") %
                                 filter_text)
             else:
@@ -549,14 +551,15 @@ class LutrisWindow(Gtk.ApplicationWindow,
         else:
             if self.filters.get("category") == "favorite":
                 self.show_label(_("Add games to your favorites to see them here."))
-            elif self.filters.get("installed"):
+            elif self.filters.get("installed") and has_uninstalled_games:
                 self.show_label(_("No installed games found. Press Ctrl+I to show uninstalled games."))
-            elif self.filters.get("hidden") is False:  # but not if missing!
+            elif self.filters.get("hidden") is False and has_hidden_games:  # but not if missing!
                 self.show_label(_("No visible games found. Press Ctrl+H to show hidden games."))
             elif (
                 not self.filters.get("runner")
                 and not self.filters.get("service")
                 and not self.filters.get("platform")
+                and not self.filters.get("dynamic_category")
             ):
                 self.show_splash()
             else:
@@ -791,7 +794,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def _service_reloaded_cb(self, error):
         if error:
-            dialogs.ErrorDialog(str(error), parent=self)
+            dialogs.ErrorDialog(error, parent=self)
 
     def on_service_logout(self, service):
         if self.service and service.id == self.service.id:
@@ -874,7 +877,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def on_game_unhandled_error(self, game, error):
         """Called when a game has sent the 'game-error' signal"""
-        dialogs.ErrorDialog(str(error), parent=self)
+        dialogs.ErrorDialog(error, parent=self)
         return True
 
     @GtkTemplate.Callback
@@ -1054,4 +1057,4 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 game.emit("game-install")
 
     def on_watched_error(self, error):
-        dialogs.ErrorDialog(str(error), parent=self)
+        dialogs.ErrorDialog(error, parent=self)

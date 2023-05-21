@@ -108,12 +108,16 @@ def get_path_from_config(game):
     if not game.config:
         logger.warning("Game %s has no configuration", game)
         return ""
+    game_config = game.config.game_config
+
     # Skip MAME roms referenced by their ID
-    if game.runner_name == "mame" and "." not in game.config.game_config["main_file"]:
-        return
+    if game.runner_name == "mame":
+        if "main_file" in game_config and "." not in game_config["main_file"]:
+            return ""
+
     for key in ["exe", "main_file", "iso", "rom", "disk-a", "path", "files"]:
-        if key in game.config.game_config:
-            path = game.config.game_config[key]
+        if key in game_config:
+            path = game_config[key]
             if key == "files":
                 path = path[0]
             if not path.startswith("/"):
@@ -176,11 +180,15 @@ def remove_from_path_cache(game):
 def get_path_cache():
     """Return the contents of the path cache file"""
     with open(GAME_PATH_CACHE_PATH, encoding="utf-8") as cache_file:
-        return json.load(cache_file)
+        try:
+            return json.load(cache_file)
+        except json.JSONDecodeError:
+            return {}
 
 
 def get_missing_game_ids():
     """Return a list of IDs for games that can't be found"""
+    logger.debug("Checking for missing games")
     missing_ids = []
     for game_id, path in get_path_cache().items():
         if not os.path.exists(path):

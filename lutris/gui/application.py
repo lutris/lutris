@@ -1,6 +1,6 @@
 # pylint: disable=wrong-import-position
 #
-# Copyright (C) 2009 Mathieu Comandon <strider@strycore.com>
+# Copyright (C) 2009 Mathieu Comandon <mathieucomandon@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -767,7 +767,7 @@ class Application(Gtk.Application):
 
     def on_watched_error(self, error):
         if self.window:
-            ErrorDialog(str(error), parent=self.window)
+            ErrorDialog(error, parent=self.window)
 
     @staticmethod
     def get_lutris_action(url):

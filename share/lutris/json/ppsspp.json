@@ -3,6 +3,7 @@
     "description": "Sony PSP emulator",
     "platforms": ["Sony PlayStation Portable"],
     "runner_executable": "ppsspp/PPSSPPSDL",
+    "runnable_alone": true,
     "game_options": [
         {
             "option": "main_file",

@@ -133,7 +133,7 @@ class HumbleBundleService(OnlineService):
             request.get()
         except HTTPError:
             logger.error(
-                "Failed to request %s, check your Humble Bundle credentials and internet connectivity",
+                "Failed to request %s, check your Humble Bundle credentials",
                 url,
             )
             return

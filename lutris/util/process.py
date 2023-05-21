@@ -113,10 +113,7 @@ class Process:
         """Return the process' environment variables"""
         environ_path = "/proc/{}/environ".format(self.pid)
         _environ_text = self._read_content(environ_path)
-        if not _environ_text:
-            return {}
-        if "=" not in _environ_text:
-            logger.debug("Invalid environment value '%s' (%s) in %s", _environ_text, len(_environ_text), environ_path)
+        if not _environ_text or "=" not in _environ_text:
             return {}
         return dict([line.split("=", 1) for line in _environ_text.split("\x00") if line])
 
