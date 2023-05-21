@@ -15,7 +15,7 @@ from lutris.migrations import migrate
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-
+from lutris.util.strings import gtk_safe
 
 class Dialog(Gtk.Dialog):
 
@@ -168,11 +168,18 @@ class WarningDialog(Gtk.MessageDialog):
 class ErrorDialog(Gtk.MessageDialog):
     """Display an error message."""
 
-    def __init__(self, message, secondary=None, parent=None):
+    def __init__(self, error, secondary=None, parent=None):
         super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
+
+        # Some errors contain < and > and lok like markup, but aren't-
+        # we'll need to protect the message box against this
+        message = gtk_safe(error) if isinstance(error, BaseException) else str(error)
+
         # Gtk doesn't wrap long labels containing no space correctly
         # the length of the message is limited to avoid display issues
+
         self.set_markup(message[:256])
+
         if secondary:
             self.format_secondary_text(secondary[:256])
 
@@ -285,7 +292,7 @@ class LutrisInitDialog(Gtk.Dialog):
 
     def init_cb(self, _result, error):
         if error:
-            ErrorDialog(str(error), parent=self)
+            ErrorDialog(error, parent=self)
         self.destroy()
 
     def on_response(self, _widget, response):
@@ -551,7 +558,7 @@ class MoveDialog(ModelessDialog):
 
     def on_game_moved(self, _result, error):
         if error:
-            ErrorDialog(str(error), parent=self)
+            ErrorDialog(error, parent=self)
         self.emit("game-moved")
         self.destroy()
 

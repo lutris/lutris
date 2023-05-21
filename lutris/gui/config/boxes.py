@@ -13,6 +13,7 @@ from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label, VBo
 from lutris.gui.widgets.searchable_combobox import SearchableCombobox
 from lutris.runners import InvalidRunner, import_runner
 from lutris.util.log import logger
+from lutris.util.strings import gtk_safe
 
 
 class ConfigBox(VBox):
@@ -210,7 +211,7 @@ class ConfigBox(VBox):
                     text = self.warning
             except Exception as err:
                 logger.exception("Unable to generate configuration warning: %s", err)
-                text = str(err)
+                text = gtk_safe(err)
 
             if text:
                 self.warning_label.set_markup(str(text))

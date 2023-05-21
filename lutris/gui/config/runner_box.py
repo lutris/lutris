@@ -144,4 +144,4 @@ class RunnerBox(Gtk.Box):
         self.action_alignment.add(self.get_action_button())
 
     def on_watched_error(self, error):
-        ErrorDialog(str(error), parent=self.get_toplevel())
+        ErrorDialog(error, parent=self.get_toplevel())
