@@ -17,6 +17,7 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
+
 class Dialog(Gtk.Dialog):
 
     def __init__(self, title=None, parent=None, flags=0, buttons=None, **kwargs):

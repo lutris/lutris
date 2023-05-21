@@ -427,7 +427,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         switch_box.set_tooltip_text(_("Show advanced options"))
 
         switch_label = Gtk.Label(_("Advanced"), no_show_all=True, visible=True)
-        switch = Gtk.Switch(no_show_all=True, visible=True)
+        switch = Gtk.Switch(no_show_all=True, visible=True, valign=Gtk.Align.CENTER)
         switch.set_state(settings.read_setting("show_advanced_options") == "True")
         switch.connect("state_set", lambda _w, s: self.on_show_advanced_options_toggled(bool(s)))
 
