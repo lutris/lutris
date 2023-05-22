@@ -10,7 +10,7 @@ from lutris.gui.dialogs import DontShowAgainDialog, ErrorDialog
 from lutris.runners.steam import steam
 from lutris.util import linux, system
 from lutris.util.log import logger
-from lutris.util.strings import version_sort
+from lutris.util.strings import parse_version
 from lutris.util.wine import fsync
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
@@ -234,6 +234,27 @@ def get_wine_version_exe(version):
     if version in WINE_PATHS:
         return WINE_PATHS[version]
     return os.path.join(WINE_DIR, "{}/bin/wine".format(version))
+
+
+def parse_wine_version(version):
+    """This is a specialized parse_version() that adjusts some odd
+    Wine versions for correct parsing."""
+    version = version.replace("Proton7-", "Proton-7.")
+    version = version.replace("Proton8-", "Proton-8.")
+    return parse_version(version)
+
+
+def version_sort(versions, reverse=False):
+
+    def version_key(version):
+        version_list, prefix, suffix = parse_wine_version(version)
+        # Normalize the length of sub-versions
+        sort_key = version_list + [0] * (10 - len(version_list))
+        sort_key.append(prefix)
+        sort_key.append(suffix)
+        return sort_key
+
+    return sorted(versions, key=version_key, reverse=reverse)
 
 
 def is_version_installed(version):
