@@ -4,10 +4,12 @@ import os
 import shutil
 from gettext import gettext as _
 
+from lutris import settings
 from lutris.util import system
 from lutris.util.extract import extract_archive
 from lutris.util.http import download_file
 from lutris.util.log import logger
+from lutris.util.strings import parse_version
 from lutris.util.wine.prefix import WinePrefixManager
 
 
@@ -50,10 +52,35 @@ class DLLManager:
             recommended_versions = [v for v in versions if self.is_recommended_version(v)]
             return recommended_versions[0] if recommended_versions else versions[0]
 
+    def get_recommended_versions(self):
+        """Returns a list of version numbers that are recommended, based on the versions JSON file;
+        merely having a directory does not count, but we do return only recommended versions. This
+        means that a version can be recommended until it is downloaded, and then if it has a
+        '.lutris_compat.json' file it may cease to be recommended. The DLL download code retries
+        with an earlier version if this happens.
+
+        This list is in the usual highest-version-first order, and we try the downloads in that order.
+        """
+        versions = self.load_versions()
+        return [v for v in versions if self.is_recommended_version(v)]
+
     def is_recommended_version(self, version):
         """True if the version given should be usable as the default; false if it
         should not be the default, but may be selected by the user. If only
-        non-recommended versions exist, we'll still default to one of them, however."""
+        non-recommended versions exist, we'll still default to one of them, however.
+
+        By default, we check for a '.lutris_compat.json' file; if this Lutris is
+        too old, we'll reject the version."""
+        path = os.path.join(self.base_dir, version, ".lutris_compat.json")
+        if os.path.isfile(path):
+            with open(path, "r", encoding='utf-8') as json_file:
+                js = json.load(json_file)
+                if "min_lutris_version" in js:
+                    min_lutris_version = parse_version(js["min_lutris_version"])
+                    current_lutris_version = parse_version(settings.VERSION)
+                    if current_lutris_version < min_lutris_version:
+                        return False
+
         return True
 
     @property
@@ -271,8 +298,19 @@ class DLLManager:
     def upgrade(self):
         self.fetch_versions()
         if not self.is_available():
-            if self.version:
-                logger.info("Downloading %s %s...", self.component, self.version)
+            versions = self.get_recommended_versions()
+
+            while versions:
+                # Try to download the latest recommended version.
+                version = versions[0]
+                logger.info("Downloading %s %s...", self.component, version)
                 self.download()
-            else:
-                logger.warning("Unable to download %s because version information was not available.", self.component)
+
+                # If the version is still recommended, we're done,
+                # if not we'll try again with the next one.
+                new_versions = self.get_recommended_versions()
+                if version in new_versions:
+                    return
+                versions = new_versions
+
+            logger.warning("Unable to download %s because version information was not available.", self.component)
