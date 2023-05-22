@@ -4,7 +4,7 @@ from gi.repository import Gtk, Pango
 class InstallerLabel(Gtk.Label):
     """A label for installers"""
 
-    def __init__(self, text, wrap=True):
+    def __init__(self, text, wrap=True, selectable=False):
         super().__init__()
         if wrap:
             self.set_line_wrap(True)
@@ -16,3 +16,4 @@ class InstallerLabel(Gtk.Label):
         self.set_markup(text)
         self.props.can_focus = False
         self.set_tooltip_text(text)
+        self.set_selectable(selectable)
