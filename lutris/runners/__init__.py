@@ -28,6 +28,7 @@ __all__ = [
     "dolphin",
     "ryujinx",
     "yuzu",
+    "cemu",
     # Sony
     "pcsx2",
     "rpcs3",
