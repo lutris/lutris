@@ -9,19 +9,20 @@ from gi.repository import Gio, Gtk
 
 from lutris.command import MonitoredCommand
 from lutris.config import duplicate_game_config
-from lutris.database.games import add_game, get_game_by_field, get_unusued_game_name
+from lutris.database.games import add_game, get_game_by_field
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
-from lutris.gui.dialogs import QuestionDialog
+from lutris.gui.dialogs import InputDialog
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_game import RemoveGameDialog, UninstallGameDialog
 from lutris.gui.widgets.utils import open_uri
+from lutris.services.lutris import download_lutris_media
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
-from lutris.util.strings import gtk_safe
+from lutris.util.strings import gtk_safe, slugify
 from lutris.util.system import path_exists
 from lutris.util.wine.dxvk import update_shader_cache
 
@@ -212,28 +213,34 @@ class GameActions:
         return AddGameDialog(self.window, game=self.game, runner=self.game.runner_name)
 
     def on_game_duplicate(self, _widget):
-        confirm_dlg = QuestionDialog(
+        duplicate_game_dialog = InputDialog(
             {
                 "parent": self.window,
                 "question": _(
                     "Do you wish to duplicate %s?\nThe configuration will be duplicated, "
-                    "but the games files will <b>not be duplicated</b>."
+                    "but the games files will <b>not be duplicated</b>.\n"
+                    "Please enter the new name for the copy:"
                 ) % gtk_safe(self.game.name),
                 "title": _("Duplicate game?"),
             }
         )
-        if confirm_dlg.result != Gtk.ResponseType.YES:
+        result = duplicate_game_dialog.run()
+        if result != Gtk.ResponseType.OK:
+            duplicate_game_dialog.destroy()
             return
+        new_name = duplicate_game_dialog.user_value
 
-        assigned_name = get_unusued_game_name(self.game.name)
         old_config_id = self.game.game_config_id
         if old_config_id:
             new_config_id = duplicate_game_config(self.game.slug, old_config_id)
         else:
             new_config_id = None
-
+        duplicate_game_dialog.destroy()
         db_game = get_game_by_field(self.game.id, "id")
-        db_game["name"] = assigned_name
+        db_game["name"] = new_name
+        db_game["slug"] = slugify(new_name)
+        db_game["lastplayed"] = None
+        db_game["playtime"] = 0.0
         db_game["configpath"] = new_config_id
         db_game.pop("id")
         # Disconnect duplicate from service- there should be at most
@@ -242,6 +249,7 @@ class GameActions:
         db_game.pop("service_id", None)
 
         game_id = add_game(**db_game)
+        download_lutris_media(db_game["slug"])
         new_game = Game(game_id)
         new_game.save()
 

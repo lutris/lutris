@@ -194,7 +194,7 @@ class ErrorDialog(Gtk.MessageDialog):
 
 
 class QuestionDialog(Gtk.MessageDialog):
-    """Ask the user a question."""
+    """Ask the user a yes or no question."""
 
     YES = Gtk.ResponseType.YES
     NO = Gtk.ResponseType.NO
@@ -210,6 +210,30 @@ class QuestionDialog(Gtk.MessageDialog):
                 self.get_message_area().add(widget)
         self.result = self.run()
         self.destroy()
+
+
+class InputDialog(Dialog):
+    """Ask the user for a text input"""
+
+    def __init__(self, dialog_settings):
+        super().__init__(parent=dialog_settings["parent"])
+        self.set_border_width(12)
+        self.user_value = ""
+        self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self.ok_button = self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.ok_button.set_sensitive(False)
+        self.set_title(dialog_settings["title"])
+        label = Gtk.Label(visible=True)
+        label.set_markup(dialog_settings["question"])
+        self.get_content_area().pack_start(label, True, True, 12)
+        self.entry = Gtk.Entry(visible=True)
+        self.entry.connect("changed", self.on_entry_changed)
+        self.get_content_area().pack_start(self.entry, True, True, 12)
+
+    def on_entry_changed(self, widget):
+        self.user_value = widget.get_text()
+        if self.user_value:
+            self.ok_button.set_sensitive(True)
 
 
 class DirectoryDialog:
