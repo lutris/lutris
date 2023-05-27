@@ -232,8 +232,7 @@ class InputDialog(Dialog):
 
     def on_entry_changed(self, widget):
         self.user_value = widget.get_text()
-        if self.user_value:
-            self.ok_button.set_sensitive(True)
+        self.ok_button.set_sensitive(bool(self.user_value))
 
 
 class DirectoryDialog:
