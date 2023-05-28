@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 from gettext import gettext as _
+from json import JSONDecodeError
 
 from lutris import settings
 from lutris.util import system
@@ -71,12 +72,21 @@ class DLLManager:
         path = os.path.join(self.base_dir, version, ".lutris_compatibility.json")
         if os.path.isfile(path):
             with open(path, "r", encoding='utf-8') as json_file:
-                js = json.load(json_file)
-                if "min_lutris_version" in js:
-                    min_lutris_version = parse_version(js["min_lutris_version"])
-                    current_lutris_version = parse_version(settings.VERSION)
-                    if current_lutris_version < min_lutris_version:
-                        return False
+                try:
+                    js = json.load(json_file)
+                except JSONDecodeError as ex:
+                    logger.exception("Invalid .lutris_compatibility.json: %s", ex)
+                    return False
+
+                try:
+                    if "min_lutris_version" in js:
+                        min_lutris_version = parse_version(js["min_lutris_version"])
+                        current_lutris_version = parse_version(settings.VERSION)
+                        if current_lutris_version < min_lutris_version:
+                            return False
+                except TypeError as ex:
+                    logger.exception("Invalid .lutris_compatibility.json: %s", ex)
+                    return False
 
         return True
 
