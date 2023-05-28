@@ -49,29 +49,26 @@ class DLLManager:
             return self._version
         versions = self.versions
         if versions:
-            recommended_versions = [v for v in versions if self.is_recommended_version(v)]
-            return recommended_versions[0] if recommended_versions else versions[0]
+            def get_preference_key(v):
+                return not self.is_compatible_version(v), not self.is_recommended_version(v)
 
-    def get_recommended_versions(self):
-        """Returns a list of version numbers that are recommended, based on the versions JSON file;
-        merely having a directory does not count, but we do return only recommended versions. This
-        means that a version can be recommended until it is downloaded, and then if it has a
-        '.lutris_compat.json' file it may cease to be recommended. The DLL download code retries
-        with an earlier version if this happens.
-
-        This list is in the usual highest-version-first order, and we try the downloads in that order.
-        """
-        versions = self.load_versions()
-        return [v for v in versions if self.is_recommended_version(v)]
+            # Put the compatible versions first, and the recommended ones before unrecommended ones.
+            sorted_versions = sorted(versions, key=get_preference_key)
+            return sorted_versions[0]
 
     def is_recommended_version(self, version):
         """True if the version given should be usable as the default; false if it
         should not be the default, but may be selected by the user. If only
-        non-recommended versions exist, we'll still default to one of them, however.
+        non-recommended versions exist, we'll still default to one of them, however."""
+        return True
 
-        By default, we check for a '.lutris_compat.json' file; if this Lutris is
-        too old, we'll reject the version."""
-        path = os.path.join(self.base_dir, version, ".lutris_compat.json")
+    def is_compatible_version(self, version):
+        """True if the version of the component is compatible with this Lutris. We can tell only
+        once it is downloaded; if not this is always True.
+
+        This checks the file '.lutris_compatibility.json', which contains the lowest version of Lutris
+        the component version will work with. If this is absent, it is assumed compatible."""
+        path = os.path.join(self.base_dir, version, ".lutris_compatibility.json")
         if os.path.isfile(path):
             with open(path, "r", encoding='utf-8') as json_file:
                 js = json.load(json_file)
@@ -298,19 +295,22 @@ class DLLManager:
     def upgrade(self):
         self.fetch_versions()
         if not self.is_available():
-            versions = self.get_recommended_versions()
+            versions = self.load_versions()
 
-            while versions:
-                # Try to download the latest recommended version.
-                version = versions[0]
+            if not versions:
+                logger.warning("Unable to download %s because version information was not available.", self.component)
+
+            # We prefer recommended versions, so download those first.
+            versions.sort(key=self.is_recommended_version, reverse=True)
+
+            for version in versions:
                 logger.info("Downloading %s %s...", self.component, version)
                 self.download()
 
-                # If the version is still recommended, we're done,
-                # if not we'll try again with the next one.
-                new_versions = self.get_recommended_versions()
-                if version in new_versions:
-                    return
-                versions = new_versions
+                if self.is_compatible_version(version):
+                    return  # got a compatible version, that'll do.
 
-            logger.warning("Unable to download %s because version information was not available.", self.component)
+                logger.warning("Version %s of %s is not compatible with this version of Lutris.", version,
+                               self.component)
+
+            # We found nothing compatible, and downloaded everything, we just give up.
