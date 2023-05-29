@@ -10,7 +10,7 @@ def migrate():
     src_dir = os.path.join(settings.DATA_DIR, "banners")
 
     try:
-        # init_lutris() creates the new banners directrory
+        # init_lutris() creates the new banners directory
         if os.path.isdir(src_dir) and os.path.isdir(dest_dir):
             for filename in os.listdir(src_dir):
                 src_file = os.path.join(src_dir, filename)

@@ -3,12 +3,10 @@ import json
 import os
 import sys
 from gettext import gettext as _
-from json import JSONDecodeError
 
 from gi.repository import GLib
 
 from lutris import __version__
-from lutris.util import selective_merge
 from lutris.util.log import logger
 from lutris.util.settings import SettingsIO
 
@@ -60,28 +58,50 @@ write_setting = sio.write_setting
 
 
 def get_lutris_directory_settings(directory):
-    path = os.path.join(directory, "lutris.json")
-    if os.path.isfile(path):
-        with open(path, "r", encoding='utf-8') as f:
-            return json.load(f)
+    """Reads the 'lutris.json' file in 'directory' and returns it as
+    a (new) dictionary. The file is missing, unreadable, unparseable, or not a dict,
+    this returns an empty dict instead."""
+    if directory:
+        path = os.path.join(directory, "lutris.json")
+        try:
+            if os.path.isfile(path):
+                with open(path, "r", encoding='utf-8') as f:
+                    json_data = json.load(f)
+                    if not isinstance(json_data, dict):
+                        logger.error("'%s' does not contain a dict, and will be ignored.", path)
+                    return json_data
+        except Exception as ex:
+            logger.exception("Failed to read '%s': %s", path, ex)
     return {}
 
 
 def set_lutris_directory_settings(directory, settings, merge=True):
+    """Updates the 'lutris.json' file in the 'directory' given. If it does not exist, this method creates it. By
+    default, if it does exist this merges the values of settings into it, but in a shallow way - only the top level
+    entries are merged, not the content any of any sub-dictionaries. If 'merge' is False, this replaces the existing
+    'lutris.json', so that its settings are lost.
+
+    This function provides no way to remove a key; you can store nulls instead if appropriate.\
+
+    If this 'lutris.json' file can't be updated (say, if 'settings' can't be represented) then this
+    logs the errors, but then returns False."""
     path = os.path.join(directory, "lutris.json")
-    if merge and not os.path.isfile(path):
-        merge = False
+    if merge and os.path.isfile(path):
+        old_settings = get_lutris_directory_settings(directory)
+        old_settings.update(settings)
+        settings = old_settings
 
-    with open(path, "r+" if merge else "w", encoding='utf-8') as f:
-        if merge:
-            try:
-                json_data = json.load(f)
-            except JSONDecodeError:
-                logger.error("Failed to parse JSON from file %s", path)
-                json_data = {}
-            json_data = selective_merge(json_data, settings)
-        else:
-            json_data = settings
-
-        f.seek(0)
-        f.write(json.dumps(json_data, indent=2))
+    # In case settings contains something that can't be made into JSON
+    # we'll save to a temporary file and rename.
+    temp_path = os.path.join(directory, "lutris.json.tmp")
+    try:
+        with open(temp_path, "w", encoding='utf-8') as f:
+            f.write(json.dumps(settings, indent=2))
+        os.rename(temp_path, path)
+        return True
+    except Exception as ex:
+        logger.exception("Could not update '%s': %s", path, ex)
+        return False
+    finally:
+        if os.path.isfile(temp_path):
+            os.unlink(temp_path)
