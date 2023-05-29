@@ -1,18 +1,21 @@
 """Internal settings."""
+import json
 import os
 import sys
 from gettext import gettext as _
+from json import JSONDecodeError
 
 from gi.repository import GLib
 
 from lutris import __version__
+from lutris.util import selective_merge
+from lutris.util.log import logger
 from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
 VERSION = __version__
 COPYRIGHT = _("(c) 2009 Lutris Team")
 AUTHORS = [_("The Lutris team")]
-
 
 # Paths
 CONFIG_DIR = os.path.join(GLib.get_user_config_dir(), "lutris")
@@ -30,7 +33,6 @@ SHADER_CACHE_DIR = os.path.join(CACHE_DIR, "shaders")
 BANNER_PATH = os.path.join(CACHE_DIR, "banners")
 COVERART_PATH = os.path.join(CACHE_DIR, "coverart")
 ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128", "apps")
-
 
 if "nosetests" in sys.argv[0] or "nose2" in sys.argv[0] or "pytest" in sys.argv[0]:
     PGA_DB = "/tmp/pga.db"
@@ -55,3 +57,31 @@ DEFAULT_RESOLUTION_HEIGHT = 720
 
 read_setting = sio.read_setting
 write_setting = sio.write_setting
+
+
+def get_lutris_directory_settings(directory):
+    path = os.path.join(directory, "lutris.json")
+    if os.path.isfile(path):
+        with open(path, "r", encoding='utf-8') as f:
+            return json.load(f)
+    return {}
+
+
+def set_lutris_directory_settings(directory, settings, merge=True):
+    path = os.path.join(directory, "lutris.json")
+    if merge and not os.path.isfile(path):
+        merge = False
+
+    with open(path, "r+" if merge else "w", encoding='utf-8') as f:
+        if merge:
+            try:
+                json_data = json.load(f)
+            except JSONDecodeError:
+                logger.error("Failed to parse JSON from file %s", path)
+                json_data = {}
+            json_data = selective_merge(json_data, settings)
+        else:
+            json_data = settings
+
+        f.seek(0)
+        f.write(json.dumps(json_data, indent=2))
