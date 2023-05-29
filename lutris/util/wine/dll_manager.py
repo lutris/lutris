@@ -67,15 +67,15 @@ class DLLManager:
         """True if the version of the component is compatible with this Lutris. We can tell only
         once it is downloaded; if not this is always True.
 
-        This checks the file '.lutris_compatibility.json', which contains the lowest version of Lutris
+        This checks the file 'lutris.json', which contains the lowest version of Lutris
         the component version will work with. If this is absent, it is assumed compatible."""
-        path = os.path.join(self.base_dir, version, ".lutris_compatibility.json")
+        path = os.path.join(self.base_dir, version, "lutris.json")
         if os.path.isfile(path):
             with open(path, "r", encoding='utf-8') as json_file:
                 try:
                     js = json.load(json_file)
                 except JSONDecodeError as ex:
-                    logger.exception("Invalid .lutris_compatibility.json: %s", ex)
+                    logger.exception("Invalid lutris.json: %s", ex)
                     return False
 
                 try:
@@ -85,7 +85,7 @@ class DLLManager:
                         if current_lutris_version < min_lutris_version:
                             return False
                 except TypeError as ex:
-                    logger.exception("Invalid .lutris_compatibility.json: %s", ex)
+                    logger.exception("Invalid lutris.json: %s", ex)
                     return False
 
         return True
