@@ -1,11 +1,10 @@
 # Standard Library
-import os
-import shutil
 from gettext import gettext as _
 
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
+
 
 class cemu(Runner):
     human_name = _("Cemu")
@@ -18,7 +17,9 @@ class cemu(Runner):
             "option": "main_file",
             "type": "directory_chooser",
             "label": _("Game directory"),
-            "help": _("The directory in which the game lives. If installed into Cemu, this will be in the mlc directory, such as mlc/usr/title/00050000/101c9500."),
+            "help": _(
+                "The directory in which the game lives. "
+                "If installed into Cemu, this will be in the mlc directory, such as mlc/usr/title/00050000/101c9500."),
         }
     ]
     runner_options = [
@@ -78,4 +79,3 @@ class cemu(Runner):
             return {"error": "DIRECTORY NOT FOUND", "directory": gamedir}
         arguments += ["-g", gamedir]
         return {"command": arguments}
-
