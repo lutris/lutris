@@ -134,6 +134,8 @@ class EpicGamesStoreService(OnlineService):
 
     id = "egs"
     name = _("Epic Games Store")
+    login_window_width = 500
+    login_window_height = 850
     icon = "egs"
     online = True
     runner = "wine"
