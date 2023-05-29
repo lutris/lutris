@@ -55,6 +55,7 @@ class WebConnectDialog(ModalDialog):
         # webkit_settings.set_enable_write_console_messages_to_stdout(True)
         # webkit_settings.set_javascript_can_open_windows_automatically(True)
         webkit_settings.set_enable_developer_extras(True)
+        webkit_settings.set_enable_webgl(False)
         # self.enable_inspector()
         self.show_all()
 
