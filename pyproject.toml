@@ -1,0 +1,36 @@
+[tool.mypy]
+python_version = "3.7"
+packages = [
+    "lutris",
+    "tests",
+]
+exclude = [
+    ".*_pb2.py",  # Any automatically generated protobuf files
+]
+disable_error_code = [
+    "no-redef",  # Allow variable redefinition
+    "has-type",  # Ignore when variable types cannot be determined.
+    "dict-item",  # Dictionaries are always fully dynamic
+    "var-annotated",  # Never require type annotations
+    "assignment",  # Allow incompatible types in assignment (used heavily in lutris class structure).
+]
+allow_redefinition = true
+follow_imports = "silent"
+ignore_missing_imports = true
+
+
+[tool.mypy-baseline]
+# --baseline-path: the file where the baseline should be stored
+baseline_path = ".mypy_baseline"
+# --depth: cut path names longer than that many directories deep
+depth = 40
+# --allow-unsynced: do not fail for unsynced resolved errors
+allow_unsynced = true
+# --preserve-position: do not remove error position from the baseline
+preserve_position = false
+# --hide-stats: do not show stats and messages at the end
+hide_stats = false
+# --no-colors: do not use colors in stats
+no_colors = false
+# --ignore: regexes for error messages to ignore
+ignore = []

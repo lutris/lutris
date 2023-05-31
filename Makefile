@@ -127,7 +127,10 @@ black:
 	black . --check
 
 mypy:
-	mypy . --ignore-missing-imports --install-types --non-interactive
+	mypy . --install-types --non-interactive 2>&1 | mypy-baseline filter
+
+mypy-reset-baseline:  # Add new typing errors to mypy. Use sparingly.
+	mypy . --install-types --non-interactive 2>&1 | mypy-baseline sync
 
 # =============
 # Abbreviations
