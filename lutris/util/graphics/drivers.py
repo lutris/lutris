@@ -2,7 +2,6 @@
 
 Everything in this module should rely on /proc or /sys only, no executable calls
 """
-import contextlib
 import os
 import re
 from typing import Dict, Iterable, List
@@ -17,11 +16,23 @@ MIN_RECOMMENDED_NVIDIA_DRIVER = 415
 def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
     """Return information about NVidia drivers"""
     version_file_path = "/proc/driver/nvidia/version"
-    if not os.path.exists(version_file_path):
-        return {}
-    with contextlib.suppress(OSError):
+    try:
+        if not os.path.exists(version_file_path):
+            return {}
         with open(version_file_path, encoding="utf-8") as version_file:
             content = version_file.readlines()
+    except PermissionError:
+        # MAC systems (selinux, apparmor) may block access to files in /proc.
+        # If this happens, we may still be able to retrieve the info by
+        # other means, but need additional validation.
+        logger.info("Could not access %s. Falling back to glxinfo.", version_file_path)
+    except OSError as e:
+        logger.warning(
+            "Unexpected error when accessing %s. Falling back to glxinfo.",
+            version_file_path,
+            exc_info=e,
+        )
+    else:
         nvrm_version = content[0].split(": ")[1].strip().split()
         if "Open" in nvrm_version:
             return {
@@ -41,13 +52,16 @@ def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
                 "date": " ".join(nvrm_version[6:]),
             }
         }
-    # If the /proc file failed, look it up with glxinfo.
     glx_info = GlxInfo()
     platform = read_process_output(["uname", "-s"])
     arch = read_process_output(["uname", "-m"])
+    vendor = glx_info.opengl_vendor  # type: ignore[attr-defined]
+    if "nvidia" not in vendor.lower():
+        logger.error("Expected NVIDIA vendor information, received %s.", vendor)
+        return {}
     return {
         "nvrm": {
-            "vendor": glx_info.opengl_vendor,  # type: ignore[attr-defined]
+            "vendor": vendor,
             "platform": platform,
             "arch": arch,
             "version": glx_info.opengl_version.rsplit(maxsplit=1)[-1],  # type: ignore[attr-defined]
@@ -57,8 +71,15 @@ def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
 
 def get_nvidia_gpu_ids() -> List[str]:
     """Return the list of Nvidia GPUs"""
-    with contextlib.suppress(OSError):
-        return os.listdir("/proc/driver/nvidia/gpus")
+    gpus_dir = "/proc/driver/nvidia/gpus"
+    try:
+        return os.listdir(gpus_dir)
+    except PermissionError:
+        logger.info("Permission denied to %s. Using lspci instead.", gpus_dir)
+    except OSError as e:
+        logger.warning(
+            "Unexpected error accessing %s. Using lspci instead.", gpus_dir, exc_info=e
+        )
     values = read_process_output(
         # 10de is NVIDIA's vendor ID, 0300 gets you video controllers.
         ["lspci", "-D", "-n", "-d", "10de::0300"],
@@ -68,23 +89,37 @@ def get_nvidia_gpu_ids() -> List[str]:
 
 def get_nvidia_gpu_info(gpu_id: str) -> Dict[str, str]:
     """Return details about a GPU"""
-    with contextlib.suppress(OSError):
-        with open(
-            "/proc/driver/nvidia/gpus/%s/information" % gpu_id, encoding="utf-8"
-        ) as info_file:
+    gpu_info_file = f"/proc/driver/nvidia/gpus/{gpu_id}/information"
+    try:
+        with open(gpu_info_file, encoding="utf-8") as info_file:
             content = info_file.readlines()
-        infos = {}
+    except PermissionError:
+        logger.info("Permission denied to %s. Detecting with lspci.", gpu_info_file)
+    except OSError as e:
+        logger.warning(
+            "Unexpected error accessing %s. Detecting with lspci",
+            gpu_info_file,
+            exc_info=e,
+        )
+    else:
+        info = {}
         for line in content:
             key, value = line.split(":", 1)
-            infos[key] = value.strip()
-        return infos
+            info[key] = value.strip()
+        return info
     lspci_data = read_process_output(["lspci", "-v", "-s", gpu_id])
     model_info = re.search(r"NVIDIA Corporation \w+ \[(.+?)\]", lspci_data)
     if model_info:
         model = model_info.group(1)
+    else:
+        logger.error("Could not detect NVIDIA GPU model.")
+        model = "Unknown"
     irq_info = re.search("IRQ ([0-9]+)", lspci_data)
     if irq_info:
         irq = irq_info.group(1)
+    else:
+        logger.error("Could not detect GPU IRQ information.")
+        irq = None
 
     info = {
         "Model": f"NVIDIA {model}",
@@ -100,13 +135,27 @@ def get_nvidia_gpu_info(gpu_id: str) -> Dict[str, str]:
 
 
 def is_nvidia() -> bool:
-    """Return true if the Nvidia drivers are currently in use"""
-    with contextlib.suppress(OSError):
+    """Return true if the Nvidia drivers are currently in use.
+
+    Note: This function may not detect use of the nouveau drivers.
+    """
+
+    try:
         return os.path.exists("/proc/driver/nvidia")
-    with contextlib.suppress(OSError):
+    except OSError:
+        logger.info(
+            "Could not determine whether /proc/driver/nvidia exists. "
+            "Falling back to alternative method"
+        )
+    try:
         with open("/proc/modules") as f:
             modules = f.read()
         return bool(re.search(r"^nvidia ", modules, flags=re.MULTILINE))
+    except OSError:
+        logger.error(
+            "Could not access /proc/modules to find the Nvidia drivers. "
+            "Nvidia card may not be detected."
+        )
     glx_info = GlxInfo()
     return "NVIDIA" in glx_info.opengl_vendor  # type: ignore[attr-defined]
 
@@ -122,7 +171,7 @@ def get_gpus() -> Iterable[str]:
         logger.error(
             "Your system does not allow reading from /sys/class/drm, no GPU detected."
         )
-        return
+        return []
     for cardname in cardlist:
         if re.match(r"^card\d$", cardname):
             yield cardname
@@ -133,7 +182,7 @@ def get_gpu_info(card: str) -> Dict[str, str]:
     infos = {"DRIVER": "", "PCI_ID": "", "PCI_SUBSYS_ID": ""}
     try:
         with open(
-            "/sys/class/drm/%s/device/uevent" % card, encoding="utf-8"
+            f"/sys/class/drm/{card}/device/uevent", encoding="utf-8"
         ) as card_uevent:
             content = card_uevent.readlines()
     except FileNotFoundError:
