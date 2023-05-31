@@ -13,28 +13,47 @@ class easyrpg(Runner):
     runnable_alone = True
     entry_point_option = "project_path"
     runner_executable = "easyrpg/easyrpg-player"
-    download_url = "https://easyrpg.org/downloads/player/0.7.0/easyrpg-player-0.7.0-linux.tar.gz"
+    download_url = "https://easyrpg.org/downloads/player/0.8/easyrpg-player-0.8-linux.tar.gz"
 
     game_options = [
         {
             "option": "project_path",
             "type": "directory_chooser",
             "label": _("Game directory"),
-            "help": _("Select the directory of the game. (required)")
+            "help": _("Select the directory of the game. <b>(required)</b>")
         },
         {
             "option": "encoding",
-            "type": "string",
+            "type": "choice",
+            "advanced": True,
             "label": _("Encoding"),
             "help": _(
                 "Instead of auto detecting the encoding or using the "
-                "one in RPG_RT.ini, the specified encoding is used. "
-                "Use 'auto' for automatic detection."
-            )
+                "one in RPG_RT.ini, the specified encoding is used."
+            ),
+            "choices": [
+                (_("Auto"), ""),
+                (_("Auto (ignore RPG_RT.ini)"), "auto"),
+                (_("Western European"), "1252"),
+                (_("Central/Eastern European"), "1250"),
+                (_("Japanese"), "932"),
+                (_("Cyrillic"), "1251"),
+                (_("Korean"), "949"),
+                (_("Chinese (Simplified)"), "936"),
+                (_("Chinese (Traditional)"), "950"),
+                (_("Greek"), "1253"),
+                (_("Turkish"), "1254"),
+                (_("Hebrew"), "1255"),
+                (_("Arabic"), "1256"),
+                (_("Baltic"), "1257"),
+                (_("Thai"), "874"),
+            ],
+            "default": ""
         },
         {
             "option": "engine",
             "type": "choice",
+            "advanced": True,
             "label": _("Engine"),
             "help": _("Disable auto detection of the simulated engine."),
             "choices": [
@@ -44,17 +63,43 @@ class easyrpg(Runner):
                 (_("RPG Maker 2000 (English release) engine"), "rpg2ke"),
                 (_("RPG Maker 2003 engine (v1.00 - v1.04)"), "rpg2k3"),
                 (_("RPG Maker 2003 engine (v1.05 - v1.09a)"), "rpg2k3v105"),
-                (_("RPG Maker 2003 (English release) engine"), "rpg2k3e")
+                (_("RPG Maker 2003 (English release) engine"), "rpg2k3e"),
             ],
             "default": ""
+        },
+        {
+            "option": "patch",
+            "type": "string",
+            "advanced": True,
+            "label": _("Patches"),
+            "help": _(
+                "Instead of autodetecting patches used by this game, force emulation of certain patches.\n"
+                "\nAvailable patches:\n"
+                "<b>common-this</b>: \"This Event\" in common events"
+                "<b>dynrpg</b>: DynRPG patch by Cherry"
+                "<b>key-patch</b>: Key Patch by Ineluki"
+                "<b>maniac</b>: Maniac Patch by BingShan"
+                "<b>pic-unlock</b>: Pictures are not blocked by messages"
+                "<b>rpg2k3-cmds</b>: Support all RPG Maker 2003 event commands in any version of the engine"
+                "\n\nYou can provide multiple patches or use 'none' to disable all engine patches."
+            )
+        },
+        {
+            "option": "language",
+            "type": "string",
+            "advanced": True,
+            "label": _("Language"),
+            "help": _(
+                "Load the game translation in the language/LANG directory."
+            ),
         },
         {
             "option": "save_path",
             "type": "directory_chooser",
             "label": _("Save path"),
             "help": _(
-                "Instead of storing save files in the game directory they "
-                "are stored in the specified path. The directory must exist."
+                "Instead of storing save files in the game directory they are stored in the specified path. "
+                "The directory must exist."
             )
         },
         {
@@ -69,21 +114,59 @@ class easyrpg(Runner):
             "type": "range",
             "label": _("Load game ID"),
             "help": _(
-                "Skip the title scene and load SaveXX.lsd. "
-                "Set to '0' to disable."
+                "Skip the title scene and load SaveXX.lsd.\n"
+                "Set to 0 to disable."
             ),
             "min": 0,
             "max": 99,
             "default": 0
         },
         {
+            "option": "record_input",
+            "type": "file",
+            "advanced": True,
+            "label": _("Record input"),
+            "help": _("Records all button input to the specified log file.")
+        },
+        {
+            "option": "replay_input",
+            "type": "file",
+            "advanced": True,
+            "label": _("Replay input"),
+            "help": _(
+                "Replays button input from the specified log file, as generated by 'Record input'.\n"
+                "If the RNG seed and the state of the save file directory is also the same as it was "
+                "when the log was recorded, this should reproduce an identical run to the one recorded."
+            )
+        },
+        {
+            "option": "test_play",
+            "type": "bool",
+            "advanced": True,
+            "section": _("Debug"),
+            "label": _("Test play"),
+            "help": _("Enable TestPlay (debug) mode."),
+            "default": False
+        },
+        {
+            "option": "hide_title",
+            "type": "bool",
+            "advanced": True,
+            "section": _("Debug"),
+            "label": _("Hide title"),
+            "help": _("Hide the title background image and center the command menu."),
+            "default": False
+        },
+        {
             "option": "start_map_id",
             "type": "range",
+            "advanced": True,
+            "section": _("Debug"),
             "label": _("Start map ID"),
             "help": _(
-                "Overwrite the map used for new games and use "
-                "MapXXXX.lmu instead. Set to '0' to disable. "
-                "\n\nIncompatible with 'Load game ID'."
+                "Overwrite the map used for new games and use MapXXXX.lmu instead.\n"
+                "Set to 0 to disable.\n\n"
+                "Incompatible with 'Load game ID'."
             ),
             "min": 0,
             "max": 9999,
@@ -92,92 +175,125 @@ class easyrpg(Runner):
         {
             "option": "start_position",
             "type": "string",
+            "advanced": True,
+            "section": _("Debug"),
             "label": _("Start position"),
             "help": _(
-                "Overwrite the party start position and "
-                "move the party to the specified position. "
-                "Provide two numbers separated by a space. "
-                "\n\nIncompatible with 'Load game ID'."
+                "Overwrite the party start position and move the party to the specified position.\n"
+                "Provide two numbers separated by a space.\n\n"
+                "Incompatible with 'Load game ID'."
             )
         },
         {
             "option": "start_party",
             "type": "string",
+            "advanced": True,
+            "section": _("Debug"),
             "label": _("Start party"),
             "help": _(
-                "Overwrite the starting party members with "
-                "the actors with the specified IDs. Provide "
-                "one to four numbers separated by spaces. "
-                "\n\nIncompatible with 'Load game ID'."
+                "Overwrite the starting party members with the actors with the specified IDs.\n"
+                "Provide one to four numbers separated by spaces.\n\n"
+                "Incompatible with 'Load game ID'."
             )
         },
         {
             "option": "battle_test",
             "type": "string",
-            "label": _("Monster party"),
+            "advanced": True,
+            "section": _("Debug"),
+            "label": _("Battle test"),
             "help": _("Start a battle test with the specified monster party.")
-        },
-        {
-            "option": "record_input",
-            "type": "string",
-            "label": _("Record input"),
-            "help": _("Records all button input to the specified log file.")
-        },
-        {
-            "option": "replay_input",
-            "type": "file",
-            "label": _("Replay input"),
-            "help": _(
-                "Replays button input from the specified log file, "
-                "as generated by 'Record input'. If the RNG seed "
-                "and the state of the save file directory is also "
-                "the same as it was when the log was recorded, this "
-                "should reproduce an identical run to the one recorded."
-            )
-        },
+        }
     ]
 
     runner_options = [
         {
-            "option": "audio",
-            "type": "bool",
-            "label": _("Enable audio"),
+            "option": "autobattle_algo",
+            "type": "choice",
+            "advanced": True,
+            "section": _("Engine"),
+            "label": _("AutoBattle algorithm"),
             "help": _(
-                "Switch off to disable audio "
-                "(in case you prefer your own music)."
+                "Which AutoBattle algorithm to use.\n\n"
+                "<b>RPG_RT</b>: The default RPG_RT compatible algorithm, including RPG_RT bugs.\n"
+                "<b>RPG_RT+</b>: The default RPG_RT compatible algorithm, with bug-fixes.\n"
+                "<b>ATTACK</b>: Like RPG_RT+ but only physical attacks, no skills."
             ),
-            "default": True
+            "choices": [
+                (_("Auto"), ""),
+                (_("RPG_RT"), "RPG_RT"),
+                (_("RPG_RT+"), "RPG_RT+"),
+                (_("ATTACK"), "ATTACK"),
+            ],
+            "default": ""
+        },
+        {
+            "option": "enemyai_algo",
+            "type": "choice",
+            "advanced": True,
+            "section": _("Engine"),
+            "label": _("EnemyAI algorithm"),
+            "help": _(
+                "Which EnemyAI algorithm to use.\n\n"
+                "<b>RPG_RT</b>: The default RPG_RT compatible algorithm, including RPG_RT bugs.\n"
+                "<b>RPG_RT+</b>: The default RPG_RT compatible algorithm, with bug-fixes.\n"
+            ),
+            "choices": [
+                (_("Auto"), ""),
+                (_("RPG_RT"), "RPG_RT"),
+                (_("RPG_RT+"), "RPG_RT+"),
+            ],
+            "default": ""
         },
         {
             "option": "seed",
-            "type": "string",
+            "type": "range",
+            "advanced": True,
+            "section": _("Engine"),
             "label": _("RNG seed"),
-            "help": _("Seeds the random number generator")
-        },
-        {
-            "option": "test_play",
-            "type": "bool",
-            "label": _("Test play"),
-            "help": _("Enable TestPlay mode."),
-            "default": False
-        },
-        {
-            "option": "mouse",
-            "type": "bool",
-            "section": _("Controls"),
-            "label": _("Enable mouse"),
             "help": _(
-                "Use mouse click for decision and scroll wheel for lists."
+                "Seeds the random number generator.\n"
+                "Use -1 to disable."
             ),
-            "default": False
+            "min": -1,
+            "max": 2147483647,
+            "default": -1
         },
         {
-            "option": "touch",
+            "option": "audio",
             "type": "bool",
-            "section": _("Controls"),
-            "label": _("Enable touch"),
-            "help": _("Use one/two finger tap for decision/cancel."),
-            "default": False
+            "section": _("Audio"),
+            "label": _("Enable audio"),
+            "help": _("Switch off to disable audio."),
+            "default": True
+        },
+        {
+            "option": "music_volume",
+            "type": "range",
+            "section": _("Audio"),
+            "label": _("BGM volume"),
+            "help": _("Volume of the background music."),
+            "min": 0,
+            "max": 100,
+            "default": 100
+        },
+        {
+            "option": "sound_volume",
+            "type": "range",
+            "section": _("Audio"),
+            "label": _("SFX volume"),
+            "help": _("Volume of the sound effects."),
+            "min": 0,
+            "max": 100,
+            "default": 100
+        },
+        {
+            "option": "soundfont",
+            "type": "file",
+            "advanced": True,
+            "section": _("Audio"),
+            "label": _("Soundfont"),
+            "help": _("Soundfont in sf2 format to use when playing MIDI files.")
         },
         {
             "option": "fullscreen",
@@ -188,13 +304,46 @@ class easyrpg(Runner):
             "default": False
         },
         {
-            "option": "hide_title",
+            "option": "game_resolution",
+            "type": "choice",
+            "section": _("Graphics"),
+            "advanced": True,
+            "label": _("Game resolution"),
+            "help": _(
+                "Force a different game resolution.\n\n"
+                "This is experimental and can cause glitches or break games!"
+            ),
+            "choices": [
+                (_("320×240 (4:3, Original)"), "original"),
+                (_("416×240 (16:9, Widescreen)"), "widescreen"),
+                (_("560×240 (21:9, Ultrawide)"), "ultrawide"),
+            ],
+            "default": "original"
+        },
+        {
+            "option": "scaling",
+            "type": "choice",
+            "section": _("Graphics"),
+            "label": _("Scaling"),
+            "help": _(
+                "How the video output is scaled.\n\n"
+                "<b>Nearest</b>: Scale to screen size (causes scaling artifacts)\n"
+                "<b>Integer</b>: Scale to multiple of the game resolution\n"
+                "<b>Bilinear</b>: Like Nearest, but output is blurred to avoid artifacts\n"
+            ),
+            "choices": [
+                (_("Nearest"), "nearest"),
+                (_("Integer"), "integer"),
+                (_("Bilinear"), "bilinear"),
+            ],
+            "default": "bilinear"
+        },
+        {
+            "option": "stretch",
             "type": "bool",
             "section": _("Graphics"),
-            "label": _("Hide title"),
-            "help": _(
-                "Hide the title background image and center the command menu."
-            ),
+            "label": _("Stretch"),
+            "help": _("Ignore the aspect ratio and stretch video output to the entire width of the screen."),
             "default": False
         },
         {
@@ -202,22 +351,22 @@ class easyrpg(Runner):
             "type": "bool",
             "section": _("Graphics"),
             "label": _("Enable VSync"),
-            "help": _(
-                "Switch off to disable VSync and use the FPS limit. "
-                "VSync may or may not be supported on all platforms."
-            ),
+            "help": _("Switch off to disable VSync and use the FPS limit."),
             "default": True
         },
         {
             "option": "fps_limit",
-            "type": "string",
+            "type": "range",
             "section": _("Graphics"),
             "label": _("FPS limit"),
             "help": _(
-                "Set a custom frames per second limit. If unspecified, "
-                "the default is 60 FPS. Set to '0' to disable the frame "
-                "limiter. This option may not be supported on all platforms."
-            )
+                "Set a custom frames per second limit.\n"
+                "If unspecified, the default is 60 FPS.\n"
+                "Set to 0 to disable the frame limiter."
+            ),
+            "min": 0,
+            "max": 9999,
+            "default": 60
         },
         {
             "option": "show_fps",
@@ -228,7 +377,7 @@ class easyrpg(Runner):
             "choices": [
                 (_("Disabled"), "off"),
                 (_("Fullscreen & title bar"), "on"),
-                (_("Fullscreen, title bar & window"), "full")
+                (_("Fullscreen, title bar & window"), "full"),
             ],
             "default": "off"
         },
@@ -237,9 +386,7 @@ class easyrpg(Runner):
             "type": "bool",
             "section": _("Runtime Package"),
             "label": _("Enable RTP"),
-            "help": _(
-                "Switch off to disable support for the Runtime Package (RTP)."
-            ),
+            "help": _("Switch off to disable support for the Runtime Package (RTP)."),
             "default": True
         },
         {
@@ -248,8 +395,8 @@ class easyrpg(Runner):
             "section": _("Runtime Package"),
             "label": _("RPG2000 RTP location"),
             "help": _(
-                "Full path to a directory containing an "
-                "extracted RPG Maker 2000 Run-Time-Package (RTP)."
+                "Full path to a directory containing an extracted "
+                "RPG Maker 2000 Run-Time-Package (RTP)."
             )
         },
         {
@@ -258,8 +405,8 @@ class easyrpg(Runner):
             "section": _("Runtime Package"),
             "label": _("RPG2003 RTP location"),
             "help": _(
-                "Full path to a directory containing an "
-                "extracted RPG Maker 2003 Run-Time-Package (RTP)."
+                "Full path to a directory containing an extracted "
+                "RPG Maker 2003 Run-Time-Package (RTP)."
             )
         },
         {
@@ -304,22 +451,51 @@ class easyrpg(Runner):
     def get_runner_command(self):
         cmd = [self.get_executable()]
 
+        # Engine
+        autobattle_algo = self.runner_config.get("autobattle_algo")
+        if autobattle_algo:
+            cmd.extend(("--autobattle-algo", autobattle_algo))
+
+        enemyai_algo = self.runner_config.get("enemyai_algo")
+        if enemyai_algo:
+            cmd.extend(("--enemyai-algo", enemyai_algo))
+
+        seed = self.runner_config.get("seed")
+        if seed:
+            cmd.extend(("--seed", seed))
+
+        # Audio
+        if not self.runner_config["audio"]:
+            cmd.append("--no-audio")
+
+        music_volume = self.runner_config.get("music_volume")
+        if music_volume:
+            cmd.extend(("--music-volume", music_volume))
+
+        sound_volume = self.runner_config.get("sound_volume")
+        if sound_volume:
+            cmd.extend(("--sound-volume", sound_volume))
+
+        soundfont = self.runner_config.get("soundfont")
+        if soundfont:
+            cmd.extend(("--soundfont", soundfont))
+
+        # Graphics
         if self.runner_config["fullscreen"]:
             cmd.append("--fullscreen")
         else:
             cmd.append("--window")
 
-        if not self.runner_config["audio"]:
-            cmd.append("--disable-audio")
+        game_resolution = self.runner_config.get("game_resolution")
+        if game_resolution:
+            cmd.extend(("--game-resolution", game_resolution))
 
-        if self.runner_config["mouse"]:
-            cmd.append("--enable-mouse")
+        scaling = self.runner_config.get("scaling")
+        if scaling:
+            cmd.extend(("--scaling", scaling))
 
-        if self.runner_config["touch"]:
-            cmd.append("--enable-touch")
-
-        if self.runner_config["hide_title"]:
-            cmd.append("--hide-title")
+        if self.runner_config["stretch"]:
+            cmd.append("--stretch")
 
         if not self.runner_config["vsync"]:
             cmd.append("--no-vsync")
@@ -334,15 +510,9 @@ class easyrpg(Runner):
         if show_fps == "full":
             cmd.append("--fps-render-window")
 
-        if self.runner_config["test_play"]:
-            cmd.append("--test-play")
-
-        seed = self.runner_config.get("seed")
-        if seed:
-            cmd.extend(("--seed", seed))
-
+        # Runtime Package
         if not self.runner_config["rtp"]:
-            cmd.append("--disable-rtp")
+            cmd.append("--no-rtp")
 
         return cmd
 
@@ -373,6 +543,16 @@ class easyrpg(Runner):
         if engine:
             cmd.extend(("--engine", engine))
 
+        patches = self.game_config.get("patches")
+        if patches == 'none':
+            cmd.append("--no-patch")
+        elif patches:
+            cmd.extend(("--patches", *patches.split()))
+
+        language = self.game_config.get("language")
+        if language:
+            cmd.extend(("--language", language))
+
         save_path = self.game_config.get("save_path")
         if save_path:
             save_path = path.expanduser(save_path)
@@ -395,6 +575,13 @@ class easyrpg(Runner):
         load_game_id = self.game_config.get("load_game_id")
         if load_game_id:
             cmd.extend(("--load-game-id", str(load_game_id)))
+
+        # Debug
+        if self.game_config["test_play"]:
+            cmd.append("--test-play")
+
+        if self.game_config["hide_title"]:
+            cmd.append("--hide-title")
 
         start_map_id = self.game_config.get("start_map_id")
         if start_map_id:
