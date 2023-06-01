@@ -1,6 +1,5 @@
 """Steam for Linux runner"""
 import os
-import subprocess
 from gettext import gettext as _
 
 from lutris.command import MonitoredCommand
@@ -30,7 +29,7 @@ class steam(Runner):
     human_name = _("Steam")
     platforms = [_("Linux")]
     runner_executable = "steam"
-    runner_executable_flatpak = "com.valvesoftware.Steam"
+    flatpak_id = "com.valvesoftware.Steam"
     game_options = [
         {
             "option": "appid",
@@ -163,7 +162,7 @@ class steam(Runner):
         runner_executable = self.runner_config.get("runner_executable")
         if runner_executable and os.path.isfile(runner_executable):
             return runner_executable
-        return system.find_executable(self.runner_executable) or system.find_executable(self.runner_executable_flatpak)
+        return system.find_executable(self.runner_executable)
 
     @property
     def working_dir(self):
@@ -177,12 +176,10 @@ class steam(Runner):
     @property
     def launch_args(self):
         """Provide launch arguments for Steam"""
-        args = [self.get_executable()]
-        if linux.LINUX_SYSTEM.is_flatpak:
-            return args
+        command = self.get_command()
         if self.runner_config.get("start_in_big_picture"):
-            args.append("-bigpicture")
-        return args + split_arguments(self.runner_config.get("args") or "")
+            command.append("-bigpicture")
+        return command + split_arguments(self.runner_config.get("args") or "")
 
     def get_game_path_from_appid(self, appid):
         """Return the game directory."""
@@ -258,7 +255,7 @@ class steam(Runner):
             acf_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)
             with open(acf_path, "w", encoding='utf-8') as acf_file:
                 acf_file.write(acf_content)
-        subprocess.Popen([self.get_executable(), "steam://install/%s" % appid])  # pylint: disable=consider-using-with
+        system.spawn(self.get_command() + [f"steam://install/{appid}"])
 
     def get_run_data(self):
         return {"command": self.launch_args, "env": self.get_env()}
@@ -302,8 +299,9 @@ class steam(Runner):
     def remove_game_data(self, app_id=None, **kwargs):
         if not self.is_installed():
             return False
+        app_id = app_id or self.appid
         command = MonitoredCommand(
-            [self.get_executable(), "steam://uninstall/%s" % (app_id or self.appid)],
+            self.get_command() + [f"steam://uninstall/{app_id}"],
             runner=self,
             env=self.get_env(),
         )

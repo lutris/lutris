@@ -6,6 +6,7 @@ from pathlib import Path
 from lutris.command import MonitoredCommand
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
+from lutris.util import flatpak as _flatpak
 from lutris.util.strings import split_arguments
 
 
@@ -86,12 +87,10 @@ class flatpak(Runner):
     ]
 
     def is_installed(self):
-        if shutil.which("flatpak-spawn"):
-            return True
-        return bool(shutil.which("flatpak"))
+        return _flatpak.is_installed()
 
     def get_executable(self):
-        return shutil.which("flatpak-spawn") or shutil.which("flatpak")
+        return _flatpak.get_executable()
 
     def install(self, install_ui_delegate, version=None, callback=None):
         raise NonInstallableRunnerError(
@@ -129,33 +128,19 @@ class flatpak(Runner):
         arch = self.game_config.get("arch", "")
         branch = self.game_config.get("branch", "")
         args = self.game_config.get("args", "")
-        app_id = self.game_config.get("appid", "")
+        appid = self.game_config.get("appid", "")
 
-        if not app_id:
+        if not appid:
             return {"error": "CUSTOM", "text": "No application specified."}
 
-        if app_id.count(".") < 2:
+        if appid.count(".") < 2:
             return {"error": "CUSTOM", "text": "Application ID is not specified in correct format."
                                                "Must be something like: tld.domain.app"}
 
-        if any(x in app_id for x in ("--", "/")):
+        if any(x in appid for x in ("--", "/")):
             return {"error": "CUSTOM", "text": "Application ID field must not contain options or arguments."}
 
-        command = [self.get_executable()]
-
-        if shutil.which("flatpak-spawn"):
-            command.extend(["--host", "flatpak", "run"])
-        else:
-            command.append("run")
-
-        if arch:
-            command.append(f"--arch={arch}")
-        if branch:
-            command.append(f"--branch={branch}")
-        command.append(app_id)
+        command = _flatpak.get_run_command(appid, arch, branch)
         if args:
             command.extend(split_arguments(args))
-        launch_info = {
-            "command": command
-        }
-        return launch_info
+        return {"command": command}
