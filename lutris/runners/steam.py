@@ -191,6 +191,7 @@ class steam(Runner):
             if game_path:
                 return game_path
         logger.info("Data path for SteamApp %s not found.", appid)
+        return ""
 
     def get_steamapps_dirs(self):
         """Return a list of the Steam library main + custom folders."""
@@ -238,6 +239,7 @@ class steam(Runner):
         steamapps_paths = self.get_steamapps_dirs()
         if steamapps_paths:
             return steamapps_paths[0]
+        return ""
 
     def install(self, install_ui_delegate, version=None, callback=None):
         raise NonInstallableRunnerError(_(
