@@ -102,7 +102,10 @@ class steam(Runner):
             "help": _("Extra command line arguments used when launching Steam"),
         },
     ]
-    system_options_override = [{"option": "disable_runtime", "default": True}]
+    system_options_override = [
+        {"option": "disable_runtime", "default": True},
+        {"option": "gamemode", "default": False},
+    ]
 
     def __init__(self, config=None):
         super().__init__(config)
