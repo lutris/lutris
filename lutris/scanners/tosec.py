@@ -55,6 +55,8 @@ PLATFORM_PATTERNS = {
     "WonderSwan": "wonderswan",
     "Amstrad CPC - Games - [DSK]": "cpc6128disk",
     "Amstrad CPC - Games - [CPR]": "gx4000",
+    "ZX Spectrum - Games - [TZX]": "spectrumcass",
+    "ZX Spectrum - Games - [TAP]": "spectrumcass",
     "Apple II": "apple2",
 }
 
