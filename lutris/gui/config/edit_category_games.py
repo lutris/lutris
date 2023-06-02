@@ -5,6 +5,7 @@ from gi.repository import Gtk
 
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
+from lutris.exceptions import watch_errors
 from lutris.game import Game
 from lutris.gui.config.common import GameDialogCommon
 
@@ -58,10 +59,11 @@ class EditCategoryGamesDialog(GameDialogCommon):
     def is_valid(self):
         return True
 
+    @watch_errors()
     def on_save(self, _button):
-        """Save game info and destroy widget. Return True if success."""
+        """Save game info and destroy widget."""
         if not self.is_valid():
-            return False
+            return
 
         removed_games = []
         added_games = []

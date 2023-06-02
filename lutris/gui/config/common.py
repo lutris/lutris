@@ -553,10 +553,10 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
 
     @watch_errors()
     def on_save(self, _button):
-        """Save game info and destroy widget. Return True if success."""
+        """Save game info and destroy widget."""
         if not self.is_valid():
             logger.warning(_("Current configuration is not valid, ignoring save request"))
-            return False
+            return
         name = self.name_entry.get_text()
 
         if not self.slug:

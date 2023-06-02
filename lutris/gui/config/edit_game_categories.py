@@ -6,6 +6,7 @@ from gettext import gettext as _
 from gi.repository import Gtk
 
 from lutris.database import categories as categories_db
+from lutris.exceptions import watch_errors
 from lutris.gui.config.common import GameDialogCommon
 
 
@@ -87,10 +88,11 @@ class EditGameCategoriesDialog(GameDialogCommon):
     def is_valid(self):
         return True
 
+    @watch_errors()
     def on_save(self, _button):
-        """Save game info and destroy widget. Return True if success."""
+        """Save game info and destroy widget."""
         if not self.is_valid():
-            return False
+            return
 
         for category_checkbox in self.grid.get_children():
             label = category_checkbox.get_label()
