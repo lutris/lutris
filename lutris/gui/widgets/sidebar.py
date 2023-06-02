@@ -241,7 +241,7 @@ class RunnerSidebarRow(SidebarRow):
     @watch_errors()
     def on_configure_runner(self, *_args):
         """Show runner configuration"""
-        self.application.show_window(RunnerConfigDialog, runner=self.runner)
+        self.application.show_window(RunnerConfigDialog, runner=self.runner, parent=self.get_toplevel())
 
     @watch_errors()
     def on_manage_versions(self, *_args):
@@ -275,7 +275,7 @@ class CategorySidebarRow(SidebarRow):
         ]
 
     def on_category_clicked(self, button):
-        EditCategoryGamesDialog(self.application.window, self.category)
+        self.application.show_window(EditCategoryGamesDialog, category=self.category, parent=self.get_toplevel())
         return True
 
     def __lt__(self, other):

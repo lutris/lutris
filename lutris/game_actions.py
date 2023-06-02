@@ -270,7 +270,7 @@ class GameActions:
 
     def on_edit_game_categories(self, _widget):
         """Edit game categories"""
-        EditGameCategoriesDialog(self.window, self.game)
+        self.application.show_window(EditGameCategoriesDialog, game=self.game, parent=self.window)
 
     def on_hide_game(self, _widget):
         """Add a game to the list of hidden games"""
