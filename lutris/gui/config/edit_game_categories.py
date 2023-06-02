@@ -1,3 +1,4 @@
+# pylint: disable=no-member
 import locale
 import re
 from gettext import gettext as _

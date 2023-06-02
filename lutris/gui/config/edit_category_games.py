@@ -1,13 +1,12 @@
-import locale
-import re
+# pylint: disable=no-member
 from gettext import gettext as _
 
 from gi.repository import Gtk
 
-from lutris.gui.config.common import GameDialogCommon
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.game import Game
+from lutris.gui.config.common import GameDialogCommon
 
 
 class EditCategoryGamesDialog(GameDialogCommon):

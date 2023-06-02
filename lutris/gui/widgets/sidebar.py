@@ -10,10 +10,10 @@ from lutris.database import games as games_db
 from lutris.exceptions import watch_errors
 from lutris.game import Game
 from lutris.gui import dialogs
+from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
-from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.utils import has_stock_icon
@@ -335,6 +335,7 @@ class LutrisSidebar(Gtk.ListBox):
         # Empty values until LutrisWindow explicitly initializes the rows
         # at the right time.
         self.installed_runners = []
+        self.used_categories = set()
         self.active_services = {}
         self.active_platforms = []
         self.service_rows = {}

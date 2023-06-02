@@ -1,3 +1,4 @@
+# pylint: disable=no-member
 """Hardware driver related utilities
 
 Everything in this module should rely on /proc or /sys only, no executable calls
@@ -148,7 +149,7 @@ def is_nvidia() -> bool:
             "Falling back to alternative method"
         )
     try:
-        with open("/proc/modules") as f:
+        with open("/proc/modules", encoding="utf-8") as f:
             modules = f.read()
         return bool(re.search(r"^nvidia ", modules, flags=re.MULTILINE))
     except OSError:
