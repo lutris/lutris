@@ -2,6 +2,7 @@ import os
 from collections import OrderedDict
 from unittest import TestCase
 
+from lutris.util.wine import wine
 from lutris.util import fileio, strings, system
 from lutris.util.steam import vdfutils
 
@@ -96,11 +97,11 @@ class TestStringUtils(TestCase):
 
 class TestVersionSort(TestCase):
     def test_parse_version(self):
-        self.assertEqual(strings.parse_version("3.6-staging"), ([3, 6], '-staging', ''))
+        self.assertEqual(wine.parse_wine_version("3.6-staging"), ([3, 6], '-staging', ''))
 
     def test_versions_are_correctly_sorted(self):
         versions = ['1.8', '1.7.4', '1.9.1', '1.9.10', '1.9.4']
-        versions = strings.version_sort(versions)
+        versions = wine.version_sort(versions)
         self.assertEqual(versions[0], '1.7.4')
         self.assertEqual(versions[1], '1.8')
         self.assertEqual(versions[2], '1.9.1')
@@ -114,7 +115,7 @@ class TestVersionSort(TestCase):
             '1.9.10-staging', '1.9.10',
             '1.9.4', 'staging-1.9.4'
         ]
-        versions = strings.version_sort(versions)
+        versions = wine.version_sort(versions)
         self.assertEqual(versions[0], '1.7.4')
         self.assertEqual(versions[1], '1.8')
         self.assertEqual(versions[2], '1.8-staging')
@@ -126,7 +127,7 @@ class TestVersionSort(TestCase):
 
     def test_versions_can_be_reversed(self):
         versions = ['1.9', '1.6', '1.7', '1.8']
-        versions = strings.version_sort(versions, reverse=True)
+        versions = wine.version_sort(versions, reverse=True)
         self.assertEqual(versions[0], '1.9')
         self.assertEqual(versions[3], '1.6')
 

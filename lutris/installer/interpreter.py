@@ -40,7 +40,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         def report_error(self, error):
             """Called to report an error during installation. The installation will then stop."""
-            logger.exception("Error during installation: %s", str(error))
+            logger.exception("Error during installation: %s", error)
 
         def report_status(self, status):
             """Called to report the current activity of the installer."""

@@ -252,7 +252,7 @@ class InstallerWindow(ModelessDialog,
         )
 
     def on_watched_error(self, error):
-        ErrorDialog(str(error), parent=self)
+        ErrorDialog(error, parent=self)
         self.stack.navigation_reset()
 
     def set_status(self, text):

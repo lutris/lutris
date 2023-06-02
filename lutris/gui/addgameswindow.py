@@ -160,7 +160,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.destroy()
 
     def on_watched_error(self, error):
-        ErrorDialog(str(error), parent=self)
+        ErrorDialog(error, parent=self)
 
     # Initial Page
 
@@ -370,7 +370,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             self.display_cancel_button(label=_("_Close"))
 
         if error:
-            ErrorDialog(str(error), parent=self)
+            ErrorDialog(error, parent=self)
             self.stack.navigation_reset()
             return
 

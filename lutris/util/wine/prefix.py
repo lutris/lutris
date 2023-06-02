@@ -1,6 +1,7 @@
 """Wine prefix management"""
 import os
 
+from lutris.settings import get_lutris_directory_settings, set_lutris_directory_settings
 from lutris.util import joypad, system
 from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.log import logger
@@ -246,28 +247,23 @@ class WinePrefixManager:
                 os.rename(path, safe_path)
 
     def _get_desktop_integration_assignment(self):
-        setting_path = os.path.join(self.path, ".lutris_destkop_integration")
         try:
-            if os.path.isfile(setting_path):
-                with open(setting_path, "r", encoding='utf-8') as f:
-                    return f.read()
-            else:
-                return ""
+            # If the old tracking file is found, we'll read it, unlink it, and
+            # save the setting in the new form.
+            obsolete_path = os.path.join(self.path, ".lutris_destkop_integration")
+            if os.path.isfile(obsolete_path):
+                with open(obsolete_path, "r", encoding='utf-8') as f:
+                    desktop_dir = f.read()
+                self._set_desktop_integration_assignment(desktop_dir)
+                os.unlink(obsolete_path)
         except Exception as ex:
             logger.exception("Unable to read Lutris desktop integration setting: %s", ex)
-            return ""
+
+        settings = get_lutris_directory_settings(self.path)
+        return settings.get("desktop_integration_directory", "")
 
     def _set_desktop_integration_assignment(self, desktop_dir):
-        setting_path = os.path.join(self.path, ".lutris_destkop_integration")
-
-        try:
-            if desktop_dir:
-                with open(setting_path, "w", encoding='utf-8') as f:
-                    f.write(desktop_dir)
-            elif os.path.isfile(setting_path):
-                os.remove(setting_path)
-        except Exception as ex:
-            logger.exception("Unable to write Lutris desktop integration setting: %s", ex)
+        set_lutris_directory_settings(self.path, {"desktop_integration_directory": desktop_dir or ""})
 
     def set_crash_dialogs(self, enabled):
         """Enable or diable Wine crash dialogs"""
@@ -307,10 +303,22 @@ class WinePrefixManager:
             self.set_registry_key(path, "WineDesktop", desktop_size)
 
     def set_dpi(self, dpi):
-        """Sets the DPI for WINE to use. None remove the Lutris setting,
-        to leave WINE in control."""
+        """Sets the DPI for WINE to use. None to remove the Lutris setting,
+        and leave WINE in control."""
 
-        assignment_path = os.path.join(self.path, ".lutris_dpi_assignment")
+        # Convert the old hidden file into a 'lutris.json' settings file
+        obsolete_path = os.path.join(self.path, ".lutris_dpi_assignment")
+        try:
+            if os.path.isfile(obsolete_path):
+                with open(obsolete_path, "r", encoding='utf-8') as f:
+                    dpi_assigned = int(f.read())
+                set_lutris_directory_settings(self.path, int(dpi_assigned))
+                os.unlink(obsolete_path)
+        except Exception as ex:
+            logger.exception("Unable to read Lutris assigned DPI: %s", ex)
+
+        settings = get_lutris_directory_settings(self.path)
+
         key_paths = [self.hkcu_prefix + "/Software/Wine/Fonts",
                      self.hkcu_prefix + "/Control Panel/Desktop"]
 
@@ -321,26 +329,27 @@ class WinePrefixManager:
         def is_lutris_dpi_assigned():
             """Check if Lutris assigned the DPI presently found in the registry."""
             try:
-                with open(assignment_path, "r", encoding='utf-8') as f:
-                    assigned_dpi = int(f.read())
+                dpi_assigned = settings.get("dpi_assigned")
+                if dpi_assigned:
+                    dpi_assigned = int(dpi_assigned)
+                else:
+                    return False
             except Exception as ex:
                 logger.exception("Unable to read Lutris assigned DPI: %s", ex)
                 return False
 
             for key_path in key_paths:
-                if assigned_dpi != self.get_registry_key(key_path, "LogPixels"):
+                if dpi_assigned != self.get_registry_key(key_path, "LogPixels"):
                     return False
             return True
 
         if dpi:
             assign_dpi(dpi)
-
-            with open(assignment_path, "w", encoding='utf-8') as f:
-                f.write(str(dpi))
-        elif os.path.isfile(assignment_path):
+            set_lutris_directory_settings(self.path, {"dpi_assigned": dpi})
+        elif settings.get("dpi_assigned"):
             if is_lutris_dpi_assigned():
                 assign_dpi(96)  # reset previous DPI
-            os.remove(assignment_path)
+            set_lutris_directory_settings(self.path, {"dpi_assigned": ""})
 
     def configure_joypads(self):
         """Disables some joypad devices"""

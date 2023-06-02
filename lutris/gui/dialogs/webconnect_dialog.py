@@ -55,6 +55,7 @@ class WebConnectDialog(ModalDialog):
         # webkit_settings.set_enable_write_console_messages_to_stdout(True)
         # webkit_settings.set_javascript_can_open_windows_automatically(True)
         webkit_settings.set_enable_developer_extras(True)
+        webkit_settings.set_enable_webgl(False)
         # self.enable_inspector()
         self.show_all()
 
@@ -91,16 +92,15 @@ class WebConnectDialog(ModalDialog):
         """Handles web popups created by this dialog's webview"""
         uri = navigation_action.get_request().get_uri()
         view = WebKit2.WebView.new_with_related_view(widget)
-        view.load_uri(uri)
-        popup_dialog = WebPopupDialog(view, parent=self)
-        popup_dialog.run()
+        popup_dialog = WebPopupDialog(view, uri, parent=self)
+        popup_dialog.show()
         return view
 
 
 class WebPopupDialog(ModalDialog):
     """Dialog for handling web popups"""
 
-    def __init__(self, webview, parent=None):
+    def __init__(self, webview, uri, parent=None):
         # pylint: disable=no-member
         self.parent = parent
         super().__init__(title=_('Loading...'), parent=parent)
@@ -109,6 +109,7 @@ class WebPopupDialog(ModalDialog):
         self.webview.connect("notify::title", self.on_available_webview_title)
         self.webview.connect("create", self.on_new_webview_popup)
         self.webview.connect("close", self.on_webview_close)
+        self.webview.load_uri(uri)
         self.vbox.pack_start(self.webview, True, True, 0)
         self.vbox.set_border_width(0)
         self.set_default_size(390, 500)
@@ -124,10 +125,10 @@ class WebPopupDialog(ModalDialog):
         uri = navigation_action.get_request().get_uri()
         view = WebKit2.WebView.new_with_related_view(webview)
         view.load_uri(uri)
-        dialog = WebPopupDialog(view, parent=self)
-        dialog.set_modal(True)
+        dialog = WebPopupDialog(view, uri, parent=self)
         dialog.show()
         return view
 
     def on_webview_close(self, webview):
-        self.destroy()
+        self.close()
+        return True

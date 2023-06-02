@@ -9,7 +9,7 @@ from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import GameConfigError, UnavailableLibrariesError
 from lutris.runners import RunnerInstallationError
-from lutris.util import strings, system
+from lutris.util import flatpak, strings, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import ExtractFailure, extract_archive
 from lutris.util.http import HTTPError, Request
@@ -33,6 +33,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     entry_point_option = "main_file"
     download_url = None
     arch = None  # If the runner is only available for an architecture that isn't x86_64
+    flatpak_id = None
 
     class InstallUIDelegate:
         """These objects provide UI for a runner as it is installing itself.
@@ -232,6 +233,13 @@ class Runner:  # pylint: disable=too-many-public-methods
             raise ValueError("runner_executable not set for {}".format(self.name))
         return os.path.join(settings.RUNNER_DIR, self.runner_executable)
 
+    def get_command(self):
+        exe = self.get_executable()
+        if exe:
+            return [exe]
+        if flatpak.is_app_installed(self.flatpak_id):
+            return flatpak.get_run_command(self.flatpak_id)
+
     def get_env(self, os_env=False, disable_runtime=False):
         """Return environment variables used for a game."""
         env = {}
@@ -412,7 +420,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Return dict with command (exe & args list) and env vars (dict).
 
         Reimplement in derived runner if need be."""
-        return {"command": [self.get_executable()], "env": self.get_env()}
+        return {"command": self.get_command(), "env": self.get_env()}
 
     def run(self, ui_delegate):
         """Run the runner alone."""
@@ -463,7 +471,9 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     def is_installed(self):
         """Return whether the runner is installed"""
-        return system.path_exists(self.get_executable())
+        if system.path_exists(self.get_executable()):
+            return True
+        return self.flatpak_id and flatpak.is_app_installed(self.flatpak_id)
 
     def get_runner_version(self, version=None, lutris_only=False):
         """Get the appropriate version for a runner

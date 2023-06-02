@@ -794,7 +794,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def _service_reloaded_cb(self, error):
         if error:
-            dialogs.ErrorDialog(str(error), parent=self)
+            dialogs.ErrorDialog(error, parent=self)
 
     def on_service_logout(self, service):
         if self.service and service.id == self.service.id:
@@ -877,7 +877,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def on_game_unhandled_error(self, game, error):
         """Called when a game has sent the 'game-error' signal"""
-        dialogs.ErrorDialog(str(error), parent=self)
+        dialogs.ErrorDialog(error, parent=self)
         return True
 
     @GtkTemplate.Callback
@@ -1059,4 +1059,4 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 game.emit("game-install")
 
     def on_watched_error(self, error):
-        dialogs.ErrorDialog(str(error), parent=self)
+        dialogs.ErrorDialog(error, parent=self)

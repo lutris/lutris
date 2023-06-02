@@ -2,8 +2,10 @@
 import json
 import os
 from datetime import datetime
+from json import JSONDecodeError
 
 from lutris import settings
+from lutris.util.log import logger
 
 UPDATE_CACHE_PATH = os.path.join(settings.CACHE_DIR, "updates.json")
 DATE_FORMAT = "%d/%m/%Y %H:%M:%S"
@@ -21,9 +23,13 @@ def _read_cache_content():
     """Return the content of the cache"""
     if not os.path.exists(UPDATE_CACHE_PATH):
         return {}
-    with open(UPDATE_CACHE_PATH, "r", encoding='utf-8') as json_file:
-        cache = json.load(json_file)
-    return cache
+    try:
+        with open(UPDATE_CACHE_PATH, "r", encoding='utf-8') as json_file:
+            cache = json.load(json_file)
+        return cache
+    except JSONDecodeError as ex:
+        logger.exception("Unable to decode '%s': %s", UPDATE_CACHE_PATH, ex)
+        return {}  # We can always just update everything; we'll rewrite the file then.
 
 
 def read_date_from_cache(key):

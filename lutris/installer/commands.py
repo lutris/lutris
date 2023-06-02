@@ -356,7 +356,7 @@ class CommandsMixin:
         return src.rstrip("/"), dst.rstrip("/")
 
     def substitute_vars(self, data):
-        """Subsitute variable names found in given file."""
+        """Substitute variable names found in given file."""
         self._check_required_params("file", data, "substitute_vars")
         filename = self._substitute(data["file"])
         logger.debug("Substituting variables for file %s", filename)

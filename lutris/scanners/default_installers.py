@@ -161,4 +161,8 @@ DEFAULT_INSTALLERS = {
         "runner": "mame",
         "game": {"main_file": "rom", "device": "flop1", "machine": "apple2gs"}
     },
+    "spectrumcass": {
+        "runner": "mame",
+        "game": {"main_file": "rom", "device": "cass", "machine": "spectrum"}
+    }
 }

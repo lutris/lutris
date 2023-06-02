@@ -4,10 +4,12 @@ import os
 import shutil
 from gettext import gettext as _
 
+from lutris import settings
 from lutris.util import system
 from lutris.util.extract import extract_archive
 from lutris.util.http import download_file
 from lutris.util.log import logger
+from lutris.util.strings import parse_version
 from lutris.util.wine.prefix import WinePrefixManager
 
 
@@ -47,13 +49,37 @@ class DLLManager:
             return self._version
         versions = self.versions
         if versions:
-            recommended_versions = [v for v in versions if self.is_recommended_version(v)]
-            return recommended_versions[0] if recommended_versions else versions[0]
+            def get_preference_key(v):
+                return not self.is_compatible_version(v), not self.is_recommended_version(v)
+
+            # Put the compatible versions first, and the recommended ones before unrecommended ones.
+            sorted_versions = sorted(versions, key=get_preference_key)
+            return sorted_versions[0]
 
     def is_recommended_version(self, version):
         """True if the version given should be usable as the default; false if it
         should not be the default, but may be selected by the user. If only
         non-recommended versions exist, we'll still default to one of them, however."""
+        return True
+
+    def is_compatible_version(self, version):
+        """True if the version of the component is compatible with this Lutris. We can tell only
+        once it is downloaded; if not this is always True.
+
+        This checks the file 'lutris.json', which may contain the lowest version of Lutris
+        the component version will work with. If this setting is absent, it is assumed compatible."""
+        dir_settings = settings.get_lutris_directory_settings(self.base_dir)
+
+        try:
+            if "min_lutris_version" in dir_settings:
+                min_lutris_version = parse_version(dir_settings["min_lutris_version"])
+                current_lutris_version = parse_version(settings.VERSION)
+                if current_lutris_version < min_lutris_version:
+                    return False
+        except TypeError as ex:
+            logger.exception("Invalid lutris.json: %s", ex)
+            return False
+
         return True
 
     @property
@@ -271,8 +297,22 @@ class DLLManager:
     def upgrade(self):
         self.fetch_versions()
         if not self.is_available():
-            if self.version:
-                logger.info("Downloading %s %s...", self.component, self.version)
-                self.download()
-            else:
+            versions = self.load_versions()
+
+            if not versions:
                 logger.warning("Unable to download %s because version information was not available.", self.component)
+
+            # We prefer recommended versions, so download those first.
+            versions.sort(key=self.is_recommended_version, reverse=True)
+
+            for version in versions:
+                logger.info("Downloading %s %s...", self.component, version)
+                self.download()
+
+                if self.is_compatible_version(version):
+                    return  # got a compatible version, that'll do.
+
+                logger.warning("Version %s of %s is not compatible with this version of Lutris.", version,
+                               self.component)
+
+            # We found nothing compatible, and downloaded everything, we just give up.

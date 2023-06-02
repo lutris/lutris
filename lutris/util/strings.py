@@ -69,8 +69,6 @@ def parse_version(version):
     Returns:
         tuple: (version number as list, prefix, suffix)
     """
-    version = version.replace("Proton7-", "Proton-7.")
-    version = version.replace("Proton8-", "Proton-8.")
     version_match = re.search(r"(\d[\d\.]+\d)", version)
     if not version_match:
         return [], "", ""
@@ -78,19 +76,6 @@ def parse_version(version):
     prefix = version[0:version_match.span()[0]]
     suffix = version[version_match.span()[1]:]
     return [int(p) for p in version_number.split(".")], suffix, prefix
-
-
-def version_sort(versions, reverse=False):
-
-    def version_key(version):
-        version_list, prefix, suffix = parse_version(version)
-        # Normalize the length of sub-versions
-        sort_key = version_list + [0] * (10 - len(version_list))
-        sort_key.append(prefix)
-        sort_key.append(suffix)
-        return sort_key
-
-    return sorted(versions, key=version_key, reverse=reverse)
 
 
 def unpack_dependencies(string):

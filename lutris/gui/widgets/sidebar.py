@@ -170,7 +170,7 @@ class ServiceSidebarRow(SidebarRow):
                 self.service.logout()
                 self.service.login(parent=self.get_toplevel())
             else:
-                ErrorDialog(str(error), parent=self.get_toplevel())
+                ErrorDialog(error, parent=self.get_toplevel())
         GLib.timeout_add(2000, self.enable_refresh_button)
 
     def enable_refresh_button(self):
@@ -251,7 +251,7 @@ class RunnerSidebarRow(SidebarRow):
                                      runner=self.runner, parent=self.get_toplevel())
 
     def on_watched_error(self, error):
-        dialogs.ErrorDialog(str(error), parent=self.get_toplevel())
+        dialogs.ErrorDialog(error, parent=self.get_toplevel())
 
 
 class CategorySidebarRow(SidebarRow):
