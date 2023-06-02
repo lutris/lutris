@@ -1,4 +1,4 @@
-# generated on 2023-05-29T17:09:19+00:00
+# generated on 2023-06-01T10:48:40+00:00
 
 share/applications/net.lutris.Lutris.desktop
 share/metainfo/net.lutris.Lutris.metainfo.xml
@@ -96,6 +96,7 @@ lutris/migrations/migrate_steam_appids.py
 lutris/migrations/retrieve_discord_appids.py
 lutris/runner_interpreter.py
 lutris/runners/atari800.py
+lutris/runners/cemu.py
 lutris/runners/commands/dosbox.py
 lutris/runners/commands/__init__.py
 lutris/runners/commands/wine.py
@@ -184,6 +185,7 @@ lutris/util/egs/egs_launcher.py
 lutris/util/egs/__init__.py
 lutris/util/extract.py
 lutris/util/fileio.py
+lutris/util/flatpak.py
 lutris/util/gamecontrollerdb.py
 lutris/util/game_finder.py
 lutris/util/gog.py
