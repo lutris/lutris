@@ -13,7 +13,7 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
-from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, QuestionDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
@@ -26,12 +26,12 @@ from lutris.util.strings import slugify
 
 
 # pylint: disable=too-many-instance-attributes, no-member
-class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
+class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     """Base class for config dialogs"""
     no_runner_label = _("Select a runner in the Game Info tab")
 
     def __init__(self, title, parent=None):
-        super().__init__(title, parent=parent, border_width=0, use_header_bar=True)
+        super().__init__(title, parent=parent, border_width=0)
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
         self.vbox.set_border_width(0)
 
@@ -60,11 +60,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self.service_medias = {"icon": LutrisIcon(), "banner": LutrisBanner(), "coverart_big": LutrisCoverart()}
         self.notebook_page_generators = {}
 
-        self.accelerators = Gtk.AccelGroup()
-        self.add_accel_group(self.accelerators)
-
         self.build_header_bar()
-        self.connect("response", self.on_response)
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -408,17 +404,6 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         return self.notebook.append_page(widget, Gtk.Label(label=label))
 
     def build_header_bar(self):
-        # Buttons
-        cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
-        cancel_button.set_valign(Gtk.Align.CENTER)
-
-        save_button = self.add_styled_button(_("Save"), Gtk.ResponseType.NONE, css_class="suggested-action")
-        save_button.set_valign(Gtk.Align.CENTER)
-        save_button.connect("clicked", self.on_save)
-
-        key, mod = Gtk.accelerator_parse("<Primary>s")
-        save_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
-
         # Advanced settings toggle
         switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
                              spacing=5,
@@ -440,7 +425,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         # These lists need to be distinct, so they can be separately
         # hidden or shown without interfering with each other.
         self.advanced_switch_widgets = [switch_label, switch]
-        self.header_bar_widgets = [cancel_button, save_button, switch_box]
+        self.header_bar_widgets = [self.cancel_button, self.save_button, switch_box]
 
         if self.notebook:
             self.update_advanced_switch_visibilty(self.notebook.get_current_page())
@@ -518,8 +503,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
             # Reload the config to clean out any changes we may have made
             if self.game:
                 self.game.reload_config()
-        if response != Gtk.ResponseType.NONE:
-            self.destroy()
+        super().on_response(_widget, response)
 
     def is_valid(self):
         if not self.runner_name:

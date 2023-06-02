@@ -83,17 +83,17 @@ class SavableModelessDialog(ModelessDialog):
     def __init__(self, title, parent=None, **kwargs):
         super().__init__(title, parent=parent, use_header_bar=True, **kwargs)
 
-        cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
-        cancel_button.set_valign(Gtk.Align.CENTER)
+        self.cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
+        self.cancel_button.set_valign(Gtk.Align.CENTER)
 
-        save_button = self.add_styled_button(_("Save"), Gtk.ResponseType.NONE, css_class="suggested-action")
-        save_button.set_valign(Gtk.Align.CENTER)
-        save_button.connect("clicked", self.on_save)
+        self.save_button = self.add_styled_button(_("Save"), Gtk.ResponseType.NONE, css_class="suggested-action")
+        self.save_button.set_valign(Gtk.Align.CENTER)
+        self.save_button.connect("clicked", self.on_save)
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
         key, mod = Gtk.accelerator_parse("<Primary>s")
-        save_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+        self.save_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
         self.connect("response", self.on_response)
 
