@@ -841,7 +841,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     @GtkTemplate.Callback
     def on_preferences_activate(self, *_args):
         """Callback when preferences is activated."""
-        self.application.show_window(PreferencesDialog)
+        self.application.show_window(PreferencesDialog, parent=self)
 
     def on_show_installed_state_change(self, action, value):
         """Callback to handle uninstalled game filter switch"""
@@ -883,7 +883,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
-        self.application.show_window(AddGamesWindow)
+        self.application.show_window(AddGamesWindow, parent=self)
         return True
 
     def on_toggle_viewtype(self, *args):
