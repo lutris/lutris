@@ -928,6 +928,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 self.filters.pop(filter_type)
 
         row_type, row_id = widget.selected_category
+        if row_type == "user_category":
+            row_type = "category"
         self.filters[row_type] = row_id
 
         service_name = self.filters.get("service")

@@ -1,9 +1,11 @@
 """Sidebar for the main window"""
+import locale
 from gettext import gettext as _
 
 from gi.repository import GLib, GObject, Gtk, Pango
 
 from lutris import runners, services
+from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.exceptions import watch_errors
 from lutris.game import Game
@@ -11,6 +13,7 @@ from lutris.gui import dialogs
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
+from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.utils import has_stock_icon
@@ -251,6 +254,43 @@ class RunnerSidebarRow(SidebarRow):
         dialogs.ErrorDialog(error, parent=self.get_toplevel())
 
 
+class CategorySidebarRow(SidebarRow):
+
+    def __init__(self, category, application):
+        super().__init__(
+            category['name'],
+            "user_category",
+            category['name'],
+            Gtk.Image.new_from_icon_name("folder-symbolic", Gtk.IconSize.MENU),
+            application=application
+        )
+        self.category = category
+
+        self._sort_name = locale.strxfrm(category['name'])
+
+    def get_actions(self):
+        """Return the definition of buttons to be added to the row"""
+        return [
+            ("applications-system-symbolic", _("Edit Games"), self.on_category_clicked, "manage-category-games")
+        ]
+
+    def on_category_clicked(self, button):
+        EditCategoryGamesDialog(self.application.window, self.category)
+        return True
+
+    def __lt__(self, other):
+        if not isinstance(other, CategorySidebarRow):
+            raise ValueError('Cannot compare %s to %s' % (self.__class__.__name__, other.__class__.__name__))
+
+        return self._sort_name < other._sort_name
+
+    def __gt__(self, other):
+        if not isinstance(other, CategorySidebarRow):
+            raise ValueError('Cannot compare %s to %s' % (self.__class__.__name__, other.__class__.__name__))
+
+        return self._sort_name > other._sort_name
+
+
 class SidebarHeader(Gtk.Box):
     """Header shown on top of each sidebar section"""
 
@@ -301,14 +341,16 @@ class LutrisSidebar(Gtk.ListBox):
         self.runner_rows = {}
         self.platform_rows = {}
 
+        self.category_rows = {}
         # A dummy objects that allows inspecting why/when we have a show() call on the object.
         self.running_row = DummyRow()
         self.missing_row = DummyRow()
         self.row_headers = {
             "library": SidebarHeader(_("Library"), header_index=0),
-            "service": SidebarHeader(_("Sources"), header_index=1),
-            "runner": SidebarHeader(_("Runners"), header_index=2),
-            "platform": SidebarHeader(_("Platforms"), header_index=3),
+            "user_category": SidebarHeader(_("Categories"), header_index=1),
+            "service": SidebarHeader(_("Sources"), header_index=2),
+            "runner": SidebarHeader(_("Runners"), header_index=3),
+            "platform": SidebarHeader(_("Platforms"), header_index=4),
         }
         GObject.add_emission_hook(RunnerBox, "runner-installed", self.update_rows)
         GObject.add_emission_hook(RunnerBox, "runner-removed", self.update_rows)
@@ -405,7 +447,7 @@ class LutrisSidebar(Gtk.ListBox):
 
     @selected_category.setter
     def selected_category(self, value):
-        """Selects the rrow for the category indicated by a category tuple,
+        """Selects the row for the category indicated by a category tuple,
         like ('service', 'lutris')"""
         selected_row_type, selected_row_id = value or ("category", "all")
         for row in self.get_children():
@@ -416,6 +458,8 @@ class LutrisSidebar(Gtk.ListBox):
     def _filter_func(self, row):
         if not row or not row.id or row.type in ("category", "dynamic_category"):
             return True
+        if row.type == "user_category":
+            return row.id in self.used_categories
         if row.type == "service":
             return row.id in self.active_services
         if row.type == "runner":
@@ -427,7 +471,9 @@ class LutrisSidebar(Gtk.ListBox):
     def _header_func(self, row, before):
         if not before:
             header = self.row_headers["library"]
-        elif before.type in ("category", "dynamic_category") and row.type == "service":
+        elif before.type in ("category", "dynamic_category") and row.type == "user_category":
+            header = self.row_headers[row.type]
+        elif before.type in ("category", "dynamic_category", "user_category") and row.type == "service":
             header = self.row_headers[row.type]
         elif before.type == "service" and row.type == "runner":
             header = self.row_headers[row.type]
@@ -472,6 +518,10 @@ class LutrisSidebar(Gtk.ListBox):
             row.show_all()
             self.insert(row, index)
 
+        categories_db.remove_unused_categories()
+        categories = [c for c in categories_db.get_categories() if c["name"] != "favorite"]
+
+        self.used_categories = {c["name"] for c in categories}
         self.active_services = services.get_enabled_services()
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = games_db.get_used_platforms()
@@ -510,6 +560,12 @@ class LutrisSidebar(Gtk.ListBox):
                 )
                 self.platform_rows[platform] = platform_row
                 insert_row(platform_row)
+
+        for category in categories:
+            if category["name"] not in self.category_rows:
+                new_category_row = CategorySidebarRow(category, application=self.application)
+                self.category_rows[category["name"]] = new_category_row
+                insert_row(new_category_row)
 
         self.invalidate_filter()
         return True

@@ -219,12 +219,41 @@ class Game(GObject.Object):
         """Return the categories the game is in."""
         return categories_db.get_categories_in_game(self.id) if self.is_db_stored else []
 
+    def update_game_categories(self, added_category_names, removed_category_names):
+        """add to / remove from categories"""
+        for added_category_name in added_category_names:
+            self.add_category(added_category_name)
+
+        for removed_category_name in removed_category_names:
+            self.remove_category(removed_category_name)
+
+        self.emit("game-updated")
+
+    def add_category(self, category_name):
+        """add game to category"""
+        category = categories_db.get_category(category_name)
+        if category is None:
+            category_id = categories_db.add_category(category_name)
+        else:
+            category_id = category['id']
+        categories_db.add_game_to_category(self.id, category_id)
+
+    def remove_category(self, category_name):
+        """remove game from category"""
+        category = categories_db.get_category(category_name)
+        if category is None:
+            return
+        category_id = category['id']
+        categories_db.remove_category_from_game(self.id, category_id)
+
     def add_to_favorites(self):
         """Add the game to the 'favorite' category"""
         favorite = categories_db.get_category("favorite")
         if not favorite:
-            favorite = categories_db.add_category("favorite")
-        categories_db.add_game_to_category(self.id, favorite["id"])
+            favorite_id = categories_db.add_category("favorite")
+        else:
+            favorite_id = favorite["id"]
+        categories_db.add_game_to_category(self.id, favorite_id)
         self.emit("game-updated")
 
     def remove_from_favorites(self):
