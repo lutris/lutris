@@ -77,6 +77,34 @@ class ModelessDialog(Dialog):
         return False
 
 
+class SavableModelessDialog(ModelessDialog):
+    """This is a modeless dialog that has a Cancel and a Save button in the header-bar,
+    with a ctrl-S keyboard shortcut to save."""
+    def __init__(self, title, parent=None, **kwargs):
+        super().__init__(title, parent=parent, use_header_bar=True, **kwargs)
+
+        cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
+        cancel_button.set_valign(Gtk.Align.CENTER)
+
+        save_button = self.add_styled_button(_("Save"), Gtk.ResponseType.NONE, css_class="suggested-action")
+        save_button.set_valign(Gtk.Align.CENTER)
+        save_button.connect("clicked", self.on_save)
+
+        self.accelerators = Gtk.AccelGroup()
+        self.add_accel_group(self.accelerators)
+        key, mod = Gtk.accelerator_parse("<Primary>s")
+        save_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+
+        self.connect("response", self.on_response)
+
+    def on_response(self, _widget, response):
+        if response != Gtk.ResponseType.NONE:
+            self.destroy()
+
+    def on_save(self, _button):
+        pass
+
+
 class GtkBuilderDialog(GObject.Object):
     dialog_object = NotImplemented
 

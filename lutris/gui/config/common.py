@@ -437,7 +437,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         header_bar = self.get_header_bar()
         header_bar.pack_end(switch_box)
 
-        # These lists need to be distict, so they can be separately
+        # These lists need to be distinct, so they can be separately
         # hidden or shown without interfering with each other.
         self.advanced_switch_widgets = [switch_label, switch]
         self.header_bar_widgets = [cancel_button, save_button, switch_box]
@@ -514,7 +514,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self.show_all()
 
     def on_response(self, _widget, response):
-        if response in (Gtk.ResponseType.CANCEL, response == Gtk.ResponseType.DELETE_EVENT):
+        if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
             # Reload the config to clean out any changes we may have made
             if self.game:
                 self.game.reload_config()

@@ -7,32 +7,27 @@ from gi.repository import Gtk
 
 from lutris.database import categories as categories_db
 from lutris.exceptions import watch_errors
-from lutris.gui.config.common import GameDialogCommon
+from lutris.gui.dialogs import SavableModelessDialog
 
 
-class EditGameCategoriesDialog(GameDialogCommon):
+class EditGameCategoriesDialog(SavableModelessDialog):
     """Game category edit dialog."""
 
     def __init__(self, parent, game):
-        super().__init__(_("Categories - %s") % game.name, parent=parent)
+        super().__init__(_("Categories - %s") % game.name, parent=parent, border_width=10)
 
         self.game = game
         self.game_id = game.id
         self.game_categories = categories_db.get_categories_in_game(self.game_id)
+
         self.grid = Gtk.Grid()
 
         self.set_default_size(350, 250)
-        self.set_border_width(10)
 
         self.vbox.set_homogeneous(False)
         self.vbox.set_spacing(10)
         self.vbox.pack_start(self._create_category_checkboxes(), True, True, 0)
         self.vbox.pack_start(self._create_add_category(), False, False, 0)
-
-        # Hide advanced-switch since it is unused
-        for widget in self.advanced_switch_widgets:
-            widget.set_no_show_all(True)
-            widget.hide()
 
         self.show_all()
 
@@ -84,15 +79,9 @@ class EditGameCategoriesDialog(GameDialogCommon):
 
         return hbox
 
-    def is_valid(self):
-        return True
-
     @watch_errors()
     def on_save(self, _button):
         """Save game info and destroy widget."""
-        if not self.is_valid():
-            return
-
         removed_categories = set()
         added_categories = set()
 
