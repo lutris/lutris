@@ -17,7 +17,7 @@ def get_category(name):
 def get_game_ids_for_category(category_name):
     """Get the ids of games in database."""
     query = (
-        "select game_id from games_categories "
+        "SELECT game_id FROM games_categories "
         "JOIN categories ON categories.id = games_categories.category_id "
         "WHERE categories.name=?"
     )
@@ -30,7 +30,7 @@ def get_game_ids_for_category(category_name):
 def get_categories_in_game(game_id):
     """Get the categories of a game in database."""
     query = (
-        "select categories.name from categories "
+        "SELECT categories.name FROM categories "
         "JOIN games_categories ON categories.id = games_categories.category_id "
         "JOIN games ON games.id = games_categories.game_id "
         "WHERE games.id=?"
@@ -59,9 +59,9 @@ def remove_category_from_game(game_id, category_id):
 
 
 def remove_unused_categories():
-    """remove all categories that have no games associated with it"""
+    """Remove all categories that have no games associated with them"""
     query = (
-        "select categories.* from categories "
+        "SELECT categories.* FROM categories "
         "LEFT JOIN games_categories ON categories.id = games_categories.category_id "
         "WHERE games_categories.category_id IS NULL"
     )

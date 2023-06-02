@@ -10,7 +10,7 @@ from lutris.gui.config.common import GameDialogCommon
 
 
 class EditCategoryGamesDialog(GameDialogCommon):
-    """Games asigned to category dialog."""
+    """Games assigned to category dialog."""
 
     def __init__(self, parent, category):
         super().__init__(_("Games - %s") % category['name'], parent=parent)
@@ -18,9 +18,9 @@ class EditCategoryGamesDialog(GameDialogCommon):
 
         self.category = category['name']
         self.category_id = category['id']
-        self.avaiable_games = [Game(x['id']) for x in games_db.get_games(sorts=[("installed", "DESC"),
-                                                                                ("name", "COLLATE NOCASE ASC")
-                                                                                ])]
+        self.available_games = [Game(x['id']) for x in games_db.get_games(sorts=[("installed", "DESC"),
+                                                                                 ("name", "COLLATE NOCASE ASC")
+                                                                                 ])]
         self.category_games = [Game(x) for x in categories_db.get_game_ids_for_category(self.category)]
         self.grid = Gtk.Grid()
 
@@ -43,7 +43,7 @@ class EditCategoryGamesDialog(GameDialogCommon):
         sw = Gtk.ScrolledWindow()
         row = Gtk.VBox()
         category_games_names = [x.name for x in self.category_games]
-        for game in self.avaiable_games:
+        for game in self.available_games:
             label = game.name
             checkbutton_option = Gtk.CheckButton(label)
             if label in category_games_names:
