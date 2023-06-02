@@ -15,7 +15,6 @@ class EditGameCategoriesDialog(GameDialogCommon):
 
     def __init__(self, parent, game):
         super().__init__(_("Categories - %s") % game.name, parent=parent)
-        self.parent = parent
 
         self.game = game
         self.game_id = game.id
@@ -60,7 +59,7 @@ class EditGameCategoriesDialog(GameDialogCommon):
         def on_add_category(widget=None):
             category_text = category_entry.get_text().strip()
             if category_text not in ("", "favorite", "all"):
-                category_text = re.sub(' +', ' ', category_text)    # Remove excessive whitespaces
+                category_text = re.sub(' +', ' ', category_text)  # Remove excessive whitespaces
                 for category_checkbox in self.grid.get_children():
                     if category_checkbox.get_label() == category_text:
                         return
@@ -94,22 +93,20 @@ class EditGameCategoriesDialog(GameDialogCommon):
         if not self.is_valid():
             return
 
+        removed_categories = set()
+        added_categories = set()
+
         for category_checkbox in self.grid.get_children():
             label = category_checkbox.get_label()
 
-            removed_categories = []
-            added_categories = []
-
             if label in self.game_categories:
                 if not category_checkbox.get_active():
-                    removed_categories.append(label)
+                    removed_categories.add(label)
             else:
                 if category_checkbox.get_active():
-                    added_categories.append(label)
+                    added_categories.add(label)
 
-            if len(added_categories) > 0 or len(removed_categories) > 0:
-                self.game.update_game_categories(added_categories, removed_categories)
-
-        self.parent.on_game_updated(self.game)
+        if added_categories or removed_categories:
+            self.game.update_game_categories(added_categories, removed_categories)
 
         self.destroy()

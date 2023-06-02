@@ -15,7 +15,6 @@ class EditCategoryGamesDialog(GameDialogCommon):
 
     def __init__(self, parent, category):
         super().__init__(_("Games - %s") % category['name'], parent=parent)
-        self.parent = parent
 
         self.category = category['name']
         self.category_id = category['id']
@@ -81,10 +80,9 @@ class EditCategoryGamesDialog(GameDialogCommon):
         for game_id in added_games:
             game = Game(game_id)
             game.add_category(self.category)
-            self.parent.on_game_updated(game)
+
         for game_id in removed_games:
             game = Game(game_id)
             game.remove_category(self.category)
-            self.parent.on_game_updated(game)
 
         self.destroy()

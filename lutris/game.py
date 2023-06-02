@@ -54,8 +54,8 @@ class Game(GObject.Object):
     __gsignals__ = {
         # SIGNAL_RUN_LAST works around bug https://gitlab.gnome.org/GNOME/glib/-/issues/513
         # fix merged Dec 2020, but we support older GNOME!
-        "game-error": (GObject.SIGNAL_RUN_LAST, bool, (object, )),
-        "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object, )),
+        "game-error": (GObject.SIGNAL_RUN_LAST, bool, (object,)),
+        "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
         "game-launch": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -222,14 +222,14 @@ class Game(GObject.Object):
     def update_game_categories(self, added_category_names, removed_category_names):
         """add to / remove from categories"""
         for added_category_name in added_category_names:
-            self.add_category(added_category_name)
+            self.add_category(added_category_name, no_signal=True)
 
         for removed_category_name in removed_category_names:
-            self.remove_category(removed_category_name)
+            self.remove_category(removed_category_name, no_signal=True)
 
         self.emit("game-updated")
 
-    def add_category(self, category_name):
+    def add_category(self, category_name, no_signal=False):
         """add game to category"""
         category = categories_db.get_category(category_name)
         if category is None:
@@ -238,13 +238,19 @@ class Game(GObject.Object):
             category_id = category['id']
         categories_db.add_game_to_category(self.id, category_id)
 
-    def remove_category(self, category_name):
+        if not no_signal:
+            self.emit("game-updated")
+
+    def remove_category(self, category_name, no_signal=False):
         """remove game from category"""
         category = categories_db.get_category(category_name)
         if category is None:
             return
         category_id = category['id']
         categories_db.remove_category_from_game(self.id, category_id)
+
+        if not no_signal:
+            self.emit("game-updated")
 
     def add_to_favorites(self):
         """Add the game to the 'favorite' category"""
