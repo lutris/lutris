@@ -53,7 +53,7 @@ class EditGameCategoriesDialog(SavableModelessDialog):
     def _create_add_category(self):
         def on_add_category(widget=None):
             category_text = category_entry.get_text().strip()
-            if category_text not in ("", "favorite", "all"):
+            if not categories_db.is_reserved_category(category_text):
                 category_text = re.sub(' +', ' ', category_text)  # Remove excessive whitespaces
                 for category_checkbox in self.grid.get_children():
                     if category_checkbox.get_label() == category_text:

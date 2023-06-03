@@ -981,18 +981,18 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if game.is_hidden and not self.show_hidden_games:
             return False
 
-        selected_row = self.sidebar.get_selected_row()
+        row = self.sidebar.get_selected_row()
 
-        if selected_row:
+        if row:
             # Stopped games do not get displayed on the running page
-            if game.state == game.STATE_STOPPED and selected_row.id == "running":
+            if row.type == "dynamic_category" and row.id == "running" and game.state == game.STATE_STOPPED:
                 return False
 
             # If the update took the row out of this view's category, we'll need
             # to update the view to reflect that.
-            if selected_row.type == "user_category" and \
-                selected_row.id != "all" and selected_row.id not in game.get_categories():
-                return False
+            if row.type == "user_category":
+                if not categories_db.is_reserved_category(row.id) and row.id not in game.get_categories():
+                    return False
 
         return True
 

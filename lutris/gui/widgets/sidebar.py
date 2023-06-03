@@ -441,7 +441,7 @@ class LutrisSidebar(Gtk.ListBox):
 
     @property
     def selected_category(self):
-        """The selected sidebar row, as a tuple of category and category value,
+        """The selected sidebar row, as a tuple of category type and category value,
         like ('service', 'lutris')."""
         row = self.get_selected_row()
         return (row.type, row.id) if row else ("category", "all")
@@ -520,7 +520,7 @@ class LutrisSidebar(Gtk.ListBox):
             self.insert(row, index)
 
         categories_db.remove_unused_categories()
-        categories = [c for c in categories_db.get_categories() if c["name"] != "favorite"]
+        categories = [c for c in categories_db.get_categories() if not categories_db.is_reserved_category(c["name"])]
 
         self.used_categories = {c["name"] for c in categories}
         self.active_services = services.get_enabled_services()

@@ -2,9 +2,15 @@ from lutris import settings
 from lutris.database import sql
 
 
+def is_reserved_category(name):
+    """True of name is None, blank or is a name Lutris uses internally, or
+    starts with '.' for future expansion."""
+    return not name or name[0] == "." or name in ["all", "favorite"]
+
+
 def get_categories():
     """Get the list of every category in database."""
-    return sql.db_select(settings.PGA_DB, "categories",)
+    return sql.db_select(settings.PGA_DB, "categories", )
 
 
 def get_category(name):
@@ -23,7 +29,7 @@ def get_game_ids_for_category(category_name):
     )
     return [
         game["game_id"]
-        for game in sql.db_query(settings.PGA_DB, query, (category_name, ))
+        for game in sql.db_query(settings.PGA_DB, query, (category_name,))
     ]
 
 
