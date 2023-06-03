@@ -7,7 +7,7 @@ from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.exceptions import watch_errors
 from lutris.game import Game
-from lutris.gui.dialogs import SavableModelessDialog, ErrorDialog, WarningDialog
+from lutris.gui.dialogs import SavableModelessDialog, ErrorDialog, QuestionDialog
 
 
 class EditCategoryGamesDialog(SavableModelessDialog):
@@ -24,7 +24,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         self.category_games = [Game(x) for x in categories_db.get_game_ids_for_category(self.category)]
         self.grid = Gtk.Grid()
 
-        self.set_default_size(400, 350)
+        self.set_default_size(500, 350)
 
         self.vbox.set_homogeneous(False)
         self.vbox.set_spacing(10)
@@ -37,6 +37,9 @@ class EditCategoryGamesDialog(SavableModelessDialog):
 
         self.vbox.pack_start(name_box, False, False, 0)
         self.vbox.pack_start(self._create_games_checkboxes(), True, True, 0)
+
+        delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
+        delete_button.connect("clicked", self.on_delete_clicked)
 
         self.show_all()
 
@@ -56,6 +59,21 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         sw.add_with_viewport(row)
         frame.add(sw)
         return frame
+
+    @watch_errors()
+    def on_delete_clicked(self, _button):
+        dlg = QuestionDialog(
+            {
+                "title": _("Do you want to delete the category '%s'?") % self.category,
+                "question": _(
+                    "This will permanently destroy the category, but the games themselves will not be deleted."),
+                "parent": self
+            }
+        )
+        if dlg.result == Gtk.ResponseType.YES:
+            for game in self.category_games:
+                game.remove_category(self.category)
+            self.destroy()
 
     @watch_errors()
     def on_save(self, _button):
@@ -88,12 +106,16 @@ class EditCategoryGamesDialog(SavableModelessDialog):
             raise RuntimeError(_("'%s' is a reserved category name.") % new_name)
         else:
             if new_name in (c["name"] for c in categories_db.get_categories()):
-                dlg = WarningDialog(
-                    _("The category '%s' already exists.") % new_name,
-                    _("'%s' will be merged with it, so that only one category remains.") % self.category,
-                    parent=self
+                dlg = QuestionDialog(
+                    {
+                        "title": _("Merge the category '%s' into '%s'?") % (self.category, new_name),
+                        "question": _(
+                            "If you rename this category, it will be combined with '%s'. "
+                            "Do you want to merge them?") % new_name,
+                        "parent": self
+                    }
                 )
-                if dlg.result != Gtk.ResponseType.OK:
+                if dlg.result != Gtk.ResponseType.YES:
                     return
 
             for game in self.category_games:
