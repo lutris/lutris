@@ -224,6 +224,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
             if value.enabled:
                 def updater(action=action, value=value):
                     action.props.enabled = value.enabled()
+
                 self.action_state_updaters.append(updater)
             self.add_action(action)
             if value.accel:
@@ -980,11 +981,19 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if game.is_hidden and not self.show_hidden_games:
             return False
 
-        # Stopped games do not get displayed on the running page
-        if game.state == game.STATE_STOPPED:
-            selected_row = self.sidebar.get_selected_row()
-            if selected_row and selected_row.id == "running":
+        selected_row = self.sidebar.get_selected_row()
+
+        if selected_row:
+            # Stopped games do not get displayed on the running page
+            if game.state == game.STATE_STOPPED and selected_row.id == "running":
                 return False
+
+            # If the update took the row out of this view's category, we'll need
+            # to update the view to reflect that.
+            if selected_row.type == "user_category" and \
+                selected_row.id != "all" and selected_row.id not in game.get_categories():
+                return False
+
         return True
 
     def on_game_updated(self, game):
@@ -1004,12 +1013,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         else:
             logger.debug("Can't get DB game for %s (service: %s)", game, self.service)
 
-        # If the update took the row out of this view's category, we'll need
-        # to update the view to reflect that.
-        selected_row = self.sidebar.get_selected_row()
-        if selected_row and selected_row.type == "category" and \
-                selected_row.id != "all" and selected_row.id not in game.get_categories():
-            self.game_store.remove_game(game.id)
         return True
 
     def on_game_stopped(self, game):
