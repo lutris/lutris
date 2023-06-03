@@ -1,5 +1,15 @@
+import re
+
 from lutris import settings
 from lutris.database import sql
+
+
+def strip_category_name(name):
+    """"This strips the name given, and also removes extra internal whitespace."""
+    name = (name or "").strip()
+    if not is_reserved_category(name):
+        name = re.sub(' +', ' ', name)  # Remove excessive whitespaces
+    return name
 
 
 def is_reserved_category(name):

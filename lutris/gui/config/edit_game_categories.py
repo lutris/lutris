@@ -1,6 +1,5 @@
 # pylint: disable=no-member
 import locale
-import re
 from gettext import gettext as _
 
 from gi.repository import Gtk
@@ -52,9 +51,8 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
     def _create_add_category(self):
         def on_add_category(widget=None):
-            category_text = category_entry.get_text().strip()
+            category_text = categories_db.strip_category_name(category_entry.get_text())
             if not categories_db.is_reserved_category(category_text):
-                category_text = re.sub(' +', ' ', category_text)  # Remove excessive whitespaces
                 for category_checkbox in self.grid.get_children():
                     if category_checkbox.get_label() == category_text:
                         return
