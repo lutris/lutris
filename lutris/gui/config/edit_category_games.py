@@ -7,7 +7,7 @@ from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.exceptions import watch_errors
 from lutris.game import Game
-from lutris.gui.dialogs import SavableModelessDialog, ErrorDialog
+from lutris.gui.dialogs import SavableModelessDialog, ErrorDialog, WarningDialog
 
 
 class EditCategoryGamesDialog(SavableModelessDialog):
@@ -87,6 +87,15 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         elif categories_db.is_reserved_category(new_name):
             raise RuntimeError(_("'%s' is a reserved category name.") % new_name)
         else:
+            if new_name in (c["name"] for c in categories_db.get_categories()):
+                dlg = WarningDialog(
+                    _("The category '%s' already exists.") % new_name,
+                    _("'%s' will be merged with it, so that only one category remains.") % self.category,
+                    parent=self
+                )
+                if dlg.result != Gtk.ResponseType.OK:
+                    return
+
             for game in self.category_games:
                 game.remove_category(self.category)
 
