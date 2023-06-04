@@ -1,12 +1,14 @@
 import shutil
+from gettext import gettext as _
 
+from lutris.exceptions import UnavailableRunnerError
 from lutris.util.system import read_process_output
 
 
 def get_executable():
-    """Return the executable used to access Flatpak
+    """Return the executable used to access Flatpak. None if Flatpak is not installed.
 
-    In the case where Lutris is a Flatpak, we use flatpak-spawn
+    In the case where Lutris is a Flatpak, we use flatpak-spawn.
     """
     return shutil.which("flatpak-spawn") or shutil.which("flatpak")
 
@@ -17,14 +19,19 @@ def is_installed():
 
 
 def get_command():
-    """Return the full command used to interact with Flatpak"""
+    """Return the full command used to interact with Flatpak."""
     exe = get_executable()
+    if not exe:
+        raise UnavailableRunnerError(_("Flatpak is not installed"))
     if "flatpak-spawn" in exe:
         return [exe, "--host", "flatpak"]
     return [exe]
 
 
 def get_installed_apps():
+    if not is_installed():
+        return []
+
     command = get_command() + ["list"]
     package_list = read_process_output(command)
     packages = []
