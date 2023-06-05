@@ -235,7 +235,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     def get_command(self):
         exe = self.get_executable()
-        if exe:
+        if system.path_exists(exe):
             return [exe]
         if flatpak.is_app_installed(self.flatpak_id):
             return flatpak.get_run_command(self.flatpak_id)
