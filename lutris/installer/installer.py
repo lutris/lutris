@@ -16,6 +16,7 @@ from lutris.util.game_finder import find_linux_game_executable, find_windows_gam
 from lutris.util.gog import convert_gog_config_to_lutris, get_gog_config_from_path, get_gog_game_path
 from lutris.util.log import logger
 from lutris.util.moddb import ModDB, is_moddb_url
+from lutris.util.system import fix_path_case
 
 
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
@@ -254,6 +255,11 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                                                                    make_executable=True)
             elif AUTO_WIN32_EXE in config["game"].get("exe", ""):
                 config["game"]["exe"] = find_windows_game_executable(self.interpreter.target_path)
+
+            # Fix possible case differences
+            for key in ("iso", "rom", "main_file", "exe"):
+                if config["game"].get(key):
+                    config["game"][key] = fix_path_case(config["game"][key])
         config["name"] = self.game_name
         config["script"] = self.script
         config["variables"] = self.variables
