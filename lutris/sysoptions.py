@@ -343,7 +343,6 @@ system_options = [  # pylint: disable=invalid-name
         "type": "choice",
         "label": _("Turn off monitors except"),
         "choices": get_output_choices,
-        "condition": linux.LINUX_SYSTEM.display_server != "wayland",
         "default": "off",
         "advanced": True,
         "help": _("Only keep the selected screen active while the game is "
@@ -357,7 +356,6 @@ system_options = [  # pylint: disable=invalid-name
         "type": "choice",
         "label": _("Switch resolution to"),
         "choices": get_resolution_choices,
-        "condition": linux.LINUX_SYSTEM.display_server != "wayland",
         "default": "off",
         "help": _("Switch to this screen resolution while the game is running."),
     },
