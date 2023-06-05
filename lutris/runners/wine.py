@@ -687,8 +687,7 @@ class wine(Runner):
             fixed = path.replace('\\', '/')
             fixed_resolved = super().resolve_config_path(fixed, relative_to)
             fixed_resolved = system.fix_path_case(fixed_resolved)
-            if fixed_resolved:
-                return fixed_resolved
+            return fixed_resolved
 
         return resolved
 

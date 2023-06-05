@@ -1,10 +1,8 @@
-# Standard Library
 import filecmp
 import os
 from gettext import gettext as _
 from shutil import copyfile
 
-# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
@@ -46,7 +44,7 @@ class ryujinx(Runner):
         candidates = ("~/.local/share/ryujinx", )
         for candidate in candidates:
             path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "nand"))
-            if path and system.path_exists(path):
+            if system.path_exists(path):
                 return path[:-len("nand")]
 
     def play(self):

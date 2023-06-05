@@ -87,6 +87,6 @@ class SteamWindowsService(SteamService):
         if steam_data_dir:
             main_dir = os.path.join(steam_data_dir, "steamapps")
             main_dir = system.fix_path_case(main_dir)
-            if main_dir and os.path.isdir(main_dir):
+            if os.path.isdir(main_dir):
                 dirs.append(os.path.abspath(main_dir))
         return dirs

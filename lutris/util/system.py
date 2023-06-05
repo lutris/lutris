@@ -399,7 +399,8 @@ def fix_path_case(path):
     # Only return the path if we got the same number of elements
     if len(parts) == len(current_path.strip("/").split("/")):
         return current_path
-
+    # otherwise return original path
+    return path
 
 def get_pids_using_file(path):
     """Return a set of pids using file `path`."""
