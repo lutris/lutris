@@ -402,6 +402,7 @@ def fix_path_case(path):
     # otherwise return original path
     return path
 
+
 def get_pids_using_file(path):
     """Return a set of pids using file `path`."""
     if not os.path.exists(path):

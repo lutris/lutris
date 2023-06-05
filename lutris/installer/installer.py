@@ -5,7 +5,7 @@ from gettext import gettext as _
 
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
-from lutris.exceptions import AuthenticationError
+from lutris.exceptions import UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
@@ -146,23 +146,18 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             errors.append("Scripts can't have both extends and requires")
         return errors
 
-    def get_user_provided_file(self):
-        """Return the first user provided file, which is used for game stores"""
-        for file in self.script_files:
-            if file.url.startswith("N/A"):
-                return file.id
-
-        return None
-
     def prepare_game_files(self, patch_version=None):
         """Gathers necessary files before iterating through them."""
         if not self.script_files:
             return
-        if self.service and self.service.online and not self.service.is_connected():
-            raise AuthenticationError(_("You are not authenticated to %s") % self.service.id)
 
-        installer_file_id = self.get_user_provided_file() if self.service else None
-
+        installer_file_id = None
+        installer_file_url = None
+        if self.service:
+            for file in self.script_files:
+                if file.url.startswith("N/A"):
+                    installer_file_id = file.id
+                    installer_file_url = file.url
         self.files = [file.copy() for file in self.script_files if file.id != installer_file_id]
 
         # Run variable substitution on the URLs from the script
@@ -176,11 +171,15 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             if self.service.has_extras:
                 logger.info("Adding selected extras to downloads")
                 self.service.selected_extras = self.interpreter.extras
-            if patch_version:
-                # If a patch version is given download the patch files instead of the installer
-                installer_files = self.service.get_patch_files(self, installer_file_id)
-            else:
-                installer_files = self.service.get_installer_files(self, installer_file_id, self.interpreter.extras)
+            try:
+                if patch_version:
+                    # If a patch version is given download the patch files instead of the installer
+                    installer_files = self.service.get_patch_files(self, installer_file_id)
+                else:
+                    installer_files = self.service.get_installer_files(self, installer_file_id, self.interpreter.extras)
+            except UnavailableGameError as ex:
+                logger.error("Game not available: %s", ex)
+                installer_files = None
 
             if installer_files:
                 for installer_file in installer_files:
@@ -189,7 +188,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 # Failed to get the service game, put back a user provided file
                 logger.debug("Unable to get files from service. Setting %s to manual.", installer_file_id)
                 self.files.insert(0, InstallerFile(self.game_slug, installer_file_id, {
-                    "url": "N/A: Provider installer file",
+                    "url": installer_file_url,
                     "filename": ""
                 }))
 

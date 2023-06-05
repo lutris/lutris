@@ -101,7 +101,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.connect("drag-data-received", self.on_drag_data_received)
         if self.maximized:
             self.maximize()
-
         self.init_template()
         self._init_actions()
 

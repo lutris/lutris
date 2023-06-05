@@ -410,7 +410,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         if launcher_value:
             path = self._substitute(launcher_value)
             if not os.path.isabs(path) and self.target_path:
-                path = os.path.join(self.target_path, path)
+                path = system.fix_path_case(os.path.join(self.target_path, path))
+
         if (
                 path
                 and AUTO_EXE_PREFIX not in path

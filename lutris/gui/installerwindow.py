@@ -6,7 +6,7 @@ from gettext import gettext as _
 from gi.repository import Gio, GLib, Gtk
 
 from lutris.config import LutrisConfig
-from lutris.exceptions import UnavailableGameError, watch_errors
+from lutris.exceptions import watch_errors
 from lutris.game import Game
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, InstallerSourceDialog, ModelessDialog, QuestionDialog
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
@@ -571,14 +571,12 @@ class InstallerWindow(ModelessDialog,
     # but different buttons at the bottom.
 
     def load_installer_files_page(self):
-        try:
-            if self.installation_kind == InstallationKind.UPDATE:
-                patch_version = self.interpreter.installer.version
-            else:
-                patch_version = None
-            self.interpreter.installer.prepare_game_files(patch_version)
-        except UnavailableGameError as ex:
-            raise ScriptingError(str(ex)) from ex
+        if self.installation_kind == InstallationKind.UPDATE:
+            patch_version = self.interpreter.installer.version
+        else:
+            patch_version = None
+
+        self.interpreter.installer.prepare_game_files(patch_version)
 
         if not self.interpreter.installer.files:
             return False

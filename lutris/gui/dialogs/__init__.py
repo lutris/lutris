@@ -80,6 +80,7 @@ class ModelessDialog(Dialog):
 class SavableModelessDialog(ModelessDialog):
     """This is a modeless dialog that has a Cancel and a Save button in the header-bar,
     with a ctrl-S keyboard shortcut to save."""
+
     def __init__(self, title, parent=None, **kwargs):
         super().__init__(title, parent=parent, use_header_bar=True, **kwargs)
 

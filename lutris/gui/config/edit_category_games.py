@@ -7,7 +7,7 @@ from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.exceptions import watch_errors
 from lutris.game import Game
-from lutris.gui.dialogs import SavableModelessDialog, ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import ErrorDialog, QuestionDialog, SavableModelessDialog
 
 
 class EditCategoryGamesDialog(SavableModelessDialog):
