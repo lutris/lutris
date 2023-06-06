@@ -128,10 +128,10 @@ class fsuae(Runner):
         AMIGAS["A500"]["name"],
         AMIGAS["A500+"]["name"],
         AMIGAS["A600"]["name"],
-        AMIGAS["A1000"]["name"],
         AMIGAS["A1200"]["name"],
-        AMIGAS["A1200"]["name"],
+        AMIGAS["A3000"]["name"],
         AMIGAS["A4000"]["name"],
+        AMIGAS["A1000"]["name"],
         AMIGAS["CD32"]["name"],
         AMIGAS["CDTV"]["name"],
     ]
