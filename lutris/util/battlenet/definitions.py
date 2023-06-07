@@ -77,6 +77,7 @@ class _Blizzard(object, metaclass=Singleton):
         1465140039: RegionalGameInfo('hs_beta', True),
         1214607983: RegionalGameInfo('heroes', True),
         17459: RegionalGameInfo('diablo3', True),
+        4613486: RegionalGameInfo('fenris', True),
         1447645266: RegionalGameInfo('viper', False),
         1329875278: RegionalGameInfo('odin', True),
         1279351378: RegionalGameInfo('lazarus', False),
@@ -101,6 +102,7 @@ class _Blizzard(object, metaclass=Singleton):
         BlizzardGame('heroes', 'Heroes of the Storm', 'Hero'),
         BlizzardGame('d3cn', '暗黑破壞神III', 'D3CN'),
         BlizzardGame('diablo3', 'Diablo III', 'D3'),
+        BlizzardGame('fenris', 'Diablo IV', 'FEN'),
         BlizzardGame('viper', 'Call of Duty: Black Ops 4', 'VIPR'),
         BlizzardGame('odin', 'Call of Duty: Modern Warfare', 'ODIN'),
         BlizzardGame('lazarus', 'Call of Duty: MW2 Campaign Remastered', 'LAZR'),
@@ -121,7 +123,7 @@ class _Blizzard(object, metaclass=Singleton):
     ]
 
     def __init__(self):
-        self._games = {game.uid: game for game in self.BATTLENET_GAMES + self.CLASSIC_GAMES}
+        self._games: dict[str, ClassicGame | BlizzardGame] = {game.uid: game for game in self.BATTLENET_GAMES + self.CLASSIC_GAMES}
 
     def __getitem__(self, key: str) -> BlizzardGame:
         """

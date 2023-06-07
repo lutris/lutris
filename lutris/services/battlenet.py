@@ -34,6 +34,7 @@ GAME_IDS = {
     'hero': ('hero', 'Heroes of the Storm', 'Hero', 'heroes-of-the-storm'),
     'd3cn': ('d3cn', '暗黑破壞神III', 'D3CN', 'diablo-iii'),
     'd3': ('d3', 'Diablo III', 'D3', 'diablo-iii'),
+    'fenris': ('fenris', 'Diablo IV', 'Fen', 'diablo-iv'),
     'viper': ('viper', 'Call of Duty: Black Ops 4', 'VIPR', 'call-of-duty-black-ops-4'),
     'odin': ('odin', 'Call of Duty: Modern Warfare', 'ODIN', 'call-of-duty-modern-warfare'),
     'lazarus': ('lazarus', 'Call of Duty: MW2 Campaign Remastered', 'LAZR',
