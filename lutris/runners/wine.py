@@ -579,12 +579,14 @@ class wine(Runner):
         """Return the contexual menu entries for wine"""
         return [
             ("wineexec", _("Run EXE inside Wine prefix"), self.run_wineexec),
-            ("winecfg", _("Wine configuration"), self.run_winecfg),
             ("wineshell", _("Open Bash terminal"), self.run_wine_terminal),
             ("wineconsole", _("Open Wine console"), self.run_wineconsole),
+            (None, "-", None),
+            ("winecfg", _("Wine configuration"), self.run_winecfg),
             ("wine-regedit", _("Wine registry"), self.run_regedit),
-            ("winetricks", _("Winetricks"), self.run_winetricks),
             ("winecpl", _("Wine Control Panel"), self.run_winecpl),
+            (None, "-", None),
+            ("winetricks", _("Winetricks"), self.run_winetricks),
         ]
 
     @property
