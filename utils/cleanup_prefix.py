@@ -4,7 +4,11 @@ import sys
 from copy import copy
 
 PROGRAM_FILES_IGNORES = {
-    "Common Files": {"Microsoft Shared": "*", "System": "*", "InstallShield": "*"},
+    "Common Files": {
+        "Microsoft Shared": "*",
+        "System": "*",
+        "InstallShield": "*"
+    },
     "Internet Explorer": "*",
     "Windows Media Player": "*",
     "Windows NT": "*",
@@ -70,9 +74,13 @@ KNOWN_DIRS = [
     "ProgramData/Microsoft/Windows",
     "Program Files/Common Files/Microsoft Shared",
     "Program Files/Common Files/System",
+    "Program Files (x86)/Common Files/System",
     "Program Files/Internet Explorer",
+    "Program Files (x86)/Internet Explorer",
     "Program Files/Windows Media Player",
+    "Program Files (x86)/Windows Media Player",
     "Program Files/Windows NT",
+    "Program Files (x86)/Windows NT",
     "windows",
 ]
 
@@ -89,7 +97,6 @@ def delete_known_dirs(prefix_path):
 def remove_empty_dirs(dirname):
     empty_folders = []
     for root, dirs, files in os.walk(dirname, topdown=True):
-        print(root, files, dirs)
         if not files and not dirs:
             empty_folders.append(root)
     for folder in empty_folders:
@@ -98,6 +105,7 @@ def remove_empty_dirs(dirname):
 
 
 def cleanup_prefix(path):
+    print("Cleanup prefix", path)
     delete_known_dirs(path)
     empty_folders = True
     while empty_folders:
@@ -156,6 +164,7 @@ def find_exes_in_path(folder):
 
 
 def scan_prefix(path):
+    print("Scanning prefix %s", path)
     folders = get_content_folders(path)
     exes = []
     for folder in folders:
@@ -167,4 +176,6 @@ def scan_prefix(path):
 
 
 if __name__ == "__main__":
-    scan_prefix(sys.argv[1])
+    path = sys.argv[1]
+    scan_prefix(path)
+    cleanup_prefix(path)

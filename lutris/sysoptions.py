@@ -323,7 +323,7 @@ system_options = [  # pylint: disable=invalid-name
         "size": "small",
         "label": _("FPS limit"),
         "condition": bool(system.find_executable("strangle")),
-        "help": _("Limit the game's FPS to desired number"),
+        "help": _("Limit the game's FPS using libstrangle"),
     },
     {
         "section": "Display",
