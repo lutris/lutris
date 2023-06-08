@@ -231,6 +231,9 @@ class Game(GObject.Object):
 
     def add_category(self, category_name, no_signal=False):
         """add game to category"""
+        if self.id is None:
+            raise RuntimeError("Games that do not have IDs cannot belong to categories.")
+
         category = categories_db.get_category(category_name)
         if category is None:
             category_id = categories_db.add_category(category_name)
@@ -254,6 +257,9 @@ class Game(GObject.Object):
 
     def add_to_favorites(self):
         """Add the game to the 'favorite' category"""
+        if self.id is None:
+            raise RuntimeError("Games that do not have IDs cannot be favorites.")
+
         favorite = categories_db.get_category("favorite")
         if not favorite:
             favorite_id = categories_db.add_category("favorite")
