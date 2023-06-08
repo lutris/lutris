@@ -16,6 +16,11 @@ class ContextualMenu(Gtk.Menu):
             Gtk.MenuItem
         """
         name, label, callback = entry
+        if label == "-":
+            separator = Gtk.SeparatorMenuItem()
+            self.append(separator)
+            return separator
+
         action = Gtk.Action(name=name, label=label)
         action.connect("activate", callback)
 
@@ -51,9 +56,20 @@ class ContextualMenu(Gtk.Menu):
         self.show_all()
 
         displayed = game_actions.get_displayed_entries()
-        for menuitem in self.get_children():
-            if not isinstance(menuitem, Gtk.ImageMenuItem):
-                continue
-            menuitem.set_visible(displayed.get(menuitem.action_id, True))
+        previous_visible = None
+        children = list(self.get_children())
+        for menuitem in children:
+            visible = True
+            if isinstance(menuitem, Gtk.ImageMenuItem):
+                visible = displayed.get(menuitem.action_id, True)
+            elif isinstance(menuitem, Gtk.SeparatorMenuItem):
+                visible = isinstance(previous_visible, Gtk.ImageMenuItem)
+
+            menuitem.set_visible(visible)
+            if visible:
+                previous_visible = menuitem
+
+        if isinstance(previous_visible, Gtk.SeparatorMenuItem):
+            previous_visible.set_visible(False)
 
         super().popup_at_pointer(event)
