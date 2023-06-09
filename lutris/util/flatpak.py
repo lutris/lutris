@@ -36,20 +36,21 @@ def get_installed_apps():
     package_list = read_process_output(command)
     packages = []
     for package in package_list.split("\n"):
-        try:
-            name, appid, version, branch, origin, installation = package.split("\t")
-        except ValueError:
-            # For older Flatpak versions
-            name, appid, version, branch, installation = package.split("\t")
-            origin = ""
-        packages.append({
-            "name": name,
-            "appid": appid,
-            "version": version,
-            "branch": branch,
-            "origin": origin,
-            "installation": installation
-        })
+        if package:
+            try:
+                name, appid, version, branch, origin, installation = package.split("\t")
+            except ValueError:
+                # For older Flatpak versions
+                name, appid, version, branch, installation = package.split("\t")
+                origin = ""
+            packages.append({
+                "name": name,
+                "appid": appid,
+                "version": version,
+                "branch": branch,
+                "origin": origin,
+                "installation": installation
+            })
     return packages
 
 
