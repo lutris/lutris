@@ -14,7 +14,7 @@ from lutris import runners, settings
 from lutris.database.games import delete_game, get_games, get_games_where
 from lutris.database.schema import syncdb
 from lutris.game import Game
-from lutris.gui.dialogs import DontShowAgainDialog
+from lutris.gui.dialogs import MessageDialog
 from lutris.runners.json import load_json_runners
 from lutris.runtime import RuntimeUpdater
 from lutris.scanners.lutris import build_path_cache
@@ -87,21 +87,18 @@ def check_driver():
             logger.error("Unable to get GPU information from '%s'", card)
 
     if drivers.is_outdated():
-        setting = "hide-outdated-nvidia-driver-warning"
-        if settings.read_setting(setting) != "True":
-            DontShowAgainDialog(
-                setting,
-                _("Your NVIDIA driver is outdated."),
-                secondary_message=_(
-                    "You are currently running driver %s which does not "
-                    "fully support all features for Vulkan and DXVK games.\n"
-                    "Please upgrade your driver as described in our "
-                    "<a href='%s'>installation guide</a>"
-                ) % (
-                    driver_info["nvrm"]["version"],
-                    settings.DRIVER_HOWTO_URL,
-                )
+        MessageDialog(
+            _("Your NVIDIA driver is outdated."),
+            secondary_message=_(
+                "You are currently running driver %s which does not "
+                "fully support all features for Vulkan and DXVK games.\n"
+                "Please upgrade your driver as described in our "
+                "<a href='%s'>installation guide</a>"
+            ) % (
+                driver_info["nvrm"]["version"],
+                settings.DRIVER_HOWTO_URL,
             )
+        )
 
 
 def check_libs(all_components=False):
@@ -120,22 +117,19 @@ def check_libs(all_components=False):
                 logger.error("%s %s missing (needed by %s)", arch, lib, req.lower())
 
     if missing_vulkan_libs:
-        setting = "dismiss-missing-vulkan-library-warning"
-        if settings.read_setting(setting) != "True":
-            DontShowAgainDialog(
-                setting,
-                _("Missing Vulkan libraries"),
-                secondary_message=_(
-                    "Lutris was unable to detect Vulkan support for "
-                    "the %s architecture.\n"
-                    "This will prevent many games and programs from working.\n"
-                    "To install it, please use the following guide: "
-                    "<a href='%s'>Installing Graphics Drivers</a>"
-                ) % (
-                    _(" and ").join(missing_vulkan_libs),
-                    settings.DRIVER_HOWTO_URL,
-                )
+        MessageDialog(
+            _("Missing Vulkan libraries"),
+            secondary_message=_(
+                "Lutris was unable to detect Vulkan support for "
+                "the %s architecture.\n"
+                "This will prevent many games and programs from working.\n"
+                "To install it, please use the following guide: "
+                "<a href='%s'>Installing Graphics Drivers</a>"
+            ) % (
+                _(" and ").join(missing_vulkan_libs),
+                settings.DRIVER_HOWTO_URL,
             )
+        )
 
 
 def check_vulkan():

@@ -9,7 +9,6 @@ from lutris.gui.dialogs.download import DownloadDialog
 from lutris.runners import wine
 from lutris.runners.runner import Runner
 from lutris.util.downloader import Downloader
-from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 
@@ -17,10 +16,9 @@ class DialogInstallUIDelegate(Runner.InstallUIDelegate):
     """This provides UI for runner installation via dialogs."""
 
     def check_wine_availability(self):
-        if not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak:
-            dlg = dialogs.WineNotInstalledWarning(parent=self, cancellable=True)
-            if dlg.result != Gtk.ResponseType.OK:
-                return False
+        if not wine.get_wine_version():
+            dialogs.WineNotInstalledWarning(parent=self)
+            return False
 
         return True
 
@@ -72,10 +70,9 @@ class DialogLaunchUIDelegate(Game.LaunchUIDelegate):
                 if dlg.result != Gtk.ResponseType.OK:
                     return False
 
-        if "wine" in game.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak:
-            dlg = dialogs.WineNotInstalledWarning(parent=self, cancellable=True)
-            if dlg.result != Gtk.ResponseType.OK:
-                return False
+        if "wine" in game.runner_name and not wine.get_wine_version():
+            dialogs.WineNotInstalledWarning(parent=self)
+            return False
 
         return True
 

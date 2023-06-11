@@ -6,7 +6,7 @@ from gettext import gettext as _
 
 from lutris import runtime, settings
 from lutris.exceptions import UnavailableRunnerError
-from lutris.gui.dialogs import DontShowAgainDialog, ErrorDialog
+from lutris.gui.dialogs import ErrorDialog, MessageDialog
 from lutris.runners.steam import steam
 from lutris.util import linux, system
 from lutris.util.log import logger
@@ -378,25 +378,17 @@ def get_real_executable(windows_executable, working_dir=None):
     return (windows_executable, [], working_dir)
 
 
-def display_vulkan_error(on_launch=False):
-    if on_launch:
-        checkbox_message = _("Launch anyway and do not show this message again.")
-    else:
-        checkbox_message = _("Enable anyway and do not show this message again.")
-
-    setting = "hide-no-vulkan-warning"
-    DontShowAgainDialog(
-        setting,
+def display_vulkan_error():
+    MessageDialog(
         _("Vulkan is not installed or is not supported by your system"),
         secondary_message=_(
             "If you have compatible hardware, please follow "
             "the installation procedures as described in\n"
             "<a href='https://github.com/lutris/docs/blob/master/HowToDXVK.md'>"
             "How-to:-DXVK (https://github.com/lutris/docs/blob/master/HowToDXVK.md)</a>"
-        ),
-        checkbox_message=checkbox_message,
+        )
     )
-    return settings.read_setting(setting) == "True"
+    return False
 
 
 def esync_display_limit_warning():
@@ -415,44 +407,28 @@ def fsync_display_support_warning():
     ))
 
 
-def esync_display_version_warning(on_launch=False):
-    setting = "hide-wine-non-esync-version-warning"
-    if on_launch:
-        checkbox_message = _("Launch anyway and do not show this message again.")
-    else:
-        checkbox_message = _("Enable anyway and do not show this message again.")
-
-    DontShowAgainDialog(
-        setting,
+def esync_display_version_warning():
+    MessageDialog(
         _("Incompatible Wine version detected"),
         secondary_message=_(
             "The Wine build you have selected "
             "does not support Esync.\n"
             "Please switch to an Esync-capable version."
-        ),
-        checkbox_message=checkbox_message,
+        )
     )
-    return settings.read_setting(setting) == "True"
+    return False
 
 
-def fsync_display_version_warning(on_launch=False):
-    setting = "hide-wine-non-fsync-version-warning"
-    if on_launch:
-        checkbox_message = _("Launch anyway and do not show this message again.")
-    else:
-        checkbox_message = _("Enable anyway and do not show this message again.")
-
-    DontShowAgainDialog(
-        setting,
+def fsync_display_version_warning():
+    MessageDialog(
         _("Incompatible Wine version detected"),
         secondary_message=_(
             "The Wine build you have selected "
             "does not support Fsync.\n"
             "Please switch to an Fsync-capable version."
-        ),
-        checkbox_message=checkbox_message,
+        )
     )
-    return settings.read_setting(setting) == "True"
+    return False
 
 
 def get_overrides_env(overrides):

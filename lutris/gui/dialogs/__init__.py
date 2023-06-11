@@ -513,50 +513,20 @@ class InstallerSourceDialog(ModelessDialog):
         self.destroy()
 
 
-class DontShowAgainDialog(Gtk.MessageDialog):
-    """Display a message to the user and offer an option not to display this dialog again."""
-
-    def __init__(
-        self,
-        setting,
-        message,
-        secondary_message=None,
-        parent=None,
-        checkbox_message=None,
-        cancellable=False
-    ):
-        # pylint: disable=no-member
-        if settings.read_setting(setting) == "True":
-            logger.info("Dialog %s dismissed by user", setting)
-            self.result = Gtk.ResponseType.OK
-            return
-
-        buttons = Gtk.ButtonsType.OK_CANCEL if cancellable else Gtk.ButtonsType.OK
-
-        super().__init__(type=Gtk.MessageType.WARNING, buttons=buttons, parent=parent)
+class MessageDialog(Gtk.MessageDialog):
+    def init(self, message, secondary_message, parent):
+        super().__init__(type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent)
 
         self.set_default_response(Gtk.ResponseType.OK)
         self.set_markup("<b>%s</b>" % message)
         if secondary_message:
             self.props.secondary_use_markup = True
             self.props.secondary_text = secondary_message
-
-        if not checkbox_message:
-            checkbox_message = _("Do not display this message again.")
-
-        dont_show_checkbutton = Gtk.CheckButton(checkbox_message)
-        dont_show_checkbutton.props.halign = Gtk.Align.CENTER
-        dont_show_checkbutton.show()
-
-        content_area = self.get_content_area()
-        content_area.pack_start(dont_show_checkbutton, False, False, 0)
-        self.result = self.run()
-        if self.result == Gtk.ResponseType.OK and dont_show_checkbutton.get_active():
-            settings.write_setting(setting, True)
+        self.run()
         self.destroy()
 
 
-class WineNotInstalledWarning(DontShowAgainDialog):
+class WineNotInstalledWarning(MessageDialog):
     """Display a warning if Wine is not detected on the system"""
 
     def __init__(self, parent=None, cancellable=False):
