@@ -23,7 +23,6 @@ class Dialog(Gtk.Dialog):
     def __init__(self, title=None, parent=None, flags=0, buttons=None, **kwargs):
         super().__init__(title, parent, flags, buttons, **kwargs)
         self.connect("delete-event", self.on_destroy)
-        self.set_destroy_with_parent(True)
 
     def on_destroy(self, _widget, _data=None):
         self.destroy()
@@ -44,10 +43,11 @@ class Dialog(Gtk.Dialog):
 
 
 class ModalDialog(Dialog):
-    """A base class of moodal dialogs, which sets the flag for you."""
+    """A base class of modal dialogs, which sets the flag for you."""
 
     def __init__(self, title=None, parent=None, flags=0, buttons=None, **kwargs):
         super().__init__(title, parent, flags | Gtk.DialogFlags.MODAL, buttons, **kwargs)
+        self.set_destroy_with_parent(True)
 
 
 class ModelessDialog(Dialog):
@@ -241,7 +241,7 @@ class QuestionDialog(Gtk.MessageDialog):
         self.destroy()
 
 
-class InputDialog(Dialog):
+class InputDialog(ModalDialog):
     """Ask the user for a text input"""
 
     def __init__(self, dialog_settings):
