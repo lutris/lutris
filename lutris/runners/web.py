@@ -93,14 +93,10 @@ class web(Runner):
                       "when hovering above the window."),
         },
         {
-            "option":
-            "open_links",
-            "label":
-            _("Open links in game window"),
-            "type":
-            "bool",
-            "default":
-            False,
+            "option": "open_links",
+            "label": _("Open links in game window"),
+            "type": "bool",
+            "default": False,
             "help": _(
                 "Enable this option if you want clicked links to open inside the "
                 "game window. By default all links open in your default web browser."
@@ -172,7 +168,6 @@ class web(Runner):
             ),
         },
     ]
-    system_options_override = [{"option": "disable_runtime", "default": True}]
     runner_executable = "web/electron/electron"
 
     def get_env(self, os_env=True, disable_runtime=False):
