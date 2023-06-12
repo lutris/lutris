@@ -25,22 +25,24 @@ SYSTEM_COMPONENTS = {
         "fuser",
         "glxinfo",
         "vulkaninfo",
+        "fuser",
+        "7z",
+        "gtk-update-icon-cache",
+        "lspci",
+        "ldconfig",
+        "wine",
+        "fluidsynth",
+    ],
+    "OPTIONAL_COMMANDS": [
         "optirun",
         "primusrun",
         "pvkrun",
         "pulseaudio",
         "lsi-steam",
-        "fuser",
-        "7z",
-        "gtk-update-icon-cache",
-        "lspci",
-        "xgamma",
-        "ldconfig",
-        "strangle",
         "Xephyr",
         "nvidia-smi",
-        "wine",
-        "fluidsynth",
+        "strangle",
+        "xgamma",
     ],
     "TERMINALS": [
         "xterm",
@@ -107,7 +109,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     optional_components = ["WINE", "GAMEMODE"]
 
     def __init__(self):
-        for key in ("COMMANDS", "TERMINALS"):
+        for key in ("COMMANDS", "OPTIONAL_COMMANDS", "TERMINALS"):
             self._cache[key] = {}
             for command in SYSTEM_COMPONENTS[key]:
                 command_path = shutil.which(command)
@@ -115,6 +117,8 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                     command_path = self.get_sbin_path(command)
                 if command_path:
                     self._cache[key][command] = command_path
+                elif key == "COMMANDS":
+                    logger.warning("Command '%s' not found on your system", command)
 
         # Detect if system is 64bit capable
         self.is_64_bit = sys.maxsize > 2**32
