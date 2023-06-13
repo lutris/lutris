@@ -10,6 +10,7 @@ class xemu(Runner):
     description = _("Xbox emulator")
     runnable_alone = True
     runner_executable = "xemu/xemu"
+    flatpak_id = "app.xemu.xemu"
     game_options = [
         {
             "option": "main_file",
@@ -29,7 +30,7 @@ class xemu(Runner):
 
     def play(self):
         """Run the game."""
-        arguments = [self.get_executable()]
+        arguments = self.get_command()
 
         fullscreen = self.runner_config.get("fullscreen")
         if fullscreen:

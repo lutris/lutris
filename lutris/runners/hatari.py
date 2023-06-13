@@ -14,6 +14,7 @@ class hatari(Runner):
     description = _("Atari ST computers emulator")
     platforms = [_("Atari ST")]
     runnable_alone = True
+    flatpak_id = "org.tuxfamily.hatari"
     runner_executable = "hatari/bin/hatari"
     entry_point_option = "disk-a"
 
@@ -138,7 +139,7 @@ class hatari(Runner):
         super().install(install_ui_delegate, version=version, callback=on_runner_installed)
 
     def play(self):  # pylint: disable=too-many-branches
-        params = [self.get_executable()]
+        params = self.get_command()
         if self.runner_config.get("fullscreen"):
             params.append("--fullscreen")
         else:

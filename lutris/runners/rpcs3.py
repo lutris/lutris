@@ -12,6 +12,7 @@ class rpcs3(Runner):
     platforms = [_("Sony PlayStation 3")]
     runnable_alone = True
     runner_executable = "rpcs3/rpcs3"
+    flatpak_id = "net.rpcs3.RPCS3"
     game_options = [
         {
             "option": "main_file",
@@ -26,7 +27,7 @@ class rpcs3(Runner):
     system_options_override = [{"option": "disable_runtime", "default": True}]
 
     def play(self):
-        arguments = [self.get_executable()]
+        arguments = self.get_command()
 
         if self.runner_config.get("nogui"):
             arguments.append("--no-gui")

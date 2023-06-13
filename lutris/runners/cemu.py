@@ -12,6 +12,7 @@ class cemu(Runner):
     description = _("Wii U emulator")
     runnable_alone = True
     runner_executable = "cemu/cemu"
+    flatpak_id = "info.cemu.Cemu"
     game_options = [
         {
             "option": "main_file",
@@ -55,7 +56,7 @@ class cemu(Runner):
 
     def play(self):
         """Run the game."""
-        arguments = [self.get_executable()]
+        arguments = self.get_command()
 
         fullscreen = self.runner_config.get("fullscreen")
         if fullscreen:

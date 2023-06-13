@@ -12,6 +12,7 @@ class pcsx2(Runner):
     platforms = [_("Sony PlayStation 2")]
     runnable_alone = True
     runner_executable = "pcsx2/PCSX2"
+    flatpak_id = "net.pcsx2.PCSX2"
     game_options = [{
         "option": "main_file",
         "type": "file",
@@ -44,7 +45,7 @@ class pcsx2(Runner):
     system_options_override = [{"option": "disable_runtime", "default": True}]
 
     def play(self):
-        arguments = [self.get_executable()]
+        arguments = self.get_command()
 
         if self.runner_config.get("fullscreen"):
             arguments.append("-fullscreen")

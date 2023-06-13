@@ -13,7 +13,8 @@ class zdoom(Runner):
     description = _("ZDoom DOOM Game Engine")
     human_name = _("ZDoom")
     platforms = [_("Linux")]
-    runner_executable = "zdoom/zdoom"
+    runner_executable = "zdoom/gzdoom"
+    flatpak_id = "org.zdoom.GZDoom"
     game_options = [
         {
             "option": "main_file",
@@ -94,17 +95,6 @@ class zdoom(Runner):
         },
     ]
 
-    def get_executable(self):
-        executable = super().get_executable()
-        executable_dir = os.path.dirname(executable)
-        if not system.path_exists(executable_dir):
-            return executable
-        if not system.path_exists(executable):
-            gzdoom_executable = os.path.join(executable_dir, "gzdoom")
-            if system.path_exists(gzdoom_executable):
-                return gzdoom_executable
-        return executable
-
     def prelaunch(self):
         if not LINUX_SYSTEM.get_soundfonts():
             logger.warning("FluidSynth is not installed, you might not have any music")
@@ -119,7 +109,7 @@ class zdoom(Runner):
             return os.path.dirname(os.path.expanduser(wad_files[0]))
 
     def play(self):  # noqa: C901
-        command = [self.get_executable()]
+        command = self.get_command()
 
         resolution = self.runner_config.get("resolution")
         if resolution:

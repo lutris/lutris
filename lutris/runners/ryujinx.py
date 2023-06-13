@@ -14,6 +14,7 @@ class ryujinx(Runner):
     description = _("Nintendo Switch emulator")
     runnable_alone = True
     runner_executable = "ryujinx/publish/Ryujinx"
+    flatpak_id = "org.ryujinx.Ryujinx"
     download_url = "https://lutris.nyc3.digitaloceanspaces.com/runners/ryujinx/ryujinx-1.0.7074-linux_x64.tar.gz"
 
     game_options = [
@@ -49,7 +50,7 @@ class ryujinx(Runner):
 
     def play(self):
         """Run the game."""
-        arguments = [self.get_executable()]
+        arguments = self.get_command()
         rom = self.game_config.get("main_file") or ""
         if not system.path_exists(rom):
             return {"error": "FILE_NOT_FOUND", "file": rom}

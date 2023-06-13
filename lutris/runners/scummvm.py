@@ -49,6 +49,7 @@ class scummvm(Runner):
     platforms = [_("Linux")]
     runnable_alone = True
     runner_executable = "scummvm/bin/scummvm"
+    # flatpak_id = "org.scummvm.ScummVM" # needs some adjustments + testing
     game_options = [
         {
             "option": "game_id",

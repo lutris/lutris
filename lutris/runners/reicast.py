@@ -18,7 +18,7 @@ class reicast(Runner):
     platforms = [_("Sega Dreamcast")]
     runner_executable = "reicast/reicast.elf"
     entry_point_option = "iso"
-
+    flatpak_id = "org.flycast.Flycast"
     joypads = None
 
     game_options = [
@@ -159,5 +159,6 @@ class reicast(Runner):
         self.write_config(reicast_config)
 
         iso = self.game_config.get("iso")
-        command = [self.get_executable(), "-config", "config:image={}".format(iso)]
-        return {"command": command}
+        return {
+            "command": self.get_command() + ["-config", f"config:image={iso}"]
+        }

@@ -69,6 +69,7 @@ class libretro(Runner):
     description = _("Multi-system emulator")
     runnable_alone = True
     runner_executable = "retroarch/retroarch"
+    flatpak_id = "org.libretro.RetroArch"
 
     game_options = [
         {
@@ -133,8 +134,6 @@ class libretro(Runner):
     def get_version(self, use_default=True):
         return self.game_config["core"]
 
-    def is_retroarch_installed(self):
-        return system.path_exists(self.get_executable())
 
     def is_installed(self, core=None):
         if not core and self.has_explicit_config and self.game_config.get("core"):
@@ -142,7 +141,7 @@ class libretro(Runner):
         if not core or self.runner_config.get("runner_executable"):
             return self.is_retroarch_installed()
         is_core_installed = system.path_exists(self.get_core_path(core))
-        return self.is_retroarch_installed() and is_core_installed
+        return super().is_installer() and is_core_installed
 
     def install(self, install_ui_delegate, version=None, callback=None):
         captured_super = super()  # super() does not work inside install_core()
@@ -161,7 +160,7 @@ class libretro(Runner):
 
     def get_run_data(self):
         return {
-            "command": [self.get_executable()] + self.get_runner_parameters(),
+            "command": self.get_command() + self.get_runner_parameters(),
             "env": self.get_env(),
         }
 
@@ -262,9 +261,7 @@ class libretro(Runner):
         return parameters
 
     def play(self):
-        command = [self.get_executable()]
-
-        command += self.get_runner_parameters()
+        command = self.get_command() + self.get_runner_parameters()
 
         # Core
         core = self.game_config.get("core")

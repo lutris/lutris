@@ -12,6 +12,7 @@ from lutris.util.log import logger
 class vice(Runner):
     description = _("Commodore Emulator")
     human_name = _("Vice")
+    # flatpak_id = "net.sf.VICE"  # needs adjustments
     platforms = [
         _("Commodore 64"),
         _("Commodore 128"),

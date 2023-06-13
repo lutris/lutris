@@ -16,7 +16,7 @@ class dosbox(Runner):
     platforms = [_("MS-DOS")]
     runnable_alone = True
     runner_executable = "dosbox/dosbox"
-    require_libs = []
+    flatpak_id = "io.github.dosbox-staging"
     game_options = [
         {
             "option": "main_file",
@@ -126,11 +126,6 @@ class dosbox(Runner):
         path = os.path.join(settings.RUNNER_DIR, "dosbox/lib")
         return path if system.path_exists(path) else ""
 
-    def get_command(self):
-        return [
-            self.get_executable(),
-        ]
-
     def get_run_data(self):
         env = self.get_env()
         env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
@@ -154,7 +149,7 @@ class dosbox(Runner):
             return {"error": "FILE_NOT_FOUND", "file": main_file}
         args = shlex.split(self.game_config.get("args") or "")
 
-        command = [self.get_executable()]
+        command = self.get_command()
 
         if main_file.endswith(".conf"):
             command.append("-conf")

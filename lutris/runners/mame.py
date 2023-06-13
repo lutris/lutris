@@ -65,6 +65,7 @@ class mame(Runner):  # pylint: disable=invalid-name
     human_name = _("MAME")
     description = _("Arcade game emulator")
     runner_executable = "mame/mame"
+    flatpak_id = "org.mamedev.MAME"
     runnable_alone = True
     config_dir = os.path.expanduser("~/.mame")
     cache_dir = os.path.join(settings.CACHE_DIR, "mame")
@@ -248,7 +249,7 @@ class mame(Runner):  # pylint: disable=invalid-name
         """Write the full game list in XML to disk"""
         os.makedirs(self.cache_dir, exist_ok=True)
         output = system.execute(
-            [self.get_executable(), "-listxml"],
+            self.get_command() + ["-listxml"],
             env=runtime.get_env()
         )
         if output:
@@ -277,7 +278,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             except OSError:
                 pass
             system.execute(
-                [self.get_executable(), "-createconfig", "-inipath", self.config_dir],
+                self.get_command() + ["-createconfig", "-inipath", self.config_dir],
                 env=runtime.get_env(),
                 cwd=self.working_dir
             )
@@ -295,7 +296,7 @@ class mame(Runner):  # pylint: disable=invalid-name
         return params
 
     def play(self):
-        command = [self.get_executable(), "-skip_gameinfo", "-inipath", self.config_dir]
+        command = self.get_command() + ["-skip_gameinfo", "-inipath", self.config_dir]
         if self.runner_config.get("video"):
             command += ["-video", self.runner_config["video"]]
         if not self.runner_config.get("fullscreen"):

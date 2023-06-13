@@ -14,6 +14,7 @@ class yuzu(Runner):
     description = _("Nintendo Switch emulator")
     runnable_alone = True
     runner_executable = "yuzu/yuzu"
+    flatpak_id = "org.yuzu_emu.yuzu"
     game_options = [
         {
             "option": "main_file",
@@ -52,7 +53,7 @@ class yuzu(Runner):
 
     def play(self):
         """Run the game."""
-        arguments = [self.get_executable()]
+        arguments = self.get_command()
 
         fullscreen = self.runner_config.get("fullscreen")
         if fullscreen:

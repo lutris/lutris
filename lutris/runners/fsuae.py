@@ -124,6 +124,7 @@ def scan_dir_for_bios(path):
 class fsuae(Runner):
     human_name = _("FS-UAE")
     description = _("Amiga emulator")
+    flatpak_id = "net.fsuae.FS-UAE"
     platforms = [
         AMIGAS["A500"]["name"],
         AMIGAS["A500+"]["name"],
@@ -497,4 +498,4 @@ class fsuae(Runner):
         return params
 
     def play(self):
-        return {"command": [self.get_executable()] + self.get_params() + self.insert_floppies()}
+        return {"command": self.get_command() + self.get_params() + self.insert_floppies()}
