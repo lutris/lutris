@@ -134,14 +134,13 @@ class libretro(Runner):
     def get_version(self, use_default=True):
         return self.game_config["core"]
 
-
     def is_installed(self, core=None):
         if not core and self.has_explicit_config and self.game_config.get("core"):
             core = self.game_config["core"]
         if not core or self.runner_config.get("runner_executable"):
-            return self.is_retroarch_installed()
+            return super().is_installed()
         is_core_installed = system.path_exists(self.get_core_path(core))
-        return super().is_installer() and is_core_installed
+        return super().is_installed() and is_core_installed
 
     def install(self, install_ui_delegate, version=None, callback=None):
         captured_super = super()  # super() does not work inside install_core()
@@ -153,7 +152,7 @@ class libretro(Runner):
             else:
                 captured_super.install(install_ui_delegate, version, callback)
 
-        if not self.is_retroarch_installed():
+        if not super().is_installed():
             captured_super.install(install_ui_delegate, version=None, callback=install_core)
         else:
             captured_super.install(install_ui_delegate, version, callback)
