@@ -32,10 +32,11 @@ class JsonRunner(Runner):
         self.entry_point_option = self._json_data.get("entry_point_option", "main_file")
         self.download_url = self._json_data.get("download_url")
         self.runnable_alone = self._json_data.get("runnable_alone")
+        self.flatpak_id = self._json_data.get("flatpak_id")
 
     def play(self):
         """Return a launchable command constructed from the options"""
-        arguments = [self.get_executable()]
+        arguments = self.get_command()
         for option in self.runner_options:
             if option["option"] not in self.runner_config:
                 continue
