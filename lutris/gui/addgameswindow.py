@@ -612,8 +612,14 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
     def add_local_game(self):
         """Manually configure game"""
-        AddGameDialog(parent=self)
-        GLib.idle_add(self.destroy)  # defer destory so the game dialog can be centered first
+        # We use the LutrisWindow as the parent because we would
+        # destroy this window before the AddGameDialog could disconnect.
+        # We've tried to be clever here, but it didn't work reliably.
+        # This does center the AddGameDialog over the main window, which
+        # isn't terrible.
+        application = Gio.Application.get_default()
+        AddGameDialog(parent=application.window)
+        self.destroy()
 
     # Subtitle Label
 
