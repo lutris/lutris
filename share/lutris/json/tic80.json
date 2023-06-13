@@ -3,6 +3,7 @@
     "description": "TIC-80 tiny computer",
     "platforms": ["TIC-80"],
     "runner_executable": "tic80/tic80",
+    "flatpak_id": "com.tic80.TIC_80",
     "download_url": "https://github.com/nesbox/tic.computer/releases/download/v0.70.6/tic80_0.70.6.tar.gz",
     "game_options": [
         {

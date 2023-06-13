@@ -4,6 +4,7 @@
     "platforms": ["Sony PlayStation Portable"],
     "runner_executable": "ppsspp/PPSSPPSDL",
     "runnable_alone": true,
+    "flatpak_id": "org.ppsspp.PPSSPP",
     "game_options": [
         {
             "option": "main_file",

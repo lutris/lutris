@@ -4,6 +4,7 @@
     "platforms": ["Macintosh"],
     "runnable_alone": "True",
     "runner_executable": "basiliskii/BasiliskII-x86_64.AppImage",
+    "flatpak_id": "net.cebix.basilisk",
     "download_url": "https://github.com/Korkman/macemu-appimage-builder/releases/download/continuous/BasiliskII-x86_64.AppImage",
     "game_options": [
         {
