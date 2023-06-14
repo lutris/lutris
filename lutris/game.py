@@ -21,7 +21,6 @@ from lutris.database import sql
 from lutris.exceptions import GameConfigError, UnavailableRunnerError, watch_game_errors
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner
-from lutris.runners.wine import get_system_wine_version
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
@@ -90,10 +89,6 @@ class Game(GObject.Object):
             """
             if not game.runner.is_installed():
                 raise UnavailableRunnerError("The required runner '%s' is not installed." % game.runner.name)
-
-            if "wine" in game.runner_name and not get_system_wine_version() and not LINUX_SYSTEM.is_flatpak:
-                logger.warning("WINE is not installed.")
-
             return True
 
         def select_game_launch_config(self, game):
