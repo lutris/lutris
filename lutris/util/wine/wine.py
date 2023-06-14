@@ -263,7 +263,7 @@ def is_version_fsync(path):
     except IndexError:
         logger.error("Invalid path '%s'", path)
         return False
-    for fsync_version in ["fsync", "lutris", "ge", "proton"]:
+    for fsync_version in ["fsync", "lutris", "tkg", "ge", "proton"]:
         if fsync_version in version:
             return True
     return False
