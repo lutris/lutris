@@ -28,10 +28,8 @@ from lutris.util.wine.wine import (
     WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning, esync_display_version_warning,
     fsync_display_support_warning, fsync_display_version_warning, get_default_version, get_overrides_env,
     get_proton_paths, get_real_executable, get_system_wine_version, get_wine_versions, is_esync_limit_set,
-    is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync, parse_wine_version
+    is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
 )
-
-MIN_SAFE_VERSION = "7.0"  # Wine installers must run with at least this version
 
 
 def _get_prefix_warning(config):
@@ -702,22 +700,13 @@ class wine(Runner):
                     # which one to get the correct LutrisConfig object.
             return wine_path
 
-    def is_installed(self, version=None, fallback=True, min_version=None):
+    def is_installed(self, version=None, fallback=True):
         """Check if Wine is installed.
         If no version is passed, checks if any version of wine is available
         """
         if version:
             return system.path_exists(self.get_executable(version, fallback))
-
-        wine_versions = get_wine_versions()
-        if min_version:
-            min_version_list, _, _ = parse_wine_version(min_version)
-            for wine_version in wine_versions:
-                version_list, _, _ = parse_wine_version(wine_version)
-                if version_list > min_version_list:
-                    return True
-            logger.warning("Wine %s or higher not found", min_version)
-        return bool(wine_versions)
+        return bool(get_wine_versions())
 
     @classmethod
     def msi_exec(

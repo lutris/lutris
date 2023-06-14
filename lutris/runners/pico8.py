@@ -146,7 +146,7 @@ class pico8(Runner):
     def get_run_data(self):
         return {"command": self.launch_args, "env": self.get_env(os_env=False)}
 
-    def is_installed(self, version=None, fallback=True, min_version=None):
+    def is_installed(self, version=None, fallback=True):
         """Checks if pico8 runner is installed and if the pico8 executable available.
         """
         if self.is_native and system.path_exists(self.runner_config.get("runner_executable")):
