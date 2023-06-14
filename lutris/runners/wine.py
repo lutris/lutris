@@ -25,13 +25,12 @@ from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, ExtractIcon
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
-    POL_PATH, WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning,
-    esync_display_version_warning, fsync_display_support_warning, fsync_display_version_warning, get_default_version,
-    get_overrides_env, get_proton_paths, get_real_executable, get_system_wine_version, get_wine_versions,
-    is_esync_limit_set, is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync, parse_wine_version
+    WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning, esync_display_version_warning,
+    fsync_display_support_warning, fsync_display_version_warning, get_default_version, get_overrides_env,
+    get_proton_paths, get_real_executable, get_system_wine_version, get_wine_versions, is_esync_limit_set,
+    is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync, parse_wine_version
 )
 
-DEFAULT_WINE_PREFIX = "~/.wine"
 MIN_SAFE_VERSION = "7.0"  # Wine installers must run with at least this version
 
 
@@ -86,7 +85,6 @@ def _get_vkd3d_warning(config):
     if config.get("vkd3d"):
         if not vkquery.is_vulkan_supported():
             return _("<b>Warning</b> Vulkan is not installed or is not supported by your system")
-
     return None
 
 
@@ -104,9 +102,6 @@ def _get_path_for_version(config, version=None):
                 return os.path.join(proton_path, version, "dist/bin/wine")
             if os.path.isfile(os.path.join(proton_path, version, "files/bin/wine")):
                 return os.path.join(proton_path, version, "files/bin/wine")
-    if version.startswith("PlayOnLinux"):
-        version, arch = version.split()[1].rsplit("-", 1)
-        return os.path.join(POL_PATH, "wine", "linux-" + arch, version, "bin/wine")
     if version == "custom":
         return config.get("custom_wine_path", "")
     return os.path.join(WINE_DIR, version, "bin/wine")
@@ -592,20 +587,6 @@ class wine(Runner):
     @property
     def prefix_path(self):
         """Return the absolute path of the Wine prefix. Falls back to default WINE prefix."""
-        _prefix_path = self._get_raw_prefix_path()
-        if not _prefix_path:
-            logger.warning("No WINE prefix provided, falling back to system default WINE prefix.")
-            _prefix_path = DEFAULT_WINE_PREFIX
-        return os.path.expanduser(_prefix_path)
-
-    @property
-    def prefix_path_if_provided(self):
-        """Return the absolute path of the Wine prefix, if known. None if not."""
-        _prefix_path = self._get_raw_prefix_path()
-        if _prefix_path:
-            return os.path.expanduser(_prefix_path)
-
-    def _get_raw_prefix_path(self):
         _prefix_path = self._prefix or self.game_config.get("prefix") or os.environ.get("WINEPREFIX")
         if not _prefix_path and self.game_config.get("exe"):
             # Find prefix from game if we have one
@@ -852,37 +833,35 @@ class wine(Runner):
 
     def set_regedit_keys(self):
         """Reset regedit keys according to config."""
-        prefix = self.prefix_path_if_provided
-        if prefix:
-            prefix_manager = WinePrefixManager(prefix)
-            # Those options are directly changed with the prefix manager and skip
-            # any calls to regedit.
-            managed_keys = {
-                "ShowCrashDialog": prefix_manager.set_crash_dialogs,
-                "Desktop": prefix_manager.set_virtual_desktop,
-                "WineDesktop": prefix_manager.set_desktop_size,
-            }
+        prefix_manager = WinePrefixManager(self.prefix_path)
+        # Those options are directly changed with the prefix manager and skip
+        # any calls to regedit.
+        managed_keys = {
+            "ShowCrashDialog": prefix_manager.set_crash_dialogs,
+            "Desktop": prefix_manager.set_virtual_desktop,
+            "WineDesktop": prefix_manager.set_desktop_size,
+        }
 
-            for key, path in self.reg_keys.items():
-                value = self.runner_config.get(key) or "auto"
-                if not value or value == "auto" and key not in managed_keys:
-                    prefix_manager.clear_registry_subkeys(path, key)
-                elif key in self.runner_config:
-                    if key in managed_keys:
-                        # Do not pass fallback 'auto' value to managed keys
-                        if value == "auto":
-                            value = None
-                        managed_keys[key](value)
-                        continue
-                    # Convert numeric strings to integers so they are saved as dword
-                    if value.isdigit():
-                        value = int(value)
+        for key, path in self.reg_keys.items():
+            value = self.runner_config.get(key) or "auto"
+            if not value or value == "auto" and key not in managed_keys:
+                prefix_manager.clear_registry_subkeys(path, key)
+            elif key in self.runner_config:
+                if key in managed_keys:
+                    # Do not pass fallback 'auto' value to managed keys
+                    if value == "auto":
+                        value = None
+                    managed_keys[key](value)
+                    continue
+                # Convert numeric strings to integers so they are saved as dword
+                if value.isdigit():
+                    value = int(value)
 
-                    prefix_manager.set_registry_key(path, key, value)
+                prefix_manager.set_registry_key(path, key, value)
 
-            # We always configure the DPI, because if the user turns off DPI scaling, but it
-            # had been on the only way to implement that is to save 96 DPI into the registry.
-            prefix_manager.set_dpi(self.get_dpi())
+        # We always configure the DPI, because if the user turns off DPI scaling, but it
+        # had been on the only way to implement that is to save 96 DPI into the registry.
+        prefix_manager.set_dpi(self.get_dpi())
 
     def get_dpi(self):
         """Return the DPI to be used by Wine; returns None to allow Wine's own
@@ -905,17 +884,15 @@ class wine(Runner):
             logger.warning("No valid prefix detected in %s, creating one...", self.prefix_path)
             create_prefix(self.prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
 
-        prefix = self.prefix_path_if_provided
-        if prefix:
-            prefix_manager = WinePrefixManager(prefix)
-            if self.runner_config.get("autoconf_joypad", False):
-                prefix_manager.configure_joypads()
-            prefix_manager.create_user_symlinks()
-            self.sandbox(prefix_manager)
-            self.set_regedit_keys()
+        prefix_manager = WinePrefixManager(self.prefix_path)
+        if self.runner_config.get("autoconf_joypad", False):
+            prefix_manager.configure_joypads()
+        prefix_manager.create_user_symlinks()
+        self.sandbox(prefix_manager)
+        self.set_regedit_keys()
 
-            for manager, enabled in self.get_dll_managers().items():
-                manager.setup(enabled)
+        for manager, enabled in self.get_dll_managers().items():
+            manager.setup(enabled)
 
     def get_dll_managers(self, enabled_only=False):
         """Returns the DLL managers in a dict; the keys are the managers themselves,
@@ -930,19 +907,16 @@ class wine(Runner):
         ]
 
         managers = {}
-        prefix = self.prefix_path_if_provided
-
-        if prefix:
-            for manager_class, enabled_option, version_option in manager_classes:
-                enabled = bool(self.runner_config.get(enabled_option))
-                version = self.runner_config.get(version_option)
-                if enabled or not enabled_only:
-                    manager = manager_class(
-                        prefix,
-                        arch=self.wine_arch,
-                        version=version
-                    )
-                    managers[manager] = enabled
+        for manager_class, enabled_option, version_option in manager_classes:
+            enabled = bool(self.runner_config.get(enabled_option))
+            version = self.runner_config.get(version_option)
+            if enabled or not enabled_only:
+                manager = manager_class(
+                    self.prefix_path,
+                    arch=self.wine_arch,
+                    version=version
+                )
+                managers[manager] = enabled
 
         return managers
 

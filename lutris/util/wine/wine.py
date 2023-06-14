@@ -59,9 +59,6 @@ def get_proton_paths():
     return list(paths)
 
 
-POL_PATH = get_playonlinux()
-
-
 def detect_arch(prefix_path=None, wine_path=None):
     """Given a Wine prefix path, return its architecture"""
     arch = detect_prefix_arch(prefix_path)
@@ -73,15 +70,12 @@ def detect_arch(prefix_path=None, wine_path=None):
 
 
 def detect_prefix_arch(prefix_path):
-    """Return the architecture of the prefix found in `prefix_path`.
-
-    If no `prefix_path` given, return the arch of the system's default prefix.
-    If no prefix found, return None."""
+    """Return the architecture of the prefix found in `prefix_path`"""
     prefix_path = os.path.expanduser(prefix_path)
     registry_path = os.path.join(prefix_path, "system.reg")
     if not os.path.isdir(prefix_path) or not os.path.isfile(registry_path):
         # No prefix_path exists or invalid prefix
-        logger.debug("Prefix not found: %s", prefix_path)
+        logger.error("Prefix not found: %s", prefix_path)
         return None
     with open(registry_path, "r", encoding='utf-8') as registry:
         for _line_no in range(5):
@@ -90,7 +84,7 @@ def detect_prefix_arch(prefix_path):
                 return "win64"
             if "win32" in line:
                 return "win32"
-    logger.debug("Failed to detect Wine prefix architecture in %s", prefix_path)
+    logger.error("Failed to detect Wine prefix architecture in %s", prefix_path)
     return None
 
 
