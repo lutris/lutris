@@ -227,13 +227,13 @@ def get_default_version():
 def get_system_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
     if wine_path != "wine" and not system.path_exists(wine_path):
-        return
+        return ""
     if wine_path == "wine" and not system.find_executable("wine"):
-        return
+        return ""
     version = system.read_process_output([wine_path, "--version"])
     if not version:
         logger.error("Error reading wine version for %s", wine_path)
-        return
+        return ""
     if version.startswith("wine-"):
         version = version[5:]
     return version
@@ -241,31 +241,42 @@ def get_system_wine_version(wine_path="wine"):
 
 def is_version_esync(path):
     """Determines if a Wine build is Esync capable"""
+    compat_versions = ["esync", "lutris", "tkg", "ge", "proton", "staging"]
     try:
         version = path.split("/")[-3].lower()
     except IndexError:
         logger.error("Invalid path '%s'", path)
         return False
-    for is_esync in ["esync", "lutris", "tkg", "ge", "proton", "staging"]:
+    for is_esync in compat_versions:
         if is_esync in version:
             return True
-    wine_version = get_system_wine_version(path)
-    if wine_version:
-        wine_version = wine_version.lower()
-        return "staging" in wine_version
+    system_version = get_system_wine_version(path)
+    if system_version:
+        system_version = system_version.lower()
+        for is_esync in compat_versions:
+            if is_esync in system_version:
+                return True
     return False
 
 
 def is_version_fsync(path):
     """Determines if a Wine build is Fsync capable"""
+    compat_versions = ["fsync", "lutris", "tkg", "ge", "proton"]
     try:
         version = path.split("/")[-3].lower()
     except IndexError:
         logger.error("Invalid path '%s'", path)
         return False
-    for fsync_version in ["fsync", "lutris", "tkg", "ge", "proton"]:
+    for fsync_version in compat_versions:
         if fsync_version in version:
             return True
+    system_version = get_system_wine_version(path)
+    if system_version:
+        system_version = system_version.lower()
+        for is_esync in compat_versions:
+            if is_esync in system_version:
+                return True
+        return "fsync" in system_version.lower()
     return False
 
 
