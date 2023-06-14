@@ -513,8 +513,8 @@ class InstallerSourceDialog(ModelessDialog):
         self.destroy()
 
 
-class MessageDialog(Gtk.MessageDialog):
-    def init(self, message, secondary_message, parent):
+class WarningMessageDialog(Gtk.MessageDialog):
+    def __init__(self, message, secondary_message="", parent=None):
         super().__init__(type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent)
 
         self.set_default_response(Gtk.ResponseType.OK)
@@ -526,12 +526,11 @@ class MessageDialog(Gtk.MessageDialog):
         self.destroy()
 
 
-class WineNotInstalledWarning(MessageDialog):
+class WineNotInstalledWarning(WarningMessageDialog):
     """Display a warning if Wine is not detected on the system"""
 
     def __init__(self, parent=None, cancellable=False):
         super().__init__(
-            "hide-wine-systemwide-install-warning",
             _("Wine is not installed on your system."),
             secondary_message=_(
                 "Having Wine installed on your system guarantees that "
@@ -540,8 +539,7 @@ class WineNotInstalledWarning(MessageDialog):
                 "href='https://github.com/lutris/docs/blob/master/WineDependencies.md'>Lutris Wiki</a> to "
                 "install Wine."
             ),
-            parent=parent,
-            cancellable=cancellable
+            parent=parent
         )
 
 

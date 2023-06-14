@@ -6,7 +6,7 @@ from gettext import gettext as _
 
 from lutris import runtime, settings
 from lutris.exceptions import UnavailableRunnerError
-from lutris.gui.dialogs import ErrorDialog, MessageDialog
+from lutris.gui.dialogs import ErrorDialog, WarningMessageDialog
 from lutris.runners.steam import steam
 from lutris.util import linux, system
 from lutris.util.log import logger
@@ -379,7 +379,7 @@ def get_real_executable(windows_executable, working_dir=None):
 
 
 def display_vulkan_error():
-    MessageDialog(
+    WarningMessageDialog(
         _("Vulkan is not installed or is not supported by your system"),
         secondary_message=_(
             "If you have compatible hardware, please follow "
@@ -408,7 +408,7 @@ def fsync_display_support_warning():
 
 
 def esync_display_version_warning():
-    MessageDialog(
+    WarningMessageDialog(
         _("Incompatible Wine version detected"),
         secondary_message=_(
             "The Wine build you have selected "
@@ -420,7 +420,7 @@ def esync_display_version_warning():
 
 
 def fsync_display_version_warning():
-    MessageDialog(
+    WarningMessageDialog(
         _("Incompatible Wine version detected"),
         secondary_message=_(
             "The Wine build you have selected "

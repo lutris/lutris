@@ -14,7 +14,7 @@ from lutris import runners, settings
 from lutris.database.games import delete_game, get_games, get_games_where
 from lutris.database.schema import syncdb
 from lutris.game import Game
-from lutris.gui.dialogs import MessageDialog
+from lutris.gui.dialogs import WarningMessageDialog
 from lutris.runners.json import load_json_runners
 from lutris.runtime import RuntimeUpdater
 from lutris.scanners.lutris import build_path_cache
@@ -87,7 +87,7 @@ def check_driver():
             logger.error("Unable to get GPU information from '%s'", card)
 
     if drivers.is_outdated():
-        MessageDialog(
+        WarningMessageDialog(
             _("Your NVIDIA driver is outdated."),
             secondary_message=_(
                 "You are currently running driver %s which does not "
@@ -117,7 +117,7 @@ def check_libs(all_components=False):
                 logger.error("%s %s missing (needed by %s)", arch, lib, req.lower())
 
     if missing_vulkan_libs:
-        MessageDialog(
+        WarningMessageDialog(
             _("Missing Vulkan libraries"),
             secondary_message=_(
                 "Lutris was unable to detect Vulkan support for "
