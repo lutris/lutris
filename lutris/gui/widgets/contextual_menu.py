@@ -1,6 +1,28 @@
 from gi.repository import Gtk
 
 
+def update_action_widget_visibility(widgets, visible_predicate):
+    """This sets the visibility on a set of widgets, like menu items. You provide a function
+    that indicates if an item is visible, or None for separators that are visible based on
+    their neighbors."""
+    previous_visible_widget = None
+    for w in widgets:
+        visible = visible_predicate(w)
+
+        if visible is None:
+            if previous_visible_widget is None:
+                visible = False
+            else:
+                visible = visible_predicate(previous_visible_widget) is not None
+
+        w.set_visible(visible)
+        if visible:
+            previous_visible_widget = w
+
+    if visible_predicate(previous_visible_widget) is None:
+        previous_visible_widget.set_visible(False)
+
+
 class ContextualMenu(Gtk.Menu):
     def __init__(self, main_entries):
         super().__init__()
@@ -16,6 +38,11 @@ class ContextualMenu(Gtk.Menu):
             Gtk.MenuItem
         """
         name, label, callback = entry
+        if label == "-":
+            separator = Gtk.SeparatorMenuItem()
+            self.append(separator)
+            return separator
+
         action = Gtk.Action(name=name, label=label)
         action.connect("activate", callback)
 
@@ -51,9 +78,13 @@ class ContextualMenu(Gtk.Menu):
         self.show_all()
 
         displayed = game_actions.get_displayed_entries()
-        for menuitem in self.get_children():
-            if not isinstance(menuitem, Gtk.ImageMenuItem):
-                continue
-            menuitem.set_visible(displayed.get(menuitem.action_id, True))
+
+        def is_visible(w):
+            if isinstance(w, Gtk.SeparatorMenuItem):
+                return None
+
+            return displayed.get(w.action_id, True)
+
+        update_action_widget_visibility(self.get_children(), is_visible)
 
         super().popup_at_pointer(event)

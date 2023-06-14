@@ -7,6 +7,7 @@ from lutris import runners, services
 from lutris.database.games import get_game_for_service
 from lutris.game import Game
 from lutris.game_actions import GameActions
+from lutris.gui.widgets.contextual_menu import update_action_widget_visibility
 from lutris.util.strings import gtk_safe
 
 
@@ -108,7 +109,7 @@ class GameBar(Gtk.Box):
             vbox.set_border_width(9)
             vbox.set_spacing(3)
 
-            for button in popover_buttons.values():
+            for button in popover_buttons:
                 vbox.pack_end(button, False, False, 0)
 
             pop.add(vbox)
@@ -135,11 +136,15 @@ class GameBar(Gtk.Box):
 
         return box
 
-    @staticmethod
-    def get_link_button(text):
+    def get_link_button(self, text, callback=None):
         """Return a suitable button for a menu popover; this must be
         a ModelButton to be styled correctly."""
+        if text == "-":
+            return Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
+
         button = Gtk.ModelButton(text, visible=True, xalign=0.0)
+        if callback:
+            button.connect("clicked", self.on_link_button_clicked, callback)
         return button
 
     def get_game_name_label(self):
@@ -190,9 +195,9 @@ class GameBar(Gtk.Box):
 
     def get_locate_installed_game_button(self, game_actions):
         """Return a button to locate an existing install"""
-        button = GameBar.get_link_button(_("Locate installed game"))
+        button = self.get_link_button(_("Locate installed game"))
         button.connect("clicked", game_actions.on_locate_installed_game, self.game)
-        return {"locate": button}
+        return button
 
     def get_play_button(self, game_actions):
         """Return the widget for install/play/stop and game config"""
@@ -219,7 +224,7 @@ class GameBar(Gtk.Box):
                     # Local services don't show an install dialog, they can be launched directly
                     button.set_label(_("Play"))
                 if self.service.drm_free:
-                    game_buttons = self.get_locate_installed_game_button(game_actions)
+                    game_buttons = [self.get_locate_installed_game_button(game_actions)]
 
         if game_buttons:
             button.set_size_request(84, 32)
@@ -228,28 +233,28 @@ class GameBar(Gtk.Box):
         return button
 
     def get_game_buttons(self, game_actions):
-        """Return a dictionary of buttons to use in the panel"""
+        """Return a list of buttons to use in the panel"""
         displayed = game_actions.get_displayed_entries()
-        buttons = {}
-        for action in game_actions.get_game_actions():
-            action_id, label, callback = action
+        buttons = []
+        button_visibility = {}
+        for action_id, label, callback in game_actions.get_game_actions():
             if action_id in ("play", "stop", "install"):
                 continue
-            button = GameBar.get_link_button(label)
-            button.set_visible(displayed.get(action_id))
-            buttons[action_id] = button
-            button.connect("clicked", self.on_link_button_clicked, callback)
+            button = self.get_link_button(label, callback)
+            if action_id:
+                button_visibility[button] = displayed.get(action_id, True)
+            buttons.append(button)
+
+        update_action_widget_visibility(buttons, lambda w: button_visibility.get(w, None))
         return buttons
 
     def get_runner_buttons(self):
-        buttons = {}
+        buttons = []
         if self.game.runner_name and self.game.is_installed:
             runner = runners.import_runner(self.game.runner_name)(self.game.config)
-            for entry in runner.context_menu_entries:
-                name, label, callback = entry
-                button = GameBar.get_link_button(label)
-                button.connect("clicked", self.on_link_button_clicked, callback)
-                buttons[name] = button
+            for _name, label, callback in runner.context_menu_entries:
+                button = self.get_link_button(label, callback)
+                buttons.append(button)
         return buttons
 
     def on_link_button_clicked(self, button, callback):
