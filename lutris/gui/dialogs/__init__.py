@@ -394,7 +394,7 @@ class InstallOrPlayDialog(ModalDialog):
 
 
 class LaunchConfigSelectDialog(ModalDialog):
-    def __init__(self, game, configs, title, parent=None, has_dont_show_again=False):
+    def __init__(self, game, configs, title, parent=None):
         super().__init__(title=title, parent=parent, border_width=10)
         self.config_index = 0
         self.dont_show_again = False
@@ -417,10 +417,9 @@ class LaunchConfigSelectDialog(ModalDialog):
             _button.connect("toggled", self.on_button_toggled, i + 1)
             vbox.pack_start(_button, False, False, 0)
 
-        if has_dont_show_again:
-            dont_show_checkbutton = Gtk.CheckButton(_("Do not ask again for this game."))
-            dont_show_checkbutton.connect("toggled", self.on_dont_show_checkbutton_toggled)
-            vbox.pack_end(dont_show_checkbutton, False, False, 6)
+        dont_show_checkbutton = Gtk.CheckButton(_("Do not ask again for this game."))
+        dont_show_checkbutton.connect("toggled", self.on_dont_show_checkbutton_toggled)
+        vbox.pack_end(dont_show_checkbutton, False, False, 6)
 
         self.show_all()
         self.run()

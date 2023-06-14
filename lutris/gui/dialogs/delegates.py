@@ -126,8 +126,12 @@ class DialogLaunchUIDelegate(Game.LaunchUIDelegate):
             config_index = get_preferred_config_index()
 
         if config_index is None:
-            dlg = dialogs.LaunchConfigSelectDialog(game, configs, title=_(
-                "Select game to launch"), parent=self, has_dont_show_again=True)
+            dlg = dialogs.LaunchConfigSelectDialog(
+                game,
+                configs,
+                title=_("Select game to launch"),
+                parent=self
+            )
             if not dlg.confirmed:
                 return None  # no error here- the user cancelled out
 
