@@ -251,9 +251,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             params = {}
             if self.installer.runner == "libretro":
                 params["core"] = self.installer.script["game"]["core"]
-            if self.installer.runner.startswith("wine"):
-                # Force the wine version to be installed
-                params["fallback"] = False
+            if self.installer.runner == "wine":
+                params["fallback"] = False  # Force the wine version to be installed
                 params["min_version"] = wine.MIN_SAFE_VERSION
                 version = self._get_runner_version()
                 if version:

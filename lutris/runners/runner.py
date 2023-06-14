@@ -48,9 +48,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             """Called to verify that wine is available, if it is required. May
             return False to cancel the installation."""
 
-            from lutris.runners.wine import get_wine_version
+            from lutris.runners.wine import get_system_wine_version
 
-            if not get_wine_version() and not LINUX_SYSTEM.is_flatpak:
+            if not get_system_wine_version() and not LINUX_SYSTEM.is_flatpak:
                 logger.warning("WINE is not installed.")
 
             return True

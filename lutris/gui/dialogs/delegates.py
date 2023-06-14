@@ -16,7 +16,7 @@ class DialogInstallUIDelegate(Runner.InstallUIDelegate):
     """This provides UI for runner installation via dialogs."""
 
     def check_wine_availability(self):
-        if not wine.get_wine_version():
+        if not wine.get_system_wine_version():
             dialogs.WineNotInstalledWarning(parent=self)
             return False
 
@@ -70,7 +70,7 @@ class DialogLaunchUIDelegate(Game.LaunchUIDelegate):
                 if dlg.result != Gtk.ResponseType.OK:
                     return False
 
-        if "wine" in game.runner_name and not wine.get_wine_version():
+        if "wine" in game.runner_name and not wine.get_system_wine_version():
             dialogs.WineNotInstalledWarning(parent=self)
             return False
 

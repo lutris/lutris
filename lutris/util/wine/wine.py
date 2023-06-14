@@ -22,9 +22,6 @@ WINE_PATHS = {
     "system": "wine",
 }
 
-ESYNC_LIMIT_CHECK = os.environ.get("ESYNC_LIMIT_CHECK", "").lower()
-FSYNC_SUPPORT_CHECK = os.environ.get("FSYNC_SUPPORT_CHECK", "").lower()
-
 
 def get_playonlinux():
     """Return the folder containing PoL config files"""
@@ -164,7 +161,7 @@ def get_system_wine_versions():
     """Return the list of wine versions installed on the system"""
     versions = []
     for build in sorted(WINE_PATHS.keys()):
-        version = get_wine_version(WINE_PATHS[build])
+        version = get_system_wine_version(WINE_PATHS[build])
         if version:
             versions.append(build)
     return versions
@@ -263,32 +260,23 @@ def is_version_installed(version):
 
 def is_esync_limit_set():
     """Checks if the number of files open is acceptable for esync usage."""
-    if ESYNC_LIMIT_CHECK in ("0", "off"):
-        logger.info("fd limit check for esync was manually disabled")
-        return True
     return linux.LINUX_SYSTEM.has_enough_file_descriptors()
 
 
 def is_fsync_supported():
     """Checks if the running kernel has Valve's futex patch applied."""
-    if FSYNC_SUPPORT_CHECK in ("0", "off"):
-        logger.info("futex patch check for fsync was manually disabled")
-        return True
     return fsync.is_fsync_supported()
 
 
 def get_default_version():
-    """Return the default version of wine. Prioritize 64bit builds"""
+    """Return the default version of wine."""
     installed_versions = get_wine_versions()
-    wine64_versions = [version for version in installed_versions if "64" in version]
-    if wine64_versions:
-        return wine64_versions[0]
     if installed_versions:
         return installed_versions[0]
     return
 
 
-def get_wine_version(wine_path="wine"):
+def get_system_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
     if wine_path != "wine" and not system.path_exists(wine_path):
         return
@@ -322,11 +310,10 @@ def is_version_esync(path):
     except IndexError:
         logger.error("Invalid path '%s'", path)
         return False
-    esync_compatible_versions = ["esync", "lutris", "tkg", "ge", "proton", "staging"]
-    for esync_version in esync_compatible_versions:
-        if esync_version in version:
+    for is_esync in ["esync", "lutris", "tkg", "ge", "proton", "staging"]:
+        if is_esync in version:
             return True
-    wine_version = get_wine_version(path)
+    wine_version = get_system_wine_version(path)
     if wine_version:
         wine_version = wine_version.lower()
         return "esync" in wine_version or "staging" in wine_version
@@ -351,7 +338,7 @@ def is_version_fsync(path):
     for fsync_version in fsync_compatible_versions:
         if fsync_version in version:
             return True
-    wine_version = get_wine_version(path)
+    wine_version = get_system_wine_version(path)
     if wine_version:
         return "fsync" in wine_version.lower()
     return False
@@ -388,7 +375,6 @@ def display_vulkan_error():
             "How-to:-DXVK (https://github.com/lutris/docs/blob/master/HowToDXVK.md)</a>"
         )
     )
-    return False
 
 
 def esync_display_limit_warning():
@@ -416,7 +402,6 @@ def esync_display_version_warning():
             "Please switch to an Esync-capable version."
         )
     )
-    return False
 
 
 def fsync_display_version_warning():
@@ -428,7 +413,6 @@ def fsync_display_version_warning():
             "Please switch to an Fsync-capable version."
         )
     )
-    return False
 
 
 def get_overrides_env(overrides):
