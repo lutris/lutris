@@ -196,7 +196,6 @@ class RuntimeUpdater:
     status_updater = None
     update_functions = []
     downloaders = {}
-    is_updating = False
 
     def __init__(self, force=False):
         self.force = force
@@ -220,24 +219,16 @@ class RuntimeUpdater:
         """Performs all the registered updates. If 'self.cancel()' is called,
         it will immediately stop."""
 
-        if RuntimeUpdater.is_updating:
-            return
-
-        try:
-            RuntimeUpdater.is_updating = True
-
-            for key, func in self.update_functions:
-                if self.cancelled:
-                    break
-
-                func()
-                update_cache.write_date_to_cache(key)
-
+        for key, func in self.update_functions:
             if self.cancelled:
-                logger.info("Runtime update cancelled")
-            logger.info("Startup complete")
-        finally:
-            RuntimeUpdater.is_updating = False
+                break
+
+            func()
+            update_cache.write_date_to_cache(key)
+
+        if self.cancelled:
+            logger.info("Runtime update cancelled")
+        logger.info("Startup complete")
 
     def cancel(self):
         self.cancelled = True

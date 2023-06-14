@@ -62,14 +62,6 @@ class DialogLaunchUIDelegate(Game.LaunchUIDelegate):
             if not installed:
                 return False
 
-        if game.runner.use_runtime():
-            if runtime.RuntimeUpdater.is_updating:
-                logger.warning("Game launching with the runtime is updating")
-                dlg = dialogs.WarningDialog(_("Runtime currently updating"), _(
-                    "Game might not work as expected"), parent=self)
-                if dlg.result != Gtk.ResponseType.OK:
-                    return False
-
         if "wine" in game.runner_name and not wine.get_system_wine_version():
             dialogs.WineNotInstalledWarning(parent=self)
             return False
