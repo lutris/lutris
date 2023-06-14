@@ -55,7 +55,7 @@ import functools
 import os
 import subprocess
 
-__all__ = ("is_fsync_supported",)
+__all__ = ("get_fsync_support",)
 
 
 # pylint: disable=invalid-name,too-few-public-methods
@@ -402,7 +402,7 @@ def is_futex_waitv_supported():
 
 
 @functools.lru_cache(None)
-def is_fsync_supported():
+def get_fsync_support():
     """Checks whether the FUTEX_WAIT_MULTIPLE operation, the futex2
     syscalls, or the futex_waitv syscall is supported on this kernel.
 

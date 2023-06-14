@@ -265,7 +265,7 @@ def is_esync_limit_set():
 
 def is_fsync_supported():
     """Checks if the running kernel has Valve's futex patch applied."""
-    return fsync.is_fsync_supported()
+    return fsync.get_fsync_support()
 
 
 def get_default_version():
