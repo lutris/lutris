@@ -50,7 +50,7 @@ class TestPCSX2Runner(unittest.TestCase):
         mock_config.game_config = {'main_file': main_file}
         mock_config.runner_config = {'nogui': True}
         self.runner.config = mock_config
-        expected = {'command': [self.runner.get_executable(), '-nogui', main_file]}
+        expected = {'command': self.runner.get_command() + ['-nogui', main_file]}
         self.assertEqual(self.runner.play(), expected)
 
     @patch('lutris.util.system.path_exists')

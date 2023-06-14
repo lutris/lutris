@@ -10,7 +10,6 @@ from lutris.database.games import get_game_by_field
 from lutris.exceptions import GameConfigError, UnavailableLibrariesError
 from lutris.runners import RunnerInstallationError
 from lutris.util import flatpak, strings, system
-from lutris.util.downloader import Downloader
 from lutris.util.extract import ExtractFailure, extract_archive
 from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
@@ -34,46 +33,6 @@ class Runner:  # pylint: disable=too-many-public-methods
     download_url = None
     arch = None  # If the runner is only available for an architecture that isn't x86_64
     flatpak_id = None
-
-    class InstallUIDelegate:
-        """These objects provide UI for a runner as it is installing itself.
-        One of these must be provided to the install() method.
-
-        The default implementation provides no UI and makes default choices for
-        the user, but DialogInstallUIDelegate implements this to show dialogs and
-        ask the user questions. Windows then inherit from DialogLaunchUIDelegate.
-        """
-
-        def show_install_yesno_inquiry(self, question, title):
-            """Called to ask the user a yes/no question.
-
-            The default is 'yes'."""
-            return True
-
-        def show_install_file_inquiry(self, question, title, message):
-            """Called to ask the user for a file.
-
-            Lutris first asks the user the question given (showing the title);
-            if the user answers 'Yes', it asks for the file using the message.
-
-            Returns None if the user answers 'No' or cancels out. Returns the
-            file path if the user selected one.
-
-            The default is to return None always.
-            """
-            return None
-
-        def download_install_file(self, url, destination):
-            """Downloads a file from a URL to a destination, overwriting any
-            file at that path.
-
-            Returns True if sucessful, and False if the user cancels.
-
-            The default is to download with no UI, and no option to cancel.
-            """
-            downloader = Downloader(url, destination, overwrite=True)
-            downloader.start()
-            return downloader.join()
 
     def __init__(self, config=None):
         """Initialize runner."""
@@ -222,6 +181,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             return [exe]
         if flatpak.is_app_installed(self.flatpak_id):
             return flatpak.get_run_command(self.flatpak_id)
+        return []
 
     def get_env(self, os_env=False, disable_runtime=False):
         """Return environment variables used for a game."""

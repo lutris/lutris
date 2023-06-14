@@ -41,6 +41,7 @@ from lutris.game import Game, export_game, import_game
 from lutris.installer import get_installers
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, LutrisInitDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
+from lutris.gui.dialogs.delegates import LaunchUIDelegate, InstallUIDelegate, CommandLineUIDelegate
 from lutris.gui.installerwindow import InstallerWindow, InstallationKind
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
@@ -53,7 +54,6 @@ from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
 from lutris.services import get_enabled_services
 from lutris.database.services import ServiceGameCollection
-from lutris.runners.runner import Runner
 
 from .lutriswindow import LutrisWindow
 
@@ -78,8 +78,8 @@ class Application(Gtk.Application):
         self.force_updates = False
         self.css_provider = Gtk.CssProvider.new()
         self.window = None
-        self.launch_ui_delegate = Game.LaunchUIDelegate()
-        self.install_ui_delegate = Runner.InstallUIDelegate()
+        self.launch_ui_delegate = LaunchUIDelegate()
+        self.install_ui_delegate = InstallUIDelegate()
 
         self.running_games = Gio.ListStore.new(Game)
         self.app_windows = {}
@@ -974,23 +974,3 @@ Also, check that the version specified is in the correct format.
 
     def has_tray_icon(self):
         return self.tray and self.tray.is_visible()
-
-
-class CommandLineUIDelegate(Game.LaunchUIDelegate):
-    """This delegate can provide user selections that were provided on the command line."""
-
-    def __init__(self, launch_config_name):
-        self.launch_config_name = launch_config_name
-
-    def select_game_launch_config(self, game):
-        if not self.launch_config_name:
-            return {}
-
-        game_config = game.config.game_level.get("game", {})
-        configs = game_config.get("launch_configs")
-
-        for config in configs:
-            if config.get("name") == self.launch_config_name:
-                return config
-
-        raise RuntimeError("The launch configuration '%s' could not be found." % self.launch_config_name)

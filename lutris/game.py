@@ -18,7 +18,7 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.exceptions import GameConfigError, UnavailableRunnerError, watch_game_errors
+from lutris.exceptions import GameConfigError, watch_game_errors
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
@@ -67,38 +67,6 @@ class Game(GObject.Object):
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    class LaunchUIDelegate:
-        """These objects provide UI for the game while it is being launched;
-        one provided to the launch() method.
-
-        The default implementation provides no UI and makes default choices for
-        the user, but DialogLaunchUIDelegate implements this to show dialogs and ask the
-        user questions. Windows then inherit from DialogLaunchUIDelegate.
-
-        If these methods throw any errors are reported via tha game-error signal;
-        that is not part of this delegate because errors can be report outside of
-        the launch() method, where no delegate is available.
-        """
-
-        def check_game_launchable(self, game):
-            """See if the game can be launched. If there are adverse conditions,
-            this can warn the user and ask whether to launch. If this returs
-            False, the launch is cancelled. The default is to return True with no
-            actual checks.
-            """
-            if not game.runner.is_installed():
-                raise UnavailableRunnerError("The required runner '%s' is not installed." % game.runner.name)
-            return True
-
-        def select_game_launch_config(self, game):
-            """Prompt the user for which launch config to use. Returns None
-            if the user cancelled, an empty dict for the primary game configuration
-            and the launch_config as a dict if one is selected.
-
-            The default is the select the primary game.
-            """
-            return {}  # primary game
-
     def __init__(self, game_id=None):
         super().__init__()
         self._id = game_id  # pylint: disable=invalid-name
@@ -126,6 +94,7 @@ class Game(GObject.Object):
         self.service = game_data.get("service")
         self.appid = game_data.get("service_id")
         self.playtime = float(game_data.get("playtime") or 0.0)
+        self.discord_id = game_data.get('discord_id')  # Discord App ID for RPC
 
         self._config = None
         self._runner = None
@@ -145,9 +114,6 @@ class Game(GObject.Object):
         self._log_buffer = None
         self.timer = Timer()
         self.screen_saver_inhibitor_cookie = None
-
-        # Adding Discord App ID for RPC
-        self.discord_id = game_data.get('discord_id')
 
     @staticmethod
     def create_empty_service_game(db_game, service):

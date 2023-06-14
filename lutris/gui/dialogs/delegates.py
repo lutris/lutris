@@ -2,15 +2,109 @@ from gettext import gettext as _
 
 from gi.repository import Gdk, Gtk
 
+from lutris.exceptions import UnavailableRunnerError
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.dialogs.download import DownloadDialog
 from lutris.runners import wine
-from lutris.runners.runner import Runner
 from lutris.util.downloader import Downloader
 
 
-class DialogInstallUIDelegate(Runner.InstallUIDelegate):
+class LaunchUIDelegate:
+    """These objects provide UI for the game while it is being launched;
+    one provided to the launch() method.
+
+    The default implementation provides no UI and makes default choices for
+    the user, but DialogLaunchUIDelegate implements this to show dialogs and ask the
+    user questions. Windows then inherit from DialogLaunchUIDelegate.
+
+    If these methods throw any errors are reported via tha game-error signal;
+    that is not part of this delegate because errors can be report outside of
+    the launch() method, where no delegate is available.
+    """
+
+    def check_game_launchable(self, game):
+        """See if the game can be launched. If there are adverse conditions,
+        this can warn the user and ask whether to launch. If this returs
+        False, the launch is cancelled. The default is to return True with no
+        actual checks.
+        """
+        if not game.runner.is_installed():
+            raise UnavailableRunnerError("The required runner '%s' is not installed." % game.runner.name)
+        return True
+
+    def select_game_launch_config(self, game):
+        """Prompt the user for which launch config to use. Returns None
+        if the user cancelled, an empty dict for the primary game configuration
+        and the launch_config as a dict if one is selected.
+
+        The default is the select the primary game.
+        """
+        return {}  # primary game
+
+
+class InstallUIDelegate:
+    """These objects provide UI for a runner as it is installing itself.
+    One of these must be provided to the install() method.
+
+    The default implementation provides no UI and makes default choices for
+    the user, but DialogInstallUIDelegate implements this to show dialogs and
+    ask the user questions. Windows then inherit from DialogLaunchUIDelegate.
+    """
+
+    def show_install_yesno_inquiry(self, question, title):
+        """Called to ask the user a yes/no question.
+
+        The default is 'yes'."""
+        return True
+
+    def show_install_file_inquiry(self, question, title, message):
+        """Called to ask the user for a file.
+
+        Lutris first asks the user the question given (showing the title);
+        if the user answers 'Yes', it asks for the file using the message.
+
+        Returns None if the user answers 'No' or cancels out. Returns the
+        file path if the user selected one.
+
+        The default is to return None always.
+        """
+        return None
+
+    def download_install_file(self, url, destination):
+        """Downloads a file from a URL to a destination, overwriting any
+        file at that path.
+
+        Returns True if sucessful, and False if the user cancels.
+
+        The default is to download with no UI, and no option to cancel.
+        """
+        downloader = Downloader(url, destination, overwrite=True)
+        downloader.start()
+        return downloader.join()
+
+
+class CommandLineUIDelegate(LaunchUIDelegate):
+    """This delegate can provide user selections that were provided on the command line."""
+
+    def __init__(self, launch_config_name):
+        self.launch_config_name = launch_config_name
+
+    def select_game_launch_config(self, game):
+        if not self.launch_config_name:
+            return {}
+
+        game_config = game.config.game_level.get("game", {})
+        configs = game_config.get("launch_configs")
+
+        for config in configs:
+            if config.get("name") == self.launch_config_name:
+                return config
+
+        raise RuntimeError("The launch configuration '%s' could not be found." % self.launch_config_name)
+
+
+class DialogInstallUIDelegate(InstallUIDelegate):
     """This provides UI for runner installation via dialogs."""
 
     def show_install_yesno_inquiry(self, question, title):
@@ -37,7 +131,7 @@ class DialogInstallUIDelegate(Runner.InstallUIDelegate):
         return dialog.downloader.state == Downloader.COMPLETED
 
 
-class DialogLaunchUIDelegate(Game.LaunchUIDelegate):
+class DialogLaunchUIDelegate(LaunchUIDelegate):
     """This provides UI for game launch via dialogs."""
 
     def check_game_launchable(self, game):
