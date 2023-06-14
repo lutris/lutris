@@ -198,11 +198,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     def launch_install(self, ui_delegate):
         """Launch the install process; returns False if cancelled by the user."""
         self.runners_to_install = self.get_runners_to_install()
-
-        if self.installer.runner.startswith("wine"):
-            if not ui_delegate.check_wine_availability():
-                return False
-
         self.install_runners(ui_delegate)
         return True
 

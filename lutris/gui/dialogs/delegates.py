@@ -2,47 +2,31 @@ from gettext import gettext as _
 
 from gi.repository import Gdk, Gtk
 
-from lutris import runtime
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.dialogs.download import DownloadDialog
 from lutris.runners import wine
 from lutris.runners.runner import Runner
 from lutris.util.downloader import Downloader
-from lutris.util.log import logger
 
 
 class DialogInstallUIDelegate(Runner.InstallUIDelegate):
     """This provides UI for runner installation via dialogs."""
 
-    def check_wine_availability(self):
-        if not wine.get_system_wine_version():
-            dialogs.WineNotInstalledWarning(parent=self)
-            return False
-
-        return True
-
-    def show_install_notice(self, message, secondary=None):
-        dialogs.NoticeDialog(message, secondary, parent=self)
-
     def show_install_yesno_inquiry(self, question, title):
-        dialog = dialogs.QuestionDialog(
-            {
-                "parent": self,
-                "question": question,
-                "title": title,
-            }
-        )
+        dialog = dialogs.QuestionDialog({
+            "parent": self,
+            "question": question,
+            "title": title,
+        })
         return Gtk.ResponseType.YES == dialog.result
 
     def show_install_file_inquiry(self, question, title, message):
-        dlg = dialogs.QuestionDialog(
-            {
-                "parent": self,
-                "question": question,
-                "title": title,
-            }
-        )
+        dlg = dialogs.QuestionDialog({
+            "parent": self,
+            "question": question,
+            "title": title,
+        })
         if dlg.result == dlg.YES:
             dlg = dialogs.FileDialog(message)
             return dlg.filename
