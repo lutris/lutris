@@ -72,13 +72,11 @@ def detect_arch(prefix_path=None, wine_path=None):
     return "win32"
 
 
-def detect_prefix_arch(prefix_path=None):
+def detect_prefix_arch(prefix_path):
     """Return the architecture of the prefix found in `prefix_path`.
 
     If no `prefix_path` given, return the arch of the system's default prefix.
     If no prefix found, return None."""
-    if not prefix_path:
-        prefix_path = "~/.wine"
     prefix_path = os.path.expanduser(prefix_path)
     registry_path = os.path.join(prefix_path, "system.reg")
     if not os.path.isdir(prefix_path) or not os.path.isfile(registry_path):
@@ -110,27 +108,16 @@ def set_drive_path(prefix, letter, path):
 
 def use_lutris_runtime(wine_path, force_disable=False):
     """Returns whether to use the Lutris runtime.
-    The runtime can be forced to be disabled, otherwise it's disabled
-    automatically if Wine is installed system wide.
+    The runtime can be forced to be disabled, otherwise
+    it's disabled automatically if Wine is installed system wide.
     """
     if force_disable or runtime.RUNTIME_DISABLED:
-        logger.info("Runtime is forced disabled")
         return False
     if WINE_DIR in wine_path:
-        logger.debug("%s is provided by Lutris, using runtime", wine_path)
         return True
     if is_installed_systemwide():
-        logger.info("Using system wine version, not using runtime")
         return False
-    logger.debug("Using Lutris runtime for wine")
     return True
-
-
-def is_mingw_build(wine_path):
-    """Returns whether a wine build is built with MingW"""
-    base_path = os.path.dirname(os.path.dirname(wine_path))
-    # A MingW build has an .exe file while a GCC one will have a .so
-    return system.path_exists(os.path.join(base_path, "lib/wine/iexplore.exe"))
 
 
 def is_gstreamer_build(wine_path):
@@ -145,39 +132,30 @@ def is_installed_systemwide():
     """Return whether Wine is installed outside of Lutris"""
     for build in WINE_PATHS.values():
         if system.find_executable(build):
-            # if wine64 is installed but not wine32, don't consider it
-            # a system-wide installation.
-            if (
-                build == "wine" and system.path_exists("/usr/lib/wine/wine64")
-                and not system.path_exists("/usr/lib/wine/wine")
-            ):
-                logger.warning("wine32 is missing from system")
-                return False
             return True
     return False
 
 
-def get_system_wine_versions():
+def list_system_wine_versions():
     """Return the list of wine versions installed on the system"""
-    versions = []
-    for build in sorted(WINE_PATHS.keys()):
-        version = get_system_wine_version(WINE_PATHS[build])
-        if version:
-            versions.append(build)
-    return versions
+    return [
+        build
+        for build, path in WINE_PATHS.items()
+        if get_system_wine_version(path)
+    ]
 
 
 def get_lutris_wine_versions():
     """Return the list of wine versions installed by lutris"""
+    if not system.path_exists(WINE_DIR):
+        return []
     versions = []
-    if system.path_exists(WINE_DIR):
-        dirs = version_sort(os.listdir(WINE_DIR), reverse=True)
-        for dirname in dirs:
-            try:
-                if is_version_installed(dirname):
-                    versions.append(dirname)
-            except UnavailableRunnerError:
-                pass  # if it's not properly installed, skip it
+    for dirname in version_sort(os.listdir(WINE_DIR), reverse=True):
+        try:
+            if os.path.isfile(get_wine_version_exe(dirname)):
+                versions.append(dirname)
+        except UnavailableRunnerError:
+            pass  # if it's not properly installed, skip it
     return versions
 
 
@@ -197,30 +175,10 @@ def get_proton_versions():
     return versions
 
 
-def get_pol_wine_versions():
-    """Return the list of wine versions installed by Play on Linux"""
-    if not POL_PATH:
-        return []
-    versions = []
-    for arch in ['x86', 'amd64']:
-        builds_path = os.path.join(POL_PATH, "wine/linux-%s" % arch)
-        if not system.path_exists(builds_path):
-            continue
-        for version in os.listdir(builds_path):
-            if system.path_exists(os.path.join(builds_path, version, "bin/wine")):
-                versions.append("PlayOnLinux %s-%s" % (version, arch))
-    return versions
-
-
 @lru_cache(maxsize=8)
 def get_wine_versions():
     """Return the list of Wine versions installed"""
-    versions = []
-    versions += get_system_wine_versions()
-    versions += get_lutris_wine_versions()
-    versions += get_proton_versions()
-    versions += get_pol_wine_versions()
-    return versions
+    return list_system_wine_versions() + get_lutris_wine_versions() + get_proton_versions()
 
 
 def get_wine_version_exe(version):
@@ -254,10 +212,6 @@ def version_sort(versions, reverse=False):
     return sorted(versions, key=version_key, reverse=reverse)
 
 
-def is_version_installed(version):
-    return os.path.isfile(get_wine_version_exe(version))
-
-
 def is_esync_limit_set():
     """Checks if the number of files open is acceptable for esync usage."""
     return linux.LINUX_SYSTEM.has_enough_file_descriptors()
@@ -282,11 +236,6 @@ def get_system_wine_version(wine_path="wine"):
         return
     if wine_path == "wine" and not system.find_executable("wine"):
         return
-    if os.path.isabs(wine_path):
-        wine_stats = os.stat(wine_path)
-        if wine_stats.st_size < 2000:
-            # This version is a script, ignore it
-            return
     version = system.read_process_output([wine_path, "--version"])
     if not version:
         logger.error("Error reading wine version for %s", wine_path)
@@ -297,14 +246,7 @@ def get_system_wine_version(wine_path="wine"):
 
 
 def is_version_esync(path):
-    """Determines if a Wine build is Esync capable
-
-    Params:
-        path: the path to the Wine version
-
-    Returns:
-        bool: True is the build is Esync capable
-    """
+    """Determines if a Wine build is Esync capable"""
     try:
         version = path.split("/")[-3].lower()
     except IndexError:
@@ -316,31 +258,20 @@ def is_version_esync(path):
     wine_version = get_system_wine_version(path)
     if wine_version:
         wine_version = wine_version.lower()
-        return "esync" in wine_version or "staging" in wine_version
+        return "staging" in wine_version
     return False
 
 
 def is_version_fsync(path):
-    """Determines if a Wine build is Fsync capable
-
-    Params:
-        path: the path to the Wine version
-
-    Returns:
-        bool: True is the build is Fsync capable
-    """
+    """Determines if a Wine build is Fsync capable"""
     try:
         version = path.split("/")[-3].lower()
     except IndexError:
         logger.error("Invalid path '%s'", path)
         return False
-    fsync_compatible_versions = ["fsync", "lutris", "ge", "proton"]
-    for fsync_version in fsync_compatible_versions:
+    for fsync_version in ["fsync", "lutris", "ge", "proton"]:
         if fsync_version in version:
             return True
-    wine_version = get_system_wine_version(path)
-    if wine_version:
-        return "fsync" in wine_version.lower()
     return False
 
 
@@ -355,7 +286,7 @@ def get_real_executable(windows_executable, working_dir=None):
 
     if exec_name.endswith(".bat"):
         if not working_dir or os.path.dirname(windows_executable) == working_dir:
-            working_dir = os.path.dirname(windows_executable) or None
+            working_dir = os.path.dirname(windows_executable)
             windows_executable = os.path.basename(windows_executable)
         return ("cmd", ["/C", windows_executable], working_dir)
 

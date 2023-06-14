@@ -27,10 +27,6 @@ from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_wine_version_exe
 class CommandsMixin:
     """The directives for the `installer:` part of the install script."""
 
-    def __init__(self):
-        if isinstance(self, CommandsMixin):
-            raise RuntimeError("This class is a mixin")
-
     def _get_runner_version(self):
         """Return the version of the runner used for the installer"""
         if self.installer.runner == "wine":
