@@ -267,19 +267,6 @@ class RuntimeUpdater:
             return
         runtimes = response.json or []
         for runtime in runtimes:
-
-            # Skip 32bit runtimes on 64 bit systems except the main runtime
-            if (
-                runtime["architecture"] == "i386" and LINUX_SYSTEM.is_64_bit
-                and not runtime["name"].startswith(("Ubuntu", "lib32"))
-            ):
-                logger.debug(
-                    "Skipping runtime %s for %s",
-                    runtime["name"],
-                    runtime["architecture"],
-                )
-                continue
-
             # Skip 64bit runtimes on 32 bit systems
             if runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
                 logger.debug(
