@@ -44,7 +44,7 @@ def _get_prefix_warning(config, _option_key):
 
 
 def _get_vulkan_required_error(config, option_key):
-    if config.get(option_key) and not vkquery.is_vulkan_supported():
+    if not vkquery.is_vulkan_supported():
         return _("<b>Error</b> Vulkan is not installed or is not supported by your system\n"
                  "If you have compatible hardware, please follow "
                  "the installation procedures as described in\n"
