@@ -43,14 +43,21 @@ def _get_prefix_warning(config, _option_key):
     return _("Some Wine configuration options cannot be applied, if no prefix can be found.")
 
 
-def _get_vulkan_required_error(config, option_key):
+def _get_dxvk_error(config, option_key):
     if not vkquery.is_vulkan_supported():
-        return _("<b>Error</b> Vulkan is not installed or is not supported by your system\n"
+        return _("<b>Error</b> Vulkan is not installed or is not supported by your system, so DXVK is not available.\n"
                  "If you have compatible hardware, please follow "
                  "the installation procedures as described in\n"
                  "<a href='https://github.com/lutris/docs/blob/master/HowToDXVK.md'>"
                  "How-to:-DXVK (https://github.com/lutris/docs/blob/master/HowToDXVK.md)</a>"
                  )
+
+    return None
+
+
+def _get_vkd3d_error(config, option_key):
+    if not vkquery.is_vulkan_supported():
+        return _("<b>Error</b> Vulkan is not installed or is not supported by your system, so VKD3D is not available.")
 
     return None
 
@@ -265,7 +272,7 @@ class wine(Runner):
                 "label": _("Enable DXVK"),
                 "type": "bool",
                 "default": True,
-                "error": _get_vulkan_required_error,
+                "error": _get_dxvk_error,
                 "active": True,
                 "help": _(
                     "Use DXVK to "
@@ -278,9 +285,10 @@ class wine(Runner):
                 "label": _("DXVK version"),
                 "advanced": True,
                 "type": "choice_with_entry",
+                "condition": vkquery.is_vulkan_supported(),
                 "choices": DXVKManager().version_choices,
                 "default": DXVKManager().version,
-                "warning": _get_dxvk_version_warning
+                "warning": _get_dxvk_version_warning,
             },
 
             {
@@ -288,7 +296,7 @@ class wine(Runner):
                 "section": _("Graphics"),
                 "label": _("Enable VKD3D"),
                 "type": "bool",
-                "error": _get_vulkan_required_error,
+                "error": _get_vkd3d_error,
                 "default": True,
                 "active": True,
                 "help": _(
@@ -301,6 +309,7 @@ class wine(Runner):
                 "label": _("VKD3D version"),
                 "advanced": True,
                 "type": "choice_with_entry",
+                "condition": vkquery.is_vulkan_supported(),
                 "choices": VKD3DManager().version_choices,
                 "default": VKD3DManager().version,
             },
