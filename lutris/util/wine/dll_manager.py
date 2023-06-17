@@ -267,6 +267,9 @@ class DLLManager:
 
         return overrides
 
+    def can_enable(self):
+        return True
+
     def enable(self):
         """Enable Dlls for the current prefix"""
         if not self.is_available():

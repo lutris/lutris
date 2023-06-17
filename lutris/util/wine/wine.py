@@ -301,18 +301,6 @@ def get_real_executable(windows_executable, working_dir=None):
     return (windows_executable, [], working_dir)
 
 
-def display_vulkan_error():
-    WarningMessageDialog(
-        _("Vulkan is not installed or is not supported by your system"),
-        secondary_message=_(
-            "If you have compatible hardware, please follow "
-            "the installation procedures as described in\n"
-            "<a href='https://github.com/lutris/docs/blob/master/HowToDXVK.md'>"
-            "How-to:-DXVK (https://github.com/lutris/docs/blob/master/HowToDXVK.md)</a>"
-        )
-    )
-
-
 def esync_display_limit_warning():
     ErrorDialog(_(
         "Your limits are not set correctly."

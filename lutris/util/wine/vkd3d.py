@@ -1,5 +1,7 @@
 import os
 
+from lutris.util.graphics import vkquery
+
 from lutris.settings import RUNTIME_DIR
 from lutris.util.wine.dll_manager import DLLManager
 
@@ -10,3 +12,6 @@ class VKD3DManager(DLLManager):
     versions_path = os.path.join(base_dir, "vkd3d_versions.json")
     managed_dlls = ("d3d12", "d3d12core")
     releases_url = "https://api.github.com/repos/lutris/vkd3d/releases"
+
+    def can_enable(self):
+        return vkquery.is_vulkan_supported()

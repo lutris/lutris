@@ -25,14 +25,14 @@ from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, ExtractIcon
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
-    WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning, esync_display_version_warning,
+    WINE_DIR, WINE_PATHS, detect_arch, esync_display_limit_warning, esync_display_version_warning,
     fsync_display_support_warning, fsync_display_version_warning, get_default_version, get_overrides_env,
     get_proton_paths, get_real_executable, get_system_wine_version, get_wine_versions, is_esync_limit_set,
     is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
 )
 
 
-def _get_prefix_warning(config):
+def _get_prefix_warning(config, _option_key):
     if config.get("prefix"):
         return None
 
@@ -43,14 +43,19 @@ def _get_prefix_warning(config):
     return _("Some Wine configuration options cannot be applied, if no prefix can be found.")
 
 
-def _get_dxvk_warning(config):
-    if config.get("dxvk") and not vkquery.is_vulkan_supported():
-        return _("Vulkan is not installed or is not supported by your system")
+def _get_vulkan_required_error(config, option_key):
+    if config.get(option_key) and not vkquery.is_vulkan_supported():
+        return _("<b>Error</b> Vulkan is not installed or is not supported by your system\n"
+                 "If you have compatible hardware, please follow "
+                 "the installation procedures as described in\n"
+                 "<a href='https://github.com/lutris/docs/blob/master/HowToDXVK.md'>"
+                 "How-to:-DXVK (https://github.com/lutris/docs/blob/master/HowToDXVK.md)</a>"
+                 )
 
     return None
 
 
-def _get_dxvk_version_warning(config):
+def _get_dxvk_version_warning(config, _option_key):
     if config.get("dxvk") and vkquery.is_vulkan_supported():
         version = config.get("dxvk_version")
         if version and not version.startswith("v1."):
@@ -78,13 +83,6 @@ def _get_dxvk_version_warning(config):
     return None
 
 
-def _get_vkd3d_warning(config):
-    if config.get("vkd3d"):
-        if not vkquery.is_vulkan_supported():
-            return _("<b>Warning</b> Vulkan is not installed or is not supported by your system")
-    return None
-
-
 def _get_path_for_version(config, version=None):
     """Return the absolute path of a wine executable for a given version,
     or the configured version if you don't ask for a version."""
@@ -104,7 +102,7 @@ def _get_path_for_version(config, version=None):
     return os.path.join(WINE_DIR, version, "bin/wine")
 
 
-def _get_esync_warning(config):
+def _get_esync_warning(config, _option_key):
     if config.get("esync"):
         limits_set = is_esync_limit_set()
         wine_path = _get_path_for_version(config)
@@ -121,7 +119,7 @@ def _get_esync_warning(config):
     return None
 
 
-def _get_fsync_warning(config):
+def _get_fsync_warning(config, _option_key):
     if config.get("fsync"):
         fsync_supported = is_fsync_supported()
         wine_path = _get_path_for_version(config)
@@ -267,7 +265,7 @@ class wine(Runner):
                 "label": _("Enable DXVK"),
                 "type": "bool",
                 "default": True,
-                "warning": _get_dxvk_warning,
+                "error": _get_vulkan_required_error,
                 "active": True,
                 "help": _(
                     "Use DXVK to "
@@ -290,7 +288,7 @@ class wine(Runner):
                 "section": _("Graphics"),
                 "label": _("Enable VKD3D"),
                 "type": "bool",
-                "warning": _get_vkd3d_warning,
+                "error": _get_vulkan_required_error,
                 "default": True,
                 "active": True,
                 "help": _(
@@ -904,6 +902,12 @@ class wine(Runner):
                     arch=self.wine_arch,
                     version=version
                 )
+
+                if not manager.can_enable():
+                    enabled = False
+                    if enabled_only:
+                        continue
+
                 managers[manager] = enabled
 
         return managers
@@ -1030,9 +1034,6 @@ class wine(Runner):
         if using_dxvk:
             # Set this to 1 to enable access to more RAM for 32bit applications
             launch_info["env"]["WINE_LARGE_ADDRESS_AWARE"] = "1"
-            if not vkquery.is_vulkan_supported():
-                if not display_vulkan_error():
-                    return {"error": "VULKAN_NOT_FOUND"}
 
         if not game_exe or not system.path_exists(game_exe):
             return {"error": "FILE_NOT_FOUND", "file": game_exe}

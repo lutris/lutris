@@ -19,7 +19,7 @@ _supported_scale_factors = {
 }
 
 
-def _get_opengl_warning(config):
+def _get_opengl_warning(config, _option_key):
     if "scaler" in config and "renderer" in config:
         renderer = config["renderer"]
         if renderer and renderer != "software":
@@ -30,7 +30,7 @@ def _get_opengl_warning(config):
     return None
 
 
-def _get_scale_factor_warning(config):
+def _get_scale_factor_warning(config, _option_key):
     """Generate a warning message for when the scaler and scale-factor can't be used together."""
     if "scaler" in config and "scale-factor" in config:
         scaler = config["scaler"]

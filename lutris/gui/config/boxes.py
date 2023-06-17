@@ -35,6 +35,7 @@ class ConfigBox(VBox):
         self.reset_buttons = {}
         self.wrappers = {}
         self.warning_boxes = {}
+        self.error_boxes = {}
 
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
@@ -166,15 +167,23 @@ class ConfigBox(VBox):
                 hbox.pack_start(self.wrapper, True, True, 0)
 
                 if "warning" in option:
+                    option_body = option_container
                     option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
-                    option_container.pack_start(hbox, False, False, 0)
-                    warning = ConfigBox.WarningBox(option["warning"])
-                    warning.set_margin_left(18)
-                    warning.set_margin_right(18)
-                    warning.set_margin_bottom(6)
+                    option_container.pack_start(option_body, False, False, 0)
+                    warning = ConfigBox.WarningBox(option["warning"], option_key)
                     warning.update_warning(self.config)
                     self.warning_boxes[option_key] = warning
                     option_container.pack_start(warning, False, False, 0)
+
+                if "error" in option:
+                    option_body = option_container
+                    option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+                    option_container.pack_start(option_body, False, False, 0)
+                    hbox.set_sensitive(False)
+                    error = ConfigBox.WarningBox(option["error"], option_key, icon_name="dialog-error")
+                    error.update_warning(self.config)
+                    self.error_boxes[option_key] = error
+                    option_container.pack_start(error, False, False, 0)
 
                 # Hide if advanced
                 if option.get("advanced"):
@@ -192,21 +201,29 @@ class ConfigBox(VBox):
         for box in self.warning_boxes.values():
             box.update_warning(self.config)
 
+        for box in self.error_boxes.values():
+            box.update_warning(self.config)
+
     class WarningBox(Gtk.Box):
-        def __init__(self, warning):
+        def __init__(self, warning, option_key, icon_name="dialog-warning"):
             self.warning = warning
+            self.option_key = option_key
             super().__init__(spacing=6, visible=False, no_show_all=True)
-            warning_image = Gtk.Image(visible=True)
-            warning_image.set_from_icon_name("dialog-warning", Gtk.IconSize.DND)
-            self.pack_start(warning_image, False, False, 0)
-            self.warning_label = Gtk.Label(visible=True, xalign=0)
-            self.warning_label.set_line_wrap(True)
-            self.pack_start(self.warning_label, False, False, 0)
+            self.set_margin_left(18)
+            self.set_margin_right(18)
+            self.set_margin_bottom(6)
+
+            image = Gtk.Image(visible=True)
+            image.set_from_icon_name(icon_name, Gtk.IconSize.DND)
+            self.pack_start(image, False, False, 0)
+            self.label = Gtk.Label(visible=True, xalign=0)
+            self.label.set_line_wrap(True)
+            self.pack_start(self.label, False, False, 0)
 
         def update_warning(self, config):
             try:
                 if callable(self.warning):
-                    text = self.warning(config)
+                    text = self.warning(config, self.option_key)
                 else:
                     text = self.warning
             except Exception as err:
@@ -214,7 +231,7 @@ class ConfigBox(VBox):
                 text = gtk_safe(err)
 
             if text:
-                self.warning_label.set_markup(str(text))
+                self.label.set_markup(str(text))
 
             self.set_visible(bool(text))
 
