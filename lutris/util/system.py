@@ -581,7 +581,7 @@ def preload_vulkan_gpu_names(use_dri_prime):
 
 
 # cache this to avoid calling vulkaninfo repeatedly, shouldn't change at runtime
-@lru_cache
+@lru_cache()
 def get_vulkan_gpu_name(icd_files, use_dri_prime):
     """Runs vulkaninfo to determine the default and DRI_PRIME gpu if available,
     returns 'Not Found' if the GPU is not found or 'Unknown GPU' if vulkaninfo
