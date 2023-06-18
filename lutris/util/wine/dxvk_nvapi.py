@@ -2,6 +2,7 @@ import os
 
 from lutris.settings import RUNTIME_DIR
 from lutris.util import system
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.nvidia import get_nvidia_dll_path
 from lutris.util.wine.dll_manager import DLLManager
 
@@ -13,6 +14,9 @@ class DXVKNVAPIManager(DLLManager):
     managed_dlls = ("nvapi", "nvapi64", "nvml")
     releases_url = "https://api.github.com/repos/lutris/dxvk-nvapi/releases"
     dlss_dlls = ("nvngx", "_nvngx")
+
+    def can_enable(self):
+        return LINUX_SYSTEM.is_vulkan_supported()
 
     def disable_dll(self, system_dir, _arch, dll):  # pylint: disable=unused-argument
         """Remove DLL from Wine prefix"""

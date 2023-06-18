@@ -68,9 +68,10 @@ def _get_dxvk_error(config, option_key):
     return None
 
 
-def _get_vkd3d_error(config, option_key):
+def _get_simple_vulkan_support_error(config, option_key, feature):
     if not LINUX_SYSTEM.is_vulkan_supported():
-        return _("<b>Error</b> Vulkan is not installed or is not supported by your system, so VKD3D is not available.")
+        return _("<b>Error</b> Vulkan is not installed or is not supported by your system, "
+                 "so %s is not available.") % feature
 
     return None
 
@@ -309,7 +310,7 @@ class wine(Runner):
                 "section": _("Graphics"),
                 "label": _("Enable VKD3D"),
                 "type": "bool",
-                "error": _get_vkd3d_error,
+                "error": lambda c, k: _get_simple_vulkan_support_error(c, k, _("VKD3D")),
                 "default": True,
                 "active": True,
                 "help": _(
@@ -352,6 +353,7 @@ class wine(Runner):
                 "section": _("Graphics"),
                 "label": _("Enable DXVK-NVAPI / DLSS"),
                 "type": "bool",
+                "error": lambda c, k: _get_simple_vulkan_support_error(c, k, _("DXVK-NVAPI / DLSS")),
                 "default": True,
                 "advanced": True,
                 "help": _(
