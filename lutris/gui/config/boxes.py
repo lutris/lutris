@@ -170,7 +170,7 @@ class ConfigBox(VBox):
                     option_body = option_container
                     option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
                     option_container.pack_start(option_body, False, False, 0)
-                    warning = ConfigBox.WarningBox(option["warning"], option_key)
+                    warning = ConfigWarningBox(option["warning"], option_key)
                     warning.update_warning(self.config)
                     self.warning_boxes[option_key] = warning
                     option_container.pack_start(warning, False, False, 0)
@@ -179,8 +179,7 @@ class ConfigBox(VBox):
                     option_body = option_container
                     option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
                     option_container.pack_start(option_body, False, False, 0)
-                    hbox.set_sensitive(False)
-                    error = ConfigBox.WarningBox(option["error"], option_key, icon_name="dialog-error")
+                    error = ConfigErrorBox(option["error"], option_key, hbox)
                     error.update_warning(self.config)
                     self.error_boxes[option_key] = error
                     option_container.pack_start(error, False, False, 0)
@@ -203,37 +202,6 @@ class ConfigBox(VBox):
 
         for box in self.error_boxes.values():
             box.update_warning(self.config)
-
-    class WarningBox(Gtk.Box):
-        def __init__(self, warning, option_key, icon_name="dialog-warning"):
-            self.warning = warning
-            self.option_key = option_key
-            super().__init__(spacing=6, visible=False, no_show_all=True)
-            self.set_margin_left(18)
-            self.set_margin_right(18)
-            self.set_margin_bottom(6)
-
-            image = Gtk.Image(visible=True)
-            image.set_from_icon_name(icon_name, Gtk.IconSize.DND)
-            self.pack_start(image, False, False, 0)
-            self.label = Gtk.Label(visible=True, xalign=0)
-            self.label.set_line_wrap(True)
-            self.pack_start(self.label, False, False, 0)
-
-        def update_warning(self, config):
-            try:
-                if callable(self.warning):
-                    text = self.warning(config, self.option_key)
-                else:
-                    text = self.warning
-            except Exception as err:
-                logger.exception("Unable to generate configuration warning: %s", err)
-                text = gtk_safe(err)
-
-            if text:
-                self.label.set_markup(str(text))
-
-            self.set_visible(bool(text))
 
     def set_advanced_visibility(self, value):
         """Sets the visibility of every 'advanced' option and every section that
@@ -755,3 +723,53 @@ class SystemBox(ConfigBox):
                 "If modified, these options supersede the same options from "
                 "the global preferences."
             ))
+
+
+class ConfigMessageBox(Gtk.Box):
+    def __init__(self, warning, option_key, icon_name):
+        self.warning = warning
+        self.option_key = option_key
+        super().__init__(spacing=6, visible=False, no_show_all=True)
+        self.set_margin_left(18)
+        self.set_margin_right(18)
+        self.set_margin_bottom(6)
+
+        image = Gtk.Image(visible=True)
+        image.set_from_icon_name(icon_name, Gtk.IconSize.DND)
+        self.pack_start(image, False, False, 0)
+        self.label = Gtk.Label(visible=True, xalign=0)
+        self.label.set_line_wrap(True)
+        self.pack_start(self.label, False, False, 0)
+
+    def update_warning(self, config):
+        try:
+            if callable(self.warning):
+                text = self.warning(config, self.option_key)
+            else:
+                text = self.warning
+        except Exception as err:
+            logger.exception("Unable to generate configuration warning: %s", err)
+            text = gtk_safe(err)
+
+        if text:
+            self.label.set_markup(str(text))
+
+        visible = bool(text)
+        self.set_visible(visible)
+        return visible
+
+
+class ConfigWarningBox(ConfigMessageBox):
+    def __init__(self, warning, option_key):
+        super().__init__(warning, option_key, icon_name="dialog-warning")
+
+
+class ConfigErrorBox(ConfigMessageBox):
+    def __init__(self, error, option_key, option_container):
+        super().__init__(error, option_key, icon_name="dialog-error")
+        self.option_container = option_container
+
+    def update_warning(self, config):
+        visible = super().update_warning(config)
+        self.option_container.set_sensitive(not visible)
+        return visible
