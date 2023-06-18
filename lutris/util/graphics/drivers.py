@@ -16,24 +16,28 @@ MIN_RECOMMENDED_NVIDIA_DRIVER = 415
 
 def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
     """Return information about NVidia drivers"""
-    version_file_path = "/proc/driver/nvidia/version"
-    try:
-        if not os.path.exists(version_file_path):
-            return {}
-        with open(version_file_path, encoding="utf-8") as version_file:
-            content = version_file.readlines()
-    except PermissionError:
-        # MAC systems (selinux, apparmor) may block access to files in /proc.
-        # If this happens, we may still be able to retrieve the info by
-        # other means, but need additional validation.
-        logger.info("Could not access %s. Falling back to glxinfo.", version_file_path)
-    except OSError as e:
-        logger.warning(
-            "Unexpected error when accessing %s. Falling back to glxinfo.",
-            version_file_path,
-            exc_info=e,
-        )
-    else:
+
+    def read_from_proc() -> Dict[str, Dict[str, str]]:
+        version_file_path = "/proc/driver/nvidia/version"
+        try:
+            if not os.path.exists(version_file_path):
+                return None
+            with open(version_file_path, encoding="utf-8") as version_file:
+                content = version_file.readlines()
+        except PermissionError:
+            # MAC systems (selinux, apparmor) may block access to files in /proc.
+            # If this happens, we may still be able to retrieve the info by
+            # other means, but need additional validation.
+            logger.info("Could not access %s. Falling back to glxinfo.", version_file_path)
+            return None
+        except OSError as e:
+            logger.warning(
+                "Unexpected error when accessing %s. Falling back to glxinfo.",
+                version_file_path,
+                exc_info=e,
+            )
+            return None
+
         nvrm_version = content[0].split(": ")[1].strip().split()
         if "Open" in nvrm_version:
             return {
@@ -53,21 +57,24 @@ def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
                 "date": " ".join(nvrm_version[6:]),
             }
         }
-    glx_info = GlxInfo()
-    platform = read_process_output(["uname", "-s"])
-    arch = read_process_output(["uname", "-m"])
-    vendor = glx_info.opengl_vendor  # type: ignore[attr-defined]
-    if "nvidia" not in vendor.lower():
-        logger.error("Expected NVIDIA vendor information, received %s.", vendor)
-        return {}
-    return {
-        "nvrm": {
-            "vendor": vendor,
-            "platform": platform,
-            "arch": arch,
-            "version": glx_info.opengl_version.rsplit(maxsplit=1)[-1],  # type: ignore[attr-defined]
+
+    def invoke_glxinfo() -> Dict[str, Dict[str, str]]:
+        glx_info = GlxInfo()
+        platform = read_process_output(["uname", "-s"])
+        arch = read_process_output(["uname", "-m"])
+        vendor = glx_info.opengl_vendor  # type: ignore[attr-defined]
+        if "nvidia" not in vendor.lower():
+            raise RuntimeError("Expected NVIDIA vendor information, received %s.", vendor)
+        return {
+            "nvrm": {
+                "vendor": vendor,
+                "platform": platform,
+                "arch": arch,
+                "version": glx_info.opengl_version.rsplit(maxsplit=1)[-1],  # type: ignore[attr-defined]
+            }
         }
-    }
+
+    return read_from_proc() or invoke_glxinfo()
 
 
 def get_nvidia_gpu_ids() -> List[str]:
