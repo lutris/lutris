@@ -64,7 +64,7 @@ def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
         arch = read_process_output(["uname", "-m"])
         vendor = glx_info.opengl_vendor  # type: ignore[attr-defined]
         if "nvidia" not in vendor.lower():
-            raise RuntimeError("Expected NVIDIA vendor information, received %s.", vendor)
+            raise RuntimeError("Expected NVIDIA vendor information, received %s." % vendor)
         return {
             "nvrm": {
                 "vendor": vendor,
