@@ -411,6 +411,9 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                 return False
         return not self.get_missing_requirement_libs(feature)[0]
 
+    def is_vulkan_supported(self):
+        return not LINUX_SYSTEM.get_missing_lib_arch("VULKAN") and vkquery.is_vulkan_supported()
+
 
 class SharedLibrary:
     """Representation of a Linux shared library"""

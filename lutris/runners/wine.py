@@ -57,7 +57,7 @@ def _get_dxvk_error(config, option_key):
                  "<a href='%s'>Installing Graphics Drivers</a>"
                  ) % (arches, settings.DRIVER_HOWTO_URL)
 
-    if not vkquery.is_vulkan_supported():
+    if not LINUX_SYSTEM.is_vulkan_supported():
         return _("<b>Error</b> Vulkan is not installed or is not supported by your system, so DXVK is not available.\n"
                  "If you have compatible hardware, please follow "
                  "the installation procedures as described in\n"
@@ -69,14 +69,14 @@ def _get_dxvk_error(config, option_key):
 
 
 def _get_vkd3d_error(config, option_key):
-    if LINUX_SYSTEM.get_missing_lib_arch("VULKAN") or not vkquery.is_vulkan_supported():
+    if not LINUX_SYSTEM.is_vulkan_supported():
         return _("<b>Error</b> Vulkan is not installed or is not supported by your system, so VKD3D is not available.")
 
     return None
 
 
 def _get_dxvk_version_warning(config, _option_key):
-    if config.get("dxvk") and vkquery.is_vulkan_supported():
+    if config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported():
         version = config.get("dxvk_version")
         if version and not version.startswith("v1."):
             library_api_version = vkquery.get_vulkan_api_version()
@@ -298,7 +298,7 @@ class wine(Runner):
                 "label": _("DXVK version"),
                 "advanced": True,
                 "type": "choice_with_entry",
-                "condition": vkquery.is_vulkan_supported(),
+                "condition": LINUX_SYSTEM.is_vulkan_supported(),
                 "choices": DXVKManager().version_choices,
                 "default": DXVKManager().version,
                 "warning": _get_dxvk_version_warning,
@@ -322,7 +322,7 @@ class wine(Runner):
                 "label": _("VKD3D version"),
                 "advanced": True,
                 "type": "choice_with_entry",
-                "condition": vkquery.is_vulkan_supported(),
+                "condition": LINUX_SYSTEM.is_vulkan_supported(),
                 "choices": VKD3DManager().version_choices,
                 "default": VKD3DManager().version,
             },

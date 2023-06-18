@@ -24,7 +24,7 @@ class DXVKManager(DLLManager):
     vulkan_api_version = vkquery.get_expected_api_version()
 
     def can_enable(self):
-        return not LINUX_SYSTEM.get_missing_lib_arch("VULKAN") or vkquery.is_vulkan_supported()
+        return LINUX_SYSTEM.is_vulkan_supported()
 
     def is_recommended_version(self, version):
         # DXVK 2.x and later require Vulkan 1.3, so if that iss lacking
