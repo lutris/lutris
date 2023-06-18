@@ -121,7 +121,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                     logger.warning("Command '%s' not found on your system", command)
 
         # Detect if system is 64bit capable
-        self.is_64_bit = sys.maxsize > 2**32
+        self.is_64_bit = sys.maxsize > 2 ** 32
         self.arch = self.get_arch()
         self.shared_libraries = self.get_shared_libraries()
         self.populate_libraries()
@@ -226,11 +226,15 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
         # 515.43.04 was the first driver to support
         # VK_EXT_image_drm_format_modifier, required by gamescope.
-        minimum_nvidia_version_supported = 515
-        driver_info = drivers.get_nvidia_driver_info()
-        driver_version = driver_info["nvrm"]["version"]
-        major_version = int(driver_version.split(".")[0])
-        return major_version >= minimum_nvidia_version_supported
+        try:
+            minimum_nvidia_version_supported = 515
+            driver_info = drivers.get_nvidia_driver_info()
+            driver_version = driver_info["nvrm"]["version"]
+            major_version = int(driver_version.split(".")[0])
+            return major_version >= minimum_nvidia_version_supported
+        except Exception as ex:
+            logger.exception("Unable to determine NVidia version: %s", ex)
+            return False
 
     @property
     def has_steam(self):
@@ -387,6 +391,15 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     def get_missing_libs(self):
         """Return a dictionary of missing libraries"""
         return {req: self.get_missing_requirement_libs(req) for req in self.requirements}
+
+    def get_missing_lib_arch(self, requirement):
+        """Returns a list of architectures that are missing a library for a specific
+        requirement."""
+        missing_arch = []
+        for index, arch in enumerate(self.runtime_architectures):
+            if self.get_missing_requirement_libs(requirement)[index]:
+                missing_arch.append(arch)
+        return missing_arch
 
     def is_feature_supported(self, feature):
         """Return whether the system has the necessary libs to support a feature"""

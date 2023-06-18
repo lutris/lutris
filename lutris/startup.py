@@ -108,28 +108,11 @@ def check_libs(all_components=False):
         components = LINUX_SYSTEM.requirements
     else:
         components = LINUX_SYSTEM.critical_requirements
-    missing_vulkan_libs = []
+
     for req in components:
         for index, arch in enumerate(LINUX_SYSTEM.runtime_architectures):
             for lib in missing_libs[req][index]:
-                if req == "VULKAN":
-                    missing_vulkan_libs.append(arch)
                 logger.error("%s %s missing (needed by %s)", arch, lib, req.lower())
-
-    if missing_vulkan_libs:
-        WarningMessageDialog(
-            _("Missing Vulkan libraries"),
-            secondary_message=_(
-                "Lutris was unable to detect Vulkan support for "
-                "the %s architecture.\n"
-                "This will prevent many games and programs from working.\n"
-                "To install it, please use the following guide: "
-                "<a href='%s'>Installing Graphics Drivers</a>"
-            ) % (
-                _(" and ").join(missing_vulkan_libs),
-                settings.DRIVER_HOWTO_URL,
-            )
-        )
 
 
 def check_vulkan():

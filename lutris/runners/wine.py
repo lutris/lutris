@@ -14,6 +14,7 @@ from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
 from lutris.util.graphics import vkquery
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.steam.config import get_steam_dir
 from lutris.util.strings import split_arguments
@@ -44,6 +45,18 @@ def _get_prefix_warning(config, _option_key):
 
 
 def _get_dxvk_error(config, option_key):
+    """Checks that required libraries are installed on the system"""
+    missing_arch = LINUX_SYSTEM.get_missing_lib_arch("VULKAN")
+    if missing_arch:
+        arches = ", ".join(missing_arch)
+        return _("<b>Error</b> Missing Vulkan libraries\n"
+                 "Lutris was unable to detect Vulkan support for "
+                 "the %s architecture.\n"
+                 "This will prevent many games and programs from working.\n"
+                 "To install it, please use the following guide: "
+                 "<a href='%s'>Installing Graphics Drivers</a>"
+                 ) % (arches, settings.DRIVER_HOWTO_URL)
+
     if not vkquery.is_vulkan_supported():
         return _("<b>Error</b> Vulkan is not installed or is not supported by your system, so DXVK is not available.\n"
                  "If you have compatible hardware, please follow "
@@ -56,7 +69,7 @@ def _get_dxvk_error(config, option_key):
 
 
 def _get_vkd3d_error(config, option_key):
-    if not vkquery.is_vulkan_supported():
+    if LINUX_SYSTEM.get_missing_lib_arch("VULKAN") or not vkquery.is_vulkan_supported():
         return _("<b>Error</b> Vulkan is not installed or is not supported by your system, so VKD3D is not available.")
 
     return None
