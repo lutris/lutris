@@ -5,6 +5,7 @@ from lutris import settings
 from lutris.services.amazon import AmazonService
 from lutris.services.battlenet import BNET_ENABLED, BattleNetService
 from lutris.services.dolphin import DolphinService
+from lutris.services.ea_app import EAAppService
 from lutris.services.egs import EpicGamesStoreService
 from lutris.services.flathub import FlathubService
 from lutris.services.gog import GOGService
@@ -55,6 +56,7 @@ SERVICES = get_services()
 # Those services are not yet ready to be used
 WIP_SERVICES = {
     "mame": MAMEService,
+    "ea_app": EAAppService,
 }
 
 if os.environ.get("LUTRIS_ENABLE_ALL_SERVICES"):
