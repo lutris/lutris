@@ -225,19 +225,6 @@ def search_games(query):
     return response.json
 
 
-def get_bundle(bundle):
-    """Retrieve a lutris bundle from the API"""
-    url = "/api/bundles/%s" % bundle
-    response = http.Request(settings.SITE_URL + url, headers={"Content-Type": "application/json"})
-    try:
-        response.get()
-    except http.HTTPError as ex:
-        logger.error("Unable to get bundle from API: %s", ex)
-        return None
-    response_data = response.json
-    return response_data.get("games", [])
-
-
 def parse_installer_url(url):
     """
     Parses `lutris:` urls, extracting any info necessary to install or run a game.
