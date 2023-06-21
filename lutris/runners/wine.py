@@ -13,7 +13,7 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
-from lutris.util.graphics import vkquery
+from lutris.util.graphics import vkquery, drivers
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.steam.config import get_steam_dir
@@ -41,7 +41,23 @@ def _get_prefix_warning(config, _option_key):
     if exe and find_prefix(exe):
         return None
 
-    return _("Some Wine configuration options cannot be applied, if no prefix can be found.")
+    return _("<b>Warning</b> Some Wine configuration options cannot be applied, if no prefix can be found.")
+
+
+def _get_dxvk_warning(config, option_key):
+    if drivers.is_outdated():
+        driver_info = drivers.get_nvidia_driver_info()
+        return _("<b>Warning</b> Your NVIDIA driver is outdated.\n"
+                 "You are currently running driver %s which does not "
+                 "fully support all features for Vulkan and DXVK games.\n"
+                 "Please upgrade your driver as described in our "
+                 "<a href='%s'>installation guide</a>"
+                 ) % (
+            driver_info["nvrm"]["version"],
+            settings.DRIVER_HOWTO_URL,
+        )
+
+    return None
 
 
 def _get_dxvk_error(config, option_key):
@@ -286,6 +302,7 @@ class wine(Runner):
                 "label": _("Enable DXVK"),
                 "type": "bool",
                 "default": True,
+                "warning": _get_dxvk_warning,
                 "error": _get_dxvk_error,
                 "active": True,
                 "help": _(

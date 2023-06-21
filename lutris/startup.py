@@ -14,7 +14,6 @@ from lutris import runners, settings
 from lutris.database.games import delete_game, get_games, get_games_where
 from lutris.database.schema import syncdb
 from lutris.game import Game
-from lutris.gui.dialogs import WarningMessageDialog
 from lutris.runners.json import load_json_runners
 from lutris.runtime import RuntimeUpdater
 from lutris.scanners.lutris import build_path_cache
@@ -85,20 +84,6 @@ def check_driver():
             logger.info("GPU: {PCI_ID} {PCI_SUBSYS_ID} ({DRIVER} drivers)".format(**drivers.get_gpu_info(card)))
         except KeyError:
             logger.error("Unable to get GPU information from '%s'", card)
-
-    if drivers.is_outdated():
-        WarningMessageDialog(
-            _("Your NVIDIA driver is outdated."),
-            secondary_message=_(
-                "You are currently running driver %s which does not "
-                "fully support all features for Vulkan and DXVK games.\n"
-                "Please upgrade your driver as described in our "
-                "<a href='%s'>installation guide</a>"
-            ) % (
-                driver_info["nvrm"]["version"],
-                settings.DRIVER_HOWTO_URL,
-            )
-        )
 
 
 def check_libs(all_components=False):
