@@ -1107,8 +1107,8 @@ msgstr "Usar tema oscuro (requiere la variante oscura del tema para Gtk)"
 #: lutris/gui/config/preferences_box.py:16
 msgid "Enable Discord Rich Presence for Available Games"
 msgstr ""
-"Activar presencia enriquecida de Discord en los juegos que la tienen "
-"disponible"
+"Activar rich presence de Discord en los juegos que la tienen "
+"disponible (requiere instalar pypresence)"
 
 #: lutris/gui/config/preferences_box.py:36
 msgid "Interface options"
