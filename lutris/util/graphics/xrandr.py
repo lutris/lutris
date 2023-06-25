@@ -37,29 +37,27 @@ def get_outputs():  # pylint: disable=too-many-locals
         logger.error("xrandr didn't return anything")
         return []
     for line in vid_modes:
-        if "connected" in line:
-            if "disconnected" in line:
-                continue
-            primary = "primary" in line
+        fields = line.split()
+        if "connected" in fields[1:] and len(fields) >= 4:
             try:
-                if primary:
-                    name, _, _, geometry, rotate, *_ = line.split()
-                else:
-                    name, _, geometry, rotate, *_ = line.split()
+                data_fields = fields[fields.index('connected', 1) + 1:]
+                if data_fields[0] == "primary":
+                    data_fields = data_fields[1:]
+                geometry, rotate, *_ = data_fields
+                if geometry.startswith("("):  # Screen turned off, no geometry
+                    continue
+                if rotate.startswith("("):  # Screen not rotated, no need to include
+                    rotate = "normal"
+                _, x_pos, y_pos = geometry.split("+")
+                position = "{x_pos}x{y_pos}".format(x_pos=x_pos, y_pos=y_pos)
             except ValueError as ex:
                 logger.error(
                     "Unhandled xrandr line %s, error: %s. "
                     "Please send your xrandr output to the dev team", line, ex
                 )
                 continue
-            if geometry.startswith("("):  # Screen turned off, no geometry
-                continue
-            if rotate.startswith("("):  # Screen not rotated, no need to include
-                rotate = "normal"
-            _, x_pos, y_pos = geometry.split("+")
-            position = "{x_pos}x{y_pos}".format(x_pos=x_pos, y_pos=y_pos)
         elif "*" in line:
-            mode, *framerates = line.split()
+            mode, *framerates = fields
             for number in framerates:
                 if "*" in number:
                     hertz = number[:-2]

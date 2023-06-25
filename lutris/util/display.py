@@ -155,9 +155,9 @@ def get_display_manager():
         except DBusException as ex:
             logger.debug("Mutter DBus service not reachable: %s", ex)
         except Exception as ex:  # pylint: disable=broad-except
-            logger.exception("Failed to instanciate MutterDisplayConfig. Please report with exception: %s", ex)
+            logger.exception("Failed to instantiate MutterDisplayConfig. Please report with exception: %s", ex)
     else:
-        logger.error("DBus is not available, lutris was not properly installed.")
+        logger.error("DBus is not available, Lutris was not properly installed.")
     if LIB_GNOME_DESKTOP_AVAILABLE:
         try:
             return DisplayManager()
