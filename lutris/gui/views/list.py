@@ -53,11 +53,8 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_column(default_text_cell, _("Runner"), COL_RUNNER_HUMAN_NAME, 120)
         self.set_column(default_text_cell, _("Platform"), COL_PLATFORM, 120)
         self.set_column(default_text_cell, _("Last Played"), COL_LASTPLAYED_TEXT, 120)
-        self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
-        self.set_column(default_text_cell, _("Installed At"), COL_INSTALLED_AT_TEXT, 120)
-        self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
         self.set_column(default_text_cell, _("Play Time"), COL_PLAYTIME_TEXT, 100)
-        self.set_sort_with_column(COL_PLAYTIME_TEXT, COL_PLAYTIME)
+        self.set_column(default_text_cell, _("Installed At"), COL_INSTALLED_AT_TEXT, 120)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
@@ -70,6 +67,9 @@ class GameListView(Gtk.TreeView, GameView):
         self.service_media = game_store.service_media
         self.model = game_store.store
         self.set_model(self.model)
+        self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
+        self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
+        self.set_sort_with_column(COL_PLAYTIME_TEXT, COL_PLAYTIME)
 
         size = game_store.service_media.size
 
