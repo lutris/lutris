@@ -7,6 +7,7 @@ from urllib.parse import quote_plus, urlencode
 
 from lutris import settings
 from lutris.database import games as games_db
+from lutris.exceptions import UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
@@ -262,8 +263,11 @@ class ItchIoService(OnlineService):
             with open(game_filename, "r", encoding="utf-8") as game_file:
                 game = json.load(game_file)
         else:
-            game = self.fetch_game(appid).get("game", {})
-            self._cache_games([game])
+            try:
+                game = self.fetch_game(appid).get("game", {})
+                self._cache_games([game])
+            except HTTPError:
+                return
 
         traits = game.get("traits", [])
         if "can_be_bought" not in traits:
@@ -287,7 +291,10 @@ class ItchIoService(OnlineService):
     def get_extras(self, appid):
         """Return a list of bonus content for itch.io game."""
         key = self.get_key(appid)
-        uploads = self.fetch_uploads(appid, key)
+        try:
+            uploads = self.fetch_uploads(appid, key)
+        except HTTPError:
+            return []
         all_extras = {}
         extras = []
         for upload in uploads["uploads"]:
@@ -472,7 +479,10 @@ class ItchIoService(OnlineService):
         """Replace the user provided file with download links from itch.io"""
 
         key = self.get_key(installer.service_appid)
-        uploads = self.fetch_uploads(installer.service_appid, key)
+        try:
+            uploads = self.fetch_uploads(installer.service_appid, key)
+        except HTTPError as ex:
+            raise UnavailableGameError from ex
         filtered = []
         extras = []
         files = []
