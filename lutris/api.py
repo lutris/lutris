@@ -1,4 +1,5 @@
 """Functions to interact with the Lutris REST API"""
+import functools
 import json
 import os
 import re
@@ -12,6 +13,8 @@ import requests
 
 from lutris import settings
 from lutris.util import http, system
+from lutris.util.http import Request, HTTPError
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
@@ -89,6 +92,62 @@ def get_runners(runner_name):
     session.headers = headers
     response = session.get(api_url, headers=headers)
     return response.json()
+
+
+@functools.lru_cache()
+def get_default_runner_version(runner_name, version=None):
+    """Get the appropriate version for a runner
+
+    Params:
+        version (str): Optional version to lookup, will return this one if found
+
+    Returns:
+        dict: Dict containing version, architecture and url for the runner, None
+        if the data can't be retrieved. If a pseudo-version is accepted, may be
+        a dict containing only the version itself.
+    """
+    logger.info(
+        "Getting runner information for %s%s",
+        runner_name,
+        " (version: %s)" % version if version else "",
+    )
+
+    try:
+        request = Request("{}/api/runners/{}".format(settings.SITE_URL, runner_name))
+        runner_info = request.get().json
+
+        if not runner_info:
+            logger.error("Failed to get runner information")
+    except HTTPError as ex:
+        logger.error("Unable to get runner information: %s", ex)
+        runner_info = None
+
+    if not runner_info:
+        return
+
+    versions = runner_info.get("versions") or []
+    arch = LINUX_SYSTEM.arch
+    if version:
+        if version.endswith("-i386") or version.endswith("-x86_64"):
+            version, arch = version.rsplit("-", 1)
+        versions = [v for v in versions if v["version"] == version]
+    versions_for_arch = [v for v in versions if v["architecture"] == arch]
+    if len(versions_for_arch) == 1:
+        return versions_for_arch[0]
+
+    if len(versions_for_arch) > 1:
+        default_version = [v for v in versions_for_arch if v["default"] is True]
+        if default_version:
+            return default_version[0]
+    elif len(versions) == 1 and LINUX_SYSTEM.is_64_bit:
+        return versions[0]
+    elif len(versions) > 1 and LINUX_SYSTEM.is_64_bit:
+        default_version = [v for v in versions if v["default"] is True]
+        if default_version:
+            return default_version[0]
+    # If we didn't find a proper version yet, return the first available.
+    if len(versions_for_arch) >= 1:
+        return versions_for_arch[0]
 
 
 def get_http_post_response(url, payload):

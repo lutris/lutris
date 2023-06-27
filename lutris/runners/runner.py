@@ -4,6 +4,7 @@ import signal
 from gettext import gettext as _
 
 from lutris import runtime, settings
+from lutris.api import get_default_runner_version
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
@@ -11,7 +12,6 @@ from lutris.exceptions import GameConfigError, UnavailableLibrariesError
 from lutris.runners import RunnerInstallationError
 from lutris.util import flatpak, strings, system
 from lutris.util.extract import ExtractFailure, extract_archive
-from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -419,59 +419,9 @@ class Runner:  # pylint: disable=too-many-public-methods
         return self.flatpak_id and flatpak.is_app_installed(self.flatpak_id)
 
     def get_runner_version(self, version=None, lutris_only=False):
-        """Get the appropriate version for a runner
-
-        Params:
-            version (str): Optional version to lookup, will return this one if found
-            lutris_only (bool): True to reject 'system' and such pseudo-versions (for WINE)
-
-        Returns:
-            dict: Dict containing version, architecture and url for the runner, None
-            if the data can't be retrieved. If a pseudo-version is accepted, may be
-            a dict containing only the version itself.
-        """
-        logger.info(
-            "Getting runner information for %s%s",
-            self.name,
-            " (version: %s)" % version if version else "",
-        )
-
-        try:
-            request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
-            runner_info = request.get().json
-
-            if not runner_info:
-                logger.error("Failed to get runner information")
-        except HTTPError as ex:
-            logger.error("Unable to get runner information: %s", ex)
-            runner_info = None
-
-        if not runner_info:
-            return
-
-        versions = runner_info.get("versions") or []
-        arch = LINUX_SYSTEM.arch
-        if version:
-            if version.endswith("-i386") or version.endswith("-x86_64"):
-                version, arch = version.rsplit("-", 1)
-            versions = [v for v in versions if v["version"] == version]
-        versions_for_arch = [v for v in versions if v["architecture"] == arch]
-        if len(versions_for_arch) == 1:
-            return versions_for_arch[0]
-
-        if len(versions_for_arch) > 1:
-            default_version = [v for v in versions_for_arch if v["default"] is True]
-            if default_version:
-                return default_version[0]
-        elif len(versions) == 1 and LINUX_SYSTEM.is_64_bit:
-            return versions[0]
-        elif len(versions) > 1 and LINUX_SYSTEM.is_64_bit:
-            default_version = [v for v in versions if v["default"] is True]
-            if default_version:
-                return default_version[0]
-        # If we didn't find a proper version yet, return the first available.
-        if len(versions_for_arch) >= 1:
-            return versions_for_arch[0]
+        """Get the appropriate version for a runner, as with get_default_runner_version(),
+        but this method allows the runner to apply its configuration."""
+        return get_default_runner_version(self.name, version)
 
     def install(self, install_ui_delegate, version=None, callback=None):
         """Install runner using package management systems."""

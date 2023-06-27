@@ -5,6 +5,7 @@ from functools import lru_cache
 from gettext import gettext as _
 
 from lutris import runtime, settings
+from lutris.api import get_default_runner_version
 from lutris.exceptions import UnavailableRunnerError
 from lutris.gui.dialogs import ErrorDialog, WarningMessageDialog
 from lutris.runners.steam import steam
@@ -220,8 +221,13 @@ def get_default_version():
     """Return the default version of wine."""
     installed_versions = get_wine_versions()
     if installed_versions:
+        default_version = get_default_runner_version("wine")
+        if default_version:
+            vers = default_version["version"] + '-' + default_version["architecture"]
+            if vers in installed_versions:
+                return vers
         return installed_versions[0]
-    return
+    return None
 
 
 def get_system_wine_version(wine_path="wine"):
