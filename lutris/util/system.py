@@ -377,7 +377,7 @@ def is_removeable(path, system_config):
 def fix_path_case(path):
     """Do a case insensitive check, return the real path with correct case. If the path is
     not for a real file, this corrects as many components as do exist."""
-    if not path or os.path.exists(path):
+    if not path or os.path.exists(path) or not path.startswith("/"):
         # If a path isn't provided or it exists as is, return it.
         return path
     parts = path.strip("/").split("/")
