@@ -162,7 +162,7 @@ class FileChooserEntry(Gtk.Box):
             ntfs_label = Gtk.Label(visible=True)
             ntfs_label.set_markup(_(
                 "<b>Warning!</b> The selected path is located on a drive formatted by Windows.\n"
-                "Games and programs installed on Windows drives usually <b>don't work</b>."
+                "Games and programs installed on Windows drives <b>don't work</b>."
             ))
             ntfs_box.add(ntfs_label)
             self.pack_end(ntfs_box, False, False, 10)
@@ -170,7 +170,7 @@ class FileChooserEntry(Gtk.Box):
             non_empty_label = Gtk.Label(visible=True)
             non_empty_label.set_markup(_(
                 "<b>Warning!</b> The selected path "
-                "contains files. Installation might not work properly."
+                "contains files. Installation will not work properly."
             ))
             self.pack_end(non_empty_label, False, False, 10)
         parent = system.get_existing_parent(path)
