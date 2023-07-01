@@ -289,6 +289,8 @@ Example: ``WineDesktop: 1024x768``
 
 ``dxvk``: Use this to disable DXVK if needed. (``dxvk: false``)
 
+``dxvk_version``: Use this to define a specific DXVK version. (``dxvk_version: 1.10.3``)
+
 ``esync``: Use this to enable esync. (``esync: true``)
 
 ``overrides``: Overrides for Wine DLLs. List your DLL overrides in a
