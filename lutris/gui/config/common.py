@@ -37,6 +37,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
         self.notebook = None
         self.name_entry = None
+        self.sortname_entry = None
         self.runner_box = None
 
         self.timer_id = None
@@ -114,7 +115,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             info_box.pack_start(centering_container, False, False, 0)  # Banner
 
         info_box.pack_start(self._get_name_box(), False, False, 6)  # Game name
-        info_box.pack_start(self._get_sortname_box(), False, False, 6) # Game sort name
+        info_box.pack_start(self._get_sortname_box(), False, False, 6)  # Game sort name
 
         self.runner_box = self._get_runner_box()
         info_box.pack_start(self.runner_box, False, False, 6)  # Runner

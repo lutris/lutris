@@ -4,6 +4,7 @@ from lutris.database import sql
 from lutris.database.games import get_games
 from lutris.util.log import logger
 
+
 def migrate():
     """Add blank sortname field to games that do not yet have one"""
     logger.info("Adding blank sortname field to database")
