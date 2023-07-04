@@ -79,6 +79,11 @@ class StoreItem:
         return gtk_safe(self._game_data["name"])
 
     @property
+    def sortname(self):
+        """Name used for sorting"""
+        return gtk_safe(self._get_game_attribute("sortname") or "")
+
+    @property
     def year(self):
         """Year"""
         return str(self._get_game_attribute("year") or "")

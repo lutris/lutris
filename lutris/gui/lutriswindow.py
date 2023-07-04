@@ -324,8 +324,13 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if self.view_sorting_installed_first:
             params.append(("installed", "COLLATE NOCASE DESC"))
 
+        if self.view_sorting == "name":
+            key = "CASE WHEN sortname <> '' THEN sortname ELSE name END"
+        else:
+            key = self.view_sorting
+
         params.append((
-            self.view_sorting,
+            key,
             "COLLATE NOCASE ASC"
             if self.view_sorting_ascending
             else "COLLATE NOCASE DESC"
@@ -375,6 +380,14 @@ class LutrisWindow(Gtk.ApplicationWindow,
             else:
                 installation_flag = bool(db_game.get("installed"))
                 value = db_game.get(view_sorting)
+
+                # When sorting by name, check for a valid sortname first, then fall back
+                # on name if valid sortname is not available.
+                sortname = db_game.get("sortname")
+                if view_sorting == "name" and sortname:
+                    value = sortname
+                else:
+                    value = db_game.get(view_sorting)
 
                 if view_sorting == "name":
                     value = natural_sort_key(value)

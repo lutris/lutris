@@ -14,6 +14,10 @@ DATABASE = {
             "type": "TEXT"
         },
         {
+            "name": "sortname",
+            "type": "TEXT",
+        },
+        {
             "name": "slug",
             "type": "TEXT"
         },

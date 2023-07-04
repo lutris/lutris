@@ -9,7 +9,7 @@ from gi.repository import Gdk, Gtk, Pango
 from lutris import settings
 from lutris.gui.views import (
     COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_MEDIA_PATH,
-    COL_NAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER_HUMAN_NAME, COL_YEAR, COLUMN_NAMES
+    COL_NAME, COL_SORTNAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER_HUMAN_NAME, COL_YEAR, COLUMN_NAMES
 )
 from lutris.gui.views.base import GameView
 from lutris.gui.views.store import sort_func
@@ -49,6 +49,7 @@ class GameListView(Gtk.TreeView, GameView):
         name_cell.set_padding(5, 0)
 
         self.set_column(name_cell, _("Name"), COL_NAME, 200, always_visible=True)
+        self.set_sort_with_column(COL_NAME, COL_SORTNAME)
         self.set_column(default_text_cell, _("Year"), COL_YEAR, 60)
         self.set_column(default_text_cell, _("Runner"), COL_RUNNER_HUMAN_NAME, 120)
         self.set_column(default_text_cell, _("Platform"), COL_PLATFORM, 120)

@@ -3,6 +3,7 @@
     COL_ID,
     COL_SLUG,
     COL_NAME,
+    COL_SORTNAME,
     COL_MEDIA_PATH,
     COL_YEAR,
     COL_RUNNER,
@@ -15,7 +16,7 @@
     COL_INSTALLED_AT_TEXT,
     COL_PLAYTIME,
     COL_PLAYTIME_TEXT,
-) = list(range(15))
+) = list(range(16))
 
 COLUMN_NAMES = {
     COL_NAME: "name",
