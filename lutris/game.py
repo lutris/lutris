@@ -78,6 +78,7 @@ class Game(GObject.Object):
         self._runner_name = game_data.get("runner") or ""
         self.directory = game_data.get("directory") or ""
         self.name = game_data.get("name") or ""
+        self.sortname = game_data.get("sortname") or ""
         self.game_config_id = game_data.get("configpath") or ""
         self.is_installed = bool(game_data.get("installed") and self.game_config_id)
         self.is_hidden = bool(game_data.get("hidden"))
@@ -430,6 +431,7 @@ class Game(GObject.Object):
 
         game_data = {
             "name": self.name,
+            "sortname": self.sortname,
             "runner": self.runner_name,
             "slug": self.slug,
             "platform": self.platform,

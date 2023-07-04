@@ -114,6 +114,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             info_box.pack_start(centering_container, False, False, 0)  # Banner
 
         info_box.pack_start(self._get_name_box(), False, False, 6)  # Game name
+        info_box.pack_start(self._get_sortname_box(), False, False, 6) # Game sort name
 
         self.runner_box = self._get_runner_box()
         info_box.pack_start(self.runner_box, False, False, 6)  # Runner
@@ -137,6 +138,19 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if self.game:
             self.name_entry.set_text(self.game.name)
         box.pack_start(self.name_entry, True, True, 0)
+        return box
+
+    def _get_sortname_box(self):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        label = Label(_("Sort name"))
+        box.pack_start(label, False, False, 0)
+        self.sortname_entry = Gtk.Entry()
+        self.sortname_entry.set_max_length(150)
+        if self.game:
+            self.sortname_entry.set_placeholder_text(self.game.name)
+            if self.game.sortname:
+                self.sortname_entry.set_text(self.game.sortname)
+        box.pack_start(self.sortname_entry, True, True, 0)
         return box
 
     def _get_slug_box(self):
@@ -542,6 +556,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             logger.warning(_("Current configuration is not valid, ignoring save request"))
             return
         name = self.name_entry.get_text()
+        sortname = self.sortname_entry.get_text()
 
         if not self.slug:
             self.slug = slugify(name)
@@ -557,6 +572,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.lutris_config.game_config_id = make_game_config_id(self.slug)
 
         self.game.name = name
+        self.game.sortname = sortname
         self.game.slug = self.slug
         self.game.year = year
         self.game.is_installed = True

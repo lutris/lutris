@@ -12,7 +12,7 @@ from lutris.util.strings import gtk_safe
 
 from . import (
     COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_MEDIA_PATH,
-    COL_NAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER, COL_RUNNER_HUMAN_NAME, COL_SLUG, COL_YEAR
+    COL_NAME, COL_SORTNAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER, COL_RUNNER_HUMAN_NAME, COL_SLUG, COL_YEAR
 )
 
 
@@ -38,8 +38,8 @@ def sort_func(model, row1, row2, sort_col):
     value2 = try_lower(value2)
     diff = -1 if value1 < value2 else 0 if value1 == value2 else 1
     if diff == 0:
-        value1 = try_lower(model.get_value(row1, COL_NAME))
-        value2 = try_lower(model.get_value(row2, COL_NAME))
+        value1 = try_lower(model.get_value(row1, COL_SORTNAME))
+        value2 = try_lower(model.get_value(row2, COL_SORTNAME))
         try:
             diff = -1 if value1 < value2 else 0 if value1 == value2 else 1
         except TypeError:
@@ -67,6 +67,7 @@ class GameStore(GObject.Object):
         self._icon_updates = {}
 
         self.store = Gtk.ListStore(
+            str,
             str,
             str,
             str,
@@ -132,6 +133,7 @@ class GameStore(GObject.Object):
         row[COL_ID] = str(store_item.id)
         row[COL_SLUG] = store_item.slug
         row[COL_NAME] = store_item.name
+        row[COL_SORTNAME] = store_item.sortname if store_item.sortname else store_item.name
         row[COL_MEDIA_PATH] = store_item.get_media_path() if settings.SHOW_MEDIA else None
         row[COL_YEAR] = store_item.year
         row[COL_RUNNER] = store_item.runner
@@ -154,6 +156,7 @@ class GameStore(GObject.Object):
                 str(game.id),
                 game.slug,
                 game.name,
+                game.sortname if game.sortname else game.name,
                 game.get_media_path() if settings.SHOW_MEDIA else None,
                 game.year,
                 game.runner,
