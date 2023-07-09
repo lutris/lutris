@@ -12,8 +12,7 @@ from lutris.util.strings import gtk_safe
 
 from . import (
     COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_MEDIA_PATH,
-    COL_NAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER, COL_RUNNER_HUMAN_NAME, COL_SLUG, COL_YEAR,
-    COL_MISSING
+    COL_NAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER, COL_RUNNER_HUMAN_NAME, COL_SLUG, COL_YEAR
 )
 
 
@@ -82,8 +81,7 @@ class GameStore(GObject.Object):
             int,
             str,
             float,
-            str,
-            bool
+            str
         )
 
     @property
@@ -146,7 +144,6 @@ class GameStore(GObject.Object):
         row[COL_INSTALLED_AT_TEXT] = store_item.installed_at_text
         row[COL_PLAYTIME] = store_item.playtime
         row[COL_PLAYTIME_TEXT] = store_item.playtime_text
-        row[COL_MISSING] = store_item.missing
         return True
 
     def add_game(self, db_game):
@@ -168,8 +165,7 @@ class GameStore(GObject.Object):
                 game.installed_at,
                 game.installed_at_text,
                 game.playtime,
-                game.playtime_text,
-                game.missing
+                game.playtime_text
             )
         )
 

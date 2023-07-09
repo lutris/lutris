@@ -10,6 +10,7 @@ from lutris.gui.widgets.utils import (
     get_default_icon_path, get_media_generation_number, get_runtime_icon_path, get_scaled_surface_by_path,
     get_surface_size
 )
+from lutris.scanners.lutris import is_game_missing
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -93,10 +94,10 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         super().__init__(*args, **kwargs)
         self._media_width = 0
         self._media_height = 0
+        self._game_id = None
         self._media_path = None
         self._platform = None
         self._is_installed = True
-        self._is_missing = False
         self.cached_surfaces_new = {}
         self.cached_surfaces_old = {}
         self.cached_surfaces_loaded = 0
@@ -130,6 +131,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.clear_cache()
 
     @GObject.Property(type=str)
+    def game_id(self):
+        """This is the path to the media file to be displayed."""
+        return self._game_id
+
+    @game_id.setter
+    def game_id(self, value):
+        self._game_id = value
+
+    @GObject.Property(type=str)
     def media_path(self):
         """This is the path to the media file to be displayed."""
         return self._media_path
@@ -158,15 +168,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def is_installed(self, value):
         self._is_installed = value
 
-    @GObject.Property(type=bool, default=False)
-    def is_missing(self):
-        """This flag indicates if the game is missing; if so a badge is shown."""
-        return self._is_missing
-
-    @is_missing.setter
-    def is_missing(self, value):
-        self._is_missing = value
-
     def do_get_preferred_width(self, widget):
         return self.media_width, self.media_width
 
@@ -193,7 +194,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 if alpha >= 1:
                     self.render_media(cr, widget, surface, x, y)
                     self.render_platforms(cr, widget, surface, x, cell_area)
-                    if self.is_missing:
+
+                    if self.game_id and is_game_missing(self.game_id):
                         self.render_text_badge(cr, widget, _("Missing"), x, cell_area.y + cell_area.height)
                 else:
                     cr.push_group()
