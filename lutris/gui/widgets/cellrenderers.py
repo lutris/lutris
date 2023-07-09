@@ -351,7 +351,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             font = layout.get_context().get_font_description()
             font.set_weight(Pango.Weight.BOLD)
             font.set_absolute_size(self.badge_size[1] * Pango.SCALE * 3 / 4)
-            v = font.get_size_is_absolute()
             layout.set_font_description(font)
             _, text_bounds = layout.get_extents()
             text_width = text_bounds.width / Pango.SCALE

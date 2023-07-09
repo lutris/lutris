@@ -1,11 +1,10 @@
 """Game representation for views"""
-import os
 import time
 
 from lutris.database import games
 from lutris.database.games import get_service_games
 from lutris.runners import get_runner_human_name
-from lutris.scanners.lutris import get_path_cache
+from lutris.scanners.lutris import is_game_missing
 from lutris.services import SERVICES
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
@@ -121,13 +120,7 @@ class StoreItem:
     @property
     def missing(self):
         """Game is installed, but its directory is not found."""
-        if self.installed:
-            cache = get_path_cache()
-            id = self.id
-            path = cache.get(str(id))
-            if path and not os.path.exists(path):
-                return True
-        return False
+        return self.installed and is_game_missing(self.id)
 
     def get_media_path(self):
         """Returns the path to the image file for this item"""
