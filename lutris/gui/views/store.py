@@ -81,7 +81,7 @@ class GameStore(GObject.Object):
             int,
             str,
             float,
-            str
+            str,
         )
 
     @property
@@ -165,7 +165,7 @@ class GameStore(GObject.Object):
                 game.installed_at,
                 game.installed_at_text,
                 game.playtime,
-                game.playtime_text
+                game.playtime_text,
             )
         )
 
