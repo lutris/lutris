@@ -15,7 +15,8 @@
     COL_INSTALLED_AT_TEXT,
     COL_PLAYTIME,
     COL_PLAYTIME_TEXT,
-) = list(range(15))
+    COL_MISSING
+) = list(range(16))
 
 COLUMN_NAMES = {
     COL_NAME: "name",

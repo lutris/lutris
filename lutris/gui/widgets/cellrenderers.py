@@ -95,6 +95,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._media_path = None
         self._platform = None
         self._is_installed = True
+        self._is_missing = False
         self.cached_surfaces_new = {}
         self.cached_surfaces_old = {}
         self.cached_surfaces_loaded = 0
@@ -156,6 +157,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def is_installed(self, value):
         self._is_installed = value
 
+    @GObject.Property(type=bool, default=False)
+    def is_missing(self):
+        """This flag indicates if the game is missing; if so a badge is shown."""
+        return self._is_missing
+
+    @is_missing.setter
+    def is_missing(self, value):
+        self._is_missing = value
+
     def do_get_preferred_width(self, widget):
         return self.media_width, self.media_width
 
@@ -175,7 +185,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 path = get_default_icon_path((media_width, media_height))
                 surface = self.get_cached_surface_by_path(widget, path,
                                                           preserve_aspect_ratio=False)
-
             if surface:
                 x, y = self.get_media_position(surface, cell_area)
                 self.select_badge_metrics(surface)
@@ -183,6 +192,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 if alpha >= 1:
                     self.render_media(cr, widget, surface, x, y)
                     self.render_platforms(cr, widget, surface, x, cell_area)
+                    if self.is_missing:
+                        self.render_text_badge(cr, widget, "Missing", x, cell_area.y + cell_area.height)
                 else:
                     cr.push_group()
                     self.render_media(cr, widget, surface, x, y)
