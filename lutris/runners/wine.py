@@ -29,7 +29,7 @@ from lutris.util.wine.wine import (
     WINE_DIR, WINE_PATHS, detect_arch, esync_display_limit_warning, esync_display_version_warning,
     fsync_display_support_warning, fsync_display_version_warning, get_default_version, get_overrides_env,
     get_proton_paths, get_real_executable, get_system_wine_version, get_wine_versions, is_esync_limit_set,
-    is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
+    is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync, WINE_DEFAULT_ARCH
 )
 
 
@@ -668,7 +668,11 @@ class wine(Runner):
         Get it from the config or detect it from the prefix"""
         arch = self._wine_arch or self.game_config.get("arch") or "auto"
         if arch not in ("win32", "win64"):
-            arch = detect_arch(self.prefix_path, self.get_executable())
+            prefix_path = self.prefix_path
+            if prefix_path:
+                arch = detect_arch(self.prefix_path, self.get_executable())
+            else:
+                arch = WINE_DEFAULT_ARCH
         return arch
 
     def get_runner_version(self, version=None, lutris_only=False):
@@ -911,19 +915,21 @@ class wine(Runner):
         return None
 
     def prelaunch(self):
-        if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
-            logger.warning("No valid prefix detected in %s, creating one...", self.prefix_path)
-            create_prefix(self.prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
+        prefix_path = self.prefix_path
+        if prefix_path:
+            if not system.path_exists(os.path.join(prefix_path, "user.reg")):
+                logger.warning("No valid prefix detected in %s, creating one...", prefix_path)
+                create_prefix(prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
 
-        prefix_manager = WinePrefixManager(self.prefix_path)
-        if self.runner_config.get("autoconf_joypad", False):
-            prefix_manager.configure_joypads()
-        prefix_manager.create_user_symlinks()
-        self.sandbox(prefix_manager)
-        self.set_regedit_keys()
+            prefix_manager = WinePrefixManager(prefix_path)
+            if self.runner_config.get("autoconf_joypad", False):
+                prefix_manager.configure_joypads()
+            prefix_manager.create_user_symlinks()
+            self.sandbox(prefix_manager)
+            self.set_regedit_keys()
 
-        for manager, enabled in self.get_dll_managers().items():
-            manager.setup(enabled)
+            for manager, enabled in self.get_dll_managers().items():
+                manager.setup(enabled)
 
     def get_dll_managers(self, enabled_only=False):
         """Returns the DLL managers in a dict; the keys are the managers themselves,
