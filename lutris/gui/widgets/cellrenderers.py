@@ -3,7 +3,7 @@
 from math import floor
 
 import cairo
-from gi.repository import GLib, GObject, Gtk, Pango
+from gi.repository import GLib, GObject, Gtk, Pango, PangoCairo
 
 from lutris.gui.widgets.utils import (
     get_default_icon_path, get_media_generation_number, get_runtime_icon_path, get_scaled_surface_by_path,
@@ -183,7 +183,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 if alpha >= 1:
                     self.render_media(cr, widget, surface, x, y)
                     self.render_platforms(cr, widget, surface, x, cell_area)
-
                 else:
                     cr.push_group()
                     self.render_media(cr, widget, surface, x, y)
@@ -328,6 +327,34 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         for icon_path in icon_paths:
             render_badge(x, y, icon_path)
             y = y + y_offset
+
+    def render_text_badge(self, cr, widget, text, left, bottom):
+        if self.badge_size:
+            alpha = self.badge_alpha
+            fore_color = self.badge_fore_color
+            back_color = self.badge_back_color
+
+            cr.save()
+
+            layout = widget.create_pango_layout(text)
+            font = layout.get_context().get_font_description()
+            font.set_weight(Pango.Weight.BOLD)
+            font.set_absolute_size(self.badge_size[1] * Pango.SCALE * 3 / 4)
+            v = font.get_size_is_absolute()
+            layout.set_font_description(font)
+            _, text_bounds = layout.get_extents()
+            text_width = text_bounds.width / Pango.SCALE
+            text_height = text_bounds.height / Pango.SCALE
+
+            cr.rectangle(left, bottom - text_height, text_width + 4, text_height)
+            cr.set_source_rgba(back_color[0], back_color[1], back_color[2], alpha)
+            cr.fill()
+
+            cr.translate(left + 2, bottom - text_height)
+            cr.set_source_rgba(fore_color[0], fore_color[1], fore_color[2], alpha)
+            PangoCairo.update_layout(cr, layout)
+            PangoCairo.show_layout(cr, layout)
+            cr.restore()
 
     def clear_cache(self):
         """Discards all cached surfaces; used when some properties are changed."""
