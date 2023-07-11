@@ -347,11 +347,10 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         style of a badge."""
         def get_layout():
             """Constructs a layout with the text to draw, but also returns its size
-            in pixels."""
+            in pixels. This is boldfaced, but otherwise in the default font."""
             lo = widget.create_pango_layout(text)
             font = lo.get_context().get_font_description()
             font.set_weight(Pango.Weight.BOLD)
-            font.set_absolute_size(self.badge_size[1] * Pango.SCALE * 3 / 4)
             lo.set_font_description(font)
             _, text_bounds = lo.get_extents()
             return lo, text_bounds.width / Pango.SCALE, text_bounds.height / Pango.SCALE
@@ -365,11 +364,19 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
             cr.save()
 
+            # To get the text to be as tall as a badge, we'll scale it
+            # with Cairo. Scaling the font size does not work; the font
+            # size measures the wrong height for this.
+            text_scale = self.badge_size[1] / text_height
+            text_height = self.badge_size[1]
+            text_width = round(text_width * text_scale)
+
             cr.rectangle(left, bottom - text_height, text_width + 4, text_height)
             cr.set_source_rgba(back_color[0], back_color[1], back_color[2], alpha)
             cr.fill()
 
             cr.translate(left + 2, bottom - text_height)
+            cr.scale(text_scale, text_scale)
             cr.set_source_rgba(fore_color[0], fore_color[1], fore_color[2], alpha)
             PangoCairo.update_layout(cr, layout)
             PangoCairo.show_layout(cr, layout)
