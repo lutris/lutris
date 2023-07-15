@@ -1,14 +1,16 @@
 # pylint:disable=using-constant-test
 # pylint:disable=comparison-with-callable
 from math import floor
+from gettext import gettext as _
 
 import cairo
-from gi.repository import GLib, GObject, Gtk, Pango
+from gi.repository import GLib, GObject, Gtk, Pango, PangoCairo
 
 from lutris.gui.widgets.utils import (
     get_default_icon_path, get_media_generation_number, get_runtime_icon_path, get_scaled_surface_by_path,
     get_surface_size
 )
+from lutris.scanners.lutris import is_game_missing
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -92,6 +94,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         super().__init__(*args, **kwargs)
         self._media_width = 0
         self._media_height = 0
+        self._game_id = None
         self._media_path = None
         self._platform = None
         self._is_installed = True
@@ -100,6 +103,10 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.cached_surfaces_loaded = 0
         self.cycle_cache_idle_id = None
         self.cached_surface_generation = 0
+        self.badge_size = 0, 0
+        self.badge_alpha = 0.6
+        self.badge_fore_color = 1, 1, 1
+        self.badge_back_color = 0, 0, 0
 
     @GObject.Property(type=int, default=0)
     def media_width(self):
@@ -122,6 +129,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def media_height(self, value):
         self._media_height = value
         self.clear_cache()
+
+    @GObject.Property(type=str)
+    def game_id(self):
+        """This is the path to the media file to be displayed."""
+        return self._game_id
+
+    @game_id.setter
+    def game_id(self, value):
+        self._game_id = value
 
     @GObject.Property(type=str)
     def media_path(self):
@@ -171,13 +187,16 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 path = get_default_icon_path((media_width, media_height))
                 surface = self.get_cached_surface_by_path(widget, path,
                                                           preserve_aspect_ratio=False)
-
             if surface:
                 x, y = self.get_media_position(surface, cell_area)
+                self.select_badge_metrics(surface)
 
                 if alpha >= 1:
                     self.render_media(cr, widget, surface, x, y)
                     self.render_platforms(cr, widget, surface, x, cell_area)
+
+                    if self.game_id and is_game_missing(self.game_id):
+                        self.render_text_badge(cr, widget, _("Missing"), x, cell_area.y + cell_area.height)
                 else:
                     cr.push_group()
                     self.render_media(cr, widget, surface, x, y)
@@ -189,6 +208,30 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             # we can then discard surfaces we aren't using anymore.
             if not self.cycle_cache_idle_id:
                 self.cycle_cache_idle_id = GLib.idle_add(self.cycle_cache)
+
+    def select_badge_metrics(self, surface):
+        """Updates fields holding data about the appearance of the badges;
+        this sets self.badge_size to None if no badges should be shown at all."""
+
+        def get_badge_icon_size():
+            """Returns the size of the badge icons to render, or None to hide them. We check
+            width for the smallest size because Dolphin has very thin banners, but we only hide
+            badges for icons, not banners."""
+            if self.media_width < 64:
+                return None
+            if self.media_height < 128:
+                return 16, 16
+            if self.media_height < 256:
+                return 24, 24
+            return 32, 32
+
+        self.badge_size = get_badge_icon_size()
+        on_bright_surface = self.badge_size and GridViewCellRendererImage.is_bright_corner(surface, self.badge_size)
+
+        bright_color = 0.8, 0.8, 0.8
+        dark_color = 0.2, 0.2, 0.2
+        self.badge_fore_color = dark_color if on_bright_surface else bright_color
+        self.badge_back_color = bright_color if on_bright_surface else dark_color
 
     @staticmethod
     def is_bright_corner(surface, corner_size):
@@ -242,18 +285,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         y = round(cell_area.y + cell_area.height - height)  # at bottom of cell
         return x, y
 
-    def get_badge_icon_size(self):
-        """Returns the size of the badge icons to render, or None to hide them. We check
-        width for the smallest size because Dolphin has very thin banners, but we only hide
-        badges for icons, not banners."""
-        if self.media_width < 64:
-            return None
-        if self.media_height < 128:
-            return 16, 16
-        if self.media_height < 256:
-            return 24, 24
-        return 32, 32
-
     def render_media(self, cr, widget, surface, x, y):
         """Renders the media itself, given the surface containing it
         and the position."""
@@ -268,8 +299,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         """Renders the stack of platform icons. They appear lined up vertically to the
         right of 'media_right', if that will fit in 'cell_area'."""
         platform = self.platform
-        icon_size = self.get_badge_icon_size()
-        if platform and icon_size:
+        if platform and self.badge_size:
             if "," in platform:
                 platforms = platform.split(",")  # pylint:disable=no-member
             else:
@@ -278,29 +308,25 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             icon_paths = [get_runtime_icon_path(p + "-symbolic") for p in platforms]
             icon_paths = [path for path in icon_paths if path]
             if icon_paths:
-                self.render_badge_stack(cr, widget, surface, surface_x, icon_paths, icon_size, cell_area)
+                self.render_badge_stack(cr, widget, surface, surface_x, icon_paths, cell_area)
 
-    def render_badge_stack(self, cr, widget, surface, surface_x, icon_paths, icon_size, cell_area):
+    def render_badge_stack(self, cr, widget, surface, surface_x, icon_paths, cell_area):
         """Renders a vertical stack of badges, placed at the edge of the media, off to the right
         of 'media_right' if this will fit in the 'cell_area'. The icons in icon_paths are drawn from
         top to bottom, and spaced to fit in 'cell_area', even if they overlap because of this."""
 
-        badge_width = icon_size[0]
-        badge_height = icon_size[1]
-        on_bright_surface = GridViewCellRendererImage.is_bright_corner(surface, (badge_width, badge_height))
-
-        alpha = 0.6
-        bright_color = 0.8, 0.8, 0.8
-        dark_color = 0.2, 0.2, 0.2
-        back_color = bright_color if on_bright_surface else dark_color
-        fore_color = dark_color if on_bright_surface else bright_color
+        badge_width = self.badge_size[0]
+        badge_height = self.badge_size[1]
+        alpha = self.badge_alpha
+        fore_color = self.badge_fore_color
+        back_color = self.badge_back_color
 
         def render_badge(badge_x, badge_y, path):
-            cr.rectangle(badge_x, badge_y, icon_size[0], icon_size[0])
+            cr.rectangle(badge_x, badge_y, badge_width, badge_height)
             cr.set_source_rgba(back_color[0], back_color[1], back_color[2], alpha)
             cr.fill()
 
-            icon = self.get_cached_surface_by_path(widget, path, size=icon_size)
+            icon = self.get_cached_surface_by_path(widget, path, size=self.badge_size)
             cr.set_source_rgba(fore_color[0], fore_color[1], fore_color[2], alpha)
             cr.mask_surface(icon, badge_x, badge_y)
 
@@ -315,6 +341,47 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         for icon_path in icon_paths:
             render_badge(x, y, icon_path)
             y = y + y_offset
+
+    def render_text_badge(self, cr, widget, text, left, bottom):
+        """Draws a short test in the lower left corner of the media, in the
+        style of a badge."""
+        def get_layout():
+            """Constructs a layout with the text to draw, but also returns its size
+            in pixels. This is boldfaced, but otherwise in the default font."""
+            lo = widget.create_pango_layout(text)
+            font = lo.get_context().get_font_description()
+            font.set_weight(Pango.Weight.BOLD)
+            lo.set_font_description(font)
+            _, text_bounds = lo.get_extents()
+            return lo, text_bounds.width / Pango.SCALE, text_bounds.height / Pango.SCALE
+
+        if self.badge_size:
+            alpha = self.badge_alpha
+            fore_color = self.badge_fore_color
+            back_color = self.badge_back_color
+
+            layout, text_width, text_height = get_layout()
+
+            cr.save()
+
+            # To get the text to be as tall as a badge, we'll scale it
+            # with Cairo. Scaling the font size does not work; the font
+            # size measures the wrong height for this.
+            text_scale = self.badge_size[1] / text_height
+            text_height = self.badge_size[1]
+            text_width = round(text_width * text_scale)
+
+            cr.rectangle(left, bottom - text_height, text_width + 4, text_height)
+            cr.set_source_rgba(back_color[0], back_color[1], back_color[2], alpha)
+            cr.fill()
+
+            cr.translate(left + 2, bottom - text_height)
+            cr.scale(text_scale, text_scale)
+            cr.set_source_rgba(fore_color[0], fore_color[1], fore_color[2], alpha)
+            PangoCairo.update_layout(cr, layout)
+            PangoCairo.show_layout(cr, layout)
+
+            cr.restore()
 
     def clear_cache(self):
         """Discards all cached surfaces; used when some properties are changed."""

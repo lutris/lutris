@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from functools import lru_cache
 
 from lutris import settings
 from lutris.api import get_api_games, get_game_installers
@@ -150,6 +151,7 @@ def build_path_cache(recreate=False):
         game_paths = get_game_paths()
         json.dump(game_paths, cache_file, indent=2)
     end_time = time.time()
+    get_path_cache.cache_clear()
     logger.debug("Game path cache built in %0.2f seconds", end_time - start_time)
 
 
@@ -160,25 +162,34 @@ def add_to_path_cache(game):
     if not path:
         logger.warning("No path for %s", game)
         return
-    current_cache = get_path_cache()
+    current_cache = read_path_cache()
     current_cache[game.id] = path
     with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
         json.dump(current_cache, cache_file, indent=2)
+    get_path_cache.cache_clear()
 
 
 def remove_from_path_cache(game):
     logger.debug("Removing %s from path cache", game)
-    current_cache = get_path_cache()
+    current_cache = read_path_cache()
     if str(game.id) not in current_cache:
         logger.warning("Game %s (id=%s) not in cache path", game, game.id)
         return
     del current_cache[str(game.id)]
     with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
         json.dump(current_cache, cache_file, indent=2)
+    get_path_cache.cache_clear()
 
 
+@lru_cache()
 def get_path_cache():
-    """Return the contents of the path cache file"""
+    """Return the contents of the path cache file; this
+    dict is cached, so do not modify it."""
+    return read_path_cache()
+
+
+def read_path_cache():
+    """Read the contents of the path cache file, and does not cache it."""
     with open(GAME_PATH_CACHE_PATH, encoding="utf-8") as cache_file:
         try:
             return json.load(cache_file)
@@ -194,3 +205,9 @@ def get_missing_game_ids():
         if not os.path.exists(path):
             missing_ids.append(game_id)
     return missing_ids
+
+
+def is_game_missing(game_id):
+    cache = get_path_cache()
+    path = cache.get(str(game_id))
+    return path and not os.path.exists(path)
