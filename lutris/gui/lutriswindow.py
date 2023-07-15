@@ -989,8 +989,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
             # If the update took the row out of this view's category, we'll need
             # to update the view to reflect that.
-            if row.type == "user_category":
-                if not categories_db.is_reserved_category(row.id) and row.id not in game.get_categories():
+            if row.type in ("category", "user_category"):
+                if row.id != "all" and row.id not in game.get_categories():
                     return False
 
         return True
