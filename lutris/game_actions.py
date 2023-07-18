@@ -25,7 +25,7 @@ from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, slugify
 from lutris.util.system import path_exists
-from lutris.util.wine.dxvk import update_shader_cache
+from lutris.util.wine.shader_cache import update_shader_cache
 
 
 class GameActions:
