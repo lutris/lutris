@@ -669,7 +669,7 @@ class InstallerWindow(ModelessDialog,
         self.stack.jump_to_page(present_spinner_page)
 
     def create_spinner_page(self):
-        spinner = Gtk.Spinner()
+        spinner = Gtk.Spinner(halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
         spinner.start()
         return spinner
 
