@@ -13,7 +13,7 @@ import requests
 
 from lutris import settings
 from lutris.util import http, system
-from lutris.util.http import Request, HTTPError
+from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -280,6 +280,18 @@ def search_games(query):
         response.get()
     except http.HTTPError as ex:
         logger.error("Unable to get games from API: %s", ex)
+        return {}
+    return response.json
+
+
+def get_runtime_versions():
+    """Queries runtime + runners + current client versions"""
+    url = settings.SITE_URL + "/api/runtimes/versions"
+    response = http.Request(url, headers={"Content-Type": "application/json"})
+    try:
+        response.get()
+    except http.HTTPError as ex:
+        logger.error("Unable to get runtimes from API: %s", ex)
         return {}
     return response.json
 
