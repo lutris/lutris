@@ -99,6 +99,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.connect("configure-event", self.on_window_configure)
         self.connect("realize", self.on_load)
         self.connect("drag-data-received", self.on_drag_data_received)
+        self.connect("notify::visible", self.on_visible_changed)
         if self.maximized:
             self.maximize()
         self.init_template()
@@ -818,6 +819,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if self.application.running_games.get_n_items():
             self.hide()
             return True
+
+    def on_visible_changed(self, window, param):
+        if self.application.tray:
+            self.application.tray.update_present_menu()
 
     def on_window_configure(self, *_args):
         """Callback triggered when the window is moved, resized..."""
