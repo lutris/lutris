@@ -116,4 +116,5 @@ class PreferencesDialog(GameDialogCommon):
         self.destroy()
 
     def _set_filter(self, value):
+        super()._set_filter(value)
         self.runners_box.filter = value
