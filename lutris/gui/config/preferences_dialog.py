@@ -84,6 +84,7 @@ class PreferencesDialog(GameDialogCommon):
 
         show_actions = stack_id == "system-stack"
         self.set_header_bar_widgets_visibility(show_actions)
+        self.set_search_entry_visibility(show_actions)
         self.get_header_bar().set_show_close_button(not show_actions)
         self.stack.set_visible_child_name(row.get_children()[0].stack_id)
 
