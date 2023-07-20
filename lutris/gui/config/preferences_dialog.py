@@ -115,5 +115,5 @@ class PreferencesDialog(GameDialogCommon):
         self.lutris_config.save()
         self.destroy()
 
-    def _set_options_filter(self, value):
+    def _set_filter(self, value):
         self.runners_box.filter = value

@@ -108,16 +108,17 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
                 widget.set_visible(show_switch)
 
     def update_search_entry_visibility(self, current_page_index):
+        """Shows or hides the search entry according to what page is currently displayed."""
         if self.notebook:
             show_search = current_page_index in self.option_page_indices
             self.set_search_entry_visibility(show_search)
 
     def set_search_entry_visibility(self, show_search, placeholder_text=_("Search options")):
+        """Explicitly shows or hides the search entry; can also update the placeholder text."""
         header_bar = self.get_header_bar()
         if show_search and self.search_entry:
             header_bar.set_custom_title(self.search_entry)
             self.search_entry.set_placeholder_text(placeholder_text)
-            self.search_entry.show_all()
         else:
             header_bar.set_custom_title(None)
 
@@ -423,6 +424,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     def build_header_bar(self):
         self.search_entry = Gtk.SearchEntry(width_chars=30, placeholder_text=_("Search options"))
         self.search_entry.connect("search-changed", self.on_search_entry_changed)
+        self.search_entry.show_all()
 
         # Advanced settings toggle
         switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
@@ -454,7 +456,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
         text = entry.get_text().lower().strip()
-        self._set_options_filter(text)
+        self._set_filter(text)
 
     def on_show_advanced_options_toggled(self, is_active):
         settings.write_setting("show_advanced_options", is_active)
@@ -469,7 +471,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if self.game_box:
             self.game_box.set_advanced_visibility(value)
 
-    def _set_options_filter(self, value):
+    def _set_filter(self, value):
         self.system_box.filter = value
         if self.runner_name:
             self.runner_box.filter = value
