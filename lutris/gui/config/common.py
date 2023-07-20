@@ -109,13 +109,16 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
     def update_search_entry_visibility(self, current_page_index):
         if self.notebook:
-            show_switch = current_page_index in self.option_page_indices
-            header_bar = self.get_header_bar()
-            if show_switch and self.search_entry:
-                header_bar.set_custom_title(self.search_entry)
-                self.search_entry.show_all()
-            else:
-                header_bar.set_custom_title(None)
+            show_search = current_page_index in self.option_page_indices
+            self.set_search_entry_visibility(show_search)
+
+    def set_search_entry_visibility(self, show_search):
+        header_bar = self.get_header_bar()
+        if show_search and self.search_entry:
+            header_bar.set_custom_title(self.search_entry)
+            self.search_entry.show_all()
+        else:
+            header_bar.set_custom_title(None)
 
     def _build_info_tab(self):
         info_box = Gtk.VBox()
