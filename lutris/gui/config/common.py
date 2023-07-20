@@ -92,9 +92,12 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self._build_game_tab()
         self._build_runner_tab(config_level)
         self._build_system_tab(config_level)
-        self.update_advanced_switch_visibility(self.notebook.get_current_page())
 
-    def set_header_bar_widgets_visbility(self, value):
+        current_page_index = self.notebook.get_current_page()
+        self.update_advanced_switch_visibility(current_page_index)
+        self.update_search_entry_visibility(current_page_index)
+
+    def set_header_bar_widgets_visibility(self, value):
         for widget in self.header_bar_widgets:
             widget.set_visible(value)
 
@@ -103,6 +106,16 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             show_switch = current_page_index in self.option_page_indices
             for widget in self.advanced_switch_widgets:
                 widget.set_visible(show_switch)
+
+    def update_search_entry_visibility(self, current_page_index):
+        if self.notebook:
+            show_switch = current_page_index in self.option_page_indices
+            header_bar = self.get_header_bar()
+            if show_switch and self.search_entry:
+                header_bar.set_custom_title(self.search_entry)
+                self.search_entry.show_all()
+            else:
+                header_bar.set_custom_title(None)
 
     def _build_info_tab(self):
         info_box = Gtk.VBox()
@@ -404,6 +417,9 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         return self.notebook.append_page(widget, Gtk.Label(label=label))
 
     def build_header_bar(self):
+        self.search_entry = Gtk.SearchEntry(width_chars=30, placeholder_text=_("Search options"))
+        self.search_entry.connect("search-changed", self.on_search_entry_changed)
+
         # Advanced settings toggle
         switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
                              spacing=5,
@@ -420,6 +436,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         switch_box.pack_end(switch, False, False, 0)
 
         header_bar = self.get_header_bar()
+
         header_bar.pack_end(switch_box)
 
         # These lists need to be distinct, so they can be separately
@@ -429,6 +446,11 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
         if self.notebook:
             self.update_advanced_switch_visibilty(self.notebook.get_current_page())
+
+    def on_search_entry_changed(self, entry):
+        """Callback for the search input keypresses"""
+        filter = entry.get_text().lower().strip()
+        self._set_options_filter(filter)
 
     def on_show_advanced_options_toggled(self, is_active):
         settings.write_setting("show_advanced_options", is_active)
@@ -442,6 +464,13 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.runner_box.set_advanced_visibility(value)
         if self.game_box:
             self.game_box.set_advanced_visibility(value)
+
+    def _set_options_filter(self, value):
+        self.system_box.filter = value
+        if self.runner_name:
+            self.runner_box.filter = value
+        if self.game:
+            self.game_box.filter = value
 
     @watch_errors()
     def on_runner_changed(self, widget):
