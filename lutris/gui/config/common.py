@@ -50,6 +50,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.runner_dropdown = None
         self.image_buttons = {}
         self.option_page_indices = set()
+        self.searchable_page_indices = set()
         self.advanced_switch_widgets = []
         self.header_bar_widgets = []
         self.game_box = None
@@ -110,7 +111,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     def update_search_entry_visibility(self, current_page_index):
         """Shows or hides the search entry according to what page is currently displayed."""
         if self.notebook:
-            show_search = current_page_index in self.option_page_indices
+            show_search = current_page_index in self.searchable_page_indices
             self.set_search_entry_visibility(show_search)
 
     def set_search_entry_visibility(self, show_search, placeholder_text=_("Search options")):
@@ -373,15 +374,28 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             send_notification("Failed to move game", "Lutris could not move %s" % dialog.game)
 
     def _build_game_tab(self):
+        def is_searchable(game):
+            return game.runner and len(game.runner.game_options) > 8
+
+        def has_advanced(game):
+            for opt in game.runner.game_options:
+                if opt.get("advanced"):
+                    return True
+            return False
+
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
             self.game_box = self._build_options_tab(_("Game options"),
-                                                    lambda: GameBox(self.lutris_config, self.game))
+                                                    lambda: GameBox(self.lutris_config, self.game),
+                                                    advanced=has_advanced(self.game),
+                                                    searchable=is_searchable(self.game))
         elif self.runner_name:
             game = Game(None)
             game.runner_name = self.runner_name
             self.game_box = self._build_options_tab(_("Game options"),
-                                                    lambda: GameBox(self.lutris_config, game))
+                                                    lambda: GameBox(self.lutris_config, game),
+                                                    advanced=has_advanced(game),
+                                                    searchable=is_searchable(game))
         else:
             self._build_missing_options_tab(self.no_runner_label, _("Game options"))
 
@@ -396,7 +410,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.system_box = self._build_options_tab(_("System options"),
                                                   lambda: SystemBox(self.lutris_config))
 
-    def _build_options_tab(self, notebook_label, box_factory):
+    def _build_options_tab(self, notebook_label, box_factory, advanced=True, searchable=True):
         if not self.lutris_config:
             raise RuntimeError("Lutris config not loaded yet")
         config_box = box_factory()
@@ -410,7 +424,10 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         else:
             self.notebook_page_generators[page_index] = config_box.generate_widgets
 
-        self.option_page_indices.add(page_index)
+        if advanced:
+            self.option_page_indices.add(page_index)
+        if searchable:
+            self.searchable_page_indices.add(page_index)
         return config_box
 
     def _build_missing_options_tab(self, missing_label, notebook_label):
@@ -528,6 +545,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         for i in range(self.notebook.get_n_pages(), 1, -1):
             self.notebook.remove_page(i - 1)
         self.option_page_indices.clear()
+        self.searchable_page_indices.clear()
         self._build_game_tab()
         self._build_runner_tab("game")
         self._build_system_tab("game")
