@@ -56,11 +56,17 @@ class ConfigBox(VBox):
 
     @filter.setter
     def filter(self, value):
+        """Sets the visibility of the options that have some text in the label or
+        help-text."""
         self._filter = value
         self.update_option_visibility()
 
     def update_option_visibility(self):
+        """Recursively searches out all the options and shows or hides them according to
+        the filter and advanced-visibility settings."""
         def update_widgets(widgets):
+            filter_text = self.filter.lower()
+
             visible_count = 0
             for widget in widgets:
                 if isinstance(widget, ConfigBox.SectionFrame):
@@ -70,9 +76,10 @@ class ConfigBox(VBox):
                     widget.set_frame_visible(frame_visible_count > 1)
                 else:
                     widget_visible = self.advanced_visibility or not widget.get_style_context().has_class("advanced")
-                    if widget_visible and self.filter and hasattr(widget, "lutris_option_label"):
-                        label = widget.lutris_option_label
-                        if self.filter.lower() not in label.lower():
+                    if widget_visible and filter_text and hasattr(widget, "lutris_option_label"):
+                        label = widget.lutris_option_label.lower()
+                        helptext = widget.lutris_option_helptext.lower()
+                        if filter_text not in label and filter_text not in helptext:
                             widget_visible = False
                     widget.set_visible(widget_visible)
                     widget.set_no_show_all(not widget_visible)
@@ -237,6 +244,7 @@ class ConfigBox(VBox):
 
                 option_container.lutris_option_key = option_key
                 option_container.lutris_option_label = option["label"]
+                option_container.lutris_option_helptext = option.get("help") or ""
                 current_vbox.pack_start(option_container, False, False, 0)
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
