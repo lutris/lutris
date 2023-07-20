@@ -453,8 +453,8 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
-        filter = entry.get_text().lower().strip()
-        self._set_options_filter(filter)
+        text = entry.get_text().lower().strip()
+        self._set_options_filter(text)
 
     def on_show_advanced_options_toggled(self, is_active):
         settings.write_setting("show_advanced_options", is_active)
