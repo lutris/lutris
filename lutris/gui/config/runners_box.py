@@ -14,14 +14,14 @@ class RunnersBox(BaseConfigBox):
 
     def __init__(self):
         super().__init__()
+        self._filter = ""
+        self.search_entry_placeholder_text = ""
+
         self.add(self.get_section_label(_("Add, remove or configure runners")))
         self.add(self.get_description_label(
             _("Runners are programs such as emulators, engines or "
               "translation layers capable of running games.")
         ))
-        self.search_entry = Gtk.SearchEntry(visible=True, margin_top=12)
-        self.search_entry.connect("changed", self.on_search_changed)
-        self.add(self.search_entry)
         self.search_failed_label = Gtk.Label(_("No runners matched the search"))
         self.pack_start(self.search_failed_label, False, False, 6)
         self.runner_list_frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
@@ -39,15 +39,25 @@ class RunnersBox(BaseConfigBox):
             self.runner_listbox.add(list_box_row)
             runner_count += 1
 
+        self._update_row_visibility()
         # pretty sure there will always be many runners, so assume plural
-        self.search_entry.set_placeholder_text(_("Search %s runners") % runner_count)
+        self.search_entry_placeholder_text = _("Search %s runners") % runner_count
 
     @staticmethod
     def on_folder_clicked(_widget):
         open_uri("file://" + settings.RUNNER_DIR)
 
-    def on_search_changed(self, entry):
-        text = entry.get_text().lower()
+    @property
+    def filter(self):
+        return self._filter
+
+    @filter.setter
+    def filter(self, value):
+        self._filter = value
+        self._update_row_visibility()
+
+    def _update_row_visibility(self):
+        text = self.filter.lower()
 
         any_matches = False
         for row in self.runner_listbox.get_children():

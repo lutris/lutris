@@ -48,10 +48,10 @@ class PreferencesDialog(GameDialogCommon):
             "prefs-stack"
         )
 
-        runners_box = RunnersBox()
-        self.page_generators["runners-stack"] = runners_box.populate_runners
+        self.runners_box = RunnersBox()
+        self.page_generators["runners-stack"] = self.runners_box.populate_runners
         self.stack.add_named(
-            self.build_scrolled_window(runners_box),
+            self.build_scrolled_window(self.runners_box),
             "runners-stack"
         )
         self.stack.add_named(
@@ -84,7 +84,14 @@ class PreferencesDialog(GameDialogCommon):
 
         show_actions = stack_id == "system-stack"
         self.set_header_bar_widgets_visibility(show_actions)
-        self.set_search_entry_visibility(show_actions)
+
+        if stack_id == "system-stack":
+            self.set_search_entry_visibility(True)
+        elif stack_id == "runners-stack":
+            self.set_search_entry_visibility(True, self.runners_box.search_entry_placeholder_text)
+        else:
+            self.set_search_entry_visibility(False)
+
         self.get_header_bar().set_show_close_button(not show_actions)
         self.stack.set_visible_child_name(row.get_children()[0].stack_id)
 
@@ -107,3 +114,6 @@ class PreferencesDialog(GameDialogCommon):
     def on_save(self, _widget):
         self.lutris_config.save()
         self.destroy()
+
+    def _set_options_filter(self, value):
+        self.runners_box.filter = value

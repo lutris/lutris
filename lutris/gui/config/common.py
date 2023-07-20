@@ -112,10 +112,11 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             show_search = current_page_index in self.option_page_indices
             self.set_search_entry_visibility(show_search)
 
-    def set_search_entry_visibility(self, show_search):
+    def set_search_entry_visibility(self, show_search, placeholder_text=_("Search options")):
         header_bar = self.get_header_bar()
         if show_search and self.search_entry:
             header_bar.set_custom_title(self.search_entry)
+            self.search_entry.set_placeholder_text(placeholder_text)
             self.search_entry.show_all()
         else:
             header_bar.set_custom_title(None)
