@@ -36,6 +36,53 @@ class ConfigBox(VBox):
         self.wrappers = {}
         self.warning_boxes = {}
         self.error_boxes = {}
+        self._advanced_visibility = False
+        self._filter = ""
+
+    @property
+    def advanced_visibility(self):
+        return self._advanced_visibility
+
+    @advanced_visibility.setter
+    def advanced_visibility(self, value):
+        """Sets the visibility of every 'advanced' option and every section that
+        contains only 'advanced' options."""
+        self._advanced_visibility = value
+        self.update_option_visibility()
+
+    @property
+    def filter(self):
+        return self._filter
+
+    @filter.setter
+    def filter(self, value):
+        self._filter = value
+        self.update_option_visibility()
+
+    def update_option_visibility(self):
+        def update_widgets(widgets):
+            visible_count = 0
+            for widget in widgets:
+                if isinstance(widget, ConfigBox.SectionFrame):
+                    frame_visible_count = update_widgets(widget.vbox.get_children())
+                    visible_count += frame_visible_count
+                    widget.set_visible(frame_visible_count > 0)
+                    widget.set_frame_visible(frame_visible_count > 1)
+                else:
+                    widget_visible = self.advanced_visibility or not widget.get_style_context().has_class("advanced")
+                    if widget_visible and self.filter and hasattr(widget, "lutris_option_label"):
+                        label = widget.lutris_option_label
+                        if self.filter.lower() not in label.lower():
+                            widget_visible = False
+                    widget.set_visible(widget_visible)
+                    widget.set_no_show_all(not widget_visible)
+                    if widget_visible:
+                        visible_count += 1
+                        widget.show_all()
+
+            return visible_count
+
+        update_widgets(self.get_children())
 
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
@@ -188,13 +235,15 @@ class ConfigBox(VBox):
                 if option.get("advanced"):
                     option_container.get_style_context().add_class("advanced")
 
+                option_container.lutris_option_key = option_key
+                option_container.lutris_option_label = option["label"]
                 current_vbox.pack_start(option_container, False, False, 0)
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
         self.show_all()
 
         show_advanced = settings.read_setting("show_advanced_options") == "True"
-        self.set_advanced_visibility(show_advanced)
+        self.advanced_visibility = show_advanced
 
     def update_warnings(self):
         for box in self.warning_boxes.values():
@@ -202,30 +251,6 @@ class ConfigBox(VBox):
 
         for box in self.error_boxes.values():
             box.update_warning(self.config)
-
-    def set_advanced_visibility(self, value):
-        """Sets the visibility of every 'advanced' option and every section that
-        contains only 'advanced' options."""
-
-        def update_widgets(widgets):
-            visible_count = 0
-            for widget in widgets:
-                if isinstance(widget, ConfigBox.SectionFrame):
-                    frame_visible_count = update_widgets(widget.vbox.get_children())
-                    visible_count += frame_visible_count
-                    widget.set_visible(frame_visible_count > 0)
-                    widget.set_frame_visible(frame_visible_count > 1)
-                else:
-                    widget_visible = value or not widget.get_style_context().has_class("advanced")
-                    widget.set_visible(widget_visible)
-                    widget.set_no_show_all(not widget_visible)
-                    if widget_visible:
-                        visible_count += 1
-                        widget.show_all()
-
-            return visible_count
-
-        update_widgets(self.get_children())
 
     def call_widget_generator(self, option, option_key, value, default):  # noqa: C901
         """Call the right generation method depending on option type."""
