@@ -114,14 +114,20 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             show_search = current_page_index in self.searchable_page_indices
             self.set_search_entry_visibility(show_search)
 
-    def set_search_entry_visibility(self, show_search, placeholder_text=_("Search options")):
+    def set_search_entry_visibility(self, show_search, placeholder_text=None):
         """Explicitly shows or hides the search entry; can also update the placeholder text."""
         header_bar = self.get_header_bar()
         if show_search and self.search_entry:
             header_bar.set_custom_title(self.search_entry)
-            self.search_entry.set_placeholder_text(placeholder_text)
+            self.search_entry.set_placeholder_text(placeholder_text or self.get_search_entry_placeholder())
         else:
             header_bar.set_custom_title(None)
+
+    def get_search_entry_placeholder(self):
+        if self.game and self.game.name:
+            return _("Search %s options") % self.game.name
+
+        return _("Search options")
 
     def _build_info_tab(self):
         info_box = Gtk.VBox()

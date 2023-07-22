@@ -2,6 +2,7 @@ from gettext import gettext as _
 
 from lutris.config import LutrisConfig
 from lutris.gui.config.common import GameDialogCommon
+from lutris.runners import get_runner_human_name
 
 
 class RunnerConfigDialog(GameDialogCommon):
@@ -15,6 +16,9 @@ class RunnerConfigDialog(GameDialogCommon):
         self.build_notebook()
         self.build_tabs("runner")
         self.show_all()
+
+    def get_search_entry_placeholder(self):
+        return _("Search %s options") % get_runner_human_name(self.runner_name)
 
     def on_save(self, wigdet, data=None):
         self.lutris_config.save()

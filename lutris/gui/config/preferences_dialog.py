@@ -95,6 +95,9 @@ class PreferencesDialog(GameDialogCommon):
         self.get_header_bar().set_show_close_button(not show_actions)
         self.stack.set_visible_child_name(row.get_children()[0].stack_id)
 
+    def get_search_entry_placeholder(self):
+        return _("Search global options")
+
     def get_sidebar_button(self, stack_id, text, icon_name):
         hbox = Gtk.HBox(visible=True)
         hbox.stack_id = stack_id
