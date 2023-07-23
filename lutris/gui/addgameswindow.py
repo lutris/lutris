@@ -14,6 +14,7 @@ from lutris.installer import AUTO_WIN32_EXE, get_installers
 from lutris.scanners.lutris import scan_directory
 from lutris.util.jobs import AsyncCall
 from lutris.util.strings import gtk_safe, slugify
+from lutris import sysoptions
 
 
 class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
@@ -125,6 +126,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.install_from_setup_game_slug_entry = Gtk.Entry(sensitive=False)
         self.installer_presets = Gtk.ListStore(str, str)
         self.install_preset_dropdown = Gtk.ComboBox.new_with_model(self.installer_presets)
+        self.installer_locale = Gtk.ListStore(str, str)
+        self.install_locale_dropdown = Gtk.ComboBox.new_with_model(self.installer_locale)
 
         self.install_script_file_chooser = FileChooserEntry(
             title=_("Select script"), action=Gtk.FileChooserAction.OPEN
@@ -457,6 +460,23 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         grid.attach(self.install_preset_dropdown, 1, 3, 1, 1)
         self.install_preset_dropdown.set_halign(Gtk.Align.START)
 
+        locale_label = Gtk.Label(_("Locale:"), visible=True)
+        locale_label.set_xalign(0)
+        grid.attach(locale_label, 0, 4, 1, 1)
+
+        locale_list = sysoptions.get_locale_choices()
+        for locale_humanized, locale in locale_list:
+            self.installer_locale.append([locale, _(locale_humanized)])
+
+        locale_renderer_text = Gtk.CellRendererText()
+        self.install_locale_dropdown.pack_start(locale_renderer_text, True)
+        self.install_locale_dropdown.add_attribute(locale_renderer_text, "text", 1)
+        self.install_locale_dropdown.set_id_column(0)
+        self.install_locale_dropdown.set_active(0)
+
+        grid.attach(self.install_locale_dropdown, 1, 4, 1, 1)
+        self.install_locale_dropdown.set_halign(Gtk.Align.START)
+
         grid.set_vexpand(True)
         return grid
 
@@ -498,6 +518,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         else:
             win_ver_task = None
 
+        locale_selected = self.installer_locale[self.install_locale_dropdown.get_active()][0]
+
         installer = {
             "name": name,
             "version": _("Setup file"),
@@ -513,7 +535,12 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
                 ],
                 "installer": [
                     {"task": {"name": "wineexec", "executable": "setupfile", "arch": arch}}
-                ]
+                ],
+                "system": {
+                    "env": {
+                        "LC_ALL": locale_selected
+                    }
+                }
             }
         }
         if win_ver_task:
