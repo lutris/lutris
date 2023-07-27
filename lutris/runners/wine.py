@@ -688,12 +688,14 @@ class wine(Runner):
         """Return the Wine version to use. use_default can be set to false to
         force the installation of a specific wine version"""
 
-        # We must use the raw config to avoid getting a default if the setting is not
-        # set; we'll fall back to get_default_version() or None rather.
-        cfg = self.config
-        runner_version = cfg.raw_runner_config.get("version") or cfg.raw_game_config.get("version")
-        if runner_version:
-            return runner_version
+        # We must use the config levels to avoid getting a default if the setting
+        # is not set; we'll fall back to get_default_version() or None rather.
+
+        for level in self.config.all_levels:
+            if "wine" in level:
+                runner_version = level["wine"].get("version")
+                if runner_version:
+                    return runner_version
         if use_default:
             return get_default_version()
 

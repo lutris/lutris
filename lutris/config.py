@@ -173,7 +173,7 @@ class LutrisConfig:
             self.merge_to_system_config(self.game_level.get("system"))
 
     def merge_to_system_config(self, config):
-        """Merge a configuration to the system configuation"""
+        """Merge a configuration to the system configuration"""
         if not config:
             return
         existing_env = None
@@ -201,6 +201,12 @@ class LutrisConfig:
             self.raw_game_config = raw_config["game"]
 
         self.raw_config = raw_config
+
+    @property
+    def all_levels(self):
+        """Returns all the configuration levels, in order: game first, then runner, then system.
+        Iterate this to find settings that are explicitly set, without picking up defaults."""
+        return [self.game_level, self.runner_level, self.system_level]
 
     def remove(self):
         """Delete the configuration file from disk."""
