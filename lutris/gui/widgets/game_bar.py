@@ -5,8 +5,10 @@ from gi.repository import GObject, Gtk, Pango
 
 from lutris import runners, services
 from lutris.database.games import get_game_for_service
+from lutris.exceptions import watch_errors
 from lutris.game import Game
 from lutris.game_actions import GameActions
+from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets.contextual_menu import update_action_widget_visibility
 from lutris.util.strings import gtk_safe
 
@@ -257,16 +259,19 @@ class GameBar(Gtk.Box):
                 buttons.append(button)
         return buttons
 
+    @watch_errors()
     def on_link_button_clicked(self, button, callback):
         """Callback for link buttons. Closes the popover then runs the actual action"""
         popover = button.get_parent().get_parent()
         popover.popdown()
         callback(button)
 
+    @watch_errors()
     def on_install_clicked(self, button):
         """Handler for installing service games"""
         self.service.install(self.db_game)
 
+    @watch_errors()
     def on_game_state_changed(self, game):
         """Handler called when the game has changed state"""
         if (
@@ -279,3 +284,6 @@ class GameBar(Gtk.Box):
         self.clear_view()
         self.update_view()
         return True
+
+    def on_watched_error(self, error):
+        ErrorDialog(error, parent=self.get_toplevel())
