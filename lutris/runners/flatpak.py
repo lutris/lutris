@@ -108,9 +108,13 @@ class flatpak(Runner):
     def game_path(self):
         if shutil.which("flatpak-spawn"):
             return "/"
-        install_type, application, arch, branch = (
-            self.game_config[key] for key in ("install_type", "appid", "arch", "branch")
-        )
+        try:
+            install_type, application, arch, branch = (
+                self.game_config[key] for key in ("install_type", "appid", "arch", "branch")
+            )
+        except KeyError as err:
+            raise RuntimeError("The game_path of a flatpak game cannot be generated due to a missing configuration "
+                               "element: %s" % str(err)) from err
         return os.path.join(self.install_locations[install_type], application, arch, branch)
 
     def remove_game_data(self, app_id=None, game_path=None, **kwargs):
