@@ -62,9 +62,10 @@ def get_proton_paths():
 
 def detect_arch(prefix_path=None, wine_path=None):
     """Given a Wine prefix path, return its architecture"""
-    arch = detect_prefix_arch(prefix_path)
-    if arch:
-        return arch
+    if prefix_path:
+        arch = detect_prefix_arch(prefix_path)
+        if arch:
+            return arch
     if wine_path and system.path_exists(wine_path + "64"):
         return "win64"
     return "win32"
@@ -72,6 +73,9 @@ def detect_arch(prefix_path=None, wine_path=None):
 
 def detect_prefix_arch(prefix_path):
     """Return the architecture of the prefix found in `prefix_path`"""
+    if not prefix_path:
+        raise RuntimeError("The prefix architecture can't be detected with no prefix path.")
+
     prefix_path = os.path.expanduser(prefix_path)
     registry_path = os.path.join(prefix_path, "system.reg")
     if not os.path.isdir(prefix_path) or not os.path.isfile(registry_path):
