@@ -13,6 +13,7 @@ from gi.repository import GLib
 from lutris import runtime
 from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
+from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import UnavailableRunnerError, watch_errors
 from lutris.game import Game
@@ -33,7 +34,7 @@ class CommandsMixin:
             # If a version is specified in the script choose this one
             if self.installer.script.get(self.installer.runner):
                 return self.installer.script[self.installer.runner].get("version")
-            # If the installer is a extension, use the wine version from the base game
+            # If the installer is an extension, use the wine version from the base game
             if self.installer.requires:
                 db_game = get_game_by_field(self.installer.requires, field="installer_slug")
                 if not db_game:
@@ -43,6 +44,13 @@ class CommandsMixin:
                     return None
                 game = Game(db_game["id"])
                 return game.config.runner_config["version"]
+            # Look up the runner config setting, but only if it is explicitly set;
+            # install scripts do not get the usual default if it is not!
+            runner_config = LutrisConfig(runner_slug="wine")
+            if "wine" in runner_config.runner_level:
+                config_version = runner_config.runner_level["wine"].get("version")
+                if config_version:
+                    return config_version
         if self.installer.runner == "libretro":
             return self.installer.script["game"]["core"]
         return None
