@@ -84,6 +84,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             del self.notebook_page_generators[index]
 
         self.update_advanced_switch_visibility(index)
+        self.update_search_entry_visibility(index)
 
     def build_tabs(self, config_level):
         """Build tabs (for game and runner levels)"""
