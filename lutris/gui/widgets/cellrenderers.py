@@ -1,7 +1,7 @@
 # pylint:disable=using-constant-test
 # pylint:disable=comparison-with-callable
-from math import floor
 from gettext import gettext as _
+from math import floor
 
 import cairo
 from gi.repository import GLib, GObject, Gtk, Pango, PangoCairo
