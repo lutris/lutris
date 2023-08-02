@@ -3,6 +3,10 @@
 from gettext import gettext as _
 from math import floor
 
+import gi
+
+gi.require_version('PangoCairo', '1.0')
+
 import cairo
 from gi.repository import GLib, GObject, Gtk, Pango, PangoCairo
 
