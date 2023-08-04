@@ -49,7 +49,6 @@ class OriginLauncher:
 
 
 class OriginPackArtSmall(ServiceMedia):
-    service = "origin"
     file_pattern = "%s.jpg"
     file_format = "jpeg"
     size = (63, 89)
@@ -73,11 +72,10 @@ class OriginPackArtLarge(OriginPackArtSmall):
 
 
 class OriginGame(ServiceGame):
-    service = "origin"
 
     @classmethod
-    def new_from_api(cls, offer):
-        origin_game = OriginGame()
+    def new_from_api(cls, service_id, offer):
+        origin_game = cls(service_id)
         origin_game.appid = offer["offerId"]
         origin_game.slug = offer["gameNameFacetKey"]
         origin_game.name = offer["i18n"]["displayName"]
@@ -125,7 +123,7 @@ class LegacyRenegotiationHTTPAdapter(requests.adapters.HTTPAdapter):
 class OriginService(OnlineService):
     """Service class for EA Origin"""
 
-    id = "origin"
+    type = "origin"
     name = _("Origin")
     icon = "origin"
     client_installer = "origin"
@@ -137,9 +135,9 @@ class OriginService(OnlineService):
         "packArtLarge": OriginPackArtLarge,
     }
     default_format = "packArtMedium"
-    cache_path = os.path.join(settings.CACHE_DIR, "origin/cache/")
-    cookies_path = os.path.join(settings.CACHE_DIR, "origin/cookies")
-    token_path = os.path.join(settings.CACHE_DIR, "origin/auth_token")
+    cache_path_tmpl = "{id}/cache/"
+    cookies_path_tmpl = "{id}/cookies"
+    token_path_tmpl = "{id}/auth_token"
     redirect_uri = "https://www.origin.com/views/login.html"
     login_url = (
         "https://accounts.ea.com/connect/auth"
@@ -149,12 +147,16 @@ class OriginService(OnlineService):
     ) % redirect_uri
     login_user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0 QtWebEngine/5.8.0"
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, id):
+        super().__init__(id)
 
         self.session = requests.session()
         self.session.mount("https://", LegacyRenegotiationHTTPAdapter())
         self.access_token = self.load_access_token()
+
+    @property
+    def token_path(self):
+        return os.path.join(settings.CACHE_DIR, self._format_props(self.token_path_tmpl))
 
     @property
     def api_url(self):
@@ -250,7 +252,7 @@ class OriginService(OnlineService):
         logger.info("Retrieved %s games from Origin library", len(games))
         origin_games = []
         for game in games:
-            origin_game = OriginGame.new_from_api(game)
+            origin_game = OriginGame.new_from_api(self.id, game)
             origin_game.save()
             origin_games.append(origin_game)
         return origin_games

@@ -19,7 +19,6 @@ from lutris.util.strings import slugify
 
 class FlathubBanner(ServiceMedia):
     """Standard size of a Flathub banner"""
-    service = "flathub"
     size = (128, 128)
     dest_path = os.path.join(settings.CACHE_DIR, "flathub/banners")
     file_pattern = "%s.png"
@@ -32,12 +31,11 @@ class FlathubBanner(ServiceMedia):
 
 class FlathubGame(ServiceGame):
     """Representation of a Flathub game"""
-    service = "flathub"
 
     @classmethod
-    def new_from_flathub_game(cls, flathub_game):
+    def new_from_flathub_game(cls, service_id, flathub_game):
         """Return a Flathub game instance from the API info"""
-        service_game = FlathubGame()
+        service_game = cls(service_id)
         service_game.appid = flathub_game["flatpakAppId"]
         service_game.slug = slugify(flathub_game["name"])
         service_game.lutris_slug = slugify(flathub_game["name"])
@@ -54,7 +52,7 @@ class FlathubGame(ServiceGame):
 class FlathubService(BaseService):
     """Service class for Flathub"""
 
-    id = "flathub"
+    type = "flathub"
     name = _("Flathub")
     icon = "flathub"
     medias = {
@@ -62,7 +60,7 @@ class FlathubService(BaseService):
     }
     default_format = "banner"
     api_url = "https://flathub.org/api/v1/apps/category/Game"
-    cache_path = os.path.join(settings.CACHE_DIR, "flathub-library.json")
+    cache_path_tmpl = "{id}-library.json"
 
     branch = "stable"
     arch = "x86_64"
@@ -73,13 +71,6 @@ class FlathubService(BaseService):
     }
     runner = "flatpak"
     game_class = FlathubGame
-
-    def wipe_game_cache(self):
-        """Wipe the game cache, allowing it to be reloaded"""
-        if system.path_exists(self.cache_path):
-            logger.debug("Deleting %s cache %s", self.id, self.cache_path)
-            os.remove(self.cache_path)
-        super().wipe_game_cache()
 
     def get_flatpak_cmd(self):
         flatpak_abspath = shutil.which("flatpak")
@@ -96,7 +87,7 @@ class FlathubService(BaseService):
         entries = response.json()
         flathub_games = []
         for game in entries:
-            flathub_games.append(FlathubGame.new_from_flathub_game(game))
+            flathub_games.append(FlathubGame.new_from_flathub_game(self.id, game))
         for game in flathub_games:
             game.save()
         return flathub_games

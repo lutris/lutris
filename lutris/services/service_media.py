@@ -15,7 +15,6 @@ PGA_DB = settings.PGA_DB
 class ServiceMedia:
     """Information about the service's media format"""
 
-    service = NotImplemented
     size = NotImplemented
     source = "remote"  # set to local if the files don't need to be downloaded
     visible = True  # This media should be displayed as an option in the UI
@@ -26,7 +25,9 @@ class ServiceMedia:
     api_field = NotImplemented
     url_pattern = "%s"
 
-    def __init__(self):
+    def __init__(self, service_id):
+        self.service = service_id
+
         if self.dest_path and not system.path_exists(self.dest_path):
             os.makedirs(self.dest_path)
 

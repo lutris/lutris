@@ -7,6 +7,6 @@ from lutris.services.base import BaseService
 
 class MAMEService(BaseService):
     """Service class for MAME"""
-    id = "mame"
+    type = "mame"
     name = _("MAME")
     icon = "mame"

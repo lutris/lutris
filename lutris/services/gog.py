@@ -23,7 +23,6 @@ from lutris.util.strings import human_size, slugify
 
 class GogSmallBanner(ServiceMedia):
     """Small size game logo"""
-    service = "gog"
     size = (100, 60)
     dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/small")
     file_pattern = "%s.jpg"
@@ -47,14 +46,12 @@ class GogLargeBanner(GogSmallBanner):
 
 
 class GOGGame(ServiceGame):
-
     """Representation of a GOG game"""
-    service = "gog"
 
     @classmethod
-    def new_from_gog_game(cls, gog_game):
+    def new_from_gog_game(cls, service_id, gog_game):
         """Return a GOG game instance from the API info"""
-        service_game = GOGGame()
+        service_game = cls(service_id)
         service_game.appid = str(gog_game["id"])
         service_game.slug = gog_game["slug"]
         service_game.name = gog_game["title"]
@@ -65,11 +62,12 @@ class GOGGame(ServiceGame):
 class GOGService(OnlineService):
     """Service class for GOG"""
 
-    id = "gog"
+    type = "gog"
     name = _("GOG")
     icon = "gog"
     has_extras = True
     drm_free = True
+    multi_account = True
     medias = {
         "banner_small": GogSmallBanner,
         "banner": GogMediumBanner,
@@ -85,12 +83,12 @@ class GOGService(OnlineService):
     redirect_uri = "https://embed.gog.com/on_login_success?origin=client"
 
     login_success_url = "https://www.gog.com/on_login_success"
-    cookies_path = os.path.join(settings.CACHE_DIR, ".gog.auth")
-    token_path = os.path.join(settings.CACHE_DIR, ".gog.token")
-    cache_path = os.path.join(settings.CACHE_DIR, "gog-library.json")
+    cache_path_tmpl = "{id}-library.json"
+    cookies_path_tmpl = ".{id}.auth"
+    token_path_tmpl = ".{id}.token"
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, id):
+        super().__init__(id)
 
         gog_locales = {
             "en": "en-US",
@@ -101,6 +99,10 @@ class GOGService(OnlineService):
             "zh": "zh-Hans",
         }
         self.locale = gog_locales.get(i18n.get_lang(), "en-US")
+
+    @property
+    def token_path(self):
+        return os.path.join(settings.CACHE_DIR, self._format_props(self.token_path_tmpl))
 
     @property
     def login_url(self):
@@ -133,7 +135,7 @@ class GOGService(OnlineService):
         if not self.is_connected():
             logger.error("User not connected to GOG")
             return
-        games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
+        games = [self.get_service_game(game) for game in self.get_library()]
         for game in games:
             game.save()
         self.match_games()
@@ -257,7 +259,7 @@ class GOGService(OnlineService):
         return games
 
     def get_service_game(self, gog_game):
-        return GOGGame.new_from_gog_game(gog_game)
+        return GOGGame.new_from_gog_game(self.id, gog_game)
 
     def get_products_page(self, page=1, search=None):
         """Return a single page of games"""

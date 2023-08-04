@@ -31,7 +31,6 @@ BOX_ART_SIZE = (200, 267)
 
 
 class DieselGameMedia(ServiceMedia):
-    service = "egs"
     remote_size = (200, 267)
     file_pattern = "%s.jpg"
     file_format = "jpeg"
@@ -116,12 +115,11 @@ class DieselGameBoxLogo(DieselGameMedia):
 
 class EGSGame(ServiceGame):
     """Service game for Epic Games Store"""
-    service = "egs"
 
     @classmethod
-    def new_from_api(cls, egs_game):
+    def new_from_api(cls, service_id, egs_game):
         """Convert an EGS game to a service game"""
-        service_game = cls()
+        service_game = cls(service_id)
         service_game.appid = egs_game["appName"]
         service_game.slug = slugify(egs_game["title"])
         service_game.name = egs_game["title"]
@@ -132,7 +130,7 @@ class EGSGame(ServiceGame):
 class EpicGamesStoreService(OnlineService):
     """Service class for Epic Games Store"""
 
-    id = "egs"
+    type = "egs"
     name = _("Epic Games Store")
     login_window_width = 500
     login_window_height = 850
@@ -151,9 +149,9 @@ class EpicGamesStoreService(OnlineService):
     }
     default_format = "game_banner_small"
     requires_login_page = True
-    cookies_path = os.path.join(settings.CACHE_DIR, ".egs.auth")
-    token_path = os.path.join(settings.CACHE_DIR, ".egs.token")
-    cache_path = os.path.join(settings.CACHE_DIR, "egs-library.json")
+    cache_path_tmpl = "{id}-library.json"
+    cookies_path_tmpl = ".{id}.auth"
+    token_path_tmpl = ".{id}.token"
     login_url = ("https://www.epicgames.com/id/login?redirectUrl="
                  "https%3A//www.epicgames.com/id/api/redirect%3F"
                  "clientId%3D34a02cf8f4414e29b15921876da36f9a%26responseType%3Dcode")
@@ -170,8 +168,8 @@ class EpicGamesStoreService(OnlineService):
         'Chrome/84.0.4147.38 Safari/537.36'
     )
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, id):
+        super().__init__(id)
         self.session = requests.session()
         self.session.headers['User-Agent'] = self.user_agent
         if os.path.exists(self.token_path):
@@ -179,6 +177,10 @@ class EpicGamesStoreService(OnlineService):
                 self.session_data = json.loads(token_file.read())
         else:
             self.session_data = {}
+
+    @property
+    def token_path(self):
+        return os.path.join(settings.CACHE_DIR, self._format_props(self.token_path_tmpl))
 
     @property
     def http_basic_auth(self):
@@ -312,7 +314,7 @@ class EpicGamesStoreService(OnlineService):
             raise AuthTokenExpired from ex
         egs_games = []
         for game in library:
-            egs_game = EGSGame.new_from_api(game)
+            egs_game = EGSGame.new_from_api(self.id, game)
             egs_game.save()
             egs_games.append(egs_game)
         return egs_games

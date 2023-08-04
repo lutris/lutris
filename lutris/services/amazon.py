@@ -28,7 +28,6 @@ from lutris.util.strings import slugify
 
 class AmazonBanner(ServiceMedia):
     """Game logo"""
-    service = "amazon"
     size = (200, 112)
     dest_path = os.path.join(settings.CACHE_DIR, "amazon/banners")
     file_pattern = "%s.jpg"
@@ -42,12 +41,11 @@ class AmazonBanner(ServiceMedia):
 
 class AmazonGame(ServiceGame):
     """Representation of a Amazon game"""
-    service = "amazon"
 
     @classmethod
-    def new_from_amazon_game(cls, amazon_game):
+    def new_from_amazon_game(cls, service_id, amazon_game):
         """Return a Amazon game instance from the API info"""
-        service_game = AmazonGame()
+        service_game = cls(service_id)
         service_game.appid = str(amazon_game["id"])
         service_game.slug = slugify(amazon_game["product"]["title"])
         service_game.name = amazon_game["product"]["title"]
@@ -58,7 +56,7 @@ class AmazonGame(ServiceGame):
 class AmazonService(OnlineService):
     """Service class for Amazon"""
 
-    id = "amazon"
+    type = "amazon"
     name = _("Amazon Prime Gaming")
     icon = "amazon"
     has_extras = False
@@ -84,11 +82,15 @@ class AmazonService(OnlineService):
 
     redirect_uri = "https://www.amazon.com/?"
 
-    cookies_path = os.path.join(settings.CACHE_DIR, ".amazon.auth")
-    user_path = os.path.join(settings.CACHE_DIR, ".amazon.user")
-    cache_path = os.path.join(settings.CACHE_DIR, "amazon-library.json")
+    cache_path_tmpl = "{id}-library.json"
+    cookies_path_tmpl = ".{id}.auth"
+    user_path_tmpl = ".{id}.user"
 
     locale = "en-US"
+
+    @property
+    def user_path(self):
+        return os.path.join(settings.CACHE_DIR, self._format_props(user_path_tmpl))
 
     @property
     def credential_files(self):
@@ -153,7 +155,7 @@ class AmazonService(OnlineService):
         if not self.is_connected():
             logger.error("User not connected to Amazon")
             return
-        games = [AmazonGame.new_from_amazon_game(game) for game in self.get_library()]
+        games = [AmazonGame.new_from_amazon_game(self.id, game) for game in self.get_library()]
         for game in games:
             game.save()
         return games

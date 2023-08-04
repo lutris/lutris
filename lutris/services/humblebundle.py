@@ -22,7 +22,6 @@ from lutris.util.strings import slugify
 
 class HumbleBundleIcon(ServiceMedia):
     """HumbleBundle icon"""
-    service = "humblebundle"
     size = (70, 70)
     dest_path = os.path.join(settings.CACHE_DIR, "humblebundle/icons")
     file_pattern = "%s.png"
@@ -40,12 +39,11 @@ class HumbleBigIcon(HumbleBundleIcon):
 
 class HumbleBundleGame(ServiceGame):
     """Service game for DRM free Humble Bundle games"""
-    service = "humblebundle"
 
     @classmethod
-    def new_from_humble_game(cls, humble_game):
+    def new_from_humble_game(cls, service_id, humble_game):
         """Converts a game from the API to a service game usable by Lutris"""
-        service_game = HumbleBundleGame()
+        service_game = cls(service_id)
         service_game.appid = humble_game["machine_name"]
         service_game.slug = humble_game["machine_name"]
         service_game.name = humble_game["human_name"]
@@ -56,7 +54,7 @@ class HumbleBundleGame(ServiceGame):
 class HumbleBundleService(OnlineService):
     """Service for Humble Bundle"""
 
-    id = "humblebundle"
+    type = "humblebundle"
     _matcher = "humble"
     name = _("Humble Bundle")
     icon = "humblebundle"
@@ -73,9 +71,8 @@ class HumbleBundleService(OnlineService):
     login_url = "https://www.humblebundle.com/login?goto=/home/library"
     redirect_uri = "https://www.humblebundle.com/home/library"
 
-    cookies_path = os.path.join(settings.CACHE_DIR, ".humblebundle.auth")
-    token_path = os.path.join(settings.CACHE_DIR, ".humblebundle.token")
-    cache_path = os.path.join(settings.CACHE_DIR, "humblebundle/library/")
+    cache_path_tmpl = "{id}/library/"
+    cookies_path_tmpl = ".{id}.auth"
 
     supported_platforms = ("linux", "windows")
 
@@ -120,7 +117,7 @@ class HumbleBundleService(OnlineService):
         for game in library:
             if game["human_name"] in seen:
                 continue
-            humble_games.append(HumbleBundleGame.new_from_humble_game(game))
+            humble_games.append(HumbleBundleGame.new_from_humble_game(self.id, game))
             seen.add(game["human_name"])
         for game in humble_games:
             game.save()

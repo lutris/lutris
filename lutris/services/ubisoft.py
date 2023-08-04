@@ -27,7 +27,6 @@ from lutris.util.wine.prefix import WinePrefixManager
 
 class UbisoftCover(ServiceMedia):
     """Ubisoft connect cover art"""
-    service = "ubisoft"
     size = (160, 186)
     dest_path = os.path.join(settings.CACHE_DIR, "ubisoft/covers")
     file_pattern = "%s.jpg"
@@ -63,12 +62,11 @@ class UbisoftCover(ServiceMedia):
 
 class UbisoftGame(ServiceGame):
     """Service game for games from Ubisoft connect"""
-    service = "ubisoft"
 
     @classmethod
-    def new_from_api(cls, payload):
+    def new_from_api(cls, service_id, payload):
         """Convert an Ubisoft game to a service game"""
-        service_game = cls()
+        service_game = cls(service_id)
         service_game.appid = payload["spaceId"] or payload["installId"]
         service_game.slug = slugify(payload["name"])
         service_game.name = payload["name"]
@@ -78,7 +76,7 @@ class UbisoftGame(ServiceGame):
 
 class UbisoftConnectService(OnlineService):
     """Service class for Ubisoft Connect"""
-    id = "ubisoft"
+    type = "ubisoft"
     name = _("Ubisoft Connect")
     icon = "ubisoft"
     runner = "wine"
@@ -86,9 +84,9 @@ class UbisoftConnectService(OnlineService):
     browser_size = (460, 690)
     login_window_width = 460
     login_window_height = 690
-    cookies_path = os.path.join(settings.CACHE_DIR, "ubisoft/.auth")
-    token_path = os.path.join(settings.CACHE_DIR, "ubisoft/.token")
-    cache_path = os.path.join(settings.CACHE_DIR, "ubisoft/library/")
+    cache_path_tmpl = "{id}/library/"
+    cookies_path_tmpl = "{id}/.auth"
+    token_path_tmpl = "{id}/.token"
     login_url = consts.LOGIN_URL
     redirect_uri = "https://connect.ubisoft.com/change_domain/"
     scripts = {
@@ -105,9 +103,13 @@ class UbisoftConnectService(OnlineService):
     }
     default_format = "cover"
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, id):
+        super().__init__(id)
         self.client = UbisoftConnectClient(self)
+
+    @property
+    def token_path(self):
+        return os.path.join(settings.CACHE_DIR, self._format_props(self.token_path_tmpl))
 
     def auth_lost(self):
         self.emit("service-logout")
@@ -155,13 +157,13 @@ class UbisoftConnectService(OnlineService):
                             is_pc = True
                 if not is_pc:
                     continue
-            ubi_game = UbisoftGame.new_from_api(game)
+            ubi_game = UbisoftGame.new_from_api(self.id, game)
             ubi_game.save()
             ubi_games.append(ubi_game)
         configuration_data = self.get_configurations()
         config_parser = UbisoftParser()
         for game in config_parser.parse_games(configuration_data):
-            ubi_game = UbisoftGame.new_from_api(game)
+            ubi_game = UbisoftGame.new_from_api(self.id, game)
             ubi_game.save()
             ubi_games.append(ubi_game)
         return ubi_games

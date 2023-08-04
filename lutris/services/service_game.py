@@ -10,11 +10,12 @@ PGA_DB = settings.PGA_DB
 class ServiceGame:
     """Representation of a game from a 3rd party service"""
 
-    service = NotImplemented
     installer_slug = NotImplemented
     medias = (ServiceMedia, )
 
-    def __init__(self):
+    def __init__(self, service_id):
+        self.service = service_id
+
         self.appid = None  # External ID of the game on the 3rd party service
         self.game_id = None  # Internal Lutris ID
         self.runner = None  # Name of the runner

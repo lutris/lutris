@@ -15,9 +15,7 @@ from lutris.game import Game
 from lutris.gui.dialogs import NoticeDialog
 from lutris.gui.dialogs.webconnect_dialog import DEFAULT_USER_AGENT, WebConnectDialog
 from lutris.gui.views.media_loader import download_media
-from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
 from lutris.installer import get_installers
-from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.jobs import AsyncCall
@@ -30,50 +28,13 @@ class AuthTokenExpired(Exception):
     """Exception raised when a token is no longer valid"""
 
 
-class LutrisBanner(ServiceMedia):
-    service = 'lutris'
-    size = BANNER_SIZE
-    dest_path = settings.BANNER_PATH
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
-    api_field = 'banner_url'
-
-
-class LutrisIcon(LutrisBanner):
-    size = ICON_SIZE
-    dest_path = settings.ICON_PATH
-    file_pattern = "lutris_%s.png"
-    file_format = "png"
-    api_field = 'icon_url'
-
-    @property
-    def custom_media_storage_size(self):
-        return (128, 128)
-
-    def update_desktop(self):
-        system.update_desktop_icons()
-
-
-class LutrisCoverart(ServiceMedia):
-    service = 'lutris'
-    size = (264, 352)
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
-    dest_path = settings.COVERART_PATH
-    api_field = 'coverart'
-
-    @property
-    def config_ui_size(self):
-        return (66, 88)
-
-
-class LutrisCoverartMedium(LutrisCoverart):
-    size = (176, 234)
-
-
 class BaseService(GObject.Object):
     """Base class for local services"""
-    id = NotImplemented
+    type = NotImplemented  # String identifier for this kind of service
+    id: str  # Identifier of a single account created at this service
+    # The values of `id` and `type` may always be assumed to be identical unless the service has
+    # opted into the multiple account feature by setting `multi_account` to True below.
+
     _matcher = None
     has_extras = False
     name = NotImplemented
@@ -81,11 +42,13 @@ class BaseService(GObject.Object):
     online = False
     local = False
     drm_free = False  # DRM free games can be added to Lutris from an existing install
+    multi_account = False  # Whether this service supports logging into more than one account at once
     client_installer = None  # ID of a script needed to install the client used by the service
     scripts = {}  # Mapping of Javascript snippets to handle redirections during auth
     medias = {}
     extra_medias = {}
     default_format = "icon"
+    cache_path_tmpl = NotImplemented
     is_loading = False
 
     __gsignals__ = {
@@ -95,11 +58,31 @@ class BaseService(GObject.Object):
         "service-logout": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
+    def __init__(self, id):
+        super().__init__()
+        self.id = id
+
+    def _format_props(self, string):
+        return string.format(id=self.id)
+
+    @property
+    def cache_path(self):
+        if isinstance(self.cache_path_tmpl, str):
+            return os.path.join(settings.CACHE_DIR, self._format_props(self.cache_path_tmpl))
+        else:
+            return self.cache_path_tmpl
+
     @property
     def matcher(self):
         if self._matcher:
             return self._matcher
         return self.id
+
+    def create_media_instance(self, icon_type):
+        if icon_type in self.extra_medias:
+            return self.extra_medias[icon_type](self.id)
+        else:
+            return self.medias[icon_type](self.id)
 
     def run(self):
         """Launch the game client"""
@@ -159,7 +142,7 @@ class BaseService(GObject.Object):
         all_medias = self.medias.copy()
         all_medias.update(self.extra_medias)
 
-        service_medias = [media_type() for media_type in all_medias.values()]
+        service_medias = [self.create_media_instance(icon_type) for icon_type in all_medias]
 
         # Download icons
         for service_media in service_medias:
@@ -171,6 +154,15 @@ class BaseService(GObject.Object):
             service_media.render()
 
     def wipe_game_cache(self):
+        """Wipe the game cache, allowing it to be reloaded"""
+        cache_path = self.cache_path
+        if cache_path:
+            logger.debug("Deleting %s cache %s", self.id, cache_path)
+            if os.path.isdir(cache_path):
+                shutil.rmtree(cache_path)
+            elif system.path_exists(cache_path):
+                os.remove(cache_path)
+
         logger.debug("Deleting games from service-games for %s", self.id)
         sql.db_delete(PGA_DB, "service_games", "service", self.id)
 
@@ -333,13 +325,16 @@ class OnlineService(BaseService):
     """Base class for online gaming services"""
 
     online = True
-    cookies_path = NotImplemented
-    cache_path = NotImplemented
+    cookies_path_tmpl = NotImplemented
     requires_login_page = False
 
     login_window_width = 390
     login_window_height = 500
     login_user_agent = DEFAULT_USER_AGENT
+
+    @property
+    def cookies_path(self):
+        return os.path.join(settings.CACHE_DIR, self._format_props(self.cookies_path_tmpl))
 
     @property
     def credential_files(self):
@@ -362,16 +357,6 @@ class OnlineService(BaseService):
     def is_authenticated(self):
         """Return whether the service is authenticated"""
         return all(system.path_exists(path) for path in self.credential_files)
-
-    def wipe_game_cache(self):
-        """Wipe the game cache, allowing it to be reloaded"""
-        if self.cache_path:
-            logger.debug("Deleting %s cache %s", self.id, self.cache_path)
-            if os.path.isdir(self.cache_path):
-                shutil.rmtree(self.cache_path)
-            elif system.path_exists(self.cache_path):
-                os.remove(self.cache_path)
-        super().wipe_game_cache()
 
     def logout(self):
         """Disconnect from the service by removing all credentials"""
