@@ -46,7 +46,7 @@ FALLBACK_VULKAN_DATA_DIRS = [
 ]
 
 
-def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False, timeout=None):
+def execute(command, env=None, cwd=None, capture_stderr=False, quiet=False, shell=False, timeout=None):
     """
         Execute a system command and return its results.
 
@@ -54,7 +54,7 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
             command (list): A list containing an executable and its parameters
             env (dict): Dict of values to add to the current environment
             cwd (str): Working directory
-            log_errors (bool): Pipe stderr to stdout (might cause slowdowns)
+            capture_stderr (bool): Append stderr to stdout (might cause slowdowns)
             quiet (bool): Do not display log messages
             timeout (int): Number of seconds the program is allowed to run, disabled by default
 
@@ -88,7 +88,7 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
             command,
             shell=shell,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE if log_errors else subprocess.DEVNULL,
+            stderr=subprocess.PIPE if capture_stderr else subprocess.DEVNULL,
             env=existing_env,
             cwd=cwd,
             errors="replace"
@@ -100,8 +100,10 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
     except subprocess.TimeoutExpired:
         logger.error("Command %s after %s seconds", command, timeout)
         return ""
-    if stderr and log_errors:
-        logger.error(stderr)
+
+    if stderr:
+        return (stdout + stderr).strip()
+
     return stdout.strip()
 
 

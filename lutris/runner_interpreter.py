@@ -2,6 +2,7 @@
 import os
 import shlex
 import stat
+from functools import lru_cache
 
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
@@ -117,7 +118,7 @@ def get_gamescope_args(launch_arguments, system_config):
         gamescope_fsr_sharpness = system_config["gamescope_fsr_sharpness"]
         launch_arguments.insert(0, gamescope_fsr_sharpness)
         launch_arguments.insert(0, "--fsr-sharpness")
-        launch_arguments.insert(0, "-U")
+        launch_arguments[0:0] = _get_gamescope_fsr_option()
     if system_config.get("gamescope_flags"):
         gamescope_flags = shlex.split(system_config["gamescope_flags"])
         launch_arguments = gamescope_flags + launch_arguments
@@ -142,6 +143,21 @@ def get_gamescope_args(launch_arguments, system_config):
         launch_arguments.insert(0, "-w")
     launch_arguments.insert(0, "gamescope")
     return launch_arguments
+
+
+@lru_cache()
+def _get_gamescope_fsr_option():
+    """Returns a list containing the arguments to insert to trigger FSR in gamescope;
+    this changes in later versions, so we have to check the help output. There seems to be
+    no way to query the version number more directly."""
+    if bool(system.find_executable("gamescope")):
+        # '-F fsr' is the trigger in gamescope 3.12.
+        help_text = system.execute(["gamescope", "--help"], capture_stderr=True)
+        if "-F, --filter" in help_text:
+            return ["-F", "fsr"]
+
+    # This is the old trigger, pre 3.12.
+    return ["-U"]
 
 
 def export_bash_script(runner, gameplay_info, script_path):
