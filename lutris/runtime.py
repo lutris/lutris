@@ -51,7 +51,7 @@ class Runtime:
     def should_update(self, remote_updated_at):
         """Determine if the current runtime should be updated"""
         if self.versioned:
-            return system.path_exists(os.path.join(settings.RUNTIME_DIR, self.name, self.version))
+            return not system.path_exists(os.path.join(settings.RUNTIME_DIR, self.name, self.version))
 
         local_updated_at = self.get_updated_at()
         if not local_updated_at:
@@ -267,7 +267,6 @@ class RuntimeUpdater:
         for remote_runtime in self._iter_remote_runtimes():
             runtime = Runtime(remote_runtime["name"], self)
             downloader = runtime.download(remote_runtime)
-            logger.debug(downloader)
             if downloader:
                 self.downloaders[runtime] = downloader
         return len(self.downloaders)
