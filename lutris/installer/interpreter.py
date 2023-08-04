@@ -256,18 +256,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                     default_wine = runner.get_runner_version() or {}
                     if "version" in default_wine:
                         logger.debug("Default wine version is %s", default_wine["version"])
-                        # Set the version to both the is_installed params and
-                        # the script itself so the version gets saved at the
-                        # end of the install.
-                        if self.installer.runner not in self.installer.script:
-                            self.installer.script[self.installer.runner] = {}
                         if "architecture" in default_wine:
                             version = "{}-{}".format(default_wine["version"],
                                                      default_wine["architecture"])
                         else:
                             version = default_wine["version"]
-                        params["version"] = \
-                            self.installer.script[self.installer.runner]["version"] = version
+                        params["version"] = version
                     else:
                         logger.error("Failed to get default wine version (got %s)", default_wine)
 
