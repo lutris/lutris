@@ -3,7 +3,7 @@ import os
 import re
 
 from lutris.util.log import logger
-from lutris.util.steam.config import get_steamapps_paths
+from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.steam.vdfutils import vdf_parse
 from lutris.util.strings import slugify
 from lutris.util.system import fix_path_case, path_exists
@@ -106,7 +106,7 @@ class AppManifest:
 
     def get_platform(self):
         """Platform the game uses (linux or windows)"""
-        steamapps_paths = get_steamapps_paths()
+        steamapps_paths = get_steamapps_dirs()
         if self.steamapps_path in steamapps_paths["linux"]:
             return "linux"
         if self.steamapps_path in steamapps_paths["windows"]:

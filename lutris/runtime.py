@@ -6,11 +6,13 @@ import time
 from gi.repository import GLib
 
 from lutris import settings
+from lutris.api import get_runtime_versions
 from lutris.util import http, jobs, system, update_cache
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+
 
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
 DEFAULT_RUNTIME = "Ubuntu-18.04"
@@ -23,6 +25,8 @@ class Runtime:
     def __init__(self, name, updater):
         self.name = name
         self.updater = updater
+        self.versioned = False  # Versioned runtimes keep 1 version per folder
+        self.version = None
 
     @property
     def local_runtime_path(self):
@@ -46,6 +50,9 @@ class Runtime:
 
     def should_update(self, remote_updated_at):
         """Determine if the current runtime should be updated"""
+        if self.versioned:
+            return system.path_exists(os.path.join(settings.RUNTIME_DIR, self.name, self.version))
+
         local_updated_at = self.get_updated_at()
         if not local_updated_at:
             logger.warning("Runtime %s is not available locally", self.name)
@@ -75,6 +82,9 @@ class Runtime:
     def download(self, remote_runtime_info):
         """Downloads a runtime locally"""
         url = remote_runtime_info["url"]
+        self.versioned = remote_runtime_info["versioned"]
+        if self.versioned:
+            self.version = remote_runtime_info["version"]
         if not url:
             return self.download_components()
         remote_updated_at = remote_runtime_info["created_at"]
@@ -166,12 +176,14 @@ class Runtime:
             return False
         directory, _filename = os.path.split(path)
 
-        # Delete the existing runtime path
-        initial_path = os.path.join(directory, self.name)
-        system.remove_folder(initial_path)
-
+        dest_path = os.path.join(directory, self.name)
+        if self.versioned:
+            dest_path = os.path.join(dest_path, self.version)
+        else:
+            # Delete the existing runtime path
+            system.remove_folder(dest_path)
         # Extract the runtime archive
-        jobs.AsyncCall(extract_archive, self.on_extracted, path, settings.RUNTIME_DIR, merge_single=False)
+        jobs.AsyncCall(extract_archive, self.on_extracted, path, dest_path, merge_single=True)
         return False
 
     def on_extracted(self, result, error):
@@ -197,8 +209,11 @@ class RuntimeUpdater:
     update_functions = []
     downloaders = {}
 
-    def __init__(self, force=False):
+    def __init__(self, pci_ids=None, force=False):
+
         self.force = force
+        self.pci_ids = pci_ids or []
+        self.runtime_versions = None
         self.add_update("runtime", self._update_runtime_components, hours=12)
 
     def add_update(self, key, update_function, hours):
@@ -218,11 +233,10 @@ class RuntimeUpdater:
     def update_runtimes(self):
         """Performs all the registered updates. If 'self.cancel()' is called,
         it will immediately stop."""
-
+        self.runtime_versions = get_runtime_versions(self.pci_ids)
         for key, func in self.update_functions:
             if self.cancelled:
                 break
-
             func()
             update_cache.write_date_to_cache(key)
 
@@ -253,29 +267,17 @@ class RuntimeUpdater:
         for remote_runtime in self._iter_remote_runtimes():
             runtime = Runtime(remote_runtime["name"], self)
             downloader = runtime.download(remote_runtime)
+            logger.debug(downloader)
             if downloader:
                 self.downloaders[runtime] = downloader
         return len(self.downloaders)
 
-    @staticmethod
-    def _iter_remote_runtimes():
-        request = http.Request(settings.RUNTIME_URL + "?enabled=1")
-        try:
-            response = request.get()
-        except http.HTTPError as ex:
-            logger.error("Failed to get runtimes: %s", ex)
-            return
-        runtimes = response.json or []
-        for runtime in runtimes:
+    def _iter_remote_runtimes(self):
+        for name, runtime in self.runtime_versions.get("runtimes", {}).items():
             # Skip 64bit runtimes on 32 bit systems
             if runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
-                logger.debug(
-                    "Skipping runtime %s for %s",
-                    runtime["name"],
-                    runtime["architecture"],
-                )
+                logger.debug("Skipping runtime %s for %s", name, runtime["architecture"])
                 continue
-
             yield runtime
 
     def notify_finish(self, runtime):

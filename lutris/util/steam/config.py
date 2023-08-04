@@ -177,6 +177,54 @@ def read_library_folders(steam_data_dir):
         logger.error("Steam libraryfolders %s is empty: %s", library_filename, ex)
 
 
-def get_steamapps_paths():
-    from lutris.runners import steam  # pylint: disable=import-outside-toplevel
-    return steam.steam().get_steamapps_dirs()
+def get_steam_config():
+    """Return the "Steam" part of Steam's config.vdf as a dict."""
+    return read_config(get_steam_dir())
+
+
+def get_library_config():
+    """Return the "libraryfolders" part of Steam's libraryfolders.vdf as a dict """
+    return read_library_folders(get_steam_dir())
+
+
+def get_steamapps_dirs():
+    """Return a list of the Steam library main + custom folders."""
+    dirs = []
+    # Extra colon-separated compatibility tools dirs environment variable
+    if 'STEAM_EXTRA_COMPAT_TOOLS_PATHS' in os.environ:
+        dirs += os.getenv('STEAM_EXTRA_COMPAT_TOOLS_PATHS').split(':')
+    # Main steamapps dir and compatibilitytools.d dir
+    for data_dir in STEAM_DATA_DIRS:
+        for _dir in ["steamapps", "compatibilitytools.d"]:
+            abs_dir = os.path.join(os.path.expanduser(data_dir), _dir)
+            abs_dir = system.fix_path_case(abs_dir)
+            if abs_dir and os.path.isdir(abs_dir):
+                dirs.append(abs_dir)
+
+    # Custom dirs
+    steam_config = get_steam_config()
+    if steam_config:
+        i = 1
+        while "BaseInstallFolder_%s" % i in steam_config:
+            path = steam_config["BaseInstallFolder_%s" % i] + "/steamapps"
+            path = system.fix_path_case(path)
+            if path and os.path.isdir(path):
+                dirs.append(path)
+            i += 1
+
+    # New Custom dirs
+    library_config = get_library_config()
+    if library_config:
+        paths = []
+        for entry in library_config.values():
+            if "mounted" in entry:
+                if entry.get("path") and entry.get("mounted") == "1":
+                    path = system.fix_path_case(entry.get("path") + "/steamapps")
+                    paths.append(path)
+            else:
+                path = system.fix_path_case(entry.get("path") + "/steamapps")
+                paths.append(path)
+        for path in paths:
+            if path and os.path.isdir(path):
+                dirs.append(path)
+    return system.list_unique_folders(dirs)

@@ -28,8 +28,6 @@ class DLLManager:
 
     def __init__(self, prefix=None, arch="win64", version=None):
         self.prefix = prefix
-        if not os.path.isdir(self.base_dir):
-            os.makedirs(self.base_dir)
         self._versions = []
         self._version = version
         self.wine_arch = arch
@@ -38,7 +36,7 @@ class DLLManager:
     def versions(self):
         """Return available versions"""
         self._versions = self.load_versions()
-        if not self._versions:
+        if not self._versions and system.path_exists(self.base_dir):
             self._versions = os.listdir(self.base_dir)
         return self._versions
 
@@ -100,7 +98,7 @@ class DLLManager:
             _choices.append((version, version))
         return _choices
 
-    def load_versions(self):
+    def load_versions(self) -> list:
         if not system.path_exists(self.versions_path):
             return []
         with open(self.versions_path, "r", encoding='utf-8') as version_file:
@@ -298,7 +296,6 @@ class DLLManager:
         download_file(self.releases_url, self.versions_path, overwrite=True)
 
     def upgrade(self):
-        self.fetch_versions()
         if not self.is_available():
             versions = self.load_versions()
 

@@ -8,9 +8,9 @@ from lutris import runtime, settings
 from lutris.api import get_default_runner_version
 from lutris.exceptions import UnavailableRunnerError
 from lutris.gui.dialogs import ErrorDialog, WarningMessageDialog
-from lutris.runners.steam import steam
 from lutris.util import linux, system
 from lutris.util.log import logger
+from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import parse_version
 from lutris.util.wine import fsync
 
@@ -35,7 +35,7 @@ def get_playonlinux():
 def _iter_proton_locations():
     """Iterate through all existing Proton locations"""
     try:
-        steamapp_dirs = steam().get_steamapps_dirs()
+        steamapp_dirs = get_steamapps_dirs()
     except:
         return  # in case of corrupt or unreadable Steam configuration files!
 

@@ -17,7 +17,7 @@ from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
-from lutris.util.steam.config import get_steam_library, get_steamapps_paths, get_user_steam_id
+from lutris.util.steam.config import get_steam_library, get_steamapps_dirs, get_user_steam_id
 from lutris.util.strings import slugify
 
 
@@ -148,7 +148,7 @@ class SteamService(BaseService):
 
     @property
     def steamapps_paths(self):
-        return get_steamapps_paths()
+        return get_steamapps_dirs()
 
     def add_installed_games(self):
         """Syncs installed Steam games with Lutris"""

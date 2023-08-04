@@ -11,25 +11,18 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import GdkPixbuf
 
 from lutris import runners, settings
-from lutris.database.games import delete_game, get_games, get_games_where
+from lutris.database.games import get_games
 from lutris.database.schema import syncdb
 from lutris.game import Game
 from lutris.runners.json import load_json_runners
-from lutris.runtime import RuntimeUpdater
 from lutris.scanners.lutris import build_path_cache
 from lutris.services import DEFAULT_SERVICES
-from lutris.services.lutris import sync_media
-from lutris.util.display import USE_DRI_PRIME
+from lutris.util.display import get_gpus
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-from lutris.util.steam.shortcut import update_all_artwork
 from lutris.util.system import create_folder, preload_vulkan_gpu_names
-from lutris.util.wine.d3d_extras import D3DExtrasManager
-from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
-from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION, DXVKManager
-from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
-from lutris.util.wine.vkd3d import VKD3DManager
+from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION
 
 
 def init_dirs():
@@ -55,7 +48,7 @@ def init_dirs():
         create_folder(directory)
 
 
-def check_driver():
+def get_drivers():
     """Report on the currently running driver"""
     driver_info = {}
     if drivers.is_nvidia():
@@ -69,6 +62,11 @@ def check_driver():
     elif LINUX_SYSTEM.glxinfo:
         # pylint: disable=no-member
         if hasattr(LINUX_SYSTEM.glxinfo, "GLX_MESA_query_renderer"):
+            driver_info = {
+                "vendor": LINUX_SYSTEM.glxinfo.opengl_vendor,
+                "version": LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version,
+                "device": LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.device
+            }
             logger.info(
                 "Running %s Mesa driver %s on %s",
                 LINUX_SYSTEM.glxinfo.opengl_vendor,
@@ -77,13 +75,7 @@ def check_driver():
             )
     else:
         logger.warning("glxinfo is not available on your system, unable to detect driver version")
-
-    for card in drivers.get_gpus():
-        # pylint: disable=logging-format-interpolation
-        try:
-            logger.info("GPU: {PCI_ID} {PCI_SUBSYS_ID} ({DRIVER} drivers)".format(**drivers.get_gpu_info(card)))
-        except KeyError:
-            logger.error("Unable to get GPU information from '%s'", card)
+    return driver_info
 
 
 def check_libs(all_components=False):
@@ -148,22 +140,18 @@ def fill_missing_platforms():
 
 def run_all_checks():
     """Run all startup checks"""
-    check_driver()
+    driver_info = get_drivers()
+    gpu_info = get_gpus()
     check_libs()
     check_vulkan()
     check_gnome()
-    preload_vulkan_gpu_names(USE_DRI_PRIME)
+    preload_vulkan_gpu_names(len(gpu_info) > 1)
     fill_missing_platforms()
     build_path_cache()
-
-
-def cleanup_games():
-    """Delete all uninstalled games that don't have any playtime"""
-    removed_games = get_games_where(installed=0)
-    for game in removed_games:
-        if game["playtime"]:
-            continue
-        delete_game(game["id"])
+    return {
+        "drivers": driver_info,
+        "gpus": gpu_info
+    }
 
 
 def init_lutris():
@@ -181,26 +169,3 @@ def init_lutris():
     for service in DEFAULT_SERVICES:
         if not settings.read_setting(service, section="services"):
             settings.write_setting(service, True, section="services")
-    cleanup_games()
-
-
-class StartupRuntimeUpdater(RuntimeUpdater):
-    """Due to circular reference problems, we need to keep all these interesting
-    references here, out of runtime.py"""
-    dll_manager_classes = [DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager, dgvoodoo2Manager]
-
-    def __init__(self, force=False):
-        super().__init__(force)
-        for dll_manager_class in self.dll_manager_classes:
-            key = dll_manager_class.__name__
-            self.add_update(key, lambda c=dll_manager_class: self._update_dll_manager(c), hours=6)
-
-        self.add_update("media", self._update_media, hours=240)
-
-    def _update_dll_manager(self, dll_manager_class):
-        dll_manager = dll_manager_class()
-        dll_manager.upgrade()
-
-    def _update_media(self):
-        sync_media()
-        update_all_artwork()

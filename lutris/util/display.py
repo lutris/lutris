@@ -24,13 +24,13 @@ from gi.repository import Gdk, GLib, Gio, Gtk
 
 from lutris.util import system
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
+from lutris.util.graphics import drivers
 from lutris.util.graphics.displayconfig import MutterDisplayManager
 from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution, get_outputs
 from lutris.util.log import logger
 
 
 class NoScreenDetected(Exception):
-
     """Raise this when unable to detect screens"""
 
 
@@ -64,6 +64,20 @@ def has_graphic_adapter_description(match_text):
         if match_text in adapter[1]:
             return True
     return False
+
+
+def get_gpus():
+    """Return the number of GPUs from /sys/class/drm without
+    requiring a call to lspci"""
+    gpus = {}
+    for card in drivers.get_gpus():
+        gpus[card] = drivers.get_gpu_info(card)
+        try:
+            gpu_string = f"GPU: {gpus[card]['PCI_ID']} {gpus[card]['PCI_SUBSYS_ID']} ({gpus[card]['DRIVER']} drivers)"
+            logger.info(gpu_string)
+        except KeyError:
+            logger.error("Unable to get GPU information from '%s'", card)
+    return gpus
 
 
 def _get_graphics_adapters():
@@ -167,7 +181,7 @@ def get_display_manager():
 
 
 DISPLAY_MANAGER = get_display_manager()
-USE_DRI_PRIME = len(_get_graphics_adapters()) > 1
+USE_DRI_PRIME = len(get_gpus()) > 1
 
 
 class DesktopEnvironment(enum.Enum):

@@ -284,9 +284,9 @@ def search_games(query):
     return response.json
 
 
-def get_runtime_versions():
+def get_runtime_versions(pci_ids: list) -> dict:
     """Queries runtime + runners + current client versions"""
-    url = settings.SITE_URL + "/api/runtimes/versions"
+    url = settings.SITE_URL + "/api/runtimes/versions?pci_ids=" + ",".join(pci_ids)
     response = http.Request(url, headers={"Content-Type": "application/json"})
     try:
         response.get()

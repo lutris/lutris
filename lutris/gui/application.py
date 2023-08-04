@@ -45,13 +45,14 @@ from lutris.gui.dialogs.delegates import LaunchUIDelegate, InstallUIDelegate, Co
 from lutris.gui.installerwindow import InstallerWindow, InstallationKind
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
-from lutris.startup import init_lutris, run_all_checks, StartupRuntimeUpdater
+from lutris.startup import init_lutris, run_all_checks
+from lutris.runtime import RuntimeUpdater
 from lutris.style_manager import StyleManager
 from lutris.util import datapath, log, system
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
-from lutris.util.steam.config import get_steamapps_paths
+from lutris.util.steam.config import get_steamapps_dirs
 from lutris.services import get_enabled_services
 from lutris.database.services import ServiceGameCollection
 
@@ -293,11 +294,12 @@ class Application(Gtk.Application):
             screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-    def show_update_runtime_dialog(self):
+    def show_update_runtime_dialog(self, gpu_info):
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
         else:
-            runtime_updater = StartupRuntimeUpdater(force=self.force_updates)
+            pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpu_info["gpus"].values()]
+            runtime_updater = RuntimeUpdater(pci_ids=pci_ids, force=self.force_updates)
             if runtime_updater.has_updates:
                 init_dialog = LutrisInitDialog(runtime_updater)
                 init_dialog.run()
@@ -434,7 +436,7 @@ class Application(Gtk.Application):
         if argc:
             migrate()
 
-        run_all_checks()
+        gpu_info = run_all_checks()
 
         if options.contains("dest"):
             dest_dir = options.lookup_value("dest").get_string()
@@ -650,7 +652,7 @@ class Application(Gtk.Application):
             if game.state == game.STATE_STOPPED and not self.window.is_visible():
                 self.quit()
         else:
-            self.show_update_runtime_dialog()
+            self.show_update_runtime_dialog(gpu_info)
             # If we're showing the window, it will handle the delegated UI
             # from here on out, no matter what command line we got.
             self.launch_ui_delegate = self.window
@@ -828,7 +830,7 @@ class Application(Gtk.Application):
         self._print(command_line, json.dumps(games, indent=2))
 
     def print_steam_list(self, command_line):
-        steamapps_paths = get_steamapps_paths()
+        steamapps_paths = get_steamapps_dirs()
         for path in steamapps_paths if steamapps_paths else []:
             appmanifest_files = get_appmanifests(path)
             for appmanifest_file in appmanifest_files:
@@ -855,7 +857,7 @@ class Application(Gtk.Application):
             monitored_command.stop()
 
     def print_steam_folders(self, command_line):
-        steamapps_paths = get_steamapps_paths()
+        steamapps_paths = get_steamapps_dirs()
         if steamapps_paths:
             for path in steamapps_paths:
                 self._print(command_line, path)

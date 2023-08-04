@@ -9,7 +9,7 @@ from lutris.runners.runner import Runner
 from lutris.util import linux, system
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import get_appmanifest_from_appid, get_path_from_appmanifest
-from lutris.util.steam.config import STEAM_DATA_DIRS, get_default_acf, get_steam_dir, read_config, read_library_folders
+from lutris.util.steam.config import get_default_acf, get_steam_dir, get_steamapps_dirs
 from lutris.util.steam.vdfutils import to_vdf
 from lutris.util.strings import split_arguments
 
@@ -120,14 +120,6 @@ class steam(Runner):
     def appid(self):
         return self.game_config.get("appid") or ""
 
-    def get_steam_config(self):
-        """Return the "Steam" part of Steam's config.vdf as a dict."""
-        return read_config(self.steam_data_dir)
-
-    def get_library_config(self):
-        """Return the "libraryfolders" part of Steam's libraryfolders.vdf as a dict """
-        return read_library_folders(self.steam_data_dir)
-
     @property
     def game_path(self):
         if not self.appid:
@@ -139,15 +131,10 @@ class steam(Runner):
         """Main installation directory for Steam"""
         return get_steam_dir()
 
-    @property
-    def library_folders(self):
-        """Return a list Steam library paths"""
-        return self.get_steamapps_dirs()
-
     def get_appmanifest(self):
         """Return an AppManifest instance for the game"""
         appmanifests = []
-        for apps_path in self.get_steamapps_dirs():
+        for apps_path in get_steamapps_dirs():
             appmanifest = get_appmanifest_from_appid(apps_path, self.appid)
             if appmanifest:
                 appmanifests.append(appmanifest)
@@ -186,57 +173,15 @@ class steam(Runner):
 
     def get_game_path_from_appid(self, appid):
         """Return the game directory."""
-        for apps_path in self.get_steamapps_dirs():
+        for apps_path in get_steamapps_dirs():
             game_path = get_path_from_appmanifest(apps_path, appid)
             if game_path:
                 return game_path
         logger.info("Data path for SteamApp %s not found.", appid)
         return ""
 
-    def get_steamapps_dirs(self):
-        """Return a list of the Steam library main + custom folders."""
-        dirs = []
-        # Extra colon-separated compatibility tools dirs environment variable
-        if 'STEAM_EXTRA_COMPAT_TOOLS_PATHS' in os.environ:
-            dirs += os.getenv('STEAM_EXTRA_COMPAT_TOOLS_PATHS').split(':')
-        # Main steamapps dir and compatibilitytools.d dir
-        for data_dir in STEAM_DATA_DIRS:
-            for _dir in ["steamapps", "compatibilitytools.d"]:
-                abs_dir = os.path.join(os.path.expanduser(data_dir), _dir)
-                abs_dir = system.fix_path_case(abs_dir)
-                if abs_dir and os.path.isdir(abs_dir):
-                    dirs.append(abs_dir)
-
-        # Custom dirs
-        steam_config = self.get_steam_config()
-        if steam_config:
-            i = 1
-            while "BaseInstallFolder_%s" % i in steam_config:
-                path = steam_config["BaseInstallFolder_%s" % i] + "/steamapps"
-                path = system.fix_path_case(path)
-                if path and os.path.isdir(path):
-                    dirs.append(path)
-                i += 1
-
-        # New Custom dirs
-        library_config = self.get_library_config()
-        if library_config:
-            paths = []
-            for entry in library_config.values():
-                if "mounted" in entry:
-                    if entry.get("path") and entry.get("mounted") == "1":
-                        path = system.fix_path_case(entry.get("path") + "/steamapps")
-                        paths.append(path)
-                else:
-                    path = system.fix_path_case(entry.get("path") + "/steamapps")
-                    paths.append(path)
-            for path in paths:
-                if path and os.path.isdir(path):
-                    dirs.append(path)
-        return system.list_unique_folders(dirs)
-
     def get_default_steamapps_path(self):
-        steamapps_paths = self.get_steamapps_dirs()
+        steamapps_paths = get_steamapps_dirs()
         if steamapps_paths:
             return steamapps_paths[0]
         return ""
