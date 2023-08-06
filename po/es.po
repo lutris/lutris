@@ -242,7 +242,7 @@ msgstr "Ejecutar un guion"
 
 #: lutris/game_actions.py:61
 msgid "Update shader cache"
-msgstr "Actualizar la caché de sombreadores"
+msgstr "Actualizar la caché de los shaders"
 
 #: lutris/game_actions.py:62
 msgid "Browse files"
