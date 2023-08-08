@@ -4,10 +4,14 @@ from gettext import gettext as _
 
 from gi.repository import GObject, Gtk
 
+from lutris.gui.installer import NotInstallerFile, UnsupportedProvider
 from lutris.cache import save_to_cache
 from lutris.gui.installer.widgets import InstallerLabel
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.download_progress_box import DownloadProgressBox
+from lutris.gui.widgets.download_collection_progress_box import DownloadCollectionProgressBox
+from lutris.installer.installer_file import InstallerFile
+from lutris.installer.installer_file_collection import InstallerFileCollection
 from lutris.installer.steam_installer import SteamInstaller
 from lutris.util import system
 from lutris.util.log import logger
@@ -49,11 +53,19 @@ class InstallerFileBox(Gtk.VBox):
 
     def get_download_progress(self):
         """Return the widget for the download progress bar"""
-        download_progress = DownloadProgressBox({
-            "url": self.installer_file.url,
-            "dest": self.installer_file.dest_file,
-            "referer": self.installer_file.referer
-        }, downloader=self.installer_file.downloader)
+        download_progress = None
+        if isinstance(self.installer_file, InstallerFile):
+            download_progress = DownloadProgressBox({
+                "url": self.installer_file.url,
+                "dest": self.installer_file.dest_file,
+                "referer": self.installer_file.referer
+            }, downloader=self.installer_file.downloader)
+        elif isinstance(self.installer_file, InstallerFileCollection):
+            download_progress = DownloadCollectionProgressBox(self.installer_file)
+        else:
+            raise NotInstallerFile(
+                "Installer file isn't type InstallerFile or InstallerFileCollection\n{}"
+                .format(self.installer_file))
         download_progress.connect("complete", self.on_download_complete)
         download_progress.connect("cancel", self.on_download_cancelled)
         download_progress.show()
@@ -77,11 +89,18 @@ class InstallerFileBox(Gtk.VBox):
             url_label = InstallerLabel("In cache: %s" % self.installer_file.get_label(), wrap=False)
             box.pack_start(url_label, False, False, 6)
             return box
+        # InstallerFileCollection should not have user or steam providers
         if self.provider == "user":
+            if isinstance(self.installer_file, InstallerFileCollection):
+                raise UnsupportedProvider(
+                    "Installer file is type InstallerFileCollection and do not support 'user' provider")
             user_label = InstallerLabel(gtk_safe(self.installer_file.human_url))
             box.pack_start(user_label, False, False, 0)
             return box
         if self.provider == "steam":
+            if isinstance(self.installer_file, InstallerFileCollection):
+                raise UnsupportedProvider(
+                    "Installer file is type InstallerFileCollection and do not support 'steam' provider")
             steam_installer = SteamInstaller(self.installer_file.url,
                                              self.installer_file.id)
             steam_installer.connect("steam-game-installed", self.on_download_complete)
@@ -158,6 +177,10 @@ class InstallerFileBox(Gtk.VBox):
     def get_file_provider_label(self):
         """Return the label displayed before the download starts"""
         if self.provider == "user":
+            # installer_file should not be instance of InstallerFileCollection if provider is user
+            if isinstance(self.installer_file, InstallerFileCollection):
+                raise UnsupportedProvider(
+                    "Installer file is type InstallerFileCollection and do not support 'user' provider")
             box = Gtk.VBox(spacing=6)
             label = InstallerLabel(self.installer_file.get_label())
             label.props.can_focus = True
@@ -190,9 +213,12 @@ class InstallerFileBox(Gtk.VBox):
         source_box = Gtk.HBox()
         source_box.props.valign = Gtk.Align.START
         box.pack_start(source_box, False, False, 0)
-        source_box.pack_start(InstallerLabel(_("Source:")), False, False, 0)
-        combobox = self.get_combobox()
-        source_box.pack_start(combobox, False, False, 0)
+        if isinstance(self.installer_file, InstallerFile):
+            source_box.pack_start(InstallerLabel(_("Source:")), False, False, 0)
+            combobox = self.get_combobox()
+            source_box.pack_start(combobox, False, False, 0)
+            return box
+        source_box.pack_start(InstallerLabel(str(self.installer_file.num_files) + " " + _("Files")), False, False, 0)
         return box
 
     def on_location_changed(self, widget):
@@ -227,7 +253,11 @@ class InstallerFileBox(Gtk.VBox):
     def cache_file(self):
         """Copy file to the PGA cache"""
         if self.cache_to_pga:
-            save_to_cache(self.installer_file.dest_file, self.installer_file.cache_path)
+            if isinstance(self.installer_file, InstallerFile):
+                save_to_cache(self.installer_file.dest_file, self.installer_file.cache_path)
+            elif isinstance(self.installer_file, InstallerFileCollection):
+                for installer_file in self.installer_file.files_list:
+                    save_to_cache(installer_file.dest_file, installer_file.cache_path)
 
     def on_download_cancelled(self, downloader):
         """Handle cancellation of installers"""
