@@ -12,6 +12,7 @@ from lutris import settings
 from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
+from lutris.installer.installer_file_collection import InstallerFileCollection
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -486,7 +487,7 @@ class GOGService(OnlineService):
         if selected_extras:
             for extra_file in self.get_extra_files(downloads, installer, selected_extras):
                 files.append(extra_file)
-        return files
+        return [InstallerFileCollection(installer.game_slug, installer_file_id, files)]
 
     def read_file_checksum(self, file_path):
         """Return the MD5 checksum for a GOG file

@@ -16,6 +16,9 @@ import yaml
 
 from lutris import settings
 from lutris.exceptions import AuthenticationError, UnavailableGameError
+from lutris.installer import AUTO_WIN32_EXE
+from lutris.installer.installer_file import InstallerFile
+from lutris.installer.installer_file_collection import InstallerFileCollection
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -478,6 +481,30 @@ class AmazonService(OnlineService):
 
         return manifest
 
+    def get_file_patch(self, access_token, game_id, version, file_hashes):
+        request_data = {
+            "Operation": "GetPatches",
+            "versionId": version,
+            "fileHashes": file_hashes,
+            "deltaEncodings": ["FUEL_PATCH", "NONE"],
+            "adgGoodId": game_id,
+        }
+
+        response = self.request_sds(
+            "com.amazonaws.gearbox."
+            "softwaredistribution.service.model."
+            "SoftwareDistributionService.GetPatches",
+            access_token,
+            request_data,
+        )
+
+        if not response:
+            logger.error("There was an error getting patches: %s", game_id)
+            raise UnavailableGameError(_(
+                "Unable to get the patches of game, "
+                "please check your Amazon credentials and internet connectivity"), game_id)
+        return response
+
     def get_game_patches(self, game_id, version, file_list):
         """Get game files"""
         access_token = self.get_access_token()
@@ -492,28 +519,7 @@ class AmazonService(OnlineService):
         patches = []
 
         for batch in batches:
-            request_data = {
-                "Operation": "GetPatches",
-                "versionId": version,
-                "fileHashes": batch,
-                "deltaEncodings": ["FUEL_PATCH", "NONE"],
-                "adgGoodId": game_id,
-            }
-
-            response = self.request_sds(
-                "com.amazonaws.gearbox."
-                "softwaredistribution.service.model."
-                "SoftwareDistributionService.GetPatches",
-                access_token,
-                request_data,
-            )
-
-            if not response:
-                logger.error("There was an error getting patches: %s", game_id)
-                raise UnavailableGameError(_(
-                    "Unable to get the patches of game, "
-                    "please check your Amazon credentials and internet connectivity"), game_id)
-
+            response = self.get_file_patch(access_token, game_id, version, batch)
             patches += response["patches"]
 
         return patches
@@ -608,48 +614,54 @@ class AmazonService(OnlineService):
             game_cmd, game_args = self.get_exe_and_game_args(fuel_url)
 
         if game_cmd is None:
-            game_cmd = "_xXx_AUTO_WIN32_xXx_"
+            game_cmd = AUTO_WIN32_EXE
 
         if game_args is None:
             game_args = ""
 
         return game_cmd, game_args
 
+    def get_installer_files(self, installer, installer_file_id, selected_extras):
+        try:
+            file_dict, __ = self.get_game_files(installer.service_appid)
+        except HTTPError as err:
+            raise UnavailableGameError(_("Couldn't load the downloads for this game")) from err
+
+        files = []
+        for file_hash, file in file_dict.items():
+            file_name = os.path.basename(file["path"])
+            files.append(InstallerFile(installer.game_slug, file_hash, {
+                    "url": file["url"],
+                    "filename": file_name,
+                }))
+        # return should be a list of files, so we return a list containing a InstallerFileCollection
+        return [InstallerFileCollection(installer.game_slug, "amazongame", files)]
+
     def generate_installer(self, db_game):
         """Generate a installer for the Amazon game"""
         details = json.loads(db_game["details"])
+        game_id = details["id"]
 
-        files = []
+        manifest_info = self.get_game_manifest_info(game_id)
+        manifest = self.get_game_manifest(manifest_info)
+
+        file_dict, directories, hashpairs = self.structure_manifest_data(manifest)
+
         installer = [
             {"task": {"name": "create_prefix"}},
-            {"mkdir": "$GAMEDIR/drive_c/game"}]
+            {"mkdir": "$GAMEDIR/drive_c/game"},
+            {"autosetup_amazon": {"files": file_dict, "directories": directories}}]
 
-        file_dict, directories = self.get_game_files(details["id"])
-
-        for __, directory in enumerate(directories):
-            installer.append({"mkdir": f"$GAMEDIR/drive_c/game/{directory}"})
-
+        # try to get fuel file that contain the main exe
+        fuel_file = {k:v for k, v in file_dict.items() if "fuel.json" in v["path"]}
+        hashpair = [hashpair for hashpair in hashpairs if hashpair["targetHash"]["value"] == list(fuel_file.keys())[0]]
         fuel_url = None
-
-        for file_hash, file in file_dict.items():
-            file_name = os.path.basename(file["path"])
-            files.append({
-                file_hash: {
-                    "url": file["url"],
-                    "filename": file_name,
-                    "provider": "download"
-                }
-            })
-
-            file_path = os.path.dirname(file["path"])
-            installer.append({"move": {
-                "description": _("Installing file: %s") % file_name,
-                "src": file_hash,
-                "dst": f"$GAMEDIR/drive_c/game/{file_path}"
-            }})
-
-            if file_name == "fuel.json":
-                fuel_url = file["url"]
+        if fuel_file:
+            version = manifest_info["versionId"]
+            access_token = self.get_access_token()
+            response = self.get_file_patch(access_token, game_id, version, hashpair)
+            patch = response["patches"][0]
+            fuel_url = patch["downloadUrls"][0]
 
         game_cmd, game_args = self.get_game_cmd_line(fuel_url)
         logger.info("game cmd line: %s %s", game_cmd, game_args)
@@ -668,7 +680,7 @@ class AmazonService(OnlineService):
                     "working_dir": "$GAMEDIR/drive_c/game"
                 },
                 "system": {},
-                "files": files,
+                "files": [{"amazongame": "N/A:Select the installer from Amazon Games"}],
                 "installer": installer
             }
         }

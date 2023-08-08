@@ -23,6 +23,7 @@ from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_wine_version_exe
+from lutris.installer.installer_file_collection import InstallerFileCollection
 
 
 class CommandsMixin:
@@ -652,6 +653,19 @@ class CommandsMixin:
                 "executable": file_id,
                 "args": args
             })
+
+    def autosetup_amazon(self, file_and_dir_dict):
+        files = file_and_dir_dict["files"]
+        directories = file_and_dir_dict["directories"]
+
+        # create directories
+        for directory in directories:
+            self.mkdir(f"$GAMEDIR/drive_c/game/{directory}")
+
+        # move installed files from CACHE to game folder
+        for file_hash, file in self.game_files.items():
+            file_dir = os.path.dirname(files[file_hash]['path'])
+            self.move({"src": file, "dst": f"$GAMEDIR/drive_c/game/{file_dir}"})
 
     def install_or_extract(self, file_id):
         """Runs if file is executable or extracts if file is archive"""
