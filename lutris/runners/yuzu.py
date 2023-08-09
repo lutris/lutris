@@ -13,7 +13,7 @@ class yuzu(Runner):
     platforms = [_("Nintendo Switch")]
     description = _("Nintendo Switch emulator")
     runnable_alone = True
-    runner_executable = "yuzu/yuzu"
+    runner_executable = "yuzu/yuzu-mainline.AppImage"
     flatpak_id = "org.yuzu_emu.yuzu"
     game_options = [
         {
@@ -41,6 +41,9 @@ class yuzu(Runner):
             "default": True,
         },
     ]
+
+    # yuzu currently uses an AppImage, no need for the runtime.
+    system_options_override = [{"option": "disable_runtime", "default": True}]
 
     @property
     def yuzu_data_dir(self):
