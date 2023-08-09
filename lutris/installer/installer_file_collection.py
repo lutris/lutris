@@ -37,6 +37,10 @@ class InstallerFileCollection:
     @dest_file.setter
     def dest_file(self, value):
         self._dest_folder = value
+        # trys to set main gog file to dest_file
+        for installer_file in self.files_list:
+            if installer_file.id == "gogintaller":
+                installer_file.dest_file = value
 
     def __str__(self):
         return "%s/%s" % (self.game_slug, self.id)
