@@ -28,6 +28,9 @@ class xemu(Runner):
         },
     ]
 
+    # xemu currently uses an AppImage, no need for the runtime.
+    system_options_override = [{"option": "disable_runtime", "default": True}]
+
     def play(self):
         """Run the game."""
         arguments = self.get_command()
