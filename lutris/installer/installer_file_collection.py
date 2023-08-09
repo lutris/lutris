@@ -32,11 +32,15 @@ class InstallerFileCollection:
         """dest_file represents destination folder to all file collection"""
         if self._dest_folder:
             return self._dest_folder
-        return os.path.join(self.cache_path, self.id)
+        return self.cache_path
 
     @dest_file.setter
     def dest_file(self, value):
         self._dest_folder = value
+        # try to set main gog file to dest_file
+        for installer_file in self.files_list:
+            if installer_file.id == "gogintaller":
+                installer_file.dest_file = value
 
     def __str__(self):
         return "%s/%s" % (self.game_slug, self.id)
@@ -82,7 +86,9 @@ class InstallerFileCollection:
         if create:
             try:
                 logger.debug("Creating cache path %s", self.cache_path)
-                os.makedirs(self.cache_path)
+                # make dirs to all files
+                for installer_file in self.files_list:
+                    os.makedirs(installer_file.cache_path)
             except (OSError, PermissionError) as ex:
                 logger.error("Failed to created cache path: %s", ex)
                 return False
@@ -96,7 +102,7 @@ class InstallerFileCollection:
         _cache_path = cache.get_cache_path()
         if not _cache_path:
             _cache_path = os.path.join(settings.CACHE_DIR, "installer")
-        return os.path.join(_cache_path, self.game_slug, self.id)
+        return os.path.join(_cache_path, self.game_slug)
 
     def prepare(self):
         """Prepare all files for download"""
@@ -106,5 +112,11 @@ class InstallerFileCollection:
 
     @property
     def is_cached(self):
-        """Is the file available in the local PGA cache?"""
-        return self.uses_pga_cache() and system.path_exists(self.dest_file)
+        """Are the files available in the local PGA cache?"""
+        if self.uses_pga_cache():
+            # check if every file is on cache
+            for installer_file in self.files_list:
+                if not system.path_exists(installer_file.dest_file):
+                    return False
+            return True
+        return False

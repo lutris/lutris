@@ -89,14 +89,11 @@ class InstallerFileBox(Gtk.VBox):
             url_label = InstallerLabel("In cache: %s" % self.installer_file.get_label(), wrap=False)
             box.pack_start(url_label, False, False, 6)
             return box
-        # InstallerFileCollection should not have user or steam providers
         if self.provider == "user":
-            if isinstance(self.installer_file, InstallerFileCollection):
-                raise UnsupportedProvider(
-                    "Installer file is type InstallerFileCollection and do not support 'user' provider")
             user_label = InstallerLabel(gtk_safe(self.installer_file.human_url))
             box.pack_start(user_label, False, False, 0)
             return box
+        # InstallerFileCollection should not have steam provider
         if self.provider == "steam":
             if isinstance(self.installer_file, InstallerFileCollection):
                 raise UnsupportedProvider(
@@ -177,10 +174,6 @@ class InstallerFileBox(Gtk.VBox):
     def get_file_provider_label(self):
         """Return the label displayed before the download starts"""
         if self.provider == "user":
-            # installer_file should not be instance of InstallerFileCollection if provider is user
-            if isinstance(self.installer_file, InstallerFileCollection):
-                raise UnsupportedProvider(
-                    "Installer file is type InstallerFileCollection and do not support 'user' provider")
             box = Gtk.VBox(spacing=6)
             label = InstallerLabel(self.installer_file.get_label())
             label.props.can_focus = True
@@ -213,12 +206,11 @@ class InstallerFileBox(Gtk.VBox):
         source_box = Gtk.HBox()
         source_box.props.valign = Gtk.Align.START
         box.pack_start(source_box, False, False, 0)
-        if isinstance(self.installer_file, InstallerFile):
-            source_box.pack_start(InstallerLabel(_("Source:")), False, False, 0)
-            combobox = self.get_combobox()
-            source_box.pack_start(combobox, False, False, 0)
-            return box
-        source_box.pack_start(InstallerLabel(str(self.installer_file.num_files) + " " + _("Files")), False, False, 0)
+        if isinstance(self.installer_file, InstallerFileCollection):
+            source_box.pack_start(InstallerLabel(f"{self.installer_file.num_files} {_('Files')}"), False, False, 0)
+        source_box.pack_start(InstallerLabel(_("Source:")), False, False, 0)
+        combobox = self.get_combobox()
+        source_box.pack_start(combobox, False, False, 0)
         return box
 
     def on_location_changed(self, widget):
