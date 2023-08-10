@@ -4,7 +4,7 @@ import os
 from lutris.util.log import logger
 
 DOLPHIN_GAME_CACHE_FILE = os.path.expanduser("~/.cache/dolphin-emu/gamelist.cache")
-SUPPORTED_CACHE_VERSION = 20
+SUPPORTED_CACHE_VERSION = 24
 
 
 def get_hex_string(string):
@@ -26,11 +26,13 @@ class DolphinCacheReader:
         'valid': 'b',
         'file_path': 's',
         'file_name': 's',
+        
         'file_size': 8,
         'volume_size': 8,
-        'volume_size_is_accurate': 1,
-        'is_datel_disc': 1,
-        'is_nkit': 1,
+        'volume_size_type': 4,
+        'is_datel_disc': 'b',
+        'is_nkit': 'b',
+        
         'short_names': 'a',
         'long_names': 'a',
         'short_makers': 'a',
@@ -41,6 +43,7 @@ class DolphinCacheReader:
         'gametdb_id': 's',
         'title_id': 8,
         'maker_id': 's',
+        
         'region': 4,
         'country': 4,
         'platform': 1,
@@ -51,6 +54,7 @@ class DolphinCacheReader:
         'revision': 2,
         'disc_number': 1,
         'apploader_date': 's',
+        
         'custom_name': 's',
         'custom_description': 's',
         'custom_maker': 's',
