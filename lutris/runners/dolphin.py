@@ -57,7 +57,7 @@ class dolphin(Runner):
         command = self.get_command()
 
         # Batch isn't available in nogui
-        if self.runner_config.get("batch") and not self.runner_config.get("nogui"):
+        if self.runner_config.get("batch"):
             command.append("--batch")
 
         # Custom Global User Directory
