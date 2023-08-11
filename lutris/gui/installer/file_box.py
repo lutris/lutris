@@ -126,7 +126,8 @@ class InstallerFileBox(Gtk.VBox):
             model.append(["pga", _("Use Cache")])
         if "steam" in self.installer_file.providers:
             model.append(["steam", _("Steam")])
-        model.append(["user", _("Select File")])
+        if not (isinstance(self.installer_file, InstallerFileCollection) and self.installer_file.service == "amazon"):
+            model.append(["user", _("Select File")])
         return model
 
     def get_combobox(self):
