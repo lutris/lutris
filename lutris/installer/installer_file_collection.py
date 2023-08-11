@@ -1,11 +1,14 @@
 """Manipulates installer files"""
 import os
 from gettext import gettext as _
+from urllib.parse import urlparse
 
 from lutris import cache, settings
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags, gtk_safe
+
+AMAZON_DOMAIN = "a2z.com"
 
 
 class InstallerFileCollection:
@@ -18,6 +21,17 @@ class InstallerFileCollection:
         self.num_files = len(files_list)
         self.files_list = files_list
         self._dest_folder = dest_folder  # Used to override the destination
+        self._get_service()
+
+    def _get_service(self):
+        """Try to get the service using the url of an InstallerFile"""
+        self.service = None
+        if self.num_files < 1:
+            return
+        url = self.files_list[0].url
+        url_parts = urlparse(url)
+        if url_parts.netloc.endswith(AMAZON_DOMAIN):
+            self.service = "amazon"
 
     def copy(self):
         """Copy InstallerFileCollection"""
