@@ -12,7 +12,8 @@ from lutris import services, settings
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
-from lutris.exceptions import watch_errors
+from lutris.exceptions import watch_errors, FsyncUnsupportedError, FsyncUnavailableError, EsyncLimitError, \
+    EsyncUnavailableError
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
@@ -34,6 +35,8 @@ from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.log import logger
 from lutris.util.system import update_desktop_icons
+from lutris.util.wine.wine import fsync_display_support_warning, fsync_display_version_warning, \
+    esync_display_limit_warning, esync_display_version_warning
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
@@ -895,7 +898,17 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def on_game_unhandled_error(self, game, error):
         """Called when a game has sent the 'game-error' signal"""
-        dialogs.ErrorDialog(error, parent=self)
+
+        if isinstance(error, FsyncUnsupportedError):
+            fsync_display_support_warning(parent=self)
+        elif isinstance(error, FsyncUnavailableError):
+            fsync_display_version_warning(parent=self)
+        elif isinstance(error, EsyncLimitError):
+            esync_display_limit_warning(parent=self)
+        elif isinstance(error, EsyncUnavailableError):
+            esync_display_version_warning(parent=self)
+        else:
+            dialogs.ErrorDialog(error, parent=self)
         return True
 
     @GtkTemplate.Callback

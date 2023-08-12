@@ -631,9 +631,9 @@ class AmazonService(OnlineService):
         for file_hash, file in file_dict.items():
             file_name = os.path.basename(file["path"])
             files.append(InstallerFile(installer.game_slug, file_hash, {
-                    "url": file["url"],
-                    "filename": file_name,
-                }))
+                "url": file["url"],
+                "filename": file_name,
+            }))
         # return should be a list of files, so we return a list containing a InstallerFileCollection
         return [InstallerFileCollection(installer.game_slug, "amazongame", files)]
 
@@ -653,7 +653,7 @@ class AmazonService(OnlineService):
             {"autosetup_amazon": {"files": file_dict, "directories": directories}}]
 
         # try to get fuel file that contain the main exe
-        fuel_file = {k:v for k, v in file_dict.items() if "fuel.json" in v["path"]}
+        fuel_file = {k: v for k, v in file_dict.items() if "fuel.json" in v["path"]}
         hashpair = [hashpair for hashpair in hashpairs if hashpair["targetHash"]["value"] == list(fuel_file.keys())[0]]
         fuel_url = None
         if fuel_file:

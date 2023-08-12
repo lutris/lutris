@@ -199,7 +199,6 @@ def parse_wine_version(version):
 
 
 def version_sort(versions, reverse=False):
-
     def version_key(version):
         version_list, prefix, suffix = parse_wine_version(version)
         # Normalize the length of sub-versions
@@ -311,41 +310,43 @@ def get_real_executable(windows_executable, working_dir=None):
     return (windows_executable, [], working_dir)
 
 
-def esync_display_limit_warning():
+def esync_display_limit_warning(parent=None):
     ErrorDialog(_(
         "Your limits are not set correctly."
         " Please increase them as described here:"
         " <a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
         "How-to:-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
-    ))
+    ), parent=parent)
 
 
-def fsync_display_support_warning():
+def fsync_display_support_warning(parent=None):
     ErrorDialog(_(
         "Your kernel is not patched for fsync."
         " Please get a patched kernel to use fsync."
-    ))
+    ), parent=parent)
 
 
-def esync_display_version_warning():
+def esync_display_version_warning(parent=None):
     WarningMessageDialog(
         _("Incompatible Wine version detected"),
         secondary_message=_(
             "The Wine build you have selected "
             "does not support Esync.\n"
             "Please switch to an Esync-capable version."
-        )
+        ),
+        parent=parent
     )
 
 
-def fsync_display_version_warning():
+def fsync_display_version_warning(parent=None):
     WarningMessageDialog(
         _("Incompatible Wine version detected"),
         secondary_message=_(
             "The Wine build you have selected "
             "does not support Fsync.\n"
             "Please switch to an Fsync-capable version."
-        )
+        ),
+        parent=parent
     )
 
 

@@ -1,5 +1,4 @@
 from gettext import gettext as _
-from urllib.parse import urlparse
 
 from gi.repository import GLib, GObject, Gtk, Pango
 
@@ -7,15 +6,16 @@ from lutris.util.downloader import Downloader
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
+
 class DownloadCollectionProgressBox(Gtk.Box):
     """Progress bar used to monitor a collection of files download."""
 
     max_retries = 3
 
     __gsignals__ = {
-        "complete": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT, )),
+        "complete": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
         "cancel": (GObject.SignalFlags.RUN_LAST, None, ()),
-        "error": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT, )),
+        "error": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
     }
 
     def __init__(self, mult_files, cancelable=True, downloader=None):
@@ -86,7 +86,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
         if self.num_files_to_download <= 0:
             self.full_progressbar.pulse()
         else:
-            self.full_progressbar.set_fraction(self.num_files_downloaded/self.num_files_to_download)
+            self.full_progressbar.set_fraction(self.num_files_downloaded / self.num_files_to_download)
         self.full_progressbar.set_text(f"{self.num_files_downloaded} / {self.num_files_to_download} {_('Files')}")
 
     def update_downlaod_file_label(self, file_name):

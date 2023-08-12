@@ -23,7 +23,6 @@ from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_wine_version_exe
-from lutris.installer.installer_file_collection import InstallerFileCollection
 
 
 class CommandsMixin:

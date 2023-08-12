@@ -16,6 +16,7 @@ def get_word_len(string):
     """Return the length of a string as specified in the Dolphin format"""
     return int("0x" + "".join("{:02x}".format(c) for c in string[::-1]), 0)
 
+
 # https://github.com/dolphin-emu/dolphin/blob/90a994f93780ef8a7cccfc02e00576692e0f2839/Source/Core/UICommon/GameFile.h#L140
 # https://github.com/dolphin-emu/dolphin/blob/90a994f93780ef8a7cccfc02e00576692e0f2839/Source/Core/UICommon/GameFile.cpp#L318
 
@@ -26,13 +27,13 @@ class DolphinCacheReader:
         'valid': 'b',
         'file_path': 's',
         'file_name': 's',
-        
+
         'file_size': 8,
         'volume_size': 8,
         'volume_size_type': 4,
         'is_datel_disc': 'b',
         'is_nkit': 'b',
-        
+
         'short_names': 'a',
         'long_names': 'a',
         'short_makers': 'a',
@@ -43,7 +44,7 @@ class DolphinCacheReader:
         'gametdb_id': 's',
         'title_id': 8,
         'maker_id': 's',
-        
+
         'region': 4,
         'country': 4,
         'platform': 1,
@@ -54,7 +55,7 @@ class DolphinCacheReader:
         'revision': 2,
         'disc_number': 1,
         'apploader_date': 's',
-        
+
         'custom_name': 's',
         'custom_description': 's',
         'custom_maker': 's',

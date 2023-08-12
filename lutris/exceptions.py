@@ -6,7 +6,6 @@ from lutris.util.log import logger
 
 
 class LutrisError(Exception):
-
     """Base exception for Lutris related errors"""
 
     def __init__(self, message):
@@ -15,7 +14,6 @@ class LutrisError(Exception):
 
 
 class GameConfigError(LutrisError):
-
     """Throw this error when the game configuration prevents the game from
     running properly.
     """
@@ -46,6 +44,22 @@ class UnavailableRunnerError(Exception):
     """Raised when a runner is not installed or not installed fully."""
 
 
+class EsyncUnavailableError(Exception):
+    """Raised when ESYNC is enabled, but the Wine version does not support it."""
+
+
+class EsyncLimitError(Exception):
+    """Raised when the ESYNC limit is not set correctly."""
+
+
+class FsyncUnavailableError(Exception):
+    """Raised when FSYNC is enabled, but the Wine version does not support it."""
+
+
+class FsyncUnsupportedError(Exception):
+    """Raised when FSYNC is enabled, but is not supported by the kernel."""
+
+
 def watch_errors(error_result=None, handler_object=None):
     """Decorator used to catch exceptions for GUI signal handlers. This
     catches any exception from the decorated function and calls
@@ -63,7 +77,9 @@ def watch_errors(error_result=None, handler_object=None):
                 logger.exception(str(ex), exc_info=ex)
                 myself.on_watched_error(ex)
                 return error_result
+
         return wrapper
+
     return inner_decorator
 
 
@@ -100,4 +116,5 @@ def watch_game_errors(game_stop_result, game=None):
                 return game_stop_result
 
         return wrapper
+
     return inner_decorator
