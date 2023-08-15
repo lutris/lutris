@@ -633,6 +633,7 @@ class AmazonService(OnlineService):
             files.append(InstallerFile(installer.game_slug, file_hash, {
                 "url": file["url"],
                 "filename": file_name,
+                "size": file["size"]
             }))
         # return should be a list of files, so we return a list containing a InstallerFileCollection
         return [InstallerFileCollection(installer.game_slug, "amazongame", files)]
