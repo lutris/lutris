@@ -481,13 +481,14 @@ class GOGService(OnlineService):
             raise UnavailableGameError(_("Couldn't load the downloads for this game")) from err
         links = self._get_installer_links(installer, downloads)
         if links:
-            files = self._format_links(installer, installer_file_id, links)
+            files = [InstallerFileCollection(installer.game_slug, installer_file_id,
+                        self._format_links(installer, installer_file_id, links))]
         else:
             files = []
         if selected_extras:
             for extra_file in self.get_extra_files(downloads, installer, selected_extras):
                 files.append(extra_file)
-        return [InstallerFileCollection(installer.game_slug, installer_file_id, files)]
+        return files
 
     def read_file_checksum(self, file_path):
         """Return the MD5 checksum for a GOG file
