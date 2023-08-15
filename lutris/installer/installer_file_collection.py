@@ -1,5 +1,6 @@
 """Manipulates installer files"""
 import os
+from functools import reduce
 from urllib.parse import urlparse
 
 from lutris import cache, settings
@@ -20,7 +21,13 @@ class InstallerFileCollection:
         self.num_files = len(files_list)
         self.files_list = files_list
         self._dest_folder = dest_folder  # Used to override the destination
+        self.full_size = 0
+        self._get_files_size()
         self._get_service()
+
+    def _get_files_size(self):
+        if self.num_files > 0:
+            self.full_size = reduce(lambda x, y: x + y, map(lambda a: a.size, self.files_list))
 
     def _get_service(self):
         """Try to get the service using the url of an InstallerFile"""

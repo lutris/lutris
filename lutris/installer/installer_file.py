@@ -214,6 +214,12 @@ class InstallerFile:
             raise ScriptingError(hash_type.capitalize() + _(" checksum mismatch "), self.checksum)
 
     @property
+    def size(self):
+        if isinstance(self._file_meta, dict) and "size" in self._file_meta and isinstance(self._file_meta["size"], int):
+            return self._file_meta["size"]
+        return 0
+
+    @property
     def is_cached(self):
         """Is the file available in the local PGA cache?"""
         return self.uses_pga_cache() and system.path_exists(self.dest_file)

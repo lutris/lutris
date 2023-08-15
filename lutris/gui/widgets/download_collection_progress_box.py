@@ -1,3 +1,4 @@
+import time
 from gettext import gettext as _
 
 from gi.repository import GLib, GObject, Gtk, Pango
@@ -6,6 +7,8 @@ from lutris.util.downloader import Downloader
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
+# Same reason as Downloader
+get_time = time.monotonic
 
 class DownloadCollectionProgressBox(Gtk.Box):
     """Progress bar used to monitor a collection of files download."""
@@ -18,17 +21,24 @@ class DownloadCollectionProgressBox(Gtk.Box):
         "error": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
     }
 
-    def __init__(self, mult_files, cancelable=True, downloader=None):
+    def __init__(self, file_collection, cancelable=True, downloader=None):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
 
         self.downloader = downloader
         self.is_complete = False
-        self._file_queue = mult_files.files_list.copy()
+        self._file_queue = file_collection.files_list.copy()
         self._file_downlaod = None  # file being downloaded
-        self.title = mult_files.human_url
+        self.title = file_collection.human_url
         self.num_files_downloaded = 0
-        self.num_files_to_download = mult_files.num_files
+        self.num_files_to_download = file_collection.num_files
         self.num_retries = 0
+        self.full_size = file_collection.full_size
+        self.current_size = 0
+        self.time_left = "00:00:00"
+        self.time_left_check_time = 0
+        self.last_size = 0
+        self.avg_speed = 0
+        self.speed_list = []
 
         top_box = Gtk.Box()
         self.main_label = Gtk.Label(self.title)
@@ -46,16 +56,6 @@ class DownloadCollectionProgressBox(Gtk.Box):
         top_box.pack_end(self.cancel_button, False, False, 0)
 
         self.pack_start(top_box, True, True, 0)
-
-        full_progress_box = Gtk.Box()
-        self.full_progressbar = Gtk.ProgressBar(show_text=True)
-        self.full_progressbar.set_margin_top(5)
-        self.full_progressbar.set_margin_bottom(5)
-        self.full_progressbar.set_margin_right(10)
-        full_progress_box.pack_start(self.full_progressbar, True, True, 0)
-
-        self.pack_start(full_progress_box, False, False, 0)
-        self.update_full_progress()
 
         self.file_name_label = Gtk.Label()
         self.file_name_label.set_alignment(0, 0)
@@ -80,14 +80,6 @@ class DownloadCollectionProgressBox(Gtk.Box):
 
         self.show_all()
         self.cancel_button.hide()
-
-    def update_full_progress(self):
-        """Update Full download progress bar"""
-        if self.num_files_to_download <= 0:
-            self.full_progressbar.pulse()
-        else:
-            self.full_progressbar.set_fraction(self.num_files_downloaded / self.num_files_to_download)
-        self.full_progressbar.set_text(f"{self.num_files_downloaded} / {self.num_files_to_download} {_('Files')}")
 
     def update_downlaod_file_label(self, file_name):
         """Update file label to file being downloaded"""
@@ -155,7 +147,6 @@ class DownloadCollectionProgressBox(Gtk.Box):
 
     def _progress(self):
         """Show download progress of current file."""
-        progress = min(self.downloader.check_progress(), 1)
         if self.downloader.state in [self.downloader.CANCELLED, self.downloader.ERROR]:
             self.progressbar.set_fraction(0)
             if self.downloader.state == self.downloader.CANCELLED:
@@ -171,20 +162,25 @@ class DownloadCollectionProgressBox(Gtk.Box):
                     self.downloader.reset()
                     self.start()
             return False
+        downloaded_size = self.current_size + self.downloader.downloaded_size
+        progress = 0
+        if self.full_size > 0:
+            progress = min(downloaded_size / self.full_size, 1)
         self.progressbar.set_fraction(progress)
+        self.update_speed_and_time()
         megabytes = 1024 * 1024
         progress_text = _(
             "{downloaded:0.2f} / {size:0.2f}MB ({speed:0.2f}MB/s), {time} remaining"
         ).format(
-            downloaded=float(self.downloader.downloaded_size) / megabytes,
-            size=float(self.downloader.full_size) / megabytes,
-            speed=float(self.downloader.average_speed) / megabytes,
-            time=self.downloader.time_left,
+            downloaded=(downloaded_size) / megabytes,
+            size=float(self.full_size) / megabytes,
+            speed=float(self.avg_speed) / megabytes,
+            time=self.time_left,
         )
         self._set_text(progress_text)
         if self.downloader.state == self.downloader.COMPLETED:
             self.num_files_downloaded += 1
-            self.update_full_progress()
+            self.current_size += self.downloader.downloaded_size
             # set file to None to get next one
             self._file_downlaod = None
             self.downloader = None
@@ -192,6 +188,37 @@ class DownloadCollectionProgressBox(Gtk.Box):
             self.start()
             return False
         return True
+
+    def update_speed_and_time(self):
+        """Update time left and average speed."""
+        elapsed_time = get_time() - self.time_left_check_time
+        if elapsed_time < 1:  # Minimum delay
+            return
+
+        if not self.downloader:
+            self.time_left = "???"
+            return
+
+        downloaded_size = self.current_size + self.downloader.downloaded_size
+        elapsed_size = downloaded_size - self.last_size
+        self.last_size = downloaded_size
+
+        speed = elapsed_size / elapsed_time
+        # last 20 speeds
+        if len(self.speed_list) >= 20:
+            self.speed_list.pop(0)
+        self.speed_list.append(speed)
+
+        self.avg_speed = sum(self.speed_list) / len(self.speed_list)
+        if self.avg_speed == 0:
+            self.time_left = "???"
+            return
+
+        average_time_left = (self.full_size - downloaded_size) / self.avg_speed
+        minutes, seconds = divmod(average_time_left, 60)
+        hours, minutes = divmod(minutes, 60)
+        self.time_left_check_time = get_time()
+        self.time_left = "%d:%02d:%02d" % (hours, minutes, seconds)
 
     def _set_text(self, text):
         markup = "<span size='10000'>{}</span>".format(gtk_safe(text))
