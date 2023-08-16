@@ -85,25 +85,27 @@ Command line options
 
 The following command line arguments are available::
 
--v, --version              Print the version of Lutris and exit
--d, --debug                Show debug messages
--i, --install              Install a game from a yml file
--b, --output-script        Generate a bash script to run a game without the client
--e, --exec                 Execute a program with the lutris runtime
--l, --list-games           List all games in database
--o, --installed            Only list installed games
--s, --list-steam-games     List available Steam games
---list-steam-folders       List all known Steam library folders
---list-runners             List all known runners
---list-wine-runners        List all known Wine runners
--r, --install-runner       Install a Runner
--u, --uninstall-runner     Uninstall a Runner
--j, --json                 Display the list of games in JSON format
---reinstall                Reinstall game
---display=DISPLAY          X display to use
---export <game>            Exports specified game (requires --dest)
---import <game.7z)         Import games from exportfile (requires --dest)
---dest <folder>            Specifies Export/Import destination folder
+-v, --version                    Print the version of Lutris and exit
+-d, --debug                      Show debug messages
+-i, --install                    Install a game from a yml file
+-b, --output-script              Generate a bash script to run a game without the client
+-e, --exec                       Execute a program with the lutris runtime
+-l, --list-games                 List all games in database
+-o, --installed                  Only list installed games
+-s, --list-steam-games           List available Steam games
+--list-steam-folders             List all known Steam library folders
+--list-runners                   List all known runners
+--list-wine-runners              List all known Wine runners
+-a, --list-all-service-games     List all games for all services in database
+--list-service-games             List all games for provided service in database
+-r, --install-runner             Install a Runner
+-u, --uninstall-runner           Uninstall a Runner
+-j, --json                       Display the list of games in JSON format
+--reinstall                      Reinstall game
+--display=DISPLAY                X display to use
+--export <game>                  Exports specified game (requires --dest)
+--import <game.7z)               Import games from exportfile (requires --dest)
+--dest <folder>                  Specifies Export/Import destination folder
 
 Additionally, you can pass a ``lutris:`` protocol link followed by a game
 identifier on the command line such as::

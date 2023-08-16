@@ -6,6 +6,23 @@ from lutris.util.log import logger
 class ServiceGameCollection:
 
     @classmethod
+    def get_service_games(
+    cls,
+    searches=None,
+    filters=None,
+    excludes=None,
+    sorts=None
+    ):
+        return sql.filtered_query(
+            settings.PGA_DB,
+            "service_games",
+            searches=searches,
+            filters=filters,
+            excludes=excludes,
+            sorts=sorts
+        )
+
+    @classmethod
     def get_for_service(cls, service):
         if not service:
             raise ValueError("No service provided")

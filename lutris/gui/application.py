@@ -211,6 +211,22 @@ class Application(Gtk.Application):
             None,
         )
         self.add_main_option(
+            "list-all-service-games",
+            ord('a'),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            _("List all games for all services in database"),
+            None,
+        )
+        self.add_main_option(
+            "list-service-games",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("List all games for provided service in database"),
+            None,
+        )
+        self.add_main_option(
             "install-runner",
             ord("r"),
             GLib.OptionFlags.NONE,
@@ -452,6 +468,35 @@ class Application(Gtk.Application):
                 self.print_game_json(command_line, game_list)
             else:
                 self.print_game_list(command_line, game_list)
+            return 0
+
+        # List specified service games
+        if options.contains("list-service-games"):
+            service = options.lookup_value("list-service-games").get_string()
+            game_list = games_db.get_games(filters={"installed": 1, "service": service})
+            service_game_list = ServiceGameCollection.get_for_service(service)
+            for game in service_game_list:
+                game['installed'] = any(('service_id', game['appid']) in item.items() for item in game_list)
+            if options.contains("installed"):
+                service_game_list = [d for d in service_game_list if d['installed']]
+            if options.contains("json"):
+                self.print_service_game_json(command_line, service_game_list)
+            else:
+                self.print_service_game_list(command_line, service_game_list)
+            return 0
+
+        # List all service games
+        if options.contains("list-all-service-games"):
+            game_list = games_db.get_games(filters={"installed": 1})
+            service_game_list = ServiceGameCollection.get_service_games()
+            for game in service_game_list:
+                game['installed'] = any(('service_id', game['appid']) in item.items() for item in game_list if item['service'] == game['service'])
+            if options.contains("installed"):
+                service_game_list = [d for d in service_game_list if d['installed']]
+            if options.contains("json"):
+                self.print_service_game_json(command_line, service_game_list)
+            else:
+                self.print_service_game_list(command_line, service_game_list)
             return 0
 
         # List Steam games
@@ -825,6 +870,32 @@ class Application(Gtk.Application):
                     str(datetime.fromtimestamp(game["lastplayed"]))
                     if game["lastplayed"] else None
                 )
+            } for game in game_list
+        ]
+        self._print(command_line, json.dumps(games, indent=2))
+
+    def print_service_game_list(self, command_line, game_list):
+        for game in game_list:
+            self._print(
+                command_line,
+                "{:4} | {:<40} | {:<40} | {:<15} | {:<15}".format(
+                    game["id"],
+                    game["name"][:40],
+                    game["slug"][:40],
+                    game["service"][:15],
+                    "true" if game["installed"] else "false"[:15],
+                ),
+            )
+
+    def print_service_game_json(self, command_line, game_list):
+        games = [
+            {
+                "id": game["id"],
+                "slug": game["slug"],
+                "name": game["name"],
+                "service": game["service"],
+                "installed": game["installed"],
+                "details": game["details"]
             } for game in game_list
         ]
         self._print(command_line, json.dumps(games, indent=2))
