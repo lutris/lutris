@@ -10,6 +10,7 @@ from lutris.util.strings import gtk_safe
 # Same reason as Downloader
 get_time = time.monotonic
 
+
 class DownloadCollectionProgressBox(Gtk.Box):
     """Progress bar used to monitor a collection of files download."""
 

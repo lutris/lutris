@@ -48,7 +48,6 @@ class GogLargeBanner(GogSmallBanner):
 
 
 class GOGGame(ServiceGame):
-
     """Representation of a GOG game"""
     service = "gog"
 
@@ -483,7 +482,7 @@ class GOGService(OnlineService):
         links = self._get_installer_links(installer, downloads)
         if links:
             files = [InstallerFileCollection(installer.game_slug, installer_file_id,
-                        self._format_links(installer, installer_file_id, links))]
+                                             self._format_links(installer, installer_file_id, links))]
         else:
             files = []
         if selected_extras:
