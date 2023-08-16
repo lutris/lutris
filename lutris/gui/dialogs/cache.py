@@ -42,7 +42,7 @@ class CacheConfigurationDialog(ModalDialog):
         path_chooser = FileChooserEntry(
             title=_("Set the folder for the cache path"),
             action=Gtk.FileChooserAction.SELECT_FOLDER,
-            path=self.cache_path,
+            text=self.cache_path,
             activates_default=True
         )
         path_chooser.connect("changed", self._on_cache_path_set)

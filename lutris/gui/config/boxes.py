@@ -64,6 +64,7 @@ class ConfigBox(VBox):
     def update_option_visibility(self):
         """Recursively searches out all the options and shows or hides them according to
         the filter and advanced-visibility settings."""
+
         def update_widgets(widgets):
             filter_text = self.filter.lower()
 
@@ -305,6 +306,8 @@ class ConfigBox(VBox):
             self.generate_directory_chooser(option, value)
         elif option_type == "file":
             self.generate_file_chooser(option, value)
+        elif option_type == "command_line":
+            self.generate_file_chooser(option, value, shell_quoting=True)
         elif option_type == "multiple":
             self.generate_multiple_file_chooser(option_key, option["label"], value)
         elif option_type == "label":
@@ -454,7 +457,7 @@ class ConfigBox(VBox):
         self.option_changed(spin_button, option, value)
 
     # File chooser
-    def generate_file_chooser(self, option, path=None):
+    def generate_file_chooser(self, option, text=None, shell_quoting=False):
         """Generate a file chooser button to select a file."""
         option_name = option["option"]
         label = Label(option["label"])
@@ -462,8 +465,9 @@ class ConfigBox(VBox):
         file_chooser = FileChooserEntry(
             title=_("Select file"),
             action=Gtk.FileChooserAction.OPEN,
-            path=path,
-            default_path=default_path
+            text=text,
+            default_path=default_path,
+            shell_quoting=shell_quoting
         )
         # file_chooser.set_size_request(200, 30)
 
@@ -472,19 +476,20 @@ class ConfigBox(VBox):
             if default_path and os.path.exists(default_path):
                 file_chooser.entry.set_text(default_path)
 
-        if path:
+        if text:
             # If path is relative, complete with game dir
-            if not os.path.isabs(path):
-                path = os.path.expanduser(path)
-                if not os.path.isabs(path):
+            if not os.path.isabs(text):
+                text = os.path.expanduser(text)
+                if not os.path.isabs(text):
                     if self.game and self.game.directory:
-                        path = os.path.join(self.game.directory, path)
-            file_chooser.entry.set_text(path)
+                        text = os.path.join(self.game.directory, text)
+            file_chooser.entry.set_text(text)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(file_chooser, True, True, 0)
         self.option_widget = file_chooser
+
         file_chooser.connect("changed", self._on_chooser_file_set, option_name)
 
     # Directory chooser
@@ -496,7 +501,7 @@ class ConfigBox(VBox):
         if not path and self.game and self.game.runner:
             default_path = self.game.runner.working_dir
         directory_chooser = FileChooserEntry(
-            title=_("Select folder"), action=Gtk.FileChooserAction.SELECT_FOLDER, path=path, default_path=default_path
+            title=_("Select folder"), action=Gtk.FileChooserAction.SELECT_FOLDER, text=path, default_path=default_path
         )
         directory_chooser.connect("changed", self._on_chooser_file_set, option_name)
         directory_chooser.set_valign(Gtk.Align.CENTER)

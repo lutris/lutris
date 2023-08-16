@@ -181,8 +181,7 @@ class InstallerFileBox(Gtk.VBox):
             box.pack_start(label, False, False, 0)
             location_entry = FileChooserEntry(
                 self.installer_file.human_url,
-                Gtk.FileChooserAction.OPEN,
-                path=None
+                Gtk.FileChooserAction.OPEN
             )
             location_entry.connect("changed", self.on_location_changed)
             location_entry.show()

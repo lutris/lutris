@@ -1,6 +1,7 @@
 """Misc widgets used in the GUI."""
 # Standard Library
 import os
+import shlex
 import urllib.parse
 from gettext import gettext as _
 
@@ -10,7 +11,6 @@ from gi.repository import GLib, GObject, Gtk, Pango
 # Lutris Modules
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
-from lutris.util.log import logger
 
 
 class SlugEntry(Gtk.Entry, Gtk.Editable):
@@ -35,7 +35,6 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
 
 
 class FileChooserEntry(Gtk.Box):
-
     """Editable entry with a file picker button"""
 
     max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.
@@ -48,11 +47,12 @@ class FileChooserEntry(Gtk.Box):
         self,
         title=_("Select file"),
         action=Gtk.FileChooserAction.OPEN,
-        path=None,
+        text=None,
         default_path=None,
         warn_if_non_empty=False,
         warn_if_ntfs=False,
         activates_default=False,
+        shell_quoting=False
     ):
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
@@ -61,23 +61,23 @@ class FileChooserEntry(Gtk.Box):
         )
         self.title = title
         self.action = action
-        self.path = os.path.expanduser(path) if path else None
-        self.default_path = os.path.expanduser(default_path) if default_path else path
         self.warn_if_non_empty = warn_if_non_empty
         self.warn_if_ntfs = warn_if_ntfs
+        self.shell_quoting = shell_quoting
 
         self.path_completion = Gtk.ListStore(str)
 
         self.entry = Gtk.Entry(visible=True)
+        self.set_text(text)  # do before set up signal handlers
+        self.original_text = self.get_text()
+        self.default_path = os.path.expanduser(default_path) if default_path else self.get_path()
+
         self.entry.set_activates_default(activates_default)
         self.entry.set_completion(self.get_completion())
         self.entry.connect("changed", self.on_entry_changed)
         self.entry.connect("activate", self.on_activate)
         self.entry.connect("focus-out-event", self.on_focus_out)
         self.entry.connect("backspace", self.on_backspace)
-
-        if path:
-            self.entry.set_text(path)
 
         browse_button = Gtk.Button(_("Browse..."), visible=True)
         browse_button.connect("clicked", self.on_browse_clicked)
@@ -87,18 +87,49 @@ class FileChooserEntry(Gtk.Box):
         box.add(browse_button)
         self.pack_start(box, False, False, 0)
 
-    def set_text(self, path):
-        self.path = os.path.expanduser(path)
-        self.entry.set_text(self.path)
+    def set_text(self, text):
+        if self.shell_quoting and text:
+            command_array = shlex.split(text)
+            if command_array:
+                expanded = os.path.expanduser(command_array[0])
+                command_array[0] = expanded
+                rejoined = shlex.join(command_array)
+                self.original_text = rejoined
+                self.entry.set_text(rejoined)
+                return
+
+        expanded = os.path.expanduser(text) if text else ""
+        self.original_text = expanded
+        self.entry.set_text(expanded)
+
+    def set_path(self, path):
+        if self.shell_quoting:
+            command_array = shlex.split(self.get_text())
+            if command_array:
+                command_array[0] = os.path.expanduser(path) if path else ""
+                rejoined = shlex.join(command_array)
+                self.original_text = rejoined
+                self.entry.set_text(rejoined)
+                return
+
+        expanded = os.path.expanduser(path) if path else ""
+        self.original_text = expanded
+        self.entry.set_text(expanded)
 
     def get_text(self):
-        """Return the entry's text"""
+        """Return the entry's text. If shell_quoting is one, this is actually a command
+        line (with argument quoting) and not a simple path."""
         return self.entry.get_text()
 
-    def get_filename(self):
-        """Deprecated"""
-        logger.warning("Just use get_text")
-        return self.get_text()
+    def get_path(self):
+        """Returns the path in the entry; if shell_quoting is set, this extracts
+        the command from the text and returns only that."""
+        text = self.get_text()
+        if self.shell_quoting:
+            command_array = shlex.split(text)
+            return command_array[0] if command_array else ""
+
+        return text
 
     def get_completion(self):
         """Return an EntryCompletion widget"""
@@ -116,7 +147,7 @@ class FileChooserEntry(Gtk.Box):
 
     def get_default_folder(self):
         """Return the default folder for the file picker"""
-        default_path = self.path or self.default_path or ""
+        default_path = self.get_path() or self.default_path or ""
         if not default_path or not system.path_exists(default_path):
             current_entry = self.get_text()
             if system.path_exists(current_entry):
@@ -132,17 +163,21 @@ class FileChooserEntry(Gtk.Box):
 
         if response == Gtk.ResponseType.ACCEPT:
             target_path = file_chooser_dialog.get_filename()
-            if target_path:
-                self.entry.set_text(system.reverse_expanduser(target_path))
+
+            if target_path and self.shell_quoting:
+                command_array = shlex.split(self.entry.get_text())
+                text = shlex.join([target_path] + command_array[1:])
+            else:
+                text = target_path
+
+            self.original_text = text
+            self.entry.set_text(text)
 
         file_chooser_dialog.destroy()
 
     def on_entry_changed(self, widget):
         """Entry changed callback"""
         self.clear_warnings()
-        path = widget.get_text()
-        if not path:
-            return
 
         # If the user isn't editing this entry, we'll apply updates
         # immediately upon any change
@@ -152,7 +187,9 @@ class FileChooserEntry(Gtk.Box):
                 # We changed the text on commit, so we return here to avoid a double changed signal
                 return
 
-        self.path = path
+        text = self.get_text()
+        path = self.get_path()
+        self.original_text = text
 
         if self.warn_if_ntfs and LINUX_SYSTEM.get_fs_type_for_path(path) == "ntfs":
             ntfs_box = Gtk.Box(spacing=6, visible=True)
@@ -196,17 +233,17 @@ class FileChooserEntry(Gtk.Box):
         GLib.idle_add(self.detect_changes)
 
     def detect_changes(self):
-        """Detects if the text has changed and updates self.path and fires
+        """Detects if the text has changed and updates self.original_text and fires
         the changed signal. Lame, but Gtk.Entry does not always fire its
         changed event when edited!"""
-        new_path = self.get_text()
-        if self.path != new_path:
-            self.path = new_path
+        new_text = self.get_text()
+        if self.original_text != new_text:
+            self.original_text = new_text
             self.emit("changed")
         return False  # used as idle function
 
     def normalize_path(self):
-        original_path = self.get_text()
+        original_path = self.get_path()
         path = original_path.strip("\r\n")
 
         if path.startswith('file:///'):
@@ -217,7 +254,7 @@ class FileChooserEntry(Gtk.Box):
         self.update_completion(path)
 
         if path != original_path:
-            self.entry.set_text(path)
+            self.set_path(path)
             return True
 
         return False

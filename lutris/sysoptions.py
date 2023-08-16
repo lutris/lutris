@@ -524,7 +524,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "section": "Game execution",
         "option": "prelaunch_command",
-        "type": "file",
+        "type": "command_line",
         "label": _("Pre-launch script"),
         "advanced": True,
         "help": _("Script to execute before the game starts"),
@@ -541,7 +541,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "section": "Game execution",
         "option": "postexit_command",
-        "type": "file",
+        "type": "command_line",
         "label": _("Post-exit script"),
         "advanced": True,
         "help": _("Script to execute when the game exits"),
