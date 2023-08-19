@@ -1,4 +1,4 @@
-# generated on 2023-06-01T10:48:40+00:00
+# generated on 2023-08-19T14:21:44+00:00
 
 share/applications/net.lutris.Lutris.desktop
 share/metainfo/net.lutris.Lutris.metainfo.xml
@@ -28,6 +28,8 @@ lutris/gui/config/add_game_dialog.py
 lutris/gui/config/base_config_box.py
 lutris/gui/config/boxes.py
 lutris/gui/config/common.py
+lutris/gui/config/edit_category_games.py
+lutris/gui/config/edit_game_categories.py
 lutris/gui/config/edit_game.py
 lutris/gui/config/__init__.py
 lutris/gui/config/preferences_box.py
@@ -66,6 +68,7 @@ lutris/gui/views/store.py
 lutris/gui/widgets/cellrenderers.py
 lutris/gui/widgets/common.py
 lutris/gui/widgets/contextual_menu.py
+lutris/gui/widgets/download_collection_progress_box.py
 lutris/gui/widgets/download_progress_box.py
 lutris/gui/widgets/game_bar.py
 lutris/gui/widgets/gi_composites.py
@@ -83,6 +86,7 @@ lutris/__init__.py
 lutris/installer/commands.py
 lutris/installer/errors.py
 lutris/installer/__init__.py
+lutris/installer/installer_file_collection.py
 lutris/installer/installer_file.py
 lutris/installer/installer.py
 lutris/installer/interpreter.py
@@ -92,6 +96,7 @@ lutris/migrations/__init__.py
 lutris/migrations/mess_to_mame.py
 lutris/migrations/migrate_banners.py
 lutris/migrations/migrate_hidden_ids.py
+lutris/migrations/migrate_sortname.py
 lutris/migrations/migrate_steam_appids.py
 lutris/migrations/retrieve_discord_appids.py
 lutris/runner_interpreter.py
@@ -143,6 +148,7 @@ lutris/services/amazon.py
 lutris/services/base.py
 lutris/services/battlenet.py
 lutris/services/dolphin.py
+lutris/services/ea_app.py
 lutris/services/egs.py
 lutris/services/flathub.py
 lutris/services/gog.py
@@ -247,6 +253,7 @@ lutris/util/wine/fsync.py
 lutris/util/wine/__init__.py
 lutris/util/wine/prefix.py
 lutris/util/wine/registry.py
+lutris/util/wine/shader_cache.py
 lutris/util/wine/vkd3d.py
 lutris/util/wine/wine.py
 lutris/util/xdgshortcuts.py
