@@ -504,11 +504,11 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
     def _set_advanced_options_visible(self, value):
         """Change visibility of advanced options across all config tabs."""
-        self.system_box.set_advanced_visibility(value)
+        self.system_box.advanced_visibility = value
         if self.runner_box:
-            self.runner_box.set_advanced_visibility(value)
+            self.runner_box.advanced_visibility = value
         if self.game_box:
-            self.game_box.set_advanced_visibility(value)
+            self.game_box.advanced_visibility = value
 
     def _set_filter(self, value):
         self.system_box.filter = value
