@@ -7,11 +7,11 @@ class ServiceGameCollection:
 
     @classmethod
     def get_service_games(
-    cls,
-    searches=None,
-    filters=None,
-    excludes=None,
-    sorts=None
+        cls,
+        searches=None,
+        filters=None,
+        excludes=None,
+        sorts=None
     ):
         return sql.filtered_query(
             settings.PGA_DB,

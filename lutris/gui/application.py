@@ -1,4 +1,5 @@
 # pylint: disable=wrong-import-position
+# pylint: disable=too-many-lines
 #
 # Copyright (C) 2009 Mathieu Comandon <mathieucomandon@gmail.com>
 #
@@ -490,7 +491,8 @@ class Application(Gtk.Application):
             game_list = games_db.get_games(filters={"installed": 1})
             service_game_list = ServiceGameCollection.get_service_games()
             for game in service_game_list:
-                game['installed'] = any(('service_id', game['appid']) in item.items() for item in game_list if item['service'] == game['service'])
+                game['installed'] = any(('service_id', game['appid']) in item.items() for item in game_list if
+                                        item['service'] == game['service'])
             if options.contains("installed"):
                 service_game_list = [d for d in service_game_list if d['installed']]
             if options.contains("json"):
