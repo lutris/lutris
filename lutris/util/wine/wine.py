@@ -24,14 +24,6 @@ WINE_PATHS = {
 }
 
 
-def get_playonlinux():
-    """Return the folder containing PoL config files"""
-    pol_path = os.path.expanduser("~/.PlayOnLinux")
-    if system.path_exists(os.path.join(pol_path, "wine")):
-        return pol_path
-    return None
-
-
 def _iter_proton_locations():
     """Iterate through all existing Proton locations"""
     try:
