@@ -25,19 +25,33 @@ from lutris.util.strings import slugify
 SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION = 1 << 18
 
 
-class EAAppLauncher:
-    install_data_path = "ProgramData/EA Desktop/InstallData"
+class EAAppGames:
+    ea_games_location = "Program Files/EA Games"
 
     def __init__(self, prefix_path):
         self.prefix_path = prefix_path
+        self.ea_games_path = os.path.join(self.prefix_path, 'drive_c', self.ea_games_location)
 
-    def iter_install_data(self):
-        manifests_path = os.path.join(self.prefix_path, 'drive_c', self.install_data_path)
-        if not os.path.exists(manifests_path):
-            logger.warning("No directory in %s", manifests_path)
+    def iter_installed_games(self):
+        if not os.path.exists(self.ea_games_path):
             return
-        for game_folder in os.listdir(manifests_path):
-            print(game_folder)
+        for game_folder in os.listdir(self.ea_games_path):
+            yield game_folder
+
+    def get_installed_games_content_ids(self):
+        installed_game_ids = []
+        for game_folder in self.iter_installed_games():
+            installer_data_path = os.path.join(self.ea_games_path, game_folder, "__Installer/installerdata.xml")
+            if not os.path.exists(installer_data_path):
+                logger.warning("No installerdata.xml for %s", game_folder)
+                continue
+            tree = ElementTree.parse(installer_data_path)
+            nodes = tree.find("contentIDs").findall("contentID")
+            if not nodes:
+                logger.warning("Content ID not found for %s", game_folder)
+                continue
+            installed_game_ids.append([node.text for node in nodes])
+        return installed_game_ids
 
 
 class EAAppArtSmall(ServiceMedia):
@@ -70,7 +84,7 @@ class EAAppGame(ServiceGame):
     @classmethod
     def new_from_api(cls, offer):
         ea_game = EAAppGame()
-        ea_game.appid = offer["offerId"]
+        ea_game.appid = offer["contentId"]
         ea_game.slug = offer["gameNameFacetKey"]
         ea_game.name = offer["i18n"]["displayName"]
         ea_game.details = json.dumps(offer)
@@ -298,18 +312,16 @@ class EAAppService(OnlineService):
         if not os.path.exists(os.path.join(ea_app_prefix, "drive_c")):
             logger.error("Invalid install of EA App at %s", ea_app_prefix)
             return
-        ea_app_launcher = EAAppLauncher(ea_app_prefix)
+        ea_app_launcher = EAAppGames(ea_app_prefix)
         installed_games = 0
-        for manifest in ea_app_launcher.iter_install_data():
-            print(manifest)
-            self.install_from_ea_app(ea_app_game, manifest)
+        for content_ids in ea_app_launcher.get_installed_games_content_ids():
+            self.install_from_ea_app(ea_app_game, content_ids)
             installed_games += 1
         logger.debug("Installed %s EA games", installed_games)
 
-    def install_from_ea_app(self, ea_game, manifest):
-        if "id" not in manifest:
-            return
-        offer_id = manifest["id"].split("@")[0]
+    def install_from_ea_app(self, ea_game, content_ids):
+
+        offer_id = content_ids[0]
         logger.debug("Installing EA game %s", offer_id)
         service_game = ServiceGameCollection.get_game("ea_app", offer_id)
         if not service_game:
@@ -320,7 +332,7 @@ class EAAppService(OnlineService):
         if existing_game:
             return
         game_config = LutrisConfig(game_config_id=ea_game["configpath"]).game_level
-        game_config["game"]["args"] = get_launch_arguments(manifest["id"])
+        game_config["game"]["args"] = get_launch_arguments(",".join(content_ids))
         configpath = write_game_config(lutris_game_id, game_config)
         game_id = add_game(
             name=service_game["name"],
@@ -381,8 +393,8 @@ class EAAppService(OnlineService):
             )
 
 
-def get_launch_arguments(offer_id, action="launch"):
+def get_launch_arguments(content_id, action="launch"):
     if action == "launch":
-        return "origin2://game/launch?offerIds=%s&autoDownload=1" % offer_id
+        return "origin2://game/launch?offerIds=%s&autoDownload=1" % content_id
     if action == "download":
-        return "origin2://game/download?offerId=%s" % offer_id
+        return "origin2://game/download?offerId=%s" % content_id
