@@ -5,7 +5,7 @@ import shlex
 from gettext import gettext as _
 
 from lutris import runtime, settings
-from lutris.exceptions import FsyncUnsupportedError, FsyncUnavailableError, EsyncLimitError, EsyncUnavailableError
+from lutris.exceptions import EsyncLimitError, EsyncUnavailableError, FsyncUnavailableError, FsyncUnsupportedError
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
@@ -27,9 +27,9 @@ from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, ExtractIcon
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
-    WINE_DEFAULT_ARCH, WINE_DIR, WINE_PATHS, detect_arch, get_default_version, get_overrides_env,
-    get_proton_paths, get_real_executable, get_system_wine_version, get_wine_versions, is_esync_limit_set,
-    is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
+    WINE_DEFAULT_ARCH, WINE_DIR, WINE_PATHS, detect_arch, get_default_version, get_overrides_env, get_proton_paths,
+    get_real_executable, get_system_wine_version, get_wine_versions, is_esync_limit_set, is_fsync_supported,
+    is_gstreamer_build, is_version_esync, is_version_fsync
 )
 
 

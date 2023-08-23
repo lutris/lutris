@@ -1,8 +1,8 @@
 from gi.repository import GObject, Gtk
 
 from lutris.gui.installer.file_box import InstallerFileBox
-from lutris.util.log import logger
 from lutris.installer.installer_file_collection import InstallerFileCollection
+from lutris.util.log import logger
 
 
 class InstallerFilesBox(Gtk.ListBox):

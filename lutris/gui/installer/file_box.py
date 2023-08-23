@@ -4,12 +4,12 @@ from gettext import gettext as _
 
 from gi.repository import GObject, Gtk
 
-from lutris.gui.installer import NotInstallerFile, UnsupportedProvider
 from lutris.cache import save_to_cache
+from lutris.gui.installer import NotInstallerFile, UnsupportedProvider
 from lutris.gui.installer.widgets import InstallerLabel
 from lutris.gui.widgets.common import FileChooserEntry
-from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.gui.widgets.download_collection_progress_box import DownloadCollectionProgressBox
+from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.installer_file_collection import InstallerFileCollection
 from lutris.installer.steam_installer import SteamInstaller
