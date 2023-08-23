@@ -56,7 +56,7 @@ SERVICES = get_services()
 # Those services are not yet ready to be used
 WIP_SERVICES = {
     "mame": MAMEService,
-    "ea_app": EAAppService,
+
 }
 
 if os.environ.get("LUTRIS_ENABLE_ALL_SERVICES"):
