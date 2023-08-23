@@ -23,8 +23,7 @@ WINE_PATHS = {
     "system": "wine",
 }
 
-# Insert additional system-wide Wine installations, such as are found
-# on Gentoo.
+# Insert additional system-wide Wine installations.
 try:
     for _candidate in os.listdir('/usr/lib/'):
         if _candidate.startswith("wine-"):
