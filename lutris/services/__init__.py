@@ -33,7 +33,8 @@ def get_services():
         "humblebundle": HumbleBundleService,
         "egs": EpicGamesStoreService,
         "itchio": ItchIoService,
-        "origin": OriginService,
+        # "origin": OriginService,
+        "ea_app": EAAppService,
         "ubisoft": UbisoftConnectService,
         "amazon": AmazonService,
         "flathub": FlathubService
