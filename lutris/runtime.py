@@ -13,7 +13,6 @@ from lutris.util.extract import extract_archive
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
-
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
 DEFAULT_RUNTIME = "Ubuntu-18.04"
 
