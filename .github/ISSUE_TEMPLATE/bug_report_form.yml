@@ -65,7 +65,7 @@ body:
     attributes:
       value: |
         ***You can obtain a quick system summary from within Lutris like this:***
-        
+
         ![Peek 2021-11-12 05-09-2](https://user-images.githubusercontent.com/10602045/142093883-fb1169f2-28ab-4382-8e54-d7de9c96243e.gif)
   - type: textarea
     id: media
@@ -82,7 +82,7 @@ body:
     id: terms
     attributes:
       label: "Checklist:"
-      description: "By submitting this issue, you confirm that:"
+      description: "By submitting this issue, you confirm that (this is purely performative, we know you're going to ignore the stuff below):"
       options:
         - label: "I'm not asking for support with a game or the wine runner."
           required: true
