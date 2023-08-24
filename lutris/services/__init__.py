@@ -22,7 +22,7 @@ from lutris.util import system
 from lutris.util.dolphin.cache_reader import DOLPHIN_GAME_CACHE_FILE
 from lutris.util.linux import LINUX_SYSTEM
 
-DEFAULT_SERVICES = ["lutris", "gog", "egs", "origin", "ubisoft", "steam"]
+DEFAULT_SERVICES = ["lutris", "gog", "egs", "ea_app", "ubisoft", "steam"]
 
 
 def get_services():
