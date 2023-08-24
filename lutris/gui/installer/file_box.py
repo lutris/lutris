@@ -73,7 +73,13 @@ class InstallerFileBox(Gtk.VBox):
                 not self.installer_file.uses_pga_cache()
                 and system.path_exists(self.installer_file.dest_file)
         ):
-            os.remove(self.installer_file.dest_file)
+            # If we've previously downloaded a directory, we'll need to get rid of it
+            # to download a file now. Since we are not using the cache, we don't keep
+            # these files anyway - so it should be safe to just nuke and pave all this.
+            if os.path.isdir(self.installer_file.dest_file):
+                system.remove_folder(self.installer_file.dest_file)
+            else:
+                os.remove(self.installer_file.dest_file)
         return download_progress
 
     def get_file_provider_widget(self):
