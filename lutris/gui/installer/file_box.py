@@ -72,6 +72,7 @@ class InstallerFileBox(Gtk.VBox):
         if (
                 not self.installer_file.uses_pga_cache()
                 and system.path_exists(self.installer_file.dest_file)
+                and os.path.isfile(self.installer_file.dest_file)
         ):
             os.remove(self.installer_file.dest_file)
         return download_progress
