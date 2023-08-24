@@ -368,10 +368,10 @@ class EAAppService(OnlineService):
                     {"task": {
                         "name": "wineexec",
                         "executable": ea_exe,
-                        "args": get_launch_arguments(db_game["appid"], "download"),
+                        "args": get_launch_arguments(db_game["appid"]),
                         "prefix": ea_game.config.game_config["prefix"],
                         "description": (
-                            "EA App will now open and install %s." % db_game["name"]
+                            "EA App will now open and prompt you to install %s." % db_game["name"]
                         )
                     }}
                 ]
@@ -394,7 +394,6 @@ class EAAppService(OnlineService):
 
 
 def get_launch_arguments(content_id, action="launch"):
-    if action == "launch":
-        return "origin2://game/launch?offerIds=%s&autoDownload=1" % content_id
-    if action == "download":
-        return "origin2://game/download?offerId=%s" % content_id
+    """Return launch argument for EA games.
+    download used to be a valid action but it doesn't seem like it's implemented in EA App."""
+    return f"origin2://game/{action}?offerIds={content_id}&autoDownload=1"
