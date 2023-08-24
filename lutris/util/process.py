@@ -70,7 +70,7 @@ class Process:
         try:
             with open(children_path, encoding='utf-8') as children_file:
                 children_content = children_file.read()
-        except (FileNotFoundError, ProcessLookupError):
+        except (FileNotFoundError, ProcessLookupError, PermissionError):
             children_content = ""
         return children_content.strip().split()
 
