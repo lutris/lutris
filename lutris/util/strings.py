@@ -131,11 +131,11 @@ def get_formatted_playtime(playtime):
     else:
         minutes_text = ""
 
-    formatted_time = " and ".join([text for text in (hours_text, minutes_text) if text])
+    formatted_time = _(" and ").join([text for text in (hours_text, minutes_text) if text])
     if formatted_time:
         return formatted_time
     if playtime:
-        return "Less than a minute"
+        return _("Less than a minute")
     return NO_PLAYTIME
 
 
