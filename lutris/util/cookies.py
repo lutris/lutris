@@ -1,6 +1,5 @@
-# Standard Library
 import time
-from http.cookiejar import Cookie, MozillaCookieJar, _warn_unhandled_exception
+from http.cookiejar import Cookie, MozillaCookieJar
 
 
 class WebkitCookieJar(MozillaCookieJar):
@@ -76,5 +75,4 @@ class WebkitCookieJar(MozillaCookieJar):
         except OSError:
             raise
         except Exception as err:
-            _warn_unhandled_exception()
             raise OSError("invalid Netscape format cookies file %r: %r" % (filename, line)) from err
