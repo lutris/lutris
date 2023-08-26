@@ -5,14 +5,16 @@ import shlex
 import unicodedata
 import uuid
 from gettext import gettext as _
-from typing import Any, List, Union
+from typing import List, Union
 
 from lutris.util.log import logger
 
 NO_PLAYTIME = "Never played"
 
+
 def get_uuid_from_string(value):
     return str(uuid.uuid5(uuid.NAMESPACE_URL, str(value)))
+
 
 def slugify(value) -> str:
     """Remove special characters from a string and slugify it.
@@ -79,7 +81,7 @@ def parse_version(version):
     return [int(p) for p in version_number.split(".")], suffix, prefix
 
 
-def unpack_dependencies(string: str) -> List[Union[str,tuple]]:
+def unpack_dependencies(string: str) -> List[Union[str, tuple]]:
     """Parse a string to allow for complex dependencies
     Works in a similar fashion as Debian dependencies, separate dependencies
     are comma separated and multiple choices for satisfying a dependency are
@@ -88,7 +90,8 @@ def unpack_dependencies(string: str) -> List[Union[str,tuple]]:
     Example: quake-steam | quake-gog, some-quake-mod returns:
         [('quake-steam', 'quake-gog'), 'some-quake-mod']
     """
-    def _expand_dep(dep) -> Union[str,tuple]:
+
+    def _expand_dep(dep) -> Union[str, tuple]:
         if "|" in dep:
             return tuple(option.strip() for option in dep.split("|") if option.strip())
         return dep.strip()
@@ -152,7 +155,6 @@ def _split_arguments(args, closing_quot='', quotations=None) -> list:
             return _split_arguments(args, quotations[0], quotations[1:])
         logger.error(message)
         return []
-
 
 
 def split_arguments(args) -> list:
