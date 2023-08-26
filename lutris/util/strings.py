@@ -1,19 +1,20 @@
 """String utilities"""
-# Standard Library
 import math
 import re
 import shlex
 import unicodedata
 import uuid
 from gettext import gettext as _
+from typing import Any, List, Union
 
-# Lutris Modules
 from lutris.util.log import logger
 
 NO_PLAYTIME = "Never played"
 
+def get_uuid_from_string(value):
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, str(value)))
 
-def slugify(value):
+def slugify(value) -> str:
     """Remove special characters from a string and slugify it.
 
     Normalizes string, converts to lowercase, removes non-alpha characters,
@@ -32,11 +33,11 @@ def slugify(value):
     if not slug:
         # The slug is empty, likely because the string contains only non-latin
         # characters
-        slug = str(uuid.uuid5(uuid.NAMESPACE_URL, str(value)))
+        slug = get_uuid_from_string(value)
     return slug
 
 
-def add_url_tags(text):
+def add_url_tags(text) -> str:
     """Surround URL with <a> tags."""
     return re.sub(
         r"(http[s]?://("
@@ -78,7 +79,7 @@ def parse_version(version):
     return [int(p) for p in version_number.split(".")], suffix, prefix
 
 
-def unpack_dependencies(string):
+def unpack_dependencies(string: str) -> List[Union[str,tuple]]:
     """Parse a string to allow for complex dependencies
     Works in a similar fashion as Debian dependencies, separate dependencies
     are comma separated and multiple choices for satisfying a dependency are
@@ -87,16 +88,17 @@ def unpack_dependencies(string):
     Example: quake-steam | quake-gog, some-quake-mod returns:
         [('quake-steam', 'quake-gog'), 'some-quake-mod']
     """
+    def _expand_dep(dep) -> Union[str,tuple]:
+        if "|" in dep:
+            return tuple(option.strip() for option in dep.split("|") if option.strip())
+        return dep.strip()
+
     if not string:
         return []
-    dependencies = [dep.strip() for dep in string.split(",") if dep.strip()]
-    for index, dependency in enumerate(dependencies):
-        if "|" in dependency:
-            dependencies[index] = tuple(option.strip() for option in dependency.split("|") if option.strip())
-    return [dependency for dependency in dependencies if dependency]
+    return [_expand_dep(dep) for dep in string.split(",") if dep.strip()]
 
 
-def gtk_safe(string):
+def gtk_safe(string: str) -> str:
     """Return a string ready to used in Gtk widgets"""
     if not string:
         string = ""
@@ -104,7 +106,7 @@ def gtk_safe(string):
     return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def get_formatted_playtime(playtime):
+def get_formatted_playtime(playtime) -> str:
     """Return a human readable value of the play time"""
     if not playtime:
         return NO_PLAYTIME
@@ -139,7 +141,7 @@ def get_formatted_playtime(playtime):
     return NO_PLAYTIME
 
 
-def _split_arguments(args, closing_quot='', quotations=None):
+def _split_arguments(args, closing_quot='', quotations=None) -> list:
     if quotations is None:
         quotations = ["'", '"']
     try:
@@ -149,9 +151,11 @@ def _split_arguments(args, closing_quot='', quotations=None):
         if message == "No closing quotation" and quotations:
             return _split_arguments(args, quotations[0], quotations[1:])
         logger.error(message)
+        return []
 
 
-def split_arguments(args):
+
+def split_arguments(args) -> list:
     """Wrapper around shlex.split that is more tolerant of errors"""
     if not args:
         # shlex.split seems to hangs when passed the None value
@@ -159,7 +163,7 @@ def split_arguments(args):
     return _split_arguments(args)
 
 
-def human_size(size):
+def human_size(size) -> str:
     """Shows a size in bytes in a more readable way"""
     units = ("bytes", "kB", "MB", "GB", "TB", "PB", "nuh uh", "no way", "BS")
     unit_index = 0
