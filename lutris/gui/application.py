@@ -517,7 +517,7 @@ class Application(Gtk.Application):
             return 0
 
         # List Wine Runners
-        if options.contains("list-wine-runners"):
+        if options.contains("list-wine-versions"):
             self.print_wine_runners()
             return 0
 
@@ -993,7 +993,7 @@ class Application(Gtk.Application):
         else:
             print(f"""
 Specified version of Wine is not installed: {version}.
-Please check if the Wine Runner and specified version are installed (for that use --list-wine-runners).
+Please check if the Wine Runner and specified version are installed (for that use --list-wine-versions).
 Also, check that the version specified is in the correct format.
                 """)
 
