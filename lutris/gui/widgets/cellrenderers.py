@@ -100,6 +100,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._media_height = 0
         self._game_id = None
         self._media_path = None
+        self._show_badges = True
         self._platform = None
         self._is_installed = True
         self.cached_surfaces_new = {}
@@ -152,6 +153,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def media_path(self, value):
         self._media_path = value
 
+    @GObject.Property(type=bool, default=True)
+    def show_badges(self):
+        """This is the path to the media file to be displayed."""
+        return self._show_badges
+
+    @show_badges.setter
+    def show_badges(self, value):
+        self._show_badges = value
+
     @GObject.Property(type=str)
     def platform(self):
         """This is the platform text, a comma separated list; we try to convert
@@ -197,14 +207,16 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
                 if alpha >= 1:
                     self.render_media(cr, widget, surface, x, y)
-                    self.render_platforms(cr, widget, surface, x, cell_area)
+                    if self.show_badges:
+                        self.render_platforms(cr, widget, surface, x, cell_area)
 
-                    if self.game_id and is_game_missing(self.game_id):
-                        self.render_text_badge(cr, widget, _("Missing"), x, cell_area.y + cell_area.height)
+                        if self.game_id and is_game_missing(self.game_id):
+                            self.render_text_badge(cr, widget, _("Missing"), x, cell_area.y + cell_area.height)
                 else:
                     cr.push_group()
                     self.render_media(cr, widget, surface, x, y)
-                    self.render_platforms(cr, widget, surface, x, cell_area)
+                    if self.show_badges:
+                        self.render_platforms(cr, widget, surface, x, cell_area)
                     cr.pop_group_to_source()
                     cr.paint_with_alpha(alpha)
 

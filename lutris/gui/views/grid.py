@@ -71,13 +71,11 @@ class GameGridView(Gtk.IconView, GameView):
 
     def _initialize_image_renderer_attributes(self):
         if self.image_renderer:
+            self.image_renderer.show_badges = self.show_badges
             self.clear_attributes(self.image_renderer)
             self.add_attribute(self.image_renderer, "game_id", COL_ID)
             self.add_attribute(self.image_renderer, "media_path", COL_MEDIA_PATH)
-            if self.show_badges:
-                self.add_attribute(self.image_renderer, "platform", COL_PLATFORM)
-            else:
-                self.image_renderer.platform = None
+            self.add_attribute(self.image_renderer, "platform", COL_PLATFORM)
             self.add_attribute(self.image_renderer, "is_installed", COL_INSTALLED)
 
     def select(self):
