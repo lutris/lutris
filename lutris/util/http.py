@@ -95,10 +95,12 @@ class Request:
                 request = self.opener.open(req, timeout=self.timeout)
             else:
                 request = urllib.request.urlopen(req, timeout=self.timeout)  # pylint: disable=consider-using-with
-        except (urllib.error.HTTPError, CertificateError) as error:
+        except (urllib.error.HTTPError) as error:
             if error.code == 401:
                 raise UnauthorizedAccess("Access to %s denied" % self.url) from error
             raise HTTPError("%s" % error, code=error.code) from error
+        except CertificateError as error:
+            raise HTTPError("%s" % error, code=0) from error
         except (socket.timeout, urllib.error.URLError) as error:
             raise HTTPError("Unable to connect to server %s: %s" % (self.url, error)) from error
 

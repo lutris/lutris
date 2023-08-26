@@ -454,7 +454,6 @@ class Application(Gtk.Application):
             migrate()
 
         gpu_info = run_all_checks()
-
         if options.contains("dest"):
             dest_dir = options.lookup_value("dest").get_string()
         else:
@@ -517,7 +516,7 @@ class Application(Gtk.Application):
             return 0
 
         # List Wine Runners
-        if options.contains("list-wine-runners"):
+        if options.contains("list-wine-versions"):
             self.print_wine_runners()
             return 0
 
@@ -559,8 +558,8 @@ class Application(Gtk.Application):
             IssueReportWindow(application=self)
             return 0
 
+        url = options.lookup_value(GLib.OPTION_REMAINING)
         try:
-            url = options.lookup_value(GLib.OPTION_REMAINING)
             installer_info = self.get_lutris_action(url)
         except ValueError:
             self._print(command_line, _("%s is not a valid URI") % url.get_strv())
@@ -993,7 +992,7 @@ class Application(Gtk.Application):
         else:
             print(f"""
 Specified version of Wine is not installed: {version}.
-Please check if the Wine Runner and specified version are installed (for that use --list-wine-runners).
+Please check if the Wine Runner and specified version are installed (for that use --list-wine-versions).
 Also, check that the version specified is in the correct format.
                 """)
 

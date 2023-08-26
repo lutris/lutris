@@ -123,7 +123,7 @@ class _Blizzard(object, metaclass=Singleton):
     ]
 
     def __init__(self):
-        self._games: dict[str, ClassicGame | BlizzardGame] = {
+        self._games = {
             game.uid: game for game in self.BATTLENET_GAMES + self.CLASSIC_GAMES}
 
     def __getitem__(self, key: str) -> BlizzardGame:

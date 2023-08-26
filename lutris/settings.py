@@ -50,8 +50,8 @@ STEAM_API_KEY = sio.read_setting("steam_api_key") or "34C9698CEB394AB4401D65927C
 
 SHOW_MEDIA = os.environ.get("LUTRIS_HIDE_MEDIA") != "1" and sio.read_setting("hide_media") != 'True'
 
-DEFAULT_RESOLUTION_WIDTH = 1280
-DEFAULT_RESOLUTION_HEIGHT = 720
+DEFAULT_RESOLUTION_WIDTH = sio.read_setting("default_resolution_width", "1280")
+DEFAULT_RESOLUTION_HEIGHT = sio.read_setting("default_resolution_height", "720")
 
 read_setting = sio.read_setting
 write_setting = sio.write_setting

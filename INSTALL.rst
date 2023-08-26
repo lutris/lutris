@@ -32,7 +32,6 @@ games themselves we recommend you install the following packages:
     Xorg, if you are not, you will depend on the GnomeDesktop bindings to fetch
     screen resolutions on Wayland, the GnomeDesktop library is not directly
     related to the Gnome desktop and is only used as a xrandr replacement.)
-  * libc6-i386 and lib32gcc1 for 32bit games support
   * The 32bit OpenGL and Vulkan drivers for your graphics card
   * Wine (not actually needed, but installing it is the easiest way to get all
     the libraries missing from our runtime).
@@ -43,7 +42,7 @@ on Ubuntu based systems, you can run::
     sudo apt install python3-yaml python3-requests python3-pil python3-gi python3-gi-cairo \
       gir1.2-gtk-3.0 gir1.2-gnomedesktop-3.0 gir1.2-webkit2-4.0 \
       gir1.2-notify-0.7 psmisc cabextract unzip p7zip curl fluid-soundfont-gs \
-      x11-xserver-utils python3-evdev libc6-i386 lib32gcc1 libgirepository1.0-dev \
+      x11-xserver-utils python3-evdev libgirepository1.0-dev \
       python3-setproctitle python3-distro
 
 Note :

@@ -183,7 +183,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     @staticmethod
     def get_dist_info():
         """Return distribution information"""
-        if linux_distribution:
+        if linux_distribution is not None:
             return linux_distribution()
         return "unknown"
 

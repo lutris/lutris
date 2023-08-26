@@ -1,8 +1,6 @@
-# Standard Library
 import configparser
 import os
 
-# Lutris Modules
 from lutris.util.log import logger
 
 

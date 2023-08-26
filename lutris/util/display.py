@@ -66,18 +66,18 @@ def has_graphic_adapter_description(match_text):
     return False
 
 
-def get_gpus():
-    """Return the number of GPUs from /sys/class/drm without
-    requiring a call to lspci"""
-    gpus = {}
-    for card in drivers.get_gpus():
-        gpus[card] = drivers.get_gpu_info(card)
-        try:
-            gpu_string = f"GPU: {gpus[card]['PCI_ID']} {gpus[card]['PCI_SUBSYS_ID']} ({gpus[card]['DRIVER']} drivers)"
-            logger.info(gpu_string)
-        except KeyError:
-            logger.error("Unable to get GPU information from '%s'", card)
-    return gpus
+def get_gpus_info():
+    """Return the information related to each GPU on the system"""
+    return {card: drivers.get_gpu_info(card) for card in drivers.get_gpus()}
+
+
+def display_gpu_info(gpu_id, gpu_info):
+    """Log GPU information"""
+    try:
+        gpu_string = f"GPU: {gpu_info['PCI_ID']} {gpu_info['PCI_SUBSYS_ID']} ({gpu_info['DRIVER']} drivers)"
+        logger.info(gpu_string)
+    except KeyError:
+        logger.error("Unable to get GPU information from '%s'", gpu_id)
 
 
 def _get_graphics_adapters():
@@ -181,7 +181,7 @@ def get_display_manager():
 
 
 DISPLAY_MANAGER = get_display_manager()
-USE_DRI_PRIME = len(get_gpus()) > 1
+USE_DRI_PRIME = len(list(drivers.get_gpus())) > 1
 
 
 class DesktopEnvironment(enum.Enum):

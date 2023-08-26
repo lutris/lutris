@@ -11,7 +11,7 @@ from lutris.util.graphics.glxinfo import GlxInfo
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
 
-MIN_RECOMMENDED_NVIDIA_DRIVER = 415
+MIN_RECOMMENDED_NVIDIA_DRIVER = 515
 
 
 def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
@@ -21,7 +21,7 @@ def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
         version_file_path = "/proc/driver/nvidia/version"
         try:
             if not os.path.exists(version_file_path):
-                return None
+                return {}
             with open(version_file_path, encoding="utf-8") as version_file:
                 content = version_file.readlines()
         except PermissionError:
@@ -29,14 +29,14 @@ def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
             # If this happens, we may still be able to retrieve the info by
             # other means, but need additional validation.
             logger.info("Could not access %s. Falling back to glxinfo.", version_file_path)
-            return None
+            return {}
         except OSError as e:
             logger.warning(
                 "Unexpected error when accessing %s. Falling back to glxinfo.",
                 version_file_path,
                 exc_info=e,
             )
-            return None
+            return {}
 
         nvrm_version = content[0].split(": ")[1].strip().split()
         if "Open" in nvrm_version:
