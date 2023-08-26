@@ -558,8 +558,8 @@ class Application(Gtk.Application):
             IssueReportWindow(application=self)
             return 0
 
+        url = options.lookup_value(GLib.OPTION_REMAINING)
         try:
-            url = options.lookup_value(GLib.OPTION_REMAINING)
             installer_info = self.get_lutris_action(url)
         except ValueError:
             self._print(command_line, _("%s is not a valid URI") % url.get_strv())
