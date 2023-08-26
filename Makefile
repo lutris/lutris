@@ -90,7 +90,7 @@ snap:
 	snapcraft
 
 dev:
-	pip3 install isort flake8 pylint autopep8 pytest
+	pip3 install isort flake8 pylint autopep8 pytest mypy mypy-baseline
 
 # ============
 # Style checks
@@ -109,7 +109,7 @@ autopep8:
 # Static analysis
 # ===============
 
-check: isort-check flake8 pylint
+check: isort-check flake8 pylint mypy
 
 isort-check:
 	isort lutris -c

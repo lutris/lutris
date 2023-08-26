@@ -1,3 +1,1 @@
-lutris/util/cookies.py:0: error: Module "http.cookiejar" has no attribute "_warn_unhandled_exception"  [attr-defined]
-lutris/util/system.py:0: error: Argument 1 to "lru_cache" has incompatible type "Callable[[Any, Any], Any]"; expected "Optional[int]"  [arg-type]
-lutris/util/linux.py:0: error: Function "Callable[[bool], Tuple[str, str, str]]" could always be true in boolean context  [truthy-function]
+
