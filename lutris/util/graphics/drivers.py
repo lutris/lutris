@@ -11,7 +11,7 @@ from lutris.util.graphics.glxinfo import GlxInfo
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
 
-MIN_RECOMMENDED_NVIDIA_DRIVER = 415
+MIN_RECOMMENDED_NVIDIA_DRIVER = 515
 
 
 def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
