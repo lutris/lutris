@@ -359,7 +359,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             y = y + y_offset
 
     def render_text_badge(self, cr, widget, text, left, bottom):
-        """Draws a short test in the lower left corner of the media, in the
+        """Draws a short text in the lower left corner of the media, in the
         style of a badge."""
         def get_layout():
             """Constructs a layout with the text to draw, but also returns its size
@@ -398,6 +398,12 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             PangoCairo.show_layout(cr, layout)
 
             cr.restore()
+
+            # Looks like we need to make cr.restore() take effect for
+            # explicitly, or further text in this cairo context winds up scaled.
+            # It must be doing something squirrely with the context that we just
+            # spoiled with cr.restore(), and this fixes that.
+            PangoCairo.update_layout(cr, layout)
 
     def clear_cache(self):
         """Discards all cached surfaces; used when some properties are changed."""
