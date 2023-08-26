@@ -135,7 +135,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.game_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
-        self.get_missing_games()
+
         self.update_action_state()
 
         self.connect("view-updated", self.update_store)
@@ -253,6 +253,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_load(self, widget, data=None):
         """Finish initializing the view"""
         self._bind_zoom_adjustment()
+        self.get_missing_games()
         self.current_view.grab_focus()
 
     def on_sidebar_realize(self, widget, data=None):
