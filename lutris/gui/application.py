@@ -454,7 +454,6 @@ class Application(Gtk.Application):
             migrate()
 
         gpu_info = run_all_checks()
-
         if options.contains("dest"):
             dest_dir = options.lookup_value("dest").get_string()
         else:
