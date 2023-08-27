@@ -265,7 +265,9 @@ class mame(Runner):  # pylint: disable=invalid-name
             return self.platforms[int(selected_platform)]
         if self.game_config.get("machine"):
             machine_mapping = {choice[1]: choice[0] for choice in get_system_choices(include_year=False)}
-            return machine_mapping[self.game_config["machine"]]
+            # get_system_choices() can return [] if not yet ready, so we'll return
+            # None in that case.
+            return machine_mapping.get(self.game_config["machine"])
         rom_file = os.path.basename(self.game_config.get("main_file", ""))
         if rom_file.startswith("gnw_"):
             return _("Nintendo Game & Watch")
