@@ -158,8 +158,7 @@ system_options = [  # pylint: disable=invalid-name
         "default": False,
         "condition": bool(system.find_executable("gamescope")),
         "help": _("Always use relative mouse mode instead of flipping\n"
-                  "dependent on cursor visibility.\n"
-                  "(Since gamescope git commit 054458f, Jan 12, 2023)"),
+                  "dependent on cursor visibility"),
     },
     {
         "section": "Gamescope",
