@@ -26,7 +26,6 @@ RUNTIME_DIR = sio.read_setting("runtime_dir") or os.path.join(DATA_DIR, "runtime
 CACHE_DIR = sio.read_setting("cache_dir") or os.path.join(GLib.get_user_cache_dir(), "lutris")
 GAME_CONFIG_DIR = os.path.join(CONFIG_DIR, "games")
 
-TMP_PATH = os.path.join(CACHE_DIR, "tmp")
 SHADER_CACHE_DIR = os.path.join(CACHE_DIR, "shaders")
 BANNER_PATH = os.path.join(CACHE_DIR, "banners")
 COVERART_PATH = os.path.join(CACHE_DIR, "coverart")
