@@ -157,8 +157,11 @@ class Downloader:
             self.on_download_failed(ex)
 
     def on_download_failed(self, error):
-        self.state = self.ERROR
-        self.error = error
+        # Cancelling closes the file, which can result in an
+        # error. If so, we just remain cancelled.
+        if self.state != self.CANCELLED:
+            self.state = self.ERROR
+            self.error = error
         if self.file_pointer:
             self.file_pointer.close()
             self.file_pointer = None
