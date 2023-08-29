@@ -33,6 +33,7 @@ class ImportGameDialog(ModelessDialog):
         self.error_labels = {}
         self.launch_buttons = {}
         self.platform = None
+        self.search_call = None
         self.set_size_request(500, 560)
 
         self.accelerators = Gtk.AccelGroup()
@@ -131,7 +132,6 @@ class ImportGameDialog(ModelessDialog):
                 # Found a game to launch instead of installing, but we can't safely
                 # do this on this thread, so we return the game and handle it later.
                 return [{"name": existing_game.name, "game": existing_game, "roms": []}]
-
             show_progress(filepath, _("Calculating checksum..."))
             if filepath.lower().endswith(".zip"):
                 md5 = get_md5_in_zip(filepath)
