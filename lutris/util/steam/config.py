@@ -15,6 +15,7 @@ STEAM_DATA_DIRS = (
     "~/.steam",
     "~/.local/share/steam",
     "~/.local/share/Steam",
+    "~/snap/steam/common/.local/share/Steam",
     "~/.steam/steam",
     "~/.var/app/com.valvesoftware.Steam/data/steam",
     "/usr/share/steam",
