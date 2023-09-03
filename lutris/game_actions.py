@@ -40,6 +40,10 @@ class GameActions:
     def is_game_running(self):
         return self.game and self.game.is_db_stored and bool(self.application.get_running_game_by_id(self.game.id))
 
+    @property
+    def is_game_removable(self):
+        return self.game and (self.game.is_installed or self.game.is_db_stored)
+
     def on_game_state_changed(self, game):
         """Handler called when the game has changed state"""
         if self.game and game.id == self.game.get_safe_id():
@@ -129,7 +133,7 @@ class GameActions:
                 and steam_shortcut.shortcut_exists(self.game)
                 and not steam_shortcut.is_steam_game(self.game)
             ),
-            "remove": self.game.is_installed or self.game.is_db_stored,
+            "remove": self.is_game_removable,
             "view": True,
             "hide": self.game.is_installed and not self.game.is_hidden,
             "unhide": self.game.is_hidden,
@@ -149,7 +153,7 @@ class GameActions:
 
         return None
 
-    def on_game_stop(self, _caller):
+    def on_game_stop(self, *_args):
         """Stops the game"""
         game = self.get_running_game()
         if game:

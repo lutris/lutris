@@ -79,5 +79,11 @@ class GameView:
             game_id = self.get_selected_game_id()
             if game_id:
                 game_actions = self.get_game_actions(game_id)
-                if game_actions:
+                if game_actions and game_actions.is_game_removable:
                     game_actions.on_remove_game(self)
+        elif key == Gdk.KEY_Break:
+            game_id = self.get_selected_game_id()
+            if game_id:
+                game_actions = self.get_game_actions(game_id)
+                if game_actions and game_actions.is_game_running:
+                    game_actions.on_game_stop(self)
