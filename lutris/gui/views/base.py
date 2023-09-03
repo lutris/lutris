@@ -11,9 +11,8 @@ from lutris.gui.widgets.contextual_menu import ContextualMenu
 class GameView:
     # pylint: disable=no-member
     __gsignals__ = {
-        "game-selected": (GObject.SIGNAL_RUN_FIRST, None, (Gtk.TreeIter, )),
-        "game-activated": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
-        "remove-game": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-selected": (GObject.SIGNAL_RUN_FIRST, None, (Gtk.TreeIter,)),
+        "game-activated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
     }
 
     def __init__(self, service):
@@ -37,30 +36,38 @@ class GameView:
             if not _iter:
                 return
             col_id = str(model.get_value(_iter, COL_ID))
-            if self.service:
-                db_game = get_game_for_service(self.service.id, col_id)
 
-                if db_game:
-                    game = self.get_game_by_id(db_game["id"])
-                else:
-                    db_game = ServiceGameCollection.get_game(self.service.id, col_id)
-                    game = Game.create_empty_service_game(db_game, self.service)
-            elif col_id:
-                game = self.get_game_by_id(col_id)
+            game_actions = self.get_game_actions(col_id)
+            if game_actions:
+                contextual_menu = ContextualMenu(game_actions.get_game_actions())
+                contextual_menu.popup(event, game_actions)
+
+    def get_game_actions(self, game_id):
+        if self.service:
+            db_game = get_game_for_service(self.service.id, game_id)
+
+            if db_game:
+                game = self.get_game_by_id(db_game["id"])
             else:
-                return
+                db_game = ServiceGameCollection.get_game(self.service.id, game_id)
+                game = Game.create_empty_service_game(db_game, self.service)
+        elif game_id:
+            game = self.get_game_by_id(game_id)
+        else:
+            return None
 
-            game_actions = GameActions(game, window=self.get_toplevel())
-            contextual_menu = ContextualMenu(game_actions.get_game_actions())
-            contextual_menu.popup(event, game_actions)
+        return GameActions(game, window=self.get_toplevel())
 
     def get_game_by_id(self, game_id):
         application = Gio.Application.get_default()
         game = application.get_running_game_by_id(game_id) if application else None
         return game or Game(game_id)
 
-    def get_selected_id(self, selected_item):
-        return self.get_model().get_value(selected_item, COL_ID)
+    def get_selected_game_id(self):
+        selected_item = self.get_selected_item()
+        if selected_item:
+            return self.get_model().get_value(selected_item, COL_ID)
+        return None
 
     def select(self):
         """Selects the object pointed by current_path"""
@@ -69,4 +76,8 @@ class GameView:
     def handle_key_press(self, widget, event):  # pylint: disable=unused-argument
         key = event.keyval
         if key == Gdk.KEY_Delete:
-            self.emit("remove-game")
+            game_id = self.get_selected_game_id()
+            if game_id:
+                game_actions = self.get_game_actions(game_id)
+                if game_actions:
+                    game_actions.on_remove_game(self)
