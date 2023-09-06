@@ -12,10 +12,22 @@ from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.wine.dxvk import DXVKManager
+from lutris.util.wine.vkd3d import VKD3DManager
+from lutris.util.wine.d3d_extras import D3DExtrasManager
+from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
+from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
 DEFAULT_RUNTIME = "Ubuntu-18.04"
 
+DLL_MANAGERS = {
+    "dxvk": DXVKManager,
+    "vkd3d": VKD3DManager,
+    "d3d_extras": D3DExtrasManager,
+    "dgvoodoo2": dgvoodoo2Manager,
+    "dxvk_nvapi": DXVKNVAPIManager,
+}
 
 class Runtime:
 
@@ -193,9 +205,11 @@ class Runtime:
             self.updater.notify_finish(self)
             return False
         archive_path, _destination_path = result
-        logger.debug("Deleting runtime archive %s", archive_path)
         os.unlink(archive_path)
         self.set_updated_at()
+        if self.name in DLL_MANAGERS:
+            manager = DLL_MANAGERS[self.name]()
+            manager.fetch_versions()
         self.updater.notify_finish(self)
         return False
 
