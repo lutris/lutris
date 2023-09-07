@@ -74,7 +74,7 @@ class LutrisCoverartMedium(LutrisCoverart):
 class BaseService(GObject.Object):
     """Base class for local services"""
     type = NotImplemented  # String identifier for this kind of service
-    id: str  # Identifier of a single account created at this service
+    service_id: str  # Identifier of a single account created at this service
     _matcher = None
     has_extras = False
     name = NotImplemented
@@ -96,15 +96,15 @@ class BaseService(GObject.Object):
         "service-logout": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, id):
+    def __init__(self, service_id=None):
         super().__init__()
-        self.id = id
+        self.service_id = service_id
 
     @property
     def matcher(self):
         if self._matcher:
             return self._matcher
-        return self.id
+        return self.service_id
 
     def run(self):
         """Launch the game client"""
@@ -176,8 +176,8 @@ class BaseService(GObject.Object):
             service_media.render()
 
     def wipe_game_cache(self):
-        logger.debug("Deleting games from service-games for %s", self.id)
-        sql.db_delete(PGA_DB, "service_games", "service", self.id)
+        logger.debug("Deleting games from service-games for %s", self.service_id)
+        sql.db_delete(PGA_DB, "service_games", "service", self.service_id)
 
     def get_update_installers(self, db_game):
         return []
@@ -194,37 +194,38 @@ class BaseService(GObject.Object):
             PGA_DB,
             "service_games",
             {"lutris_slug": api_game["slug"]},
-            conditions={"appid": service_game["appid"], "service": self.id}
+            conditions={"appid": service_game["appid"], "service": self.service_id}
         )
         unmatched_lutris_games = get_games(
             searches={"installer_slug": self.matcher},
             filters={"slug": api_game["slug"]},
-            excludes={"service": self.id}
+            excludes={"service": self.service_id}
         )
         for game in unmatched_lutris_games:
             logger.debug("Updating unmatched game %s", game)
             sql.db_update(
                 PGA_DB,
                 "games",
-                {"service": self.id, "service_id": service_game["appid"]},
+                {"service": self.service_id, "service_id": service_game["appid"]},
                 conditions={"id": game["id"]}
             )
 
     def match_games(self):
         """Matching of service games to lutris games"""
         service_games = {
-            str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.id)
+            str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.service_id)
         }
-        lutris_games = api.get_api_games(list(service_games.keys()), service=self.id)
+        lutris_games = api.get_api_games(list(service_games.keys()), service=self.service_id)
         for lutris_game in lutris_games:
             for provider_game in lutris_game["provider_games"]:
-                if provider_game["service"] != self.id:
+                if provider_game["service"] != self.service_id:
                     continue
                 self.match_game(service_games.get(provider_game["slug"]), lutris_game)
-        unmatched_service_games = get_games(searches={"installer_slug": self.matcher}, excludes={"service": self.id})
+        unmatched_service_games = get_games(searches={"installer_slug": self.matcher}, excludes={
+                                            "service": self.service_id})
         for lutris_game in api.get_api_games(game_slugs=[g["slug"] for g in unmatched_service_games]):
             for provider_game in lutris_game["provider_games"]:
-                if provider_game["service"] != self.id:
+                if provider_game["service"] != self.service_id:
                     continue
                 self.match_game(service_games.get(provider_game["slug"]), lutris_game)
 
@@ -234,15 +235,15 @@ class BaseService(GObject.Object):
             logger.debug("Matching %s with existing install: %s", appid, _game)
             game = Game(_game["id"])
             game.appid = appid
-            game.service = self.id
+            game.service = self.service_id
             game.save()
-            service_game = ServiceGameCollection.get_game(self.id, appid)
+            service_game = ServiceGameCollection.get_game(self.service_id, appid)
             sql.db_update(PGA_DB, "service_games", {"lutris_slug": game.slug}, {"id": service_game["id"]})
             return game
 
     def get_installers_from_api(self, appid):
         """Query the lutris API for an appid and get existing installers for the service"""
-        lutris_games = api.get_api_games([appid], service=self.id)
+        lutris_games = api.get_api_games([appid], service=self.service_id)
         service_installers = []
         if lutris_games:
             lutris_game = lutris_games[0]
@@ -265,7 +266,7 @@ class BaseService(GObject.Object):
                 they return None.
         """
         appid = db_game["appid"]
-        logger.debug("Installing %s from service %s", appid, self.id)
+        logger.debug("Installing %s from service %s", appid, self.service_id)
 
         # Local services (aka game libraries that don't require any type of online interaction) can
         # be added without going through an install dialog.
@@ -311,7 +312,7 @@ class BaseService(GObject.Object):
             installed=1,
             installer_slug=installer["slug"],
             configpath=configpath,
-            service=self.id,
+            service=self.service_id,
             service_id=db_game["appid"],
         )
         return game_id
@@ -371,7 +372,7 @@ class OnlineService(BaseService):
     def wipe_game_cache(self):
         """Wipe the game cache, allowing it to be reloaded"""
         if self.cache_path:
-            logger.debug("Deleting %s cache %s", self.id, self.cache_path)
+            logger.debug("Deleting %s cache %s", self.service_id, self.cache_path)
             if os.path.isdir(self.cache_path):
                 shutil.rmtree(self.cache_path)
             elif system.path_exists(self.cache_path):
@@ -386,7 +387,7 @@ class OnlineService(BaseService):
                 os.remove(auth_file)
             except OSError:
                 logger.warning("Unable to remove %s", auth_file)
-        logger.debug("logged out from %s", self.id)
+        logger.debug("logged out from %s", self.service_id)
         self.emit("service-logout")
 
     def load_cookies(self):

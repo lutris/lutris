@@ -370,7 +370,7 @@ class ItchIoService(OnlineService):
         if stamp:
             dbg = games_db.get_games_where(
                 installed_at__lessthan=stamp,
-                service=self.id,
+                service=self.service_id,
                 service_id=db_game["service_id"]
             )
             return len(dbg)
@@ -494,7 +494,7 @@ class ItchIoService(OnlineService):
             link = file.url
 
         data = {
-            "service": self.id,
+            "service": self.service_id,
             "appid": installer.service_appid,
             "slug": installer.game_slug,
             "runner": installer.runner,

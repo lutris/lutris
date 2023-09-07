@@ -170,8 +170,8 @@ class EpicGamesStoreService(OnlineService):
         'Chrome/84.0.4147.38 Safari/537.36'
     )
 
-    def __init__(self, id):
-        super().__init__(id)
+    def __init__(self, service_id):
+        super().__init__(service_id)
         self.session = requests.session()
         self.session.headers['User-Agent'] = self.user_agent
         if os.path.exists(self.token_path):
@@ -325,7 +325,7 @@ class EpicGamesStoreService(OnlineService):
         if not service_game:
             logger.error("Aborting install, %s is not present in the game library.", app_name)
             return
-        lutris_game_id = slugify(service_game["name"]) + "-" + self.id
+        lutris_game_id = slugify(service_game["name"]) + "-" + self.service_id
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
             return
@@ -340,7 +340,7 @@ class EpicGamesStoreService(OnlineService):
             installed=1,
             installer_slug=lutris_game_id,
             configpath=configpath,
-            service=self.id,
+            service=self.service_id,
             service_id=app_name,
         )
         return game_id
@@ -370,7 +370,7 @@ class EpicGamesStoreService(OnlineService):
         return {
             "name": db_game["name"],
             "version": self.name,
-            "slug": slugify(db_game["name"]) + "-" + self.id,
+            "slug": slugify(db_game["name"]) + "-" + self.service_id,
             "game_slug": slugify(db_game["name"]),
             "runner": self.runner,
             "appid": db_game["appid"],

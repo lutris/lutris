@@ -77,7 +77,7 @@ class FlathubService(BaseService):
     def wipe_game_cache(self):
         """Wipe the game cache, allowing it to be reloaded"""
         if system.path_exists(self.cache_path):
-            logger.debug("Deleting %s cache %s", self.id, self.cache_path)
+            logger.debug("Deleting %s cache %s", self.service_id, self.cache_path)
             os.remove(self.cache_path)
         super().wipe_game_cache()
 
@@ -104,7 +104,7 @@ class FlathubService(BaseService):
     def install(self, db_game):
         """Install a Flathub game"""
         app_id = db_game["appid"]
-        logger.debug("Installing %s from service %s", app_id, self.id)
+        logger.debug("Installing %s from service %s", app_id, self.service_id)
         # Check if Flathub repo is active on the system
         if not self.is_flathub_remote_active():
             logger.error("Flathub is not configured on the system. Visit https://flatpak.org/setup/ for instructions.")
@@ -163,7 +163,7 @@ class FlathubService(BaseService):
         return {
             "appid": db_game["appid"],
             "game_slug": slugify(db_game["name"]),
-            "slug": slugify(db_game["name"]) + "-" + self.id,
+            "slug": slugify(db_game["name"]) + "-" + self.service_id,
             "name": db_game["name"],
             "version": "Flathub",
             "runner": self.runner,

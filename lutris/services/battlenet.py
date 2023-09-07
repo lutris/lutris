@@ -127,7 +127,7 @@ class BattleNetService(BaseService):
         if not service_game:
             logger.error("Aborting install, %s is not present in the game library.", app_id)
             return
-        lutris_game_id = service_game["slug"] + "-" + self.id
+        lutris_game_id = service_game["slug"] + "-" + self.service_id
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
             return
@@ -142,7 +142,7 @@ class BattleNetService(BaseService):
             installed=1,
             installer_slug=lutris_game_id,
             configpath=configpath,
-            service=self.id,
+            service=self.service_id,
             service_id=app_id,
             platform="Windows"
         )
@@ -156,7 +156,7 @@ class BattleNetService(BaseService):
         return {
             "name": db_game["name"],
             "version": self.name,
-            "slug": db_game["slug"] + "-" + self.id,
+            "slug": db_game["slug"] + "-" + self.service_id,
             "game_slug": db_game["slug"],
             "runner": self.runner,
             "appid": db_game["appid"],

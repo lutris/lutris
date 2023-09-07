@@ -89,8 +89,8 @@ class GOGService(OnlineService):
     token_path = os.path.join(settings.CACHE_DIR, ".gog.token")
     cache_path = os.path.join(settings.CACHE_DIR, "gog-library.json")
 
-    def __init__(self, id):
-        super().__init__(id)
+    def __init__(self, service_id):
+        super().__init__(service_id)
 
         gog_locales = {
             "en": "en-US",

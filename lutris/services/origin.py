@@ -149,8 +149,8 @@ class OriginService(OnlineService):
     ) % redirect_uri
     login_user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0 QtWebEngine/5.8.0"
 
-    def __init__(self, id):
-        super().__init__(id)
+    def __init__(self, service_id):
+        super().__init__(service_id)
 
         self.session = requests.session()
         self.session.mount("https://", LegacyRenegotiationHTTPAdapter())
@@ -318,7 +318,7 @@ class OriginService(OnlineService):
         if not service_game:
             logger.error("Aborting install, %s is not present in the game library.", offer_id)
             return
-        lutris_game_id = slugify(service_game["name"]) + "-" + self.id
+        lutris_game_id = slugify(service_game["name"]) + "-" + self.service_id
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
             return
@@ -333,7 +333,7 @@ class OriginService(OnlineService):
             installed=1,
             installer_slug=lutris_game_id,
             configpath=configpath,
-            service=self.id,
+            service=self.service_id,
             service_id=offer_id,
         )
         return game_id
@@ -346,7 +346,7 @@ class OriginService(OnlineService):
         return {
             "name": db_game["name"],
             "version": self.name,
-            "slug": slugify(db_game["name"]) + "-" + self.id,
+            "slug": slugify(db_game["name"]) + "-" + self.service_id,
             "game_slug": slugify(db_game["name"]),
             "runner": self.runner,
             "appid": db_game["appid"],

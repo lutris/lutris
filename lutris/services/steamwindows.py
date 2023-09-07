@@ -32,7 +32,7 @@ class SteamWindowsService(SteamService):
         return {
             "name": db_game["name"],
             "version": self.name,
-            "slug": slugify(db_game["name"]) + "-" + self.id,
+            "slug": slugify(db_game["name"]) + "-" + self.service_id,
             "game_slug": slugify(db_game["name"]),
             "runner": self.runner,
             "appid": db_game["appid"],
@@ -61,7 +61,7 @@ class SteamWindowsService(SteamService):
         else:
             installers = [self.generate_installer(db_game, steam_game)]
             appid = db_game["appid"]
-            db_games = get_games(filters={"service_id": appid, "installed": "1", "service": self.id})
+            db_games = get_games(filters={"service_id": appid, "installed": "1", "service": self.service_id})
             existing_game = self.match_existing_game(db_games, appid)
             if existing_game:
                 logger.debug("Found steam game: %s", existing_game)

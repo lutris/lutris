@@ -105,8 +105,8 @@ class UbisoftConnectService(OnlineService):
     }
     default_format = "cover"
 
-    def __init__(self, id):
-        super().__init__(id)
+    def __init__(self, service_id):
+        super().__init__(service_id)
         self.client = UbisoftConnectClient(self)
 
     def auth_lost(self):
@@ -180,7 +180,7 @@ class UbisoftConnectService(OnlineService):
     def install_from_ubisoft(self, ubisoft_connect, game):
         app_name = game["name"]
 
-        lutris_game_id = slugify(game["name"]) + "-" + self.id
+        lutris_game_id = slugify(game["name"]) + "-" + self.service_id
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game and existing_game["installed"] == 1:
             logger.debug("Ubisoft Connect game %s is already installed", app_name)
@@ -201,7 +201,7 @@ class UbisoftConnectService(OnlineService):
                 installed=1,
                 installer_slug=lutris_game_id,
                 configpath=configpath,
-                service=self.id,
+                service=self.service_id,
                 service_id=game["appid"],
             )
             return existing_game["id"]
@@ -213,7 +213,7 @@ class UbisoftConnectService(OnlineService):
             installed=1,
             installer_slug=lutris_game_id,
             configpath=configpath,
-            service=self.id,
+            service=self.service_id,
             service_id=game["appid"],
         )
         return game_id
@@ -225,7 +225,7 @@ class UbisoftConnectService(OnlineService):
             return
         prefix_path = ubisoft_connect["directory"].split("drive_c")[0]
         prefix = WinePrefixManager(prefix_path)
-        for game in ServiceGameCollection.get_for_service(self.id):
+        for game in ServiceGameCollection.get_for_service(self.service_id):
             details = json.loads(game["details"])
             install_path = get_ubisoft_registry(prefix, details.get("registryPath"))
             exe = get_ubisoft_registry(prefix, details.get("exe"))
@@ -243,7 +243,7 @@ class UbisoftConnectService(OnlineService):
         return {
             "name": db_game["name"],
             "version": self.name,
-            "slug": slugify(db_game["name"]) + "-" + self.id,
+            "slug": slugify(db_game["name"]) + "-" + self.service_id,
             "game_slug": slugify(db_game["name"]),
             "runner": self.runner,
             "appid": db_game["appid"],
