@@ -167,6 +167,8 @@ class UbisoftConnectService(OnlineService):
         return ubi_games
 
     def store_credentials(self, credentials):
+        if not os.path.exists(os.path.dirname(self.token_path)):
+            os.mkdir(os.path.dirname(self.token_path))
         with open(self.token_path, "w", encoding='utf-8') as auth_file:
             auth_file.write(json.dumps(credentials, indent=2))
 
