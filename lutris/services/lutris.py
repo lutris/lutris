@@ -60,7 +60,7 @@ class LutrisService(OnlineService):
     def match_games(self):
         """Matching lutris games is much simpler... No API call needed."""
         service_games = {
-            str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.service_id)
+            str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.id)
         }
         for lutris_game in get_games():
             self.match_game(service_games.get(lutris_game["slug"]), lutris_game)

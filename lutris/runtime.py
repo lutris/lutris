@@ -12,11 +12,11 @@ from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.wine.dxvk import DXVKManager
+from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
-from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
-from lutris.util.wine.vkd3d import VKD3DManager
 
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
 DEFAULT_RUNTIME = "Ubuntu-18.04"
@@ -28,7 +28,6 @@ DLL_MANAGERS = {
     "dgvoodoo2": dgvoodoo2Manager,
     "dxvk_nvapi": DXVKNVAPIManager,
 }
-
 
 class Runtime:
 

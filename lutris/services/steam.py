@@ -123,10 +123,10 @@ class SteamService(BaseService):
         appid = manifest.steamid
         if appid in self.excluded_appids:
             return
-        service_game = ServiceGameCollection.get_game(self.service_id, appid)
+        service_game = ServiceGameCollection.get_game(self.id, appid)
         if not service_game:
             return
-        lutris_game_id = "%s-%s" % (self.service_id, appid)
+        lutris_game_id = "%s-%s" % (self.id, appid)
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
             return
@@ -141,7 +141,7 @@ class SteamService(BaseService):
             installer_slug=lutris_game_id,
             configpath=configpath,
             platform="Linux",
-            service=self.service_id,
+            service=self.id,
             service_id=appid,
         )
         return game_id
@@ -204,7 +204,7 @@ class SteamService(BaseService):
         return {
             "name": db_game["name"],
             "version": self.name,
-            "slug": slugify(db_game["name"]) + "-" + self.service_id,
+            "slug": slugify(db_game["name"]) + "-" + self.id,
             "game_slug": slugify(db_game["name"]),
             "runner": self.runner,
             "appid": db_game["appid"],
@@ -215,7 +215,7 @@ class SteamService(BaseService):
 
     def install(self, db_game):
         appid = db_game["appid"]
-        db_games = get_games(filters={"service_id": appid, "installed": "1", "service": self.service_id})
+        db_games = get_games(filters={"service_id": appid, "installed": "1", "service": self.id})
         existing_game = self.match_existing_game(db_games, appid)
         if existing_game:
             logger.debug("Found steam game: %s", existing_game)
