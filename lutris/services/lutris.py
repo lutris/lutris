@@ -35,7 +35,7 @@ class LutrisGame(ServiceGame):
 class LutrisService(OnlineService):
     """Service for Lutris games"""
 
-    type = "lutris"
+    id = "lutris"
     name = _("Lutris")
     icon = "lutris"
     online = True

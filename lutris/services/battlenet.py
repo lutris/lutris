@@ -87,7 +87,7 @@ class BattleNetGame(ServiceGame):
 class BattleNetService(BaseService):
     """Service class for Battle.net"""
 
-    type = "battlenet"
+    id = "battlenet"
     name = _("Battle.net")
     icon = "battlenet"
     runner = "wine"

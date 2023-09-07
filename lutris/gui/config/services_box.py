@@ -45,7 +45,7 @@ class ServicesBox(BaseConfigBox):
         )
         service = SERVICES[service_key]
 
-        icon = ScaledImage.get_runtime_icon_image(service.icon, service.type,
+        icon = ScaledImage.get_runtime_icon_image(service.icon, service.id,
                                                   scale_factor=self.get_scale_factor(),
                                                   visible=True)
         box.pack_start(icon, False, False, 0)

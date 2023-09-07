@@ -448,16 +448,16 @@ class LutrisWindow(Gtk.ApplicationWindow,
             return True
         return self.filters["text"] in game["name"].lower()
 
-    def set_service(self, service_id):
-        if self.service and self.service.id == service_id:
+    def set_service(self, service_name):
+        if self.service and self.service.id == service_name:
             return self.service
-        if not service_id:
+        if not service_name:
             self.service = None
             return
         try:
-            self.service = services.get_service(service_id)
+            self.service = services.SERVICES[service_name]()
         except KeyError:
-            logger.error("Non existent service '%s'", service_id)
+            logger.error("Non existent service '%s'", service_name)
             self.service = None
         return self.service
 
@@ -469,10 +469,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 service_game[field] = lutris_game[field]
         return service_game
 
-    def get_service_games(self, service_id):
-        """Switch the current service to service_id and return games if available"""
-        service_games = ServiceGameCollection.get_for_service(service_id)
-        if service_id == "lutris":
+    def get_service_games(self, service_name):
+        """Switch the current service to service_name and return games if available"""
+        service_games = ServiceGameCollection.get_for_service(service_name)
+        if service_name == "lutris":
             lutris_games = {g["slug"]: g for g in games_db.get_games()}
         else:
             lutris_games = {g["service_id"]: g for g in games_db.get_games(filters={"service": self.service.id})}
@@ -485,12 +485,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
         ]
 
     def get_games_from_filters(self):
-        service_id = self.filters.get("service")
-        if service_id and services.service_type_for_id(service_id) in services.SERVICES:
+        service_name = self.filters.get("service")
+        if service_name in services.SERVICES:
             if self.service.online and not self.service.is_authenticated():
                 self.show_label(_("Connect your %s account to access your games") % self.service.name)
                 return []
-            return self.get_service_games(service_id)
+            return self.get_service_games(service_name)
         if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
             return self.dynamic_categories_game_factories[self.filters["dynamic_category"]]()
         if self.filters.get("category") and self.filters["category"] != "all":
@@ -706,7 +706,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def load_icon_type(self):
         """Return the icon style depending on the type of view."""
         setting_key = "icon_type_%sview" % self.current_view_type
-        if self.service and self.service.type != "lutris":
+        if self.service and self.service.id != "lutris":
             setting_key += "_%s" % self.service.id
         self.icon_type = settings.read_setting(setting_key)
         return self.icon_type
@@ -715,7 +715,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Save icon type to settings"""
         self.icon_type = icon_type
         setting_key = "icon_type_%sview" % self.current_view_type
-        if self.service and self.service.type != "lutris":
+        if self.service and self.service.id != "lutris":
             setting_key += "_%s" % self.service.id
         settings.write_setting(setting_key, self.icon_type)
         self.redraw_view()
@@ -967,8 +967,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
             row_type = "category"
         self.filters[row_type] = row_id
 
-        service_id = self.filters.get("service")
-        self.set_service(service_id)
+        service_name = self.filters.get("service")
+        self.set_service(service_name)
         self._bind_zoom_adjustment()
         self.redraw_view()
 
@@ -1074,7 +1074,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if self.service:
             logger.debug("Looking up %s game %s", self.service.id, game_id)
             db_game = games_db.get_game_for_service(self.service.id, game_id)
-            if self.service.type == "lutris":
+            if self.service.id == "lutris":
                 if not db_game or not db_game["installed"]:
                     self.service.install(game_id)
                     return

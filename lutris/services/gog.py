@@ -54,7 +54,7 @@ class GOGGame(ServiceGame):
     @classmethod
     def new_from_gog_game(cls, gog_game):
         """Return a GOG game instance from the API info"""
-        service_game = cls()
+        service_game = GOGGame()
         service_game.appid = str(gog_game["id"])
         service_game.slug = gog_game["slug"]
         service_game.name = gog_game["title"]
@@ -65,7 +65,7 @@ class GOGGame(ServiceGame):
 class GOGService(OnlineService):
     """Service class for GOG"""
 
-    type = "gog"
+    id = "gog"
     name = _("GOG")
     icon = "gog"
     has_extras = True
@@ -89,8 +89,8 @@ class GOGService(OnlineService):
     token_path = os.path.join(settings.CACHE_DIR, ".gog.token")
     cache_path = os.path.join(settings.CACHE_DIR, "gog-library.json")
 
-    def __init__(self, id):
-        super().__init__(id)
+    def __init__(self):
+        super().__init__()
 
         gog_locales = {
             "en": "en-US",
@@ -133,7 +133,7 @@ class GOGService(OnlineService):
         if not self.is_connected():
             logger.error("User not connected to GOG")
             return
-        games = [self.get_service_game(game) for game in self.get_library()]
+        games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
         for game in games:
             game.save()
         self.match_games()

@@ -78,7 +78,7 @@ class UbisoftGame(ServiceGame):
 
 class UbisoftConnectService(OnlineService):
     """Service class for Ubisoft Connect"""
-    type = "ubisoft"
+    id = "ubisoft"
     name = _("Ubisoft Connect")
     icon = "ubisoft"
     runner = "wine"
@@ -105,8 +105,8 @@ class UbisoftConnectService(OnlineService):
     }
     default_format = "cover"
 
-    def __init__(self, id):
-        super().__init__(id)
+    def __init__(self):
+        super().__init__()
         self.client = UbisoftConnectClient(self)
 
     def auth_lost(self):

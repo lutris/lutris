@@ -40,7 +40,7 @@ class XDGMedia(ServiceMedia):
 
 
 class XDGService(BaseService):
-    type = "xdg"
+    id = "xdg"
     name = _("Local")
     icon = "linux"
     online = False

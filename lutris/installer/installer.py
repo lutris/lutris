@@ -11,7 +11,7 @@ from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.legacy import get_game_launcher
 from lutris.runners import import_runner
-from lutris.services import SERVICES, get_service
+from lutris.services import SERVICES
 from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
 from lutris.util.gog import convert_gog_config_to_lutris, get_gog_config_from_path, get_gog_game_path
 from lutris.util.log import logger
@@ -52,12 +52,12 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if initial:
             return initial
         if "steam" in self.runner and "steam" in SERVICES:
-            return get_service("steam")
+            return SERVICES["steam"]()
         version = self.version.lower()
         if "humble" in version and "humblebundle" in SERVICES:
-            return get_service("humblebundle")
+            return SERVICES["humblebundle"]()
         if "gog" in version and "gog" in SERVICES:
-            return get_service("gog")
+            return SERVICES["gog"]()
         if "itch.io" in version and "itchio" in SERVICES:
             return SERVICES["itchio"]()
 
@@ -69,12 +69,12 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if not self.service:
             return
         service_id = None
-        if self.service.type == "steam":
+        if self.service.id == "steam":
             service_id = installer.get("steamid") or installer.get("service_id")
         game_config = self.script.get("game", {})
-        if self.service.type == "gog":
+        if self.service.id == "gog":
             service_id = game_config.get("gogid") or installer.get("gogid") or installer.get("service_id")
-        if self.service.type == "humblebundle":
+        if self.service.id == "humblebundle":
             service_id = game_config.get("humbleid") or installer.get("humblestoreid") or installer.get("service_id")
         if self.service.id == "itchio":
             service_id = game_config.get("itchid") or installer.get("itchid") or installer.get("service_id")

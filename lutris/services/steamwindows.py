@@ -21,7 +21,7 @@ class SteamWindowsGame(SteamGame):
 
 
 class SteamWindowsService(SteamService):
-    type = "steamwindows"
+    id = "steamwindows"
     name = _("Steam for Windows")
     runner = "wine"
     game_class = SteamWindowsGame

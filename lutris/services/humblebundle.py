@@ -56,7 +56,7 @@ class HumbleBundleGame(ServiceGame):
 class HumbleBundleService(OnlineService):
     """Service for Humble Bundle"""
 
-    type = "humblebundle"
+    id = "humblebundle"
     _matcher = "humble"
     name = _("Humble Bundle")
     icon = "humblebundle"

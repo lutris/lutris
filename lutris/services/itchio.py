@@ -74,7 +74,7 @@ class ItchIoGameTraits():
 class ItchIoService(OnlineService):
     """Service class for itch.io"""
 
-    type = "itchio"
+    id = "itchio"
     # According to their branding, "itch.io" is supposed to be all lowercase
     name = _("itch.io")
     icon = "itchio"
