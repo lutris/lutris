@@ -98,7 +98,7 @@ def unpack_dependencies(string: str) -> List[Union[str, tuple]]:
 
     if not string:
         return []
-    return [_expand_dep(dep) for dep in string.split(",") if dep.strip()]
+    return [dep for dep in [_expand_dep(dep) for dep in string.split(",")] if dep]
 
 
 def gtk_safe(string: str) -> str:
