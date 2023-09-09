@@ -15,7 +15,7 @@ from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
-from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
+from lutris.gui.widgets.common import FloatEntry, Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.scaled_image import ScaledImage
 from lutris.gui.widgets.utils import get_image_file_format, invalidate_media_caches
@@ -47,6 +47,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.slug_entry = None
         self.directory_entry = None
         self.year_entry = None
+        self.playtime_entry = None
         self.slug_change_button = None
         self.runner_dropdown = None
         self.image_buttons = {}
@@ -147,6 +148,8 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         info_box.pack_start(self.runner_box, False, False, 6)  # Runner
 
         info_box.pack_start(self._get_year_box(), False, False, 6)  # Year
+
+        info_box.pack_start(self._get_playtime_box(), False, False, 6)  # Playtime
 
         if self.game:
             info_box.pack_start(self._get_slug_box(), False, False, 6)
@@ -310,6 +313,20 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if self.game:
             self.year_entry.set_text(str(self.game.year or ""))
         box.pack_start(self.year_entry, True, True, 0)
+
+        return box
+
+    def _get_playtime_box(self):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+
+        label = Label(_("Playtime (in hours)"))
+        box.pack_start(label, False, False, 0)
+        self.playtime_entry = FloatEntry()
+        self.playtime_entry.set_max_length(10)
+
+        if self.game:
+            self.playtime_entry.set_text(f"{self.game.playtime}")
+        box.pack_start(self.playtime_entry, True, True, 0)
 
         return box
 
@@ -629,6 +646,10 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if self.year_entry.get_text():
             year = int(self.year_entry.get_text())
 
+        playtime = None
+        if self.playtime_entry.get_text():
+            playtime = float(self.playtime_entry.get_text())
+
         if not self.lutris_config.game_config_id:
             self.lutris_config.game_config_id = make_game_config_id(self.slug)
 
@@ -636,6 +657,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.game.sortname = sortname
         self.game.slug = self.slug
         self.game.year = year
+        self.game.playtime = playtime
         self.game.is_installed = True
         self.game.config = self.lutris_config
         self.game.runner_name = self.runner_name
