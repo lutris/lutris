@@ -247,7 +247,7 @@ class RuntimeUpdater:
     def download_runtime_versions(self):
         """Download runtime versions from Lutris.net"""
         self.runtime_versions = get_runtime_versions(self.pci_ids)
-        with open(os.path.join(settings.RUNTIME_VERSIONS_PATH, "w"), encoding="utf-8") as runtime_file:
+        with open(settings.RUNTIME_VERSIONS_PATH, "w", encoding="utf-8") as runtime_file:
             json.dump(self.runtime_versions, runtime_file)
         return self.runtime_versions
 
@@ -255,7 +255,7 @@ class RuntimeUpdater:
         """Load runtime versions from json file"""
         if not system.path_exists(settings.RUNTIME_VERSIONS_PATH):
             return {}
-        with open(os.path.join(settings.RUNTIME_VERSIONS_PATH, "r"), encoding="utf-8") as runtime_file:
+        with open(settings.RUNTIME_VERSIONS_PATH, "r", encoding="utf-8") as runtime_file:
             self.runtime_versions = json.load(runtime_file)
         return self.runtime_versions
 
