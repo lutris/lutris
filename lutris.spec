@@ -1,8 +1,3 @@
-%{!?__python3: %global __python3 /usr/bin/python3}
-%{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-%{!?py3_build: %global py3_build CFLAGS="%{optflags}" %{__python3} setup.py build}
-%{!?py3_install: %global py3_install %{__python3} setup.py install --skip-build --root %{buildroot}}
-
 %global appid net.lutris.Lutris
 
 Name:           lutris
@@ -14,58 +9,51 @@ License:        GPL-3.0+
 Group:          Amusements/Games/Other
 URL:            http://lutris.net
 Source0:        http://lutris.net/releases/lutris_%{version}.tar.xz
-
 BuildArch:      noarch
 
-# Common build dependencies
 BuildRequires:  desktop-file-utils
 BuildRequires:  python3-devel
-
-%if 0%{?fedora}
-BuildRequires:  python3-gobject, python3-wheel, python3-setuptools
-Requires:       python3-gobject, python3-PyYAML, cabextract
-Requires:       gtk3, psmisc, xorg-x11-server-Xephyr, xorg-x11-server-utils
-Requires:       python3-requests
-Requires:       gnome-desktop3
-Recommends:     wine-core
-%endif
-
-%if 0%{?rhel} || 0%{?centos}
 BuildRequires:  python3-gobject
-Requires:       python3-gobject, python3-PyYAML, cabextract
-%endif
-
-%if 0%{?suse_version}
-BuildRequires:  python3-gobject, python3-setuptools, typelib-1_0-Gtk-3_0
-BuildRequires:  update-desktop-files
-# Needed to workaround "directories not owned by a package" issue
-BuildRequires:  hicolor-icon-theme
-BuildRequires:  python3-setuptools
-Requires:       (python3-gobject-Gdk or python3-gobject)
-Requires:       python3-PyYAML, cabextract, typelib-1_0-Gtk-3_0
-Requires:       typelib-1_0-GnomeDesktop-3_0, typelib-1_0-WebKit2-4_0, typelib-1_0-Notify-0_7
-Requires:       fluid-soundfont-gm, python3-Pillow, python3-requests
-%endif
-
-%if 0%{?fedora} || 0%{?suse_version}
+BuildRequires:  python-wheel
+BuildRequires   python-setuptools
 BuildRequires:  fdupes
+BuildRequires:  libappstream-glib
+BuildRequires:  meson
+BuildRequires:  gettext
+Requires:       python3-gobject
+Requires:       python3-PyYAML
+Requires:       python3-requests
+Requires:       python3-dbus
+Requires:       python3-evdev
+Requires:       python3-distro
+Requires:       python3-pillow
+Requires:       cabextract
+Requires:       mesa-vulkan-drivers
+Requires:       vulkan-loader
+Recommends:     wine-core
 
 %ifarch x86_64
 Requires:       mesa-vulkan-drivers(x86-32)
 Requires:       vulkan-loader(x86-32)
 %endif
 
-Requires:       mesa-vulkan-drivers
-Requires:       vulkan-loader
-Recommends:     wine-core
-BuildRequires:  fdupes
-%endif
-
 %if 0%{?fedora}
+Requires:       gtk3, psmisc, xrandr
+Requires:       gnome-desktop3
+Requires:       mesa-libGL
 %ifarch x86_64
 Requires:       mesa-libGL(x86-32)
-Requires:       mesa-libGL
 %endif
+%endif
+
+%if 0%{?suse_version}
+BuildRequires:  typelib-1_0-Gtk-3_0
+BuildRequires:  update-desktop-files
+BuildRequires:  hicolor-icon-theme
+Requires:       typelib-1_0-Gtk-3_0
+Requires:       typelib-1_0-GnomeDesktop-3_0
+Requires:       typelib-1_0-WebKit2-4_0
+Requires:       typelib-1_0-Notify-0_7
 %endif
 
 
@@ -76,15 +64,16 @@ emulators, engine re-implementations and compatibility layers,
 it gives you a central interface to launch all your games.
 
 %prep
-%setup -q -n %{name}
-
+%autosetup -n %{name}-%{version} -p1
 
 %build
 %py3_build
-
+%meson
+%meson_build
 
 %install
 %py3_install
+%meson_install
 %if 0%{?fedora} || 0%{?suse_version}
 %fdupes %{buildroot}%{python3_sitelib}
 %endif
@@ -125,10 +114,16 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %{_datadir}/icons/hicolor/64x64/apps/lutris.png
 %{_datadir}/icons/hicolor/128x128/apps/lutris.png
 %{_datadir}/icons/hicolor/scalable/apps/lutris.svg
+%{_datadir}/man/man1/%{name}.1.gz
 %{python3_sitelib}/%{name}-*.egg-info
 %{python3_sitelib}/%{name}/
+%{_datadir}/metainfo/
+%{_datadir}/locale/
 
 %changelog
+* Mon Sep 11 2023 Mathieu Comandon <mathieucomandon@gmail.com> 0.5.13
+- Update to Meson build system
+
 * Wed Feb 06 2019 Andrew Schott <andrew@schotty.com 0.5.0.1-6
 - Readability cleanup.
 
