@@ -1,5 +1,6 @@
 """Runtime handling module"""
 import concurrent.futures
+import json
 import os
 import time
 
@@ -12,11 +13,11 @@ from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-from lutris.util.wine.dxvk import DXVKManager
-from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
+from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
+from lutris.util.wine.vkd3d import VKD3DManager
 
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
 DEFAULT_RUNTIME = "Ubuntu-18.04"
@@ -28,6 +29,7 @@ DLL_MANAGERS = {
     "dgvoodoo2": dgvoodoo2Manager,
     "dxvk_nvapi": DXVKNVAPIManager,
 }
+
 
 class Runtime:
 
@@ -222,14 +224,13 @@ class RuntimeUpdater:
     update_functions = []
     downloaders = {}
 
-    def __init__(self, pci_ids=None, force=False):
-
+    def __init__(self, pci_ids:list=None, force:bool=False):
         self.force = force
         self.pci_ids = pci_ids or []
-        self.runtime_versions = None
+        self.runtime_versions = {}
         self.add_update("runtime", self._update_runtime_components, hours=12)
 
-    def add_update(self, key, update_function, hours):
+    def add_update(self, key:str, update_function, hours):
         """__init__ calls this to register each update. This function
         only registers the update if it hasn't been tried in the last
         'hours' hours. This is trakced in 'updates.json', and identified
@@ -239,14 +240,29 @@ class RuntimeUpdater:
             self.update_functions.append((key, update_function))
 
     @property
-    def has_updates(self):
+    def has_updates(self)->bool:
         """Returns True if there are any updates to perform."""
         return len(self.update_functions) > 0
+
+    def download_runtime_versions(self):
+        """Download runtime versions from Lutris.net"""
+        self.runtime_versions = get_runtime_versions(self.pci_ids)
+        with open(os.path.join(settings.RUNTIME_VERSIONS_PATH, "w"), encoding="utf-8") as runtime_file:
+            json.dump(self.runtime_versions, runtime_file)
+        return self.runtime_versions
+
+    def load_runtime_versions(self)->dict:
+        """Load runtime versions from json file"""
+        if not system.path_exists(settings.RUNTIME_VERSIONS_PATH):
+            return {}
+        with open(os.path.join(settings.RUNTIME_VERSIONS_PATH, "r"), encoding="utf-8") as runtime_file:
+            self.runtime_versions = json.load(runtime_file)
+        return self.runtime_versions
 
     def update_runtimes(self):
         """Performs all the registered updates. If 'self.cancel()' is called,
         it will immediately stop."""
-        self.runtime_versions = get_runtime_versions(self.pci_ids)
+        self.download_runtime_versions()
         for key, func in self.update_functions:
             if self.cancelled:
                 break

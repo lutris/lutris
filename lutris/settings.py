@@ -29,6 +29,7 @@ GAME_CONFIG_DIR = os.path.join(CONFIG_DIR, "games")
 SHADER_CACHE_DIR = os.path.join(CACHE_DIR, "shaders")
 BANNER_PATH = os.path.join(CACHE_DIR, "banners")
 COVERART_PATH = os.path.join(CACHE_DIR, "coverart")
+RUNTIME_VERSIONS_PATH = os.path.join(CACHE_DIR, "versions.json")
 ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128", "apps")
 
 if "nosetests" in sys.argv[0] or "nose2" in sys.argv[0] or "pytest" in sys.argv[0]:

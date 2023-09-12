@@ -19,7 +19,6 @@ from lutris.util.log import logger
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
 USER_INFO_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.json")
-USER_ICON_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.png")
 
 
 def read_api_key():
@@ -95,7 +94,7 @@ def get_runners(runner_name):
 
 
 @functools.lru_cache()
-def get_default_runner_version(runner_name, version=None):
+def get_default_runner_version(runner_name: str, version: str = ""):
     """Get the appropriate version for a runner
 
     Params:
