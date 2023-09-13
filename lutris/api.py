@@ -87,7 +87,7 @@ def get_user_info():
 
 def get_runners(runner_name):
     """Return the available runners for a given runner name"""
-    logger.deb("Retrieving runners")
+    logger.debug("Retrieving runners")
     api_url = settings.SITE_URL + "/api/runners/" + runner_name
     host = settings.SITE_URL.split("//")[1]
 
@@ -147,6 +147,7 @@ def get_default_runner_version(runner_name: str, version: str = "") -> dict:
     )
     arch = LINUX_SYSTEM.arch
     versions = download_runner_versions(runner_name)
+    # Please someone clean up the abomination that is the code below.
     if version:
         if version.endswith("-i386") or version.endswith("-x86_64"):
             version, arch = version.rsplit("-", 1)
@@ -159,8 +160,6 @@ def get_default_runner_version(runner_name: str, version: str = "") -> dict:
         default_version = [v for v in versions_for_arch if v["default"] is True]
         if default_version:
             return default_version[0]
-    elif len(versions) == 1 and LINUX_SYSTEM.is_64_bit:
-        return versions[0]
     elif len(versions) > 1 and LINUX_SYSTEM.is_64_bit:
         default_version = [v for v in versions if v["default"] is True]
         if default_version:
@@ -168,6 +167,7 @@ def get_default_runner_version(runner_name: str, version: str = "") -> dict:
     # If we didn't find a proper version yet, return the first available.
     if len(versions_for_arch) >= 1:
         return versions_for_arch[0]
+    return {}
 
 
 def get_http_post_response(url, payload):
