@@ -21,6 +21,14 @@ API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
 USER_INFO_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.json")
 
 
+def load_runtime_versions() -> dict:
+    """Load runtime versions from json file"""
+    if not system.path_exists(settings.RUNTIME_VERSIONS_PATH):
+        return {}
+    with open(settings.RUNTIME_VERSIONS_PATH, mode="r", encoding="utf-8") as runtime_file:
+        return json.load(runtime_file)
+
+
 def read_api_key():
     """Read the API token from disk"""
     if not system.path_exists(API_KEY_FILE_PATH):
@@ -79,6 +87,7 @@ def get_user_info():
 
 def get_runners(runner_name):
     """Return the available runners for a given runner name"""
+    logger.deb("Retrieving runners")
     api_url = settings.SITE_URL + "/api/runners/" + runner_name
     host = settings.SITE_URL.split("//")[1]
 
@@ -93,39 +102,51 @@ def get_runners(runner_name):
     return response.json()
 
 
-@functools.lru_cache()
-def get_default_runner_version(runner_name: str, version: str = ""):
-    """Get the appropriate version for a runner
-
-    Params:
-        version (str): Optional version to lookup, will return this one if found
-
-    Returns:
-        dict: Dict containing version, architecture and url for the runner, None
-        if the data can't be retrieved. If a pseudo-version is accepted, may be
-        a dict containing only the version itself.
-    """
-    logger.info(
-        "Getting runner information for %s%s",
-        runner_name,
-        " (version: %s)" % version if version else "",
-    )
-
+def download_runner_versions(runner_name: str) -> list:
     try:
         request = Request("{}/api/runners/{}".format(settings.SITE_URL, runner_name))
         runner_info = request.get().json
-
         if not runner_info:
             logger.error("Failed to get runner information")
     except HTTPError as ex:
         logger.error("Unable to get runner information: %s", ex)
         runner_info = None
-
     if not runner_info:
-        return
-
+        return []
     versions = runner_info.get("versions") or []
+    return versions
+
+
+@functools.lru_cache()
+def get_default_runner_version(runner_name: str, version: str = "") -> dict:
+    """Get the appropriate version for a runner
+
+    Params:
+        version: Optional version to lookup, will return this one if found
+
+    Returns:
+        Dict containing version, architecture and url for the runner, None
+        if the data can't be retrieved. If a pseudo-version is accepted, may be
+        a dict containing only the version itself.
+    """
+
+    if not version:
+        runtime_versions = load_runtime_versions()
+        if runtime_versions:
+            try:
+                runner_versions = runtime_versions["runners"][runner_name]
+            except KeyError:
+                runner_versions = []
+            for runner_version in runner_versions:
+                if runner_version["architecture"] == LINUX_SYSTEM.arch:
+                    return runner_version
+    logger.info(
+        "Getting runner information for %s%s",
+        runner_name,
+        " (version: %s)" % version if version else "",
+    )
     arch = LINUX_SYSTEM.arch
+    versions = download_runner_versions(runner_name)
     if version:
         if version.endswith("-i386") or version.endswith("-x86_64"):
             version, arch = version.rsplit("-", 1)
@@ -241,7 +262,7 @@ def get_game_installers(game_slug, revision=None):
     return [normalize_installer(i) for i in installers]
 
 
-def get_game_details(slug):
+def get_game_details(slug: str) -> dict:
     url = settings.SITE_URL + "/api/games/%s" % slug
     request = http.Request(url)
     try:
@@ -252,7 +273,7 @@ def get_game_details(slug):
     return response.json
 
 
-def normalize_installer(installer):
+def normalize_installer(installer: dict) -> dict:
     """Adjusts an installer dict so it is in the correct form, with values
     of the expected types."""
     def must_be_str(key):
@@ -269,7 +290,7 @@ def normalize_installer(installer):
     return installer
 
 
-def search_games(query):
+def search_games(query) -> dict:
     if not query:
         return {}
     query = query.lower().strip()[:255]
@@ -283,7 +304,7 @@ def search_games(query):
     return response.json
 
 
-def get_runtime_versions(pci_ids: list) -> dict:
+def download_runtime_versions(pci_ids: list) -> dict:
     """Queries runtime + runners + current client versions"""
     url = settings.SITE_URL + "/api/runtimes/versions?pci_ids=" + ",".join(pci_ids)
     response = http.Request(url, headers={"Content-Type": "application/json"})
@@ -292,6 +313,8 @@ def get_runtime_versions(pci_ids: list) -> dict:
     except http.HTTPError as ex:
         logger.error("Unable to get runtimes from API: %s", ex)
         return {}
+    with open(settings.RUNTIME_VERSIONS_PATH, mode="w", encoding="utf-8") as runtime_file:
+        json.dump(response.json, runtime_file, indent=2)
     return response.json
 
 
