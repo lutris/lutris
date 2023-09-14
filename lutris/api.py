@@ -1,10 +1,10 @@
 """Functions to interact with the Lutris REST API"""
 import functools
-import time
 import json
 import os
 import re
 import socket
+import time
 import urllib.error
 import urllib.parse
 import urllib.request

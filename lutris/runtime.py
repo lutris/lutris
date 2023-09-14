@@ -6,7 +6,7 @@ import time
 from gi.repository import GLib
 
 from lutris import settings
-from lutris.api import download_runtime_versions, load_runtime_versions, get_time_from_api_date
+from lutris.api import download_runtime_versions, get_time_from_api_date, load_runtime_versions
 from lutris.util import http, jobs, system, update_cache
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -68,7 +68,7 @@ class Runtime:
 
         local_updated_at = self.get_updated_at()
         if not local_updated_at:
-            logger.warning("Runtime %s is not available locally", self.name)
+            logger.debug("Runtime %s is not available locally", self.name)
             return True
 
         if local_updated_at and local_updated_at >= remote_updated_at:
@@ -211,7 +211,6 @@ class Runtime:
 
 class RuntimeUpdater:
     """Class handling the runtime updates"""
-
     status_updater = None
     update_functions = []
     downloaders = {}
@@ -220,7 +219,10 @@ class RuntimeUpdater:
         self.force = force
         self.pci_ids = pci_ids or []
         self.runtime_versions = {}
-        self.add_update("runtime", self._update_runtime_components, hours=12)
+        if RUNTIME_DISABLED:
+            logger.warning("Runtime disabled, not updating it.")
+        else:
+            self.add_update("runtime", self._update_runtime, hours=12)
         # self.add_update("runners", self._update_runners, hours=12)
 
     def add_update(self, key: str, update_function, hours):
@@ -258,13 +260,12 @@ class RuntimeUpdater:
             return 0
         return sum(downloader.progress_fraction for downloader in self.downloaders.values()) / len(self.downloaders)
 
-    def _update_runtime_components(self) -> int:
+    def _update_runtime(self) -> None:
         """Launch the update process"""
-        if RUNTIME_DISABLED:
-            logger.warning("Runtime disabled, not updating it.")
-            return 0
-
-        for remote_runtime in self._iter_remote_runtimes():
+        for name, remote_runtime in self.runtime_versions.get("runtimes", {}).items():
+            if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
+                logger.debug("Skipping runtime %s for %s", name, remote_runtime["architecture"])
+                continue
             runtime = Runtime(remote_runtime["name"], self)
             if remote_runtime["url"]:
                 downloader = runtime.download(remote_runtime)
@@ -272,16 +273,6 @@ class RuntimeUpdater:
                     self.downloaders[runtime] = downloader
             else:
                 runtime.download_components()
-
-        return len(self.downloaders)
-
-    def _iter_remote_runtimes(self):
-        for name, runtime in self.runtime_versions.get("runtimes", {}).items():
-            # Skip 64bit runtimes on 32 bit systems
-            if runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
-                logger.debug("Skipping runtime %s for %s", name, runtime["architecture"])
-                continue
-            yield runtime
 
 
 def get_env(version: str = None, prefer_system_libs: bool = False, wine_path: str = None) -> dict:
