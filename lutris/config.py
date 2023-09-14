@@ -202,16 +202,8 @@ class LutrisConfig:
 
         self.raw_config = raw_config
 
-    @property
-    def all_levels(self):
-        """Returns all the configuration levels, in order: game first, then runner, then system.
-        Iterate this to find settings that are explicitly set, without picking up defaults."""
-        return [self.game_level, self.runner_level, self.system_level]
-
     def remove(self):
         """Delete the configuration file from disk."""
-        if not self.game_config_path:
-            raise RuntimeError("Tried to remove a non-existent config")
         if not path_exists(self.game_config_path):
             logger.debug("No config file at %s", self.game_config_path)
             return
