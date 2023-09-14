@@ -11,7 +11,6 @@ from gi.repository import Gdk, GLib, GObject, Gtk
 
 from lutris import api, settings
 from lutris.gui.widgets.log_text_view import LogTextView
-from lutris.migrations import migrate
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -340,7 +339,6 @@ class LutrisInitDialog(Gtk.Dialog):
         return True
 
     def run_init(self):
-        migrate()
         self.runtime_updater.update_runtimes()
 
     def init_cb(self, _result, error):

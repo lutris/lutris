@@ -214,17 +214,17 @@ def version_sort(versions, reverse=False):
     return sorted(versions, key=version_key, reverse=reverse)
 
 
-def is_esync_limit_set()->bool:
+def is_esync_limit_set() -> bool:
     """Checks if the number of files open is acceptable for esync usage."""
     return linux.LINUX_SYSTEM.has_enough_file_descriptors()
 
 
-def is_fsync_supported()->bool:
+def is_fsync_supported() -> bool:
     """Checks if the running kernel has Valve's futex patch applied."""
     return fsync.get_fsync_support()
 
 
-def get_default_version()->str:
+def get_default_version() -> str:
     """Return the default version of wine."""
     installed_versions = get_installed_wine_versions()
     if installed_versions:
@@ -234,7 +234,7 @@ def get_default_version()->str:
             if version in installed_versions:
                 return version
         return installed_versions[0]
-    return None
+    return ""
 
 
 def get_system_wine_version(wine_path="wine"):
