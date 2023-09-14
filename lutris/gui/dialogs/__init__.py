@@ -329,24 +329,16 @@ class LutrisInitDialog(Gtk.Dialog):
         self.progress_timeout = GLib.timeout_add(125, self.show_progress)
         self.show_all()
 
-        self.connect("response", self.on_response)
         self.connect("destroy", self.on_destroy)
-        AsyncCall(self.run_init, self.init_cb)
+        AsyncCall(self.runtime_updater.update_runtimes, self.init_cb)
 
     def show_progress(self):
         self.progress.set_fraction(self.runtime_updater.percentage_completed())
         return True
 
-    def run_init(self):
-        self.runtime_updater.update_runtimes()
-
     def init_cb(self, _result, error: Exception):
         if error:
             ErrorDialog(error, parent=self)
-        self.destroy()
-
-    def on_response(self, _widget, response):
-        self.runtime_updater.cancel()
         self.destroy()
 
     def on_destroy(self, window):

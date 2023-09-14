@@ -121,7 +121,7 @@ class Runtime:
             return
         return file_path
 
-    def get_runtime_components(self):
+    def get_runtime_components(self) -> list:
         """Fetch runtime components from the API"""
         request = http.Request(settings.RUNTIME_URL + "/" + self.name)
         try:
@@ -219,7 +219,6 @@ class Runtime:
 class RuntimeUpdater:
     """Class handling the runtime updates"""
 
-    cancelled = False
     status_updater = None
     update_functions = []
     downloaders = {}
@@ -229,6 +228,7 @@ class RuntimeUpdater:
         self.pci_ids = pci_ids or []
         self.runtime_versions = {}
         self.add_update("runtime", self._update_runtime_components, hours=12)
+        # self.add_update("runners", self._update_runners, hours=12)
 
     def add_update(self, key: str, update_function, hours):
         """__init__ calls this to register each update. This function
@@ -250,23 +250,11 @@ class RuntimeUpdater:
         return self.runtime_versions
 
     def update_runtimes(self):
-        """Performs all the registered updates. If 'self.cancel()' is called,
-        it will immediately stop."""
+        """Performs all the registered updates."""
         self.runtime_versions = download_runtime_versions(self.pci_ids)
         for key, func in self.update_functions:
-            if self.cancelled:
-                break
             func()
             update_cache.write_date_to_cache(key)
-
-        if self.cancelled:
-            logger.info("Runtime update cancelled")
-        logger.info("Startup complete")
-
-    def cancel(self):
-        self.cancelled = True
-        for downloader in self.downloaders.values():
-            downloader.cancel()
 
     def _update_runtime_components(self):
         """Update runtime components"""
@@ -276,6 +264,10 @@ class RuntimeUpdater:
                 time.sleep(0.3)
                 if self.cancelled:
                     return
+
+    # def _update_runners(self):
+    #     """Update installed runners (only works for Wine at the moment)"""
+    #     upstream_runners = self.runtime_versions.get("runners", {})
 
     def percentage_completed(self) -> float:
         if not self.downloaders:
