@@ -153,7 +153,7 @@ class Runtime:
                 if not filename:
                     logger.warning("Failed to get %s", future)
 
-    def check_download_progress(self, downloader):
+    def check_download_progress(self, downloader: Downloader):
         """Call download.check_progress(), return True if download finished."""
         if not downloader or downloader.state in [
             downloader.CANCELLED,
@@ -169,21 +169,19 @@ class Runtime:
             return False
         return True
 
-    def on_downloaded(self, path):
+    def on_downloaded(self, path: str) -> bool:
         """Actions taken once a runtime is downloaded
 
         Arguments:
-            path (str): local path to the runtime archive, or None on download failure
+            path: local path to the runtime archive, or None on download failure
         """
         if not path:
-            self.updater.notify_finish(self)
             return False
 
         stats = os.stat(path)
         if not stats.st_size:
             logger.error("Download failed: file %s is empty, Deleting file.", path)
             os.unlink(path)
-            self.updater.notify_finish(self)
             return False
         directory, _filename = os.path.split(path)
 
@@ -197,11 +195,10 @@ class Runtime:
         jobs.AsyncCall(extract_archive, self.on_extracted, path, dest_path, merge_single=True)
         return False
 
-    def on_extracted(self, result, error):
+    def on_extracted(self, result: tuple, error: Exception) -> bool:
         """Callback method when a runtime has extracted"""
         if error:
             logger.error("Runtime update failed: %s", error)
-            self.updater.notify_finish(self)
             return False
         archive_path, _destination_path = result
         os.unlink(archive_path)
