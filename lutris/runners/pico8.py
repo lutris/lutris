@@ -14,8 +14,6 @@ from lutris.util.downloader import Downloader
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
 
-DOWNLOAD_URL = "https://github.com/daniel-j/lutris-pico-8-runner/archive/master.tar.gz"
-
 
 class pico8(Runner):
     description = _("Runs PICO-8 fantasy console cartridges")
@@ -77,20 +75,7 @@ class pico8(Runner):
 
     def __init__(self, config=None):
         super().__init__(config)
-
         self.runnable_alone = self.is_native
-
-    def __repr__(self):
-        return _("PICO-8 runner (%s)") % self.config
-
-    def install(self, install_ui_delegate, version=None, callback=None):
-        opts = {}
-        opts["install_ui_delegate"] = install_ui_delegate
-        if callback:
-            opts["callback"] = callback
-        opts["dest"] = settings.RUNNER_DIR + "/pico8"
-        opts["merge_single"] = True
-        self.download_and_extract(DOWNLOAD_URL, **opts)
 
     @property
     def is_native(self):

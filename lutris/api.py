@@ -138,7 +138,7 @@ def get_default_runner_version(runner_name: str, version: str = "") -> dict:
             except KeyError:
                 runner_versions = []
             for runner_version in runner_versions:
-                if runner_version["architecture"] == LINUX_SYSTEM.arch:
+                if runner_version["architecture"] in (LINUX_SYSTEM.arch, "all"):
                     return runner_version
     logger.info(
         "Getting runner information for %s%s",
