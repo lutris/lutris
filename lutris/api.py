@@ -1,5 +1,6 @@
 """Functions to interact with the Lutris REST API"""
 import functools
+import time
 import json
 import os
 import re
@@ -19,6 +20,11 @@ from lutris.util.log import logger
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
 USER_INFO_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.json")
+
+
+def get_time_from_api_date(date_string):
+    """Convert a date string originating from the API and convert it to a datetime object"""
+    return time.strptime(date_string[:date_string.find(".")], "%Y-%m-%dT%H:%M:%S")
 
 
 def load_runtime_versions() -> dict:

@@ -6,7 +6,7 @@ import time
 from gi.repository import GLib
 
 from lutris import settings
-from lutris.api import download_runtime_versions, load_runtime_versions
+from lutris.api import download_runtime_versions, load_runtime_versions, get_time_from_api_date
 from lutris.util import http, jobs, system, update_cache
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -103,8 +103,7 @@ class Runtime:
 
     def download(self, remote_runtime_info: dict):
         """Downloads a runtime locally"""
-        remote_updated_at = remote_runtime_info["created_at"]
-        remote_updated_at = time.strptime(remote_updated_at[:remote_updated_at.find(".")], "%Y-%m-%dT%H:%M:%S")
+        remote_updated_at = get_time_from_api_date(remote_runtime_info["created_at"])
         if not self.should_update(remote_updated_at):
             return None
         downloader = self.get_downloader(remote_runtime_info)
@@ -139,9 +138,7 @@ class Runtime:
         components = self.get_runtime_components()
         downloads = []
         for component in components:
-            modified_at = time.strptime(
-                component["modified_at"][:component["modified_at"].find(".")], "%Y-%m-%dT%H:%M:%S"
-            )
+            modified_at = get_time_from_api_date(component["modified_at"])
             if not self.should_update_component(component["filename"], modified_at):
                 continue
             downloads.append(component)
