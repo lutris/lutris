@@ -589,7 +589,7 @@ class HumbleBundleCookiesDialog(ModalDialog):
             "<b>Humble Bundle Authentication via cookie import</b>\n"
             "\n"
             "<b>In Firefox</b>\n"
-            "- Install the follwing extension: "
+            "- Install the following extension: "
             "<a href='https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/'>"
             "https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/"
             "</a>\n"
