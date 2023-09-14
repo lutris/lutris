@@ -27,9 +27,9 @@ from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, ExtractIcon
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
-    WINE_DEFAULT_ARCH, WINE_DIR, WINE_PATHS, detect_arch, get_default_version, get_overrides_env, get_proton_paths,
-    get_real_executable, get_system_wine_version, get_wine_versions, is_esync_limit_set, is_fsync_supported,
-    is_gstreamer_build, is_version_esync, is_version_fsync
+    WINE_DEFAULT_ARCH, WINE_DIR, WINE_PATHS, detect_arch, get_default_version, get_installed_wine_versions,
+    get_overrides_env, get_proton_paths, get_real_executable, get_system_wine_version, is_esync_limit_set,
+    is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
 )
 
 
@@ -257,7 +257,7 @@ class wine(Runner):
                 "wine-development": _("Wine Development ({})"),
                 "system": _("System ({})"),
             }
-            versions = get_wine_versions()
+            versions = get_installed_wine_versions()
             for version in versions:
                 if version in labels:
                     version_number = get_system_wine_version(WINE_PATHS[version])
@@ -675,23 +675,23 @@ class wine(Runner):
                 arch = WINE_DEFAULT_ARCH
         return arch
 
-    def get_runner_version(self, version=None, lutris_only=False):
+    def get_runner_version(self, version=None):
         if not version:
-            version = self.get_version(use_default=False)
+            version = self.read_version_from_config(use_default=False)
 
-        if version and not lutris_only and version in WINE_PATHS:
+        if version in WINE_PATHS:
             return {"version": version}
 
         return super().get_runner_version(version)
 
-    def get_version(self, use_default=True):
+    def read_version_from_config(self, use_default=True):
         """Return the Wine version to use. use_default can be set to false to
         force the installation of a specific wine version"""
 
         # We must use the config levels to avoid getting a default if the setting
         # is not set; we'll fall back to get_default_version() or None rather.
 
-        for level in self.config.all_levels:
+        for level in [self.config.game_level, self.config.runner_level]:
             if "wine" in level:
                 runner_version = level["wine"].get("version")
                 if runner_version:
@@ -725,7 +725,7 @@ class wine(Runner):
         A specific version can be specified if needed.
         """
         if version is None:
-            version = self.get_version()
+            version = self.read_version_from_config()
         if not version:
             return
 
@@ -754,7 +754,7 @@ class wine(Runner):
         """
         if version:
             return system.path_exists(self.get_executable(version, fallback))
-        return bool(get_wine_versions())
+        return bool(get_installed_wine_versions())
 
     @classmethod
     def msi_exec(
@@ -989,11 +989,11 @@ class wine(Runner):
             env["DXVK_LOG_LEVEL"] = "none"
         env["WINEARCH"] = self.wine_arch
         env["WINE"] = self.get_executable()
-        env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, self.get_version(), "mono")
-        env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, self.get_version(), "gecko")
+        env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, self.read_version_from_config(), "mono")
+        env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, self.read_version_from_config(), "gecko")
         if is_gstreamer_build(self.get_executable()):
-            path_64 = os.path.join(WINE_DIR, self.get_version(), "lib64/gstreamer-1.0/")
-            path_32 = os.path.join(WINE_DIR, self.get_version(), "lib/gstreamer-1.0/")
+            path_64 = os.path.join(WINE_DIR, self.read_version_from_config(), "lib64/gstreamer-1.0/")
+            path_32 = os.path.join(WINE_DIR, self.read_version_from_config(), "lib/gstreamer-1.0/")
             if os.path.exists(path_64) or os.path.exists(path_32):
                 env["GST_PLUGIN_SYSTEM_PATH_1_0"] = path_64 + ":" + path_32
         if self.prefix_path:
@@ -1028,7 +1028,7 @@ class wine(Runner):
         env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
 
         # Proton support
-        if "Proton" in self.get_version():
+        if "Proton" in self.read_version_from_config():
             steam_dir = get_steam_dir()
             if steam_dir:  # May be None for example if Proton-GE is used but Steam is not installed
                 env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = steam_dir

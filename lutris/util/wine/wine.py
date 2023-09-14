@@ -139,16 +139,16 @@ def is_installed_systemwide():
     return False
 
 
-def list_system_wine_versions():
+def list_system_wine_versions() -> list:
     """Return the list of wine versions installed on the system"""
     return [
-        build
-        for build, path in WINE_PATHS.items()
+        name
+        for name, path in WINE_PATHS.items()
         if get_system_wine_version(path)
     ]
 
 
-def get_lutris_wine_versions():
+def list_lutris_wine_versions() -> list:
     """Return the list of wine versions installed by lutris"""
     if not system.path_exists(WINE_DIR):
         return []
@@ -162,7 +162,7 @@ def get_lutris_wine_versions():
     return versions
 
 
-def get_proton_versions():
+def list_proton_versions() -> list:
     """Return the list of Proton versions installed in Steam"""
     versions = []
     for proton_path in get_proton_paths():
@@ -179,9 +179,9 @@ def get_proton_versions():
 
 
 @lru_cache(maxsize=8)
-def get_wine_versions():
+def get_installed_wine_versions():
     """Return the list of Wine versions installed"""
-    return list_system_wine_versions() + get_lutris_wine_versions() + get_proton_versions()
+    return list_system_wine_versions() + list_lutris_wine_versions() + list_proton_versions()
 
 
 def get_wine_version_exe(version):
@@ -214,25 +214,25 @@ def version_sort(versions, reverse=False):
     return sorted(versions, key=version_key, reverse=reverse)
 
 
-def is_esync_limit_set():
+def is_esync_limit_set()->bool:
     """Checks if the number of files open is acceptable for esync usage."""
     return linux.LINUX_SYSTEM.has_enough_file_descriptors()
 
 
-def is_fsync_supported():
+def is_fsync_supported()->bool:
     """Checks if the running kernel has Valve's futex patch applied."""
     return fsync.get_fsync_support()
 
 
-def get_default_version():
+def get_default_version()->str:
     """Return the default version of wine."""
-    installed_versions = get_wine_versions()
+    installed_versions = get_installed_wine_versions()
     if installed_versions:
         default_version = get_default_runner_version("wine")
         if default_version:
-            vers = default_version["version"] + '-' + default_version["architecture"]
-            if vers in installed_versions:
-                return vers
+            version = default_version["version"] + '-' + default_version["architecture"]
+            if version in installed_versions:
+                return version
         return installed_versions[0]
     return None
 

@@ -105,7 +105,7 @@ class Downloader:
         return self.progress_fraction
 
     def join(self, progress_callback=None):
-        """Blocks waiting for the downlaod to complete.
+        """Blocks waiting for the download to complete.
 
         'progress_callback' is invoked repeatedly as the download
         proceeds, if given, and is passed the downloader itself.

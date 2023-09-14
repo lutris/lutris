@@ -11,12 +11,12 @@ from lutris.util.system import path_exists
 from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
 
 
-def make_game_config_id(game_slug):
+def make_game_config_id(game_slug: str) -> str:
     """Return an unique config id to avoid clashes between multiple games"""
     return "{}-{}".format(game_slug, int(time.time()))
 
 
-def write_game_config(game_slug, config):
+def write_game_config(game_slug: str, config: dict):
     """Writes a game config to disk"""
     configpath = make_game_config_id(game_slug)
     logger.debug("Writing game config to %s", configpath)
@@ -25,7 +25,7 @@ def write_game_config(game_slug, config):
     return configpath
 
 
-def duplicate_game_config(game_slug, source_config_id):
+def duplicate_game_config(game_slug: str, source_config_id: str):
     """Copies an existing configuration file, giving it a new id that this
     function returns."""
     new_config_id = make_game_config_id(game_slug)
@@ -77,7 +77,7 @@ class LutrisConfig:
 
     """
 
-    def __init__(self, runner_slug=None, game_config_id=None, level=None):
+    def __init__(self, runner_slug: str = None, game_config_id: str = None, level: str = None):
         self.game_config_id = game_config_id
         if runner_slug:
             self.runner_slug = str(runner_slug)

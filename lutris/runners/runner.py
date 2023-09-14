@@ -413,7 +413,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             return True
         return self.flatpak_id and flatpak.is_app_installed(self.flatpak_id)
 
-    def get_runner_version(self, version=None, lutris_only=False):
+    def get_runner_version(self, version=None) -> dict:
         """Get the appropriate version for a runner, as with get_default_runner_version(),
         but this method allows the runner to apply its configuration."""
         return get_default_runner_version(self.name, version)
@@ -430,20 +430,20 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.download_url:
             opts["dest"] = self.directory
             return self.download_and_extract(self.download_url, **opts)
-        runner = self.get_runner_version(version, lutris_only=True)
-        if not runner:
+        runner_version = self.get_runner_version(version)
+        if not runner_version:
             raise RunnerInstallationError(_("Failed to retrieve {} ({}) information").format(self.name, version))
 
         if "wine" in self.name:
             opts["merge_single"] = True
             opts["dest"] = os.path.join(
-                self.directory, "{}-{}".format(runner["version"], runner["architecture"])
+                self.directory, "{}-{}".format(runner_version["version"], runner_version["architecture"])
             )
 
         if self.name == "libretro" and version:
             opts["merge_single"] = False
             opts["dest"] = os.path.join(settings.RUNNER_DIR, "retroarch/cores")
-        self.download_and_extract(runner["url"], **opts)
+        self.download_and_extract(runner_version["url"], **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
         install_ui_delegate = opts["install_ui_delegate"]
@@ -469,8 +469,8 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         if self.name == "wine":
             logger.debug("Clearing wine version cache")
-            from lutris.util.wine.wine import get_wine_versions
-            get_wine_versions.cache_clear()
+            from lutris.util.wine.wine import get_installed_wine_versions
+            get_installed_wine_versions.cache_clear()
 
         if self.runner_executable:
             runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable)

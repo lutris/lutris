@@ -306,9 +306,9 @@ class RunnerInstallDialog(ModelessDialog):
         runner[self.COL_INSTALLED] = False
         if self.runner_name == "wine":
             logger.debug("Clearing wine version cache")
-            from lutris.util.wine.wine import get_wine_versions
+            from lutris.util.wine.wine import get_installed_wine_versions
 
-            get_wine_versions.cache_clear()
+            get_installed_wine_versions.cache_clear()
         self.update_listboxrow(row)
 
     def on_install_runner(self, _widget, row):
@@ -405,8 +405,8 @@ class RunnerInstallDialog(ModelessDialog):
         self.update_listboxrow(row)
         if self.runner_name == "wine":
             logger.debug("Clearing wine version cache")
-            from lutris.util.wine.wine import get_wine_versions
-            get_wine_versions.cache_clear()
+            from lutris.util.wine.wine import get_installed_wine_versions
+            get_installed_wine_versions.cache_clear()
 
     def on_destroy(self, _dialog, _data=None):
         """Override delete handler to prevent closing while downloads are active"""
