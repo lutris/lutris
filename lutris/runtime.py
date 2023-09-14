@@ -34,11 +34,12 @@ class Runtime:
 
     """Class for manipulating runtime folders"""
 
-    def __init__(self, name, updater):
+    def __init__(self, name: str, updater) -> None:
         self.name = name
         self.updater = updater
         self.versioned = False  # Versioned runtimes keep 1 version per folder
         self.version = None
+        self.download_progress: float = 0
 
     @property
     def local_runtime_path(self):
@@ -91,7 +92,7 @@ class Runtime:
             return False
         return True
 
-    def download(self, remote_runtime_info):
+    def download(self, remote_runtime_info: dict):
         """Downloads a runtime locally"""
         url = remote_runtime_info["url"]
         self.versioned = remote_runtime_info["versioned"]
@@ -164,7 +165,7 @@ class Runtime:
             self.on_downloaded(None)
             return False
 
-        downloader.check_progress()
+        self.download_progress = downloader.check_progress()
         if downloader.state == downloader.COMPLETED:
             self.on_downloaded(downloader.dest)
             return False
@@ -276,7 +277,13 @@ class RuntimeUpdater:
                 if self.cancelled:
                     return
 
-    def _populate_component_downloaders(self):
+    def percentage_completed(self) -> float:
+        if not self.downloaders:
+            return 0
+
+        return sum(downloader.progress_fraction for downloader in self.downloaders.values()) / len(self.downloaders)
+
+    def _populate_component_downloaders(self) -> int:
         """Launch the update process"""
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled, not updating it.")

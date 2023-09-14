@@ -32,11 +32,11 @@ class Downloader:
         COMPLETED
     ) = list(range(5))
 
-    def __init__(self, url, dest, overwrite=False, referer=None, cookies=None):
-        self.url = url
-        self.dest = dest
+    def __init__(self, url: str, dest: str, overwrite: bool = False, referer=None, cookies=None) -> None:
+        self.url: str = url
+        self.dest: str = dest
         self.cookies = cookies
-        self.overwrite = overwrite
+        self.overwrite: bool = overwrite
         self.referer = referer
         self.stop_request = None
         self.thread = None
@@ -44,22 +44,22 @@ class Downloader:
         # Read these after a check_progress()
         self.state = self.INIT
         self.error = None
-        self.downloaded_size = 0  # Bytes
-        self.full_size = 0  # Bytes
-        self.progress_fraction = 0
-        self.progress_percentage = 0
+        self.downloaded_size: int = 0  # Bytes
+        self.full_size: int = 0  # Bytes
+        self.progress_fraction: float = 0
+        self.progress_percentage: float = 0
         self.speed = 0
         self.average_speed = 0
-        self.time_left = "00:00:00"  # Based on average speed
-        self.last_size = 0
-        self.last_check_time = 0
+        self.time_left: str = "00:00:00"  # Based on average speed
+        self.last_size: int = 0
+        self.last_check_time: float = 0.0
         self.last_speeds = []
         self.speed_check_time = 0
         self.time_left_check_time = 0
         self.file_pointer = None
         self.progress_event = threading.Event()
 
-    def __str__(self):
+    def __repr__(self):
         return "downloader for %s" % self.url
 
     def start(self):
@@ -85,7 +85,7 @@ class Downloader:
         self.average_speed = 0
         self.time_left = "00:00:00"  # Based on average speed
         self.last_size = 0
-        self.last_check_time = 0
+        self.last_check_time = 0.0
         self.last_speeds = []
         self.speed_check_time = 0
         self.time_left_check_time = 0
@@ -156,7 +156,7 @@ class Downloader:
             logger.exception("Download failed: %s", ex)
             self.on_download_failed(ex)
 
-    def on_download_failed(self, error):
+    def on_download_failed(self, error: Exception):
         # Cancelling closes the file, which can result in an
         # error. If so, we just remain cancelled.
         if self.state != self.CANCELLED:
@@ -217,7 +217,7 @@ class Downloader:
         self.speed_check_time = get_time()
         return speed, average_speed
 
-    def get_average_time_left(self):
+    def get_average_time_left(self) -> str:
         """Return average download time left as string."""
         if not self.full_size:
             return "???"

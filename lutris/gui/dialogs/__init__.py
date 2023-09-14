@@ -324,7 +324,6 @@ class LutrisInitDialog(Gtk.Dialog):
         self.label = Gtk.Label(_("Checking for runtime updates, please wait…"))
         vbox.add(self.label)
         self.progress = Gtk.ProgressBar(visible=True)
-        self.progress.set_pulse_step(0.1)
         vbox.add(self.progress)
         self.get_content_area().add(vbox)
         self.progress_timeout = GLib.timeout_add(125, self.show_progress)
@@ -335,13 +334,13 @@ class LutrisInitDialog(Gtk.Dialog):
         AsyncCall(self.run_init, self.init_cb)
 
     def show_progress(self):
-        self.progress.pulse()
+        self.progress.set_fraction(self.runtime_updater.percentage_completed())
         return True
 
     def run_init(self):
         self.runtime_updater.update_runtimes()
 
-    def init_cb(self, _result, error):
+    def init_cb(self, _result, error: Exception):
         if error:
             ErrorDialog(error, parent=self)
         self.destroy()
