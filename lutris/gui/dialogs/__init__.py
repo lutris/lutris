@@ -334,6 +334,8 @@ class LutrisInitDialog(Gtk.Dialog):
 
     def show_progress(self):
         self.progress.set_fraction(self.runtime_updater.percentage_completed())
+        if self.runtime_updater.status_text and self.label.get_text() != self.runtime_updater.status_text:
+            self.label.set_text(self.runtime_updater.status_text)
         return True
 
     def init_cb(self, _result, error: Exception):
