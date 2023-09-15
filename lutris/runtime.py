@@ -35,10 +35,10 @@ class Runtime:
     """Class for manipulating runtime folders"""
 
     def __init__(self, name: str, updater) -> None:
-        self.name = name
+        self.name: str = name
         self.updater = updater
-        self.versioned = False  # Versioned runtimes keep 1 version per folder
-        self.version = None
+        self.versioned: bool = False  # Versioned runtimes keep 1 version per folder
+        self.version: str = ""
         self.download_progress: float = 0
 
     @property
@@ -155,14 +155,9 @@ class Runtime:
 
     def check_download_progress(self, downloader: Downloader):
         """Call download.check_progress(), return True if download finished."""
-        if not downloader or downloader.state in [
-            downloader.CANCELLED,
-            downloader.ERROR,
-        ]:
-            logger.debug("Runtime update interrupted")
-            self.on_downloaded(None)
+        if downloader.state == downloader.ERROR:
+            logger.error("Runtime update failed")
             return False
-
         self.download_progress = downloader.check_progress()
         if downloader.state == downloader.COMPLETED:
             self.on_downloaded(downloader.dest)
@@ -214,6 +209,7 @@ class RuntimeUpdater:
     status_updater = None
     update_functions = []
     downloaders = {}
+    status_text: str = ""
 
     def __init__(self, pci_ids: list = None, force: bool = False):
         self.force = force
@@ -223,7 +219,7 @@ class RuntimeUpdater:
             logger.warning("Runtime disabled, not updating it.")
         else:
             self.add_update("runtime", self._update_runtime, hours=12)
-        # self.add_update("runners", self._update_runners, hours=12)
+        self.add_update("runners", self._update_runners, hours=12)
 
     def add_update(self, key: str, update_function, hours):
         """__init__ calls this to register each update. This function
@@ -251,9 +247,35 @@ class RuntimeUpdater:
             func()
             update_cache.write_date_to_cache(key)
 
-    # def _update_runners(self):
-    #     """Update installed runners (only works for Wine at the moment)"""
-    #     upstream_runners = self.runtime_versions.get("runners", {})
+    def _update_runners(self):
+        """Update installed runners (only works for Wine at the moment)"""
+        upstream_runners = self.runtime_versions.get("runners", {})
+        for name, upstream_runners in upstream_runners.items():
+            if name != "wine":
+                continue
+            upstream_runner = None
+            for _runner in upstream_runners:
+                if _runner["architecture"] == LINUX_SYSTEM.arch:
+                    upstream_runner = _runner
+
+            if not upstream_runner:
+                continue
+
+            # This has the responsibility to update existing runners, not installing new ones
+            runner_base_path = os.path.join(settings.RUNNER_DIR, name)
+            if not system.path_exists(runner_base_path) or not os.listdir(runner_base_path):
+                continue
+
+            runner_path = os.path.join(settings.RUNNER_DIR, name, "-".join([upstream_runner["version"], upstream_runner["architecture"]]))
+            if system.path_exists(runner_path):
+                continue
+            archive_download_path = os.path.join(settings.CACHE_DIR, os.path.basename(upstream_runner["url"]))
+            downloader = Downloader(upstream_runner["url"], archive_download_path)
+            downloader.start()
+            self.downloaders = {"wine": downloader}
+            downloader.join()
+            extract_archive(archive_download_path, runner_path)
+
 
     def percentage_completed(self) -> float:
         if not self.downloaders:
@@ -271,6 +293,7 @@ class RuntimeUpdater:
                 downloader = runtime.download(remote_runtime)
                 if downloader:
                     self.downloaders[runtime] = downloader
+                    downloader.join()
             else:
                 runtime.download_components()
 
