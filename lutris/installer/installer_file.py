@@ -24,7 +24,7 @@ class InstallerFile:
     def copy(self):
         """Copies this file object, so the copy can be modified safely."""
         if isinstance(self._file_meta, dict):
-            return InstallerFile(self.game_slug, self.id, self._file_meta.copy(), self.dest_file)
+            return InstallerFile(self.game_slug, self.id, self._file_meta.copy(), self._dest_file)
 
         return InstallerFile(self.game_slug, self.id, self._file_meta, self._dest_file)
 

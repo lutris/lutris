@@ -47,7 +47,7 @@ class InstallerFileCollection:
         new_file_list = []
         for file in self.files_list:
             new_file_list.append(file.copy())
-        return InstallerFileCollection(self.game_slug, self.id, new_file_list, self.dest_file)
+        return InstallerFileCollection(self.game_slug, self.id, new_file_list, self._dest_file)
 
     @property
     def dest_file(self):
@@ -160,7 +160,8 @@ class InstallerFileCollection:
     def is_cached(self):
         """Are the files available in the local PGA cache?"""
         if self.uses_pga_cache():
-            # check if every file is on cache
+            # check if every file is on cache, without checking
+            # uses_pga_cache() on each.
             for installer_file in self.files_list:
                 if not system.path_exists(installer_file.dest_file):
                     return False
