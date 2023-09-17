@@ -90,6 +90,10 @@ class InstallerFile:
     def dest_file(self, value):
         self._dest_file = value
 
+    def override_dest_file(self, new_dest_file):
+        """Called by the UI when the user selects a file path."""
+        self.dest_file = new_dest_file
+
     def get_dest_files_by_id(self):
         return {self.id: self.dest_file}
 

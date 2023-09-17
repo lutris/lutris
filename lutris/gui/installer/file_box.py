@@ -193,7 +193,7 @@ class InstallerFileBox(Gtk.VBox):
     def on_location_changed(self, widget):
         """Open a file picker when the browse button is clicked"""
         file_path = os.path.expanduser(widget.get_text())
-        self.installer_file.dest_file = file_path
+        self.installer_file.override_dest_file(file_path)
         if system.path_exists(file_path):
             self.emit("file-ready")
         else:

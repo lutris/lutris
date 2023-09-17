@@ -49,20 +49,16 @@ class InstallerFileCollection:
             new_file_list.append(file.copy())
         return InstallerFileCollection(self.game_slug, self.id, new_file_list, self._dest_file)
 
-    @property
-    def dest_file(self):
-        """dest_file represents destination folder to all file collection"""
-        if self._dest_file:
-            return self._dest_file
-        return self.cache_path
+    def override_dest_file(self, new_dest_file):
+        """Called by the UI when the user selects a file path; this causes
+        the collection to be ready if this one file is there, and
+        we'll special case GOG here too."""
+        self._dest_file = new_dest_file
 
-    @dest_file.setter
-    def dest_file(self, value):
-        self._dest_file = value
         # try to set main gog file to dest_file
         for installer_file in self.files_list:
             if installer_file.id == "goginstaller":
-                installer_file.dest_file = value
+                installer_file.dest_file = new_dest_file
 
     def get_dest_files_by_id(self):
         files = {}
@@ -150,7 +146,13 @@ class InstallerFileCollection:
         return DownloadCollectionProgressBox(self)
 
     def is_ready(self, provider):
-        """Are all the files already present at the destination?"""
+        """Is the file already present at the destination (if applicable)?"""
+        if provider not in ("user", "pga"):
+            return True
+
+        if self._dest_file:
+            return system.path_exists(self._dest_file)
+
         for installer_file in self.files_list:
             if not installer_file.is_ready(provider):
                 return False
@@ -160,7 +162,7 @@ class InstallerFileCollection:
     def is_cached(self):
         """Are the files available in the local PGA cache?"""
         if self.uses_pga_cache():
-            # check if every file is on cache, without checking
+            # check if every file is in cache, without checking
             # uses_pga_cache() on each.
             for installer_file in self.files_list:
                 if not system.path_exists(installer_file.dest_file):
