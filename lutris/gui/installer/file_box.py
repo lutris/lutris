@@ -4,13 +4,9 @@ from gettext import gettext as _
 
 from gi.repository import GObject, Gtk
 
-from lutris.cache import save_to_cache
-from lutris.gui.installer import NotInstallerFile, UnsupportedProvider
+from lutris.gui.installer import UnsupportedProvider
 from lutris.gui.installer.widgets import InstallerLabel
 from lutris.gui.widgets.common import FileChooserEntry
-from lutris.gui.widgets.download_collection_progress_box import DownloadCollectionProgressBox
-from lutris.gui.widgets.download_progress_box import DownloadProgressBox
-from lutris.installer.installer_file import InstallerFile
 from lutris.installer.installer_file_collection import InstallerFileCollection
 from lutris.installer.steam_installer import SteamInstaller
 from lutris.util import system
@@ -37,49 +33,22 @@ class InstallerFileBox(Gtk.VBox):
         self.state_label = None  # Use this label to display status update
         self.set_margin_left(12)
         self.set_margin_right(12)
-        self.provider = self.installer_file.provider
+        self.provider = self.installer_file.default_provider
         self.file_provider_widget = None
         self.add(self.get_widgets())
 
     @property
     def is_ready(self):
         """Whether the file is ready to be downloaded / fetched from its provider"""
-        if (
-                self.provider in ("user", "pga")
-                and not system.path_exists(self.installer_file.dest_file)
-        ):
-            return False
-        return True
+        return self.installer_file.is_ready(self.provider)
 
     def get_download_progress(self):
         """Return the widget for the download progress bar"""
-        download_progress = None
-        if isinstance(self.installer_file, InstallerFile):
-            download_progress = DownloadProgressBox({
-                "url": self.installer_file.url,
-                "dest": self.installer_file.dest_file,
-                "referer": self.installer_file.referer
-            }, downloader=self.installer_file.downloader)
-        elif isinstance(self.installer_file, InstallerFileCollection):
-            download_progress = DownloadCollectionProgressBox(self.installer_file)
-        else:
-            raise NotInstallerFile(
-                "Installer file isn't type InstallerFile or InstallerFileCollection\n{}"
-                .format(self.installer_file))
+        download_progress = self.installer_file.create_download_progress_box()
         download_progress.connect("complete", self.on_download_complete)
         download_progress.connect("cancel", self.on_download_cancelled)
         download_progress.show()
-        if (
-                not self.installer_file.uses_pga_cache()
-                and system.path_exists(self.installer_file.dest_file)
-        ):
-            # If we've previously downloaded a directory, we'll need to get rid of it
-            # to download a file now. Since we are not using the cache, we don't keep
-            # these files anyway - so it should be safe to just nuke and pave all this.
-            if os.path.isdir(self.installer_file.dest_file):
-                system.remove_folder(self.installer_file.dest_file)
-            else:
-                os.remove(self.installer_file.dest_file)
+        self.installer_file.remove_previous()
         return download_progress
 
     def get_file_provider_widget(self):
@@ -212,8 +181,10 @@ class InstallerFileBox(Gtk.VBox):
         source_box = Gtk.HBox()
         source_box.props.valign = Gtk.Align.START
         box.pack_start(source_box, False, False, 0)
-        if isinstance(self.installer_file, InstallerFileCollection):
-            source_box.pack_start(InstallerLabel(f"{self.installer_file.num_files} {_('Files')}"), False, False, 0)
+
+        aux_info = self.installer_file.auxiliary_info
+        if aux_info:
+            source_box.pack_start(InstallerLabel(aux_info), False, False, 0)
         source_box.pack_start(InstallerLabel(_("Source:")), False, False, 0)
         combobox = self.get_combobox()
         source_box.pack_start(combobox, False, False, 0)
@@ -251,11 +222,7 @@ class InstallerFileBox(Gtk.VBox):
     def cache_file(self):
         """Copy file to the PGA cache"""
         if self.cache_to_pga:
-            if isinstance(self.installer_file, InstallerFile):
-                save_to_cache(self.installer_file.dest_file, self.installer_file.cache_path)
-            elif isinstance(self.installer_file, InstallerFileCollection):
-                for installer_file in self.installer_file.files_list:
-                    save_to_cache(installer_file.dest_file, installer_file.cache_path)
+            self.installer_file.save_to_cache()
 
     def on_download_cancelled(self, downloader):
         """Handle cancellation of installers"""

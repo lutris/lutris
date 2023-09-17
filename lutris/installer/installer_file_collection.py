@@ -2,8 +2,10 @@
 import os
 from functools import reduce
 from urllib.parse import urlparse
+from gettext import gettext as _
 
 from lutris import cache, settings
+from lutris.gui.widgets.download_collection_progress_box import DownloadCollectionProgressBox
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags, gtk_safe
@@ -15,12 +17,12 @@ class InstallerFileCollection:
     """Representation of a collection of files in the `files` sections of an installer.
        Store files in a folder"""
 
-    def __init__(self, game_slug, file_id, files_list, dest_folder=None):
+    def __init__(self, game_slug, file_id, files_list, dest_file=None):
         self.game_slug = game_slug
         self.id = file_id.replace("-", "_")  # pylint: disable=invalid-name
         self.num_files = len(files_list)
         self.files_list = files_list
-        self._dest_folder = dest_folder  # Used to override the destination
+        self._dest_file = dest_file  # Used to override the destination
         self.full_size = 0
         self._get_files_size()
         self._get_service()
@@ -50,20 +52,34 @@ class InstallerFileCollection:
     @property
     def dest_file(self):
         """dest_file represents destination folder to all file collection"""
-        if self._dest_folder:
-            return self._dest_folder
+        if self._dest_file:
+            return self._dest_file
         return self.cache_path
 
     @dest_file.setter
     def dest_file(self, value):
-        self._dest_folder = value
+        self._dest_file = value
         # try to set main gog file to dest_file
         for installer_file in self.files_list:
             if installer_file.id == "goginstaller":
                 installer_file.dest_file = value
 
+    def get_dest_files_by_id(self):
+        files = {}
+        for file in self.files_list:
+            files.update({file.id: file.dest_file})
+        return files
+
     def __str__(self):
         return "%s/%s" % (self.game_slug, self.id)
+
+    @property
+    def auxiliary_info(self):
+        """Provides a small bit of additional descriptive texts to show in the UI."""
+        if self.num_files == 1:
+            return f"{self.num_files} {_('File')}"
+
+        return f"{self.num_files} {_('Files')}"
 
     @property
     def human_url(self):
@@ -75,7 +91,7 @@ class InstallerFileCollection:
         return add_url_tags(gtk_safe(self.game_slug))
 
     @property
-    def provider(self):
+    def default_provider(self):
         """Return file provider used. File Collection only supports 'pga' and 'download'"""
         if self.is_cached:
             return "pga"
@@ -127,8 +143,18 @@ class InstallerFileCollection:
     def prepare(self):
         """Prepare all files for download"""
         # File Collection do not need to prepare, only the files_list
-        for file in self.files_list:
-            file.prepare()
+        for installer_file in self.files_list:
+            installer_file.prepare()
+
+    def create_download_progress_box(self):
+        return DownloadCollectionProgressBox(self)
+
+    def is_ready(self, provider):
+        """Are all the files already present at the destination?"""
+        for installer_file in self.files_list:
+            if not installer_file.is_ready(provider):
+                return False
+        return True
 
     @property
     def is_cached(self):
@@ -140,3 +166,13 @@ class InstallerFileCollection:
                     return False
             return True
         return False
+
+    def save_to_cache(self):
+        """Copy the files into the PGA cache."""
+        for installer_file in self.files_list:
+            installer_file.save_to_cache()
+
+    def remove_previous(self):
+        """Remove file at already at destination, prior to starting the download."""
+        for installer_file in self.files_list:
+            installer_file.remove_previous()
