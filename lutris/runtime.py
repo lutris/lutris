@@ -267,7 +267,8 @@ class RuntimeUpdater:
             if not system.path_exists(runner_base_path) or not os.listdir(runner_base_path):
                 continue
 
-            runner_path = os.path.join(settings.RUNNER_DIR, name, "-".join([upstream_runner["version"], upstream_runner["architecture"]]))
+            runner_path = os.path.join(settings.RUNNER_DIR, name,
+                                       "-".join([upstream_runner["version"], upstream_runner["architecture"]]))
             if system.path_exists(runner_path):
                 continue
             self.status_text = _(f"Updating {name}")
@@ -278,7 +279,6 @@ class RuntimeUpdater:
             downloader.join()
             self.status_text = _(f"Extracting {name}")
             extract_archive(archive_download_path, runner_path)
-
 
     def percentage_completed(self) -> float:
         if not self.downloaders:

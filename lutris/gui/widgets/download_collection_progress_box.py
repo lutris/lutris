@@ -28,7 +28,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
         self.downloader = downloader
         self.is_complete = False
         self._file_queue = file_collection.files_list.copy()
-        self._file_downlaod = None  # file being downloaded
+        self._file_download = None  # file being downloaded
         self.title = file_collection.human_url
         self.num_files_downloaded = 0
         self.num_files_to_download = file_collection.num_files
@@ -82,16 +82,16 @@ class DownloadCollectionProgressBox(Gtk.Box):
         self.show_all()
         self.cancel_button.hide()
 
-    def update_downlaod_file_label(self, file_name):
+    def update_download_file_label(self, file_name):
         """Update file label to file being downloaded"""
         self.file_name_label.set_text(file_name)
 
     def get_new_file_from_queue(self):
         """Set downloaded file to new file from queue or None if empty"""
         if self._file_queue:
-            self._file_downlaod = self._file_queue.pop()
+            self._file_download = self._file_queue.pop()
             return
-        self._file_downlaod = None
+        self._file_download = None
 
     def start(self):
         """Start downloading a file."""
@@ -100,11 +100,11 @@ class DownloadCollectionProgressBox(Gtk.Box):
             self.is_complete = True
             self.emit("complete", {})
             return None
-        if not self._file_downlaod:
+        if not self._file_download:
             self.get_new_file_from_queue()
             self.num_retries = 0
-        file = self._file_downlaod
-        self.update_downlaod_file_label(file.filename)
+        file = self._file_download
+        self.update_download_file_label(file.filename)
         if not self.downloader:
             try:
                 self.downloader = Downloader(file.url, file.dest_file, referer=file.referer, overwrite=True)
@@ -183,7 +183,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
             self.num_files_downloaded += 1
             self.current_size += self.downloader.downloaded_size
             # set file to None to get next one
-            self._file_downlaod = None
+            self._file_download = None
             self.downloader = None
             # start the downloader to a new file or finish
             self.start()
