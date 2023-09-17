@@ -167,11 +167,9 @@ class InstallerFile:
         """Return True if the file can be downloaded (even from the local filesystem)"""
         return self.url.startswith(("http", "file"))
 
-    def uses_pga_cache(self, create=False):
+    def uses_pga_cache(self):
         """Determines whether the installer files are stored in a PGA cache
 
-        Params:
-            create (bool): If a cache is active, auto create directories if needed
         Returns:
             bool
         """
@@ -180,16 +178,15 @@ class InstallerFile:
             return False
         if system.path_exists(cache_path):
             return True
-        if create:
-            try:
-                logger.debug("Creating cache path %s", self.cache_path)
-                os.makedirs(self.cache_path)
-            except (OSError, PermissionError) as ex:
-                logger.error("Failed to created cache path: %s", ex)
-                return False
-            return True
+
         logger.warning("Cache path %s does not exist", cache_path)
         return False
+
+    @property
+    def is_user_pga_caching_allowed(self):
+        """Returns true if this file can be transferred to the cache, if
+        the user provides it."""
+        return self.uses_pga_cache()
 
     @property
     def cache_path(self):
@@ -205,8 +202,8 @@ class InstallerFile:
         return os.path.join(_cache_path, self.game_slug, folder)
 
     def prepare(self):
-        """Prepare the file for download"""
-        if not system.path_exists(self.cache_path):
+        """Prepare the file for download, if we've not been redirected to an existing file."""
+        if not self._dest_file and not system.path_exists(self.cache_path):
             os.makedirs(self.cache_path)
 
     def create_download_progress_box(self):
@@ -251,13 +248,23 @@ class InstallerFile:
 
     def save_to_cache(self):
         """Copy the file into the PGA cache."""
-        save_to_cache(self.dest_file, self.cache_path)
+
+        cache_path = self.cache_path
+        try:
+            if not os.path.isdir(cache_path):
+                logger.debug("Creating cache path %s", self.cache_path)
+                os.makedirs(cache_path)
+        except (OSError, PermissionError) as ex:
+            logger.error("Failed to created cache path: %s", ex)
+            return
+
+        save_to_cache(self.dest_file, cache_path)
 
     def remove_previous(self):
         """Remove file at already at destination, prior to starting the download."""
         if (
-            not self.uses_pga_cache()
-            and system.path_exists(self.dest_file)
+                not self.uses_pga_cache()
+                and system.path_exists(self.dest_file)
         ):
             # If we've previously downloaded a directory, we'll need to get rid of it
             # to download a file now. Since we are not using the cache, we don't keep

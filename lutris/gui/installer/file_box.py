@@ -161,7 +161,7 @@ class InstallerFileBox(Gtk.VBox):
             location_entry.connect("changed", self.on_location_changed)
             location_entry.show()
             box.pack_start(location_entry, False, False, 0)
-            if self.installer_file.uses_pga_cache(create=True):
+            if self.installer_file.is_user_pga_caching_allowed:
                 cache_option = Gtk.CheckButton(_("Cache file for future installations"))
                 cache_option.set_active(self.cache_to_pga)
                 cache_option.connect("toggled", self.on_user_file_cached)

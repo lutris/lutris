@@ -55,10 +55,13 @@ class InstallerFileCollection:
         we'll special case GOG here too."""
         self._dest_file = new_dest_file
 
-        # try to set main gog file to dest_file
-        for installer_file in self.files_list:
-            if installer_file.id == "goginstaller":
-                installer_file.dest_file = new_dest_file
+        if len(self.files_list) == 1:
+            self.files_list[0].override_dest_file(new_dest_file)
+        else:
+            # try to set main gog file to dest_file
+            for installer_file in self.files_list:
+                if installer_file.id == "goginstaller":
+                    installer_file.dest_file = new_dest_file
 
     def get_dest_files_by_id(self):
         files = {}
@@ -102,11 +105,9 @@ class InstallerFileCollection:
         _providers.add("download")
         return _providers
 
-    def uses_pga_cache(self, create=False):
+    def uses_pga_cache(self):
         """Determines whether the installer files are stored in a PGA cache
 
-        Params:
-            create (bool): If a cache is active, auto create directories if needed
         Returns:
             bool
         """
@@ -115,18 +116,13 @@ class InstallerFileCollection:
             return False
         if system.path_exists(cache_path):
             return True
-        if create:
-            try:
-                logger.debug("Creating cache path %s", self.cache_path)
-                # make dirs to all files
-                for installer_file in self.files_list:
-                    os.makedirs(installer_file.cache_path)
-            except (OSError, PermissionError) as ex:
-                logger.error("Failed to created cache path: %s", ex)
-                return False
-            return True
+
         logger.warning("Cache path %s does not exist", cache_path)
         return False
+
+    @property
+    def is_user_pga_caching_allowed(self):
+        return len(self.files_list) == 1 and self.files_list[0].is_user_pga_caching_allowed
 
     @property
     def cache_path(self):
@@ -137,10 +133,10 @@ class InstallerFileCollection:
         return os.path.join(_cache_path, self.game_slug)
 
     def prepare(self):
-        """Prepare all files for download"""
-        # File Collection do not need to prepare, only the files_list
-        for installer_file in self.files_list:
-            installer_file.prepare()
+        """Prepare the file for download, if we've not been redirected to an existing file."""
+        if not self._dest_file or len(self.files_list) == 1:
+            for installer_file in self.files_list:
+                installer_file.prepare()
 
     def create_download_progress_box(self):
         return DownloadCollectionProgressBox(self)
