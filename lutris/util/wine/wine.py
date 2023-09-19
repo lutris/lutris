@@ -7,7 +7,7 @@ from gettext import gettext as _
 from lutris import runtime, settings
 from lutris.api import get_default_runner_version
 from lutris.exceptions import UnavailableRunnerError
-from lutris.gui.dialogs import ErrorDialog, WarningMessageDialog
+from lutris.gui.dialogs import ErrorDialog
 from lutris.util import linux, system
 from lutris.util.log import logger
 from lutris.util.steam.config import get_steamapps_dirs
@@ -252,47 +252,6 @@ def get_system_wine_version(wine_path="wine"):
     return version
 
 
-def is_version_esync(path):
-    """Determines if a Wine build is Esync capable"""
-    compat_versions = ["esync", "lutris", "tkg", "ge", "proton", "staging"]
-    try:
-        version = path.split("/")[-3].lower()
-    except IndexError:
-        logger.error("Invalid path '%s'", path)
-        return False
-    for is_esync in compat_versions:
-        if is_esync in version:
-            return True
-    system_version = get_system_wine_version(path)
-    if system_version:
-        system_version = system_version.lower()
-        for is_esync in compat_versions:
-            if is_esync in system_version:
-                return True
-    return False
-
-
-def is_version_fsync(path):
-    """Determines if a Wine build is Fsync capable"""
-    compat_versions = ["fsync", "lutris", "tkg", "ge", "proton"]
-    try:
-        version = path.split("/")[-3].lower()
-    except IndexError:
-        logger.error("Invalid path '%s'", path)
-        return False
-    for fsync_version in compat_versions:
-        if fsync_version in version:
-            return True
-    system_version = get_system_wine_version(path)
-    if system_version:
-        system_version = system_version.lower()
-        for is_esync in compat_versions:
-            if is_esync in system_version:
-                return True
-        return "fsync" in system_version.lower()
-    return False
-
-
 def get_real_executable(windows_executable, working_dir=None):
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""
@@ -328,30 +287,6 @@ def fsync_display_support_warning(parent=None):
         "Your kernel is not patched for fsync."
         " Please get a patched kernel to use fsync."
     ), parent=parent)
-
-
-def esync_display_version_warning(parent=None):
-    WarningMessageDialog(
-        _("Incompatible Wine version detected"),
-        secondary_message=_(
-            "The Wine build you have selected "
-            "does not support Esync.\n"
-            "Please switch to an Esync-capable version."
-        ),
-        parent=parent
-    )
-
-
-def fsync_display_version_warning(parent=None):
-    WarningMessageDialog(
-        _("Incompatible Wine version detected"),
-        secondary_message=_(
-            "The Wine build you have selected "
-            "does not support Fsync.\n"
-            "Please switch to an Fsync-capable version."
-        ),
-        parent=parent
-    )
 
 
 def get_overrides_env(overrides):

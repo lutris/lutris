@@ -5,7 +5,7 @@ import shlex
 from gettext import gettext as _
 
 from lutris import runtime, settings
-from lutris.exceptions import EsyncLimitError, EsyncUnavailableError, FsyncUnavailableError, FsyncUnsupportedError
+from lutris.exceptions import EsyncLimitError, FsyncUnsupportedError
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
@@ -29,7 +29,7 @@ from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
     WINE_DEFAULT_ARCH, WINE_DIR, WINE_PATHS, detect_arch, get_default_version, get_installed_wine_versions,
     get_overrides_env, get_proton_paths, get_real_executable, get_system_wine_version, is_esync_limit_set,
-    is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
+    is_fsync_supported, is_gstreamer_build
 )
 
 
@@ -142,33 +142,19 @@ def _get_path_for_version(config, version=None):
 def _get_esync_warning(config, _option_key):
     if config.get("esync"):
         limits_set = is_esync_limit_set()
-        wine_path = _get_path_for_version(config)
-        wine_ver = is_version_esync(wine_path)
-
-        if not wine_ver:
-            return _("<b>Warning</b> The Wine build you have selected does not support Esync")
-
         if not limits_set:
             return _("<b>Warning</b> Your limits are not set correctly. Please increase them as described here:\n"
                      "<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
                      "How-to-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>")
-
-    return None
+    return ""
 
 
 def _get_fsync_warning(config, _option_key):
     if config.get("fsync"):
         fsync_supported = is_fsync_supported()
-        wine_path = _get_path_for_version(config)
-        wine_ver = is_version_fsync(wine_path)
-
-        if not wine_ver:
-            return _("<b>Warning</b> The Wine build you have selected does not support Fsync.")
-
         if not fsync_supported:
             return _("<b>Warning</b> Your kernel is not patched for fsync.")
-
-        return None
+        return ""
 
 
 class wine(Runner):
@@ -1093,21 +1079,15 @@ class wine(Runner):
 
         if launch_info["env"].get("WINEESYNC") == "1":
             limit_set = is_esync_limit_set()
-            wine_supports_esync = is_version_esync(self.get_executable())
 
             if not limit_set:
                 raise EsyncLimitError(_("Your ESYNC limits are not set correctly."))
-            if not wine_supports_esync:
-                raise EsyncUnavailableError(_("The Wine build you have selected does not support Esync."))
 
         if launch_info["env"].get("WINEFSYNC") == "1":
             fsync_supported = is_fsync_supported()
-            wine_supports_fsync = is_version_fsync(self.get_executable())
 
             if not fsync_supported:
                 raise FsyncUnsupportedError(_("Your kernel is not patched for fsync."))
-            if not wine_supports_fsync:
-                raise FsyncUnavailableError(_("The Wine build you have selected does not support Fsync."))
 
         command = [self.get_executable()]
 
