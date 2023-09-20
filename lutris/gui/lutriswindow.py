@@ -421,7 +421,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
             return
         self.get_missing_games(missing_ids)
 
-    def get_missing_games(self, missing_ids:list=None) -> list:
+    def get_missing_games(self, missing_ids: list = None) -> list:
         if missing_ids is None:
             missing_ids = get_missing_game_ids()
         missing_games = games_db.get_games_by_ids(missing_ids)
