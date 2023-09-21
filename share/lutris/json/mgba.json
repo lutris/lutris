@@ -1,0 +1,21 @@
+{
+    "human_name": "mGBA",
+    "description": "Multi-system emulator: GBA & GB(C)",
+    "platforms": [
+        "Nintendo Game Boy Advance",
+        "Nintendo Game Boy (Color)"
+    ],
+    "runner_executable": "mgba/mGBA-0.10.2-appimage-x64.appimage",
+    "flatpak_id": "io.mgba.mGBA",
+    "runnable_alone": true,
+    "download_url": "https://github.com/mgba-emu/mgba/releases/download/0.10.2/mGBA-0.10.2-appimage-x64.appimage",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ROM file",
+            "help": "A GBA ROM",
+            "default_path": "game_path"
+        }
+    ]
+}
