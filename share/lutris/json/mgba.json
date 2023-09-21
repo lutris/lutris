@@ -14,7 +14,7 @@
             "option": "main_file",
             "type": "file",
             "label": "ROM file",
-            "help": "A GBA ROM",
+            "help": "A GBA or GB(C) ROM",
             "default_path": "game_path"
         }
     ]
