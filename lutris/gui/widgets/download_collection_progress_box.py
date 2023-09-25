@@ -5,7 +5,7 @@ from gi.repository import GLib, GObject, Gtk, Pango
 
 from lutris.util.downloader import Downloader
 from lutris.util.log import logger
-from lutris.util.strings import gtk_safe
+from lutris.util.strings import gtk_safe, human_size
 
 # Same reason as Downloader
 get_time = time.monotonic
@@ -171,10 +171,10 @@ class DownloadCollectionProgressBox(Gtk.Box):
         self.update_speed_and_time()
         megabytes = 1024 * 1024
         progress_text = _(
-            "{downloaded:0.2f} / {size:0.2f}MB ({speed:0.2f}MB/s), {time} remaining"
+            "{downloaded} / {size} ({speed:0.2f}MB/s), {time} remaining"
         ).format(
-            downloaded=(downloaded_size) / megabytes,
-            size=float(self.full_size) / megabytes,
+            downloaded=human_size(downloaded_size),
+            size=human_size(self.full_size),
             speed=float(self.avg_speed) / megabytes,
             time=self.time_left,
         )
