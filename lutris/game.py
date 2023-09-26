@@ -721,8 +721,10 @@ class Game(GObject.Object):
 
         # Game is running, let's update discord status
         if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
-            logger.info("Updating Discord RPC Status")
-            discord.client.update(self.discord_id)
+            try:
+                discord.client.update(self.discord_id)
+            except AssertionError:
+                pass
 
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
         with open(self.now_playing_path, "w", encoding="utf-8") as np_file:
@@ -921,7 +923,6 @@ class Game(GObject.Object):
 
         # Clear Discord Client Status
         if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
-            logger.debug("Clearing Discord RPC")
             discord.client.clear()
 
         self.process_return_codes()
