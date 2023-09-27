@@ -607,6 +607,13 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if self.runner_name == "steam" and not self.lutris_config.game_config.get("appid"):
             ErrorDialog(_("Steam AppID not provided"), parent=self)
             return False
+        if self.playtime_entry.get_text():
+            try:
+                float(self.playtime_entry.get_text())
+            except ValueError:
+                ErrorDialog(_("The entered playtime is invalid"), parent=self)
+                return False
+            
         invalid_fields = []
         runner_class = import_runner(self.runner_name)
         runner_instance = runner_class()
