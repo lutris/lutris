@@ -1,4 +1,4 @@
-from pypresence import Presence, DiscordNotFound
+from pypresence import DiscordNotFound, Presence
 
 from lutris.util.discord.base import DiscordRichPresenceBase
 

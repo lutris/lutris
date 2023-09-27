@@ -11,7 +11,7 @@ from gi.repository import GLib, Gtk
 from lutris import api, settings
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
-from lutris.gui.dialogs import ErrorDialog, ModalDialog, ModelessDialog
+from lutris.gui.dialogs import ErrorDialog, ModelessDialog
 from lutris.gui.widgets.utils import has_stock_icon
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
@@ -19,33 +19,46 @@ from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 
 
-class ShowAppsDialog(ModalDialog):
-    def __init__(self, title, parent, runner_version, apps):
+class ShowAppsDialog(ModelessDialog):
+    def __init__(self, title, parent, runner_name, runner_version):
         super().__init__(title, parent, border_width=10)
+        self.runner_name = runner_name
+        self.runner_version = runner_version
         self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self.set_default_size(600, 400)
-
+        self.apps = []
         label = Gtk.Label.new(_("Showing games using %s") % runner_version)
         self.vbox.add(label)
         scrolled_listbox = Gtk.ScrolledWindow()
-        listbox = Gtk.ListBox()
-        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.listbox = Gtk.ListBox()
+        self.listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         scrolled_listbox.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scrolled_listbox.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
-        scrolled_listbox.add(listbox)
+        scrolled_listbox.add(self.listbox)
         self.vbox.pack_start(scrolled_listbox, True, True, 14)
+        self.show_all()
+        jobs.AsyncCall(self.load_apps, self.on_apps_loaded)
 
-        for app in apps:
-            row = Gtk.ListBoxRow()
-            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+    def load_apps(self):
+        runner_games = get_games_by_runner(self.runner_name)
+        for db_game in runner_games:
+            if not db_game["installed"]:
+                continue
+            game = Game(db_game["id"])
+            version = game.config.runner_config["version"]
+            if version != self.runner_version:
+                continue
+            self.apps.append(game)
 
-            lbl_game = Gtk.Label(app.name)
+    def on_apps_loaded(self, _result, _error):
+        for app in self.apps:
+            row = Gtk.ListBoxRow(visible=True)
+            hbox = Gtk.Box(visible=True, orientation=Gtk.Orientation.HORIZONTAL)
+            lbl_game = Gtk.Label(app.name, visible=True)
             lbl_game.set_halign(Gtk.Align.START)
             hbox.pack_start(lbl_game, True, True, 5)
             row.add(hbox)
-            listbox.add(row)
-
-        self.show_all()
+            self.listbox.add(row)
 
 
 class RunnerInstallDialog(ModelessDialog):
@@ -217,21 +230,8 @@ class RunnerInstallDialog(ModelessDialog):
         """Return grid with games that uses this wine version"""
         runner = row.runner
         runner_version = "%s-%s" % (runner[self.COL_VER], runner[self.COL_ARCH])
-        runner_games = get_games_by_runner(self.runner_name)
-        apps = []
-        for db_game in runner_games:
-            if not db_game["installed"]:
-                continue
-            game = Game(db_game["id"])
-            version = game.config.runner_config["version"]
-            if version != runner_version:
-                continue
-            apps.append(game)
-
-        dialog = ShowAppsDialog(_("Wine version usage"), self.get_toplevel(), runner_version, apps)
+        dialog = ShowAppsDialog(_("Wine version usage"), self.get_toplevel(), self.runner_name, runner_version)
         dialog.run()
-
-        dialog.destroy()
 
     def populate_store(self):
         """Return a ListStore populated with the runner versions"""
