@@ -5,7 +5,7 @@ import shlex
 from gettext import gettext as _
 
 from lutris import runtime, settings
-from lutris.exceptions import EsyncLimitError, EsyncUnavailableError, FsyncUnavailableError, FsyncUnsupportedError
+from lutris.exceptions import EsyncLimitError, FsyncUnsupportedError
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
@@ -27,9 +27,9 @@ from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, ExtractIcon
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
-    WINE_DEFAULT_ARCH, WINE_DIR, WINE_PATHS, detect_arch, get_default_version, get_overrides_env, get_proton_paths,
-    get_real_executable, get_system_wine_version, get_wine_versions, is_esync_limit_set, is_fsync_supported,
-    is_gstreamer_build, is_version_esync, is_version_fsync
+    WINE_DEFAULT_ARCH, WINE_DIR, WINE_PATHS, detect_arch, get_default_version, get_installed_wine_versions,
+    get_overrides_env, get_proton_paths, get_real_executable, get_system_wine_version, is_esync_limit_set,
+    is_fsync_supported, is_gstreamer_build
 )
 
 
@@ -88,7 +88,6 @@ def _get_simple_vulkan_support_error(config, option_key, feature):
     if not LINUX_SYSTEM.is_vulkan_supported():
         return _("<b>Error</b> Vulkan is not installed or is not supported by your system, "
                  "so %s is not available.") % feature
-
     return None
 
 
@@ -142,33 +141,19 @@ def _get_path_for_version(config, version=None):
 def _get_esync_warning(config, _option_key):
     if config.get("esync"):
         limits_set = is_esync_limit_set()
-        wine_path = _get_path_for_version(config)
-        wine_ver = is_version_esync(wine_path)
-
-        if not wine_ver:
-            return _("<b>Warning</b> The Wine build you have selected does not support Esync")
-
         if not limits_set:
             return _("<b>Warning</b> Your limits are not set correctly. Please increase them as described here:\n"
                      "<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
                      "How-to-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>")
-
-    return None
+    return ""
 
 
 def _get_fsync_warning(config, _option_key):
     if config.get("fsync"):
         fsync_supported = is_fsync_supported()
-        wine_path = _get_path_for_version(config)
-        wine_ver = is_version_fsync(wine_path)
-
-        if not wine_ver:
-            return _("<b>Warning</b> The Wine build you have selected does not support Fsync.")
-
         if not fsync_supported:
             return _("<b>Warning</b> Your kernel is not patched for fsync.")
-
-        return None
+        return ""
 
 
 class wine(Runner):
@@ -257,7 +242,7 @@ class wine(Runner):
                 "wine-development": _("Wine Development ({})"),
                 "system": _("System ({})"),
             }
-            versions = get_wine_versions()
+            versions = get_installed_wine_versions()
             for version in versions:
                 if version in labels:
                     version_number = get_system_wine_version(WINE_PATHS[version])
@@ -675,23 +660,23 @@ class wine(Runner):
                 arch = WINE_DEFAULT_ARCH
         return arch
 
-    def get_runner_version(self, version=None, lutris_only=False):
+    def get_runner_version(self, version=None):
         if not version:
-            version = self.get_version(use_default=False)
+            version = self.read_version_from_config(use_default=False)
 
-        if version and not lutris_only and version in WINE_PATHS:
+        if version in WINE_PATHS:
             return {"version": version}
 
         return super().get_runner_version(version)
 
-    def get_version(self, use_default=True):
+    def read_version_from_config(self, use_default=True):
         """Return the Wine version to use. use_default can be set to false to
         force the installation of a specific wine version"""
 
         # We must use the config levels to avoid getting a default if the setting
         # is not set; we'll fall back to get_default_version() or None rather.
 
-        for level in self.config.all_levels:
+        for level in [self.config.game_level, self.config.runner_level]:
             if "wine" in level:
                 runner_version = level["wine"].get("version")
                 if runner_version:
@@ -725,7 +710,7 @@ class wine(Runner):
         A specific version can be specified if needed.
         """
         if version is None:
-            version = self.get_version()
+            version = self.read_version_from_config()
         if not version:
             return
 
@@ -754,7 +739,7 @@ class wine(Runner):
         """
         if version:
             return system.path_exists(self.get_executable(version, fallback))
-        return bool(get_wine_versions())
+        return bool(get_installed_wine_versions())
 
     @classmethod
     def msi_exec(
@@ -989,11 +974,11 @@ class wine(Runner):
             env["DXVK_LOG_LEVEL"] = "none"
         env["WINEARCH"] = self.wine_arch
         env["WINE"] = self.get_executable()
-        env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, self.get_version(), "mono")
-        env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, self.get_version(), "gecko")
+        env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, self.read_version_from_config(), "mono")
+        env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, self.read_version_from_config(), "gecko")
         if is_gstreamer_build(self.get_executable()):
-            path_64 = os.path.join(WINE_DIR, self.get_version(), "lib64/gstreamer-1.0/")
-            path_32 = os.path.join(WINE_DIR, self.get_version(), "lib/gstreamer-1.0/")
+            path_64 = os.path.join(WINE_DIR, self.read_version_from_config(), "lib64/gstreamer-1.0/")
+            path_32 = os.path.join(WINE_DIR, self.read_version_from_config(), "lib/gstreamer-1.0/")
             if os.path.exists(path_64) or os.path.exists(path_32):
                 env["GST_PLUGIN_SYSTEM_PATH_1_0"] = path_64 + ":" + path_32
         if self.prefix_path:
@@ -1028,7 +1013,7 @@ class wine(Runner):
         env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
 
         # Proton support
-        if "Proton" in self.get_version():
+        if "Proton" in self.read_version_from_config():
             steam_dir = get_steam_dir()
             if steam_dir:  # May be None for example if Proton-GE is used but Steam is not installed
                 env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = steam_dir
@@ -1093,21 +1078,15 @@ class wine(Runner):
 
         if launch_info["env"].get("WINEESYNC") == "1":
             limit_set = is_esync_limit_set()
-            wine_supports_esync = is_version_esync(self.get_executable())
 
             if not limit_set:
                 raise EsyncLimitError(_("Your ESYNC limits are not set correctly."))
-            if not wine_supports_esync:
-                raise EsyncUnavailableError(_("The Wine build you have selected does not support Esync."))
 
         if launch_info["env"].get("WINEFSYNC") == "1":
             fsync_supported = is_fsync_supported()
-            wine_supports_fsync = is_version_fsync(self.get_executable())
 
             if not fsync_supported:
                 raise FsyncUnsupportedError(_("Your kernel is not patched for fsync."))
-            if not wine_supports_fsync:
-                raise FsyncUnavailableError(_("The Wine build you have selected does not support Fsync."))
 
         command = [self.get_executable()]
 

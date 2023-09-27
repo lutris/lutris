@@ -4,6 +4,8 @@ from gettext import gettext as _
 from urllib.parse import urlparse
 
 from lutris import cache, settings
+from lutris.cache import save_to_cache
+from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.errors import ScriptingError
 from lutris.util import system
 from lutris.util.log import logger
@@ -22,7 +24,7 @@ class InstallerFile:
     def copy(self):
         """Copies this file object, so the copy can be modified safely."""
         if isinstance(self._file_meta, dict):
-            return InstallerFile(self.game_slug, self.id, self._file_meta.copy(), self.dest_file)
+            return InstallerFile(self.game_slug, self.id, self._file_meta.copy(), self._dest_file)
 
         return InstallerFile(self.game_slug, self.id, self._file_meta, self._dest_file)
 
@@ -88,12 +90,24 @@ class InstallerFile:
     def dest_file(self, value):
         self._dest_file = value
 
+    def override_dest_file(self, new_dest_file):
+        """Called by the UI when the user selects a file path."""
+        self.dest_file = new_dest_file
+
+    def get_dest_files_by_id(self):
+        return {self.id: self.dest_file}
+
     def __str__(self):
         return "%s/%s" % (self.game_slug, self.id)
 
     @property
+    def auxiliary_info(self):
+        """Provides a small bit of additional descriptive texts to show in the UI."""
+        return None
+
+    @property
     def human_url(self):
-        """Return the url in human readable format"""
+        """Return the url in human-readable format"""
         if self.url.startswith("N/A"):
             # Ask the user where the file is located
             parts = self.url.split(":", 1)
@@ -123,7 +137,7 @@ class InstallerFile:
         return ""
 
     @property
-    def provider(self):
+    def default_provider(self):
         """Return file provider used"""
         if self.url.startswith("$STEAM"):
             return "steam"
@@ -153,11 +167,9 @@ class InstallerFile:
         """Return True if the file can be downloaded (even from the local filesystem)"""
         return self.url.startswith(("http", "file"))
 
-    def uses_pga_cache(self, create=False):
+    def uses_pga_cache(self):
         """Determines whether the installer files are stored in a PGA cache
 
-        Params:
-            create (bool): If a cache is active, auto create directories if needed
         Returns:
             bool
         """
@@ -166,16 +178,15 @@ class InstallerFile:
             return False
         if system.path_exists(cache_path):
             return True
-        if create:
-            try:
-                logger.debug("Creating cache path %s", self.cache_path)
-                os.makedirs(self.cache_path)
-            except (OSError, PermissionError) as ex:
-                logger.error("Failed to created cache path: %s", ex)
-                return False
-            return True
+
         logger.warning("Cache path %s does not exist", cache_path)
         return False
+
+    @property
+    def is_user_pga_caching_allowed(self):
+        """Returns true if this file can be transferred to the cache, if
+        the user provides it."""
+        return self.uses_pga_cache()
 
     @property
     def cache_path(self):
@@ -191,9 +202,16 @@ class InstallerFile:
         return os.path.join(_cache_path, self.game_slug, folder)
 
     def prepare(self):
-        """Prepare the file for download"""
-        if not system.path_exists(self.cache_path):
+        """Prepare the file for download, if we've not been redirected to an existing file."""
+        if not self._dest_file and not system.path_exists(self.cache_path):
             os.makedirs(self.cache_path)
+
+    def create_download_progress_box(self):
+        return DownloadProgressBox({
+            "url": self.url,
+            "dest": self.dest_file,
+            "referer": self.referer
+        }, downloader=self.downloader)
 
     def check_hash(self):
         """Checks the checksum of `file` and compare it to `value`
@@ -219,7 +237,39 @@ class InstallerFile:
             return self._file_meta["size"]
         return 0
 
+    def is_ready(self, provider):
+        """Is the file already present at the destination (if applicable)?"""
+        return provider not in ("user", "pga") or system.path_exists(self.dest_file)
+
     @property
     def is_cached(self):
         """Is the file available in the local PGA cache?"""
         return self.uses_pga_cache() and system.path_exists(self.dest_file)
+
+    def save_to_cache(self):
+        """Copy the file into the PGA cache."""
+
+        cache_path = self.cache_path
+        try:
+            if not os.path.isdir(cache_path):
+                logger.debug("Creating cache path %s", self.cache_path)
+                os.makedirs(cache_path)
+        except (OSError, PermissionError) as ex:
+            logger.error("Failed to created cache path: %s", ex)
+            return
+
+        save_to_cache(self.dest_file, cache_path)
+
+    def remove_previous(self):
+        """Remove file at already at destination, prior to starting the download."""
+        if (
+                not self.uses_pga_cache()
+                and system.path_exists(self.dest_file)
+        ):
+            # If we've previously downloaded a directory, we'll need to get rid of it
+            # to download a file now. Since we are not using the cache, we don't keep
+            # these files anyway - so it should be safe to just nuke and pave all this.
+            if os.path.isdir(self.dest_file):
+                system.remove_folder(self.dest_file)
+            else:
+                os.remove(self.dest_file)

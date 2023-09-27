@@ -441,6 +441,7 @@ class Application(Gtk.Application):
         if options.contains("force"):
             self.force_updates = True
 
+        logger.info("Starting Lutris %s", settings.VERSION)
         init_lutris()
 
         # Perform migrations early if any command line options

@@ -158,7 +158,6 @@ def run_all_checks():
 
 def init_lutris():
     """Run full initialization of Lutris"""
-    logger.info("Starting Lutris %s", settings.VERSION)
     runners.inject_runners(load_json_runners())
     init_dirs()
     try:

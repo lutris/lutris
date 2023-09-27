@@ -122,7 +122,7 @@ def get_archive_opener(extractor):
     return opener, mode
 
 
-def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
+def extract_archive(path: str, to_directory: str = ".", merge_single: bool = True, extractor=None):
     path = os.path.abspath(path)
     logger.debug("Extracting %s to %s", path, to_directory)
 

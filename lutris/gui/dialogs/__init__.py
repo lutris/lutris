@@ -11,7 +11,6 @@ from gi.repository import Gdk, GLib, GObject, Gtk
 
 from lutris import api, settings
 from lutris.gui.widgets.log_text_view import LogTextView
-from lutris.migrations import migrate
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -322,34 +321,26 @@ class LutrisInitDialog(Gtk.Dialog):
         self.set_border_width(24)
         self.set_decorated(False)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 12)
-        label = Gtk.Label(_("Checking for runtime updates, please wait…"))
-        vbox.add(label)
+        self.label = Gtk.Label(_("Checking for runtime updates, please wait…"))
+        vbox.add(self.label)
         self.progress = Gtk.ProgressBar(visible=True)
-        self.progress.set_pulse_step(0.1)
         vbox.add(self.progress)
         self.get_content_area().add(vbox)
         self.progress_timeout = GLib.timeout_add(125, self.show_progress)
         self.show_all()
 
-        self.connect("response", self.on_response)
         self.connect("destroy", self.on_destroy)
-        AsyncCall(self.run_init, self.init_cb)
+        AsyncCall(self.runtime_updater.update_runtimes, self.init_cb)
 
     def show_progress(self):
-        self.progress.pulse()
+        self.progress.set_fraction(self.runtime_updater.percentage_completed())
+        if self.runtime_updater.status_text and self.label.get_text() != self.runtime_updater.status_text:
+            self.label.set_text(self.runtime_updater.status_text)
         return True
 
-    def run_init(self):
-        migrate()
-        self.runtime_updater.update_runtimes()
-
-    def init_cb(self, _result, error):
+    def init_cb(self, _result, error: Exception):
         if error:
             ErrorDialog(error, parent=self)
-        self.destroy()
-
-    def on_response(self, _widget, response):
-        self.runtime_updater.cancel()
         self.destroy()
 
     def on_destroy(self, window):
@@ -600,7 +591,7 @@ class HumbleBundleCookiesDialog(ModalDialog):
             "<b>Humble Bundle Authentication via cookie import</b>\n"
             "\n"
             "<b>In Firefox</b>\n"
-            "- Install the follwing extension: "
+            "- Install the following extension: "
             "<a href='https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/'>"
             "https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/"
             "</a>\n"

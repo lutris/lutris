@@ -12,9 +12,7 @@ from lutris import services, settings
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
-from lutris.exceptions import (
-    EsyncLimitError, EsyncUnavailableError, FsyncUnavailableError, FsyncUnsupportedError, watch_errors
-)
+from lutris.exceptions import EsyncLimitError, FsyncUnsupportedError, watch_errors
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
@@ -34,12 +32,10 @@ from lutris.scanners.lutris import add_to_path_cache, get_missing_game_ids, remo
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
+from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.system import update_desktop_icons
-from lutris.util.wine.wine import (
-    esync_display_limit_warning, esync_display_version_warning, fsync_display_support_warning,
-    fsync_display_version_warning
-)
+from lutris.util.wine.wine import esync_display_limit_warning, fsync_display_support_warning
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
@@ -253,7 +249,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_load(self, widget, data=None):
         """Finish initializing the view"""
         self._bind_zoom_adjustment()
-        self.get_missing_games()
+        AsyncCall(get_missing_game_ids, self.on_get_missing_game_ids)
         self.current_view.grab_focus()
 
     def on_sidebar_realize(self, widget, data=None):
@@ -419,8 +415,15 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Return a list of currently running games"""
         return games_db.get_games_by_ids([game.id for game in self.application.running_games])
 
-    def get_missing_games(self):
-        missing_ids = get_missing_game_ids()
+    def on_get_missing_game_ids(self, missing_ids, error):
+        if error:
+            logger.error(str(error))
+            return
+        self.get_missing_games(missing_ids)
+
+    def get_missing_games(self, missing_ids: list = None) -> list:
+        if missing_ids is None:
+            missing_ids = get_missing_game_ids()
         missing_games = games_db.get_games_by_ids(missing_ids)
         if missing_games:
             self.sidebar.missing_row.show()
@@ -905,12 +908,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         if isinstance(error, FsyncUnsupportedError):
             fsync_display_support_warning(parent=self)
-        elif isinstance(error, FsyncUnavailableError):
-            fsync_display_version_warning(parent=self)
         elif isinstance(error, EsyncLimitError):
             esync_display_limit_warning(parent=self)
-        elif isinstance(error, EsyncUnavailableError):
-            esync_display_version_warning(parent=self)
         else:
             dialogs.ErrorDialog(error, parent=self)
         return True

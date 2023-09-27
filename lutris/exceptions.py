@@ -44,16 +44,8 @@ class UnavailableRunnerError(Exception):
     """Raised when a runner is not installed or not installed fully."""
 
 
-class EsyncUnavailableError(Exception):
-    """Raised when ESYNC is enabled, but the Wine version does not support it."""
-
-
 class EsyncLimitError(Exception):
     """Raised when the ESYNC limit is not set correctly."""
-
-
-class FsyncUnavailableError(Exception):
-    """Raised when FSYNC is enabled, but the Wine version does not support it."""
 
 
 class FsyncUnsupportedError(Exception):

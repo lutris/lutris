@@ -2,21 +2,22 @@
 import concurrent.futures
 import os
 import time
+from gettext import gettext as _
 
 from gi.repository import GLib
 
 from lutris import settings
-from lutris.api import get_runtime_versions
+from lutris.api import download_runtime_versions, get_time_from_api_date, load_runtime_versions
 from lutris.util import http, jobs, system, update_cache
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-from lutris.util.wine.dxvk import DXVKManager
-from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
+from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
+from lutris.util.wine.vkd3d import VKD3DManager
 
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
 DEFAULT_RUNTIME = "Ubuntu-18.04"
@@ -29,15 +30,17 @@ DLL_MANAGERS = {
     "dxvk_nvapi": DXVKNVAPIManager,
 }
 
+
 class Runtime:
 
     """Class for manipulating runtime folders"""
 
-    def __init__(self, name, updater):
-        self.name = name
+    def __init__(self, name: str, updater) -> None:
+        self.name: str = name
         self.updater = updater
-        self.versioned = False  # Versioned runtimes keep 1 version per folder
-        self.version = None
+        self.versioned: bool = False  # Versioned runtimes keep 1 version per folder
+        self.version: str = ""
+        self.download_progress: float = 0
 
     @property
     def local_runtime_path(self):
@@ -66,7 +69,7 @@ class Runtime:
 
         local_updated_at = self.get_updated_at()
         if not local_updated_at:
-            logger.warning("Runtime %s is not available locally", self.name)
+            logger.debug("Runtime %s is not available locally", self.name)
             return True
 
         if local_updated_at and local_updated_at >= remote_updated_at:
@@ -90,21 +93,21 @@ class Runtime:
             return False
         return True
 
-    def download(self, remote_runtime_info):
-        """Downloads a runtime locally"""
+    def get_downloader(self, remote_runtime_info: dict) -> Downloader:
+        """Return Downloader for this runtime"""
         url = remote_runtime_info["url"]
         self.versioned = remote_runtime_info["versioned"]
         if self.versioned:
             self.version = remote_runtime_info["version"]
-        if not url:
-            return self.download_components()
-        remote_updated_at = remote_runtime_info["created_at"]
-        remote_updated_at = time.strptime(remote_updated_at[:remote_updated_at.find(".")], "%Y-%m-%dT%H:%M:%S")
+        archive_path = os.path.join(settings.RUNTIME_DIR, os.path.basename(url))
+        return Downloader(url, archive_path, overwrite=True)
+
+    def download(self, remote_runtime_info: dict):
+        """Downloads a runtime locally"""
+        remote_updated_at = get_time_from_api_date(remote_runtime_info["created_at"])
         if not self.should_update(remote_updated_at):
             return None
-
-        archive_path = os.path.join(settings.RUNTIME_DIR, os.path.basename(url))
-        downloader = Downloader(url, archive_path, overwrite=True)
+        downloader = self.get_downloader(remote_runtime_info)
         downloader.start()
         GLib.timeout_add(100, self.check_download_progress, downloader)
         return downloader
@@ -119,8 +122,8 @@ class Runtime:
             return
         return file_path
 
-    def get_runtime_components(self):
-        """Fetch runtime components from the API"""
+    def get_runtime_components(self) -> list:
+        """Fetch individual runtime files for a component"""
         request = http.Request(settings.RUNTIME_URL + "/" + self.name)
         try:
             response = request.get()
@@ -131,14 +134,12 @@ class Runtime:
             return []
         return response.json.get("components", [])
 
-    def download_components(self):
-        """Download a runtime item by individual components."""
+    def download_components(self) -> None:
+        """Download a runtime item by individual components. Used for icons only at the moment"""
         components = self.get_runtime_components()
         downloads = []
         for component in components:
-            modified_at = time.strptime(
-                component["modified_at"][:component["modified_at"].find(".")], "%Y-%m-%dT%H:%M:%S"
-            )
+            modified_at = get_time_from_api_date(component["modified_at"])
             if not self.should_update_component(component["filename"], modified_at):
                 continue
             downloads.append(component)
@@ -153,37 +154,30 @@ class Runtime:
                 if not filename:
                     logger.warning("Failed to get %s", future)
 
-    def check_download_progress(self, downloader):
+    def check_download_progress(self, downloader: Downloader):
         """Call download.check_progress(), return True if download finished."""
-        if not downloader or downloader.state in [
-            downloader.CANCELLED,
-            downloader.ERROR,
-        ]:
-            logger.debug("Runtime update interrupted")
-            self.on_downloaded(None)
+        if downloader.state == downloader.ERROR:
+            logger.error("Runtime update failed")
             return False
-
-        downloader.check_progress()
+        self.download_progress = downloader.check_progress()
         if downloader.state == downloader.COMPLETED:
             self.on_downloaded(downloader.dest)
             return False
         return True
 
-    def on_downloaded(self, path):
+    def on_downloaded(self, path: str) -> bool:
         """Actions taken once a runtime is downloaded
 
         Arguments:
-            path (str): local path to the runtime archive, or None on download failure
+            path: local path to the runtime archive, or None on download failure
         """
         if not path:
-            self.updater.notify_finish(self)
             return False
 
         stats = os.stat(path)
         if not stats.st_size:
             logger.error("Download failed: file %s is empty, Deleting file.", path)
             os.unlink(path)
-            self.updater.notify_finish(self)
             return False
         directory, _filename = os.path.split(path)
 
@@ -197,12 +191,10 @@ class Runtime:
         jobs.AsyncCall(extract_archive, self.on_extracted, path, dest_path, merge_single=True)
         return False
 
-    def on_extracted(self, result, error):
+    def on_extracted(self, result: tuple, error: Exception) -> bool:
         """Callback method when a runtime has extracted"""
         if error:
-            logger.error("Runtime update failed")
-            logger.error(error)
-            self.updater.notify_finish(self)
+            logger.error("Runtime update failed: %s", error)
             return False
         archive_path, _destination_path = result
         os.unlink(archive_path)
@@ -210,26 +202,27 @@ class Runtime:
         if self.name in DLL_MANAGERS:
             manager = DLL_MANAGERS[self.name]()
             manager.fetch_versions()
-        self.updater.notify_finish(self)
         return False
 
 
 class RuntimeUpdater:
     """Class handling the runtime updates"""
-
-    cancelled = False
     status_updater = None
     update_functions = []
     downloaders = {}
+    status_text: str = ""
 
-    def __init__(self, pci_ids=None, force=False):
-
+    def __init__(self, pci_ids: list = None, force: bool = False):
         self.force = force
         self.pci_ids = pci_ids or []
-        self.runtime_versions = None
-        self.add_update("runtime", self._update_runtime_components, hours=12)
+        self.runtime_versions = {}
+        if RUNTIME_DISABLED:
+            logger.warning("Runtime disabled, not updating it.")
+        else:
+            self.add_update("runtime", self._update_runtime, hours=12)
+        self.add_update("runners", self._update_runners, hours=12)
 
-    def add_update(self, key, update_function, hours):
+    def add_update(self, key: str, update_function, hours):
         """__init__ calls this to register each update. This function
         only registers the update if it hasn't been tried in the last
         'hours' hours. This is trakced in 'updates.json', and identified
@@ -239,78 +232,86 @@ class RuntimeUpdater:
             self.update_functions.append((key, update_function))
 
     @property
-    def has_updates(self):
+    def has_updates(self) -> bool:
         """Returns True if there are any updates to perform."""
         return len(self.update_functions) > 0
 
+    def load_runtime_versions(self) -> dict:
+        """Load runtime versions from json file"""
+        self.runtime_versions = load_runtime_versions()
+        return self.runtime_versions
+
     def update_runtimes(self):
-        """Performs all the registered updates. If 'self.cancel()' is called,
-        it will immediately stop."""
-        self.runtime_versions = get_runtime_versions(self.pci_ids)
+        """Performs all the registered updates."""
+        self.runtime_versions = download_runtime_versions(self.pci_ids)
         for key, func in self.update_functions:
-            if self.cancelled:
-                break
             func()
             update_cache.write_date_to_cache(key)
 
-        if self.cancelled:
-            logger.info("Runtime update cancelled")
-        logger.info("Startup complete")
-
-    def cancel(self):
-        self.cancelled = True
-        for downloader in self.downloaders.values():
-            downloader.cancel()
-
-    def _update_runtime_components(self):
-        """Update runtime components"""
-        components_to_update = self._populate_component_downloaders()
-        if components_to_update:
-            while self.downloaders:
-                time.sleep(0.3)
-                if self.cancelled:
-                    return
-
-    def _populate_component_downloaders(self):
-        """Launch the update process"""
-        if RUNTIME_DISABLED:
-            logger.warning("Runtime disabled, not updating it.")
-            return 0
-
-        for remote_runtime in self._iter_remote_runtimes():
-            runtime = Runtime(remote_runtime["name"], self)
-            downloader = runtime.download(remote_runtime)
-            if downloader:
-                self.downloaders[runtime] = downloader
-        return len(self.downloaders)
-
-    def _iter_remote_runtimes(self):
-        for name, runtime in self.runtime_versions.get("runtimes", {}).items():
-            # Skip 64bit runtimes on 32 bit systems
-            if runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
-                logger.debug("Skipping runtime %s for %s", name, runtime["architecture"])
+    def _update_runners(self):
+        """Update installed runners (only works for Wine at the moment)"""
+        upstream_runners = self.runtime_versions.get("runners", {})
+        for name, upstream_runners in upstream_runners.items():
+            if name != "wine":
                 continue
-            yield runtime
+            upstream_runner = None
+            for _runner in upstream_runners:
+                if _runner["architecture"] == LINUX_SYSTEM.arch:
+                    upstream_runner = _runner
 
-    def notify_finish(self, runtime):
-        """A runtime has finished downloading"""
-        logger.debug("Runtime %s is now updated and available", runtime.name)
-        del self.downloaders[runtime]
+            if not upstream_runner:
+                continue
+
+            # This has the responsibility to update existing runners, not installing new ones
+            runner_base_path = os.path.join(settings.RUNNER_DIR, name)
+            if not system.path_exists(runner_base_path) or not os.listdir(runner_base_path):
+                continue
+
+            runner_path = os.path.join(settings.RUNNER_DIR, name,
+                                       "-".join([upstream_runner["version"], upstream_runner["architecture"]]))
+            if system.path_exists(runner_path):
+                continue
+            self.status_text = _(f"Updating {name}")
+            archive_download_path = os.path.join(settings.CACHE_DIR, os.path.basename(upstream_runner["url"]))
+            downloader = Downloader(upstream_runner["url"], archive_download_path)
+            downloader.start()
+            self.downloaders = {"wine": downloader}
+            downloader.join()
+            self.status_text = _(f"Extracting {name}")
+            extract_archive(archive_download_path, runner_path)
+
+    def percentage_completed(self) -> float:
         if not self.downloaders:
-            logger.info("Runtime update completed.")
+            return 0
+        return sum(downloader.progress_fraction for downloader in self.downloaders.values()) / len(self.downloaders)
+
+    def _update_runtime(self) -> None:
+        """Launch the update process"""
+        for name, remote_runtime in self.runtime_versions.get("runtimes", {}).items():
+            if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
+                logger.debug("Skipping runtime %s for %s", name, remote_runtime["architecture"])
+                continue
+            runtime = Runtime(remote_runtime["name"], self)
+            self.status_text = _(f"Updating {remote_runtime['name']}")
+            if remote_runtime["url"]:
+
+                downloader = runtime.download(remote_runtime)
+                if downloader:
+                    self.downloaders[runtime] = downloader
+                    downloader.join()
+            else:
+                runtime.download_components()
 
 
-def get_env(version=None, prefer_system_libs=False, wine_path=None):
+def get_env(version: str = None, prefer_system_libs: bool = False, wine_path: str = None) -> dict:
     """Return a dict containing LD_LIBRARY_PATH env var
 
     Params:
-        version (str): Version of the runtime to use, such as "Ubuntu-18.04" or "legacy"
-        prefer_system_libs (bool): Whether to prioritize system libs over runtime libs
-        wine_path (str): If you prioritize system libs, provide the path for a lutris wine build
+        version: Version of the runtime to use, such as "Ubuntu-18.04" or "legacy"
+        prefer_system_libs: Whether to prioritize system libs over runtime libs
+        wine_path: If you prioritize system libs, provide the path for a lutris wine build
                          if one is being used. This allows Lutris to prioritize the wine libs
                          over everything else.
-    Returns:
-        dict
     """
     library_path = ":".join(get_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path))
     env = {}

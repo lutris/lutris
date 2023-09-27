@@ -1,12 +1,9 @@
-# Standard Library
 import sys
 import threading
 import traceback
 
-# Third Party Libraries
 from gi.repository import GLib
 
-# Lutris Modules
 from lutris.util.log import logger
 
 
