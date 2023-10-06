@@ -10,24 +10,41 @@ from lutris.game import Game
 from lutris.util import resources, system
 from lutris.util.log import logger
 from lutris.util.steam import vdf
-from lutris.util.steam.config import search_recursive_in_steam_dirs
+from lutris.util.steam.config import STEAM_DATA_DIRS
 
 
-def get_config_path():
-    config_paths = search_recursive_in_steam_dirs("userdata/**/config/")
-    if not config_paths:
-        return None
-    return config_paths[0]
+def get_steam_users():
+    """Return the list of Steam users on this system and the base path where the settings are located"""
+    logger.debug("Fetching Steam users")
+    for steam_dir in STEAM_DATA_DIRS:
+        userdata_path = os.path.join(os.path.expanduser(steam_dir), "userdata")
+        if not os.path.exists(userdata_path):
+            continue
+        user_ids = [f for f in os.listdir(userdata_path) if f.isnumeric()]
+        if user_ids:
+            return userdata_path, user_ids
+    return "", []
 
 
-def get_shortcuts_vdf_path():
+def get_config_path() -> str:
+    userdatapath, user_ids = get_steam_users()
+    if not user_ids:
+        return ""
+        logger.warning("No Steam users found")
+    if len(user_ids) > 1:
+        logger.warning("More than 1 Steam user found, returning 1st (%s)", user_ids[0])
+    config_path = os.path.join(userdatapath, user_ids[0], "config")
+    return config_path
+
+
+def get_shortcuts_vdf_path() -> str:
     config_path = get_config_path()
     if not config_path:
         return None
     return os.path.join(config_path, "shortcuts.vdf")
 
 
-def vdf_file_exists():
+def vdf_file_exists() -> bool:
     try:
         return bool(get_shortcuts_vdf_path())
     except Exception as ex:

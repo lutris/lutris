@@ -1,5 +1,4 @@
 """Handle Steam configuration"""
-import glob
 import os
 from collections import OrderedDict
 
@@ -39,17 +38,6 @@ def search_in_steam_dirs(file):
         )
         if path and system.path_exists(path):
             return path
-
-
-def search_recursive_in_steam_dirs(path_suffix):
-    """Perform a recursive search based on glob and returns a
-    list of hits"""
-    results = []
-    for candidate in STEAM_DATA_DIRS:
-        glob_path = os.path.join(os.path.expanduser(candidate), path_suffix)
-        for path in glob.glob(glob_path):
-            results.append(path)
-    return results
 
 
 def get_default_acf(appid, name):
