@@ -11,20 +11,7 @@ from lutris.game import Game
 from lutris.util import resources, system
 from lutris.util.log import logger
 from lutris.util.steam import vdf
-from lutris.util.steam.config import STEAM_DATA_DIRS
-
-
-def get_steam_users():
-    """Return the list of Steam users on this system and the base path where the settings are located"""
-    logger.debug("Fetching Steam users")
-    for steam_dir in STEAM_DATA_DIRS:
-        userdata_path = os.path.join(os.path.expanduser(steam_dir), "userdata")
-        if not os.path.exists(userdata_path):
-            continue
-        user_ids = [f for f in os.listdir(userdata_path) if f.isnumeric()]
-        if user_ids:
-            return userdata_path, user_ids
-    return "", []
+from lutris.util.steam.config import get_steam_users
 
 
 def get_config_path() -> str:
@@ -45,7 +32,7 @@ def get_config_path() -> str:
 def get_shortcuts_vdf_path() -> str:
     config_path = get_config_path()
     if not config_path:
-        return None
+        return ""
     return os.path.join(config_path, "shortcuts.vdf")
 
 

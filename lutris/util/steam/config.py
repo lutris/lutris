@@ -77,8 +77,20 @@ def get_config_value(config, key):
     return config[keymap[key.lower()]]
 
 
-def get_user_steam_id():
-    """Read user's SteamID from Steam config files"""
+def get_steam_users():
+    """Return the list of Steam users on this system and the base path where the settings are located"""
+    for steam_dir in STEAM_DATA_DIRS:
+        userdata_path = os.path.join(os.path.expanduser(steam_dir), "userdata")
+        if not os.path.exists(userdata_path):
+            continue
+        user_ids = [f for f in os.listdir(userdata_path) if f.isnumeric()]
+        if user_ids:
+            return userdata_path, user_ids
+    return "", []
+
+
+def get_user_steam_id64():
+    """Read user's SteamID64 from Steam config files"""
     user_config = read_user_config()
     if not user_config or "users" not in user_config:
         return
