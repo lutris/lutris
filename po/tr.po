@@ -44,7 +44,7 @@ msgstr ""
 "Lutris, tüm dönemlerden ve çoğu oyun sistemlerinden video oyunları kurmanıza"
 "ve oynamanıza yardımcı olur. Mevcut emülatorlerinden, yeniden yaratılmış motorlardan ve"
 "uyumluluk katmanlarından faydalanarak ve onları birleştirerek; tüm oyunlarınızı başlatmak için"
-"size merkezi bir arayüz sağlar."  
+"size merkezi bir arayüz sağlar."
 
 #: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:575
 msgid "About Lutris"
@@ -545,7 +545,7 @@ msgstr ""
 "tarayacaktır.\n"
 "Henüz Lutris'de mevcut olmayan oyunlar bulunursa eklenecektir.\n"
 "\n"
-"Aşağıdaki "Devam et"e tıkladığınızda; tarama başlayacak, bulunan her oyun "
+"Aşağıdaki \"Devam et\"e tıkladığınızda; tarama başlayacak, bulunan her oyun "
 "tek seferde eklenecektir."
 
 #: lutris/gui/addgameswindow.py:331
@@ -5588,7 +5588,7 @@ msgid ""
 msgstr ""
 "Süreç izlemeye hangi süreçlerin dahil edileceği. Bu, yerleşik hariç tutma "
 "listesini geçersiz kılmak içindir.\n"
-"Boşlukla ayrılmış liste, boşluklar da dahil olmak üzere işlemler tırnak içine " 
+"Boşlukla ayrılmış liste, boşluklar da dahil olmak üzere işlemler tırnak içine "
 "alınabilir."
 
 #: lutris/sysoptions.py:532
@@ -5604,7 +5604,7 @@ msgid ""
 msgstr ""
 "Süreç izlemede hangi süreçlerin hariç tutulacağı. Örneğin, oyun kapatıldıktan "
 "sonra etrafta kalan arka plan işlemleri.\n"
-"Boşlukla ayrılmış liste, boşluklar da dahil olmak üzere işlemler tırnak içine" 
+"Boşlukla ayrılmış liste, boşluklar da dahil olmak üzere işlemler tırnak içine"
 "alınabilir."
 
 #: lutris/sysoptions.py:543
