@@ -31,16 +31,14 @@ class ScummvmService(BaseService):
         "icon": ScummvmBanner
     }
 
-    game_paths = None
-
-    def load(self):
+    def get_games(self):
         if not os.path.isfile(SCUMMVM_CONFIG_FILE):
-            return
+            return None
 
         config = ConfigParser()
         config.read(SCUMMVM_CONFIG_FILE)
         config_sections = config.sections()
-        self.game_paths = {}
+        games = {}
 
         for section in config_sections:
             if section == "scummvm":
@@ -54,11 +52,20 @@ class ScummvmService(BaseService):
             game.lutris_slug = game.slug
             game.details = config[section]["description"]
             game.path = config[section]["path"]
-            self.game_paths[game.slug] = game.path
+            games[game.slug] = game
 
-            game.save()
+        return games
+
+    def load(self):
+        games = self.get_games()
+        if games is not None:
+            for slug in games:
+                games[slug].save()
 
     def generate_installer(self, game):
+        games = self.get_games()
+        game_data = games.get(game["slug"])
+
         return {
             "name": game["name"],
             "version": "ScummVM",
@@ -68,7 +75,7 @@ class ScummvmService(BaseService):
             "script": {
                 "game": {
                     "game_id": game["appid"],
-                    "path": self.game_paths[game["slug"]],
+                    "path": game_data.path,
                     "platform": "scummvm"
                 }
             }
