@@ -14,6 +14,7 @@ from lutris.services.itchio import ItchIoService
 from lutris.services.lutris import LutrisService
 from lutris.services.mame import MAMEService
 from lutris.services.origin import OriginService
+from lutris.services.scummvm import ScummvmService, SCUMMVM_CONFIG_FILE
 from lutris.services.steam import SteamService
 from lutris.services.steamwindows import SteamWindowsService
 from lutris.services.ubisoft import UbisoftConnectService
@@ -48,6 +49,8 @@ def get_services():
     _services["steamwindows"] = SteamWindowsService
     if system.path_exists(DOLPHIN_GAME_CACHE_FILE):
         _services["dolphin"] = DolphinService
+    if system.path_exists(SCUMMVM_CONFIG_FILE):
+        _services["scummvm"] = ScummvmService
     return _services
 
 
