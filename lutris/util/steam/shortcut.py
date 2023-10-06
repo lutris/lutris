@@ -5,6 +5,7 @@ import re
 import shlex
 import shutil
 
+from lutris import settings
 from lutris.api import format_installer_url
 from lutris.game import Game
 from lutris.util import resources, system
@@ -27,14 +28,18 @@ def get_steam_users():
 
 
 def get_config_path() -> str:
+    """Return config path for a Steam user"""
     userdatapath, user_ids = get_steam_users()
     if not user_ids:
         return ""
-        logger.warning("No Steam users found")
     if len(user_ids) > 1:
-        logger.warning("More than 1 Steam user found, returning 1st (%s)", user_ids[0])
-    config_path = os.path.join(userdatapath, user_ids[0], "config")
-    return config_path
+        preferred_id = settings.read_setting("preferred_steam_id")
+        if preferred_id and preferred_id in user_ids:
+            user_id = user_ids[0]
+        else:
+            logger.warning("No preferred Steam account selected, using %s", user_ids[0])
+            user_id = user_ids[0]
+    return os.path.join(userdatapath, user_id, "config")
 
 
 def get_shortcuts_vdf_path() -> str:
