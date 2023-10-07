@@ -85,6 +85,12 @@ class GameActions:
 
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
+        if steam_shortcut.vdf_file_exists():
+            has_steam_shortcut = steam_shortcut.shortcut_exists(self.game)
+            is_steam_game = steam_shortcut.is_steam_game(self.game)
+        else:
+            has_steam_shortcut = False
+            is_steam_game = False
         return {
             "add": not self.game.is_installed,
             "duplicate": self.game.is_installed,
@@ -115,9 +121,8 @@ class GameActions:
             ),
             "steam-shortcut": (
                 self.game.is_installed
-                and steam_shortcut.vdf_file_exists()
-                and not steam_shortcut.shortcut_exists(self.game)
-                and not steam_shortcut.is_steam_game(self.game)
+                and not has_steam_shortcut
+                and not is_steam_game
             ),
             "rm-desktop-shortcut": bool(
                 self.game.is_installed
@@ -129,9 +134,8 @@ class GameActions:
             ),
             "rm-steam-shortcut": bool(
                 self.game.is_installed
-                and steam_shortcut.vdf_file_exists()
-                and steam_shortcut.shortcut_exists(self.game)
-                and not steam_shortcut.is_steam_game(self.game)
+                and has_steam_shortcut
+                and not is_steam_game
             ),
             "remove": self.is_game_removable,
             "view": True,

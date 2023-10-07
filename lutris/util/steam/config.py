@@ -1,5 +1,4 @@
 """Handle Steam configuration"""
-import glob
 import os
 from collections import OrderedDict
 
@@ -41,17 +40,6 @@ def search_in_steam_dirs(file):
             return path
 
 
-def search_recursive_in_steam_dirs(path_suffix):
-    """Perform a recursive search based on glob and returns a
-    list of hits"""
-    results = []
-    for candidate in STEAM_DATA_DIRS:
-        glob_path = os.path.join(os.path.expanduser(candidate), path_suffix)
-        for path in glob.glob(glob_path):
-            results.append(path)
-    return results
-
-
 def get_default_acf(appid, name):
     """Return a default configuration usable to
     create a runnable game in Steam"""
@@ -89,8 +77,20 @@ def get_config_value(config, key):
     return config[keymap[key.lower()]]
 
 
-def get_user_steam_id():
-    """Read user's SteamID from Steam config files"""
+def get_steam_users():
+    """Return the list of Steam users on this system and the base path where the settings are located"""
+    for steam_dir in STEAM_DATA_DIRS:
+        userdata_path = os.path.join(os.path.expanduser(steam_dir), "userdata")
+        if not os.path.exists(userdata_path):
+            continue
+        user_ids = [f for f in os.listdir(userdata_path) if f.isnumeric()]
+        if user_ids:
+            return userdata_path, user_ids
+    return "", []
+
+
+def get_user_steam_id64():
+    """Read user's SteamID64 from Steam config files"""
     user_config = read_user_config()
     if not user_config or "users" not in user_config:
         return
