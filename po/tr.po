@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-02-04 23:57\n"
-"PO-Revision-Date: 2023-06-10 01.31\n"
+"PO-Revision-Date: 2023-08-10 02.14\n"
 "Last-Translator: Bulut Güler <gyillkossag@gmail.com>, Batuhan Uysalar <batuhan55uysalar34@gmail.com> ve Halil Murat Ünay\n"
 "Language-Team: Turkish\n"
 "Language: tr\n"
@@ -44,7 +44,7 @@ msgstr ""
 "Lutris, tüm dönemlerden ve çoğu oyun sistemlerinden video oyunları kurmanıza"
 "ve oynamanıza yardımcı olur. Mevcut emülatorlerinden, yeniden yaratılmış motorlardan ve"
 "uyumluluk katmanlarından faydalanarak ve onları birleştirerek; tüm oyunlarınızı başlatmak için"
-"size merkezi bir arayüz sağlar."  
+"size merkezi bir arayüz sağlar."
 
 #: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:575
 msgid "About Lutris"
@@ -480,8 +480,8 @@ msgstr "_Devam et"
 #: lutris/gui/dialogs/runner_install.py:201 lutris/gui/installerwindow.py:88
 #: lutris/gui/installerwindow.py:924
 #: lutris/gui/widgets/download_progress_box.py:95
-msgid "Cancel"
-msgstr "Vazgeç"
+msgid "C_ancel"
+msgstr "_Vazgeç"
 
 #: lutris/gui/addgameswindow.py:114 lutris/gui/config/boxes.py:439
 msgid "Select folder"
@@ -545,7 +545,7 @@ msgstr ""
 "tarayacaktır.\n"
 "Henüz Lutris'de mevcut olmayan oyunlar bulunursa eklenecektir.\n"
 "\n"
-"Aşağıdaki "Devam et"e tıkladığınızda; tarama başlayacak, bulunan her oyun "
+"Aşağıdaki \"Devam et\"e tıkladığınızda; tarama başlayacak, bulunan her oyun "
 "tek seferde eklenecektir."
 
 #: lutris/gui/addgameswindow.py:331
@@ -855,8 +855,8 @@ msgstr "_Ekle"
 #: lutris/gui/widgets/common.py:113
 #: lutris/gui/widgets/download_progress_box.py:47
 #, fuzzy
-msgid "Cancel"
-msgstr "Vazgeç"
+msgid "_Cancel"
+msgstr "_Vazgeç"
 
 #: lutris/gui/config/boxes.py:651
 msgid ""
@@ -1223,8 +1223,8 @@ msgid ""
 msgstr ""
 
 #: lutris/gui/dialogs/issue.py:52
-msgid "Save"
-msgstr "Kaydet"
+msgid "_Save"
+msgstr "_Kaydet"
 
 #: lutris/gui/dialogs/issue.py:68
 msgid "Select a location to save the issue"
@@ -5588,7 +5588,7 @@ msgid ""
 msgstr ""
 "Süreç izlemeye hangi süreçlerin dahil edileceği. Bu, yerleşik hariç tutma "
 "listesini geçersiz kılmak içindir.\n"
-"Boşlukla ayrılmış liste, boşluklar da dahil olmak üzere işlemler tırnak içine " 
+"Boşlukla ayrılmış liste, boşluklar da dahil olmak üzere işlemler tırnak içine "
 "alınabilir."
 
 #: lutris/sysoptions.py:532
@@ -5604,7 +5604,7 @@ msgid ""
 msgstr ""
 "Süreç izlemede hangi süreçlerin hariç tutulacağı. Örneğin, oyun kapatıldıktan "
 "sonra etrafta kalan arka plan işlemleri.\n"
-"Boşlukla ayrılmış liste, boşluklar da dahil olmak üzere işlemler tırnak içine" 
+"Boşlukla ayrılmış liste, boşluklar da dahil olmak üzere işlemler tırnak içine"
 "alınabilir."
 
 #: lutris/sysoptions.py:543
