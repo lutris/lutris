@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from configparser import ConfigParser
@@ -7,6 +8,7 @@ from lutris import settings
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
+from lutris.util import system
 from lutris.util.strings import slugify
 
 SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~/.config/scummvm"), "scummvm.ini")
@@ -31,16 +33,13 @@ class ScummvmService(BaseService):
         "icon": ScummvmBanner
     }
 
-    game_paths = None
-
     def load(self):
-        if not os.path.isfile(SCUMMVM_CONFIG_FILE):
+        if not system.path_exists(SCUMMVM_CONFIG_FILE):
             return
 
         config = ConfigParser()
         config.read(SCUMMVM_CONFIG_FILE)
         config_sections = config.sections()
-        self.game_paths = {}
 
         for section in config_sections:
             if section == "scummvm":
@@ -52,13 +51,13 @@ class ScummvmService(BaseService):
             game.game_id = section
             game.runner = "scummvm"
             game.lutris_slug = game.slug
-            game.details = config[section]["description"]
-            game.path = config[section]["path"]
-            self.game_paths[game.slug] = game.path
-
+            game.details = json.dumps({
+                "path": config[section]["path"]
+            })
             game.save()
 
     def generate_installer(self, game):
+        details = json.loads(game["details"])
         return {
             "name": game["name"],
             "version": "ScummVM",
@@ -68,7 +67,7 @@ class ScummvmService(BaseService):
             "script": {
                 "game": {
                     "game_id": game["appid"],
-                    "path": self.game_paths[game["slug"]],
+                    "path": details["path"],
                     "platform": "scummvm"
                 }
             }
