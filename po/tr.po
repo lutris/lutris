@@ -5475,7 +5475,7 @@ msgid ""
 msgstr ""
 "Seçilen ekranı yalnızca oyun çalışırken aktif tut. \n"
 "Bu, çift ekranlı bir kurulumunuz varsa kullanışlıdır ve \n"
-"bir oyunu tam ekranda çalıştırırken görüntü sorunları yaşar. \n"
+"bir oyunu tam ekranda çalıştırırken görüntü sorunları yaşar."
 
 #: lutris/sysoptions.py:432
 msgid "Switch resolution to"
