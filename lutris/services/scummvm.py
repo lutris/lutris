@@ -45,8 +45,8 @@ class ScummvmService(BaseService):
             if section == "scummvm":
                 continue
             game = ScummvmGame()
-            game.name = re.split(r" \(.*\)$", config[section]["description"])[0]
-            game.slug = slugify(game.name)
+            game.name = config[section]["description"]
+            game.slug = slugify(re.split(r" \(.*\)$", game.name)[0])
             game.appid = section
             game.game_id = section
             game.runner = "scummvm"
@@ -66,7 +66,7 @@ class ScummvmService(BaseService):
             "runner": "scummvm",
             "script": {
                 "game": {
-                    "game_id": game["appid"],
+                    "game_id": game["game_id"],
                     "path": details["path"],
                     "platform": "scummvm"
                 }
