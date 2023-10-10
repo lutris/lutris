@@ -177,12 +177,10 @@ class SteamID:
         raise SteamIDError("Invalid Steam community URL ({})".format(url))
 
     @classmethod
-    def from_steamid64(cls, steamid):
+    def from_steamid64(cls, steamid, account_type=TYPE_INDIVIDUAL, universe=UNIVERSE_INDIVIDUAL):
         """Create an instance of SteamID from a SteamID64. Only for normal user accounts."""
         instance = steamid & 1
         account_number = cls.get_account_number_from_steamid(steamid)
-        account_type = TYPE_INDIVIDUAL
-        universe = UNIVERSE_INDIVIDUAL
         return cls(account_number, instance, account_type, universe)
 
     @staticmethod

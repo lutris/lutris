@@ -6,19 +6,8 @@ from lutris import settings
 from lutris.gui.widgets.common import VBox
 
 
-class InterfacePreferencesBox(VBox):
-    settings_options = {
-        "hide_client_on_game_start": _("Minimize client when a game is launched"),
-        "hide_text_under_icons": _("Hide text under icons"),
-        "hide_badges_on_icons": _("Hide badges on icons (Ctrl+p to toggle)"),
-        "show_tray_icon": _("Show Tray Icon"),
-        "dark_theme": _("Use dark theme (requires dark theme variant for Gtk)"),
-        "discord_rpc": _("Enable Discord Rich Presence for Available Games"),
-    }
-
-    settings_accelerators = {
-        "hide_badges_on_icons": "<Primary>p"
-    }
+class AccountsBox(VBox):
+    settings_options = {}
 
     def _get_section_label(self, text):
         label = Gtk.Label(visible=True)
@@ -26,7 +15,7 @@ class InterfacePreferencesBox(VBox):
         label.set_alignment(0, 0.5)
         return label
 
-    def __init__(self, accelerators):
+    def __init__(self):
         super().__init__(visible=True)
         self.accelerators = accelerators
         self.set_margin_top(50)
@@ -59,10 +48,6 @@ class InterfacePreferencesBox(VBox):
         if settings.read_setting(setting_key).lower() == "true":
             checkbox.set_active(True)
         checkbox.connect("state-set", self._on_setting_change, setting_key)
-
-        if setting_key in self.settings_accelerators:
-            key, mod = Gtk.accelerator_parse(self.settings_accelerators[setting_key])
-            checkbox.add_accelerator("activate", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
         box.pack_start(checkbox, False, False, 12)
         return box

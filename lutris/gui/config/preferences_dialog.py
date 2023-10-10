@@ -1,18 +1,19 @@
 """Configuration dialog for client and system options"""
+# pylint: disable=no-member
 from gettext import gettext as _
 
 from gi.repository import GObject, Gtk
 
 from lutris.config import LutrisConfig
+from lutris.gui.config.accounts_box import AccountsBox
 from lutris.gui.config.boxes import SystemBox
 from lutris.gui.config.common import GameDialogCommon
-from lutris.gui.config.preferences_box import PreferencesBox
+from lutris.gui.config.preferences_box import InterfacePreferencesBox
 from lutris.gui.config.runners_box import RunnersBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.config.sysinfo_box import SysInfoBox
 
 
-# pylint: disable=no-member
 class PreferencesDialog(GameDialogCommon):
     __gsignals__ = {
         "settings-changed": (GObject.SIGNAL_RUN_LAST, None, (str, )),
@@ -34,6 +35,7 @@ class PreferencesDialog(GameDialogCommon):
         sidebar.add(self.get_sidebar_button("prefs-stack", _("Interface"), "view-grid-symbolic"))
         sidebar.add(self.get_sidebar_button("runners-stack", _("Runners"), "applications-utilities-symbolic"))
         sidebar.add(self.get_sidebar_button("services-stack", _("Sources"), "application-x-addon-symbolic"))
+        sidebar.add(self.get_sidebar_button("accounts-stack", _("Accounts"), "system-users-symbolic"))
         sidebar.add(self.get_sidebar_button("sysinfo-stack", _("Hardware information"), "computer-symbolic"))
         sidebar.add(self.get_sidebar_button("system-stack", _("Global options"), "emblem-system-symbolic"))
         hbox.pack_start(sidebar, False, False, 0)
@@ -44,7 +46,7 @@ class PreferencesDialog(GameDialogCommon):
         self.vbox.pack_start(hbox, True, True, 0)
         self.vbox.set_border_width(0)  # keep everything flush with the window edge
         self.stack.add_named(
-            self.build_scrolled_window(PreferencesBox(self.accelerators)),
+            self.build_scrolled_window(InterfacePreferencesBox(self.accelerators)),
             "prefs-stack"
         )
 
@@ -57,6 +59,11 @@ class PreferencesDialog(GameDialogCommon):
         self.stack.add_named(
             self.build_scrolled_window(ServicesBox()),
             "services-stack"
+        )
+
+        self.stack.add_named(
+            self.build_scrolled_window(AccountsBox()),
+            "accounts-stack"
         )
 
         sysinfo_box = SysInfoBox()
