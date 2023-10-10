@@ -4,11 +4,10 @@ from gi.repository import Gtk
 
 from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
-from lutris.util.steam.config import get_steam_users
+from lutris.util.steam.config import STEAM_ACCOUNT_SETTING, get_steam_users
 
 
 class AccountsBox(BaseConfigBox):
-    steam_account_setting = "active_steam_account"
 
     def __init__(self):
         super().__init__()
@@ -20,7 +19,7 @@ class AccountsBox(BaseConfigBox):
         frame.add(vbox)
 
         main_radio_button = None
-        active_steam_account = settings.read_setting(self.steam_account_setting)
+        active_steam_account = settings.read_setting(STEAM_ACCOUNT_SETTING)
         for account in get_steam_users():
             radio_button = Gtk.RadioButton.new_with_label_from_widget(
                 main_radio_button,
@@ -38,4 +37,4 @@ class AccountsBox(BaseConfigBox):
 
     def on_steam_account_toggled(self, radio_button, steamid64):
         """Handler for switching the active Steam account."""
-        settings.write_setting(self.steam_account_setting, steamid64)
+        settings.write_setting(STEAM_ACCOUNT_SETTING, steamid64)

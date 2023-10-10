@@ -7,6 +7,7 @@ import requests
 from lutris import settings
 from lutris.util import system
 from lutris.util.log import logger
+from lutris.util.steam.steamid import SteamID
 from lutris.util.steam.vdfutils import vdf_parse
 
 STEAM_DATA_DIRS = (
@@ -21,6 +22,7 @@ STEAM_DATA_DIRS = (
     "/usr/share/steam",
     "/usr/local/share/steam",
 )
+STEAM_ACCOUNT_SETTING = "active_steam_account"
 
 
 def get_steam_dir():
@@ -110,12 +112,23 @@ def get_steam_users() -> list:
     return steam_users
 
 
-def get_most_recent_steamid64() -> str:
-    """Read user's SteamID64 from Steam config files"""
-    steam_users = get_steam_users()
-    if steam_users:
-        return steam_users[0]["steamid64"]
+def get_active_steamid64() -> str:
+    """Return the currently active Steam ID"""
+    steam_ids = [u["steamid64"] for u in get_steam_users()]
+    active_steam_id = settings.read_setting(STEAM_ACCOUNT_SETTING)
+    if active_steam_id in steam_ids:
+        return active_steam_id
+    if steam_ids:
+        return steam_ids[0]
     return ""
+
+
+def convert_steamid64_to_steamid32(steamid64: str) -> str:
+    """Return the 32bit variant of SteamIDs, used for folder names in userdata"""
+    if not steamid64.isnumeric():
+        return ""
+    steam_id = SteamID.from_steamid64(int(steamid64))
+    return str(steam_id.get_32_bit_community_id())
 
 
 def get_steam_library(steamid):
