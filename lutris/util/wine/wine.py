@@ -4,7 +4,7 @@ from collections import OrderedDict
 from functools import lru_cache
 from gettext import gettext as _
 
-from lutris import runtime, settings
+from lutris import settings
 from lutris.api import get_default_runner_version
 from lutris.exceptions import UnavailableRunnerError
 from lutris.gui.dialogs import ErrorDialog
@@ -107,20 +107,6 @@ def set_drive_path(prefix, letter, path):
         os.remove(drive_path)
     logger.debug("Linking %s to %s", drive_path, path)
     os.symlink(path, drive_path)
-
-
-def use_lutris_runtime(wine_path, force_disable=False):
-    """Returns whether to use the Lutris runtime.
-    The runtime can be forced to be disabled, otherwise
-    it's disabled automatically if Wine is installed system wide.
-    """
-    if force_disable or runtime.RUNTIME_DISABLED:
-        return False
-    if WINE_DIR in wine_path:
-        return True
-    if is_installed_systemwide():
-        return False
-    return True
 
 
 def is_gstreamer_build(wine_path):

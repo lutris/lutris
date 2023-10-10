@@ -17,7 +17,7 @@ from lutris.util.wine.cabinstall import CabInstaller
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.wine import (
     WINE_DEFAULT_ARCH, WINE_DIR, detect_arch, detect_prefix_arch, get_overrides_env, get_real_executable,
-    use_lutris_runtime
+    is_installed_systemwide
 )
 
 
@@ -194,6 +194,20 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_p
             break
         time.sleep(0.1)
     logger.debug("Done waiting.")
+
+
+def use_lutris_runtime(wine_path, force_disable=False):
+    """Returns whether to use the Lutris runtime.
+    The runtime can be forced to be disabled, otherwise
+    it's disabled automatically if Wine is installed system wide.
+    """
+    if force_disable or runtime.RUNTIME_DISABLED:
+        return False
+    if WINE_DIR in wine_path:
+        return True
+    if is_installed_systemwide():
+        return False
+    return True
 
 
 # pragma pylint: disable=too-many-locals
