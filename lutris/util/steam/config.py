@@ -7,6 +7,7 @@ import requests
 from lutris import settings
 from lutris.util import system
 from lutris.util.log import logger
+from lutris.util.steam.steamid import SteamID
 from lutris.util.steam.vdfutils import vdf_parse
 
 STEAM_DATA_DIRS = (
@@ -21,6 +22,7 @@ STEAM_DATA_DIRS = (
     "/usr/share/steam",
     "/usr/local/share/steam",
 )
+STEAM_ACCOUNT_SETTING = "active_steam_account"
 
 
 def get_steam_dir():
@@ -66,7 +68,7 @@ def read_user_config():
     return config
 
 
-def get_config_value(config, key):
+def get_config_value(config: dict, key: str):
     """Fetch a value from a configuration in a case insensitive way"""
     keymap = {k.lower(): k for k in config.keys()}
     if key not in keymap:
@@ -77,8 +79,10 @@ def get_config_value(config, key):
     return config[keymap[key.lower()]]
 
 
-def get_steam_users():
-    """Return the list of Steam users on this system and the base path where the settings are located"""
+def get_user_data_dirs():
+    """Return the list of available Steam user config directories (using a SteamID32)
+    and the base path where the settings are located (Returns the 1st location found)
+    """
     for steam_dir in STEAM_DATA_DIRS:
         userdata_path = os.path.join(os.path.expanduser(steam_dir), "userdata")
         if not os.path.exists(userdata_path):
@@ -89,17 +93,42 @@ def get_steam_users():
     return "", []
 
 
-def get_user_steam_id64():
-    """Read user's SteamID64 from Steam config files"""
+def get_steam_users() -> list:
+    """Return a list of available Steam users.
+    Most recently used account is 1st in the list."""
+    steam_users = []
     user_config = read_user_config()
     if not user_config or "users" not in user_config:
-        return
-    last_steam_id = None
-    for steam_id in user_config["users"]:
-        last_steam_id = steam_id
-        if get_config_value(user_config["users"][steam_id], "mostrecent") == "1":
-            return steam_id
-    return last_steam_id
+        return []
+    most_recent = None
+    for steam_id, account in user_config["users"].items():
+        account["steamid64"] = steam_id
+        if get_config_value(account, "mostrecent") == "1":
+            most_recent = account
+        else:
+            steam_users.append(account)
+    if most_recent:
+        steam_users = [most_recent] + steam_users
+    return steam_users
+
+
+def get_active_steamid64() -> str:
+    """Return the currently active Steam ID"""
+    steam_ids = [u["steamid64"] for u in get_steam_users()]
+    active_steam_id = settings.read_setting(STEAM_ACCOUNT_SETTING)
+    if active_steam_id in steam_ids:
+        return active_steam_id
+    if steam_ids:
+        return steam_ids[0]
+    return ""
+
+
+def convert_steamid64_to_steamid32(steamid64: str) -> str:
+    """Return the 32bit variant of SteamIDs, used for folder names in userdata"""
+    if not steamid64.isnumeric():
+        return ""
+    steam_id = SteamID.from_steamid64(int(steamid64))
+    return str(steam_id.get_32_bit_community_id())
 
 
 def get_steam_library(steamid):

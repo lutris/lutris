@@ -17,7 +17,7 @@ from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
-from lutris.util.steam.config import get_steam_library, get_steamapps_dirs, get_user_steam_id64
+from lutris.util.steam.config import get_active_steamid64, get_steam_library, get_steamapps_dirs
 from lutris.util.strings import slugify
 
 
@@ -91,7 +91,7 @@ class SteamService(BaseService):
 
     def load(self):
         """Return importable Steam games"""
-        steamid = get_user_steam_id64()
+        steamid = get_active_steamid64()
         if not steamid:
             logger.error("Unable to find SteamID from Steam config")
             return

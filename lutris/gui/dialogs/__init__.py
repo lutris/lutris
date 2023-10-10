@@ -317,6 +317,7 @@ class LutrisInitDialog(Gtk.Dialog):
         super().__init__()
         self.runtime_updater = runtime_updater
 
+        self.set_icon_name("lutris")
         self.set_size_request(320, 60)
         self.set_border_width(24)
         self.set_decorated(False)

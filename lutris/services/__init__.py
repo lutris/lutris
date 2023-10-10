@@ -14,7 +14,7 @@ from lutris.services.itchio import ItchIoService
 from lutris.services.lutris import LutrisService
 from lutris.services.mame import MAMEService
 from lutris.services.origin import OriginService
-from lutris.services.scummvm import ScummvmService, SCUMMVM_CONFIG_FILE
+from lutris.services.scummvm import SCUMMVM_CONFIG_FILE, ScummvmService
 from lutris.services.steam import SteamService
 from lutris.services.steamwindows import SteamWindowsService
 from lutris.services.ubisoft import UbisoftConnectService

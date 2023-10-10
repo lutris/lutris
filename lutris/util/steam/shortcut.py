@@ -5,27 +5,26 @@ import re
 import shlex
 import shutil
 
-from lutris import settings
 from lutris.api import format_installer_url
 from lutris.game import Game
 from lutris.util import resources, system
 from lutris.util.log import logger
 from lutris.util.steam import vdf
-from lutris.util.steam.config import get_steam_users
+from lutris.util.steam.config import convert_steamid64_to_steamid32, get_active_steamid64, get_user_data_dirs
 
 
 def get_config_path() -> str:
     """Return config path for a Steam user"""
-    userdatapath, user_ids = get_steam_users()
+    userdatapath, user_ids = get_user_data_dirs()
     if not user_ids:
         return ""
+    user_id = user_ids[0]
     if len(user_ids) > 1:
-        preferred_id = settings.read_setting("preferred_steam_id")
-        if preferred_id and preferred_id in user_ids:
-            user_id = user_ids[0]
-        else:
-            logger.warning("No preferred Steam account selected, using %s", user_ids[0])
-            user_id = user_ids[0]
+        active_account = get_active_steamid64()
+        if active_account:
+            active_account32 = convert_steamid64_to_steamid32(active_account)
+            if active_account32 in user_ids:
+                user_id = active_account32
     return os.path.join(userdatapath, user_id, "config")
 
 
