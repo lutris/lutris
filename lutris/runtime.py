@@ -18,6 +18,7 @@ from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.vkd3d import VKD3DManager
+from lutris.util.wine.wine import get_installed_wine_versions
 
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
 DEFAULT_RUNTIME = "Ubuntu-18.04"
@@ -217,10 +218,10 @@ class RuntimeUpdater:
         self.pci_ids = pci_ids or []
         self.runtime_versions = {}
         if RUNTIME_DISABLED:
-            logger.warning("Runtime disabled, not updating it.")
+            logger.warning("Runtime disabled. Safety not guaranteed.")
         else:
             self.add_update("runtime", self._update_runtime, hours=12)
-        self.add_update("runners", self._update_runners, hours=12)
+            self.add_update("runners", self._update_runners, hours=12)
 
     def add_update(self, key: str, update_function, hours):
         """__init__ calls this to register each update. This function
@@ -279,6 +280,9 @@ class RuntimeUpdater:
             downloader.join()
             self.status_text = _(f"Extracting {name}")
             extract_archive(archive_download_path, runner_path)
+
+
+            get_installed_wine_versions.cache_clear()
 
     def percentage_completed(self) -> float:
         if not self.downloaders:
