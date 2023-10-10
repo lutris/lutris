@@ -48,7 +48,6 @@ class ScummvmService(BaseService):
             game.name = config[section]["description"]
             game.slug = slugify(re.split(r" \(.*\)$", game.name)[0])
             game.appid = section
-            game.game_id = section
             game.runner = "scummvm"
             game.lutris_slug = game.slug
             game.details = json.dumps({
@@ -66,7 +65,7 @@ class ScummvmService(BaseService):
             "runner": "scummvm",
             "script": {
                 "game": {
-                    "game_id": game["game_id"],
+                    "game_id": game["appid"],
                     "path": details["path"],
                     "platform": "scummvm"
                 }
