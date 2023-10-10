@@ -281,7 +281,6 @@ class RuntimeUpdater:
             self.status_text = _(f"Extracting {name}")
             extract_archive(archive_download_path, runner_path)
 
-
             get_installed_wine_versions.cache_clear()
 
     def percentage_completed(self) -> float:
