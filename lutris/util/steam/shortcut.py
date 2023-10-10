@@ -11,12 +11,12 @@ from lutris.game import Game
 from lutris.util import resources, system
 from lutris.util.log import logger
 from lutris.util.steam import vdf
-from lutris.util.steam.config import get_steam_users
+from lutris.util.steam.config import get_user_data_dirs
 
 
 def get_config_path() -> str:
     """Return config path for a Steam user"""
-    userdatapath, user_ids = get_steam_users()
+    userdatapath, user_ids = get_user_data_dirs()
     if not user_ids:
         return ""
     if len(user_ids) > 1:

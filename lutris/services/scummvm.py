@@ -56,17 +56,17 @@ class ScummvmService(BaseService):
             })
             game.save()
 
-    def generate_installer(self, game):
-        details = json.loads(game["details"])
+    def generate_installer(self, db_game):
+        details = json.loads(db_game["details"])
         return {
-            "name": game["name"],
+            "name": db_game["name"],
             "version": "ScummVM",
-            "slug": game["slug"],
-            "game_slug": slugify(game["lutris_slug"]),
+            "slug": db_game["slug"],
+            "game_slug": slugify(db_game["lutris_slug"]),
             "runner": "scummvm",
             "script": {
                 "game": {
-                    "game_id": game["game_id"],
+                    "game_id": db_game["game_id"],
                     "path": details["path"],
                     "platform": "scummvm"
                 }
