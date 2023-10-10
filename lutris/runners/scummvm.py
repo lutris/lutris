@@ -474,6 +474,10 @@ class scummvm(Runner):
 
     @property
     def libs_dir(self):
+        if ("runner_executable" in self.runner_config
+            and self.runner_config["runner_executable"] == self.get_executable()
+            and not self.use_runtime()):
+            return ""
         path = os.path.join(settings.RUNNER_DIR, "scummvm/lib")
         return path if system.path_exists(path) else ""
 
