@@ -67,7 +67,6 @@ class ScummvmService(BaseService):
                 "game": {
                     "game_id": game["appid"],
                     "path": details["path"],
-                    "platform": "scummvm"
                 }
             }
         }
