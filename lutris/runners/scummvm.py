@@ -522,7 +522,11 @@ class scummvm(Runner):
         for arg in split_arguments(args):
             command.append(arg)
         command.append(self.game_config.get("game_id"))
-        return {"command": command, "ld_library_path": self.libs_dir}
+        output = {"command": command}
+        extra_libs = self.get_extra_libs()
+        if extra_libs:
+            output["ld_library_path"] = extra_libs
+        return output
 
     def get_game_list(self):
         """Return the entire list of games supported by ScummVM."""
