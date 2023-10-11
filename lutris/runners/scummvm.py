@@ -472,8 +472,11 @@ class scummvm(Runner):
     def game_path(self):
         return self.game_config.get("path")
 
-    @property
-    def libs_dir(self):
+    def get_extra_libs(self):
+        """Scummvm runner ships additional, they may be removed in a future version."""
+        base_runner_path = os.path.join(settings.RUNNER_DIR, "scummvm")
+        if not self.get_executable().startswith(base_runner_path):
+            return ""
         path = os.path.join(settings.RUNNER_DIR, "scummvm/lib")
         return path if system.path_exists(path) else ""
 
@@ -495,9 +498,9 @@ class scummvm(Runner):
 
     def get_run_data(self):
         env = self.get_env()
-        env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
-            self.libs_dir,
-            env.get("LD_LIBRARY_PATH")]))
+        extra_libs = self.get_extra_libs()
+        if extra_libs:
+            env["LD_LIBRARY_PATH"] = ":".join([p for p in [extra_libs, env.get("LD_LIBRARY_PATH")] if p])
         return {"env": env, "command": self.get_command()}
 
     def inject_runner_option(self, command, key, cmdline, cmdline_empty=None):
