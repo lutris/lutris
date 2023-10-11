@@ -12,6 +12,9 @@ class AccountsBox(BaseConfigBox):
     def __init__(self):
         super().__init__()
         self.add(self.get_section_label(_("Steam accounts")))
+        self.add(self.get_description_label(
+            _("Select which Steam account is used for Lutris integration and creating Steam shortcuts.")
+        ))
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         self.pack_start(frame, False, False, 12)
 
@@ -34,6 +37,8 @@ class AccountsBox(BaseConfigBox):
             vbox.pack_start(radio_button, False, False, 0)
             if not main_radio_button:
                 main_radio_button = radio_button
+        else:
+            vbox.pack_start(Gtk.Label(_("No Steam account found")), False, False, 0)
 
     def on_steam_account_toggled(self, radio_button, steamid64):
         """Handler for switching the active Steam account."""
