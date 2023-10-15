@@ -1,30 +1,77 @@
-"""Legacy ScummVM 'service', has to be ported to the current architecture"""
+import json
 import os
 import re
 from configparser import ConfigParser
 from gettext import gettext as _
 
+from lutris import settings
+from lutris.services.base import BaseService
+from lutris.services.service_game import ServiceGame
+from lutris.services.service_media import ServiceMedia
 from lutris.util import system
-from lutris.util.log import logger
+from lutris.util.strings import slugify
 
-NAME = _("ScummVM")
-ICON = "scummvm"
-ONLINE = False
 SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~/.config/scummvm"), "scummvm.ini")
 
 
-def get_scummvm_games():
-    """Return the available ScummVM games"""
-    if not system.path_exists(SCUMMVM_CONFIG_FILE):
-        logger.info("No ScummVM config found")
-        return []
-    config = ConfigParser()
-    config.read(SCUMMVM_CONFIG_FILE)
-    config_sections = config.sections()
-    for section in config_sections:
-        if section == "scummvm":
-            continue
-        scummvm_id = section
-        name = re.split(r" \(.*\)$", config[section]["description"])[0]
-        path = config[section]["path"]
-        yield (scummvm_id, name, path)
+# Dummy banner. Maybe the download from lutris should be implemented at this place
+class ScummvmBanner(ServiceMedia):
+    service = "scummvm"
+    source = "local"
+    size = (96, 32)
+    file_pattern = "%s.png"
+    file_format = "jpeg"
+    dest_path = settings.CACHE_DIR
+
+
+class ScummvmService(BaseService):
+    id = "scummvm"
+    icon = "scummvm"
+    name = _("ScummVM")
+    local = True
+    medias = {
+        "icon": ScummvmBanner
+    }
+
+    def load(self):
+        if not system.path_exists(SCUMMVM_CONFIG_FILE):
+            return
+
+        config = ConfigParser()
+        config.read(SCUMMVM_CONFIG_FILE)
+        config_sections = config.sections()
+
+        for section in config_sections:
+            if section == "scummvm":
+                continue
+            game = ScummvmGame()
+            game.name = config[section]["description"]
+            game.slug = slugify(re.split(r" \(.*\)$", game.name)[0])
+            game.appid = section
+            game.runner = "scummvm"
+            game.lutris_slug = game.slug
+            game.details = json.dumps({
+                "path": config[section]["path"]
+            })
+            game.save()
+
+    def generate_installer(self, db_game):
+        details = json.loads(db_game["details"])
+        return {
+            "name": db_game["name"],
+            "version": "ScummVM",
+            "slug": db_game["slug"],
+            "game_slug": slugify(db_game["lutris_slug"]),
+            "runner": "scummvm",
+            "script": {
+                "game": {
+                    "game_id": db_game["appid"],
+                    "path": details["path"],
+                }
+            }
+        }
+
+
+class ScummvmGame(ServiceGame):
+    service = "scummvm"
+    runner = "scummvm"

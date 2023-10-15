@@ -1,8 +1,7 @@
 """Manipulates installer files"""
 import os
-from functools import reduce
-from urllib.parse import urlparse
 from gettext import gettext as _
+from urllib.parse import urlparse
 
 from lutris import cache, settings
 from lutris.gui.widgets.download_collection_progress_box import DownloadCollectionProgressBox
@@ -29,7 +28,7 @@ class InstallerFileCollection:
 
     def _get_files_size(self):
         if self.num_files > 0:
-            self.full_size = reduce(lambda x, y: x + y, map(lambda a: a.size, self.files_list))
+            self.full_size = sum(f.size for f in self.files_list)
 
     def _get_service(self):
         """Try to get the service using the url of an InstallerFile"""

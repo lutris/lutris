@@ -5,7 +5,7 @@ from gi.repository import GLib, GObject, Gtk, Pango
 
 from lutris.util.downloader import Downloader
 from lutris.util.log import logger
-from lutris.util.strings import gtk_safe
+from lutris.util.strings import gtk_safe, human_size
 
 
 class DownloadProgressBox(Gtk.Box):
@@ -120,10 +120,10 @@ class DownloadProgressBox(Gtk.Box):
         self.progressbar.set_fraction(progress)
         megabytes = 1024 * 1024
         progress_text = _(
-            "{downloaded:0.2f} / {size:0.2f}MB ({speed:0.2f}MB/s), {time} remaining"
+            "{downloaded} / {size} ({speed:0.2f}MB/s), {time} remaining"
         ).format(
-            downloaded=float(self.downloader.downloaded_size) / megabytes,
-            size=float(self.downloader.full_size) / megabytes,
+            downloaded=human_size(self.downloader.downloaded_size),
+            size=human_size(self.downloader.full_size),
             speed=float(self.downloader.average_speed) / megabytes,
             time=self.downloader.time_left,
         )

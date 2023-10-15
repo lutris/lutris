@@ -423,15 +423,7 @@ class Application(Gtk.Application):
         if not argc:
             # Switch back the log output to stderr (the default in Python)
             # to avoid messing with any output from command line options.
-
-            # Use when targeting Python 3.7 minimum
-            # console_handler.setStream(sys.stderr)
-
-            # Until then...
-            logger.removeHandler(log.console_handler)
-            log.console_handler = logging.StreamHandler(stream=sys.stdout)
-            log.console_handler.setFormatter(log.SIMPLE_FORMATTER)
-            logger.addHandler(log.console_handler)
+            log.console_handler.setStream(sys.stderr)
 
         # Set up logger
         if options.contains("debug"):

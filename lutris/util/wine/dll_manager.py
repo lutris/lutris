@@ -36,8 +36,10 @@ class DLLManager:
     def versions(self):
         """Return available versions"""
         self._versions = self.load_versions()
-        if not self._versions and system.path_exists(self.base_dir):
-            self._versions = os.listdir(self.base_dir)
+        if system.path_exists(self.base_dir):
+            for local_version in os.listdir(self.base_dir):
+                if os.path.isdir(os.path.join(self.base_dir, local_version)) and local_version not in self._versions:
+                    self._versions.append(local_version)
         return self._versions
 
     @property

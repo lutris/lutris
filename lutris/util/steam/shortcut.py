@@ -10,24 +10,32 @@ from lutris.game import Game
 from lutris.util import resources, system
 from lutris.util.log import logger
 from lutris.util.steam import vdf
-from lutris.util.steam.config import search_recursive_in_steam_dirs
+from lutris.util.steam.config import convert_steamid64_to_steamid32, get_active_steamid64, get_user_data_dirs
 
 
-def get_config_path():
-    config_paths = search_recursive_in_steam_dirs("userdata/**/config/")
-    if not config_paths:
-        return None
-    return config_paths[0]
+def get_config_path() -> str:
+    """Return config path for a Steam user"""
+    userdatapath, user_ids = get_user_data_dirs()
+    if not user_ids:
+        return ""
+    user_id = user_ids[0]
+    if len(user_ids) > 1:
+        active_account = get_active_steamid64()
+        if active_account:
+            active_account32 = convert_steamid64_to_steamid32(active_account)
+            if active_account32 in user_ids:
+                user_id = active_account32
+    return os.path.join(userdatapath, user_id, "config")
 
 
-def get_shortcuts_vdf_path():
+def get_shortcuts_vdf_path() -> str:
     config_path = get_config_path()
     if not config_path:
-        return None
+        return ""
     return os.path.join(config_path, "shortcuts.vdf")
 
 
-def vdf_file_exists():
+def vdf_file_exists() -> bool:
     try:
         return bool(get_shortcuts_vdf_path())
     except Exception as ex:

@@ -1,4 +1,4 @@
-from pypresence import Presence
+from pypresence import DiscordNotFound, Presence
 
 from lutris.util.discord.base import DiscordRichPresenceBase
 
@@ -17,9 +17,11 @@ class DiscordRichPresenceClient(DiscordRichPresenceBase):
 
         # Create a new Presence object with the desired app id
         self.rpc = Presence(discord_id)
-        # Connect to discord endpoint
-        self.rpc.connect()
-        # Trigger an update making the status available
+        try:
+            self.rpc.connect()
+        except DiscordNotFound:
+            return
+
         self.rpc.update()
 
     def clear(self):

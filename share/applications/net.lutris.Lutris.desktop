@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=Lutris
+StartupWMClass=Lutris
 Comment=Video Game Preservation Platform
 Categories=Game;
 Keywords=gaming;wine;emulator;
