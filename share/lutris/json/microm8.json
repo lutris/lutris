@@ -3,7 +3,7 @@
     "description": "microM8 is an Apple II emulator",
     "platforms": ["Apple IIe"],
     "runner_executable": "microm8/microm8",
-    "download_url": "http://paleotronic.com/download/microm8-linux.zip",
+    "download_url": "https://paleotronic.com/download/microm8-linux.zip",
     "game_options": [
         {
             "option": "main_file",
