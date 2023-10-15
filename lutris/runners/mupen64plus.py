@@ -13,7 +13,6 @@ class mupen64plus(Runner):
     description = _("Nintendo 64 emulator")
     platforms = [_("Nintendo 64")]
     runner_executable = "mupen64plus/mupen64plus"
-    flatpak_id = "com.github.Rosalie241.RMG"
     game_options = [
         {
             "option": "main_file",

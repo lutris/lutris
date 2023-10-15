@@ -1,0 +1,18 @@
+{
+    "human_name": "Rosalie's Mupen GUI",
+    "description": "Nintendo 64 emulator",
+    "platforms": [ "Nintendo 64" ],
+    "runner_executable": "rosaliesmupengui/RMG-Portable-Linux64-v0.5.2.AppImage",
+    "flatpak_id": "com.github.Rosalie241.RMG",
+    "runnable_alone": true,
+    "download_url": "https://github.com/Rosalie241/RMG/releases/download/v0.5.2/RMG-Portable-Linux64-v0.5.2.AppImage",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ROM file",
+            "help": "A N64 ROM",
+            "default_path": "game_path"
+        }
+    ]
+}
