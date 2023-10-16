@@ -23,7 +23,7 @@ LAUNCH_PATH = dirname(realpath(__file__))
 # Prevent loading Python modules from home folder
 # They can interfere with Lutris and prevent it
 # from working.
-sys.path = [path for path in sys.path if not path.startswith("/home")]
+sys.path = [path for path in sys.path if not path.startswith("/home") and not path.startswith("/var/home")]
 
 if os.path.isdir(os.path.join(LAUNCH_PATH, "../lutris")):
     sys.dont_write_bytecode = True
