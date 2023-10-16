@@ -1,3 +1,23 @@
+lutris (0.5.14) jammy; urgency=medium
+
+  * Add Steam account switcher to handle multiple Steam accounts
+    on the same device.
+  * Add user defined tags / categories
+  * Group every API calls for runtime updates in a single one
+  * Download appropriate DXVK and VKD3D versions based on
+    the available GPU PCI IDs
+  * EA App integration. Your Origin games and saves can be manually imported
+    from your Origin prefix.
+  * Add integration with ScummVM local library
+  * Download Wine-GE updates when Lutris starts
+  * Group GOG and Amazon download in a single progress bar
+  * Fix blank login window on online services such as GOG or EGS
+  * Add a sort name field
+  * Yuzu and xemu now use an AppImage
+  * Experimental support for Flatpak provided runners
+
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Mon, 16 Oct 2023 01:40:33 -0700
+
 lutris (0.5.13) jammy; urgency=medium
 
   * Add support for Proton
