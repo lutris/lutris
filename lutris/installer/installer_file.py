@@ -237,6 +237,12 @@ class InstallerFile:
             return self._file_meta["size"]
         return 0
 
+    @property
+    def total_size(self):
+        if isinstance(self._file_meta, dict) and "total_size" in self._file_meta:
+            return self._file_meta["total_size"]
+        return 0
+
     def is_ready(self, provider):
         """Is the file already present at the destination (if applicable)?"""
         return provider not in ("user", "pga") or system.path_exists(self.dest_file)

@@ -468,7 +468,8 @@ class GOGService(OnlineService):
                 "url": installer_file["url"],
                 "filename": installer_file["filename"],
                 "checksum_url": installer_file.get("checksum_url"),
-                "size": installer_file["total_size"]
+                "total_size": installer_file["total_size"],
+                "size": -1,
             }))
         if not file_id_provided:
             raise UnavailableGameError(_("Unable to determine correct file to launch installer"))
