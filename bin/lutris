@@ -20,6 +20,11 @@ from os.path import dirname, normpath, realpath
 
 LAUNCH_PATH = dirname(realpath(__file__))
 
+# Prevent loading Python modules from home folder
+# They can interfere with Lutris and prevent it
+# from working.
+sys.path = [path for path in sys.path if not path.startswith("/home")]
+
 if os.path.isdir(os.path.join(LAUNCH_PATH, "../lutris")):
     sys.dont_write_bytecode = True
     SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, '..'))
@@ -29,8 +34,8 @@ else:
 
 try:
     locale.setlocale(locale.LC_ALL, "")
-except locale.Error:
-    sys.stderr.write("Unsupported locale setting. Fix your locales\n")
+except locale.Error as ex:
+    sys.stderr.write("Unsupported locale setting: %s\n" % ex)
 
 try:
     # optional_settings does not exist if you don't use the meson build system
