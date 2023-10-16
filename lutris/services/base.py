@@ -77,6 +77,7 @@ class BaseService(GObject.Object):
     _matcher = None
     has_extras = False
     name = NotImplemented
+    description = ""
     icon = NotImplemented
     online = False
     local = False

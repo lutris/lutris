@@ -127,6 +127,7 @@ class OriginService(OnlineService):
 
     id = "origin"
     name = _("Origin")
+    description = _("Deprecated, use EA App")
     icon = "origin"
     client_installer = "origin"
     runner = "wine"
