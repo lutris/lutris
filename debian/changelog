@@ -15,6 +15,10 @@ lutris (0.5.14) jammy; urgency=medium
   * Add a sort name field
   * Yuzu and xemu now use an AppImage
   * Experimental support for Flatpak provided runners
+  * Header-bar search for configuration options
+  * Support for Gamescope 3.12
+  * Missing games show an additional badge
+  * Add missing dependency on python3-gi-cairo for Debian packages
 
  -- Mathieu Comandon <mathieucomandon@gmail.com>  Mon, 16 Oct 2023 01:40:33 -0700
 
