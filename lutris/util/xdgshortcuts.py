@@ -43,9 +43,9 @@ def get_xdg_basename(game_slug, game_id, base_dir=None):
         # When base dir is provided, lookup possible combinations
         # and return the first match
         for path in [
-            "{}.desktop".format(game_slug),
-            "{}-{}.desktop".format(game_slug, game_id),
             "net.lutris.{}-{}.desktop".format(game_slug, game_id),
+            "{}-{}.desktop".format(game_slug, game_id),
+            "{}.desktop".format(game_slug),
         ]:
             if system.path_exists(os.path.join(base_dir, path)):
                 return path
