@@ -24,7 +24,32 @@
   <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
-    <release date="2023-05-16" version="0.5.13" />
+    <release version="0.5.14" date="2023-10-16" urgency="low">
+      <description>
+        <ul>
+          <li>Add Steam account switcher to handle multiple Steam accounts</li>
+          <li>on the same device.</li>
+          <li>Add user defined tags / categories</li>
+          <li>Group every API calls for runtime updates in a single one</li>
+          <li>Download appropriate DXVK and VKD3D versions based on</li>
+          <li>the available GPU PCI IDs</li>
+          <li>EA App integration. Your Origin games and saves can be manually imported</li>
+          <li>from your Origin prefix.</li>
+          <li>Add integration with ScummVM local library</li>
+          <li>Download Wine-GE updates when Lutris starts</li>
+          <li>Group GOG and Amazon download in a single progress bar</li>
+          <li>Fix blank login window on online services such as GOG or EGS</li>
+          <li>Add a sort name field</li>
+          <li>Yuzu and xemu now use an AppImage</li>
+          <li>Experimental support for Flatpak provided runners</li>
+          <li>Header-bar search for configuration options</li>
+          <li>Support for Gamescope 3.12</li>
+          <li>Missing games show an additional badge</li>
+          <li>Add missing dependency on python3-gi-cairo for Debian packages</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.5.13" date="2023-05-16"  />
   </releases>
   <content_rating type="oars-1.1" />
 </component>
