@@ -108,6 +108,9 @@ def remove_shortcut(game):
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     other_shortcuts = [s for s in shortcuts if not matches_id(s, game)]
+    # Quit early if no shortcut is removed
+    if len(shortcuts) == len(other_shortcuts):
+        return
     updated_shortcuts = {
         'shortcuts': {
             str(index): elem for index, elem in enumerate(other_shortcuts)
