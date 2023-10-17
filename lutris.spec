@@ -15,7 +15,7 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  python3-devel
 BuildRequires:  python3-gobject
 BuildRequires:  python-wheel
-BuildRequires   python-setuptools
+BuildRequires:  python-setuptools
 BuildRequires:  fdupes
 BuildRequires:  libappstream-glib
 BuildRequires:  meson
