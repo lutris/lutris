@@ -95,6 +95,7 @@ def create_prefix(  # noqa: C901
         overrides = {}
     if not prefix:
         raise ValueError("No Wine prefix path given")
+    prefix = os.path.expanduser(prefix)
     logger.info("Creating a %s prefix in %s", arch, prefix)
 
     # Follow symlinks, don't delete existing ones as it would break some setups
