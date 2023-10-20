@@ -482,6 +482,8 @@ class scummvm(Runner):
 
     def get_command(self):
         command = super().get_command()
+        if not command:
+            return []
         if "flatpak" in command[0]:
             return command
         return command + [
