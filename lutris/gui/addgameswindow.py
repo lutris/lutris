@@ -319,7 +319,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.scan_directory_chooser.set_hexpand(True)
 
         explanation = _(
-            "This folder will be scanned for games previously installed with Lutrus.\n\n"
+            "This folder will be scanned for games previously installed with Lutris.\n\n"
             "Folder names have to match their corresponding Lutris ID, each matching ID"
             "will be queried for existing install script to provide for exe locations.\n\n"
             "Click 'Continue' to start scanning and import games"
