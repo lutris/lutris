@@ -1,0 +1,6405 @@
+# Georgian translation for lutris.
+# Copyright (C) 2023 lutris's authors
+# This file is distributed under the same license as the lutris package.
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: lutris\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-10-20 14:11+0200\n"
+"PO-Revision-Date: 2023-10-21 12:44+0200\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: \n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.4\n"
+
+#: share/applications/net.lutris.Lutris.desktop:3
+#: share/lutris/ui/lutris-window.ui:25 lutris/gui/application.py:79
+#: lutris/gui/widgets/status_icon.py:136 lutris/services/lutris.py:39
+msgid "Lutris"
+msgstr "Lutris"
+
+#: share/applications/net.lutris.Lutris.desktop:5
+msgid "Video Game Preservation Platform"
+msgstr "პლატფორმა ვიდეოთამაშების შესანახად"
+
+#: share/applications/net.lutris.Lutris.desktop:7
+msgid "gaming;wine;emulator;"
+msgstr "gaming;wine;emulator;თამაშები;"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:11
+#: share/lutris/ui/about-dialog.ui:18
+msgid "Video game preservation platform"
+msgstr "პლატფორმა ვიდეოთამაშების შესანახად"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:14
+msgid "Main window"
+msgstr "მთავარი ფანჯარა"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:18
+msgid ""
+"Lutris helps you install and play video games from all eras and from most "
+"gaming systems. By leveraging and combining existing emulators, engine re-"
+"implementations and compatibility layers, it gives you a central interface "
+"to launch all your games."
+msgstr ""
+"Lutris ყველა ერის და თითქმის ყველა სათამაშო სისტემის დაყენებაში და თამაშში "
+"დაგეხმარებათ. არსებული ემულგატორების კომბინირებით, ძრავის თავიდან გადაწერით "
+"და თავსებადობით ფენებით ის თქვენი თამაშების გაშვების ცენტრალური ინტერფეისია."
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:30
+msgid "Add Steam account switcher to handle multiple Steam accounts"
+msgstr ""
+"დაამატეთ Steam-ის ანგარიშის გადამრთველი, რათა Steam-ის ერთზე მეტი ანგარიში "
+"მართოთ"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:31
+msgid "on the same device."
+msgstr "იგივე მოწყობილობაზე."
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:32
+msgid "Add user defined tags / categories"
+msgstr "მომხმარებლის აღწერილი ჭდეების/კატეგორიების დამატება"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:33
+msgid "Group every API calls for runtime updates in a single one"
+msgstr ""
+"გაშვების გარემოს განახლებებისთვის ყველა API-ის ფუნქციის ერთში გაერთიანება"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:34
+msgid "Download appropriate DXVK and VKD3D versions based on"
+msgstr "შესაბამისი DXVK და VKD3D-ის ვერსიის გადმოწერა, პლატფორმისთვის"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:35
+msgid "the available GPU PCI IDs"
+msgstr "ხელმისაწვდომი GPU PCI ID-ები"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:36
+msgid ""
+"EA App integration. Your Origin games and saves can be manually imported"
+msgstr ""
+"EA-ის აპის ინტეგრაცია. თქვენი Origin-ის თამაშები და შენახული თამაშები, "
+"შეგიძლიათ, ხელით შემოიტანოთ"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:37
+msgid "from your Origin prefix."
+msgstr "თქვენი წყაროს პრეფიქსიდან."
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:38
+msgid "Add integration with ScummVM local library"
+msgstr "ScummVM ლოკალურ ბიბლიოთეკასთან ინტეგრაციის დამატება"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:39
+msgid "Download Wine-GE updates when Lutris starts"
+msgstr "Lustris-ის გაშვებისას Wine-GE-ის განახლებების გადმოწერა"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:40
+msgid "Group GOG and Amazon download in a single progress bar"
+msgstr "GOG-ის და Amazon-ის გადმოწერების ერთ მიმდინარეობის ზოლში გაერთიანება"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:41
+msgid "Fix blank login window on online services such as GOG or EGS"
+msgstr ""
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:42
+msgid "Add a sort name field"
+msgstr "დალაგების სახელის ველის დამატება"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:43
+msgid "Yuzu and xemu now use an AppImage"
+msgstr "Yuzu-სა და xemu-ს ახლა AppImage-ის გამოყენება შეუძლიათ"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:44
+msgid "Experimental support for Flatpak provided runners"
+msgstr "ექსპერიმენტული მხარდაჭერა Flatpak-ით მოწოდებული გამშვებებისთვის"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:45
+msgid "Header-bar search for configuration options"
+msgstr "ძებნა სათაურის ზოლში მორგების პარამეტრებისთვის"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:46
+msgid "Support for Gamescope 3.12"
+msgstr "Gamescope 3.12-ის მხარდაჭერა"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:47
+msgid "Missing games show an additional badge"
+msgstr ""
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:48
+msgid "Add missing dependency on python3-gi-cairo for Debian packages"
+msgstr ""
+"Debian-ის პაკეტებისთვის python3-gi-cairo-ზე ნაკლული დამოკიდებულების დამატება"
+
+#: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:589
+msgid "About Lutris"
+msgstr "Lustris-ის შესახებ"
+
+#: share/lutris/ui/about-dialog.ui:21
+msgid ""
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, either version 3 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+
+#: share/lutris/ui/dialog-lutris-login.ui:8
+msgid "Connect to lutris.net"
+msgstr "Lustris.net-თან მიერთება"
+
+#: share/lutris/ui/dialog-lutris-login.ui:26
+msgid "Forgot password?"
+msgstr "პაროლი დაგავიწყდა?"
+
+#: share/lutris/ui/dialog-lutris-login.ui:43 lutris/gui/dialogs/issue.py:49
+msgid "C_ancel"
+msgstr "_გაუქმება"
+
+#: share/lutris/ui/dialog-lutris-login.ui:57
+msgid "_Connect"
+msgstr "_შეერთება"
+
+#: share/lutris/ui/dialog-lutris-login.ui:95
+msgid "Password"
+msgstr "პაროლი"
+
+#: share/lutris/ui/dialog-lutris-login.ui:109
+msgid "Username"
+msgstr "მომხმარებლის სახელი"
+
+#: share/lutris/ui/log-window.ui:36
+msgid "Search..."
+msgstr "ძებნა..."
+
+#: share/lutris/ui/lutris-window.ui:147 lutris/gui/lutriswindow.py:602
+msgid "Search games"
+msgstr "თამაშების ძებნა"
+
+#: share/lutris/ui/lutris-window.ui:162
+msgid "Add Game"
+msgstr "თამაშის დამატება"
+
+#: share/lutris/ui/lutris-window.ui:194
+msgid "Toggle View"
+msgstr "ხედის გადართვა"
+
+#: share/lutris/ui/lutris-window.ui:292
+msgid "Zoom "
+msgstr "გადიდება "
+
+#: share/lutris/ui/lutris-window.ui:334
+msgid "Sort Installed First"
+msgstr "ჯერ დაყენებულების ჩვენება"
+
+#: share/lutris/ui/lutris-window.ui:348
+msgid "Sort Ascending"
+msgstr "აღმავლით დალაგება"
+
+#: share/lutris/ui/lutris-window.ui:374 lutris/gui/config/common.py:161
+#: lutris/gui/config/edit_category_games.py:32 lutris/gui/views/list.py:51
+#: lutris/gui/views/list.py:178
+msgid "Name"
+msgstr "სახელი"
+
+#: share/lutris/ui/lutris-window.ui:389 lutris/gui/views/list.py:53
+msgid "Year"
+msgstr "წელი"
+
+#: share/lutris/ui/lutris-window.ui:404 lutris/gui/views/list.py:56
+msgid "Last Played"
+msgstr "ბოლოს დაკვრის დრო"
+
+#: share/lutris/ui/lutris-window.ui:419 lutris/gui/views/list.py:58
+msgid "Installed At"
+msgstr "დაყენების დრო"
+
+#: share/lutris/ui/lutris-window.ui:434 lutris/gui/views/list.py:57
+msgid "Play Time"
+msgstr "თამაშის დრო"
+
+#: share/lutris/ui/lutris-window.ui:463
+msgid "_Installed Games Only"
+msgstr "_მხოლოდ დაყენებული თამაშები"
+
+#: share/lutris/ui/lutris-window.ui:478
+msgid "Show _Hidden Games"
+msgstr "_დამალული თამაშების ჩვენება"
+
+#: share/lutris/ui/lutris-window.ui:493
+msgid "Show Side _Panel"
+msgstr "გვერდითი _პანელის ჩვენება"
+
+#: share/lutris/ui/lutris-window.ui:508
+msgid "Add games"
+msgstr "თამაშების დამატება"
+
+#: share/lutris/ui/lutris-window.ui:522
+msgid "Preferences"
+msgstr "მორგება"
+
+#: share/lutris/ui/lutris-window.ui:547
+msgid "Discord"
+msgstr "Discord"
+
+#: share/lutris/ui/lutris-window.ui:561
+msgid "Lutris forums"
+msgstr "Lustris-ის ფორუმები"
+
+#: share/lutris/ui/lutris-window.ui:575
+msgid "Make a donation"
+msgstr "გააკეთეთ შემოწირულობა"
+
+#: lutris/exceptions.py:26
+#, python-brace-format
+msgid ""
+"The following {arch} libraries are required but are not installed on your "
+"system:\n"
+"{libs}"
+msgstr ""
+
+#. Local services don't show an install dialog, they can be launched directly
+#: lutris/game_actions.py:55 lutris/gui/widgets/game_bar.py:213
+#: lutris/gui/widgets/game_bar.py:227
+msgid "Play"
+msgstr "დაკვრა"
+
+#: lutris/game_actions.py:56 lutris/gui/widgets/game_bar.py:219
+msgid "Stop"
+msgstr "გაჩერება"
+
+#: lutris/game_actions.py:57
+msgid "Execute script"
+msgstr "სკრიპტის შესრულება"
+
+#: lutris/game_actions.py:58
+msgid "Show logs"
+msgstr "ჟურნალის ჩვენება"
+
+#: lutris/game_actions.py:60 lutris/gui/widgets/sidebar.py:233
+msgid "Configure"
+msgstr "მორგება"
+
+#: lutris/game_actions.py:61 lutris/gui/widgets/sidebar.py:351
+msgid "Categories"
+msgstr "კატეგორიები"
+
+#: lutris/game_actions.py:62
+msgid "Browse files"
+msgstr "ფაილის არჩევა"
+
+#: lutris/game_actions.py:63
+msgid "Add to favorites"
+msgstr "რჩეულებში დამატება"
+
+#: lutris/game_actions.py:64
+msgid "Remove from favorites"
+msgstr "რჩეულებიდან წაშლა"
+
+#: lutris/game_actions.py:65
+msgid "Hide game from library"
+msgstr "თამაშის დამალვა ბიბლიოთეკიდან"
+
+#: lutris/game_actions.py:66
+msgid "Unhide game from library"
+msgstr "თამაშის გამოჩენა ბიბლიოთეკაში"
+
+#: lutris/game_actions.py:67
+msgid "Update shader cache"
+msgstr "შეიდერების კეშის განახლება"
+
+#: lutris/game_actions.py:69 lutris/gui/dialogs/runner_install.py:223
+#: lutris/gui/installer/script_box.py:62 lutris/gui/widgets/game_bar.py:222
+msgid "Install"
+msgstr "დაყენება"
+
+#: lutris/game_actions.py:70
+msgid "Install another version"
+msgstr "სხვა ვერსის დაყენება"
+
+#: lutris/game_actions.py:72
+msgid "Install updates"
+msgstr "განახლებების დაყენება"
+
+#: lutris/game_actions.py:73
+msgid "Add installed game"
+msgstr "დაყენებული თამაშის დამატება"
+
+#: lutris/game_actions.py:74 lutris/gui/installerwindow.py:386
+msgid "Create desktop shortcut"
+msgstr "სამუშაო მაგიდის მალსახმობის შექმნა"
+
+#: lutris/game_actions.py:75
+msgid "Delete desktop shortcut"
+msgstr "სამუშაო მაგიდის მალსახმობის წაშლა"
+
+#: lutris/game_actions.py:76 lutris/gui/installerwindow.py:390
+msgid "Create application menu shortcut"
+msgstr "აპლიკაციის მენიუს მალსახობის შექმნა"
+
+#: lutris/game_actions.py:77
+msgid "Delete application menu shortcut"
+msgstr "აპლიკაციის მენიუს მალსახობის წაშლა"
+
+#: lutris/game_actions.py:78 lutris/gui/installerwindow.py:395
+msgid "Create steam shortcut"
+msgstr "Steam-ის მალსახმობის შექმნა"
+
+#: lutris/game_actions.py:79
+msgid "Delete steam shortcut"
+msgstr "Steam-ის მალსახმობის წაშლა"
+
+#: lutris/game_actions.py:80
+msgid "View on Lutris.net"
+msgstr "Lustris.net-ზე ნახვა"
+
+#: lutris/game_actions.py:81
+msgid "Duplicate"
+msgstr "დუბლიკაცია"
+
+#: lutris/game_actions.py:83 lutris/gui/dialogs/uninstall_game.py:113
+msgid "Remove"
+msgstr "წაშლა"
+
+#: lutris/game_actions.py:210
+#, python-format
+msgid ""
+"Do you wish to duplicate %s?\n"
+"The configuration will be duplicated, but the games files will <b>not be "
+"duplicated</b>.\n"
+"Please enter the new name for the copy:"
+msgstr ""
+
+#: lutris/game_actions.py:214
+msgid "Duplicate game?"
+msgstr "დავადუბლირო თამაში?"
+
+#: lutris/game_actions.py:285
+msgid "This game has no installation directory"
+msgstr "ამ თამაშს დაყენების საქაღალდე არ აქვს"
+
+#: lutris/game_actions.py:289
+#, python-format
+msgid ""
+"Can't open %s \n"
+"The folder doesn't exist."
+msgstr ""
+"%s ვერ გავხსენი\n"
+"საქაღალდე არ არსებობს."
+
+#. use primary configuration
+#: lutris/game_actions.py:328
+msgid "Select shortcut target"
+msgstr "აირჩიეთ მალსახმობის სამიზნე"
+
+#: lutris/game.py:283
+msgid "Error the runner is not installed"
+msgstr "შეცდომა: გამშვები დაყენებული არაა"
+
+#: lutris/game.py:285
+msgid "A bios file is required to run this game"
+msgstr "ამ თამაშის გასაშვებად BIOS-ის ფაილი დაგჭირდებათ"
+
+#: lutris/game.py:289
+msgid "The file {} could not be found"
+msgstr "ფაილი {} ვერ ვიპოვე"
+
+#: lutris/game.py:291
+msgid ""
+"This game has no executable set. The install process didn't finish properly."
+msgstr ""
+"თამაშის გამშვები ფაილი დაყენებული არაა. დაყენების პროცესი არასწორად დასრულდა."
+
+#: lutris/game.py:294
+#, python-format
+msgid "The file %s is not executable"
+msgstr "ფაილი '%s' გამშვები არაა"
+
+#: lutris/game.py:296
+#, python-format
+msgid "The path '%s' is not set. please set it in the options."
+msgstr "ბილიკი '%s' დაყენებული არაა. დააყენეთ ის პარამეტრებში."
+
+#: lutris/game.py:298
+#, python-format
+msgid "Unhandled error: %s"
+msgstr "დაუმუშავებელი შეცდომა: %s"
+
+#: lutris/game.py:408
+msgid "Uninstall the game before deleting"
+msgstr "წაშალეთ თამაში მისი ფაილების წაშლამდე"
+
+#: lutris/game.py:481
+msgid "Tried to launch a game that isn't installed."
+msgstr "სცადეთ გაგეშვათ თამაში, რომელიც დაყენებული არაა."
+
+#: lutris/game.py:483 lutris/game.py:586
+msgid "Invalid game configuration: Missing runner"
+msgstr "არასწორი თამაშის კონფიგურაცია: გამშვები დაყენებული არაა"
+
+#: lutris/game.py:515
+msgid "Unable to find Xephyr, install it or disable the Xephyr option"
+msgstr "Xephyr ვერ ვიპოვე. დააყენეთ ის ან გამორთეთ Xephyr-ის პარამეტრი"
+
+#: lutris/game.py:562
+#, python-format
+msgid ""
+"The selected terminal application could not be launched:\n"
+"%s"
+msgstr ""
+"არჩეული ტერმინალის აპლიკაციის გაშვება შეუძლებელია:\n"
+"%s"
+
+#: lutris/game.py:837
+msgid "<b>Error lauching the game:</b>\n"
+msgstr "<b>თამაშის გაშვების შეცდომა:</b>\n"
+
+#: lutris/game.py:941
+#, python-format
+msgid ""
+"<b>Error: Missing shared library.</b>\n"
+"\n"
+"%s"
+msgstr ""
+"<b>შეცდომა: გაზიარებული ბიბლიოთეკა ვერ ვიპოვე.</b>\n"
+"\n"
+"%s"
+
+#: lutris/game.py:947
+msgid ""
+"<b>Error: A different Wine version is already using the same Wine prefix.</b>"
+msgstr "<b>შეცდომა: სხვა Wine-ის ვერსია უკვე იყენებს იგივე Wine პრეფიქსს.</b>"
+
+#: lutris/gui/addgameswindow.py:26
+msgid "Search the Lutris website for installers"
+msgstr "დამყენებლების ძებნა Lustris-ის ვებგვერდზე"
+
+#: lutris/gui/addgameswindow.py:27
+msgid "Query our website for community installers"
+msgstr ""
+"მოძებნეთ ჩვენს ვებგვერდზე დამყენებელი, რომლებიც ჩვენმა მომხმარებლებმა შექმნეს"
+
+#: lutris/gui/addgameswindow.py:33
+msgid "Import previously installed Lutris games"
+msgstr "ადრე დაყენებული Lustris-ის თამაშების შემოტანა"
+
+#: lutris/gui/addgameswindow.py:34
+msgid "Scan a folder for games installed from a previous Lutris installation"
+msgstr ""
+"საქაღალდის სკანირება თამაშებზე, რომელიც Lustris-მა წინა დაყენებისას დააყენა"
+
+#: lutris/gui/addgameswindow.py:40
+msgid "Install a Windows game from an executable"
+msgstr "Windows-ის თამაშის დაყენება გამშვები ფაილიდან"
+
+#: lutris/gui/addgameswindow.py:41
+msgid "Launch a Windows executable (.exe) installer"
+msgstr "Windows-ის გამშვები ფაილის (.exe) გაშვება"
+
+#: lutris/gui/addgameswindow.py:47
+msgid "Install from a local install script"
+msgstr "დაყენება ლოკალური დაყენების სკრიპტიდან"
+
+#: lutris/gui/addgameswindow.py:48
+msgid "Run a YAML install script"
+msgstr "YAML დაყენების სკრიპტის გაშვება"
+
+#: lutris/gui/addgameswindow.py:54
+msgid "Import a ROM"
+msgstr "ROM-ის შემოტანა"
+
+#: lutris/gui/addgameswindow.py:55
+msgid "Import a ROM that is known to Lutris"
+msgstr "შემოიტანეთ ROM, რომელიც Lustris-მა იცის"
+
+#: lutris/gui/addgameswindow.py:61
+msgid "Add locally installed game"
+msgstr "ლოკალურად დაყენებული თამაშის დამატება"
+
+#: lutris/gui/addgameswindow.py:62
+msgid "Manually configure a game available locally"
+msgstr "ლოკალურად ხელმისაწვდომი თამაშის ხელით მორგება"
+
+#: lutris/gui/addgameswindow.py:68
+msgid "Add games to Lutris"
+msgstr "თამაშების დამატება Lustris-ში"
+
+#. Header bar buttons
+#: lutris/gui/addgameswindow.py:89 lutris/gui/installerwindow.py:80
+msgid "Back"
+msgstr "უკან"
+
+#. Continue Button
+#: lutris/gui/addgameswindow.py:97 lutris/gui/addgameswindow.py:662
+#: lutris/gui/installerwindow.py:90 lutris/gui/installerwindow.py:900
+msgid "_Continue"
+msgstr "_გაგრძელება"
+
+#: lutris/gui/addgameswindow.py:101 lutris/gui/addgameswindow.py:677
+#: lutris/gui/addgameswindow.py:680 lutris/gui/dialogs/__init__.py:86
+#: lutris/gui/dialogs/runner_install.py:214 lutris/gui/installerwindow.py:87
+#: lutris/gui/installerwindow.py:954
+#: lutris/gui/widgets/download_collection_progress_box.py:135
+#: lutris/gui/widgets/download_progress_box.py:95
+msgid "Cancel"
+msgstr "გაუქმება"
+
+#: lutris/gui/addgameswindow.py:120 lutris/gui/config/boxes.py:504
+msgid "Select folder"
+msgstr "საქაღალდეს არჩევა"
+
+#: lutris/gui/addgameswindow.py:132
+msgid "Select script"
+msgstr "აირჩიეთ სკრიპტი"
+
+#: lutris/gui/addgameswindow.py:136
+msgid "Select ROM file"
+msgstr "აირჩიეთ ROM ფაილი"
+
+#: lutris/gui/addgameswindow.py:222
+msgid ""
+"Lutris will search Lutris.net for games matching the terms you enter, and "
+"any that it finds will appear here.\n"
+"\n"
+"When you click on a game that it found, the installer window will appear to "
+"perform the installation."
+msgstr ""
+
+#: lutris/gui/addgameswindow.py:243
+msgid "<b>Search Lutris.net</b>"
+msgstr "<b>ძებნა Lutris.net-ზე</b>"
+
+#: lutris/gui/addgameswindow.py:280
+msgid "No results"
+msgstr "შედეგების გარეშე"
+
+#: lutris/gui/addgameswindow.py:282
+#, python-brace-format
+msgid "Showing <b>{count}</b> results"
+msgstr "ნაჩვენებია <b>{count}</b> შედეგი"
+
+#: lutris/gui/addgameswindow.py:284
+#, python-brace-format
+msgid "<b>{total_count}</b> results, only displaying first {count}"
+msgstr "<b>{total_count}</b> შედეგი. ნაჩვენებია პირველი {count}"
+
+#: lutris/gui/addgameswindow.py:316
+msgid "Folder to scan"
+msgstr "დასასკანერებელი საქაღალდე"
+
+#: lutris/gui/addgameswindow.py:322
+msgid ""
+"This folder will be scanned for games previously installed with Lutris.\n"
+"\n"
+"Folder names have to match their corresponding Lutris ID, each matching "
+"IDwill be queried for existing install script to provide for exe locations.\n"
+"\n"
+"Click 'Continue' to start scanning and import games"
+msgstr ""
+
+#: lutris/gui/addgameswindow.py:340
+msgid "You must select a folder to scan for games."
+msgstr "თამაშების სკანირებისთვის საქაღალდის არჩევა აუცილებელია."
+
+#: lutris/gui/addgameswindow.py:342
+#, python-format
+msgid "No folder exists at '%s'."
+msgstr "მისამართზე '%s' საქაღალდე არ არსებობს."
+
+#: lutris/gui/addgameswindow.py:366
+msgid "<b>Games found</b>"
+msgstr "<b>თამაშები ნაპოვნია</b>"
+
+#: lutris/gui/addgameswindow.py:368
+msgid "<b>No games found</b>"
+msgstr "<b>თამაშები ვერ ვიპოვე</b>"
+
+#: lutris/gui/addgameswindow.py:372 lutris/gui/installerwindow.py:954
+msgid "_Close"
+msgstr "დახურვა"
+
+#: lutris/gui/addgameswindow.py:418
+msgid "Game name"
+msgstr "თამაშის სახელი"
+
+#: lutris/gui/addgameswindow.py:434
+msgid ""
+"Enter the name of the game you will install.\n"
+"\n"
+"When you click 'Install' below, the installer window will appear and guide "
+"you through a simple installation.\n"
+"\n"
+"It will prompt you for a setup executable, and will use Wine to install it.\n"
+"\n"
+"If you know the Lutris identifier for the game, you can provide it for "
+"improved Lutris integration, such as Lutris provided banners."
+msgstr ""
+
+#: lutris/gui/addgameswindow.py:443
+msgid "Installer preset:"
+msgstr "დამყენებლის პრესეტი:"
+
+#: lutris/gui/addgameswindow.py:446
+msgid "Windows 10 64-bit (Default)"
+msgstr "Windows 10 64-ბიტიანი (ნაგულისხმევი)"
+
+#: lutris/gui/addgameswindow.py:447
+msgid "Windows 7 64-bit"
+msgstr "Windows 7 64-ბიტიანი"
+
+#: lutris/gui/addgameswindow.py:448
+msgid "Windows XP 32-bit"
+msgstr "Windows XP 32-ბიტიანი"
+
+#: lutris/gui/addgameswindow.py:449
+msgid "Windows XP + 3DFX 32-bit"
+msgstr "Windows XP + 3DFX 32-ბიტიანი"
+
+#: lutris/gui/addgameswindow.py:450
+msgid "Windows 98 32-bit"
+msgstr "Windows 98 32-ბიტიანი"
+
+#: lutris/gui/addgameswindow.py:451
+msgid "Windows 98 + 3DFX 32-bit"
+msgstr "Windows 98 + 3DFX 32-ბიტიანი"
+
+#: lutris/gui/addgameswindow.py:462
+msgid "Locale:"
+msgstr "ენის კოდი:"
+
+#: lutris/gui/addgameswindow.py:483
+msgid "<b>Select setup file</b>"
+msgstr "<b>აირჩიეთ დაყენების ფაილი</b>"
+
+#: lutris/gui/addgameswindow.py:485 lutris/gui/addgameswindow.py:580
+#: lutris/gui/addgameswindow.py:622 lutris/gui/installerwindow.py:937
+msgid "_Install"
+msgstr "_დაყენება"
+
+#: lutris/gui/addgameswindow.py:504
+msgid "You must provide a name for the game you are installing."
+msgstr "უნდა შეიყვანოთ სახელი თამაშისთვის, რომელსაც აყენებთ."
+
+#: lutris/gui/addgameswindow.py:524
+msgid "Setup file"
+msgstr "აირჩიეთ ფაილი"
+
+#: lutris/gui/addgameswindow.py:533
+msgid "Select the setup file"
+msgstr "აირჩიეთ დაყენების ფაილი"
+
+#: lutris/gui/addgameswindow.py:561
+msgid "Script file"
+msgstr "სკრიპტის ფაილი"
+
+#: lutris/gui/addgameswindow.py:567
+msgid ""
+"Lutris install scripts are YAML files that guide Lutris through the "
+"installation process.\n"
+"\n"
+"They can be obtained on Lutris.net, or written by hand.\n"
+"\n"
+"When you click 'Install' below, the installer window will appear and load "
+"the script, and it will guide the process from there."
+msgstr ""
+
+#: lutris/gui/addgameswindow.py:586
+msgid "You must select a script file to install."
+msgstr "დასაყენებლად სკრიპტის ფაილის არჩევა აუცილებელია."
+
+#: lutris/gui/addgameswindow.py:588 lutris/gui/addgameswindow.py:630
+#, python-format
+msgid "No file exists at '%s'."
+msgstr "მისამართზე '%s' ფაილი არ არსებობს."
+
+#: lutris/gui/addgameswindow.py:603 lutris/runners/atari800.py:36
+#: lutris/runners/jzintv.py:19 lutris/runners/libretro.py:78
+#: lutris/runners/mame.py:79 lutris/runners/mednafen.py:57
+#: lutris/runners/mupen64plus.py:20 lutris/runners/o2em.py:45
+#: lutris/runners/openmsx.py:18 lutris/runners/osmose.py:21
+#: lutris/runners/snes9x.py:28 lutris/runners/vice.py:39
+#: lutris/runners/yuzu.py:22
+msgid "ROM file"
+msgstr "ROM ფაილი"
+
+#: lutris/gui/addgameswindow.py:609
+msgid ""
+"Lutris will identify a ROM via its MD5 hash and download game information "
+"from Lutris.net.\n"
+"\n"
+"The ROM data used for this comes from the TOSEC project.\n"
+"\n"
+"When you click 'Install' below, the process of installing the game will "
+"begin."
+msgstr ""
+
+#: lutris/gui/addgameswindow.py:628
+msgid "You must select a ROM file to install."
+msgstr "დასაყენებლად ROM ფაილის არჩევა აუცილებელია."
+
+#: lutris/gui/application.py:94
+msgid "Do not run Lutris as root."
+msgstr "არ გაუშვათ Lustris root-ით."
+
+#: lutris/gui/application.py:105
+msgid "Your Linux distribution is too old. Lutris won't function properly."
+msgstr ""
+
+#: lutris/gui/application.py:110
+msgid ""
+"Run a game directly by adding the parameter lutris:rungame/game-identifier.\n"
+"If several games share the same identifier you can use the numerical ID "
+"(displayed when running lutris --list-games) and add lutris:rungameid/"
+"numerical-id.\n"
+"To install a game, add lutris:install/game-identifier."
+msgstr ""
+
+#: lutris/gui/application.py:123
+msgid "Print the version of Lutris and exit"
+msgstr "Lustris-ის ვერსიის გამოტანა და გასვლა"
+
+#: lutris/gui/application.py:131
+msgid "Show debug messages"
+msgstr "გამართვის შეტყობინებების ჩვენება"
+
+#: lutris/gui/application.py:139
+msgid "Install a game from a yml file"
+msgstr "თამაშის დაყენება yml ფაილიდან"
+
+#: lutris/gui/application.py:147
+msgid "Force updates"
+msgstr "ნაძალადევი განახლებები"
+
+#: lutris/gui/application.py:155
+msgid "Generate a bash script to run a game without the client"
+msgstr "Bash-ის სკრიპტის გენერაცია თამაშის კლიენტის გარეშე გასაშვებად"
+
+#: lutris/gui/application.py:163
+msgid "Execute a program with the Lutris Runtime"
+msgstr "გაუშვით პროგრამა Lustris-ის გაშვების გარემოში"
+
+#: lutris/gui/application.py:171
+msgid "List all games in database"
+msgstr "ბაზაში მყოფი ყველა თამაშის ჩვენება"
+
+#: lutris/gui/application.py:179
+msgid "Only list installed games"
+msgstr "მხოლოდ დაყენებული თამაშების ჩამონათვალი"
+
+#: lutris/gui/application.py:187
+msgid "List available Steam games"
+msgstr "Steam-ის ხელმისაწვდომი თამაშების ჩამონათვალი"
+
+#: lutris/gui/application.py:195
+msgid "List all known Steam library folders"
+msgstr "ყველა ცნობილი Steam-ის ბიბლიოთეკის საქაღალდეების სია"
+
+#: lutris/gui/application.py:203
+msgid "List all known runners"
+msgstr "ყველა ცნობილი გამშვებების სია"
+
+#: lutris/gui/application.py:211
+msgid "List all known Wine versions"
+msgstr "ყველა ცნობილი Wine-ის ვერსიების სია"
+
+#: lutris/gui/application.py:219
+msgid "List all games for all services in database"
+msgstr "ბაზაში ყველა სერვისისთვის ყველა თამაშის სია"
+
+#: lutris/gui/application.py:227
+msgid "List all games for provided service in database"
+msgstr "ბაზაში მითითებული სერვისისთვის ყველა თამაშის სია"
+
+#: lutris/gui/application.py:235
+msgid "Install a Runner"
+msgstr "გამშვების დაყენება"
+
+#: lutris/gui/application.py:243
+msgid "Uninstall a Runner"
+msgstr "გამშვების წაშლა"
+
+#: lutris/gui/application.py:251
+msgid "Export a game"
+msgstr "თამაშის გატანა"
+
+#: lutris/gui/application.py:259 lutris/gui/dialogs/game_import.py:24
+msgid "Import a game"
+msgstr "თამაშის შემოტანა"
+
+#: lutris/gui/application.py:267
+msgid "Destination path for export"
+msgstr "სამიზნე ბილიკი გატანისთვის"
+
+#: lutris/gui/application.py:275
+msgid "Display the list of games in JSON format"
+msgstr "თამაშების სიის გამოტანა JSON ფორმატში"
+
+#: lutris/gui/application.py:283
+msgid "Reinstall game"
+msgstr "თამაშის თავიდან დაყენება"
+
+#: lutris/gui/application.py:286
+msgid "Submit an issue"
+msgstr "ანგარიში პრობლემის შესახებ"
+
+#: lutris/gui/application.py:292
+msgid "URI to open"
+msgstr "URI-ის გახსნა"
+
+#: lutris/gui/application.py:558
+#, python-format
+msgid "%s is not a valid URI"
+msgstr "%s არ წარმოადგენს სწორ URI-ის"
+
+#: lutris/gui/application.py:581
+#, python-format
+msgid "Failed to download %s"
+msgstr "გადმოწერა ჩავარდა: %s"
+
+#: lutris/gui/application.py:589
+#, python-brace-format
+msgid "download {url} to {file} started"
+msgstr "{url}-ის გადმოწერა {file}-ში დაიწყო"
+
+#: lutris/gui/application.py:600
+#, python-format
+msgid "No such file: %s"
+msgstr "არ არსებობს ფაილი: %s"
+
+#: lutris/gui/application.py:771
+#, python-format
+msgid "There is no installer available for %s."
+msgstr "%s-სთვის დაყენების პროგრამა ხელმისაწვდომი არაა."
+
+#: lutris/gui/application.py:782
+msgid "No updates found"
+msgstr "განახლებები ვერ ვიპოვე"
+
+#: lutris/gui/application.py:793
+msgid "No DLC found"
+msgstr "DLC ვერ ვიპოვე"
+
+#: lutris/gui/config/accounts_box.py:14
+msgid "Steam accounts"
+msgstr "Steam-ის ანგარიშები"
+
+#: lutris/gui/config/accounts_box.py:16
+msgid ""
+"Select which Steam account is used for Lutris integration and creating Steam "
+"shortcuts."
+msgstr ""
+"აირჩიეთ, რომელი Steam-ის ანგარიში იქნება გამოყენებული Lustris-ს "
+"ინტეგრაციისთვის და Steam-ის მალსახმობების შესაქმნელად."
+
+#: lutris/gui/config/accounts_box.py:42
+msgid "No Steam account found"
+msgstr "Steam-ის ანგარიში ვერ ვიპოვე"
+
+#: lutris/gui/config/add_game_dialog.py:11
+msgid "Add a new game"
+msgstr "ახალი თამაშის დამატება"
+
+#: lutris/gui/config/boxes.py:119
+msgid "No options available"
+msgstr "პარამეტრები ხელმისაწვდომი არაა"
+
+#: lutris/gui/config/boxes.py:181
+msgid "Reset option to global or default config"
+msgstr "პარამეტრის ჩამოყრა გლობალურ ან ნაგულისხმევ კონფიგურაციაზე"
+
+#: lutris/gui/config/boxes.py:203
+msgid "<b>Default</b>: "
+msgstr "<b>ნაგულისხმევი</b>: "
+
+#: lutris/gui/config/boxes.py:207
+msgid ""
+"<i>(Italic indicates that this option is modified in a lower configuration "
+"level.)</i>"
+msgstr ""
+
+#: lutris/gui/config/boxes.py:382
+#, python-format
+msgid "%s (default)"
+msgstr "%s (ნაგულისხმები)"
+
+#: lutris/gui/config/boxes.py:466 lutris/gui/widgets/common.py:48
+msgid "Select file"
+msgstr "აირჩიეთ ფაილი"
+
+#: lutris/gui/config/boxes.py:547
+msgid "Add files"
+msgstr "ფაილების დამატება"
+
+#: lutris/gui/config/boxes.py:565
+msgid "Files"
+msgstr "ფაილები"
+
+#: lutris/gui/config/boxes.py:582
+msgid "Select files"
+msgstr "მონიშნეთ ფაილები"
+
+#: lutris/gui/config/boxes.py:585
+msgid "_Add"
+msgstr "_დამატება"
+
+#: lutris/gui/config/boxes.py:586 lutris/gui/dialogs/__init__.py:276
+#: lutris/gui/dialogs/__init__.py:302 lutris/gui/dialogs/issue.py:72
+#: lutris/gui/widgets/common.py:143
+#: lutris/gui/widgets/download_collection_progress_box.py:53
+#: lutris/gui/widgets/download_progress_box.py:47
+msgid "_Cancel"
+msgstr "_გაუქმება"
+
+#: lutris/gui/config/boxes.py:734
+msgid ""
+"If modified, these options supersede the same options from the base runner "
+"configuration."
+msgstr ""
+
+#: lutris/gui/config/boxes.py:755
+msgid ""
+"If modified, these options supersede the same options from the base runner "
+"configuration, which themselves supersede the global preferences."
+msgstr ""
+
+#: lutris/gui/config/boxes.py:761
+msgid ""
+"If modified, these options supersede the same options from the global "
+"preferences."
+msgstr ""
+
+#: lutris/gui/config/common.py:31
+msgid "Select a runner in the Game Info tab"
+msgstr "აირჩიეთ გამშვები თამაშის ინფორმაციის ჩანართში"
+
+#: lutris/gui/config/common.py:130 lutris/gui/config/runner.py:21
+#, python-format
+msgid "Search %s options"
+msgstr "%s პარამეტრების ძებნა"
+
+#: lutris/gui/config/common.py:132 lutris/gui/config/common.py:464
+msgid "Search options"
+msgstr "ძებნის მორგება"
+
+#: lutris/gui/config/common.py:157
+msgid "Game info"
+msgstr "თამაშის ინფორმაცია"
+
+#: lutris/gui/config/common.py:172
+msgid "Sort name"
+msgstr "სახელით დალაგება"
+
+#: lutris/gui/config/common.py:186
+msgid "Identifier"
+msgstr "იდენტიფიკატორი"
+
+#: lutris/gui/config/common.py:195 lutris/gui/config/common.py:373
+msgid "Change"
+msgstr "შეცვლა"
+
+#: lutris/gui/config/common.py:204
+msgid "Directory"
+msgstr "საქაღალდე"
+
+#: lutris/gui/config/common.py:210
+msgid "Move"
+msgstr "გადატანა"
+
+#: lutris/gui/config/common.py:230
+msgid "The default launch option will be used for this game"
+msgstr "ამ თამაშისთვის ნაგულისხმევი გაშვების პარამეტრი იქნება გამოყენებული"
+
+#: lutris/gui/config/common.py:232
+#, python-format
+msgid "The '%s' launch option will be used for this game"
+msgstr "ამ თამაშისთვის გამოყენებული იქნება გაშვების პარამეტრი '%s'"
+
+#: lutris/gui/config/common.py:239
+msgid "Reset"
+msgstr "საწყისი მნიშვნელობებზე დაბრუნება"
+
+#: lutris/gui/config/common.py:257 lutris/gui/views/list.py:54
+msgid "Runner"
+msgstr "გამშვები"
+
+#: lutris/gui/config/common.py:271
+msgid "Set custom cover art"
+msgstr "ყდის სურათის ხელით მითითება"
+
+#: lutris/gui/config/common.py:271
+msgid "Remove custom cover art"
+msgstr "ხელით მითითებული ყდის სურათის წაშლა"
+
+#: lutris/gui/config/common.py:272
+msgid "Set custom banner"
+msgstr "ბანერის ხელით დაყენება"
+
+#: lutris/gui/config/common.py:272
+msgid "Remove custom banner"
+msgstr "ხელით დაყენებული ბანერის წაშლა"
+
+#: lutris/gui/config/common.py:273
+msgid "Set custom icon"
+msgstr "მომხმარებლის ხატულის დაყენება"
+
+#: lutris/gui/config/common.py:273
+msgid "Remove custom icon"
+msgstr "მომხმარებლის ხატულის წაშლა"
+
+#: lutris/gui/config/common.py:306
+msgid "Release year"
+msgstr "გამოშვების წელი"
+
+#: lutris/gui/config/common.py:347
+msgid "Select a runner from the list"
+msgstr "აირჩიეთ გამშვები სიიდან"
+
+#: lutris/gui/config/common.py:356
+msgid "Apply"
+msgstr "გადატარება"
+
+#: lutris/gui/config/common.py:410 lutris/gui/config/common.py:417
+#: lutris/gui/config/common.py:422
+msgid "Game options"
+msgstr "თამაშის მორგება"
+
+#: lutris/gui/config/common.py:426 lutris/gui/config/common.py:429
+msgid "Runner options"
+msgstr "გამშვების მორგება"
+
+#: lutris/gui/config/common.py:432
+msgid "System options"
+msgstr "სისტემის მორგება"
+
+#: lutris/gui/config/common.py:473
+msgid "Show advanced options"
+msgstr "დამატებითი პარამეტრების ჩვენება"
+
+#: lutris/gui/config/common.py:475
+msgid "Advanced"
+msgstr "დაწინაურებული"
+
+#: lutris/gui/config/common.py:529
+msgid ""
+"Are you sure you want to change the runner for this game ? This will reset "
+"the full configuration for this game and is not reversible."
+msgstr ""
+"მართლა გნებავთ ამ თამაშისთვის გამშვების შეცვლა ? ეს ქმედება ამ თამაშის "
+"კონფიგურაციას ჩამოყრის და ეს შეუქცევადია."
+
+#: lutris/gui/config/common.py:533
+msgid "Confirm runner change"
+msgstr "დაადასტურეთ გამშვების ცვლილება"
+
+#: lutris/gui/config/common.py:585
+msgid "Runner not provided"
+msgstr "გამშვები მითითებული არაა"
+
+#: lutris/gui/config/common.py:588
+msgid "Please fill in the name"
+msgstr "შეავსეთ სახელი"
+
+#: lutris/gui/config/common.py:591
+msgid "Steam AppID not provided"
+msgstr "Steam AppID მითითებული არაა"
+
+#: lutris/gui/config/common.py:609
+msgid "The following fields have invalid values: "
+msgstr "არასწორი მნიშვნელობები შემდეგი ველებისთვის: "
+
+#: lutris/gui/config/common.py:617
+msgid "Current configuration is not valid, ignoring save request"
+msgstr "მიმდინარე კონფიგურაცია სწორი არაა. შენახვის მოთხოვნა დაიგნორებულია"
+
+#: lutris/gui/config/common.py:654
+msgid "Please choose a custom image"
+msgstr "აირჩიეთ თქვენი დისკის ასლი"
+
+#: lutris/gui/config/common.py:662
+msgid "Images"
+msgstr "ასლები"
+
+#: lutris/gui/config/edit_category_games.py:17
+#: lutris/gui/config/edit_game.py:10 lutris/gui/config/runner.py:12
+#, python-format
+msgid "Configure %s"
+msgstr "'%s'-ის მორგება"
+
+#: lutris/gui/config/edit_category_games.py:67
+#, python-format
+msgid "Do you want to delete the category '%s'?"
+msgstr "მართლა გნებავთ, წაშალოთ კატეგორია '%s'?"
+
+#: lutris/gui/config/edit_category_games.py:69
+msgid ""
+"This will permanently destroy the category, but the games themselves will "
+"not be deleted."
+msgstr ""
+"ეს სამუდამოდა გაანადგურებს კატეგორიას, მაგრამ, თვითონ თამაშები არ წაიშლება."
+
+#: lutris/gui/config/edit_category_games.py:106
+#, python-format
+msgid "'%s' is a reserved category name."
+msgstr "'%s' დაცული კატეგორიის სახელია."
+
+#: lutris/gui/config/edit_category_games.py:111
+#, python-format
+msgid "Merge the category '%s' into '%s'?"
+msgstr "შევაერთო კატეგორია '%s' '%s'-ში?"
+
+#: lutris/gui/config/edit_category_games.py:113
+#, python-format
+msgid ""
+"If you rename this category, it will be combined with '%s'. Do you want to "
+"merge them?"
+msgstr ""
+"თუ ამ კატეგორიას სახელს გადაარქმევთ, ის '%s'-ს შეუერთდება. გნებავთ მათი "
+"შეერთება?"
+
+#: lutris/gui/config/edit_game_categories.py:17
+#, python-format
+msgid "Categories - %s"
+msgstr "კატეგორიები - %s"
+
+#: lutris/gui/config/edit_game_categories.py:74
+msgid "Add Category"
+msgstr "კატეგორიის დამატება"
+
+#: lutris/gui/config/edit_game_categories.py:76
+msgid "Adds the category to the list."
+msgstr "სიაში კატეგორიას ამატებს."
+
+#: lutris/gui/config/preferences_box.py:11 lutris/gui/config/sysinfo_box.py:11
+msgid "Minimize client when a game is launched"
+msgstr "კლიენტის ჩაკეცვა, როცა თამაში ეშვება"
+
+#: lutris/gui/config/preferences_box.py:12 lutris/gui/config/sysinfo_box.py:12
+msgid "Hide text under icons"
+msgstr "ხატულების ქვეშ ტექსტის დამალვა"
+
+#: lutris/gui/config/preferences_box.py:13
+msgid "Hide badges on icons (Ctrl+p to toggle)"
+msgstr ""
+
+#: lutris/gui/config/preferences_box.py:14 lutris/gui/config/sysinfo_box.py:14
+msgid "Show Tray Icon"
+msgstr "სისტემის კუთხეში ხატულის ჩვენება"
+
+#: lutris/gui/config/preferences_box.py:15
+msgid "Use dark theme (requires dark theme variant for Gtk)"
+msgstr "მუქი თემის გამოყენება (ესაჭიროება ბნელი თემის ვარიანტი Gtk-სთვის)"
+
+#: lutris/gui/config/preferences_box.py:16
+msgid "Enable Discord Rich Presence for Available Games"
+msgstr ""
+
+#: lutris/gui/config/preferences_box.py:26
+msgid "Interface options"
+msgstr "ინტერფეისის მორგება"
+
+#: lutris/gui/config/preferences_dialog.py:23
+msgid "Lutris settings"
+msgstr "Lustris-ის მორგება"
+
+#: lutris/gui/config/preferences_dialog.py:35
+msgid "Interface"
+msgstr "ინტერფეისი"
+
+#: lutris/gui/config/preferences_dialog.py:36 lutris/gui/widgets/sidebar.py:353
+msgid "Runners"
+msgstr "გამშვებები"
+
+#: lutris/gui/config/preferences_dialog.py:37 lutris/gui/widgets/sidebar.py:352
+msgid "Sources"
+msgstr "წყაროები"
+
+#: lutris/gui/config/preferences_dialog.py:38
+msgid "Accounts"
+msgstr "ანგარიშები"
+
+#: lutris/gui/config/preferences_dialog.py:39
+msgid "Hardware information"
+msgstr "ინფორმაცია აპარატურის შესახებ"
+
+#: lutris/gui/config/preferences_dialog.py:40
+msgid "Global options"
+msgstr "გლობალური პარამეტრები"
+
+#: lutris/gui/config/preferences_dialog.py:106
+msgid "Search global options"
+msgstr "გლობალური პარამეტრების ძებნა"
+
+#: lutris/gui/config/runner_box.py:90 lutris/gui/widgets/sidebar.py:249
+#, python-format
+msgid "Manage %s versions"
+msgstr "%s ვერსიების მართვა"
+
+#: lutris/gui/config/runner_box.py:123
+#, python-format
+msgid "Do you want to uninstall %s?"
+msgstr "მართლა გნებავთ, წაშალოთ %s?"
+
+#: lutris/gui/config/runner_box.py:124
+#, python-format
+msgid "This will remove <b>%s</b> and all associated data."
+msgstr "ეს <b>%s</b>-ს და მასთან ასოცირებულ მონაცემებს წაშლის."
+
+#: lutris/gui/config/runners_box.py:20
+msgid "Add, remove or configure runners"
+msgstr "გამშვებების დამატება, წაშლა ან მორგება"
+
+#: lutris/gui/config/runners_box.py:22
+msgid ""
+"Runners are programs such as emulators, engines or translation layers "
+"capable of running games."
+msgstr ""
+
+#: lutris/gui/config/runners_box.py:25
+msgid "No runners matched the search"
+msgstr "ძებნის პირობას გამშვებები არ ემთხვევა"
+
+#. pretty sure there will always be many runners, so assume plural
+#: lutris/gui/config/runners_box.py:44
+#, python-format
+msgid "Search %s runners"
+msgstr "%s გამშვების ძებნა"
+
+#: lutris/gui/config/services_box.py:18
+msgid "Enable integrations with game sources"
+msgstr "თამაშის წყაროსთან ინტეგრაციის ჩართვა"
+
+#: lutris/gui/config/services_box.py:20
+msgid ""
+"Access your game libraries from various sources. Changes require a restart "
+"to take effect."
+msgstr ""
+
+#: lutris/gui/config/sysinfo_box.py:13
+msgid "Hide badges on icons"
+msgstr ""
+
+#: lutris/gui/config/sysinfo_box.py:40
+msgid "Copy to clipboard"
+msgstr "ბუფერში კოპირება"
+
+#: lutris/gui/config/sysinfo_box.py:43
+msgid "<b>System information</b>"
+msgstr "<b>სსტემის ინფორმაცია</b>"
+
+#: lutris/gui/dialogs/cache.py:13
+msgid "Download cache configuration"
+msgstr "გადმოწერის კეშის კონფიგურაცია"
+
+#: lutris/gui/dialogs/cache.py:40
+msgid "Cache path"
+msgstr "კეშის ბილიკი"
+
+#: lutris/gui/dialogs/cache.py:43
+msgid "Set the folder for the cache path"
+msgstr "დააყენეთ საქაღალდე კეშის ბილიკისთვის"
+
+#: lutris/gui/dialogs/cache.py:55
+msgid ""
+"If provided, this location will be used by installers to cache downloaded "
+"files locally for future re-use. \n"
+"If left empty, the installer files are discarded after the install "
+"completion."
+msgstr ""
+
+#: lutris/gui/dialogs/delegates.py:202
+msgid "Select game to launch"
+msgstr "აირჩიეთ გასაშვები თამაში"
+
+#: lutris/gui/dialogs/download.py:13
+msgid "Downloading file"
+msgstr "ფაილის გადმოწერა"
+
+#: lutris/gui/dialogs/download.py:15
+#, python-format
+msgid "Downloading %s"
+msgstr "გადმოწერა - %s"
+
+#: lutris/gui/dialogs/game_import.py:102
+msgid "Launch"
+msgstr "გაშვება"
+
+#: lutris/gui/dialogs/game_import.py:135
+msgid "Calculating checksum..."
+msgstr "საკონტროლო ჯამის გამოთვლა..."
+
+#: lutris/gui/dialogs/game_import.py:144
+msgid "Looking up checksum on Lutris.net..."
+msgstr "საკონტროლო ჯამის ძებნა Lustris.net-ზე..."
+
+#: lutris/gui/dialogs/game_import.py:147
+msgid "This ROM could not be identified."
+msgstr "ამ ROM-ის იდენტიფიკაცია შეუძლებელია."
+
+#: lutris/gui/dialogs/game_import.py:156
+msgid "Looking for installed game..."
+msgstr "დაყენებული თამაშის ძებნა..."
+
+#: lutris/gui/dialogs/game_import.py:205
+#, python-format
+msgid "Failed to import a ROM: %s"
+msgstr "ROM-ის შემოტანა ჩავარდა: %s"
+
+#: lutris/gui/dialogs/game_import.py:224
+msgid "Game already installed in Lutris"
+msgstr "თამაში Lutris-ში, უკვე, დაყენებულია"
+
+#: lutris/gui/dialogs/game_import.py:246
+#, python-format
+msgid "The platform '%s' is unknown to Lutris."
+msgstr "პლატფორმა '%s' უცნობია Lustris-სთვის."
+
+#: lutris/gui/dialogs/game_import.py:256
+#, python-format
+msgid "Lutris does not have a default installer for the '%s' platform."
+msgstr ""
+
+#: lutris/gui/dialogs/__init__.py:89
+msgid "Save"
+msgstr "შენახვა"
+
+#: lutris/gui/dialogs/__init__.py:275 lutris/gui/dialogs/__init__.py:301
+#: lutris/gui/dialogs/issue.py:71 lutris/gui/widgets/common.py:143
+msgid "_OK"
+msgstr "_დიახ"
+
+#: lutris/gui/dialogs/__init__.py:292
+msgid "Please choose a file"
+msgstr "გთხოვთ, აირჩიოთ ფაილი"
+
+#: lutris/gui/dialogs/__init__.py:325
+msgid "Checking for runtime updates, please wait…"
+msgstr "შესრულების გარემოს განახლებების ძებნა. გთხოვთ, მოითმინოთ…"
+
+#: lutris/gui/dialogs/__init__.py:355
+#, python-format
+msgid "%s is already installed"
+msgstr "%s უკვე დაყენებულია"
+
+#: lutris/gui/dialogs/__init__.py:366
+msgid "Launch game"
+msgstr "თამაშის გაშვება"
+
+#: lutris/gui/dialogs/__init__.py:370
+msgid "Install the game again"
+msgstr "თამაშის თავიდან დაყენება"
+
+#: lutris/gui/dialogs/__init__.py:412
+msgid "Do not ask again for this game."
+msgstr "აღარ მკითხო ამ თამაშისთვის."
+
+#: lutris/gui/dialogs/__init__.py:471
+msgid "Login failed"
+msgstr "შესვლის შეცდომა"
+
+#: lutris/gui/dialogs/__init__.py:481
+msgid "Install script for {}"
+msgstr "დაყენების სკრიპტი {}-სთვის"
+
+#: lutris/gui/dialogs/__init__.py:525
+msgid "Wine is not installed on your system."
+msgstr "თქვენს სისტემაში Wine დაყენებული არაა."
+
+#: lutris/gui/dialogs/__init__.py:527
+msgid ""
+"Having Wine installed on your system guarantees that Wine builds from Lutris "
+"will have all required dependencies.\n"
+"\n"
+"Please follow the instructions given in the <a href='https://github.com/"
+"lutris/docs/blob/master/WineDependencies.md'>Lutris Wiki</a> to install Wine."
+msgstr ""
+
+#: lutris/gui/dialogs/__init__.py:552
+#, python-format
+msgid "Moving %s to %s..."
+msgstr "%s-ის გადატანა %s-ში..."
+
+#: lutris/gui/dialogs/__init__.py:580
+msgid "Humble Bundle Cookie Authentication"
+msgstr ""
+
+#: lutris/gui/dialogs/__init__.py:592
+msgid ""
+"<b>Humble Bundle Authentication via cookie import</b>\n"
+"\n"
+"<b>In Firefox</b>\n"
+"- Install the following extension: <a href='https://addons.mozilla.org/en-US/"
+"firefox/addon/export-cookies-txt/'>https://addons.mozilla.org/en-US/firefox/"
+"addon/export-cookies-txt/</a>\n"
+"- Open a tab to humblebundle.com and make sure you are logged in.\n"
+"- Click the cookie icon in the top right corner, next to the settings menu\n"
+"- Check 'Prefix HttpOnly cookies' and click 'humblebundle.com'\n"
+"- Open the generated file and paste the contents below. Click OK to finish.\n"
+"- You can delete the cookies file generated by Firefox\n"
+"- Optionally, <a href='https://support.humblebundle.com/hc/en-us/requests/"
+"new'>open a support ticket</a> to ask Humble Bundle to fix their "
+"configuration."
+msgstr ""
+
+#: lutris/gui/dialogs/issue.py:24
+msgid "<b>Submit an issue</b>"
+msgstr "<b>ანგარიში პრობლემის შესახებ</b>"
+
+#: lutris/gui/dialogs/issue.py:29
+msgid ""
+"Describe the problem you're having in the text box below. This information "
+"will be sent the Lutris team along with your system information. You can "
+"also save this information locally if you are offline."
+msgstr ""
+
+#: lutris/gui/dialogs/issue.py:52
+msgid "_Save"
+msgstr "_შენახვა"
+
+#: lutris/gui/dialogs/issue.py:68
+msgid "Select a location to save the issue"
+msgstr "აირჩიეთ მდებარეობა, სადაც პრობლემას შევინახავ"
+
+#: lutris/gui/dialogs/issue.py:88
+#, python-format
+msgid "Issue saved in %s"
+msgstr "პრობლემები შენახულია %s-ში"
+
+#: lutris/gui/dialogs/log.py:25
+msgid "Log for {}"
+msgstr "{}-ის ჟურნალი"
+
+#: lutris/gui/dialogs/runner_install.py:30
+#, python-format
+msgid "Showing games using %s"
+msgstr "თამაშების ჩვენება %s-ის გამოყენებით"
+
+#: lutris/gui/dialogs/runner_install.py:87
+#, python-format
+msgid "Waiting for response from %s"
+msgstr "ველოდები პასუხს %s-დან"
+
+#: lutris/gui/dialogs/runner_install.py:103
+#, python-format
+msgid "Unable to get runner versions: %s"
+msgstr "შეცდომა გამშვების ვერსიების მიღებისას: %s"
+
+#: lutris/gui/dialogs/runner_install.py:117
+msgid "Unable to get runner versions from lutris.net"
+msgstr "შეცდომა lustris.net-დან გამშვების ვერსიების მიღებისას"
+
+#: lutris/gui/dialogs/runner_install.py:124
+#, python-format
+msgid "%s version management"
+msgstr "%s ვერსის მართვა"
+
+#: lutris/gui/dialogs/runner_install.py:178
+#, python-format
+msgid "View %d game"
+msgid_plural "View %d games"
+msgstr[0] "%d თამაშის ნახვა"
+msgstr[1] "%d თამაშის ნახვა"
+
+#: lutris/gui/dialogs/runner_install.py:219
+#: lutris/gui/dialogs/uninstall_game.py:22
+msgid "Uninstall"
+msgstr "წაშლა"
+
+#: lutris/gui/dialogs/runner_install.py:233
+msgid "Wine version usage"
+msgstr "Wine-ის ვერსიის გამოყენება"
+
+#: lutris/gui/dialogs/runner_install.py:324
+#, python-format
+msgid "Version %s is not longer available"
+msgstr "ვერსია %s ხელმისაწვდომი აღარაა"
+
+#: lutris/gui/dialogs/runner_install.py:349
+msgid "Downloading…"
+msgstr "გადმოწერა…"
+
+#: lutris/gui/dialogs/runner_install.py:352
+msgid "Extracting…"
+msgstr "გაშლა…"
+
+#: lutris/gui/dialogs/runner_install.py:394
+msgid "Failed to retrieve the runner archive"
+msgstr "გამშვების არქივის მიღება ჩავარდა"
+
+#: lutris/gui/dialogs/uninstall_game.py:33
+#, python-format
+msgid "<span font_desc='14'><b>Uninstall %s</b></span>"
+msgstr "<span font_desc='14'><b>%s-ის წაშლა</b></span>"
+
+#: lutris/gui/dialogs/uninstall_game.py:41
+msgid "No file will be deleted"
+msgstr "ფაილები არ წაიშლება"
+
+#: lutris/gui/dialogs/uninstall_game.py:44
+#, python-format
+msgid "The folder %s is used by other games and will be kept."
+msgstr "საქაღალდე %s სხვა თამაშების მიერაც გამოიყენება და ის არ წაიშლება."
+
+#: lutris/gui/dialogs/uninstall_game.py:47
+msgid "<i>Calculating size…</i>"
+msgstr "<i>ზომის გამოთვლა…</i>"
+
+#: lutris/gui/dialogs/uninstall_game.py:51
+#, python-format
+msgid "%s does not exist."
+msgstr "%s არ არსებობს."
+
+#: lutris/gui/dialogs/uninstall_game.py:55
+#, python-format
+msgid "Content of %s are protected and will not be deleted."
+msgstr "%s-ის შემცველობა დაცულია და არ წაიშლება."
+
+#: lutris/gui/dialogs/uninstall_game.py:72
+#, python-format
+msgid "Delete %s (%s)"
+msgstr "%s-ის წაშლა (%s)"
+
+#: lutris/gui/dialogs/uninstall_game.py:88
+#, python-format
+msgid ""
+"Please confirm.\n"
+"Everything under <b>%s</b>\n"
+"will be deleted."
+msgstr ""
+"გთხოვთ, დაადასტუროთ.\n"
+"ყველაფერი <b>%s</b>-ის\n"
+"ქვეშ წაიშლება."
+
+#: lutris/gui/dialogs/uninstall_game.py:91
+msgid "Permanently delete files?"
+msgstr "წავშალო ფაილები სამუდამოდ?"
+
+#: lutris/gui/dialogs/uninstall_game.py:99
+msgid "Uninstalling game and deleting files..."
+msgstr "მიმდინარეობს თამაშის ამოღება და მისი ფაილების წაშლა..."
+
+#: lutris/gui/dialogs/uninstall_game.py:101
+msgid "Uninstalling game..."
+msgstr "მიმდინარეობს თამაშის წაშლა..."
+
+#: lutris/gui/dialogs/uninstall_game.py:124
+#, python-format
+msgid "<span font_desc='14'><b>Remove %s</b></span>"
+msgstr "<span font_desc='14'><b>%s-ის წაშლა</b></span>"
+
+#: lutris/gui/dialogs/uninstall_game.py:130
+#, python-format
+msgid ""
+"Completely remove %s from the library?\n"
+"All play time will be lost."
+msgstr ""
+
+#: lutris/gui/dialogs/webconnect_dialog.py:106
+msgid "Loading..."
+msgstr "იტვირთება..."
+
+#: lutris/gui/installer/file_box.py:85
+#, python-brace-format
+msgid "Steam game <b>{appid}</b>"
+msgstr "Steam-ის თამაში <b>{appid}</b>"
+
+#: lutris/gui/installer/file_box.py:99
+msgid "Download"
+msgstr "გადმოწერა"
+
+#: lutris/gui/installer/file_box.py:101
+msgid "Use Cache"
+msgstr "კეშის გამოყენება"
+
+#: lutris/gui/installer/file_box.py:103 lutris/runners/steam.py:29
+#: lutris/services/steam.py:76
+msgid "Steam"
+msgstr "ნაკადი"
+
+#: lutris/gui/installer/file_box.py:105
+msgid "Select File"
+msgstr "აირჩიეთ ფაილი"
+
+#: lutris/gui/installer/file_box.py:165
+msgid "Cache file for future installations"
+msgstr "ფაილის დაკეშვა მომავალი დაყენებისთვის"
+
+#: lutris/gui/installer/file_box.py:188
+msgid "Source:"
+msgstr "წყარო:"
+
+#: lutris/gui/installerwindow.py:111
+msgid "Configure download cache"
+msgstr "გადმოწერის კეშის მორგება"
+
+#: lutris/gui/installerwindow.py:114
+msgid "Change where Lutris downloads game installer files."
+msgstr "შეცვლა, სად იწერს Lustris თამაშის დასაყენებელ ფაილებს."
+
+#: lutris/gui/installerwindow.py:116
+msgid "View installer source"
+msgstr "დამყენებლის წყაროს ნახვა"
+
+#: lutris/gui/installerwindow.py:211
+msgid "Remove game files"
+msgstr "თამაშის ფაილების წაშლა"
+
+#: lutris/gui/installerwindow.py:223
+msgid "Are you sure you want to cancel the installation?"
+msgstr "დარწმუნებული ბრძნდებით, რომ გნებავთ, გააუქმოთ დაყენების პროცესი?"
+
+#: lutris/gui/installerwindow.py:224
+msgid "Cancel installation?"
+msgstr "გავაუქმო დაყენება?"
+
+#: lutris/gui/installerwindow.py:315
+#, python-format
+msgid "Install %s"
+msgstr "%s-ის დაყენება"
+
+#: lutris/gui/installerwindow.py:338
+#, python-format
+msgid "This game requires %s. Do you want to install it?"
+msgstr "ამ თამაშს %s სჭირდება. გნებავთ, დავაყენო?"
+
+#: lutris/gui/installerwindow.py:339
+msgid "Missing dependency"
+msgstr "ნაკლული დამოკიდებულება"
+
+#: lutris/gui/installerwindow.py:348
+msgid "Installing {}"
+msgstr "ვაყენებ {}-ს"
+
+#: lutris/gui/installerwindow.py:354
+msgid "No installer available"
+msgstr "დამყენებელი ხელმისაწვდომი არაა"
+
+#: lutris/gui/installerwindow.py:360
+#, python-format
+msgid "Missing field \"%s\" in install script"
+msgstr "დაყენების სკრიპტში ველი \"%s\" მითითებული არაა"
+
+#: lutris/gui/installerwindow.py:363
+#, python-format
+msgid "Improperly formatted file \"%s\""
+msgstr "არასწორი ფორმატის ფაილი \"%s\""
+
+#: lutris/gui/installerwindow.py:403
+msgid "Select installation directory"
+msgstr "აირჩიეთ დაყენების საქაღალდე"
+
+#: lutris/gui/installerwindow.py:419
+msgid "Preparing Lutris for installation"
+msgstr "Lustris-ის მომზადება დასაყენებლად"
+
+#: lutris/gui/installerwindow.py:508
+msgid ""
+"This game has extra content. \n"
+"Select which one you want and they will be available in the 'extras' folder "
+"where the game is installed."
+msgstr ""
+
+#: lutris/gui/installerwindow.py:599
+msgid ""
+"Please review the files needed for the installation then click 'Continue'"
+msgstr ""
+"გადახედეთ ფაილებს, რომლებიც დაყენებისთვისაა საჭირო და დააწკაპუნეთ "
+"'გაგრძელებაზე'"
+
+#: lutris/gui/installerwindow.py:607
+msgid "Downloading game data"
+msgstr "თამაშის მონაცემების გადმოწერა"
+
+#: lutris/gui/installerwindow.py:626
+#, python-format
+msgid "Unable to get files: %s"
+msgstr "ფაილების მიღების შეცდომა: %s"
+
+#: lutris/gui/installerwindow.py:640
+msgid "Installing game data"
+msgstr "თამაშის მონაცემების დაყენება"
+
+#: lutris/gui/installerwindow.py:783
+msgid "Autodetect"
+msgstr "ავტოამოცნობა"
+
+#: lutris/gui/installerwindow.py:788
+msgid "Browse…"
+msgstr "არჩევა…"
+
+#: lutris/gui/installerwindow.py:795
+msgid "Eject"
+msgstr "მოხსნა"
+
+#: lutris/gui/installerwindow.py:808
+msgid "Select the folder where the disc is mounted"
+msgstr "საქაღალდის სახელი, სადაც დისკი მიამაგრეთ"
+
+#: lutris/gui/installerwindow.py:868
+msgid "_Launch"
+msgstr "_გაშვება"
+
+#: lutris/gui/installerwindow.py:950
+msgid "_Abort"
+msgstr "_შეწყვეტა"
+
+#: lutris/gui/installerwindow.py:951
+msgid "Abort and revert the installation"
+msgstr "დაყენების შეწყვეტა და ცვლილებების გაუქმება"
+
+#: lutris/gui/lutriswindow.py:494
+#, python-format
+msgid "Connect your %s account to access your games"
+msgstr "თქვენს თამაშებთან წვდომისთვის შედით თქვენს %s-ის ანგარიშში"
+
+#: lutris/gui/lutriswindow.py:566
+#, python-format
+msgid "Add a game matching '%s' to your favorites to see it here."
+msgstr ""
+
+#: lutris/gui/lutriswindow.py:569
+#, python-format
+msgid ""
+"No installed games matching '%s' found. Press Ctrl+I to show uninstalled "
+"games."
+msgstr ""
+
+#. but not if missing!
+#: lutris/gui/lutriswindow.py:571
+#, python-format
+msgid ""
+"No visible games matching '%s' found. Press Ctrl+H to show hidden games."
+msgstr ""
+
+#: lutris/gui/lutriswindow.py:574
+#, python-format
+msgid "No games matching '%s' found "
+msgstr "'%s'-ის შესაბამისი თამაში ვერ ვიპოვე "
+
+#: lutris/gui/lutriswindow.py:577
+msgid "Add games to your favorites to see them here."
+msgstr "დაამატეთ თამაშები რჩეულებში, მათი აქ დასანახავად."
+
+#: lutris/gui/lutriswindow.py:579
+msgid "No installed games found. Press Ctrl+I to show uninstalled games."
+msgstr ""
+
+#. but not if missing!
+#: lutris/gui/lutriswindow.py:581
+msgid "No visible games found. Press Ctrl+H to show hidden games."
+msgstr ""
+
+#: lutris/gui/lutriswindow.py:590
+msgid "No games found"
+msgstr "თამაშები ვერ ვიპოვე"
+
+#: lutris/gui/lutriswindow.py:598
+#, python-format
+msgid "Search %s games"
+msgstr "%s თამაშების ძებნა"
+
+#: lutris/gui/lutriswindow.py:600
+msgid "Search 1 game"
+msgstr "1 თამაშის ძებნა"
+
+#: lutris/gui/views/list.py:55 lutris/runners/dolphin.py:29
+#: lutris/runners/scummvm.py:259
+msgid "Platform"
+msgstr "პლატფორმა"
+
+#: lutris/gui/widgets/cellrenderers.py:214 lutris/gui/widgets/sidebar.py:423
+msgid "Missing"
+msgstr "აკლია"
+
+#: lutris/gui/widgets/common.py:82
+msgid "Browse..."
+msgstr "მოძებნა..."
+
+#: lutris/gui/widgets/common.py:201
+msgid ""
+"<b>Warning!</b> The selected path is located on a drive formatted by "
+"Windows.\n"
+"Games and programs installed on Windows drives <b>don't work</b>."
+msgstr ""
+
+#: lutris/gui/widgets/common.py:209
+msgid ""
+"<b>Warning!</b> The selected path contains files. Installation will not work "
+"properly."
+msgstr ""
+
+#: lutris/gui/widgets/common.py:217
+msgid ""
+"<b>Warning</b> The destination folder is not writable by the current user."
+msgstr ""
+
+#: lutris/gui/widgets/common.py:338
+msgid "Add"
+msgstr "დამატება"
+
+#: lutris/gui/widgets/common.py:342
+msgid "Delete"
+msgstr "წაშლა"
+
+#: lutris/gui/widgets/download_collection_progress_box.py:127
+#: lutris/gui/widgets/download_progress_box.py:88
+msgid "Retry"
+msgstr "გამეორება"
+
+#: lutris/gui/widgets/download_collection_progress_box.py:154
+#: lutris/gui/widgets/download_progress_box.py:115
+msgid "Download interrupted"
+msgstr "გადმოწერის პროცესი შეწყვეტილია"
+
+#: lutris/gui/widgets/download_collection_progress_box.py:174
+#: lutris/gui/widgets/download_progress_box.py:123
+#, python-brace-format
+msgid "{downloaded} / {size} ({speed:0.2f}MB/s), {time} remaining"
+msgstr ""
+
+#: lutris/gui/widgets/game_bar.py:177
+#, python-format
+msgid ""
+"Platform:\n"
+"<b>%s</b>"
+msgstr ""
+"პლატფორმა:\n"
+"<b>%s</b>"
+
+#: lutris/gui/widgets/game_bar.py:186
+#, python-format
+msgid ""
+"Time played:\n"
+"<b>%s</b>"
+msgstr ""
+"დრო, რომელიც თამაშობდით:\n"
+"<b>%s</b>"
+
+#: lutris/gui/widgets/game_bar.py:195
+#, python-format
+msgid ""
+"Last played:\n"
+"<b>%s</b>"
+msgstr ""
+"ბოლოს ითამაშეთ:\n"
+"<b>%s</b>"
+
+#: lutris/gui/widgets/game_bar.py:200
+msgid "Locate installed game"
+msgstr "დაყენებული თამაშის პოვნა"
+
+#: lutris/gui/widgets/game_bar.py:216
+msgid "Launching"
+msgstr "გაშვება"
+
+#: lutris/gui/widgets/sidebar.py:148 lutris/gui/widgets/sidebar.py:184
+#: lutris/gui/widgets/sidebar.py:232
+msgid "Run"
+msgstr "გაშვება"
+
+#: lutris/gui/widgets/sidebar.py:151 lutris/gui/widgets/sidebar.py:185
+msgid "Reload"
+msgstr "თავიდან ჩატვირთვა"
+
+#: lutris/gui/widgets/sidebar.py:186
+msgid "Disconnect"
+msgstr "გათიშვა"
+
+#: lutris/gui/widgets/sidebar.py:187
+msgid "Connect"
+msgstr "დაკავშირება"
+
+#: lutris/gui/widgets/sidebar.py:227
+msgid "Manage Versions"
+msgstr "ვერსიების მართვა"
+
+#: lutris/gui/widgets/sidebar.py:274
+msgid "Edit Games"
+msgstr "გამაშების ჩასწორება"
+
+#: lutris/gui/widgets/sidebar.py:350
+msgid "Library"
+msgstr "ბიბლიოთეკა"
+
+#: lutris/gui/widgets/sidebar.py:354
+msgid "Platforms"
+msgstr "პლატფორმები"
+
+#: lutris/gui/widgets/sidebar.py:398 lutris/util/system.py:32
+msgid "Games"
+msgstr "თამაშები"
+
+#: lutris/gui/widgets/sidebar.py:407
+msgid "Recent"
+msgstr "Ბოლო"
+
+#: lutris/gui/widgets/sidebar.py:416
+msgid "Favorites"
+msgstr "სანიშნები"
+
+#: lutris/gui/widgets/sidebar.py:431
+msgid "Running"
+msgstr "გაშვებულია"
+
+#: lutris/gui/widgets/status_icon.py:67 lutris/gui/widgets/status_icon.py:84
+msgid "Show Lutris"
+msgstr "Lustris-ის ჩვენება"
+
+#: lutris/gui/widgets/status_icon.py:72
+msgid "Quit"
+msgstr "დატოვება"
+
+#: lutris/gui/widgets/status_icon.py:82
+msgid "Hide Lutris"
+msgstr "Lustris-ის დამალვა"
+
+#: lutris/installer/commands.py:71
+#, python-brace-format
+msgid "One of {params} parameter is mandatory for the {cmd} command"
+msgstr ""
+
+#: lutris/installer/commands.py:72 lutris/installer/interpreter.py:157
+#: lutris/installer/interpreter.py:180
+msgid " or "
+msgstr " ან "
+
+#: lutris/installer/commands.py:78
+#, python-brace-format
+msgid "The {param} parameter is mandatory for the {cmd} command"
+msgstr ""
+
+#: lutris/installer/commands.py:95
+#, python-format
+msgid "Invalid file '%s'. Can't make it executable"
+msgstr "არასწორი ფაილი '%s'. ის გამშვები ვერ გავხადე"
+
+#: lutris/installer/commands.py:108
+msgid ""
+"Parameters file and command can't be used at the same time for the execute "
+"command"
+msgstr ""
+"პარამეტრების ფაილს და ბრძანებას ბრძანების შესასრულებლად, ერთდროულად, ვერ "
+"გამოიყენებთ"
+
+#: lutris/installer/commands.py:143
+msgid "No parameters supplied to execute command."
+msgstr "გასაშვები ბრძანებისთვის პარამეტრები მითითებული არაა."
+
+#: lutris/installer/commands.py:157
+#, python-format
+msgid "Unable to find executable %s"
+msgstr "გამშვები ფაილი %s ვერ ვიპოვე"
+
+#: lutris/installer/commands.py:191
+#, python-format
+msgid "%s does not exist"
+msgstr "%s არ არსებობს"
+
+#: lutris/installer/commands.py:197
+#, python-format
+msgid "Extracting %s"
+msgstr "\"%s\"-ის გაშლა"
+
+#: lutris/installer/commands.py:230
+msgid ""
+"Insert or mount game disc and click Autodetect or\n"
+"use Browse if the disc is mounted on a non standard location."
+msgstr ""
+
+#: lutris/installer/commands.py:234
+#, python-format
+msgid ""
+"\n"
+"\n"
+"Lutris is looking for a mounted disk drive or image \n"
+"containing the following file or folder:\n"
+"<i>%s</i>"
+msgstr ""
+
+#: lutris/installer/commands.py:256
+#, python-format
+msgid "The required file '%s' could not be located."
+msgstr "აუცილებელი ფაილი '%s' ვერ ვიპოვე."
+
+#: lutris/installer/commands.py:277
+#, python-format
+msgid "Source does not exist: %s"
+msgstr "წყარო არ არსებობს: %s"
+
+#: lutris/installer/commands.py:303
+#, python-format
+msgid "Invalid source for 'move' operation: %s"
+msgstr "არასწორი წყარო 'გადატანის' ოპერაციისთვის: %s"
+
+#: lutris/installer/commands.py:322
+#, python-brace-format
+msgid ""
+"Can't move {src} \n"
+"to destination {dst}"
+msgstr ""
+"{src}-ის სამიზნე საქაღალდეში\n"
+"{dst} გადატანა შეუძლებელია"
+
+#: lutris/installer/commands.py:329
+#, python-format
+msgid "Rename error, source path does not exist: %s"
+msgstr "სახელის გადარქმევის შეცდომა. წყარო ბილიკი არ არსებობს: %s"
+
+#: lutris/installer/commands.py:336
+#, python-format
+msgid "Rename error, destination already exists: %s"
+msgstr "სახელის გადარქმევის შეცდომა. სამიზნე უკვე არსებობს: %s"
+
+#: lutris/installer/commands.py:352
+msgid "Missing parameter src"
+msgstr "პარამეტრი 'src' მითითებული არაა"
+
+#: lutris/installer/commands.py:355
+msgid "Wrong value for 'src' param"
+msgstr "არასწორი მნიშვნელობა პარამეტრისთვის 'src'"
+
+#: lutris/installer/commands.py:359
+msgid "Wrong value for 'dst' param"
+msgstr "არასწორი მნიშვნელობა პარამეტრისთვის 'dst'"
+
+#: lutris/installer/commands.py:450
+#, python-format
+msgid "Command exited with code %s"
+msgstr "ბრძანება დასრულდა კოდით %s"
+
+#: lutris/installer/commands.py:469
+#, python-format
+msgid "Wrong value for write_file mode: '%s'"
+msgstr "არასწორი მნიშვნელობა ფუნქციისთვის write_file mode: '%s'"
+
+#: lutris/installer/commands.py:674
+msgid "install_or_extract only works with wine!"
+msgstr "install_or_extract, მხოლოდ, wine-სთან ერთად მუშაობს!"
+
+#: lutris/installer/installer_file.py:36
+#, python-format
+msgid "missing field `url` for file `%s`"
+msgstr "ვერ ვიპოვე ველი `url` ფაილისთვის `%s`"
+
+#: lutris/installer/installer_file.py:55
+#, python-format
+msgid "missing field `filename` in file `%s`"
+msgstr "ვერ ვიპოვე ველი `filename` ფაილში `%s`"
+
+#: lutris/installer/installer_file.py:124
+#, python-brace-format
+msgid "{file} on {host}"
+msgstr "{file} {host}-ზე"
+
+#: lutris/installer/installer_file.py:229
+msgid "Invalid checksum, expected format (type:hash) "
+msgstr "არასწორი საკონტროლო ჯამი. მოველოდი ფორმატს (ტიპი:ჰეში) "
+
+#: lutris/installer/installer_file.py:232
+msgid " checksum mismatch "
+msgstr " საკონტროლო ჯამები არ ემთხვევა "
+
+#: lutris/installer/installer.py:201
+msgid "Game config key must be a string"
+msgstr "თამაშის კონფიგურაციის გასაღები სტრიქონი უნდა იყოს"
+
+#: lutris/installer/installer.py:251
+msgid "Invalid 'game' section"
+msgstr "არასწორი სექცია 'game'"
+
+#: lutris/installer/interpreter.py:86
+msgid "This installer doesn't have a 'script' section"
+msgstr "ამ დამყენებელს სექცია 'script' ar aqvs"
+
+#: lutris/installer/interpreter.py:92
+msgid ""
+"Invalid script: \n"
+"{}"
+msgstr ""
+"არასწორი სკრიპტი: \n"
+"{}"
+
+#: lutris/installer/interpreter.py:157 lutris/installer/interpreter.py:160
+#, python-format
+msgid "This installer requires %s on your system"
+msgstr "ამ დამყენებელს თქვენს სისტემაში დაყენებული %s ესაჭიროება"
+
+#: lutris/installer/interpreter.py:173
+msgid "You need to install {} before"
+msgstr "გჭირდებათ დააყენოთ პაკეტი {}"
+
+#: lutris/installer/interpreter.py:218
+msgid "Lutris does not have the necessary permissions to install to path:"
+msgstr "Lustris-ს, არ აქვს უფლება, ჩაწეროს საქაღალდეში:"
+
+#: lutris/installer/interpreter.py:223
+#, python-format
+msgid "Path %s not found, unable to create game folder. Is the disk mounted?"
+msgstr ""
+"ბილიკი %s ვერ ვიპოვე. თამაშის საქაღალდე ვერ შევქმენი. დისკი ნამდვილად "
+"მიმაგრებულია?"
+
+#: lutris/installer/interpreter.py:302
+#, python-format
+msgid "Invalid runner provided %s"
+msgstr "მითითებულია არასწორი გამშვები %s"
+
+#: lutris/installer/interpreter.py:340
+msgid "Installer commands are not formatted correctly"
+msgstr "დამყენებელი პროგრამის ბრძანებების ფორმატი არასწორია"
+
+#: lutris/installer/interpreter.py:388
+#, python-format
+msgid "The command \"%s\" does not exist."
+msgstr "ბრძანება \"%s\" არ არსებობს."
+
+#: lutris/installer/interpreter.py:409
+#, python-format
+msgid ""
+"The executable at path %s can't be found, please check the destination "
+"folder.\n"
+"Some parts of the installation process may have not completed successfully."
+msgstr ""
+
+#: lutris/installer/interpreter.py:414
+msgid "Installation completed!"
+msgstr "დაყენება დასრულდა!"
+
+#: lutris/installer/steam_installer.py:47
+#, python-format
+msgid "Malformed steam path: %s"
+msgstr "არასწორი Steam-ის ბილიკი: %s"
+
+#: lutris/runners/atari800.py:15
+msgid "Desktop resolution"
+msgstr "სამუშაო მაგიდის &გარჩევადობა"
+
+#: lutris/runners/atari800.py:20
+msgid "Atari800"
+msgstr "Atari800"
+
+#: lutris/runners/atari800.py:21
+msgid "Atari 8bit computers"
+msgstr "Atari-ის 8-ბიტიანი კომპიუტერები"
+
+#: lutris/runners/atari800.py:24
+msgid "Atari 400, 800 and XL emulator"
+msgstr "Atari 400, 800 და XL-ის ემულატორი"
+
+#: lutris/runners/atari800.py:38
+msgid ""
+"The game data, commonly called a ROM image. \n"
+"Supported formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ and PRO."
+msgstr ""
+
+#: lutris/runners/atari800.py:49
+msgid "BIOS location"
+msgstr "BIOS-ის მდებარეობა"
+
+#: lutris/runners/atari800.py:51
+msgid ""
+"A folder containing the Atari 800 BIOS files.\n"
+"They are provided by Lutris so you shouldn't have to change this."
+msgstr ""
+
+#: lutris/runners/atari800.py:60
+msgid "Emulate Atari 800"
+msgstr "Atari 800-ის ემულაცია"
+
+#: lutris/runners/atari800.py:61
+msgid "Emulate Atari 800 XL"
+msgstr "Atari 800 XL-ის ემულაცია"
+
+#: lutris/runners/atari800.py:62
+msgid "Emulate Atari 320 XE (Compy Shop)"
+msgstr "Atari 320 XE-ის ემულაცია (Compy Shop)"
+
+#: lutris/runners/atari800.py:63
+msgid "Emulate Atari 320 XE (Rambo)"
+msgstr "Atari 320 XE-ის ემულაცია (Rambo)"
+
+#: lutris/runners/atari800.py:64
+msgid "Emulate Atari 5200"
+msgstr "Atari 5200-ის ემულაცია"
+
+#: lutris/runners/atari800.py:67 lutris/runners/mame.py:84
+#: lutris/runners/vice.py:93
+msgid "Machine"
+msgstr "მანქანა"
+
+#: lutris/runners/atari800.py:73 lutris/runners/atari800.py:81
+#: lutris/runners/dosbox.py:84 lutris/runners/dosbox.py:92
+#: lutris/runners/easyrpg.py:301 lutris/runners/easyrpg.py:309
+#: lutris/runners/easyrpg.py:326 lutris/runners/easyrpg.py:344
+#: lutris/runners/easyrpg.py:352 lutris/runners/easyrpg.py:360
+#: lutris/runners/easyrpg.py:374 lutris/runners/fsuae.py:283
+#: lutris/runners/fsuae.py:290 lutris/runners/fsuae.py:299
+#: lutris/runners/fsuae.py:312 lutris/runners/hatari.py:63
+#: lutris/runners/hatari.py:70 lutris/runners/hatari.py:78
+#: lutris/runners/hatari.py:93 lutris/runners/jzintv.py:43
+#: lutris/runners/jzintv.py:49 lutris/runners/mame.py:160
+#: lutris/runners/mame.py:167 lutris/runners/mame.py:176
+#: lutris/runners/mame.py:190 lutris/runners/mednafen.py:74
+#: lutris/runners/mednafen.py:81 lutris/runners/mednafen.py:95
+#: lutris/runners/o2em.py:77 lutris/runners/o2em.py:84
+#: lutris/runners/pico8.py:36 lutris/runners/pico8.py:43
+#: lutris/runners/redream.py:27 lutris/runners/redream.py:33
+#: lutris/runners/scummvm.py:114 lutris/runners/scummvm.py:121
+#: lutris/runners/scummvm.py:129 lutris/runners/scummvm.py:142
+#: lutris/runners/scummvm.py:165 lutris/runners/scummvm.py:184
+#: lutris/runners/scummvm.py:199 lutris/runners/scummvm.py:223
+#: lutris/runners/scummvm.py:241 lutris/runners/snes9x.py:37
+#: lutris/runners/snes9x.py:44 lutris/runners/vice.py:58
+#: lutris/runners/vice.py:65 lutris/runners/vice.py:72
+#: lutris/runners/vice.py:79 lutris/runners/wine.py:286
+#: lutris/runners/wine.py:300 lutris/runners/wine.py:312
+#: lutris/runners/wine.py:324 lutris/runners/wine.py:334
+#: lutris/runners/wine.py:346 lutris/runners/wine.py:355
+#: lutris/runners/wine.py:367 lutris/runners/wine.py:376
+#: lutris/runners/wine.py:389
+msgid "Graphics"
+msgstr "გრაფიკა"
+
+#: lutris/runners/atari800.py:74 lutris/runners/cemu.py:29
+#: lutris/runners/easyrpg.py:302 lutris/runners/hatari.py:64
+#: lutris/runners/jzintv.py:44 lutris/runners/libretro.py:98
+#: lutris/runners/mame.py:161 lutris/runners/mednafen.py:75
+#: lutris/runners/mupen64plus.py:28 lutris/runners/o2em.py:78
+#: lutris/runners/osmose.py:34 lutris/runners/pcsx2.py:27
+#: lutris/runners/pico8.py:37 lutris/runners/redream.py:28
+#: lutris/runners/reicast.py:41 lutris/runners/scummvm.py:115
+#: lutris/runners/snes9x.py:38 lutris/runners/vice.py:59
+#: lutris/runners/xemu.py:25 lutris/runners/yuzu.py:39 lutris/sysoptions.py:195
+msgid "Fullscreen"
+msgstr "მთელ ეკრანზე"
+
+#: lutris/runners/atari800.py:82
+msgid "Fullscreen resolution"
+msgstr "მთელი ეკრანის გაფართოება"
+
+#: lutris/runners/atari800.py:93
+msgid "Could not download Atari 800 BIOS archive"
+msgstr "Atari 800 BIOS-ის არქივის გადმოწერა შეუძლებელია"
+
+#: lutris/runners/cemu.py:10
+msgid "Cemu"
+msgstr "Cemu"
+
+#: lutris/runners/cemu.py:11
+msgid "Wii U"
+msgstr "Wii U"
+
+#: lutris/runners/cemu.py:12
+msgid "Wii U emulator"
+msgstr "Wii U emulator"
+
+#: lutris/runners/cemu.py:20 lutris/runners/easyrpg.py:22
+msgid "Game directory"
+msgstr "თამაშის საქაღალდე"
+
+#: lutris/runners/cemu.py:22
+msgid ""
+"The directory in which the game lives. If installed into Cemu, this will be "
+"in the mlc directory, such as mlc/usr/title/00050000/101c9500."
+msgstr ""
+
+#: lutris/runners/cemu.py:34
+msgid "Custom mlc folder location"
+msgstr "მომხმარებლის MLC საქაღალდის მდებარეობა"
+
+#: lutris/runners/cemu.py:38
+msgid "Render in upside down mode"
+msgstr "რენდერი უკუღმა რეჟიმში"
+
+#: lutris/runners/cemu.py:44
+msgid "NSight debugging options"
+msgstr "NSight-ის გამართვის პარამეტრები"
+
+#: lutris/runners/cemu.py:50
+msgid "Intel legacy graphics mode"
+msgstr "Intel-ის მოძველებული გრაფიკის რეჟიმი"
+
+#: lutris/runners/commands/wine.py:270 lutris/util/wine/wine.py:177
+msgid "Wine is not installed"
+msgstr "Wine დაყენებული არაა"
+
+#: lutris/runners/dolphin.py:8 lutris/runners/dolphin.py:30
+msgid "Nintendo GameCube"
+msgstr "Nintendo GameCube"
+
+#: lutris/runners/dolphin.py:8 lutris/runners/dolphin.py:30
+msgid "Nintendo Wii"
+msgstr "Nintendo Wii"
+
+#: lutris/runners/dolphin.py:12
+msgid "GameCube and Wii emulator"
+msgstr "GameCube-ის და Wii-ის ემულატორი"
+
+#: lutris/runners/dolphin.py:13 lutris/services/dolphin.py:29
+msgid "Dolphin"
+msgstr "Dolphin"
+
+#: lutris/runners/dolphin.py:24 lutris/runners/pcsx2.py:19
+#: lutris/runners/xemu.py:18
+msgid "ISO file"
+msgstr "ISO ფაილი"
+
+#: lutris/runners/dolphin.py:37
+msgid "Batch"
+msgstr "ჯგუფური"
+
+#: lutris/runners/dolphin.py:40
+msgid "Exit Dolphin with emulator."
+msgstr "Dolphin-დან გასვლა ემულატორით."
+
+#: lutris/runners/dolphin.py:46
+msgid "Custom Global User Directory"
+msgstr "ხელით მითითებული გლობალური მომხმარებლის საქაღლდე"
+
+#: lutris/runners/dosbox.py:14
+msgid "DOSBox"
+msgstr "DOSBox"
+
+#: lutris/runners/dosbox.py:15
+msgid "MS-DOS emulator"
+msgstr "MS-DOS-ის ემულატორი"
+
+#: lutris/runners/dosbox.py:16
+msgid "MS-DOS"
+msgstr "MS-DOS"
+
+#: lutris/runners/dosbox.py:24
+msgid "Main file"
+msgstr "მთავარი ფაილი"
+
+#: lutris/runners/dosbox.py:26
+msgid ""
+"The CONF, EXE, COM or BAT file to launch.\n"
+"It can be left blank if the launch of the executable is managed in the "
+"config file."
+msgstr ""
+
+#: lutris/runners/dosbox.py:34
+msgid "Configuration file"
+msgstr "კონფიგურაციის ფაილი"
+
+#: lutris/runners/dosbox.py:36
+msgid ""
+"Start DOSBox with the options specified in this file. \n"
+"It can have a section in which you can put commands to execute on startup. "
+"Read DOSBox's documentation for more information."
+msgstr ""
+
+#: lutris/runners/dosbox.py:45
+msgid "Command line arguments"
+msgstr "ბრძანების სტრიქონის არგუმენტები"
+
+#: lutris/runners/dosbox.py:46
+msgid "Command line arguments used when launching DOSBox"
+msgstr "DOSBox-ის გაშვებისას გამოყენებული ბრძანების სტრიქონის არგუმენტები"
+
+#: lutris/runners/dosbox.py:52 lutris/runners/flatpak.py:74
+#: lutris/runners/linux.py:40 lutris/runners/wine.py:183
+msgid "Working directory"
+msgstr "სამუშაო საქაღალდე"
+
+#: lutris/runners/dosbox.py:54 lutris/runners/linux.py:42
+#: lutris/runners/wine.py:185
+msgid ""
+"The location where the game is run from.\n"
+"By default, Lutris uses the directory of the executable."
+msgstr ""
+"მდებარეობა, საიდანაც თამაში ეშვება.\n"
+"ნაგულისხმევად, Lustris გამშვები ფაილის საქაღალდეს იყენებს."
+
+#: lutris/runners/dosbox.py:62
+msgid "none"
+msgstr "არა"
+
+#: lutris/runners/dosbox.py:85
+msgid "Open game in fullscreen"
+msgstr "თამაშის მთლიან ეკრანზე გახსნა"
+
+#: lutris/runners/dosbox.py:88
+msgid "Tells DOSBox to launch the game in fullscreen."
+msgstr "ეტყვის DOSBox-ს, თამაში სრულ ეკრანზე გაუშვას."
+
+#: lutris/runners/dosbox.py:93 lutris/runners/scummvm.py:143
+msgid "Graphic scaler"
+msgstr "გრაფიკის მასშტაბი"
+
+#: lutris/runners/dosbox.py:98 lutris/runners/scummvm.py:160
+msgid ""
+"The algorithm used to scale up the game's base resolution, resulting in "
+"different visual styles. "
+msgstr ""
+
+#: lutris/runners/dosbox.py:103
+msgid "Exit DOSBox with the game"
+msgstr "DOSBox-ის დახურვა თამაშთან ერთად"
+
+#: lutris/runners/dosbox.py:106
+msgid "Shut down DOSBox when the game is quit."
+msgstr "DOSBox-ის გამორთვა, როცა თამაშს გამორთავთ."
+
+#: lutris/runners/easyrpg.py:10
+msgid "EasyRPG Player"
+msgstr "EasyRPG Player"
+
+#: lutris/runners/easyrpg.py:11
+msgid "Runs RPG Maker 2000/2003 games"
+msgstr "უშვებს RPG Maker 2000/2003-ის თამაშებს"
+
+#: lutris/runners/easyrpg.py:12 lutris/runners/flatpak.py:19
+#: lutris/runners/linux.py:15 lutris/runners/linux.py:17
+#: lutris/runners/scummvm.py:49 lutris/runners/steam.py:30
+#: lutris/runners/zdoom.py:15
+msgid "Linux"
+msgstr "Linux"
+
+#: lutris/runners/easyrpg.py:23
+msgid "Select the directory of the game. <b>(required)</b>"
+msgstr "აირჩიეთ თამაშის საქაღალდე. <b>(აუცილებელია)</b>"
+
+#: lutris/runners/easyrpg.py:29
+msgid "Encoding"
+msgstr "კოდირება"
+
+#: lutris/runners/easyrpg.py:31
+msgid ""
+"Instead of auto detecting the encoding or using the one in RPG_RT.ini, the "
+"specified encoding is used."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:35 lutris/runners/easyrpg.py:60
+#: lutris/runners/easyrpg.py:223 lutris/runners/easyrpg.py:242
+#: lutris/runners/fsuae.py:157 lutris/runners/mame.py:179
+#: lutris/runners/scummvm.py:188 lutris/runners/scummvm.py:203
+#: lutris/runners/scummvm.py:227 lutris/runners/wine.py:205
+#: lutris/runners/wine.py:520
+msgid "Auto"
+msgstr "ავტო"
+
+#: lutris/runners/easyrpg.py:36
+msgid "Auto (ignore RPG_RT.ini)"
+msgstr "ავტომატური (RPG_RT.ini-ის იგნორი)"
+
+#: lutris/runners/easyrpg.py:37
+msgid "Western European"
+msgstr "დასავლეთ ევროპული"
+
+#: lutris/runners/easyrpg.py:38
+msgid "Central/Eastern European"
+msgstr "ცენტრალური/აღმოსავლეთ ევროპული"
+
+#: lutris/runners/easyrpg.py:39 lutris/runners/redream.py:55
+msgid "Japanese"
+msgstr "იაპონური"
+
+#: lutris/runners/easyrpg.py:40
+msgid "Cyrillic"
+msgstr "კირილიცა"
+
+#: lutris/runners/easyrpg.py:41
+msgid "Korean"
+msgstr "კორეული"
+
+#: lutris/runners/easyrpg.py:42
+msgid "Chinese (Simplified)"
+msgstr "ჩინური (გამარტივებული)"
+
+#: lutris/runners/easyrpg.py:43
+msgid "Chinese (Traditional)"
+msgstr "ჩინური (ტრადიციული)"
+
+#: lutris/runners/easyrpg.py:44
+msgid "Greek"
+msgstr "ბერძნული"
+
+#: lutris/runners/easyrpg.py:45
+msgid "Turkish"
+msgstr "თურქული"
+
+#: lutris/runners/easyrpg.py:46
+msgid "Hebrew"
+msgstr "ივრითი"
+
+#: lutris/runners/easyrpg.py:47
+msgid "Arabic"
+msgstr "არაბული"
+
+#: lutris/runners/easyrpg.py:48
+msgid "Baltic"
+msgstr "ბალტიური"
+
+#: lutris/runners/easyrpg.py:49
+msgid "Thai"
+msgstr "ტაილანდური"
+
+#: lutris/runners/easyrpg.py:57 lutris/runners/easyrpg.py:214
+#: lutris/runners/easyrpg.py:234 lutris/runners/easyrpg.py:252
+msgid "Engine"
+msgstr "ძრავი"
+
+#: lutris/runners/easyrpg.py:58
+msgid "Disable auto detection of the simulated engine."
+msgstr "სიმულაციის ძრავის ავტომატური ამოცნობის გამორთვა."
+
+#: lutris/runners/easyrpg.py:61
+msgid "RPG Maker 2000 engine (v1.00 - v1.10)"
+msgstr "RPG Maker 2000 ძრავა (v1.00 - v1.10)"
+
+#: lutris/runners/easyrpg.py:62
+msgid "RPG Maker 2000 engine (v1.50 - v1.51)"
+msgstr "RPG Maker 2000 ძრავა (v1.50 - v1.51)"
+
+#: lutris/runners/easyrpg.py:63
+msgid "RPG Maker 2000 (English release) engine"
+msgstr "ძრავა RPG Maker 2000 (ინგლისური ვერსია)"
+
+#: lutris/runners/easyrpg.py:64
+msgid "RPG Maker 2003 engine (v1.00 - v1.04)"
+msgstr "RPG Maker 2003 ძრავა (v1.00 - v1.04)"
+
+#: lutris/runners/easyrpg.py:65
+msgid "RPG Maker 2003 engine (v1.05 - v1.09a)"
+msgstr "RPG Maker 2003 ძრავა (v1.05 - v1.09a)"
+
+#: lutris/runners/easyrpg.py:66
+msgid "RPG Maker 2003 (English release) engine"
+msgstr "ძრავა RPG Maker 2003 (ინგლისური ვერსია)"
+
+#: lutris/runners/easyrpg.py:74
+msgid "Patches"
+msgstr "პაჩები"
+
+#: lutris/runners/easyrpg.py:76
+msgid ""
+"Instead of autodetecting patches used by this game, force emulation of "
+"certain patches.\n"
+"\n"
+"Available patches:\n"
+"<b>common-this</b>: \"This Event\" in common events<b>dynrpg</b>: DynRPG "
+"patch by Cherry<b>key-patch</b>: Key Patch by Ineluki<b>maniac</b>: Maniac "
+"Patch by BingShan<b>pic-unlock</b>: Pictures are not blocked by "
+"messages<b>rpg2k3-cmds</b>: Support all RPG Maker 2003 event commands in any "
+"version of the engine\n"
+"\n"
+"You can provide multiple patches or use 'none' to disable all engine patches."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:91 lutris/runners/scummvm.py:274
+msgid "Language"
+msgstr "ენა"
+
+#: lutris/runners/easyrpg.py:93
+msgid "Load the game translation in the language/LANG directory."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:99 lutris/runners/zdoom.py:47
+msgid "Save path"
+msgstr "ბილიკის შენახვა"
+
+#: lutris/runners/easyrpg.py:101
+msgid ""
+"Instead of storing save files in the game directory they are stored in the "
+"specified path. The directory must exist."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:108
+msgid "New game"
+msgstr "ახალი თამაში"
+
+#: lutris/runners/easyrpg.py:109
+msgid "Skip the title scene and start a new game directly."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:115
+msgid "Load game ID"
+msgstr "თამაშის ID-ის ჩატვირთვა"
+
+#: lutris/runners/easyrpg.py:117
+msgid ""
+"Skip the title scene and load SaveXX.lsd.\n"
+"Set to 0 to disable."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:128
+msgid "Record input"
+msgstr "შეყვანის ჩაწერა"
+
+#: lutris/runners/easyrpg.py:129
+msgid "Records all button input to the specified log file."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:135
+msgid "Replay input"
+msgstr "ჩაწერილი შეყვანის გამეორება"
+
+#: lutris/runners/easyrpg.py:137
+msgid ""
+"Replays button input from the specified log file, as generated by 'Record "
+"input'.\n"
+"If the RNG seed and the state of the save file directory is also the same as "
+"it was when the log was recorded, this should reproduce an identical run to "
+"the one recorded."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:146 lutris/runners/easyrpg.py:155
+#: lutris/runners/easyrpg.py:164 lutris/runners/easyrpg.py:179
+#: lutris/runners/easyrpg.py:191 lutris/runners/easyrpg.py:203
+msgid "Debug"
+msgstr "პროგრამის შეცდომის პოვნა"
+
+#: lutris/runners/easyrpg.py:147
+msgid "Test play"
+msgstr "სატესტო დამაში"
+
+#: lutris/runners/easyrpg.py:148
+msgid "Enable TestPlay (debug) mode."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:156
+msgid "Hide title"
+msgstr "სათაურის დამალვა"
+
+#: lutris/runners/easyrpg.py:157
+msgid "Hide the title background image and center the command menu."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:165
+msgid "Start map ID"
+msgstr ""
+
+#: lutris/runners/easyrpg.py:167
+msgid ""
+"Overwrite the map used for new games and use MapXXXX.lmu instead.\n"
+"Set to 0 to disable.\n"
+"\n"
+"Incompatible with 'Load game ID'."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:180
+msgid "Start position"
+msgstr "დაწყების პოზიცია"
+
+#: lutris/runners/easyrpg.py:182
+msgid ""
+"Overwrite the party start position and move the party to the specified "
+"position.\n"
+"Provide two numbers separated by a space.\n"
+"\n"
+"Incompatible with 'Load game ID'."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:192
+msgid "Start party"
+msgstr "წვეულების დაწყება"
+
+#: lutris/runners/easyrpg.py:194
+msgid ""
+"Overwrite the starting party members with the actors with the specified "
+"IDs.\n"
+"Provide one to four numbers separated by spaces.\n"
+"\n"
+"Incompatible with 'Load game ID'."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:204
+msgid "Battle test"
+msgstr "ბრძოლის ტექსტი"
+
+#: lutris/runners/easyrpg.py:205
+msgid "Start a battle test with the specified monster party."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:215
+msgid "AutoBattle algorithm"
+msgstr "ავტომატური ბრძოლის ალგორითმი"
+
+#: lutris/runners/easyrpg.py:217
+msgid ""
+"Which AutoBattle algorithm to use.\n"
+"\n"
+"<b>RPG_RT</b>: The default RPG_RT compatible algorithm, including RPG_RT "
+"bugs.\n"
+"<b>RPG_RT+</b>: The default RPG_RT compatible algorithm, with bug-fixes.\n"
+"<b>ATTACK</b>: Like RPG_RT+ but only physical attacks, no skills."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:224 lutris/runners/easyrpg.py:243
+msgid "RPG_RT"
+msgstr "RPG_RT"
+
+#: lutris/runners/easyrpg.py:225 lutris/runners/easyrpg.py:244
+msgid "RPG_RT+"
+msgstr "RPG_RT+"
+
+#: lutris/runners/easyrpg.py:226
+msgid "ATTACK"
+msgstr "შეტევა"
+
+#: lutris/runners/easyrpg.py:235
+msgid "EnemyAI algorithm"
+msgstr "ალგორითმი EnemyAI"
+
+#: lutris/runners/easyrpg.py:237
+msgid ""
+"Which EnemyAI algorithm to use.\n"
+"\n"
+"<b>RPG_RT</b>: The default RPG_RT compatible algorithm, including RPG_RT "
+"bugs.\n"
+"<b>RPG_RT+</b>: The default RPG_RT compatible algorithm, with bug-fixes.\n"
+msgstr ""
+
+#: lutris/runners/easyrpg.py:253
+msgid "RNG seed"
+msgstr "RNG მარცვალი"
+
+#: lutris/runners/easyrpg.py:255
+msgid ""
+"Seeds the random number generator.\n"
+"Use -1 to disable."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:265 lutris/runners/easyrpg.py:273
+#: lutris/runners/easyrpg.py:283 lutris/runners/easyrpg.py:294
+#: lutris/runners/redream.py:77 lutris/runners/scummvm.py:296
+#: lutris/runners/scummvm.py:304 lutris/runners/scummvm.py:311
+#: lutris/runners/scummvm.py:333 lutris/runners/scummvm.py:346
+#: lutris/runners/scummvm.py:366 lutris/runners/scummvm.py:374
+#: lutris/runners/scummvm.py:382 lutris/runners/scummvm.py:390
+#: lutris/runners/scummvm.py:397 lutris/runners/scummvm.py:405
+#: lutris/runners/scummvm.py:414 lutris/runners/scummvm.py:424
+msgid "Audio"
+msgstr "აუდიო"
+
+#: lutris/runners/easyrpg.py:266
+msgid "Enable audio"
+msgstr "აუდიოს ჩართვა"
+
+#: lutris/runners/easyrpg.py:267
+msgid "Switch off to disable audio."
+msgstr "გამორთეთ ხმის გასათიშად."
+
+#: lutris/runners/easyrpg.py:274
+msgid "BGM volume"
+msgstr "BGM ხმა"
+
+#: lutris/runners/easyrpg.py:275
+msgid "Volume of the background music."
+msgstr "ფონის მუსიკის ხმა."
+
+#: lutris/runners/easyrpg.py:284 lutris/runners/scummvm.py:375
+msgid "SFX volume"
+msgstr "SFX ხმა"
+
+#: lutris/runners/easyrpg.py:285
+msgid "Volume of the sound effects."
+msgstr "ხმის ეფექტების ხმა."
+
+#: lutris/runners/easyrpg.py:295 lutris/runners/scummvm.py:399
+msgid "Soundfont"
+msgstr "ხმის ფონტი"
+
+#: lutris/runners/easyrpg.py:296
+msgid "Soundfont in sf2 format to use when playing MIDI files."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:303
+msgid "Start in fullscreen mode."
+msgstr "მთელ ეკრანზე გაშვება."
+
+#: lutris/runners/easyrpg.py:311
+msgid "Game resolution"
+msgstr "თამაშის გარჩევადობა"
+
+#: lutris/runners/easyrpg.py:313
+msgid ""
+"Force a different game resolution.\n"
+"\n"
+"This is experimental and can cause glitches or break games!"
+msgstr ""
+
+#: lutris/runners/easyrpg.py:317
+msgid "320×240 (4:3, Original)"
+msgstr "320×240 (4:3, ორიგინალი)"
+
+#: lutris/runners/easyrpg.py:318
+msgid "416×240 (16:9, Widescreen)"
+msgstr "416×240 (16:9, ფართოეკრანიანი)"
+
+#: lutris/runners/easyrpg.py:319
+msgid "560×240 (21:9, Ultrawide)"
+msgstr "560×240 (21:9, ულტრაფართოეკრანიანი)"
+
+#: lutris/runners/easyrpg.py:327
+msgid "Scaling"
+msgstr "მასშტაბირება"
+
+#: lutris/runners/easyrpg.py:329
+msgid ""
+"How the video output is scaled.\n"
+"\n"
+"<b>Nearest</b>: Scale to screen size (causes scaling artifacts)\n"
+"<b>Integer</b>: Scale to multiple of the game resolution\n"
+"<b>Bilinear</b>: Like Nearest, but output is blurred to avoid artifacts\n"
+msgstr ""
+
+#: lutris/runners/easyrpg.py:335
+msgid "Nearest"
+msgstr "უახლოესი"
+
+#: lutris/runners/easyrpg.py:336
+msgid "Integer"
+msgstr "მთელი რიცხვი"
+
+#: lutris/runners/easyrpg.py:337
+msgid "Bilinear"
+msgstr "ორხაზოვანი"
+
+#: lutris/runners/easyrpg.py:345 lutris/runners/redream.py:35
+#: lutris/runners/scummvm.py:231
+msgid "Stretch"
+msgstr "გაწელვა"
+
+#: lutris/runners/easyrpg.py:346
+msgid ""
+"Ignore the aspect ratio and stretch video output to the entire width of the "
+"screen."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:353
+msgid "Enable VSync"
+msgstr "VSync-ის ჩართვა"
+
+#: lutris/runners/easyrpg.py:354
+msgid "Switch off to disable VSync and use the FPS limit."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:361 lutris/sysoptions.py:315
+msgid "FPS limit"
+msgstr "კადრი/წმ-ის ლიმიტი"
+
+#: lutris/runners/easyrpg.py:363
+msgid ""
+"Set a custom frames per second limit.\n"
+"If unspecified, the default is 60 FPS.\n"
+"Set to 0 to disable the frame limiter."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:375 lutris/runners/wine.py:546
+msgid "Show FPS"
+msgstr "კადრი/წმ-ის ჩვენება"
+
+#: lutris/runners/easyrpg.py:376
+msgid "Enable frames per second counter."
+msgstr "კადრი/წმ სიხშირის ჩვენება."
+
+#: lutris/runners/easyrpg.py:378 lutris/runners/mednafen.py:84
+#: lutris/runners/wine.py:543
+msgid "Disabled"
+msgstr "გამორთული"
+
+#: lutris/runners/easyrpg.py:379
+msgid "Fullscreen & title bar"
+msgstr "მთელ ეკრანზე და სათაურის ზოლი"
+
+#: lutris/runners/easyrpg.py:380
+msgid "Fullscreen, title bar & window"
+msgstr "მთელ ეკრანზე, სათაურის ზოლი და ფანჯარა"
+
+#: lutris/runners/easyrpg.py:387 lutris/runners/easyrpg.py:395
+#: lutris/runners/easyrpg.py:405 lutris/runners/easyrpg.py:415
+msgid "Runtime Package"
+msgstr "გაშვების გარემოს პაკეტი"
+
+#: lutris/runners/easyrpg.py:388
+msgid "Enable RTP"
+msgstr "RTP_ის ჩართვა"
+
+#: lutris/runners/easyrpg.py:389
+msgid "Switch off to disable support for the Runtime Package (RTP)."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:396
+msgid "RPG2000 RTP location"
+msgstr "RPG2000 RTP-ის მდებარეობა"
+
+#: lutris/runners/easyrpg.py:398
+msgid ""
+"Full path to a directory containing an extracted RPG Maker 2000 Run-Time-"
+"Package (RTP)."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:406
+msgid "RPG2003 RTP location"
+msgstr "RPG2003 RTP-ის მდებარეობა"
+
+#: lutris/runners/easyrpg.py:408
+msgid ""
+"Full path to a directory containing an extracted RPG Maker 2003 Run-Time-"
+"Package (RTP)."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:416
+msgid "Fallback RTP location"
+msgstr ""
+
+#: lutris/runners/easyrpg.py:417
+msgid "Full path to a directory containing a combined RTP."
+msgstr ""
+
+#: lutris/runners/easyrpg.py:530
+msgid "No game directory provided"
+msgstr "თამაშის საქაღალდე მითითებული არაა"
+
+#: lutris/runners/easyrpg.py:607
+msgid "The directory {} could not be found"
+msgstr ""
+
+#: lutris/runners/flatpak.py:18
+msgid "Runs Flatpak applications"
+msgstr "Flatpak -ის აპლიკაციების გამშვები"
+
+#: lutris/runners/flatpak.py:21
+msgid "Flatpak"
+msgstr "Flatpak"
+
+#: lutris/runners/flatpak.py:33 lutris/runners/steam.py:36
+msgid "Application ID"
+msgstr "აპლიკაციის ID"
+
+#: lutris/runners/flatpak.py:34
+msgid "The application's unique three-part identifier (tld.domain.app)."
+msgstr ""
+
+#: lutris/runners/flatpak.py:39
+msgid "Architecture"
+msgstr "არქიტექტურა"
+
+#: lutris/runners/flatpak.py:40
+msgid ""
+"The architecture to run. See flatpak --supported-arches for architectures "
+"supported by the host."
+msgstr ""
+
+#: lutris/runners/flatpak.py:47
+msgid "Branch"
+msgstr "ბრენჩი"
+
+#: lutris/runners/flatpak.py:48
+msgid "The branch to use."
+msgstr "გამოსაყენებელი ბრენჩი."
+
+#: lutris/runners/flatpak.py:54
+msgid "Install type"
+msgstr "დაყენების ტიპი"
+
+#: lutris/runners/flatpak.py:55
+msgid "Can be system or user."
+msgstr "შეიძლება იყოს სისტემური ან მომხმარებლის."
+
+#: lutris/runners/flatpak.py:61
+msgid "Args"
+msgstr "არგუმენტები"
+
+#: lutris/runners/flatpak.py:62
+msgid "Arguments to be passed to the application."
+msgstr "აპლიკაციისთვის გადაცემული არგუმენტები."
+
+#: lutris/runners/flatpak.py:67
+msgid "Command"
+msgstr "ბრძანება"
+
+#: lutris/runners/flatpak.py:68
+msgid ""
+"The command to run instead of the one listed in the application metadata."
+msgstr ""
+
+#: lutris/runners/flatpak.py:75
+msgid ""
+"The directory to run the command in. Note that this must be a directory "
+"inside the sandbox."
+msgstr ""
+
+#: lutris/runners/flatpak.py:82 lutris/sysoptions.py:483
+msgid "Environment variables"
+msgstr "გარემოს ცვლადები"
+
+#: lutris/runners/flatpak.py:83
+msgid ""
+"Set an environment variable in the application. This overrides to the "
+"Context section from the application metadata."
+msgstr ""
+
+#: lutris/runners/flatpak.py:97
+msgid ""
+"Flatpak installation is not handled by Lutris.\n"
+"Install Flatpak with the package provided by your distribution."
+msgstr ""
+
+#: lutris/runners/fsuae.py:12
+msgid "Amiga 500"
+msgstr "Amiga 500"
+
+#: lutris/runners/fsuae.py:20
+msgid "Amiga 500+"
+msgstr "Amiga 500+"
+
+#: lutris/runners/fsuae.py:26
+msgid "Amiga 600"
+msgstr "Amiga 600"
+
+#: lutris/runners/fsuae.py:32
+msgid "Amiga 1200"
+msgstr "Amiga 1200"
+
+#: lutris/runners/fsuae.py:38
+msgid "Amiga 3000"
+msgstr "Amiga 3000"
+
+#: lutris/runners/fsuae.py:44
+msgid "Amiga 4000"
+msgstr "Amiga 4000"
+
+#: lutris/runners/fsuae.py:51
+msgid "Amiga 1000"
+msgstr "Amiga 1000"
+
+#: lutris/runners/fsuae.py:57
+msgid "Amiga CD32"
+msgstr "Amiga CD32"
+
+#: lutris/runners/fsuae.py:66
+msgid "Commodore CDTV"
+msgstr "Commodore CDTV"
+
+#: lutris/runners/fsuae.py:125
+msgid "FS-UAE"
+msgstr "FS-UAE"
+
+#: lutris/runners/fsuae.py:126
+msgid "Amiga emulator"
+msgstr "Amiga-ის ემულატორი"
+
+#: lutris/runners/fsuae.py:143
+msgid "68000"
+msgstr "68000"
+
+#: lutris/runners/fsuae.py:144
+msgid "68010"
+msgstr "68010"
+
+#: lutris/runners/fsuae.py:145
+msgid "68020 with 24-bit addressing"
+msgstr "68020 24-ბიტიანი დამისამისამართებით"
+
+#: lutris/runners/fsuae.py:146
+msgid "68020"
+msgstr "68020"
+
+#: lutris/runners/fsuae.py:147
+msgid "68030 without internal MMU"
+msgstr "68030 შიდა MMU-ის გარეშე"
+
+#: lutris/runners/fsuae.py:148
+msgid "68030"
+msgstr "68030"
+
+#: lutris/runners/fsuae.py:149
+msgid "68040 without internal FPU and MMU"
+msgstr "68040 შიდა FPU-ისა და MMU-ის გარეშე"
+
+#: lutris/runners/fsuae.py:150
+msgid "68040 without internal FPU"
+msgstr "68040 შიდა FPU-ის გარეშე"
+
+#: lutris/runners/fsuae.py:151
+msgid "68040 without internal MMU"
+msgstr "68040 შიდა MMU-ის გარეშე"
+
+#: lutris/runners/fsuae.py:152
+msgid "68040"
+msgstr "68040"
+
+#: lutris/runners/fsuae.py:153
+msgid "68060 without internal FPU and MMU"
+msgstr "68060 შიდა FPU-ისა და MMU-ის გარეშე"
+
+#: lutris/runners/fsuae.py:154
+msgid "68060 without internal FPU"
+msgstr "68060 შიდა FPU-ის გარეშე"
+
+#: lutris/runners/fsuae.py:155
+msgid "68060 without internal MMU"
+msgstr "68060 შიდა MMU-ის გარეშე"
+
+#: lutris/runners/fsuae.py:156
+msgid "68060"
+msgstr "68060"
+
+#: lutris/runners/fsuae.py:160 lutris/runners/fsuae.py:167
+#: lutris/runners/fsuae.py:201
+msgid "0"
+msgstr "0"
+
+#: lutris/runners/fsuae.py:161 lutris/runners/fsuae.py:168
+#: lutris/runners/fsuae.py:202
+msgid "1 MB"
+msgstr "1 მბ"
+
+#: lutris/runners/fsuae.py:162 lutris/runners/fsuae.py:169
+#: lutris/runners/fsuae.py:203
+msgid "2 MB"
+msgstr "2 მბ"
+
+#: lutris/runners/fsuae.py:163 lutris/runners/fsuae.py:170
+#: lutris/runners/fsuae.py:204
+msgid "4 MB"
+msgstr "4 მბ"
+
+#: lutris/runners/fsuae.py:164 lutris/runners/fsuae.py:171
+#: lutris/runners/fsuae.py:205
+msgid "8 MB"
+msgstr "8 მბ"
+
+#: lutris/runners/fsuae.py:172 lutris/runners/fsuae.py:206
+msgid "16 MB"
+msgstr "16 მბ"
+
+#: lutris/runners/fsuae.py:173 lutris/runners/fsuae.py:207
+msgid "32 MB"
+msgstr "32 მბ"
+
+#: lutris/runners/fsuae.py:174 lutris/runners/fsuae.py:208
+msgid "64 MB"
+msgstr "64 მბ"
+
+#: lutris/runners/fsuae.py:175 lutris/runners/fsuae.py:209
+msgid "128 MB"
+msgstr "128 მბ"
+
+#: lutris/runners/fsuae.py:176 lutris/runners/fsuae.py:210
+msgid "256 MB"
+msgstr "256 მბ"
+
+#: lutris/runners/fsuae.py:177
+msgid "384 MB"
+msgstr "384 მბ"
+
+#: lutris/runners/fsuae.py:178
+msgid "512 MB"
+msgstr "512 მბ"
+
+#: lutris/runners/fsuae.py:179
+msgid "768 MB"
+msgstr "768 მბ"
+
+#: lutris/runners/fsuae.py:180
+msgid "1 GB"
+msgstr "1 გბ"
+
+#: lutris/runners/fsuae.py:213
+msgid "Turbo"
+msgstr "ტურბო"
+
+#: lutris/runners/fsuae.py:224
+msgid "Boot disk"
+msgstr "ჩატვირთვადი დისკი"
+
+#: lutris/runners/fsuae.py:227
+msgid ""
+"The main floppy disk file with the game data. \n"
+"FS-UAE supports floppy images in multiple file formats: ADF, IPF, DMS are "
+"the most common. ADZ (compressed ADF) and ADFs in zip files are a also "
+"supported.\n"
+"Files ending in .hdf will be mounted as hard drives and ISOs can be used for "
+"Amiga CD32 and CDTV models."
+msgstr ""
+
+#: lutris/runners/fsuae.py:237 lutris/runners/fsuae.py:244
+#: lutris/runners/fsuae.py:356 lutris/runners/fsuae.py:367
+msgid "Media"
+msgstr "მედია"
+
+#: lutris/runners/fsuae.py:239
+msgid "Additionnal floppies"
+msgstr "დამატებითი დისკეტები"
+
+#: lutris/runners/fsuae.py:241
+msgid "The additional floppy disk image(s)."
+msgstr "დამატებითი დისკეტის ასლის ფაილები."
+
+#: lutris/runners/fsuae.py:245
+msgid "CD-ROM image"
+msgstr "CD-ROM დისკის ასლი"
+
+#: lutris/runners/fsuae.py:247
+msgid "CD-ROM image to use on non CD32/CDTV models"
+msgstr ""
+
+#: lutris/runners/fsuae.py:254
+msgid "Amiga model"
+msgstr "Amiga-ის მოდელი"
+
+#: lutris/runners/fsuae.py:258
+msgid "Specify the Amiga model you want to emulate."
+msgstr ""
+
+#: lutris/runners/fsuae.py:262 lutris/runners/fsuae.py:275
+msgid "Kickstart"
+msgstr "Kickstart"
+
+#: lutris/runners/fsuae.py:263
+msgid "Kickstart ROMs location"
+msgstr ""
+
+#: lutris/runners/fsuae.py:266
+msgid ""
+"Choose the folder containing original Amiga Kickstart ROMs. Refer to FS-UAE "
+"documentation to find how to acquire them. Without these, FS-UAE uses a "
+"bundled replacement ROM which is less compatible with Amiga software."
+msgstr ""
+
+#: lutris/runners/fsuae.py:276
+msgid "Extended Kickstart location"
+msgstr ""
+
+#: lutris/runners/fsuae.py:279
+msgid "Location of extended Kickstart used for CD32"
+msgstr ""
+
+#: lutris/runners/fsuae.py:284
+msgid "Fullscreen (F12 + S to switch)"
+msgstr "სრულ ეკრანზე (F12 + S გადასართავად)"
+
+#: lutris/runners/fsuae.py:291 lutris/runners/o2em.py:85
+msgid "Scanlines display style"
+msgstr ""
+
+#: lutris/runners/fsuae.py:294 lutris/runners/o2em.py:87
+msgid ""
+"Activates a display filter adding scanlines to imitate the displays of "
+"yesteryear."
+msgstr ""
+
+#: lutris/runners/fsuae.py:300
+msgid "Graphics Card"
+msgstr "ვიდეობარათი"
+
+#: lutris/runners/fsuae.py:306
+msgid ""
+"Use this option to enable a graphics card. This option is none by default, "
+"in which case only chipset graphics (OCS/ECS/AGA) support is available."
+msgstr ""
+
+#: lutris/runners/fsuae.py:313
+msgid "Graphics Card RAM"
+msgstr "ვიდეობარათის RAM"
+
+#: lutris/runners/fsuae.py:319
+msgid ""
+"Override the amount of graphics memory on the graphics card. The 0 MB option "
+"is not really valid, but exists for user interface reasons."
+msgstr ""
+
+#: lutris/runners/fsuae.py:325
+msgid "CPU"
+msgstr "CPU"
+
+#: lutris/runners/fsuae.py:330
+msgid ""
+"Use this option to override the CPU model in the emulated Amiga. All Amiga "
+"models imply a default CPU model, so you only need to use this option if you "
+"want to use another CPU."
+msgstr ""
+
+#: lutris/runners/fsuae.py:336
+msgid "Fast Memory"
+msgstr "სწრაფი მეხსიერება"
+
+#: lutris/runners/fsuae.py:341
+msgid "Specify how much Fast Memory the Amiga model should have."
+msgstr ""
+
+#: lutris/runners/fsuae.py:345
+msgid "Zorro III RAM"
+msgstr "Zorro III RAM"
+
+#: lutris/runners/fsuae.py:350
+msgid ""
+"Override the amount of Zorro III Fast memory, specified in KB. Must be a "
+"multiple of 1024. The default value depends on [amiga_model]. Requires a "
+"processor with 32-bit address bus, (use for example the A1200/020 model)."
+msgstr ""
+
+#: lutris/runners/fsuae.py:357
+msgid "Floppy Drive Volume"
+msgstr "დისკეტის მოცულობა"
+
+#: lutris/runners/fsuae.py:362
+msgid ""
+"Set volume to 0 to disable floppy drive clicks when the drive is empty. Max "
+"volume is 100."
+msgstr ""
+
+#: lutris/runners/fsuae.py:368
+msgid "Floppy Drive Speed"
+msgstr "დისკეტის სისწრაფე"
+
+#: lutris/runners/fsuae.py:374
+msgid ""
+"Set the speed of the emulated floppy drives, in percent. For example, you "
+"can specify 800 to get an 8x increase in speed. Use 0 to specify turbo mode. "
+"Turbo mode means that all floppy operations complete immediately. The "
+"default is 100 for most models."
+msgstr ""
+
+#: lutris/runners/fsuae.py:382
+msgid "JIT Compiler"
+msgstr "JIT კომპილატორი"
+
+#: lutris/runners/fsuae.py:389
+msgid "Feral GameMode"
+msgstr "Feral GameMode"
+
+#: lutris/runners/fsuae.py:393
+msgid ""
+"Automatically uses Feral GameMode daemon if available. Set to true to "
+"disable the feature."
+msgstr ""
+
+#: lutris/runners/fsuae.py:398
+msgid "CPU governor warning"
+msgstr "CPU-ის მმართველის გაფრთხილება"
+
+#: lutris/runners/fsuae.py:403
+msgid ""
+"Warn if running with a CPU governor other than performance. Set to true to "
+"disable the warning."
+msgstr ""
+
+#: lutris/runners/fsuae.py:408
+msgid "UAE bsdsocket.library"
+msgstr "UAE bsdsocket.library"
+
+#: lutris/runners/hatari.py:13
+msgid "Hatari"
+msgstr "Hatari"
+
+#: lutris/runners/hatari.py:14
+msgid "Atari ST computers emulator"
+msgstr "Atari ST კომპიუტერის ემულატორი"
+
+#: lutris/runners/hatari.py:15 lutris/runners/scummvm.py:214
+msgid "Atari ST"
+msgstr "Atari ST"
+
+#: lutris/runners/hatari.py:25
+msgid "Floppy Disk A"
+msgstr "დისკეტა A"
+
+#: lutris/runners/hatari.py:27 lutris/runners/hatari.py:38
+msgid ""
+"Hatari supports floppy disk images in the following formats: ST, DIM, MSA, "
+"STX, IPF, RAW and CRT. The last three require the caps library (capslib). "
+"ZIP is supported, you don't need to uncompress the file."
+msgstr ""
+
+#: lutris/runners/hatari.py:36
+msgid "Floppy Disk B"
+msgstr "დისკეტა B"
+
+#: lutris/runners/hatari.py:46 lutris/runners/redream.py:79
+#: lutris/runners/zdoom.py:76
+msgid "None"
+msgstr "არაფერი"
+
+#: lutris/runners/hatari.py:46
+msgid "Keyboard"
+msgstr "კლავიატურა"
+
+#: lutris/runners/hatari.py:46 lutris/runners/o2em.py:39
+#: lutris/runners/scummvm.py:267
+msgid "Joystick"
+msgstr "ჯოისტიკი"
+
+#: lutris/runners/hatari.py:52
+msgid "Bios file (TOS)"
+msgstr "Bios-ის ფაილი (TOS)"
+
+#: lutris/runners/hatari.py:54
+msgid ""
+"TOS is the operating system of the Atari ST and is necessary to run "
+"applications with the best fidelity, minimizing risks of issues.\n"
+"TOS 1.02 is recommended for games."
+msgstr ""
+
+#: lutris/runners/hatari.py:71
+msgid "Scale up display by 2 (Atari ST/STE)"
+msgstr ""
+
+#: lutris/runners/hatari.py:73
+msgid "Double the screen size in windowed mode."
+msgstr ""
+
+#: lutris/runners/hatari.py:79
+msgid "Add borders to display"
+msgstr "ეკრანისთვის საზღვრების დამატება"
+
+#: lutris/runners/hatari.py:82
+msgid ""
+"Useful for some games and demos using the overscan technique. The Atari ST "
+"displayed borders around the screen because it was not powerful enough to "
+"display graphics in fullscreen. But people from the demo scene were able to "
+"remove them and some games made use of this technique."
+msgstr ""
+
+#: lutris/runners/hatari.py:94
+msgid "Display status bar"
+msgstr "სტატუსს ზოლის ჩვენება"
+
+#: lutris/runners/hatari.py:97
+msgid ""
+"Displays a status bar with some useful information, like green leds lighting "
+"up when the floppy disks are read."
+msgstr ""
+
+#: lutris/runners/hatari.py:105 lutris/runners/hatari.py:113
+msgid "Joysticks"
+msgstr "ჯოისტიკები"
+
+#: lutris/runners/hatari.py:106
+msgid "Joystick 0"
+msgstr "ჯოისტიკი 0"
+
+#: lutris/runners/hatari.py:114
+msgid "Joystick 1"
+msgstr "ჯოისტიკი 1"
+
+#: lutris/runners/hatari.py:126
+msgid "Do you want to select an Atari ST BIOS file?"
+msgstr "გნებავთ, Atari ST BIOS-ის ფაილი აირჩიოთ?"
+
+#: lutris/runners/hatari.py:127
+msgid "Use BIOS file?"
+msgstr "გამოვიყენო Bios-ის ფაილი?"
+
+#: lutris/runners/hatari.py:128
+msgid "Select a BIOS file"
+msgstr "აირჩეთ BIOS-ის ფაილი"
+
+#: lutris/runners/jzintv.py:11
+msgid "jzIntv"
+msgstr "jzIntv"
+
+#: lutris/runners/jzintv.py:12
+msgid "Intellivision Emulator"
+msgstr "Intellivision-ის ემულატორი"
+
+#: lutris/runners/jzintv.py:13
+msgid "Intellivision"
+msgstr "Intellivision"
+
+#: lutris/runners/jzintv.py:22
+msgid ""
+"The game data, commonly called a ROM image. \n"
+"Supported formats: ROM, BIN+CFG, INT, ITV \n"
+"The file extension must be lower-case."
+msgstr ""
+
+#: lutris/runners/jzintv.py:32
+msgid "Bios location"
+msgstr "BIOS-ის მდებარეობა"
+
+#: lutris/runners/jzintv.py:34
+msgid ""
+"Choose the folder containing the Intellivision BIOS files (exec.bin and grom."
+"bin).\n"
+"These files contain code from the original hardware necessary to the "
+"emulation."
+msgstr ""
+
+#: lutris/runners/jzintv.py:50
+msgid "Resolution"
+msgstr "გარჩევადობა"
+
+#: lutris/runners/libretro.py:68
+msgid "Libretro"
+msgstr "Libretro"
+
+#: lutris/runners/libretro.py:69
+msgid "Multi-system emulator"
+msgstr "მრავალსისტემიანი ემულატორი"
+
+#: lutris/runners/libretro.py:83
+msgid "Core"
+msgstr "ძირითადი ბირთვული მოდულები"
+
+#: lutris/runners/libretro.py:92 lutris/runners/zdoom.py:88
+msgid "Config file"
+msgstr "კონფიგურაციის ფაილი"
+
+#: lutris/runners/libretro.py:104
+msgid "Verbose logging"
+msgstr "ჟურნალში დამატებითი ჩანაწერების ჩართვა"
+
+#: lutris/runners/libretro.py:270
+msgid "No core has been selected for this game"
+msgstr "ამ თამაშისთვის ბირთვი არჩეული არაა"
+
+#: lutris/runners/libretro.py:281
+msgid "No game file specified"
+msgstr "თამაშის ფაილი მითითებული არაა"
+
+#: lutris/runners/linux.py:16
+msgid "Runs native games"
+msgstr "უშვებს არქიტექტურის შესაბამის თამაშებს"
+
+#: lutris/runners/linux.py:25 lutris/runners/wine.py:170
+msgid "Executable"
+msgstr "გამშვები ფაილები"
+
+#: lutris/runners/linux.py:26
+msgid "The game's main executable file"
+msgstr "თამაშის მთავარ გამშვები ფაილი"
+
+#: lutris/runners/linux.py:31 lutris/runners/mame.py:125
+#: lutris/runners/scummvm.py:67 lutris/runners/steam.py:48
+#: lutris/runners/steam.py:100 lutris/runners/wine.py:176
+#: lutris/runners/zdoom.py:28
+msgid "Arguments"
+msgstr "არგუმენტები"
+
+#: lutris/runners/linux.py:32 lutris/runners/mame.py:126
+#: lutris/runners/scummvm.py:68
+msgid "Command line arguments used when launching the game"
+msgstr "თამაშის გაშვებისას გამოყენებული ბრძანების სტრიქონის არგუმენტები"
+
+#: lutris/runners/linux.py:50
+msgid "Preload library"
+msgstr "ბიბლიოთეკის წინასწარი ჩატვირთვა"
+
+#: lutris/runners/linux.py:52
+msgid "A library to load before running the game's executable."
+msgstr ""
+
+#: lutris/runners/linux.py:60
+msgid "Add directory to LD_LIBRARY_PATH"
+msgstr "საქაღალდის დამატება LD_LIBRARY_PATH-სთვის"
+
+#: lutris/runners/linux.py:64
+msgid ""
+"A directory where libraries should be searched for first, before the "
+"standard set of directories; this is useful when debugging a new library or "
+"using a nonstandard library for special purposes."
+msgstr ""
+
+#: lutris/runners/linux.py:138
+msgid ""
+"The runner could not find a command or exe to use for this configuration."
+msgstr ""
+
+#: lutris/runners/mame.py:65 lutris/services/mame.py:11
+msgid "MAME"
+msgstr "MAME"
+
+#: lutris/runners/mame.py:66
+msgid "Arcade game emulator"
+msgstr "არკადის თამაშის ემულატორი"
+
+#: lutris/runners/mame.py:86 lutris/runners/mednafen.py:67
+msgid "The emulated machine."
+msgstr "ემულირებული მანქანა."
+
+#: lutris/runners/mame.py:91
+msgid "Storage type"
+msgstr "საცავის ტიპი"
+
+#: lutris/runners/mame.py:93
+msgid "Floppy disk"
+msgstr "დისკეტა"
+
+#: lutris/runners/mame.py:94
+msgid "Floppy drive 1"
+msgstr "დისკეტის ამძრავი 1"
+
+#: lutris/runners/mame.py:95
+msgid "Floppy drive 2"
+msgstr "დისკეტის ამძრავი 2"
+
+#: lutris/runners/mame.py:96
+msgid "Floppy drive 3"
+msgstr "დისკეტის ამძრავი 3"
+
+#: lutris/runners/mame.py:97
+msgid "Floppy drive 4"
+msgstr "დისკეტის ამძრავი 4"
+
+#: lutris/runners/mame.py:98
+msgid "Cassette (tape)"
+msgstr "კასეტა (მაგნიტური ლენტი)"
+
+#: lutris/runners/mame.py:99
+msgid "Cassette 1 (tape)"
+msgstr "კასეტა 1 (მაგნიტური ლენტი)"
+
+#: lutris/runners/mame.py:100
+msgid "Cassette 2 (tape)"
+msgstr "კასეტა 2 (მაგნიტური ლენტი)"
+
+#: lutris/runners/mame.py:101
+msgid "Cartridge"
+msgstr "კარტრიჯი"
+
+#: lutris/runners/mame.py:102
+msgid "Cartridge 1"
+msgstr "კარტრიჯი 1"
+
+#: lutris/runners/mame.py:103
+msgid "Cartridge 2"
+msgstr "კარტრიჯი 2"
+
+#: lutris/runners/mame.py:104
+msgid "Cartridge 3"
+msgstr "კარტრიჯი 3"
+
+#: lutris/runners/mame.py:105
+msgid "Cartridge 4"
+msgstr "კარტრიჯი 4"
+
+#: lutris/runners/mame.py:106 lutris/runners/mame.py:113
+msgid "Snapshot"
+msgstr "სწრაფი ასლი"
+
+#: lutris/runners/mame.py:107
+msgid "Hard Disk"
+msgstr "მყარი დისკი"
+
+#: lutris/runners/mame.py:108
+msgid "Hard Disk 1"
+msgstr "მყარი დისკი 1"
+
+#: lutris/runners/mame.py:109
+msgid "Hard Disk 2"
+msgstr "მყარი დისკი 2"
+
+#: lutris/runners/mame.py:110
+msgid "CD-ROM"
+msgstr "CD-ROM"
+
+#: lutris/runners/mame.py:111
+msgid "CD-ROM 1"
+msgstr "CD-ROM 1"
+
+#: lutris/runners/mame.py:112
+msgid "CD-ROM 2"
+msgstr "CD-ROM 2"
+
+#: lutris/runners/mame.py:114
+msgid "Quickload"
+msgstr "სწრაფიჩატვირთვა"
+
+#: lutris/runners/mame.py:115
+msgid "Memory Card"
+msgstr "მეხსიერების ბარათი"
+
+#: lutris/runners/mame.py:116
+msgid "Cylinder"
+msgstr "ცილინდრი"
+
+#: lutris/runners/mame.py:117
+msgid "Punch Tape 1"
+msgstr "დაჩხვლეტილი ლენტა 1"
+
+#: lutris/runners/mame.py:118
+msgid "Punch Tape 2"
+msgstr "დაჩხვლეტილი ლენტა 2"
+
+#: lutris/runners/mame.py:119
+msgid "Print Out"
+msgstr "გამობეჭდვა"
+
+#: lutris/runners/mame.py:131 lutris/runners/mame.py:139
+msgid "Autoboot"
+msgstr "ავტოჩატვირთვა"
+
+#: lutris/runners/mame.py:132
+msgid "Autoboot command"
+msgstr "ავტოჩატვირთვის ბრძანება"
+
+#: lutris/runners/mame.py:133
+msgid ""
+"Autotype this command when the system has started, an enter keypress is "
+"automatically added."
+msgstr ""
+
+#: lutris/runners/mame.py:140
+msgid "Delay before entering autoboot command"
+msgstr ""
+
+#: lutris/runners/mame.py:150
+msgid "ROM/BIOS path"
+msgstr "ROM/BIOS-ის ბილიკი"
+
+#: lutris/runners/mame.py:152
+msgid ""
+"Choose the folder containing ROMs and BIOS files.\n"
+"These files contain code from the original hardware necessary to the "
+"emulation."
+msgstr ""
+
+#: lutris/runners/mame.py:168
+msgid "CRT effect ()"
+msgstr "CRT ეფექტი ()"
+
+#: lutris/runners/mame.py:169
+msgid "Applies a CRT effect to the screen.Requires OpenGL renderer."
+msgstr ""
+
+#: lutris/runners/mame.py:177
+msgid "Video backend"
+msgstr "ვიდეო უკანაბოლო"
+
+#: lutris/runners/mame.py:183 lutris/runners/scummvm.py:189
+#: lutris/runners/vice.py:81
+msgid "Software"
+msgstr "პროგრამები"
+
+#: lutris/runners/mame.py:191
+msgid "Wait for VSync"
+msgstr "VSync-ის დალოდება"
+
+#: lutris/runners/mame.py:193
+msgid ""
+"Enable waiting for  the  start  of  vblank  before flipping  screens; "
+"reduces tearing effects."
+msgstr ""
+
+#: lutris/runners/mame.py:201
+msgid "Menu mode key"
+msgstr "მენიუს რეჟიმის ღილაკი"
+
+#: lutris/runners/mame.py:203
+msgid "Scroll Lock"
+msgstr "Scroll Lock"
+
+#: lutris/runners/mame.py:204
+msgid "Num Lock"
+msgstr "Num Lock"
+
+#: lutris/runners/mame.py:205
+msgid "Caps Lock"
+msgstr "Caps Lock"
+
+#: lutris/runners/mame.py:206
+msgid "Menu"
+msgstr "მენიუ"
+
+#: lutris/runners/mame.py:207
+msgid "Right Control"
+msgstr "მარჯვენა Ctrl"
+
+#: lutris/runners/mame.py:208
+msgid "Left Control"
+msgstr "მარცხენა Ctrl"
+
+#: lutris/runners/mame.py:209
+msgid "Right Alt"
+msgstr "მარჯვენა Alt"
+
+#: lutris/runners/mame.py:210
+msgid "Left Alt"
+msgstr "მარცხენა Alt"
+
+#: lutris/runners/mame.py:211
+msgid "Right Super"
+msgstr "მარჯვენა Super"
+
+#: lutris/runners/mame.py:212
+msgid "Left Super"
+msgstr "მარცხენა Super"
+
+#: lutris/runners/mame.py:216
+msgid ""
+"Key to switch between Full Keyboard Mode and Partial Keyboard Mode (default: "
+"Scroll Lock)"
+msgstr ""
+
+#: lutris/runners/mame.py:230 lutris/runners/mame.py:274
+msgid "Arcade"
+msgstr "არკადა"
+
+#: lutris/runners/mame.py:230 lutris/runners/mame.py:273
+msgid "Nintendo Game & Watch"
+msgstr "Nintendo Game & Watch"
+
+#: lutris/runners/mednafen.py:16
+msgid "Mednafen"
+msgstr "Mednafen"
+
+#: lutris/runners/mednafen.py:17
+msgid "Multi-system emulator: NES, PC Engine, PSX…"
+msgstr "მრავალსისტემიანი ემულატორი: NES, PC Engine, PSX…"
+
+#: lutris/runners/mednafen.py:19
+msgid "Nintendo Game Boy (Color)"
+msgstr "Nintendo Game Boy (ფერადი)"
+
+#: lutris/runners/mednafen.py:20
+msgid "Nintendo Game Boy Advance"
+msgstr "Nintendo Game Boy Advance"
+
+#: lutris/runners/mednafen.py:21
+msgid "Sega Game Gear"
+msgstr "Sega Game Gear"
+
+#: lutris/runners/mednafen.py:22
+msgid "Sega Genesis/Mega Drive"
+msgstr "Sega Genesis/Mega Drive"
+
+#: lutris/runners/mednafen.py:23
+msgid "Atari Lynx"
+msgstr "Atari Lynx"
+
+#: lutris/runners/mednafen.py:24 lutris/runners/osmose.py:12
+msgid "Sega Master System"
+msgstr "Sega Master System"
+
+#: lutris/runners/mednafen.py:25
+msgid "SNK Neo Geo Pocket (Color)"
+msgstr "SNK Neo Geo Pocket (ფერადი)"
+
+#: lutris/runners/mednafen.py:26
+msgid "Nintendo NES"
+msgstr "Nintendo NES"
+
+#: lutris/runners/mednafen.py:27
+msgid "NEC PC Engine TurboGrafx-16"
+msgstr "NEC PC Engine TurboGrafx-16"
+
+#: lutris/runners/mednafen.py:28
+msgid "NEC PC-FX"
+msgstr "NEC PC-FX"
+
+#: lutris/runners/mednafen.py:29
+msgid "Sony PlayStation"
+msgstr "Sony PlayStation"
+
+#: lutris/runners/mednafen.py:30
+msgid "Sega Saturn"
+msgstr "Sega Saturn"
+
+#: lutris/runners/mednafen.py:31 lutris/runners/snes9x.py:19
+msgid "Nintendo SNES"
+msgstr "Nintendo SNES"
+
+#: lutris/runners/mednafen.py:32
+msgid "Bandai WonderSwan"
+msgstr "Bandai WonderSwan"
+
+#: lutris/runners/mednafen.py:33
+msgid "Nintendo Virtual Boy"
+msgstr "Nintendo Virtual Boy"
+
+#: lutris/runners/mednafen.py:36
+msgid "Game Boy (Color)"
+msgstr "Game Boy (ფერადი)"
+
+#: lutris/runners/mednafen.py:37
+msgid "Game Boy Advance"
+msgstr "Game Boy Advance"
+
+#: lutris/runners/mednafen.py:38
+msgid "Game Gear"
+msgstr "Game Gear"
+
+#: lutris/runners/mednafen.py:39
+msgid "Genesis/Mega Drive"
+msgstr "Genesis/Mega Drive"
+
+#: lutris/runners/mednafen.py:40
+msgid "Lynx"
+msgstr "ფოცხვერი"
+
+#: lutris/runners/mednafen.py:41
+msgid "Master System"
+msgstr "Master System"
+
+#: lutris/runners/mednafen.py:42
+msgid "Neo Geo Pocket (Color)"
+msgstr "Neo Geo Pocket (ფერადი)"
+
+#: lutris/runners/mednafen.py:43
+msgid "NES"
+msgstr "NES"
+
+#: lutris/runners/mednafen.py:44
+msgid "PC Engine"
+msgstr "PC Engine"
+
+#: lutris/runners/mednafen.py:45
+msgid "PC-FX"
+msgstr "PC-FX"
+
+#: lutris/runners/mednafen.py:46
+msgid "PlayStation"
+msgstr "PlayStation"
+
+#: lutris/runners/mednafen.py:47
+msgid "Saturn"
+msgstr "სატურნი"
+
+#: lutris/runners/mednafen.py:48
+msgid "SNES"
+msgstr "SNES"
+
+#: lutris/runners/mednafen.py:49
+msgid "WonderSwan"
+msgstr "WonderSwan"
+
+#: lutris/runners/mednafen.py:50
+msgid "Virtual Boy"
+msgstr "Virtual Boy"
+
+#: lutris/runners/mednafen.py:59
+msgid ""
+"The game data, commonly called a ROM image. \n"
+"Mednafen supports GZIP and ZIP compressed ROMs."
+msgstr ""
+
+#: lutris/runners/mednafen.py:65
+msgid "Machine type"
+msgstr "მანქანის ტიპი"
+
+#: lutris/runners/mednafen.py:82
+msgid "Aspect ratio"
+msgstr "ფარდობა"
+
+#: lutris/runners/mednafen.py:85
+msgid "Stretched"
+msgstr "გაწელილია"
+
+#: lutris/runners/mednafen.py:86 lutris/runners/vice.py:73
+msgid "Preserve aspect ratio"
+msgstr "პროპორციების შენარჩუნება"
+
+#: lutris/runners/mednafen.py:87
+msgid "Integer scale"
+msgstr "მთელრიცხვიანი მასშტაბი"
+
+#: lutris/runners/mednafen.py:88
+msgid "Multiple of 2 scale"
+msgstr "ორის ნამრავლით მასშტაბი"
+
+#: lutris/runners/mednafen.py:96
+msgid "Video scaler"
+msgstr "ვიდეოს მასშტაბი"
+
+#: lutris/runners/mednafen.py:120
+msgid "Sound device"
+msgstr "ხმის მოწყობილობა"
+
+#: lutris/runners/mednafen.py:122
+msgid "Mednafen default"
+msgstr "Mednafen-ის ნაგულისხმევი"
+
+#: lutris/runners/mednafen.py:123
+msgid "ALSA default"
+msgstr "ALSA-ის ნაგულისხმევი"
+
+#: lutris/runners/mednafen.py:133
+msgid "Use default Mednafen controller configuration"
+msgstr ""
+
+#: lutris/runners/mupen64plus.py:12
+msgid "Mupen64Plus"
+msgstr "Mupen64Plus"
+
+#: lutris/runners/mupen64plus.py:13
+msgid "Nintendo 64 emulator"
+msgstr "Nintendo 64-ის ემულატორი"
+
+#: lutris/runners/mupen64plus.py:14
+msgid "Nintendo 64"
+msgstr "Nintendo 64"
+
+#: lutris/runners/mupen64plus.py:21 lutris/runners/o2em.py:47
+#: lutris/runners/openmsx.py:19 lutris/runners/ryujinx.py:25
+#: lutris/runners/snes9x.py:29 lutris/runners/yuzu.py:23
+msgid "The game data, commonly called a ROM image."
+msgstr ""
+
+#: lutris/runners/mupen64plus.py:34
+msgid "Hide OSD"
+msgstr "OSD-ის დამალვა"
+
+#: lutris/runners/o2em.py:11
+msgid "O2EM"
+msgstr "O2EM"
+
+#: lutris/runners/o2em.py:12
+msgid "Magnavox Odyssey² Emulator"
+msgstr "Magnavox Odyssey²-ის ემულატორი"
+
+#: lutris/runners/o2em.py:14 lutris/runners/o2em.py:30
+msgid "Magnavox Odyssey²"
+msgstr "Magnavox Odyssey²"
+
+#: lutris/runners/o2em.py:15 lutris/runners/o2em.py:31
+msgid "Phillips C52"
+msgstr "Phillips C52"
+
+#: lutris/runners/o2em.py:16 lutris/runners/o2em.py:32
+msgid "Phillips Videopac+"
+msgstr "Phillips Videopac+"
+
+#: lutris/runners/o2em.py:17 lutris/runners/o2em.py:33
+msgid "Brandt Jopac"
+msgstr "Brandt Jopac"
+
+#: lutris/runners/o2em.py:36 lutris/runners/wine.py:501
+msgid "Disable"
+msgstr "გამორთვა"
+
+#: lutris/runners/o2em.py:37
+msgid "Arrow Keys and Right Shift"
+msgstr "ისრის ღილაკები და მარჯვენა Shift"
+
+#: lutris/runners/o2em.py:38
+msgid "W,S,A,D,SPACE"
+msgstr "W,S,A,D,SPACE"
+
+#: lutris/runners/o2em.py:55
+msgid "BIOS"
+msgstr "BIOS"
+
+#: lutris/runners/o2em.py:62 lutris/runners/o2em.py:70
+msgid "Controllers"
+msgstr "კონტროლერები"
+
+#: lutris/runners/o2em.py:63
+msgid "First controller"
+msgstr "პირველი კონტროლერი"
+
+#: lutris/runners/o2em.py:71
+msgid "Second controller"
+msgstr "მეორე კონტროლერი"
+
+#: lutris/runners/openmsx.py:10
+msgid "openMSX"
+msgstr "openMSX"
+
+#: lutris/runners/openmsx.py:11
+msgid "MSX computer emulator"
+msgstr "MSX კომპიუტერის ემულატორი"
+
+#: lutris/runners/openmsx.py:12
+msgid "MSX, MSX2, MSX2+, MSX turboR"
+msgstr "MSX, MSX2, MSX2+, MSX turboR"
+
+#: lutris/runners/osmose.py:10
+msgid "Osmose"
+msgstr "Osmose"
+
+#: lutris/runners/osmose.py:11
+msgid "Sega Master System Emulator"
+msgstr "Sega Master სისტემის ემულატორი"
+
+#: lutris/runners/osmose.py:25
+msgid ""
+"The game data, commonly called a ROM image.\n"
+"Supported formats: SMS and GG files. ZIP compressed ROMs are supported."
+msgstr ""
+
+#: lutris/runners/pcsx2.py:10
+msgid "PCSX2"
+msgstr "PCSX2"
+
+#: lutris/runners/pcsx2.py:11
+msgid "PlayStation 2 emulator"
+msgstr "PlayStation 2-ის ემულატორი"
+
+#: lutris/runners/pcsx2.py:12
+msgid "Sony PlayStation 2"
+msgstr "Sony PlayStation 2"
+
+#: lutris/runners/pcsx2.py:33
+msgid "Fullboot"
+msgstr "სრული ჩატვირთვა"
+
+#: lutris/runners/pcsx2.py:39 lutris/runners/rpcs3.py:24
+msgid "No GUI"
+msgstr "ინტერფეისის გარეშე"
+
+#: lutris/runners/pico8.py:19
+msgid "Runs PICO-8 fantasy console cartridges"
+msgstr ""
+
+#: lutris/runners/pico8.py:21 lutris/runners/pico8.py:22
+msgid "PICO-8"
+msgstr "PICO-8"
+
+#: lutris/runners/pico8.py:27
+msgid "Cartridge file/URL/ID"
+msgstr "კატრიჯის ფაილი/URL/ID"
+
+#: lutris/runners/pico8.py:28
+msgid "You can put a .p8.png file path, URL, or BBS cartridge ID here."
+msgstr ""
+
+#: lutris/runners/pico8.py:39
+msgid "Launch in fullscreen."
+msgstr "სრულ ეკრანზე გაშვება."
+
+#: lutris/runners/pico8.py:44 lutris/runners/web.py:45
+msgid "Window size"
+msgstr "ფანჯრის ზომა"
+
+#: lutris/runners/pico8.py:47
+msgid "The initial size of the game window."
+msgstr "თამაშის ფანჯრის საწყისი ზომა."
+
+#: lutris/runners/pico8.py:52
+msgid "Start in splore mode"
+msgstr "გაშვება რეჟიმში splore"
+
+#: lutris/runners/pico8.py:58
+msgid "Extra arguments"
+msgstr "დამატებითი არგუმენტები"
+
+#: lutris/runners/pico8.py:60
+msgid "Extra arguments to the executable"
+msgstr "გამშვები ფაილის დამატებითი არგუმენტები"
+
+#: lutris/runners/pico8.py:66
+msgid "Engine (web only)"
+msgstr "ძრავა (მხოლოდ, ვები)"
+
+#: lutris/runners/pico8.py:68
+msgid "Name of engine (will be downloaded) or local file path"
+msgstr ""
+
+#: lutris/runners/redream.py:10
+msgid "Redream"
+msgstr "Redream"
+
+#: lutris/runners/redream.py:11 lutris/runners/reicast.py:17
+msgid "Sega Dreamcast emulator"
+msgstr "Sega Dreamcast-ის ემულატორი"
+
+#: lutris/runners/redream.py:12 lutris/runners/reicast.py:18
+msgid "Sega Dreamcast"
+msgstr "Sega Dreamcast"
+
+#: lutris/runners/redream.py:19 lutris/runners/reicast.py:28
+msgid "Disc image file"
+msgstr "დისკის ასლის ფაილი"
+
+#: lutris/runners/redream.py:20
+msgid ""
+"Game data file\n"
+"Supported formats: GDI, CDI, CHD"
+msgstr ""
+"თამაშის მონაცემების ფაილი\n"
+"მხარდაჭერილი ფორმატებია: GDI, CDI, CHD"
+
+#: lutris/runners/redream.py:34
+msgid "Aspect Ratio"
+msgstr "თანაფარდობა"
+
+#: lutris/runners/redream.py:35
+msgid "4:3"
+msgstr "4:3"
+
+#: lutris/runners/redream.py:41
+msgid "Region"
+msgstr "რეგიონი"
+
+#: lutris/runners/redream.py:42
+msgid "USA"
+msgstr "აშშ"
+
+#: lutris/runners/redream.py:42
+msgid "Europe"
+msgstr "ევროპა"
+
+#: lutris/runners/redream.py:42
+msgid "Japan"
+msgstr "იაპონია"
+
+#: lutris/runners/redream.py:48
+msgid "System Language"
+msgstr "სისტემის ენა"
+
+#: lutris/runners/redream.py:50
+msgid "English"
+msgstr "ინგლისური"
+
+#: lutris/runners/redream.py:51
+msgid "German"
+msgstr "გერმანული"
+
+#: lutris/runners/redream.py:52
+msgid "French"
+msgstr "ფრანგული"
+
+#: lutris/runners/redream.py:53
+msgid "Spanish"
+msgstr "ესპანური"
+
+#: lutris/runners/redream.py:54
+msgid "Italian"
+msgstr "იტალიური"
+
+#: lutris/runners/redream.py:64
+msgid "NTSC"
+msgstr "NTSC"
+
+#: lutris/runners/redream.py:65
+msgid "PAL"
+msgstr "PAL"
+
+#: lutris/runners/redream.py:66
+msgid "PAL-M (Brazil)"
+msgstr "PAL-M (ბრაზილია)"
+
+#: lutris/runners/redream.py:67
+msgid "PAL-N (Argentina, Paraguay, Uruguay)"
+msgstr "PAL-N (არგენტინა, პარაგვაი, ურუგვაი)"
+
+#: lutris/runners/redream.py:74
+msgid "Time Sync"
+msgstr "დროის სინქრონიზაცია"
+
+#: lutris/runners/redream.py:76
+msgid "Audio and video"
+msgstr "აუდიო და ვიდეო"
+
+#: lutris/runners/redream.py:78
+msgid "Video"
+msgstr "ვიდეო"
+
+#: lutris/runners/redream.py:87
+msgid "Internal Video Resolution Scale"
+msgstr "შიდა ვიდეოს გაფართოების მასშტაბი"
+
+#: lutris/runners/redream.py:100
+msgid "Only available in premium version."
+msgstr "მხოლოდ, ხელმისაწვდომია ფასიან ვერსიაში."
+
+#: lutris/runners/redream.py:107
+msgid "Do you want to select a premium license file?"
+msgstr "გნებავთ, აირჩიოთ ფასიანი ვერსიის ლიცენზიის ფაილი?"
+
+#: lutris/runners/redream.py:108 lutris/runners/redream.py:109
+msgid "Use premium version?"
+msgstr "გამოვიყენო პრემიუმ-ვერსია?"
+
+#: lutris/runners/reicast.py:16
+msgid "Reicast"
+msgstr "Reicast"
+
+#: lutris/runners/reicast.py:29
+msgid ""
+"The game data.\n"
+"Supported formats: ISO, CDI"
+msgstr ""
+"თამაშის მონაცემები.\n"
+"მხარდაჭერილი ფორმატებია: ISO, CDI"
+
+#: lutris/runners/reicast.py:47 lutris/runners/reicast.py:55
+#: lutris/runners/reicast.py:63 lutris/runners/reicast.py:71
+msgid "Gamepads"
+msgstr "გეიმპადები"
+
+#: lutris/runners/reicast.py:48
+msgid "Gamepad 1"
+msgstr "გეიმპადი 1"
+
+#: lutris/runners/reicast.py:56
+msgid "Gamepad 2"
+msgstr "გეიმპადი 2"
+
+#: lutris/runners/reicast.py:64
+msgid "Gamepad 3"
+msgstr "გეიმპადი 3"
+
+#: lutris/runners/reicast.py:72
+msgid "Gamepad 4"
+msgstr "გეიმპადი 4"
+
+#: lutris/runners/rpcs3.py:10
+msgid "RPCS3"
+msgstr "RPCS3"
+
+#: lutris/runners/rpcs3.py:11
+msgid "PlayStation 3 emulator"
+msgstr "PlayStation 3-ის ემულატორი"
+
+#: lutris/runners/rpcs3.py:12
+msgid "Sony PlayStation 3"
+msgstr "Sony PlayStation 3"
+
+#: lutris/runners/rpcs3.py:21
+msgid "Path to EBOOT.BIN"
+msgstr "ბილიკი EBOOT.BIN-მდე"
+
+#: lutris/runners/runner.py:158
+msgid "Custom executable for the runner"
+msgstr "მომხმარებლის გამშვები ფაილი გამშვებისთვის"
+
+#. The 'file' sort of gameplay_info cannot be made to use a configuration
+#: lutris/runners/runner.py:281
+msgid "The runner could not find a command to apply the configuration to."
+msgstr ""
+
+#: lutris/runners/runner.py:397
+msgid ""
+"The required runner is not installed.\n"
+"Do you wish to install it now?"
+msgstr ""
+
+#: lutris/runners/runner.py:399
+msgid "Required runner unavailable"
+msgstr "აუცილებელი გამშვები ხელმისაწვდომი არაა"
+
+#: lutris/runners/runner.py:435
+msgid "Failed to retrieve {} ({}) information"
+msgstr "{}-ის ({}) ინფორმაციის მიღება ჩავარდა"
+
+#: lutris/runners/runner.py:462
+msgid "Failed to extract {}"
+msgstr "{}-ის გაშლა ჩავარდა"
+
+#: lutris/runners/runner.py:467
+msgid "Failed to extract {}: {}"
+msgstr "{}-ის გაშლა ჩავარდა: {}"
+
+#: lutris/runners/ryujinx.py:12
+msgid "Ryujinx"
+msgstr "Ryujinx"
+
+#: lutris/runners/ryujinx.py:13 lutris/runners/yuzu.py:13
+msgid "Nintendo Switch"
+msgstr "Nintendo Switch"
+
+#: lutris/runners/ryujinx.py:14 lutris/runners/yuzu.py:14
+msgid "Nintendo Switch emulator"
+msgstr "Nintendo Switch-ის ემულატორი"
+
+#: lutris/runners/ryujinx.py:24
+msgid "NSP file"
+msgstr "NSP ფაილი"
+
+#: lutris/runners/ryujinx.py:31 lutris/runners/yuzu.py:29
+msgid "Encryption keys"
+msgstr "დაშიფვრის გასაღებები"
+
+#: lutris/runners/ryujinx.py:33 lutris/runners/yuzu.py:31
+msgid "File containing the encryption keys."
+msgstr "ფაილი, რომელიც დაშიფვრის გასაღებებს შეიცავს."
+
+#: lutris/runners/ryujinx.py:36 lutris/runners/yuzu.py:34
+msgid "Title keys"
+msgstr "სათაურის გასაღებები"
+
+#: lutris/runners/ryujinx.py:38 lutris/runners/yuzu.py:36
+msgid "File containing the title keys."
+msgstr "ფაილი, რომელიც სათაურის გასაღებებს შეიცავს."
+
+#: lutris/runners/scummvm.py:28
+msgid "<b>Warning</b> Scalers may not work with OpenGL rendering."
+msgstr ""
+
+#: lutris/runners/scummvm.py:40
+#, python-format
+msgid "<b>Warning</b> The '%s' scaler does not work with a scale factor of %s."
+msgstr ""
+
+#: lutris/runners/scummvm.py:47
+msgid "Engine for point-and-click games."
+msgstr ""
+
+#: lutris/runners/scummvm.py:48 lutris/services/scummvm.py:30
+msgid "ScummVM"
+msgstr "ScummVM"
+
+#: lutris/runners/scummvm.py:57
+msgid "Game identifier"
+msgstr "თამაშის იდენტიფიკატორი"
+
+#: lutris/runners/scummvm.py:62
+msgid "Game files location"
+msgstr "თამაშის ფაილების მდებარეობა"
+
+#: lutris/runners/scummvm.py:122
+msgid "Enable subtitles"
+msgstr "სუბტიტრების ჩართვა"
+
+#: lutris/runners/scummvm.py:130
+msgid "Aspect ratio correction"
+msgstr "გვერდების ფარდობის შესწორება"
+
+#: lutris/runners/scummvm.py:134
+msgid ""
+"Most games supported by ScummVM were made for VGA display modes using "
+"rectangular pixels. Activating this option for these games will preserve the "
+"4:3 aspect ratio they were made for."
+msgstr ""
+
+#: lutris/runners/scummvm.py:166
+msgid "Scale factor"
+msgstr "გადიდების ფაქტორი"
+
+#: lutris/runners/scummvm.py:177
+msgid ""
+"Changes the resolution of the game. For example, a 2x scale will take a "
+"320x200 resolution game and scale it up to 640x400. "
+msgstr ""
+
+#: lutris/runners/scummvm.py:185
+msgid "Renderer"
+msgstr "რენდერერი"
+
+#: lutris/runners/scummvm.py:190
+msgid "OpenGL"
+msgstr "OpenGL"
+
+#: lutris/runners/scummvm.py:191
+msgid "OpenGL (with shaders)"
+msgstr "OpenGL (შეიდერებით)"
+
+#: lutris/runners/scummvm.py:195
+msgid "Changes the rendering method used for 3D games."
+msgstr ""
+
+#: lutris/runners/scummvm.py:200
+msgid "Render mode"
+msgstr "რენდერის რეჟიმი"
+
+#: lutris/runners/scummvm.py:204
+msgid "Hercules (Green)"
+msgstr "Hercules (მწვანე)"
+
+#: lutris/runners/scummvm.py:205
+msgid "Hercules (Amber)"
+msgstr "Hercules (ქარვისფერი)"
+
+#: lutris/runners/scummvm.py:206
+msgid "CGA"
+msgstr "CGA"
+
+#: lutris/runners/scummvm.py:207
+msgid "EGA"
+msgstr "EGA"
+
+#: lutris/runners/scummvm.py:208
+msgid "VGA"
+msgstr "VGA"
+
+#: lutris/runners/scummvm.py:209
+msgid "Amiga"
+msgstr "Amiga"
+
+#: lutris/runners/scummvm.py:210
+msgid "FM Towns"
+msgstr "FM Towns"
+
+#: lutris/runners/scummvm.py:211
+msgid "PC-9821"
+msgstr "PC-9821"
+
+#: lutris/runners/scummvm.py:212
+msgid "PC-9801"
+msgstr "PC-9801"
+
+#: lutris/runners/scummvm.py:213
+msgid "Apple IIgs"
+msgstr "Apple IIgs"
+
+#: lutris/runners/scummvm.py:215
+msgid "Macintosh"
+msgstr "Macintosh"
+
+#: lutris/runners/scummvm.py:219
+msgid ""
+"Changes the graphics hardware the game will target, if the game supports "
+"this."
+msgstr ""
+
+#: lutris/runners/scummvm.py:224
+msgid "Stretch mode"
+msgstr "გაწელვის რეჟიმი"
+
+#: lutris/runners/scummvm.py:228
+msgid "Center"
+msgstr "ცენტრი"
+
+#: lutris/runners/scummvm.py:229
+msgid "Pixel Perfect"
+msgstr "Pixel Perfect"
+
+#: lutris/runners/scummvm.py:230
+msgid "Even Pixels"
+msgstr "Even Pixels"
+
+#: lutris/runners/scummvm.py:232
+msgid "Fit"
+msgstr "ჩატევა"
+
+#: lutris/runners/scummvm.py:233
+msgid "Fit (force aspect ratio)"
+msgstr "ჩატევა (ნაძალადევი ფარდობა)"
+
+#: lutris/runners/scummvm.py:237
+msgid "Changes how the game is placed when the window is resized."
+msgstr ""
+
+#: lutris/runners/scummvm.py:242
+msgid "Filtering"
+msgstr "გაფილტვრა"
+
+#: lutris/runners/scummvm.py:244
+msgid ""
+"Uses bilinear interpolation instead of nearest neighbor resampling for the "
+"aspect ratio correction and stretch mode."
+msgstr ""
+
+#: lutris/runners/scummvm.py:251
+msgid "Data directory"
+msgstr "მონაცემების ლექსიკონი"
+
+#: lutris/runners/scummvm.py:253
+msgid "Defaults to share/scummvm if unspecified."
+msgstr ""
+
+#: lutris/runners/scummvm.py:260
+msgid ""
+"Specifes platform of game. Allowed values: 2gs, 3do, acorn, amiga, atari, "
+"c64, fmtowns, nes, mac, pc pc98, pce, segacd, wii, windows"
+msgstr ""
+
+#: lutris/runners/scummvm.py:268
+msgid "Enables joystick input (default: 0 = first joystick)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:275
+msgid ""
+"Selects language (en, de, fr, it, pt, es, jp, zh, kr, se, gb, hb, ru, cz)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:281
+msgid "Engine speed"
+msgstr "ძრავის სიჩქარე"
+
+#: lutris/runners/scummvm.py:282
+msgid ""
+"Sets frames per second limit (0 - 100) for Grim Fandango or Escape from "
+"Monkey Island (default: 60)."
+msgstr ""
+
+#: lutris/runners/scummvm.py:289
+msgid "Talk speed"
+msgstr "საუბრის სიჩქარე"
+
+#: lutris/runners/scummvm.py:290
+msgid "Sets talk speed for games (default: 60)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:297
+msgid "Music tempo"
+msgstr "მუსიკის ტემპი"
+
+#: lutris/runners/scummvm.py:298
+msgid "Sets music tempo (in percent, 50-200) for SCUMM games (default: 100)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:305
+msgid "Digital iMuse tempo"
+msgstr ""
+
+#: lutris/runners/scummvm.py:306
+msgid "Sets internal Digital iMuse tempo (10 - 100) per second (default: 10)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:312
+msgid "Music driver"
+msgstr "მუსიკის დრაივერი"
+
+#: lutris/runners/scummvm.py:328
+msgid "Specifies the device ScummVM uses to output audio."
+msgstr ""
+
+#: lutris/runners/scummvm.py:334
+msgid "Output rate"
+msgstr "გამოტანის სიჩქარე"
+
+#: lutris/runners/scummvm.py:341
+msgid "Selects output sample rate in Hz."
+msgstr ""
+
+#: lutris/runners/scummvm.py:347
+msgid "OPL driver"
+msgstr "OPL დრაივერი"
+
+#: lutris/runners/scummvm.py:359
+msgid ""
+"Chooses which emulator is used by ScummVM when the AdLib emulator is chosen "
+"as the Preferred device."
+msgstr ""
+
+#: lutris/runners/scummvm.py:367
+msgid "Music volume"
+msgstr "მუსიკის ხმა"
+
+#: lutris/runners/scummvm.py:368
+msgid "Sets the music volume, 0-255 (default: 192)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:376
+msgid "Sets the sfx volume, 0-255 (default: 192)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:383
+msgid "Speech volume"
+msgstr "საუბრის ხმა"
+
+#: lutris/runners/scummvm.py:384
+msgid "Sets the speech volume, 0-255 (default: 192)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:391
+msgid "MIDI gain"
+msgstr "MIDI-ის გაძლიერება"
+
+#: lutris/runners/scummvm.py:392
+msgid "Sets the gain for MIDI playback. 0-1000 (default: 100)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:400
+msgid "Specifies the path to a soundfont file."
+msgstr ""
+
+#: lutris/runners/scummvm.py:406
+msgid "Mixed AdLib/MIDI mode"
+msgstr "შერეული AdLib/MIDI რეჟიმი"
+
+#: lutris/runners/scummvm.py:409
+msgid "Combines MIDI music with AdLib sound effects."
+msgstr "MIDI მუსიკის კომბინაცია AdLib-ის ხმის ეფექტებით."
+
+#: lutris/runners/scummvm.py:415
+msgid "True Roland MT-32"
+msgstr "ნამდვილი Roland MT-32"
+
+#: lutris/runners/scummvm.py:418
+msgid ""
+"Tells ScummVM that the MIDI device is an actual Roland MT-32, LAPC-I, CM-64, "
+"CM-32L, CM-500 or other MT-32 device."
+msgstr ""
+
+#: lutris/runners/scummvm.py:425
+msgid "Enable Roland GS"
+msgstr "Roland GS-ის ჩართვა"
+
+#: lutris/runners/scummvm.py:428
+msgid ""
+"Tells ScummVM that the MIDI device is a GS device that has an MT-32 map, "
+"such as an SC-55, SC-88 or SC-8820."
+msgstr ""
+
+#: lutris/runners/scummvm.py:435
+msgid "Use alternate intro"
+msgstr "ალტერნატიული შესავლის გამოყენება"
+
+#: lutris/runners/scummvm.py:436
+msgid "Uses alternative intro for CD versions"
+msgstr ""
+
+#: lutris/runners/scummvm.py:442
+msgid "Copy protection"
+msgstr "კოპირებისგან დაცვა"
+
+#: lutris/runners/scummvm.py:443
+msgid "Enables copy protection"
+msgstr "კოპირებისგან დაცვის ჩართვა"
+
+#: lutris/runners/scummvm.py:449
+msgid "Demo mode"
+msgstr "დემო რეჟიმი"
+
+#: lutris/runners/scummvm.py:450
+msgid "Starts demo mode of Maniac Mansion or The 7th Guest"
+msgstr ""
+
+#: lutris/runners/scummvm.py:456 lutris/runners/scummvm.py:464
+msgid "Debugging"
+msgstr "შეცდომები"
+
+#: lutris/runners/scummvm.py:457
+msgid "Debug level"
+msgstr "გამართვის დონე"
+
+#: lutris/runners/scummvm.py:458
+msgid "Sets debug verbosity level"
+msgstr "დიაგნოსტიკური შეტყობინებების გამართვის დონემდე მომატება"
+
+#: lutris/runners/scummvm.py:465
+msgid "Debug flags"
+msgstr "გამართვის ალმები"
+
+#: lutris/runners/scummvm.py:466
+msgid "Enables engine specific debug flags"
+msgstr ""
+
+#: lutris/runners/snes9x.py:17
+msgid "Super Nintendo emulator"
+msgstr "Super Nintendo-ის ემულატორი"
+
+#: lutris/runners/snes9x.py:18
+msgid "Snes9x"
+msgstr "Snes9x"
+
+#: lutris/runners/snes9x.py:45
+msgid "Maintain aspect ratio (4:3)"
+msgstr "ფარდობის შენარჩუნება (4:3)"
+
+#: lutris/runners/snes9x.py:48
+msgid ""
+"Super Nintendo games were made for 4:3 screens with rectangular pixels, but "
+"modern screens have square pixels, which results in a vertically squeezed "
+"image. This option corrects this by displaying rectangular pixels."
+msgstr ""
+
+#: lutris/runners/snes9x.py:58
+msgid "Sound driver"
+msgstr "ხმის დრაივერი"
+
+#: lutris/runners/steam.py:28
+msgid "Runs Steam for Linux games"
+msgstr "უშვებს Steam for Linux-ის თამაშებს"
+
+#: lutris/runners/steam.py:39
+msgid ""
+"The application ID can be retrieved from the game's page at steampowered."
+"com. Example: 235320 is the app ID for <i>Original War</i> in: \n"
+"http://store.steampowered.com/app/<b>235320</b>/"
+msgstr ""
+
+#: lutris/runners/steam.py:50
+msgid ""
+"Command line arguments used when launching the game.\n"
+"Ignored when Steam Big Picture mode is enabled."
+msgstr ""
+
+#: lutris/runners/steam.py:56
+msgid "DRM free mode (Do not launch Steam)"
+msgstr ""
+
+#: lutris/runners/steam.py:61
+msgid ""
+"Run the game directly without Steam, requires the game binary path to be set"
+msgstr ""
+
+#: lutris/runners/steam.py:67
+msgid "Game binary path"
+msgstr "მაშის გამშვების ბილიკი"
+
+#: lutris/runners/steam.py:69
+msgid "Path to the game executable (Required by DRM free mode)"
+msgstr ""
+
+#: lutris/runners/steam.py:75
+msgid "Start Steam in Big Picture mode"
+msgstr ""
+
+#: lutris/runners/steam.py:79
+msgid ""
+"Launches Steam in Big Picture mode.\n"
+"Only works if Steam is not running or already running in Big Picture mode.\n"
+"Useful when playing with a Steam Controller."
+msgstr ""
+
+#: lutris/runners/steam.py:87
+msgid "Start Steam with LSI"
+msgstr "Steam-ის გაშვება LSI-ით"
+
+#: lutris/runners/steam.py:91
+msgid ""
+"Launches steam with LSI patches enabled. Make sure Lutris Runtime is "
+"disabled and you have LSI installed. https://github.com/solus-project/linux-"
+"steam-integration"
+msgstr ""
+
+#: lutris/runners/steam.py:102
+msgid "Extra command line arguments used when launching Steam"
+msgstr ""
+
+#: lutris/runners/steam.py:112
+msgid "Remove game data (through Steam)"
+msgstr "თამაშის მონაცემების წაშლა (Steam-ით)"
+
+#: lutris/runners/steam.py:191
+msgid ""
+"Steam for Linux installation is not handled by Lutris.\n"
+"Please go to <a href='http://steampowered.com'>http://steampowered.com</a> "
+"or install Steam with the package provided by your distribution."
+msgstr ""
+
+#: lutris/runners/steam.py:204
+msgid "Could not find Steam path, is Steam installed?"
+msgstr "Steam-ის ბილიკი ვერ ვიპოვე. დაყენებული გაქვთ?"
+
+#: lutris/runners/vice.py:13
+msgid "Commodore Emulator"
+msgstr "Commodore-ის ემულატორი"
+
+#: lutris/runners/vice.py:14
+msgid "Vice"
+msgstr "Vice"
+
+#: lutris/runners/vice.py:17
+msgid "Commodore 64"
+msgstr "Commodore 64"
+
+#: lutris/runners/vice.py:18
+msgid "Commodore 128"
+msgstr "Commodore 128"
+
+#: lutris/runners/vice.py:19
+msgid "Commodore VIC20"
+msgstr "Commodore VIC20"
+
+#: lutris/runners/vice.py:20
+msgid "Commodore PET"
+msgstr "Commodore PET"
+
+#: lutris/runners/vice.py:21
+msgid "Commodore Plus/4"
+msgstr "Commodore Plus/4"
+
+#: lutris/runners/vice.py:22
+msgid "Commodore CBM II"
+msgstr "Commodore CBM II"
+
+#: lutris/runners/vice.py:41
+msgid ""
+"The game data, commonly called a ROM image.\n"
+"Supported formats: X64, D64, G64, P64, D67, D71, D81, D80, D82, D1M, D2M, "
+"D4M, T46, P00 and CRT."
+msgstr ""
+
+#: lutris/runners/vice.py:52
+msgid "Use joysticks"
+msgstr "ჯოისტიკების გამოყენება"
+
+#: lutris/runners/vice.py:66
+msgid "Scale up display by 2"
+msgstr ""
+
+#: lutris/runners/vice.py:80
+msgid "Graphics renderer"
+msgstr "გრაფიკის რენდერერი"
+
+#: lutris/runners/vice.py:87
+msgid "Enable sound emulation of disk drives"
+msgstr "დიკების ხმის ემულაცია"
+
+#: lutris/runners/web.py:17 lutris/runners/web.py:19
+msgid "Web"
+msgstr "ვები"
+
+#: lutris/runners/web.py:18
+msgid "Runs web based games"
+msgstr "უშვებს ვებ-თამაშებს"
+
+#: lutris/runners/web.py:24
+msgid "Full URL or HTML file path"
+msgstr "სრული URL ან HTML ფაილის ბილიკი"
+
+#: lutris/runners/web.py:25
+msgid "The full address of the game's web page or path to a HTML file."
+msgstr ""
+
+#: lutris/runners/web.py:31
+msgid "Open in fullscreen"
+msgstr "სრულ ეკრანზე გახსნა"
+
+#: lutris/runners/web.py:34
+msgid "Launch the game in fullscreen."
+msgstr "თამაშის გაშვება სრულ ეკრანზე."
+
+#: lutris/runners/web.py:38
+msgid "Open window maximized"
+msgstr "ფანრის მთელ ეკრანზე გაშლილი გახსნა"
+
+#: lutris/runners/web.py:41
+msgid "Maximizes the window when game starts."
+msgstr ""
+
+#: lutris/runners/web.py:56
+msgid "The initial size of the game window when not opened."
+msgstr ""
+
+#: lutris/runners/web.py:60
+msgid "Disable window resizing (disables fullscreen and maximize)"
+msgstr ""
+
+#: lutris/runners/web.py:63
+msgid "You can't resize this window."
+msgstr "ამ ფანჯარას ზომას ვერ შეუცვლით."
+
+#: lutris/runners/web.py:67
+msgid "Borderless window"
+msgstr "ფანჯარა საზღვრების გარეშე"
+
+#: lutris/runners/web.py:70
+msgid "The window has no borders/frame."
+msgstr ""
+
+#: lutris/runners/web.py:74
+msgid "Disable menu bar and default shortcuts"
+msgstr ""
+
+#: lutris/runners/web.py:77
+msgid ""
+"This also disables default keyboard shortcuts, like copy/paste and "
+"fullscreen toggling."
+msgstr ""
+
+#: lutris/runners/web.py:82
+msgid "Disable page scrolling and hide scrollbars"
+msgstr ""
+
+#: lutris/runners/web.py:85
+msgid "Disables scrolling on the page."
+msgstr "გვერდის გადახვევის გამორთვა."
+
+#: lutris/runners/web.py:89
+msgid "Hide mouse cursor"
+msgstr "თაგუნას კურსორის დამალვა"
+
+#: lutris/runners/web.py:92
+msgid "Prevents the mouse cursor from showing when hovering above the window."
+msgstr ""
+
+#: lutris/runners/web.py:97
+msgid "Open links in game window"
+msgstr "ბმულების გახსნა თამაშის ფანჯარაში"
+
+#: lutris/runners/web.py:101
+msgid ""
+"Enable this option if you want clicked links to open inside the game window. "
+"By default all links open in your default web browser."
+msgstr ""
+
+#: lutris/runners/web.py:107
+msgid "Remove default <body> margin & padding"
+msgstr ""
+
+#: lutris/runners/web.py:110
+msgid ""
+"Sets margin and padding to zero on &lt;html&gt; and &lt;body&gt; elements."
+msgstr ""
+
+#: lutris/runners/web.py:115
+msgid "Enable Adobe Flash Player"
+msgstr "Adobe Flash Player-ის ჩართვა"
+
+#: lutris/runners/web.py:118
+msgid "Enable Adobe Flash Player."
+msgstr "Adobe Flash Player-ის ჩართვა."
+
+#: lutris/runners/web.py:122
+msgid "Custom User-Agent"
+msgstr "მომხმარებლის User-Agent"
+
+#: lutris/runners/web.py:125
+msgid "Overrides the default User-Agent header used by the runner."
+msgstr ""
+
+#: lutris/runners/web.py:130
+msgid "Debug with Developer Tools"
+msgstr "გამართვა პროგრამისტის ხელსაწყოებით"
+
+#: lutris/runners/web.py:133
+msgid "Let's you debug the page."
+msgstr ""
+
+#: lutris/runners/web.py:138
+msgid "Open in web browser (old behavior)"
+msgstr ""
+
+#: lutris/runners/web.py:141
+msgid "Launch the game in a web browser."
+msgstr ""
+
+#: lutris/runners/web.py:147
+msgid "Custom web browser executable"
+msgstr ""
+
+#: lutris/runners/web.py:151
+msgid ""
+"Select the executable of a browser on your system.\n"
+"If left blank, Lutris will launch your default browser (xdg-open)."
+msgstr ""
+
+#: lutris/runners/web.py:159
+msgid "Web browser arguments"
+msgstr "ბრაუზერის არგუმენტები"
+
+#: lutris/runners/web.py:165
+msgid ""
+"Command line arguments to pass to the executable.\n"
+"$GAME or $URL inserts the game url.\n"
+"\n"
+"For Chrome/Chromium app mode use: --app=\"$GAME\""
+msgstr ""
+
+#: lutris/runners/web.py:186
+msgid ""
+"The web address is empty, \n"
+"verify the game's configuration."
+msgstr ""
+
+#: lutris/runners/web.py:197
+#, python-format
+msgid ""
+"The file %s does not exist, \n"
+"verify the game's configuration."
+msgstr ""
+
+#: lutris/runners/wine.py:44
+msgid ""
+"<b>Warning</b> Some Wine configuration options cannot be applied, if no "
+"prefix can be found."
+msgstr ""
+
+#: lutris/runners/wine.py:50
+#, python-format
+msgid ""
+"<b>Warning</b> Your NVIDIA driver is outdated.\n"
+"You are currently running driver %s which does not fully support all "
+"features for Vulkan and DXVK games.\n"
+"Please upgrade your driver as described in our <a href='%s'>installation "
+"guide</a>"
+msgstr ""
+
+#: lutris/runners/wine.py:68
+#, python-format
+msgid ""
+"<b>Error</b> Missing Vulkan libraries\n"
+"Lutris was unable to detect Vulkan support for the %s architecture.\n"
+"This will prevent many games and programs from working.\n"
+"To install it, please use the following guide: <a href='%s'>Installing "
+"Graphics Drivers</a>"
+msgstr ""
+
+#: lutris/runners/wine.py:77
+msgid ""
+"<b>Error</b> Vulkan is not installed or is not supported by your system, so "
+"DXVK is not available.\n"
+"If you have compatible hardware, please follow the installation procedures "
+"as described in\n"
+"<a href='https://github.com/lutris/docs/blob/master/HowToDXVK.md'>How-to:-"
+"DXVK (https://github.com/lutris/docs/blob/master/HowToDXVK.md)</a>"
+msgstr ""
+
+#: lutris/runners/wine.py:89
+#, python-format
+msgid ""
+"<b>Error</b> Vulkan is not installed or is not supported by your system, so "
+"%s is not available."
+msgstr ""
+
+#: lutris/runners/wine.py:100
+#, python-format
+msgid ""
+"<b>Warning</b> Lutris has detected that Vulkan API version %s is installed, "
+"but to use the latest DXVK version, %s is required."
+msgstr ""
+
+#: lutris/runners/wine.py:111
+#, python-format
+msgid ""
+"<b>Warning</b> Lutris has detected that the best device available ('%s') "
+"supports Vulkan API %s, but to use the latest DXVK version, %s is required."
+msgstr ""
+
+#: lutris/runners/wine.py:145
+msgid ""
+"<b>Warning</b> Your limits are not set correctly. Please increase them as "
+"described here:\n"
+"<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>How-to-"
+"Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
+msgstr ""
+
+#: lutris/runners/wine.py:155
+msgid "<b>Warning</b> Your kernel is not patched for fsync."
+msgstr ""
+
+#: lutris/runners/wine.py:160
+msgid "Runs Windows games"
+msgstr "უშვებს Windows-ის თამაშებს"
+
+#: lutris/runners/wine.py:161
+msgid "Wine"
+msgstr "Wine"
+
+#: lutris/runners/wine.py:162
+msgid "Windows"
+msgstr "Windows"
+
+#: lutris/runners/wine.py:171
+msgid "The game's main EXE file"
+msgstr "თამაშის მთავარი EXE ფაილი"
+
+#: lutris/runners/wine.py:177
+msgid "Windows command line arguments used when launching the game"
+msgstr ""
+
+#: lutris/runners/wine.py:193
+msgid "Wine prefix"
+msgstr "Wine-ის პრეფიქსი"
+
+#: lutris/runners/wine.py:196
+msgid ""
+"The prefix used by Wine.\n"
+"It's a directory containing a set of files and folders making up a confined "
+"Windows environment."
+msgstr ""
+
+#: lutris/runners/wine.py:204
+msgid "Prefix architecture"
+msgstr "პრეფიქსის არქტიტექტურა"
+
+#: lutris/runners/wine.py:205
+msgid "32-bit"
+msgstr "32-ბიტიანი"
+
+#: lutris/runners/wine.py:205
+msgid "64-bit"
+msgstr "64-ბიტიანი"
+
+#: lutris/runners/wine.py:207
+msgid "The architecture of the Windows environment"
+msgstr ""
+
+#: lutris/runners/wine.py:238
+msgid "Custom (select executable below)"
+msgstr ""
+
+#: lutris/runners/wine.py:240
+msgid "WineHQ Devel ({})"
+msgstr ""
+
+#: lutris/runners/wine.py:241
+msgid "WineHQ Staging ({})"
+msgstr ""
+
+#: lutris/runners/wine.py:242
+msgid "Wine Development ({})"
+msgstr ""
+
+#: lutris/runners/wine.py:243
+msgid "System ({})"
+msgstr "სისტემური ({})"
+
+#: lutris/runners/wine.py:258
+msgid "Wine version"
+msgstr "Wine-ის ვერსია"
+
+#: lutris/runners/wine.py:263
+msgid ""
+"The version of Wine used to launch the game.\n"
+"Using the last version is generally recommended, but some games work better "
+"on older versions."
+msgstr ""
+
+#: lutris/runners/wine.py:270
+msgid "Custom Wine executable"
+msgstr ""
+
+#: lutris/runners/wine.py:273
+msgid ""
+"The Wine executable to be used if you have selected \"Custom\" as the Wine "
+"version."
+msgstr ""
+
+#: lutris/runners/wine.py:278
+msgid "Use system winetricks"
+msgstr "სისტემური winetricks-ის გამოყენება"
+
+#: lutris/runners/wine.py:282
+msgid "Switch on to use /usr/bin/winetricks for winetricks."
+msgstr ""
+
+#: lutris/runners/wine.py:287
+msgid "Enable DXVK"
+msgstr "DXVK-ის ჩართვა"
+
+#: lutris/runners/wine.py:294
+msgid ""
+"Use DXVK to increase compatibility and performance in Direct3D 11, 10 and 9 "
+"applications by translating their calls to Vulkan."
+msgstr ""
+
+#: lutris/runners/wine.py:301
+msgid "DXVK version"
+msgstr "DXVK-ის ვერსია"
+
+#: lutris/runners/wine.py:313
+msgid "Enable VKD3D"
+msgstr "VKD3D-ის ჩართვა"
+
+#: lutris/runners/wine.py:315
+msgid "VKD3D"
+msgstr "VKD3D"
+
+#: lutris/runners/wine.py:319
+msgid ""
+"Use VKD3D to enable support for Direct3D 12 applications by translating "
+"their calls to Vulkan."
+msgstr ""
+
+#: lutris/runners/wine.py:325
+msgid "VKD3D version"
+msgstr "VKD3D-ის ვერსია"
+
+#: lutris/runners/wine.py:335
+msgid "Enable D3D Extras"
+msgstr "D3D-ის დამატებითი ფუნქციების ჩართვა"
+
+#: lutris/runners/wine.py:340
+msgid ""
+"Replace Wine's D3DX and D3DCOMPILER libraries with alternative ones. Needed "
+"for proper functionality of DXVK with some games."
+msgstr ""
+
+#: lutris/runners/wine.py:347
+msgid "D3D Extras version"
+msgstr "D3D-ის დამატებითი ფუნქციების ვერსია"
+
+#: lutris/runners/wine.py:356
+msgid "Enable DXVK-NVAPI / DLSS"
+msgstr "DXVK-NVAPI / DLSS-ის ჩართვა"
+
+#: lutris/runners/wine.py:358
+msgid "DXVK-NVAPI / DLSS"
+msgstr "DXVK-NVAPI / DLSS"
+
+#: lutris/runners/wine.py:362
+msgid "Enable emulation of Nvidia's NVAPI and add DLSS support, if available."
+msgstr ""
+
+#: lutris/runners/wine.py:368
+msgid "DXVK NVAPI version"
+msgstr "DXVK NVAPI-ის ვერსია"
+
+#: lutris/runners/wine.py:377
+msgid "Enable dgvoodoo2"
+msgstr "Dgvoodoo2-ის ჩართვა"
+
+#: lutris/runners/wine.py:382
+msgid ""
+"dgvoodoo2 is an alternative translation layer for rendering old games that "
+"utilize D3D1-7 and Glide APIs. As it translates to D3D11, it's recommended "
+"to use it in combination with DXVK. Only 32-bit apps are supported."
+msgstr ""
+
+#: lutris/runners/wine.py:390
+msgid "dgvoodoo2 version"
+msgstr "dgvoodoo2-ის ვერსია"
+
+#: lutris/runners/wine.py:398
+msgid "Enable Esync"
+msgstr "Esync-ის ჩართვა"
+
+#: lutris/runners/wine.py:404
+msgid ""
+"Enable eventfd-based synchronization (esync). This will increase performance "
+"in applications that take advantage of multi-core processors."
+msgstr ""
+
+#: lutris/runners/wine.py:411
+msgid "Enable Fsync"
+msgstr "Fsync-ის ჩართვა"
+
+#: lutris/runners/wine.py:417
+msgid ""
+"Enable futex-based synchronization (fsync). This will increase performance "
+"in applications that take advantage of multi-core processors. Requires "
+"kernel 5.16 or above."
+msgstr ""
+
+#: lutris/runners/wine.py:425
+msgid "Enable AMD FidelityFX Super Resolution (FSR)"
+msgstr ""
+
+#: lutris/runners/wine.py:429
+msgid ""
+"Use FSR to upscale the game window to native resolution.\n"
+"Requires Lutris Wine FShack >= 6.13 and setting the game to a lower "
+"resolution.\n"
+"Does not work with games running in borderless window mode or that perform "
+"their own upscaling."
+msgstr ""
+
+#: lutris/runners/wine.py:436
+msgid "Enable BattlEye Anti-Cheat"
+msgstr ""
+
+#: lutris/runners/wine.py:440
+msgid ""
+"Enable support for BattlEye Anti-Cheat in supported games\n"
+"Requires Lutris Wine 6.21-2 and newer or any other compatible Wine build.\n"
+msgstr ""
+
+#: lutris/runners/wine.py:446
+msgid "Enable Easy Anti-Cheat"
+msgstr ""
+
+#: lutris/runners/wine.py:450
+msgid ""
+"Enable support for Easy Anti-Cheat in supported games\n"
+"Requires Lutris Wine 7.2 and newer or any other compatible Wine build.\n"
+msgstr ""
+
+#: lutris/runners/wine.py:456 lutris/runners/wine.py:468
+msgid "Virtual Desktop"
+msgstr "ვირტუალური სამუშაო მაგიდა"
+
+#: lutris/runners/wine.py:457
+msgid "Windowed (virtual desktop)"
+msgstr ""
+
+#: lutris/runners/wine.py:461
+msgid ""
+"Run the whole Windows desktop in a window.\n"
+"Otherwise, run it fullscreen.\n"
+"This corresponds to Wine's Virtual Desktop option."
+msgstr ""
+
+#: lutris/runners/wine.py:469
+msgid "Virtual desktop resolution"
+msgstr "ვირტუალური სამუშაო მაგიდის გაფართოება"
+
+#: lutris/runners/wine.py:472
+msgid "The size of the virtual desktop in pixels."
+msgstr ""
+
+#: lutris/runners/wine.py:476 lutris/runners/wine.py:487
+#: lutris/runners/wine.py:488
+msgid "DPI"
+msgstr "DPI"
+
+#: lutris/runners/wine.py:477
+msgid "Enable DPI Scaling"
+msgstr "DPI-ის მასშტაბირების ჩართვა"
+
+#: lutris/runners/wine.py:481
+msgid ""
+"Enables the Windows application's DPI scaling.\n"
+"Otherwise, the Screen Resolution option in 'Wine configuration' controls "
+"this."
+msgstr ""
+
+#: lutris/runners/wine.py:491
+msgid ""
+"The DPI to be used if 'Enable DPI Scaling' is turned on.\n"
+"If blank or 'auto', Lutris will auto-detect this."
+msgstr ""
+
+#: lutris/runners/wine.py:497
+msgid "Mouse Warp Override"
+msgstr ""
+
+#: lutris/runners/wine.py:500
+msgid "Enable"
+msgstr "ჩართვა"
+
+#: lutris/runners/wine.py:502
+msgid "Force"
+msgstr "ძალა"
+
+#: lutris/runners/wine.py:507
+msgid ""
+"Override the default mouse pointer warping behavior\n"
+"<b>Enable</b>: (Wine default) warp the pointer when the mouse is exclusively "
+"acquired \n"
+"<b>Disable</b>: never warp the mouse pointer \n"
+"<b>Force</b>: always warp the pointer"
+msgstr ""
+
+#: lutris/runners/wine.py:516
+msgid "Audio driver"
+msgstr "აუდიო დრაივერი"
+
+#: lutris/runners/wine.py:527
+msgid ""
+"Which audio backend to use.\n"
+"By default, Wine automatically picks the right one for your system."
+msgstr ""
+
+#: lutris/runners/wine.py:535
+msgid "DLL overrides"
+msgstr "DLL გადაფარვები"
+
+#: lutris/runners/wine.py:536
+msgid "Sets WINEDLLOVERRIDES when launching the game."
+msgstr ""
+
+#: lutris/runners/wine.py:540
+msgid "Output debugging info"
+msgstr ""
+
+#: lutris/runners/wine.py:544
+msgid "Enabled"
+msgstr "აქტიური"
+
+#: lutris/runners/wine.py:545
+msgid "Inherit from environment"
+msgstr ""
+
+#: lutris/runners/wine.py:547
+msgid "Full (CAUTION: Will cause MASSIVE slowdown)"
+msgstr ""
+
+#: lutris/runners/wine.py:550
+msgid "Output debugging information in the game log (might affect performance)"
+msgstr ""
+
+#: lutris/runners/wine.py:555
+msgid "Show crash dialogs"
+msgstr ""
+
+#: lutris/runners/wine.py:563
+msgid "Autoconfigure joypads"
+msgstr ""
+
+#: lutris/runners/wine.py:567
+msgid ""
+"Automatically disables one of Wine's detected joypad to avoid having 2 "
+"controllers detected"
+msgstr ""
+
+#: lutris/runners/wine.py:573 lutris/runners/wine.py:586
+msgid "Sandbox"
+msgstr "სენდბოქსი"
+
+#: lutris/runners/wine.py:574
+msgid "Create a sandbox for Wine folders"
+msgstr ""
+
+#: lutris/runners/wine.py:578
+msgid ""
+"Do not use $HOME for desktop integration folders.\n"
+"By default, it will use the directories in the confined Windows environment."
+msgstr ""
+
+#: lutris/runners/wine.py:587
+msgid "Sandbox directory"
+msgstr "სენდბოქსის საქაღალდე"
+
+#: lutris/runners/wine.py:588
+msgid "Custom directory for desktop integration folders."
+msgstr ""
+
+#: lutris/runners/wine.py:597
+msgid "Run EXE inside Wine prefix"
+msgstr ""
+
+#: lutris/runners/wine.py:598
+msgid "Open Bash terminal"
+msgstr "Bash ტერმინალის გახსნა"
+
+#: lutris/runners/wine.py:599
+msgid "Open Wine console"
+msgstr "Wine კონსოლის გახსნა"
+
+#: lutris/runners/wine.py:601
+msgid "Wine configuration"
+msgstr "Wine-ის მორგება"
+
+#: lutris/runners/wine.py:602
+msgid "Wine registry"
+msgstr "Wine-ის რეესტრი"
+
+#: lutris/runners/wine.py:603
+msgid "Wine Control Panel"
+msgstr "Wine-ის მართვის პანელი"
+
+#: lutris/runners/wine.py:605
+msgid "Winetricks"
+msgstr "Winetricks"
+
+#: lutris/runners/wine.py:780
+msgid "Select an EXE or MSI file"
+msgstr "აირჩიეთ EXE ან MSI ფაილი"
+
+#: lutris/runners/wine.py:1083
+msgid "Your ESYNC limits are not set correctly."
+msgstr ""
+
+#: lutris/runners/wine.py:1089
+msgid "Your kernel is not patched for fsync."
+msgstr ""
+
+#: lutris/runners/xemu.py:8
+msgid "xemu"
+msgstr "xemu"
+
+#: lutris/runners/xemu.py:9
+msgid "Xbox"
+msgstr "Xbox"
+
+#: lutris/runners/xemu.py:10
+msgid "Xbox emulator"
+msgstr "Xbox-ის ემულატორი"
+
+#: lutris/runners/xemu.py:19
+msgid "DVD image in iso format"
+msgstr ""
+
+#: lutris/runners/yuzu.py:12
+msgid "Yuzu"
+msgstr "Yuzu"
+
+#. http://zdoom.org/wiki/Command_line_parameters
+#: lutris/runners/zdoom.py:13
+msgid "ZDoom DOOM Game Engine"
+msgstr ""
+
+#: lutris/runners/zdoom.py:14
+msgid "ZDoom"
+msgstr "ZDoom"
+
+#: lutris/runners/zdoom.py:22
+msgid "WAD file"
+msgstr "WAD ფაილი"
+
+#: lutris/runners/zdoom.py:23
+msgid "The game data, commonly called a WAD file."
+msgstr ""
+
+#: lutris/runners/zdoom.py:29
+msgid "Command line arguments used when launching the game."
+msgstr ""
+
+#: lutris/runners/zdoom.py:34
+msgid "PWAD files"
+msgstr "PWAD ფაილები"
+
+#: lutris/runners/zdoom.py:35
+msgid ""
+"Used to load one or more PWAD files which generally contain user-created "
+"levels."
+msgstr ""
+
+#: lutris/runners/zdoom.py:41
+msgid "Warp to map"
+msgstr ""
+
+#: lutris/runners/zdoom.py:42
+msgid "Starts the game on the given map."
+msgstr ""
+
+#: lutris/runners/zdoom.py:48
+msgid "User-specified path where save files should be located."
+msgstr ""
+
+#: lutris/runners/zdoom.py:54
+msgid "Pixel Doubling"
+msgstr ""
+
+#: lutris/runners/zdoom.py:60
+msgid "Pixel Quadrupling"
+msgstr ""
+
+#: lutris/runners/zdoom.py:66
+msgid "Disable Startup Screens"
+msgstr ""
+
+#: lutris/runners/zdoom.py:72
+msgid "Skill"
+msgstr "უნარი"
+
+#: lutris/runners/zdoom.py:77
+msgid "I'm Too Young To Die (1)"
+msgstr ""
+
+#: lutris/runners/zdoom.py:78
+msgid "Hey, Not Too Rough (2)"
+msgstr ""
+
+#: lutris/runners/zdoom.py:79
+msgid "Hurt Me Plenty (3)"
+msgstr ""
+
+#: lutris/runners/zdoom.py:80
+msgid "Ultra-Violence (4)"
+msgstr ""
+
+#: lutris/runners/zdoom.py:81
+msgid "Nightmare! (5)"
+msgstr ""
+
+#: lutris/runners/zdoom.py:92
+msgid ""
+"Used to load a user-created configuration file. If specified, the file must "
+"contain the wad directory list or launch will fail."
+msgstr ""
+
+#: lutris/runtime.py:275
+#, python-brace-format
+msgid "Updating {name}"
+msgstr ""
+
+#: lutris/runtime.py:281
+#, python-brace-format
+msgid "Extracting {name}"
+msgstr ""
+
+#: lutris/runtime.py:298
+msgid "Updating {remote_runtime['name']}"
+msgstr ""
+
+#: lutris/services/amazon.py:65 lutris/services/amazon.py:672
+msgid "Amazon Prime Gaming"
+msgstr ""
+
+#: lutris/services/amazon.py:174
+msgid "No Amazon user data available, please log in again"
+msgstr ""
+
+#: lutris/services/amazon.py:239
+msgid "Unable to register device, please log in again"
+msgstr ""
+
+#: lutris/services/amazon.py:254
+msgid "Invalid token info found, please log in again"
+msgstr ""
+
+#: lutris/services/amazon.py:288
+msgid "Unable to refresh token, please log in again"
+msgstr ""
+
+#: lutris/services/amazon.py:443
+msgid "Unable to get game manifest info"
+msgstr ""
+
+#: lutris/services/amazon.py:461
+msgid "Unable to get game manifest"
+msgstr ""
+
+#: lutris/services/amazon.py:477
+msgid "Unknown compression algorithm found in manifest"
+msgstr ""
+
+#: lutris/services/amazon.py:504
+msgid ""
+"Unable to get the patches of game, please check your Amazon credentials and "
+"internet connectivity"
+msgstr ""
+
+#: lutris/services/amazon.py:582
+msgid "Unable to get fuel.json file, please check your Amazon credentials"
+msgstr ""
+
+#: lutris/services/amazon.py:594
+msgid "Invalid response from Amazon APIs"
+msgstr ""
+
+#: lutris/services/amazon.py:628 lutris/services/gog.py:482
+msgid "Couldn't load the downloads for this game"
+msgstr ""
+
+#: lutris/services/base.py:353
+#, python-format
+msgid ""
+"This service requires a game launcher. The following steps will install it.\n"
+"Once the client is installed, you can login to %s."
+msgstr ""
+
+#: lutris/services/battlenet.py:91
+msgid "Battle.net"
+msgstr "Battle.net"
+
+#: lutris/services/ea_app.py:135
+msgid "EA App"
+msgstr "EA-ის აპი"
+
+#: lutris/services/egs.py:136
+msgid "Epic Games Store"
+msgstr "Epic-ის თამაშების მაღაზია"
+
+#: lutris/services/flathub.py:58
+msgid "Flathub"
+msgstr "Flathub"
+
+#: lutris/services/gog.py:69
+msgid "GOG"
+msgstr "GOG"
+
+#: lutris/services/gog.py:297 lutris/services/gog.py:299
+#, python-format
+msgid "The download of '%s' failed."
+msgstr "'%s'-ის გადმოწერა ჩავარდა."
+
+#: lutris/services/gog.py:427
+msgid "Couldn't load the download links for this game"
+msgstr ""
+
+#: lutris/services/gog.py:475
+msgid "Unable to determine correct file to launch installer"
+msgstr ""
+
+#: lutris/services/humblebundle.py:61
+msgid "Humble Bundle"
+msgstr ""
+
+#: lutris/services/humblebundle.py:84
+msgid "Workaround for Humble Bundle authentication"
+msgstr ""
+
+#: lutris/services/humblebundle.py:85
+msgid ""
+"Humble Bundle is restricting API calls from software like Lutris and "
+"GameHub.\n"
+"Authentication to the service will likely fail.\n"
+"There is a workaround involving copying cookies from Firefox, do you want to "
+"do this instead?"
+msgstr ""
+
+#: lutris/services/humblebundle.py:239
+msgid "The download URL for the game could not be determined."
+msgstr ""
+
+#: lutris/services/humblebundle.py:241
+msgid "No game found on Humble Bundle"
+msgstr ""
+
+#. According to their branding, "itch.io" is supposed to be all lowercase
+#: lutris/services/itchio.py:79
+msgid "itch.io"
+msgstr "itch.io"
+
+#: lutris/services/lutris.py:116
+#, python-format
+msgid "Lutris has no installers for %s. Try using a different service instead."
+msgstr ""
+
+#: lutris/services/origin.py:129
+msgid "Origin"
+msgstr "საწყისი"
+
+#: lutris/services/origin.py:130
+msgid "Deprecated, use EA App"
+msgstr ""
+
+#: lutris/services/steam.py:100
+msgid ""
+"Failed to load games. Check that your profile is set to public during the "
+"sync."
+msgstr ""
+
+#: lutris/services/steamwindows.py:25
+msgid "Steam for Windows"
+msgstr "Steam Windows-თვის"
+
+#: lutris/services/steamwindows.py:26
+msgid ""
+"Use only for the rare games or mods requiring the Windows version of Steam"
+msgstr ""
+
+#: lutris/services/ubisoft.py:82
+msgid "Ubisoft Connect"
+msgstr ""
+
+#: lutris/services/xdg.py:44
+msgid "Local"
+msgstr "ლოკალური"
+
+#: lutris/settings.py:15
+msgid "(c) 2009 Lutris Team"
+msgstr "(c) 2009 Lutris-ის გუნდი"
+
+#: lutris/settings.py:16
+msgid "The Lutris team"
+msgstr "Lustris-ის გუნდი"
+
+#: lutris/startup.py:167
+#, python-format
+msgid ""
+"Failed to open database file in %s. Try renaming this file and relaunch "
+"Lutris"
+msgstr ""
+
+#: lutris/sysoptions.py:18
+msgid "Keep current"
+msgstr ""
+
+#: lutris/sysoptions.py:32
+msgid "(recommended)"
+msgstr "(რეკომენდებულია)"
+
+#: lutris/sysoptions.py:35
+msgid "System"
+msgstr "სისტემა"
+
+#: lutris/sysoptions.py:44 lutris/sysoptions.py:53 lutris/sysoptions.py:64
+#: lutris/sysoptions.py:580
+msgid "Off"
+msgstr "გამორთ"
+
+#: lutris/sysoptions.py:45
+msgid "Primary"
+msgstr "ძირითადი"
+
+#: lutris/sysoptions.py:117
+msgid "Default installation folder"
+msgstr "ნაგულისხმევი დაყენების საქაღალდე"
+
+#: lutris/sysoptions.py:120
+msgid "The default folder where you install your games."
+msgstr ""
+
+#: lutris/sysoptions.py:126
+msgid "Disable Lutris Runtime"
+msgstr ""
+
+#: lutris/sysoptions.py:128
+msgid ""
+"The Lutris Runtime loads some libraries before running the game, which can "
+"cause some incompatibilities in some cases. Check this option to disable it."
+msgstr ""
+
+#: lutris/sysoptions.py:136
+msgid "Prefer system libraries"
+msgstr ""
+
+#: lutris/sysoptions.py:138
+msgid ""
+"When the runtime is enabled, prioritize the system libraries over the "
+"provided ones."
+msgstr ""
+
+#: lutris/sysoptions.py:146
+msgid "Enable Gamescope"
+msgstr ""
+
+#: lutris/sysoptions.py:149
+msgid ""
+"Use gamescope to draw the game window isolated from your desktop.\n"
+"Toggle fullscreen: Super + F"
+msgstr ""
+
+#: lutris/sysoptions.py:156
+msgid "Relative Mouse Mode"
+msgstr ""
+
+#: lutris/sysoptions.py:160
+msgid ""
+"Always use relative mouse mode instead of flipping\n"
+"dependent on cursor visibility"
+msgstr ""
+
+#: lutris/sysoptions.py:167
+msgid "Output Resolution"
+msgstr "გამოტანის გარჩევადობა"
+
+#: lutris/sysoptions.py:171
+msgid ""
+"Set the resolution used by gamescope.\n"
+"Resizing the gamescope window will update these settings.\n"
+"\n"
+"<b>Custom Resolutions:</b> (width)x(height)"
+msgstr ""
+
+#: lutris/sysoptions.py:180
+msgid "Game Resolution"
+msgstr "თამაშის გარჩევადობა"
+
+#: lutris/sysoptions.py:184
+msgid ""
+"Set the maximum resolution used by the game.\n"
+"\n"
+"<b>Custom Resolutions:</b> (width)x(height)"
+msgstr ""
+
+#: lutris/sysoptions.py:191
+msgid "Window Mode"
+msgstr "ფანჯრის რეჟიმი"
+
+#: lutris/sysoptions.py:196
+msgid "Windowed"
+msgstr "ცალკე ფანჯარა"
+
+#: lutris/sysoptions.py:197
+msgid "Borderless"
+msgstr "საზღვრების გარეშე"
+
+#: lutris/sysoptions.py:201
+msgid ""
+"Run gamescope in fullscreen, windowed or borderless mode\n"
+"Toggle fullscreen : Super + F"
+msgstr ""
+
+#: lutris/sysoptions.py:207
+msgid "FSR Level"
+msgstr "FSR-ის დონე"
+
+#: lutris/sysoptions.py:211
+msgid ""
+"Use AMD FidelityFX™ Super Resolution 1.0 for upscaling.\n"
+"Upscaler sharpness from 0 (max) to 20 (min)."
+msgstr ""
+
+#: lutris/sysoptions.py:217
+msgid "FPS Limiter"
+msgstr ""
+
+#: lutris/sysoptions.py:221
+msgid "Set a frame-rate limit for gamescope specified in frames per second."
+msgstr ""
+
+#: lutris/sysoptions.py:226
+msgid "Custom Settings"
+msgstr "პარამეტრების ხელით მითითება"
+
+#: lutris/sysoptions.py:230
+msgid ""
+"Set additional flags for gamescope (if available).\n"
+"See 'gamescope --help' for a full list of options."
+msgstr ""
+
+#: lutris/sysoptions.py:237
+msgid "Restrict number of cores used"
+msgstr ""
+
+#: lutris/sysoptions.py:239
+msgid "Restrict the game to a maximum number of CPU cores."
+msgstr ""
+
+#: lutris/sysoptions.py:245
+msgid "Restrict number of cores to"
+msgstr ""
+
+#: lutris/sysoptions.py:247
+msgid ""
+"Maximum number of CPU cores to be used, if 'Restrict number of cores used' "
+"is turned on."
+msgstr ""
+
+#: lutris/sysoptions.py:255
+msgid "Enable Feral GameMode"
+msgstr ""
+
+#: lutris/sysoptions.py:256
+msgid "Request a set of optimisations be temporarily applied to the host OS"
+msgstr ""
+
+#: lutris/sysoptions.py:262
+msgid "FPS counter (MangoHud)"
+msgstr ""
+
+#: lutris/sysoptions.py:265
+msgid ""
+"Display the game's FPS + other information. Requires MangoHud to be "
+"installed."
+msgstr ""
+
+#: lutris/sysoptions.py:271
+msgid "Restore resolution on game exit"
+msgstr ""
+
+#: lutris/sysoptions.py:273
+msgid ""
+"Some games don't restore your screen resolution when \n"
+"closed or when they crash. This is when this option comes \n"
+"into play to save your bacon."
+msgstr ""
+
+#: lutris/sysoptions.py:282
+msgid "Restore gamma on game exit"
+msgstr ""
+
+#: lutris/sysoptions.py:284
+msgid ""
+"Some games don't correctly restores gamma on exit, making your display too "
+"bright. Select this option to correct it."
+msgstr ""
+
+#: lutris/sysoptions.py:290
+msgid "Disable desktop effects"
+msgstr ""
+
+#: lutris/sysoptions.py:294
+msgid ""
+"Disable desktop effects while game is running, reducing stuttering and "
+"increasing performance"
+msgstr ""
+
+#: lutris/sysoptions.py:300
+msgid "Disable screen saver"
+msgstr "ეკრანის შემნახველის გამორთვა"
+
+#: lutris/sysoptions.py:305
+msgid ""
+"Disable the screen saver while a game is running. Requires the screen "
+"saver's functionality to be exposed over DBus."
+msgstr ""
+
+#: lutris/sysoptions.py:317
+msgid "Limit the game's FPS using libstrangle"
+msgstr ""
+
+#: lutris/sysoptions.py:323
+msgid "SDL 1.2 Fullscreen Monitor"
+msgstr ""
+
+#: lutris/sysoptions.py:327
+msgid ""
+"Hint SDL 1.2 games to use a specific monitor when going fullscreen by "
+"setting the SDL_VIDEO_FULLSCREEN environment variable"
+msgstr ""
+
+#: lutris/sysoptions.py:335
+msgid "Turn off monitors except"
+msgstr ""
+
+#: lutris/sysoptions.py:339
+msgid ""
+"Only keep the selected screen active while the game is running. \n"
+"This is useful if you have a dual-screen setup, and are \n"
+"having display issues when running a game in fullscreen."
+msgstr ""
+
+#: lutris/sysoptions.py:348
+msgid "Switch resolution to"
+msgstr "გარჩევადობის გადართვა"
+
+#: lutris/sysoptions.py:351
+msgid "Switch to this screen resolution while the game is running."
+msgstr ""
+
+#: lutris/sysoptions.py:357
+msgid "Reset PulseAudio"
+msgstr "PulseAudio-ის ჩამოყრა"
+
+#: lutris/sysoptions.py:361
+msgid "Restart PulseAudio before launching the game."
+msgstr ""
+
+#: lutris/sysoptions.py:367
+msgid "Reduce PulseAudio latency"
+msgstr ""
+
+#: lutris/sysoptions.py:371
+msgid ""
+"Set the environment variable PULSE_LATENCY_MSEC=60 to improve audio quality "
+"on some games"
+msgstr ""
+
+#: lutris/sysoptions.py:378
+msgid "Switch to US keyboard layout"
+msgstr ""
+
+#: lutris/sysoptions.py:381
+msgid "Switch to US keyboard QWERTY layout while game is running"
+msgstr ""
+
+#: lutris/sysoptions.py:387
+msgid "AntiMicroX Profile"
+msgstr "AntiMicroX-ის პროფილი"
+
+#: lutris/sysoptions.py:389
+msgid "Path to an AntiMicroX profile file"
+msgstr ""
+
+#: lutris/sysoptions.py:396
+msgid "SDL2 gamepad mapping"
+msgstr ""
+
+#: lutris/sysoptions.py:398
+msgid ""
+"SDL_GAMECONTROLLERCONFIG mapping string or path to a custom gamecontrollerdb."
+"txt file containing mappings."
+msgstr ""
+
+#: lutris/sysoptions.py:407
+msgid "Enable NVIDIA Prime Render Offload"
+msgstr ""
+
+#: lutris/sysoptions.py:408
+msgid ""
+"If you have the latest NVIDIA driver and the properly patched xorg-server "
+"(see https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/"
+"primerenderoffload.html), you can launch a game on your NVIDIA GPU by "
+"toggling this switch. This will apply __NV_PRIME_RENDER_OFFLOAD=1 and "
+"__GLX_VENDOR_LIBRARY_NAME=nvidia environment variables."
+msgstr ""
+
+#: lutris/sysoptions.py:420
+msgid "Use discrete graphics"
+msgstr ""
+
+#: lutris/sysoptions.py:422
+msgid ""
+"If you have open source graphic drivers (Mesa), selecting this option will "
+"run the game with the 'DRI_PRIME=1' environment variable, activating your "
+"discrete graphic chip for high 3D performance."
+msgstr ""
+
+#: lutris/sysoptions.py:433
+msgid "Optimus launcher (NVIDIA Optimus laptops)"
+msgstr ""
+
+#: lutris/sysoptions.py:435
+msgid ""
+"If you have installed the primus or bumblebee packages, select what launcher "
+"will run the game with the command, activating your NVIDIA graphic chip for "
+"high 3D performance. primusrun normally has better performance, butoptirun/"
+"virtualgl works better for more games.Primus VK provide vulkan support under "
+"bumblebee."
+msgstr ""
+
+#: lutris/sysoptions.py:450
+msgid "Vulkan ICD loader"
+msgstr ""
+
+#: lutris/sysoptions.py:452
+msgid ""
+"The ICD loader is a library that is placed between a Vulkan application and "
+"any number of Vulkan drivers, in order to support multiple drivers and the "
+"instance-level functionality that works across these drivers."
+msgstr ""
+
+#: lutris/sysoptions.py:460
+msgid "CLI mode"
+msgstr "CLI-ის რეჟიმი"
+
+#: lutris/sysoptions.py:464
+msgid ""
+"Enable a terminal for text-based games. Only useful for ASCII based games. "
+"May cause issues with graphical games."
+msgstr ""
+
+#: lutris/sysoptions.py:470
+msgid "Text based games emulator"
+msgstr ""
+
+#: lutris/sysoptions.py:475
+msgid ""
+"The terminal emulator used with the CLI mode. Choose from the list of "
+"detected terminal apps or enter the terminal's command or path."
+msgstr ""
+
+#: lutris/sysoptions.py:484
+msgid "Environment variables loaded at run time"
+msgstr ""
+
+#: lutris/sysoptions.py:490
+msgid "Locale"
+msgstr "ენა"
+
+#: lutris/sysoptions.py:496
+msgid ""
+"Can be used to force certain locale for an app. Fixes encoding issues in "
+"legacy software."
+msgstr ""
+
+#: lutris/sysoptions.py:502
+msgid "Command prefix"
+msgstr "ბრძანების პრეფიქსი"
+
+#: lutris/sysoptions.py:504
+msgid ""
+"Command line instructions to add in front of the game's execution command."
+msgstr ""
+
+#: lutris/sysoptions.py:511
+msgid "Manual script"
+msgstr "მომხმარებლის სკრიპტი"
+
+#: lutris/sysoptions.py:513
+msgid "Script to execute from the game's contextual menu"
+msgstr ""
+
+#: lutris/sysoptions.py:519
+msgid "Pre-launch script"
+msgstr ""
+
+#: lutris/sysoptions.py:521
+msgid "Script to execute before the game starts"
+msgstr ""
+
+#: lutris/sysoptions.py:527
+msgid "Wait for pre-launch script completion"
+msgstr ""
+
+#: lutris/sysoptions.py:530
+msgid "Run the game only once the pre-launch script has exited"
+msgstr ""
+
+#: lutris/sysoptions.py:536
+msgid "Post-exit script"
+msgstr ""
+
+#: lutris/sysoptions.py:538
+msgid "Script to execute when the game exits"
+msgstr ""
+
+#: lutris/sysoptions.py:544
+msgid "Include processes"
+msgstr ""
+
+#: lutris/sysoptions.py:546
+msgid ""
+"What processes to include in process monitoring. This is to override the "
+"built-in exclude list.\n"
+"Space-separated list, processes including spaces can be wrapped in quotation "
+"marks."
+msgstr ""
+
+#: lutris/sysoptions.py:555
+msgid "Exclude processes"
+msgstr ""
+
+#: lutris/sysoptions.py:557
+msgid ""
+"What processes to exclude in process monitoring. For example background "
+"processes that stick around after the game has been closed.\n"
+"Space-separated list, processes including spaces can be wrapped in quotation "
+"marks."
+msgstr ""
+
+#: lutris/sysoptions.py:567
+msgid "Killswitch file"
+msgstr ""
+
+#: lutris/sysoptions.py:569
+msgid ""
+"Path to a file which will stop the game when deleted \n"
+"(usually /dev/input/js0 to stop the game on joystick unplugging)"
+msgstr ""
+
+#: lutris/sysoptions.py:577
+msgid "Use Xephyr"
+msgstr ""
+
+#: lutris/sysoptions.py:581
+msgid "8BPP (256 colors)"
+msgstr "8BPP (256 ფერი)"
+
+#: lutris/sysoptions.py:582
+msgid "16BPP (65536 colors)"
+msgstr "16BPP (65536 ფერი)"
+
+#: lutris/sysoptions.py:583
+msgid "24BPP (16M colors)"
+msgstr "24BPP (16M ფერი)"
+
+#: lutris/sysoptions.py:587
+msgid "Run program in Xephyr to support 8BPP and 16BPP color modes"
+msgstr ""
+
+#: lutris/sysoptions.py:593
+msgid "Xephyr resolution"
+msgstr "Xephyr-ის გაფართოება"
+
+#: lutris/sysoptions.py:595
+msgid "Screen resolution of the Xephyr server"
+msgstr ""
+
+#: lutris/sysoptions.py:601
+msgid "Xephyr Fullscreen"
+msgstr "Xephyr სრულ ეკრანზე"
+
+#: lutris/sysoptions.py:604
+msgid "Open Xephyr in fullscreen (at the desktop resolution)"
+msgstr ""
+
+#: lutris/util/flatpak.py:25
+msgid "Flatpak is not installed"
+msgstr "Flatpak დაყენებული არაა"
+
+#: lutris/util/strings.py:125
+msgid "1 hour"
+msgstr "1 საათი"
+
+#: lutris/util/strings.py:127
+#, python-format
+msgid "%d hours"
+msgstr "%d საათი"
+
+#: lutris/util/strings.py:133
+msgid "1 minute"
+msgstr "1 წუთი"
+
+#: lutris/util/strings.py:135
+#, python-format
+msgid "%d minutes"
+msgstr "%d წუთი"
+
+#: lutris/util/strings.py:143
+msgid "Less than a minute"
+msgstr "წუთზე ნაკლები"
+
+#: lutris/util/system.py:25
+msgid "Documents"
+msgstr "დოკუმენტები"
+
+#: lutris/util/system.py:26
+msgid "Downloads"
+msgstr "გადმოწერები"
+
+#: lutris/util/system.py:27
+msgid "Desktop"
+msgstr "სამუშაო მაგიდა"
+
+#: lutris/util/system.py:28 lutris/util/system.py:30
+msgid "Pictures"
+msgstr "სურათები"
+
+#: lutris/util/system.py:29
+msgid "Videos"
+msgstr "ვიდეო"
+
+#: lutris/util/system.py:31
+msgid "Projects"
+msgstr "პროექტები"
+
+#: lutris/util/ubisoft/client.py:102
+#, python-format
+msgid "Ubisoft authentication has been lost: %s"
+msgstr ""
+
+#: lutris/util/wine/dll_manager.py:97
+msgid "Manual"
+msgstr "ხელით"
+
+#: lutris/util/wine/wine.py:264
+msgid ""
+"Your limits are not set correctly. Please increase them as described here: "
+"<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>How-to:-"
+"Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
+msgstr ""
+
+#: lutris/util/wine/wine.py:273
+msgid ""
+"Your kernel is not patched for fsync. Please get a patched kernel to use "
+"fsync."
+msgstr ""
