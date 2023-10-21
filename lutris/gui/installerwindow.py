@@ -73,12 +73,10 @@ class InstallerWindow(ModelessDialog,
         content_area.set_spacing(12)
 
         # Header labels
-
         self.status_label = InstallerWindow.MarkupLabel(no_show_all=True)
         content_area.pack_start(self.status_label, False, False, 0)
 
         # Header bar buttons
-
         self.back_button = self.add_start_button(_("Back"), self.on_back_clicked)
         self.back_button.set_no_show_all(True)
         key, mod = Gtk.accelerator_parse("<Alt>Left")
@@ -96,13 +94,11 @@ class InstallerWindow(ModelessDialog,
         self.cancel_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
         # Navigation stack
-
         self.stack = NavigationStack(self.back_button, cancel_button=self.cancel_button)
         self.register_page_creators()
         content_area.pack_start(self.stack, True, True, 0)
 
         # Menu buttons
-
         menu_icon = Gtk.Image.new_from_icon_name("open-menu-symbolic", Gtk.IconSize.MENU)
         self.menu_button = Gtk.MenuButton(child=menu_icon)
         self.menu_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True, halign=Gtk.Align.END)
@@ -300,7 +296,7 @@ class InstallerWindow(ModelessDialog,
     # This page offers a choice of installer scripts to run.
 
     def load_choose_installer_page(self):
-        self.validate_scripts()
+        self.validate_scripts(self.installers)
         self.stack.navigate_to_page(self.present_choose_installer_page)
 
     def create_choose_installer_page(self):
@@ -352,17 +348,19 @@ class InstallerWindow(ModelessDialog,
         self.set_title(_("Installing {}").format(gtk_safe(self.interpreter.installer.game_name)))
         self.load_destination_page()
 
-    def validate_scripts(self):
+    def validate_scripts(self, installers):
         """Auto-fixes some script aspects and checks for mandatory fields"""
-        if not self.installers:
+        if not installers:
             raise ScriptingError(_("No installer available"))
-        for script in self.installers:
+        for script in installers:
             for item in ["description", "notes"]:
                 script[item] = script.get(item) or ""
             for item in ["name", "runner", "version"]:
                 if item not in script:
-                    logger.error("Invalid script: %s", script)
                     raise ScriptingError(_('Missing field "%s" in install script') % item)
+            for file_desc in script["script"].get("files", {}):
+                if len(file_desc) > 1:
+                    raise ScriptingError(_('Improperly formatted file "%s"') % file_desc)
 
     # Destination Page
     #
@@ -898,7 +896,6 @@ class InstallerWindow(ModelessDialog,
             xdgshortcuts.create_launcher(game_slug, game_id, game_name, menu=True)
 
     # Buttons
-
     def display_continue_button(self, handler,
                                 continue_button_label=_("_Continue"),
                                 sensitive=True,

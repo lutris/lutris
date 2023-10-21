@@ -1,7 +1,7 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.5.13
+Version:        0.5.14
 Release:        7%{?dist}
 Summary:        Video game preservation platform
 
@@ -15,7 +15,7 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  python3-devel
 BuildRequires:  python3-gobject
 BuildRequires:  python-wheel
-BuildRequires   python-setuptools
+BuildRequires:  python-setuptools
 BuildRequires:  fdupes
 BuildRequires:  libappstream-glib
 BuildRequires:  meson

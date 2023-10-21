@@ -457,6 +457,8 @@ def path_exists(path, check_symlinks=False, exclude_empty=False):
     """
     if not path:
         return False
+    if path.startswith("~"):
+        path = os.path.expanduser(path)
     if os.path.exists(path):
         if exclude_empty:
             return os.stat(path).st_size > 0

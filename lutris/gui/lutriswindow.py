@@ -371,7 +371,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         def natural_sort_key(value):
             def pad_numbers(text):
-                return text.zfill(16) if text.isdigit() else text
+                return text.zfill(16) if text.isdigit() else text.casefold()
 
             key = [pad_numbers(c) for c in re.split('([0-9]+)', value)]
             return key
@@ -383,7 +383,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 value = sort_defaults.get(view_sorting, "")
             else:
                 installation_flag = bool(db_game.get("installed"))
-                value = db_game.get(view_sorting)
 
                 # When sorting by name, check for a valid sortname first, then fall back
                 # on name if valid sortname is not available.

@@ -27,13 +27,16 @@ class InstallerFileCollection:
         self._get_service()
 
     def _get_files_size(self):
-        if self.num_files > 0:
-            self.full_size = sum(f.size for f in self.files_list)
+        if len(self.files_list) > 0:
+            if self.files_list[0].total_size:
+                self.full_size = self.files_list[0].total_size
+            else:
+                self.full_size = sum(f.size for f in self.files_list)
 
     def _get_service(self):
         """Try to get the service using the url of an InstallerFile"""
         self.service = None
-        if self.num_files < 1:
+        if len(self.files_list) < 1:
             return
         url = self.files_list[0].url
         url_parts = urlparse(url)

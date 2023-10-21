@@ -6,7 +6,6 @@ import shlex
 import shutil
 
 from lutris.api import format_installer_url
-from lutris.game import Game
 from lutris.util import resources, system
 from lutris.util.log import logger
 from lutris.util.steam import vdf
@@ -109,6 +108,9 @@ def remove_shortcut(game):
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     other_shortcuts = [s for s in shortcuts if not matches_id(s, game)]
+    # Quit early if no shortcut is removed
+    if len(shortcuts) == len(other_shortcuts):
+        return
     updated_shortcuts = {
         'shortcuts': {
             str(index): elem for index, elem in enumerate(other_shortcuts)
@@ -191,21 +193,3 @@ def set_artwork(game):
             logger.debug("Copied %s cover to %s", game, target_banner)
         except FileNotFoundError as ex:
             logger.error("Failed to copy banner to %s: %s", target_banner, ex)
-
-
-def update_all_artwork():
-    try:
-        shortcut_path = get_shortcuts_vdf_path()
-        if not system.path_exists(shortcut_path):
-            return
-        with open(shortcut_path, "rb") as shortcut_file:
-            shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-        for shortcut in shortcuts:
-            id_match = re.match(r".*lutris:rungameid/(\d+)", shortcut["LaunchOptions"])
-            if not id_match:
-                continue
-            game_id = int(id_match.groups()[0])
-            game = Game(game_id)
-            set_artwork(game)
-    except Exception as ex:
-        logger.error("Failed to update steam shortcut artwork: %s", ex)

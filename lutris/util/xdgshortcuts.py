@@ -43,9 +43,9 @@ def get_xdg_basename(game_slug, game_id, base_dir=None):
         # When base dir is provided, lookup possible combinations
         # and return the first match
         for path in [
-            "{}.desktop".format(game_slug),
-            "{}-{}.desktop".format(game_slug, game_id),
             "net.lutris.{}-{}.desktop".format(game_slug, game_id),
+            "{}-{}.desktop".format(game_slug, game_id),
+            "{}.desktop".format(game_slug),
         ]:
             if system.path_exists(os.path.join(base_dir, path)):
                 return path
@@ -101,7 +101,8 @@ def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desk
         logger.debug("Creating Desktop icon in %s", launcher_path)
         shutil.copy(tmp_launcher_path, launcher_path)
     if menu:
-        menu_path = os.path.join(GLib.get_user_data_dir(), "applications")
+        user_dir = os.path.expanduser("~/.local/share") if LINUX_SYSTEM.is_flatpak else GLib.get_user_data_dir()
+        menu_path = os.path.join(user_dir, "applications")
         os.makedirs(menu_path, exist_ok=True)
         launcher_path = os.path.join(menu_path, launcher_filename)
         logger.debug("Creating menu launcher in %s", launcher_path)

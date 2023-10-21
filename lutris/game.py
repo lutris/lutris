@@ -30,6 +30,7 @@ from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.process import Process
 from lutris.util.savesync import sync_saves
+from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
 from lutris.util.timer import Timer
 from lutris.util.yaml import write_yaml_to_file
 
@@ -382,6 +383,7 @@ class Game(GObject.Object):
         if self.config:
             self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
+        remove_steam_shortcut(self)
         if delete_files and self.runner:
             # self.directory here, not self.resolve_game_path; no guessing at
             # directories when we delete them
@@ -394,6 +396,8 @@ class Game(GObject.Object):
             log_buffer = LOG_BUFFERS[str(self.id)]
             log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
 
+        if not self.playtime:
+            return self.delete(no_signal=no_signal)
         if no_signal:
             return
         self.emit("game-removed")

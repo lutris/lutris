@@ -49,7 +49,7 @@ class scummvm(Runner):
     platforms = [_("Linux")]
     runnable_alone = True
     runner_executable = "scummvm/bin/scummvm"
-    # flatpak_id = "org.scummvm.ScummVM" # needs some adjustments + testing
+    flatpak_id = "org.scummvm.ScummVM"
     game_options = [
         {
             "option": "game_id",
@@ -481,8 +481,10 @@ class scummvm(Runner):
         return path if system.path_exists(path) else ""
 
     def get_command(self):
-        return [
-            self.get_executable(),
+        command = super().get_command()
+        if "flatpak" in command[0]:
+            return command
+        return command + [
             "--extrapath=%s" % self.get_scummvm_data_dir(),
             "--themepath=%s" % self.get_scummvm_data_dir(),
         ]
@@ -530,8 +532,10 @@ class scummvm(Runner):
 
     def get_game_list(self):
         """Return the entire list of games supported by ScummVM."""
-        with subprocess.Popen([self.get_executable(), "--list-games"],
-                              stdout=subprocess.PIPE, encoding="utf-8", universal_newlines=True) as scummvm_process:
+        with subprocess.Popen(self.get_command() + ["--list-games"],
+                              stdout=subprocess.PIPE,
+                              encoding="utf-8",
+                              universal_newlines=True) as scummvm_process:
             scumm_output = scummvm_process.communicate()[0]
             game_list = str.split(scumm_output, "\n")
         game_array = []

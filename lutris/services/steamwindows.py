@@ -23,6 +23,7 @@ class SteamWindowsGame(SteamGame):
 class SteamWindowsService(SteamService):
     id = "steamwindows"
     name = _("Steam for Windows")
+    description = _("Use only for the rare games or mods requiring the Windows version of Steam")
     runner = "wine"
     game_class = SteamWindowsGame
     client_installer = "steam-wine"

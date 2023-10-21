@@ -49,9 +49,17 @@ class ServicesBox(BaseConfigBox):
                                                   scale_factor=self.get_scale_factor(),
                                                   visible=True)
         box.pack_start(icon, False, False, 0)
-        label = Gtk.Label(service.name, visible=True)
+        service_label_box = Gtk.VBox(visible=True)
+        label = Gtk.Label(visible=True)
+        label.set_markup(f"<b>{service.name}</b>")
         label.set_alignment(0, 0.5)
-        box.pack_start(label, True, True, 0)
+        service_label_box.pack_start(label, False, False, 0)
+
+        desc_label = Gtk.Label(visible=True)
+        desc_label.set_alignment(0, 0.5)
+        desc_label.set_text(service.description)
+        service_label_box.pack_start(desc_label, False, False, 0)
+        box.pack_start(service_label_box, True, True, 0)
 
         checkbox = Gtk.Switch(visible=True)
         if settings.read_setting(service_key,
