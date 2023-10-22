@@ -655,7 +655,7 @@ class wine(Runner):
         if arch not in ("win32", "win64"):
             prefix_path = self.prefix_path
             if prefix_path:
-                arch = detect_arch(self.prefix_path, self.get_executable())
+                arch = detect_arch(prefix_path, self.get_executable())
             else:
                 arch = WINE_DEFAULT_ARCH
         return arch
@@ -1017,7 +1017,11 @@ class wine(Runner):
             steam_dir = get_steam_dir()
             if steam_dir:  # May be None for example if Proton-GE is used but Steam is not installed
                 env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = steam_dir
-            env["STEAM_COMPAT_DATA_PATH"] = self.prefix_path
+
+            prefix_path = self.prefix_path
+            if prefix_path:
+                env["STEAM_COMPAT_DATA_PATH"] = prefix_path
+
             env["STEAM_COMPAT_APP_ID"] = '0'
             env["SteamAppId"] = '0'
             if "SteamGameId" not in env:
