@@ -7,6 +7,7 @@ import shlex
 import subprocess
 import sys
 import uuid
+from copy import copy
 
 from gi.repository import GLib
 
@@ -36,7 +37,6 @@ WRAPPER_SCRIPT = get_wrapper_script_location()
 
 
 class MonitoredCommand:
-
     """Exexcutes a commmand while keeping track of its state"""
 
     fallback_cwd = "/tmp"
@@ -120,14 +120,26 @@ class MonitoredCommand:
     @staticmethod
     def get_environment(user_env):
         """Process the user provided environment variables for use as self.env"""
-        env = user_env or {}
+        env = copy(user_env) if user_env else {}
         # not clear why this needs to be added, the path is already added in
         # the wrappper script.
         env['PYTHONPATH'] = ':'.join(sys.path)
         # Drop bad values of environment keys, those will confuse the Python
         # interpreter.
         env["LUTRIS_GAME_UUID"] = str(uuid.uuid4())
-        return {key: value for key, value in env.items() if "=" not in key}
+
+        cleaned = {}
+        for key, value in env.items():
+            if "=" in key:
+                logger.warning("Environment variable name '%s' contains '=' so it can't be used; skipping.", key)
+            elif value is None:
+                logger.warning("Environment variable '%s' has None for its value; skipping.", key)
+            elif not isinstance(value, str):
+                logger.warning("Environment variable '%s' value '%s' is not a string; converting.", key, value)
+                cleaned[key] = str(value)
+            else:
+                cleaned[key] = value
+        return cleaned
 
     def get_child_environment(self):
         """Returns the calculated environment for the child process."""
