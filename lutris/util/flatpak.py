@@ -64,12 +64,14 @@ def is_app_installed(appid):
     return False
 
 
-def get_run_command(appid, arch=None, branch=None):
+def get_run_command(appid, arch=None, fcommand=None, branch=None):
     """Return command to launch a Flatpak app"""
     command = get_command()
     command.append("run")
     if arch:
         command.append(f"--arch={arch}")
+    if fcommand:
+        command.append(f"--command={fcommand}")
     if branch:
         command.append(f"--branch={branch}")
     command.append(appid)
