@@ -459,4 +459,4 @@ def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
         env["PATH"] = "%s:%s" % (wine_directory, path)
     shell_command = get_shell_command(prefix, env, aliases)
     terminal = terminal or linux.get_default_terminal()
-    system.execute([terminal, "-e", shell_command])
+    system.spawn([terminal, "-e", shell_command])
