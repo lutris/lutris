@@ -1062,10 +1062,13 @@ class wine(Runner):
         return pids
 
     def sandbox(self, wine_prefix):
-        if self.runner_config.get("sandbox", True):
-            wine_prefix.enable_desktop_integration_sandbox(desktop_dir=self.runner_config.get("sandbox_dir"))
-        else:
-            wine_prefix.restore_desktop_integration()
+        try:
+            if self.runner_config.get("sandbox", True):
+                wine_prefix.enable_desktop_integration_sandbox(desktop_dir=self.runner_config.get("sandbox_dir"))
+            else:
+                wine_prefix.restore_desktop_integration()
+        except Exception as ex:
+            logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
 
     def play(self):  # pylint: disable=too-many-return-statements # noqa: C901
         game_exe = self.game_exe

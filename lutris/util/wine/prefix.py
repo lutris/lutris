@@ -83,9 +83,8 @@ class WinePrefixManager:
             self.override_dll(dll, value)
         try:
             self.enable_desktop_disintegration()
-        except OSError as ex:
-            logger.error("Failed to setup desktop integration, the prefix may not be valid.")
-            logger.exception(ex)
+        except Exception as ex:
+            logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
 
     def create_user_symlinks(self):
         """Link together user profiles created by Wine and Proton"""
