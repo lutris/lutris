@@ -62,7 +62,7 @@ class flatpak(Runner):
             "help": _("Arguments to be passed to the application.")
         },
         {
-            "option": "command",
+            "option": "fcommand",
             "type": "string",
             "label": _("Command"),
             "help": _("The command to run instead of the one listed in the application metadata."),
@@ -108,10 +108,10 @@ class flatpak(Runner):
     def game_path(self):
         if shutil.which("flatpak-spawn"):
             return "/"
-        install_type, application, arch, branch = (
-            self.game_config.get(key, "") for key in ("install_type", "appid", "arch", "branch")
+        install_type, application, arch, fcommand, branch = (
+            self.game_config.get(key, "") for key in ("install_type", "appid", "arch", "fcommand", "branch")
         )
-        return os.path.join(self.install_locations[install_type or "user"], application, arch, branch)
+        return os.path.join(self.install_locations[install_type or "user"], application, arch, fcommand, branch)
 
     def remove_game_data(self, app_id=None, game_path=None, **kwargs):
         if not self.is_installed():
@@ -129,6 +129,7 @@ class flatpak(Runner):
         branch = self.game_config.get("branch", "")
         args = self.game_config.get("args", "")
         appid = self.game_config.get("appid", "")
+        fcommand = self.game_config.get("fcommand", "")
 
         if not appid:
             return {"error": "CUSTOM", "text": "No application specified."}
@@ -140,7 +141,7 @@ class flatpak(Runner):
         if any(x in appid for x in ("--", "/")):
             return {"error": "CUSTOM", "text": "Application ID field must not contain options or arguments."}
 
-        command = _flatpak.get_run_command(appid, arch, branch)
+        command = _flatpak.get_run_command(appid, arch, fcommand, branch)
         if args:
             command.extend(split_arguments(args))
         return {"command": command}
