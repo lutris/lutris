@@ -613,7 +613,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             except ValueError:
                 ErrorDialog(_("The entered playtime is invalid"), parent=self)
                 return False
-            
+
         invalid_fields = []
         runner_class = import_runner(self.runner_name)
         runner_instance = runner_class()

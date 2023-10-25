@@ -47,7 +47,8 @@ class WinePrefixManager:
     def __init__(self, path):
         if not path:
             logger.warning("No path specified for Wine prefix")
-        self.path = path
+        # expanduser() just in case- it should already be expanded.
+        self.path = os.path.expanduser(path)
 
     def get_user_dir(self, default_user=None):
         user = default_user or os.getenv("USER") or "lutrisuser"
