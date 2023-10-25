@@ -80,6 +80,7 @@ class linux(Runner):
         exe = self.game_config.get("exe")
         if not exe:
             return None
+        exe = os.path.expanduser(exe)  # just in case!
         if os.path.isabs(exe):
             return exe
         if self.game_path:
@@ -130,10 +131,11 @@ class linux(Runner):
         else:
             command = []
 
-        working_dir = launch_config.get("working_dir") or self.working_dir
+        working_dir = os.path.expanduser(launch_config.get("working_dir") or self.working_dir)
 
         if "exe" in launch_config:
-            command.append(self.get_relative_exe(launch_config["exe"], working_dir))
+            config_exe = os.path.expanduser(launch_config["exe"] or '')
+            command.append(self.get_relative_exe(config_exe, working_dir))
         elif len(command) == 0:
             raise GameConfigError(_("The runner could not find a command or exe to use for this configuration."))
 

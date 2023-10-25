@@ -121,9 +121,13 @@ def get_path_from_config(game):
             path = game_config[key]
             if key == "files":
                 path = path[0]
-            if not path.startswith("/"):
-                path = os.path.join(game.directory, path)
-            return path
+
+            if path:
+                path = os.path.expanduser(path)
+                if not path.startswith("/"):
+                    path = os.path.join(game.directory, path)
+                return path
+
     logger.warning("No path found in %s", game.config)
     return ""
 
@@ -210,4 +214,4 @@ def get_missing_game_ids():
 def is_game_missing(game_id):
     cache = get_path_cache()
     path = cache.get(str(game_id))
-    return path and not os.path.exists(path)
+    return path and not os.path.exists(os.path.expanduser(path))

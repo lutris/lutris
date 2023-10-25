@@ -612,6 +612,7 @@ class wine(Runner):
         if not _prefix_path and self.game_config.get("exe"):
             # Find prefix from game if we have one
             _prefix_path = find_prefix(self.game_exe)
+        _prefix_path = os.path.expanduser(_prefix_path)  # just in case!
         return _prefix_path
 
     @property
@@ -622,6 +623,7 @@ class wine(Runner):
         if not exe:
             logger.error("The game doesn't have an executable")
             return None
+        exe = os.path.expanduser(exe)  # just in case!
         if os.path.isabs(exe):
             return system.fix_path_case(exe)
         if not self.game_path:
@@ -634,7 +636,7 @@ class wine(Runner):
         """Return the working directory to use when running the game."""
         _working_dir = self._working_dir or self.game_config.get("working_dir")
         if _working_dir:
-            return _working_dir
+            return os.path.expanduser(_working_dir)
         if self.game_exe:
             game_dir = os.path.dirname(self.game_exe)
             if os.path.isdir(game_dir):

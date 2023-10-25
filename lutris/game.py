@@ -306,7 +306,7 @@ class Game(GObject.Object):
         """Return the game's directory; if it is not known this will try to find
         it. This can still return an empty string if it can't do that."""
         if self.directory:
-            return self.directory
+            return os.path.expanduser(self.directory)  # expanduser just in case!
         if self.runner:
             return self.runner.resolve_game_path()
         return ""

@@ -422,7 +422,7 @@ class easyrpg(Runner):
     def game_path(self):
         game_path = self.game_data.get("directory")
         if game_path:
-            return game_path
+            return path.expanduser(game_path)  # just in case
 
         # Default to the directory of the entry point
         entry_point = self.game_config.get(self.entry_point_option)

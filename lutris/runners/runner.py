@@ -105,7 +105,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Return the directory where the game is installed."""
         game_path = self.game_data.get("directory")
         if game_path:
-            return game_path
+            return os.path.expanduser(game_path)  # expanduser just in case!
 
         if self.has_explicit_config:
             # Default to the directory where the entry point is located.
@@ -297,14 +297,17 @@ class Runner:  # pylint: disable=too-many-public-methods
         exe = launch_config.get("exe")
         config_working_dir = self.get_launch_config_working_dir(launch_config)
 
-        if exe and config_working_dir and not os.path.isabs(exe):
-            exe_from_config = self.resolve_config_path(exe, config_working_dir)
-            exe_from_game = self.resolve_config_path(exe)
+        if exe:
+            exe = os.path.expanduser(exe)  # just in case!
 
-            if os.path.exists(exe_from_game) and not os.path.exists(exe_from_config):
-                relative = os.path.relpath(exe_from_game, start=config_working_dir)
-                if not relative.startswith("../"):
-                    return relative
+            if config_working_dir and not os.path.isabs(exe):
+                exe_from_config = self.resolve_config_path(exe, config_working_dir)
+                exe_from_game = self.resolve_config_path(exe)
+
+                if os.path.exists(exe_from_game) and not os.path.exists(exe_from_config):
+                    relative = os.path.relpath(exe_from_game, start=config_working_dir)
+                    if not relative.startswith("../"):
+                        return relative
 
         return exe
 
@@ -324,11 +327,14 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     def resolve_config_path(self, path, relative_to=None):
         """Interpret a path taken from the launch_config relative to
-        a working directory, using the game's working_dir if that is omitted.
+        a working directory, using the game's working_dir if that is omitted,
+        and expanding the '~' if we get one.
 
         This is provided as a method so the WINE runner can try to convert
         Windows-style paths to usable paths.
         """
+        path = os.path.expanduser(path)
+
         if not os.path.isabs(path):
             if not relative_to:
                 relative_to = self.working_dir

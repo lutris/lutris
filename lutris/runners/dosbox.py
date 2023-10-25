@@ -111,10 +111,13 @@ class dosbox(Runner):
         """Return a guaranteed absolute path"""
         if not path:
             return ""
+        path = os.path.expanduser(path)
         if os.path.isabs(path):
             return path
-        if self.game_data.get("directory"):
-            return os.path.join(self.game_data.get("directory"), path)
+        directory = self.game_data.get("directory")
+        if directory:
+            directory = os.path.expanduser(directory)
+            return os.path.join(directory, path)
         return ""
 
     @property
