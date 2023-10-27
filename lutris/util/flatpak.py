@@ -40,9 +40,13 @@ def get_installed_apps():
             try:
                 name, appid, version, branch, origin, installation = package.split("\t")
             except ValueError:
-                # For older Flatpak versions
-                name, appid, version, branch, installation = package.split("\t")
-                origin = ""
+                try:
+                    # For older Flatpak versions
+                    name, appid, version, branch, installation = package.split("\t")
+                    origin = ""
+                except ValueError:
+                    logger.error("Not able to parse Flatpak output: %s", package)
+                    continue
             packages.append({
                 "name": name,
                 "appid": appid,
