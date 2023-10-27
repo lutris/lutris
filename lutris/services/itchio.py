@@ -256,6 +256,8 @@ class ItchIoService(OnlineService):
 
     def get_key(self, appid):
         """Retrieve cache information on a key"""
+        if not appid:
+            raise ValueError("Missing Itch.io app ID")
         game_filename = self.get_game_cache(appid)
         game = {}
 
