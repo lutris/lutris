@@ -2,6 +2,7 @@ import shutil
 from gettext import gettext as _
 
 from lutris.exceptions import UnavailableRunnerError
+from lutris.util.log import logger
 from lutris.util.system import read_process_output
 
 
