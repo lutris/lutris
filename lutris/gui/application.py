@@ -27,6 +27,7 @@ from datetime import datetime, timedelta
 from gettext import gettext as _
 
 import gi
+
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 
@@ -40,6 +41,7 @@ from lutris.command import exec_command
 from lutris.database import games as games_db
 from lutris.game import Game, export_game, import_game
 from lutris.installer import get_installers
+from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, LutrisInitDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.dialogs.delegates import LaunchUIDelegate, InstallUIDelegate, CommandLineUIDelegate
@@ -75,6 +77,7 @@ class Application(Gtk.Application):
         GObject.add_emission_hook(Game, "game-install", self.on_game_install)
         GObject.add_emission_hook(Game, "game-install-update", self.on_game_install_update)
         GObject.add_emission_hook(Game, "game-install-dlc", self.on_game_install_dlc)
+        GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
 
         GLib.set_application_name(_("Lutris"))
         self.force_updates = False
@@ -700,6 +703,15 @@ class Application(Gtk.Application):
             # If the Lutris GUI is started by itself, don't quit it when a game stops
             self.quit_on_game_exit = False
         return 0
+
+    @watch_errors()
+    def on_settings_changed(self, dialog, state, setting_key):
+        if setting_key == "dark_theme":
+            self.style_manager.is_config_dark = state
+        elif setting_key == "show_tray_icon" and self.window:
+            if self.window.get_visible():
+                self.set_tray_icon()
+        return True
 
     @watch_errors(error_result=True)
     def on_game_launch(self, game):

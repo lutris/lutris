@@ -16,7 +16,7 @@ from lutris.gui.config.sysinfo_box import SysInfoBox
 
 class PreferencesDialog(GameDialogCommon):
     __gsignals__ = {
-        "settings-changed": (GObject.SIGNAL_RUN_LAST, None, (str, )),
+        "settings-changed": (GObject.SIGNAL_RUN_LAST, None, (bool, str)),
     }
 
     def __init__(self, parent=None):

@@ -34,18 +34,3 @@ class InterfacePreferencesBox(BaseConfigBox):
             list_box_row.set_activatable(False)
             list_box_row.add(self.get_setting_box(setting_key, label))
             listbox.add(list_box_row)
-
-    def _on_setting_change(self, widget, state, setting_key):
-        """Save a setting when an option is toggled"""
-        settings.write_setting(setting_key, state)
-        application = Gio.Application.get_default()
-
-        # That should be implemented in the
-        # application's event handler for settings-changed.
-        if setting_key == "dark_theme":
-            application.style_manager.is_config_dark = state
-        elif setting_key == "show_tray_icon":
-            if application.window.get_visible():
-                application.set_tray_icon()
-
-        self.get_toplevel().emit("settings-changed", setting_key)
