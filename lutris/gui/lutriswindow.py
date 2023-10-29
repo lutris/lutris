@@ -1025,7 +1025,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Event handler to toggle badge visibility"""
         state = settings.read_setting("hide_badges_on_icons").lower() == "true"
         settings.write_setting("hide_badges_on_icons", not state)
-        self.on_settings_changed(None, "hide_badges_on_icons")
+        self.on_settings_changed(None, not state, "hide_badges_on_icons")
 
     @watch_errors()
     def on_settings_changed(self, dialog, state, setting_key):
