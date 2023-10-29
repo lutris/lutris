@@ -33,7 +33,7 @@ def get_installed_apps():
     if not is_installed():
         return []
 
-    command = get_command() + ["list --columns=name,application,version,branch,arch,origin,installation"]
+    command = get_command() + ["list", "--columns=name,application,version,branch,arch,origin,installation"]
     package_list = read_process_output(command)
     packages = []
     for package in package_list.split("\n"):
