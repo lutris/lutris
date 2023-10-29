@@ -844,7 +844,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.search_entry.set_size_request(min(max(50, size[0] - 470), 800), -1)
 
     def on_window_delete(self, *_args):
-        if self.application.running_games.get_n_items():
+        app = self.application
+        if app.running_games.get_n_items():
+            self.hide()
+            return True
+        if app.has_tray_icon():
             self.hide()
             return True
 
