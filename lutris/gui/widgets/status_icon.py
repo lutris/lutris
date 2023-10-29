@@ -48,7 +48,7 @@ class LutrisStatusIcon:
             if value:
                 visible = AppIndicator.IndicatorStatus.ACTIVE
             else:
-                visible = AppIndicator.IndicatorStatus.ACTIVE
+                visible = AppIndicator.IndicatorStatus.PASSIVE
             self.icon.set_status(visible)
         else:
             self.icon.set_visible(value)
