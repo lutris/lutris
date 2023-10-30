@@ -106,6 +106,12 @@ class LutrisService(OnlineService):
         logger.debug("Lutris games loaded")
         return lutris_games
 
+    def load_icons(self):
+        super().load_icons()
+        # Also load any media for games that use Lutris media,
+        # but are not in the Lutris library.
+        sync_media()
+
     def install(self, db_game):
         if isinstance(db_game, dict):
             slug = db_game["slug"]

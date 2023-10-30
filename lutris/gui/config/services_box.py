@@ -55,7 +55,7 @@ class ServicesBox(BaseConfigBox):
         label.set_alignment(0, 0.5)
         service_label_box.pack_start(label, False, False, 0)
 
-        desc_label = Gtk.Label(visible=True)
+        desc_label = Gtk.Label(visible=True, wrap=True)
         desc_label.set_alignment(0, 0.5)
         desc_label.set_text(service.description)
         service_label_box.pack_start(desc_label, False, False, 0)
