@@ -8,6 +8,7 @@ from gettext import gettext as _
 # Third Party Libraries
 from gi.repository import GLib, GObject, Gtk, Pango
 
+from lutris.gui.widgets.utils import open_uri
 # Lutris Modules
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
@@ -95,9 +96,14 @@ class FileChooserEntry(Gtk.Box):
         browse_button = Gtk.Button(_("Browse..."), visible=True)
         browse_button.connect("clicked", self.on_browse_clicked)
 
+        self.open_button = Gtk.Button(_("Open"), visible=True)
+        self.open_button.connect("clicked", self.on_open_clicked)
+        self.open_button.set_sensitive(bool(self.get_open_directory()))
+
         box = Gtk.Box(spacing=6, visible=True)
         box.pack_start(self.entry, True, True, 0)
-        box.add(browse_button)
+        box.pack_end(self.open_button, False, False, 0)
+        box.pack_end(browse_button, False, False, 0)
         self.pack_start(box, False, False, 0)
 
     def set_text(self, text):
@@ -188,6 +194,20 @@ class FileChooserEntry(Gtk.Box):
 
         file_chooser_dialog.destroy()
 
+    def on_open_clicked(self, _widget):
+        path = self.get_open_directory()
+
+        if path:
+            open_uri(path)
+
+    def get_open_directory(self):
+        path = self.get_path()
+
+        while path and not os.path.isdir(path):
+            path = os.path.dirname(path)
+
+        return path
+
     def on_entry_changed(self, widget):
         """Entry changed callback"""
         self.clear_warnings()
@@ -231,6 +251,8 @@ class FileChooserEntry(Gtk.Box):
                 "is not writable by the current user."
             ))
             self.pack_end(non_writable_destination_label, False, False, 10)
+
+        self.open_button.set_sensitive(bool(self.get_open_directory()))
 
         self.emit("changed")
 
