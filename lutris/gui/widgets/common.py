@@ -93,10 +93,17 @@ class FileChooserEntry(Gtk.Box):
         self.entry.connect("focus-out-event", self.on_focus_out)
         self.entry.connect("backspace", self.on_backspace)
 
-        browse_button = Gtk.Button(_("Browse..."), visible=True)
+        browse_button = Gtk.Button.new_from_icon_name("view-more-horizontal-symbolic", Gtk.IconSize.BUTTON)
+        if action == Gtk.FileChooserAction.SELECT_FOLDER:
+            browse_button.set_tooltip_text(_("Select a folder"))
+        else:
+            browse_button.set_tooltip_text(_("Select a file"))
+        browse_button.get_style_context().add_class("circular")
         browse_button.connect("clicked", self.on_browse_clicked)
 
-        self.open_button = Gtk.Button(_("Open"), visible=True)
+        self.open_button = Gtk.Button.new_from_icon_name("folder-symbolic", Gtk.IconSize.BUTTON)
+        self.open_button.set_tooltip_text(_("Open in file browser"))
+        self.open_button.get_style_context().add_class("circular")
         self.open_button.connect("clicked", self.on_open_clicked)
         self.open_button.set_sensitive(bool(self.get_open_directory()))
 
