@@ -7,6 +7,8 @@ import uuid
 from gettext import gettext as _
 from typing import List, Union
 
+from gi.repository import GLib
+
 from lutris.util.log import logger
 
 NO_PLAYTIME = "Never played"
@@ -101,12 +103,31 @@ def unpack_dependencies(string: str) -> List[Union[str, tuple]]:
     return [dep for dep in [_expand_dep(dep) for dep in string.split(",")] if dep]
 
 
-def gtk_safe(string: str) -> str:
-    """Return a string ready to used in Gtk widgets"""
-    if not string:
-        string = ""
-    string = str(string)
-    return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+def gtk_safe(text: str) -> str:
+    """Return a string ready to used in Gtk widgets, with anything that could
+    be Pango markup escaped."""
+    if not text:
+        return ""
+
+    return GLib.markup_escape_text(str(text))
+
+
+def is_valid_pango_markup(text):
+    def destroy_func(_user_data):
+        pass  # required by GLib, but we don't need this callback
+
+    if len(text) == 0:
+        return True  # Trivial case - empty strings are always valid
+
+    try:
+        parser = GLib.MarkupParser()
+        context = GLib.MarkupParseContext(parser, GLib.MarkupParseFlags.DEFAULT_FLAGS, None, destroy_func)
+
+        markup = f"<markup>{text}</markup>"
+        context.parse(markup, len(markup))
+        return True
+    except GLib.GError:
+        return False
 
 
 def get_formatted_playtime(playtime) -> str:
