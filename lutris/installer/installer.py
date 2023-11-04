@@ -159,6 +159,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 if file.url.startswith("N/A"):
                     installer_file_id = file.id
                     installer_file_url = file.url
+                    break
         self.files = [file.copy() for file in self.script_files if file.id != installer_file_id]
 
         # Run variable substitution on the URLs from the script
