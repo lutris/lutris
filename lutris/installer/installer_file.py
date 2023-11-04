@@ -9,7 +9,7 @@ from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.errors import ScriptingError
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.strings import add_url_tags, gtk_safe
+from lutris.util.strings import gtk_safe_urls
 
 
 class InstallerFile:
@@ -126,7 +126,7 @@ class InstallerFile:
             label = url[3:].lstrip(":")
         else:
             label = url
-        return add_url_tags(gtk_safe(label))
+        return gtk_safe_urls(label)
 
     @property
     def cached_filename(self):

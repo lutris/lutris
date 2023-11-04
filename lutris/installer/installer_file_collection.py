@@ -7,7 +7,7 @@ from lutris import cache, settings
 from lutris.gui.widgets.download_collection_progress_box import DownloadCollectionProgressBox
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.strings import add_url_tags, gtk_safe
+from lutris.util.strings import gtk_safe_urls
 
 AMAZON_DOMAIN = "a2z.com"
 
@@ -89,7 +89,7 @@ class InstallerFileCollection:
 
     def get_label(self):
         """Return a human readable label for installer files"""
-        return add_url_tags(gtk_safe(self.game_slug))
+        return gtk_safe_urls(self.game_slug)
 
     @property
     def default_provider(self):

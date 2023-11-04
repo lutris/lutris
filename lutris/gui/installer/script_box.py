@@ -3,7 +3,7 @@ from gettext import gettext as _
 from gi.repository import Gtk
 
 from lutris.gui.installer.widgets import InstallerLabel
-from lutris.util.strings import add_url_tags, gtk_safe
+from lutris.util.strings import gtk_safe_urls, gtk_safe
 
 
 class InstallerScriptBox(Gtk.VBox):
@@ -40,7 +40,7 @@ class InstallerScriptBox(Gtk.VBox):
         title_box.pack_end(rating_label, False, False, 0)
         info_box.add(title_box)
         info_box.add(self.get_credits())
-        info_box.add(InstallerLabel(add_url_tags(self.script["description"]), selectable=True))
+        info_box.add(InstallerLabel(gtk_safe_urls(self.script["description"]), selectable=True))
 
         return info_box
 
@@ -77,7 +77,7 @@ class InstallerScriptBox(Gtk.VBox):
         credits_text = self.script.get("credits", "").strip()
         if not credits_text:
             return Gtk.Alignment()
-        return self._get_installer_label(add_url_tags(credits_text))
+        return self._get_installer_label(gtk_safe_urls(credits_text))
 
     def _get_installer_label(self, text):
         _label = InstallerLabel(text, selectable=True)

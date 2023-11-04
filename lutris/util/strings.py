@@ -41,16 +41,6 @@ def slugify(value) -> str:
     return slug
 
 
-def add_url_tags(text) -> str:
-    """Surround URL with <a> tags."""
-    return re.sub(
-        r"(http[s]?://("
-        r"?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)",
-        r'<a href="\1">\1</a>',
-        text,
-    )
-
-
 def lookup_string_in_text(string, text):
     """Return full line if string found in the multi-line text."""
     output_lines = text.split("\n")
@@ -110,6 +100,27 @@ def gtk_safe(text: str) -> str:
         return ""
 
     return GLib.markup_escape_text(str(text))
+
+
+def gtk_safe_urls(text: str) -> str:
+    """Escapes the text as with gtk_safe, but detects URLs and converts them to
+    anchor tags as well."""
+    if not text:
+        return ""
+
+    parts = re.split(
+        r"(http[s]?://("
+        r"?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)",
+        text)
+
+    for index, part in enumerate(parts):
+        if len(part) > 0:
+            part = gtk_safe(part)
+            if index % 2 != 0:  # every odd numbered part is the group in the regular expression
+                part = f"<a href=\"{part}\">{part}</a>"
+            parts[index] = part
+
+    return "".join(parts)
 
 
 def is_valid_pango_markup(text):

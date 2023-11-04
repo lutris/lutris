@@ -67,14 +67,14 @@ class TestStringUtils(TestCase):
         slug = strings.slugify(name)
         self.assertTrue(len(slug) > 0)
 
-    def test_add_url_tags(self):
-        self.assertEqual(strings.add_url_tags("foo bar"), "foo bar")
+    def test_gtk_safe_urls(self):
+        self.assertEqual(strings.gtk_safe_urls("foo bar"), "foo bar")
         self.assertEqual(
-            strings.add_url_tags("foo http://lutris.net bar"),
+            strings.gtk_safe_urls("foo http://lutris.net bar"),
             "foo <a href=\"http://lutris.net\">http://lutris.net</a> bar"
         )
         self.assertEqual(
-            strings.add_url_tags("http://lutris.net"),
+            strings.gtk_safe_urls("http://lutris.net"),
             "<a href=\"http://lutris.net\">http://lutris.net</a>"
         )
         text = "foo http://lutris.net bar http://strycore.com"
@@ -82,7 +82,7 @@ class TestStringUtils(TestCase):
             'foo <a href="http://lutris.net">http://lutris.net</a> '
             'bar <a href="http://strycore.com">http://strycore.com</a>'
         )
-        self.assertEqual(strings.add_url_tags(text), expected)
+        self.assertEqual(strings.gtk_safe_urls(text), expected)
 
     def test_get_formatted_playtime(self):
         self.assertEqual(strings.get_formatted_playtime(None), strings.NO_PLAYTIME)
