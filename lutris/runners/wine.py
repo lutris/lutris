@@ -612,7 +612,8 @@ class wine(Runner):
         if not _prefix_path and self.game_config.get("exe"):
             # Find prefix from game if we have one
             _prefix_path = find_prefix(self.game_exe)
-        _prefix_path = os.path.expanduser(_prefix_path)  # just in case!
+        if _prefix_path:
+            _prefix_path = os.path.expanduser(_prefix_path)  # just in case!
         return _prefix_path
 
     @property
