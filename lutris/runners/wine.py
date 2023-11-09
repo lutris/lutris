@@ -971,6 +971,9 @@ class wine(Runner):
         return None
 
     def prelaunch(self):
+        if not get_system_wine_version():
+            logger.warning("Wine is not installed on your system; required dependencies may be missing.")
+
         prefix_path = self.prefix_path
         if prefix_path:
             if not system.path_exists(os.path.join(prefix_path, "user.reg")):
