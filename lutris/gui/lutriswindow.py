@@ -1063,7 +1063,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
             db_game = ServiceGameCollection.get_game(self.service.id, game.appid)
         else:
             db_game = games_db.get_game_by_field(game.id, "id")
-        if not self.is_game_displayed(game):
+        if not self.is_game_displayed(game) and "id" in db_game:
             self.game_store.remove_game(db_game["id"])
             return True
         if db_game:
