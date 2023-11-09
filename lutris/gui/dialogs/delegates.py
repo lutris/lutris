@@ -6,7 +6,6 @@ from lutris.exceptions import UnavailableRunnerError
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.dialogs.download import DownloadDialog
-from lutris.runners import wine
 from lutris.util.downloader import Downloader
 
 
@@ -139,10 +138,6 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
             installed = game.runner.install_dialog(self)
             if not installed:
                 return False
-
-        if "wine" in game.runner_name and not wine.get_system_wine_version():
-            dialogs.WineNotInstalledWarning(parent=self)
-            return False
 
         return True
 

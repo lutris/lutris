@@ -519,23 +519,6 @@ class WarningMessageDialog(Gtk.MessageDialog):
         self.destroy()
 
 
-class WineNotInstalledWarning(WarningMessageDialog):
-    """Display a warning if Wine is not detected on the system"""
-
-    def __init__(self, parent=None, cancellable=False):
-        super().__init__(
-            _("Wine is not installed on your system."),
-            secondary_message=_(
-                "Having Wine installed on your system guarantees that "
-                "Wine builds from Lutris will have all required dependencies.\n\nPlease "
-                "follow the instructions given in the <a "
-                "href='https://github.com/lutris/docs/blob/master/WineDependencies.md'>Lutris Wiki</a> to "
-                "install Wine."
-            ),
-            parent=parent
-        )
-
-
 class MoveDialog(ModelessDialog):
     __gsignals__ = {
         "game-moved": (GObject.SIGNAL_RUN_FIRST, None, ()),
