@@ -785,14 +785,11 @@ class SystemBox(ConfigBox):
             ))
 
 
-class ConfigMessageBox(Gtk.Box):
-    def __init__(self, warning, option_key, icon_name):
-        self.warning = warning
-        self.option_key = option_key
-        super().__init__(spacing=6, visible=False, no_show_all=True)
-        self.set_margin_left(18)
-        self.set_margin_right(18)
-        self.set_margin_bottom(6)
+class UnderslungMessageBox(Gtk.Box):
+    """A box to display a message with an icon inside the configuration dialog."""
+    def __init__(self, icon_name, margin_left=18, margin_right=18, margin_bottom=6):
+        super().__init__(spacing=6, visible=False, margin_left=margin_left, margin_right=margin_right,
+                         margin_bottom=margin_bottom, no_show_all=True)
 
         image = Gtk.Image(visible=True)
         image.set_from_icon_name(icon_name, Gtk.IconSize.DND)
@@ -800,6 +797,30 @@ class ConfigMessageBox(Gtk.Box):
         self.label = Gtk.Label(visible=True, xalign=0)
         self.label.set_line_wrap(True)
         self.pack_start(self.label, False, False, 0)
+
+    def show_markup(self, markup):
+        """Displays the markup given, and shows this box. If markup is empty or None,
+        this hides the box instead. Returns the new visibility."""
+        visible = bool(markup)
+
+        if markup:
+            self.label.set_markup(str(markup))
+
+        self.set_visible(visible)
+        return visible
+
+
+class ConfigMessageBox(UnderslungMessageBox):
+    def __init__(self, warning, option_key, icon_name, **kwargs):
+        self.warning = warning
+        self.option_key = option_key
+        super().__init__(icon_name, **kwargs)
+
+        if not callable(warning):
+            text = gtk_safe(warning)
+
+            if text:
+                self.label.set_markup(str(text))
 
     def update_warning(self, config):
         try:
@@ -811,12 +832,7 @@ class ConfigMessageBox(Gtk.Box):
             logger.exception("Unable to generate configuration warning: %s", err)
             text = gtk_safe(err)
 
-        if text:
-            self.label.set_markup(str(text))
-
-        visible = bool(text)
-        self.set_visible(visible)
-        return visible
+        return self.show_markup(text)
 
 
 class ConfigWarningBox(ConfigMessageBox):

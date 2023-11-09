@@ -61,6 +61,12 @@ class Runner:  # pylint: disable=too-many-public-methods
         self.__doc__ = value  # What the shit
 
     @property
+    def runner_warning(self):
+        """Returns a message (as markup) that is displayed in the configuration dialog as
+        a warning."""
+        return None
+
+    @property
     def name(self):
         return self.__class__.__name__
 

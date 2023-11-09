@@ -579,6 +579,18 @@ class wine(Runner):
         ]
 
     @property
+    def runner_warning(self):
+        if not get_system_wine_version():
+            return _(
+                "<b>Warning</b> Wine is not installed on your system\n\n"
+                "Having Wine installed on your system guarantees that "
+                "Wine builds from Lutris will have all required dependencies.\nPlease "
+                "follow the instructions given in the <a "
+                "href='https://github.com/lutris/docs/blob/master/WineDependencies.md'>Lutris Wiki</a> to "
+                "install Wine."
+            )
+
+    @property
     def context_menu_entries(self):
         """Return the contexual menu entries for wine"""
         return [
