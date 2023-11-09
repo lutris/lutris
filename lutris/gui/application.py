@@ -805,6 +805,9 @@ class Application(Gtk.Application):
             ErrorDialog(_("No DLC found"), parent=self.window)
         return True
 
+    def get_launch_ui_delegate(self):
+        return self.launch_ui_delegate
+
     def get_running_game_ids(self):
         ids = []
         for i in range(self.running_games.get_n_items()):
