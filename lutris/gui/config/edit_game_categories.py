@@ -51,7 +51,7 @@ class EditGameCategoriesDialog(SavableModelessDialog):
         return frame
 
     def _create_add_category(self):
-        def on_add_category(widget=None):
+        def on_add_category(*_args):
             category_text = categories_db.strip_category_name(category_entry.get_text())
             if not categories_db.is_reserved_category(category_text):
                 for category_checkbox in self.grid.get_children():
@@ -69,6 +69,7 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
         category_entry = Gtk.Entry()
         category_entry.set_text("")
+        category_entry.connect("activate", on_add_category)
         hbox.pack_start(category_entry, True, True, 0)
 
         button = Gtk.Button.new_with_label(_("Add Category"))
