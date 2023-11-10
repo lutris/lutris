@@ -28,29 +28,91 @@ from lutris.util.system import path_exists
 from lutris.util.wine.shader_cache import update_shader_cache
 
 
-class GameActions:
-    """Regroup a list of callbacks for a game"""
+def get_game_actions(game, window, application=None):
+    if game.is_db_stored:
+        return GameActions(game, window, application)
+    else:
+        return BaseGameActions(game, window, application)
 
+
+class BaseGameActions:
     def __init__(self, game, window, application=None):
         self.application = application or Gio.Application.get_default()
         self.window = window  # also used as a LaunchUIDelegate
         self.game = game
+
+    def get_game_actions(self):
+        """Return a list of game actions and their callbacks"""
+        return []
+
+    def get_displayed_entries(self):
+        """Return a dictionary of actions that should be shown for a game"""
+        return {}
+
+    @property
+    def is_game_launchable(self):
+        return False
+
+    def on_game_launch(self, *_args):
+        """Launch a game"""
+        pass
+
+    @property
+    def is_game_running(self):
+        return False
+
+    def on_game_stop(self, *_args):
+        """Stops the game"""
+        pass
+
+    @property
+    def is_installable(self):
+        return False
+
+    def on_install_clicked(self, *_args):
+        """Install a game"""
+        pass
+
+    def on_locate_installed_game(self, _button, game):
+        """Show the user a dialog to import an existing install to a DRM free service
+
+        Params:
+            game (Game): Game instance without a database ID, populated with a fields the service can provides
+        """
+        AddGameDialog(self.window, game=game)
+
+    @property
+    def is_game_removable(self):
+        return False
+
+    def on_remove_game(self, *_args):
+        """Callback that present the uninstall dialog to the user"""
+        pass
+
+
+class GameActions(BaseGameActions):
+    """Regroup a list of callbacks for a game"""
+
+    def __init__(self, game, window, application=None):
+        super().__init__(game, window, application)
+
+    @property
+    def is_game_launchable(self):
+        return self.game and self.game.is_installed and not self.is_game_running
 
     @property
     def is_game_running(self):
         return self.game and self.game.is_db_stored and bool(self.application.get_running_game_by_id(self.game.id))
 
     @property
+    def is_installable(self):
+        return not self.game.is_installed
+
+    @property
     def is_game_removable(self):
         return self.game and (self.game.is_installed or self.game.is_db_stored)
 
-    def on_game_state_changed(self, game):
-        """Handler called when the game has changed state"""
-        if self.game and game.id == self.game.get_safe_id():
-            self.game = game
-
     def get_game_actions(self):
-        """Return a list of game actions and their callbacks"""
         return [
             ("play", _("Play"), self.on_game_launch),
             ("stop", _("Stop"), self.on_game_stop),
@@ -94,8 +156,8 @@ class GameActions:
         return {
             "add": not self.game.is_installed,
             "duplicate": self.game.is_installed,
-            "install": not self.game.is_installed,
-            "play": self.game.is_installed and not self.is_game_running,
+            "install": self.is_installable,
+            "play": self.is_game_launchable,
             "update": self.game.is_updatable,
             "update-shader-cache": self.game.is_cache_managed,
             "install_dlcs": self.game.is_updatable,
@@ -189,14 +251,6 @@ class GameActions:
 
     def on_update_shader_cache(self, _widget):
         update_shader_cache(self.game)
-
-    def on_locate_installed_game(self, _button, game):
-        """Show the user a dialog to import an existing install to a DRM free service
-
-        Params:
-            game (Game): Game instance without a database ID, populated with a fields the service can provides
-        """
-        AddGameDialog(self.window, game=game)
 
     def on_add_manually(self, _widget, *_args):
         """Callback that presents the Add game dialog"""

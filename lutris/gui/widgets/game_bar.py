@@ -7,7 +7,7 @@ from lutris import runners, services
 from lutris.database.games import get_game_for_service
 from lutris.exceptions import watch_errors
 from lutris.game import Game
-from lutris.game_actions import GameActions
+from lutris.game_actions import GameActions, get_game_actions
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets.contextual_menu import update_action_widget_visibility
 from lutris.util.strings import gtk_safe
@@ -74,7 +74,7 @@ class GameBar(Gtk.Box):
 
     def update_view(self):
         """Populate the view with widgets"""
-        game_actions = GameActions(self.game, window=self.window, application=self.application)
+        game_actions = get_game_actions(self.game, window=self.window, application=self.application)
 
         game_label = self.get_game_name_label()
         game_label.set_halign(Gtk.Align.START)
@@ -212,15 +212,18 @@ class GameBar(Gtk.Box):
             if self.game.state == self.game.STATE_STOPPED:
                 button.set_label(_("Play"))
                 button.connect("clicked", game_actions.on_game_launch)
+                button.set_sensitive(game_actions.is_game_launchable)
             elif self.game.state == self.game.STATE_LAUNCHING:
                 button.set_label(_("Launching"))
                 button.set_sensitive(False)
             else:
                 button.set_label(_("Stop"))
                 button.connect("clicked", game_actions.on_game_stop)
+                button.set_sensitive(game_actions.is_game_running)
         else:
             button.set_label(_("Install"))
             button.connect("clicked", game_actions.on_install_clicked)
+            button.set_sensitive(game_actions.is_installable)
             if self.service:
                 if self.service.local:
                     # Local services don't show an install dialog, they can be launched directly

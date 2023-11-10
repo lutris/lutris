@@ -3,7 +3,7 @@ from gi.repository import Gdk, Gio, GObject, Gtk
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.game_actions import GameActions
+from lutris.game_actions import GameActions, get_game_actions
 from lutris.gui.views import COL_ID
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 
@@ -56,7 +56,7 @@ class GameView:
         else:
             return None
 
-        return GameActions(game, window=self.get_toplevel())
+        return get_game_actions(game, window=self.get_toplevel())
 
     def get_game_by_id(self, game_id):
         application = Gio.Application.get_default()
