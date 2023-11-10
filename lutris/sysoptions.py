@@ -23,15 +23,33 @@ def get_locale_choices():
     """Return list of available locales as label, value tuples
     suitable for inclusion in drop-downs.
     """
+    return [
+        ("en_US.utf8", "en_US.utf8"),
+        ("fi_FI.utf8", "fi_FI.utf8"),
+        ("de_DE.utf8", "de_DE.utf8"),
+        ("es_ES.utf8", "es_ES.utf8"),
+        ("hr_HR.utf8", "hr_HR.utf8"),
+        ("it_IT.utf8", "it_IT.utf8"),
+        ("ka_GE.utf8", "ka_GE.utf8"),
+        ("ko_KR.utf8", "ko_KR.utf8"),
+        ("ko_KR.utf8", "ko_KR.utf8"),
+        ("nl_NL.utf8", "nl_NL.utf8"),
+        ("pt_BR.utf8", "pt_BR.utf8"),
+        ("ru_RU.utf8", "ru_RU.utf8"),
+        ("tr_TR.utf8", "tr_TR.utf8"),
+        ("tr_TR.utf8", "tr_TR.utf8"),
+        ("zh_CN.utf8", "zh_CN.utf8")
+    ]
     locales = system.get_locale_list()
 
-    # adds "(recommended)" string to utf8 locales
-    locales_humanized = locales.copy()
-    for index, locale in enumerate(locales_humanized):
-        if "utf8" in locale:
-            locales_humanized[index] += " " + _("(recommended)")
+    # To keep the list down to a reasonable length, we'll
+    # offer only UTF-8 locales if any are present.
+    selected = [l for l in locales if "utf8" in l.casefold()]
 
-    locale_choices = list(zip(locales_humanized, locales))
+    if not selected:
+        selected = locales
+
+    locale_choices = list(zip(selected, selected))
     locale_choices.insert(0, (_("System"), ""))
 
     return locale_choices
