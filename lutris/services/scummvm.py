@@ -62,7 +62,7 @@ class ScummvmService(BaseService):
             "version": "ScummVM",
             "slug": db_game["slug"],
             "game_slug": self.get_installed_slug(db_game),
-            "runner": "scummvm",
+            "runner": self.get_installed_runner_name(db_game),
             "script": {
                 "game": {
                     "game_id": db_game["appid"],
@@ -70,6 +70,9 @@ class ScummvmService(BaseService):
                 }
             }
         }
+
+    def get_installed_runner_name(self, db_game):
+        return "scummvm"
 
 
 class ScummvmGame(ServiceGame):

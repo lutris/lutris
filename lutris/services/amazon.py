@@ -64,6 +64,7 @@ class AmazonService(OnlineService):
     id = "amazon"
     name = _("Amazon Prime Gaming")
     icon = "amazon"
+    runner = "wine"
     has_extras = False
     drm_free = False
     medias = {
@@ -680,7 +681,7 @@ class AmazonService(OnlineService):
             "version": _("Amazon Prime Gaming"),
             "slug": slugify(details["product"]["title"]),
             "game_slug": slugify(details["product"]["title"]),
-            "runner": "wine",
+            "runner": self.get_installed_runner_name(db_game),
             "script": {
                 "game": {
                     "exe": f"$GAMEDIR/drive_c/game/{game_cmd}",
@@ -693,3 +694,6 @@ class AmazonService(OnlineService):
                 "installer": installer
             }
         }
+
+    def get_installed_runner_name(self, db_game):
+        return self.runner

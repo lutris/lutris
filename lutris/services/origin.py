@@ -349,7 +349,7 @@ class OriginService(OnlineService):
             "version": self.name,
             "slug": slugify(db_game["name"]) + "-" + self.id,
             "game_slug": self.get_installed_slug(db_game),
-            "runner": self.runner,
+            "runner": self.get_installed_runner_name(db_game),
             "appid": db_game["appid"],
             "script": {
                 "requires": self.client_installer,
@@ -369,6 +369,9 @@ class OriginService(OnlineService):
                 ]
             }
         }
+
+    def get_installed_runner_name(self, db_game):
+        return self.runner
 
     def install(self, db_game):
         origin_game = get_game_by_field(self.client_installer, "slug")

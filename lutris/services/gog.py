@@ -537,6 +537,10 @@ class GOGService(OnlineService):
             }
         }
 
+    def get_installed_runner_name(self, db_game):
+        platforms = [platform.casefold() for platform in self.get_game_platforms(db_game)]
+        return "linux" if "linux" in platforms else "wine"
+
     def get_games_owned(self):
         """Return IDs of games owned by user"""
         url = "{}/user/data/games".format(self.embed_url)
@@ -559,7 +563,7 @@ class GOGService(OnlineService):
 
             for file in installfiles:
                 # supports linux
-                if file["os"].lower() == "linux":
+                if file["os"].casefold() == "linux":
                     runner = "linux"
                     script = [{"extract": {"dst": "$CACHE/GOG", "file": dlc_id, "format": "zip"}},
                               {"merge": {"dst": "$GAMEDIR", "src": "$CACHE/GOG/data/noarch/"}}]

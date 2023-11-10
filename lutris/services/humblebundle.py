@@ -326,6 +326,18 @@ class HumbleBundleService(OnlineService):
             }
         }
 
+    def get_installed_runner_name(self, db_game):
+        details = json.loads(db_game["details"])
+        platforms = [download["platform"] for download in details["downloads"]]
+
+        if "linux" in platforms and self.platform_has_downloads(details["downloads"], "linux"):
+            return "linux"
+
+        if "windows" in platforms:
+            return "wine"
+
+        return ""
+
 
 def pick_download_url_from_download_info(download_info):
     """From a list of downloads in Humble Bundle, pick the most appropriate one

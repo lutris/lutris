@@ -27,6 +27,7 @@ class DolphinService(BaseService):
     id = "dolphin"
     icon = "dolphin"
     name = _("Dolphin")
+    runner = "dolphin"
     local = True
     medias = {
         "icon": DolphinBanner
@@ -48,7 +49,7 @@ class DolphinService(BaseService):
             "version": "Dolphin",
             "slug": db_game["slug"],
             "game_slug": self.get_installed_slug(db_game),
-            "runner": "dolphin",
+            "runner": self.get_installed_runner_name(db_game),
             "script": {
                 "game": {
                     "main_file": details["path"],
@@ -56,6 +57,9 @@ class DolphinService(BaseService):
                 },
             }
         }
+
+    def get_installed_runner_name(self, db_game):
+        return self.runner
 
     def get_game_directory(self, installer):
         """Pull install location from installer"""

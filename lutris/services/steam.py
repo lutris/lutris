@@ -206,12 +206,15 @@ class SteamService(BaseService):
             "version": self.name,
             "slug": slugify(db_game["name"]) + "-" + self.id,
             "game_slug": self.get_installed_slug(db_game),
-            "runner": self.runner,
+            "runner": self.get_installed_runner_name(db_game),
             "appid": db_game["appid"],
             "script": {
                 "game": {"appid": db_game["appid"]}
             }
         }
+
+    def get_installed_runner_name(self, db_game):
+        return self.runner
 
     def install(self, db_game):
         appid = db_game["appid"]

@@ -166,7 +166,7 @@ class FlathubService(BaseService):
             "slug": slugify(db_game["name"]) + "-" + self.id,
             "name": db_game["name"],
             "version": "Flathub",
-            "runner": self.runner,
+            "runner": self.get_installed_runner_name(db_game),
             "script": {
                 "game": {
                     "appid": db_game["appid"],
@@ -191,6 +191,9 @@ class FlathubService(BaseService):
                 ]
             }
         }
+
+    def get_installed_runner_name(self, db_game):
+        return self.runner
 
     def get_game_directory(self, _installer):
         install_type, application, arch, branch = (_installer["script"]["game"][key] for key in

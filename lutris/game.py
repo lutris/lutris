@@ -125,6 +125,7 @@ class Game(GObject.Object):
         game = Game()
         game.name = db_game["name"]
         game.slug = service.get_installed_slug(db_game)
+        game.runner_name = service.get_installed_runner_name(db_game)
 
         if "service_id" in db_game:
             game.appid = db_game["service_id"]
@@ -338,7 +339,7 @@ class Game(GObject.Object):
 
     @runner_name.setter
     def runner_name(self, value):
-        self._runner_name = value
+        self._runner_name = value or ""
         if self._runner and self._runner.name != value:
             self._runner = None
 

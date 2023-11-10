@@ -355,6 +355,28 @@ class ItchIoService(OnlineService):
             }
         }
 
+    def get_installed_runner_name(self, db_game):
+        details = json.loads(db_game["details"])
+
+        if "p_linux" in details["traits"]:
+            return "linux"
+        if "p_windows" in details["traits"]:
+            return "wine"
+
+        return ""
+
+    def get_game_platforms(self, db_game):
+        platforms = []
+        details = json.loads(db_game["details"])
+
+        if "p_linux" in details["traits"]:
+            platforms.append("Linux")
+
+        if "p_windows" in details["traits"]:
+            platforms.append("Windows")
+
+        return platforms
+
     def _check_update_with_db(self, db_game, key, upload=None):
         stamp = 0
         if upload:

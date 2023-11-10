@@ -43,6 +43,7 @@ class XDGService(BaseService):
     id = "xdg"
     name = _("Local")
     icon = "linux"
+    runner = "linux"
     online = False
     local = True
     medias = {
@@ -111,7 +112,7 @@ class XDGService(BaseService):
             "version": "XDG",
             "slug": db_game["slug"],
             "game_slug": self.get_installed_slug(db_game),
-            "runner": "linux",
+            "runner": self.get_installed_runner_name(db_game),
             "script": {
                 "game": {
                     "exe": details["exe"],
@@ -120,6 +121,9 @@ class XDGService(BaseService):
                 "system": {"disable_runtime": True}
             }
         }
+
+    def get_installed_runner_name(self, db_game):
+        return self.runner
 
     def get_game_directory(self, installer):
         """Pull install location from installer"""

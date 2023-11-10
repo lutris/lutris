@@ -35,7 +35,7 @@ class SteamWindowsService(SteamService):
             "version": self.name,
             "slug": slugify(db_game["name"]) + "-" + self.id,
             "game_slug": self.get_installed_slug(db_game),
-            "runner": self.runner,
+            "runner": self.get_installed_runner_name(db_game),
             "appid": db_game["appid"],
             "script": {
                 "requires": self.client_installer,
@@ -46,6 +46,9 @@ class SteamWindowsService(SteamService):
                 }
             }
         }
+
+    def get_installed_runner_name(self, db_game):
+        return self.runner
 
     def get_steam(self):
         db_entry = get_game_by_field(self.client_installer, "installer_slug")
