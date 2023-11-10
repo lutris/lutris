@@ -126,6 +126,23 @@ class LutrisService(OnlineService):
         application = Gio.Application.get_default()
         application.show_installer_window(installers)
 
+    def get_installed_runner_name(self, db_game):
+        platforms = self.get_game_platforms(db_game)
+
+        if platforms and len(platforms) == 1:
+            platform = platforms[0].casefold()
+
+            if platform == "windows":
+                return "wine"
+
+            if platform == "linux":
+                return "linux"
+
+            if platform == "ms-dos":
+                return "dosbox"
+
+        return ""
+
     def get_game_platforms(self, db_game):
         details = db_game.get("details")
         if details:
