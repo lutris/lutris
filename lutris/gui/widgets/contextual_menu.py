@@ -19,7 +19,7 @@ def update_action_widget_visibility(widgets, visible_predicate):
         if visible:
             previous_visible_widget = w
 
-    if visible_predicate(previous_visible_widget) is None:
+    if previous_visible_widget and visible_predicate(previous_visible_widget) is None:
         previous_visible_widget.set_visible(False)
 
 
