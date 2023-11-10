@@ -31,8 +31,11 @@ from lutris.util.wine.shader_cache import update_shader_cache
 def get_game_actions(game, window, application=None):
     if game.is_db_stored:
         return GameActions(game, window, application)
-    else:
-        return BaseGameActions(game, window, application)
+
+    if game.service:
+        return ServiceGameActions(game, window, application)
+
+    return BaseGameActions(game, window, application)
 
 
 class BaseGameActions:
@@ -55,7 +58,6 @@ class BaseGameActions:
 
     def on_game_launch(self, *_args):
         """Launch a game"""
-        pass
 
     @property
     def is_game_running(self):
@@ -63,38 +65,40 @@ class BaseGameActions:
 
     def on_game_stop(self, *_args):
         """Stops the game"""
-        pass
 
     @property
     def is_installable(self):
-        return False
+        return not self.game.is_installed and self.game.slug
 
     def on_install_clicked(self, *_args):
         """Install a game"""
-        pass
+        # Install the currently selected game in the UI
+        if not self.game.slug:
+            raise RuntimeError("No game to install: %s" % self.game.get_safe_id())
+        self.game.emit("game-install")
 
-    def on_locate_installed_game(self, _button, game):
+    def on_locate_installed_game(self, *_args):
         """Show the user a dialog to import an existing install to a DRM free service
 
         Params:
             game (Game): Game instance without a database ID, populated with a fields the service can provides
         """
-        AddGameDialog(self.window, game=game)
+        AddGameDialog(self.window, game=self.game, runner=self.game.runner_name)
 
     @property
     def is_game_removable(self):
-        return False
+        return self.game and (self.game.is_installed or self.game.is_db_stored)
 
     def on_remove_game(self, *_args):
         """Callback that present the uninstall dialog to the user"""
-        pass
+        if self.game.is_installed:
+            UninstallGameDialog(game_id=self.game.id, parent=self.window).run()
+        else:
+            RemoveGameDialog(game_id=self.game.id, parent=self.window).run()
 
 
 class GameActions(BaseGameActions):
     """Regroup a list of callbacks for a game"""
-
-    def __init__(self, game, window, application=None):
-        super().__init__(game, window, application)
 
     @property
     def is_game_launchable(self):
@@ -103,14 +107,6 @@ class GameActions(BaseGameActions):
     @property
     def is_game_running(self):
         return self.game and self.game.is_db_stored and bool(self.application.get_running_game_by_id(self.game.id))
-
-    @property
-    def is_installable(self):
-        return not self.game.is_installed
-
-    @property
-    def is_game_removable(self):
-        return self.game and (self.game.is_installed or self.game.is_db_stored)
 
     def get_game_actions(self):
         return [
@@ -132,7 +128,6 @@ class GameActions(BaseGameActions):
             ("install_more", _("Install another version"), self.on_install_clicked),
             ("install_dlcs", "Install DLCs", self.on_install_dlc_clicked),
             ("update", _("Install updates"), self.on_update_clicked),
-            ("add", _("Add installed game"), self.on_add_manually),
             ("desktop-shortcut", _("Create desktop shortcut"), self.on_create_desktop_shortcut),
             ("rm-desktop-shortcut", _("Delete desktop shortcut"), self.on_remove_desktop_shortcut),
             ("menu-shortcut", _("Create application menu shortcut"), self.on_create_menu_shortcut),
@@ -154,7 +149,6 @@ class GameActions(BaseGameActions):
             has_steam_shortcut = False
             is_steam_game = False
         return {
-            "add": not self.game.is_installed,
             "duplicate": self.game.is_installed,
             "install": self.is_installable,
             "play": self.is_game_launchable,
@@ -236,13 +230,6 @@ class GameActions(BaseGameActions):
             application=self.application
         )
 
-    def on_install_clicked(self, *_args):
-        """Install a game"""
-        # Install the currently selected game in the UI
-        if not self.game.slug:
-            raise RuntimeError("No game to install: %s" % self.game.get_safe_id())
-        self.game.emit("game-install")
-
     def on_update_clicked(self, _widget):
         self.game.emit("game-install-update")
 
@@ -251,10 +238,6 @@ class GameActions(BaseGameActions):
 
     def on_update_shader_cache(self, _widget):
         update_shader_cache(self.game)
-
-    def on_add_manually(self, _widget, *_args):
-        """Callback that presents the Add game dialog"""
-        return AddGameDialog(self.window, game=self.game, runner=self.game.runner_name)
 
     def on_game_duplicate(self, _widget):
         duplicate_game_dialog = InputDialog(
@@ -390,9 +373,27 @@ class GameActions(BaseGameActions):
         """Callback to open a game on lutris.net"""
         open_uri("https://lutris.net/games/%s" % self.game.slug.replace("_", "-"))
 
-    def on_remove_game(self, *_args):
-        """Callback that present the uninstall dialog to the user"""
-        if self.game.is_installed:
-            UninstallGameDialog(game_id=self.game.id, parent=self.window).run()
-        else:
-            RemoveGameDialog(game_id=self.game.id, parent=self.window).run()
+
+class ServiceGameActions(BaseGameActions):
+    """Regroup a list of callbacks for a service game"""
+
+    def get_game_actions(self):
+        return [
+            ("install", _("Install"), self.on_install_clicked),
+            ("add", _("Locate installed game"), self.on_locate_installed_game),
+            ("view", _("View on Lutris.net"), self.on_view_game),
+            ("remove", _("Remove"), self.on_remove_game),
+        ]
+
+    def get_displayed_entries(self):
+        """Return a dictionary of actions that should be shown for a game"""
+        return {
+            "install": self.is_installable,
+            "add": self.is_installable,
+            "view": True,
+            "remove": self.is_game_removable,
+        }
+
+    def on_view_game(self, _widget):
+        """Callback to open a game on lutris.net"""
+        open_uri("https://lutris.net/games/%s" % self.game.slug.replace("_", "-"))

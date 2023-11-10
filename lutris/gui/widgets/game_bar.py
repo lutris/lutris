@@ -7,7 +7,7 @@ from lutris import runners, services
 from lutris.database.games import get_game_for_service
 from lutris.exceptions import watch_errors
 from lutris.game import Game
-from lutris.game_actions import GameActions, get_game_actions
+from lutris.game_actions import get_game_actions
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets.contextual_menu import update_action_widget_visibility
 from lutris.util.strings import gtk_safe
@@ -198,7 +198,7 @@ class GameBar(Gtk.Box):
     def get_locate_installed_game_button(self, game_actions):
         """Return a button to locate an existing install"""
         button = self.get_link_button(_("Locate installed game"))
-        button.connect("clicked", game_actions.on_locate_installed_game, self.game)
+        button.connect("clicked", game_actions.on_locate_installed_game)
         return button
 
     def get_play_button(self, game_actions):
