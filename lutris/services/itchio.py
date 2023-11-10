@@ -314,6 +314,9 @@ class ItchIoService(OnlineService):
             all_extras["Bonus Content"] = extras
         return all_extras
 
+    def get_installed_slug(self, db_game):
+        return db_game.get("lutris_slug") or db_game["slug"]
+
     def generate_installer(self, db_game):
         """Auto generate installer for itch.io game"""
         details = json.loads(db_game["details"])
@@ -340,7 +343,7 @@ class ItchIoService(OnlineService):
             "name": db_game["name"],
             "version": "itch.io",
             "slug": db_game["slug"],
-            "game_slug": db_game["slug"],
+            "game_slug": self.get_installed_slug(db_game),
             "runner": runner,
             "itchid": db_game["appid"],
             "script": {
@@ -428,7 +431,7 @@ class ItchIoService(OnlineService):
                 "version": "itch.io",
                 "name": db_game["name"],
                 "slug": db_game["installer_slug"],
-                "game_slug": db_game["slug"],
+                "game_slug": self.get_installed_slug(db_game),
                 "runner": db_game["runner"],
                 "script": {
                     "extends": db_game["installer_slug"],

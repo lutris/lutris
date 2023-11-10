@@ -112,6 +112,9 @@ class LutrisService(OnlineService):
         # but are not in the Lutris library.
         sync_media()
 
+    def get_installed_slug(self, db_game):
+        return db_game["slug"]
+
     def install(self, db_game):
         if isinstance(db_game, dict):
             slug = db_game["slug"]

@@ -638,6 +638,14 @@ class AmazonService(OnlineService):
         # return should be a list of files, so we return a list containing a InstallerFileCollection
         return [InstallerFileCollection(installer.game_slug, "amazongame", files)]
 
+    def get_installed_slug(self, db_game):
+        slug = db_game.get("lutris_slug")
+        if slug:
+            return slug
+
+        details = json.loads(db_game["details"])
+        return slugify(details["product"]["title"])
+
     def generate_installer(self, db_game):
         """Generate a installer for the Amazon game"""
         details = json.loads(db_game["details"])

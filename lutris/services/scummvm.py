@@ -61,7 +61,7 @@ class ScummvmService(BaseService):
             "name": db_game["name"],
             "version": "ScummVM",
             "slug": db_game["slug"],
-            "game_slug": slugify(db_game["lutris_slug"]),
+            "game_slug": self.get_installed_slug(db_game),
             "runner": "scummvm",
             "script": {
                 "game": {

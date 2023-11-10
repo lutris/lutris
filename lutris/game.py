@@ -124,7 +124,7 @@ class Game(GObject.Object):
         has an 'appid' and slug."""
         game = Game()
         game.name = db_game["name"]
-        game.slug = db_game["slug"]
+        game.slug = service.get_installed_slug(db_game)
 
         if "service_id" in db_game:
             game.appid = db_game["service_id"]

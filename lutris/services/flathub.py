@@ -162,7 +162,7 @@ class FlathubService(BaseService):
         flatpak_cmd = self.get_flatpak_cmd()
         return {
             "appid": db_game["appid"],
-            "game_slug": slugify(db_game["name"]),
+            "game_slug": self.get_installed_slug(db_game),
             "slug": slugify(db_game["name"]) + "-" + self.id,
             "name": db_game["name"],
             "version": "Flathub",

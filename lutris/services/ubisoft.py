@@ -244,7 +244,7 @@ class UbisoftConnectService(OnlineService):
             "name": db_game["name"],
             "version": self.name,
             "slug": slugify(db_game["name"]) + "-" + self.id,
-            "game_slug": slugify(db_game["name"]),
+            "game_slug": self.get_installed_slug(db_game),
             "runner": self.runner,
             "appid": db_game["appid"],
             "script": {

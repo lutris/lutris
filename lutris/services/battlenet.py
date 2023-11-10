@@ -148,6 +148,9 @@ class BattleNetService(BaseService):
         )
         return game_id
 
+    def get_installed_slug(self, db_game):
+        return db_game.get("lutris_slug") or db_game["slug"]
+
     def generate_installer(self, db_game, egs_db_game):
         egs_game = Game(egs_db_game["id"])
         egs_exe = egs_game.config.game_config["exe"]
@@ -157,7 +160,7 @@ class BattleNetService(BaseService):
             "name": db_game["name"],
             "version": self.name,
             "slug": db_game["slug"] + "-" + self.id,
-            "game_slug": db_game["slug"],
+            "game_slug": self.get_installed_slug(db_game),
             "runner": self.runner,
             "appid": db_game["appid"],
             "script": {

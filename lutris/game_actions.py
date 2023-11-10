@@ -96,6 +96,10 @@ class BaseGameActions:
         else:
             RemoveGameDialog(game_id=self.game.id, parent=self.window).run()
 
+    def on_view_game(self, _widget):
+        """Callback to open a game on lutris.net"""
+        open_uri("https://lutris.net/games/%s" % self.game.slug.replace("_", "-"))
+
 
 class GameActions(BaseGameActions):
     """Regroup a list of callbacks for a game"""
@@ -369,10 +373,6 @@ class GameActions(BaseGameActions):
         config_index = dlg.config_index
         return configs[config_index - 1]["name"] if config_index > 0 else ""
 
-    def on_view_game(self, _widget):
-        """Callback to open a game on lutris.net"""
-        open_uri("https://lutris.net/games/%s" % self.game.slug.replace("_", "-"))
-
 
 class ServiceGameActions(BaseGameActions):
     """Regroup a list of callbacks for a service game"""
@@ -393,7 +393,3 @@ class ServiceGameActions(BaseGameActions):
             "view": True,
             "remove": self.is_game_removable,
         }
-
-    def on_view_game(self, _widget):
-        """Callback to open a game on lutris.net"""
-        open_uri("https://lutris.net/games/%s" % self.game.slug.replace("_", "-"))

@@ -110,7 +110,7 @@ class XDGService(BaseService):
             "name": db_game["name"],
             "version": "XDG",
             "slug": db_game["slug"],
-            "game_slug": slugify(db_game["name"]),
+            "game_slug": self.get_installed_slug(db_game),
             "runner": "linux",
             "script": {
                 "game": {

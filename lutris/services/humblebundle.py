@@ -17,7 +17,6 @@ from lutris.services.service_media import ServiceMedia
 from lutris.util import linux
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
-from lutris.util.strings import slugify
 
 
 class HumbleBundleIcon(ServiceMedia):
@@ -314,7 +313,7 @@ class HumbleBundleService(OnlineService):
             "name": db_game["name"],
             "version": "Humble Bundle",
             "slug": details["machine_name"],
-            "game_slug": slugify(db_game["name"]),
+            "game_slug": self.get_installed_slug(db_game),
             "runner": runner,
             "humbleid": db_game["appid"],
             "script": {

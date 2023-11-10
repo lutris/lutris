@@ -22,6 +22,7 @@ from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.strings import slugify
 
 PGA_DB = settings.PGA_DB
 
@@ -247,6 +248,12 @@ class BaseService(GObject.Object):
                 if self.matcher in installer["version"].lower():
                     service_installers.append(installer)
         return service_installers
+
+    def get_installed_slug(self, db_game):
+        """Returns the slug the game will have after installation, by default. This
+        is Lutris's slug, not the one for the service. By default, we derive it from
+        the Game's name, but services override this if they provide the slug."""
+        return db_game.get("lutris_slug") or slugify(db_game["name"])
 
     def install(self, db_game, update=False):
         """Install a service game, or starts the installer of the game.

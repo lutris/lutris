@@ -524,7 +524,7 @@ class GOGService(OnlineService):
             "name": db_game["name"],
             "version": "GOG",
             "slug": details["slug"],
-            "game_slug": slugify(db_game["name"]),
+            "game_slug": self.get_installed_slug(db_game),
             "runner": runner,
             "gogid": db_game["appid"],
             "script": {
@@ -573,7 +573,7 @@ class GOGService(OnlineService):
                     "version": f"{dlc['title']} ({runner})",
                     "slug": dlc["slug"],
                     "description": "DLC for %s" % db_game["name"],
-                    "game_slug": slugify(db_game["name"]),
+                    "game_slug": self.get_installed_slug(db_game),
                     "runner": runner,
                     "is_dlc": True,
                     "dlcid": dlc["id"],
