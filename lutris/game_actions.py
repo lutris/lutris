@@ -103,8 +103,8 @@ class GameActions:
             "configure": bool(self.game.is_installed),
             "browse": self.game.is_installed and self.game.runner_name != "browser",
             "show_logs": self.game.is_installed,
-            "favorite": not self.game.is_favorite and self.game.is_installed,
-            "category": self.game.is_installed,
+            "category": True,
+            "favorite": not self.game.is_favorite,
             "deletefavorite": self.game.is_favorite,
             "install_more": not self.game.service and self.game.is_installed,
             "execute-script": bool(
