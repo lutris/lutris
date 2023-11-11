@@ -480,7 +480,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "section": "Game execution",
         "option": "locale",
-        "type": "choice_with_search",
+        "type": "choice_with_entry",
         "label": _("Locale"),
         "choices": (
             get_locale_choices
