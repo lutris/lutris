@@ -30,13 +30,12 @@ def get_locale_choices():
         ("es_ES.utf8", "es_ES.utf8"),
         ("hr_HR.utf8", "hr_HR.utf8"),
         ("it_IT.utf8", "it_IT.utf8"),
+        ("ja_JP.utf8", "ja_JP.utf8"),
         ("ka_GE.utf8", "ka_GE.utf8"),
-        ("ko_KR.utf8", "ko_KR.utf8"),
         ("ko_KR.utf8", "ko_KR.utf8"),
         ("nl_NL.utf8", "nl_NL.utf8"),
         ("pt_BR.utf8", "pt_BR.utf8"),
         ("ru_RU.utf8", "ru_RU.utf8"),
-        ("tr_TR.utf8", "tr_TR.utf8"),
         ("tr_TR.utf8", "tr_TR.utf8"),
         ("zh_CN.utf8", "zh_CN.utf8")
     ]
