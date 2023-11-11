@@ -25,20 +25,20 @@ def get_locale_choices():
     """
     return [
         (_("System"), ""),
-        ("en_US.utf8", "en_US.utf8"),
-        ("fi_FI.utf8", "fi_FI.utf8"),
-        ("de_DE.utf8", "de_DE.utf8"),
-        ("es_ES.utf8", "es_ES.utf8"),
-        ("hr_HR.utf8", "hr_HR.utf8"),
-        ("it_IT.utf8", "it_IT.utf8"),
-        ("ja_JP.utf8", "ja_JP.utf8"),
-        ("ka_GE.utf8", "ka_GE.utf8"),
-        ("ko_KR.utf8", "ko_KR.utf8"),
-        ("nl_NL.utf8", "nl_NL.utf8"),
-        ("pt_BR.utf8", "pt_BR.utf8"),
-        ("ru_RU.utf8", "ru_RU.utf8"),
-        ("tr_TR.utf8", "tr_TR.utf8"),
-        ("zh_CN.utf8", "zh_CN.utf8")
+        (_("Chinese"), "zh_CN.utf8"),
+        (_("Croatian"), "hr_HR.utf8"),
+        (_("Dutch"), "nl_NL.utf8"),
+        (_("English"), "en_US.utf8"),
+        (_("Finnish"), "fi_FI.utf8"),
+        (_("Georgian"), "ka_GE.utf8"),
+        (_("German"), "de_DE.utf8"),
+        (_("Italian"), "it_IT.utf8"),
+        (_("Japanese"), "ja_JP.utf8"),
+        (_("Korean"), "ko_KR.utf8"),
+        (_("Portuguese (Brazilian)"), "pt_BR.utf8"),
+        (_("Russian"), "ru_RU.utf8"),
+        (_("Spanish"), "es_ES.utf8"),
+        (_("Turkish"), "tr_TR.utf8"),
     ]
 
 
