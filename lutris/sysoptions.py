@@ -24,6 +24,7 @@ def get_locale_choices():
     suitable for inclusion in drop-downs.
     """
     return [
+        (_("System"), ""),
         ("en_US.utf8", "en_US.utf8"),
         ("fi_FI.utf8", "fi_FI.utf8"),
         ("de_DE.utf8", "de_DE.utf8"),
@@ -39,19 +40,6 @@ def get_locale_choices():
         ("tr_TR.utf8", "tr_TR.utf8"),
         ("zh_CN.utf8", "zh_CN.utf8")
     ]
-    locales = system.get_locale_list()
-
-    # To keep the list down to a reasonable length, we'll
-    # offer only UTF-8 locales if any are present.
-    selected = [l for l in locales if "utf8" in l.casefold()]
-
-    if not selected:
-        selected = locales
-
-    locale_choices = list(zip(selected, selected))
-    locale_choices.insert(0, (_("System"), ""))
-
-    return locale_choices
 
 
 def get_output_choices():
