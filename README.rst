@@ -112,6 +112,10 @@ identifier on the command line such as::
 
     lutris lutris:quake
 
+or if you want to specify the game's service too::
+
+    lutris lutris:gog:quake
+
 This will install the game if it is not already installed, otherwise it will
 launch the game. The game will always be installed if the ``--reinstall`` flag is passed.
 

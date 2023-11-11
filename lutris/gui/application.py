@@ -657,7 +657,12 @@ class Application(Gtk.Application):
                 action = "install"
 
         if service:
-            service_game = ServiceGameCollection.get_game(service, appid)
+            service_game = (
+                ServiceGameCollection.get_game_by_field(appid, service, "appid")
+                or ServiceGameCollection.get_game_by_field(appid, service, "slug")
+                or ServiceGameCollection.get_game_by_field(appid, service, "lutris_slug")
+                or ServiceGameCollection.get_game_by_field(appid, service, "name")
+            )
             if service_game:
                 service = get_enabled_services()[service]()
                 service.install(service_game)
@@ -897,6 +902,7 @@ class Application(Gtk.Application):
         games = [
             {
                 "id": game["id"],
+                "appid": game["appid"],
                 "slug": game["slug"],
                 "name": game["name"],
                 "service": game["service"],

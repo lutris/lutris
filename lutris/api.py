@@ -257,7 +257,7 @@ def get_game_installers(game_slug, revision=None):
     request = http.Request(installer_url)
     request.get()
     response = request.json
-    if response is None:
+    if response["count"] == 0:
         raise RuntimeError("Couldn't get installer at %s" % installer_url)
 
     # Revision requests return a single installer
