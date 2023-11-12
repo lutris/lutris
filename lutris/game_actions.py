@@ -382,7 +382,6 @@ class ServiceGameActions(BaseGameActions):
             ("install", _("Install"), self.on_install_clicked),
             ("add", _("Locate installed game"), self.on_locate_installed_game),
             ("view", _("View on Lutris.net"), self.on_view_game),
-            ("remove", _("Remove"), self.on_remove_game),
         ]
 
     def get_displayed_entries(self):
@@ -390,6 +389,5 @@ class ServiceGameActions(BaseGameActions):
         return {
             "install": self.is_installable,
             "add": self.is_installable,
-            "view": True,
-            "remove": self.is_game_removable,
+            "view": True
         }
