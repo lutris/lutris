@@ -259,7 +259,6 @@ def image2pixbuf(image):
 def load_icon_theme():
     """Add the lutris icon folder to the default theme"""
     icon_theme = Gtk.IconTheme.get_default()
-    if icon_theme:
-        local_theme_path = os.path.join(settings.RUNTIME_DIR, "icons")
-        if local_theme_path not in icon_theme.get_search_path():
-            icon_theme.prepend_search_path(local_theme_path)
+    local_theme_path = os.path.join(settings.RUNTIME_DIR, "icons")
+    if local_theme_path not in icon_theme.get_search_path():
+        icon_theme.prepend_search_path(local_theme_path)
