@@ -78,17 +78,3 @@ body:
     attributes:
       value: |
         ***Learn more about Peek and how it can record a GIF of your desktop here: https://github.com/phw/peek***
-  - type: checkboxes
-    id: terms
-    attributes:
-      label: "Checklist:"
-      description: "By submitting this issue, you confirm that (this is purely performative, we know you're going to ignore the stuff below):"
-      options:
-        - label: "I'm not asking for support with a game or the wine runner."
-          required: true
-        - label: "I have followed the above mentioned guides and have all the graphics and wine dependencies installed."
-          required: true
-        - label: "I have checked for existing issues that describe my problem prior to opening this one."
-          required: true
-        - label: "I understand that improperly formatted bug reports may be closed without explanation."
-          required: true
