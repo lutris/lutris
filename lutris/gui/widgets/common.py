@@ -348,16 +348,12 @@ class VBox(Gtk.Box):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, margin_top=18, **kwargs)
 
 
-class EditableGrid(Gtk.Grid):
+class EditableGrid(Gtk.Box):
     __gsignals__ = {"changed": (GObject.SIGNAL_RUN_FIRST, None, ())}
 
     def __init__(self, data, columns):
         self.columns = columns
-        super().__init__()
-        self.set_column_homogeneous(True)
-        self.set_row_homogeneous(True)
-        self.set_row_spacing(6)
-        self.set_column_spacing(6)
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=6)
 
         self.liststore = Gtk.ListStore(str, str)
         for item in data:
@@ -386,14 +382,16 @@ class EditableGrid(Gtk.Grid):
         self.delete_button.connect("clicked", self.on_delete)
 
         self.scrollable_treelist = Gtk.ScrolledWindow()
-        self.scrollable_treelist.set_vexpand(True)
+        self.scrollable_treelist.set_size_request(-1, 209)
         self.scrollable_treelist.add(self.treeview)
         self.scrollable_treelist.set_shadow_type(Gtk.ShadowType.IN)
 
-        self.attach(self.scrollable_treelist, 0, 0, 5, 5)
-        self.attach(self.add_button, 5 - len(self.buttons), 6, 1, 1)
-        for i, button in enumerate(self.buttons[1:]):
-            self.attach_next_to(button, self.buttons[i], Gtk.PositionType.RIGHT, 1, 1)
+        self.pack_start(self.scrollable_treelist, True, True, 0)
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        for button in reversed(self.buttons):
+            button.set_size_request(80, -1)
+            button_box.pack_end(button, False, False, 0)
+        self.pack_end(button_box, False, False, 0)
         self.show_all()
 
     def on_add(self, widget):  # pylint: disable=unused-argument
