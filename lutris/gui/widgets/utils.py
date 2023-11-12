@@ -152,7 +152,7 @@ def has_stock_icon(name):
         return False
 
     theme = Gtk.IconTheme.get_default()
-    return theme.has_icon(name)
+    return theme and theme.has_icon(name)
 
 
 def get_runtime_icon_path(icon_name):
