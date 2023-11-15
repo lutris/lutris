@@ -462,7 +462,7 @@ class easyrpg(Runner):
 
         seed = self.runner_config.get("seed")
         if seed:
-            cmd.extend(("--seed", seed))
+            cmd.extend(("--seed", str(seed)))
 
         # Audio
         if not self.runner_config["audio"]:
@@ -470,11 +470,11 @@ class easyrpg(Runner):
 
         music_volume = self.runner_config.get("music_volume")
         if music_volume:
-            cmd.extend(("--music-volume", music_volume))
+            cmd.extend(("--music-volume", str(music_volume)))
 
         sound_volume = self.runner_config.get("sound_volume")
         if sound_volume:
-            cmd.extend(("--sound-volume", sound_volume))
+            cmd.extend(("--sound-volume", str(sound_volume)))
 
         soundfont = self.runner_config.get("soundfont")
         if soundfont:
@@ -502,7 +502,7 @@ class easyrpg(Runner):
 
         fps_limit = self.runner_config.get("fps_limit")
         if fps_limit:
-            cmd.extend(("--fps-limit", fps_limit))
+            cmd.extend(("--fps-limit", str(fps_limit)))
 
         show_fps = self.runner_config.get("show_fps")
         if show_fps != "off":
