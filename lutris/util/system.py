@@ -332,7 +332,7 @@ def remove_folder(path):
 
 
 def create_folder(path):
-    """Creates a folder specified by path"""
+    """Creates a folder specified by path, and returns the path (with ~ expanded)"""
     if not path:
         return
     path = os.path.expanduser(path)

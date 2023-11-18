@@ -1,5 +1,6 @@
 import os
 from gettext import gettext as _
+from typing import Dict, Set
 
 from lutris import settings
 from lutris.api import load_runtime_versions, download_runtime_versions
@@ -20,7 +21,7 @@ class RuntimeUpdater:
     downloaders = {}
     status_text: str = ""
 
-    def __init__(self, pci_ids: list = None, force: bool = False):
+    def __init__(self, init_summary: Dict[str, Set[str]], pci_ids: list = None, force: bool = False):
         self.force = force
         self.pci_ids = pci_ids or []
         self.runtime_versions = {}
@@ -30,9 +31,18 @@ class RuntimeUpdater:
             self.add_update("runtime", self._update_runtime, hours=12)
             self.add_update("runners", self._update_runners, hours=12)
 
-        self.add_update("media", self._update_media, hours=240)
+        self.add_update("media", self._update_media, hours=self._get_media_check_hours(init_summary))
 
-    def add_update(self, key: str, update_function, hours):
+    @staticmethod
+    def _get_media_check_hours(init_summary: Dict[str, Set[str]]) -> int:
+        # We download media aggressively if we have created one of our
+        # media cache directories, because it was missing.
+        media_dirs = {settings.BANNER_PATH, settings.COVERART_PATH}
+        created_directories = init_summary["created_directories"]
+        needs_media = not created_directories.isdisjoint(media_dirs)
+        return 0 if needs_media else 240
+
+    def add_update(self, key: str, update_function, hours: int):
         """__init__ calls this to register each update. This function
         only registers the update if it hasn't been tried in the last
         'hours' hours. This is trakced in 'updates.json', and identified

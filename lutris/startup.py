@@ -2,6 +2,7 @@
 import os
 import sqlite3
 from gettext import gettext as _
+from typing import Dict, Set
 
 import gi
 
@@ -26,7 +27,7 @@ from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION
 
 
 def init_dirs():
-    """Creates Lutris directories"""
+    """Creates Lutris directories, returns set of any it created."""
     directories = [
         settings.CONFIG_DIR,
         os.path.join(settings.CONFIG_DIR, "runners"),
@@ -42,8 +43,12 @@ def init_dirs():
         os.path.join(settings.CACHE_DIR, "installer"),
         os.path.join(settings.CACHE_DIR, "tmp"),
     ]
+    created = set()
     for directory in directories:
-        create_folder(directory)
+        if not os.path.exists(directory):
+            create_folder(directory)
+            created.add(directory)
+    return created
 
 
 def get_drivers():
@@ -154,10 +159,14 @@ def run_all_checks():
     }
 
 
-def init_lutris():
-    """Run full initialization of Lutris"""
+def init_lutris() -> Dict[str, Set[str]]:
+    """Run full initialization of Lutris.
+
+    Returns a dict summarizing changes made. This summary can be used to trigger further
+    initialization down the line, since it detects when a directory was a missing or a
+    new service has been seen."""
     runners.inject_runners(load_json_runners())
-    init_dirs()
+    created_directories = init_dirs()
     try:
         syncdb()
     except sqlite3.DatabaseError as err:
@@ -165,6 +174,14 @@ def init_lutris():
             _("Failed to open database file in %s. Try renaming this file and relaunch Lutris") %
             settings.PGA_DB
         ) from err
+
+    service_settings_added = set()
     for service in DEFAULT_SERVICES:
         if not settings.read_setting(service, section="services"):
+            service_settings_added.add(service)
             settings.write_setting(service, True, section="services")
+
+    return {
+        "created_directories": created_directories,
+        "service_settings_added": service_settings_added
+    }

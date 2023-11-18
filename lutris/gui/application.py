@@ -314,12 +314,12 @@ class Application(Gtk.Application):
             screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-    def show_update_runtime_dialog(self, gpu_info):
+    def show_update_runtime_dialog(self, gpu_info, init_summary):
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
         else:
             pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpu_info["gpus"].values()]
-            runtime_updater = RuntimeUpdater(pci_ids=pci_ids, force=self.force_updates)
+            runtime_updater = RuntimeUpdater(init_summary=init_summary, pci_ids=pci_ids, force=self.force_updates)
             if runtime_updater.has_updates:
                 init_dialog = LutrisInitDialog(runtime_updater)
                 init_dialog.run()
@@ -392,7 +392,8 @@ class Application(Gtk.Application):
         """Output a script to a file.
         The script is capable of launching a game without the client
         """
-        def on_error(game, error):
+
+        def on_error(_game, error):
             logger.exception("Unable to generate script: %s", error)
             return True
 
@@ -437,7 +438,7 @@ class Application(Gtk.Application):
             self.force_updates = True
 
         logger.info("Starting Lutris %s", settings.VERSION)
-        init_lutris()
+        init_summary = init_lutris()
 
         # Perform migrations early if any command line options
         # might require it to be done, just in case. We migrate
@@ -619,7 +620,7 @@ class Application(Gtk.Application):
                 db_game = games_db.get_game_by_field(game_slug, "slug") \
                     or games_db.get_game_by_field(game_slug, "installer_slug")
             else:
-                # Dazed and confused, try anything that might works
+                # Dazed and confused, try anything that might work
                 db_game = (
                     games_db.get_game_by_field(game_slug, "id")
                     or games_db.get_game_by_field(game_slug, "slug")
@@ -694,7 +695,7 @@ class Application(Gtk.Application):
             if game.state == game.STATE_STOPPED and not self.window.is_visible():
                 self.quit()
         else:
-            self.show_update_runtime_dialog(gpu_info)
+            self.show_update_runtime_dialog(gpu_info, init_summary)
             # If we're showing the window, it will handle the delegated UI
             # from here on out, no matter what command line we got.
             self.launch_ui_delegate = self.window

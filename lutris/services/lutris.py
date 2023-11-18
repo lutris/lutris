@@ -176,7 +176,7 @@ def download_lutris_media(slug):
 
 
 def sync_media():
-    """Downlad all missing media"""
+    """Download all missing media"""
     banners_available = {fn.split(".")[0] for fn in os.listdir(settings.BANNER_PATH)}
     icons_available = {
         fn.split(".")[0].replace("lutris_", "")
