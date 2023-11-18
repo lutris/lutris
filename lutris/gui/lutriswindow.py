@@ -996,6 +996,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     @watch_errors()
     def on_game_selection_changed(self, view, selection):
+        print(selection)
         game_ids = []
         games = []
         if not selection:
@@ -1017,16 +1018,16 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 game = ServiceGameCollection.get_game(self.service.id, game_id)
             else:
                 game = games_db.get_game_by_field(int(game_id), "id")
+            if not game:
+                game = [{
+                    "id": game_id,
+                    "appid": game_id,
+                    "name": view.get_model().get_value(selection, COL_NAME),
+                    "slug": game_id,
+                    "service": self.service.id if self.service else None,
+                }]
+                logger.warning("No game found. Replacing with placeholder %s", games)
             games.append(game)
-        if not games:
-            games = [{
-                "id": game_id,
-                "appid": game_id,
-                "name": view.get_model().get_value(selection, COL_NAME),
-                "slug": game_id,
-                "service": self.service.id if self.service else None,
-            }]
-            logger.warning("No game found. Replacing with placeholder %s", game)
 
         GLib.idle_add(self.update_revealer, games)
         return False

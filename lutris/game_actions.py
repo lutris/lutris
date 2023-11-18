@@ -403,7 +403,7 @@ class ServiceGameActions(BaseGameActions):
         }
 
 class MultiGameActions(BaseGameActions):
-    def get_multiple_game_actions(self):
+    def get_game_actions(self):
         return [
             ("remove", _("Remove"), self.on_remove_game),
         ]
