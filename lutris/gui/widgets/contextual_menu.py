@@ -62,19 +62,13 @@ class ContextualMenu(Gtk.Menu):
 
         return runner.context_menu_entries
 
-    def popup(self, event, game_actions, game=None, service=None):
+    def popup(self, event, game_actions):
         for item in self.get_children():
             self.remove(item)
 
         for entry in self.main_entries:
             self.add_menuitem(entry)
 
-        if game_actions.game.runner_name and game_actions.game.is_installed:
-            runner_entries = self.get_runner_entries(game)
-            if runner_entries:
-                self.append(Gtk.SeparatorMenuItem())
-                for entry in runner_entries:
-                    self.add_menuitem(entry)
         self.show_all()
 
         displayed = game_actions.get_displayed_entries()
