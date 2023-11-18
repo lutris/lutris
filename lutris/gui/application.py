@@ -49,7 +49,7 @@ from lutris.gui.installerwindow import InstallerWindow, InstallationKind
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
 from lutris.startup import init_lutris, run_all_checks
-from lutris.runtime import RuntimeUpdater
+from lutris.runtime_updater import RuntimeUpdater
 from lutris.style_manager import StyleManager
 from lutris.util import datapath, log, system
 from lutris.util.http import HTTPError, Request
