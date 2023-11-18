@@ -101,11 +101,7 @@ class GameGridView(Gtk.IconView, GameView):
     def on_selection_changed(self, _view):
         """Handles selection changes"""
         selected_items = self.get_selected_items()
-        if len(selected_items) == 1:
-            selected_item = self.get_selected_item()
-            if selected_item:
-                self.emit("game-selected", selected_item)
-        else:
+        if selected_items:
             self.emit("game-selected", selected_items)
 
     def on_style_updated(self, widget):
