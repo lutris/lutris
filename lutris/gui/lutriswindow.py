@@ -995,39 +995,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.redraw_view()
 
     @watch_errors()
-    def on_games_selection_changed(self, view, selection):
-        if not selection:
-            GLib.idle_add(self.update_revealer)
-            return False
-        game_ids = []
-        for path in selection:
-            iterator = view.get_model().get_iter(path)
-            game_id = view.get_model().get_value(iterator, COL_ID)
-            game_ids.append(game_id)
-        if len(game_ids) == 0:
-            GLib.idle_add(self.update_revealer)
-            return False
-        games = []
-        for game_id in game_ids:
-            if self.service:
-                game = ServiceGameCollection.get_game(self.service.id, game_id)
-            else:
-                game = games_db.get_game_by_field(int(game_id), "id")
-            if not game:
-                game = {
-                    "id": game_id,
-                    "appid": game_id,
-                    "name": view.get_model().get_value(selection, COL_NAME),
-                    "slug": game_id,
-                    "service": self.service.id if self.service else None,
-                }
-                logger.warning("No game found. Replacing with placeholder %s", game)
-            games.append(game)
-
-        GLib.idle_add(self.update_revealer, games, True)
-        return False
-
-    @watch_errors()
     def on_game_selection_changed(self, view, selection):
         game_ids = []
         games = []
