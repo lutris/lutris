@@ -537,24 +537,40 @@ class LutrisWindow(Gtk.ApplicationWindow,
             return medias[icon_type]()
         return medias[service.default_format]()
 
-    def update_revealer(self, game=None):
-        if game:
-            if self.game_bar:
-                self.game_bar.destroy()
+    def update_revealer(self, game=None, multiple=False):
+        if not multiple:
+            if game:
+                if self.game_bar:
+                    self.game_bar.destroy()
 
-            self.game_bar = GameBar(game, self.application, self)
-            self.revealer_box.pack_start(self.game_bar, True, True, 0)
-        elif self.game_bar:
-            # The game bar can't be destroyed here because the game gets unselected on Wayland
-            # whenever the game bar is interacted with. Instead, we keep the current game bar open
-            # when the game gets unselected, which is somewhat closer to what the intended behavior
-            # should be anyway. Might require closing the game bar manually in some cases.
-            pass
-            # self.game_bar.destroy()
-        if self.revealer_box.get_children():
-            self.game_revealer.set_reveal_child(True)
+                self.game_bar = GameBar(game, self.application, self)
+                self.revealer_box.pack_start(self.game_bar, True, True, 0)
+            elif self.game_bar:
+                # The game bar can't be destroyed here because the game gets unselected on Wayland
+                # whenever the game bar is interacted with. Instead, we keep the current game bar open
+                # when the game gets unselected, which is somewhat closer to what the intended behavior
+                # should be anyway. Might require closing the game bar manually in some cases.
+                pass
+                # self.game_bar.destroy()
+            if self.revealer_box.get_children():
+                self.game_revealer.set_reveal_child(True)
+            else:
+                self.game_revealer.set_reveal_child(False)
         else:
-            self.game_revealer.set_reveal_child(False)
+            if game:
+                if self.game_bar:
+                    self.game_bar.destroy()
+            elif self.game_bar:
+                # The game bar can't be destroyed here because the game gets unselected on Wayland
+                # whenever the game bar is interacted with. Instead, we keep the current game bar open
+                # when the game gets unselected, which is somewhat closer to what the intended behavior
+                # should be anyway. Might require closing the game bar manually in some cases.
+                pass
+                # self.game_bar.destroy()
+            if self.revealer_box.get_children():
+                self.game_revealer.set_reveal_child(True)
+            else:
+                self.game_revealer.set_reveal_child(False)
 
     def show_empty_label(self):
         """Display a label when the view is empty"""
@@ -745,6 +761,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
             else:
                 self.current_view = GameListView(self.game_store)
 
+            self.current_view.connect("games-selected", self.on_games_selection_changed)
             self.current_view.connect("game-selected", self.on_game_selection_changed)
             self.current_view.connect("game-activated", self.on_game_activated)
             self.views[view_type] = self.current_view
@@ -993,6 +1010,39 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.set_service(service_name)
         self._bind_zoom_adjustment()
         self.redraw_view()
+
+    @watch_errors()
+    def on_games_selection_changed(self, view, selection):
+        if not selection:
+            GLib.idle_add(self.update_revealer)
+            return False
+        game_ids = []
+        for path in selection:
+            iterator = view.get_model().get_iter(path)
+            game_id = view.get_model().get_value(iterator, COL_ID)
+            game_ids.append(game_id)
+        if len(game_ids) == 0:
+            GLib.idle_add(self.update_revealer)
+            return False
+        games = []
+        for game_id in game_ids:
+            if self.service:
+                game = ServiceGameCollection.get_game(self.service.id, game_id)
+            else:
+                game = games_db.get_game_by_field(int(game_id), "id")
+            if not game:
+                game = {
+                    "id": game_id,
+                    "appid": game_id,
+                    "name": view.get_model().get_value(selection, COL_NAME),
+                    "slug": game_id,
+                    "service": self.service.id if self.service else None,
+                }
+                logger.warning("No game found. Replacing with placeholder %s", game)
+            games.append(game)
+
+        GLib.idle_add(self.update_revealer, games, True)
+        return False
 
     @watch_errors()
     def on_game_selection_changed(self, view, selection):

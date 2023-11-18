@@ -391,3 +391,49 @@ class ServiceGameActions(BaseGameActions):
             "add": self.is_installable,
             "view": True
         }
+
+def get_multiple_game_actions(games, window):
+    """Game actions for multiple game selections"""
+    return MultiGameActions(games, window)
+
+
+class MultiBaseGameActions:
+    def __init__(self, games, window):
+        self.window = window  # also used as a LaunchUIDelegate
+        self.games = games
+
+    def get_multiple_game_actions(self):
+        """Return a list of game actions and their callbacks"""
+        return []
+
+    def get_displayed_entries(self):
+        """Return a dictionary of actions that should be shown for a game"""
+        return {}
+
+    @property
+    def are_games_removable(self):
+        for game in self.games:
+            if not (game and (game.is_installed or game.is_db_stored)):
+                return False
+        return True
+        # return self.game and (self.game.is_installed or self.game.is_db_stored)
+
+    def on_remove_games(self, *_args):
+        """Callback that present the uninstall dialog to the user"""
+        for game in self.games:
+            if game.is_installed:
+                UninstallGameDialog(game_id=game.id, parent=self.window).run()
+            else:
+                RemoveGameDialog(game_id=game.id, parent=self.window).run()
+
+
+class MultiGameActions(MultiBaseGameActions):
+    def get_multiple_game_actions(self):
+        return [
+            ("remove", _("Remove"), self.on_remove_games),
+        ]
+
+    def get_displayed_entries(self):
+        return {
+            "remove": self.are_games_removable
+        }

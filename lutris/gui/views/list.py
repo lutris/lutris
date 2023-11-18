@@ -25,6 +25,8 @@ class GameListView(Gtk.TreeView, GameView):
         Gtk.TreeView.__init__(self)
         GameView.__init__(self, store.service)
 
+        self.view_type = "list"
+
         self.set_rules_hint(True)
 
         # Image column
@@ -57,7 +59,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_column(default_text_cell, _("Play Time"), COL_PLAYTIME_TEXT, 100)
         self.set_column(default_text_cell, _("Installed At"), COL_INSTALLED_AT_TEXT, 120)
 
-        self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
+        self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
 
         self.connect_signals()
         self.connect("row-activated", self.on_row_activated)
@@ -116,13 +118,13 @@ class GameListView(Gtk.TreeView, GameView):
         self.model.set_sort_func(col, sort_func, sort_col)
 
     def get_selected_item(self):
-        """Return the currently selected game's id."""
-        selection = self.get_selection()
+        """Return the currently selected game or games id."""
+        selection = self.get_selection().get_selected_rows()
+        selection = selection[1]
         if not selection:
             return None
-        _model, select_iter = selection.get_selected()
-        if select_iter:
-            return select_iter
+        self.current_path = selection[0]
+        return self.get_model().get_iter(self.current_path)
 
     def select(self):
         self.set_cursor(self.current_path[0])

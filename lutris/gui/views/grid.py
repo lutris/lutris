@@ -18,6 +18,9 @@ class GameGridView(Gtk.IconView, GameView):
         Gtk.IconView.__init__(self)
         GameView.__init__(self, store.service)
 
+        Gtk.IconView.set_selection_mode(self, Gtk.SelectionMode.MULTIPLE)
+        self.view_type = "grid"
+
         self.set_column_spacing(6)
         self._show_badges = True
 
@@ -97,9 +100,13 @@ class GameGridView(Gtk.IconView, GameView):
 
     def on_selection_changed(self, _view):
         """Handles selection changes"""
-        selected_items = self.get_selected_item()
-        if selected_items:
-            self.emit("game-selected", selected_items)
+        selected_items = self.get_selected_items()
+        if len(selected_items) == 1:
+            selected_item = self.get_selected_item()
+            if selected_item:
+                self.emit("game-selected", selected_item)
+        else:
+            self.emit("games-selected", selected_items)
 
     def on_style_updated(self, widget):
         if self.text_renderer:
