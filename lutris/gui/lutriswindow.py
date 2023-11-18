@@ -1001,7 +1001,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if not selection:
             GLib.idle_add(self.update_revealer)
             return False
-        if not isinstance(selection, list):
+        if type(selection) != list:
             game_id = view.get_model().get_value(selection, COL_ID)
             game_ids.append(game_id)
         else:
