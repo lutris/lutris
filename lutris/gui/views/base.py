@@ -55,7 +55,7 @@ class GameView:
                 game_ids.append(game_id)
             game_actions = self.get_game_actions(game_ids)
             if game_actions:
-                contextual_menu = ContextualMenu(game_actions.get_multiple_game_actions())
+                contextual_menu = ContextualMenu(game_actions.get_game_actions())
                 contextual_menu.popup(event, game_actions)
 
 
