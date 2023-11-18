@@ -11,8 +11,7 @@ from lutris.gui.widgets.contextual_menu import ContextualMenu
 class GameView:
     # pylint: disable=no-member
     __gsignals__ = {
-        "games-selected": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
-        "game-selected": (GObject.SIGNAL_RUN_FIRST, None, (Gtk.TreeIter,)),
+        "game-selected": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
     }
 
@@ -29,6 +28,7 @@ class GameView:
         """Contextual menu."""
         if event.button != Gdk.BUTTON_SECONDARY:
             return
+        game_ids = []
         if self.view_type == "grid":
             selection = self.get_selected_items()
         else:
@@ -43,42 +43,25 @@ class GameView:
                 if not _iter:
                     return
                 col_id = str(model.get_value(_iter, COL_ID))
+                game_ids.append(col_id)
                 game_actions = self.get_game_actions(col_id)
                 if game_actions:
                     contextual_menu = ContextualMenu(game_actions.get_game_actions())
                     contextual_menu.popup(event, game_actions)
         else:
-            game_ids = []
             for path in selection:
                 iterator = view.get_model().get_iter(path)
                 game_id = view.get_model().get_value(iterator, COL_ID)
                 game_ids.append(game_id)
-            game_actions = self.get_multiple_game_actions(game_ids)
+            game_actions = self.get_game_actions(game_ids)
             if game_actions:
                 contextual_menu = ContextualMenu(game_actions.get_multiple_game_actions())
-                contextual_menu.popup(event, game_actions, multiple=True)
+                contextual_menu.popup(event, game_actions)
 
 
-    def get_game_actions(self, game_id):
-        if self.service:
-            db_game = get_game_for_service(self.service.id, game_id)
-
-            if db_game:
-                game = self.get_game_by_id(db_game["id"])
-            else:
-                db_game = ServiceGameCollection.get_game(self.service.id, game_id)
-                game = Game.create_empty_service_game(db_game, self.service)
-        elif game_id:
-            game = self.get_game_by_id(game_id)
-        else:
-            return None
-
-        return get_game_actions(game, window=self.get_toplevel())
-
-    def get_multiple_game_actions(self, game_ids):
+    def get_game_actions(self, game_ids):
         games = []
         for game_id in game_ids:
-            game = {}
             if self.service:
                 db_game = get_game_for_service(self.service.id, game_id)
 
@@ -92,7 +75,10 @@ class GameView:
             else:
                 return None
             games.append(game)
-        return get_multiple_game_actions(games, self.get_toplevel())
+        if len(games) == 1:
+            return get_game_actions(game, window=self.get_toplevel())
+        else:
+            return get_multiple_game_actions(games, self.get_toplevel())
 
     def get_game_by_id(self, game_id):
         application = Gio.Application.get_default()

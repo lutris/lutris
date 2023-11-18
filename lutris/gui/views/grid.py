@@ -106,7 +106,7 @@ class GameGridView(Gtk.IconView, GameView):
             if selected_item:
                 self.emit("game-selected", selected_item)
         else:
-            self.emit("games-selected", selected_items)
+            self.emit("game-selected", selected_items)
 
     def on_style_updated(self, widget):
         if self.text_renderer:

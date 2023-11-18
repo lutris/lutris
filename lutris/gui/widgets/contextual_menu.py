@@ -66,19 +66,19 @@ class ContextualMenu(Gtk.Menu):
         for item in self.get_children():
             self.remove(item)
 
-            for entry in self.main_entries:
-                self.add_menuitem(entry)
+        for entry in self.main_entries:
+            self.add_menuitem(entry)
 
         self.show_all()
 
-            displayed = game_actions.get_displayed_entries()
+        displayed = game_actions.get_displayed_entries()
 
-            def is_visible(w):
-                if isinstance(w, Gtk.SeparatorMenuItem):
-                    return None
+        def is_visible(w):
+            if isinstance(w, Gtk.SeparatorMenuItem):
+                return None
 
-                return displayed.get(w.action_id, True)
+            return displayed.get(w.action_id, True)
 
-            update_action_widget_visibility(self.get_children(), is_visible)
+        update_action_widget_visibility(self.get_children(), is_visible)
 
-            super().popup_at_pointer(event)
+        super().popup_at_pointer(event)
