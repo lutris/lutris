@@ -38,6 +38,7 @@ def get_game_actions(game, window, application=None):
 
     return BaseGameActions(games, window, application)
 
+
 def get_multiple_game_actions(games, window):
     """Game actions for multiple game selections"""
     return MultiGameActions(games, window)
@@ -401,6 +402,7 @@ class ServiceGameActions(BaseGameActions):
             "add": self.is_installable,
             "view": True
         }
+
 
 class MultiGameActions(BaseGameActions):
     def get_multiple_game_actions(self):
