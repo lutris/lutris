@@ -279,9 +279,9 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         if not count:
             self.search_result_label.set_markup(_("No results"))
         elif count == total_count:
-            self.search_result_label.set_markup(_(f"Showing <b>{count}</b> results"))
+            self.search_result_label.set_markup(_("Showing <b>%s</b> results") % count)
         else:
-            self.search_result_label.set_markup(_(f"<b>{total_count}</b> results, only displaying first {count}"))
+            self.search_result_label.set_markup(_("<b>%s</b> results, only displaying first {count}") % total_count)
         for row in self.search_listbox.get_children():
             row.destroy()
         for game in api_games.get("results", []):

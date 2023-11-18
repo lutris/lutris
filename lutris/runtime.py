@@ -272,13 +272,13 @@ class RuntimeUpdater:
                                        "-".join([upstream_runner["version"], upstream_runner["architecture"]]))
             if system.path_exists(runner_path):
                 continue
-            self.status_text = _(f"Updating {name}")
+            self.status_text = _("Updating %s") % name
             archive_download_path = os.path.join(settings.CACHE_DIR, os.path.basename(upstream_runner["url"]))
             downloader = Downloader(upstream_runner["url"], archive_download_path)
             downloader.start()
             self.downloaders = {"wine": downloader}
             downloader.join()
-            self.status_text = _(f"Extracting {name}")
+            self.status_text = _("Extracting %s") % name
             extract_archive(archive_download_path, runner_path)
 
             get_installed_wine_versions.cache_clear()
@@ -295,7 +295,7 @@ class RuntimeUpdater:
                 logger.debug("Skipping runtime %s for %s", name, remote_runtime["architecture"])
                 continue
             runtime = Runtime(remote_runtime["name"], self)
-            self.status_text = _(f"Updating {remote_runtime['name']}")
+            self.status_text = _("Updating %s") % remote_runtime['name']
             if remote_runtime["url"]:
 
                 downloader = runtime.download(remote_runtime)
