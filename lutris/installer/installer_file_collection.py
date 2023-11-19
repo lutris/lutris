@@ -129,9 +129,7 @@ class InstallerFileCollection:
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
-        _cache_path = cache.get_cache_path()
-        if not _cache_path:
-            _cache_path = os.path.join(settings.CACHE_DIR, "installer")
+        _cache_path = cache.get_cache_path() or settings.INSTALLER_CACHE_DIR
         return os.path.join(_cache_path, self.game_slug)
 
     def prepare(self):

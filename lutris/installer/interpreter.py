@@ -115,7 +115,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
-        return os.path.join(settings.CACHE_DIR, "installer/%s" % self.installer.game_slug)
+        return os.path.join(settings.INSTALLER_CACHE_DIR, "%s" % self.installer.game_slug)
 
     @property
     def script_env(self):

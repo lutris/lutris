@@ -122,7 +122,7 @@ class LutrisConfig:
     def runner_config_path(self):
         if not self.runner_slug:
             return None
-        return os.path.join(settings.CONFIG_DIR, "runners/%s.yml" % self.runner_slug)
+        return os.path.join(settings.RUNNERS_CONFIG_DIR, "%s.yml" % self.runner_slug)
 
     @property
     def game_config_path(self):

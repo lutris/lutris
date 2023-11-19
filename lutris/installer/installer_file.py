@@ -191,9 +191,7 @@ class InstallerFile:
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
-        _cache_path = cache.get_cache_path()
-        if not _cache_path:
-            _cache_path = os.path.join(settings.CACHE_DIR, "installer")
+        _cache_path = cache.get_cache_path() or settings.INSTALLER_CACHE_DIR
         url_parts = urlparse(self.url)
         if url_parts.netloc.endswith("gog.com"):
             folder = "gog"
