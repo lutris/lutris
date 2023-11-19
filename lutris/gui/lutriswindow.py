@@ -544,6 +544,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
             if len(games) == 1 and games[0]:
                 self.game_bar = GameBar(games[0], self.application, self)
                 self.revealer_box.pack_start(self.game_bar, True, True, 0)
+            else:
+                self.game_bar = None
         elif self.game_bar:
             # The game bar can't be destroyed here because the game gets unselected on Wayland
             # whenever the game bar is interacted with. Instead, we keep the current game bar open
@@ -996,24 +998,21 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     @watch_errors()
     def on_game_selection_changed(self, view, selection):
-        print(selection)
         game_ids = []
         games = []
         if not selection:
             GLib.idle_add(self.update_revealer)
             return False
-        if type(selection) != list:
-            game_id = view.get_model().get_value(selection, COL_ID)
-            game_ids.append(game_id)
-        else:
-            for path in selection:
-                iterator = view.get_model().get_iter(path)
-                game_id = view.get_model().get_value(iterator, COL_ID)
-                game_ids.append(game_id)
+        for path in selection:
+            iterator = view.get_model().get_iter(path)
+            game_id = view.get_model().get_value(iterator, COL_ID)
+            game_ids.append([iterator, game_id])
         if not game_ids:
             GLib.idle_add(self.update_revealer)
             return False
-        for game_id in game_ids:
+        for item in game_ids:
+            iterator = item[0]
+            game_id = item[1]
             if self.service:
                 game = ServiceGameCollection.get_game(self.service.id, game_id)
             else:
@@ -1022,7 +1021,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 game = [{
                     "id": game_id,
                     "appid": game_id,
-                    "name": view.get_model().get_value(selection, COL_NAME),
+                    "name": view.get_model().get_value(iterator, COL_NAME),
                     "slug": game_id,
                     "service": self.service.id if self.service else None,
                 }]

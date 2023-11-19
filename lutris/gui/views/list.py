@@ -25,8 +25,6 @@ class GameListView(Gtk.TreeView, GameView):
         Gtk.TreeView.__init__(self)
         GameView.__init__(self, store.service)
 
-        self.view_type = "list"
-
         self.set_rules_hint(True)
 
         # Image column
@@ -117,14 +115,12 @@ class GameListView(Gtk.TreeView, GameView):
         """Sort a column by using another column's data"""
         self.model.set_sort_func(col, sort_func, sort_col)
 
-    def get_selected_item(self):
-        """Return the currently selected game or games id."""
+    def get_selected(self):
+        """Return list of all selected items"""
         selection = self.get_selection().get_selected_rows()
-        selection = selection[1]
         if not selection:
             return None
-        self.current_path = selection[0]
-        return self.get_model().get_iter(self.current_path)
+        return selection[1]
 
     def select(self):
         self.set_cursor(self.current_path[0])
@@ -147,7 +143,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.emit("game-activated", selected_id)
 
     def on_cursor_changed(self, widget, _line=None, _column=None):
-        selected_item = self.get_selected_item()
+        selected_item = self.get_selected()
         self.emit("game-selected", selected_item)
 
     @staticmethod
