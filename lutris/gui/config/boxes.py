@@ -375,14 +375,25 @@ class ConfigBox(VBox):
         self.option_changed(combobox, key, value)
 
     def _populate_combobox_choices(self, liststore, choices, default):
+        expanded, tooltip_default = self._expand_combobox_choices(choices, default)
+        for choice in expanded:
+            liststore.append(choice)
+
+        if tooltip_default:
+            self.tooltip_default = tooltip_default
+
+    @staticmethod
+    def _expand_combobox_choices(choices, default):
+        expanded = []
+        tooltip_default = None
         for choice in choices:
             if isinstance(choice, str):
                 choice = (choice, choice)
             if choice[1] == default:
-                liststore.append((_("%s (default)") % choice[0], choice[1]))
-                self.tooltip_default = choice[0]
-            else:
-                liststore.append(choice)
+                tooltip_default = choice[0]
+                choice = (_("%s (default)") % choice[0], choice[1])
+            expanded.append(choice)
+        return expanded, tooltip_default
 
     # ComboBox
     def generate_combobox(self, option_name, choices, label, value=None, default=None, has_entry=False):
@@ -393,21 +404,25 @@ class ConfigBox(VBox):
         if has_entry:
             combobox = Gtk.ComboBox.new_with_model_and_entry(liststore)
             combobox.set_entry_text_column(0)
-            if value:
-                combobox.get_child().set_text(value)
         # No entry ("choice" type)
         else:
             combobox = Gtk.ComboBox.new_with_model(liststore)
             cell = Gtk.CellRendererText()
             combobox.pack_start(cell, True)
             combobox.add_attribute(cell, "text", 0)
-            combobox.set_id_column(1)
 
-            choices = list(v for k, v in choices)
-            if value in choices:
-                combobox.set_active_id(value)
-            else:
-                combobox.set_active_id(default)
+        combobox.set_id_column(1)
+
+        expanded, _tooltip_default = self._expand_combobox_choices(choices, default)
+        if value in [v for _k, v in expanded]:
+            combobox.set_active_id(value)
+        elif has_entry:
+            for ch in combobox.get_children():
+                if isinstance(ch, Gtk.Entry):
+                    ch.set_text(value or "")
+                    break
+        else:
+            combobox.set_active_id(default)
 
         combobox.connect("changed", self.on_combobox_change, option_name)
         combobox.connect("scroll-event", self._on_combobox_scroll)

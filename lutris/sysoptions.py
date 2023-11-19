@@ -23,18 +23,23 @@ def get_locale_choices():
     """Return list of available locales as label, value tuples
     suitable for inclusion in drop-downs.
     """
-    locales = system.get_locale_list()
-
-    # adds "(recommended)" string to utf8 locales
-    locales_humanized = locales.copy()
-    for index, locale in enumerate(locales_humanized):
-        if "utf8" in locale:
-            locales_humanized[index] += " " + _("(recommended)")
-
-    locale_choices = list(zip(locales_humanized, locales))
-    locale_choices.insert(0, (_("System"), ""))
-
-    return locale_choices
+    return [
+        (_("System"), ""),
+        (_("Chinese"), "zh_CN.utf8"),
+        (_("Croatian"), "hr_HR.utf8"),
+        (_("Dutch"), "nl_NL.utf8"),
+        (_("English"), "en_US.utf8"),
+        (_("Finnish"), "fi_FI.utf8"),
+        (_("Georgian"), "ka_GE.utf8"),
+        (_("German"), "de_DE.utf8"),
+        (_("Italian"), "it_IT.utf8"),
+        (_("Japanese"), "ja_JP.utf8"),
+        (_("Korean"), "ko_KR.utf8"),
+        (_("Portuguese (Brazilian)"), "pt_BR.utf8"),
+        (_("Russian"), "ru_RU.utf8"),
+        (_("Spanish"), "es_ES.utf8"),
+        (_("Turkish"), "tr_TR.utf8"),
+    ]
 
 
 def get_output_choices():
@@ -475,7 +480,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "section": "Game execution",
         "option": "locale",
-        "type": "choice_with_search",
+        "type": "choice_with_entry",
         "label": _("Locale"),
         "choices": (
             get_locale_choices
