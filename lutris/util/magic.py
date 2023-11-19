@@ -21,7 +21,8 @@ import ctypes.util
 import glob
 import sys
 import threading
-from ctypes import POINTER, byref, c_char_p, c_int, c_size_t, c_void_p
+from ctypes import POINTER, byref, c_char_p, c_int, c_size_t, c_void_p, _CData
+from typing import Optional, Type
 
 # avoid shadowing the real open with the version from compat.py
 _real_open = open
@@ -207,10 +208,10 @@ def from_descriptor(fd, mime=False):
 libmagic = None
 # Let's try to find magic or magic1
 dll = ctypes.util.find_library('magic') \
-    or ctypes.util.find_library('magic1') \
-    or ctypes.util.find_library('cygmagic-1') \
-    or ctypes.util.find_library('libmagic-1') \
-    or ctypes.util.find_library('msys-magic-1')  # for MSYS2
+      or ctypes.util.find_library('magic1') \
+      or ctypes.util.find_library('cygmagic-1') \
+      or ctypes.util.find_library('libmagic-1') \
+      or ctypes.util.find_library('msys-magic-1')  # for MSYS2
 
 # necessary because find_library returns None if it doesn't find the library
 if dll:
@@ -220,8 +221,8 @@ if not libmagic or not libmagic._name:
     windows_dlls = ['magic1.dll', 'cygmagic-1.dll', 'libmagic-1.dll', 'msys-magic-1.dll']
     platform_to_lib = {'darwin': ['/opt/local/lib/libmagic.dylib',
                                   '/usr/local/lib/libmagic.dylib']
-                       # Assumes there will only be one version installed
-                       + glob.glob('/usr/local/Cellar/libmagic/*/lib/libmagic.dylib'),  # flake8:noqa
+                                 # Assumes there will only be one version installed
+                                 + glob.glob('/usr/local/Cellar/libmagic/*/lib/libmagic.dylib'),  # flake8:noqa
                        'win32': windows_dlls,
                        'cygwin': windows_dlls,
                        'linux': ['libmagic.so.1'],
@@ -242,7 +243,7 @@ if not libmagic or not libmagic._name:
 magic_t = ctypes.c_void_p
 
 
-def errorcheck_null(result, func, args):
+def errorcheck_null(result: Optional[Type[_CData]], func, args):
     if result is None:
         err = magic_error(args[0])
         raise MagicException(err)
@@ -294,10 +295,14 @@ magic_errno = libmagic.magic_errno
 magic_errno.restype = c_int
 magic_errno.argtypes = [magic_t]
 
+# mypy does not like assigning functions to properties, and thinks
+# you are supplying a method, which must have the correct type for
+# its first 'self' argument. We suppress these errors
+
 _magic_file = libmagic.magic_file
 _magic_file.restype = c_char_p
 _magic_file.argtypes = [magic_t, c_char_p]
-_magic_file.errcheck = errorcheck_null
+_magic_file.errcheck = errorcheck_null  # type: ignore
 
 
 def magic_file(cookie, filename):
@@ -307,7 +312,7 @@ def magic_file(cookie, filename):
 _magic_buffer = libmagic.magic_buffer
 _magic_buffer.restype = c_char_p
 _magic_buffer.argtypes = [magic_t, c_void_p, c_size_t]
-_magic_buffer.errcheck = errorcheck_null
+_magic_buffer.errcheck = errorcheck_null  # type: ignore
 
 
 def magic_buffer(cookie, buf):
@@ -317,7 +322,7 @@ def magic_buffer(cookie, buf):
 _magic_descriptor = libmagic.magic_descriptor
 _magic_descriptor.restype = c_char_p
 _magic_descriptor.argtypes = [magic_t, c_int]
-_magic_descriptor.errcheck = errorcheck_null
+_magic_descriptor.errcheck = errorcheck_null  # type: ignore
 
 
 def magic_descriptor(cookie, fd):
@@ -327,7 +332,7 @@ def magic_descriptor(cookie, fd):
 _magic_load = libmagic.magic_load
 _magic_load.restype = c_int
 _magic_load.argtypes = [magic_t, c_char_p]
-_magic_load.errcheck = errorcheck_negative_one
+_magic_load.errcheck = errorcheck_negative_one  # type: ignore
 
 
 def magic_load(cookie, filename):
@@ -352,12 +357,12 @@ if hasattr(libmagic, 'magic_setparam') and hasattr(libmagic, 'magic_getparam'):
     _magic_setparam = libmagic.magic_setparam
     _magic_setparam.restype = c_int
     _magic_setparam.argtypes = [magic_t, c_int, POINTER(c_size_t)]
-    _magic_setparam.errcheck = errorcheck_negative_one
+    _magic_setparam.errcheck = errorcheck_negative_one  # type: ignore
 
     _magic_getparam = libmagic.magic_getparam
     _magic_getparam.restype = c_int
     _magic_getparam.argtypes = [magic_t, c_int, POINTER(c_size_t)]
-    _magic_getparam.errcheck = errorcheck_negative_one
+    _magic_getparam.errcheck = errorcheck_negative_one  # type: ignore
 
 
 def magic_setparam(cookie, param, val):
