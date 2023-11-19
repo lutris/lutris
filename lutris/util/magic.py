@@ -21,8 +21,7 @@ import ctypes.util
 import glob
 import sys
 import threading
-from ctypes import POINTER, byref, c_char_p, c_int, c_size_t, c_void_p, _CData
-from typing import Optional, Type
+from ctypes import POINTER, byref, c_char_p, c_int, c_size_t, c_void_p
 
 # avoid shadowing the real open with the version from compat.py
 _real_open = open
@@ -243,7 +242,7 @@ if not libmagic or not libmagic._name:
 magic_t = ctypes.c_void_p
 
 
-def errorcheck_null(result: Optional[Type[_CData]], func, args):
+def errorcheck_null(result, func, args):
     if result is None:
         err = magic_error(args[0])
         raise MagicException(err)
