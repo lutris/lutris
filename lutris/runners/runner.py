@@ -2,6 +2,7 @@
 import os
 import signal
 from gettext import gettext as _
+from typing import Dict, Optional
 
 from lutris import runtime, settings
 from lutris.api import get_default_runner_version
@@ -419,7 +420,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             return True
         return self.flatpak_id and flatpak.is_app_installed(self.flatpak_id)
 
-    def get_runner_version(self, version=None) -> dict:
+    def get_runner_version(self, version: Optional[str] = None) -> Dict[str, str]:
         """Get the appropriate version for a runner, as with get_default_runner_version(),
         but this method allows the runner to apply its configuration."""
         return get_default_runner_version(self.name, version)

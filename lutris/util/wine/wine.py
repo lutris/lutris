@@ -3,6 +3,7 @@ import os
 from collections import OrderedDict
 from functools import lru_cache
 from gettext import gettext as _
+from typing import Optional, List
 
 from lutris import settings
 from lutris.api import get_default_runner_version
@@ -134,14 +135,15 @@ def list_system_wine_versions() -> list:
     ]
 
 
-def list_lutris_wine_versions() -> list:
+def list_lutris_wine_versions() -> List[str]:
     """Return the list of wine versions installed by lutris"""
     if not system.path_exists(WINE_DIR):
         return []
     versions = []
     for dirname in version_sort(os.listdir(WINE_DIR), reverse=True):
         try:
-            if os.path.isfile(get_wine_version_exe(dirname)):
+            wine_path = get_wine_path_for_version(version=dirname)
+            if wine_path and os.path.isfile(wine_path):
                 versions.append(dirname)
         except UnavailableRunnerError:
             pass  # if it's not properly installed, skip it
@@ -170,14 +172,28 @@ def get_installed_wine_versions():
     return list_system_wine_versions() + list_lutris_wine_versions() + list_proton_versions()
 
 
-def get_wine_version_exe(version):
+def get_wine_path_for_version(version: Optional[str], config: Optional[dict] = None) -> Optional[str]:
+    """Return the absolute path of a wine executable for a given version,
+    or the configured version if you don't ask for a version."""
+    if not version and config:
+        version = config["version"]
+
     if not version:
-        version = get_default_version()
-    if not version:
-        raise UnavailableRunnerError(_("Wine is not installed"))
+        return None
+
     if version in WINE_PATHS:
-        return WINE_PATHS[version]
-    return os.path.join(WINE_DIR, "{}/bin/wine".format(version))
+        return system.find_executable(WINE_PATHS[version])
+    if "Proton" in version:
+        for proton_path in get_proton_paths():
+            if os.path.isfile(os.path.join(proton_path, version, "dist/bin/wine")):
+                return os.path.join(proton_path, version, "dist/bin/wine")
+            if os.path.isfile(os.path.join(proton_path, version, "files/bin/wine")):
+                return os.path.join(proton_path, version, "files/bin/wine")
+    if version == "custom":
+        if config is None:
+            raise RuntimeError("Custom wine paths are only supported when a configuration is available.")
+        return config.get("custom_wine_path", "")
+    return os.path.join(WINE_DIR, version, "bin/wine")
 
 
 def parse_wine_version(version):
@@ -210,7 +226,7 @@ def is_fsync_supported() -> bool:
     return fsync.get_fsync_support()
 
 
-def get_default_version() -> str:
+def get_default_wine_version() -> Optional[str]:
     """Return the default version of wine."""
     installed_versions = get_installed_wine_versions()
     if installed_versions:
@@ -220,7 +236,7 @@ def get_default_version() -> str:
             if version in installed_versions:
                 return version
         return installed_versions[0]
-    return ""
+    return None
 
 
 def get_system_wine_version(wine_path="wine"):
