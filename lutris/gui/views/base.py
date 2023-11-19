@@ -64,11 +64,11 @@ class GameView:
         return game or Game(game_id)
 
     def get_selected_game_id(self):
-        selected_item = self.get_selected()
+        selected_items = self.get_selected()
         iterator = None
-        for path in selected_item:
+        for path in selected_items:
             iterator = self.get_model().get_iter(path)
-        if selected_item:
+        if selected_items:
             return self.get_model().get_value(iterator, COL_ID)
         return None
 

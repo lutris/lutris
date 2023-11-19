@@ -143,8 +143,8 @@ class GameListView(Gtk.TreeView, GameView):
         self.emit("game-activated", selected_id)
 
     def on_cursor_changed(self, widget, _line=None, _column=None):
-        selected_item = self.get_selected()
-        self.emit("game-selected", selected_item)
+        selected_items = self.get_selected()
+        self.emit("game-selected", selected_items)
 
     @staticmethod
     def on_column_width_changed(col, *args):

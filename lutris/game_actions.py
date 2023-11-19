@@ -235,21 +235,20 @@ class GameActions(BaseGameActions):
         for game in self.games:
             game.launch(self.window)
 
-    def get_running_game(self):
+    def get_running_games(self):
+        running_games = []
         for game in self.games:
             if game and game.is_db_stored:
                 ids = self.application.get_running_game_ids()
                 for game_id in ids:
                     if str(game_id) == str(game.id):
-                        return game
-                logger.warning("Game %s not in %s", game.id, ids)
-
-            return None
+                        running_games.append(game)
+        return running_games
 
     def on_game_stop(self, *_args):
         """Stops the game"""
-        game = self.get_running_game()
-        if game:
+        games = self.get_running_games()
+        for game in games:
             game.force_stop()
 
     def on_show_logs(self, _widget):
