@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from functools import lru_cache
 from gettext import gettext as _
-from typing import Optional, List
+from typing import Optional, List, Tuple, Dict, Generator
 
 from lutris import settings
 from lutris.api import get_default_runner_version
@@ -15,9 +15,9 @@ from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import parse_version
 from lutris.util.wine import fsync
 
-WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-WINE_DEFAULT_ARCH = "win64" if linux.LINUX_SYSTEM.is_64_bit else "win32"
-WINE_PATHS = {
+WINE_DIR: str = os.path.join(settings.RUNNER_DIR, "wine")
+WINE_DEFAULT_ARCH: str = "win64" if linux.LINUX_SYSTEM.is_64_bit else "win32"
+WINE_PATHS: Dict[str, str] = {
     "winehq-devel": "/opt/wine-devel/bin/wine",
     "winehq-staging": "/opt/wine-staging/bin/wine",
     "wine-development": "/usr/lib/wine-development/wine",
@@ -37,7 +37,7 @@ except Exception as ex:
     logger.exception("Unable to enumerate system Wine versions: %s", ex)
 
 
-def _iter_proton_locations():
+def _iter_proton_locations() -> Generator[str, None, None]:
     """Iterate through all existing Proton locations"""
     try:
         steamapp_dirs = get_steamapps_dirs()
@@ -52,7 +52,7 @@ def _iter_proton_locations():
             yield path
 
 
-def get_proton_paths():
+def get_proton_paths() -> List[str]:
     """Get the Folder that contains all the Proton versions. Can probably be improved"""
     paths = set()
     for path in _iter_proton_locations():
@@ -65,7 +65,7 @@ def get_proton_paths():
     return list(paths)
 
 
-def detect_arch(prefix_path=None, wine_path=None):
+def detect_arch(prefix_path: Optional[str] = None, wine_path: Optional[str] = None) -> str:
     """Given a Wine prefix path, return its architecture"""
     if prefix_path:
         arch = detect_prefix_arch(prefix_path)
@@ -76,7 +76,7 @@ def detect_arch(prefix_path=None, wine_path=None):
     return "win32"
 
 
-def detect_prefix_arch(prefix_path):
+def detect_prefix_arch(prefix_path: str) -> Optional[str]:
     """Return the architecture of the prefix found in `prefix_path`"""
     if not prefix_path:
         raise RuntimeError("The prefix architecture can't be detected with no prefix path.")
@@ -98,7 +98,7 @@ def detect_prefix_arch(prefix_path):
     return None
 
 
-def set_drive_path(prefix, letter, path):
+def set_drive_path(prefix: str, letter: str, path: str) -> None:
     """Changes the path to a Wine drive"""
     dosdevices_path = os.path.join(prefix, "dosdevices")
     if not system.path_exists(dosdevices_path):
@@ -110,7 +110,7 @@ def set_drive_path(prefix, letter, path):
     os.symlink(path, drive_path)
 
 
-def is_gstreamer_build(wine_path):
+def is_gstreamer_build(wine_path: str) -> bool:
     """Returns whether a wine build ships with gstreamer libraries.
     This allows to set GST_PLUGIN_SYSTEM_PATH_1_0 for the builds that support it.
     """
@@ -118,7 +118,7 @@ def is_gstreamer_build(wine_path):
     return system.path_exists(os.path.join(base_path, "lib64/gstreamer-1.0"))
 
 
-def is_installed_systemwide():
+def is_installed_systemwide() -> bool:
     """Return whether Wine is installed outside of Lutris"""
     for build in WINE_PATHS.values():
         if system.find_executable(build):
@@ -126,7 +126,7 @@ def is_installed_systemwide():
     return False
 
 
-def list_system_wine_versions() -> list:
+def list_system_wine_versions() -> List[str]:
     """Return the list of wine versions installed on the system"""
     return [
         name
@@ -150,7 +150,7 @@ def list_lutris_wine_versions() -> List[str]:
     return versions
 
 
-def list_proton_versions() -> list:
+def list_proton_versions() -> List[str]:
     """Return the list of Proton versions installed in Steam"""
     versions = []
     for proton_path in get_proton_paths():
@@ -167,7 +167,7 @@ def list_proton_versions() -> list:
 
 
 @lru_cache(maxsize=8)
-def get_installed_wine_versions():
+def get_installed_wine_versions() -> List[str]:
     """Return the list of Wine versions installed"""
     return list_system_wine_versions() + list_lutris_wine_versions() + list_proton_versions()
 
@@ -196,7 +196,7 @@ def get_wine_path_for_version(version: Optional[str], config: Optional[dict] = N
     return os.path.join(WINE_DIR, version, "bin/wine")
 
 
-def parse_wine_version(version):
+def parse_wine_version(version: str) -> Tuple[List[int], str, str]:
     """This is a specialized parse_version() that adjusts some odd
     Wine versions for correct parsing."""
     version = version.replace("Proton7-", "Proton-7.")
@@ -204,7 +204,7 @@ def parse_wine_version(version):
     return parse_version(version)
 
 
-def version_sort(versions, reverse=False):
+def version_sort(versions: List[str], reverse: bool = False) -> List[str]:
     def version_key(version):
         version_list, prefix, suffix = parse_wine_version(version)
         # Normalize the length of sub-versions
@@ -239,7 +239,7 @@ def get_default_wine_version() -> Optional[str]:
     return None
 
 
-def get_system_wine_version(wine_path="wine"):
+def get_system_wine_version(wine_path: str = "wine") -> str:
     """Return the version of Wine installed on the system."""
     if wine_path != "wine" and not system.path_exists(wine_path):
         return ""
@@ -254,7 +254,8 @@ def get_system_wine_version(wine_path="wine"):
     return version
 
 
-def get_real_executable(windows_executable, working_dir=None):
+def get_real_executable(windows_executable: str, working_dir: Optional[str] = None) -> Tuple[
+        str, List[str], Optional[str]]:
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""
 
@@ -291,7 +292,7 @@ def fsync_display_support_warning(parent=None):
     ), parent=parent)
 
 
-def get_overrides_env(overrides):
+def get_overrides_env(overrides: Dict[str, str]) -> str:
     """
     Output a string of dll overrides usable with WINEDLLOVERRIDES
     See: https://wiki.winehq.org/Wine_User%27s_Guide#WINEDLLOVERRIDES.3DDLL_Overrides
