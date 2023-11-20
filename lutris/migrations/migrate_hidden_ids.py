@@ -6,7 +6,7 @@ from lutris.game import Game
 def get_hidden_ids():
     """Return a list of game IDs to be excluded from the library view"""
     # Load the ignore string and filter out empty strings to prevent issues
-    ignores_raw = settings.read_setting("library_ignores", section="lutris", default="").split(",")
+    ignores_raw = settings.read_setting("library_ignores").split(",")
     ignores = [ignore for ignore in ignores_raw if not ignore == ""]
 
     # Turn the strings into integers
