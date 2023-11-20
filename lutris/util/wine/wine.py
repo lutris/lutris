@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from functools import lru_cache
 from gettext import gettext as _
-from typing import Optional, List, Tuple, Dict, Generator
+from typing import Dict, Generator, List, Optional, Tuple
 
 from lutris import settings
 from lutris.api import get_default_runner_version

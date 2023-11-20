@@ -24,7 +24,7 @@ from lutris.runners import import_task
 from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
-from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_wine_path_for_version, get_default_wine_version
+from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_default_wine_version, get_wine_path_for_version
 
 
 class CommandsMixin:
