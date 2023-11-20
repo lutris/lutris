@@ -1049,7 +1049,7 @@ Also, check that the version specified is in the correct format.
 
     def set_tray_icon(self):
         """Creates or destroys a tray icon for the application"""
-        active = settings.read_setting("show_tray_icon", default="false").lower() == "true"
+        active = settings.read_setting("show_tray_icon").lower() == "true"
         if active and not self.tray:
             self.tray = LutrisStatusIcon(application=self)
         if self.tray:

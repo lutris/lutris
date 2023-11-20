@@ -725,7 +725,7 @@ class Game(GObject.Object):
         self.emit("game-started")
 
         # Game is running, let's update discord status
-        if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
+        if settings.read_setting("discord_rpc") == "True" and self.discord_id:
             try:
                 discord.client.update(self.discord_id)
             except AssertionError:
@@ -927,7 +927,7 @@ class Game(GObject.Object):
             restore_gamma()
 
         # Clear Discord Client Status
-        if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
+        if settings.read_setting("discord_rpc") == "True" and self.discord_id:
             discord.client.clear()
 
         self.process_return_codes()

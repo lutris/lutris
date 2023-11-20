@@ -19,7 +19,7 @@ class SettingsIO:
             except UnicodeDecodeError as ex:
                 logger.error("Some invalid characters are preventing the setting file from loading properly: %s", ex)
 
-    def read_setting(self, key, section="lutris", default=""):
+    def read_setting(self, key, *, section="lutris", default=""):
         """Read a setting from the config file
 
         Params:

@@ -10,11 +10,11 @@ from ssl import CertificateError
 
 import certifi
 
-from lutris.settings import PROJECT, SITE_URL, VERSION, read_setting
+from lutris import settings
 from lutris.util import system
 from lutris.util.log import logger
 
-DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 30
+DEFAULT_TIMEOUT = settings.read_setting("default_http_timeout") or 30
 
 ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
@@ -74,7 +74,7 @@ class Request:
             url = "https:" + url
         if url.startswith("/"):
             logger.error("Stop using relative URLs!: %s", url)
-            url = SITE_URL + url
+            url = settings.SITE_URL + url
         # That's for a single URL in EGS... not sure if we need more escaping
         # The url received should already be receiving an escaped string
         url = url.replace(" ", "%20")
@@ -82,7 +82,7 @@ class Request:
 
     @property
     def user_agent(self):
-        return "{} {}".format(PROJECT, VERSION)
+        return "{} {}".format(settings.PROJECT, settings.VERSION)
 
     def _request(self, method, data=None):
         logger.debug("%s %s", method, self.url)

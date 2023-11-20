@@ -62,8 +62,7 @@ class ServicesBox(BaseConfigBox):
         box.pack_start(service_label_box, True, True, 0)
 
         checkbox = Gtk.Switch(visible=True)
-        if settings.read_setting(service_key,
-                                 section="services").lower() == "true":
+        if settings.read_setting(service_key, section="services").lower() == "true":
             checkbox.set_active(True)
         checkbox.connect("state-set", self._on_service_change, service_key)
         alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)

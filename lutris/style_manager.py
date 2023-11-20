@@ -34,7 +34,7 @@ class StyleManager(GObject.Object):
         super().__init__()
 
         self.gtksettings = Gtk.Settings.get_default()
-        self.is_config_dark = settings.read_setting("dark_theme", default="false").lower() == "true"
+        self.is_config_dark = settings.read_setting("dark_theme").lower() == "true"
 
         Gio.DBusProxy.new_for_bus(
             Gio.BusType.SESSION,
