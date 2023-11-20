@@ -99,8 +99,8 @@ def get_resolutions():
             if resolution_match:
                 resolution_list.append(resolution_match.groups()[0])
     if not resolution_list:
-        resolution_list = ['%dx%d' % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
         _log_vidmodes("Unable to generate resolution list from xrandr output")
+        return ['%sx%s' % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
     return sorted(set(resolution_list), key=lambda x: int(x.split("x")[0]), reverse=True)
 
 

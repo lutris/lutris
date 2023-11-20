@@ -436,6 +436,13 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def _get_string_replacements(self):
         """Return a mapping of variables to their actual value"""
+        def int_hex(text):
+            try:
+                return hex(int(text)) if text else None
+            except (ValueError, TypeError) as ex:
+                logger.exception("Unable to convert '%s' to hex: %s", text, ex)
+                return None
+
         replacements = {
             "GAMEDIR": self.target_path,
             "CACHE": self.cache_path,
@@ -448,8 +455,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             "RESOLUTION": "x".join(self.current_resolution),
             "RESOLUTION_WIDTH": self.current_resolution[0],
             "RESOLUTION_HEIGHT": self.current_resolution[1],
-            "RESOLUTION_WIDTH_HEX": hex(int(self.current_resolution[0])),
-            "RESOLUTION_HEIGHT_HEX": hex(int(self.current_resolution[1])),
+            "RESOLUTION_WIDTH_HEX": int_hex(self.current_resolution[0]),
+            "RESOLUTION_HEIGHT_HEX": int_hex(self.current_resolution[1]),
             "WINEBIN": self.get_wine_path(),
         }
 

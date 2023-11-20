@@ -480,11 +480,11 @@ class fsuae(Runner):
                 params.append(param % option_value)
 
         if self.runner_config.get("gfx_fullscreen_amiga"):
-            width = int(DISPLAY_MANAGER.get_current_resolution()[0])
+            width = DISPLAY_MANAGER.get_current_resolution()[0]
             params.append("--fullscreen")
             # params.append("--fullscreen_mode=fullscreen-window")
             params.append("--fullscreen_mode=fullscreen")
-            params.append("--fullscreen_width=%d" % width)
+            params.append("--fullscreen_width=%s" % width)
         if self.runner_config.get("jitcompiler"):
             params.append("--jit_compiler=1")
         if self.runner_config.get("bsdsocket"):
