@@ -5,7 +5,7 @@ import shlex
 import unicodedata
 import uuid
 from gettext import gettext as _
-from typing import List, Union, Tuple, Optional
+from typing import List, Optional, Tuple, Union
 
 from gi.repository import GLib
 

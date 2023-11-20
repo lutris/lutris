@@ -53,7 +53,7 @@ class LogWindow(GObject.Object):
                 self.search_entry.emit("next-match")
 
     def on_game_removed(self, game):
-        if str(self.game_id) == str(game.id):
+        if self.game_id == game.id:
             self.window.destroy()
 
     def on_save_clicked(self, _button):

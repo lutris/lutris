@@ -9,6 +9,7 @@ import signal
 import subprocess
 import time
 from gettext import gettext as _
+from typing import Optional
 
 from gi.repository import GLib, GObject, Gtk
 
@@ -68,9 +69,9 @@ class Game(GObject.Object):
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, game_id=None):
+    def __init__(self, game_id: Optional[str] = None):
         super().__init__()
-        self._id = game_id  # pylint: disable=invalid-name
+        self._id = str(game_id) if game_id else None  # pylint: disable=invalid-name
 
         # Load attributes from database
         game_data = games_db.get_game_by_field(game_id, "id")
@@ -153,20 +154,20 @@ class Game(GObject.Object):
         return False
 
     @property
-    def id(self):
-        if self._id is None:
+    def id(self) -> str:
+        if not self._id:
             logger.error("The game '%s' has no ID, it is not stored in the PGA.", self.name)
-        return self._id
+        return self._id  # type: ignore
 
-    def get_safe_id(self):
+    def get_safe_id(self) -> Optional[str]:
         """Returns the ID, or None if this Game has not got one; use this
         rather than 'id' if your code expects to cope with the None."""
         return self._id
 
     @property
-    def is_db_stored(self):
+    def is_db_stored(self) -> bool:
         """True if this Game has an ID, which means it is saved in the PGA."""
-        return self._id is not None
+        return bool(self._id)
 
     @property
     def is_updatable(self):
@@ -194,7 +195,7 @@ class Game(GObject.Object):
 
     def add_category(self, category_name, no_signal=False):
         """add game to category"""
-        if self.id is None:
+        if not self.is_db_stored:
             raise RuntimeError("Games that do not have IDs cannot belong to categories.")
 
         category = categories_db.get_category(category_name)
@@ -246,7 +247,7 @@ class Game(GObject.Object):
     @property
     def log_buffer(self):
         """Access the log buffer object, creating it if necessary"""
-        _log_buffer = LOG_BUFFERS.get(str(self.id))
+        _log_buffer = LOG_BUFFERS.get(self.id)
         if _log_buffer:
             return _log_buffer
         _log_buffer = Gtk.TextBuffer()
@@ -254,7 +255,7 @@ class Game(GObject.Object):
         if self.game_thread:
             self.game_thread.set_log_buffer(self._log_buffer)
             _log_buffer.set_text(self.game_thread.stdout)
-        LOG_BUFFERS[str(self.id)] = _log_buffer
+        LOG_BUFFERS[self.id] = _log_buffer
         return _log_buffer
 
     @property
@@ -393,8 +394,8 @@ class Game(GObject.Object):
         self._config = None
         self._runner = None
 
-        if str(self.id) in LOG_BUFFERS:  # Reset game logs on removal
-            log_buffer = LOG_BUFFERS[str(self.id)]
+        if self.id in LOG_BUFFERS:  # Reset game logs on removal
+            log_buffer = LOG_BUFFERS[self.id]
             log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
 
         if not self.playtime:
@@ -455,7 +456,7 @@ class Game(GObject.Object):
             "has_custom_icon": "icon" in self.custom_images,
             "has_custom_coverart_big": "coverart_big" in self.custom_images
         }
-        self._id = games_db.add_or_update(**game_data)
+        self._id = str(games_db.add_or_update(**game_data))
         self.emit("game-updated")
 
     def save_platform(self):
@@ -681,8 +682,8 @@ class Game(GObject.Object):
         if saves:
             sync_saves(self)
 
-        if str(self.id) in LOG_BUFFERS:  # Reset game logs on each launch
-            log_buffer = LOG_BUFFERS[str(self.id)]
+        if self.id in LOG_BUFFERS:  # Reset game logs on each launch
+            log_buffer = LOG_BUFFERS[self.id]
             log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
 
         self.state = self.STATE_LAUNCHING

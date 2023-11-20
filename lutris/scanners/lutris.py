@@ -176,10 +176,10 @@ def add_to_path_cache(game):
 def remove_from_path_cache(game):
     logger.debug("Removing %s from path cache", game)
     current_cache = read_path_cache()
-    if str(game.id) not in current_cache:
+    if game.id not in current_cache:
         logger.warning("Game %s (id=%s) not in cache path", game, game.id)
         return
-    del current_cache[str(game.id)]
+    del current_cache[game.id]
     with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
         json.dump(current_cache, cache_file, indent=2)
     get_path_cache.cache_clear()

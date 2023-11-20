@@ -48,7 +48,7 @@ def matches_id(shortcut, game):
     if not id_match:
         return False
     game_id = id_match.groups()[0]
-    return game_id == str(game.id)
+    return game_id == game.id
 
 
 def get_shortcuts():

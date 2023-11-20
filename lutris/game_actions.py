@@ -211,7 +211,7 @@ class GameActions(BaseGameActions):
         if self.game and self.game.is_db_stored:
             ids = self.application.get_running_game_ids()
             for game_id in ids:
-                if str(game_id) == str(self.game.id):
+                if str(game_id) == self.game.id:
                     return self.game
             logger.warning("Game %s not in %s", self.game.id, ids)
 
