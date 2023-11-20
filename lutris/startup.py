@@ -29,17 +29,17 @@ def init_dirs():
     """Creates Lutris directories"""
     directories = [
         settings.CONFIG_DIR,
-        os.path.join(settings.CONFIG_DIR, "runners"),
-        os.path.join(settings.CONFIG_DIR, "games"),
+        settings.RUNNERS_CONFIG_DIR,
+        settings.GAME_CONFIG_DIR,
         settings.DATA_DIR,
         settings.ICON_PATH,
-        os.path.join(settings.CACHE_DIR, "banners"),
-        os.path.join(settings.CACHE_DIR, "coverart"),
-        os.path.join(settings.DATA_DIR, "runners"),
+        settings.BANNER_PATH,
+        settings.COVERART_PATH,
+        settings.RUNNER_DIR,
         settings.RUNTIME_DIR,
         settings.CACHE_DIR,
         settings.SHADER_CACHE_DIR,
-        os.path.join(settings.CACHE_DIR, "installer"),
+        settings.INSTALLER_CACHE_DIR,
         os.path.join(settings.CACHE_DIR, "tmp"),
     ]
     for directory in directories:

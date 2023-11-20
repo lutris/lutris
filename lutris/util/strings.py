@@ -5,7 +5,7 @@ import shlex
 import unicodedata
 import uuid
 from gettext import gettext as _
-from typing import List, Union
+from typing import List, Optional, Tuple, Union
 
 from gi.repository import GLib
 
@@ -14,11 +14,11 @@ from lutris.util.log import logger
 NO_PLAYTIME = "Never played"
 
 
-def get_uuid_from_string(value):
+def get_uuid_from_string(value: str) -> str:
     return str(uuid.uuid5(uuid.NAMESPACE_URL, str(value)))
 
 
-def slugify(value) -> str:
+def slugify(value: str) -> str:
     """Remove special characters from a string and slugify it.
 
     Normalizes string, converts to lowercase, removes non-alpha characters,
@@ -41,15 +41,16 @@ def slugify(value) -> str:
     return slug
 
 
-def lookup_string_in_text(string, text):
+def lookup_string_in_text(string: str, text: str) -> Optional[str]:
     """Return full line if string found in the multi-line text."""
     output_lines = text.split("\n")
     for line in output_lines:
         if string in line:
             return line
+    return None
 
 
-def parse_version(version):
+def parse_version(version: str) -> Tuple[List[int], str, str]:
     """Parse a version string
 
     Return a 3 element tuple containing:
@@ -83,7 +84,7 @@ def unpack_dependencies(string: str) -> List[Union[str, tuple]]:
         [('quake-steam', 'quake-gog'), 'some-quake-mod']
     """
 
-    def _expand_dep(dep) -> Union[str, tuple]:
+    def _expand_dep(dep: str) -> Union[str, tuple]:
         if "|" in dep:
             return tuple(option.strip() for option in dep.split("|") if option.strip())
         return dep.strip()
@@ -93,7 +94,7 @@ def unpack_dependencies(string: str) -> List[Union[str, tuple]]:
     return [dep for dep in [_expand_dep(dep) for dep in string.split(",")] if dep]
 
 
-def gtk_safe(text: str) -> str:
+def gtk_safe(text: Optional[str]) -> str:
     """Return a string ready to used in Gtk widgets, with anything that could
     be Pango markup escaped."""
     if not text:
@@ -102,7 +103,7 @@ def gtk_safe(text: str) -> str:
     return GLib.markup_escape_text(str(text))
 
 
-def gtk_safe_urls(text: str) -> str:
+def gtk_safe_urls(text: Optional[str]) -> str:
     """Escapes the text as with gtk_safe, but detects URLs and converts them to
     anchor tags as well."""
     if not text:
@@ -123,7 +124,7 @@ def gtk_safe_urls(text: str) -> str:
     return "".join(parts)
 
 
-def is_valid_pango_markup(text):
+def is_valid_pango_markup(text: str) -> bool:
     def destroy_func(_user_data):
         pass  # required by GLib, but we don't need this callback
 
@@ -141,8 +142,8 @@ def is_valid_pango_markup(text):
         return False
 
 
-def get_formatted_playtime(playtime) -> str:
-    """Return a human readable value of the play time"""
+def get_formatted_playtime(playtime: float) -> str:
+    """Return a human-readable value of the play time"""
     if not playtime:
         return NO_PLAYTIME
 
@@ -176,7 +177,7 @@ def get_formatted_playtime(playtime) -> str:
     return NO_PLAYTIME
 
 
-def _split_arguments(args, closing_quot='', quotations=None) -> list:
+def _split_arguments(args: str, closing_quot: str = '', quotations: Optional[str] = None) -> List[str]:
     if quotations is None:
         quotations = ["'", '"']
     try:
@@ -189,7 +190,7 @@ def _split_arguments(args, closing_quot='', quotations=None) -> list:
         return []
 
 
-def split_arguments(args) -> list:
+def split_arguments(args: str) -> List[str]:
     """Wrapper around shlex.split that is more tolerant of errors"""
     if not args:
         # shlex.split seems to hangs when passed the None value
@@ -197,7 +198,7 @@ def split_arguments(args) -> list:
     return _split_arguments(args)
 
 
-def human_size(size) -> str:
+def human_size(size: int) -> str:
     """Shows a size in bytes in a more readable way"""
     units = ("bytes", "kB", "MB", "GB", "TB", "PB", "nuh uh", "no way", "BS")
     unit_index = 0

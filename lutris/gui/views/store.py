@@ -154,7 +154,7 @@ class GameStore(GObject.Object):
         game = StoreItem(db_game, self.service_media)
         self.store.append(
             (
-                str(game.id),
+                game.id,
                 game.slug,
                 game.name,
                 game.sortname if game.sortname else game.name,

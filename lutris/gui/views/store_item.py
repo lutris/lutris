@@ -53,16 +53,22 @@ class StoreItem:
         return value
 
     @property
-    def id(self):  # pylint: disable=invalid-name
+    def id(self) -> str:  # pylint: disable=invalid-name
         """Game internal ID"""
         # Return a unique identifier for the game.
         # Since service games are not related to lutris, use the appid
         if "service_id" not in self._game_data:
             if "appid" in self._game_data:
-                return self._game_data["appid"]
-            return self._game_data["slug"]
+                _id = self._game_data["appid"]
+            else:
+                _id = self._game_data["slug"]
+        else:
+            _id = self._game_data["id"]
 
-        return self._game_data["id"]
+        if not _id:
+            logger.error("No id could be found for '%s'", self.name)
+
+        return str(_id)
 
     @property
     def service(self):

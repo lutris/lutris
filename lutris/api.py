@@ -9,6 +9,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections import OrderedDict
+from typing import Dict, Optional
 
 import requests
 
@@ -124,7 +125,7 @@ def download_runner_versions(runner_name: str) -> list:
 
 
 @functools.lru_cache()
-def get_default_runner_version(runner_name: str, version: str = "") -> dict:
+def get_default_runner_version(runner_name: str, version: Optional[str] = None) -> Dict[str, str]:
     """Get the appropriate version for a runner
 
     Params:
@@ -282,6 +283,7 @@ def get_game_details(slug: str) -> dict:
 def normalize_installer(installer: dict) -> dict:
     """Adjusts an installer dict so it is in the correct form, with values
     of the expected types."""
+
     def must_be_str(key):
         if key in installer:
             installer[key] = str(installer[key])

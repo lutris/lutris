@@ -332,7 +332,7 @@ class Application(Gtk.Application):
         if kwargs.get("installers"):
             return kwargs["installers"][0]["game_slug"]
         if kwargs.get("game"):
-            return str(kwargs["game"].get_safe_id())
+            return kwargs["game"].get_safe_id()
         return str(kwargs)
 
     def show_window(self, window_class, **kwargs):
@@ -729,10 +729,10 @@ class Application(Gtk.Application):
     def on_game_stop(self, game):
         """Callback to remove the game from the running games"""
         ids = self.get_running_game_ids()
-        if str(game.id) in ids:
+        if game.id in ids:
             logger.debug("Removing %s from running IDs", game.id)
             try:
-                self.running_games.remove(ids.index(str(game.id)))
+                self.running_games.remove(ids.index(game.id))
             except ValueError:
                 pass
         elif ids:
@@ -812,14 +812,15 @@ class Application(Gtk.Application):
         ids = []
         for i in range(self.running_games.get_n_items()):
             game = self.running_games.get_item(i)
-            ids.append(str(game.id))
+            ids.append(game.id)
         return ids
 
     def get_running_game_by_id(self, game_id):
-        for i in range(self.running_games.get_n_items()):
-            game = self.running_games.get_item(i)
-            if str(game.id) == str(game_id):
-                return game
+        if game_id:
+            for i in range(self.running_games.get_n_items()):
+                game = self.running_games.get_item(i)
+                if game.id == str(game_id):
+                    return game
         return None
 
     def on_watched_error(self, error):

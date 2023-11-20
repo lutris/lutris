@@ -294,10 +294,14 @@ magic_errno = libmagic.magic_errno
 magic_errno.restype = c_int
 magic_errno.argtypes = [magic_t]
 
+# mypy does not like assigning functions to properties, and thinks
+# you are supplying a method, which must have the correct type for
+# its first 'self' argument. We suppress these errors
+
 _magic_file = libmagic.magic_file
 _magic_file.restype = c_char_p
 _magic_file.argtypes = [magic_t, c_char_p]
-_magic_file.errcheck = errorcheck_null
+_magic_file.errcheck = errorcheck_null  # type: ignore
 
 
 def magic_file(cookie, filename):
@@ -307,7 +311,7 @@ def magic_file(cookie, filename):
 _magic_buffer = libmagic.magic_buffer
 _magic_buffer.restype = c_char_p
 _magic_buffer.argtypes = [magic_t, c_void_p, c_size_t]
-_magic_buffer.errcheck = errorcheck_null
+_magic_buffer.errcheck = errorcheck_null  # type: ignore
 
 
 def magic_buffer(cookie, buf):
@@ -317,7 +321,7 @@ def magic_buffer(cookie, buf):
 _magic_descriptor = libmagic.magic_descriptor
 _magic_descriptor.restype = c_char_p
 _magic_descriptor.argtypes = [magic_t, c_int]
-_magic_descriptor.errcheck = errorcheck_null
+_magic_descriptor.errcheck = errorcheck_null  # type: ignore
 
 
 def magic_descriptor(cookie, fd):
@@ -327,7 +331,7 @@ def magic_descriptor(cookie, fd):
 _magic_load = libmagic.magic_load
 _magic_load.restype = c_int
 _magic_load.argtypes = [magic_t, c_char_p]
-_magic_load.errcheck = errorcheck_negative_one
+_magic_load.errcheck = errorcheck_negative_one  # type: ignore
 
 
 def magic_load(cookie, filename):
@@ -352,12 +356,12 @@ if hasattr(libmagic, 'magic_setparam') and hasattr(libmagic, 'magic_getparam'):
     _magic_setparam = libmagic.magic_setparam
     _magic_setparam.restype = c_int
     _magic_setparam.argtypes = [magic_t, c_int, POINTER(c_size_t)]
-    _magic_setparam.errcheck = errorcheck_negative_one
+    _magic_setparam.errcheck = errorcheck_negative_one  # type: ignore
 
     _magic_getparam = libmagic.magic_getparam
     _magic_getparam.restype = c_int
     _magic_getparam.argtypes = [magic_t, c_int, POINTER(c_size_t)]
-    _magic_getparam.errcheck = errorcheck_negative_one
+    _magic_getparam.errcheck = errorcheck_negative_one  # type: ignore
 
 
 def magic_setparam(cookie, param, val):

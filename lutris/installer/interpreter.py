@@ -20,7 +20,6 @@ from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import unpack_dependencies
-from lutris.util.wine.wine import get_wine_version_exe
 
 
 class ScriptInterpreter(GObject.Object, CommandsMixin):
@@ -115,7 +114,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
-        return os.path.join(settings.CACHE_DIR, "installer/%s" % self.installer.game_slug)
+        return os.path.join(settings.INSTALLER_CACHE_DIR, "%s" % self.installer.game_slug)
 
     @property
     def script_env(self):
@@ -280,6 +279,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def install_runner(self, runner, ui_delegate):
         """Install runner required by the install script"""
+
         def install_more_runners():
             self.install_runners(ui_delegate)
 
@@ -480,5 +480,5 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def eject_wine_disc(self):
         """Use Wine to eject a CD, otherwise Wine can have problems detecting disc changes"""
-        wine_path = get_wine_version_exe(self._get_runner_version())
+        wine_path = self.get_wine_path()
         wine.eject_disc(wine_path, self.target_path)

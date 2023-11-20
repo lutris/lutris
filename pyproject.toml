@@ -6,6 +6,7 @@ packages = [
 ]
 exclude = [
     ".*_pb2.py",  # Any automatically generated protobuf files
+    "venv"
 ]
 disable_error_code = [
     "no-redef",  # Allow variable redefinition
