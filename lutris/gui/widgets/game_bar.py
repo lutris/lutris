@@ -278,7 +278,7 @@ class GameBar(Gtk.Box):
     def on_game_state_changed(self, game):
         """Handler called when the game has changed state"""
         if (
-            (self.game.is_db_stored and game.id == self.game.id)
+            (self.game.is_db_stored and int(game.id) == int(self.game.id))
             or (self.appid and game.appid == self.appid)
         ):
             self.game = game
