@@ -18,6 +18,8 @@ class GameGridView(Gtk.IconView, GameView):
         Gtk.IconView.__init__(self)
         GameView.__init__(self, store.service)
 
+        Gtk.IconView.set_selection_mode(self, Gtk.SelectionMode.MULTIPLE)
+
         self.set_column_spacing(6)
         self._show_badges = True
 
@@ -81,13 +83,9 @@ class GameGridView(Gtk.IconView, GameView):
     def select(self):
         self.select_path(self.current_path)
 
-    def get_selected_item(self):
-        """Return the currently selected game's id."""
-        selection = self.get_selected_items()
-        if not selection:
-            return
-        self.current_path = selection[0]
-        return self.get_model().get_iter(self.current_path)
+    def get_selected(self):
+        """Return list of all selected items"""
+        return self.get_selected_items()
 
     def on_item_activated(self, _view, _path):
         """Handles double clicks"""
@@ -97,7 +95,7 @@ class GameGridView(Gtk.IconView, GameView):
 
     def on_selection_changed(self, _view):
         """Handles selection changes"""
-        selected_items = self.get_selected_item()
+        selected_items = self.get_selected()
         if selected_items:
             self.emit("game-selected", selected_items)
 

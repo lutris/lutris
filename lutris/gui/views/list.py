@@ -57,7 +57,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_column(default_text_cell, _("Play Time"), COL_PLAYTIME_TEXT, 100)
         self.set_column(default_text_cell, _("Installed At"), COL_INSTALLED_AT_TEXT, 120)
 
-        self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
+        self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
 
         self.connect_signals()
         self.connect("row-activated", self.on_row_activated)
@@ -115,14 +115,12 @@ class GameListView(Gtk.TreeView, GameView):
         """Sort a column by using another column's data"""
         self.model.set_sort_func(col, sort_func, sort_col)
 
-    def get_selected_item(self):
-        """Return the currently selected game's id."""
-        selection = self.get_selection()
+    def get_selected(self):
+        """Return list of all selected items"""
+        selection = self.get_selection().get_selected_rows()
         if not selection:
             return None
-        _model, select_iter = selection.get_selected()
-        if select_iter:
-            return select_iter
+        return selection[1]
 
     def select(self):
         self.set_cursor(self.current_path[0])
@@ -145,8 +143,8 @@ class GameListView(Gtk.TreeView, GameView):
         self.emit("game-activated", selected_id)
 
     def on_cursor_changed(self, widget, _line=None, _column=None):
-        selected_item = self.get_selected_item()
-        self.emit("game-selected", selected_item)
+        selected_items = self.get_selected()
+        self.emit("game-selected", selected_items)
 
     @staticmethod
     def on_column_width_changed(col, *args):

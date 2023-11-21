@@ -74,7 +74,7 @@ class GameBar(Gtk.Box):
 
     def update_view(self):
         """Populate the view with widgets"""
-        game_actions = get_game_actions(self.game, window=self.window, application=self.application)
+        game_actions = get_game_actions([self.game], window=self.window, application=self.application)
 
         game_label = self.get_game_name_label()
         game_label.set_halign(Gtk.Align.START)

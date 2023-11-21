@@ -537,13 +537,15 @@ class LutrisWindow(Gtk.ApplicationWindow,
             return medias[icon_type]()
         return medias[service.default_format]()
 
-    def update_revealer(self, game=None):
-        if game:
+    def update_revealer(self, games=None):
+        if games:
             if self.game_bar:
                 self.game_bar.destroy()
-
-            self.game_bar = GameBar(game, self.application, self)
-            self.revealer_box.pack_start(self.game_bar, True, True, 0)
+            if len(games) == 1 and games[0]:
+                self.game_bar = GameBar(games[0], self.application, self)
+                self.revealer_box.pack_start(self.game_bar, True, True, 0)
+            else:
+                self.game_bar = None
         elif self.game_bar:
             # The game bar can't be destroyed here because the game gets unselected on Wayland
             # whenever the game bar is interacted with. Instead, we keep the current game bar open
@@ -996,28 +998,37 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     @watch_errors()
     def on_game_selection_changed(self, view, selection):
+        game_ids = []
+        games = []
         if not selection:
             GLib.idle_add(self.update_revealer)
             return False
-        game_id = view.get_model().get_value(selection, COL_ID)
-        if not game_id:
+        for path in selection:
+            iterator = view.get_model().get_iter(path)
+            game_id = view.get_model().get_value(iterator, COL_ID)
+            game_ids.append([iterator, game_id])
+        if not game_ids:
             GLib.idle_add(self.update_revealer)
             return False
-        if self.service:
-            game = ServiceGameCollection.get_game(self.service.id, game_id)
-        else:
-            game = games_db.get_game_by_field(int(game_id), "id")
-        if not game:
-            game = {
-                "id": game_id,
-                "appid": game_id,
-                "name": view.get_model().get_value(selection, COL_NAME),
-                "slug": game_id,
-                "service": self.service.id if self.service else None,
-            }
-            logger.warning("No game found. Replacing with placeholder %s", game)
+        for item in game_ids:
+            iterator = item[0]
+            game_id = item[1]
+            if self.service:
+                game = ServiceGameCollection.get_game(self.service.id, game_id)
+            else:
+                game = games_db.get_game_by_field(int(game_id), "id")
+            if not game:
+                game = [{
+                    "id": game_id,
+                    "appid": game_id,
+                    "name": view.get_model().get_value(iterator, COL_NAME),
+                    "slug": game_id,
+                    "service": self.service.id if self.service else None,
+                }]
+                logger.warning("No game found. Replacing with placeholder %s", games)
+            games.append(game)
 
-        GLib.idle_add(self.update_revealer, game)
+        GLib.idle_add(self.update_revealer, games)
         return False
 
     @watch_errors()
