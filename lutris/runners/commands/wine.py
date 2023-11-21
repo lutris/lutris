@@ -3,11 +3,9 @@
 import os
 import shlex
 import time
-from gettext import gettext as _
 
 from lutris import runtime, settings
 from lutris.command import MonitoredCommand
-from lutris.exceptions import UnavailableRunnerError
 from lutris.runners import import_runner
 from lutris.util import linux, system
 from lutris.util.log import logger
