@@ -645,7 +645,7 @@ class wine(Runner):
                 arch = WINE_DEFAULT_ARCH
         return arch
 
-    def get_runner_version(self, version: Optional[str] = None) -> Dict[str, str]:
+    def get_runner_version(self, version: str = None) -> Dict[str, str]:
         if not version:
             version = self.read_version_from_config(use_default=False)
 
@@ -671,7 +671,7 @@ class wine(Runner):
 
         return None
 
-    def get_path_for_version(self, version: Optional[str]) -> Optional[str]:
+    def get_path_for_version(self, version: str) -> Optional[str]:
         """Return the absolute path of a wine executable for a given version"""
         return get_wine_path_for_version(version, config=self.runner_config)
 
@@ -709,17 +709,18 @@ class wine(Runner):
         if fallback:
             # Fallback to default version
             default_version = get_default_wine_version()
-            wine_path = self.get_path_for_version(default_version)
-            if wine_path:
-                # Update the version in the config
-                if version == self.runner_config.get("version"):
-                    self.runner_config["version"] = default_version
-                    # TODO: runner_config is a dict so we have to instanciate a
-                    # LutrisConfig object to save it.
-                    # XXX: The version key could be either in the game specific
-                    # config or the runner specific config. We need to know
-                    # which one to get the correct LutrisConfig object.
-            return wine_path
+            if default_version:
+                wine_path = self.get_path_for_version(default_version)
+                if wine_path:
+                    # Update the version in the config
+                    if version == self.runner_config.get("version"):
+                        self.runner_config["version"] = default_version
+                        # TODO: runner_config is a dict so we have to instanciate a
+                        # LutrisConfig object to save it.
+                        # XXX: The version key could be either in the game specific
+                        # config or the runner specific config. We need to know
+                        # which one to get the correct LutrisConfig object.
+                return wine_path
 
     def is_installed(self, version=None, fallback=True):
         """Check if Wine is installed.

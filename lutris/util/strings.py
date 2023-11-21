@@ -94,7 +94,7 @@ def unpack_dependencies(string: str) -> List[Union[str, tuple]]:
     return [dep for dep in [_expand_dep(dep) for dep in string.split(",")] if dep]
 
 
-def gtk_safe(text: Optional[str]) -> str:
+def gtk_safe(text: str) -> str:
     """Return a string ready to used in Gtk widgets, with anything that could
     be Pango markup escaped."""
     if not text:
@@ -103,7 +103,7 @@ def gtk_safe(text: Optional[str]) -> str:
     return GLib.markup_escape_text(str(text))
 
 
-def gtk_safe_urls(text: Optional[str]) -> str:
+def gtk_safe_urls(text: str) -> str:
     """Escapes the text as with gtk_safe, but detects URLs and converts them to
     anchor tags as well."""
     if not text:
@@ -177,7 +177,7 @@ def get_formatted_playtime(playtime: float) -> str:
     return NO_PLAYTIME
 
 
-def _split_arguments(args: str, closing_quot: str = '', quotations: Optional[str] = None) -> List[str]:
+def _split_arguments(args: str, closing_quot: str = '', quotations: str = None) -> List[str]:
     if quotations is None:
         quotations = ["'", '"']
     try:

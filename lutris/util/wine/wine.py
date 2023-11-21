@@ -65,7 +65,7 @@ def get_proton_paths() -> List[str]:
     return list(paths)
 
 
-def detect_arch(prefix_path: Optional[str] = None, wine_path: Optional[str] = None) -> str:
+def detect_arch(prefix_path: str = None, wine_path: str = None) -> str:
     """Given a Wine prefix path, return its architecture"""
     if prefix_path:
         arch = detect_prefix_arch(prefix_path)
@@ -172,7 +172,7 @@ def get_installed_wine_versions() -> List[str]:
     return list_system_wine_versions() + list_lutris_wine_versions() + list_proton_versions()
 
 
-def get_wine_path_for_version(version: Optional[str], config: Optional[dict] = None) -> Optional[str]:
+def get_wine_path_for_version(version: Optional[str], config: dict = None) -> Optional[str]:
     """Return the absolute path of a wine executable for a given version,
     or the configured version if you don't ask for a version."""
     if not version and config:
@@ -254,7 +254,7 @@ def get_system_wine_version(wine_path: str = "wine") -> str:
     return version
 
 
-def get_real_executable(windows_executable: str, working_dir: Optional[str] = None) -> Tuple[
+def get_real_executable(windows_executable: str, working_dir: str = None) -> Tuple[
         str, List[str], Optional[str]]:
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""

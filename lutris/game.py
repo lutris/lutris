@@ -69,7 +69,7 @@ class Game(GObject.Object):
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, game_id: Optional[str] = None):
+    def __init__(self, game_id: str = None):
         super().__init__()
         self._id = str(game_id) if game_id else None  # pylint: disable=invalid-name
 

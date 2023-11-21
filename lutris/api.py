@@ -9,7 +9,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections import OrderedDict
-from typing import Dict, Optional
+from typing import Dict
 
 import requests
 
@@ -125,7 +125,7 @@ def download_runner_versions(runner_name: str) -> list:
 
 
 @functools.lru_cache()
-def get_default_runner_version(runner_name: str, version: Optional[str] = None) -> Dict[str, str]:
+def get_default_runner_version(runner_name: str, version: str = None) -> Dict[str, str]:
     """Get the appropriate version for a runner
 
     Params:
