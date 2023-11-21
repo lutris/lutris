@@ -332,7 +332,7 @@ class Application(Gtk.Application):
         if kwargs.get("installers"):
             return kwargs["installers"][0]["game_slug"]
         if kwargs.get("game"):
-            return kwargs["game"].get_safe_id()
+            return kwargs["game"].id
         return str(kwargs)
 
     def show_window(self, window_class, **kwargs):

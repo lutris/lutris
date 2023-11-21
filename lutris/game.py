@@ -9,7 +9,6 @@ import signal
 import subprocess
 import time
 from gettext import gettext as _
-from typing import Optional
 
 from gi.repository import GLib, GObject, Gtk
 
@@ -158,11 +157,6 @@ class Game(GObject.Object):
         if not self._id:
             logger.error("The game '%s' has no ID, it is not stored in the PGA.", self.name)
         return self._id  # type: ignore
-
-    def get_safe_id(self) -> Optional[str]:
-        """Returns the ID, or None if this Game has not got one; use this
-        rather than 'id' if your code expects to cope with the None."""
-        return self._id
 
     @property
     def is_db_stored(self) -> bool:

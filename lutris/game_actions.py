@@ -82,7 +82,8 @@ class BaseGameActions:
         # Install the currently selected game in the UI
         for game in self.games:
             if not game.slug:
-                raise RuntimeError("No game to install: %s" % game.get_safe_id())
+                game_id = game.id if game.is_db_stored else game.name
+                raise RuntimeError("No game to install: %s" % game_id)
             game.emit("game-install")
 
     def on_locate_installed_game(self, *_args):
