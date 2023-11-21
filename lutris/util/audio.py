@@ -9,7 +9,7 @@ from lutris.util.log import logger
 
 def reset_pulse():
     """Reset pulseaudio."""
-    if not system.find_executable("pulseaudio"):
+    if not system.can_find_executable("pulseaudio"):
         logger.warning("PulseAudio not installed. Nothing to do.")
         return
     system.execute(["pulseaudio", "--kill"])

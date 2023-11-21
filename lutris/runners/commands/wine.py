@@ -114,9 +114,6 @@ def create_prefix(  # noqa: C901
         if not runner:
             runner = import_runner("wine")()
         wine_path = runner.get_executable()
-    if not wine_path:
-        logger.error("Wine not found, can't create prefix")
-        return
     wineboot_path = os.path.join(os.path.dirname(wine_path), "wineboot")
     if not system.path_exists(wineboot_path):
         logger.error(
@@ -266,8 +263,6 @@ def wineexec(  # noqa: C901
 
     if not wine_path:
         wine_path = runner.get_executable()
-    if not wine_path:
-        raise UnavailableRunnerError(_("Wine is not installed"))
 
     if not working_dir:
         if os.path.isfile(executable):
@@ -345,10 +340,8 @@ def find_winetricks(env=None, system_winetricks=False):
     """Find winetricks path."""
     winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
     if system_winetricks or not system.path_exists(winetricks_path):
-        winetricks_path = system.find_executable("winetricks")
+        winetricks_path = system.find_required_executable("winetricks")
         working_dir = None
-        if not winetricks_path:
-            raise RuntimeError("No installation of winetricks found")
     else:
         # We will use our own zenity if available, which is here, and it
         # also needs a data file in this directory. We have to set the

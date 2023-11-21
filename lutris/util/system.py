@@ -13,6 +13,7 @@ from collections import defaultdict
 from functools import lru_cache
 from gettext import gettext as _
 from pathlib import Path
+from typing import Optional
 
 from gi.repository import Gio, GLib
 
@@ -215,11 +216,26 @@ def make_executable(exec_path):
     os.chmod(exec_path, file_stats.st_mode | stat.S_IEXEC)
 
 
-def find_executable(exec_name):
+def find_executable(exec_name: str) -> Optional[str]:
     """Return the absolute path of an executable"""
     if not exec_name:
         return None
     return shutil.which(exec_name)
+
+
+def can_find_executable(exec_name: str) -> bool:
+    """Checks if an executable can be located; if false,
+    find_required_executable will raise an exception."""
+    return bool(find_executable(exec_name))
+
+
+def find_required_executable(exec_name: str) -> str:
+    """Return the absolute path of an executable, but raises an
+    exception if it could not be found."""
+    exe = find_executable(exec_name)
+    if not exe:
+        raise RuntimeError(f"The executable '{exec_name}' could not be found.")
+    return exe
 
 
 def get_pid(program, multiple=False):
@@ -447,7 +463,7 @@ def path_contains(parent, child, resolve_symlinks=False):
     return resolved_child == resolved_parent or resolved_parent in resolved_child.parents
 
 
-def path_exists(path, check_symlinks=False, exclude_empty=False):
+def path_exists(path: str, check_symlinks: bool = False, exclude_empty: bool = False) -> bool:
     """Wrapper around system.path_exists that doesn't crash with empty values
 
     Params:
@@ -494,7 +510,7 @@ def update_desktop_icons():
     """Update Icon for GTK+ desktop manager
     Other desktop manager icon cache commands must be added here if needed
     """
-    if find_executable("gtk-update-icon-cache"):
+    if can_find_executable("gtk-update-icon-cache"):
         execute(["gtk-update-icon-cache", "-tf", os.path.join(GLib.get_user_data_dir(), "icons/hicolor")], quiet=True)
         execute(["gtk-update-icon-cache", "-tf", os.path.join(settings.RUNTIME_DIR, "icons/hicolor")], quiet=True)
 

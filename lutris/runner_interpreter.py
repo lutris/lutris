@@ -13,7 +13,7 @@ def get_mangohud_conf(system_config):
     """Return correct launch arguments and environment variables for Mangohud."""
     # The environment variable should be set to 0 on gamescope, otherwise the game will crash
     mangohud_val = "0" if system_config.get("gamescope") else "1"
-    if system_config.get("mangohud") and system.find_executable("mangohud"):
+    if system_config.get("mangohud") and system.can_find_executable("mangohud"):
         return ["mangohud"], {"MANGOHUD": mangohud_val, "MANGOHUD_DLSYM": "1"}
     return None, None
 
@@ -36,13 +36,13 @@ def get_launch_parameters(runner, gameplay_info):
 
     # Optimus
     optimus = system_config.get("optimus")
-    if optimus == "primusrun" and system.find_executable("primusrun"):
+    if optimus == "primusrun" and system.can_find_executable("primusrun"):
         launch_arguments.insert(0, "primusrun")
-    elif optimus == "optirun" and system.find_executable("optirun"):
+    elif optimus == "optirun" and system.can_find_executable("optirun"):
         launch_arguments.insert(0, "virtualgl")
         launch_arguments.insert(0, "-b")
         launch_arguments.insert(0, "optirun")
-    elif optimus == "pvkrun" and system.find_executable("pvkrun"):
+    elif optimus == "pvkrun" and system.can_find_executable("pvkrun"):
         launch_arguments.insert(0, "pvkrun")
 
     # MangoHud
@@ -102,8 +102,8 @@ def get_launch_parameters(runner, gameplay_info):
         launch_arguments.insert(0, "gamemoderun")
 
     # Gamescope
-    gamescope = system_config.get("gamescope") and system.find_executable("gamescope")
-    if gamescope:
+    has_gamescope = system_config.get("gamescope") and system.can_find_executable("gamescope")
+    if has_gamescope:
         launch_arguments = get_gamescope_args(launch_arguments, system_config)
 
     return launch_arguments, env
@@ -148,7 +148,7 @@ def _get_gamescope_fsr_option():
     """Returns a list containing the arguments to insert to trigger FSR in gamescope;
     this changes in later versions, so we have to check the help output. There seems to be
     no way to query the version number more directly."""
-    if bool(system.find_executable("gamescope")):
+    if system.can_find_executable("gamescope"):
         # '-F fsr' is the trigger in gamescope 3.12.
         help_text = system.execute(["gamescope", "--help"], capture_stderr=True)
         if "-F, --filter" in help_text:

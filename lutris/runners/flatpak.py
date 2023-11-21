@@ -89,8 +89,11 @@ class flatpak(Runner):
     def is_installed(self):
         return _flatpak.is_installed()
 
-    def get_executable(self):
-        return _flatpak.get_executable()
+    def get_executable(self) -> str:
+        exe = _flatpak.get_executable()
+        if not exe:
+            raise ValueError("The Flatpak executable could not be found.")
+        return exe
 
     def install(self, install_ui_delegate, version=None, callback=None):
         raise NonInstallableRunnerError(

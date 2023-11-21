@@ -121,7 +121,7 @@ def is_gstreamer_build(wine_path: str) -> bool:
 def is_installed_systemwide() -> bool:
     """Return whether Wine is installed outside of Lutris"""
     for build in WINE_PATHS.values():
-        if system.find_executable(build):
+        if system.can_find_executable(build):
             return True
     return False
 
@@ -243,7 +243,7 @@ def get_system_wine_version(wine_path: str = "wine") -> str:
     """Return the version of Wine installed on the system."""
     if wine_path != "wine" and not system.path_exists(wine_path):
         return ""
-    if wine_path == "wine" and not system.find_executable("wine"):
+    if wine_path == "wine" and not system.can_find_executable("wine"):
         return ""
     version = system.read_process_output([wine_path, "--version"])
     if not version:

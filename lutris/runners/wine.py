@@ -692,7 +692,7 @@ class wine(Runner):
 
         return resolved
 
-    def get_executable(self, version=None, fallback=True):
+    def get_executable(self, version: str = None, fallback: bool = True) -> str:
         """Return the path to the Wine executable.
         A specific version can be specified if needed.
         """
@@ -700,10 +700,10 @@ class wine(Runner):
             version = self.read_version_from_config()
 
         if not version:
-            return
+            raise ValueError("No Wine version is configured, and no default Wine could be found.")
 
         wine_path = self.get_path_for_version(version)
-        if system.path_exists(wine_path):
+        if wine_path and system.path_exists(wine_path):
             return wine_path
 
         if fallback:
@@ -720,7 +720,9 @@ class wine(Runner):
                         # XXX: The version key could be either in the game specific
                         # config or the runner specific config. We need to know
                         # which one to get the correct LutrisConfig object.
-                return wine_path
+                    return wine_path
+
+        raise ValueError("No Wine executable could be found.")
 
     def is_installed(self, version=None, fallback=True):
         """Check if Wine is installed.

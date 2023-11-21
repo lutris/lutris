@@ -162,7 +162,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             )
         return runner_options
 
-    def get_executable(self):
+    def get_executable(self) -> str:
         if "runner_executable" in self.runner_config:
             runner_executable = self.runner_config["runner_executable"]
             if os.path.isfile(runner_executable):

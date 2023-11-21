@@ -212,7 +212,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     def gamemode_available(self):
         """Return whether gamemode is available"""
         # Current versions of gamemode use gamemoderun
-        if system.find_executable("gamemoderun"):
+        if system.can_find_executable("gamemoderun"):
             return True
         # This is for old versions of gamemode only
         if self.is_feature_supported("GAMEMODE"):
@@ -240,8 +240,8 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     def has_steam(self):
         """Return whether Steam is installed locally"""
         return (
-            bool(system.find_executable("steam"))
-            or bool(system.find_executable("com.valvesoftware.Steam"))
+            system.can_find_executable("steam")
+            or system.can_find_executable("com.valvesoftware.Steam")
             or os.path.exists(os.path.expanduser("~/.steam/steam/ubuntu12_32/steam"))
         )
 
