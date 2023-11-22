@@ -77,9 +77,11 @@ class GameView:
         return game or Game(game_id)
 
     def get_selected_game_id(self):
-        selected_items = self.get_selected()
-        for path in selected_items:
-            iterator = self.get_model().get_iter(path)
+        """Returns the ID of the selected game, if there is exactly one- or
+        None if there is no selection or a multiple-selection."""
+        selected = self.get_selected()
+        if len(selected) == 1:
+            iterator = self.get_model().get_iter(selected[0])
             return self.get_model().get_value(iterator, COL_ID)
         return None
 
