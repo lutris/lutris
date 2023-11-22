@@ -6,6 +6,7 @@ from lutris.game import Game
 from lutris.game_actions import get_game_actions
 from lutris.gui.views import COL_ID
 from lutris.gui.widgets.contextual_menu import ContextualMenu
+from lutris.util.log import logger
 
 
 class GameView:
@@ -28,7 +29,6 @@ class GameView:
         """Contextual menu."""
         if event.button != Gdk.BUTTON_SECONDARY:
             return
-        game_ids = []
         current_path = self.get_path_at(event.x, event.y)
         if current_path:
             selection = self.get_selected()
@@ -36,15 +36,22 @@ class GameView:
                 self.set_selected(current_path)
                 selection = [current_path]
 
-            for path in selection:
-                iterator = view.get_model().get_iter(path)
-                game_id = view.get_model().get_value(iterator, COL_ID)
-                game_ids.append(game_id)
-            game_actions = self.get_game_actions(game_ids)
+            game_actions = self.get_game_actions_for_paths(selection)
             if game_actions:
                 contextual_menu = ContextualMenu(game_actions.get_game_actions())
                 contextual_menu.popup(event, game_actions)
                 return True
+
+    def get_selected_game_actions(self):
+        return self.get_game_actions_for_paths(self.get_selected())
+
+    def get_game_actions_for_paths(self, paths):
+        game_ids = []
+        for path in paths:
+            iterator = self.get_model().get_iter(path)
+            game_id = self.get_model().get_value(iterator, COL_ID)
+            game_ids.append(game_id)
+        return self.get_game_actions(game_ids)
 
     def get_game_actions(self, game_ids):
         games = []
@@ -71,10 +78,8 @@ class GameView:
 
     def get_selected_game_id(self):
         selected_items = self.get_selected()
-        iterator = None
         for path in selected_items:
             iterator = self.get_model().get_iter(path)
-        if selected_items:
             return self.get_model().get_value(iterator, COL_ID)
         return None
 
@@ -83,16 +88,15 @@ class GameView:
         raise NotImplementedError
 
     def handle_key_press(self, widget, event):  # pylint: disable=unused-argument
-        key = event.keyval
-        if key == Gdk.KEY_Delete:
-            game_id = self.get_selected_game_id()
-            if game_id:
-                game_actions = self.get_game_actions(game_id)
+        try:
+            key = event.keyval
+            if key == Gdk.KEY_Delete:
+                game_actions = self.get_selected_game_actions()
                 if game_actions and game_actions.is_game_removable:
                     game_actions.on_remove_game(self)
-        elif key == Gdk.KEY_Break:
-            game_id = self.get_selected_game_id()
-            if game_id:
-                game_actions = self.get_game_actions(game_id)
+            elif key == Gdk.KEY_Break:
+                game_actions = self.get_selected_game_actions()
                 if game_actions and game_actions.is_game_running:
                     game_actions.on_game_stop(self)
+        except Exception as ex:
+            logger.exception("Unable to handle key press: %s", ex)
