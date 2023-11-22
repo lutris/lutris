@@ -4,10 +4,14 @@ from gi.repository import Gtk
 def update_action_widget_visibility(widgets, visible_predicate):
     """This sets the visibility on a set of widgets, like menu items. You provide a function
     that indicates if an item is visible, or None for separators that are visible based on
-    their neighbors."""
+    their neighbors. Returns the count of visible widgets that are not separators."""
+    visible_count = 0
     previous_visible_widget = None
     for w in widgets:
         visible = visible_predicate(w)
+
+        if visible:
+            visible_count = visible_count + 1
 
         if visible is None:
             if previous_visible_widget is None:
@@ -21,6 +25,7 @@ def update_action_widget_visibility(widgets, visible_predicate):
 
     if previous_visible_widget and visible_predicate(previous_visible_widget) is None:
         previous_visible_widget.set_visible(False)
+    return visible_count
 
 
 class ContextualMenu(Gtk.Menu):
@@ -79,6 +84,7 @@ class ContextualMenu(Gtk.Menu):
 
             return displayed.get(w.action_id, True)
 
-        update_action_widget_visibility(self.get_children(), is_visible)
+        visible_count = update_action_widget_visibility(self.get_children(), is_visible)
 
-        super().popup_at_pointer(event)
+        if visible_count > 0:
+            self.popup_at_pointer(event)
