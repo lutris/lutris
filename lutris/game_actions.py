@@ -122,12 +122,16 @@ class GameActions(BaseGameActions):
     @property
     def is_game_launchable(self):
         for game in self.games:
-            return game and game.is_installed and not self.is_game_running
+            if game and game.is_installed and not self.is_game_running:
+                return True
+        return False
 
     @property
     def is_game_running(self):
         for game in self.games:
-            return game and game.is_db_stored and bool(self.application.get_running_game_by_id(game.id))
+            if game and game.is_db_stored and bool(self.application.get_running_game_by_id(game.id)):
+                return True
+        return False
 
     def get_game_actions(self):
         if not self.games:
