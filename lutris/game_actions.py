@@ -135,6 +135,13 @@ class GameActions(BaseGameActions):
 
         if len(self.games) > 1:
             return [
+                ("stop", _("Stop"), self.on_game_stop),
+                (None, "-", None),
+                ("favorite", _("Add to favorites"), self.on_add_favorite_game),
+                ("deletefavorite", _("Remove from favorites"), self.on_delete_favorite_game),
+                ("hide", _("Hide game from library"), self.on_hide_game),
+                ("unhide", _("Unhide game from library"), self.on_unhide_game),
+                (None, "-", None),
                 ("remove", _("Remove"), self.on_remove_game),
             ]
 
@@ -176,7 +183,12 @@ class GameActions(BaseGameActions):
 
         if len(self.games) > 1:
             return {
-                "remove": self.is_game_removable
+                "stop": self.is_game_running,
+                "favorite": bool([g for g in self.games if not g.is_favorite]),
+                "deletefavorite": bool([g for g in self.games if g.is_favorite]),
+                "hide": bool([g for g in self.games if g.is_installed and not g.is_hidden]),
+                "unhide": bool([g for g in self.games if g.is_hidden]),
+                "remove": self.is_game_removable,
             }
 
         game = self.games[0]
@@ -332,12 +344,14 @@ class GameActions(BaseGameActions):
     def on_add_favorite_game(self, _widget):
         """Add to favorite Games list"""
         for game in self.games:
-            game.add_to_favorites()
+            if not game.is_favorite:
+                game.add_to_favorites()
 
     def on_delete_favorite_game(self, _widget):
         """delete from favorites"""
         for game in self.games:
-            game.remove_from_favorites()
+            if game.is_favorite:
+                game.remove_from_favorites()
 
     def on_edit_game_categories(self, _widget):
         """Edit game categories"""
@@ -347,12 +361,14 @@ class GameActions(BaseGameActions):
     def on_hide_game(self, _widget):
         """Add a game to the list of hidden games"""
         for game in self.games:
-            game.set_hidden(True)
+            if not game.is_hidden:
+                game.set_hidden(True)
 
     def on_unhide_game(self, _widget):
         """Removes a game from the list of hidden games"""
         for game in self.games:
-            game.set_hidden(False)
+            if game.is_hidden:
+                game.set_hidden(False)
 
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""
