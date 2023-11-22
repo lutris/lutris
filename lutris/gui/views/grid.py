@@ -80,9 +80,6 @@ class GameGridView(Gtk.IconView, GameView):
             self.add_attribute(self.image_renderer, "platform", COL_PLATFORM)
             self.add_attribute(self.image_renderer, "is_installed", COL_INSTALLED)
 
-    def select(self):
-        self.select_path(self.current_path)
-
     def get_path_at(self, x, y):
         return self.get_path_at_pos(x, y)
 

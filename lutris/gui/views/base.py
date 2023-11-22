@@ -17,7 +17,6 @@ class GameView:
     }
 
     def __init__(self, service):
-        self.current_path = None
         self.service = service
 
     def connect_signals(self):
@@ -84,10 +83,6 @@ class GameView:
             iterator = self.get_model().get_iter(selected[0])
             return self.get_model().get_value(iterator, COL_ID)
         return None
-
-    def select(self):
-        """Selects the object pointed by current_path"""
-        raise NotImplementedError
 
     def handle_key_press(self, widget, event):  # pylint: disable=unused-argument
         try:
