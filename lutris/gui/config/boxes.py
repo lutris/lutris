@@ -167,6 +167,8 @@ class ConfigBox(VBox):
 
                 # Set tooltip's "Default" part
                 default = option.get("default")
+                if callable(default):
+                    default = default()
                 self.tooltip_default = default if isinstance(default, str) else None
 
                 # Generate option widget
@@ -674,12 +676,17 @@ class ConfigBox(VBox):
         if current_value == reset_value:
             return
 
+        default = option.get("default")
+        if callable(default):
+            default = default()
+
         # Destroy and recreate option widget
         self.wrapper = wrapper
         children = wrapper.get_children()
         for child in children:
             child.destroy()
-        self.call_widget_generator(option, option_key, reset_value, option.get("default"))
+
+        self.call_widget_generator(option, option_key, reset_value, default)
         self.wrapper.show_all()
         self.update_warnings()
 

@@ -226,7 +226,7 @@ def is_fsync_supported() -> bool:
     return fsync.get_fsync_support()
 
 
-def get_default_wine_version() -> Optional[str]:
+def get_default_wine_version() -> str:
     """Return the default version of wine."""
     installed_versions = get_installed_wine_versions()
     if installed_versions:
@@ -236,7 +236,7 @@ def get_default_wine_version() -> Optional[str]:
             if version in installed_versions:
                 return version
         return installed_versions[0]
-    return None
+    raise UnavailableRunnerError("No versions of Wine are installed.")
 
 
 def get_system_wine_version(wine_path: str = "wine") -> str:

@@ -234,7 +234,14 @@ class LutrisConfig:
         defaults = {}
         for option, params in options_dict.items():
             if "default" in params:
-                defaults[option] = params["default"]
+                default = params["default"]
+                if callable(default):
+                    try:
+                        default = default()
+                    except Exception as ex:
+                        logger.exception("Unable to generate a default for '%s': %s", option, ex)
+                        continue
+                defaults[option] = default
         return defaults
 
     def options_as_dict(self, options_type):

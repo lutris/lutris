@@ -6,7 +6,7 @@ from gettext import gettext as _
 from typing import Dict, Optional
 
 from lutris import runtime, settings
-from lutris.exceptions import EsyncLimitError, FsyncUnsupportedError
+from lutris.exceptions import EsyncLimitError, FsyncUnsupportedError, UnavailableRunnerError
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
@@ -240,7 +240,7 @@ class wine(Runner):
                 "label": _("Wine version"),
                 "type": "choice",
                 "choices": get_wine_version_choices,
-                "default": get_default_wine_version(),
+                "default": get_default_wine_version,
                 "help": _(
                     "The version of Wine used to launch the game.\n"
                     "Using the last version is generally recommended, "
@@ -667,7 +667,10 @@ class wine(Runner):
                 if runner_version:
                     return runner_version
         if use_default:
-            return get_default_wine_version()
+            try:
+                return get_default_wine_version()
+            except UnavailableRunnerError:
+                return None
 
         return None
 
@@ -709,18 +712,17 @@ class wine(Runner):
         if fallback:
             # Fallback to default version
             default_version = get_default_wine_version()
-            if default_version:
-                wine_path = self.get_path_for_version(default_version)
-                if wine_path:
-                    # Update the version in the config
-                    if version == self.runner_config.get("version"):
-                        self.runner_config["version"] = default_version
-                        # TODO: runner_config is a dict so we have to instanciate a
-                        # LutrisConfig object to save it.
-                        # XXX: The version key could be either in the game specific
-                        # config or the runner specific config. We need to know
-                        # which one to get the correct LutrisConfig object.
-                    return wine_path
+            wine_path = self.get_path_for_version(default_version)
+            if wine_path:
+                # Update the version in the config
+                if version == self.runner_config.get("version"):
+                    self.runner_config["version"] = default_version
+                    # TODO: runner_config is a dict so we have to instanciate a
+                    # LutrisConfig object to save it.
+                    # XXX: The version key could be either in the game specific
+                    # config or the runner specific config. We need to know
+                    # which one to get the correct LutrisConfig object.
+                return wine_path
 
         raise ValueError("No Wine executable could be found.")
 
