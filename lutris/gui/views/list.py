@@ -115,6 +115,15 @@ class GameListView(Gtk.TreeView, GameView):
         """Sort a column by using another column's data"""
         self.model.set_sort_func(col, sort_func, sort_col)
 
+    def get_path_at(self, x, y):
+        path, _col, _cx, _cy = self.get_path_at_pos(x, y)
+        return path
+
+    def set_selected(self, path):
+        selection = self.get_selection()
+        selection.unselect_all()
+        selection.select_path(path)
+
     def get_selected(self):
         """Return list of all selected items"""
         selection = self.get_selection().get_selected_rows()

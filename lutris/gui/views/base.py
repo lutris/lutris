@@ -29,8 +29,13 @@ class GameView:
         if event.button != Gdk.BUTTON_SECONDARY:
             return
         game_ids = []
-        selection = self.get_selected()
-        if selection:
+        current_path = self.get_path_at(event.x, event.y)
+        if current_path:
+            selection = self.get_selected()
+            if current_path not in selection:
+                self.set_selected(current_path)
+                selection = [current_path]
+
             for path in selection:
                 iterator = view.get_model().get_iter(path)
                 game_id = view.get_model().get_value(iterator, COL_ID)
