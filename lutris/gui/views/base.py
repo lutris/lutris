@@ -39,6 +39,7 @@ class GameView:
             if game_actions:
                 contextual_menu = ContextualMenu(game_actions.get_game_actions())
                 contextual_menu.popup(event, game_actions)
+                return True
 
     def get_game_actions(self, game_ids):
         games = []
