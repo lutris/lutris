@@ -91,6 +91,10 @@ class GameGridView(Gtk.IconView, GameView):
         """Return list of all selected items"""
         return self.get_selected_items()
 
+    def get_game_id_for_path(self, path):
+        iterator = self.get_model().get_iter(path)
+        return self.get_model().get_value(iterator, COL_ID)
+
     def on_item_activated(self, _view, _path):
         """Handles double clicks"""
         selected_id = self.get_selected_game_id()

@@ -5,8 +5,7 @@ from gi.repository import Gdk, Gio, GObject
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.game_actions import get_game_actions, BaseGameActions
-from lutris.gui.views import COL_ID
+from lutris.game_actions import BaseGameActions, get_game_actions
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.util.log import logger
 
@@ -48,9 +47,7 @@ class GameView:
     def get_game_actions_for_paths(self, paths) -> BaseGameActions:
         game_ids = []
         for path in paths:
-            iterator = self.get_model().get_iter(path)
-            game_id = self.get_model().get_value(iterator, COL_ID)
-            game_ids.append(game_id)
+            game_ids.append(self.get_game_id_for_path(path))
         games = self._get_games_by_ids(game_ids)
         return get_game_actions(games, window=self.get_toplevel())
 
@@ -86,8 +83,7 @@ class GameView:
         None if there is no selection or a multiple-selection."""
         selected = self.get_selected()
         if len(selected) == 1:
-            iterator = self.get_model().get_iter(selected[0])
-            return self.get_model().get_value(iterator, COL_ID)
+            return self.get_game_id_for_path(selected[0])
         return None
 
     def handle_key_press(self, widget, event):  # pylint: disable=unused-argument
@@ -103,3 +99,12 @@ class GameView:
                     game_actions.on_game_stop(self)
         except Exception as ex:
             logger.exception("Unable to handle key press: %s", ex)
+
+    def get_toplevel(self):
+        return None
+
+    def get_selected(self):
+        return []
+
+    def get_game_id_for_path(self, path):
+        raise NotImplementedError

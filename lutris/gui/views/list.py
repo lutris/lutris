@@ -8,7 +8,7 @@ from gi.repository import Gdk, Gtk, Pango
 # Lutris Modules
 from lutris import settings
 from lutris.gui.views import (
-    COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_MEDIA_PATH,
+    COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_MEDIA_PATH,
     COL_NAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER_HUMAN_NAME, COL_SORTNAME, COL_YEAR, COLUMN_NAMES
 )
 from lutris.gui.views.base import GameView
@@ -130,6 +130,10 @@ class GameListView(Gtk.TreeView, GameView):
         if not selection:
             return None
         return selection[1]
+
+    def get_game_id_for_path(self, path):
+        iterator = self.get_model().get_iter(path)
+        return self.get_model().get_value(iterator, COL_ID)
 
     def set_selected_game(self, game_id):
         row = self.game_store.get_row_by_id(game_id, filtered=True)
