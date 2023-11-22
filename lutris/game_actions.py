@@ -4,6 +4,7 @@
 # pylint: disable=too-many-public-methods
 import os
 from gettext import gettext as _
+from typing import List
 
 from gi.repository import Gio, Gtk
 
@@ -26,20 +27,6 @@ from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, slugify
 from lutris.util.system import path_exists
 from lutris.util.wine.shader_cache import update_shader_cache
-
-
-def get_game_actions(games, window, application=None):
-    if len(games) == 1:
-        for game in games:
-            if game.is_db_stored:
-                return GameActions(games, window, application)
-
-            if game.service:
-                return ServiceGameActions(games, window, application)
-    else:
-        return GameActions(games, window)
-
-    return BaseGameActions(games, window, application)
 
 
 class BaseGameActions:
@@ -465,3 +452,20 @@ class ServiceGameActions(BaseGameActions):
             "add": self.is_installable,
             "view": True
         }
+
+
+def get_game_actions(games: List[Game], window, application=None) -> BaseGameActions:
+    if games:
+        if len(games) == 1:
+            game = games[0]
+            if game.is_db_stored:
+                return GameActions(games, window, application)
+
+            if game.service:
+                return ServiceGameActions(games, window, application)
+        else:
+            return GameActions(games, window)
+
+    # If given no games, or the games are not of a kind we can handle,
+    # the base class acts as an empty set of actions.
+    return BaseGameActions(games, window, application)
