@@ -5,6 +5,7 @@ from gettext import gettext as _
 from gi.repository import GObject
 
 from lutris import settings
+from lutris.api import format_runner_version
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import watch_errors
@@ -252,17 +253,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                     params["version"] = version
                 else:
                     # Looking up default wine version
-                    default_wine = runner.get_runner_version() or {}
-                    if "version" in default_wine:
-                        logger.debug("Default wine version is %s", default_wine["version"])
-                        if "architecture" in default_wine:
-                            version = "{}-{}".format(default_wine["version"],
-                                                     default_wine["architecture"])
-                        else:
-                            version = default_wine["version"]
-                        params["version"] = version
+                    default_wine_info = runner.get_runner_version()
+                    if "version" in default_wine_info:
+                        logger.debug("Default wine version is %s", default_wine_info["version"])
+                        params["version"] = format_runner_version(default_wine_info)
                     else:
-                        logger.error("Failed to get default wine version (got %s)", default_wine)
+                        logger.error("Failed to get default wine version (got %s)", default_wine_info)
 
             if not runner.is_installed(**params):
                 logger.info("Runner %s needs to be installed", runner)

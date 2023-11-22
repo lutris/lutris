@@ -9,6 +9,7 @@ from gettext import gettext as _
 from gi.repository import GLib, Gtk
 
 from lutris import api, settings
+from lutris.api import format_runner_version
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog, ModelessDialog
@@ -275,7 +276,8 @@ class RunnerInstallDialog(ModelessDialog):
 
     def get_runner_path(self, version, arch):
         """Return the local path where the runner is/will be installed"""
-        return os.path.join(self.runner_directory, "{}-{}".format(version, arch))
+        info = {"version": version, "architecture": arch}
+        return os.path.join(self.runner_directory, format_runner_version(info))
 
     def get_dest_path(self, row):
         """Return temporary path where the runners should be downloaded to"""

@@ -5,7 +5,7 @@ from gettext import gettext as _
 from typing import Dict
 
 from lutris import runtime, settings
-from lutris.api import get_default_runner_version
+from lutris.api import format_runner_version, get_default_runner_version_info
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
@@ -429,7 +429,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     def get_runner_version(self, version: str = None) -> Dict[str, str]:
         """Get the appropriate version for a runner, as with get_default_runner_version(),
         but this method allows the runner to apply its configuration."""
-        return get_default_runner_version(self.name, version)
+        return get_default_runner_version_info(self.name, version)
 
     def install(self, install_ui_delegate, version=None, callback=None):
         """Install runner using package management systems."""
@@ -443,20 +443,20 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.download_url:
             opts["dest"] = self.directory
             return self.download_and_extract(self.download_url, **opts)
-        runner_version = self.get_runner_version(version)
-        if not runner_version:
+        runner_version_info = self.get_runner_version(version)
+        if not runner_version_info:
             raise RunnerInstallationError(_("Failed to retrieve {} ({}) information").format(self.name, version))
 
         if "wine" in self.name:
             opts["merge_single"] = True
             opts["dest"] = os.path.join(
-                self.directory, "{}-{}".format(runner_version["version"], runner_version["architecture"])
+                self.directory, format_runner_version(runner_version_info)
             )
 
         if self.name == "libretro" and version:
             opts["merge_single"] = False
             opts["dest"] = os.path.join(settings.RUNNER_DIR, "retroarch/cores")
-        self.download_and_extract(runner_version["url"], **opts)
+        self.download_and_extract(runner_version_info["url"], **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
         install_ui_delegate = opts["install_ui_delegate"]

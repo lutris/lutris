@@ -6,7 +6,8 @@ from gettext import gettext as _
 from typing import Dict, Optional
 
 from lutris import runtime, settings
-from lutris.exceptions import EsyncLimitError, FsyncUnsupportedError, UnavailableRunnerError
+from lutris.api import format_runner_version, get_default_runner_version_info
+from lutris.exceptions import EsyncLimitError, FsyncUnsupportedError
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
@@ -647,32 +648,33 @@ class wine(Runner):
 
     def get_runner_version(self, version: str = None) -> Dict[str, str]:
         if not version:
-            version = self.read_version_from_config(use_default=False)
+            default_version_info = get_default_runner_version_info(self.name)
+            default_version = format_runner_version(default_version_info) if default_version_info else None
+            version = self.read_version_from_config(default=default_version)
 
         if version in WINE_PATHS:
             return {"version": version}
 
         return super().get_runner_version(version)
 
-    def read_version_from_config(self, use_default: bool = True) -> Optional[str]:
+    def read_version_from_config(self, default: str = None) -> str:
         """Return the Wine version to use. use_default can be set to false to
-        force the installation of a specific wine version"""
+        force the installation of a specific wine version. If no version is configured,
+        we return the default supplied, or the4 global Wine default if none is."""
 
         # We must use the config levels to avoid getting a default if the setting
-        # is not set; we'll fall back to get_default_version() or None rather.
+        # is not set; we'll fall back to get_default_version()
 
         for level in [self.config.game_level, self.config.runner_level]:
             if "wine" in level:
                 runner_version = level["wine"].get("version")
                 if runner_version:
                     return runner_version
-        if use_default:
-            try:
-                return get_default_wine_version()
-            except UnavailableRunnerError:
-                return None
 
-        return None
+        if default:
+            return default
+
+        return get_default_wine_version()
 
     def get_path_for_version(self, version: str) -> Optional[str]:
         """Return the absolute path of a wine executable for a given version"""
@@ -701,9 +703,6 @@ class wine(Runner):
         """
         if version is None:
             version = self.read_version_from_config()
-
-        if not version:
-            raise ValueError("No Wine version is configured, and no default Wine could be found.")
 
         wine_path = self.get_path_for_version(version)
         if wine_path and system.path_exists(wine_path):
@@ -973,14 +972,13 @@ class wine(Runner):
         env["WINEARCH"] = self.wine_arch
         env["WINE"] = self.get_executable()
         wine_config_version = self.read_version_from_config()
-        if wine_config_version:
-            env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "mono")
-            env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "gecko")
-            if is_gstreamer_build(self.get_executable()):
-                path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
-                path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
-                if os.path.exists(path_64) or os.path.exists(path_32):
-                    env["GST_PLUGIN_SYSTEM_PATH_1_0"] = path_64 + ":" + path_32
+        env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "mono")
+        env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "gecko")
+        if is_gstreamer_build(self.get_executable()):
+            path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
+            path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
+            if os.path.exists(path_64) or os.path.exists(path_32):
+                env["GST_PLUGIN_SYSTEM_PATH_1_0"] = path_64 + ":" + path_32
         if self.prefix_path:
             env["WINEPREFIX"] = self.prefix_path
 

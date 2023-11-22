@@ -124,15 +124,26 @@ def download_runner_versions(runner_name: str) -> list:
     return versions
 
 
+def format_runner_version(version_info: Dict[str, str]) -> str:
+    version = version_info.get("version")
+    if not version:
+        return ""
+    arch = version_info.get("architecture")
+    if arch:
+        return "{}-{}".format(version, arch)
+
+    return version
+
+
 @functools.lru_cache()
-def get_default_runner_version(runner_name: str, version: str = None) -> Dict[str, str]:
+def get_default_runner_version_info(runner_name: str, version: str = None) -> Dict[str, str]:
     """Get the appropriate version for a runner
 
     Params:
         version: Optional version to lookup, will return this one if found
 
     Returns:
-        Dict containing version, architecture and url for the runner, None
+        Dict containing version, architecture and url for the runner, an empty dict
         if the data can't be retrieved. If a pseudo-version is accepted, may be
         a dict containing only the version itself.
     """

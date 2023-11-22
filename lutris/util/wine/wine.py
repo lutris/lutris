@@ -6,7 +6,7 @@ from gettext import gettext as _
 from typing import Dict, Generator, List, Optional, Tuple
 
 from lutris import settings
-from lutris.api import get_default_runner_version
+from lutris.api import get_default_runner_version_info
 from lutris.exceptions import UnavailableRunnerError
 from lutris.gui.dialogs import ErrorDialog
 from lutris.util import linux, system
@@ -230,13 +230,13 @@ def get_default_wine_version() -> str:
     """Return the default version of wine."""
     installed_versions = get_installed_wine_versions()
     if installed_versions:
-        default_version = get_default_runner_version("wine")
-        if default_version:
+        default_version = get_default_runner_version_info("wine")
+        if "version" in default_version and "architecture" in default_version:
             version = default_version["version"] + '-' + default_version["architecture"]
             if version in installed_versions:
                 return version
         return installed_versions[0]
-    raise UnavailableRunnerError("No versions of Wine are installed.")
+    raise UnavailableRunnerError(_("No versions of Wine are installed."))
 
 
 def get_system_wine_version(wine_path: str = "wine") -> str:
