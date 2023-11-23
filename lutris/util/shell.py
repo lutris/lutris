@@ -19,14 +19,13 @@ def get_terminal_script(command, cwd, env):
     command = " ".join(['"%s"' % token for token in command])
     with open(script_path, "w", encoding='utf-8') as script_file:
         script_file.write(
-            dedent(
-                """#!/bin/sh
+            dedent("""\
+            #!/bin/sh
             cd "%s"
             %s
             exec %s
             exit $?
-            """ % (cwd, exported_environment, command)
-            )
+            """) % (cwd, exported_environment, command)
         )
         os.chmod(script_path, 0o744)
     return script_path
