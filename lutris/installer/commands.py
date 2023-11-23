@@ -7,14 +7,13 @@ import shlex
 import shutil
 from gettext import gettext as _
 from pathlib import Path
-from typing import Optional
 
 from gi.repository import GLib
 
 from lutris import runtime
 from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
-from lutris.exceptions import MisconfigurationError, UnspecifiedVersionError, watch_errors
+from lutris.exceptions import UnspecifiedVersionError, watch_errors
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.runners import InvalidRunner, import_runner, import_task

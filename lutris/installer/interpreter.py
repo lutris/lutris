@@ -7,7 +7,7 @@ from gi.repository import GObject
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import watch_errors, MisconfigurationError
+from lutris.exceptions import MisconfigurationError, watch_errors
 from lutris.installer import AUTO_EXE_PREFIX
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependency, ScriptingError
