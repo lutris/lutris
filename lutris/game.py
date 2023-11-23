@@ -868,7 +868,7 @@ class Game(GObject.Object):
         logger.info("Stopping %s", self)
 
         if self.game_thread:
-            def stop_cb(result, error):
+            def stop_cb(_result, error):
                 if error:
                     self.signal_error(error)
 
@@ -942,14 +942,14 @@ class Game(GObject.Object):
         if self.game_thread.return_code == 127:
             # Error missing shared lib
             error = "error while loading shared lib"
-            error_line = strings.lookup_string_in_text(error, self.game_thread.stdout)
-            if error_line:
-                raise RuntimeError(_("<b>Error: Missing shared library.</b>\n\n%s") % error_line)
+            error_lines = strings.lookup_strings_in_text(error, self.game_thread.stdout)
+            if error_lines:
+                raise RuntimeError(_("<b>Error: Missing shared library.</b>\n\n%s") % error_lines[0])
 
         if self.game_thread.return_code == 1:
             # Error Wine version conflict
             error = "maybe the wrong wineserver"
-            if strings.lookup_string_in_text(error, self.game_thread.stdout):
+            if strings.lookup_strings_in_text(error, self.game_thread.stdout):
                 raise RuntimeError(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
 
     def write_script(self, script_path, launch_ui_delegate):
