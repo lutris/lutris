@@ -7,7 +7,7 @@ from typing import Dict, Generator, List, Optional, Tuple
 
 from lutris import settings
 from lutris.api import get_default_runner_version_info
-from lutris.exceptions import UnavailableRunnerError
+from lutris.exceptions import UnavailableRunnerError, UnspecifiedVersionError
 from lutris.gui.dialogs import ErrorDialog
 from lutris.util import linux, system
 from lutris.util.log import logger
@@ -172,17 +172,17 @@ def get_installed_wine_versions() -> List[str]:
     return list_system_wine_versions() + list_lutris_wine_versions() + list_proton_versions()
 
 
-def get_wine_path_for_version(version: Optional[str], config: dict = None) -> Optional[str]:
+def get_wine_path_for_version(version: Optional[str], config: dict = None) -> str:
     """Return the absolute path of a wine executable for a given version,
     or the configured version if you don't ask for a version."""
     if not version and config:
         version = config["version"]
 
     if not version:
-        return None
+        raise UnspecifiedVersionError("The Wine version must be specified.")
 
     if version in WINE_PATHS:
-        return system.find_executable(WINE_PATHS[version])
+        return system.find_required_executable(WINE_PATHS[version])
     if "Proton" in version:
         for proton_path in get_proton_paths():
             if os.path.isfile(os.path.join(proton_path, version, "dist/bin/wine")):
@@ -192,7 +192,10 @@ def get_wine_path_for_version(version: Optional[str], config: dict = None) -> Op
     if version == "custom":
         if config is None:
             raise RuntimeError("Custom wine paths are only supported when a configuration is available.")
-        return config.get("custom_wine_path", "")
+        wine_path = config.get("custom_wine_path")
+        if not wine_path:
+            raise RuntimeError("The 'custom' Wine version can be used only if the custom wine path is set.")
+        return wine_path
     return os.path.join(WINE_DIR, version, "bin/wine")
 
 

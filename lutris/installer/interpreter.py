@@ -432,6 +432,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def _get_string_replacements(self):
         """Return a mapping of variables to their actual value"""
+
         def int_hex(text):
             try:
                 return hex(int(text)) if text else None

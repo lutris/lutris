@@ -44,6 +44,10 @@ class UnavailableRunnerError(Exception):
     """Raised when a runner is not installed or not installed fully."""
 
 
+class UnspecifiedVersionError(ValueError):
+    """Raised when a version number must be specified, but was not."""
+
+
 class EsyncLimitError(Exception):
     """Raised when the ESYNC limit is not set correctly."""
 

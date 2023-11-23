@@ -3,7 +3,7 @@
 import os
 import shlex
 from gettext import gettext as _
-from typing import Dict, Optional
+from typing import Dict
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, get_default_runner_version_info
@@ -676,7 +676,7 @@ class wine(Runner):
 
         return get_default_wine_version()
 
-    def get_path_for_version(self, version: str) -> Optional[str]:
+    def get_path_for_version(self, version: str) -> str:
         """Return the absolute path of a wine executable for a given version"""
         return get_wine_path_for_version(version, config=self.runner_config)
 
@@ -705,25 +705,27 @@ class wine(Runner):
             version = self.read_version_from_config()
 
         wine_path = self.get_path_for_version(version)
-        if wine_path and system.path_exists(wine_path):
+        if system.path_exists(wine_path):
             return wine_path
 
-        if fallback:
-            # Fallback to default version
-            default_version = get_default_wine_version()
-            wine_path = self.get_path_for_version(default_version)
-            if wine_path:
-                # Update the version in the config
-                if version == self.runner_config.get("version"):
-                    self.runner_config["version"] = default_version
-                    # TODO: runner_config is a dict so we have to instanciate a
-                    # LutrisConfig object to save it.
-                    # XXX: The version key could be either in the game specific
-                    # config or the runner specific config. We need to know
-                    # which one to get the correct LutrisConfig object.
-                return wine_path
+        if not fallback:
+            raise ValueError(_("The Wine executable at '%s' is missing.") % wine_path)
 
-        raise ValueError("No Wine executable could be found.")
+        # Fallback to default version
+        default_version = get_default_wine_version()
+        wine_path = self.get_path_for_version(default_version)
+        if not system.path_exists(wine_path):
+            raise ValueError(_("The Wine executable at '%s' is missing.") % wine_path)
+
+        # Update the version in the config
+        if version == self.runner_config.get("version"):
+            self.runner_config["version"] = default_version
+            # TODO: runner_config is a dict so we have to instanciate a
+            # LutrisConfig object to save it.
+            # XXX: The version key could be either in the game specific
+            # config or the runner specific config. We need to know
+            # which one to get the correct LutrisConfig object.
+        return wine_path
 
     def is_installed(self, version=None, fallback=True):
         """Check if Wine is installed.

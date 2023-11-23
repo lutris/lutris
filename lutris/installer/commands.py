@@ -16,7 +16,7 @@ from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import UnavailableRunnerError, watch_errors
+from lutris.exceptions import UnavailableRunnerError, UnspecifiedVersionError, watch_errors
 from lutris.game import Game
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
@@ -83,7 +83,7 @@ class CommandsMixin:
             if not version:
                 version = get_default_wine_version()
             return get_wine_path_for_version(version)
-        except UnavailableRunnerError:
+        except (UnavailableRunnerError, UnspecifiedVersionError):
             return None
 
     @staticmethod

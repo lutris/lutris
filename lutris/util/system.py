@@ -243,7 +243,7 @@ def find_required_executable(exec_name: str) -> str:
     exception if it could not be found."""
     exe = find_executable(exec_name)
     if not exe:
-        raise RuntimeError(f"The executable '{exec_name}' could not be found.")
+        raise ValueError(_("The executable '%s' could not be found.") % exec_name)
     return exe
 
 
