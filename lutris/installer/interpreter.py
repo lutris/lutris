@@ -426,7 +426,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         try:
             replacements["RESOLUTION_WIDTH_HEX"] = hex(int(current_res[0]))
             replacements["RESOLUTION_HEIGHT_HEX"] = hex(int(current_res[1]))
-        except MisconfigurationError:
+        except (ValueError, TypeError):
             pass  # If we can't generate hex, just omit the vars
 
         try:
