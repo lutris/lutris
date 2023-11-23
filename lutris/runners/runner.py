@@ -416,8 +416,14 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     def is_installed(self):
         """Return whether the runner is installed"""
-        if system.path_exists(self.get_executable()):
-            return True
+        try:
+            if system.path_exists(self.get_executable()):
+                return True
+        except:
+            # Will improve this with specific exception types in a PR,
+            # but if we can't get the executable, we aren't installed and
+            # will fall back to flatpak.
+            pass
         return self.flatpak_id and flatpak.is_app_installed(self.flatpak_id)
 
     def get_runner_version(self, version: str = None) -> Dict[str, str]:

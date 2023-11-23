@@ -728,9 +728,14 @@ class wine(Runner):
         """Check if Wine is installed.
         If no version is passed, checks if any version of wine is available
         """
-        if version:
-            return system.path_exists(self.get_executable(version, fallback))
-        return bool(get_installed_wine_versions())
+        try:
+            if version:
+                return system.path_exists(self.get_executable(version, fallback))
+            return bool(get_installed_wine_versions())
+        except:
+            # Will improve this will specific exception types in a PR, but
+            # if we can't get the versions or executable, we're not installed properly.
+            return False
 
     @classmethod
     def msi_exec(

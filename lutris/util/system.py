@@ -46,6 +46,7 @@ FALLBACK_VULKAN_DATA_DIRS = [
     "/opt/amdgpu-pro/etc"  # AMD GPU Pro - TkG
 ]
 
+
 def get_environment():
     """Return a safe to use copy of the system's environment.
     Values starting with BASH_FUNC can cause issues when written in a text file."""
@@ -53,6 +54,7 @@ def get_environment():
         key: value for key, value in os.environ.items()
         if not key.startswith("BASH_FUNC")
     }
+
 
 def execute(command, env=None, cwd=None, capture_stderr=False, quiet=False, shell=False, timeout=None):
     """
