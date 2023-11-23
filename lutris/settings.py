@@ -17,10 +17,13 @@ AUTHORS = [_("The Lutris team")]
 
 # Paths
 CONFIG_DIR = os.path.join(GLib.get_user_config_dir(), "lutris")
+DATA_DIR = os.path.join(GLib.get_user_data_dir(), "lutris")
+if not os.path.exists(CONFIG_DIR):
+    # Set the config dir to ~/.local/share/lutris as we're deprecating ~/.config/lutris
+    CONFIG_DIR = DATA_DIR
 CONFIG_FILE = os.path.join(CONFIG_DIR, "lutris.conf")
 sio = SettingsIO(CONFIG_FILE)
 
-DATA_DIR = os.path.join(GLib.get_user_data_dir(), "lutris")
 RUNNER_DIR = sio.read_setting("runner_dir") or os.path.join(DATA_DIR, "runners")
 RUNTIME_DIR = sio.read_setting("runtime_dir") or os.path.join(DATA_DIR, "runtime")
 CACHE_DIR = sio.read_setting("cache_dir") or os.path.join(GLib.get_user_cache_dir(), "lutris")
@@ -30,7 +33,12 @@ RUNNERS_CONFIG_DIR = os.path.join(CONFIG_DIR, "runners")
 SHADER_CACHE_DIR = os.path.join(CACHE_DIR, "shaders")
 INSTALLER_CACHE_DIR = os.path.join(CACHE_DIR, "installer")
 BANNER_PATH = os.path.join(CACHE_DIR, "banners")
+if not os.path.exists(BANNER_PATH):
+    BANNER_PATH = os.path.join(DATA_DIR, "banners")
 COVERART_PATH = os.path.join(CACHE_DIR, "coverart")
+if not os.path.exists(COVERART_PATH):
+    COVERART_PATH = os.path.join(DATA_DIR, "coverart")
+
 RUNTIME_VERSIONS_PATH = os.path.join(CACHE_DIR, "versions.json")
 ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128", "apps")
 
