@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from functools import lru_cache
 from gettext import gettext as _
-from typing import Dict, Generator, List, Optional, Tuple
+from typing import Dict, Generator, List, Tuple
 
 from lutris import settings
 from lutris.api import get_default_runner_version_info
@@ -177,7 +177,7 @@ def get_installed_wine_versions() -> List[str]:
     return list_system_wine_versions() + list_lutris_wine_versions() + list_proton_versions()
 
 
-def get_wine_path_for_version(version: Optional[str], config: dict = None) -> str:
+def get_wine_path_for_version(version: str, config: dict = None) -> str:
     """Return the absolute path of a wine executable for a given version,
     or the configured version if you don't ask for a version."""
     if not version and config:
