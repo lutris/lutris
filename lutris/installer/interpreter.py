@@ -7,7 +7,7 @@ from gi.repository import GObject
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import watch_errors
+from lutris.exceptions import watch_errors, MisconfigurationError
 from lutris.installer import AUTO_EXE_PREFIX
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependency, ScriptingError
@@ -203,10 +203,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     def create_game_folder(self):
         """Create the game folder if needed and store if is was created"""
         if (
-                self.installer.files
-                and self.target_path
-                and not system.path_exists(self.target_path)
-                and self.installer.creates_game_folder
+            self.installer.files
+            and self.target_path
+            and not system.path_exists(self.target_path)
+            and self.installer.creates_game_folder
         ):
             try:
                 logger.debug("Creating destination path %s", self.target_path)
@@ -370,10 +370,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 path = system.fix_path_case(os.path.join(self.target_path, path))
 
         if (
-                path
-                and AUTO_EXE_PREFIX not in path
-                and not os.path.isfile(path)
-                and self.installer.runner not in ("web", "browser")
+            path
+            and AUTO_EXE_PREFIX not in path
+            and not os.path.isfile(path)
+            and self.installer.runner not in ("web", "browser")
         ):
             status = _(
                 "The executable at path %s can't be found, please check the destination folder.\n"
@@ -407,12 +407,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     def _get_string_replacements(self):
         """Return a mapping of variables to their actual value"""
 
-        def int_hex(text):
-            try:
-                return hex(int(text)) if text else None
-            except (ValueError, TypeError) as ex:
-                logger.exception("Unable to convert '%s' to hex: %s", text, ex)
-                return None
+        current_res = self.current_resolution()
 
         replacements = {
             "GAMEDIR": self.target_path,
@@ -423,13 +418,21 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             "USER": os.getenv("USER"),
             "INPUT": self.user_inputs[-1]["value"] if self.user_inputs else "",
             "VERSION": self.installer.version,
-            "RESOLUTION": "x".join(self.current_resolution),
-            "RESOLUTION_WIDTH": self.current_resolution[0],
-            "RESOLUTION_HEIGHT": self.current_resolution[1],
-            "RESOLUTION_WIDTH_HEX": int_hex(self.current_resolution[0]),
-            "RESOLUTION_HEIGHT_HEX": int_hex(self.current_resolution[1]),
-            "WINEBIN": self.get_wine_path(),
+            "RESOLUTION": "x".join(current_res),
+            "RESOLUTION_WIDTH": current_res[0],
+            "RESOLUTION_HEIGHT": current_res[1],
         }
+
+        try:
+            replacements["RESOLUTION_WIDTH_HEX"] = hex(int(current_res[0]))
+            replacements["RESOLUTION_HEIGHT_HEX"] = hex(int(current_res[1]))
+        except MisconfigurationError:
+            pass  # If we can't generate hex, just omit the vars
+
+        try:
+            replacements["WINEBIN"] = self.get_wine_path()
+        except MisconfigurationError:
+            pass  # If we can't get the path, just omit it
 
         # None values stringify as 'None', which is not what you want, so we'll
         # remove then pre-emptively. This happens for game install scripts that have

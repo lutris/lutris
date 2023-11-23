@@ -31,24 +31,21 @@ class CommandsMixin:
     # pylint: disable=no-member
     installer: LutrisInstaller = NotImplemented
 
-    def get_wine_path(self) -> Optional[str]:
+    def get_wine_path(self) -> str:
         """Return absolute path of wine version used during the installation, but
         None if the wine exe can't be located."""
         runner = self.get_runner_class(self.installer.runner)()
         try:
-            try:
-                version = runner.get_installer_runner_version(self.installer, use_runner_config=False)
-            except UnspecifiedVersionError:
-                # Special case that lets the Wine configuration explicit specify the path
-                # to the Wine executable, not just a version number.
-                if self.installer.runner == "wine":
-                    config_version, runner_config = wine.get_runner_version_and_config()
-                    return get_wine_path_for_version(config_version, config=runner_config.runner_level)
+            version = runner.get_installer_runner_version(self.installer, use_runner_config=False)
+        except UnspecifiedVersionError:
+            # Special case that lets the Wine configuration explicit specify the path
+            # to the Wine executable, not just a version number.
+            if self.installer.runner == "wine":
+                config_version, runner_config = wine.get_runner_version_and_config()
+                return get_wine_path_for_version(config_version, config=runner_config.runner_level)
 
-                version = get_default_wine_version()
-            return get_wine_path_for_version(version)
-        except MisconfigurationError:
-            return None
+            version = get_default_wine_version()
+        return get_wine_path_for_version(version)
 
     def get_runner_class(self, runner_name):
         """Runner the runner class from its name"""
@@ -402,9 +399,7 @@ class CommandsMixin:
             return_code = "0"
 
         if runner_name.startswith("wine"):
-            wine_path = self.get_wine_path()
-            if wine_path:
-                data["wine_path"] = wine_path
+            data["wine_path"] = self.get_wine_path()
             data["prefix"] = data.get("prefix") \
                 or self.installer.script.get("game", {}).get("prefix") \
                 or "$GAMEDIR"
