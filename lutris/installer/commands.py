@@ -14,13 +14,11 @@ from gi.repository import GLib
 from lutris import runtime
 from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
-from lutris.config import LutrisConfig
-from lutris.database.games import get_game_by_field
-from lutris.exceptions import MisconfigurationError, watch_errors
-from lutris.game import Game
+from lutris.exceptions import MisconfigurationError, UnspecifiedVersionError, watch_errors
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
-from lutris.runners import import_task
+from lutris.runners import InvalidRunner, import_runner, import_task
+from lutris.runners.wine import wine
 from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
@@ -33,58 +31,32 @@ class CommandsMixin:
     # pylint: disable=no-member
     installer: LutrisInstaller = NotImplemented
 
-    def get_runner_version(self) -> Optional[str]:
-        """Return the version of the runner used for the installer"""
-        version = self._get_installer_runner_version()
-        if not version and self.installer.runner == "wine":
-            # Look up the runner config setting, but only if it is explicitly set;
-            # install scripts do not get the usual default if it is not!
-            runner_config = LutrisConfig(runner_slug="wine")
-            if "wine" in runner_config.runner_level:
-                config_version = runner_config.runner_level["wine"].get("version")
-                if config_version:
-                    return config_version
-        return version
-
-    def _get_installer_runner_version(self) -> Optional[str]:
-        """Return the version of the runner, as specified by the installer; the
-         runner configuration is ignored."""
-        if self.installer.runner == "wine":
-            # If a version is specified in the script choose this one
-            if self.installer.script.get(self.installer.runner):
-                return self.installer.script[self.installer.runner].get("version")
-            # If the installer is an extension, use the wine version from the base game
-            if self.installer.requires:
-                db_game = get_game_by_field(self.installer.requires, field="installer_slug")
-                if not db_game:
-                    db_game = get_game_by_field(self.installer.requires, field="slug")
-                if not db_game:
-                    logger.warning("Can't find game %s", self.installer.requires)
-                    return None
-                game = Game(db_game["id"])
-                return game.config.runner_config["version"]
-        if self.installer.runner == "libretro":
-            return self.installer.script["game"]["core"]
-        return None
-
     def get_wine_path(self) -> Optional[str]:
         """Return absolute path of wine version used during the installation, but
         None if the wine exe can't be located."""
+        runner = self.get_runner_class(self.installer.runner)()
         try:
-            version = self._get_installer_runner_version()
-            if not version and self.installer.runner == "wine":
-                # Look up the runner config setting, but only if it is explicitly set;
-                # install scripts do not get the usual default if it is not!
-                runner_config = LutrisConfig(runner_slug="wine")
-                if "wine" in runner_config.runner_level:
-                    config_version = runner_config.runner_level["wine"].get("version")
-                    if config_version:
-                        return get_wine_path_for_version(config_version, config=runner_config.runner_level)
-            if not version:
+            try:
+                version = runner.get_installer_runner_version(self.installer, use_runner_config=False)
+            except UnspecifiedVersionError:
+                # Special case that lets the Wine configuration explicit specify the path
+                # to the Wine executable, not just a version number.
+                if self.installer.runner == "wine":
+                    config_version, runner_config = wine.get_runner_version_and_config()
+                    return get_wine_path_for_version(config_version, config=runner_config.runner_level)
+
                 version = get_default_wine_version()
             return get_wine_path_for_version(version)
         except MisconfigurationError:
             return None
+
+    def get_runner_class(self, runner_name):
+        """Runner the runner class from its name"""
+        try:
+            runner = import_runner(runner_name)
+        except InvalidRunner as err:
+            raise ScriptingError(_("Invalid runner provided %s") % runner_name) from err
+        return runner
 
     @staticmethod
     def _check_required_params(params, command_data, command_name):

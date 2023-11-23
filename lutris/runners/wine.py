@@ -3,13 +3,16 @@
 import os
 import shlex
 from gettext import gettext as _
-from typing import Dict
+from typing import Dict, Tuple
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, get_default_runner_version_info
+from lutris.config import LutrisConfig
+from lutris.database.games import get_game_by_field
 from lutris.exceptions import (
-    EsyncLimitError, FsyncUnsupportedError, MisconfigurationError, MissingExecutableError
+    EsyncLimitError, FsyncUnsupportedError, MisconfigurationError, MissingExecutableError, UnspecifiedVersionError
 )
+from lutris.game import Game
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
@@ -733,27 +736,67 @@ class wine(Runner):
         """Check if Wine is installed.
         If no version is passed, checks if any version of wine is available
         """
-        if version:
-            try:
+        try:
+            if version:
                 # We don't care where Wine is, but only if it was found at all.
                 self.get_executable(version, fallback)
                 return True
-            except MisconfigurationError:
-                return False
 
-        return bool(get_installed_wine_versions())
+            return bool(get_installed_wine_versions())
+        except MisconfigurationError:
+            return False
 
     def is_installed_for(self, interpreter):
-        version = interpreter.get_runner_version()
+        try:
+            version = self.get_installer_runner_version(interpreter.installer, use_api=True)
+            return self.is_installed(version, fallback=False)
+        except MisconfigurationError:
+            return False
+
+    def get_installer_runner_version(self, installer, use_runner_config: bool = True, use_api: bool = False) -> str:
+        # If a version is specified in the script choose this one
+        version = None
+        if installer.script.get(installer.runner):
+            version = installer.script[installer.runner].get("version")
+        # If the installer is an extension, use the wine version from the base game
+        elif installer.requires:
+            db_game = get_game_by_field(installer.requires, field="installer_slug")
+            if not db_game:
+                db_game = get_game_by_field(installer.requires, field="slug")
+            if not db_game:
+                raise MisconfigurationError(
+                    _("The required game '%s' could not be found.") % installer.requires)
+            game = Game(db_game["id"])
+            version = game.config.runner_config["version"]
+
+        if not version and use_runner_config:
+            # Try to read the version from the saved runner config for Wine.
+            try:
+                return wine.get_runner_version_and_config()[0]
+            except UnspecifiedVersionError:
+                pass  # prefer the error message below for this
+
+        if not version and use_api:
+            # Try to obtain the default wine version from the Lutris API.
+            default_version_info = self.get_runner_version()
+            if "version" in default_version_info:
+                logger.debug("Default wine version is %s", default_version_info["version"])
+                version = format_runner_version(default_version_info)
+
         if not version:
-            # Looking up default wine version
-            default_wine_info = self.get_runner_version()
-            if "version" in default_wine_info:
-                logger.debug("Default wine version is %s", default_wine_info["version"])
-                version = format_runner_version(default_wine_info)
-            else:
-                logger.error("Failed to get default wine version (got %s)", default_wine_info)
-        return self.is_installed(version, fallback=False)
+            raise UnspecifiedVersionError("The installer does not specify a Wine version.")
+
+        return version
+
+    @classmethod
+    def get_runner_version_and_config(cls) -> Tuple[str, LutrisConfig]:
+        runner_config = LutrisConfig(runner_slug="wine")
+        if "wine" in runner_config.runner_level:
+            config_version = runner_config.runner_level["wine"].get("version")
+            if config_version:
+                return config_version, runner_config
+
+        raise UnspecifiedVersionError("The runner configuration does not specify a Wine version.")
 
     @classmethod
     def msi_exec(

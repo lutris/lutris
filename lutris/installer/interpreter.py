@@ -13,7 +13,7 @@ from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.installer.legacy import get_game_launcher
-from lutris.runners import InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine
+from lutris.runners import NonInstallableRunnerError, RunnerInstallationError, steam, wine
 from lutris.services.lutris import download_lutris_media
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
@@ -265,20 +265,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         try:
             runner.install(
                 ui_delegate,
-                version=self.get_runner_version(),
+                version=runner.get_installer_runner_version(self) if runner.has_runner_version else None,
                 callback=install_more_runners,
             )
         except (NonInstallableRunnerError, RunnerInstallationError) as ex:
             logger.error(ex.message)
             raise ScriptingError(ex.message) from ex
-
-    def get_runner_class(self, runner_name):
-        """Runner the runner class from its name"""
-        try:
-            runner = import_runner(runner_name)
-        except InvalidRunner as err:
-            raise ScriptingError(_("Invalid runner provided %s") % runner_name) from err
-        return runner
 
     def launch_installer_commands(self):
         """Run the pre-installation steps and launch install."""

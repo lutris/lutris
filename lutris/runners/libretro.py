@@ -7,6 +7,7 @@ from zipfile import ZipFile
 import requests
 
 from lutris import settings
+from lutris.exceptions import UnspecifiedVersionError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.libretro import RetroConfig
@@ -70,6 +71,7 @@ class libretro(Runner):
     runnable_alone = True
     runner_executable = "retroarch/retroarch"
     flatpak_id = "org.libretro.RetroArch"
+    has_runner_versions = True
 
     game_options = [
         {
@@ -145,6 +147,12 @@ class libretro(Runner):
     def is_installed_for(self, interpreter):
         core = interpreter.installer.script["game"].get("core")
         return self.is_installed(core=core)
+
+    def get_installer_runner_version(self, installer, use_runner_config: bool = True) -> str:
+        version = installer.script["game"].get("core")
+        if not version:
+            raise UnspecifiedVersionError("The installer does not specify the libretro 'core' version.")
+        return version
 
     def install(self, install_ui_delegate, version=None, callback=None):
         captured_super = super()  # super() does not work inside install_core()

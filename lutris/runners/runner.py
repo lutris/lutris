@@ -34,6 +34,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     download_url = None
     arch = None  # If the runner is only available for an architecture that isn't x86_64
     flatpak_id = None
+    has_runner_versions = False
 
     def __init__(self, config=None):
         """Initialize runner."""
@@ -433,6 +434,9 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Returns whether the runner is installed. Specific runners can extract additional
         script settings, to determine more precisely what must be installed."""
         return self.is_installed()
+
+    def get_installer_runner_version(self, installer, use_runner_config: bool = True) -> str:
+        raise RuntimeError("The '%s' runner does not support versions" % self.name)
 
     def get_runner_version(self, version: str = None) -> Dict[str, str]:
         """Get the appropriate version for a runner, as with get_default_runner_version(),
