@@ -67,26 +67,31 @@ def get_proton_paths() -> List[str]:
 
 def detect_arch(prefix_path: str = None, wine_path: str = None) -> str:
     """Given a Wine prefix path, return its architecture"""
-    if prefix_path:
-        arch = detect_prefix_arch(prefix_path)
-        if arch:
-            return arch
+    if prefix_path and is_prefix_directory(prefix_path):
+        return detect_prefix_arch(prefix_path)
     if wine_path and system.path_exists(wine_path + "64"):
         return "win64"
     return "win32"
 
 
-def detect_prefix_arch(prefix_path: str) -> Optional[str]:
-    """Return the architecture of the prefix found in `prefix_path`"""
+def is_prefix_directory(prefix_path: str) -> bool:
+    """Detects if a path is ther oot of a Wine prefix; to be one, it must contain
+    a 'system.reg' file."""
     if not prefix_path:
-        raise RuntimeError("The prefix architecture can't be detected with no prefix path.")
+        return False
 
     prefix_path = os.path.expanduser(prefix_path)
     registry_path = os.path.join(prefix_path, "system.reg")
-    if not os.path.isdir(prefix_path) or not os.path.isfile(registry_path):
-        # No prefix_path exists or invalid prefix
-        logger.error("Prefix not found: %s", prefix_path)
-        return None
+    return os.path.isdir(prefix_path) and os.path.isfile(registry_path)
+
+
+def detect_prefix_arch(prefix_path: str) -> str:
+    """Return the architecture of the prefix found in `prefix_path`"""
+    if not is_prefix_directory(prefix_path):
+        raise RuntimeError("Prefix not found: %s" % prefix_path)
+
+    prefix_path = os.path.expanduser(prefix_path)
+    registry_path = os.path.join(prefix_path, "system.reg")
     with open(registry_path, "r", encoding='utf-8') as registry:
         for _line_no in range(5):
             line = registry.readline()
@@ -94,8 +99,8 @@ def detect_prefix_arch(prefix_path: str) -> Optional[str]:
                 return "win64"
             if "win32" in line:
                 return "win32"
-    logger.error("Failed to detect Wine prefix architecture in %s", prefix_path)
-    return None
+    logger.error("Failed to detect Wine prefix architecture in %s; defaulting to 32-bit.", prefix_path)
+    return "win32"
 
 
 def set_drive_path(prefix: str, letter: str, path: str) -> None:
