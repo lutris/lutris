@@ -5,7 +5,7 @@ import stat
 from gettext import gettext as _
 
 # Lutris Modules
-from lutris.exceptions import GameConfigError
+from lutris.exceptions import GameConfigError, MissingExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.strings import split_arguments
@@ -85,7 +85,10 @@ class linux(Runner):
             return exe
         if self.game_path:
             return os.path.join(self.game_path, exe)
-        return system.find_executable(exe)
+        try:
+            return system.find_required_executable(exe)
+        except MissingExecutableError:
+            return None
 
     def resolve_game_path(self):
         return super().resolve_game_path() or os.path.dirname(self.game_exe or "")

@@ -230,22 +230,24 @@ def find_executable(exec_name: str) -> Optional[str]:
     """Return the absolute path of an executable"""
     if not exec_name:
         return None
-    return shutil.which(exec_name)
+    return bool(shutil.which(exec_name))
 
 
 def can_find_executable(exec_name: str) -> bool:
     """Checks if an executable can be located; if false,
     find_required_executable will raise an exception."""
-    return bool(find_executable(exec_name))
+    return exec_name and bool(shutil.which(exec_name))
 
 
 def find_required_executable(exec_name: str) -> str:
     """Return the absolute path of an executable, but raises an
     exception if it could not be found."""
-    exe = find_executable(exec_name)
-    if not exe:
-        raise MissingExecutableError(_("The executable '%s' could not be found.") % exec_name)
-    return exe
+    if exec_name:
+        exe = shutil.which(exec_name)
+        if exe:
+            return exe
+
+    raise MissingExecutableError(_("The executable '%s' could not be found.") % exec_name)
 
 
 def get_pid(program, multiple=False):
@@ -436,8 +438,9 @@ def get_pids_using_file(path):
     if not os.path.exists(path):
         logger.error("Can't return PIDs using non existing file: %s", path)
         return set()
-    fuser_path = find_executable("fuser")
-    if not fuser_path:
+    try:
+        fuser_path = find_required_executable("fuser")
+    except MissingExecutableError:
         logger.warning("fuser not available, please install psmisc")
         return set([])
     fuser_output = execute([fuser_path, path], quiet=True)
