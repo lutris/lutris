@@ -7,7 +7,7 @@ from typing import Dict, Generator, List, Optional, Tuple
 
 from lutris import settings
 from lutris.api import get_default_runner_version_info
-from lutris.exceptions import UnavailableRunnerError, UnspecifiedVersionError
+from lutris.exceptions import MisconfigurationError, UnavailableRunnerError, UnspecifiedVersionError
 from lutris.gui.dialogs import ErrorDialog
 from lutris.util import linux, system
 from lutris.util.log import logger
@@ -145,7 +145,7 @@ def list_lutris_wine_versions() -> List[str]:
             wine_path = get_wine_path_for_version(version=dirname)
             if wine_path and os.path.isfile(wine_path):
                 versions.append(dirname)
-        except UnavailableRunnerError:
+        except MisconfigurationError:
             pass  # if it's not properly installed, skip it
     return versions
 

@@ -7,7 +7,9 @@ from typing import Dict
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, get_default_runner_version_info
-from lutris.exceptions import EsyncLimitError, FsyncUnsupportedError, MissingExecutableError, UnavailableRunnerError
+from lutris.exceptions import (
+    EsyncLimitError, FsyncUnsupportedError, MisconfigurationError, MissingExecutableError
+)
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
@@ -736,7 +738,7 @@ class wine(Runner):
                 # We don't care where Wine is, but only if it was found at all.
                 self.get_executable(version, fallback)
                 return True
-            except (UnavailableRunnerError, MissingExecutableError):
+            except MisconfigurationError:
                 return False
 
         return bool(get_installed_wine_versions())

@@ -9,7 +9,7 @@ from lutris.api import format_runner_version, get_default_runner_version_info
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import GameConfigError, MissingExecutableError, UnavailableLibrariesError
+from lutris.exceptions import GameConfigError, MisconfigurationError, MissingExecutableError, UnavailableLibrariesError
 from lutris.runners import RunnerInstallationError
 from lutris.util import flatpak, strings, system
 from lutris.util.extract import ExtractFailure, extract_archive
@@ -168,7 +168,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             if os.path.isfile(runner_executable):
                 return runner_executable
         if not self.runner_executable:
-            raise ValueError("runner_executable not set for {}".format(self.name))
+            raise MisconfigurationError("runner_executable not set for {}".format(self.name))
 
         exe = os.path.join(settings.RUNNER_DIR, self.runner_executable)
         if not os.path.isfile(exe):
@@ -424,7 +424,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             # Don't care where the exe is, only if we can find it.
             self.get_executable()
             return True
-        except (MissingExecutableError, ValueError):
+        except MisconfigurationError:
             pass  # We can still try flatpak even if 'which' fails us!
 
         return self.flatpak_id and flatpak.is_app_installed(self.flatpak_id)
