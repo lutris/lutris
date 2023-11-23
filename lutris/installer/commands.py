@@ -13,7 +13,7 @@ from gi.repository import GLib
 from lutris import runtime
 from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
-from lutris.exceptions import UnspecifiedVersionError, watch_errors
+from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError, watch_errors
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.runners import InvalidRunner, import_runner, import_task
@@ -151,9 +151,11 @@ class CommandsMixin:
         if system.path_exists(exec_path) and not system.is_executable(exec_path):
             logger.warning("Making %s executable", exec_path)
             system.make_executable(exec_path)
-        exec_abs_path = system.find_executable(exec_path)
-        if not exec_abs_path:
-            raise ScriptingError(_("Unable to find executable %s") % exec_path)
+
+        try:
+            exec_abs_path = system.find_required_executable(exec_path)
+        except MissingExecutableError as ex:
+            raise ScriptingError(_("Unable to find executable %s") % exec_path) from ex
 
         if terminal:
             terminal = linux.get_default_terminal()

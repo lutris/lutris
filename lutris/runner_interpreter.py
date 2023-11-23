@@ -4,6 +4,7 @@ import shlex
 import stat
 from functools import lru_cache
 
+from lutris.exceptions import MissingExecutableError
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -54,10 +55,10 @@ def get_launch_parameters(runner, gameplay_info):
     # Libstrangle
     fps_limit = system_config.get("fps_limit") or ""
     if fps_limit:
-        strangle_cmd = system.find_executable("strangle")
-        if strangle_cmd:
+        try:
+            strangle_cmd = system.find_required_executable("strangle")
             launch_arguments = [strangle_cmd, fps_limit] + launch_arguments
-        else:
+        except MissingExecutableError:
             logger.warning("libstrangle is not available on this system, FPS limiter disabled")
 
     prefix_command = system_config.get("prefix_command") or ""

@@ -18,7 +18,7 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.exceptions import GameConfigError, watch_game_errors
+from lutris.exceptions import GameConfigError, MissingExecutableError, watch_game_errors
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
@@ -527,10 +527,11 @@ class Game(GObject.Object):
 
     def start_antimicrox(self, antimicro_config):
         """Start Antimicrox with a given config path"""
-        antimicro_path = system.find_executable("antimicrox")
-        if not antimicro_path:
-            logger.warning("Antimicrox is not installed.")
-            return
+        try:
+            antimicro_path = system.find_required_executable("antimicrox")
+        except MissingExecutableError as ex:
+            raise GameConfigError(_("Unable to find Antimicrox, install it or disable the Antimicrox option")) from ex
+
         logger.info("Starting Antic")
         antimicro_command = [antimicro_path, "--hidden", "--tray", "--profile", antimicro_config]
         self.antimicro_thread = MonitoredCommand(antimicro_command)
