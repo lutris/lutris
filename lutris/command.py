@@ -119,6 +119,7 @@ class MonitoredCommand:
     def get_environment(user_env):
         """Process the user provided environment variables for use as self.env"""
         env = copy(user_env) if user_env else {}
+
         # not clear why this needs to be added, the path is already added in
         # the wrappper script.
         env['PYTHONPATH'] = ':'.join(sys.path)
@@ -141,14 +142,15 @@ class MonitoredCommand:
 
     def get_child_environment(self):
         """Returns the calculated environment for the child process."""
-        env = os.environ.copy()
+        env = system.get_environment()
         env.update(self.env)
         return env
 
     def start(self):
         """Run the thread."""
-        # for key, value in self.env.items():
-        #     logger.debug("%s=\"%s\"", key, value)
+        if os.environ.get("LUTRIS_DEBUG_ENV") == "1":
+            for key, value in self.env.items():
+                logger.debug("%s=\"%s\"", key, value)
         wrapper_command = self.get_wrapper_command()
         env = self.get_child_environment()
         self.game_process = self.execute_process(wrapper_command, env)

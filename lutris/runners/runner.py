@@ -183,7 +183,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Return environment variables used for a game."""
         env = {}
         if os_env:
-            env.update(os.environ.copy())
+            env = system.get_environment()
 
         # By default we'll set NVidia's shader disk cache to be
         # per-game, so it overflows less readily.
