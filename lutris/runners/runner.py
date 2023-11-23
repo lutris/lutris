@@ -9,7 +9,7 @@ from lutris.api import format_runner_version, get_default_runner_version_info
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import GameConfigError, UnavailableLibrariesError, MissingExecutableError
+from lutris.exceptions import GameConfigError, MissingExecutableError, UnavailableLibrariesError
 from lutris.runners import RunnerInstallationError
 from lutris.util import flatpak, strings, system
 from lutris.util.extract import ExtractFailure, extract_archive
