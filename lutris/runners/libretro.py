@@ -151,7 +151,7 @@ class libretro(Runner):
     def get_installer_runner_version(self, installer, use_runner_config: bool = True) -> str:
         version = installer.script["game"].get("core")
         if not version:
-            raise UnspecifiedVersionError("The installer does not specify the libretro 'core' version.")
+            raise UnspecifiedVersionError(_("The installer does not specify the libretro 'core' version."))
         return version
 
     def install(self, install_ui_delegate, version=None, callback=None):

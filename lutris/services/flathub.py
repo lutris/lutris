@@ -89,7 +89,7 @@ class FlathubService(BaseService):
         flatpak_spawn_abspath = shutil.which("flatpak-spawn")
         if flatpak_spawn_abspath:
             return [flatpak_spawn_abspath, "--host", "flatpak"]
-        raise MissingExecutableError("No flatpak or flatpak-spawn found")
+        raise MissingExecutableError(_("No flatpak or flatpak-spawn found"))
 
     def load(self):
         """Load the available games from Flathub"""

@@ -10,7 +10,7 @@ class TestPCSX2Runner(unittest.TestCase):
         self.runner = pcsx2()
 
     @patch('os.path.isfile')
-    def test_play_iso_does_not_exist(self,  mock_isfile):
+    def test_play_iso_does_not_exist(self, mock_isfile):
         main_file = '/invalid/path/to/iso'
         mock_isfile.return_value = True
         mock_config = MagicMock()

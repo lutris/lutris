@@ -784,7 +784,7 @@ class wine(Runner):
                 version = format_runner_version(default_version_info)
 
         if not version:
-            raise UnspecifiedVersionError("The installer does not specify a Wine version.")
+            raise UnspecifiedVersionError(_("The installer does not specify a Wine version."))
 
         return version
 
@@ -796,7 +796,7 @@ class wine(Runner):
             if config_version:
                 return config_version, runner_config
 
-        raise UnspecifiedVersionError("The runner configuration does not specify a Wine version.")
+        raise UnspecifiedVersionError(_("The runner configuration does not specify a Wine version."))
 
     @classmethod
     def msi_exec(

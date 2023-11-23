@@ -184,7 +184,7 @@ def get_wine_path_for_version(version: str, config: dict = None) -> str:
         version = config["version"]
 
     if not version:
-        raise UnspecifiedVersionError("The Wine version must be specified.")
+        raise UnspecifiedVersionError(_("The Wine version must be specified."))
 
     if version in WINE_PATHS:
         return system.find_executable(WINE_PATHS[version])
