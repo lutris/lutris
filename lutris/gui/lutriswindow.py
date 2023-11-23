@@ -998,35 +998,27 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     @watch_errors()
     def on_game_selection_changed(self, view, selection):
-        game_ids = []
-        games = []
         if not selection:
             GLib.idle_add(self.update_revealer)
             return False
-        for path in selection:
-            iterator = view.get_model().get_iter(path)
-            game_id = view.get_model().get_value(iterator, COL_ID)
-            game_ids.append([iterator, game_id])
+
+        game_ids = [view.get_game_id_for_path(path) for path in selection]
+
         if not game_ids:
             GLib.idle_add(self.update_revealer)
             return False
-        for item in game_ids:
-            iterator = item[0]
-            game_id = item[1]
+
+        games = []
+        for game_id in game_ids:
             if self.service:
                 game = ServiceGameCollection.get_game(self.service.id, game_id)
             else:
-                game = games_db.get_game_by_field(int(game_id), "id")
-            if not game:
-                game = [{
-                    "id": game_id,
-                    "appid": game_id,
-                    "name": view.get_model().get_value(iterator, COL_NAME),
-                    "slug": game_id,
-                    "service": self.service.id if self.service else None,
-                }]
-                logger.warning("No game found. Replacing with placeholder %s", games)
-            games.append(game)
+                game = games_db.get_game_by_field(game_id, "id")
+
+            # There can be no game found if you are removing a game; it will
+            # still have a selected icon in the UI just long enough to get here.
+            if game:
+                games.append(game)
 
         GLib.idle_add(self.update_revealer, games)
         return False
