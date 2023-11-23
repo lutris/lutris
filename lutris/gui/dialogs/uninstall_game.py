@@ -229,8 +229,8 @@ class RemoveMultipleGamesDialog(GameRemovalDialog):
         )
 
     def perform_removal(self, delete_files: bool) -> bool:
-        if delete_files and bool([g for g in self.to_uninstall
-                                  if not hasattr(g.runner, "no_game_remove_warning")]):
+        if delete_files and any(g for g in self.to_uninstall
+                                if not hasattr(g.runner, "no_game_remove_warning")):
             dlg = QuestionDialog(
                 {
                     "parent": self,

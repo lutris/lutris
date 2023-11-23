@@ -179,10 +179,10 @@ class GameActions(BaseGameActions):
         if len(self.games) > 1:
             return {
                 "stop": self.is_game_running,
-                "favorite": bool([g for g in self.games if not g.is_favorite]),
-                "deletefavorite": bool([g for g in self.games if g.is_favorite]),
-                "hide": bool([g for g in self.games if g.is_installed and not g.is_hidden]),
-                "unhide": bool([g for g in self.games if g.is_hidden]),
+                "favorite": any(g for g in self.games if not g.is_favorite),
+                "deletefavorite": any(g for g in self.games if g.is_favorite),
+                "hide": any(g for g in self.games if g.is_installed and not g.is_hidden),
+                "unhide": any(g for g in self.games if g.is_hidden),
                 "remove": self.is_game_removable,
             }
 

@@ -90,7 +90,8 @@ class XDGService(BaseService):
             return False
 
         # contains a blacklisted category
-        if bool([category for category in categories if category in map(str.lower, cls.ignored_categories)]):
+        ignored_categories = set(c.casefold() for c in cls.ignored_categories)
+        if any(c for c in categories if c in ignored_categories):
             return False
         return True
 

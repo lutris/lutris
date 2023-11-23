@@ -66,7 +66,7 @@ def shortcut_exists(game):
         shortcuts = get_shortcuts()
         if not shortcuts:
             return False
-        return bool([s for s in shortcuts.values() if matches_id(s, game)])
+        return any(s for s in shortcuts.values() if matches_id(s, game))
     except Exception as ex:
         logger.error("Failed to read shortcut vdf file: %s", ex)
         return False
