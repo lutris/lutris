@@ -528,7 +528,7 @@ class Game(GObject.Object):
     def start_antimicrox(self, antimicro_config):
         """Start Antimicrox with a given config path"""
         try:
-            antimicro_path = system.find_required_executable("antimicrox")
+            antimicro_path = system.find_executable("antimicrox")
         except MissingExecutableError as ex:
             raise GameConfigError(_("Unable to find Antimicrox, install it or disable the Antimicrox option")) from ex
 

@@ -187,7 +187,7 @@ def get_wine_path_for_version(version: Optional[str], config: dict = None) -> st
         raise UnspecifiedVersionError("The Wine version must be specified.")
 
     if version in WINE_PATHS:
-        return system.find_required_executable(WINE_PATHS[version])
+        return system.find_executable(WINE_PATHS[version])
     if "Proton" in version:
         for proton_path in get_proton_paths():
             if os.path.isfile(os.path.join(proton_path, version, "dist/bin/wine")):

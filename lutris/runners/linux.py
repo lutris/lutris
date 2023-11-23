@@ -86,7 +86,7 @@ class linux(Runner):
         if self.game_path:
             return os.path.join(self.game_path, exe)
         try:
-            return system.find_required_executable(exe)
+            return system.find_executable(exe)
         except MissingExecutableError:
             return None
 

@@ -153,7 +153,7 @@ class CommandsMixin:
             system.make_executable(exec_path)
 
         try:
-            exec_abs_path = system.find_required_executable(exec_path)
+            exec_abs_path = system.find_executable(exec_path)
         except MissingExecutableError as ex:
             raise ScriptingError(_("Unable to find executable %s") % exec_path) from ex
 

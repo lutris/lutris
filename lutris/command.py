@@ -97,7 +97,7 @@ class MonitoredCommand:
         if not self.terminal:
             return wrapper_command + self.command
 
-        terminal_path = system.find_required_executable(self.terminal)
+        terminal_path = system.find_executable(self.terminal)
         script_path = get_terminal_script(self.command, self.cwd, self.env)
         return wrapper_command + [terminal_path, "-e", script_path]
 

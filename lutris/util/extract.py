@@ -208,7 +208,7 @@ def extract_exe(path: str, dest: str) -> None:
         # use 7za to check if exe is an archive
         _7zip_path = os.path.join(settings.RUNTIME_DIR, "p7zip/7za")
         if not system.path_exists(_7zip_path):
-            _7zip_path = system.find_required_executable("7za")
+            _7zip_path = system.find_executable("7za")
         command = [_7zip_path, "t", path]
         return_code = subprocess.call(command)
         if return_code == 0:
@@ -261,7 +261,7 @@ def get_innoextract_path() -> str:
         if not system.path_exists(inno_path):
             return inno_path
 
-    inno_path = system.find_required_executable("innoextract")
+    inno_path = system.find_executable("innoextract")
     logger.warning("innoextract not available in the runtime folder, using some random version")
     return inno_path
 
@@ -310,7 +310,7 @@ def decompress_gz(file_path: str, dest_path: str):
 def extract_7zip(path: str, dest: str, archive_type: str = None) -> None:
     _7zip_path = os.path.join(settings.RUNTIME_DIR, "p7zip/7z")
     if not system.path_exists(_7zip_path):
-        _7zip_path = system.find_required_executable("7z")
+        _7zip_path = system.find_executable("7z")
     command = [_7zip_path, "x", path, "-o{}".format(dest), "-aoa"]
     if archive_type and archive_type != "auto":
         command.append("-t{}".format(archive_type))

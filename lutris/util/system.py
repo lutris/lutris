@@ -13,7 +13,6 @@ from collections import defaultdict
 from functools import lru_cache
 from gettext import gettext as _
 from pathlib import Path
-from typing import Optional
 
 from gi.repository import Gio, GLib
 
@@ -226,22 +225,15 @@ def make_executable(exec_path):
     os.chmod(exec_path, file_stats.st_mode | stat.S_IEXEC)
 
 
-def find_executable(exec_name: str) -> Optional[str]:
-    """Return the absolute path of an executable"""
-    if not exec_name:
-        return None
-    return bool(shutil.which(exec_name))
-
-
 def can_find_executable(exec_name: str) -> bool:
     """Checks if an executable can be located; if false,
-    find_required_executable will raise an exception."""
-    return exec_name and bool(shutil.which(exec_name))
+    find_executable will raise an exception."""
+    return bool(exec_name) and bool(shutil.which(exec_name))
 
 
-def find_required_executable(exec_name: str) -> str:
-    """Return the absolute path of an executable, but raises an
-    exception if it could not be found."""
+def find_executable(exec_name: str) -> str:
+    """Return the absolute path of an executable, but raises a
+    MissingExecutableError if it could not be found."""
     if exec_name:
         exe = shutil.which(exec_name)
         if exe:
@@ -439,7 +431,7 @@ def get_pids_using_file(path):
         logger.error("Can't return PIDs using non existing file: %s", path)
         return set()
     try:
-        fuser_path = find_required_executable("fuser")
+        fuser_path = find_executable("fuser")
     except MissingExecutableError:
         logger.warning("fuser not available, please install psmisc")
         return set([])

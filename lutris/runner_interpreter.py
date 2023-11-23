@@ -56,7 +56,7 @@ def get_launch_parameters(runner, gameplay_info):
     fps_limit = system_config.get("fps_limit") or ""
     if fps_limit:
         try:
-            strangle_cmd = system.find_required_executable("strangle")
+            strangle_cmd = system.find_executable("strangle")
             launch_arguments = [strangle_cmd, fps_limit] + launch_arguments
         except MissingExecutableError:
             logger.warning("libstrangle is not available on this system, FPS limiter disabled")
