@@ -9,10 +9,10 @@ class TestPCSX2Runner(unittest.TestCase):
     def setUp(self):
         self.runner = pcsx2()
 
-    @patch('lutris.util.system.path_exists')
-    def test_play_iso_does_not_exist(self, mock_path_exists):
+    @patch('os.path.isfile')
+    def test_play_iso_does_not_exist(self,  mock_isfile):
         main_file = '/invalid/path/to/iso'
-        mock_path_exists.return_value = False
+        mock_isfile.return_value = True
         mock_config = MagicMock()
         mock_config.game_config = {'main_file': main_file}
         mock_config.runner_config = MagicMock()
@@ -21,9 +21,11 @@ class TestPCSX2Runner(unittest.TestCase):
         self.assertEqual(self.runner.play(), expected)
 
     @patch('lutris.util.system.path_exists')
-    def test_play_fullscreen(self, mock_path_exists):
+    @patch('os.path.isfile')
+    def test_play_fullscreen(self, mock_path_exists, mock_isfile):
         main_file = '/valid/path/to/iso'
         mock_path_exists.return_value = True
+        mock_isfile.return_value = True
         mock_config = MagicMock()
         mock_config.game_config = {'main_file': main_file}
         mock_config.runner_config = {'fullscreen': True}
@@ -32,9 +34,11 @@ class TestPCSX2Runner(unittest.TestCase):
         self.assertEqual(self.runner.play(), expected)
 
     @patch('lutris.util.system.path_exists')
-    def test_play_full_boot(self, mock_path_exists):
+    @patch('os.path.isfile')
+    def test_play_full_boot(self, mock_path_exists, mock_isfile):
         main_file = '/valid/path/to/iso'
         mock_path_exists.return_value = True
+        mock_isfile.return_value = True
         mock_config = MagicMock()
         mock_config.game_config = {'main_file': main_file}
         mock_config.runner_config = {'full_boot': True}
@@ -43,9 +47,11 @@ class TestPCSX2Runner(unittest.TestCase):
         self.assertEqual(self.runner.play(), expected)
 
     @patch('lutris.util.system.path_exists')
-    def test_play_nogui(self, mock_path_exists):
+    @patch('os.path.isfile')
+    def test_play_nogui(self, mock_path_exists, mock_isfile):
         main_file = '/valid/path/to/iso'
         mock_path_exists.return_value = True
+        mock_isfile.return_value = True
         mock_config = MagicMock()
         mock_config.game_config = {'main_file': main_file}
         mock_config.runner_config = {'nogui': True}
@@ -54,9 +60,11 @@ class TestPCSX2Runner(unittest.TestCase):
         self.assertEqual(self.runner.play(), expected)
 
     @patch('lutris.util.system.path_exists')
-    def test_play(self, mock_path_exists):
+    @patch('os.path.isfile')
+    def test_play(self, mock_path_exists, mock_isfile):
         main_file = '/valid/path/to/iso'
         mock_path_exists.return_value = True
+        mock_isfile.return_value = True
         mock_config = MagicMock()
         mock_config.game_config = {'main_file': main_file}
         mock_config.runner_config = {
