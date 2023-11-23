@@ -262,8 +262,8 @@ def get_system_wine_version(wine_path: str = "wine") -> str:
     return version
 
 
-def get_real_executable(windows_executable: str, working_dir: str = None) -> Tuple[
-        str, List[str], Optional[str]]:
+def get_real_executable(windows_executable: str, working_dir: str) -> Tuple[
+        str, List[str], str]:
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""
 
