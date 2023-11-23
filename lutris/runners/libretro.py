@@ -142,6 +142,10 @@ class libretro(Runner):
         is_core_installed = system.path_exists(self.get_core_path(core))
         return super().is_installed() and is_core_installed
 
+    def is_installed_for(self, interpreter):
+        core = interpreter.installer.script["game"].get("core")
+        return self.is_installed(core=core)
+
     def install(self, install_ui_delegate, version=None, callback=None):
         captured_super = super()  # super() does not work inside install_core()
 

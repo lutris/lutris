@@ -18,6 +18,7 @@ from typing import Optional
 from gi.repository import Gio, GLib
 
 from lutris import settings
+from lutris.exceptions import MissingExecutableError
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 
@@ -243,7 +244,7 @@ def find_required_executable(exec_name: str) -> str:
     exception if it could not be found."""
     exe = find_executable(exec_name)
     if not exe:
-        raise ValueError(_("The executable '%s' could not be found.") % exec_name)
+        raise MissingExecutableError(_("The executable '%s' could not be found.") % exec_name)
     return exe
 
 

@@ -5,7 +5,6 @@ from gettext import gettext as _
 from gi.repository import GObject
 
 from lutris import settings
-from lutris.api import format_runner_version
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import watch_errors
@@ -243,24 +242,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                     required_runners.append(self.get_runner_class(runner_name)())
 
         for runner in required_runners:
-            params = {}
-            if self.installer.runner == "libretro":
-                params["core"] = self.installer.script["game"]["core"]
-            if self.installer.runner == "wine":
-                params["fallback"] = False  # Force the wine version to be installed
-                version = self._get_runner_version()
-                if version:
-                    params["version"] = version
-                else:
-                    # Looking up default wine version
-                    default_wine_info = runner.get_runner_version()
-                    if "version" in default_wine_info:
-                        logger.debug("Default wine version is %s", default_wine_info["version"])
-                        params["version"] = format_runner_version(default_wine_info)
-                    else:
-                        logger.error("Failed to get default wine version (got %s)", default_wine_info)
-
-            if not runner.is_installed(**params):
+            if not runner.is_installed_for(self):
                 logger.info("Runner %s needs to be installed", runner)
                 runners_to_install.append(runner)
 
@@ -283,7 +265,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         try:
             runner.install(
                 ui_delegate,
-                version=self._get_runner_version(),
+                version=self.get_runner_version(),
                 callback=install_more_runners,
             )
         except (NonInstallableRunnerError, RunnerInstallationError) as ex:

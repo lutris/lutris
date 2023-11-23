@@ -9,7 +9,7 @@ from lutris.api import format_runner_version, get_default_runner_version_info
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import GameConfigError, UnavailableLibrariesError
+from lutris.exceptions import GameConfigError, UnavailableLibrariesError, MissingExecutableError
 from lutris.runners import RunnerInstallationError
 from lutris.util import flatpak, strings, system
 from lutris.util.extract import ExtractFailure, extract_archive
@@ -169,7 +169,11 @@ class Runner:  # pylint: disable=too-many-public-methods
                 return runner_executable
         if not self.runner_executable:
             raise ValueError("runner_executable not set for {}".format(self.name))
-        return os.path.join(settings.RUNNER_DIR, self.runner_executable)
+
+        exe = os.path.join(settings.RUNNER_DIR, self.runner_executable)
+        if not os.path.isfile(exe):
+            raise MissingExecutableError(_("The executable '%s' could not be found.") % self.runner_executable)
+        return exe
 
     def get_command(self):
         exe = self.get_executable()
@@ -417,14 +421,18 @@ class Runner:  # pylint: disable=too-many-public-methods
     def is_installed(self):
         """Return whether the runner is installed"""
         try:
-            if system.path_exists(self.get_executable()):
-                return True
-        except:
-            # Will improve this with specific exception types in a PR,
-            # but if we can't get the executable, we aren't installed and
-            # will fall back to flatpak.
-            pass
+            # Don't care where the exe is, only if we can find it.
+            self.get_executable()
+            return True
+        except (MissingExecutableError, ValueError):
+            pass  # We can still try flatpak even if 'which' fails us!
+
         return self.flatpak_id and flatpak.is_app_installed(self.flatpak_id)
+
+    def is_installed_for(self, interpreter):
+        """Returns whether the runner is installed. Specific runners can extract additional
+        script settings, to determine more precisely what must be installed."""
+        return self.is_installed()
 
     def get_runner_version(self, version: str = None) -> Dict[str, str]:
         """Get the appropriate version for a runner, as with get_default_runner_version(),

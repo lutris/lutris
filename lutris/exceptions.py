@@ -48,6 +48,10 @@ class UnspecifiedVersionError(ValueError):
     """Raised when a version number must be specified, but was not."""
 
 
+class MissingExecutableError(RuntimeError):
+    """Raised when a program can't be located."""
+
+
 class EsyncLimitError(Exception):
     """Raised when the ESYNC limit is not set correctly."""
 

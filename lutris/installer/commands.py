@@ -33,7 +33,7 @@ class CommandsMixin:
     # pylint: disable=no-member
     installer: LutrisInstaller = NotImplemented
 
-    def _get_runner_version(self) -> Optional[str]:
+    def get_runner_version(self) -> Optional[str]:
         """Return the version of the runner used for the installer"""
         version = self._get_installer_runner_version()
         if not version and self.installer.runner == "wine":

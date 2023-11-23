@@ -7,7 +7,7 @@ from typing import Dict
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, get_default_runner_version_info
-from lutris.exceptions import EsyncLimitError, FsyncUnsupportedError
+from lutris.exceptions import EsyncLimitError, FsyncUnsupportedError, MissingExecutableError, UnavailableRunnerError
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
@@ -709,13 +709,13 @@ class wine(Runner):
             return wine_path
 
         if not fallback:
-            raise ValueError(_("The Wine executable at '%s' is missing.") % wine_path)
+            raise MissingExecutableError(_("The Wine executable at '%s' is missing.") % wine_path)
 
         # Fallback to default version
         default_version = get_default_wine_version()
         wine_path = self.get_path_for_version(default_version)
         if not system.path_exists(wine_path):
-            raise ValueError(_("The Wine executable at '%s' is missing.") % wine_path)
+            raise MissingExecutableError(_("The Wine executable at '%s' is missing.") % wine_path)
 
         # Update the version in the config
         if version == self.runner_config.get("version"):
@@ -727,18 +727,31 @@ class wine(Runner):
             # which one to get the correct LutrisConfig object.
         return wine_path
 
-    def is_installed(self, version=None, fallback=True):
+    def is_installed(self, version: str = None, fallback: bool = True) -> bool:
         """Check if Wine is installed.
         If no version is passed, checks if any version of wine is available
         """
-        try:
-            if version:
-                return system.path_exists(self.get_executable(version, fallback))
-            return bool(get_installed_wine_versions())
-        except:
-            # Will improve this will specific exception types in a PR, but
-            # if we can't get the versions or executable, we're not installed properly.
-            return False
+        if version:
+            try:
+                # We don't care where Wine is, but only if it was found at all.
+                self.get_executable(version, fallback)
+                return True
+            except (UnavailableRunnerError, MissingExecutableError):
+                return False
+
+        return bool(get_installed_wine_versions())
+
+    def is_installed_for(self, interpreter):
+        version = interpreter.get_runner_version()
+        if not version:
+            # Looking up default wine version
+            default_wine_info = self.get_runner_version()
+            if "version" in default_wine_info:
+                logger.debug("Default wine version is %s", default_wine_info["version"])
+                version = format_runner_version(default_wine_info)
+            else:
+                logger.error("Failed to get default wine version (got %s)", default_wine_info)
+        return self.is_installed(version, fallback=False)
 
     @classmethod
     def msi_exec(
@@ -972,11 +985,12 @@ class wine(Runner):
         if show_debug == "-all":
             env["DXVK_LOG_LEVEL"] = "none"
         env["WINEARCH"] = self.wine_arch
-        env["WINE"] = self.get_executable()
+        wine_exe = self.get_executable()
         wine_config_version = self.read_version_from_config()
+        env["WINE"] = wine_exe
         env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "mono")
         env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "gecko")
-        if is_gstreamer_build(self.get_executable()):
+        if is_gstreamer_build(wine_exe):
             path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
             path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
             if os.path.exists(path_64) or os.path.exists(path_32):
