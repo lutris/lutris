@@ -111,15 +111,10 @@ class Runtime:
         GLib.timeout_add(100, self.check_download_progress, downloader)
         return downloader
 
-    def download_component(self, component: Dict[str, Any]):
+    def download_component(self, component: Dict[str, Any]) -> None:
         """Download an individual file from a runtime item"""
         file_path = os.path.join(settings.RUNTIME_DIR, self.name, component["filename"])
-        try:
-            http.download_file(component["url"], file_path)
-        except http.HTTPError as ex:
-            logger.error("Failed to download runtime component %s: %s", component, ex)
-            return None
-        return file_path
+        http.download_file(component["url"], file_path)
 
     def get_runtime_components(self) -> List[Dict[str, Any]]:
         """Fetch individual runtime files for a component"""
@@ -149,9 +144,9 @@ class Runtime:
                 for component in downloads
             }
             for future in concurrent.futures.as_completed(future_downloads):
-                filename = future_downloads[future]
-                if not filename:
-                    logger.warning("Failed to get %s", future)
+                if not future.cancelled() and future.exception():
+                    expected_filename = future_downloads[future]
+                    logger.warning("Failed to get '%s': %s", expected_filename, future.exception())
 
     def check_download_progress(self, downloader: Downloader):
         """Call download.check_progress(), return True if download finished."""
