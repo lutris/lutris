@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Tuple
 from gi.repository import GLib
 
 from lutris import settings
-from lutris.api import download_runtime_versions, get_time_from_api_date
+from lutris.api import download_runtime_versions, format_runner_version, get_time_from_api_date
 from lutris.util import http, jobs, system, update_cache
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -274,7 +274,7 @@ class RuntimeUpdater:
             if not system.path_exists(runner_base_path) or not os.listdir(runner_base_path):
                 continue
 
-            runner_version = "-".join([upstream_runner["version"], upstream_runner["architecture"]])
+            runner_version = format_runner_version(upstream_runner)
 
             archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(upstream_runner["url"]))
             version_path = os.path.join(settings.RUNNER_DIR, name, runner_version)
