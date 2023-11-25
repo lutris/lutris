@@ -24,8 +24,10 @@ from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
+from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
+from lutris.runtime import RuntimeUpdater
 from lutris.scanners.lutris import add_to_path_cache, get_missing_game_ids, remove_from_path_cache
 # pylint: disable=no-member
 from lutris.services.base import BaseService
@@ -1132,6 +1134,25 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 game.emit("game-launch")
             else:
                 game.emit("game-install")
+
+    def continue_runtime_download(self, runtime_updater: RuntimeUpdater) -> None:
+        def show_download_progress():
+            self.download_progress_bar.set_fraction(runtime_updater.percentage_completed())
+            #if runtime_updater.status_text and self.label.get_text() != self.runtime_updater.status_text:
+            #    self.label.set_text(self.runtime_updater.status_text)
+            return True
+
+        def update_runtime_in_background_cb(result, error):
+            GLib.source_remove(download_progress_timeout)
+            self.download_box.hide()
+            completed = runtime_updater.completed_updates
+            if not error and completed:
+                text = _("Lutris has downloaded updates to %s. Restart Lutris to apply them.") % ", ".join(completed)
+                send_notification("Lutris updates ready", text)
+
+        download_progress_timeout = GLib.timeout_add(125, show_download_progress)
+        self.download_box.show()
+        AsyncCall(runtime_updater.update_runtime_in_background, update_runtime_in_background_cb)
 
     def on_watched_error(self, error):
         dialogs.ErrorDialog(error, parent=self)

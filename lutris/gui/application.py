@@ -352,6 +352,7 @@ class Application(Gtk.Application):
             if runtime_updater.has_updates():
                 init_dialog = LutrisInitDialog(runtime_updater)
                 init_dialog.run()
+            return runtime_updater
 
     def get_window_key(self, **kwargs):
         if kwargs.get("appid"):
@@ -421,6 +422,7 @@ class Application(Gtk.Application):
         """Output a script to a file.
         The script is capable of launching a game without the client
         """
+
         def on_error(game, error):
             logger.exception("Unable to generate script: %s", error)
             return True
@@ -678,7 +680,7 @@ class Application(Gtk.Application):
                 # Installers can use game or installer slugs
                 self.quit_on_game_exit = True
                 db_game = games_db.get_game_by_field(game_slug, "slug") \
-                    or games_db.get_game_by_field(game_slug, "installer_slug")
+                          or games_db.get_game_by_field(game_slug, "installer_slug")
             else:
                 # Dazed and confused, try anything that might works
                 db_game = (
@@ -755,12 +757,15 @@ class Application(Gtk.Application):
             if game.state == game.STATE_STOPPED and not self.window.is_visible():
                 self.quit()
         else:
-            self.show_update_runtime_dialog(gpu_info)
+            runtime_updater = self.show_update_runtime_dialog(gpu_info)
             # If we're showing the window, it will handle the delegated UI
             # from here on out, no matter what command line we got.
             self.launch_ui_delegate = self.window
             self.install_ui_delegate = self.window
             self.window.present()
+
+            if runtime_updater and runtime_updater.deferred_updates>0:
+                self.window.continue_runtime_download(runtime_updater)
             # If the Lutris GUI is started by itself, don't quit it when a game stops
             self.quit_on_game_exit = False
         return 0

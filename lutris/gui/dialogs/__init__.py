@@ -346,8 +346,6 @@ class LutrisInitDialog(Gtk.Dialog):
 
     def on_destroy(self, window):
         GLib.source_remove(self.progress_timeout)
-        if self.runtime_updater.has_updates(startup=False):
-            AsyncCall(self.runtime_updater.update_runtime_in_background, None)
         return True
 
 
