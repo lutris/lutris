@@ -1,6 +1,7 @@
 """Runtime handling module"""
 import concurrent.futures
 import os
+import shutil
 import time
 from gettext import gettext as _
 from typing import Any, Callable, Dict, List, Tuple
@@ -301,7 +302,7 @@ class RuntimeUpdater:
                 continue
 
             if system.path_exists(staged_path):
-                os.rename(staged_path, version_path)
+                shutil.move(staged_path, version_path)
                 get_installed_wine_versions.cache_clear()
                 continue
 

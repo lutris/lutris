@@ -4,8 +4,6 @@ from gettext import gettext as _
 
 import gi
 
-from lutris.gui.widgets.notifications import send_notification
-
 gi.require_version('Gdk', '3.0')
 gi.require_version('Gtk', '3.0')
 
@@ -13,6 +11,7 @@ from gi.repository import Gdk, GLib, GObject, Gtk
 
 from lutris import api, settings
 from lutris.gui.widgets.log_text_view import LogTextView
+from lutris.gui.widgets.notifications import send_notification
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
