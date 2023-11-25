@@ -37,23 +37,21 @@ class Runtime:
     """Class for manipulating runtime folders"""
 
     def __init__(self, name: str, updater: 'RuntimeUpdater') -> None:
-        self.name: str = name
+        if not name:
+            raise ValueError("Runtimes cannot be anonymous.")
+        self.name = name
         self.updater = updater
-        self.versioned: bool = False  # Versioned runtimes keep 1 version per folder
-        self.version: str = ""
-        self.download_progress: float = 0
+        self.versioned = False  # Versioned runtimes keep 1 version per folder
+        self.version = ""
+        self.download_progress = 0.0
 
     @property
-    def local_runtime_path(self):
+    def local_runtime_path(self) -> str:
         """Return the local path for the runtime folder"""
-        if not self.name:
-            return None
         return os.path.join(settings.RUNTIME_DIR, self.name)
 
-    def get_updated_at(self):
+    def get_updated_at(self) -> time.struct_time:
         """Return the modification date of the runtime folder"""
-        if not system.path_exists(self.local_runtime_path):
-            return None
         return time.gmtime(os.path.getmtime(self.local_runtime_path))
 
     def set_updated_at(self) -> None:
@@ -68,10 +66,10 @@ class Runtime:
         if self.versioned:
             return not system.path_exists(os.path.join(settings.RUNTIME_DIR, self.name, self.version))
 
-        local_updated_at = self.get_updated_at()
-        if not local_updated_at:
-            logger.debug("Runtime %s is not available locally", self.name)
-            return True
+        try:
+            local_updated_at = self.get_updated_at()
+        except FileNotFoundError:
+            return False
 
         if local_updated_at and local_updated_at >= remote_updated_at:
             return False
@@ -225,7 +223,7 @@ class RuntimeUpdater:
             self.add_update("runtime", self._update_runtime, hours=12)
             self.add_update("runners", self._update_runners, hours=12)
 
-    def add_update(self, key: str, update_function: UpdateFunction, hours: int):
+    def add_update(self, key: str, update_function: UpdateFunction, hours: int) -> None:
         """__init__ calls this to register each update. This function
         only registers the update if it hasn't been tried in the last
         'hours' hours. This is tracked in 'updates.json', and identified
@@ -291,15 +289,19 @@ class RuntimeUpdater:
             if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
                 logger.debug("Skipping runtime %s for %s", name, remote_runtime["architecture"])
                 continue
-            runtime = Runtime(remote_runtime["name"], self)
-            self.status_text = _("Updating %s") % remote_runtime['name']
-            if remote_runtime["url"]:
-                downloader = runtime.download(remote_runtime)
-                if downloader:
-                    self.downloaders[runtime] = downloader
-                    downloader.join()
-            else:
-                runtime.download_components()
+
+            try:
+                runtime = Runtime(remote_runtime["name"], self)
+                self.status_text = _("Updating %s") % remote_runtime['name']
+                if remote_runtime["url"]:
+                    downloader = runtime.download(remote_runtime)
+                    if downloader:
+                        self.downloaders[runtime] = downloader
+                        downloader.join()
+                else:
+                    runtime.download_components()
+            except Exception as ex:
+                logger.exception("Unable to download %s: %s", name, ex)
 
 
 def get_env(version: str = None, prefer_system_libs: bool = False, wine_path: str = None) -> Dict[str, str]:
