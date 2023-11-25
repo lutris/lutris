@@ -203,13 +203,16 @@ class RuntimeUpdater:
 
     UpdateFunction = Callable[[], None]
 
-    def __init__(self, pci_ids: List[str] = None, force: bool = False):
+    def __init__(self, pci_ids: List[str] = None,
+                 force: bool = False):
         self.force = force
+        self.startup = True
         self.pci_ids: List[str] = pci_ids or []
         self.runtime_versions: Dict[str, Any] = {}
         self.update_functions: List[Tuple[str, RuntimeUpdater.UpdateFunction]] = []
         self.downloaders: Dict[Runtime, Downloader] = {}
         self.status_text = ""
+        self.deferred_updates = 0
 
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled. Safety not guaranteed.")
@@ -260,7 +263,7 @@ class RuntimeUpdater:
             runner_version = "-".join([upstream_runner["version"], upstream_runner["architecture"]])
 
             archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(upstream_runner["url"]))
-            version_path = os.path.join(settings.RUNNER_DIR, name,runner_version)
+            version_path = os.path.join(settings.RUNNER_DIR, name, runner_version)
             staged_path = os.path.join(settings.STAGING_DIR, "runners", name, runner_version)
 
             if system.path_exists(version_path):
@@ -271,6 +274,11 @@ class RuntimeUpdater:
                 os.rename(staged_path, version_path)
                 get_installed_wine_versions.cache_clear()
                 continue
+
+            if self.startup:
+                self.deferred_updates += 1
+                continue
+
             self.status_text = _("Updating %s") % name
             downloader = Downloader(upstream_runner["url"], archive_download_path)
             downloader.start()
