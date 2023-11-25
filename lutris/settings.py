@@ -27,6 +27,8 @@ sio = SettingsIO(CONFIG_FILE)
 RUNNER_DIR = sio.read_setting("runner_dir") or os.path.join(DATA_DIR, "runners")
 RUNTIME_DIR = sio.read_setting("runtime_dir") or os.path.join(DATA_DIR, "runtime")
 CACHE_DIR = sio.read_setting("cache_dir") or os.path.join(GLib.get_user_cache_dir(), "lutris")
+TMP_DIR = os.path.join(CACHE_DIR, "tmp")
+STAGING_DIR = os.path.join(CACHE_DIR, "staging")
 GAME_CONFIG_DIR = os.path.join(CONFIG_DIR, "games")
 RUNNERS_CONFIG_DIR = os.path.join(CONFIG_DIR, "runners")
 

@@ -257,18 +257,28 @@ class RuntimeUpdater:
             if not system.path_exists(runner_base_path) or not os.listdir(runner_base_path):
                 continue
 
-            runner_path = os.path.join(settings.RUNNER_DIR, name,
-                                       "-".join([upstream_runner["version"], upstream_runner["architecture"]]))
-            if system.path_exists(runner_path):
+            runner_version = "-".join([upstream_runner["version"], upstream_runner["architecture"]])
+
+            archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(upstream_runner["url"]))
+            version_path = os.path.join(settings.RUNNER_DIR, name,runner_version)
+            staged_path = os.path.join(settings.STAGING_DIR, "runners", name, runner_version)
+
+            if system.path_exists(version_path):
+                if system.path_exists(staged_path):
+                    system.remove_folder(staged_path)
+                continue
+            elif system.path_exists(staged_path):
+                os.rename(staged_path, version_path)
+                get_installed_wine_versions.cache_clear()
                 continue
             self.status_text = _("Updating %s") % name
-            archive_download_path = os.path.join(settings.CACHE_DIR, os.path.basename(upstream_runner["url"]))
             downloader = Downloader(upstream_runner["url"], archive_download_path)
             downloader.start()
             self.downloaders = {"wine": downloader}
             downloader.join()
             self.status_text = _("Extracting %s") % name
-            extract_archive(archive_download_path, runner_path)
+            extract_archive(archive_download_path, staged_path)
+            os.remove(archive_download_path)
 
             get_installed_wine_versions.cache_clear()
 
