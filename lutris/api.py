@@ -9,7 +9,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections import OrderedDict
-from typing import Dict
+from typing import Any, Dict
 
 import requests
 
@@ -28,7 +28,7 @@ def get_time_from_api_date(date_string):
     return time.strptime(date_string[:date_string.find(".")], "%Y-%m-%dT%H:%M:%S")
 
 
-def load_runtime_versions() -> dict:
+def load_runtime_versions() -> Dict[str, Any]:
     """Load runtime versions from json file"""
     if not system.path_exists(settings.RUNTIME_VERSIONS_PATH):
         return {}
@@ -312,7 +312,7 @@ def search_games(query) -> dict:
     return response.json
 
 
-def download_runtime_versions(pci_ids: list) -> dict:
+def download_runtime_versions(pci_ids: list) -> Dict[str, Any]:
     """Queries runtime + runners + current client versions"""
     url = settings.SITE_URL + "/api/runtimes/versions?pci_ids=" + ",".join(pci_ids)
     response = http.Request(url, headers={"Content-Type": "application/json"})

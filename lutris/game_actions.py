@@ -18,7 +18,7 @@ from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.config.edit_game_categories import EditGameCategoriesDialog
 from lutris.gui.dialogs import InputDialog
 from lutris.gui.dialogs.log import LogWindow
-from lutris.gui.dialogs.uninstall_game import RemoveGameDialog, UninstallGameDialog, RemoveMultipleGamesDialog
+from lutris.gui.dialogs.uninstall_game import RemoveGameDialog, RemoveMultipleGamesDialog, UninstallGameDialog
 from lutris.gui.widgets.utils import open_uri
 from lutris.services.lutris import download_lutris_media
 from lutris.util import xdgshortcuts
