@@ -212,6 +212,7 @@ class RuntimeUpdater:
         self.downloaders: Dict[Runtime, Downloader] = {}
         self.status_text = ""
         self.deferred_updates = 0
+        self.completed_updates: List[str] = []
 
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled. Safety not guaranteed.")
@@ -257,6 +258,7 @@ class RuntimeUpdater:
     def _perform_updates(self, startup: bool) -> None:
         self.startup = startup
         self.deferred_updates = 0
+        self.completed_updates = []
 
         # This can be called twice, once at startup, and once for deferred updates
         # while you play. No need to re-download runtime versions though.
@@ -317,6 +319,7 @@ class RuntimeUpdater:
             self.status_text = _("Extracting %s") % name
             extract_archive(archive_download_path, staged_path)
             os.remove(archive_download_path)
+            self.completed_updates.append(f"{name} ({runner_version})")
 
             get_installed_wine_versions.cache_clear()
 
@@ -347,6 +350,7 @@ class RuntimeUpdater:
                         downloader.join()
                     else:
                         runtime.download_components()
+                    self.completed_updates.append(name)
             except Exception as ex:
                 logger.exception("Unable to download %s: %s", name, ex)
 
