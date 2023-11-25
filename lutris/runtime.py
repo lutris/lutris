@@ -69,7 +69,7 @@ class Runtime:
         try:
             local_updated_at = self.get_updated_at()
         except FileNotFoundError:
-            return False
+            return True
 
         remote_updated_at = get_time_from_api_date(remote_runtime_info["created_at"])
 
