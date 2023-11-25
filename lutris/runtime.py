@@ -203,8 +203,7 @@ class RuntimeUpdater:
 
     UpdateFunction = Callable[[], None]
 
-    def __init__(self, pci_ids: List[str] = None,
-                 force: bool = False):
+    def __init__(self, pci_ids: List[str] = None, force: bool = False):
         self.force = force
         self.startup = True
         self.pci_ids: List[str] = pci_ids or []
@@ -218,28 +217,56 @@ class RuntimeUpdater:
             logger.warning("Runtime disabled. Safety not guaranteed.")
         else:
             self.add_update("runtime", self._update_runtime, hours=12)
-            self.add_update("runners", self._update_runners, hours=12)
+            self.add_update("runners", self._update_runners, hours=12, staged_in="runners")
 
-    def add_update(self, key: str, update_function: UpdateFunction, hours: int) -> None:
+    def add_update(self, key: str, update_function: UpdateFunction, hours: int, staged_in: str = None) -> None:
         """__init__ calls this to register each update. This function
         only registers the update if it hasn't been tried in the last
         'hours' hours. This is tracked in 'updates.json', and identified
-        by 'key' in that file."""
-        last_call = update_cache.get_last_call(key)
-        if self.force or not last_call or last_call > 3600 * hours:
+        by 'key' in that file. 'staged_in' is an override for this- if this directory
+        is found in the STAGING_DIR, we always run the update function regardless."""
+        if staged_in and os.path.isdir(os.path.join(settings.STAGING_DIR, staged_in)):
             self.update_functions.append((key, update_function))
+        else:
+            last_call = update_cache.get_last_call(key)
+            if self.force or not last_call or last_call > 3600 * hours:
+                self.update_functions.append((key, update_function))
 
     @property
     def has_updates(self) -> bool:
         """Returns True if there are any updates to perform."""
         return len(self.update_functions) > 0
 
-    def update_runtimes(self) -> None:
-        """Performs all the registered updates."""
-        self.runtime_versions = download_runtime_versions(self.pci_ids)
+    def update_runtimes_at_startup(self) -> None:
+        """Performs all the registered updates in 'startup' mode; some may be detected but deferred
+        for update_runtime_in_background. Staged updates from a previous Lutris session will be
+        applied."""
+        self._perform_updates(startup=True)
+
+        # We can clean up the staging dir, if nothing more has been
+        # deferred.
+        if self.deferred_updates == 0:
+            for dirname in os.listdir(settings.STAGING_DIR):
+                system.remove_folder(os.path.join(settings.STAGING_DIR, dirname))
+
+    def update_runtime_in_background(self) -> None:
+        """Performs those updates that are deferred past startup; this runs in the background
+        as you play, so results are left in the STAGING_DIR to be applied at next startup."""
+        self._perform_updates(startup=False)
+
+    def _perform_updates(self, startup: bool) -> None:
+        self.startup = startup
+        self.deferred_updates = 0
+
+        # This can be called twice, once at startup, and once for deferred updates
+        # while you play. No need to re-download runtime versions though.
+        if not self.runtime_versions:
+            self.runtime_versions = download_runtime_versions(self.pci_ids)
+
         for key, func in self.update_functions:
             func()
-            update_cache.write_date_to_cache(key)
+            if startup:
+                update_cache.write_date_to_cache(key)
 
     def _update_runners(self) -> None:
         """Update installed runners (only works for Wine at the moment)"""
@@ -270,12 +297,15 @@ class RuntimeUpdater:
                 if system.path_exists(staged_path):
                     system.remove_folder(staged_path)
                 continue
-            elif system.path_exists(staged_path):
+
+            if system.path_exists(staged_path):
                 os.rename(staged_path, version_path)
                 get_installed_wine_versions.cache_clear()
                 continue
 
             if self.startup:
+                # At startup time we do not download new runner versions, but merely
+                # count them. We'll do these later, while you play.
                 self.deferred_updates += 1
                 continue
 
@@ -297,6 +327,11 @@ class RuntimeUpdater:
 
     def _update_runtime(self) -> None:
         """Launch the update process"""
+        # Runtimes always download at startup only, it's just a wait to do it again
+        # later in the session.
+        if not self.startup:
+            return
+
         for name, remote_runtime in self.runtime_versions.get("runtimes", {}).items():
             if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
                 logger.debug("Skipping runtime %s for %s", name, remote_runtime["architecture"])

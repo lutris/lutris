@@ -331,7 +331,7 @@ class LutrisInitDialog(Gtk.Dialog):
         self.show_all()
 
         self.connect("destroy", self.on_destroy)
-        AsyncCall(self.runtime_updater.update_runtimes, self.init_cb)
+        AsyncCall(self.runtime_updater.update_runtimes_at_startup, self.init_cb)
 
     def show_progress(self):
         self.progress.set_fraction(self.runtime_updater.percentage_completed())
@@ -348,7 +348,7 @@ class LutrisInitDialog(Gtk.Dialog):
         GLib.source_remove(self.progress_timeout)
         if self.runtime_updater.deferred_updates > 0:
             self.runtime_updater.startup = False
-            AsyncCall(self.runtime_updater.update_runtimes, None)
+            AsyncCall(self.runtime_updater.update_runtime_in_background, None)
         return True
 
 
