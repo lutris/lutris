@@ -8,12 +8,12 @@
   background-color: rgb(255, 199, 116);
 }
 
-.sidebar button {
+.lutrissidebar button {
   padding: 0;
   border: 0;
 }
 
-.sidebar button > image {
+.lutrissidebar button > image {
   padding: 0;
   border: 0;
 }

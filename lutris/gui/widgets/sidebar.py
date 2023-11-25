@@ -330,7 +330,7 @@ class LutrisSidebar(Gtk.ListBox):
         super().__init__()
         self.set_size_request(200, -1)
         self.application = application
-        self.get_style_context().add_class("sidebar")
+        self.get_style_context().add_class("lutrissidebar")
 
         # Empty values until LutrisWindow explicitly initializes the rows
         # at the right time.

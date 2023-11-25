@@ -60,6 +60,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
     zoom_adjustment = GtkTemplate.Child()
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
+    download_box = GtkTemplate.Child()
+    download_progress_bar = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         width = int(settings.read_setting("width") or self.default_width)
