@@ -61,7 +61,7 @@ class Runtime:
             return
         os.utime(self.local_runtime_path)
 
-    def should_update(self, remote_updated_at: time.struct_time) -> bool:
+    def should_update(self, remote_runtime_info: Dict[str, Any]) -> bool:
         """Determine if the current runtime should be updated"""
         if self.versioned:
             return not system.path_exists(os.path.join(settings.RUNTIME_DIR, self.name, self.version))
@@ -70,6 +70,8 @@ class Runtime:
             local_updated_at = self.get_updated_at()
         except FileNotFoundError:
             return False
+
+        remote_updated_at = get_time_from_api_date(remote_runtime_info["created_at"])
 
         if local_updated_at and local_updated_at >= remote_updated_at:
             return False
@@ -101,11 +103,8 @@ class Runtime:
         archive_path = os.path.join(settings.RUNTIME_DIR, os.path.basename(url))
         return Downloader(url, archive_path, overwrite=True)
 
-    def download(self, remote_runtime_info: Dict[str, Any]):
+    def download(self, remote_runtime_info: Dict[str, Any]) -> Downloader:
         """Downloads a runtime locally"""
-        remote_updated_at = get_time_from_api_date(remote_runtime_info["created_at"])
-        if not self.should_update(remote_updated_at):
-            return None
         downloader = self.get_downloader(remote_runtime_info)
         downloader.start()
         GLib.timeout_add(100, self.check_download_progress, downloader)
@@ -287,14 +286,14 @@ class RuntimeUpdater:
 
             try:
                 runtime = Runtime(remote_runtime["name"], self)
-                self.status_text = _("Updating %s") % remote_runtime['name']
-                if remote_runtime["url"]:
-                    downloader = runtime.download(remote_runtime)
-                    if downloader:
+                if runtime.should_update(remote_runtime):
+                    self.status_text = _("Updating %s") % remote_runtime['name']
+                    if remote_runtime["url"]:
+                        downloader = runtime.download(remote_runtime)
                         self.downloaders[runtime] = downloader
                         downloader.join()
-                else:
-                    runtime.download_components()
+                    else:
+                        runtime.download_components()
             except Exception as ex:
                 logger.exception("Unable to download %s: %s", name, ex)
 
