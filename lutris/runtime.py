@@ -287,11 +287,21 @@ class RuntimeUpdater:
             downloader.start()
             self.downloaders = {"wine": downloader}
             downloader.join()
-            self.status_text = _("Extracting %s") % name
-            extract_archive(archive_download_path, version_path)
+            if downloader.state == downloader.COMPLETED:
+                self.status_text = _("Extracting %s") % name
+                extract_archive(archive_download_path, version_path)
+                get_installed_wine_versions.cache_clear()
+
             os.remove(archive_download_path)
 
-            get_installed_wine_versions.cache_clear()
+    @property
+    def can_cancel(self) -> bool:
+        return any(d for d in self.downloaders.values() if d.state == d.DOWNLOADING)
+
+    def cancel(self) -> None:
+        for downloader in self.downloaders.values():
+            if downloader.state == downloader.DOWNLOADING:
+                downloader.cancel()
 
     def percentage_completed(self) -> float:
         if not self.downloaders:

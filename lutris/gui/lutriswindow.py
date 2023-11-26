@@ -1141,7 +1141,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
             status = gtk_safe(runtime_updater.status_text)
             markup = "<span size='10000'>%s</span>" % status if status else ""
             progress_box.show()
-            return pct, markup
+            stop_func = runtime_updater.cancel if runtime_updater.can_cancel else None
+            return pct, markup, stop_func
 
         @watch_errors(handler_object=self)
         def update_runtime_in_background_cb(_result, error):

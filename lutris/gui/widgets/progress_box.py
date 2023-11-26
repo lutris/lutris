@@ -1,4 +1,4 @@
-from typing import Callable, Tuple
+from typing import Callable, Tuple, Optional
 
 from gi.repository import GLib, Gtk, Pango
 
@@ -11,8 +11,8 @@ class ProgressBox(Gtk.Box):
     and markup to display in a label. You can also supply a cstop function to be called when the
     stop button is clicked, or omit this to not have one."""
 
-    ProgressFunction = Callable[[], Tuple[float, str]]
     StopFunction = Callable[[], None]
+    ProgressFunction = Callable[[], Tuple[float, str, Optional[StopFunction]]]
 
     def __init__(self,
                  progress_function: ProgressFunction,
@@ -37,12 +37,11 @@ class ProgressBox(Gtk.Box):
 
         self.pack_start(vbox, True, True, 0)
 
-        if stop_function:
-            self.stop_button = Gtk.Button.new_from_icon_name("media-playback-stop-symbolic", Gtk.IconSize.BUTTON)
-            self.stop_button.show()
-            self.stop_button.get_style_context().add_class("circular")
-            self.stop_button.connect("clicked", self.on_stop_clicked)
-            self.pack_start(self.stop_button, False, False, 0)
+        self.stop_button = Gtk.Button.new_from_icon_name("media-playback-stop-symbolic", Gtk.IconSize.BUTTON)
+        self.stop_button.set_visible(bool(stop_function))
+        self.stop_button.get_style_context().add_class("circular")
+        self.stop_button.connect("clicked", self.on_stop_clicked)
+        self.pack_start(self.stop_button, False, False, 0)
 
         self.timer_id = GLib.timeout_add(500, self.on_update_progress)
         self.connect("destroy", self.on_destroy)
@@ -57,7 +56,8 @@ class ProgressBox(Gtk.Box):
 
     def on_update_progress(self) -> bool:
         try:
-            progress, progress_text = self.progress_function()
+            progress, progress_text, stop_function = self.progress_function()
+            self.stop_function = stop_function
         except Exception as ex:
             ErrorDialog(ex, parent=self.get_toplevel())
             self.timer_id = None
@@ -66,6 +66,7 @@ class ProgressBox(Gtk.Box):
 
         self.progressbar.set_fraction(min(progress, 1))
         self._set_label(progress_text or "")
+        self.stop_button.set_visible(bool(stop_function))
         return True
 
     def _set_label(self, markup: str) -> None:
