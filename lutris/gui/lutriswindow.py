@@ -25,6 +25,7 @@ from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
+from lutris.gui.widgets.progress_box import ProgressBox
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import RuntimeUpdater
 from lutris.scanners.lutris import add_to_path_cache, get_missing_game_ids, remove_from_path_cache
@@ -62,9 +63,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     zoom_adjustment = GtkTemplate.Child()
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
-    download_revealer: Gtk.Revealer = GtkTemplate.Child()
-    download_label: Gtk.Label = GtkTemplate.Child()
-    download_progress_bar: Gtk.ProgressBar = GtkTemplate.Child()
+    download_box: Gtk.Box = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         width = int(settings.read_setting("width") or self.default_width)
@@ -1137,19 +1136,18 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 game.emit("game-install")
 
     def continue_runtime_download(self, runtime_updater: RuntimeUpdater) -> None:
-        def show_download_progress():
-            self.download_progress_bar.set_fraction(runtime_updater.percentage_completed())
+        def check_progress():
+            pct = runtime_updater.percentage_completed()
             markup = "<span size='8000'>{}</span>".format(gtk_safe(runtime_updater.status_text))
-            if runtime_updater.status_text and self.download_label.get_text() != markup:
-                self.download_label.set_markup(markup)
-            return True
+            progress_box.show()
+            return pct, markup
 
-        def update_runtime_in_background_cb(result, error):
-            GLib.source_remove(download_progress_timeout)
-            self.download_revealer.set_reveal_child(False)
+        @watch_errors(handler_object=self)
+        def update_runtime_in_background_cb(_result, error):
+            progress_box.destroy()
 
-        download_progress_timeout = GLib.timeout_add(125, show_download_progress)
-        self.download_revealer.set_reveal_child(True)
+        progress_box = ProgressBox(check_progress, visible=False, margin=3)
+        self.download_box.pack_start(progress_box, False, False, 0)
         AsyncCall(runtime_updater.update_runtime_in_background, update_runtime_in_background_cb)
 
     def on_watched_error(self, error):
