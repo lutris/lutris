@@ -1,27 +1,24 @@
-from typing import Callable, Tuple, Optional
+from typing import Callable
 
 from gi.repository import GLib, Gtk, Pango
 
-from lutris.gui.dialogs import ErrorDialog
+from lutris.util.log import logger
 
 
 class ProgressBox(Gtk.Box):
     """Simple, small progress bar used to monitor the update of runtime or runner components.
-    This class needs only a function that returns the current progress, as a tuple of progress (0->1)
-    and markup to display in a label. You can also supply a cstop function to be called when the
-    stop button is clicked, or omit this to not have one."""
+    This class needs only a function that returns a Progress object, which describes the current
+    progress and optionally can stop the update."""
 
-    StopFunction = Callable[[], None]
-    ProgressFunction = Callable[[], Tuple[float, str, Optional[StopFunction]]]
+    ProgressFunction = Callable[[], 'ProgressBox.Progress']
 
     def __init__(self,
                  progress_function: ProgressFunction,
-                 stop_function: StopFunction = None,
                  **kwargs):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL, no_show_all=True, spacing=6, **kwargs)
 
         self.progress_function = progress_function
-        self.stop_function = stop_function
+        self.progress = ProgressBox.Progress(0.0)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True, spacing=6,
                        valign=Gtk.Align.CENTER)
@@ -38,7 +35,7 @@ class ProgressBox(Gtk.Box):
         self.pack_start(vbox, True, True, 0)
 
         self.stop_button = Gtk.Button.new_from_icon_name("media-playback-stop-symbolic", Gtk.IconSize.BUTTON)
-        self.stop_button.set_visible(bool(stop_function))
+        self.stop_button.hide()
         self.stop_button.get_style_context().add_class("circular")
         self.stop_button.connect("clicked", self.on_stop_clicked)
         self.pack_start(self.stop_button, False, False, 0)
@@ -46,9 +43,31 @@ class ProgressBox(Gtk.Box):
         self.timer_id = GLib.timeout_add(500, self.on_update_progress)
         self.connect("destroy", self.on_destroy)
 
+    class Progress:
+        """Contains the current state of the update being monitored. This can also provide
+        for stopping the update via a function you can provide.
+
+        Updates often cannot be stopped after a certain point; at that point they start
+        providing Progress objects with no stop-function, and the stop button disappears."""
+
+        def __init__(self, progress: float, label_markup: str = "", stop_function: Callable = None):
+            self.progress = progress
+            self.label_markup = label_markup
+            self.stop_function = stop_function
+
+        @property
+        def can_stop(self) -> bool:
+            """Called to check if the stop button should appear."""
+            return bool(self.stop_function)
+
+        def stop(self):
+            """Called whe the stop button is clicked."""
+            if self.stop_function:
+                self.stop_function()
+
     def on_stop_clicked(self, _widget) -> None:
-        if self.stop_function:
-            self.stop_function()
+        if self.progress.can_stop:
+            self.progress.stop()
 
     def on_destroy(self, _widget) -> None:
         if self.timer_id:
@@ -56,18 +75,21 @@ class ProgressBox(Gtk.Box):
 
     def on_update_progress(self) -> bool:
         try:
-            progress, progress_text, stop_function = self.progress_function()
-            self.stop_function = stop_function
+            progress = self.progress_function()
         except Exception as ex:
-            ErrorDialog(ex, parent=self.get_toplevel())
+            logger.exception("Unable to obtain a progress update: %s", ex)
             self.timer_id = None
-            self.destroy()
             return False
 
-        self.progressbar.set_fraction(min(progress, 1))
-        self._set_label(progress_text or "")
-        self.stop_button.set_visible(bool(stop_function))
+        self._apply_progress(progress)
         return True
+
+    def _apply_progress(self, progress: Progress):
+        self.progress = progress
+
+        self.progressbar.set_fraction(min(progress.progress, 1))
+        self._set_label(progress.label_markup or "")
+        self.stop_button.set_visible(progress.can_stop)
 
     def _set_label(self, markup: str) -> None:
         if markup:
