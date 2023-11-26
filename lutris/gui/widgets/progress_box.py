@@ -28,7 +28,7 @@ class ProgressBox(Gtk.Box):
                                xalign=0)
         vbox.pack_start(self.label, False, False, 0)
 
-        self.progressbar = Gtk.ProgressBar(visible=True)
+        self.progressbar = Gtk.ProgressBar(pulse_step=0.4, visible=True)
         self.progressbar.set_valign(Gtk.Align.CENTER)
         vbox.pack_start(self.progressbar, False, False, 0)
 
@@ -50,7 +50,7 @@ class ProgressBox(Gtk.Box):
         Updates often cannot be stopped after a certain point; at that point they start
         providing Progress objects with no stop-function, and the stop button disappears."""
 
-        def __init__(self, progress: float, label_markup: str = "", stop_function: Callable = None):
+        def __init__(self, progress: float = None, label_markup: str = "", stop_function: Callable = None):
             self.progress = progress
             self.label_markup = label_markup
             self.stop_function = stop_function
@@ -87,7 +87,10 @@ class ProgressBox(Gtk.Box):
     def _apply_progress(self, progress: Progress):
         self.progress = progress
 
-        self.progressbar.set_fraction(min(progress.progress, 1))
+        if progress.progress is None:
+            self.progressbar.pulse()
+        else:
+            self.progressbar.set_fraction(min(progress.progress, 1))
         self._set_label(progress.label_markup or "")
         self.stop_button.set_visible(progress.can_stop)
 

@@ -334,7 +334,11 @@ class LutrisInitDialog(Gtk.Dialog):
         AsyncCall(self.runtime_updater.update_runtimes_at_startup, self.init_cb)
 
     def show_progress(self):
-        self.progress.set_fraction(self.runtime_updater.percentage_completed())
+        if self.runtime_updater.is_downloading:
+            self.progress.set_fraction(self.runtime_updater.percentage_completed)
+        else:
+            self.progress.pulse()
+
         if self.runtime_updater.status_text and self.label.get_text() != self.runtime_updater.status_text:
             self.label.set_text(self.runtime_updater.status_text)
         return True

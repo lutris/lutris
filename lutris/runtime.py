@@ -296,17 +296,23 @@ class RuntimeUpdater:
 
     @property
     def can_cancel(self) -> bool:
-        return any(d for d in self.downloaders.values() if d.state == d.DOWNLOADING)
+        return self.is_downloading
 
     def cancel(self) -> None:
         for downloader in self.downloaders.values():
             if downloader.state == downloader.DOWNLOADING:
                 downloader.cancel()
 
+    @property
+    def is_downloading(self):
+        return any(d for d in self.downloaders.values() if d.state == d.DOWNLOADING)
+
+    @property
     def percentage_completed(self) -> float:
-        if not self.downloaders:
-            return 0
-        return sum(downloader.progress_fraction for downloader in self.downloaders.values()) / len(self.downloaders)
+        downloading = [d for d in self.downloaders.values() if d.state == d.DOWNLOADING]
+        if not downloading:
+            return 1.0
+        return sum(d.progress_fraction for d in downloading) / len(self.downloaders)
 
     def _update_runtime(self) -> None:
         """Launch the update process"""

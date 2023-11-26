@@ -1137,15 +1137,15 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def continue_runtime_download(self, runtime_updater: RuntimeUpdater) -> None:
         def check_progress():
-            pct = runtime_updater.percentage_completed()
+            progress = runtime_updater.percentage_completed if runtime_updater.is_downloading else None
             status = gtk_safe(runtime_updater.status_text)
             markup = "<span size='10000'>%s</span>" % status if status else ""
             progress_box.show()
 
             if runtime_updater.can_cancel:
-                return ProgressBox.Progress(pct, markup, runtime_updater.cancel)
+                return ProgressBox.Progress(progress, markup, runtime_updater.cancel)
 
-            return ProgressBox.Progress(pct, markup)
+            return ProgressBox.Progress(progress, markup)
 
         @watch_errors(handler_object=self)
         def update_runtime_in_background_cb(_result, error):
