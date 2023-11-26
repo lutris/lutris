@@ -205,21 +205,19 @@ class RuntimeUpdater:
 
     def __init__(self, pci_ids: List[str] = None, force: bool = False):
         self.force = force
-        self.startup = True
         self.pci_ids: List[str] = pci_ids or []
         self.runtime_versions: Dict[str, Any] = {}
-        self.update_functions: List[Tuple[str, RuntimeUpdater.UpdateFunction]] = []
+        self.update_functions: List[Tuple[str, RuntimeUpdater.UpdateFunction, bool]] = []
         self.downloaders: Dict[Runtime, Downloader] = {}
         self.status_text = ""
-        self.deferred_updates = 0
 
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled. Safety not guaranteed.")
         else:
-            self.add_update("runtime", self._update_runtime, hours=12)
-            self.add_update("runners", self._update_runners, hours=12)
+            self.add_update("runtime", self._update_runtime, hours=12, startup=True)
+            self.add_update("runners", self._update_runners, hours=12, startup=False)
 
-    def add_update(self, key: str, update_function: UpdateFunction, hours: int) -> None:
+    def add_update(self, key: str, update_function: UpdateFunction, hours: int, startup: bool) -> None:
         """__init__ calls this to register each update. This function
         only registers the update if it hasn't been tried in the last
         'hours' hours. This is tracked in 'updates.json', and identified
@@ -227,36 +225,34 @@ class RuntimeUpdater:
         is found in the STAGING_DIR, we always run the update function regardless."""
         last_call = update_cache.get_last_call(key)
         if self.force or not last_call or last_call > 3600 * hours:
-            self.update_functions.append((key, update_function))
+            self.update_functions.append((key, update_function, startup))
 
-    @property
-    def has_updates(self) -> bool:
+    def has_updates(self, startup: bool = None) -> bool:
         """Returns True if there are any updates to perform."""
-        return len(self.update_functions) > 0
+        if startup is None:
+            return bool(self.update_functions)
+
+        return any(f for f in self.update_functions if f[2] == startup)
 
     def update_runtimes_at_startup(self) -> None:
-        """Performs all the registered updates in 'startup' mode; some may be detected but deferred
-        for update_runtime_in_background. Staged updates from a previous Lutris session will be
-        applied."""
+        """Performs all the registered updates that are marked for 'startup'. These prevent Lutris
+        from being used until they are ready."""
         self._perform_updates(startup=True)
 
     def update_runtime_in_background(self) -> None:
-        """Performs those updates that are deferred past startup; this runs in the background
-        as you play, so results are left in the STAGING_DIR to be applied at next startup."""
+        """Performs those updates that are not marked for 'startup'; these are downloaded in the
+        background, and become available while Lutris is active."""
         self._perform_updates(startup=False)
 
     def _perform_updates(self, startup: bool) -> None:
-        self.startup = startup
-        self.deferred_updates = 0
-
         # This can be called twice, once at startup, and once for deferred updates
         # while you play. No need to re-download runtime versions though.
         if not self.runtime_versions:
             self.runtime_versions = download_runtime_versions(self.pci_ids)
 
-        for key, func in self.update_functions:
-            func()
-            if startup:
+        for key, func, for_startup in self.update_functions:
+            if startup == for_startup:
+                func()
                 update_cache.write_date_to_cache(key)
 
     def _update_runners(self) -> None:
@@ -286,12 +282,6 @@ class RuntimeUpdater:
             if system.path_exists(version_path):
                 continue
 
-            if self.startup:
-                # At startup time we do not download new runner versions, but merely
-                # count them. We'll do these later, while you play.
-                self.deferred_updates += 1
-                continue
-
             self.status_text = _("Updating %s") % name
             downloader = Downloader(upstream_runner["url"], archive_download_path)
             downloader.start()
@@ -310,11 +300,6 @@ class RuntimeUpdater:
 
     def _update_runtime(self) -> None:
         """Launch the update process"""
-        # Runtimes always download at startup only, it's just a wait to do it again
-        # later in the session.
-        if not self.startup:
-            return
-
         for name, remote_runtime in self.runtime_versions.get("runtimes", {}).items():
             if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
                 logger.debug("Skipping runtime %s for %s", name, remote_runtime["architecture"])

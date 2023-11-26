@@ -320,7 +320,7 @@ class Application(Gtk.Application):
         else:
             pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpu_info["gpus"].values()]
             runtime_updater = RuntimeUpdater(pci_ids=pci_ids, force=self.force_updates)
-            if runtime_updater.has_updates:
+            if runtime_updater.has_updates():
                 init_dialog = LutrisInitDialog(runtime_updater)
                 init_dialog.run()
 
