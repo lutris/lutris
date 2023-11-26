@@ -40,7 +40,6 @@ def init_dirs():
         settings.SHADER_CACHE_DIR,
         settings.INSTALLER_CACHE_DIR,
         settings.TMP_DIR,
-        settings.STAGING_DIR
     ]
     for directory in directories:
         create_folder(directory)

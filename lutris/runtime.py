@@ -1,7 +1,6 @@
 """Runtime handling module"""
 import concurrent.futures
 import os
-import shutil
 import time
 from gettext import gettext as _
 from typing import Any, Callable, Dict, List, Tuple
@@ -213,26 +212,22 @@ class RuntimeUpdater:
         self.downloaders: Dict[Runtime, Downloader] = {}
         self.status_text = ""
         self.deferred_updates = 0
-        self.completed_updates: List[str] = []
 
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled. Safety not guaranteed.")
         else:
             self.add_update("runtime", self._update_runtime, hours=12)
-            self.add_update("runners", self._update_runners, hours=12, staged_in="runners")
+            self.add_update("runners", self._update_runners, hours=12)
 
-    def add_update(self, key: str, update_function: UpdateFunction, hours: int, staged_in: str = None) -> None:
+    def add_update(self, key: str, update_function: UpdateFunction, hours: int) -> None:
         """__init__ calls this to register each update. This function
         only registers the update if it hasn't been tried in the last
         'hours' hours. This is tracked in 'updates.json', and identified
         by 'key' in that file. 'staged_in' is an override for this- if this directory
         is found in the STAGING_DIR, we always run the update function regardless."""
-        if staged_in and os.path.isdir(os.path.join(settings.STAGING_DIR, staged_in)):
+        last_call = update_cache.get_last_call(key)
+        if self.force or not last_call or last_call > 3600 * hours:
             self.update_functions.append((key, update_function))
-        else:
-            last_call = update_cache.get_last_call(key)
-            if self.force or not last_call or last_call > 3600 * hours:
-                self.update_functions.append((key, update_function))
 
     @property
     def has_updates(self) -> bool:
@@ -245,12 +240,6 @@ class RuntimeUpdater:
         applied."""
         self._perform_updates(startup=True)
 
-        # We can clean up the staging dir, if nothing more has been
-        # deferred.
-        if self.deferred_updates == 0:
-            for dirname in os.listdir(settings.STAGING_DIR):
-                system.remove_folder(os.path.join(settings.STAGING_DIR, dirname))
-
     def update_runtime_in_background(self) -> None:
         """Performs those updates that are deferred past startup; this runs in the background
         as you play, so results are left in the STAGING_DIR to be applied at next startup."""
@@ -259,7 +248,6 @@ class RuntimeUpdater:
     def _perform_updates(self, startup: bool) -> None:
         self.startup = startup
         self.deferred_updates = 0
-        self.completed_updates = []
 
         # This can be called twice, once at startup, and once for deferred updates
         # while you play. No need to re-download runtime versions though.
@@ -294,16 +282,8 @@ class RuntimeUpdater:
 
             archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(upstream_runner["url"]))
             version_path = os.path.join(settings.RUNNER_DIR, name, runner_version)
-            staged_path = os.path.join(settings.STAGING_DIR, "runners", name, runner_version)
 
             if system.path_exists(version_path):
-                if system.path_exists(staged_path):
-                    system.remove_folder(staged_path)
-                continue
-
-            if system.path_exists(staged_path):
-                shutil.move(staged_path, version_path)
-                get_installed_wine_versions.cache_clear()
                 continue
 
             if self.startup:
@@ -318,9 +298,8 @@ class RuntimeUpdater:
             self.downloaders = {"wine": downloader}
             downloader.join()
             self.status_text = _("Extracting %s") % name
-            extract_archive(archive_download_path, staged_path)
+            extract_archive(archive_download_path, version_path)
             os.remove(archive_download_path)
-            self.completed_updates.append(f"{name} ({runner_version})")
 
             get_installed_wine_versions.cache_clear()
 
@@ -351,7 +330,6 @@ class RuntimeUpdater:
                         downloader.join()
                     else:
                         runtime.download_components()
-                    self.completed_updates.append(name)
             except Exception as ex:
                 logger.exception("Unable to download %s: %s", name, ex)
 

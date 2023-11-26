@@ -11,7 +11,6 @@ from gi.repository import Gdk, GLib, GObject, Gtk
 
 from lutris import api, settings
 from lutris.gui.widgets.log_text_view import LogTextView
-from lutris.gui.widgets.notifications import send_notification
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -348,15 +347,8 @@ class LutrisInitDialog(Gtk.Dialog):
     def on_destroy(self, window):
         GLib.source_remove(self.progress_timeout)
         if self.runtime_updater.deferred_updates > 0:
-            self.runtime_updater.startup = False
-            AsyncCall(self.runtime_updater.update_runtime_in_background, self.update_runtime_in_background_cb)
+            AsyncCall(self.runtime_updater.update_runtime_in_background, None)
         return True
-
-    def update_runtime_in_background_cb(self, result, error):
-        completed = self.runtime_updater.completed_updates
-        if not error and completed:
-            text = _("Lutris has downloaded updates to %s. Restart Lutris to apply them.") % ", ".join(completed)
-            send_notification("Lutris updates ready", text)
 
 
 class InstallOrPlayDialog(ModalDialog):
