@@ -24,8 +24,8 @@ from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
-from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.progress_box import ProgressBox
+from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import RuntimeUpdater
 from lutris.scanners.lutris import add_to_path_cache, get_missing_game_ids, remove_from_path_cache
@@ -1138,7 +1138,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def continue_runtime_download(self, runtime_updater: RuntimeUpdater) -> None:
         def check_progress():
             pct = runtime_updater.percentage_completed()
-            markup = "<span size='8000'>{}</span>".format(gtk_safe(runtime_updater.status_text))
+            status = gtk_safe(runtime_updater.status_text)
+            markup = "<span size='10000'>%s</span>" % status if status else ""
             progress_box.show()
             return pct, markup
 
@@ -1146,7 +1147,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         def update_runtime_in_background_cb(_result, error):
             progress_box.destroy()
 
-        progress_box = ProgressBox(check_progress, visible=False, margin=3)
+        progress_box = ProgressBox(check_progress, visible=False, margin=6)
         self.download_box.pack_start(progress_box, False, False, 0)
         AsyncCall(runtime_updater.update_runtime_in_background, update_runtime_in_background_cb)
 

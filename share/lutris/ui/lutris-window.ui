@@ -76,6 +76,7 @@
                         </child>
                         <style>
                           <class name="sidebar"/>
+                          <class name="lutrissidebar"/>
                         </style>
                       </object>
                       <packing>
