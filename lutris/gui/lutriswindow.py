@@ -24,7 +24,6 @@ from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
-from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import RuntimeUpdater
@@ -63,9 +62,9 @@ class LutrisWindow(Gtk.ApplicationWindow,
     zoom_adjustment = GtkTemplate.Child()
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
-    download_revealer = GtkTemplate.Child()
-    download_label = GtkTemplate.Child()
-    download_progress_bar = GtkTemplate.Child()
+    download_revealer: Gtk.Revealer = GtkTemplate.Child()
+    download_label: Gtk.Label = GtkTemplate.Child()
+    download_progress_bar: Gtk.ProgressBar = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         width = int(settings.read_setting("width") or self.default_width)
@@ -1148,10 +1147,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         def update_runtime_in_background_cb(result, error):
             GLib.source_remove(download_progress_timeout)
             self.download_revealer.set_reveal_child(False)
-            completed = runtime_updater.completed_updates
-            if not error and completed:
-                text = _("Lutris has downloaded updates to %s. Restart Lutris to apply them.") % ", ".join(completed)
-                send_notification("Lutris updates ready", text)
 
         download_progress_timeout = GLib.timeout_add(125, show_download_progress)
         self.download_revealer.set_reveal_child(True)

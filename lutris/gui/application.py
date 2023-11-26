@@ -349,7 +349,7 @@ class Application(Gtk.Application):
         else:
             pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpu_info["gpus"].values()]
             runtime_updater = RuntimeUpdater(pci_ids=pci_ids, force=self.force_updates)
-            if runtime_updater.has_updates():
+            if runtime_updater.has_updates(startup=True):
                 init_dialog = LutrisInitDialog(runtime_updater)
                 init_dialog.run()
             return runtime_updater
@@ -680,7 +680,7 @@ class Application(Gtk.Application):
                 # Installers can use game or installer slugs
                 self.quit_on_game_exit = True
                 db_game = games_db.get_game_by_field(game_slug, "slug") \
-                          or games_db.get_game_by_field(game_slug, "installer_slug")
+                    or games_db.get_game_by_field(game_slug, "installer_slug")
             else:
                 # Dazed and confused, try anything that might works
                 db_game = (
@@ -764,7 +764,7 @@ class Application(Gtk.Application):
             self.install_ui_delegate = self.window
             self.window.present()
 
-            if runtime_updater and runtime_updater.deferred_updates>0:
+            if runtime_updater and runtime_updater.has_updates(startup=False):
                 self.window.continue_runtime_download(runtime_updater)
             # If the Lutris GUI is started by itself, don't quit it when a game stops
             self.quit_on_game_exit = False
