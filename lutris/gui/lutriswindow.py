@@ -35,6 +35,7 @@ from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.strings import gtk_safe
 from lutris.util.system import update_desktop_icons
 from lutris.util.wine.wine import esync_display_limit_warning, fsync_display_support_warning
 
@@ -63,6 +64,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
     download_box = GtkTemplate.Child()
+    download_label = GtkTemplate.Child()
     download_progress_bar = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
@@ -1138,8 +1140,9 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def continue_runtime_download(self, runtime_updater: RuntimeUpdater) -> None:
         def show_download_progress():
             self.download_progress_bar.set_fraction(runtime_updater.percentage_completed())
-            #if runtime_updater.status_text and self.label.get_text() != self.runtime_updater.status_text:
-            #    self.label.set_text(self.runtime_updater.status_text)
+            markup = "<span size='8000'>{}</span>".format(gtk_safe(runtime_updater.status_text))
+            if runtime_updater.status_text and self.download_label.get_text() != markup:
+                self.download_label.set_markup(markup)
             return True
 
         def update_runtime_in_background_cb(result, error):
