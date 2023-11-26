@@ -63,7 +63,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     zoom_adjustment = GtkTemplate.Child()
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
-    download_box = GtkTemplate.Child()
+    download_revealer = GtkTemplate.Child()
     download_label = GtkTemplate.Child()
     download_progress_bar = GtkTemplate.Child()
 
@@ -1147,14 +1147,14 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         def update_runtime_in_background_cb(result, error):
             GLib.source_remove(download_progress_timeout)
-            self.download_box.hide()
+            self.download_revealer.set_reveal_child(False)
             completed = runtime_updater.completed_updates
             if not error and completed:
                 text = _("Lutris has downloaded updates to %s. Restart Lutris to apply them.") % ", ".join(completed)
                 send_notification("Lutris updates ready", text)
 
         download_progress_timeout = GLib.timeout_add(125, show_download_progress)
-        self.download_box.show()
+        self.download_revealer.set_reveal_child(True)
         AsyncCall(runtime_updater.update_runtime_in_background, update_runtime_in_background_cb)
 
     def on_watched_error(self, error):
