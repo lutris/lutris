@@ -24,8 +24,8 @@ class dosbox(Runner):
             "label": _("Main file"),
             "help": _(
                 "The CONF, EXE, COM or BAT file to launch.\n"
-                "It can be left blank if the launch of the executable is "
-                "managed in the config file."
+                "If the executable is managed in the config file, this should be the config file, "
+                "instead specifying it in 'Configuration file'."
             ),
         },
         {
@@ -151,7 +151,7 @@ class dosbox(Runner):
         if not system.path_exists(main_file):
             return {"error": "FILE_NOT_FOUND", "file": main_file}
         args = shlex.split(self.game_config.get("args") or "")
-
+        self.get_executable()
         command = self.get_command()
 
         if main_file.endswith(".conf"):
