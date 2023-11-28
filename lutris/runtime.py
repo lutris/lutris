@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Tuple
 from gi.repository import GLib
 
 from lutris import settings
-from lutris.api import download_runtime_versions, format_runner_version, get_time_from_api_date
+from lutris.api import download_runtime_versions, get_time_from_api_date
 from lutris.util import http, jobs, system, update_cache
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -33,17 +33,231 @@ DLL_MANAGERS = {
 }
 
 
-class Runtime:
+class ComponentUpdater:
+    @property
+    def name(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def should_update(self) -> bool:
+        return True
+
+    def install_update(self, updater: 'RuntimeUpdater') -> None:
+        raise NotImplementedError
+
+
+class RuntimeUpdater:
+    """Class handling the runtime updates"""
+
+    UpdaterFactory = Callable[[], List[ComponentUpdater]]
+
+    def __init__(self, pci_ids: List[str] = None, force: bool = False):
+        self.force = force
+        self.pci_ids: List[str] = pci_ids or []
+        self.runtime_versions: Dict[str, Any] = {}
+        self.update_functions: List[Tuple[str, RuntimeUpdater.UpdaterFactory, bool]] = []
+        self.downloaders: Dict[Any, Downloader] = {}
+        self.status_text = ""
+
+        if RUNTIME_DISABLED:
+            logger.warning("Runtime disabled. Safety not guaranteed.")
+        else:
+            self.add_update("runtime", self._update_runtime, hours=12, startup=True)
+            self.add_update("runners", self._update_runners, hours=12, startup=False)
+
+    def add_update(self, key: str, updater_factory: UpdaterFactory, hours: int, startup: bool) -> None:
+        """__init__ calls this to register each update. This function
+        only registers the update if it hasn't been tried in the last
+        'hours' hours. This is tracked in 'updates.json', and identified
+        by 'key' in that file."""
+        last_call = update_cache.get_last_call(key)
+        if self.force or not last_call or last_call > 3600 * hours:
+            self.update_functions.append((key, updater_factory, startup))
+
+    def has_updates(self, startup: bool = None) -> bool:
+        """Returns True if there are any updates to perform."""
+        if startup is None:
+            return bool(self.update_functions)
+
+        return any(f for f in self.update_functions if f[2] == startup)
+
+    def update_runtimes_at_startup(self) -> None:
+        """Performs all the registered updates that are marked for 'startup'. These prevent Lutris
+        from being used until they are ready."""
+        self._perform_updates(startup=True)
+
+    def update_runtime_in_background(self) -> None:
+        """Performs those updates that are not marked for 'startup'; these are downloaded in the
+        background, and become available while Lutris is active."""
+        self._perform_updates(startup=False)
+
+    def create_component_updaters(self, startup: bool) -> List[ComponentUpdater]:
+        if not self.runtime_versions:
+            self.runtime_versions = download_runtime_versions(self.pci_ids)
+
+        updaters = []
+        for key, func, for_startup in self.update_functions:
+            if startup == for_startup:
+                updaters += func()
+                # Not ideal - we are marking this off as updated just before
+                # the updater, not after it completes.
+                update_cache.write_date_to_cache(key)
+        return updaters
+
+    def _perform_updates(self, startup: bool) -> None:
+        updaters = self.create_component_updaters(startup)
+        for updater in updaters:
+            if updater.should_update:
+                updater.install_update(self)
+
+    @property
+    def can_cancel(self) -> bool:
+        return self.is_downloading
+
+    def cancel(self) -> None:
+        for downloader in self.downloaders.values():
+            if downloader.state == downloader.DOWNLOADING:
+                downloader.cancel()
+
+    @property
+    def is_downloading(self):
+        return any(d for d in self.downloaders.values() if d.state == d.DOWNLOADING)
+
+    @property
+    def percentage_completed(self) -> float:
+        downloading = [d for d in self.downloaders.values() if d.state == d.DOWNLOADING]
+        if not downloading:
+            return 1.0
+        return sum(d.progress_fraction for d in downloading) / len(self.downloaders)
+
+    def _update_runtime(self) -> List[ComponentUpdater]:
+        """Launch the update process"""
+        updaters: List[ComponentUpdater] = []
+        for name, remote_runtime in self.runtime_versions.get("runtimes", {}).items():
+            if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
+                logger.debug("Skipping runtime %s for %s", name, remote_runtime["architecture"])
+                continue
+
+            try:
+                updaters.append(RuntimeComponentUpdater(remote_runtime))
+            except Exception as ex:
+                logger.exception("Unable to download %s: %s", name, ex)
+
+        return updaters
+
+    def _update_runners(self) -> List[ComponentUpdater]:
+        """Update installed runners (only works for Wine at the moment)"""
+        updaters: List[ComponentUpdater] = []
+        upstream_runners = self.runtime_versions.get("runners", {})
+        for name, upstream_runners in upstream_runners.items():
+            if name != "wine":
+                continue
+            upstream_runner = None
+            for _runner in upstream_runners:
+                if _runner["architecture"] == LINUX_SYSTEM.arch:
+                    upstream_runner = _runner
+
+            if upstream_runner:
+                updaters.append(RunnerComponentUpdater(name, upstream_runner))
+
+        return updaters
+
+
+def get_env(version: str = None, prefer_system_libs: bool = False, wine_path: str = None) -> Dict[str, str]:
+    """Return a dict containing LD_LIBRARY_PATH env var
+
+    Params:
+        version: Version of the runtime to use, such as "Ubuntu-18.04" or "legacy"
+        prefer_system_libs: Whether to prioritize system libs over runtime libs
+        wine_path: If you prioritize system libs, provide the path for a lutris wine build
+                         if one is being used. This allows Lutris to prioritize the wine libs
+                         over everything else.
+    """
+    library_path = ":".join(get_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path))
+    env = {}
+    if library_path:
+        env["LD_LIBRARY_PATH"] = library_path
+        network_tools_path = os.path.join(settings.RUNTIME_DIR, "network-tools")
+        env["PATH"] = "%s:%s" % (network_tools_path, os.environ["PATH"])
+    return env
+
+
+def get_winelib_paths(wine_path: str) -> List[str]:
+    """Return wine libraries path for a Lutris wine build"""
+    paths = []
+    # Prioritize libwine.so.1 for lutris builds
+    for winelib_path in ("lib", "lib64"):
+        winelib_fullpath = os.path.join(wine_path or "", winelib_path)
+        if system.path_exists(winelib_fullpath):
+            paths.append(winelib_fullpath)
+    return paths
+
+
+def get_runtime_paths(version: str = None, prefer_system_libs: bool = True, wine_path: str = None) -> List[str]:
+    """Return Lutris runtime paths"""
+    version = version or DEFAULT_RUNTIME
+    lutris_runtime_path = "%s-i686" % version
+    runtime_paths = [
+        lutris_runtime_path,
+        "steam/i386/lib/i386-linux-gnu",
+        "steam/i386/lib",
+        "steam/i386/usr/lib/i386-linux-gnu",
+        "steam/i386/usr/lib",
+    ]
+
+    if LINUX_SYSTEM.is_64_bit:
+        lutris_runtime_path = "%s-x86_64" % version
+        runtime_paths += [
+            lutris_runtime_path,
+            "steam/amd64/lib/x86_64-linux-gnu",
+            "steam/amd64/lib",
+            "steam/amd64/usr/lib/x86_64-linux-gnu",
+            "steam/amd64/usr/lib",
+        ]
+
+    paths = []
+    if prefer_system_libs:
+        if wine_path:
+            paths += get_winelib_paths(wine_path)
+        paths += list(LINUX_SYSTEM.iter_lib_folders())
+    # Then resolve absolute paths for the runtime
+    paths += [os.path.join(settings.RUNTIME_DIR, path) for path in runtime_paths]
+    return paths
+
+
+def get_paths(version: str = None, prefer_system_libs: bool = True, wine_path: str = None) -> List[str]:
+    """Return a list of paths containing the runtime libraries."""
+    if not RUNTIME_DISABLED:
+        paths = get_runtime_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path)
+    else:
+        paths = []
+    # Put existing LD_LIBRARY_PATH at the end
+    if os.environ.get("LD_LIBRARY_PATH"):
+        paths.append(os.environ["LD_LIBRARY_PATH"])
+    return paths
+
+
+class RuntimeComponentUpdater(ComponentUpdater):
     """Class for manipulating runtime folders"""
 
-    def __init__(self, name: str, updater: 'RuntimeUpdater') -> None:
-        if not name:
-            raise ValueError("Runtimes cannot be anonymous.")
-        self.name = name
-        self.updater = updater
+    def __init__(self, remote_runtime_info: Dict[str, Any]) -> None:
+        self.remote_runtime_info = remote_runtime_info
         self.versioned = False  # Versioned runtimes keep 1 version per folder
         self.version = ""
         self.download_progress = 0.0
+
+    @property
+    def name(self) -> str:
+        return self.remote_runtime_info["name"]
+
+    def install_update(self, updater: RuntimeUpdater):
+        updater.status_text = _("Updating %s") % self.name
+        if self.remote_runtime_info["url"]:
+            downloader = self.download()
+            updater.downloaders[self] = downloader
+            downloader.join()
+        else:
+            self.download_components()
 
     @property
     def local_runtime_path(self) -> str:
@@ -61,7 +275,8 @@ class Runtime:
             return
         os.utime(self.local_runtime_path)
 
-    def should_update(self, remote_runtime_info: Dict[str, Any]) -> bool:
+    @property
+    def should_update(self) -> bool:
         """Determine if the current runtime should be updated"""
         if self.versioned:
             return not system.path_exists(os.path.join(settings.RUNTIME_DIR, self.name, self.version))
@@ -71,7 +286,7 @@ class Runtime:
         except FileNotFoundError:
             return True
 
-        remote_updated_at = get_time_from_api_date(remote_runtime_info["created_at"])
+        remote_updated_at = get_time_from_api_date(self.remote_runtime_info["created_at"])
 
         if local_updated_at and local_updated_at >= remote_updated_at:
             return False
@@ -94,18 +309,18 @@ class Runtime:
             return False
         return True
 
-    def get_downloader(self, remote_runtime_info: Dict[str, Any]) -> Downloader:
+    def get_downloader(self) -> Downloader:
         """Return Downloader for this runtime"""
-        url = remote_runtime_info["url"]
-        self.versioned = remote_runtime_info["versioned"]
+        url = self.remote_runtime_info["url"]
+        self.versioned = self.remote_runtime_info["versioned"]
         if self.versioned:
-            self.version = remote_runtime_info["version"]
+            self.version = self.remote_runtime_info["version"]
         archive_path = os.path.join(settings.RUNTIME_DIR, os.path.basename(url))
         return Downloader(url, archive_path, overwrite=True)
 
-    def download(self, remote_runtime_info: Dict[str, Any]) -> Downloader:
+    def download(self) -> Downloader:
         """Downloads a runtime locally"""
-        downloader = self.get_downloader(remote_runtime_info)
+        downloader = self.get_downloader()
         downloader.start()
         GLib.timeout_add(100, self.check_download_progress, downloader)
         return downloader
@@ -198,212 +413,40 @@ class Runtime:
         return False
 
 
-class RuntimeUpdater:
-    """Class handling the runtime updates"""
-
-    UpdateFunction = Callable[[], None]
-
-    def __init__(self, pci_ids: List[str] = None, force: bool = False):
-        self.force = force
-        self.pci_ids: List[str] = pci_ids or []
-        self.runtime_versions: Dict[str, Any] = {}
-        self.update_functions: List[Tuple[str, RuntimeUpdater.UpdateFunction, bool]] = []
-        self.downloaders: Dict[Runtime, Downloader] = {}
-        self.status_text = ""
-
-        if RUNTIME_DISABLED:
-            logger.warning("Runtime disabled. Safety not guaranteed.")
-        else:
-            self.add_update("runtime", self._update_runtime, hours=12, startup=True)
-            self.add_update("runners", self._update_runners, hours=12, startup=False)
-
-    def add_update(self, key: str, update_function: UpdateFunction, hours: int, startup: bool) -> None:
-        """__init__ calls this to register each update. This function
-        only registers the update if it hasn't been tried in the last
-        'hours' hours. This is tracked in 'updates.json', and identified
-        by 'key' in that file. 'staged_in' is an override for this- if this directory
-        is found in the STAGING_DIR, we always run the update function regardless."""
-        last_call = update_cache.get_last_call(key)
-        if self.force or not last_call or last_call > 3600 * hours:
-            self.update_functions.append((key, update_function, startup))
-
-    def has_updates(self, startup: bool = None) -> bool:
-        """Returns True if there are any updates to perform."""
-        if startup is None:
-            return bool(self.update_functions)
-
-        return any(f for f in self.update_functions if f[2] == startup)
-
-    def update_runtimes_at_startup(self) -> None:
-        """Performs all the registered updates that are marked for 'startup'. These prevent Lutris
-        from being used until they are ready."""
-        self._perform_updates(startup=True)
-
-    def update_runtime_in_background(self) -> None:
-        """Performs those updates that are not marked for 'startup'; these are downloaded in the
-        background, and become available while Lutris is active."""
-        self._perform_updates(startup=False)
-
-    def _perform_updates(self, startup: bool) -> None:
-        # This can be called twice, once at startup, and once for deferred updates
-        # while you play. No need to re-download runtime versions though.
-        if not self.runtime_versions:
-            self.runtime_versions = download_runtime_versions(self.pci_ids)
-
-        for key, func, for_startup in self.update_functions:
-            if startup == for_startup:
-                func()
-                update_cache.write_date_to_cache(key)
-
-    def _update_runners(self) -> None:
-        """Update installed runners (only works for Wine at the moment)"""
-        upstream_runners = self.runtime_versions.get("runners", {})
-        for name, upstream_runners in upstream_runners.items():
-            if name != "wine":
-                continue
-            upstream_runner = None
-            for _runner in upstream_runners:
-                if _runner["architecture"] == LINUX_SYSTEM.arch:
-                    upstream_runner = _runner
-
-            if not upstream_runner:
-                continue
-
-            # This has the responsibility to update existing runners, not installing new ones
-            runner_base_path = os.path.join(settings.RUNNER_DIR, name)
-            if not system.path_exists(runner_base_path) or not os.listdir(runner_base_path):
-                continue
-
-            runner_version = format_runner_version(upstream_runner)
-
-            archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(upstream_runner["url"]))
-            version_path = os.path.join(settings.RUNNER_DIR, name, runner_version)
-
-            if system.path_exists(version_path):
-                continue
-
-            self.status_text = _("Updating %s") % name
-            downloader = Downloader(upstream_runner["url"], archive_download_path)
-            downloader.start()
-            self.downloaders = {"wine": downloader}
-            downloader.join()
-            if downloader.state == downloader.COMPLETED:
-                self.status_text = _("Extracting %s") % name
-                extract_archive(archive_download_path, version_path)
-                get_installed_wine_versions.cache_clear()
-
-            os.remove(archive_download_path)
+class RunnerComponentUpdater(ComponentUpdater):
+    def __init__(self, name: str, upstream_runner: Dict[str, Any]):
+        self._name = name
+        self.upstream_runner = upstream_runner
+        self.runner_version = "-".join([upstream_runner["version"], upstream_runner["architecture"]])
+        self.version_path = os.path.join(settings.RUNNER_DIR, name, self.runner_version)
 
     @property
-    def can_cancel(self) -> bool:
-        return self.is_downloading
-
-    def cancel(self) -> None:
-        for downloader in self.downloaders.values():
-            if downloader.state == downloader.DOWNLOADING:
-                downloader.cancel()
+    def name(self) -> str:
+        return self._name
 
     @property
-    def is_downloading(self):
-        return any(d for d in self.downloaders.values() if d.state == d.DOWNLOADING)
+    def should_update(self):
+        # This has the responsibility to update existing runners, not installing new ones
+        runner_base_path = os.path.join(settings.RUNNER_DIR, self.name)
+        if not system.path_exists(runner_base_path) or not os.listdir(runner_base_path):
+            return False
 
-    @property
-    def percentage_completed(self) -> float:
-        downloading = [d for d in self.downloaders.values() if d.state == d.DOWNLOADING]
-        if not downloading:
-            return 1.0
-        return sum(d.progress_fraction for d in downloading) / len(self.downloaders)
+        if system.path_exists(self.version_path):
+            return False
 
-    def _update_runtime(self) -> None:
-        """Launch the update process"""
-        for name, remote_runtime in self.runtime_versions.get("runtimes", {}).items():
-            if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
-                logger.debug("Skipping runtime %s for %s", name, remote_runtime["architecture"])
-                continue
+        return True
 
-            try:
-                runtime = Runtime(remote_runtime["name"], self)
-                if runtime.should_update(remote_runtime):
-                    self.status_text = _("Updating %s") % remote_runtime['name']
-                    if remote_runtime["url"]:
-                        downloader = runtime.download(remote_runtime)
-                        self.downloaders[runtime] = downloader
-                        downloader.join()
-                    else:
-                        runtime.download_components()
-            except Exception as ex:
-                logger.exception("Unable to download %s: %s", name, ex)
+    def install_update(self, updater: 'RuntimeUpdater'):
+        updater.status_text = _("Updating %s") % self.name
+        url = self.upstream_runner["url"]
+        archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(url))
+        downloader = Downloader(self.upstream_runner["url"], archive_download_path)
+        downloader.start()
+        updater.downloaders = {"wine": downloader}
+        downloader.join()
+        if downloader.state == downloader.COMPLETED:
+            updater.status_text = _("Extracting %s") % self.name
+            extract_archive(archive_download_path, self.version_path)
+            get_installed_wine_versions.cache_clear()
 
-
-def get_env(version: str = None, prefer_system_libs: bool = False, wine_path: str = None) -> Dict[str, str]:
-    """Return a dict containing LD_LIBRARY_PATH env var
-
-    Params:
-        version: Version of the runtime to use, such as "Ubuntu-18.04" or "legacy"
-        prefer_system_libs: Whether to prioritize system libs over runtime libs
-        wine_path: If you prioritize system libs, provide the path for a lutris wine build
-                         if one is being used. This allows Lutris to prioritize the wine libs
-                         over everything else.
-    """
-    library_path = ":".join(get_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path))
-    env = {}
-    if library_path:
-        env["LD_LIBRARY_PATH"] = library_path
-        network_tools_path = os.path.join(settings.RUNTIME_DIR, "network-tools")
-        env["PATH"] = "%s:%s" % (network_tools_path, os.environ["PATH"])
-    return env
-
-
-def get_winelib_paths(wine_path: str) -> List[str]:
-    """Return wine libraries path for a Lutris wine build"""
-    paths = []
-    # Prioritize libwine.so.1 for lutris builds
-    for winelib_path in ("lib", "lib64"):
-        winelib_fullpath = os.path.join(wine_path or "", winelib_path)
-        if system.path_exists(winelib_fullpath):
-            paths.append(winelib_fullpath)
-    return paths
-
-
-def get_runtime_paths(version: str = None, prefer_system_libs: bool = True, wine_path: str = None) -> List[str]:
-    """Return Lutris runtime paths"""
-    version = version or DEFAULT_RUNTIME
-    lutris_runtime_path = "%s-i686" % version
-    runtime_paths = [
-        lutris_runtime_path,
-        "steam/i386/lib/i386-linux-gnu",
-        "steam/i386/lib",
-        "steam/i386/usr/lib/i386-linux-gnu",
-        "steam/i386/usr/lib",
-    ]
-
-    if LINUX_SYSTEM.is_64_bit:
-        lutris_runtime_path = "%s-x86_64" % version
-        runtime_paths += [
-            lutris_runtime_path,
-            "steam/amd64/lib/x86_64-linux-gnu",
-            "steam/amd64/lib",
-            "steam/amd64/usr/lib/x86_64-linux-gnu",
-            "steam/amd64/usr/lib",
-        ]
-
-    paths = []
-    if prefer_system_libs:
-        if wine_path:
-            paths += get_winelib_paths(wine_path)
-        paths += list(LINUX_SYSTEM.iter_lib_folders())
-    # Then resolve absolute paths for the runtime
-    paths += [os.path.join(settings.RUNTIME_DIR, path) for path in runtime_paths]
-    return paths
-
-
-def get_paths(version: str = None, prefer_system_libs: bool = True, wine_path: str = None) -> List[str]:
-    """Return a list of paths containing the runtime libraries."""
-    if not RUNTIME_DISABLED:
-        paths = get_runtime_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path)
-    else:
-        paths = []
-    # Put existing LD_LIBRARY_PATH at the end
-    if os.environ.get("LD_LIBRARY_PATH"):
-        paths.append(os.environ["LD_LIBRARY_PATH"])
-    return paths
+        os.remove(archive_download_path)
