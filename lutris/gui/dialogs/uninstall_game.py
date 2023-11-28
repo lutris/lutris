@@ -270,13 +270,29 @@ class RemoveMultipleGamesDialog0(GameRemovalDialog):
 class RemoveMultipleGamesDialog(Gtk.Dialog):
     __gtype_name__ = "RemoveMultipleGamesDialog"
 
+    header_bar: Gtk.HeaderBar = GtkTemplate.Child()
+    message_label: Gtk.Label = GtkTemplate.Child()
+    uninstall_game_list: Gtk.ListBox = GtkTemplate.Child()
     cancel_button: Gtk.Button = GtkTemplate.Child()
     remove_button: Gtk.Button = GtkTemplate.Child()
-    uninstall_game_list: Gtk.ListBox = GtkTemplate.Child()
 
     def __init__(self, game_ids: List[str], parent=None, **kwargs):
         super().__init__(parent=parent, **kwargs)
         self.games = [Game(game_id) for game_id in game_ids]
+        to_uninstall = [g for g in self.games if g.is_installed]
+        to_remove = [g for g in self.games if not g.is_installed]
+
+        if len(to_uninstall) == 1 and not to_remove:
+            game = to_uninstall[0]
+            title = _("Uninstall %s") % gtk_safe(game.name)
+        elif len(to_remove) == 1 and not to_uninstall:
+            game = to_remove[0]
+            title = _("Remove %s") % gtk_safe(game.name)
+        else:
+            title = _("Uninstall %d games and remove %d games") % (
+                len(to_uninstall), len(to_remove))
+
+        message = ""
 
         delete_candidates = [g for g in self.games
                              if g.is_installed and g.config
@@ -289,6 +305,9 @@ class RemoveMultipleGamesDialog(Gtk.Dialog):
             return bool(dir_users)
 
         self.init_template()
+
+        self.header_bar.set_subtitle(title)
+        self.message_label.set_markup(message)
 
         if any(g for g in self.games if g.is_installed):
             self.remove_button.set_label(_("Uninstall"))
