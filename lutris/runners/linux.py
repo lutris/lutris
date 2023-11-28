@@ -32,12 +32,9 @@ class linux(Runner):
             "help": _("Command line arguments used when launching the game"),
         },
         {
-            "option":
-            "working_dir",
-            "type":
-            "directory_chooser",
-            "label":
-            _("Working directory"),
+            "option": "working_dir",
+            "type": "directory_chooser",
+            "label": _("Working directory"),
             "help": _(
                 "The location where the game is run from.\n"
                 "By default, Lutris uses the directory of the "
@@ -52,19 +49,25 @@ class linux(Runner):
             "help": _("A library to load before running the game's executable."),
         },
         {
-            "option":
-            "ld_library_path",
-            "type":
-            "directory_chooser",
-            "label":
-            _("Add directory to LD_LIBRARY_PATH"),
-            "advanced":
-            True,
+            "option": "ld_library_path",
+            "type": "directory_chooser",
+            "label": _("Add directory to LD_LIBRARY_PATH"),
+            "advanced": True,
             "help": _(
                 "A directory where libraries should be searched for "
                 "first, before the standard set of directories; this is "
                 "useful when debugging a new library or using a "
                 "nonstandard library for special purposes."
+            ),
+        },
+        {
+            "option": "platform",
+            "type": "string",
+            "label": _("Platform"),
+            "advanced": True,
+            "help": _(
+                "Enter full platform name, if the game is not native Linux.\n"
+                "Useful for games launched by custom emulator or wrapper."
             ),
         },
     ]
@@ -143,6 +146,12 @@ class linux(Runner):
             command += split_arguments(launch_config["args"])
 
         return command
+
+    def get_platform(self):
+        selected_platform = self.game_config.get("platform")
+        if selected_platform:
+            return selected_platform
+        return _("Linux")
 
     def play(self):
         """Run native game."""
