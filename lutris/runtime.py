@@ -207,36 +207,53 @@ class RuntimeUpdater:
         self.force = force
         self.pci_ids: List[str] = pci_ids or []
         self.runtime_versions: Dict[str, Any] = {}
-        self.update_functions: List[Tuple[str, RuntimeUpdater.UpdateFunction]] = []
+        self.update_functions: List[Tuple[str, RuntimeUpdater.UpdateFunction, bool]] = []
         self.downloaders: Dict[Runtime, Downloader] = {}
         self.status_text = ""
 
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled. Safety not guaranteed.")
         else:
-            self.add_update("runtime", self._update_runtime, hours=12)
-            self.add_update("runners", self._update_runners, hours=12)
+            self.add_update("runtime", self._update_runtime, hours=12, startup=True)
+            self.add_update("runners", self._update_runners, hours=12, startup=False)
 
-    def add_update(self, key: str, update_function: UpdateFunction, hours: int) -> None:
+    def add_update(self, key: str, update_function: UpdateFunction, hours: int, startup: bool) -> None:
         """__init__ calls this to register each update. This function
         only registers the update if it hasn't been tried in the last
         'hours' hours. This is tracked in 'updates.json', and identified
-        by 'key' in that file."""
+        by 'key' in that file. 'staged_in' is an override for this- if this directory
+        is found in the STAGING_DIR, we always run the update function regardless."""
         last_call = update_cache.get_last_call(key)
         if self.force or not last_call or last_call > 3600 * hours:
-            self.update_functions.append((key, update_function))
+            self.update_functions.append((key, update_function, startup))
 
-    @property
-    def has_updates(self) -> bool:
+    def has_updates(self, startup: bool = None) -> bool:
         """Returns True if there are any updates to perform."""
-        return len(self.update_functions) > 0
+        if startup is None:
+            return bool(self.update_functions)
 
-    def update_runtimes(self) -> None:
-        """Performs all the registered updates."""
-        self.runtime_versions = download_runtime_versions(self.pci_ids)
-        for key, func in self.update_functions:
-            func()
-            update_cache.write_date_to_cache(key)
+        return any(f for f in self.update_functions if f[2] == startup)
+
+    def update_runtimes_at_startup(self) -> None:
+        """Performs all the registered updates that are marked for 'startup'. These prevent Lutris
+        from being used until they are ready."""
+        self._perform_updates(startup=True)
+
+    def update_runtime_in_background(self) -> None:
+        """Performs those updates that are not marked for 'startup'; these are downloaded in the
+        background, and become available while Lutris is active."""
+        self._perform_updates(startup=False)
+
+    def _perform_updates(self, startup: bool) -> None:
+        # This can be called twice, once at startup, and once for deferred updates
+        # while you play. No need to re-download runtime versions though.
+        if not self.runtime_versions:
+            self.runtime_versions = download_runtime_versions(self.pci_ids)
+
+        for key, func, for_startup in self.update_functions:
+            if startup == for_startup:
+                func()
+                update_cache.write_date_to_cache(key)
 
     def _update_runners(self) -> None:
         """Update installed runners (only works for Wine at the moment)"""
@@ -257,18 +274,22 @@ class RuntimeUpdater:
             if not system.path_exists(runner_base_path) or not os.listdir(runner_base_path):
                 continue
 
-            runner_path = os.path.join(settings.RUNNER_DIR, name,
-                                       "-".join([upstream_runner["version"], upstream_runner["architecture"]]))
-            if system.path_exists(runner_path):
+            runner_version = "-".join([upstream_runner["version"], upstream_runner["architecture"]])
+
+            archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(upstream_runner["url"]))
+            version_path = os.path.join(settings.RUNNER_DIR, name, runner_version)
+
+            if system.path_exists(version_path):
                 continue
+
             self.status_text = _("Updating %s") % name
-            archive_download_path = os.path.join(settings.CACHE_DIR, os.path.basename(upstream_runner["url"]))
             downloader = Downloader(upstream_runner["url"], archive_download_path)
             downloader.start()
             self.downloaders = {"wine": downloader}
             downloader.join()
             self.status_text = _("Extracting %s") % name
-            extract_archive(archive_download_path, runner_path)
+            extract_archive(archive_download_path, version_path)
+            os.remove(archive_download_path)
 
             get_installed_wine_versions.cache_clear()
 

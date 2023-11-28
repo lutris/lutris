@@ -1,5 +1,4 @@
 """Check to run at program start"""
-import os
 import sqlite3
 from gettext import gettext as _
 
@@ -40,7 +39,7 @@ def init_dirs():
         settings.CACHE_DIR,
         settings.SHADER_CACHE_DIR,
         settings.INSTALLER_CACHE_DIR,
-        os.path.join(settings.CACHE_DIR, "tmp"),
+        settings.TMP_DIR,
     ]
     for directory in directories:
         create_folder(directory)
