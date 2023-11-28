@@ -58,15 +58,15 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         def get_subtitle() -> str:
             if len(to_uninstall) == 1 and not to_remove:
                 return _("Uninstall %s") % gtk_safe(to_uninstall[0].name)
-            elif len(to_remove) == 1 and not to_uninstall:
+            if len(to_remove) == 1 and not to_uninstall:
                 return _("Remove %s") % gtk_safe(to_remove[0].name)
-            elif not to_remove:
+            if not to_remove:
                 return _("Uninstall %d games") % len(to_uninstall)
-            elif not to_uninstall:
-                return _("Uninstall %d games") % len(to_remove)
-            else:
-                return _("Uninstall %d games and remove %d games") % (
-                    len(to_uninstall), len(to_remove))
+            if not to_uninstall:
+                return _("Remove %d games") % len(to_remove)
+
+            return _("Uninstall %d games and remove %d games") % (
+                len(to_uninstall), len(to_remove))
 
         def is_shared(directory: str) -> bool:
             dir_users = set(str(g["id"]) for g in get_games(filters={"directory": directory, "installed": 1}))
