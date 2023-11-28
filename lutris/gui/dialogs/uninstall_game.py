@@ -1,6 +1,7 @@
+# pylint: disable=no-member
 import os
 from gettext import gettext as _
-from typing import List
+from typing import Dict, List
 
 from gi.repository import Gtk, Pango
 
@@ -8,7 +9,7 @@ from lutris.database.games import get_games
 from lutris.exceptions import watch_errors
 from lutris.game import Game
 from lutris.gui import dialogs
-from lutris.gui.dialogs import ModalDialog, QuestionDialog, GtkBuilderDialog
+from lutris.gui.dialogs import ModalDialog, QuestionDialog
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
@@ -269,9 +270,9 @@ class RemoveMultipleGamesDialog0(GameRemovalDialog):
 class RemoveMultipleGamesDialog(Gtk.Dialog):
     __gtype_name__ = "RemoveMultipleGamesDialog"
 
-    cancel_button = GtkTemplate.Child()
-    remove_button = GtkTemplate.Child()
-    uninstall_game_list = GtkTemplate.Child()
+    cancel_button: Gtk.Button = GtkTemplate.Child()
+    remove_button: Gtk.Button = GtkTemplate.Child()
+    uninstall_game_list: Gtk.ListBox = GtkTemplate.Child()
 
     def __init__(self, game_ids: List[str], parent=None, **kwargs):
         super().__init__(parent=parent, **kwargs)
@@ -282,6 +283,13 @@ class RemoveMultipleGamesDialog(Gtk.Dialog):
         for game in self.games:
             row = RemoveMultipleGamesDialog.GameRemovalRow(game)
             self.uninstall_game_list.add(row)
+
+        folders_to_size = [row.game.directory for row
+                           in self.uninstall_game_list.get_children()
+                           if row.can_show_folder_size]
+
+        if folders_to_size:
+            AsyncCall(self._get_disk_size, self._folder_size_cb, folders_to_size)
 
         self.show_all()
         self.connect("response", self.on_response)
@@ -329,6 +337,24 @@ class RemoveMultipleGamesDialog(Gtk.Dialog):
         if response in (Gtk.ResponseType.DELETE_EVENT, Gtk.ResponseType.CANCEL, Gtk.ResponseType.OK):
             self.destroy()
 
+    @staticmethod
+    def _get_disk_size(directories: List[str]) -> Dict[str, int]:
+        folder_sizes = {}
+        for directory in directories:
+            folder_sizes[directory] = get_disk_size(directory)
+        return folder_sizes
+
+    def _folder_size_cb(self, folder_sizes, error):
+        if error:
+            logger.error(error)
+            return
+
+        for row in self.uninstall_game_list.get_children():
+            directory = row.game.directory
+            if directory and directory in folder_sizes:
+                size = folder_sizes[row.game.directory]
+                row.show_folder_size(size)
+
     class GameRemovalRow(Gtk.ListBoxRow):
         def __init__(self, game):
             super().__init__()
@@ -338,8 +364,15 @@ class RemoveMultipleGamesDialog(Gtk.Dialog):
             box.pack_start(label, False, False, 0)
             self.keep_files_checkbox = None
             self.keep_playtime_checkbox = None
+            self.folder_size_label = None
 
             if game.is_installed:
+                self.folder_size_label = Gtk.Label("", no_show_all=True, width_request=50)
+                self.folder_size_spinner = Gtk.Spinner(width_request=50)
+                self.folder_size_spinner.start()
+                box.pack_end(self.folder_size_spinner, False, False, 0)
+                box.pack_end(self.folder_size_label, False, False, 0)
+
                 self.keep_files_checkbox = Gtk.CheckButton("Keep Files")
                 box.pack_end(self.keep_files_checkbox, False, False, 0)
 
@@ -348,6 +381,16 @@ class RemoveMultipleGamesDialog(Gtk.Dialog):
                     box.pack_end(self.keep_playtime_checkbox, False, False, 0)
 
             self.add(box)
+
+        @property
+        def can_show_folder_size(self):
+            return bool(self.folder_size_label)
+
+        def show_folder_size(self, folder_size: int):
+            self.folder_size_label.set_text(human_size(folder_size))
+            self.folder_size_label.show()
+            self.folder_size_spinner.stop()
+            self.folder_size_spinner.hide()
 
         @property
         def delete_files(self):
