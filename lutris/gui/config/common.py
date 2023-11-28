@@ -149,7 +149,8 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
         info_box.pack_start(self._get_year_box(), False, False, 6)  # Year
 
-        info_box.pack_start(self._get_playtime_box(), False, False, 6)  # Playtime
+        # This looks atrocious. Fix it.
+        # info_box.pack_start(self._get_playtime_box(), False, False, 6)  # Playtime
 
         if self.game:
             info_box.pack_start(self._get_slug_box(), False, False, 6)
