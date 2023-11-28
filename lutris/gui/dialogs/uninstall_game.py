@@ -1,11 +1,16 @@
+import os
 from gettext import gettext as _
 from typing import List
 
 from gi.repository import Gtk, Pango
 
 from lutris.database.games import get_games
+from lutris.exceptions import watch_errors
 from lutris.game import Game
-from lutris.gui.dialogs import ModalDialog, QuestionDialog
+from lutris.gui import dialogs
+from lutris.gui.dialogs import ModalDialog, QuestionDialog, GtkBuilderDialog
+from lutris.gui.widgets.gi_composites import GtkTemplate
+from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, human_size
@@ -166,7 +171,7 @@ class RemoveGameDialog(GameRemovalDialog):
         return True
 
 
-class RemoveMultipleGamesDialog(GameRemovalDialog):
+class RemoveMultipleGamesDialog0(GameRemovalDialog):
     def __init__(self, game_ids: List[str], parent=None):
         self.games = [Game(game_id) for game_id in game_ids]
         self.to_uninstall = [g for g in self.games if g.is_installed]
@@ -258,3 +263,119 @@ class RemoveMultipleGamesDialog(GameRemovalDialog):
             game.delete()
 
         return True
+
+
+@GtkTemplate(ui=os.path.join(datapath.get(), "ui", "uninstall-dialog.ui"))
+class RemoveMultipleGamesDialog(Gtk.Dialog):
+    __gtype_name__ = "RemoveMultipleGamesDialog"
+
+    cancel_button = GtkTemplate.Child()
+    remove_button = GtkTemplate.Child()
+    uninstall_game_list = GtkTemplate.Child()
+
+    def __init__(self, game_ids: List[str], parent=None, **kwargs):
+        super().__init__(parent=parent, **kwargs)
+        self.games = [Game(game_id) for game_id in game_ids]
+
+        self.init_template()
+
+        for game in self.games:
+            row = RemoveMultipleGamesDialog.GameRemovalRow(game)
+            self.uninstall_game_list.add(row)
+
+        self.show_all()
+        self.connect("response", self.on_response)
+
+    @watch_errors()
+    @GtkTemplate.Callback
+    def on_cancel_button_clicked(self, _widget):
+        self.destroy()
+
+    @watch_errors()
+    @GtkTemplate.Callback
+    def on_remove_button_clicked(self, _widget):
+        rows = list(self.uninstall_game_list.get_children())
+        delete_files_warning_games = [row.game for row in rows
+                                      if row.delete_files and row.has_game_remove_warning]
+
+        if delete_files_warning_games:
+            if len(delete_files_warning_games) == 1:
+                question = _(
+                    "Please confirm.\nEverything under <b>%s</b>\n"
+                    "will be deleted."
+                ) % gtk_safe(delete_files_warning_games[0].directory)
+            else:
+                question = _(
+                    "Please confirm.\nAll the files for %d games will be deleted."
+                ) % len(delete_files_warning_games)
+
+            dlg = QuestionDialog(
+                {
+                    "parent": self,
+                    "question": question,
+                    "title": _("Permanently delete files?"),
+                }
+            )
+
+            if dlg.result != Gtk.ResponseType.YES:
+                return False
+
+        for row in rows:
+            row.perform_removal()
+
+        self.destroy()
+
+    def on_response(self, _dialog, response):
+        if response in (Gtk.ResponseType.DELETE_EVENT, Gtk.ResponseType.CANCEL, Gtk.ResponseType.OK):
+            self.destroy()
+
+    class GameRemovalRow(Gtk.ListBoxRow):
+        def __init__(self, game):
+            super().__init__()
+            self.game = game
+            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+            label = Gtk.Label(game.name)
+            box.pack_start(label, False, False, 0)
+            self.keep_files_checkbox = None
+            self.keep_playtime_checkbox = None
+
+            if game.is_installed:
+                self.keep_files_checkbox = Gtk.CheckButton("Keep Files")
+                box.pack_end(self.keep_files_checkbox, False, False, 0)
+
+                if game.playtime:
+                    self.keep_playtime_checkbox = Gtk.CheckButton("Keep Playtime", active=True)
+                    box.pack_end(self.keep_playtime_checkbox, False, False, 0)
+
+            self.add(box)
+
+        @property
+        def delete_files(self):
+            if not self.game.is_installed:
+                return False
+
+            return self.keep_files_checkbox and not self.keep_files_checkbox.get_active()
+
+        @property
+        def keep_playtime(self):
+            if not self.game.is_installed:
+                return False
+
+            return self.keep_playtime_checkbox and self.keep_playtime_checkbox.get_active()
+
+        @property
+        def has_game_remove_warning(self):
+            return not hasattr(self.game.runner, "no_game_remove_warning")
+
+        def perform_removal(self):
+            if self.game.is_installed:
+                if self.keep_playtime:
+                    self.game.remove(self.delete_files)
+                else:
+                    self.game.remove(self.delete_files, no_signal=True)
+                    self.game.delete()
+            else:
+                self.game.delete()
+
+    def on_watched_error(self, error):
+        dialogs.ErrorDialog(error, parent=self)

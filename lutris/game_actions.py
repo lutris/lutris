@@ -91,15 +91,8 @@ class BaseGameActions:
 
     def on_remove_game(self, *_args):
         """Callback that present the uninstall dialog to the user"""
-        if len(self.games) == 1:
-            game = self.games[0]
-            if game.is_installed:
-                UninstallGameDialog(game_id=game.id, parent=self.window).run()
-            else:
-                RemoveGameDialog(game_id=game.id, parent=self.window).run()
-        elif self.games:
-            game_ids = [g.id for g in self.games]
-            RemoveMultipleGamesDialog(game_ids, parent=self.window).run()
+        game_ids = [g.id for g in self.games]
+        RemoveMultipleGamesDialog(game_ids, parent=self.window).run()
 
     def on_view_game(self, _widget):
         """Callback to open a game on lutris.net"""
