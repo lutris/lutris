@@ -33,20 +33,40 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         self.games = [Game(game_id) for game_id in game_ids]
         to_uninstall = [g for g in self.games if g.is_installed]
         to_remove = [g for g in self.games if not g.is_installed]
+        any_shared = False
+        any_protected = False
 
-        if len(to_uninstall) == 1 and not to_remove:
-            game = to_uninstall[0]
-            subtitle = _("Uninstall %s") % gtk_safe(game.name)
-        elif len(to_remove) == 1 and not to_uninstall:
-            game = to_remove[0]
-            subtitle = _("Remove %s") % gtk_safe(game.name)
-        elif not to_remove:
-            subtitle = _("Uninstall %d games") % len(to_uninstall)
-        elif not to_uninstall:
-            subtitle = _("Uninstall %d games") % len(to_remove)
-        else:
-            subtitle = _("Uninstall %d games and remove %d games") % (
-                len(to_uninstall), len(to_remove))
+        def get_messages() -> List[str]:
+            msgs = []
+
+            if to_uninstall:
+                msgs.append(_("After you uninstall these games, you won't be able play them in Lutris. "
+                              "You can select data you wish to keep."))
+            else:
+                msgs.append(_("After you remove these games, they will no longer "
+                              "appear in the 'Games' view."))
+
+            if any_shared:
+                msgs.append(_("Some of the game directories cannot be removed because they are shared "
+                              "with other games that you are not removing."))
+
+            if any_protected:
+                msgs.append(_("Some of the game directories cannot be removed because they are protected."))
+
+            return msgs
+
+        def get_subtitle() -> str:
+            if len(to_uninstall) == 1 and not to_remove:
+                return _("Uninstall %s") % gtk_safe(to_uninstall[0].name)
+            elif len(to_remove) == 1 and not to_uninstall:
+                return _("Remove %s") % gtk_safe(to_remove[0].name)
+            elif not to_remove:
+                return _("Uninstall %d games") % len(to_uninstall)
+            elif not to_uninstall:
+                return _("Uninstall %d games") % len(to_remove)
+            else:
+                return _("Uninstall %d games and remove %d games") % (
+                    len(to_uninstall), len(to_remove))
 
         def is_shared(directory: str) -> bool:
             dir_users = set(str(g["id"]) for g in get_games(filters={"directory": directory, "installed": 1}))
@@ -60,8 +80,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             self.uninstall_button.set_label(_("Remove"))
 
         folders_to_size = []
-        any_shared = False
-        any_protected = False
+
         for game in self.games:
             if game.is_installed and game.directory:
                 if game.config and is_removeable(game.directory, game.config.system_config):
@@ -84,24 +103,9 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         if folders_to_size:
             AsyncCall(self._get_disk_size, self._folder_size_cb, folders_to_size)
 
-        messages = []
+        self.header_bar.set_subtitle(get_subtitle())
 
-        if to_uninstall:
-            messages.append(_("After you uninstall these games, you won't be able play them in Lutris. "
-                              "You can select data you wish to keep."))
-        else:
-            messages.append(_("After you remove these games, they will no longer "
-                              "appear in the 'Games' view."))
-
-        if any_shared:
-            messages.append(_("Some of the game directories cannot be removed because they are shared "
-                              "with other games that you are not removing."))
-
-        if any_protected:
-            messages.append(_("Some of the game directories cannot be removed because they are protected."))
-
-        self.header_bar.set_subtitle(subtitle)
-
+        messages = get_messages()
         if messages:
             self.message_label.set_markup("\n\n".join(messages))
             self.message_label.show()

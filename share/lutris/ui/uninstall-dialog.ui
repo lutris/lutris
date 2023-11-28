@@ -75,6 +75,7 @@
                       <object class="GtkListBox" id="uninstall_game_list">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="selection-mode">none</property>
                       </object>
                     </child>
                   </object>
