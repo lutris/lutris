@@ -28,7 +28,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
     cancel_button: Gtk.Button = GtkTemplate.Child()
     uninstall_button: Gtk.Button = GtkTemplate.Child()
 
-    def __init__(self, game_ids: List[str], parent=None, **kwargs):
+    def __init__(self, game_ids: List[str], parent: Gtk.Window = None, **kwargs):
         super().__init__(parent=parent, **kwargs)
         self.games = [Game(game_id) for game_id in game_ids]
         to_uninstall = [g for g in self.games if g.is_installed]
@@ -113,12 +113,12 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
     @watch_errors()
     @GtkTemplate.Callback
-    def on_cancel_button_clicked(self, _widget):
+    def on_cancel_button_clicked(self, _widget) -> None:
         self.destroy()
 
     @watch_errors()
     @GtkTemplate.Callback
-    def on_remove_button_clicked(self, _widget):
+    def on_remove_button_clicked(self, _widget) -> None:
         rows = list(self.uninstall_game_list.get_children())
         delete_files_warning_games = [row.game for row in rows
                                       if row.delete_files and row.has_game_remove_warning]
@@ -143,14 +143,14 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             )
 
             if dlg.result != Gtk.ResponseType.YES:
-                return False
+                return
 
         for row in rows:
             row.perform_removal()
 
         self.destroy()
 
-    def on_response(self, _dialog, response):
+    def on_response(self, _dialog, response: Gtk.ResponseType) -> None:
         if response in (Gtk.ResponseType.DELETE_EVENT, Gtk.ResponseType.CANCEL, Gtk.ResponseType.OK):
             self.destroy()
 
@@ -161,7 +161,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             folder_sizes[directory] = get_disk_size(directory)
         return folder_sizes
 
-    def _folder_size_cb(self, folder_sizes, error):
+    def _folder_size_cb(self, folder_sizes: Dict[str, int], error):
         if error:
             logger.error(error)
             return
@@ -208,10 +208,10 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             self.add(box)
 
         @property
-        def can_show_folder_size(self):
+        def can_show_folder_size(self) -> bool:
             return bool(self.folder_size_label)
 
-        def show_folder_size(self, folder_size: int):
+        def show_folder_size(self, folder_size: int) -> None:
             if self.folder_size_label:
                 self.folder_size_label.set_text(human_size(folder_size))
                 self.folder_size_label.show()
@@ -219,24 +219,24 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
                 self.folder_size_spinner.hide()
 
         @property
-        def delete_files(self):
+        def delete_files(self) -> bool:
             if not self.game.is_installed:
                 return False
 
-            return self.keep_files_checkbox and not self.keep_files_checkbox.get_active()
+            return bool(self.keep_files_checkbox and not self.keep_files_checkbox.get_active())
 
         @property
-        def keep_playtime(self):
+        def keep_playtime(self) -> bool:
             if not self.game.is_installed:
                 return False
 
-            return self.keep_playtime_checkbox and self.keep_playtime_checkbox.get_active()
+            return bool(self.keep_playtime_checkbox and self.keep_playtime_checkbox.get_active())
 
         @property
-        def has_game_remove_warning(self):
+        def has_game_remove_warning(self) -> bool:
             return not hasattr(self.game.runner, "no_game_remove_warning")
 
-        def perform_removal(self):
+        def perform_removal(self) -> None:
             if self.game.is_installed:
                 if self.keep_playtime:
                     self.game.remove(self.delete_files)
@@ -246,5 +246,5 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             else:
                 self.game.delete()
 
-    def on_watched_error(self, error):
+    def on_watched_error(self, error: Exception) -> None:
         dialogs.ErrorDialog(error, parent=self)
