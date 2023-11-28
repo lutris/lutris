@@ -278,15 +278,30 @@ class RemoveMultipleGamesDialog(Gtk.Dialog):
         super().__init__(parent=parent, **kwargs)
         self.games = [Game(game_id) for game_id in game_ids]
 
+        delete_candidates = [g for g in self.games
+                             if g.is_installed and g.config
+                             and is_removeable(g.directory, g.config.system_config)]
+
+        def is_shared(directory: str) -> bool:
+            dir_users = set(str(g["id"]) for g in get_games(filters={"directory": directory}))
+            for g in delete_candidates:
+                dir_users.discard(g.id)
+            return bool(dir_users)
+
         self.init_template()
 
-        for game in self.games:
-            row = RemoveMultipleGamesDialog.GameRemovalRow(game)
-            self.uninstall_game_list.add(row)
+        if any(g for g in self.games if g.is_installed):
+            self.remove_button.set_label(_("Uninstall"))
 
-        folders_to_size = [row.game.directory for row
-                           in self.uninstall_game_list.get_children()
-                           if row.can_show_folder_size]
+        folders_to_size = []
+        for game in self.games:
+            can_delete_files = game.is_installed and game.directory and not is_shared(game.directory)
+            row = RemoveMultipleGamesDialog.GameRemovalRow(game, can_delete_files)
+
+            if can_delete_files and row.can_show_folder_size:
+                folders_to_size.append(game.directory)
+
+            self.uninstall_game_list.add(row)
 
         if folders_to_size:
             AsyncCall(self._get_disk_size, self._folder_size_cb, folders_to_size)
@@ -356,7 +371,7 @@ class RemoveMultipleGamesDialog(Gtk.Dialog):
                 row.show_folder_size(size)
 
     class GameRemovalRow(Gtk.ListBoxRow):
-        def __init__(self, game):
+        def __init__(self, game: Game, can_delete_files: bool):
             super().__init__()
             self.game = game
             box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -367,14 +382,21 @@ class RemoveMultipleGamesDialog(Gtk.Dialog):
             self.folder_size_label = None
 
             if game.is_installed:
-                self.folder_size_label = Gtk.Label("", no_show_all=True, width_request=50)
-                self.folder_size_spinner = Gtk.Spinner(width_request=50)
-                self.folder_size_spinner.start()
-                box.pack_end(self.folder_size_spinner, False, False, 0)
-                box.pack_end(self.folder_size_label, False, False, 0)
+                if self.game.directory:
+                    folder_size_width = 50
+                    self.folder_size_label = Gtk.Label("", visible=not can_delete_files, no_show_all=True,
+                                                       width_request=folder_size_width)
+                    self.folder_size_spinner = Gtk.Spinner(visible=can_delete_files, no_show_all=True,
+                                                           width_request=folder_size_width)
+                    if can_delete_files:
+                        self.folder_size_spinner.start()
+                    box.pack_end(self.folder_size_spinner, False, False, 0)
+                    box.pack_end(self.folder_size_label, False, False, 0)
 
-                self.keep_files_checkbox = Gtk.CheckButton("Keep Files")
-                box.pack_end(self.keep_files_checkbox, False, False, 0)
+                    self.keep_files_checkbox = Gtk.CheckButton("Keep Files")
+                    self.keep_files_checkbox.set_sensitive(can_delete_files)
+                    self.keep_files_checkbox.set_active(not can_delete_files)
+                    box.pack_end(self.keep_files_checkbox, False, False, 0)
 
                 if game.playtime:
                     self.keep_playtime_checkbox = Gtk.CheckButton("Keep Playtime", active=True)
