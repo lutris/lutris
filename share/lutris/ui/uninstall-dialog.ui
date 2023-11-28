@@ -2,7 +2,7 @@
 <!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
-  <template class="RemoveMultipleGamesDialog" parent="GtkDialog">
+  <template class="UninstallMultipleGamesDialog" parent="GtkDialog">
     <property name="can-focus">False</property>
     <property name="modal">True</property>
     <property name="window-position">center-on-parent</property>
@@ -49,6 +49,7 @@
               <object class="GtkLabel" id="message_label">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
+                <property name="no-show-all">True</property>
                 <property name="label" translatable="yes">Uninstalling games</property>
                 <property name="wrap">True</property>
                 <property name="selectable">True</property>
@@ -109,8 +110,8 @@
           </object>
         </child>
         <child>
-          <object class="GtkButton" id="remove_button">
-            <property name="label" translatable="yes">Remove</property>
+          <object class="GtkButton" id="uninstall_button">
+            <property name="label" translatable="yes">Uninstall</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>

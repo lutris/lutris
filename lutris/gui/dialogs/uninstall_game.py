@@ -267,14 +267,14 @@ class RemoveMultipleGamesDialog0(GameRemovalDialog):
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "uninstall-dialog.ui"))
-class RemoveMultipleGamesDialog(Gtk.Dialog):
-    __gtype_name__ = "RemoveMultipleGamesDialog"
+class UninstallMultipleGamesDialog(Gtk.Dialog):
+    __gtype_name__ = "UninstallMultipleGamesDialog"
 
     header_bar: Gtk.HeaderBar = GtkTemplate.Child()
     message_label: Gtk.Label = GtkTemplate.Child()
     uninstall_game_list: Gtk.ListBox = GtkTemplate.Child()
     cancel_button: Gtk.Button = GtkTemplate.Child()
-    remove_button: Gtk.Button = GtkTemplate.Child()
+    uninstall_button: Gtk.Button = GtkTemplate.Child()
 
     def __init__(self, game_ids: List[str], parent=None, **kwargs):
         super().__init__(parent=parent, **kwargs)
@@ -284,38 +284,45 @@ class RemoveMultipleGamesDialog(Gtk.Dialog):
 
         if len(to_uninstall) == 1 and not to_remove:
             game = to_uninstall[0]
-            title = _("Uninstall %s") % gtk_safe(game.name)
+            subtitle = _("Uninstall %s") % gtk_safe(game.name)
         elif len(to_remove) == 1 and not to_uninstall:
             game = to_remove[0]
-            title = _("Remove %s") % gtk_safe(game.name)
+            subtitle = _("Remove %s") % gtk_safe(game.name)
+        elif not to_remove:
+            subtitle = _("Uninstall %d games") % len(to_uninstall)
+        elif not to_uninstall:
+            subtitle = _("Uninstall %d games") % len(to_remove)
         else:
-            title = _("Uninstall %d games and remove %d games") % (
+            subtitle = _("Uninstall %d games and remove %d games") % (
                 len(to_uninstall), len(to_remove))
 
-        message = ""
-
-        delete_candidates = [g for g in self.games
-                             if g.is_installed and g.config
-                             and is_removeable(g.directory, g.config.system_config)]
-
         def is_shared(directory: str) -> bool:
-            dir_users = set(str(g["id"]) for g in get_games(filters={"directory": directory}))
-            for g in delete_candidates:
+            dir_users = set(str(g["id"]) for g in get_games(filters={"directory": directory, "installed": 1}))
+            for g in self.games:
                 dir_users.discard(g.id)
             return bool(dir_users)
 
         self.init_template()
 
-        self.header_bar.set_subtitle(title)
-        self.message_label.set_markup(message)
-
-        if any(g for g in self.games if g.is_installed):
-            self.remove_button.set_label(_("Uninstall"))
+        if not any(g for g in self.games if g.is_installed):
+            self.uninstall_button.set_label(_("Remove"))
 
         folders_to_size = []
+        any_shared = False
+        any_protected = False
         for game in self.games:
-            can_delete_files = game.is_installed and game.directory and not is_shared(game.directory)
-            row = RemoveMultipleGamesDialog.GameRemovalRow(game, can_delete_files)
+            if game.is_installed and game.directory:
+                if game.config and is_removeable(game.directory, game.config.system_config):
+                    shared_dir = is_shared(game.directory)
+                    any_shared = any_shared or shared_dir
+                    can_delete_files = not shared_dir
+                else:
+                    can_delete_files = False
+                    any_protected = True
+            else:
+                can_delete_files = False
+
+            row = UninstallMultipleGamesDialog.GameRemovalRow(game, can_delete_files)
 
             if can_delete_files and row.can_show_folder_size:
                 folders_to_size.append(game.directory)
@@ -324,6 +331,30 @@ class RemoveMultipleGamesDialog(Gtk.Dialog):
 
         if folders_to_size:
             AsyncCall(self._get_disk_size, self._folder_size_cb, folders_to_size)
+
+        messages = []
+
+        if to_uninstall:
+            messages.append(_("After you uninstall these games, you won't be able play them in Lutris. "
+                              "You can select data you wish to keep."))
+        else:
+            messages.append(_("After you remove these games, they will no longer "
+                              "appear in the 'Games' view."))
+
+        if any_shared:
+            messages.append(_("Some of the game directories cannot be removed because they are shared "
+                              "with other games that you are not removing."))
+
+        if any_protected:
+            messages.append(_("Some of the game directories cannot be removed because they are protected."))
+
+        self.header_bar.set_subtitle(subtitle)
+
+        if messages:
+            self.message_label.set_markup("\n\n".join(messages))
+            self.message_label.show()
+        else:
+            self.message_label.hide()
 
         self.show_all()
         self.connect("response", self.on_response)
@@ -402,8 +433,9 @@ class RemoveMultipleGamesDialog(Gtk.Dialog):
 
             if game.is_installed:
                 if self.game.directory:
-                    folder_size_width = 50
-                    self.folder_size_label = Gtk.Label("", visible=not can_delete_files, no_show_all=True,
+                    folder_size_width = 75
+                    self.folder_size_label = Gtk.Label("", xalign=0,
+                                                       visible=not can_delete_files, no_show_all=True,
                                                        width_request=folder_size_width)
                     self.folder_size_spinner = Gtk.Spinner(visible=can_delete_files, no_show_all=True,
                                                            width_request=folder_size_width)
@@ -428,10 +460,11 @@ class RemoveMultipleGamesDialog(Gtk.Dialog):
             return bool(self.folder_size_label)
 
         def show_folder_size(self, folder_size: int):
-            self.folder_size_label.set_text(human_size(folder_size))
-            self.folder_size_label.show()
-            self.folder_size_spinner.stop()
-            self.folder_size_spinner.hide()
+            if self.folder_size_label:
+                self.folder_size_label.set_text(human_size(folder_size))
+                self.folder_size_label.show()
+                self.folder_size_spinner.stop()
+                self.folder_size_spinner.hide()
 
         @property
         def delete_files(self):
