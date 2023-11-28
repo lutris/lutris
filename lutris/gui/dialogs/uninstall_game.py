@@ -41,7 +41,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
             if to_uninstall:
                 msgs.append(_("After you uninstall these games, you won't be able play them in Lutris. "
-                              "You can select data you wish to keep."))
+                              "You can select data you wish to delete or keep."))
             else:
                 msgs.append(_("After you remove these games, they will no longer "
                               "appear in the 'Games' view."))
@@ -183,8 +183,8 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
             label = Gtk.Label(game.name)
             box.pack_start(label, False, False, 0)
-            self.keep_files_checkbox = None
-            self.keep_playtime_checkbox = None
+            self.delete_files_checkbox = None
+            self.discard_playtime_checkbox = None
             self.folder_size_label = None
 
             if game.is_installed:
@@ -200,14 +200,14 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
                     box.pack_end(self.folder_size_spinner, False, False, 0)
                     box.pack_end(self.folder_size_label, False, False, 0)
 
-                    self.keep_files_checkbox = Gtk.CheckButton("Keep Files")
-                    self.keep_files_checkbox.set_sensitive(can_delete_files)
-                    self.keep_files_checkbox.set_active(not can_delete_files)
-                    box.pack_end(self.keep_files_checkbox, False, False, 0)
+                    self.delete_files_checkbox = Gtk.CheckButton("Delete Files")
+                    self.delete_files_checkbox.set_sensitive(can_delete_files)
+                    self.delete_files_checkbox.set_active(can_delete_files)
+                    box.pack_end(self.delete_files_checkbox, False, False, 0)
 
                 if game.playtime:
-                    self.keep_playtime_checkbox = Gtk.CheckButton("Keep Playtime", active=True)
-                    box.pack_end(self.keep_playtime_checkbox, False, False, 0)
+                    self.discard_playtime_checkbox = Gtk.CheckButton("Discard Playtime", active=False)
+                    box.pack_end(self.discard_playtime_checkbox, False, False, 0)
 
             self.add(box)
 
@@ -227,14 +227,14 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             if not self.game.is_installed:
                 return False
 
-            return bool(self.keep_files_checkbox and not self.keep_files_checkbox.get_active())
+            return bool(self.delete_files_checkbox and not self.delete_files_checkbox.get_active())
 
         @property
-        def keep_playtime(self) -> bool:
+        def discard_playtime(self) -> bool:
             if not self.game.is_installed:
-                return False
+                return True
 
-            return bool(self.keep_playtime_checkbox and self.keep_playtime_checkbox.get_active())
+            return bool(not self.discard_playtime_checkbox or self.discard_playtime_checkbox.get_active())
 
         @property
         def has_game_remove_warning(self) -> bool:
@@ -242,7 +242,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
         def perform_removal(self) -> None:
             if self.game.is_installed:
-                if self.keep_playtime:
+                if not self.discard_playtime:
                     self.game.remove(self.delete_files)
                 else:
                     self.game.remove(self.delete_files, no_signal=True)
