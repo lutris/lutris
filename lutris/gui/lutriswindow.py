@@ -1135,22 +1135,29 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 game.emit("game-install")
 
     def continue_runtime_download(self, runtime_updater: RuntimeUpdater) -> None:
-        def check_progress():
-            progress_info = runtime_updater.get_progress()
+        def start_update(updater):
+            def check_progress():
+                progress_info = updater.get_progress()
 
-            if progress_info.label_markup:
-                progress_info.label_markup = "<span size='10000'>%s</span>" % progress_info.label_markup
+                if progress_info.label_markup:
+                    progress_info.label_markup = "<span size='10000'>%s</span>" % progress_info.label_markup
 
-            progress_box.show()
-            return progress_info
+                progress_box.show()
+                return progress_info
 
-        @watch_errors(handler_object=self)
-        def update_runtime_in_background_cb(_result, error):
-            progress_box.destroy()
+            @watch_errors(handler_object=self)
+            def update_runtime_in_background_cb(_result, error):
+                progress_box.destroy()
 
-        progress_box = ProgressBox(check_progress, visible=False, margin=6)
-        self.download_box.pack_start(progress_box, False, False, 0)
-        AsyncCall(runtime_updater.update_runtime_in_background, update_runtime_in_background_cb)
+            AsyncCall(lambda: updater.install_update(runtime_updater), update_runtime_in_background_cb)
+            progress_box = ProgressBox(check_progress, visible=False, margin=6)
+            return progress_box
+
+        updaters = runtime_updater.create_component_updaters(startup=False)
+
+        for u in updaters:
+            if u.should_update:
+                self.download_box.pack_start(start_update(u), False, False, 0)
 
     def on_watched_error(self, error):
         dialogs.ErrorDialog(error, parent=self)

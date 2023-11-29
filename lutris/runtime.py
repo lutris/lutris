@@ -65,7 +65,7 @@ class RuntimeUpdater:
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled. Safety not guaranteed.")
         else:
-            self.add_update("runtime", self._update_runtime, hours=12, startup=True)
+            self.add_update("runtime", self._update_runtime, hours=12, startup=False)
             self.add_update("runners", self._update_runners, hours=12, startup=False)
 
     def add_update(self, key: str, updater_factory: UpdaterFactory, hours: int, startup: bool) -> None:
