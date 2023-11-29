@@ -181,12 +181,12 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         def __init__(self, game: Game, can_delete_files: bool):
             super().__init__()
             self.game = game
+            self.delete_files_checkbox: Gtk.CheckButton = None
+            self.folder_size_spinner: Gtk.Spinner = None
+
             box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
             label = Gtk.Label(game.name)
             box.pack_start(label, False, False, 0)
-            self.delete_files_checkbox = None
-            self.delete_game_checkbox = None
-            self.folder_size_label = None
 
             self.delete_game_checkbox = Gtk.CheckButton("Remove from Library", active=False, halign=Gtk.Align.START)
             self.delete_game_checkbox.set_sensitive(game.is_installed and game.playtime)
@@ -223,17 +223,15 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
         @property
         def delete_files(self) -> bool:
-            if not self.game.is_installed:
-                return False
-
-            return bool(self.delete_files_checkbox and not self.delete_files_checkbox.get_active())
+            return bool(self.game.is_installed and self.game.directory
+                        and self.delete_files_checkbox.get_active())
 
         @property
         def delete_game(self) -> bool:
             if not self.game.is_installed:
                 return True
 
-            return self.delete_game_checkbox.get_active()
+            return bool(self.delete_game_checkbox.get_active())
 
         @property
         def has_game_remove_warning(self) -> bool:
