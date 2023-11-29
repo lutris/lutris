@@ -66,21 +66,18 @@
                       </packing>
                     </child>
                     <child>
-                      <placeholder/>
-                    </child>
-                    <child>
                       <object class="GtkRevealer" id="download_revealer">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="transition-type">slide-up</property>
                         <property name="transition-duration">300</property>
-                        <property name="reveal-child">True</property>
                         <child>
                           <object class="GtkScrolledWindow">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="hscrollbar-policy">never</property>
-                            <property name="shadow-type">in</property>
+                            <property name="max-content-height">250</property>
+                            <property name="propagate-natural-height">True</property>
                             <child>
                               <object class="GtkViewport">
                                 <property name="visible">True</property>
