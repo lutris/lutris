@@ -40,8 +40,9 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             msgs = []
 
             if to_uninstall:
-                msgs.append(_("After you uninstall these games, you won't be able play them in Lutris. "
-                              "You can select data you wish to delete or keep."))
+                msgs.append(_("After you uninstall these games, you won't be able play them in Lutris."))
+                msgs.append(_("Uninstalled games that you remove from the library will no longer appear in the "
+                              "'Games' view, but those that remain will retain their playtime data."))
             else:
                 msgs.append(_("After you remove these games, they will no longer "
                               "appear in the 'Games' view."))
@@ -184,43 +185,41 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             label = Gtk.Label(game.name)
             box.pack_start(label, False, False, 0)
             self.delete_files_checkbox = None
-            self.discard_playtime_checkbox = None
+            self.delete_game_checkbox = None
             self.folder_size_label = None
 
-            if game.is_installed:
-                if self.game.directory:
-                    folder_size_width = 75
-                    self.folder_size_label = Gtk.Label("", xalign=0,
-                                                       visible=not can_delete_files, no_show_all=True,
-                                                       width_request=folder_size_width)
-                    self.folder_size_spinner = Gtk.Spinner(visible=can_delete_files, no_show_all=True,
-                                                           width_request=folder_size_width)
-                    if can_delete_files:
-                        self.folder_size_spinner.start()
-                    box.pack_end(self.folder_size_spinner, False, False, 0)
-                    box.pack_end(self.folder_size_label, False, False, 0)
+            self.delete_game_checkbox = Gtk.CheckButton("Remove from Library", active=False, halign=Gtk.Align.START)
+            self.delete_game_checkbox.set_sensitive(game.is_installed and game.playtime)
+            self.delete_game_checkbox.set_active(True)
+            box.pack_end(self.delete_game_checkbox, False, False, 0)
 
-                    self.delete_files_checkbox = Gtk.CheckButton("Delete Files")
-                    self.delete_files_checkbox.set_sensitive(can_delete_files)
-                    self.delete_files_checkbox.set_active(can_delete_files)
-                    box.pack_end(self.delete_files_checkbox, False, False, 0)
+            if game.is_installed and self.game.directory:
+                delete_files_overlay = Gtk.Overlay(width_request=175)
+                self.delete_files_checkbox = Gtk.CheckButton(_("Delete Files"))
+                self.delete_files_checkbox.set_sensitive(can_delete_files)
+                self.delete_files_checkbox.set_active(can_delete_files)
+                delete_files_overlay.add(self.delete_files_checkbox)
 
-                if game.playtime:
-                    self.discard_playtime_checkbox = Gtk.CheckButton("Discard Playtime", active=False)
-                    box.pack_end(self.discard_playtime_checkbox, False, False, 0)
+                self.folder_size_spinner = Gtk.Spinner(visible=can_delete_files, no_show_all=True,
+                                                       halign=Gtk.Align.END)
+                if can_delete_files:
+                    self.folder_size_spinner.start()
+                delete_files_overlay.add_overlay(self.folder_size_spinner)
+                box.pack_end(delete_files_overlay, False, False, 0)
 
             self.add(box)
 
         @property
         def can_show_folder_size(self) -> bool:
-            return bool(self.folder_size_label)
+            return bool(self.folder_size_spinner)
 
         def show_folder_size(self, folder_size: int) -> None:
-            if self.folder_size_label:
-                self.folder_size_label.set_text(human_size(folder_size))
-                self.folder_size_label.show()
-                self.folder_size_spinner.stop()
-                self.folder_size_spinner.hide()
+            if self.delete_files_checkbox:
+                self.delete_files_checkbox.set_label(_("Delete Files") + f" ({human_size(folder_size)})")
+
+                if self.folder_size_spinner:
+                    self.folder_size_spinner.stop()
+                    self.folder_size_spinner.hide()
 
         @property
         def delete_files(self) -> bool:
@@ -230,11 +229,11 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             return bool(self.delete_files_checkbox and not self.delete_files_checkbox.get_active())
 
         @property
-        def discard_playtime(self) -> bool:
+        def delete_game(self) -> bool:
             if not self.game.is_installed:
                 return True
 
-            return bool(not self.discard_playtime_checkbox or self.discard_playtime_checkbox.get_active())
+            return self.delete_game_checkbox.get_active()
 
         @property
         def has_game_remove_warning(self) -> bool:
@@ -242,7 +241,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
         def perform_removal(self) -> None:
             if self.game.is_installed:
-                if not self.discard_playtime:
+                if not self.delete_game:
                     self.game.remove(self.delete_files)
                 else:
                     self.game.remove(self.delete_files, no_signal=True)
