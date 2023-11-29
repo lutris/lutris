@@ -608,12 +608,12 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if self.runner_name == "steam" and not self.lutris_config.game_config.get("appid"):
             ErrorDialog(_("Steam AppID not provided"), parent=self)
             return False
-        if self.playtime_entry.get_text():
-            try:
-                float(self.playtime_entry.get_text())
-            except ValueError:
-                ErrorDialog(_("The entered playtime is invalid"), parent=self)
-                return False
+        # if self.playtime_entry.get_text():
+        #     try:
+        #         float(self.playtime_entry.get_text())
+        #     except ValueError:
+        #         ErrorDialog(_("The entered playtime is invalid"), parent=self)
+        #         return False
 
         invalid_fields = []
         runner_class = import_runner(self.runner_name)
@@ -654,9 +654,9 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if self.year_entry.get_text():
             year = int(self.year_entry.get_text())
 
-        playtime = None
-        if self.playtime_entry.get_text():
-            playtime = float(self.playtime_entry.get_text())
+        # playtime = None
+        # if self.playtime_entry.get_text():
+        #     playtime = float(self.playtime_entry.get_text())
 
         if not self.lutris_config.game_config_id:
             self.lutris_config.game_config_id = make_game_config_id(self.slug)
@@ -665,7 +665,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.game.sortname = sortname
         self.game.slug = self.slug
         self.game.year = year
-        self.game.playtime = playtime
+        # self.game.playtime = playtime
         self.game.is_installed = True
         self.game.config = self.lutris_config
         self.game.runner_name = self.runner_name
