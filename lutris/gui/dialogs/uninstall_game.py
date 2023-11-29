@@ -20,6 +20,8 @@ from lutris.util.system import get_disk_size, is_removeable
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "uninstall-dialog.ui"))
 class UninstallMultipleGamesDialog(Gtk.Dialog):
+    """A dialog to uninstall and remove games. It lists the games and offers checkboxes to delete
+    the game files, and to remove from the library."""
     __gtype_name__ = "UninstallMultipleGamesDialog"
 
     header_bar: Gtk.HeaderBar = GtkTemplate.Child()
@@ -214,6 +216,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             return bool(self.folder_size_spinner)
 
         def show_folder_size(self, folder_size: int) -> None:
+            """Called to stop the spinner and show the size of the game folder."""
             if self.delete_files_checkbox:
                 self.delete_files_checkbox.set_label(_("Delete Files") + f" ({human_size(folder_size)})")
 
@@ -223,11 +226,13 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
         @property
         def delete_files(self) -> bool:
+            """True if the game files should be deleted."""
             return bool(self.game.is_installed and self.game.directory
                         and self.delete_files_checkbox.get_active())
 
         @property
         def delete_game(self) -> bool:
+            """True if the game should be rmoved from the PGA."""
             if not self.game.is_installed:
                 return True
 
@@ -235,9 +240,11 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
         @property
         def has_game_remove_warning(self) -> bool:
+            """True if the game should not provoke a warning before you delete its files."""
             return not hasattr(self.game.runner, "no_game_remove_warning")
 
         def perform_removal(self) -> None:
+            """Performs the actions this row describes, uninstalling or deleting a game."""
             # We uninstall installed games, and delete games where self.delete_game is true;
             # but we must be careful to fire the game-removed single only once.
             if self.game.is_installed:
