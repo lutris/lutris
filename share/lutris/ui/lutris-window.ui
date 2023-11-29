@@ -66,23 +66,49 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkBox" id="download_box">
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <object class="GtkRevealer" id="download_revealer">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="orientation">vertical</property>
-                        <property name="spacing">6</property>
+                        <property name="transition-type">slide-up</property>
+                        <property name="transition-duration">300</property>
+                        <property name="reveal-child">True</property>
                         <child>
-                          <placeholder/>
+                          <object class="GtkScrolledWindow">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="hscrollbar-policy">never</property>
+                            <property name="shadow-type">in</property>
+                            <child>
+                              <object class="GtkViewport">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <child>
+                                  <object class="GtkBox" id="download_box">
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <style>
+                                      <class name="sidebar"/>
+                                      <class name="lutrissidebar"/>
+                                    </style>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
                         </child>
-                        <style>
-                          <class name="sidebar"/>
-                          <class name="lutrissidebar"/>
-                        </style>
                       </object>
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">1</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                   </object>

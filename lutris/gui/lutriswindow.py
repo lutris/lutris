@@ -62,6 +62,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     zoom_adjustment = GtkTemplate.Child()
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
+    download_revealer: Gtk.Revealer = GtkTemplate.Child()
     download_box: Gtk.Box = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
@@ -1147,7 +1148,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
             @watch_errors(handler_object=self)
             def update_runtime_in_background_cb(_result, error):
+                nonlocal outstanding_boxes
                 progress_box.destroy()
+                outstanding_boxes -= 1
+                if not outstanding_boxes:
+                    self.download_revealer.set_reveal_child(False)
 
             AsyncCall(lambda: updater.install_update(runtime_updater), update_runtime_in_background_cb)
             progress_box = ProgressBox(check_progress, visible=False, margin=6)
@@ -1155,8 +1160,13 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         updaters = runtime_updater.create_component_updaters(startup=False)
 
+        outstanding_boxes = 0
         for u in updaters:
             if u.should_update:
+                outstanding_boxes += 1
+                if outstanding_boxes == 1:
+                    self.download_revealer.set_reveal_child(True)
+
                 self.download_box.pack_start(start_update(u), False, False, 0)
 
     def on_watched_error(self, error):
