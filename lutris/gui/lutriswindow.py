@@ -35,7 +35,6 @@ from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.strings import gtk_safe
 from lutris.util.system import update_desktop_icons
 from lutris.util.wine.wine import esync_display_limit_warning, fsync_display_support_warning
 
@@ -1137,15 +1136,13 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def continue_runtime_download(self, runtime_updater: RuntimeUpdater) -> None:
         def check_progress():
-            progress = runtime_updater.percentage_completed if runtime_updater.is_downloading else None
-            status = gtk_safe(runtime_updater.status_text)
-            markup = "<span size='10000'>%s</span>" % status if status else ""
+            progress_info = runtime_updater.get_progress()
+
+            if progress_info.label_markup:
+                progress_info.label_markup = "<span size='10000'>%s</span>" % progress_info.label_markup
+
             progress_box.show()
-
-            if runtime_updater.can_cancel:
-                return ProgressBox.Progress(progress, markup, runtime_updater.cancel)
-
-            return ProgressBox.Progress(progress, markup)
+            return progress_info
 
         @watch_errors(handler_object=self)
         def update_runtime_in_background_cb(_result, error):

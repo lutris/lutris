@@ -5,12 +5,35 @@ from gi.repository import GLib, Gtk, Pango
 from lutris.util.log import logger
 
 
+class ProgressInfo:
+    """Contains the current state of a process being monitored. This can also provide
+    for stopping the process via a function you can provide.
+
+    Processes sometimes cannot be stopped after a certain point; at that point they start
+    providing Progress objects with no stop-function."""
+
+    def __init__(self, progress: float = None, label_markup: str = "", stop_function: Callable = None):
+        self.progress = progress
+        self.label_markup = label_markup
+        self.stop_function = stop_function
+
+    @property
+    def can_stop(self) -> bool:
+        """Called to check if the stop button should appear."""
+        return bool(self.stop_function)
+
+    def stop(self):
+        """Called whe the stop button is clicked."""
+        if self.stop_function:
+            self.stop_function()
+
+
 class ProgressBox(Gtk.Box):
     """Simple, small progress bar used to monitor the update of runtime or runner components.
     This class needs only a function that returns a Progress object, which describes the current
     progress and optionally can stop the update."""
 
-    ProgressFunction = Callable[[], 'ProgressBox.Progress']
+    ProgressFunction = Callable[[], 'ProgressInfo']
 
     def __init__(self,
                  progress_function: ProgressFunction,
@@ -18,7 +41,7 @@ class ProgressBox(Gtk.Box):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL, no_show_all=True, spacing=6, **kwargs)
 
         self.progress_function = progress_function
-        self.progress = ProgressBox.Progress(0.0)
+        self.progress = ProgressInfo(0.0)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True, spacing=6,
                        valign=Gtk.Align.CENTER)
@@ -43,28 +66,6 @@ class ProgressBox(Gtk.Box):
         self.timer_id = GLib.timeout_add(500, self.on_update_progress)
         self.connect("destroy", self.on_destroy)
 
-    class Progress:
-        """Contains the current state of the update being monitored. This can also provide
-        for stopping the update via a function you can provide.
-
-        Updates often cannot be stopped after a certain point; at that point they start
-        providing Progress objects with no stop-function, and the stop button disappears."""
-
-        def __init__(self, progress: float = None, label_markup: str = "", stop_function: Callable = None):
-            self.progress = progress
-            self.label_markup = label_markup
-            self.stop_function = stop_function
-
-        @property
-        def can_stop(self) -> bool:
-            """Called to check if the stop button should appear."""
-            return bool(self.stop_function)
-
-        def stop(self):
-            """Called whe the stop button is clicked."""
-            if self.stop_function:
-                self.stop_function()
-
     def on_stop_clicked(self, _widget) -> None:
         if self.progress.can_stop:
             self.progress.stop()
@@ -84,7 +85,7 @@ class ProgressBox(Gtk.Box):
         self._apply_progress(progress)
         return True
 
-    def _apply_progress(self, progress: Progress):
+    def _apply_progress(self, progress: ProgressInfo):
         self.progress = progress
 
         if progress.progress is None:

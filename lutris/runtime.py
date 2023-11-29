@@ -9,6 +9,7 @@ from gi.repository import GLib
 
 from lutris import settings
 from lutris.api import download_runtime_versions, get_time_from_api_date
+from lutris.gui.widgets.progress_box import ProgressInfo
 from lutris.util import http, jobs, system, update_cache
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -45,6 +46,9 @@ class ComponentUpdater:
     def install_update(self, updater: 'RuntimeUpdater') -> None:
         raise NotImplementedError
 
+    def get_progress(self) -> ProgressInfo:
+        return ProgressInfo(None)
+
 
 class RuntimeUpdater:
     """Class handling the runtime updates"""
@@ -56,8 +60,7 @@ class RuntimeUpdater:
         self.pci_ids: List[str] = pci_ids or []
         self.runtime_versions: Dict[str, Any] = {}
         self.update_functions: List[Tuple[str, RuntimeUpdater.UpdaterFactory, bool]] = []
-        self.downloaders: Dict[Any, Downloader] = {}
-        self.status_text = ""
+        self.running_component_updater = None
 
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled. Safety not guaranteed.")
@@ -110,25 +113,11 @@ class RuntimeUpdater:
             if updater.should_update:
                 updater.install_update(self)
 
-    @property
-    def can_cancel(self) -> bool:
-        return self.is_downloading
+    def get_progress(self) -> ProgressInfo:
+        if self.running_component_updater:
+            return self.running_component_updater.get_progress()
 
-    def cancel(self) -> None:
-        for downloader in self.downloaders.values():
-            if downloader.state == downloader.DOWNLOADING:
-                downloader.cancel()
-
-    @property
-    def is_downloading(self):
-        return any(d for d in self.downloaders.values() if d.state == d.DOWNLOADING)
-
-    @property
-    def percentage_completed(self) -> float:
-        downloading = [d for d in self.downloaders.values() if d.state == d.DOWNLOADING]
-        if not downloading:
-            return 1.0
-        return sum(d.progress_fraction for d in downloading) / len(self.downloaders)
+        return ProgressInfo(None)
 
     def _update_runtime(self) -> List[ComponentUpdater]:
         """Launch the update process"""
@@ -244,6 +233,7 @@ class RuntimeComponentUpdater(ComponentUpdater):
         self.remote_runtime_info = remote_runtime_info
         self.versioned = False  # Versioned runtimes keep 1 version per folder
         self.version = ""
+        self.downloader: Downloader = None
         self.download_progress = 0.0
 
     @property
@@ -251,13 +241,26 @@ class RuntimeComponentUpdater(ComponentUpdater):
         return self.remote_runtime_info["name"]
 
     def install_update(self, updater: RuntimeUpdater):
-        updater.status_text = _("Updating %s") % self.name
+        updater.running_component_updater = self
+        try:
+            if self.remote_runtime_info["url"]:
+                self.downloader = self.download()
+                self.downloader.join()
+                self.downloader = None
+            else:
+                self.download_components()
+        finally:
+            updater.running_component_updater = None
+
+    def get_progress(self) -> ProgressInfo:
         if self.remote_runtime_info["url"]:
-            downloader = self.download()
-            updater.downloaders[self] = downloader
-            downloader.join()
-        else:
-            self.download_components()
+            d = self.downloader
+            if d:
+                return ProgressInfo(d.progress_fraction, _("Updating %s") % self.name, d.cancel)
+
+            return ProgressInfo(None, _("Extracting %s") % self.name)
+
+        return ProgressInfo(None, _("Updating %s") % self.name)
 
     @property
     def local_runtime_path(self) -> str:
@@ -419,6 +422,7 @@ class RunnerComponentUpdater(ComponentUpdater):
         self.upstream_runner = upstream_runner
         self.runner_version = "-".join([upstream_runner["version"], upstream_runner["architecture"]])
         self.version_path = os.path.join(settings.RUNNER_DIR, name, self.runner_version)
+        self.downloader: Downloader = None
 
     @property
     def name(self) -> str:
@@ -437,16 +441,25 @@ class RunnerComponentUpdater(ComponentUpdater):
         return True
 
     def install_update(self, updater: 'RuntimeUpdater'):
-        updater.status_text = _("Updating %s") % self.name
-        url = self.upstream_runner["url"]
-        archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(url))
-        downloader = Downloader(self.upstream_runner["url"], archive_download_path)
-        downloader.start()
-        updater.downloaders = {"wine": downloader}
-        downloader.join()
-        if downloader.state == downloader.COMPLETED:
-            updater.status_text = _("Extracting %s") % self.name
-            extract_archive(archive_download_path, self.version_path)
-            get_installed_wine_versions.cache_clear()
+        updater.running_component_updater = self
+        try:
+            url = self.upstream_runner["url"]
+            archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(url))
+            self.downloader = Downloader(self.upstream_runner["url"], archive_download_path)
+            self.downloader.start()
+            self.downloader.join()
+            if self.downloader.state == self.downloader.COMPLETED:
+                self.downloader = None
+                extract_archive(archive_download_path, self.version_path)
+                get_installed_wine_versions.cache_clear()
 
-        os.remove(archive_download_path)
+            os.remove(archive_download_path)
+        finally:
+            updater.running_component_updater = None
+
+    def get_progress(self) -> ProgressInfo:
+        d = self.downloader
+        if d:
+            return ProgressInfo(d.progress_fraction, _("Updating %s") % self.name, d.cancel)
+
+        return ProgressInfo(None, _("Extracting %s") % self.name)
