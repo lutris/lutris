@@ -368,12 +368,25 @@ class Game(GObject.Object):
                 disable_compositing()
                 self.compositor_disabled = True
 
-    def remove(self, delete_files=False, no_signal=False):
-        """Uninstall a game
+    def remove(self, delete_files: bool = False, no_signal: bool = False) -> None:
+        """Uninstall a game, and removes it from the library if this it has no playtime.
 
         Params:
             delete_files (bool): Delete the game files
-            no_signal (bool): Don't emit game-removed signal (if running in a thread)
+            no_signal (bool): Don't emit game-removed signal
+        """
+        if self.playtime:
+            self.uninstall(delete_files=delete_files, no_signal=no_signal)
+        else:
+            self.uninstall(delete_files=delete_files, no_signal=True)
+            self.delete(no_signal=no_signal)
+
+    def uninstall(self, delete_files: bool = False, no_signal: bool = False) -> None:
+        """Uninstall a game, but do not remove it from the library.
+
+        Params:
+            delete_files (bool): Delete the game files
+            no_signal (bool): Don't emit game-removed signal
         """
         sql.db_update(settings.PGA_DB, "games", {"installed": 0, "runner": ""}, {"id": self.id})
         if self.config:
@@ -392,14 +405,11 @@ class Game(GObject.Object):
             log_buffer = LOG_BUFFERS[self.id]
             log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
 
-        if not self.playtime:
-            return self.delete(no_signal=no_signal)
-        if no_signal:
-            return
-        self.emit("game-removed")
+        if not no_signal:
+            self.emit("game-removed")
 
-    def delete(self, no_signal=False):
-        """Completely remove a game from the library"""
+    def delete(self, no_signal: bool = False) -> None:
+        """Delete a game from the library; must be uninstalled first."""
         if self.is_installed:
             raise RuntimeError(_("Uninstall the game before deleting"))
         games_db.delete_game(self.id)

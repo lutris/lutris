@@ -189,7 +189,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             box.pack_start(label, False, False, 0)
 
             self.delete_game_checkbox = Gtk.CheckButton("Remove from Library", active=False, halign=Gtk.Align.START)
-            self.delete_game_checkbox.set_sensitive(game.is_installed and game.playtime)
+            self.delete_game_checkbox.set_sensitive(game.is_installed)
             self.delete_game_checkbox.set_active(True)
             box.pack_end(self.delete_game_checkbox, False, False, 0)
 
@@ -238,13 +238,15 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             return not hasattr(self.game.runner, "no_game_remove_warning")
 
         def perform_removal(self) -> None:
+            # We uninstall installed games, and delete games where self.delete_game is true;
+            # but we must be careful to fire the game-removed single only once.
             if self.game.is_installed:
-                if not self.delete_game:
-                    self.game.remove(self.delete_files)
-                else:
-                    self.game.remove(self.delete_files, no_signal=True)
+                if self.delete_game:
+                    self.game.uninstall(delete_files=self.delete_files, no_signal=True)
                     self.game.delete()
-            else:
+                else:
+                    self.game.uninstall(delete_files=self.delete_files)
+            elif self.delete_game:
                 self.game.delete()
 
     def on_watched_error(self, error: Exception) -> None:
