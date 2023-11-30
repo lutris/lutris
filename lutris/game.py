@@ -29,7 +29,6 @@ from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.process import Process
-from lutris.util.savesync import sync_saves
 from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
 from lutris.util.timer import Timer
 from lutris.util.yaml import write_yaml_to_file
@@ -683,9 +682,6 @@ class Game(GObject.Object):
             return False
 
         self.reload_config()  # Reload the config before launching it.
-        saves = self.config.game_level["game"].get("saves")
-        if saves:
-            sync_saves(self)
 
         if self.id in LOG_BUFFERS:  # Reset game logs on each launch
             log_buffer = LOG_BUFFERS[self.id]

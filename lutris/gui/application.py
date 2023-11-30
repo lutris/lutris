@@ -56,10 +56,13 @@ from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_dirs
+from lutris.util.savesync import show_save_stats, upload_save
 from lutris.services import get_enabled_services
 from lutris.database.services import ServiceGameCollection
 
 from .lutriswindow import LutrisWindow
+
+LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATURES_ENABLED") == "1"
 
 
 class Application(Gtk.Application):
@@ -262,6 +265,24 @@ class Application(Gtk.Application):
             _("Import a game"),
             None,
         )
+        if LUTRIS_EXPERIMENTAL_FEATURES_ENABLED:
+            self.add_main_option(
+                "save-stats",
+                0,
+                GLib.OptionFlags.NONE,
+                GLib.OptionArg.STRING,
+                _("Show statistics about a game saves"),
+                None,
+            )
+            self.add_main_option(
+                "save-upload",
+                0,
+                GLib.OptionFlags.NONE,
+                GLib.OptionArg.STRING,
+                _("Upload saves"),
+                None,
+            )
+
         self.add_main_option(
             "dest",
             0,
@@ -543,6 +564,33 @@ class Application(Gtk.Application):
             else:
                 import_game(filepath, dest_dir)
             return 0
+
+        if LUTRIS_EXPERIMENTAL_FEATURES_ENABLED:
+            def get_game_match(slug):
+                # First look for an exact match
+                games = games_db.get_games_by_slug(slug)
+                if not games:
+                    # Then look for matches
+                    games = games_db.get_games(searches={"slug": slug})
+                if len(games) > 1:
+                    self._print(command_line, "Multiple games matching %s: %s" %
+                                (slug, ",".join(game["slug"] for game in games)))
+                    return
+                if not games:
+                    self._print(command_line, "No matching game for %s" % slug)
+                    return
+                return Game(games[0]["id"])
+
+            if options.contains("save-stats"):
+                game = get_game_match(options.lookup_value("save-stats").get_string())
+                if game:
+                    show_save_stats(game, output_format="json" if options.contains("json") else "text")
+                return 0
+            if options.contains("save-upload"):
+                game = get_game_match(options.lookup_value("save-upload").get_string())
+                if game:
+                    upload_save(game)
+                return 0
 
         # Execute command in Lutris context
         if options.contains("exec"):
