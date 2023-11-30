@@ -407,7 +407,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     def _get_string_replacements(self):
         """Return a mapping of variables to their actual value"""
 
-        current_res = self.current_resolution()
+        current_res = self.current_resolution
 
         replacements = {
             "GAMEDIR": self.target_path,
