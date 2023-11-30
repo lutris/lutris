@@ -73,67 +73,43 @@ class RuntimeUpdater:
         self.force = force
         self.pci_ids: List[str] = pci_ids or []
         self.runtime_versions: Dict[str, Any] = {}
-        self.update_functions: List[Tuple[str, RuntimeUpdater.UpdaterFactory, bool]] = []
-        self.running_component_updater = None
+        self.update_functions: List[Tuple[str, RuntimeUpdater.UpdaterFactory]] = []
 
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled. Safety not guaranteed.")
         else:
-            self.add_update("runtime", self._update_runtime, hours=12, startup=False)
-            self.add_update("runners", self._update_runners, hours=12, startup=False)
+            self.add_update("runtime", self._get_runtime_updaters, hours=12)
+            self.add_update("runners", self._get_runner_updaters, hours=12)
 
-    def add_update(self, key: str, updater_factory: UpdaterFactory, hours: int, startup: bool) -> None:
+    def add_update(self, key: str, updater_factory: UpdaterFactory, hours: int) -> None:
         """__init__ calls this to register each update. This function
         only registers the update if it hasn't been tried in the last
         'hours' hours. This is tracked in 'updates.json', and identified
         by 'key' in that file."""
         last_call = update_cache.get_last_call(key)
         if self.force or not last_call or last_call > 3600 * hours:
-            self.update_functions.append((key, updater_factory, startup))
+            self.update_functions.append((key, updater_factory))
 
-    def has_updates(self, startup: bool = None) -> bool:
+    @property
+    def has_updates(self) -> bool:
         """Returns True if there are any updates to perform."""
-        if startup is None:
-            return bool(self.update_functions)
+        return bool(self.update_functions)
 
-        return any(f for f in self.update_functions if f[2] == startup)
-
-    def update_runtimes_at_startup(self) -> None:
-        """Performs all the registered updates that are marked for 'startup'. These prevent Lutris
-        from being used until they are ready."""
-        self._perform_updates(startup=True)
-
-    def update_runtime_in_background(self) -> None:
-        """Performs those updates that are not marked for 'startup'; these are downloaded in the
-        background, and become available while Lutris is active."""
-        self._perform_updates(startup=False)
-
-    def create_component_updaters(self, startup: bool) -> List[ComponentUpdater]:
+    def create_component_updaters(self) -> List[ComponentUpdater]:
+        """Creates the component updaters that need to be applied and
+        returns them in a list."""
         if not self.runtime_versions:
             self.runtime_versions = download_runtime_versions(self.pci_ids)
 
         updaters = []
-        for key, func, for_startup in self.update_functions:
-            if startup == for_startup:
-                updaters += func()
-                # Not ideal - we are marking this off as updated just before
-                # the updater, not after it completes.
-                update_cache.write_date_to_cache(key)
+        for key, func in self.update_functions:
+            updaters += func()
+            # Not ideal - we are marking this off as updated just before
+            # the updater, not after it completes.
+            update_cache.write_date_to_cache(key)
         return updaters
 
-    def _perform_updates(self, startup: bool) -> None:
-        updaters = self.create_component_updaters(startup)
-        for updater in updaters:
-            if updater.should_update:
-                updater.install_update(self)
-
-    def get_progress(self) -> ProgressInfo:
-        if self.running_component_updater:
-            return self.running_component_updater.get_progress()
-
-        return ProgressInfo(None)
-
-    def _update_runtime(self) -> List[ComponentUpdater]:
+    def _get_runtime_updaters(self) -> List[ComponentUpdater]:
         """Launch the update process"""
         updaters: List[ComponentUpdater] = []
         for name, remote_runtime in self.runtime_versions.get("runtimes", {}).items():
@@ -148,7 +124,7 @@ class RuntimeUpdater:
 
         return updaters
 
-    def _update_runners(self) -> List[ComponentUpdater]:
+    def _get_runner_updaters(self) -> List[ComponentUpdater]:
         """Update installed runners (only works for Wine at the moment)"""
         updaters: List[ComponentUpdater] = []
         upstream_runners = self.runtime_versions.get("runners", {})
@@ -256,17 +232,13 @@ class RuntimeComponentUpdater(ComponentUpdater):
         return self.remote_runtime_info["name"]
 
     def install_update(self, updater: RuntimeUpdater):
-        updater.running_component_updater = self
-        try:
-            if self.remote_runtime_info["url"]:
-                self.state = ComponentUpdater.DOWNLOADING
-                self.downloader = self.download()
-                self.downloader.join()
-                self.downloader = None
-            else:
-                self.download_components()
-        finally:
-            updater.running_component_updater = None
+        if self.remote_runtime_info["url"]:
+            self.state = ComponentUpdater.DOWNLOADING
+            self.downloader = self.download()
+            self.downloader.join()
+            self.downloader = None
+        else:
+            self.download_components()
 
     def get_progress(self) -> ProgressInfo:
         status_text = ComponentUpdater.status_formats[self.state] % self.name
@@ -468,24 +440,20 @@ class RunnerComponentUpdater(ComponentUpdater):
         return True
 
     def install_update(self, updater: 'RuntimeUpdater'):
-        updater.running_component_updater = self
-        try:
-            url = self.upstream_runner["url"]
-            archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(url))
-            self.state = ComponentUpdater.DOWNLOADING
-            self.downloader = Downloader(self.upstream_runner["url"], archive_download_path)
-            self.downloader.start()
-            self.downloader.join()
-            if self.downloader.state == self.downloader.COMPLETED:
-                self.downloader = None
-                self.state = ComponentUpdater.EXTRACTING
-                extract_archive(archive_download_path, self.version_path)
-                get_installed_wine_versions.cache_clear()
+        url = self.upstream_runner["url"]
+        archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(url))
+        self.state = ComponentUpdater.DOWNLOADING
+        self.downloader = Downloader(self.upstream_runner["url"], archive_download_path)
+        self.downloader.start()
+        self.downloader.join()
+        if self.downloader.state == self.downloader.COMPLETED:
+            self.downloader = None
+            self.state = ComponentUpdater.EXTRACTING
+            extract_archive(archive_download_path, self.version_path)
+            get_installed_wine_versions.cache_clear()
 
-            os.remove(archive_download_path)
-            self.state = ComponentUpdater.COMPLETED
-        finally:
-            updater.running_component_updater = None
+        os.remove(archive_download_path)
+        self.state = ComponentUpdater.COMPLETED
 
     def get_progress(self) -> ProgressInfo:
         status_text = ComponentUpdater.status_formats[self.state] % self.name

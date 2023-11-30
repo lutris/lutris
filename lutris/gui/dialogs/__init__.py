@@ -311,49 +311,6 @@ class FileDialog:
         dialog.destroy()
 
 
-class LutrisInitDialog(Gtk.Dialog):
-
-    def __init__(self, runtime_updater):
-        super().__init__()
-        self.runtime_updater = runtime_updater
-
-        self.set_icon_name("lutris")
-        self.set_size_request(320, 60)
-        self.set_border_width(24)
-        self.set_decorated(False)
-        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 12)
-        self.label = Gtk.Label(_("Checking for runtime updates, please wait…"))
-        vbox.add(self.label)
-        self.progress = Gtk.ProgressBar(visible=True)
-        vbox.add(self.progress)
-        self.get_content_area().add(vbox)
-        self.progress_timeout = GLib.timeout_add(125, self.show_progress)
-        self.show_all()
-
-        self.connect("destroy", self.on_destroy)
-        AsyncCall(self.runtime_updater.update_runtimes_at_startup, self.init_cb)
-
-    def show_progress(self):
-        progress_info = self.runtime_updater.get_progress()
-        if progress_info.progress is None:
-            self.progress.pulse()
-        else:
-            self.progress.set_fraction(progress_info.progress)
-
-        if progress_info.label_markup and self.label.get_text() != self.runtime_updater.status_text:
-            self.label.set_markup(progress_info.label_markup)
-        return True
-
-    def init_cb(self, _result, error: Exception):
-        if error:
-            ErrorDialog(error, parent=self)
-        self.destroy()
-
-    def on_destroy(self, window):
-        GLib.source_remove(self.progress_timeout)
-        return True
-
-
 class InstallOrPlayDialog(ModalDialog):
 
     def __init__(self, game_name, parent=None):

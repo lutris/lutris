@@ -25,6 +25,7 @@ import tempfile
 
 from datetime import datetime, timedelta
 from gettext import gettext as _
+from typing import Dict, Any
 
 import gi
 
@@ -42,14 +43,13 @@ from lutris.database import games as games_db
 from lutris.game import Game, export_game, import_game
 from lutris.installer import get_installers
 from lutris.gui.config.preferences_dialog import PreferencesDialog
-from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, LutrisInitDialog
+from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.dialogs.delegates import LaunchUIDelegate, InstallUIDelegate, CommandLineUIDelegate
 from lutris.gui.installerwindow import InstallerWindow, InstallationKind
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
 from lutris.startup import init_lutris, run_all_checks
-from lutris.runtime import RuntimeUpdater
 from lutris.style_manager import StyleManager
 from lutris.util import datapath, log, system
 from lutris.util.http import HTTPError, Request
@@ -343,16 +343,11 @@ class Application(Gtk.Application):
             screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-    def show_update_runtime_dialog(self, gpu_info):
+    def start_runtime_updates(self, gpu_info: Dict[str, Any]) -> None:
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
         else:
-            pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpu_info["gpus"].values()]
-            runtime_updater = RuntimeUpdater(pci_ids=pci_ids, force=self.force_updates)
-            if runtime_updater.has_updates(startup=True):
-                init_dialog = LutrisInitDialog(runtime_updater)
-                init_dialog.run()
-            return runtime_updater
+            self.window.start_runtime_updates(self.force_updates, gpu_info)
 
     def get_window_key(self, **kwargs):
         if kwargs.get("appid"):
@@ -680,7 +675,7 @@ class Application(Gtk.Application):
                 # Installers can use game or installer slugs
                 self.quit_on_game_exit = True
                 db_game = games_db.get_game_by_field(game_slug, "slug") \
-                    or games_db.get_game_by_field(game_slug, "installer_slug")
+                          or games_db.get_game_by_field(game_slug, "installer_slug")
             else:
                 # Dazed and confused, try anything that might works
                 db_game = (
@@ -757,15 +752,12 @@ class Application(Gtk.Application):
             if game.state == game.STATE_STOPPED and not self.window.is_visible():
                 self.quit()
         else:
-            runtime_updater = self.show_update_runtime_dialog(gpu_info)
             # If we're showing the window, it will handle the delegated UI
             # from here on out, no matter what command line we got.
             self.launch_ui_delegate = self.window
             self.install_ui_delegate = self.window
             self.window.present()
-
-            if runtime_updater and runtime_updater.has_updates(startup=False):
-                self.window.continue_runtime_download(runtime_updater)
+            self.start_runtime_updates(gpu_info)
             # If the Lutris GUI is started by itself, don't quit it when a game stops
             self.quit_on_game_exit = False
         return 0

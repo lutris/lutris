@@ -4,6 +4,7 @@ import os
 import re
 from collections import namedtuple
 from gettext import gettext as _
+from typing import Any, Dict
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
@@ -1136,7 +1137,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
             else:
                 game.emit("game-install")
 
-    def continue_runtime_download(self, runtime_updater: RuntimeUpdater) -> None:
+    def start_runtime_updates(self, force_updates: bool, gpu_info: Dict[str, Any]) -> None:
         def start_update(updater):
             def check_progress():
                 progress_info = updater.get_progress()
@@ -1173,7 +1174,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
         except AttributeError:
             pass
 
-        updaters = runtime_updater.create_component_updaters(startup=False)
+        pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpu_info["gpus"].values()]
+        runtime_updater = RuntimeUpdater(pci_ids=pci_ids, force=force_updates)
+        if not runtime_updater.has_updates:
+            return
+
+        updaters = runtime_updater.create_component_updaters()
         progress_boxes = {}
 
         for u in updaters:
