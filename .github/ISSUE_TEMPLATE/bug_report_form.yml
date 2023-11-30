@@ -8,6 +8,8 @@ body:
       value: |
         ### Important notice
         **This repository is not a place for requesting support with a game, runner or an installer.**
+        *DO NOT REPORT BUGS FOR OLD LUTRIS VERSIONS. MAKE SURE YOU UP TO DATE AND ARE USING THE LATEST VERSION AVAILABLE.
+        *BUGS REPORTS SUBMITTED ON OLD VERSIONS WILL BE CLOSED WITHOUT FURTHER CONSIDERATION.
         *If you have issues installing a game or launching it*, make sure you follow our essential guides on [graphics driver installation](https://github.com/lutris/docs/blob/master/InstallingDrivers.md) and [dependencies for the wine runner](https://github.com/lutris/docs/blob/master/WineDependencies.md).
         *If you followed the guides and the issues persist*, try asking for help in our official [Lutris Discord Server](https://discord.com/invite/Pnt5CuY).
         *If you think there is a legitimate issue with our Lutris Wine builds*, open an issue in our [Lutris Wine repository](https://github.com/lutris/wine) instead.
@@ -16,8 +18,8 @@ body:
     id: description
     attributes:
       label: "Bug description"
-      description: "A clear and detailed description of what the bug is."
-      placeholder: "Tell us about your problem with Lutris in a clear and detailed way"
+      description: "A clear and detailed description of what the bug is.
+      placeholder: "Tell us about your problem with Lutris in a clear and  detailed way"
     validations:
       required: true
   - type: textarea
