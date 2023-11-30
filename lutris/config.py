@@ -223,7 +223,8 @@ class LutrisConfig:
             config_path = self.game_config_path
         else:
             raise ValueError("Invalid config level '%s'" % self.level)
-
+        # Remove keys with no values from config before saving
+        config = {key: value for key, value in config.items() if value}
         logger.debug("Saving %s config to %s", self, config_path)
         write_yaml_to_file(config, config_path)
         self.initialize_config()
