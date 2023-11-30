@@ -56,7 +56,7 @@ from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_dirs
-from lutris.util.savesync import show_save_stats, upload_save
+from lutris.util.savesync import show_save_stats, upload_save, save_check
 from lutris.services import get_enabled_services
 from lutris.database.services import ServiceGameCollection
 
@@ -280,6 +280,14 @@ class Application(Gtk.Application):
                 GLib.OptionFlags.NONE,
                 GLib.OptionArg.STRING,
                 _("Upload saves"),
+                None,
+            )
+            self.add_main_option(
+                "save-check",
+                0,
+                GLib.OptionFlags.NONE,
+                GLib.OptionArg.STRING,
+                _("Verify status of save syncing"),
                 None,
             )
 
@@ -590,6 +598,11 @@ class Application(Gtk.Application):
                 game = get_game_match(options.lookup_value("save-upload").get_string())
                 if game:
                     upload_save(game)
+                return 0
+            if options.contains("save-check"):
+                game = get_game_match(options.lookup_value("save-check").get_string())
+                if game:
+                    save_check(game)
                 return 0
 
         # Execute command in Lutris context
