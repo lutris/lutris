@@ -72,12 +72,10 @@
                         <property name="transition-type">slide-up</property>
                         <property name="transition-duration">300</property>
                         <child>
-                          <object class="GtkScrolledWindow">
+                          <object class="GtkScrolledWindow" id="download_scrolledwindow">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="hscrollbar-policy">never</property>
-                            <property name="max-content-height">250</property>
-                            <property name="propagate-natural-height">True</property>
                             <child>
                               <object class="GtkViewport">
                                 <property name="visible">True</property>

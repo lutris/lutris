@@ -63,6 +63,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
     download_revealer: Gtk.Revealer = GtkTemplate.Child()
+    download_scrolledwindow: Gtk.ScrolledWindow = GtkTemplate.Child()
     download_box: Gtk.Box = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
@@ -1157,6 +1158,14 @@ class LutrisWindow(Gtk.ApplicationWindow,
             AsyncCall(lambda: updater.install_update(runtime_updater), update_runtime_in_background_cb)
             progress_box = ProgressBox(check_progress, visible=False, margin=6)
             return progress_box
+
+        try:
+            # GTK 3.22 is required for this, but if this fails we can still run.
+            # The download area comes out too small, but it's usable.
+            self.download_scrolledwindow.set_max_content_height(250)
+            self.download_scrolledwindow.set_propagate_natural_height(True)
+        except AttributeError:
+            pass
 
         updaters = runtime_updater.create_component_updaters(startup=False)
 
