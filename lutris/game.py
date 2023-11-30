@@ -1067,7 +1067,7 @@ def import_game(file_path, dest_dir):
         lutris_config = json.load(config_file)
     config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % lutris_config["configpath"])
     write_yaml_to_file(lutris_config["config"], config_filename)
-    game_id = games_db.add_or_update(
+    game_id = games_db.add_game(
         name=lutris_config["name"],
         runner=lutris_config["runner"],
         slug=lutris_config["slug"],
