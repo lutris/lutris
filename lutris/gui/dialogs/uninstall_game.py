@@ -1,7 +1,7 @@
 # pylint: disable=no-member
 import os
 from gettext import gettext as _
-from typing import Dict, List
+from typing import Callable, Dict, List
 
 from gi.repository import Gtk
 
@@ -29,10 +29,14 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
     uninstall_game_list: Gtk.ListBox = GtkTemplate.Child()
     cancel_button: Gtk.Button = GtkTemplate.Child()
     uninstall_button: Gtk.Button = GtkTemplate.Child()
+    delete_all_files_checkbox: Gtk.CheckButton = GtkTemplate.Child()
+    remove_all_games_checkbox: Gtk.CheckButton = GtkTemplate.Child()
 
     def __init__(self, game_ids: List[str], parent: Gtk.Window = None, **kwargs):
         super().__init__(parent=parent, **kwargs)
         self.games = [Game(game_id) for game_id in game_ids]
+        self._setting_all_checkboxes = False
+
         to_uninstall = [g for g in self.games if g.is_installed]
         to_remove = [g for g in self.games if not g.is_installed]
         any_shared = False
@@ -96,7 +100,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             else:
                 can_delete_files = False
 
-            row = UninstallMultipleGamesDialog.GameRemovalRow(game, can_delete_files)
+            row = UninstallMultipleGamesDialog.GameRemovalRow(game, can_delete_files, self.update_all_checkboxes)
 
             if can_delete_files and row.can_show_folder_size:
                 folders_to_size.append(game.directory)
@@ -115,8 +119,69 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         else:
             self.message_label.hide()
 
+        self.update_all_checkboxes()
         self.show_all()
         self.connect("response", self.on_response)
+
+    def update_all_checkboxes(self) -> None:
+        """Sets the state of the checkboxes at the button that are used to control all
+        settings together. While we are actually updating these checkboxes en-meass,
+        this method does nothing at all."""
+        def update(checkbox, is_candidate, is_set):
+            set_count = 0
+            unset_count = 0
+            for row in self.uninstall_game_list.get_children():
+                if is_candidate(row):
+                    if is_set(row):
+                        set_count += 1
+                    else:
+                        unset_count += 1
+
+            checkbox.set_active(set_count > 0)
+            checkbox.set_inconsistent(set_count > 0 and unset_count > 0)
+            checkbox.set_visible((set_count + unset_count) > 1 and (set_count > 0 or unset_count > 0))
+
+        if not self._setting_all_checkboxes:
+            update(self.delete_all_files_checkbox,
+                   lambda row: row.can_delete_files,
+                   lambda row: row.delete_files)
+
+            update(self.remove_all_games_checkbox,
+                   lambda row: row.game.is_installed,
+                   lambda row: row.delete_game)
+
+    @watch_errors()
+    @GtkTemplate.Callback
+    def on_delete_all_files_checkbox_toggled(self, _widget):
+        def update_row(row, active):
+            if row.can_delete_files:
+                row.delete_files = active
+
+        self._apply_all_checkbox(self.delete_all_files_checkbox, update_row)
+
+    @watch_errors()
+    @GtkTemplate.Callback
+    def on_remove_all_games_checkbox_toggled(self, _widget):
+        def update_row(row, active):
+            if row.game.is_installed:
+                row.delete_game = active
+
+        self._apply_all_checkbox(self.remove_all_games_checkbox, update_row)
+
+    def _apply_all_checkbox(self, checkbox,
+                            row_updater: Callable[['GameRemovalRow', bool], None]):
+        """Sets the state of the checkboxes on all rows to agree with 'checkbox';
+        the actual change is performed by row_updater, so this can be used for
+        either checkbox."""
+        if checkbox.get_visible():
+            active = checkbox.get_active()
+            self._setting_all_checkboxes = True
+
+            for row in self.uninstall_game_list.get_children():
+                row_updater(row, active)
+
+            self._setting_all_checkboxes = False
+            self.update_all_checkboxes()
 
     @watch_errors()
     @GtkTemplate.Callback
@@ -180,9 +245,11 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
                 row.show_folder_size(size)
 
     class GameRemovalRow(Gtk.ListBoxRow):
-        def __init__(self, game: Game, can_delete_files: bool):
+        def __init__(self, game: Game, can_delete_files: bool, checkbox_toggled_handler: Callable[[], None]):
             super().__init__()
             self.game = game
+            self.can_delete_files = bool(can_delete_files and game.is_installed and game.directory)
+            self.checkbox_toggled_handler = checkbox_toggled_handler
             self.delete_files_checkbox: Gtk.CheckButton = None
             self.folder_size_spinner: Gtk.Spinner = None
 
@@ -193,6 +260,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             self.delete_game_checkbox = Gtk.CheckButton("Remove from Library", active=False, halign=Gtk.Align.START)
             self.delete_game_checkbox.set_sensitive(game.is_installed)
             self.delete_game_checkbox.set_active(True)
+            self.delete_game_checkbox.connect("toggled", self.on_checkbox_toggled)
             box.pack_end(self.delete_game_checkbox, False, False, 0)
 
             if game.is_installed and self.game.directory:
@@ -200,6 +268,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
                 self.delete_files_checkbox = Gtk.CheckButton(_("Delete Files"))
                 self.delete_files_checkbox.set_sensitive(can_delete_files)
                 self.delete_files_checkbox.set_active(can_delete_files)
+                self.delete_files_checkbox.connect("toggled", self.on_checkbox_toggled)
                 delete_files_overlay.add(self.delete_files_checkbox)
 
                 self.folder_size_spinner = Gtk.Spinner(visible=can_delete_files, no_show_all=True,
@@ -210,6 +279,9 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
                 box.pack_end(delete_files_overlay, False, False, 0)
 
             self.add(box)
+
+        def on_checkbox_toggled(self, _widget):
+            self.checkbox_toggled_handler()
 
         @property
         def can_show_folder_size(self) -> bool:
@@ -230,6 +302,10 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             return bool(self.game.is_installed and self.game.directory
                         and self.delete_files_checkbox.get_active())
 
+        @delete_files.setter
+        def delete_files(self, active: bool) -> None:
+            self.delete_files_checkbox.set_active(active)
+
         @property
         def delete_game(self) -> bool:
             """True if the game should be rmoved from the PGA."""
@@ -237,6 +313,10 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
                 return True
 
             return bool(self.delete_game_checkbox.get_active())
+
+        @delete_game.setter
+        def delete_game(self, active: bool) -> None:
+            self.delete_game_checkbox.set_active(active)
 
         @property
         def has_game_remove_warning(self) -> bool:
