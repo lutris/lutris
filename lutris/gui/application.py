@@ -675,7 +675,7 @@ class Application(Gtk.Application):
                 # Installers can use game or installer slugs
                 self.quit_on_game_exit = True
                 db_game = games_db.get_game_by_field(game_slug, "slug") \
-                          or games_db.get_game_by_field(game_slug, "installer_slug")
+                    or games_db.get_game_by_field(game_slug, "installer_slug")
             else:
                 # Dazed and confused, try anything that might works
                 db_game = (

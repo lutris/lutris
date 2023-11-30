@@ -1138,6 +1138,23 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 game.emit("game-install")
 
     def start_runtime_updates(self, force_updates: bool, gpu_info: Dict[str, Any]) -> None:
+        """Starts the process of applying runtime updates, asynchronously. No UI appears until
+        we can determine that there are updates to perform."""
+        def create_runtime_updater():
+            pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpu_info["gpus"].values()]
+            return RuntimeUpdater(pci_ids=pci_ids, force=force_updates)
+
+        def create_runtime_updater_cb(runtime_updater, error):
+            if error:
+                logger.exception("Failed to obtain updates from Lutris.net: %s", error)
+            elif runtime_updater.has_updates:
+                self._install_runtime_updates(runtime_updater)
+
+        AsyncCall(create_runtime_updater, create_runtime_updater_cb)
+
+    def _install_runtime_updates(self, runtime_updater: RuntimeUpdater) -> None:
+        """Installs runtime updates, once we know there are any. This displays progress bars
+        in the sidebar as it installs updates, one at a time."""
         def start_update(updater):
             def check_progress():
                 progress_info = updater.get_progress()
@@ -1164,7 +1181,13 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         @watch_errors(handler_object=self)
         def install_updates_cb(_result, error):
+            if error:
+                logger.exception("Failed to apply updates: %s", error)
+
             self.download_revealer.set_reveal_child(False)
+
+        if not runtime_updater.has_updates:
+            return
 
         try:
             # GTK 3.22 is required for this, but if this fails we can still run.
@@ -1173,11 +1196,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
             self.download_scrolledwindow.set_propagate_natural_height(True)
         except AttributeError:
             pass
-
-        pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpu_info["gpus"].values()]
-        runtime_updater = RuntimeUpdater(pci_ids=pci_ids, force=force_updates)
-        if not runtime_updater.has_updates:
-            return
 
         updaters = runtime_updater.create_component_updaters()
         progress_boxes = {}
@@ -1189,8 +1207,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 self.download_box.pack_start(progress_box, False, False, 0)
                 progress_box.show()
 
-        AsyncCall(install_updates, install_updates_cb)
         self.download_revealer.set_reveal_child(True)
+        AsyncCall(install_updates, install_updates_cb)
 
     def on_watched_error(self, error):
         dialogs.ErrorDialog(error, parent=self)
