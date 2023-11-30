@@ -1144,10 +1144,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 if progress_info.label_markup:
                     progress_info.label_markup = "<span size='10000'>%s</span>" % progress_info.label_markup
 
-                progress_box.show()
+                box.show()
                 return progress_info
 
-            return ProgressBox(check_progress, visible=False, margin=6)
+            box = ProgressBox(check_progress, visible=False, margin=6)
+            box.update_progress()
+            return box
 
         def install_updates():
             for updater in updaters:

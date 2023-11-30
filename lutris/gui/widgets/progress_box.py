@@ -63,6 +63,7 @@ class ProgressBox(Gtk.Box):
         self.stop_button.connect("clicked", self.on_stop_clicked)
         self.pack_start(self.stop_button, False, False, 0)
 
+        self._apply_progress(ProgressInfo(0.0, "Please wait..."))
         self.timer_id = GLib.timeout_add(500, self.on_update_progress)
         self.connect("destroy", self.on_destroy)
 
@@ -76,14 +77,19 @@ class ProgressBox(Gtk.Box):
 
     def on_update_progress(self) -> bool:
         try:
-            progress = self.progress_function()
+            self.update_progress()
+            return True
         except Exception as ex:
             logger.exception("Unable to obtain a progress update: %s", ex)
             self.timer_id = None
             return False
 
+    def update_progress(self) -> None:
+        """Invokes the progress function and displays what it returns;
+        this can be called to ensure the box is immediately up-to-date,
+        without waiting for idle-time."""
+        progress = self.progress_function()
         self._apply_progress(progress)
-        return True
 
     def _apply_progress(self, progress: ProgressInfo):
         self.progress = progress

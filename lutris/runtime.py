@@ -35,6 +35,20 @@ DLL_MANAGERS = {
 
 
 class ComponentUpdater:
+    (
+        PENDING,
+        DOWNLOADING,
+        EXTRACTING,
+        COMPLETED
+    ) = list(range(4))
+
+    status_formats = {
+        PENDING: _("Updating %s"),
+        DOWNLOADING: _("Updating %s"),
+        EXTRACTING: _("Extracting %s"),
+        COMPLETED: _("Updating %s"),
+    }
+
     @property
     def name(self) -> str:
         raise NotImplementedError
@@ -235,6 +249,7 @@ class RuntimeComponentUpdater(ComponentUpdater):
         self.version = ""
         self.downloader: Downloader = None
         self.download_progress = 0.0
+        self.state = ComponentUpdater.PENDING
 
     @property
     def name(self) -> str:
@@ -244,6 +259,7 @@ class RuntimeComponentUpdater(ComponentUpdater):
         updater.running_component_updater = self
         try:
             if self.remote_runtime_info["url"]:
+                self.state = ComponentUpdater.DOWNLOADING
                 self.downloader = self.download()
                 self.downloader.join()
                 self.downloader = None
@@ -253,14 +269,20 @@ class RuntimeComponentUpdater(ComponentUpdater):
             updater.running_component_updater = None
 
     def get_progress(self) -> ProgressInfo:
+        status_text = ComponentUpdater.status_formats[self.state] % self.name
+
         if self.remote_runtime_info["url"]:
             d = self.downloader
             if d:
-                return ProgressInfo(d.progress_fraction, _("Updating %s") % self.name, d.cancel)
+                return ProgressInfo(d.progress_fraction, status_text, d.cancel)
 
-            return ProgressInfo(None, _("Extracting %s") % self.name)
+        if self.state == ComponentUpdater.COMPLETED:
+            return ProgressInfo(1.0, status_text)
 
-        return ProgressInfo(None, _("Updating %s") % self.name)
+        if self.state == ComponentUpdater.PENDING:
+            return ProgressInfo(0.0, status_text)
+
+        return ProgressInfo(None, status_text)
 
     @property
     def local_runtime_path(self) -> str:
@@ -347,6 +369,7 @@ class RuntimeComponentUpdater(ComponentUpdater):
 
     def download_components(self) -> None:
         """Download a runtime item by individual components. Used for icons only at the moment"""
+        self.state = ComponentUpdater.DOWNLOADING
         components = self.get_runtime_components()
         downloads = []
         for component in components:
@@ -364,6 +387,7 @@ class RuntimeComponentUpdater(ComponentUpdater):
                 if not future.cancelled() and future.exception():
                     expected_filename = future_downloads[future]
                     logger.warning("Failed to get '%s': %s", expected_filename, future.exception())
+        self.state = ComponentUpdater.COMPLETED
 
     def check_download_progress(self, downloader: Downloader):
         """Call download.check_progress(), return True if download finished."""
@@ -399,11 +423,13 @@ class RuntimeComponentUpdater(ComponentUpdater):
             # Delete the existing runtime path
             system.remove_folder(dest_path)
         # Extract the runtime archive
+        self.state = ComponentUpdater.EXTRACTING
         jobs.AsyncCall(extract_archive, self.on_extracted, path, dest_path, merge_single=True)
         return False
 
     def on_extracted(self, result: tuple, error: Exception) -> bool:
         """Callback method when a runtime has extracted"""
+        self.state = ComponentUpdater.COMPLETED
         if error:
             logger.error("Runtime update failed: %s", error)
             return False
@@ -423,6 +449,7 @@ class RunnerComponentUpdater(ComponentUpdater):
         self.runner_version = "-".join([upstream_runner["version"], upstream_runner["architecture"]])
         self.version_path = os.path.join(settings.RUNNER_DIR, name, self.runner_version)
         self.downloader: Downloader = None
+        self.state = ComponentUpdater.PENDING
 
     @property
     def name(self) -> str:
@@ -445,21 +472,31 @@ class RunnerComponentUpdater(ComponentUpdater):
         try:
             url = self.upstream_runner["url"]
             archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(url))
+            self.state = ComponentUpdater.DOWNLOADING
             self.downloader = Downloader(self.upstream_runner["url"], archive_download_path)
             self.downloader.start()
             self.downloader.join()
             if self.downloader.state == self.downloader.COMPLETED:
                 self.downloader = None
+                self.state = ComponentUpdater.EXTRACTING
                 extract_archive(archive_download_path, self.version_path)
                 get_installed_wine_versions.cache_clear()
 
             os.remove(archive_download_path)
+            self.state = ComponentUpdater.COMPLETED
         finally:
             updater.running_component_updater = None
 
     def get_progress(self) -> ProgressInfo:
+        status_text = ComponentUpdater.status_formats[self.state] % self.name
         d = self.downloader
         if d:
-            return ProgressInfo(d.progress_fraction, _("Updating %s") % self.name, d.cancel)
+            return ProgressInfo(d.progress_fraction, status_text, d.cancel)
 
-        return ProgressInfo(None, _("Extracting %s") % self.name)
+        if self.state == ComponentUpdater.EXTRACTING:
+            return ProgressInfo(None, status_text)
+
+        if self.state == ComponentUpdater.COMPLETED:
+            return ProgressInfo(1.0, status_text)
+
+        return ProgressInfo(0.0, status_text)
