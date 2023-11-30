@@ -105,7 +105,7 @@
             </child>
             <child>
               <object class="GtkCheckButton" id="remove_all_games_checkbox">
-                <property name="label" translatable="yes">Remove All Games	</property>
+                <property name="label" translatable="yes">Remove All Games from Library</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
