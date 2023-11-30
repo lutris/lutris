@@ -128,25 +128,67 @@ def create_dirs(client, path):
         DIR_CREATE_CACHE.append(relpath)
 
 
+def get_webdav_client():
+    if not WEBDAV_AVAILABLE:
+        logger.error("Python package 'webdav4' not installed.")
+        return
+    webdav_host = settings.read_setting("webdav_host")
+    if not webdav_host:
+        logger.error("No remote host set (webdav_host)")
+        return
+    webdav_user = settings.read_setting("webdav_user")
+    if not webdav_user:
+        logger.error("No remote username set (webdav_user)")
+        return
+    webdav_pass = settings.read_setting("webdav_pass")
+    if not webdav_pass:
+        logger.error("No remote password set (webdav_pass)")
+        return
+    return Client(webdav_host, auth=(webdav_user, webdav_pass), timeout=50)
+
+
+def get_existing_saves(client, game_base_dir):
+    if not client.exists(game_base_dir):
+        return []
+    base_dir_content = client.ls(game_base_dir)
+    saves = []
+    for save_folder in base_dir_content:
+        if save_folder["type"] != "directory":
+            continue
+        local_save_info = os.path.join(settings.CACHE_DIR, "saveinfo-%s.json" % os.path.basename(save_folder["name"]))
+        client.download_file(os.path.join(save_folder["name"], "saveinfo.json"), local_save_info)
+        saves.append(local_save_info)
+    return saves
+
+
 def upload_save(game):
     save_config = game.config.game_level["game"].get("save_config")
     if not save_config:
         logger.error("%s has no save configuration")
         return
     print("Uploading save for %s" % game)
-    if not WEBDAV_AVAILABLE:
-        logger.error("Python package 'webdav4' not installed.")
-        return
-    webdav_host = settings.read_setting("webdav_host")
-    webdav_user = settings.read_setting("webdav_user")
-    webdav_pass = settings.read_setting("webdav_pass")
     webdav_saves_path = settings.read_setting("webdav_saves_path")
-    client = Client(webdav_host, auth=(webdav_user, webdav_pass), timeout=50)
+    if not webdav_saves_path:
+        logger.error("No save path for the remote host (webdav_saves_path setting)")
+        return
+    client = get_webdav_client()
+    if not client:
+        return
     save_id = f"{platform.node()}-{int(time.time())}"
+    game_base_dir = os.path.join(webdav_saves_path, game.slug)
+    existing_saves = get_existing_saves(client, game_base_dir)
+    for save in existing_saves:
+        print(save)
+        os.remove(save)
     save_dest_dir = os.path.join(webdav_saves_path, game.slug, save_id)
     create_dirs(client, save_dest_dir)
     basedir = get_basedir(game)
     save_info = get_save_info(basedir, save_config)
+    save_info_name = "saveinfo.json"
+    save_info_path = os.path.join(settings.CACHE_DIR, save_info_name)
+    with open(save_info_path, "w", encoding="utf-8") as save_info_file:
+        json.dump(save_info, save_info_file, indent=2)
+    client.upload_file(save_info_path, os.path.join(save_dest_dir, save_info_name))
     basepath = save_info["saves"]["path"]
     if os.path.isfile(basepath):
         basepath = os.path.dirname(basepath)
