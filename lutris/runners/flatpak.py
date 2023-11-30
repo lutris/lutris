@@ -4,6 +4,7 @@ from gettext import gettext as _
 from pathlib import Path
 
 from lutris.command import MonitoredCommand
+from lutris.exceptions import MissingExecutableError
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
 from lutris.util import flatpak as _flatpak
@@ -92,7 +93,7 @@ class flatpak(Runner):
     def get_executable(self) -> str:
         exe = _flatpak.get_executable()
         if not exe:
-            raise ValueError("The Flatpak executable could not be found.")
+            raise MissingExecutableError(_("The Flatpak executable could not be found."))
         return exe
 
     def install(self, install_ui_delegate, version=None, callback=None):

@@ -3,11 +3,11 @@ import os
 from collections import OrderedDict
 from functools import lru_cache
 from gettext import gettext as _
-from typing import Dict, Generator, List, Optional, Tuple
+from typing import Dict, Generator, List, Tuple
 
 from lutris import settings
-from lutris.api import get_default_runner_version
-from lutris.exceptions import UnavailableRunnerError
+from lutris.api import get_default_runner_version_info
+from lutris.exceptions import MisconfigurationError, UnavailableRunnerError, UnspecifiedVersionError
 from lutris.gui.dialogs import ErrorDialog
 from lutris.util import linux, system
 from lutris.util.log import logger
@@ -67,26 +67,31 @@ def get_proton_paths() -> List[str]:
 
 def detect_arch(prefix_path: str = None, wine_path: str = None) -> str:
     """Given a Wine prefix path, return its architecture"""
-    if prefix_path:
-        arch = detect_prefix_arch(prefix_path)
-        if arch:
-            return arch
+    if prefix_path and is_prefix_directory(prefix_path):
+        return detect_prefix_arch(prefix_path)
     if wine_path and system.path_exists(wine_path + "64"):
         return "win64"
     return "win32"
 
 
-def detect_prefix_arch(prefix_path: str) -> Optional[str]:
-    """Return the architecture of the prefix found in `prefix_path`"""
+def is_prefix_directory(prefix_path: str) -> bool:
+    """Detects if a path is ther oot of a Wine prefix; to be one, it must contain
+    a 'system.reg' file."""
     if not prefix_path:
-        raise RuntimeError("The prefix architecture can't be detected with no prefix path.")
+        return False
 
     prefix_path = os.path.expanduser(prefix_path)
     registry_path = os.path.join(prefix_path, "system.reg")
-    if not os.path.isdir(prefix_path) or not os.path.isfile(registry_path):
-        # No prefix_path exists or invalid prefix
-        logger.error("Prefix not found: %s", prefix_path)
-        return None
+    return os.path.isdir(prefix_path) and os.path.isfile(registry_path)
+
+
+def detect_prefix_arch(prefix_path: str) -> str:
+    """Return the architecture of the prefix found in `prefix_path`"""
+    if not is_prefix_directory(prefix_path):
+        raise RuntimeError("Prefix not found: %s" % prefix_path)
+
+    prefix_path = os.path.expanduser(prefix_path)
+    registry_path = os.path.join(prefix_path, "system.reg")
     with open(registry_path, "r", encoding='utf-8') as registry:
         for _line_no in range(5):
             line = registry.readline()
@@ -94,8 +99,8 @@ def detect_prefix_arch(prefix_path: str) -> Optional[str]:
                 return "win64"
             if "win32" in line:
                 return "win32"
-    logger.error("Failed to detect Wine prefix architecture in %s", prefix_path)
-    return None
+    logger.error("Failed to detect Wine prefix architecture in %s; defaulting to 32-bit.", prefix_path)
+    return "win32"
 
 
 def set_drive_path(prefix: str, letter: str, path: str) -> None:
@@ -145,7 +150,7 @@ def list_lutris_wine_versions() -> List[str]:
             wine_path = get_wine_path_for_version(version=dirname)
             if wine_path and os.path.isfile(wine_path):
                 versions.append(dirname)
-        except UnavailableRunnerError:
+        except MisconfigurationError:
             pass  # if it's not properly installed, skip it
     return versions
 
@@ -172,14 +177,14 @@ def get_installed_wine_versions() -> List[str]:
     return list_system_wine_versions() + list_lutris_wine_versions() + list_proton_versions()
 
 
-def get_wine_path_for_version(version: Optional[str], config: dict = None) -> Optional[str]:
+def get_wine_path_for_version(version: str, config: dict = None) -> str:
     """Return the absolute path of a wine executable for a given version,
     or the configured version if you don't ask for a version."""
     if not version and config:
         version = config["version"]
 
     if not version:
-        return None
+        raise UnspecifiedVersionError(_("The Wine version must be specified."))
 
     if version in WINE_PATHS:
         return system.find_executable(WINE_PATHS[version])
@@ -192,7 +197,10 @@ def get_wine_path_for_version(version: Optional[str], config: dict = None) -> Op
     if version == "custom":
         if config is None:
             raise RuntimeError("Custom wine paths are only supported when a configuration is available.")
-        return config.get("custom_wine_path", "")
+        wine_path = config.get("custom_wine_path")
+        if not wine_path:
+            raise RuntimeError("The 'custom' Wine version can be used only if the custom wine path is set.")
+        return wine_path
     return os.path.join(WINE_DIR, version, "bin/wine")
 
 
@@ -226,17 +234,17 @@ def is_fsync_supported() -> bool:
     return fsync.get_fsync_support()
 
 
-def get_default_wine_version() -> Optional[str]:
+def get_default_wine_version() -> str:
     """Return the default version of wine."""
     installed_versions = get_installed_wine_versions()
     if installed_versions:
-        default_version = get_default_runner_version("wine")
-        if default_version:
+        default_version = get_default_runner_version_info("wine")
+        if "version" in default_version and "architecture" in default_version:
             version = default_version["version"] + '-' + default_version["architecture"]
             if version in installed_versions:
                 return version
         return installed_versions[0]
-    return None
+    raise UnavailableRunnerError(_("No versions of Wine are installed."))
 
 
 def get_system_wine_version(wine_path: str = "wine") -> str:
@@ -254,8 +262,8 @@ def get_system_wine_version(wine_path: str = "wine") -> str:
     return version
 
 
-def get_real_executable(windows_executable: str, working_dir: str = None) -> Tuple[
-        str, List[str], Optional[str]]:
+def get_real_executable(windows_executable: str, working_dir: str) -> Tuple[
+        str, List[str], str]:
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""
 

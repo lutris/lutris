@@ -30,7 +30,7 @@ class LaunchUIDelegate:
         actual checks.
         """
         if not game.runner.is_installed():
-            raise UnavailableRunnerError("The required runner '%s' is not installed." % game.runner.name)
+            raise UnavailableRunnerError(_("The required runner '%s' is not installed.") % game.runner.name)
         return True
 
     def select_game_launch_config(self, game):

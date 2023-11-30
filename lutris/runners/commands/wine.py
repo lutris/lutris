@@ -14,8 +14,8 @@ from lutris.util.strings import split_arguments
 from lutris.util.wine.cabinstall import CabInstaller
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.wine import (
-    WINE_DEFAULT_ARCH, WINE_DIR, detect_arch, detect_prefix_arch, get_overrides_env, get_real_executable,
-    is_installed_systemwide
+    WINE_DEFAULT_ARCH, WINE_DIR, detect_arch, get_overrides_env, get_real_executable, is_installed_systemwide,
+    is_prefix_directory
 )
 
 
@@ -273,7 +273,7 @@ def wineexec(  # noqa: C901
     # Create prefix if necessary
     if arch not in ("win32", "win64"):
         arch = detect_arch(prefix, wine_path)
-    if not detect_prefix_arch(prefix):
+    if not is_prefix_directory(prefix):
         wine_bin = winetricks_wine if winetricks_wine else wine_path
         create_prefix(prefix, wine_path=wine_bin, arch=arch, runner=runner)
 
@@ -338,7 +338,7 @@ def find_winetricks(env=None, system_winetricks=False):
     """Find winetricks path."""
     winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
     if system_winetricks or not system.path_exists(winetricks_path):
-        winetricks_path = system.find_required_executable("winetricks")
+        winetricks_path = system.find_executable("winetricks")
         working_dir = None
     else:
         # We will use our own zenity if available, which is here, and it

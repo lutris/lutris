@@ -5,7 +5,7 @@ import shlex
 import unicodedata
 import uuid
 from gettext import gettext as _
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple, Union
 
 from gi.repository import GLib
 
@@ -41,13 +41,10 @@ def slugify(value: str) -> str:
     return slug
 
 
-def lookup_string_in_text(string: str, text: str) -> Optional[str]:
-    """Return full line if string found in the multi-line text."""
-    output_lines = text.split("\n")
-    for line in output_lines:
-        if string in line:
-            return line
-    return None
+def lookup_strings_in_text(string: str, text: str) -> List[str]:
+    """Return each full line where a string was found in the multi-line text."""
+    input_lines = text.split("\n")
+    return [line for line in input_lines if string in line]
 
 
 def parse_version(version: str) -> Tuple[List[int], str, str]:

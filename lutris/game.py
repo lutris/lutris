@@ -18,7 +18,7 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.exceptions import GameConfigError, watch_game_errors
+from lutris.exceptions import GameConfigError, MissingExecutableError, watch_game_errors
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
@@ -527,10 +527,11 @@ class Game(GObject.Object):
 
     def start_antimicrox(self, antimicro_config):
         """Start Antimicrox with a given config path"""
-        antimicro_path = system.find_executable("antimicrox")
-        if not antimicro_path:
-            logger.warning("Antimicrox is not installed.")
-            return
+        try:
+            antimicro_path = system.find_executable("antimicrox")
+        except MissingExecutableError as ex:
+            raise GameConfigError(_("Unable to find Antimicrox, install it or disable the Antimicrox option")) from ex
+
         logger.info("Starting Antic")
         antimicro_command = [antimicro_path, "--hidden", "--tray", "--profile", antimicro_config]
         self.antimicro_thread = MonitoredCommand(antimicro_command)
@@ -868,7 +869,7 @@ class Game(GObject.Object):
         logger.info("Stopping %s", self)
 
         if self.game_thread:
-            def stop_cb(result, error):
+            def stop_cb(_result, error):
                 if error:
                     self.signal_error(error)
 
@@ -942,14 +943,14 @@ class Game(GObject.Object):
         if self.game_thread.return_code == 127:
             # Error missing shared lib
             error = "error while loading shared lib"
-            error_line = strings.lookup_string_in_text(error, self.game_thread.stdout)
-            if error_line:
-                raise RuntimeError(_("<b>Error: Missing shared library.</b>\n\n%s") % error_line)
+            error_lines = strings.lookup_strings_in_text(error, self.game_thread.stdout)
+            if error_lines:
+                raise RuntimeError(_("<b>Error: Missing shared library.</b>\n\n%s") % error_lines[0])
 
         if self.game_thread.return_code == 1:
             # Error Wine version conflict
             error = "maybe the wrong wineserver"
-            if strings.lookup_string_in_text(error, self.game_thread.stdout):
+            if strings.lookup_strings_in_text(error, self.game_thread.stdout):
                 raise RuntimeError(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
 
     def write_script(self, script_path, launch_ui_delegate):

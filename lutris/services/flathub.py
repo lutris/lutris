@@ -9,6 +9,7 @@ import requests
 from gi.repository import Gio
 
 from lutris import settings
+from lutris.exceptions import MissingExecutableError
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -88,7 +89,7 @@ class FlathubService(BaseService):
         flatpak_spawn_abspath = shutil.which("flatpak-spawn")
         if flatpak_spawn_abspath:
             return [flatpak_spawn_abspath, "--host", "flatpak"]
-        raise RuntimeError("No flatpak or flatpak-spawn found")
+        raise MissingExecutableError(_("No flatpak or flatpak-spawn found"))
 
     def load(self):
         """Load the available games from Flathub"""

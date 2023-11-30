@@ -5,10 +5,10 @@ import os
 import subprocess
 import gi
 
-
 try:
     gi.require_version("GnomeDesktop", "3.0")
     from gi.repository import GnomeDesktop
+
     LIB_GNOME_DESKTOP_AVAILABLE = True
 except ValueError:
     LIB_GNOME_DESKTOP_AVAILABLE = False
@@ -16,6 +16,7 @@ except ValueError:
 
 try:
     from dbus.exceptions import DBusException
+
     DBUS_AVAILABLE = True
 except ImportError:
     DBUS_AVAILABLE = False
@@ -28,6 +29,7 @@ from lutris.util.graphics import drivers
 from lutris.util.graphics.displayconfig import MutterDisplayManager
 from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution, get_outputs
 from lutris.util.log import logger
+from lutris.exceptions import MissingExecutableError
 
 
 class NoScreenDetected(Exception):
@@ -49,7 +51,7 @@ def get_default_dpi():
 
 def restore_gamma():
     """Restores gamma to a normal level."""
-    xgamma_path = system.find_required_executable("xgamma")
+    xgamma_path = system.find_executable("xgamma")
     try:
         subprocess.Popen([xgamma_path, "-gamma", "1.0"])  # pylint: disable=consider-using-with
     except (FileNotFoundError, TypeError):
@@ -86,11 +88,13 @@ def _get_graphics_adapters():
     Returns:
         list: list of tuples containing PCI ID and description of the display controller
     """
-    lspci_path = system.find_executable("lspci")
-    dev_subclasses = ["VGA", "XGA", "3D controller", "Display controller"]
-    if not lspci_path:
+    try:
+        lspci_path = system.find_executable("lspci")
+    except MissingExecutableError:
         logger.warning("lspci is not available. List of graphics cards not available")
         return []
+
+    dev_subclasses = ["VGA", "XGA", "3D controller", "Display controller"]
     return [
         (pci_id, device_desc.split(": ")[1]) for pci_id, device_desc in [
             line.split(maxsplit=1) for line in system.execute(lspci_path, timeout=3).split("\n")
@@ -185,7 +189,6 @@ USE_DRI_PRIME = len(list(drivers.get_gpus())) > 1
 
 
 class DesktopEnvironment(enum.Enum):
-
     """Enum of desktop environments."""
 
     PLASMA = 0
@@ -324,7 +327,6 @@ def enable_compositing():
 
 
 class DBusScreenSaverInhibitor:
-
     """Inhibit and uninhibit the screen saver using DBus.
 
     It will use the Gtk.Application's inhibit and uninhibit methods to inhibit
