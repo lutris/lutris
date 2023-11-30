@@ -72,32 +72,7 @@
                         <property name="transition-type">slide-up</property>
                         <property name="transition-duration">300</property>
                         <child>
-                          <object class="GtkScrolledWindow" id="download_scrolledwindow">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="hscrollbar-policy">never</property>
-                            <child>
-                              <object class="GtkViewport">
-                                <property name="visible">True</property>
-                                <property name="can-focus">False</property>
-                                <child>
-                                  <object class="GtkBox" id="download_box">
-                                    <property name="visible">True</property>
-                                    <property name="can-focus">False</property>
-                                    <property name="orientation">vertical</property>
-                                    <property name="spacing">6</property>
-                                    <child>
-                                      <placeholder/>
-                                    </child>
-                                    <style>
-                                      <class name="sidebar"/>
-                                      <class name="lutrissidebar"/>
-                                    </style>
-                                  </object>
-                                </child>
-                              </object>
-                            </child>
-                          </object>
+                          <placeholder/>
                         </child>
                       </object>
                       <packing>

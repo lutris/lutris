@@ -20,12 +20,12 @@ from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
 from lutris.gui.dialogs.game_import import ImportGameDialog
+from lutris.gui.download_queue import DownloadQueue
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
-from lutris.gui.widgets.progress_box import ProgressBox
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import RuntimeUpdater
@@ -54,7 +54,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
     __gsignals__ = {
         "view-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
-
     games_stack = GtkTemplate.Child()
     sidebar_revealer = GtkTemplate.Child()
     sidebar_scrolled = GtkTemplate.Child()
@@ -64,8 +63,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
     download_revealer: Gtk.Revealer = GtkTemplate.Child()
-    download_scrolledwindow: Gtk.ScrolledWindow = GtkTemplate.Child()
-    download_box: Gtk.Box = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         width = int(settings.read_setting("width") or self.default_width)
@@ -1140,6 +1137,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def start_runtime_updates(self, force_updates: bool, gpu_info: Dict[str, Any]) -> None:
         """Starts the process of applying runtime updates, asynchronously. No UI appears until
         we can determine that there are updates to perform."""
+
         def create_runtime_updater():
             pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpu_info["gpus"].values()]
             return RuntimeUpdater(pci_ids=pci_ids, force=force_updates)
@@ -1152,32 +1150,30 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         AsyncCall(create_runtime_updater, create_runtime_updater_cb)
 
+    @property
+    def download_queue(self) -> DownloadQueue:
+        queue = self.download_revealer.get_child()
+        if not queue:
+            queue = DownloadQueue()
+            self.download_revealer.add(queue)
+        return queue
+
     def _install_runtime_updates(self, runtime_updater: RuntimeUpdater) -> None:
         """Installs runtime updates, once we know there are any. This displays progress bars
         in the sidebar as it installs updates, one at a time."""
-        def start_update(updater):
-            def check_progress():
-                progress_info = updater.get_progress()
 
-                if progress_info.label_markup:
-                    progress_info.label_markup = "<span size='10000'>%s</span>" % progress_info.label_markup
+        queue = self.download_queue
+        updaters = runtime_updater.create_component_updaters()
 
-                box.show()
-                return progress_info
-
-            box = ProgressBox(check_progress, visible=False, margin=6)
-            box.update_progress()
-            return box
+        for u in updaters:
+            if u.should_update:
+                queue.add_updater(u)
 
         def install_updates():
             for updater in updaters:
-                box = progress_boxes.get(updater)
-                if box:
-                    try:
-                        updater.install_update(runtime_updater)
-                    finally:
-                        del progress_boxes[updater]
-                        GLib.idle_add(box.destroy)
+                if updater.should_update:
+                    updater.install_update(runtime_updater)
+                    GLib.idle_add(lambda to_end=updater: queue.end_updater(to_end))
 
         @watch_errors(handler_object=self)
         def install_updates_cb(_result, error):
@@ -1185,27 +1181,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 logger.exception("Failed to apply updates: %s", error)
 
             self.download_revealer.set_reveal_child(False)
-
-        if not runtime_updater.has_updates:
-            return
-
-        try:
-            # GTK 3.22 is required for this, but if this fails we can still run.
-            # The download area comes out too small, but it's usable.
-            self.download_scrolledwindow.set_max_content_height(250)
-            self.download_scrolledwindow.set_propagate_natural_height(True)
-        except AttributeError:
-            pass
-
-        updaters = runtime_updater.create_component_updaters()
-        progress_boxes = {}
-
-        for u in updaters:
-            if u.should_update:
-                progress_box = start_update(u)
-                progress_boxes[u] = progress_box
-                self.download_box.pack_start(progress_box, False, False, 0)
-                progress_box.show()
+            for to_end in updaters:
+                queue.end_updater(to_end)
 
         self.download_revealer.set_reveal_child(True)
         AsyncCall(install_updates, install_updates_cb)
