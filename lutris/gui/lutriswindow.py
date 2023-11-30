@@ -1147,17 +1147,21 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 progress_box.show()
                 return progress_info
 
-            @watch_errors(handler_object=self)
-            def update_runtime_in_background_cb(_result, error):
-                nonlocal outstanding_boxes
-                progress_box.destroy()
-                outstanding_boxes -= 1
-                if not outstanding_boxes:
-                    self.download_revealer.set_reveal_child(False)
+            return ProgressBox(check_progress, visible=False, margin=6)
 
-            AsyncCall(lambda: updater.install_update(runtime_updater), update_runtime_in_background_cb)
-            progress_box = ProgressBox(check_progress, visible=False, margin=6)
-            return progress_box
+        def install_updates():
+            for updater in updaters:
+                box = progress_boxes.get(updater)
+                if box:
+                    try:
+                        updater.install_update(runtime_updater)
+                    finally:
+                        del progress_boxes[updater]
+                        GLib.idle_add(box.destroy)
+
+        @watch_errors(handler_object=self)
+        def install_updates_cb(_result, error):
+            self.download_revealer.set_reveal_child(False)
 
         try:
             # GTK 3.22 is required for this, but if this fails we can still run.
@@ -1168,15 +1172,17 @@ class LutrisWindow(Gtk.ApplicationWindow,
             pass
 
         updaters = runtime_updater.create_component_updaters(startup=False)
+        progress_boxes = {}
 
-        outstanding_boxes = 0
         for u in updaters:
             if u.should_update:
-                outstanding_boxes += 1
-                if outstanding_boxes == 1:
-                    self.download_revealer.set_reveal_child(True)
+                progress_box = start_update(u)
+                progress_boxes[u] = progress_box
+                self.download_box.pack_start(progress_box, False, False, 0)
+                progress_box.show()
 
-                self.download_box.pack_start(start_update(u), False, False, 0)
+        AsyncCall(install_updates, install_updates_cb)
+        self.download_revealer.set_reveal_child(True)
 
     def on_watched_error(self, error):
         dialogs.ErrorDialog(error, parent=self)
