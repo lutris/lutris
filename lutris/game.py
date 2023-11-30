@@ -1041,14 +1041,20 @@ def import_game(file_path, dest_dir):
     """Import a game in Lutris"""
     if not os.path.exists(file_path):
         raise RuntimeError("No file %s" % file_path)
+    logger.info("Importing %s to %s", file_path, dest_dir)
     if not os.path.isdir(dest_dir):
         os.makedirs(dest_dir)
     original_file_list = set(os.listdir(dest_dir))
-    extract.extract_archive(file_path, dest_dir)
+    extract.extract_archive(file_path, dest_dir, merge_single=False)
     new_file_list = set(os.listdir(dest_dir))
     new_dir = list(new_file_list - original_file_list)[0]
     game_dir = os.path.join(dest_dir, new_dir)
-    game_config = [f for f in os.listdir(game_dir) if f.endswith(".lutris")][0]
+    try:
+        game_config = [f for f in os.listdir(game_dir) if f.endswith(".lutris")][0]
+    except IndexError:
+        logger.error("No Lutris configuration file found in archive")
+        return
+
     with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         lutris_config = json.load(config_file)
     old_dir = lutris_config["directory"]
