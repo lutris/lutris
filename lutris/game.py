@@ -1014,6 +1014,9 @@ def export_game(slug, dest_dir):
         "scummvm",
     ]
     db_game = games_db.get_game_by_field(slug, "slug")
+    if not db_game:
+        logger.error("Game %s not found", slug)
+        return
     if db_game["runner"] not in exportable_runners:
         raise RuntimeError("Game %s can't be exported." % db_game["name"])
     if not db_game["directory"]:
@@ -1025,12 +1028,13 @@ def export_game(slug, dest_dir):
     config_path = os.path.join(db_game["directory"], "%s.lutris" % slug)
     with open(config_path, "w", encoding="utf-8") as config_file:
         json.dump(db_game, config_file, indent=2)
-    archive_path = os.path.join(dest_dir, "%s.7z" % slug)
-    _7zip_path = os.path.join(settings.RUNTIME_DIR, "p7zip/7z")
-    command = [_7zip_path, "a", archive_path, game_path]
-    return_code = subprocess.call(command)
-    if return_code != 0:
-        print("Creating of archive in %s failed with return code %s" % (archive_path, return_code))
+    archive_path = os.path.join(dest_dir, "%s.tar.xz" % slug)
+    command = ["tar", "cJf", archive_path, os.path.basename(game_path)]
+    system.execute(
+        command,
+        cwd=os.path.dirname(game_path)
+    )
+    logger.info("%s exported to %s", slug, archive_path)
 
 
 def import_game(file_path, dest_dir):
@@ -1040,7 +1044,7 @@ def import_game(file_path, dest_dir):
     if not os.path.isdir(dest_dir):
         os.makedirs(dest_dir)
     original_file_list = set(os.listdir(dest_dir))
-    extract.extract_7zip(file_path, dest_dir)
+    extract.extract_archive(file_path, dest_dir)
     new_file_list = set(os.listdir(dest_dir))
     new_dir = list(new_file_list - original_file_list)[0]
     game_dir = os.path.join(dest_dir, new_dir)
