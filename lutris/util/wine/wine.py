@@ -112,7 +112,7 @@ def set_drive_path(prefix: str, letter: str, path: str) -> None:
     if system.path_exists(drive_path):
         os.remove(drive_path)
     logger.debug("Linking %s to %s", drive_path, path)
-    os.symlink(path, drive_path)
+    system.create_symlink(path, drive_path)
 
 
 def is_gstreamer_build(wine_path: str) -> bool:

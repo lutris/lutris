@@ -91,10 +91,10 @@ class WinePrefixManager:
         """Link together user profiles created by Wine and Proton"""
         wine_user_dir = self.get_user_dir()
         proton_user_dir = self.get_user_dir(default_user="steamuser")
-        if os.path.exists(wine_user_dir) and not os.path.exists(proton_user_dir):
-            os.symlink(wine_user_dir, proton_user_dir, target_is_directory=True)
-        elif os.path.exists(proton_user_dir) and not os.path.exists(wine_user_dir):
-            os.symlink(proton_user_dir, wine_user_dir, target_is_directory=True)
+        if system.path_exists(wine_user_dir) and not system.path_exists(proton_user_dir, check_symlinks=True):
+            system.create_symlink(wine_user_dir, proton_user_dir)
+        elif system.path_exists(proton_user_dir) and not system.path_exists(wine_user_dir, check_symlinks=True):
+            system.create_symlink(proton_user_dir, wine_user_dir)
 
     def get_registry_path(self, key):
         """Matches registry keys to a registry file
@@ -181,7 +181,7 @@ class WinePrefixManager:
                     raise RuntimeError("Missing value desktop_dir=%s or item=%s" % (desktop_dir, item)) from ex
 
                 os.makedirs(src_path, exist_ok=True)
-                os.symlink(src_path, path)
+                system.create_symlink(src_path, path)
 
             self._set_desktop_integration_assignment(desktop_dir)
 
@@ -216,7 +216,7 @@ class WinePrefixManager:
         user_dir = self.user_dir
         home_dir = os.path.expanduser("~")
 
-        if system.path_exists(user_dir) and self._get_desktop_integration_assignment() != home_dir:
+        if system.path_exists(user_dir, check_symlinks=True) and self._get_desktop_integration_assignment() != home_dir:
             desktop_folders = self.get_desktop_folders()
             for i, item in enumerate(desktop_folders):
                 path = os.path.join(user_dir, item)
@@ -231,7 +231,7 @@ class WinePrefixManager:
                 if not src_path:
                     logger.error("No XDG entry found for %s, launcher not created", DESKTOP_XDG[i])
                 else:
-                    os.symlink(src_path, path)
+                    system.create_symlink(src_path, path)
 
             self._set_desktop_integration_assignment(home_dir)
 

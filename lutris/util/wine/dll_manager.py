@@ -178,10 +178,7 @@ class DLLManager:
                     shutil.move(wine_dll_path, wine_dll_path + ".orig")
                 else:
                     os.remove(wine_dll_path)
-            try:
-                os.symlink(dll_path, wine_dll_path)
-            except OSError:
-                logger.error("Failed linking %s to %s", dll_path, wine_dll_path)
+            system.create_symlink(dll_path, wine_dll_path)
         else:
             self.disable_dll(system_dir, arch, dll)
 
@@ -206,11 +203,7 @@ class DLLManager:
 
             if not os.path.isdir(wine_file_dir):
                 os.makedirs(wine_file_dir)
-
-            try:
-                os.symlink(source_path, wine_file_path)
-            except OSError:
-                logger.error("Failed linking %s to %s", source_path, wine_file_path)
+            system.create_symlink(source_path, wine_file_path)
         else:
             self.disable_user_file(appdata_dir, file_path)
 

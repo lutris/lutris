@@ -490,6 +490,19 @@ def path_exists(path: str, check_symlinks: bool = False, exclude_empty: bool = F
     return False
 
 
+def create_symlink(source: str, destination: str):
+    """Create a symlink from source to destination.
+    If there is already a symlink at the destination and it is broken, it will be deleted."""
+    is_directory = os.path.isdir(source)
+    if os.path.islink(destination) and not os.path.exists(destination):
+        logger.warning("Deleting broken symlink %s", destination)
+        os.remove(destination)
+    try:
+        os.symlink(source, destination, target_is_directory=is_directory)
+    except OSError:
+        logger.error("Failed linking %s to %s", source, destination)
+
+
 def reset_library_preloads():
     """Remove library preloads from environment"""
     for key in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
