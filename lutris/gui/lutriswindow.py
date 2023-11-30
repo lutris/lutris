@@ -710,10 +710,16 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def load_icon_type(self):
         """Return the icon style depending on the type of view."""
+        default_icon_types = {
+            "icon_type_grid": "coverart_med",
+        }
         setting_key = "icon_type_%sview" % self.current_view_type
         if self.service and self.service.id != "lutris":
             setting_key += "_%s" % self.service.id
-        self.icon_type = settings.read_setting(setting_key)
+        self.icon_type = settings.read_setting(
+            setting_key,
+            default=default_icon_types.get(setting_key, "")
+        )
         return self.icon_type
 
     def save_icon_type(self, icon_type):
