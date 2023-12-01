@@ -25,7 +25,10 @@ class ProgressInfo:
     def stop(self):
         """Called whe the stop button is clicked."""
         if self.stop_function:
-            self.stop_function()
+            try:
+                self.stop_function()
+            except Exception as ex:
+                logger.exception("Error during progress box stop: %s", ex)
 
 
 class ProgressBox(Gtk.Box):

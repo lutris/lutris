@@ -17,8 +17,9 @@ class DownloadQueue(Gtk.ScrolledWindow):
 
     download_box: Gtk.Box = GtkTemplate.Child()
 
-    def __init__(self, **kwargs):
+    def __init__(self, revealer: Gtk.Revealer, **kwargs):
         super().__init__(**kwargs)
+        self.revealer = revealer
         self.init_template()
 
         self.progress_boxes: Dict[ProgressBox.ProgressFunction, ProgressBox] = {}
@@ -58,6 +59,7 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self.progress_boxes[progress_function] = progress_box
         self.download_box.pack_start(progress_box, False, False, 0)
         progress_box.show()
+        self.revealer.set_reveal_child(True)
         return progress_box
 
     def remove_progress_box(self, progress_function: ProgressBox.ProgressFunction) -> None:
@@ -67,3 +69,5 @@ class DownloadQueue(Gtk.ScrolledWindow):
         if progress_box:
             del self.progress_boxes[progress_function]
             progress_box.destroy()
+            if not self.progress_boxes:
+                self.revealer.set_reveal_child(False)

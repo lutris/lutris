@@ -1154,7 +1154,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def download_queue(self) -> DownloadQueue:
         queue = self.download_revealer.get_child()
         if not queue:
-            queue = DownloadQueue()
+            queue = DownloadQueue(self.download_revealer)
             self.download_revealer.add(queue)
         return queue
 
@@ -1178,11 +1178,9 @@ class LutrisWindow(Gtk.ApplicationWindow,
             if error:
                 logger.exception("Failed to apply updates: %s", error)
 
-            self.download_revealer.set_reveal_child(False)
             for to_end in updaters:
                 queue.remove_progress_box(to_end.get_progress)
 
-        self.download_revealer.set_reveal_child(True)
         AsyncCall(install_updates, install_updates_cb)
 
     def on_watched_error(self, error):
