@@ -16,8 +16,8 @@ from lutris.util.strings import human_size
 from lutris.util.wine.prefix import find_prefix
 
 DIR_CREATE_CACHE = []
-SAVE_TYPES = ["saves", "logs", "configs", "screenshots"]
-SYNC_TYPES = ["saves", "configs"]
+SAVE_TYPES = ["saves", "logs", "config", "screenshots"]
+SYNC_TYPES = ["saves", "config"]
 
 
 class SaveInfo:
@@ -194,10 +194,10 @@ def upload_save(game, sections=None):
     # for save in existing_saves:
     #     print(save)
     #     os.remove(save)
-
+    save_files = save_info.get_save_files()
     max_time = 0
     for section in sections:
-        for save_file in save_info[section]["files"]:
+        for save_file in save_files[section].get("files", []):
             if int(save_file["modified"]) > max_time:
                 max_time = int(save_file["modified"])
 
@@ -205,11 +205,10 @@ def upload_save(game, sections=None):
     save_dest_dir = os.path.join(webdav_saves_path, game.slug, save_id)
     create_dirs(client, save_dest_dir)
 
-    save_files = save_info.get_save_files()
     save_info_name = "saveinfo.json"
     save_info_path = os.path.join(settings.CACHE_DIR, save_info_name)
     with open(save_info_path, "w", encoding="utf-8") as save_info_file:
-        json.dump(save_info, save_info_file, indent=2)
+        json.dump(save_files, save_info_file, indent=2)
     client.upload_file(save_info_path, os.path.join(save_dest_dir, save_info_name))
     basepath = save_files["saves"]["path"]
     if os.path.isfile(basepath):
@@ -259,13 +258,13 @@ def save_check(game):
         save_info_meta = parse_save_info(save_path)
         host = save_info_meta["hostname"]
         print("Host: %s (%s)" % (host, save_info_meta["datetime"].strftime("%c")))
-        save_info = load_save_info(save_path)
+        remote_save_info = load_save_info(save_path)
         unsynced = {}
         for section in SAVE_TYPES:
             if section not in current_save_files:
                 continue
-            files = {file_info["file"]: file_info for file_info in save_info[section]["files"]}
-            local_files = {file_info["file"]: file_info for file_info in current_save_files[section]["files"]}
+            files = {file_info["file"]: file_info for file_info in remote_save_info[section].get("files", [])}
+            local_files = {file_info["file"]: file_info for file_info in current_save_files[section].get("files", [])}
             unsynced[section] = {"unsynced": [], "newer": [], "older": [], "missing": []}
 
             for filename, file_info in local_files.items():
