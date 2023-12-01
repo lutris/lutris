@@ -135,7 +135,7 @@ class ComponentUpdater:
         raise NotImplementedError
 
     def get_progress(self) -> ProgressInfo:
-        return ProgressInfo(None)
+        return ProgressInfo.ended()
 
 
 class RuntimeUpdater:
@@ -242,7 +242,7 @@ class RuntimeComponentUpdater(ComponentUpdater):
         status_text = ComponentUpdater.status_formats[self.state] % self.name
 
         if self.state == ComponentUpdater.COMPLETED:
-            return ProgressInfo(1.0, status_text)
+            return ProgressInfo.ended(status_text)
 
         if self.state == ComponentUpdater.PENDING:
             return ProgressInfo(0.0, status_text)
@@ -308,7 +308,7 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
     def get_progress(self) -> ProgressInfo:
         progress_info = super().get_progress()
 
-        if self.downloader:
+        if self.downloader and not progress_info.has_ended:
             return ProgressInfo(self.downloader.progress_fraction, progress_info.label_markup, self.downloader.cancel)
 
         return progress_info
@@ -486,6 +486,6 @@ class RunnerComponentUpdater(ComponentUpdater):
             return ProgressInfo(None, status_text)
 
         if self.state == ComponentUpdater.COMPLETED:
-            return ProgressInfo(1.0, status_text)
+            return ProgressInfo.ended(status_text)
 
         return ProgressInfo(0.0, status_text)

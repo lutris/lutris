@@ -16,6 +16,15 @@ class ProgressInfo:
         self.progress = progress
         self.label_markup = label_markup
         self.stop_function = stop_function
+        self.has_ended = False
+
+    @classmethod
+    def ended(cls, label_markup: str = "") -> 'ProgressInfo':
+        """Creates a ProgressInfo whose has_ended flag is set, to indicate that
+        the monitored process is over."""
+        info = cls(1.0, label_markup=label_markup)
+        info.has_ended = True
+        return info
 
     @property
     def can_stop(self) -> bool:
@@ -66,8 +75,9 @@ class ProgressBox(Gtk.Box):
         self.stop_button.connect("clicked", self.on_stop_clicked)
         self.pack_start(self.stop_button, False, False, 0)
 
+        self._destroyed = False
         self._apply_progress(ProgressInfo(0.0, "Please wait..."))
-        self.timer_id = GLib.timeout_add(500, self.on_update_progress)
+        self._timer_id = GLib.timeout_add(500, self.on_update_progress)
         self.connect("destroy", self.on_destroy)
 
     def on_stop_clicked(self, _widget) -> None:
@@ -75,8 +85,9 @@ class ProgressBox(Gtk.Box):
             self.progress.stop()
 
     def on_destroy(self, _widget) -> None:
-        if self.timer_id:
-            GLib.source_remove(self.timer_id)
+        self._destroyed = True
+        if self._timer_id:
+            GLib.source_remove(self._timer_id)
 
     def on_update_progress(self) -> bool:
         try:
@@ -84,7 +95,7 @@ class ProgressBox(Gtk.Box):
             return True
         except Exception as ex:
             logger.exception("Unable to obtain a progress update: %s", ex)
-            self.timer_id = None
+            self._timer_id = None
             return False
 
     def update_progress(self) -> None:
@@ -95,6 +106,10 @@ class ProgressBox(Gtk.Box):
         self._apply_progress(progress)
 
     def _apply_progress(self, progress: ProgressInfo):
+        # Just in case the progress-function destroys the progress box.
+        if self._destroyed:
+            return
+
         self.progress = progress
 
         if progress.progress is None:

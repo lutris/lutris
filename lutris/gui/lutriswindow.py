@@ -1134,6 +1134,14 @@ class LutrisWindow(Gtk.ApplicationWindow,
             else:
                 game.emit("game-install")
 
+    @property
+    def download_queue(self) -> DownloadQueue:
+        queue = self.download_revealer.get_child()
+        if not queue:
+            queue = DownloadQueue(self.download_revealer)
+            self.download_revealer.add(queue)
+        return queue
+
     def start_runtime_updates(self, force_updates: bool, gpu_info: Dict[str, Any]) -> None:
         """Starts the process of applying runtime updates, asynchronously. No UI appears until
         we can determine that there are updates to perform."""
@@ -1150,14 +1158,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         AsyncCall(create_runtime_updater, create_runtime_updater_cb)
 
-    @property
-    def download_queue(self) -> DownloadQueue:
-        queue = self.download_revealer.get_child()
-        if not queue:
-            queue = DownloadQueue(self.download_revealer)
-            self.download_revealer.add(queue)
-        return queue
-
     def _install_runtime_updates(self, runtime_updater: RuntimeUpdater) -> None:
         """Installs runtime updates, once we know there are any. This displays progress bars
         in the sidebar as it installs updates, one at a time."""
@@ -1165,23 +1165,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
         queue = self.download_queue
         updaters = runtime_updater.create_component_updaters()
 
-        for u in updaters:
-            queue.add_progress_box(u.get_progress)
-
         def install_updates():
             for updater in updaters:
                 updater.install_update(runtime_updater)
-                GLib.idle_add(lambda to_end=updater: queue.remove_progress_box(to_end.get_progress))
 
-        @watch_errors(handler_object=self)
-        def install_updates_cb(_result, error):
-            if error:
-                logger.exception("Failed to apply updates: %s", error)
-
-            for to_end in updaters:
-                queue.remove_progress_box(to_end.get_progress)
-
-        AsyncCall(install_updates, install_updates_cb)
+        queue.start_multiple(install_updates, (u.get_progress for u in updaters))
 
     def on_watched_error(self, error):
         dialogs.ErrorDialog(error, parent=self)

@@ -1,12 +1,14 @@
 # pylint: disable=no-member
 import os
-from typing import Dict
+from typing import Callable, Dict, Iterable
 
 from gi.repository import Gtk
 
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.progress_box import ProgressBox
 from lutris.util import datapath
+from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "download-queue.ui"))
@@ -37,11 +39,18 @@ class DownloadQueue(Gtk.ScrolledWindow):
         the progress_function, which is called immediately to initialize the box and
         then polled to update it. Returns the new progress box.
 
+        The progres-box is removed when its function returns ProgressInfo.ended(), or when
+        you call remove_progress_box().
+
         If called with a progress_function that has a box already, this method returns
         that box instead of creating one."""
 
         def check_progress():
             progress_info = progress_function()
+
+            if progress_info.has_ended:
+                self.remove_progress_box(progress_function)
+                return progress_info
 
             if progress_info.label_markup:
                 progress_info.label_markup = "<span size='10000'>%s</span>" % progress_info.label_markup
@@ -71,3 +80,36 @@ class DownloadQueue(Gtk.ScrolledWindow):
             progress_box.destroy()
             if not self.progress_boxes:
                 self.revealer.set_reveal_child(False)
+
+    def start(self, func: Callable[[], None],
+              progress_function: ProgressBox.ProgressFunction):
+        """Runs 'func' on a thread, while displaying a progress bar. The 'progress_function'
+        controls this progress bar, and is removed when the function completes."""
+
+        self.add_progress_box(progress_function)
+
+        def completion_callback(_result, error):
+            if error:
+                logger.exception("Failed to execute function: %s", error)
+
+            self.remove_progress_box(progress_function)
+
+        AsyncCall(func, completion_callback)
+
+    def start_multiple(self, func: Callable[[], None],
+                       progress_functions: Iterable[ProgressBox.ProgressFunction]):
+        """Runs 'func' on a thread, while displaying a set of progress bars. The 'progress_functions'
+        control the progress bars, and they are all removed when the function completes. Each
+        progress bar can be also be removed if it's progress function returns ProgressInfo.ended()."""
+
+        for f in progress_functions:
+            self.add_progress_box(f)
+
+        def completion_callback(_result, error):
+            if error:
+                logger.exception("Failed to execute function: %s", error)
+
+            for to_end in progress_functions:
+                self.remove_progress_box(to_end)
+
+        AsyncCall(func, completion_callback)
