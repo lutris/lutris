@@ -34,6 +34,80 @@ DLL_MANAGERS = {
 }
 
 
+def get_env(version: str = None, prefer_system_libs: bool = False, wine_path: str = None) -> Dict[str, str]:
+    """Return a dict containing LD_LIBRARY_PATH env var
+
+    Params:
+        version: Version of the runtime to use, such as "Ubuntu-18.04" or "legacy"
+        prefer_system_libs: Whether to prioritize system libs over runtime libs
+        wine_path: If you prioritize system libs, provide the path for a lutris wine build
+                         if one is being used. This allows Lutris to prioritize the wine libs
+                         over everything else.
+    """
+    library_path = ":".join(get_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path))
+    env = {}
+    if library_path:
+        env["LD_LIBRARY_PATH"] = library_path
+        network_tools_path = os.path.join(settings.RUNTIME_DIR, "network-tools")
+        env["PATH"] = "%s:%s" % (network_tools_path, os.environ["PATH"])
+    return env
+
+
+def get_winelib_paths(wine_path: str) -> List[str]:
+    """Return wine libraries path for a Lutris wine build"""
+    paths = []
+    # Prioritize libwine.so.1 for lutris builds
+    for winelib_path in ("lib", "lib64"):
+        winelib_fullpath = os.path.join(wine_path or "", winelib_path)
+        if system.path_exists(winelib_fullpath):
+            paths.append(winelib_fullpath)
+    return paths
+
+
+def get_runtime_paths(version: str = None, prefer_system_libs: bool = True, wine_path: str = None) -> List[str]:
+    """Return Lutris runtime paths"""
+    version = version or DEFAULT_RUNTIME
+    lutris_runtime_path = "%s-i686" % version
+    runtime_paths = [
+        lutris_runtime_path,
+        "steam/i386/lib/i386-linux-gnu",
+        "steam/i386/lib",
+        "steam/i386/usr/lib/i386-linux-gnu",
+        "steam/i386/usr/lib",
+    ]
+
+    if LINUX_SYSTEM.is_64_bit:
+        lutris_runtime_path = "%s-x86_64" % version
+        runtime_paths += [
+            lutris_runtime_path,
+            "steam/amd64/lib/x86_64-linux-gnu",
+            "steam/amd64/lib",
+            "steam/amd64/usr/lib/x86_64-linux-gnu",
+            "steam/amd64/usr/lib",
+        ]
+
+    paths = []
+    if prefer_system_libs:
+        if wine_path:
+            paths += get_winelib_paths(wine_path)
+        paths += list(LINUX_SYSTEM.iter_lib_folders())
+    # Then resolve absolute paths for the runtime
+    paths += [os.path.join(settings.RUNTIME_DIR, path) for path in runtime_paths]
+    return paths
+
+
+def get_paths(version: str = None, prefer_system_libs: bool = True, wine_path: str = None) -> List[str]:
+    """Return a list of paths containing the runtime libraries."""
+    if not RUNTIME_DISABLED:
+        paths = get_runtime_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path)
+    else:
+        paths = []
+    # Put existing LD_LIBRARY_PATH at the end
+    if os.environ.get("LD_LIBRARY_PATH"):
+        paths.append(os.environ["LD_LIBRARY_PATH"])
+    return paths
+
+
 class ComponentUpdater:
     (
         PENDING,
@@ -143,80 +217,6 @@ class RuntimeUpdater:
                 updaters.append(RunnerComponentUpdater(name, upstream_runner))
 
         return updaters
-
-
-def get_env(version: str = None, prefer_system_libs: bool = False, wine_path: str = None) -> Dict[str, str]:
-    """Return a dict containing LD_LIBRARY_PATH env var
-
-    Params:
-        version: Version of the runtime to use, such as "Ubuntu-18.04" or "legacy"
-        prefer_system_libs: Whether to prioritize system libs over runtime libs
-        wine_path: If you prioritize system libs, provide the path for a lutris wine build
-                         if one is being used. This allows Lutris to prioritize the wine libs
-                         over everything else.
-    """
-    library_path = ":".join(get_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path))
-    env = {}
-    if library_path:
-        env["LD_LIBRARY_PATH"] = library_path
-        network_tools_path = os.path.join(settings.RUNTIME_DIR, "network-tools")
-        env["PATH"] = "%s:%s" % (network_tools_path, os.environ["PATH"])
-    return env
-
-
-def get_winelib_paths(wine_path: str) -> List[str]:
-    """Return wine libraries path for a Lutris wine build"""
-    paths = []
-    # Prioritize libwine.so.1 for lutris builds
-    for winelib_path in ("lib", "lib64"):
-        winelib_fullpath = os.path.join(wine_path or "", winelib_path)
-        if system.path_exists(winelib_fullpath):
-            paths.append(winelib_fullpath)
-    return paths
-
-
-def get_runtime_paths(version: str = None, prefer_system_libs: bool = True, wine_path: str = None) -> List[str]:
-    """Return Lutris runtime paths"""
-    version = version or DEFAULT_RUNTIME
-    lutris_runtime_path = "%s-i686" % version
-    runtime_paths = [
-        lutris_runtime_path,
-        "steam/i386/lib/i386-linux-gnu",
-        "steam/i386/lib",
-        "steam/i386/usr/lib/i386-linux-gnu",
-        "steam/i386/usr/lib",
-    ]
-
-    if LINUX_SYSTEM.is_64_bit:
-        lutris_runtime_path = "%s-x86_64" % version
-        runtime_paths += [
-            lutris_runtime_path,
-            "steam/amd64/lib/x86_64-linux-gnu",
-            "steam/amd64/lib",
-            "steam/amd64/usr/lib/x86_64-linux-gnu",
-            "steam/amd64/usr/lib",
-        ]
-
-    paths = []
-    if prefer_system_libs:
-        if wine_path:
-            paths += get_winelib_paths(wine_path)
-        paths += list(LINUX_SYSTEM.iter_lib_folders())
-    # Then resolve absolute paths for the runtime
-    paths += [os.path.join(settings.RUNTIME_DIR, path) for path in runtime_paths]
-    return paths
-
-
-def get_paths(version: str = None, prefer_system_libs: bool = True, wine_path: str = None) -> List[str]:
-    """Return a list of paths containing the runtime libraries."""
-    if not RUNTIME_DISABLED:
-        paths = get_runtime_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path)
-    else:
-        paths = []
-    # Put existing LD_LIBRARY_PATH at the end
-    if os.environ.get("LD_LIBRARY_PATH"):
-        paths.append(os.environ["LD_LIBRARY_PATH"])
-    return paths
 
 
 class RuntimeComponentUpdater(ComponentUpdater):
