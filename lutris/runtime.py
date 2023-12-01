@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Tuple
 from gi.repository import GLib
 
 from lutris import settings
-from lutris.api import download_runtime_versions, get_time_from_api_date
+from lutris.api import download_runtime_versions, format_runner_version, get_time_from_api_date
 from lutris.gui.widgets.progress_box import ProgressInfo
 from lutris.util import http, jobs, system, update_cache
 from lutris.util.downloader import Downloader
@@ -118,7 +118,10 @@ class RuntimeUpdater:
                 continue
 
             try:
-                updaters.append(RuntimeComponentUpdater(remote_runtime))
+                if remote_runtime.get("url"):
+                    updaters.append(RuntimeExtractedComponentUpdater(remote_runtime))
+                else:
+                    updaters.append(RuntimeFilesComponentUpdater(remote_runtime))
             except Exception as ex:
                 logger.exception("Unable to download %s: %s", name, ex)
 
@@ -217,36 +220,25 @@ def get_paths(version: str = None, prefer_system_libs: bool = True, wine_path: s
 
 
 class RuntimeComponentUpdater(ComponentUpdater):
-    """Class for manipulating runtime folders"""
+    """A base class for component updates that use the timestamp from a runtime-info dict
+    to decide when an update is required."""
 
     def __init__(self, remote_runtime_info: Dict[str, Any]) -> None:
         self.remote_runtime_info = remote_runtime_info
-        self.versioned = False  # Versioned runtimes keep 1 version per folder
-        self.version = ""
-        self.downloader: Downloader = None
-        self.download_progress = 0.0
         self.state = ComponentUpdater.PENDING
+        # Versioned runtimes keep 1 version per folder
+        self.versioned = bool(self.remote_runtime_info.get("versioned"))
+        self.version = str(self.remote_runtime_info.get("version") or "") if self.versioned else ""
 
     @property
     def name(self) -> str:
         return self.remote_runtime_info["name"]
 
-    def install_update(self, updater: RuntimeUpdater):
-        if self.remote_runtime_info["url"]:
-            self.state = ComponentUpdater.DOWNLOADING
-            self.downloader = self.download()
-            self.downloader.join()
-            self.downloader = None
-        else:
-            self.download_components()
+    def install_update(self, updater: 'RuntimeUpdater') -> None:
+        raise NotImplementedError
 
     def get_progress(self) -> ProgressInfo:
         status_text = ComponentUpdater.status_formats[self.state] % self.name
-
-        if self.remote_runtime_info["url"]:
-            d = self.downloader
-            if d:
-                return ProgressInfo(d.progress_fraction, status_text, d.cancel)
 
         if self.state == ComponentUpdater.COMPLETED:
             return ProgressInfo(1.0, status_text)
@@ -296,24 +288,34 @@ class RuntimeComponentUpdater(ComponentUpdater):
         )
         return True
 
-    def should_update_component(self, filename: str, remote_modified_at: time.struct_time) -> bool:
-        """Should an individual component be updated?"""
-        file_path = os.path.join(settings.RUNTIME_DIR, self.name, filename)
-        if not system.path_exists(file_path):
-            return True
-        locally_modified_at = time.gmtime(os.path.getmtime(file_path))
-        if locally_modified_at >= remote_modified_at:
-            return False
-        return True
+
+class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
+    """Component updater that downloads and extracts an archive."""
+
+    def __init__(self, remote_runtime_info: Dict[str, Any]) -> None:
+        super().__init__(remote_runtime_info)
+        self.url = remote_runtime_info["url"]
+        self.downloader: Downloader = None
+        self.download_progress = 0.0
+
+    def install_update(self, updater: RuntimeUpdater) -> None:
+        self.state = ComponentUpdater.DOWNLOADING
+        self.downloader = self.download()
+        self.downloader.join()
+        self.downloader = None
+
+    def get_progress(self) -> ProgressInfo:
+        progress_info = super().get_progress()
+
+        if self.downloader:
+            return ProgressInfo(self.downloader.progress_fraction, progress_info.label_markup, self.downloader.cancel)
+
+        return progress_info
 
     def get_downloader(self) -> Downloader:
         """Return Downloader for this runtime"""
-        url = self.remote_runtime_info["url"]
-        self.versioned = self.remote_runtime_info["versioned"]
-        if self.versioned:
-            self.version = self.remote_runtime_info["version"]
-        archive_path = os.path.join(settings.RUNTIME_DIR, os.path.basename(url))
-        return Downloader(url, archive_path, overwrite=True)
+        archive_path = os.path.join(settings.RUNTIME_DIR, os.path.basename(self.url))
+        return Downloader(self.url, archive_path, overwrite=True)
 
     def download(self) -> Downloader:
         """Downloads a runtime locally"""
@@ -321,45 +323,6 @@ class RuntimeComponentUpdater(ComponentUpdater):
         downloader.start()
         GLib.timeout_add(100, self.check_download_progress, downloader)
         return downloader
-
-    def download_component(self, component: Dict[str, Any]) -> None:
-        """Download an individual file from a runtime item"""
-        file_path = os.path.join(settings.RUNTIME_DIR, self.name, component["filename"])
-        http.download_file(component["url"], file_path)
-
-    def get_runtime_components(self) -> List[Dict[str, Any]]:
-        """Fetch individual runtime files for a component"""
-        request = http.Request(settings.RUNTIME_URL + "/" + self.name)
-        try:
-            response = request.get()
-        except http.HTTPError as ex:
-            logger.error("Failed to get components: %s", ex)
-            return []
-        if not response.json:
-            return []
-        return response.json.get("components", [])
-
-    def download_components(self) -> None:
-        """Download a runtime item by individual components. Used for icons only at the moment"""
-        self.state = ComponentUpdater.DOWNLOADING
-        components = self.get_runtime_components()
-        downloads = []
-        for component in components:
-            modified_at = get_time_from_api_date(component["modified_at"])
-            if not self.should_update_component(component["filename"], modified_at):
-                continue
-            downloads.append(component)
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-            future_downloads = {
-                executor.submit(self.download_component, component): component["filename"]
-                for component in downloads
-            }
-            for future in concurrent.futures.as_completed(future_downloads):
-                if not future.cancelled() and future.exception():
-                    expected_filename = future_downloads[future]
-                    logger.warning("Failed to get '%s': %s", expected_filename, future.exception())
-        self.state = ComponentUpdater.COMPLETED
 
     def check_download_progress(self, downloader: Downloader):
         """Call download.check_progress(), return True if download finished."""
@@ -414,11 +377,68 @@ class RuntimeComponentUpdater(ComponentUpdater):
         return False
 
 
+class RuntimeFilesComponentUpdater(RuntimeComponentUpdater):
+    """Component updaters that downloads a set of files described by the server
+    individually."""
+
+    def install_update(self, updater: RuntimeUpdater) -> None:
+        """Download a runtime item by individual components. Used for icons only at the moment"""
+        self.state = ComponentUpdater.DOWNLOADING
+        components = self._get_runtime_components()
+        downloads = []
+        for component in components:
+            modified_at = get_time_from_api_date(component["modified_at"])
+            if not self._should_update_component(component["filename"], modified_at):
+                continue
+            downloads.append(component)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            future_downloads = {
+                executor.submit(self._download_component, component): component["filename"]
+                for component in downloads
+            }
+            for future in concurrent.futures.as_completed(future_downloads):
+                if not future.cancelled() and future.exception():
+                    expected_filename = future_downloads[future]
+                    logger.warning("Failed to get '%s': %s", expected_filename, future.exception())
+        self.state = ComponentUpdater.COMPLETED
+
+    def _should_update_component(self, filename: str, remote_modified_at: time.struct_time) -> bool:
+        """Should an individual component be updated?"""
+        file_path = os.path.join(settings.RUNTIME_DIR, self.name, filename)
+        if not system.path_exists(file_path):
+            return True
+        locally_modified_at = time.gmtime(os.path.getmtime(file_path))
+        if locally_modified_at >= remote_modified_at:
+            return False
+        return True
+
+    def _get_runtime_components(self) -> List[Dict[str, Any]]:
+        """Fetch individual runtime files for a component"""
+        request = http.Request(settings.RUNTIME_URL + "/" + self.name)
+        try:
+            response = request.get()
+        except http.HTTPError as ex:
+            logger.error("Failed to get components: %s", ex)
+            return []
+        if not response.json:
+            return []
+        return response.json.get("components", [])
+
+    def _download_component(self, component: Dict[str, Any]) -> None:
+        """Download an individual file from a runtime item"""
+        file_path = os.path.join(settings.RUNTIME_DIR, self.name, component["filename"])
+        http.download_file(component["url"], file_path)
+
+
 class RunnerComponentUpdater(ComponentUpdater):
+    """Component updaters that downloads new versions of runners. These are download
+    as archives and extracted into place."""
+
     def __init__(self, name: str, upstream_runner: Dict[str, Any]):
         self._name = name
         self.upstream_runner = upstream_runner
-        self.runner_version = "-".join([upstream_runner["version"], upstream_runner["architecture"]])
+        self.runner_version = format_runner_version(upstream_runner)
         self.version_path = os.path.join(settings.RUNNER_DIR, name, self.runner_version)
         self.downloader: Downloader = None
         self.state = ComponentUpdater.PENDING
@@ -439,7 +459,7 @@ class RunnerComponentUpdater(ComponentUpdater):
 
         return True
 
-    def install_update(self, updater: 'RuntimeUpdater'):
+    def install_update(self, updater: 'RuntimeUpdater') -> None:
         url = self.upstream_runner["url"]
         archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(url))
         self.state = ComponentUpdater.DOWNLOADING
