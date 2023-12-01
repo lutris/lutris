@@ -102,14 +102,18 @@ class DownloadQueue(Gtk.ScrolledWindow):
         control the progress bars, and they are all removed when the function completes. Each
         progress bar can be also be removed if it's progress function returns ProgressInfo.ended()."""
 
-        for f in progress_functions:
+        # Must capture the functions, since in earlier (<3.8) Pythons functions do not provide
+        # value equality, so we need to make sure we're always using what we started with.
+        captured_functions = list(progress_functions)
+
+        for f in captured_functions:
             self.add_progress_box(f)
 
         def completion_callback(_result, error):
             if error:
                 logger.exception("Failed to execute function: %s", error)
 
-            for to_end in progress_functions:
+            for to_end in captured_functions:
                 self.remove_progress_box(to_end)
 
         AsyncCall(func, completion_callback)
