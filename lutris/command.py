@@ -173,6 +173,8 @@ class MonitoredCommand:
 
     def log_handler_stdout(self, line):
         """Add the line to this command's stdout attribute"""
+        if "GStreamer-WARNING **" in line:
+            return
         self._stdout.write(line)
 
     def log_handler_buffer(self, line):
@@ -181,6 +183,8 @@ class MonitoredCommand:
 
     def log_handler_console_output(self, line):
         """Print the line to stdout"""
+        if "GStreamer-WARNING **" in line:
+            return
         with contextlib.suppress(BlockingIOError):
             sys.stdout.write(line)
             sys.stdout.flush()
