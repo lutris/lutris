@@ -40,8 +40,11 @@ class CommandsMixin:
             # Special case that lets the Wine configuration explicit specify the path
             # to the Wine executable, not just a version number.
             if self.installer.runner == "wine":
-                config_version, runner_config = wine.get_runner_version_and_config()
-                return get_wine_path_for_version(config_version, config=runner_config.runner_level)
+                try:
+                    config_version, runner_config = wine.get_runner_version_and_config()
+                    return get_wine_path_for_version(config_version, config=runner_config.runner_level)
+                except UnspecifiedVersionError:
+                    pass
 
             version = get_default_wine_version()
         return get_wine_path_for_version(version)
