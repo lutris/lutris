@@ -1166,14 +1166,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
         updaters = runtime_updater.create_component_updaters()
 
         for u in updaters:
-            if u.should_update:
-                queue.add_updater(u)
+            queue.add_progress_box(u.get_progress)
 
         def install_updates():
             for updater in updaters:
-                if updater.should_update:
-                    updater.install_update(runtime_updater)
-                    GLib.idle_add(lambda to_end=updater: queue.end_updater(to_end))
+                updater.install_update(runtime_updater)
+                GLib.idle_add(lambda to_end=updater: queue.remove_progress_box(to_end.get_progress))
 
         @watch_errors(handler_object=self)
         def install_updates_cb(_result, error):
@@ -1182,7 +1180,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
             self.download_revealer.set_reveal_child(False)
             for to_end in updaters:
-                queue.end_updater(to_end)
+                queue.remove_progress_box(to_end.get_progress)
 
         self.download_revealer.set_reveal_child(True)
         AsyncCall(install_updates, install_updates_cb)

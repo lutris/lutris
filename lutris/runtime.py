@@ -171,17 +171,18 @@ class RuntimeUpdater:
 
     def create_component_updaters(self) -> List[ComponentUpdater]:
         """Creates the component updaters that need to be applied and
-        returns them in a list."""
+        returns them in a list. This tests each to see if it should be
+        used and returns only those you should install."""
         if not self.runtime_versions:
             self.runtime_versions = download_runtime_versions(self.pci_ids)
 
-        updaters = []
+        updaters: List[ComponentUpdater] = []
         for key, func in self.update_functions:
             updaters += func()
             # Not ideal - we are marking this off as updated just before
             # the updater, not after it completes.
             update_cache.write_date_to_cache(key)
-        return updaters
+        return [u for u in updaters if u.should_update]
 
     def _get_runtime_updaters(self) -> List[ComponentUpdater]:
         """Launch the update process"""
