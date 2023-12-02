@@ -76,12 +76,12 @@ class InterfacePreferencesBox(BaseConfigBox):
 class UpdatePreferencesBox(BaseConfigBox):
     settings_options = {
         "auto_update_runtime": {
-            "label": _("Automatically update the Lutris runtime"),
+            "label": _("Automatically Update the Lutris runtime"),
             "default": True,
             "update_function": trigger_runtime_updates
         },
         "auto_update_runners": {
-            "label": _("Automatically update Wine"),
+            "label": _("Automatically Update Wine"),
             "default": True,
             "update_function": trigger_runner_updates,
             "warning":
