@@ -8,7 +8,7 @@ from lutris.config import LutrisConfig
 from lutris.gui.config.accounts_box import AccountsBox
 from lutris.gui.config.boxes import SystemBox
 from lutris.gui.config.common import GameDialogCommon
-from lutris.gui.config.preferences_box import InterfacePreferencesBox
+from lutris.gui.config.preferences_box import InterfacePreferencesBox, UpdatePreferencesBox
 from lutris.gui.config.runners_box import RunnersBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.config.sysinfo_box import SysInfoBox
@@ -36,6 +36,7 @@ class PreferencesDialog(GameDialogCommon):
         sidebar.add(self.get_sidebar_button("runners-stack", _("Runners"), "applications-utilities-symbolic"))
         sidebar.add(self.get_sidebar_button("services-stack", _("Sources"), "application-x-addon-symbolic"))
         sidebar.add(self.get_sidebar_button("accounts-stack", _("Accounts"), "system-users-symbolic"))
+        sidebar.add(self.get_sidebar_button("updates-stack", _("Updates"), "system-software-install-symbolic"))
         sidebar.add(self.get_sidebar_button("sysinfo-stack", _("Hardware information"), "computer-symbolic"))
         sidebar.add(self.get_sidebar_button("system-stack", _("Global options"), "emblem-system-symbolic"))
         hbox.pack_start(sidebar, False, False, 0)
@@ -64,6 +65,11 @@ class PreferencesDialog(GameDialogCommon):
         self.stack.add_named(
             self.build_scrolled_window(AccountsBox()),
             "accounts-stack"
+        )
+
+        self.stack.add_named(
+            self.build_scrolled_window(UpdatePreferencesBox()),
+            "updates-stack"
         )
 
         sysinfo_box = SysInfoBox()
