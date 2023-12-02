@@ -47,7 +47,7 @@ class BaseConfigBox(VBox):
                     visible = warning_condition(active) if warning_condition else active
                     warning_box.show_markup(warning_markup if visible else None)
 
-                warning_box = UnderslungMessageBox("dialog-warning")
+                warning_box = UnderslungMessageBox("dialog-warning", margin_left=0, margin_right=0, margin_bottom=0)
                 update_warning(setting_value)
                 inner_box = self._get_inner_settings_box(setting_key, setting_value, label, update_warning)
             else:
@@ -63,6 +63,8 @@ class BaseConfigBox(VBox):
 
         box.set_margin_top(12)
         box.set_margin_bottom(12)
+        box.set_margin_left(12)
+        box.set_margin_right(12)
         return box
 
     def _get_inner_settings_box(self, setting_key: str, setting_value: bool, label: str,
@@ -74,7 +76,7 @@ class BaseConfigBox(VBox):
         )
         label = Gtk.Label(label, visible=True)
         label.set_alignment(0, 0.5)
-        box.pack_start(label, True, True, 12)
+        box.pack_start(label, True, True, 0)
         checkbox = Gtk.Switch(visible=True)
         checkbox.set_active(setting_value)
         checkbox.connect("state-set", self.on_setting_change, setting_key, when_setting_changed)
@@ -83,7 +85,7 @@ class BaseConfigBox(VBox):
             key, mod = Gtk.accelerator_parse(self.settings_accelerators[setting_key])
             checkbox.add_accelerator("activate", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
-        box.pack_start(checkbox, False, False, 12)
+        box.pack_start(checkbox, False, False, 0)
         return box
 
     def on_setting_change(self, _widget, state: bool, setting_key: str,
