@@ -5,7 +5,7 @@ import subprocess
 import tarfile
 import uuid
 import zlib
-from typing import List
+from typing import List, Tuple
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
@@ -124,7 +124,7 @@ def get_archive_opener(extractor):
     return opener, mode
 
 
-def extract_archive(path: str, to_directory: str = ".", merge_single: bool = True, extractor=None):
+def extract_archive(path: str, to_directory: str = ".", merge_single: bool = True, extractor=None) -> Tuple[str, str]:
     path = os.path.abspath(path)
     logger.debug("Extracting %s to %s", path, to_directory)
 

@@ -1168,6 +1168,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
         def install_updates():
             for updater in updaters:
                 updater.install_update(runtime_updater)
+            for updater in updaters:
+                updater.join()
 
         queue.start_multiple(install_updates, (u.get_progress for u in updaters))
 
