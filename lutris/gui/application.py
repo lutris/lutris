@@ -88,6 +88,8 @@ class Application(Gtk.Application):
         self.launch_ui_delegate = LaunchUIDelegate()
         self.install_ui_delegate = InstallUIDelegate()
 
+        self.gpu_info = {}
+
         self.running_games = Gio.ListStore.new(Game)
         self.app_windows = {}
         self.tray = None

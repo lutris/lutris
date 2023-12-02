@@ -161,9 +161,6 @@ class RuntimeUpdater:
         elif force:
             self.update_runtime = True
             self.update_runners = True
-        elif not check_stale_runtime_versions():
-            self.update_runtime = False
-            self.update_runners = False
         else:
             self.update_runtime = settings.read_bool_setting("auto_update_runtime", default=True)
             self.update_runners = settings.read_bool_setting("auto_update_runners", default=True)
@@ -173,6 +170,10 @@ class RuntimeUpdater:
             if not self.update_runners:
                 logger.warning("Runner updates have been disabled by the configuration.")
 
+            if not check_stale_runtime_versions():
+                self.update_runtime = False
+                self.update_runners = False
+
     @property
     def has_updates(self):
         return self.update_runtime or self.update_runners
@@ -181,9 +182,13 @@ class RuntimeUpdater:
         """Creates the component updaters that need to be applied and returns them in a list.
 
         This tests each to see if it should be used and returns only those you should install.
+        It returns an empty list if has_updates is false.
 
         This method also downloads fresh runner versions on each call, so we call this on a
         worker thread, instead of blocking the UI."""
+        if not self.has_updates:
+            return []
+
         runtime_versions = download_runtime_versions(self.pci_ids)
         updaters: List[ComponentUpdater] = []
 
