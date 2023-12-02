@@ -40,7 +40,7 @@ class BaseConfigBox(VBox):
         setting_value = settings.read_bool_setting(setting_key, default=default)
 
         if not warning_markup and not extra_widget:
-            box = self._get_inner_settings_box(setting_key, setting_value, label, self.on_setting_change)
+            box = self._get_inner_settings_box(setting_key, setting_value, label)
         else:
             if warning_markup:
                 def update_warning(active):
@@ -65,7 +65,7 @@ class BaseConfigBox(VBox):
         box.set_margin_bottom(12)
         return box
 
-    def _get_inner_settings_box(self, setting_key: str, setting_value: bool, label: bool,
+    def _get_inner_settings_box(self, setting_key: str, setting_value: bool, label: str,
                                 when_setting_changed: Callable[[bool], None] = None):
         box = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL,

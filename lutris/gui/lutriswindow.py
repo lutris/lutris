@@ -4,7 +4,7 @@ import os
 import re
 from collections import namedtuple
 from gettext import gettext as _
-from typing import Any, Dict
+from typing import Any, Dict, List
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
@@ -28,7 +28,7 @@ from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
-from lutris.runtime import RuntimeUpdater
+from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.scanners.lutris import add_to_path_cache, get_missing_game_ids, remove_from_path_cache
 # pylint: disable=no-member
 from lutris.services.base import BaseService
@@ -1148,22 +1148,26 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         def create_runtime_updater():
             pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpu_info["gpus"].values()]
-            return RuntimeUpdater(pci_ids=pci_ids, force=force_updates)
+            runtime_updater = RuntimeUpdater(pci_ids=pci_ids, force=force_updates)
+            component_updaters = runtime_updater.create_component_updaters()
+            return component_updaters, runtime_updater
 
-        def create_runtime_updater_cb(runtime_updater, error):
+        def create_runtime_updater_cb(result, error):
             if error:
                 logger.exception("Failed to obtain updates from Lutris.net: %s", error)
-            elif runtime_updater.has_updates:
-                self.install_runtime_updates(runtime_updater)
+            else:
+                component_updaters, runtime_updater = result
+                if component_updaters:
+                    self.install_runtime_component_updates(component_updaters, runtime_updater)
 
         AsyncCall(create_runtime_updater, create_runtime_updater_cb)
 
-    def install_runtime_updates(self, runtime_updater: RuntimeUpdater) -> None:
-        """Installs runtime updates, once we know there are any. This displays progress bars
+    def install_runtime_component_updates(self, updaters: List[ComponentUpdater],
+                                          runtime_updater: RuntimeUpdater) -> None:
+        """Installs a list of component updates. This displays progress bars
         in the sidebar as it installs updates, one at a time."""
 
         queue = self.download_queue
-        updaters = runtime_updater.create_component_updaters()
 
         def install_updates():
             for updater in updaters:

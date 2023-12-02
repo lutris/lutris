@@ -1,4 +1,5 @@
 from gettext import gettext as _
+from typing import Callable
 
 from gi.repository import Gio, Gtk
 
@@ -7,30 +8,39 @@ from lutris.gui.dialogs import ErrorDialog
 from lutris.runtime import RuntimeUpdater
 
 
-def trigger_runtime_updates(parent):
+def _trigger_updates(parent: Gtk.Window,
+                     updater_factory: Callable) -> None:
     application = Gio.Application.get_default()
     if application:
         window = application.window
         if window:
             if window.download_queue.is_empty:
-                updater = RuntimeUpdater(application.gpu_info)
-                updater.update_runtime = True
-                window.install_runtime_updates(updater)
+                updater = updater_factory(application)
+                component_updaters = updater.create_component_updaters()
+                if component_updaters:
+                    window.install_runtime_component_updates(component_updaters, updater)
+                else:
+                    ErrorDialog(_("No updates are required at this time."), parent=parent)
             else:
                 ErrorDialog(_("Updates cannot begin while downloads are already underway."), parent=parent)
+
+
+def trigger_runtime_updates(parent):
+    def get_updater(application):
+        updater = RuntimeUpdater(application.gpu_info)
+        updater.update_runtime = True
+        return updater
+
+    _trigger_updates(parent, get_updater)
 
 
 def trigger_runner_updates(parent):
-    application = Gio.Application.get_default()
-    if application:
-        window = application.window
-        if window:
-            if window.download_queue.is_empty:
-                updater = RuntimeUpdater(application.gpu_info)
-                updater.update_runners = True
-                window.install_runtime_updates(updater)
-            else:
-                ErrorDialog(_("Updates cannot begin while downloads are already underway."), parent=parent)
+    def get_updater(application):
+        updater = RuntimeUpdater(application.gpu_info)
+        updater.update_runners = True
+        return updater
+
+    _trigger_updates(parent, get_updater)
 
 
 class InterfacePreferencesBox(BaseConfigBox):
