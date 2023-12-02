@@ -25,7 +25,7 @@ def save_to_cache(source, destination):
     if not source:
         raise ValueError("Missing source")
     if os.path.dirname(source) == destination:
-        logger.info("Skipping caching of %s, already cached in %s", source, destination)
+        logger.info("File %s is already cached in %s", source, destination)
         return
     if os.path.isdir(source):
         # Copy folder recursively

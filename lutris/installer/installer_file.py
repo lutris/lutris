@@ -173,6 +173,8 @@ class InstallerFile:
         Returns:
             bool
         """
+        if self.url.startswith("N/A"):
+            return False
         cache_path = cache.get_cache_path()
         if not cache_path:
             return False
