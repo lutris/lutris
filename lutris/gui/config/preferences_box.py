@@ -1,9 +1,24 @@
 from gettext import gettext as _
 
 from gi.repository import Gtk, Gio
+
+from lutris.gui.dialogs import ErrorDialog
 from lutris.runtime import RuntimeUpdater
 
 from lutris.gui.config.base_config_box import BaseConfigBox
+
+
+def trigger_runtime_update(parent):
+    application = Gio.Application.get_default()
+    if application:
+        window = application.window
+        if window:
+            if window.download_queue.is_empty:
+                updater = RuntimeUpdater(application.gpu_info)
+                updater.update_runtime = True
+                window.install_runtime_updates(updater)
+            else:
+                ErrorDialog(_("Updates cannot begin while downloads are already underway."), parent=parent)
 
 
 class InterfacePreferencesBox(BaseConfigBox):
@@ -34,16 +49,6 @@ class InterfacePreferencesBox(BaseConfigBox):
             list_box_row.set_activatable(False)
             list_box_row.add(self.get_setting_box(setting_key, label))
             listbox.add(list_box_row)
-
-
-def trigger_runtime_update():
-    application = Gio.Application.get_default()
-    if application:
-        window = application.window
-        if window:
-            updater = RuntimeUpdater(application.gpu_info)
-            updater.update_runtime = True
-            window.install_runtime_updates(updater)
 
 
 class UpdatePreferencesBox(BaseConfigBox):
@@ -79,7 +84,7 @@ class UpdatePreferencesBox(BaseConfigBox):
 
             if update_function:
                 def on_update_now_clicked(_widget, func):
-                    func()
+                    func(self.get_toplevel())
 
                 update_button = Gtk.Button(_("Update Now"), halign=Gtk.Align.END, visible=True)
                 update_button.connect("clicked", on_update_now_clicked, update_function)

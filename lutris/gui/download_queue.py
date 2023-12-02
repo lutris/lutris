@@ -34,6 +34,11 @@ class DownloadQueue(Gtk.ScrolledWindow):
         except AttributeError:
             pass
 
+    @property
+    def is_empty(self):
+        """True if the queue has no progress boxes in it."""
+        return not bool(self.progress_boxes)
+
     def add_progress_box(self, progress_function: ProgressBox.ProgressFunction) -> ProgressBox:
         """Adds a progress box to the queue; it will display the progress indicated by
         the progress_function, which is called immediately to initialize the box and
