@@ -22,7 +22,7 @@ from lutris.gui.widgets.utils import get_image_file_format, invalidate_media_cac
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.util.log import logger
-from lutris.util.strings import slugify, gtk_safe
+from lutris.util.strings import gtk_safe, slugify
 
 
 # pylint: disable=too-many-instance-attributes, no-member

@@ -28,8 +28,36 @@ def get_time_from_api_date(date_string):
     return time.strptime(date_string[:date_string.find(".")], "%Y-%m-%dT%H:%M:%S")
 
 
-def load_runtime_versions() -> Dict[str, Any]:
-    """Load runtime versions from json file"""
+def check_stale_runtime_versions() -> bool:
+    """True if runtime versions file that download_runtime_versions() creates
+    is missing or stale; if true we must call that function."""
+    try:
+        threshold = time.time() + 6 * 60 * 60  # 6 hours from now
+        modified_at = os.path.getmtime(settings.RUNTIME_VERSIONS_PATH)
+        return threshold < modified_at
+    except FileNotFoundError:
+        return True
+
+
+def download_runtime_versions(pci_ids: list) -> Dict[str, Any]:
+    """Queries runtime + runners + current client versions and stores the result
+    in a file; the mdate of this file is used to decide when it is stale and should
+    be replaced."""
+    url = settings.SITE_URL + "/api/runtimes/versions?pci_ids=" + ",".join(pci_ids)
+    response = http.Request(url, headers={"Content-Type": "application/json"})
+    try:
+        response.get()
+    except http.HTTPError as ex:
+        logger.error("Unable to get runtimes from API: %s", ex)
+        return {}
+    with open(settings.RUNTIME_VERSIONS_PATH, mode="w", encoding="utf-8") as runtime_file:
+        json.dump(response.json, runtime_file, indent=2)
+    return response.json
+
+
+def get_runtime_versions() -> Dict[str, Any]:
+    """Load runtime versions from the json file that is created at startup
+    if it is missing or stale."""
     if not system.path_exists(settings.RUNTIME_VERSIONS_PATH):
         return {}
     with open(settings.RUNTIME_VERSIONS_PATH, mode="r", encoding="utf-8") as runtime_file:
@@ -149,7 +177,7 @@ def get_default_runner_version_info(runner_name: str, version: str = None) -> Di
     """
 
     if not version:
-        runtime_versions = load_runtime_versions()
+        runtime_versions = get_runtime_versions()
         if runtime_versions:
             try:
                 runner_versions = runtime_versions["runners"][runner_name]
@@ -320,20 +348,6 @@ def search_games(query) -> dict:
     except http.HTTPError as ex:
         logger.error("Unable to get games from API: %s", ex)
         return {}
-    return response.json
-
-
-def download_runtime_versions(pci_ids: list) -> Dict[str, Any]:
-    """Queries runtime + runners + current client versions"""
-    url = settings.SITE_URL + "/api/runtimes/versions?pci_ids=" + ",".join(pci_ids)
-    response = http.Request(url, headers={"Content-Type": "application/json"})
-    try:
-        response.get()
-    except http.HTTPError as ex:
-        logger.error("Unable to get runtimes from API: %s", ex)
-        return {}
-    with open(settings.RUNTIME_VERSIONS_PATH, mode="w", encoding="utf-8") as runtime_file:
-        json.dump(response.json, runtime_file, indent=2)
     return response.json
 
 

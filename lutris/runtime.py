@@ -8,9 +8,11 @@ from typing import Any, Callable, Dict, List, Tuple
 from gi.repository import GLib
 
 from lutris import settings
-from lutris.api import download_runtime_versions, format_runner_version, get_time_from_api_date
+from lutris.api import (
+    check_stale_runtime_versions, download_runtime_versions, format_runner_version, get_time_from_api_date
+)
 from lutris.gui.widgets.progress_box import ProgressInfo
-from lutris.util import http, jobs, system, update_cache
+from lutris.util import http, jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.linux import LINUX_SYSTEM
@@ -141,53 +143,32 @@ class ComponentUpdater:
 class RuntimeUpdater:
     """Class handling the runtime updates"""
 
-    UpdaterFactory = Callable[[], List[ComponentUpdater]]
-
     def __init__(self, pci_ids: List[str] = None, force: bool = False):
-        self.force = force
         self.pci_ids: List[str] = pci_ids or []
-        self.runtime_versions: Dict[str, Any] = {}
-        self.update_functions: List[Tuple[str, RuntimeUpdater.UpdaterFactory]] = []
 
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled. Safety not guaranteed.")
+            self.has_updates = False
         else:
-            self.add_update("runtime", self._get_runtime_updaters, hours=12)
-            self.add_update("runners", self._get_runner_updaters, hours=12)
-
-    def add_update(self, key: str, updater_factory: UpdaterFactory, hours: int) -> None:
-        """__init__ calls this to register each update. This function
-        only registers the update if it hasn't been tried in the last
-        'hours' hours. This is tracked in 'updates.json', and identified
-        by 'key' in that file."""
-        last_call = update_cache.get_last_call(key)
-        if self.force or not last_call or last_call > 3600 * hours:
-            self.update_functions.append((key, updater_factory))
-
-    @property
-    def has_updates(self) -> bool:
-        """Returns True if there are any updates to perform."""
-        return bool(self.update_functions)
+            self.has_updates = force or check_stale_runtime_versions()
 
     def create_component_updaters(self) -> List[ComponentUpdater]:
-        """Creates the component updaters that need to be applied and
-        returns them in a list. This tests each to see if it should be
-        used and returns only those you should install."""
-        if not self.runtime_versions:
-            self.runtime_versions = download_runtime_versions(self.pci_ids)
+        """Creates the component updaters that need to be applied and returns them in a list.
 
-        updaters: List[ComponentUpdater] = []
-        for key, func in self.update_functions:
-            updaters += func()
-            # Not ideal - we are marking this off as updated just before
-            # the updater, not after it completes.
-            update_cache.write_date_to_cache(key)
+        This tests each to see if it should be used and returns only those you should install.
+
+        This method also downloads fresh runner versions on each call, so we call this on a
+        worker thread, instead of blocking the UI."""
+        runtime_versions = download_runtime_versions(self.pci_ids)
+
+        updaters = self._get_runtime_updaters(runtime_versions) + self._get_runner_updaters(runtime_versions)
         return [u for u in updaters if u.should_update]
 
-    def _get_runtime_updaters(self) -> List[ComponentUpdater]:
+    @staticmethod
+    def _get_runtime_updaters(runtime_versions: Dict[str, Any]) -> List[ComponentUpdater]:
         """Launch the update process"""
         updaters: List[ComponentUpdater] = []
-        for name, remote_runtime in self.runtime_versions.get("runtimes", {}).items():
+        for name, remote_runtime in runtime_versions.get("runtimes", {}).items():
             if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
                 logger.debug("Skipping runtime %s for %s", name, remote_runtime["architecture"])
                 continue
@@ -202,10 +183,11 @@ class RuntimeUpdater:
 
         return updaters
 
-    def _get_runner_updaters(self) -> List[ComponentUpdater]:
+    @staticmethod
+    def _get_runner_updaters(runtime_versions: Dict[str, Any]) -> List[ComponentUpdater]:
         """Update installed runners (only works for Wine at the moment)"""
         updaters: List[ComponentUpdater] = []
-        upstream_runners = self.runtime_versions.get("runners", {})
+        upstream_runners = runtime_versions.get("runners", {})
         for name, upstream_runners in upstream_runners.items():
             if name != "wine":
                 continue

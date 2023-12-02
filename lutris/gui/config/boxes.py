@@ -787,6 +787,7 @@ class SystemBox(ConfigBox):
 
 class UnderslungMessageBox(Gtk.Box):
     """A box to display a message with an icon inside the configuration dialog."""
+
     def __init__(self, icon_name, margin_left=18, margin_right=18, margin_bottom=6):
         super().__init__(spacing=6, visible=False, margin_left=margin_left, margin_right=margin_right,
                          margin_bottom=margin_bottom, no_show_all=True)
