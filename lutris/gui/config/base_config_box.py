@@ -33,10 +33,11 @@ class BaseConfigBox(VBox):
         self.set_margin_left(80)
 
     def get_setting_box(self, setting_key: str, label: str,
+                        default: bool = False,
                         warning_markup: str = None,
                         warning_condition: Callable[[bool], bool] = None) -> Gtk.Box:
 
-        setting_value = settings.read_setting(setting_key).casefold() == "true"
+        setting_value = settings.read_bool_setting(setting_key, default=default)
 
         if not warning_markup:
             box = self._get_inner_settings_box(setting_key, setting_value, label, self.on_setting_change)
