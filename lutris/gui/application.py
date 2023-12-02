@@ -343,11 +343,11 @@ class Application(Gtk.Application):
             screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-    def start_runtime_updates(self, gpu_info: Dict[str, Any]) -> None:
+    def start_runtime_updates(self) -> None:
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
         else:
-            self.window.start_runtime_updates(self.force_updates, gpu_info)
+            self.window.start_runtime_updates(self.force_updates, self.gpu_info)
 
     def get_window_key(self, **kwargs):
         if kwargs.get("appid"):
@@ -475,7 +475,7 @@ class Application(Gtk.Application):
         if argc:
             migrate()
 
-        gpu_info = run_all_checks()
+        self.gpu_info = run_all_checks()
         if options.contains("dest"):
             dest_dir = options.lookup_value("dest").get_string()
         else:
@@ -757,7 +757,7 @@ class Application(Gtk.Application):
             self.launch_ui_delegate = self.window
             self.install_ui_delegate = self.window
             self.window.present()
-            self.start_runtime_updates(gpu_info)
+            self.start_runtime_updates()
             # If the Lutris GUI is started by itself, don't quit it when a game stops
             self.quit_on_game_exit = False
         return 0

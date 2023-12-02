@@ -1,6 +1,7 @@
 from gettext import gettext as _
 
-from gi.repository import Gtk
+from gi.repository import Gtk, Gio
+from lutris.runtime import RuntimeUpdater
 
 from lutris.gui.config.base_config_box import BaseConfigBox
 
@@ -35,11 +36,22 @@ class InterfacePreferencesBox(BaseConfigBox):
             listbox.add(list_box_row)
 
 
+def trigger_runtime_update():
+    application = Gio.Application.get_default()
+    if application:
+        window = application.window
+        if window:
+            updater = RuntimeUpdater(application.gpu_info)
+            updater.update_runtime = True
+            window.install_runtime_updates(updater)
+
+
 class UpdatePreferencesBox(BaseConfigBox):
     settings_options = {
         "auto_update_runtime": {
             "label": _("Automatically update the Lutris runtime"),
             "default": True,
+            "update_function": trigger_runtime_update
         },
         "auto_update_runners": {
             "label": _("Automatically update Wine"),
@@ -63,11 +75,22 @@ class UpdatePreferencesBox(BaseConfigBox):
             default = setting_option.get("default") or False
             warning_markup = setting_option.get("warning")
             warning_condition = setting_option.get("warning_condition")
+            update_function = setting_option.get("update_function")
+
+            if update_function:
+                def on_update_now_clicked(_widget, func):
+                    func()
+
+                update_button = Gtk.Button(_("Update Now"), halign=Gtk.Align.END, visible=True)
+                update_button.connect("clicked", on_update_now_clicked, update_function)
+            else:
+                update_button = None
 
             list_box_row = Gtk.ListBoxRow(visible=True)
             list_box_row.set_selectable(False)
             list_box_row.set_activatable(False)
             list_box_row.add(self.get_setting_box(setting_key, label, default=default,
                                                   warning_markup=warning_markup,
-                                                  warning_condition=warning_condition))
+                                                  warning_condition=warning_condition,
+                                                  extra_widget=update_button))
             listbox.add(list_box_row)

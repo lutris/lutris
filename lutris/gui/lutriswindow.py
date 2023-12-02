@@ -1154,11 +1154,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
             if error:
                 logger.exception("Failed to obtain updates from Lutris.net: %s", error)
             elif runtime_updater.has_updates:
-                self._install_runtime_updates(runtime_updater)
+                self.install_runtime_updates(runtime_updater)
 
         AsyncCall(create_runtime_updater, create_runtime_updater_cb)
 
-    def _install_runtime_updates(self, runtime_updater: RuntimeUpdater) -> None:
+    def install_runtime_updates(self, runtime_updater: RuntimeUpdater) -> None:
         """Installs runtime updates, once we know there are any. This displays progress bars
         in the sidebar as it installs updates, one at a time."""
 
