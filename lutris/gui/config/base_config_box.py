@@ -35,28 +35,36 @@ class BaseConfigBox(VBox):
     def get_setting_box(self, setting_key: str, label: str,
                         default: bool = False,
                         warning_markup: str = None,
-                        warning_condition: Callable[[bool], bool] = None) -> Gtk.Box:
+                        warning_condition: Callable[[bool], bool] = None,
+                        extra_widget: Gtk.Widget = None) -> Gtk.Box:
 
         setting_value = settings.read_bool_setting(setting_key, default=default)
 
-        if not warning_markup:
+        if not warning_markup and not extra_widget:
             box = self._get_inner_settings_box(setting_key, setting_value, label, self.on_setting_change)
         else:
-            warning = UnderslungMessageBox("dialog-warning")
+            warning_box: str = None
 
-            def update_warning(state):
-                visible = warning_condition(state) if warning_condition else state
-                warning.show_markup(warning_markup if visible else None)
+            def update_warning(active):
+                visible = warning_condition(active) if warning_condition else active
+                warning_box.show_markup(warning_markup if visible else None)
 
-            def handle_setting_change(widget, state, key):
-                self.on_setting_change(widget, state, key)
-                update_warning(state)
+            def handle_setting_change(widget, active, key):
+                self.on_setting_change(widget, active, key)
+                if warning_markup:
+                    update_warning(active)
 
-            update_warning(setting_value)
+            if warning_markup:
+                warning_box = UnderslungMessageBox("dialog-warning")
+                update_warning(setting_value)
+
             inner_box = self._get_inner_settings_box(setting_key, setting_value, label, handle_setting_change)
             box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
             box.pack_start(inner_box, False, False, 0)
-            box.pack_start(warning, False, False, 0)
+            if warning_box:
+                box.pack_start(warning_box, False, False, 0)
+            if extra_widget:
+                box.pack_start(extra_widget, False, False, 0)
 
         box.set_margin_top(12)
         box.set_margin_bottom(12)

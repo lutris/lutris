@@ -44,8 +44,10 @@ class UpdatePreferencesBox(BaseConfigBox):
         "auto_update_runners": {
             "label": _("Automatically update Wine"),
             "default": True,
-            "warning": _("<b>Warning</b> The Lutris Team does not support running games on old version of Wine."),
-            "warning_condition": lambda state: not state
+            "warning":
+                _("<b>Warning</b> The Lutris Team does not support running games on old version of Wine.\n"
+                  "<i>Automatic Wine updates are strongly recommended.</i>"),
+            "warning_condition": lambda active: not active
         }
     }
 
