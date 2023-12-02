@@ -60,7 +60,7 @@ class UpdatePreferencesBox(BaseConfigBox):
         self.pack_start(frame, False, False, 12)
         for setting_key, setting_option in self.settings_options.items():
             label = setting_option["label"]
-            default = setting_option["default"]
+            default = setting_option.get("default") or False
             warning_markup = setting_option.get("warning")
             warning_condition = setting_option.get("warning_condition")
 
