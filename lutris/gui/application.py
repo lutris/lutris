@@ -25,7 +25,6 @@ import tempfile
 
 from datetime import datetime, timedelta
 from gettext import gettext as _
-from typing import Dict, Any
 
 import gi
 
