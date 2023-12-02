@@ -1,14 +1,13 @@
 from gettext import gettext as _
 
-from gi.repository import Gtk, Gio
+from gi.repository import Gio, Gtk
 
+from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.runtime import RuntimeUpdater
 
-from lutris.gui.config.base_config_box import BaseConfigBox
 
-
-def trigger_runtime_update(parent):
+def trigger_runtime_updates(parent):
     application = Gio.Application.get_default()
     if application:
         window = application.window
@@ -16,6 +15,19 @@ def trigger_runtime_update(parent):
             if window.download_queue.is_empty:
                 updater = RuntimeUpdater(application.gpu_info)
                 updater.update_runtime = True
+                window.install_runtime_updates(updater)
+            else:
+                ErrorDialog(_("Updates cannot begin while downloads are already underway."), parent=parent)
+
+
+def trigger_runner_updates(parent):
+    application = Gio.Application.get_default()
+    if application:
+        window = application.window
+        if window:
+            if window.download_queue.is_empty:
+                updater = RuntimeUpdater(application.gpu_info)
+                updater.update_runners = True
                 window.install_runtime_updates(updater)
             else:
                 ErrorDialog(_("Updates cannot begin while downloads are already underway."), parent=parent)
@@ -56,11 +68,12 @@ class UpdatePreferencesBox(BaseConfigBox):
         "auto_update_runtime": {
             "label": _("Automatically update the Lutris runtime"),
             "default": True,
-            "update_function": trigger_runtime_update
+            "update_function": trigger_runtime_updates
         },
         "auto_update_runners": {
             "label": _("Automatically update Wine"),
             "default": True,
+            "update_function": trigger_runner_updates,
             "warning":
                 _("<b>Warning</b> The Lutris Team does not support running games on old version of Wine.\n"
                   "<i>Automatic Wine updates are strongly recommended.</i>"),
