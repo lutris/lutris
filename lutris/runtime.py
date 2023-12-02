@@ -161,6 +161,9 @@ class RuntimeUpdater:
         elif force:
             self.update_runtime = True
             self.update_runners = True
+        elif not check_stale_runtime_versions():
+            self.update_runtime = False
+            self.update_runners = False
         else:
             self.update_runtime = settings.read_bool_setting("auto_update_runtime", default=True)
             self.update_runners = settings.read_bool_setting("auto_update_runners", default=True)
