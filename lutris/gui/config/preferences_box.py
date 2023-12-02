@@ -40,7 +40,7 @@ class UpdatePreferencesBox(BaseConfigBox):
         "auto_update_runtime": {
             "label": _("Automatically update the Lutris runtime"),
         },
-        "auto_update_wine": {
+        "auto_update_runners": {
             "label": _("Automatically update Wine"),
             "warning": _("<b>Warning</b> The Lutris Team does not support running games on old version of Wine.")
         }

@@ -154,12 +154,20 @@ class RuntimeUpdater:
 
     def __init__(self, pci_ids: List[str] = None, force: bool = False):
         self.pci_ids: List[str] = pci_ids or []
-
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled. Safety not guaranteed.")
-            self.has_updates = False
+            self.update_runtime = False
+            self.update_runners = False
+        elif force:
+            self.update_runtime = True
+            self.update_runners = True
         else:
-            self.has_updates = force or check_stale_runtime_versions()
+            self.update_runtime = settings.read_bool_setting("auto_update_runtime")
+            self.update_runners = settings.read_bool_setting("auto_update_runners")
+
+    @property
+    def has_updates(self):
+        return self.update_runtime or self.update_runners
 
     def create_component_updaters(self) -> List[ComponentUpdater]:
         """Creates the component updaters that need to be applied and returns them in a list.
@@ -169,8 +177,14 @@ class RuntimeUpdater:
         This method also downloads fresh runner versions on each call, so we call this on a
         worker thread, instead of blocking the UI."""
         runtime_versions = download_runtime_versions(self.pci_ids)
+        updaters: List[ComponentUpdater] = []
 
-        updaters = self._get_runtime_updaters(runtime_versions) + self._get_runner_updaters(runtime_versions)
+        if self.update_runtime:
+            updaters += self._get_runtime_updaters(runtime_versions)
+
+        if self.update_runners:
+            updaters += self._get_runner_updaters(runtime_versions)
+
         return [u for u in updaters if u.should_update]
 
     @staticmethod
