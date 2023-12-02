@@ -162,8 +162,8 @@ class RuntimeUpdater:
             self.update_runtime = True
             self.update_runners = True
         else:
-            self.update_runtime = settings.read_bool_setting("auto_update_runtime")
-            self.update_runners = settings.read_bool_setting("auto_update_runners")
+            self.update_runtime = settings.read_bool_setting("auto_update_runtime", default=True)
+            self.update_runners = settings.read_bool_setting("auto_update_runners", default=True)
 
     @property
     def has_updates(self):

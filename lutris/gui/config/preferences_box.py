@@ -39,10 +39,13 @@ class UpdatePreferencesBox(BaseConfigBox):
     settings_options = {
         "auto_update_runtime": {
             "label": _("Automatically update the Lutris runtime"),
+            "default": True,
         },
         "auto_update_runners": {
             "label": _("Automatically update Wine"),
-            "warning": _("<b>Warning</b> The Lutris Team does not support running games on old version of Wine.")
+            "default": True,
+            "warning": _("<b>Warning</b> The Lutris Team does not support running games on old version of Wine."),
+            "warning_condition": lambda state: not state
         }
     }
 
@@ -55,11 +58,14 @@ class UpdatePreferencesBox(BaseConfigBox):
         self.pack_start(frame, False, False, 12)
         for setting_key, setting_option in self.settings_options.items():
             label = setting_option["label"]
+            default = setting_option["default"]
             warning_markup = setting_option.get("warning")
             warning_condition = setting_option.get("warning_condition")
 
             list_box_row = Gtk.ListBoxRow(visible=True)
             list_box_row.set_selectable(False)
             list_box_row.set_activatable(False)
-            list_box_row.add(self.get_setting_box(setting_key, label, warning_markup, warning_condition))
+            list_box_row.add(self.get_setting_box(setting_key, label, default=default,
+                                                  warning_markup=warning_markup,
+                                                  warning_condition=warning_condition))
             listbox.add(list_box_row)
