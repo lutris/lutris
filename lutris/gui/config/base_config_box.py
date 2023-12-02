@@ -37,28 +37,23 @@ class BaseConfigBox(VBox):
                         warning_markup: str = None,
                         warning_condition: Callable[[bool], bool] = None,
                         extra_widget: Gtk.Widget = None) -> Gtk.Box:
-
         setting_value = settings.read_bool_setting(setting_key, default=default)
 
         if not warning_markup and not extra_widget:
             box = self._get_inner_settings_box(setting_key, setting_value, label, self.on_setting_change)
         else:
-            warning_box: str = None
-
-            def update_warning(active):
-                visible = warning_condition(active) if warning_condition else active
-                warning_box.show_markup(warning_markup if visible else None)
-
-            def handle_setting_change(widget, active, key):
-                self.on_setting_change(widget, active, key)
-                if warning_markup:
-                    update_warning(active)
-
             if warning_markup:
+                def update_warning(active):
+                    visible = warning_condition(active) if warning_condition else active
+                    warning_box.show_markup(warning_markup if visible else None)
+
                 warning_box = UnderslungMessageBox("dialog-warning")
                 update_warning(setting_value)
+                inner_box = self._get_inner_settings_box(setting_key, setting_value, label, update_warning)
+            else:
+                warning_box = None
+                inner_box = self._get_inner_settings_box(setting_key, setting_value, label)
 
-            inner_box = self._get_inner_settings_box(setting_key, setting_value, label, handle_setting_change)
             box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
             box.pack_start(inner_box, False, False, 0)
             if warning_box:
@@ -70,7 +65,8 @@ class BaseConfigBox(VBox):
         box.set_margin_bottom(12)
         return box
 
-    def _get_inner_settings_box(self, setting_key, setting_value, label, change_handler):
+    def _get_inner_settings_box(self, setting_key: str, setting_value: bool, label: bool,
+                                when_setting_changed: Callable[[bool], None] = None):
         box = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL,
             spacing=12,
@@ -81,7 +77,7 @@ class BaseConfigBox(VBox):
         box.pack_start(label, True, True, 12)
         checkbox = Gtk.Switch(visible=True)
         checkbox.set_active(setting_value)
-        checkbox.connect("state-set", change_handler, setting_key)
+        checkbox.connect("state-set", self.on_setting_change, setting_key, when_setting_changed)
 
         if setting_key in self.settings_accelerators:
             key, mod = Gtk.accelerator_parse(self.settings_accelerators[setting_key])
@@ -90,7 +86,10 @@ class BaseConfigBox(VBox):
         box.pack_start(checkbox, False, False, 12)
         return box
 
-    def on_setting_change(self, _widget, state, setting_key):
+    def on_setting_change(self, _widget, state: bool, setting_key: str,
+                          when_setting_changed: Callable[[bool], None] = None) -> None:
         """Save a setting when an option is toggled"""
         settings.write_setting(setting_key, state)
         self.get_toplevel().emit("settings-changed", state, setting_key)
+        if when_setting_changed:
+            when_setting_changed(state)
