@@ -10,6 +10,7 @@ from lutris.runtime import RuntimeUpdater
 from lutris.services.lutris import sync_media
 from lutris.settings import UPDATE_CHANNEL_STABLE, UPDATE_CHANNEL_UNSUPPORTED
 from lutris.util.jobs import AsyncCall
+from lutris.util.strings import gtk_safe
 
 
 class UpdatesBox(BaseConfigBox):
@@ -67,16 +68,10 @@ class UpdatesBox(BaseConfigBox):
 
         self.add(self.get_section_label(_("Media updates")))
 
-        self.update_media_button = Gtk.Button(_("Download Missing Media"), visible=True)
-        self.update_media_button.connect("clicked", self.on_download_media_clicked)
-
-        update_media_box = self.get_listed_widget_box("", self.update_media_button)
-        self.update_media_spinner = Gtk.Spinner()
-        update_media_box.pack_end(self.update_media_spinner, False, False, 0)
-        self.update_media_label = Gtk.Label()
-        update_media_box.pack_end(self.update_media_label, False, False, 0)
-
-        self.pack_start(self._get_framed_options_list_box([update_media_box]), False, False, 12)
+        self.update_media_box = UpdatesBox.UpdateButtonBox(_("Download Missing Media"),
+                                                           clicked=self.on_download_media_clicked,
+                                                           visible=True)
+        self.pack_start(self._get_framed_options_list_box([self.update_media_box]), False, False, 12)
 
     def _get_radio_button(self, label_markup, active, group, margin=12):
         radio_button = Gtk.RadioButton.new_from_widget(group)
@@ -103,21 +98,15 @@ class UpdatesBox(BaseConfigBox):
             list_box.add(Gtk.ListBoxRow(child=item, visible=True, activatable=False))
         return frame
 
-    def on_download_media_clicked(self, widget):
-        widget.hide()
-        self.update_media_label.set_markup(_("<i>Checking for missing media...</i>"))
-        self.update_media_label.show()
-        self.update_media_spinner.show()
-        self.update_media_spinner.start()
+    def on_download_media_clicked(self, _widget):
+        self.update_media_box.show_running_markup(_("<i>Checking for missing media...</i>"))
         AsyncCall(sync_media, self.on_media_updated)
 
     def on_media_updated(self, result, error):
-        self.update_media_spinner.stop()
-        self.update_media_spinner.hide()
         if error:
-            self.update_media_label.set_markup("<b>Error:</b>%s" % error)
+            self.update_media_box.show_error(error)
         elif not result:
-            self.update_media_label.set_markup(_("Nothing to update"))
+            self.update_media_box.show_completion_markup(_("Nothing to update"))
         elif any(result.values()):
             update_text = _("Updated: ")
             names = {
@@ -130,13 +119,13 @@ class UpdatesBox(BaseConfigBox):
                     if not update_text.endswith(": "):
                         update_text += ", "
                     update_text += f"{value} {names[key]}{'s' if value > 1 else ''}"
-            self.update_media_label.set_markup(update_text)
+            self.update_media_box.show_completion_markup(update_text)
 
             application = Gio.Application.get_default()
             if application and application.window:
                 application.window.queue_draw()
         else:
-            self.update_media_label.set_markup(_("No new media found."))
+            self.update_media_box.show_completion_markup(_("No new media found."))
 
     def on_runtime_update_clicked(self, widget):
         def get_updater(application):
@@ -181,3 +170,38 @@ class UpdatesBox(BaseConfigBox):
                     "Without the Wine-GE updates enabled, we can no longer provide support on Github and Discord."
                 ), parent=self.get_toplevel())
             settings.write_setting("wine-update-channel", value)
+
+    class UpdateButtonBox(Gtk.Box):
+        """A box containing a button to start updating something, with methods to show a result
+        when done."""
+        def __init__(self, button_label, clicked, **kwargs):
+            super().__init__(orientation=Gtk.Orientation.HORIZONTAL, margin=12, spacing=6, **kwargs)
+
+            self.button = Gtk.Button(button_label, visible=True)
+            self.button.connect("clicked", clicked)
+            self.pack_end(self.button, False, False, 0)
+
+            self.spinner = Gtk.Spinner()
+            self.pack_end(self.spinner, False, False, 0)
+            self.label = Gtk.Label()
+            self.pack_end(self.label, False, False, 0)
+
+        def on_clicked(self, _widget):
+            self.start_update_function()
+
+        def show_running_markup(self, markup):
+            self.button.hide()
+            self.label.set_markup(markup)
+            self.label.show()
+            self.spinner.show()
+            self.spinner.start()
+
+        def show_completion_markup(self, markup):
+            self.spinner.stop()
+            self.spinner.hide()
+            self.label.set_markup(markup)
+
+        def show_error(self, error):
+            self.spinner.stop()
+            self.spinner.hide()
+            self.label.set_markup("<b>Error:</b>%s" % gtk_safe(error))
