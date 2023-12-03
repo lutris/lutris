@@ -136,8 +136,23 @@ class UpdatesBox(BaseConfigBox):
         else:
             self.update_media_label.set_markup(_("No new media found."))
 
-    def _trigger_updates(self, parent: Gtk.Window,
-                         updater_factory: Callable) -> None:
+    def on_runtime_update_clicked(self, widget):
+        def get_updater(application):
+            updater = RuntimeUpdater(application.gpu_info)
+            updater.update_runtime = True
+            return updater
+
+        self._trigger_updates(get_updater)
+
+    def on_runner_update_clicked(self, parent):
+        def get_updater(application):
+            updater = RuntimeUpdater(application.gpu_info)
+            updater.update_runners = True
+            return updater
+
+        self._trigger_updates(get_updater)
+
+    def _trigger_updates(self, updater_factory: Callable) -> None:
         application = Gio.Application.get_default()
         if application:
             window = application.window
@@ -148,28 +163,11 @@ class UpdatesBox(BaseConfigBox):
                     if component_updaters:
                         window.install_runtime_component_updates(component_updaters, updater)
                     else:
-                        ErrorDialog(_("No updates are required at this time."), parent=parent)
+                        ErrorDialog(_("No updates are required at this time."),
+                                    parent=self.get_toplevel())
                 else:
-                    ErrorDialog(_("Updates cannot begin while downloads are already underway."), parent=parent)
-
-    def trigger_runtime_updates(self, parent):
-        def get_updater(application):
-            updater = RuntimeUpdater(application.gpu_info)
-            updater.update_runtime = True
-            return updater
-
-        self._trigger_updates(parent, get_updater)
-
-    def trigger_runner_updates(self, parent):
-        def get_updater(application):
-            updater = RuntimeUpdater(application.gpu_info)
-            updater.update_runners = True
-            return updater
-
-        self._trigger_updates(parent, get_updater)
-
-    def on_runtime_update_clicked(self, widget):
-        print(widget)
+                    ErrorDialog(_("Updates cannot begin while downloads are already underway."),
+                                parent=self.get_toplevel())
 
     def on_update_channel_toggled(self, _widget, value):
         """Update setting when update channel is toggled
