@@ -36,7 +36,7 @@ class CommandsMixin:
         runner = self.get_runner_class(self.installer.runner)()
         try:
             version = runner.get_installer_runner_version(self.installer, use_runner_config=False)
-        except UnspecifiedVersionError:
+        except (UnspecifiedVersionError, RuntimeError):
             # Special case that lets the Wine configuration explicit specify the path
             # to the Wine executable, not just a version number.
             if self.installer.runner == "wine":

@@ -20,6 +20,7 @@ from lutris.installer import InstallationKind, get_installers, interpreter
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.util import xdgshortcuts
+from lutris import settings
 from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, human_size
@@ -384,15 +385,19 @@ class InstallerWindow(ModelessDialog,
         vbox.pack_start(self.location_entry, False, False, 0)
 
         desktop_shortcut_button = Gtk.CheckButton(_("Create desktop shortcut"), visible=True)
+        desktop_shortcut_button.set_active(settings.read_setting("installer_create_desktop_shortcut", False))
         desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
+
         vbox.pack_start(desktop_shortcut_button, False, False, 0)
 
         menu_shortcut_button = Gtk.CheckButton(_("Create application menu shortcut"), visible=True)
+        menu_shortcut_button.set_active(settings.read_setting("installer_create_menu_shortcut", False))
         menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
         vbox.pack_start(menu_shortcut_button, False, False, 0)
 
         if steam_shortcut.vdf_file_exists():
             steam_shortcut_button = Gtk.CheckButton(_("Create steam shortcut"), visible=True)
+            steam_shortcut_button.set_active(settings.read_setting("installer_create_steam_shortcut", False))
             steam_shortcut_button.connect("clicked", self.on_create_steam_shortcut_clicked)
             vbox.pack_start(steam_shortcut_button, False, False, 0)
         return vbox
@@ -427,14 +432,17 @@ class InstallerWindow(ModelessDialog,
 
     @watch_errors()
     def on_create_desktop_shortcut_clicked(self, checkbutton):
+        settings.write_setting("installer_create_desktop_shortcut", checkbutton.get_active())
         self.config["create_desktop_shortcut"] = checkbutton.get_active()
 
     @watch_errors()
     def on_create_menu_shortcut_clicked(self, checkbutton):
+        settings.write_setting("installer_create_menu_shortcut", checkbutton.get_active())
         self.config["create_menu_shortcut"] = checkbutton.get_active()
 
     @watch_errors()
     def on_create_steam_shortcut_clicked(self, checkbutton):
+        settings.write_setting("installer_create_steam_shortcut", checkbutton.get_active())
         self.config["create_steam_shortcut"] = checkbutton.get_active()
 
     @watch_errors()
