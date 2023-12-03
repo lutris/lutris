@@ -53,7 +53,7 @@ class UpdatesBox(BaseConfigBox):
             _("Runtime components include DXVK, VKD3D and Winetricks.")
         ))
 
-        update_button = Gtk.Button(_("Check for updates"), halign=Gtk.Align.END, visible=True)
+        update_button = Gtk.Button(_("Check for Updates"), halign=Gtk.Align.END, visible=True)
         update_button.connect("clicked", self.on_runtime_update_clicked)
 
         update_runtime_box = self.get_setting_box(
@@ -66,7 +66,7 @@ class UpdatesBox(BaseConfigBox):
 
         self.add(self.get_section_label(_("Media updates")))
 
-        self.update_media_button = Gtk.Button(_("Download missing media"), visible=True)
+        self.update_media_button = Gtk.Button(_("Download Missing Media"), visible=True)
         self.update_media_button.connect("clicked", self.on_download_media_clicked)
 
         update_media_box = self.get_listed_widget_box("", self.update_media_button)

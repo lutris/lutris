@@ -37,7 +37,7 @@ class SysInfoBox(Gtk.Box):
 
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
 
-        button_copy = Gtk.Button(_("Copy to clipboard"), halign=Gtk.Align.START, visible=True)
+        button_copy = Gtk.Button(_("Copy to Clipboard"), halign=Gtk.Align.START, visible=True)
         button_copy.connect("clicked", self._copy_text)
         sysinfo_label = Gtk.Label(halign=Gtk.Align.START, visible=True)
         sysinfo_label.set_markup(_("<b>System information</b>"))

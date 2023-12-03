@@ -561,7 +561,7 @@ class ConfigBox(VBox):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         label = Label(label + ":")
         label.set_halign(Gtk.Align.START)
-        button = Gtk.Button(_("Add files"))
+        button = Gtk.Button(_("Add Files"))
         button.connect("clicked", self.on_add_files_clicked, option_name, value)
         button.set_margin_left(10)
         vbox.pack_start(label, False, False, 5)
