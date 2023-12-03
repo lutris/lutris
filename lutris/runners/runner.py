@@ -183,9 +183,13 @@ class Runner:  # pylint: disable=too-many-public-methods
         return exe
 
     def get_command(self):
-        exe = self.get_executable()
-        if system.path_exists(exe):
-            return [exe]
+        try:
+            exe = self.get_executable()
+            if system.path_exists(exe):
+                return [exe]
+        except MissingExecutableError:
+            pass
+
         if flatpak.is_app_installed(self.flatpak_id):
             return flatpak.get_run_command(self.flatpak_id)
         return []
