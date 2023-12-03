@@ -29,44 +29,28 @@ class UpdatesBox(BaseConfigBox):
 
         update_channel = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
 
-        margin = 12
-        stable_channel_radio_button = Gtk.RadioButton.new_from_widget(None)
-        stable_channel_radio_button.set_active(update_channel == UPDATE_CHANNEL_STABLE)
-        stable_channel_radio_button.set_margin_left(margin)
-        stable_channel_radio_button.set_margin_top(margin)
-        stable_channel_radio_button.set_margin_bottom(margin)
+        markup = _("<b>Stable</b>:\n"
+                   "Wine-GE updates are downloaded automatically and the latest version "
+                   "is always used unless overridden in the settings.\n"
+                   "\n"
+                   "This allows us to keep track of regressions more efficiently and provide "
+                   "fixes more reliably.")
+        stable_channel_radio_button = self._get_radio_button(markup,
+                                                             active=update_channel == UPDATE_CHANNEL_STABLE,
+                                                             group=None)
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
-        stable_channel_radio_button.show()
-        stable_channel_radio_button.set_label("")  # creates Gtk.Label child
-        label = stable_channel_radio_button.get_child()
-        label.set_markup(dedent(_("""
-            <b>Stable</b>:
-            Wine-GE updates are downloaded automatically and the latest version
-            is always used unless overridden in the settings.
-            This allows us to keep track of regressions more efficiently and provide
-            fixes more reliably.
-            """)).strip())
-        label.set_margin_left(margin)
         list_box.add(Gtk.ListBoxRow(child=stable_channel_radio_button, visible=True, activatable=False))
 
-        unsupported_channel_radio_button = Gtk.RadioButton.new_from_widget(stable_channel_radio_button)
-        unsupported_channel_radio_button.set_active(update_channel == UPDATE_CHANNEL_UNSUPPORTED)
-        unsupported_channel_radio_button.set_margin_left(margin)
-        unsupported_channel_radio_button.set_margin_top(margin)
-        unsupported_channel_radio_button.set_margin_bottom(margin)
+        markup = _("<b>Self-maintained</b>:\n"
+                   "Wine updates are no longer delivered automatically and you have full responsibility "
+                   "of your Wine versions.\n"
+                   "\n"
+                   "Please note that this mode is <b>fully unsupported</b>. In order to submit issues on Github "
+                   "or ask for help on Discord, switch back to the <b>Stable channel</b>.")
+        unsupported_channel_radio_button = self._get_radio_button(markup,
+                                                                  active=update_channel == UPDATE_CHANNEL_UNSUPPORTED,
+                                                                  group=stable_channel_radio_button)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
-        unsupported_channel_radio_button.show()
-        unsupported_channel_radio_button.set_label("")  # creates Gtk.Label child
-        label = unsupported_channel_radio_button.get_child()
-        label.set_markup(dedent(_("""
-            <b>Self-maintained</b>:
-            Wine updates are no longer delivered automatically and you have full responsibility
-            of your wine versions.
-
-            Please note that this mode is <b>fully unsupported</b>. In order to submit issues on Github
-            or ask for help on Discord, switch back to the <b>Stable channel</b>.
-            """)).strip())
-        label.set_margin_left(margin)
         list_box.add(Gtk.ListBoxRow(child=unsupported_channel_radio_button, visible=True, activatable=False))
 
         self.add(self.get_section_label(_("Runtime updates")))
@@ -104,6 +88,22 @@ class UpdatesBox(BaseConfigBox):
         self.update_media_label = Gtk.Label()
         update_media_box.pack_end(self.update_media_label, False, False, 0)
         list_box.add(Gtk.ListBoxRow(child=update_media_box, visible=True, activatable=False))
+
+    def _get_radio_button(self, label_markup, active, group, margin=12):
+        radio_button = Gtk.RadioButton.new_from_widget(group)
+        radio_button.set_active(active)
+        radio_button.set_margin_left(margin)
+        radio_button.set_margin_right(margin)
+        radio_button.set_margin_top(margin)
+        radio_button.set_margin_bottom(margin)
+        radio_button.set_visible(True)
+
+        radio_button.set_label("")  # creates Gtk.Label child
+        label = radio_button.get_child()
+        label.set_markup(label_markup)
+        label.set_margin_left(6)
+        label.props.wrap = True
+        return radio_button
 
     def on_download_media_clicked(self, widget):
         widget.hide()
