@@ -120,15 +120,20 @@ class UpdatesBox(BaseConfigBox):
         self.update_media_spinner.hide()
         if error:
             self.update_media_label.set_markup("<b>Error:</b>%s" % error)
-        if not result:
+        elif not result:
             self.update_media_label.set_markup(_("Nothing to update"))
         elif any(result.values()):
-            update_text = _("Updated:")
-            for key, value in result:
+            update_text = _("Updated: ")
+            names = {
+                "banners": _("banner"),
+                "icons": _("icon"),
+                "covers": _("cover"),
+            }
+            for key, value in result.items():
                 if value:
-                    if not update_text.endswith(":"):
+                    if not update_text.endswith(": "):
                         update_text += ", "
-                    update_text += f"{value} {key}{'s' if value > 1 else ''}"
+                    update_text += f"{value} {names[key]}{'s' if value > 1 else ''}"
             self.update_media_label.set_markup(update_text)
         else:
             self.update_media_label.set_markup(_("No new media found."))
