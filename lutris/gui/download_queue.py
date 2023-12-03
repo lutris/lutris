@@ -1,6 +1,6 @@
 # pylint: disable=no-member
 import os
-from typing import Any, Callable, Dict, Iterable, Optional
+from typing import Any, Callable, Dict, Iterable
 
 from gi.repository import Gtk
 

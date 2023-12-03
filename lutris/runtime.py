@@ -164,7 +164,8 @@ class RuntimeUpdater:
             self.update_runners = True
         else:
             self.update_runtime = settings.read_bool_setting("auto_update_runtime", default=True)
-            self.update_runners = settings.read_setting("wine-update-channel", default=UPDATE_CHANNEL_STABLE)
+            wine_update_channel = settings.read_setting("wine-update-channel", default=UPDATE_CHANNEL_STABLE)
+            self.update_runners = wine_update_channel.casefold() == UPDATE_CHANNEL_STABLE
 
             if not self.update_runtime:
                 logger.warning("Runtime updates are disabled. This configuration is not supported.")
