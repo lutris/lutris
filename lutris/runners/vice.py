@@ -4,6 +4,7 @@ from gettext import gettext as _
 
 # Lutris Modules
 from lutris import settings
+from lutris.exceptions import MisconfigurationError, MissingExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
@@ -117,9 +118,12 @@ class vice(Runner):
         }
         try:
             executable = executables[machine]
+            exe = os.path.join(settings.RUNNER_DIR, "vice/bin/%s" % executable)
+            if not os.path.isfile(exe):
+                raise MissingExecutableError(_("The executable '%s' could not be found.") % exe)
+            return exe
         except KeyError as ex:
-            raise ValueError("Invalid machine '%s'" % machine) from ex
-        return os.path.join(settings.RUNNER_DIR, "vice/bin/%s" % executable)
+            raise MisconfigurationError("Invalid machine '%s'" % machine) from ex
 
     def install(self, install_ui_delegate, version=None, callback=None):
 

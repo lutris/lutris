@@ -429,8 +429,9 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Return whether the runner is installed"""
         try:
             # Don't care where the exe is, only if we can find it.
-            self.get_executable()
-            return True
+            exe = self.get_executable()
+            if system.path_exists(exe):
+                return True
         except MisconfigurationError:
             pass  # We can still try flatpak even if 'which' fails us!
 
