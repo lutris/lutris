@@ -130,6 +130,10 @@ class UpdatesBox(BaseConfigBox):
                         update_text += ", "
                     update_text += f"{value} {names[key]}{'s' if value > 1 else ''}"
             self.update_media_label.set_markup(update_text)
+
+            application = Gio.Application.get_default()
+            if application and application.window:
+                application.window.queue_draw()
         else:
             self.update_media_label.set_markup(_("No new media found."))
 
