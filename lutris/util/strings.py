@@ -130,7 +130,9 @@ def is_valid_pango_markup(text: str) -> bool:
 
     try:
         parser = GLib.MarkupParser()
-        context = GLib.MarkupParseContext(parser, GLib.MarkupParseFlags.DEFAULT_FLAGS, None, destroy_func)
+        # DEFAULT_FLAGS == 0, but was not defined before GLib 2.74 so
+        # we'll just hard-code the value.
+        context = GLib.MarkupParseContext(parser, 0, None, destroy_func)
 
         markup = f"<markup>{text}</markup>"
         context.parse(markup, len(markup))
