@@ -64,9 +64,10 @@ class UpdatesBox(BaseConfigBox):
         label.set_markup(dedent(_("""
             <b>Self-maintained</b>:
             Wine updates are no longer delivered automatically and you have full responsibility
-            of your wine versions.\n
-            Please note that this mode is <b>fully unsupported</b>. In order to submit
-            issues on Github or ask for help on Discord, switch back to the <b>Stable channel</b>.
+            of your wine versions.
+
+            Please note that this mode is <b>fully unsupported</b>. In order to submit issues on Github
+            or ask for help on Discord, switch back to the <b>Stable channel</b>.
             """)))
         hbox.pack_start(label, False, False, 0)
         list_box.add(hbox)
@@ -95,10 +96,10 @@ class UpdatesBox(BaseConfigBox):
         self.add(self.get_section_label(_("Media updates")))
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         self.pack_start(frame, False, False, 12)
-        update_media_button = Gtk.Button("Download Now", visible=True)
+        update_media_button = Gtk.Button(_("Download missing media"), visible=True)
         update_media_button.connect("clicked", self.on_download_media_clicked)
 
-        update_media_box = self.get_listed_widget_box(_("Download missing media"), update_media_button)
+        update_media_box = self.get_listed_widget_box("", update_media_button)
         frame.add(update_media_box)
 
     def on_download_media_clicked(self, widget):
