@@ -246,7 +246,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
     class GameRemovalRow(Gtk.ListBoxRow):
         def __init__(self, game: Game, can_delete_files: bool, checkbox_toggled_handler: Callable[[], None]):
-            super().__init__()
+            super().__init__(activatable=False)
             self.game = game
             self.can_delete_files = bool(can_delete_files and game.is_installed and game.directory)
             self.checkbox_toggled_handler = checkbox_toggled_handler
