@@ -49,10 +49,11 @@ class BaseConfigBox(VBox):
 
                 warning_box = UnderslungMessageBox("dialog-warning", margin_left=0, margin_right=0, margin_bottom=0)
                 update_warning(setting_value)
-                inner_box = self._get_inner_settings_box(setting_key, setting_value, label, update_warning)
+                inner_box = self._get_inner_settings_box(setting_key, setting_value, label, margin=0,
+                                                         when_setting_changed=update_warning)
             else:
                 warning_box = None
-                inner_box = self._get_inner_settings_box(setting_key, setting_value, label)
+                inner_box = self._get_inner_settings_box(setting_key, setting_value, label, margin=0, )
 
             box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
             box.pack_start(inner_box, False, False, 0)
@@ -67,16 +68,10 @@ class BaseConfigBox(VBox):
         box.set_margin_right(12)
         return box
 
-    def _get_inner_settings_box(self, setting_key: str, setting_value: bool, label: str,
+    def _get_inner_settings_box(self, setting_key: str, setting_value: bool,
+                                label: str,
+                                margin: int = 12,
                                 when_setting_changed: Callable[[bool], None] = None):
-        box = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL,
-            spacing=12,
-            visible=True
-        )
-        label = Gtk.Label(label, visible=True)
-        label.set_alignment(0, 0.5)
-        box.pack_start(label, True, True, 0)
         checkbox = Gtk.Switch(visible=True)
         checkbox.set_active(setting_value)
         checkbox.connect("state-set", self.on_setting_change, setting_key, when_setting_changed)
@@ -85,7 +80,18 @@ class BaseConfigBox(VBox):
             key, mod = Gtk.accelerator_parse(self.settings_accelerators[setting_key])
             checkbox.add_accelerator("activate", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
-        box.pack_start(checkbox, False, False, 0)
+        return self.get_listed_widget_box(label, checkbox, margin=margin)
+
+    def get_listed_widget_box(self, label: str, widget: Gtk.Widget, margin: int = 12) -> Gtk.Box:
+        box = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            spacing=12, margin=margin,
+            visible=True
+        )
+        label = Gtk.Label(label, visible=True)
+        label.set_alignment(0, 0.5)
+        box.pack_start(label, True, True, 0)
+        box.pack_end(widget, False, False, 0)
         return box
 
     def on_setting_change(self, _widget, state: bool, setting_key: str,

@@ -5,7 +5,40 @@ from gi.repository import Gio, Gtk
 
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.widgets.progress_box import ProgressInfo
 from lutris.runtime import RuntimeUpdater
+from lutris.services import get_enabled_services
+
+
+def trigger_media_load(parent: Gtk.Window) -> None:
+    application = Gio.Application.get_default()
+    if application:
+        window = application.window
+        if window:
+            if window.download_queue.is_empty:
+                services = list(get_enabled_services().items())
+                if not services:
+                    return
+
+                progress_info = ProgressInfo(None, _("Downloading %s media") % services[0][0])
+
+                def load_media():
+                    nonlocal progress_info
+
+                    for name, service_type in services:
+                        progress_info = ProgressInfo(None, _("Downloading %s media") % name)
+                        service = service_type()
+                        service.load_icons()
+
+                def get_progress():
+                    return progress_info
+
+                def load_media_cb(_result, _error):
+                    window.queue_draw()
+
+                window.download_queue.start(load_media, get_progress, load_media_cb)
+            else:
+                ErrorDialog(_("Updates cannot begin while downloads are already underway."), parent=parent)
 
 
 def _trigger_updates(parent: Gtk.Window,
@@ -95,9 +128,19 @@ class UpdatePreferencesBox(BaseConfigBox):
         super().__init__()
         self.add(self.get_section_label(_("Update options")))
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
-        listbox = Gtk.ListBox(visible=True)
+        listbox = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
         frame.add(listbox)
         self.pack_start(frame, False, False, 12)
+
+        update_media_button = Gtk.Button("Download Now", visible=True)
+        update_media_button.connect("clicked", self.on_download_media_clicked)
+
+        update_media_box = self.get_listed_widget_box(_("Download missing media"), update_media_button)
+
+        list_box_row = Gtk.ListBoxRow(visible=True, activatable=False)
+        list_box_row.add(update_media_box)
+        listbox.add(list_box_row)
+
         for setting_key, setting_option in self.settings_options.items():
             label = setting_option["label"]
             default = setting_option.get("default") or False
@@ -114,11 +157,12 @@ class UpdatePreferencesBox(BaseConfigBox):
             else:
                 update_button = None
 
-            list_box_row = Gtk.ListBoxRow(visible=True)
-            list_box_row.set_selectable(False)
-            list_box_row.set_activatable(False)
+            list_box_row = Gtk.ListBoxRow(visible=True, activatable=False)
             list_box_row.add(self.get_setting_box(setting_key, label, default=default,
                                                   warning_markup=warning_markup,
                                                   warning_condition=warning_condition,
                                                   extra_widget=update_button))
             listbox.add(list_box_row)
+
+    def on_download_media_clicked(self, _widget):
+        trigger_media_load(self.get_toplevel())
