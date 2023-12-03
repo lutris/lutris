@@ -19,7 +19,8 @@ class DownloadQueue(Gtk.ScrolledWindow):
 
     download_box: Gtk.Box = GtkTemplate.Child()
 
-    CompletionFunction = Callable[[Any, Optional[Exception]], None]
+    CompletionFunction = Callable[[Any], None]
+    ErrorFunction = Callable[[Exception], None]
 
     def __init__(self, revealer: Gtk.Revealer, **kwargs):
         super().__init__(**kwargs)
@@ -90,28 +91,33 @@ class DownloadQueue(Gtk.ScrolledWindow):
 
     def start(self, func: Callable[[], Any],
               progress_function: ProgressBox.ProgressFunction,
-              completion_function: CompletionFunction = None):
+              completion_function: CompletionFunction = None,
+              error_function: ErrorFunction = None):
         """Runs 'func' on a thread, while displaying a progress bar. The 'progress_function'
-        controls this progress bar, and is removed when the function completes. After that,
-        the completion function executes on the main thread, and is given whatever the
-        original func returned, or the error it raised."""
+        controls this progress bar, and is removed when the function completes.
+
+        After that, the completion function executes on the main thread, and is given
+        whatever the original func returned. If it raises an error, then error_function
+        is called with that instead."""
 
         self.add_progress_box(progress_function)
 
         def completion_callback(result, error):
-            if error:
-                logger.exception("Failed to execute function: %s", error)
-
             self.remove_progress_box(progress_function)
 
-            if bool(completion_function):
-                completion_function(result, error)
+            if error:
+                logger.exception("Failed to execute download-queue function: %s", error)
+                if error_function:
+                    error_function(error)
+            elif completion_function:
+                completion_function(result)
 
         AsyncCall(func, completion_callback)
 
     def start_multiple(self, func: Callable[[], Any],
                        progress_functions: Iterable[ProgressBox.ProgressFunction],
-                       completion_function: CompletionFunction = None):
+                       completion_function: CompletionFunction = None,
+                       error_function: ErrorFunction = None):
         """Runs 'func' on a thread, while displaying a set of progress bars. The 'progress_functions'
         control the progress bars, and they are all removed when the function completes. Each
         progress bar can be also be removed if it's progress function returns ProgressInfo.ended()."""
@@ -124,13 +130,14 @@ class DownloadQueue(Gtk.ScrolledWindow):
             self.add_progress_box(f)
 
         def completion_callback(result, error):
-            if error:
-                logger.exception("Failed to execute function: %s", error)
-
             for to_end in captured_functions:
                 self.remove_progress_box(to_end)
 
-            if bool(completion_function):
-                completion_function(result, error)
+            if error:
+                logger.exception("Failed to execute download-queue function: %s", error)
+                if error_function:
+                    error_function(error)
+            elif completion_function:
+                completion_function(result)
 
         AsyncCall(func, completion_callback)
