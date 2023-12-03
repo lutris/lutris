@@ -55,14 +55,16 @@ class UpdatesBox(BaseConfigBox):
             _("Runtime components include DXVK, VKD3D and Winetricks.")
         ))
 
-        update_button = Gtk.Button(_("Check for Updates"), halign=Gtk.Align.END, visible=True)
-        update_button.connect("clicked", self.on_runtime_update_clicked)
+        self.update_runtime_box = UpdatesBox.UpdateButtonBox(_("Check for Updates"),
+                                                             clicked=self.on_runtime_update_clicked,
+                                                             margin=0,
+                                                             visible=True)
 
         update_runtime_box = self.get_setting_box(
             "auto_update_runtime",
             _("Automatically Update the Lutris runtime"),
             default=True,
-            extra_widget=update_button
+            extra_widget=self.update_runtime_box
         )
         self.pack_start(self._get_framed_options_list_box([update_runtime_box]), False, False, 12)
 
@@ -133,17 +135,10 @@ class UpdatesBox(BaseConfigBox):
             updater.update_runtime = True
             return updater
 
-        self._trigger_updates(get_updater)
+        self._trigger_updates(get_updater, self.update_runtime_box)
 
-    def on_runner_update_clicked(self, parent):
-        def get_updater(application):
-            updater = RuntimeUpdater(application.gpu_info)
-            updater.update_runners = True
-            return updater
-
-        self._trigger_updates(get_updater)
-
-    def _trigger_updates(self, updater_factory: Callable) -> None:
+    def _trigger_updates(self, updater_factory: Callable,
+                         update_box: 'UpdateButtonBox') -> None:
         application = Gio.Application.get_default()
         if application:
             window = application.window
@@ -152,10 +147,16 @@ class UpdatesBox(BaseConfigBox):
                     updater = updater_factory(application)
                     component_updaters = updater.create_component_updaters()
                     if component_updaters:
-                        window.install_runtime_component_updates(component_updaters, updater)
+                        def on_complete(_result):
+                            update_box.show_completion_markup(
+                                _("%d components have been updated.") % len(component_updaters))
+
+                        update_box.show_running_markup(_("<i>Checking for updates...</i>"))
+                        window.install_runtime_component_updates(component_updaters, updater,
+                                                                 completion_function=on_complete,
+                                                                 error_function=update_box.show_error)
                     else:
-                        ErrorDialog(_("No updates are required at this time."),
-                                    parent=self.get_toplevel())
+                        update_box.show_completion_markup(_("No updates are required at this time."))
                 else:
                     ErrorDialog(_("Updates cannot begin while downloads are already underway."),
                                 parent=self.get_toplevel())
@@ -174,8 +175,9 @@ class UpdatesBox(BaseConfigBox):
     class UpdateButtonBox(Gtk.Box):
         """A box containing a button to start updating something, with methods to show a result
         when done."""
-        def __init__(self, button_label, clicked, **kwargs):
-            super().__init__(orientation=Gtk.Orientation.HORIZONTAL, margin=12, spacing=6, **kwargs)
+
+        def __init__(self, button_label, clicked, margin=12, **kwargs):
+            super().__init__(orientation=Gtk.Orientation.HORIZONTAL, margin=margin, spacing=6, **kwargs)
 
             self.button = Gtk.Button(button_label, visible=True)
             self.button.connect("clicked", clicked)
@@ -186,9 +188,6 @@ class UpdatesBox(BaseConfigBox):
             self.label = Gtk.Label()
             self.pack_end(self.label, False, False, 0)
 
-        def on_clicked(self, _widget):
-            self.start_update_function()
-
         def show_running_markup(self, markup):
             self.button.hide()
             self.label.set_markup(markup)
@@ -197,11 +196,15 @@ class UpdatesBox(BaseConfigBox):
             self.spinner.start()
 
         def show_completion_markup(self, markup):
+            self.button.hide()
+            self.label.show()
             self.spinner.stop()
             self.spinner.hide()
             self.label.set_markup(markup)
 
         def show_error(self, error):
+            self.button.hide()
+            self.label.show()
             self.spinner.stop()
             self.spinner.hide()
             self.label.set_markup("<b>Error:</b>%s" % gtk_safe(error))
