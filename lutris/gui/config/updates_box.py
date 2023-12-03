@@ -1,5 +1,4 @@
 from gettext import gettext as _
-from textwrap import dedent
 from typing import Callable
 
 from gi.repository import Gio, Gtk
@@ -21,11 +20,6 @@ class UpdatesBox(BaseConfigBox):
         self.add(self.get_description_label(
             _("Keep Wine-GE up to date.")
         ))
-        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
-        self.pack_start(frame, False, False, 12)
-
-        list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
-        frame.add(list_box)
 
         update_channel = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
 
@@ -39,7 +33,6 @@ class UpdatesBox(BaseConfigBox):
                                                              active=update_channel == UPDATE_CHANNEL_STABLE,
                                                              group=None)
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
-        list_box.add(Gtk.ListBoxRow(child=stable_channel_radio_button, visible=True, activatable=False))
 
         markup = _("<b>Self-maintained</b>:\n"
                    "Wine updates are no longer delivered automatically and you have full responsibility "
@@ -51,16 +44,14 @@ class UpdatesBox(BaseConfigBox):
                                                                   active=update_channel == UPDATE_CHANNEL_UNSUPPORTED,
                                                                   group=stable_channel_radio_button)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
-        list_box.add(Gtk.ListBoxRow(child=unsupported_channel_radio_button, visible=True, activatable=False))
+        self.pack_start(self._get_framed_options_list_box(
+            [stable_channel_radio_button, unsupported_channel_radio_button]),
+            False, False, 12)
 
         self.add(self.get_section_label(_("Runtime updates")))
         self.add(self.get_description_label(
             _("Runtime components include DXVK, VKD3D and Winetricks.")
         ))
-        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
-        self.pack_start(frame, False, False, 12)
-        list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
-        frame.add(list_box)
 
         update_button = Gtk.Button(_("Check for updates"), halign=Gtk.Align.END, visible=True)
         update_button.connect("clicked", self.on_runtime_update_clicked)
@@ -71,13 +62,9 @@ class UpdatesBox(BaseConfigBox):
             default=True,
             extra_widget=update_button
         )
-        list_box.add(Gtk.ListBoxRow(child=update_runtime_box, visible=True, activatable=False))
+        self.pack_start(self._get_framed_options_list_box([update_runtime_box]), False, False, 12)
 
         self.add(self.get_section_label(_("Media updates")))
-        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
-        self.pack_start(frame, False, False, 12)
-        list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
-        frame.add(list_box)
 
         self.update_media_button = Gtk.Button(_("Download missing media"), visible=True)
         self.update_media_button.connect("clicked", self.on_download_media_clicked)
@@ -87,7 +74,8 @@ class UpdatesBox(BaseConfigBox):
         update_media_box.pack_end(self.update_media_spinner, False, False, 0)
         self.update_media_label = Gtk.Label()
         update_media_box.pack_end(self.update_media_label, False, False, 0)
-        list_box.add(Gtk.ListBoxRow(child=update_media_box, visible=True, activatable=False))
+
+        self.pack_start(self._get_framed_options_list_box([update_media_box]), False, False, 12)
 
     def _get_radio_button(self, label_markup, active, group, margin=12):
         radio_button = Gtk.RadioButton.new_from_widget(group)
@@ -104,6 +92,15 @@ class UpdatesBox(BaseConfigBox):
         label.set_margin_left(6)
         label.props.wrap = True
         return radio_button
+
+    def _get_framed_options_list_box(self, items):
+        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
+        list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
+        frame.add(list_box)
+
+        for item in items:
+            list_box.add(Gtk.ListBoxRow(child=item, visible=True, activatable=False))
+        return frame
 
     def on_download_media_clicked(self, widget):
         widget.hide()
