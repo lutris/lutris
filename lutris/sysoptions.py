@@ -183,7 +183,6 @@ system_options = [  # pylint: disable=invalid-name
         "option": "gamescope_game_res",
         "type": "choice_with_entry",
         "label": _("Game Resolution"),
-        "advanced": True,
         "choices": DISPLAY_MANAGER.get_resolutions,
         "condition": system.can_find_executable("gamescope"),
         "help": _("Set the maximum resolution used by the game.\n"
@@ -194,7 +193,6 @@ system_options = [  # pylint: disable=invalid-name
         "section": "Gamescope",
         "option": "gamescope_window_mode",
         "label": _("Window Mode"),
-        "advanced": True,
         "type": "choice",
         "choices": (
             (_("Fullscreen"), "-f"),
