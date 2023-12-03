@@ -11,7 +11,6 @@ from lutris.runtime import RuntimeUpdater
 from lutris.services.lutris import sync_media
 from lutris.settings import UPDATE_CHANNEL_STABLE, UPDATE_CHANNEL_UNSUPPORTED
 from lutris.util.jobs import AsyncCall
-from lutris.util.log import logger
 
 
 class UpdatesBox(BaseConfigBox):
@@ -25,12 +24,12 @@ class UpdatesBox(BaseConfigBox):
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         self.pack_start(frame, False, False, 12)
 
-        list_box = Gtk.ListBox(visible=True)
+        list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
         frame.add(list_box)
 
         update_channel = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
 
-        margin = 6
+        margin = 12
         stable_channel_radio_button = Gtk.RadioButton.new_from_widget(None)
         stable_channel_radio_button.set_active(update_channel == UPDATE_CHANNEL_STABLE)
         stable_channel_radio_button.set_margin_left(margin)
@@ -46,9 +45,9 @@ class UpdatesBox(BaseConfigBox):
             is always used unless overridden in the settings.
             This allows us to keep track of regressions more efficiently and provide
             fixes more reliably.
-            """)))
+            """)).strip())
         label.set_margin_left(margin)
-        list_box.add(stable_channel_radio_button)
+        list_box.add(Gtk.ListBoxRow(child=stable_channel_radio_button, visible=True, activatable=False))
 
         unsupported_channel_radio_button = Gtk.RadioButton.new_from_widget(stable_channel_radio_button)
         unsupported_channel_radio_button.set_active(update_channel == UPDATE_CHANNEL_UNSUPPORTED)
@@ -66,9 +65,9 @@ class UpdatesBox(BaseConfigBox):
 
             Please note that this mode is <b>fully unsupported</b>. In order to submit issues on Github
             or ask for help on Discord, switch back to the <b>Stable channel</b>.
-            """)))
+            """)).strip())
         label.set_margin_left(margin)
-        list_box.add(unsupported_channel_radio_button)
+        list_box.add(Gtk.ListBoxRow(child=unsupported_channel_radio_button, visible=True, activatable=False))
 
         self.add(self.get_section_label(_("Runtime updates")))
         self.add(self.get_description_label(
@@ -76,24 +75,26 @@ class UpdatesBox(BaseConfigBox):
         ))
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         self.pack_start(frame, False, False, 12)
-        list_box = Gtk.ListBox(visible=True)
+        list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
         frame.add(list_box)
 
         update_button = Gtk.Button(_("Check for updates"), halign=Gtk.Align.END, visible=True)
         update_button.connect("clicked", self.on_runtime_update_clicked)
 
-        list_box_row = Gtk.ListBoxRow(visible=True, activatable=False)
-        list_box_row.add(self.get_setting_box(
+        update_runtime_box = self.get_setting_box(
             "auto_update_runtime",
             _("Automatically Update the Lutris runtime"),
             default=True,
             extra_widget=update_button
-        ))
-        list_box.add(list_box_row)
+        )
+        list_box.add(Gtk.ListBoxRow(child=update_runtime_box, visible=True, activatable=False))
 
         self.add(self.get_section_label(_("Media updates")))
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         self.pack_start(frame, False, False, 12)
+        list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
+        frame.add(list_box)
+
         self.update_media_button = Gtk.Button(_("Download missing media"), visible=True)
         self.update_media_button.connect("clicked", self.on_download_media_clicked)
 
@@ -102,7 +103,7 @@ class UpdatesBox(BaseConfigBox):
         update_media_box.pack_end(self.update_media_spinner, False, False, 0)
         self.update_media_label = Gtk.Label()
         update_media_box.pack_end(self.update_media_label, False, False, 0)
-        frame.add(update_media_box)
+        list_box.add(Gtk.ListBoxRow(child=update_media_box, visible=True, activatable=False))
 
     def on_download_media_clicked(self, widget):
         widget.hide()
