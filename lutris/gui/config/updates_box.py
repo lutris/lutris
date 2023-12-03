@@ -31,7 +31,6 @@ class UpdatesBox(BaseConfigBox):
         update_channel = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
 
         margin = 6
-        hbox = Gtk.HBox(visible=True)
         stable_channel_radio_button = Gtk.RadioButton.new_from_widget(None)
         stable_channel_radio_button.set_active(update_channel == UPDATE_CHANNEL_STABLE)
         stable_channel_radio_button.set_margin_left(margin)
@@ -39,9 +38,8 @@ class UpdatesBox(BaseConfigBox):
         stable_channel_radio_button.set_margin_bottom(margin)
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
         stable_channel_radio_button.show()
-
-        hbox.pack_start(stable_channel_radio_button, False, False, margin)
-        label = Gtk.Label(visible=True)
+        stable_channel_radio_button.set_label("")  # creates Gtk.Label child
+        label = stable_channel_radio_button.get_child()
         label.set_markup(dedent(_("""
             <b>Stable</b>:
             Wine-GE updates are downloaded automatically and the latest version
@@ -49,10 +47,9 @@ class UpdatesBox(BaseConfigBox):
             This allows us to keep track of regressions more efficiently and provide
             fixes more reliably.
             """)))
-        hbox.pack_start(label, False, True, 0)
-        list_box.add(hbox)
+        label.set_margin_left(margin)
+        list_box.add(stable_channel_radio_button)
 
-        hbox = Gtk.HBox(visible=True)
         unsupported_channel_radio_button = Gtk.RadioButton.new_from_widget(stable_channel_radio_button)
         unsupported_channel_radio_button.set_active(update_channel == UPDATE_CHANNEL_UNSUPPORTED)
         unsupported_channel_radio_button.set_margin_left(margin)
@@ -60,8 +57,8 @@ class UpdatesBox(BaseConfigBox):
         unsupported_channel_radio_button.set_margin_bottom(margin)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
         unsupported_channel_radio_button.show()
-        hbox.pack_start(unsupported_channel_radio_button, False, False, margin)
-        label = Gtk.Label(visible=True)
+        unsupported_channel_radio_button.set_label("")  # creates Gtk.Label child
+        label = unsupported_channel_radio_button.get_child()
         label.set_markup(dedent(_("""
             <b>Self-maintained</b>:
             Wine updates are no longer delivered automatically and you have full responsibility
@@ -70,8 +67,8 @@ class UpdatesBox(BaseConfigBox):
             Please note that this mode is <b>fully unsupported</b>. In order to submit issues on Github
             or ask for help on Discord, switch back to the <b>Stable channel</b>.
             """)))
-        hbox.pack_start(label, False, False, 0)
-        list_box.add(hbox)
+        label.set_margin_left(margin)
+        list_box.add(unsupported_channel_radio_button)
 
         self.add(self.get_section_label(_("Runtime updates")))
         self.add(self.get_description_label(
