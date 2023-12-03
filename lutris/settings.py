@@ -64,6 +64,9 @@ SHOW_MEDIA = os.environ.get("LUTRIS_HIDE_MEDIA") != "1" and sio.read_setting("hi
 DEFAULT_RESOLUTION_WIDTH = sio.read_setting("default_resolution_width", default="1280")
 DEFAULT_RESOLUTION_HEIGHT = sio.read_setting("default_resolution_height", default="720")
 
+UPDATE_CHANNEL_STABLE = "stable"
+UPDATE_CHANNEL_UNSUPPORTED = "self-maintained"
+
 read_setting = sio.read_setting
 read_bool_setting = sio.read_bool_setting
 write_setting = sio.write_setting

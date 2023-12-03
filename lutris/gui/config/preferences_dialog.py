@@ -8,10 +8,11 @@ from lutris.config import LutrisConfig
 from lutris.gui.config.accounts_box import AccountsBox
 from lutris.gui.config.boxes import SystemBox
 from lutris.gui.config.common import GameDialogCommon
-from lutris.gui.config.preferences_box import InterfacePreferencesBox, UpdatePreferencesBox
+from lutris.gui.config.preferences_box import InterfacePreferencesBox
 from lutris.gui.config.runners_box import RunnersBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.config.sysinfo_box import SysInfoBox
+from lutris.gui.config.updates_box import UpdatesBox
 
 
 class PreferencesDialog(GameDialogCommon):
@@ -68,7 +69,7 @@ class PreferencesDialog(GameDialogCommon):
         )
 
         self.stack.add_named(
-            self.build_scrolled_window(UpdatePreferencesBox()),
+            self.build_scrolled_window(UpdatesBox()),
             "updates-stack"
         )
 

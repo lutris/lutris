@@ -11,6 +11,7 @@ from lutris.api import (
     check_stale_runtime_versions, download_runtime_versions, format_runner_version, get_time_from_api_date
 )
 from lutris.gui.widgets.progress_box import ProgressInfo
+from lutris.settings import UPDATE_CHANNEL_STABLE
 from lutris.util import http, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -155,7 +156,7 @@ class RuntimeUpdater:
     def __init__(self, pci_ids: List[str] = None, force: bool = False):
         self.pci_ids: List[str] = pci_ids or []
         if RUNTIME_DISABLED:
-            logger.warning("Runtime disabled. Safety not guaranteed.")
+            logger.warning("Runtime disabled by environment variable. Re-enable runtime before submitting issues.")
             self.update_runtime = False
             self.update_runners = False
         elif force:
@@ -163,12 +164,15 @@ class RuntimeUpdater:
             self.update_runners = True
         else:
             self.update_runtime = settings.read_bool_setting("auto_update_runtime", default=True)
-            self.update_runners = settings.read_bool_setting("auto_update_runners", default=True)
+            self.update_runners = settings.read_setting("wine-update-channel", default=UPDATE_CHANNEL_STABLE)
 
             if not self.update_runtime:
-                logger.warning("Lutris runtime updates have been disabled by the configuration.")
+                logger.warning("Runtime updates are disabled. This configuration is not supported.")
             if not self.update_runners:
-                logger.warning("Runner updates have been disabled by the configuration.")
+                logger.warning(
+                    "Wine updates have been disabled. To receive support on Github or Discord, "
+                    "switch back to the stable channel"
+                )
 
             if not check_stale_runtime_versions():
                 self.update_runtime = False

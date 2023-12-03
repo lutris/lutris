@@ -104,7 +104,7 @@ class DownloadQueue(Gtk.ScrolledWindow):
 
             self.remove_progress_box(progress_function)
 
-            if completion_function:
+            if bool(completion_function):
                 completion_function(result, error)
 
         AsyncCall(func, completion_callback)
@@ -130,7 +130,7 @@ class DownloadQueue(Gtk.ScrolledWindow):
             for to_end in captured_functions:
                 self.remove_progress_box(to_end)
 
-            if completion_function:
+            if bool(completion_function):
                 completion_function(result, error)
 
         AsyncCall(func, completion_callback)

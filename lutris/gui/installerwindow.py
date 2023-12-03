@@ -5,6 +5,7 @@ from gettext import gettext as _
 
 from gi.repository import Gio, GLib, Gtk
 
+from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.exceptions import watch_errors
 from lutris.game import Game
@@ -20,7 +21,6 @@ from lutris.installer import InstallationKind, get_installers, interpreter
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.util import xdgshortcuts
-from lutris import settings
 from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, human_size
