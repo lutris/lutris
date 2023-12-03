@@ -151,7 +151,6 @@ class dosbox(Runner):
         if not system.path_exists(main_file):
             return {"error": "FILE_NOT_FOUND", "file": main_file}
         args = shlex.split(self.game_config.get("args") or "")
-        self.get_executable()
         command = self.get_command()
 
         if main_file.endswith(".conf"):

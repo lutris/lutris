@@ -3,6 +3,7 @@ import subprocess
 from gettext import gettext as _
 
 from lutris import settings
+from lutris.exceptions import MisconfigurationError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.strings import split_arguments
@@ -475,10 +476,12 @@ class scummvm(Runner):
     def get_extra_libs(self):
         """Scummvm runner ships additional, they may be removed in a future version."""
         base_runner_path = os.path.join(settings.RUNNER_DIR, "scummvm")
-        if not self.get_executable().startswith(base_runner_path):
-            return ""
-        path = os.path.join(settings.RUNNER_DIR, "scummvm/lib")
-        return path if system.path_exists(path) else ""
+        if self.get_executable().startswith(base_runner_path):
+            path = os.path.join(settings.RUNNER_DIR, "scummvm/lib")
+            if system.path_exists(path):
+                return path
+
+        raise MisconfigurationError(_("ScummVM is not running out of the runners directory."))
 
     def get_command(self):
         command = super().get_command()
@@ -486,9 +489,15 @@ class scummvm(Runner):
             return []
         if "flatpak" in command[0]:
             return command
+
+        try:
+            data_dir = self.get_scummvm_data_dir()
+        except MisconfigurationError:
+            return command
+
         return command + [
-            "--extrapath=%s" % self.get_scummvm_data_dir(),
-            "--themepath=%s" % self.get_scummvm_data_dir(),
+            "--extrapath=%s" % data_dir,
+            "--themepath=%s" % data_dir,
         ]
 
     def get_scummvm_data_dir(self):
@@ -502,9 +511,13 @@ class scummvm(Runner):
 
     def get_run_data(self):
         env = self.get_env()
-        extra_libs = self.get_extra_libs()
-        if extra_libs:
-            env["LD_LIBRARY_PATH"] = ":".join([p for p in [extra_libs, env.get("LD_LIBRARY_PATH")] if p])
+
+        try:
+            lib_paths = [p for p in [self.get_extra_libs(), env.get("LD_LIBRARY_PATH")] if p]
+            env["LD_LIBRARY_PATH"] = ":".join(lib_paths)
+        except MisconfigurationError:
+            pass  # It's okay to not have extra libs
+
         return {"env": env, "command": self.get_command()}
 
     def inject_runner_option(self, command, key, cmdline, cmdline_empty=None):
@@ -527,9 +540,12 @@ class scummvm(Runner):
             command.append(arg)
         command.append(self.game_config.get("game_id"))
         output = {"command": command}
-        extra_libs = self.get_extra_libs()
-        if extra_libs:
-            output["ld_library_path"] = extra_libs
+
+        try:
+            output["ld_library_path"] = self.get_extra_libs()
+        except MisconfigurationError:
+            pass  # It's okay to not have extra libs
+
         return output
 
     def get_game_list(self):

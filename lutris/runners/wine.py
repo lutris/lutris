@@ -1104,25 +1104,30 @@ class wine(Runner):
 
     def get_runtime_env(self):
         """Return runtime environment variables with path to wine for Lutris builds"""
-        wine_path = self.get_executable()
-        wine_root = None
-        if WINE_DIR:
-            wine_root = os.path.dirname(os.path.dirname(wine_path))
-        for proton_path in get_proton_paths():
-            if proton_path in wine_path:
-                wine_root = os.path.dirname(os.path.dirname(wine_path))
+        wine_path = None
+        try:
+            exe = self.get_executable()
+            if WINE_DIR:
+                wine_path = os.path.dirname(os.path.dirname(exe))
+            for proton_path in get_proton_paths():
+                if proton_path in exe:
+                    wine_path = os.path.dirname(os.path.dirname(exe))
+        except MisconfigurationError:
+            wine_path = None
+
         return runtime.get_env(
             version="Ubuntu-18.04",
             prefer_system_libs=self.system_config.get("prefer_system_libs", True),
-            wine_path=wine_root,
+            wine_path=wine_path,
         )
 
     def get_pids(self, wine_path=None):
         """Return a list of pids of processes using the current wine exe."""
-        if wine_path:
-            exe = wine_path
-        else:
-            exe = self.get_executable()
+        try:
+            exe = wine_path or self.get_executable()
+        except MisconfigurationError:
+            return set()
+
         if not exe.startswith("/"):
             exe = system.find_executable(exe)
         pids = system.get_pids_using_file(exe)

@@ -187,7 +187,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             exe = self.get_executable()
             if system.path_exists(exe):
                 return [exe]
-        except MissingExecutableError:
+        except MisconfigurationError:
             pass
 
         if flatpak.is_app_installed(self.flatpak_id):
