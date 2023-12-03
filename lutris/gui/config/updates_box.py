@@ -177,5 +177,5 @@ class UpdatesBox(BaseConfigBox):
         if last_setting == UPDATE_CHANNEL_STABLE and value == UPDATE_CHANNEL_UNSUPPORTED:
             NoticeDialog(_(
                 "Without the Wine-GE updates enabled, we can no longer provide support on Github and Discord."
-            ))
+            ), parent=self.get_toplevel())
         settings.write_setting("wine-update-channel", value)
