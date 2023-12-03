@@ -161,7 +161,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Relative Mouse Mode"),
         "advanced": True,
         "default": False,
-        "condition": bool(system.find_executable("gamescope")),
+        "condition": bool(system.can_find_executable("gamescope")),
         "help": _("Always use relative mouse mode instead of flipping\n"
                   "dependent on cursor visibility"),
     },
