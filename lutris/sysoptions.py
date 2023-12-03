@@ -143,7 +143,21 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("When the runtime is enabled, prioritize the system libraries"
                   " over the provided ones."),
     },
-
+    {
+        "section": "Lutris",
+        "option": "default_cache_directory",
+        "type": "directory_chooser",
+        "label": _("Installer Save Location (If left empty, installer files are discarded after install completion.)"),
+        "default": "",
+        "help": _("Set where by default downloaded installer files will be saved. If left empty, installer files are discarded after install completion.")
+    },
+    {
+        "section": "Lutris",
+        "option": "installer_cache",
+        "type": "cache_button",
+        "label": _("Delete Cached Installer Files"),
+        "help": _("Delete all files from download cache")
+    },
     {
         "section": "Gamescope",
         "option": "gamescope",

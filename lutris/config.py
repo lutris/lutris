@@ -9,6 +9,7 @@ from lutris.runners import InvalidRunner, import_runner
 from lutris.util.log import logger
 from lutris.util.system import path_exists
 from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
+from lutris.cache import save_cache_path
 
 
 def make_game_config_id(game_slug: str) -> str:
@@ -138,6 +139,12 @@ class LutrisConfig:
         self.game_level.update(read_yaml_from_file(self.game_config_path))
         self.runner_level.update(read_yaml_from_file(self.runner_config_path))
         self.system_level.update(read_yaml_from_file(self.system_config_path))
+
+        self.default_cache_directory = read_yaml_from_file(self.system_config_path).get("system").get("default_cache_directory")
+        if self.default_cache_directory:
+            save_cache_path(self.default_cache_directory)
+        else:
+            save_cache_path("")
 
         self.update_cascaded_config()
         self.update_raw_config()

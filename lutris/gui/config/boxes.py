@@ -2,10 +2,11 @@
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 import os
+import shutil
 from gettext import gettext as _
 
 # Third Party Libraries
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, Gtk, GLib
 
 # Lutris Modules
 from lutris import settings, sysoptions
@@ -14,6 +15,7 @@ from lutris.gui.widgets.searchable_combobox import SearchableCombobox
 from lutris.runners import InvalidRunner, import_runner
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
+from lutris.cache import get_cache_path
 
 
 class ConfigBox(VBox):
@@ -316,8 +318,40 @@ class ConfigBox(VBox):
             self.generate_label(option["label"])
         elif option_type == "mapping":
             self.generate_editable_grid(option_key, label=option["label"], value=value)
+        elif option_type == "cache_button":
+            self.generate_cache_button(option)
         else:
             raise ValueError("Unknown widget type %s" % option_type)
+
+    #Purge Cache Button
+    def generate_cache_button(self, option):
+        """Generate a button"""
+        button = Gtk.Button(label = option["label"])
+        button.connect("clicked", self.purge_cache)
+        self.wrapper.pack_start(button, False, False, 0)
+
+    #Purge Cache Function
+    def purge_cache(self, widget):
+        self.cache_path = get_cache_path()
+        if self.cache_path:
+            for filename in os.listdir(self.cache_path):
+                file_path = os.path.join(self.cache_path, filename)
+
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+        else:
+            self.cache_path = os.path.join(GLib.get_user_cache_dir(), "lutris", "installer")
+            if self.cache_path:
+                for filename in os.listdir(self.cache_path):
+                    file_path = os.path.join(self.cache_path, filename)
+
+                    if os.path.isfile(file_path):
+                        os.remove(file_path)
+                    elif os.path.isdir(file_path):
+                        shutil.rmtree(file_path)
+
 
     # Label
     def generate_label(self, text):
