@@ -258,7 +258,7 @@ def get_innoextract_path() -> str:
     inno_dirs = [path for path in os.listdir(settings.RUNTIME_DIR) if path.startswith("innoextract")]
     for inno_dir in inno_dirs:
         inno_path = os.path.join(settings.RUNTIME_DIR, inno_dir, "innoextract")
-        if not system.path_exists(inno_path):
+        if system.path_exists(inno_path):
             return inno_path
 
     inno_path = system.find_executable("innoextract")
