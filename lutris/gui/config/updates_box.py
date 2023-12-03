@@ -46,8 +46,13 @@ class UpdatesBox(BaseConfigBox):
         # Safer to connect these after the active property has been initialized on all radio buttons
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
+
+        self.update_runnners_box = UpdatesBox.UpdateButtonBox(_("Check for Wine Updates"),
+                                                              clicked=self.on_runners_update_clicked,
+                                                              visible=True)
+
         self.pack_start(self._get_framed_options_list_box(
-            [stable_channel_radio_button, unsupported_channel_radio_button]),
+            [stable_channel_radio_button, unsupported_channel_radio_button, self.update_runnners_box]),
             False, False, 12)
 
         self.add(self.get_section_label(_("Runtime updates")))
@@ -129,7 +134,15 @@ class UpdatesBox(BaseConfigBox):
         else:
             self.update_media_box.show_completion_markup(_("No new media found."))
 
-    def on_runtime_update_clicked(self, widget):
+    def on_runners_update_clicked(self, _widget):
+        def get_updater(application):
+            updater = RuntimeUpdater(application.gpu_info)
+            updater.update_runners = True
+            return updater
+
+        self._trigger_updates(get_updater, self.update_runnners_box)
+
+    def on_runtime_update_clicked(self, _widget):
         def get_updater(application):
             updater = RuntimeUpdater(application.gpu_info)
             updater.update_runtime = True
@@ -148,8 +161,11 @@ class UpdatesBox(BaseConfigBox):
                     component_updaters = updater.create_component_updaters()
                     if component_updaters:
                         def on_complete(_result):
-                            update_box.show_completion_markup(
-                                _("%d components have been updated.") % len(component_updaters))
+                            if len(component_updaters) == 1:
+                                update_box.show_completion_markup(_("1 component has been updated."))
+                            else:
+                                update_box.show_completion_markup(
+                                    _("%d components have been updated.") % len(component_updaters))
 
                         update_box.show_running_markup(_("<i>Checking for updates...</i>"))
                         window.install_runtime_component_updates(component_updaters, updater,
