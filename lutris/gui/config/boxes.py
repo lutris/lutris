@@ -333,6 +333,8 @@ class ConfigBox(VBox):
     #Purge Cache Function
     def purge_cache(self, widget):
         self.cache_path = get_cache_path()
+        if not self.cache_path:
+            self.cache_path = os.path.join(GLib.get_user_cache_dir(), "lutris", "installer")
         if self.cache_path:
             for filename in os.listdir(self.cache_path):
                 file_path = os.path.join(self.cache_path, filename)
@@ -341,17 +343,6 @@ class ConfigBox(VBox):
                     os.remove(file_path)
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
-        else:
-            self.cache_path = os.path.join(GLib.get_user_cache_dir(), "lutris", "installer")
-            if self.cache_path:
-                for filename in os.listdir(self.cache_path):
-                    file_path = os.path.join(self.cache_path, filename)
-
-                    if os.path.isfile(file_path):
-                        os.remove(file_path)
-                    elif os.path.isdir(file_path):
-                        shutil.rmtree(file_path)
-
 
     # Label
     def generate_label(self, text):
