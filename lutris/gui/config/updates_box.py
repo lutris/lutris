@@ -32,7 +32,6 @@ class UpdatesBox(BaseConfigBox):
         stable_channel_radio_button = self._get_radio_button(markup,
                                                              active=update_channel == UPDATE_CHANNEL_STABLE,
                                                              group=None)
-        stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
 
         markup = _("<b>Self-maintained</b>:\n"
                    "Wine updates are no longer delivered automatically and you have full responsibility "
@@ -43,6 +42,8 @@ class UpdatesBox(BaseConfigBox):
         unsupported_channel_radio_button = self._get_radio_button(markup,
                                                                   active=update_channel == UPDATE_CHANNEL_UNSUPPORTED,
                                                                   group=stable_channel_radio_button)
+        # Safer to connect these after the active property has been initialized on all radio buttons
+        stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
         self.pack_start(self._get_framed_options_list_box(
             [stable_channel_radio_button, unsupported_channel_radio_button]),
@@ -170,12 +171,13 @@ class UpdatesBox(BaseConfigBox):
                     ErrorDialog(_("Updates cannot begin while downloads are already underway."),
                                 parent=self.get_toplevel())
 
-    def on_update_channel_toggled(self, _widget, value):
+    def on_update_channel_toggled(self, checkbox, value):
         """Update setting when update channel is toggled
         """
-        last_setting = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
-        if last_setting == UPDATE_CHANNEL_STABLE and value == UPDATE_CHANNEL_UNSUPPORTED:
-            NoticeDialog(_(
-                "Without the Wine-GE updates enabled, we can no longer provide support on Github and Discord."
-            ), parent=self.get_toplevel())
-        settings.write_setting("wine-update-channel", value)
+        if checkbox.get_active():
+            last_setting = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
+            if last_setting == UPDATE_CHANNEL_STABLE and value == UPDATE_CHANNEL_UNSUPPORTED:
+                NoticeDialog(_(
+                    "Without the Wine-GE updates enabled, we can no longer provide support on Github and Discord."
+                ), parent=self.get_toplevel())
+            settings.write_setting("wine-update-channel", value)
