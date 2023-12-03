@@ -7,10 +7,11 @@ from gi.repository import Gio, Gtk
 from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.dialogs import ErrorDialog, NoticeDialog
-from lutris.gui.widgets.progress_box import ProgressInfo
 from lutris.runtime import RuntimeUpdater
-from lutris.services import get_enabled_services
+from lutris.services.lutris import sync_media
 from lutris.settings import UPDATE_CHANNEL_STABLE, UPDATE_CHANNEL_UNSUPPORTED
+from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
 
 
 class UpdatesBox(BaseConfigBox):
@@ -96,51 +97,41 @@ class UpdatesBox(BaseConfigBox):
         self.add(self.get_section_label(_("Media updates")))
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         self.pack_start(frame, False, False, 12)
-        update_media_button = Gtk.Button(_("Download missing media"), visible=True)
-        update_media_button.connect("clicked", self.on_download_media_clicked)
+        self.update_media_button = Gtk.Button(_("Download missing media"), visible=True)
+        self.update_media_button.connect("clicked", self.on_download_media_clicked)
 
-        update_media_box = self.get_listed_widget_box("", update_media_button)
+        update_media_box = self.get_listed_widget_box("", self.update_media_button)
+        self.update_media_spinner = Gtk.Spinner()
+        update_media_box.pack_end(self.update_media_spinner, False, False, 0)
+        self.update_media_label = Gtk.Label()
+        update_media_box.pack_end(self.update_media_label, False, False, 0)
         frame.add(update_media_box)
 
     def on_download_media_clicked(self, widget):
         widget.hide()
-        spinner = Gtk.Spinner(visible=True)
-        spinner.start()
+        self.update_media_label.set_markup(_("<i>Checking for missing media...</i>"))
+        self.update_media_label.show()
+        self.update_media_spinner.show()
+        self.update_media_spinner.start()
+        AsyncCall(sync_media, self.on_media_updated)
 
-        self.trigger_media_load(self.get_toplevel())
-
-    def trigger_media_load(self, parent: Gtk.Window) -> None:
-        application = Gio.Application.get_default()
-        if not application:
-            return
-        window = application.window
-        if not window:
-            return
-
-        if window.download_queue.is_empty:
-            services = list(get_enabled_services().items())
-            if not services:
-                return
-
-            progress_info = ProgressInfo(None, _("Downloading %s media") % services[0][0])
-
-            def load_media():
-                nonlocal progress_info
-
-                for name, service_type in services:
-                    progress_info = ProgressInfo(None, _("Downloading %s media") % name)
-                    service = service_type()
-                    service.load_icons()
-
-            def get_progress():
-                return progress_info
-
-            def load_media_cb(_result, _error):
-                window.queue_draw()
-
-            window.download_queue.start(load_media, get_progress, load_media_cb)
+    def on_media_updated(self, result, error):
+        self.update_media_spinner.stop()
+        self.update_media_spinner.hide()
+        if error:
+            self.update_media_label.set_markup("<b>Error:</b>%s" % error)
+        if not result:
+            self.update_media_label.set_markup(_("Nothing to update"))
+        elif any(result.values()):
+            update_text = _("Updated:")
+            for key, value in result:
+                if value:
+                    if not update_text.endswith(":"):
+                        update_text += ", "
+                    update_text += f"{value} {key}{'s' if value > 1 else ''}"
+            self.update_media_label.set_markup(update_text)
         else:
-            ErrorDialog(_("Updates cannot begin while downloads are already underway."), parent=parent)
+            self.update_media_label.set_markup(_("No new media found."))
 
     def _trigger_updates(self, parent: Gtk.Window,
                          updater_factory: Callable) -> None:

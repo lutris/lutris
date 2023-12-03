@@ -175,7 +175,7 @@ def download_lutris_media(slug):
         download_media({slug: cover_url}, LutrisCoverart())
 
 
-def sync_media():
+def sync_media() -> dict:
     """Downlad all missing media"""
     banners_available = {fn.split(".")[0] for fn in os.listdir(settings.BANNER_PATH)}
     icons_available = {
@@ -188,7 +188,7 @@ def sync_media():
     all_slugs = {game["slug"] for game in get_games()}
     slugs = all_slugs - complete_games
     if not slugs:
-        return
+        return {}
     games = get_api_games(list(slugs))
 
     alias_map = {}
@@ -227,3 +227,8 @@ def sync_media():
     download_media(banner_urls, LutrisBanner())
     download_media(icon_urls, LutrisIcon())
     download_media(cover_urls, LutrisCoverart())
+    return {
+        "banners": len(banner_urls),
+        "icons": len(icon_urls),
+        "covers": len(cover_urls),
+    }
