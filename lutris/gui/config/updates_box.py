@@ -18,9 +18,6 @@ class UpdatesBox(BaseConfigBox):
     def __init__(self):
         super().__init__()
         self.add(self.get_section_label(_("Wine update channel")))
-        self.add(self.get_description_label(
-            _("Keep Wine-GE up to date.")
-        ))
 
         update_channel = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
 
@@ -47,20 +44,24 @@ class UpdatesBox(BaseConfigBox):
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
 
-        self.update_runnners_box = UpdatesBox.UpdateButtonBox(_("Check for Wine Updates"),
+        self.update_runnners_box = UpdateButtonBox(_("Check for Wine Updates"),
                                                               clicked=self.on_runners_update_clicked,
                                                               visible=True)
 
         self.pack_start(self._get_framed_options_list_box(
-            [stable_channel_radio_button, unsupported_channel_radio_button, self.update_runnners_box]),
+            [stable_channel_radio_button, unsupported_channel_radio_button]),
             False, False, 12)
+        self.pack_start(self._get_framed_options_list_box(
+            [self.update_runnners_box]),
+            False, False, 12)
+
 
         self.add(self.get_section_label(_("Runtime updates")))
         self.add(self.get_description_label(
             _("Runtime components include DXVK, VKD3D and Winetricks.")
         ))
 
-        self.update_runtime_box = UpdatesBox.UpdateButtonBox(_("Check for Updates"),
+        self.update_runtime_box = UpdateButtonBox(_("Check for Updates"),
                                                              clicked=self.on_runtime_update_clicked,
                                                              margin=0,
                                                              visible=True)
@@ -75,7 +76,7 @@ class UpdatesBox(BaseConfigBox):
 
         self.add(self.get_section_label(_("Media updates")))
 
-        self.update_media_box = UpdatesBox.UpdateButtonBox(_("Download Missing Media"),
+        self.update_media_box = UpdateButtonBox(_("Download Missing Media"),
                                                            clicked=self.on_download_media_clicked,
                                                            visible=True)
         self.pack_start(self._get_framed_options_list_box([self.update_media_box]), False, False, 12)
@@ -187,39 +188,39 @@ class UpdatesBox(BaseConfigBox):
                 ), parent=self.get_toplevel())
             settings.write_setting("wine-update-channel", value)
 
-    class UpdateButtonBox(Gtk.Box):
-        """A box containing a button to start updating something, with methods to show a result
-        when done."""
+class UpdateButtonBox(Gtk.Box):
+    """A box containing a button to start updating something, with methods to show a result
+    when done."""
 
-        def __init__(self, button_label, clicked, margin=12, **kwargs):
-            super().__init__(orientation=Gtk.Orientation.HORIZONTAL, margin=margin, spacing=6, **kwargs)
+    def __init__(self, button_label, clicked, margin=12, **kwargs):
+        super().__init__(orientation=Gtk.Orientation.HORIZONTAL, margin=margin, spacing=6, **kwargs)
 
-            self.button = Gtk.Button(button_label, visible=True)
-            self.button.connect("clicked", clicked)
-            self.pack_end(self.button, False, False, 0)
+        self.button = Gtk.Button(button_label, visible=True)
+        self.button.connect("clicked", clicked)
+        self.pack_end(self.button, False, False, 0)
 
-            self.spinner = Gtk.Spinner()
-            self.pack_end(self.spinner, False, False, 0)
-            self.label = Gtk.Label()
-            self.pack_end(self.label, False, False, 0)
+        self.spinner = Gtk.Spinner()
+        self.pack_end(self.spinner, False, False, 0)
+        self.label = Gtk.Label()
+        self.pack_end(self.label, False, False, 0)
 
-        def show_running_markup(self, markup):
-            self.button.hide()
-            self.label.set_markup(markup)
-            self.label.show()
-            self.spinner.show()
-            self.spinner.start()
+    def show_running_markup(self, markup):
+        self.button.hide()
+        self.label.set_markup(markup)
+        self.label.show()
+        self.spinner.show()
+        self.spinner.start()
 
-        def show_completion_markup(self, markup):
-            self.button.hide()
-            self.label.show()
-            self.spinner.stop()
-            self.spinner.hide()
-            self.label.set_markup(markup)
+    def show_completion_markup(self, markup):
+        self.button.hide()
+        self.label.show()
+        self.spinner.stop()
+        self.spinner.hide()
+        self.label.set_markup(markup)
 
-        def show_error(self, error):
-            self.button.hide()
-            self.label.show()
-            self.spinner.stop()
-            self.spinner.hide()
-            self.label.set_markup("<b>Error:</b>%s" % gtk_safe(error))
+    def show_error(self, error):
+        self.button.hide()
+        self.label.show()
+        self.spinner.stop()
+        self.spinner.hide()
+        self.label.set_markup("<b>Error:</b>%s" % gtk_safe(error))
