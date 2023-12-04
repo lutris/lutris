@@ -153,7 +153,7 @@ class ComponentUpdater:
 class RuntimeUpdater:
     """Class handling the runtime updates"""
 
-    def __init__(self, gpu_info: List[str] = None, force: bool = False):
+    def __init__(self, gpu_info: Dict[str, Any], force: bool = False):
         self.pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpu_info["gpus"].values()]
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled by environment variable. Re-enable runtime before submitting issues.")
