@@ -4,8 +4,9 @@ from typing import Callable
 from gi.repository import Gio, Gtk
 
 from lutris import settings
+from lutris.util.log import logger
 from lutris.gui.config.base_config_box import BaseConfigBox
-from lutris.gui.dialogs import ErrorDialog, NoticeDialog
+from lutris.gui.dialogs import NoticeDialog
 from lutris.runtime import RuntimeUpdater
 from lutris.services.lutris import sync_media
 from lutris.settings import UPDATE_CHANNEL_STABLE, UPDATE_CHANNEL_UNSUPPORTED
@@ -44,9 +45,10 @@ class UpdatesBox(BaseConfigBox):
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
 
-        self.update_runnners_box = UpdateButtonBox(_("Check for Wine Updates"),
-                                                              clicked=self.on_runners_update_clicked,
-                                                              visible=True)
+        update_label_text = "Your wine version is up to date.\n<i>Last checked 4 minutes ago.</i>" # Dummy text for presentation, replace with actual data.
+        self.update_runnners_box = UpdateButtonBox(update_label_text,
+                                                   _("Check for Wine Updates"),
+                                                   clicked=self.on_runners_update_clicked)
 
         self.pack_start(self._get_framed_options_list_box(
             [stable_channel_radio_button, unsupported_channel_radio_button]),
@@ -55,16 +57,13 @@ class UpdatesBox(BaseConfigBox):
             [self.update_runnners_box]),
             False, False, 12)
 
-
         self.add(self.get_section_label(_("Runtime updates")))
         self.add(self.get_description_label(
             _("Runtime components include DXVK, VKD3D and Winetricks.")
         ))
-
-        self.update_runtime_box = UpdateButtonBox(_("Check for Updates"),
-                                                             clicked=self.on_runtime_update_clicked,
-                                                             margin=0,
-                                                             visible=True)
+        self.update_runtime_box = UpdateButtonBox("",
+                                                  _("Check for Updates"),
+                                                  clicked=self.on_runtime_update_clicked)
 
         update_runtime_box = self.get_setting_box(
             "auto_update_runtime",
@@ -73,12 +72,10 @@ class UpdatesBox(BaseConfigBox):
             extra_widget=self.update_runtime_box
         )
         self.pack_start(self._get_framed_options_list_box([update_runtime_box]), False, False, 12)
-
         self.add(self.get_section_label(_("Media updates")))
-
-        self.update_media_box = UpdateButtonBox(_("Download Missing Media"),
-                                                           clicked=self.on_download_media_clicked,
-                                                           visible=True)
+        self.update_media_box = UpdateButtonBox("",
+                                                _("Download Missing Media"),
+                                                clicked=self.on_download_media_clicked)
         self.pack_start(self._get_framed_options_list_box([self.update_media_box]), False, False, 12)
 
     def _get_radio_button(self, label_markup, active, group, margin=12):
@@ -154,46 +151,55 @@ class UpdatesBox(BaseConfigBox):
     def _trigger_updates(self, updater_factory: Callable,
                          update_box: 'UpdateButtonBox') -> None:
         application = Gio.Application.get_default()
-        if application and application.window:
-            window = application.window
-            if window.download_queue.is_empty:
-                updater = updater_factory()
-                component_updaters = updater.create_component_updaters()
-                if component_updaters:
-                    def on_complete(_result):
-                        if len(component_updaters) == 1:
-                            update_box.show_completion_markup(_("1 component has been updated."))
-                        else:
-                            update_box.show_completion_markup(
-                                _("%d components have been updated.") % len(component_updaters))
+        if not application or not application.window:
+            logger.error("No application or window found, how does this happen?")
+            return
 
-                    update_box.show_running_markup(_("<i>Checking for updates...</i>"))
-                    window.install_runtime_component_updates(component_updaters, updater,
-                                                             completion_function=on_complete,
-                                                             error_function=update_box.show_error)
-                else:
-                    update_box.show_completion_markup(_("No updates are required at this time."))
+        window = application.window
+        if window.download_queue.is_empty:
+            updater = updater_factory()
+            component_updaters = updater.create_component_updaters()
+            if component_updaters:
+                def on_complete(_result):
+                    if len(component_updaters) == 1:
+                        update_box.show_completion_markup(_("1 component has been updated."))
+                    else:
+                        update_box.show_completion_markup(
+                            _("%d components have been updated.") % len(component_updaters))
+
+                update_box.show_running_markup(_("<i>Checking for updates...</i>"))
+                window.install_runtime_component_updates(component_updaters, updater,
+                                                            completion_function=on_complete,
+                                                            error_function=update_box.show_error)
             else:
-                ErrorDialog(_("Updates cannot begin while downloads are already underway."),
-                            parent=self.get_toplevel())
+                update_box.show_completion_markup(_("No updates are required at this time."))
+        else:
+            NoticeDialog(_("Updates cannot begin while downloads are already underway."),
+                         parent=self.get_toplevel())
 
     def on_update_channel_toggled(self, checkbox, value):
         """Update setting when update channel is toggled
         """
-        if checkbox.get_active():
-            last_setting = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
-            if last_setting == UPDATE_CHANNEL_STABLE and value == UPDATE_CHANNEL_UNSUPPORTED:
-                NoticeDialog(_(
-                    "Without the Wine-GE updates enabled, we can no longer provide support on Github and Discord."
-                ), parent=self.get_toplevel())
-            settings.write_setting("wine-update-channel", value)
+        if not checkbox.get_active():
+            return
+        last_setting = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
+        if last_setting == UPDATE_CHANNEL_STABLE and value == UPDATE_CHANNEL_UNSUPPORTED:
+            NoticeDialog(_(
+                "Without the Wine-GE updates enabled, we can no longer provide support on Github and Discord."
+            ), parent=self.get_toplevel())
+        settings.write_setting("wine-update-channel", value)
+
 
 class UpdateButtonBox(Gtk.Box):
     """A box containing a button to start updating something, with methods to show a result
     when done."""
 
-    def __init__(self, button_label, clicked, margin=12, **kwargs):
-        super().__init__(orientation=Gtk.Orientation.HORIZONTAL, margin=margin, spacing=6, **kwargs)
+    def __init__(self, label: str, button_label: str, clicked):
+        super().__init__(orientation=Gtk.Orientation.HORIZONTAL, margin=12, spacing=6, visible=True)
+
+        self.label = Gtk.Label(visible=True, xalign=0)
+        self.label.set_markup(label)
+        self.pack_start(self.label, True, True, 0)
 
         self.button = Gtk.Button(button_label, visible=True)
         self.button.connect("clicked", clicked)
@@ -201,26 +207,26 @@ class UpdateButtonBox(Gtk.Box):
 
         self.spinner = Gtk.Spinner()
         self.pack_end(self.spinner, False, False, 0)
-        self.label = Gtk.Label()
-        self.pack_end(self.label, False, False, 0)
+        self.result_label = Gtk.Label()
+        self.pack_end(self.result_label, False, False, 0)
 
     def show_running_markup(self, markup):
         self.button.hide()
-        self.label.set_markup(markup)
-        self.label.show()
+        self.result_label.set_markup(markup)
+        self.result_label.show()
         self.spinner.show()
         self.spinner.start()
 
     def show_completion_markup(self, markup):
         self.button.hide()
-        self.label.show()
+        self.result_label.show()
         self.spinner.stop()
         self.spinner.hide()
-        self.label.set_markup(markup)
+        self.result_label.set_markup(markup)
 
     def show_error(self, error):
         self.button.hide()
-        self.label.show()
+        self.result_label.show()
         self.spinner.stop()
         self.spinner.hide()
-        self.label.set_markup("<b>Error:</b>%s" % gtk_safe(error))
+        self.result_label.set_markup("<b>Error:</b>%s" % gtk_safe(error))

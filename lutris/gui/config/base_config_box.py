@@ -44,7 +44,7 @@ class BaseConfigBox(VBox):
         else:
             if warning_markup:
                 def update_warning(active):
-                    visible = warning_condition(active) if warning_condition else active
+                    visible = warning_condition(active) if bool(warning_condition) else active
                     warning_box.show_markup(warning_markup if visible else None)
 
                 warning_box = UnderslungMessageBox("dialog-warning", margin_left=0, margin_right=0, margin_bottom=0)
