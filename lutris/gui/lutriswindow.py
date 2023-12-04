@@ -4,7 +4,7 @@ import os
 import re
 from collections import namedtuple
 from gettext import gettext as _
-from typing import Any, Dict, List
+from typing import List
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
@@ -1142,12 +1142,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
             self.download_revealer.add(queue)
         return queue
 
-    def start_runtime_updates(self, force_updates: bool, gpu_info: Dict[str, Any]) -> None:
+    def start_runtime_updates(self, force_updates: bool) -> None:
         """Starts the process of applying runtime updates, asynchronously. No UI appears until
         we can determine that there are updates to perform."""
 
         def create_runtime_updater():
-            runtime_updater = RuntimeUpdater(gpu_info=gpu_info, force=force_updates)
+            runtime_updater = RuntimeUpdater(force=force_updates)
             component_updaters = runtime_updater.create_component_updaters()
             return component_updaters, runtime_updater
 

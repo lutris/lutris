@@ -88,8 +88,6 @@ class Application(Gtk.Application):
         self.launch_ui_delegate = LaunchUIDelegate()
         self.install_ui_delegate = InstallUIDelegate()
 
-        self.gpu_info = {}
-
         self.running_games = Gio.ListStore.new(Game)
         self.app_windows = {}
         self.tray = None
@@ -348,7 +346,7 @@ class Application(Gtk.Application):
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
         else:
-            self.window.start_runtime_updates(self.force_updates, self.gpu_info)
+            self.window.start_runtime_updates(self.force_updates)
 
     def get_window_key(self, **kwargs):
         if kwargs.get("appid"):
@@ -476,7 +474,7 @@ class Application(Gtk.Application):
         if argc:
             migrate()
 
-        self.gpu_info = run_all_checks()
+        run_all_checks()
         if options.contains("dest"):
             dest_dir = options.lookup_value("dest").get_string()
         else:

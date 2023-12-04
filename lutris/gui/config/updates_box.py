@@ -135,16 +135,16 @@ class UpdatesBox(BaseConfigBox):
             self.update_media_box.show_completion_markup(_("No new media found."))
 
     def on_runners_update_clicked(self, _widget):
-        def get_updater(application):
-            updater = RuntimeUpdater(gpu_info=application.gpu_info)
+        def get_updater():
+            updater = RuntimeUpdater()
             updater.update_runners = True
             return updater
 
         self._trigger_updates(get_updater, self.update_runnners_box)
 
     def on_runtime_update_clicked(self, _widget):
-        def get_updater(application):
-            updater = RuntimeUpdater(gpu_info=application.gpu_info)
+        def get_updater():
+            updater = RuntimeUpdater()
             updater.update_runtime = True
             return updater
 
@@ -153,29 +153,28 @@ class UpdatesBox(BaseConfigBox):
     def _trigger_updates(self, updater_factory: Callable,
                          update_box: 'UpdateButtonBox') -> None:
         application = Gio.Application.get_default()
-        if application:
+        if application and application.window:
             window = application.window
-            if window:
-                if window.download_queue.is_empty:
-                    updater = updater_factory(application)
-                    component_updaters = updater.create_component_updaters()
-                    if component_updaters:
-                        def on_complete(_result):
-                            if len(component_updaters) == 1:
-                                update_box.show_completion_markup(_("1 component has been updated."))
-                            else:
-                                update_box.show_completion_markup(
-                                    _("%d components have been updated.") % len(component_updaters))
+            if window.download_queue.is_empty:
+                updater = updater_factory()
+                component_updaters = updater.create_component_updaters()
+                if component_updaters:
+                    def on_complete(_result):
+                        if len(component_updaters) == 1:
+                            update_box.show_completion_markup(_("1 component has been updated."))
+                        else:
+                            update_box.show_completion_markup(
+                                _("%d components have been updated.") % len(component_updaters))
 
-                        update_box.show_running_markup(_("<i>Checking for updates...</i>"))
-                        window.install_runtime_component_updates(component_updaters, updater,
-                                                                 completion_function=on_complete,
-                                                                 error_function=update_box.show_error)
-                    else:
-                        update_box.show_completion_markup(_("No updates are required at this time."))
+                    update_box.show_running_markup(_("<i>Checking for updates...</i>"))
+                    window.install_runtime_component_updates(component_updaters, updater,
+                                                             completion_function=on_complete,
+                                                             error_function=update_box.show_error)
                 else:
-                    ErrorDialog(_("Updates cannot begin while downloads are already underway."),
-                                parent=self.get_toplevel())
+                    update_box.show_completion_markup(_("No updates are required at this time."))
+            else:
+                ErrorDialog(_("Updates cannot begin while downloads are already underway."),
+                            parent=self.get_toplevel())
 
     def on_update_channel_toggled(self, checkbox, value):
         """Update setting when update channel is toggled

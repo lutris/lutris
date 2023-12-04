@@ -15,6 +15,7 @@ import requests
 
 from lutris import settings
 from lutris.util import http, system
+from lutris.util.display import get_gpus_info
 from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -39,10 +40,13 @@ def check_stale_runtime_versions() -> bool:
         return True
 
 
-def download_runtime_versions(pci_ids: list) -> Dict[str, Any]:
+def download_runtime_versions() -> Dict[str, Any]:
     """Queries runtime + runners + current client versions and stores the result
     in a file; the mdate of this file is used to decide when it is stale and should
     be replaced."""
+    gpus_info = get_gpus_info()
+    pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpus_info.values()]
+
     url = settings.SITE_URL + "/api/runtimes/versions?pci_ids=" + ",".join(pci_ids)
     response = http.Request(url, headers={"Content-Type": "application/json"})
     try:

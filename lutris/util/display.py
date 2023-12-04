@@ -3,6 +3,8 @@
 import enum
 import os
 import subprocess
+from functools import lru_cache
+
 import gi
 
 try:
@@ -68,6 +70,7 @@ def has_graphic_adapter_description(match_text):
     return False
 
 
+@lru_cache(maxsize=None)
 def get_gpus_info():
     """Return the information related to each GPU on the system"""
     return {card: drivers.get_gpu_info(card) for card in drivers.get_gpus()}

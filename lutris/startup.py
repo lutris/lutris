@@ -135,9 +135,9 @@ def fill_missing_platforms():
             game.save_platform()
 
 
-def run_all_checks():
+def run_all_checks() -> None:
     """Run all startup checks"""
-    driver_info = get_drivers()
+    get_drivers()  # drivers dict is not used, but may log information
     gpus_info = get_gpus_info()
     for gpu_id, gpu_info in gpus_info.items():
         display_gpu_info(gpu_id, gpu_info)
@@ -147,10 +147,6 @@ def run_all_checks():
     preload_vulkan_gpu_names(len(gpus_info) > 1)
     fill_missing_platforms()
     build_path_cache()
-    return {
-        "drivers": driver_info,
-        "gpus": gpus_info
-    }
 
 
 def init_lutris():
