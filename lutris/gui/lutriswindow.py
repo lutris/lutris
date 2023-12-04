@@ -1147,8 +1147,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         we can determine that there are updates to perform."""
 
         def create_runtime_updater():
-            pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpu_info["gpus"].values()]
-            runtime_updater = RuntimeUpdater(pci_ids=pci_ids, force=force_updates)
+            runtime_updater = RuntimeUpdater(gpu_info=gpu_info, force=force_updates)
             component_updaters = runtime_updater.create_component_updaters()
             return component_updaters, runtime_updater
 

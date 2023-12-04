@@ -136,7 +136,7 @@ class UpdatesBox(BaseConfigBox):
 
     def on_runners_update_clicked(self, _widget):
         def get_updater(application):
-            updater = RuntimeUpdater(application.gpu_info)
+            updater = RuntimeUpdater(gpu_info=application.gpu_info)
             updater.update_runners = True
             return updater
 
@@ -144,7 +144,7 @@ class UpdatesBox(BaseConfigBox):
 
     def on_runtime_update_clicked(self, _widget):
         def get_updater(application):
-            updater = RuntimeUpdater(application.gpu_info)
+            updater = RuntimeUpdater(gpu_info=application.gpu_info)
             updater.update_runtime = True
             return updater
 
