@@ -49,13 +49,7 @@ class TrashPortal(GObject.Object):
     def _call_cb(self, obj, result):
         values = obj.call_finish(result)
         if values:
-            result = values[0]
-            if result == 0:
-                print("Trash failed")
-            elif result == 1:
-                print("Trash succeeded")
-            else:
-                print("?")
+            self.result = values[0]
 
     def store_result(self, result):
         self.result = result

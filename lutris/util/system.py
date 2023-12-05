@@ -20,6 +20,7 @@ from lutris import settings
 from lutris.exceptions import MissingExecutableError
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.portals import TrashPortal
 
 # Home folders that should never get deleted.
 PROTECTED_HOME_FOLDERS = (
@@ -343,10 +344,9 @@ def remove_folder(path):
     logger.debug("Removing folder %s", path)
     if os.path.samefile(os.path.expanduser("~"), path):
         raise RuntimeError("Lutris tried to erase home directory!")
-    try:
-        shutil.rmtree(path)
-    except OSError as ex:
-        logger.error("Failed to remove folder %s: %s (Error code %s)", path, ex.strerror, ex.errno)
+    trash = TrashPortal(path)
+    if trash.result == 0:
+        logger.error("Failed to remove folder %s", path)
         return False
     return True
 
