@@ -63,7 +63,7 @@ class UpdatesBox(BaseConfigBox):
             ) % wine_version_info['version']
             update_button_text = _("Download %s") % wine_version_info['version']
         else:
-            update_button_text = _(
+            update_label_text = _(
                 "You don't have the recommended Wine version: <b>%s</b>"
             ) % wine_version_info['version']
             update_button_text = _("Download %s") % wine_version_info['version']
