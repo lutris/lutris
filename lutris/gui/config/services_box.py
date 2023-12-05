@@ -23,7 +23,7 @@ class ServicesBox(BaseConfigBox):
         self.frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         self.listbox = Gtk.ListBox(visible=True)
         self.frame.add(self.listbox)
-        self.pack_start(self.frame, False, False, 12)
+        self.pack_start(self.frame, False, False, 0)
         GLib.idle_add(self.populate_services)
 
     def populate_services(self):

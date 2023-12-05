@@ -26,12 +26,12 @@ class UpdatesBox(BaseConfigBox):
         update_channel_radio_buttons = self.get_update_channel_radio_buttons()
 
         update_label_text, update_button_text = self.get_wine_update_texts()
-        self.update_runnners_box = UpdateButtonBox(update_label_text,
-                                                   update_button_text,
-                                                   clicked=self.on_runners_update_clicked)
+        self.update_runners_box = UpdateButtonBox(update_label_text,
+                                                  update_button_text,
+                                                  clicked=self.on_runners_update_clicked)
 
-        self.pack_start(self._get_framed_options_list_box(update_channel_radio_buttons), False, False, 12)
-        self.pack_start(self._get_framed_options_list_box([self.update_runnners_box]), False, False, 12)
+        self.pack_start(self._get_framed_options_list_box(update_channel_radio_buttons), False, False, 0)
+        self.pack_start(self._get_framed_options_list_box([self.update_runners_box]), False, False, 0)
 
         self.add(self.get_section_label(_("Runtime updates")))
         self.add(self.get_description_label(
@@ -47,12 +47,12 @@ class UpdatesBox(BaseConfigBox):
             default=True,
             extra_widget=self.update_runtime_box
         )
-        self.pack_start(self._get_framed_options_list_box([update_runtime_box]), False, False, 12)
+        self.pack_start(self._get_framed_options_list_box([update_runtime_box]), False, False, 0)
         self.add(self.get_section_label(_("Media updates")))
         self.update_media_box = UpdateButtonBox("",
                                                 _("Download Missing Media"),
                                                 clicked=self.on_download_media_clicked)
-        self.pack_start(self._get_framed_options_list_box([self.update_media_box]), False, False, 12)
+        self.pack_start(self._get_framed_options_list_box([self.update_media_box]), False, False, 0)
 
     def get_update_channel_radio_buttons(self):
         update_channel = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
@@ -100,7 +100,11 @@ class UpdatesBox(BaseConfigBox):
                 "You don't have the recommended Wine version: <b>%s</b>"
             ) % wine_version_info['version']
             update_button_text = _("Download %s") % wine_version_info['version']
-        return (update_label_text, update_button_text)
+        return update_label_text, update_button_text
+
+    def apply_wine_update_texts(self, completion_markup: str = "") -> None:
+        label_markup, _button_label = self.get_wine_update_texts()
+        self.update_runners_box.show_completion_markup(label_markup, completion_markup)
 
     def _get_radio_button(self, label_markup, active, group, margin=12):
         radio_button = Gtk.RadioButton.new_from_widget(group)
@@ -126,7 +130,7 @@ class UpdatesBox(BaseConfigBox):
         if error:
             self.update_media_box.show_error(error)
         elif not result:
-            self.update_media_box.show_completion_markup(_("Nothing to update"))
+            self.update_media_box.show_completion_markup("", _("Nothing to update"))
         elif any(result.values()):
             update_text = _("Updated: ")
             names = {
@@ -139,13 +143,13 @@ class UpdatesBox(BaseConfigBox):
                     if not update_text.endswith(": "):
                         update_text += ", "
                     update_text += f"{value} {names[key]}{'s' if value > 1 else ''}"
-            self.update_media_box.show_completion_markup(update_text)
+            self.update_media_box.show_completion_markup("", update_text)
 
             application = Gio.Application.get_default()
             if application and application.window:
                 application.window.queue_draw()
         else:
-            self.update_media_box.show_completion_markup(_("No new media found."))
+            self.update_media_box.show_completion_markup("", _("No new media found."))
 
     def _get_main_window(self):
         application = Gio.Application.get_default()
@@ -155,6 +159,7 @@ class UpdatesBox(BaseConfigBox):
         return application.window
 
     def on_runners_update_clicked(self, _widget):
+
         window = self._get_main_window()
         if not window:
             return
@@ -163,23 +168,19 @@ class UpdatesBox(BaseConfigBox):
         component_updaters = updater.create_component_updaters()
         if component_updaters:
             def on_complete(_result):
-                self.update_runnners_box.show_completion_markup("")
-                update_label, _update_button = self.get_wine_update_texts()
-                self.update_runnners_box.label.set_markup(update_label)
+                self.apply_wine_update_texts()
 
             started = window.install_runtime_component_updates(component_updaters, updater,
                                                                completion_function=on_complete,
-                                                               error_function=self.update_runnners_box.show_error)
+                                                               error_function=self.update_runners_box.show_error)
 
             if started:
-                self.update_runnners_box.show_running_markup(_("<i>Downloading...</i>"))
+                self.update_runners_box.show_running_markup(_("<i>Downloading...</i>"))
             else:
                 NoticeDialog(_("Updates are already being downloaded and installed."),
                              parent=self.get_toplevel())
         else:
-            self.update_runnners_box.show_completion_markup(_("No updates are required at this time."))
-            update_label, _update_button = self.get_wine_update_texts()
-            self.update_runnners_box.label.set_markup(update_label)
+            self.apply_wine_update_texts(_("No updates are required at this time."))
 
     def on_runtime_update_clicked(self, _widget):
         def get_updater():
@@ -200,10 +201,10 @@ class UpdatesBox(BaseConfigBox):
         if component_updaters:
             def on_complete(_result):
                 if len(component_updaters) == 1:
-                    update_box.show_completion_markup(_("1 component has been updated."))
+                    update_box.show_completion_markup("", _("1 component has been updated."))
                 else:
-                    update_box.show_completion_markup(
-                        _("%d components have been updated.") % len(component_updaters))
+                    update_box.show_completion_markup("",
+                                                      _("%d components have been updated.") % len(component_updaters))
 
             started = window.install_runtime_component_updates(component_updaters, updater,
                                                                completion_function=on_complete,
@@ -215,7 +216,7 @@ class UpdatesBox(BaseConfigBox):
                 NoticeDialog(_("Updates are already being downloaded and installed."),
                              parent=self.get_toplevel())
         else:
-            update_box.show_completion_markup(_("No updates are required at this time."))
+            update_box.show_completion_markup("", _("No updates are required at this time."))
 
     def on_update_channel_toggled(self, checkbox, value):
         """Update setting when update channel is toggled
@@ -234,7 +235,7 @@ class UpdateButtonBox(Gtk.Box):
     """A box containing a button to start updating something, with methods to show a result
     when done."""
 
-    def __init__(self, label: str, button_label: str, clicked):
+    def __init__(self, label: str, button_label: str, clicked: Callable[[Gtk.Widget], None]):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL, margin=12, spacing=6, visible=True)
 
         self.label = Gtk.Label(visible=True, xalign=0)
@@ -250,23 +251,24 @@ class UpdateButtonBox(Gtk.Box):
         self.result_label = Gtk.Label()
         self.pack_end(self.result_label, False, False, 0)
 
-    def show_running_markup(self, markup):
+    def show_running_markup(self, markup: str) -> None:
         self.button.hide()
         self.result_label.set_markup(markup)
         self.result_label.show()
         self.spinner.show()
         self.spinner.start()
 
-    def show_completion_markup(self, markup):
+    def show_completion_markup(self, label_markup: str, completion_markup: str) -> None:
         self.button.hide()
         self.result_label.show()
         self.spinner.stop()
         self.spinner.hide()
-        self.result_label.set_markup(markup)
+        self.label.set_markup(label_markup)
+        self.result_label.set_markup(completion_markup)
 
-    def show_error(self, error):
+    def show_error(self, error: Exception) -> None:
         self.button.hide()
         self.result_label.show()
         self.spinner.stop()
         self.spinner.hide()
-        self.result_label.set_markup("<b>Error:</b>%s" % gtk_safe(error))
+        self.result_label.set_markup("<b>Error:</b>%s" % gtk_safe(str(error)))

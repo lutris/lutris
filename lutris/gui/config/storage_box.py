@@ -15,7 +15,7 @@ class StorageBox(BaseConfigBox):
         super().__init__()
         self.add(self.get_section_label(_("Paths")))
         path_widgets = self.get_path_widgets()
-        self.pack_start(self._get_framed_options_list_box(path_widgets), False, False, 16)
+        self.pack_start(self._get_framed_options_list_box(path_widgets), False, False, 0)
 
     def get_path_widgets(self):
         widgets = []
@@ -46,8 +46,8 @@ class StorageBox(BaseConfigBox):
     def get_directory_chooser(self, path_setting):
         label = Label()
         label.set_markup("<b>%s</b>" % path_setting["name"])
-        chooser_wrapper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4, visible=True)
-        chooser_wrapper.set_margin_top(16)
+        wrapper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4, visible=True)
+        wrapper.set_margin_top(16)
 
         default_path = path_setting["default"]
         directory_chooser = FileChooserEntry(
@@ -57,21 +57,20 @@ class StorageBox(BaseConfigBox):
             default_path=default_path
         )
         directory_chooser.connect("changed", self.on_file_chooser_changed, path_setting)
-        chooser_wrapper.pack_start(label, False, False, 0)
-        chooser_wrapper.pack_start(directory_chooser, True, True, 0)
+        wrapper.pack_start(label, False, False, 0)
+        wrapper.pack_start(directory_chooser, True, True, 0)
         if path_setting["help"]:
             help_wrapper = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, visible=True)
-            help_wrapper.add(chooser_wrapper)
+            help_wrapper.add(wrapper)
             help_label = Label()
             help_label.set_markup("<i>%s</i>" % path_setting["help"])
             help_wrapper.add(help_label)
-            help_wrapper.set_margin_bottom(16)
-            help_wrapper.set_margin_start(16)
-            return help_wrapper
-        chooser_wrapper.set_margin_start(16)
-        chooser_wrapper.set_margin_bottom(16)
+            wrapper = help_wrapper
+        wrapper.set_margin_start(16)
+        wrapper.set_margin_end(16)
+        wrapper.set_margin_bottom(16)
 
-        return chooser_wrapper
+        return wrapper
 
     def on_file_chooser_changed(self, entry, setting):
         text = entry.get_text()

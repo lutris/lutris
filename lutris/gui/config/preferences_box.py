@@ -26,7 +26,7 @@ class InterfacePreferencesBox(BaseConfigBox):
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         listbox = Gtk.ListBox(visible=True)
         frame.add(listbox)
-        self.pack_start(frame, False, False, 12)
+        self.pack_start(frame, False, False, 0)
         for setting_key, label in self.settings_options.items():
             list_box_row = Gtk.ListBoxRow(visible=True)
             list_box_row.set_selectable(False)

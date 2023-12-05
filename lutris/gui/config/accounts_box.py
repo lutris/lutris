@@ -16,7 +16,7 @@ class AccountsBox(BaseConfigBox):
             _("Select which Steam account is used for Lutris integration and creating Steam shortcuts.")
         ))
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
-        self.pack_start(frame, False, False, 12)
+        self.pack_start(frame, False, False, 0)
 
         vbox = Gtk.VBox(visible=True)
         frame.add(vbox)

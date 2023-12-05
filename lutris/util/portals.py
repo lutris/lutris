@@ -1,4 +1,5 @@
 import os
+
 from gi.repository import Gio, GLib, GObject
 
 PORTAL_BUS_NAME = "org.freedesktop.portal.Desktop"

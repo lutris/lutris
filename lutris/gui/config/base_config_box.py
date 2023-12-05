@@ -22,7 +22,6 @@ class BaseConfigBox(VBox):
         label = Gtk.Label(visible=True)
         label.set_markup("<b>%s</b>" % text)
         label.set_alignment(0, 0.5)
-        label.set_margin_bottom(8)
         return label
 
     def get_description_label(self, text: str) -> Gtk.Label:
