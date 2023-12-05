@@ -42,9 +42,9 @@ def get_services():
     }
     if BNET_ENABLED:
         _services["battlenet"] = BattleNetService
-    if not LINUX_SYSTEM.is_flatpak:
+    if not LINUX_SYSTEM.is_flatpak():
         _services["xdg"] = XDGService
-    if LINUX_SYSTEM.has_steam:
+    if LINUX_SYSTEM.has_steam():
         _services["steam"] = SteamService
     _services["steamwindows"] = SteamWindowsService
     if system.path_exists(DOLPHIN_GAME_CACHE_FILE):

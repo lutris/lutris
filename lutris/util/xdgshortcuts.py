@@ -15,7 +15,7 @@ from lutris.util.log import logger
 
 
 def get_lutris_executable():
-    if LINUX_SYSTEM.is_flatpak:
+    if LINUX_SYSTEM.is_flatpak():
         return "flatpak run net.lutris.Lutris"
     return "lutris"
 
@@ -101,7 +101,7 @@ def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desk
         logger.debug("Creating Desktop icon in %s", launcher_path)
         shutil.copy(tmp_launcher_path, launcher_path)
     if menu:
-        user_dir = os.path.expanduser("~/.local/share") if LINUX_SYSTEM.is_flatpak else GLib.get_user_data_dir()
+        user_dir = os.path.expanduser("~/.local/share") if LINUX_SYSTEM.is_flatpak() else GLib.get_user_data_dir()
         menu_path = os.path.join(user_dir, "applications")
         os.makedirs(menu_path, exist_ok=True)
         launcher_path = os.path.join(menu_path, launcher_filename)

@@ -236,7 +236,6 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
             logger.exception("Unable to determine NVidia version: %s", ex)
             return False
 
-    @property
     def has_steam(self):
         """Return whether Steam is installed locally"""
         return (
@@ -250,7 +249,6 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         """Return the display server used"""
         return os.environ.get("XDG_SESSION_TYPE", "unknown")
 
-    @property
     def is_flatpak(self):
         """Check is we are running inside Flatpak sandbox"""
         return system.path_exists("/.flatpak-info")

@@ -114,7 +114,7 @@ class steam(Runner):
 
     @property
     def runnable_alone(self):
-        return not linux.LINUX_SYSTEM.is_flatpak
+        return not linux.LINUX_SYSTEM.is_flatpak()
 
     @property
     def appid(self):
@@ -144,7 +144,7 @@ class steam(Runner):
             return appmanifests[0]
 
     def get_executable(self) -> str:
-        if linux.LINUX_SYSTEM.is_flatpak:
+        if linux.LINUX_SYSTEM.is_flatpak():
             # Fallback to xgd-open for Steam URIs in Flatpak
             return system.find_executable("xdg-open")
         if self.runner_config.get("lsi_steam") and system.can_find_executable("lsi-steam"):
@@ -221,7 +221,7 @@ class steam(Runner):
             command = [binary_path]
         else:
             # Start through steam
-            if linux.LINUX_SYSTEM.is_flatpak:
+            if linux.LINUX_SYSTEM.is_flatpak():
                 if game_args:
                     steam_uri = "steam://run/%s//%s/" % (self.appid, game_args)
                 else:

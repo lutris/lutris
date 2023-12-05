@@ -243,7 +243,7 @@ class VkPhysicalDeviceProperties(Structure):
 
 
 @lru_cache(maxsize=None)
-def is_vulkan_supported():
+def is_vulkan_supported() -> bool:
     """
     Returns True iff vulkan library can be loaded, initialized,
     and reports at least one physical device available.

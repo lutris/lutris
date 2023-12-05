@@ -116,15 +116,6 @@ class UpdatesBox(BaseConfigBox):
         label.props.wrap = True
         return radio_button
 
-    def _get_framed_options_list_box(self, items):
-        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
-        list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
-        frame.add(list_box)
-
-        for item in items:
-            list_box.add(Gtk.ListBoxRow(child=item, visible=True, activatable=False))
-        return frame
-
     def on_download_media_clicked(self, _widget):
         self.update_media_box.show_running_markup(_("<i>Checking for missing media...</i>"))
         AsyncCall(sync_media, self.on_media_updated)

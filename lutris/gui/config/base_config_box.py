@@ -10,6 +10,14 @@ from lutris.gui.widgets.common import VBox
 class BaseConfigBox(VBox):
     settings_accelerators = {}
 
+    def __init__(self):
+        super().__init__(visible=True, spacing=12)
+        self.accelerators = None
+        self.set_margin_top(50)
+        self.set_margin_bottom(50)
+        self.set_margin_right(80)
+        self.set_margin_left(80)
+
     def get_section_label(self, text: str) -> Gtk.Label:
         label = Gtk.Label(visible=True)
         label.set_markup("<b>%s</b>" % text)
@@ -24,13 +32,14 @@ class BaseConfigBox(VBox):
         label.set_alignment(0, 0.5)
         return label
 
-    def __init__(self):
-        super().__init__(visible=True)
-        self.accelerators = None
-        self.set_margin_top(50)
-        self.set_margin_bottom(50)
-        self.set_margin_right(80)
-        self.set_margin_left(80)
+    def _get_framed_options_list_box(self, items):
+        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
+        list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
+        frame.add(list_box)
+
+        for item in items:
+            list_box.add(Gtk.ListBoxRow(child=item, visible=True, activatable=False))
+        return frame
 
     def get_setting_box(self, setting_key: str, label: str,
                         default: bool = False,
