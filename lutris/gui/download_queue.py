@@ -1,6 +1,6 @@
 # pylint: disable=no-member
 import os
-from typing import Any, Callable, Dict, Iterable
+from typing import Any, Callable, Dict, Iterable, List, Set
 
 from gi.repository import Gtk
 
@@ -27,6 +27,7 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self.revealer = revealer
         self.init_template()
 
+        self.running_operation_names: Set[str] = set()
         self.progress_boxes: Dict[ProgressBox.ProgressFunction, ProgressBox] = {}
 
         try:
@@ -89,38 +90,54 @@ class DownloadQueue(Gtk.ScrolledWindow):
             if not self.progress_boxes:
                 self.revealer.set_reveal_child(False)
 
-    def start(self, func: Callable[[], Any],
+    def start(self, operation: Callable[[], Any],
               progress_function: ProgressBox.ProgressFunction,
               completion_function: CompletionFunction = None,
-              error_function: ErrorFunction = None):
-        """Runs 'func' on a thread, while displaying a progress bar. The 'progress_function'
-        controls this progress bar, and is removed when the function completes.
+              error_function: ErrorFunction = None,
+              operation_name: str = None) -> bool:
+        """Runs 'operation' on a thread, while displaying a progress bar. The 'progress_function'
+        controls this progress bar, and it is removed when the 'operation' completes.
 
-        After that, the completion function executes on the main thread, and is given
-        whatever the original func returned. If it raises an error, then error_function
-        is called with that instead."""
+        If 'operation_name' is given, it is added to self.running_operation_names while
+        the 'operation' runs. If the name is present already, this method does nothing
+        but returns False. If the worker thread has started, this returns True.
 
-        self.add_progress_box(progress_function)
+        Args:
+            operation:              Called on a worker thread
+            progress_function:      Called on the main thread for progress status
+            completion_function:    Called on the main thread on completion, with result
+            error_function:         Called on the main threa don error, with exception
+            operation_name:         Name of operation, to prevent duplicate queued work."""
 
-        def completion_callback(result, error):
-            self.remove_progress_box(progress_function)
+        return self.start_multiple(operation, [progress_function],
+                                   completion_function=completion_function,
+                                   error_function=error_function,
+                                   operation_names=[operation_name] if operation_name else None)
 
-            if error:
-                logger.exception("Failed to execute download-queue function: %s", error)
-                if error_function:
-                    error_function(error)
-            elif completion_function:
-                completion_function(result)
-
-        AsyncCall(func, completion_callback)
-
-    def start_multiple(self, func: Callable[[], Any],
+    def start_multiple(self, operation: Callable[[], Any],
                        progress_functions: Iterable[ProgressBox.ProgressFunction],
                        completion_function: CompletionFunction = None,
-                       error_function: ErrorFunction = None):
-        """Runs 'func' on a thread, while displaying a set of progress bars. The 'progress_functions'
-        control the progress bars, and they are all removed when the function completes. Each
-        progress bar can be also be removed if it's progress function returns ProgressInfo.ended()."""
+                       error_function: ErrorFunction = None,
+                       operation_names: List[str] = None) -> bool:
+        """Runs 'operation' on a thread, while displaying a set of progress bars. The
+        'progress_functions' control these progress bars, and they are removed when the
+        'operation' completes.
+
+        If 'operation_names' is given, they are added to self.running_operation_names while
+        the 'operation' runs. If any name is present already, this method does nothing
+        but returns False. If the worker thread has started, this returns True.
+
+        Args:
+            operation:              Called on a worker thread
+            progress_functions:     Called on the main thread for progress status
+            completion_function:    Called on the main thread on completion, with result
+            error_function:         Called on the main threa don error, with exception
+            operation_names:        Names of operations, to prevent duplicate queued work."""
+
+        if operation_names:
+            if not self.running_operation_names.isdisjoint(operation_names):
+                return False
+            self.running_operation_names.update(operation_names)
 
         # Must capture the functions, since in earlier (<3.8) Pythons functions do not provide
         # value equality, so we need to make sure we're always using what we started with.
@@ -133,6 +150,8 @@ class DownloadQueue(Gtk.ScrolledWindow):
             for to_end in captured_functions:
                 self.remove_progress_box(to_end)
 
+            self.running_operation_names.difference_update(operation_names)
+
             if error:
                 logger.exception("Failed to execute download-queue function: %s", error)
                 if error_function:
@@ -140,4 +159,5 @@ class DownloadQueue(Gtk.ScrolledWindow):
             elif completion_function:
                 completion_function(result)
 
-        AsyncCall(func, completion_callback)
+        AsyncCall(operation, completion_callback)
+        return True

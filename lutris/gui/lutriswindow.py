@@ -1164,11 +1164,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def install_runtime_component_updates(self, updaters: List[ComponentUpdater],
                                           runtime_updater: RuntimeUpdater,
                                           completion_function: DownloadQueue.CompletionFunction = None,
-                                          error_function: DownloadQueue.ErrorFunction = None) -> None:
+                                          error_function: DownloadQueue.ErrorFunction = None) -> bool:
         """Installs a list of component updates. This displays progress bars
         in the sidebar as it installs updates, one at a time."""
 
         queue = self.download_queue
+        operation_names = [f"component_update:{u.name}" for u in updaters]
 
         def install_updates():
             for updater in updaters:
@@ -1176,9 +1177,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
             for updater in updaters:
                 updater.join()
 
-        queue.start_multiple(install_updates, (u.get_progress for u in updaters),
-                             completion_function=completion_function,
-                             error_function=error_function)
+        return queue.start_multiple(install_updates, (u.get_progress for u in updaters),
+                                    completion_function=completion_function,
+                                    error_function=error_function,
+                                    operation_names=operation_names)
 
     def on_watched_error(self, error):
         dialogs.ErrorDialog(error, parent=self)

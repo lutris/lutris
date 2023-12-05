@@ -166,12 +166,18 @@ class UpdatesBox(BaseConfigBox):
                 self.update_runnners_box.show_completion_markup("")
                 update_label, _update_button = self.get_wine_update_texts()
                 self.update_runnners_box.label.set_markup(update_label)
-            self.update_runnners_box.show_running_markup(_("<i>Downloading...</i>"))
-            window.install_runtime_component_updates(component_updaters, updater,
-                                                     completion_function=on_complete,
-                                                     error_function=self.update_runnners_box.show_error)
+
+            started = window.install_runtime_component_updates(component_updaters, updater,
+                                                               completion_function=on_complete,
+                                                               error_function=self.update_runnners_box.show_error)
+
+            if started:
+                self.update_runnners_box.show_running_markup(_("<i>Downloading...</i>"))
+            else:
+                NoticeDialog(_("Updates are already being downloaded and installed."),
+                             parent=self.get_toplevel())
         else:
-            self.update_runnners_box.show_completion_markup("")
+            self.update_runnners_box.show_completion_markup(_("No updates are required at this time."))
             update_label, _update_button = self.get_wine_update_texts()
             self.update_runnners_box.label.set_markup(update_label)
 
@@ -188,26 +194,28 @@ class UpdatesBox(BaseConfigBox):
         window = self._get_main_window()
         if not window:
             return
-        if window.download_queue.is_empty:
-            updater = updater_factory()
-            component_updaters = updater.create_component_updaters()
-            if component_updaters:
-                def on_complete(_result):
-                    if len(component_updaters) == 1:
-                        update_box.show_completion_markup(_("1 component has been updated."))
-                    else:
-                        update_box.show_completion_markup(
-                            _("%d components have been updated.") % len(component_updaters))
 
+        updater = updater_factory()
+        component_updaters = updater.create_component_updaters()
+        if component_updaters:
+            def on_complete(_result):
+                if len(component_updaters) == 1:
+                    update_box.show_completion_markup(_("1 component has been updated."))
+                else:
+                    update_box.show_completion_markup(
+                        _("%d components have been updated.") % len(component_updaters))
+
+            started = window.install_runtime_component_updates(component_updaters, updater,
+                                                               completion_function=on_complete,
+                                                               error_function=update_box.show_error)
+
+            if started:
                 update_box.show_running_markup(_("<i>Checking for updates...</i>"))
-                window.install_runtime_component_updates(component_updaters, updater,
-                                                         completion_function=on_complete,
-                                                         error_function=update_box.show_error)
             else:
-                update_box.show_completion_markup(_("No updates are required at this time."))
+                NoticeDialog(_("Updates are already being downloaded and installed."),
+                             parent=self.get_toplevel())
         else:
-            NoticeDialog(_("Updates cannot begin while downloads are already underway."),
-                         parent=self.get_toplevel())
+            update_box.show_completion_markup(_("No updates are required at this time."))
 
     def on_update_channel_toggled(self, checkbox, value):
         """Update setting when update channel is toggled
