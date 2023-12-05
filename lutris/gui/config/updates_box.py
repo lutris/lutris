@@ -45,7 +45,8 @@ class UpdatesBox(BaseConfigBox):
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
 
-        update_label_text = "Your wine version is up to date.\n<i>Last checked 4 minutes ago.</i>" # Dummy text for presentation, replace with actual data.
+        # Dummy text for presentation, replace with actual data.
+        update_label_text = "Your wine version is up to date.\n<i>Last checked 4 minutes ago.</i>"
         self.update_runnners_box = UpdateButtonBox(update_label_text,
                                                    _("Check for Wine Updates"),
                                                    clicked=self.on_runners_update_clicked)
