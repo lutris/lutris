@@ -67,34 +67,10 @@ def _get_dxvk_warning(config, option_key):
     return None
 
 
-def _get_dxvk_error(config, option_key):
-    """Checks that required libraries are installed on the system"""
-    missing_arch = LINUX_SYSTEM.get_missing_lib_arch("VULKAN")
-    if missing_arch:
-        arches = ", ".join(missing_arch)
-        return _("<b>Error</b> Missing Vulkan libraries\n"
-                 "Lutris was unable to detect Vulkan support for "
-                 "the %s architecture.\n"
-                 "This will prevent many games and programs from working.\n"
-                 "To install it, please use the following guide: "
-                 "<a href='%s'>Installing Graphics Drivers</a>"
-                 ) % (arches, settings.DRIVER_HOWTO_URL)
-
-    if not LINUX_SYSTEM.is_vulkan_supported():
-        return _("<b>Error</b> Vulkan is not installed or is not supported by your system, so DXVK is not available.\n"
-                 "If you have compatible hardware, please follow "
-                 "the installation procedures as described in\n"
-                 "<a href='https://github.com/lutris/docs/blob/master/HowToDXVK.md'>"
-                 "How-to:-DXVK (https://github.com/lutris/docs/blob/master/HowToDXVK.md)</a>"
-                 )
-
-    return None
-
-
 def _get_simple_vulkan_support_error(config, option_key, feature):
     if not LINUX_SYSTEM.is_vulkan_supported():
         return _("<b>Error</b> Vulkan is not installed or is not supported by your system, "
-                 "so %s is not available.") % feature
+                 "%s is not available.") % feature
     return None
 
 
@@ -276,7 +252,7 @@ class wine(Runner):
                 "type": "bool",
                 "default": True,
                 "warning": _get_dxvk_warning,
-                "error": _get_dxvk_error,
+                "error": lambda c, k: _get_simple_vulkan_support_error(c, k, _("DXVK")),
                 "active": True,
                 "help": _(
                     "Use DXVK to "
