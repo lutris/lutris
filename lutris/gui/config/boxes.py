@@ -758,7 +758,7 @@ class RunnerBox(ConfigBox):
             ))
 
 
-class SystemBox(ConfigBox):
+class SystemConfigBox(ConfigBox):
     config_section = "system"
 
     def __init__(self, lutris_config):

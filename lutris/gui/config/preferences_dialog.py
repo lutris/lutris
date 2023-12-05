@@ -6,12 +6,12 @@ from gi.repository import GObject, Gtk
 
 from lutris.config import LutrisConfig
 from lutris.gui.config.accounts_box import AccountsBox
-from lutris.gui.config.boxes import SystemBox
+from lutris.gui.config.boxes import SystemConfigBox
 from lutris.gui.config.common import GameDialogCommon
 from lutris.gui.config.preferences_box import InterfacePreferencesBox
 from lutris.gui.config.runners_box import RunnersBox
 from lutris.gui.config.services_box import ServicesBox
-from lutris.gui.config.sysinfo_box import SysInfoBox
+from lutris.gui.config.sysinfo_box import SystemBox
 from lutris.gui.config.updates_box import UpdatesBox
 
 
@@ -73,14 +73,14 @@ class PreferencesDialog(GameDialogCommon):
             "updates-stack"
         )
 
-        sysinfo_box = SysInfoBox()
+        sysinfo_box = SystemBox()
         self.page_generators["sysinfo-stack"] = sysinfo_box.populate
         self.stack.add_named(
             self.build_scrolled_window(sysinfo_box),
             "sysinfo-stack"
         )
 
-        self.system_box = SystemBox(self.lutris_config)
+        self.system_box = SystemConfigBox(self.lutris_config)
         self.page_generators["system-stack"] = self.system_box.generate_widgets
         self.stack.add_named(
             self.build_scrolled_window(self.system_box),

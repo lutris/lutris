@@ -12,7 +12,7 @@ from lutris.exceptions import watch_errors
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
-from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox, UnderslungMessageBox
+from lutris.gui.config.boxes import GameBox, RunnerBox, SystemConfigBox, UnderslungMessageBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.widgets.common import FloatEntry, Label, NumberEntry, SlugEntry
@@ -453,7 +453,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
     def _build_system_tab(self, _config_level):
         self.system_box = self._build_options_tab(_("System options"),
-                                                  lambda: SystemBox(self.lutris_config))
+                                                  lambda: SystemConfigBox(self.lutris_config))
 
     def _build_options_tab(self, notebook_label, box_factory, advanced=True, searchable=True):
         if not self.lutris_config:

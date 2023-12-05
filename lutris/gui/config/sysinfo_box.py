@@ -6,7 +6,7 @@ from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util.linux import gather_system_info_str
 
 
-class SysInfoBox(Gtk.Box):
+class SystemBox(Gtk.Box):
     settings_options = {
         "hide_client_on_game_start": _("Minimize client when a game is launched"),
         "hide_text_under_icons": _("Hide text under icons"),
