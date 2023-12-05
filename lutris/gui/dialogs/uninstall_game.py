@@ -199,11 +199,11 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             if len(delete_files_warning_games) == 1:
                 question = _(
                     "Please confirm.\nEverything under <b>%s</b>\n"
-                    "will be deleted."
+                    "will be moved to the trash."
                 ) % gtk_safe(delete_files_warning_games[0].directory)
             else:
                 question = _(
-                    "Please confirm.\nAll the files for %d games will be deleted."
+                    "Please confirm.\nAll the files for %d games will be moved to the trash."
                 ) % len(delete_files_warning_games)
 
             dlg = QuestionDialog(
