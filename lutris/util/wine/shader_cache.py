@@ -7,7 +7,7 @@ from lutris.settings import RUNTIME_DIR
 from lutris.util.extract import extract_archive
 from lutris.util.http import download_file
 from lutris.util.log import logger
-from lutris.util.system import create_folder, execute, remove_folder
+from lutris.util.system import create_folder, delete_folder, execute
 
 
 def update_shader_cache(game):
@@ -62,6 +62,6 @@ def update_shader_cache(game):
         if not os.path.exists(output_path):
             logger.error("Merging of shader failed")
         shutil.copy(output_path, local_cache_path)
-    remove_folder(shader_merge_path)
+    delete_folder(shader_merge_path)
     game.config.game_level["game"]["dxvk_cache_updated_at"] = most_recent_update
     game.config.save()

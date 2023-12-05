@@ -387,7 +387,7 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
             dest_path = os.path.join(dest_path, self.version)
         else:
             # Delete the existing runtime path
-            system.remove_folder(dest_path)
+            system.delete_folder(dest_path)
         # Extract the runtime archive
         self.state = ComponentUpdater.EXTRACTING
         archive_path, _destination_path = extract_archive(path, dest_path, merge_single=True)

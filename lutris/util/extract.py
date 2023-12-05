@@ -177,7 +177,7 @@ def extract_archive(path: str, to_directory: str = ".", merge_single: bool = Tru
                         raise ExtractFailure(str(ex)) from ex
             else:
                 shutil.move(source_path, destination_path)
-        system.remove_folder(temp_dir)
+        system.delete_folder(temp_dir)
     logger.debug("Finished extracting %s to %s", path, to_directory)
     return path, to_directory
 

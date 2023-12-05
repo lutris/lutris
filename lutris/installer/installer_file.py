@@ -276,6 +276,6 @@ class InstallerFile:
             # to download a file now. Since we are not using the cache, we don't keep
             # these files anyway - so it should be safe to just nuke and pave all this.
             if os.path.isdir(self.dest_file):
-                system.remove_folder(self.dest_file)
+                system.delete_folder(self.dest_file)
             else:
                 os.remove(self.dest_file)

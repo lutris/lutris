@@ -388,7 +388,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     def cleanup(self):
         """Clean up install dir after a successful install"""
         os.chdir(os.path.expanduser("~"))
-        system.remove_folder(self.cache_path)
+        system.delete_folder(self.cache_path)
 
     def revert(self, remove_game_dir=True):
         """Revert installation in case of an error"""

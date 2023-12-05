@@ -348,6 +348,26 @@ def remove_folder(path: str) -> None:
     TrashPortal(path)
 
 
+def delete_folder(path):
+    """Delete a folder specified by path immediately. The folder will not
+    be recoverable, so consider remove_folder() instead.
+
+    Returns true if the folder was successfully deleted.
+    """
+    if not os.path.exists(path):
+        logger.warning("Non existent path: %s", path)
+        return False
+    if os.path.samefile(os.path.expanduser("~"), path):
+        raise RuntimeError("Lutris tried to erase home directory!")
+    logger.debug("Deleting folder %s", path)
+    try:
+        shutil.rmtree(path)
+    except OSError as ex:
+        logger.error("Failed to delete folder %s: %s (Error code %s)", path, ex.strerror, ex.errno)
+        return False
+    return True
+
+
 def create_folder(path):
     """Creates a folder specified by path"""
     if not path:
