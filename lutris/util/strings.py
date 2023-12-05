@@ -2,6 +2,7 @@
 import math
 import re
 import shlex
+import time
 import unicodedata
 import uuid
 from gettext import gettext as _
@@ -205,3 +206,30 @@ def human_size(size: int) -> str:
         size = size / 1024
         unit_index += 1
     return "%0.1f %s" % (size, units[unit_index])
+
+
+def time_ago(timestamp: float) -> str:
+    time_delta = time.time() - timestamp
+    original_time_delta = time_delta
+    if time_delta < 0:
+        raise ValueError("Timestamp %s is in the future" % timestamp)
+    output = ""
+    day_in_seconds = 3600 * 24
+    hour_in_seconds = 3600
+    days = 0
+    hours = 0
+    if time_delta >= 2 * day_in_seconds:
+        days = int(time_delta // day_in_seconds)
+        output += f"{days} days "
+    if time_delta > 2 * hour_in_seconds:
+        hours = int(time_delta // hour_in_seconds)
+        time_delta = time_delta - hours * hour_in_seconds
+        output += f"{hours} hours "
+    if not days and hours < 5 and time_delta > 60:
+        minutes = int(time_delta // 60)
+        time_delta = time_delta - minutes * 60
+        output += f"{minutes} minute{'s' if minutes > 1 else ''} "
+    if original_time_delta < 90:
+        seconds = int(time_delta)
+        output += f"{seconds} second{'s' if seconds > 1 else ''} "
+    return output + "ago"

@@ -1,17 +1,20 @@
+import os
 from gettext import gettext as _
 from typing import Callable
 
 from gi.repository import Gio, Gtk
 
 from lutris import settings
-from lutris.util.log import logger
+from lutris.api import get_default_runner_version_info, get_runtime_versions_date
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.dialogs import NoticeDialog
 from lutris.runtime import RuntimeUpdater
 from lutris.services.lutris import sync_media
 from lutris.settings import UPDATE_CHANNEL_STABLE, UPDATE_CHANNEL_UNSUPPORTED
+from lutris.util import system
 from lutris.util.jobs import AsyncCall
-from lutris.util.strings import gtk_safe
+from lutris.util.log import logger
+from lutris.util.strings import gtk_safe, time_ago
 
 
 class UpdatesBox(BaseConfigBox):
@@ -45,10 +48,28 @@ class UpdatesBox(BaseConfigBox):
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
 
-        # Dummy text for presentation, replace with actual data.
-        update_label_text = "Your wine version is up to date.\n<i>Last checked 4 minutes ago.</i>"
+        wine_version_info = get_default_runner_version_info("wine")
+        wine_version = f"{wine_version_info['version']}-{wine_version_info['architecture']}"
+        if system.path_exists(os.path.join(settings.RUNNER_DIR, "wine", wine_version)):
+            update_label_text = _(
+                "Your wine version is up to date. Using: <b>%s</b>\n"
+                "<i>Last checked %s.</i>"
+            ) % (wine_version_info['version'], time_ago(get_runtime_versions_date()))
+            update_button_text = _("Check again")
+        elif not system.path_exists(os.path.join(settings.RUNNER_DIR, "wine")):
+            update_label_text = _(
+                "You don't have any Wine version installed.\n"
+                "We recommend <b>%s</b>"
+            ) % wine_version_info['version']
+            update_button_text = _("Download %s") % wine_version_info['version']
+        else:
+            update_button_text = _(
+                "You don't have the recommended Wine version: <b>%s</b>"
+            ) % wine_version_info['version']
+            update_button_text = _("Download %s") % wine_version_info['version']
+
         self.update_runnners_box = UpdateButtonBox(update_label_text,
-                                                   _("Check for Wine Updates"),
+                                                   update_button_text,
                                                    clicked=self.on_runners_update_clicked)
 
         self.pack_start(self._get_framed_options_list_box(
@@ -170,8 +191,8 @@ class UpdatesBox(BaseConfigBox):
 
                 update_box.show_running_markup(_("<i>Checking for updates...</i>"))
                 window.install_runtime_component_updates(component_updaters, updater,
-                                                            completion_function=on_complete,
-                                                            error_function=update_box.show_error)
+                                                         completion_function=on_complete,
+                                                         error_function=update_box.show_error)
             else:
                 update_box.show_completion_markup(_("No updates are required at this time."))
         else:

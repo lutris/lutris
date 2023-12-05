@@ -29,12 +29,19 @@ def get_time_from_api_date(date_string):
     return time.strptime(date_string[:date_string.find(".")], "%Y-%m-%dT%H:%M:%S")
 
 
+def get_runtime_versions_date() -> float:
+    try:
+        return os.path.getmtime(settings.RUNTIME_VERSIONS_PATH)
+    except FileNotFoundError:
+        return 0.0
+
+
 def check_stale_runtime_versions() -> bool:
     """True if runtime versions file that download_runtime_versions() creates
     is missing or stale; if true we must call that function."""
     try:
         threshold = time.time() + 6 * 60 * 60  # 6 hours from now
-        modified_at = os.path.getmtime(settings.RUNTIME_VERSIONS_PATH)
+        modified_at = get_runtime_versions_date()
         return threshold < modified_at
     except FileNotFoundError:
         return True

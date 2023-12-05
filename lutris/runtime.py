@@ -121,9 +121,9 @@ class ComponentUpdater:
 
     status_formats = {
         PENDING: _("Updating %s"),
-        DOWNLOADING: _("Updating %s"),
+        DOWNLOADING: _("Downloading %s"),
         EXTRACTING: _("Extracting %s"),
-        COMPLETED: _("Updating %s"),
+        COMPLETED: _("Updated %s"),
     }
 
     @property
