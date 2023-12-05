@@ -5,7 +5,6 @@ from gi.repository import Gdk, Gtk
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import linux, system
-from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.linux import gather_system_info_str
 from lutris.util.wine.wine import is_esync_limit_set, is_fsync_supported, is_installed_systemwide
 
@@ -49,7 +48,7 @@ class SystemBox(BaseConfigBox):
         features = [
             {
                 "label": _("Vulkan support:\t<b>%s</b>"),
-                "callable": is_vulkan_supported,
+                "callable": linux.LINUX_SYSTEM.is_vulkan_supported,
             },
             {
                 "label": _("Esync support:\t<b>%s</b>"),

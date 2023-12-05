@@ -210,9 +210,12 @@ def human_size(size: int) -> str:
 
 def time_ago(timestamp: float) -> str:
     time_delta = time.time() - timestamp
+
     original_time_delta = time_delta
     if time_delta < 0:
-        raise ValueError("Timestamp %s is in the future" % timestamp)
+        return _("in the future")
+    if time_delta < 5:
+        return _("just now")
     output = ""
     day_in_seconds = 3600 * 24
     hour_in_seconds = 3600

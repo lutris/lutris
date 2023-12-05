@@ -23,8 +23,39 @@ class UpdatesBox(BaseConfigBox):
         super().__init__()
         self.add(self.get_section_label(_("Wine update channel")))
 
-        update_channel = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
+        update_channel_radio_buttons = self.get_update_channel_radio_buttons()
 
+        update_label_text, update_button_text = self.get_wine_update_texts()
+        self.update_runnners_box = UpdateButtonBox(update_label_text,
+                                                   update_button_text,
+                                                   clicked=self.on_runners_update_clicked)
+
+        self.pack_start(self._get_framed_options_list_box(update_channel_radio_buttons), False, False, 12)
+        self.pack_start(self._get_framed_options_list_box([self.update_runnners_box]), False, False, 12)
+
+        self.add(self.get_section_label(_("Runtime updates")))
+        self.add(self.get_description_label(
+            _("Runtime components include DXVK, VKD3D and Winetricks.")
+        ))
+        self.update_runtime_box = UpdateButtonBox("",
+                                                  _("Check for Updates"),
+                                                  clicked=self.on_runtime_update_clicked)
+
+        update_runtime_box = self.get_setting_box(
+            "auto_update_runtime",
+            _("Automatically Update the Lutris runtime"),
+            default=True,
+            extra_widget=self.update_runtime_box
+        )
+        self.pack_start(self._get_framed_options_list_box([update_runtime_box]), False, False, 12)
+        self.add(self.get_section_label(_("Media updates")))
+        self.update_media_box = UpdateButtonBox("",
+                                                _("Download Missing Media"),
+                                                clicked=self.on_download_media_clicked)
+        self.pack_start(self._get_framed_options_list_box([self.update_media_box]), False, False, 12)
+
+    def get_update_channel_radio_buttons(self):
+        update_channel = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
         markup = _("<b>Stable</b>:\n"
                    "Wine-GE updates are downloaded automatically and the latest version "
                    "is always used unless overridden in the settings.\n"
@@ -47,7 +78,9 @@ class UpdatesBox(BaseConfigBox):
         # Safer to connect these after the active property has been initialized on all radio buttons
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
+        return (stable_channel_radio_button, unsupported_channel_radio_button)
 
+    def get_wine_update_texts(self):
         wine_version_info = get_default_runner_version_info("wine")
         wine_version = f"{wine_version_info['version']}-{wine_version_info['architecture']}"
         if system.path_exists(os.path.join(settings.RUNNER_DIR, "wine", wine_version)):
@@ -67,38 +100,7 @@ class UpdatesBox(BaseConfigBox):
                 "You don't have the recommended Wine version: <b>%s</b>"
             ) % wine_version_info['version']
             update_button_text = _("Download %s") % wine_version_info['version']
-
-        self.update_runnners_box = UpdateButtonBox(update_label_text,
-                                                   update_button_text,
-                                                   clicked=self.on_runners_update_clicked)
-
-        self.pack_start(self._get_framed_options_list_box(
-            [stable_channel_radio_button, unsupported_channel_radio_button]),
-            False, False, 12)
-        self.pack_start(self._get_framed_options_list_box(
-            [self.update_runnners_box]),
-            False, False, 12)
-
-        self.add(self.get_section_label(_("Runtime updates")))
-        self.add(self.get_description_label(
-            _("Runtime components include DXVK, VKD3D and Winetricks.")
-        ))
-        self.update_runtime_box = UpdateButtonBox("",
-                                                  _("Check for Updates"),
-                                                  clicked=self.on_runtime_update_clicked)
-
-        update_runtime_box = self.get_setting_box(
-            "auto_update_runtime",
-            _("Automatically Update the Lutris runtime"),
-            default=True,
-            extra_widget=self.update_runtime_box
-        )
-        self.pack_start(self._get_framed_options_list_box([update_runtime_box]), False, False, 12)
-        self.add(self.get_section_label(_("Media updates")))
-        self.update_media_box = UpdateButtonBox("",
-                                                _("Download Missing Media"),
-                                                clicked=self.on_download_media_clicked)
-        self.pack_start(self._get_framed_options_list_box([self.update_media_box]), False, False, 12)
+        return (update_label_text, update_button_text)
 
     def _get_radio_button(self, label_markup, active, group, margin=12):
         radio_button = Gtk.RadioButton.new_from_widget(group)
@@ -145,13 +147,33 @@ class UpdatesBox(BaseConfigBox):
         else:
             self.update_media_box.show_completion_markup(_("No new media found."))
 
-    def on_runners_update_clicked(self, _widget):
-        def get_updater():
-            updater = RuntimeUpdater()
-            updater.update_runners = True
-            return updater
+    def _get_main_window(self):
+        application = Gio.Application.get_default()
+        if not application or not application.window:
+            logger.error("No application or window found, how does this happen?")
+            return
+        return application.window
 
-        self._trigger_updates(get_updater, self.update_runnners_box)
+    def on_runners_update_clicked(self, _widget):
+        window = self._get_main_window()
+        if not window:
+            return
+        updater = RuntimeUpdater()
+        updater.update_runners = True
+        component_updaters = updater.create_component_updaters()
+        if component_updaters:
+            def on_complete(_result):
+                self.update_runnners_box.show_completion_markup("")
+                update_label, update_button = self.get_wine_update_texts()
+                self.update_runnners_box.label.set_markup(update_label)
+            self.update_runnners_box.show_running_markup(_("<i>Downloading...</i>"))
+            window.install_runtime_component_updates(component_updaters, updater,
+                                                     completion_function=on_complete,
+                                                     error_function=self.update_runnners_box.show_error)
+        else:
+            self.update_runnners_box.show_completion_markup("")
+            update_label, update_button = self.get_wine_update_texts()
+            self.update_runnners_box.label.set_markup(update_label)
 
     def on_runtime_update_clicked(self, _widget):
         def get_updater():
@@ -163,12 +185,9 @@ class UpdatesBox(BaseConfigBox):
 
     def _trigger_updates(self, updater_factory: Callable,
                          update_box: 'UpdateButtonBox') -> None:
-        application = Gio.Application.get_default()
-        if not application or not application.window:
-            logger.error("No application or window found, how does this happen?")
+        window = self._get_main_window()
+        if not window:
             return
-
-        window = application.window
         if window.download_queue.is_empty:
             updater = updater_factory()
             component_updaters = updater.create_component_updaters()
