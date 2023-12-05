@@ -223,16 +223,16 @@ def time_ago(timestamp: float) -> str:
     hours = 0
     if time_delta >= 2 * day_in_seconds:
         days = int(time_delta // day_in_seconds)
-        output += f"{days} days "
+        output += _(f"{days} days ")
     if time_delta > 2 * hour_in_seconds:
         hours = int(time_delta // hour_in_seconds)
         time_delta = time_delta - hours * hour_in_seconds
-        output += f"{hours} hours "
+        output += _(f"{hours} hours ")
     if not days and hours < 5 and time_delta > 60:
         minutes = int(time_delta // 60)
         time_delta = time_delta - minutes * 60
-        output += f"{minutes} minute{'s' if minutes > 1 else ''} "
+        output += _(f"{minutes} minute{'s' if minutes > 1 else ''} ")
     if original_time_delta < 90:
         seconds = int(time_delta)
-        output += f"{seconds} second{'s' if seconds > 1 else ''} "
-    return output + "ago"
+        output += _(f"{seconds} second{'s' if seconds > 1 else ''} ")
+    return output + _("ago")

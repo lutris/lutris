@@ -164,7 +164,7 @@ class UpdatesBox(BaseConfigBox):
         if component_updaters:
             def on_complete(_result):
                 self.update_runnners_box.show_completion_markup("")
-                update_label, update_button = self.get_wine_update_texts()
+                update_label, _update_button = self.get_wine_update_texts()
                 self.update_runnners_box.label.set_markup(update_label)
             self.update_runnners_box.show_running_markup(_("<i>Downloading...</i>"))
             window.install_runtime_component_updates(component_updaters, updater,
@@ -172,7 +172,7 @@ class UpdatesBox(BaseConfigBox):
                                                      error_function=self.update_runnners_box.show_error)
         else:
             self.update_runnners_box.show_completion_markup("")
-            update_label, update_button = self.get_wine_update_texts()
+            update_label, _update_button = self.get_wine_update_texts()
             self.update_runnners_box.label.set_markup(update_label)
 
     def on_runtime_update_clicked(self, _widget):
