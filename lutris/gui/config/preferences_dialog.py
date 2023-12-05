@@ -11,6 +11,7 @@ from lutris.gui.config.common import GameDialogCommon
 from lutris.gui.config.preferences_box import InterfacePreferencesBox
 from lutris.gui.config.runners_box import RunnersBox
 from lutris.gui.config.services_box import ServicesBox
+from lutris.gui.config.storage_box import StorageBox
 from lutris.gui.config.sysinfo_box import SystemBox
 from lutris.gui.config.updates_box import UpdatesBox
 
@@ -39,6 +40,7 @@ class PreferencesDialog(GameDialogCommon):
         sidebar.add(self.get_sidebar_button("accounts-stack", _("Accounts"), "system-users-symbolic"))
         sidebar.add(self.get_sidebar_button("updates-stack", _("Updates"), "system-software-install-symbolic"))
         sidebar.add(self.get_sidebar_button("sysinfo-stack", _("System"), "computer-symbolic"))
+        sidebar.add(self.get_sidebar_button("storage-stack", _("Storage"), "drive-harddisk-symbolic"))
         sidebar.add(self.get_sidebar_button("system-stack", _("Global options"), "emblem-system-symbolic"))
         hbox.pack_start(sidebar, False, False, 0)
         self.stack = Gtk.Stack(visible=True)
@@ -78,6 +80,11 @@ class PreferencesDialog(GameDialogCommon):
         self.stack.add_named(
             self.build_scrolled_window(sysinfo_box),
             "sysinfo-stack"
+        )
+
+        self.stack.add_named(
+            self.build_scrolled_window(StorageBox()),
+            "storage-stack"
         )
 
         self.system_box = SystemConfigBox(self.lutris_config)

@@ -50,7 +50,6 @@ class StyleManager(GObject.Object):
     def _read_portal_setting(self) -> None:
         if not self._dbus_proxy:
             return
-
         variant = GLib.Variant.new_tuple(
             GLib.Variant.new_string("org.freedesktop.appearance"),
             GLib.Variant.new_string("color-scheme"),

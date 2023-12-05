@@ -94,6 +94,7 @@ class FileChooserEntry(Gtk.Box):
         self.entry.connect("backspace", self.on_backspace)
 
         browse_button = Gtk.Button.new_from_icon_name("view-more-horizontal-symbolic", Gtk.IconSize.BUTTON)
+        browse_button.show()
         if action == Gtk.FileChooserAction.SELECT_FOLDER:
             browse_button.set_tooltip_text(_("Select a folder"))
         else:
@@ -102,6 +103,7 @@ class FileChooserEntry(Gtk.Box):
         browse_button.connect("clicked", self.on_browse_clicked)
 
         self.open_button = Gtk.Button.new_from_icon_name("folder-symbolic", Gtk.IconSize.BUTTON)
+        self.open_button.show()
         self.open_button.set_tooltip_text(_("Open in file browser"))
         self.open_button.get_style_context().add_class("circular")
         self.open_button.connect("clicked", self.on_open_clicked)
@@ -334,7 +336,7 @@ class Label(Gtk.Label):
 
     def __init__(self, message=None, width_request=230):
         """Custom init of label."""
-        super().__init__(label=message)
+        super().__init__(label=message, visible=True)
         self.set_line_wrap(True)
         self.set_max_width_chars(22)
         self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
