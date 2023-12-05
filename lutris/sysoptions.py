@@ -163,7 +163,8 @@ system_options = [  # pylint: disable=invalid-name
         "default": False,
         "condition": bool(system.can_find_executable("gamescope")),
         "help": _("Always use relative mouse mode instead of flipping\n"
-                  "dependent on cursor visibility"),
+                  "dependent on cursor visibility\n"
+                  "Can help with games where the player's camera faces the floor"),
     },
     {
         "section": "Gamescope",
