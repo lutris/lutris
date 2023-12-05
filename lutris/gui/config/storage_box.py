@@ -15,7 +15,7 @@ class StorageBox(BaseConfigBox):
         super().__init__()
         self.add(self.get_section_label(_("Paths")))
         path_widgets = self.get_path_widgets()
-        self.pack_start(self._get_framed_options_list_box(path_widgets), False, False, 12)
+        self.pack_start(self._get_framed_options_list_box(path_widgets), False, False, 16)
 
     def get_path_widgets(self):
         widgets = []
@@ -47,7 +47,8 @@ class StorageBox(BaseConfigBox):
         label = Label()
         label.set_markup("<b>%s</b>" % path_setting["name"])
         chooser_wrapper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4, visible=True)
-        chooser_wrapper.set_margin_top(12)
+        chooser_wrapper.set_margin_top(16)
+
         default_path = path_setting["default"]
         directory_chooser = FileChooserEntry(
             title=_("Select folder"),
@@ -64,15 +65,16 @@ class StorageBox(BaseConfigBox):
             help_label = Label()
             help_label.set_markup("<i>%s</i>" % path_setting["help"])
             help_wrapper.add(help_label)
-            help_wrapper.set_margin_bottom(12)
+            help_wrapper.set_margin_bottom(16)
+            help_wrapper.set_margin_start(16)
             return help_wrapper
-        chooser_wrapper.set_margin_bottom(12)
+        chooser_wrapper.set_margin_start(16)
+        chooser_wrapper.set_margin_bottom(16)
+
         return chooser_wrapper
 
     def on_file_chooser_changed(self, entry, setting):
         text = entry.get_text()
-        if text != entry.get_text():
-            entry.set_text(text)
         if setting["setting"] == "pga_cache_path":
             save_cache_path(text)
         elif setting["setting"] == "game_path":

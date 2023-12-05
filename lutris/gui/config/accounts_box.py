@@ -29,9 +29,9 @@ class AccountsBox(BaseConfigBox):
                 main_radio_button,
                 account["PersonaName"]
             )
-            radio_button.set_margin_top(6)
-            radio_button.set_margin_start(12)
-            radio_button.set_margin_bottom(6)
+            radio_button.set_margin_top(16)
+            radio_button.set_margin_start(16)
+            radio_button.set_margin_bottom(16)
             radio_button.show()
             radio_button.set_active(active_steam_account == account["steamid64"])
             radio_button.connect("toggled", self.on_steam_account_toggled, account["steamid64"])

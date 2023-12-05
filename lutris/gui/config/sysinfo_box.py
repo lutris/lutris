@@ -87,6 +87,9 @@ class SystemBox(BaseConfigBox):
         ]
         for feature in features:
             label = Gtk.Label(visible=True, xalign=0)
+            label.set_margin_top(3)
+            label.set_margin_bottom(3)
+            label.set_margin_start(16)
             label.set_markup(feature["label"] % (yes if feature["callable"](*feature.get("args", ())) else no))
             labels.append(label)
         return labels
