@@ -35,7 +35,7 @@ class AsyncCall(threading.Thread):
             _ex_type, _ex_value, trace = sys.exc_info()
             traceback.print_tb(trace)
 
-        self.source_id = GLib.idle_add(_make_idle_safe(self.callback), result, error)
+        self.source_id = schedule_at_idle(self.callback, result, error)
         return self.source_id
 
 
@@ -45,24 +45,17 @@ def synchronized_call(func, event, result):
     event.set()
 
 
-def thread_safe_call(func):
-    """Synchronous call to func, safe to call in a callback started from a thread
-    Not safe to use otherwise, will crash if run from the main thread.
-
-    See: https://pygobject.readthedocs.io/en/latest/guide/threading.html
-    """
-    event = threading.Event()
-    result = []
-    GLib.idle_add(_make_idle_safe(synchronized_call), func, event, result)
-    event.wait()
-    return result[0]
+def schedule_at_idle(func, *args):
+    return GLib.idle_add(_make_idle_safe(func), *args)
 
 
 def _make_idle_safe(function):
     """Wrap a function in another, which just discards its result.
     GLib.idle_add may call the function again if it returns True,
     but this wrapper only returns false."""
+
     def discarding_result(*args, **kwargs):
         function(*args, **kwargs)
         return False  # ignore result from function
+
     return discarding_result
