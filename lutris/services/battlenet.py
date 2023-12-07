@@ -14,14 +14,15 @@ from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.battlenet.definitions import ProductDbInfo
+from lutris.util.log import logger
 
 try:
     from lutris.util.battlenet.product_db_pb2 import ProductDb
     BNET_ENABLED = True
-except (ImportError, TypeError):
+except (ImportError, TypeError) as ex:
+    logger.exception("The Battle.net source is unavailable because Google protobuf could not be loaded: %s", ex)
     BNET_ENABLED = False
 
-from lutris.util.log import logger
 
 GAME_IDS = {
     's1': ('s1', 'StarCraft', 'S1', 'starcraft-remastered'),
