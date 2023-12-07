@@ -42,6 +42,16 @@ class ItchIoCover(ServiceMedia):
         return
 
 
+class ItchIoCoverMedium(ItchIoCover):
+    """itch.io game cover, at 60% size"""
+    size = (189, 150)
+
+
+class ItchIoCoverSmall(ItchIoCover):
+    """itch.io game cover, at 30% size"""
+    size = (95, 75)
+
+
 class ItchIoGame(ServiceGame):
     """itch.io Game"""
     service = "itchio"
@@ -82,6 +92,8 @@ class ItchIoService(OnlineService):
     drm_free = True
     has_extras = True
     medias = {
+        "banner_small": ItchIoCoverSmall,
+        "banner_med": ItchIoCoverMedium,
         "banner": ItchIoCover,
     }
     default_format = "banner"
