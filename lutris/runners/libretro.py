@@ -109,6 +109,10 @@ class libretro(Runner):
     ]
 
     @property
+    def directory(self):
+        return os.path.join(settings.RUNNER_DIR, "retroarch")
+
+    @property
     def platforms(self):
         return [core[2] for core in LIBRETRO_CORES]
 
@@ -125,7 +129,7 @@ class libretro(Runner):
 
     def get_core_path(self, core):
         """Return the path of a core, prioritizing Retroarch cores"""
-        lutris_cores_folder = os.path.join(settings.RUNNER_DIR, "retroarch", "cores")
+        lutris_cores_folder = os.path.join(self.directory, "cores")
         retroarch_core_folder = os.path.join(os.path.expanduser("~/.config/retroarch/cores"))
         core_filename = "{}_libretro.so".format(core)
         retroarch_core = os.path.join(retroarch_core_folder, core_filename)
@@ -295,15 +299,3 @@ class libretro(Runner):
             return {"error": "FILE_NOT_FOUND", "file": file}
         command.append(file)
         return {"command": command}
-
-    # Checks whether the retroarch or libretro directories can be uninstalled.
-    def can_uninstall(self):
-        retroarch_path = os.path.join(settings.RUNNER_DIR, 'retroarch')
-        return os.path.isdir(retroarch_path) or super().can_uninstall()
-
-    # Remove the `retroarch` directory.
-    def uninstall(self):
-        retroarch_path = os.path.join(settings.RUNNER_DIR, 'retroarch')
-        if os.path.isdir(retroarch_path):
-            system.remove_folder(retroarch_path)
-        super().uninstall()
