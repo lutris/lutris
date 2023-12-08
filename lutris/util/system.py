@@ -334,7 +334,9 @@ def merge_folders(source, destination):
             shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename), follow_symlinks=False)
 
 
-def remove_folder(path: str) -> None:
+def remove_folder(path: str,
+                  completion_function: TrashPortal.CompletionFunction = None,
+                  error_function: TrashPortal.ErrorFunction = None) -> None:
     """Trashes a folder specified by path, asynchronously. The folder
     likely exists after this returns, since it's using DBus to ask
     for the entrashification.
@@ -345,7 +347,9 @@ def remove_folder(path: str) -> None:
     if os.path.samefile(os.path.expanduser("~"), path):
         raise RuntimeError("Lutris tried to trash home directory!")
     logger.debug("Trashing folder %s", path)
-    TrashPortal(path)
+    TrashPortal(path,
+                completion_function=completion_function,
+                error_function=error_function)
 
 
 def delete_folder(path):

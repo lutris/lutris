@@ -2,7 +2,7 @@
 import os
 import signal
 from gettext import gettext as _
-from typing import Dict
+from typing import Callable, Dict
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, get_default_runner_version_info
@@ -522,10 +522,12 @@ class Runner:  # pylint: disable=too-many-public-methods
     def can_uninstall(self):
         return os.path.isdir(self.directory)
 
-    def uninstall(self):
+    def uninstall(self, uninstall_callback: Callable[[], None]) -> None:
         runner_path = self.directory
         if os.path.isdir(runner_path):
-            system.remove_folder(runner_path)
+            system.remove_folder(runner_path, completion_function=uninstall_callback)
+        else:
+            uninstall_callback()
 
     def find_option(self, options_group, option_name):
         """Retrieve an option dict if it exists in the group"""

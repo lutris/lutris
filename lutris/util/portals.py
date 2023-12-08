@@ -14,10 +14,11 @@ class TrashPortal(GObject.Object):
     portal_interface = "org.freedesktop.portal.Trash"
     _dbus_proxy = None
 
+    CompletionFunction = Callable[[], None]
     ErrorFunction = Callable[[Exception], None]
 
     def __init__(self, file_path: str,
-                 completion_function: Callable[[], None] = None,
+                 completion_function: CompletionFunction = None,
                  error_function: ErrorFunction = None):
         super().__init__()
         self.file_path = file_path
@@ -65,6 +66,8 @@ class TrashPortal(GObject.Object):
             result = values[0]
             if result == 0:
                 self.report_error(RuntimeError("The folder could not be moved to the trash."))
+                return
+        self.report_completion()
 
     def report_error(self, error: Exception) -> None:
         if self.error_function:
@@ -72,6 +75,6 @@ class TrashPortal(GObject.Object):
         else:
             logger.exception("Failed to trash folder %s: %s", self.file_path, error)
 
-    def report_completion(self, result):
+    def report_completion(self):
         if self.completion_function:
             schedule_at_idle(self.completion_function)

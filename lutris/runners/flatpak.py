@@ -2,6 +2,7 @@ import os
 import shutil
 from gettext import gettext as _
 from pathlib import Path
+from typing import Callable
 
 from lutris.command import MonitoredCommand
 from lutris.exceptions import MissingExecutableError
@@ -106,8 +107,8 @@ class flatpak(Runner):
     def can_uninstall(self):
         return False
 
-    def uninstall(self):
-        """Flatpak can't be uninstalled from Lutris"""
+    def uninstall(self, uninstall_callback: Callable[[], None]) -> None:
+        raise RuntimeError("Flatpak can't be uninstalled from Lutris")
 
     @property
     def game_path(self):

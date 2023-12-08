@@ -126,8 +126,10 @@ class RunnerBox(Gtk.Box):
             }
         )
         if Gtk.ResponseType.YES == dialog.result:
-            self.runner.uninstall()
-            self.emit("runner-removed")
+            def on_runner_uninstalled():
+                self.emit("runner-removed")
+
+            self.runner.uninstall(on_runner_uninstalled)
 
     @watch_errors()
     def on_runner_installed(self, widget):
