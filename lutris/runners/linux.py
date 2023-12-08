@@ -3,6 +3,7 @@
 import os
 import stat
 from gettext import gettext as _
+from typing import Callable
 
 # Lutris Modules
 from lutris.exceptions import GameConfigError, MissingExecutableError
@@ -125,6 +126,12 @@ class linux(Runner):
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""
         return True
+
+    def can_uninstall(self):
+        return False
+
+    def uninstall(self, uninstall_callback: Callable[[], None]) -> None:
+        raise RuntimeError("Linux shouldn't be installed.")
 
     def get_launch_config_command(self, gameplay_info, launch_config):
         # The linux runner has no command (by default) beyond the 'exe' itself;
