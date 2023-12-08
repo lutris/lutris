@@ -75,7 +75,7 @@ class RunnerBox(Gtk.Box):
         self.visible_switch.set_visible(is_installed)
 
     def on_visible_checkbox_changed(self, _widget, state, runner_name):
-        """Save a setting when an option is toggled"""
+        """Save the visibility when it is toggled."""
         settings.write_setting(runner_name, state, section="runners")
         self.emit("runners-changed")
 
@@ -121,7 +121,10 @@ class RunnerBox(Gtk.Box):
             ErrorDialog(ex.message, parent=self.get_toplevel())
             return
         if self.runner.is_installed():
-            self.emit("runners-changed")
+            if not self.visible_switch.get_active():
+                self.visible_switch.set_active(True)
+            else:
+                self.emit("runners-changed")
         else:
             ErrorDialog("Runner failed to install", parent=self.get_toplevel())
 
