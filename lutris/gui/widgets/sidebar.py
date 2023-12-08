@@ -523,7 +523,7 @@ class LutrisSidebar(Gtk.ListBox):
 
         self.used_categories = {c["name"] for c in categories}
         self.active_services = services.get_enabled_services()
-        self.installed_runners = [runner.name for runner in runners.get_installed()]
+        self.installed_runners = [runner.name for runner in runners.get_visible_runners()]
         self.active_platforms = games_db.get_used_platforms()
 
         for service_name, service_class in self.active_services.items():

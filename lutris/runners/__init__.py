@@ -96,16 +96,26 @@ def import_task(runner, task):
     return getattr(runner_module, task)
 
 
-def get_installed(sort=True):
+def get_installed_runners(sort=True):
     """Return a list of installed runners (class instances)."""
     installed = []
     for runner_name in __all__:
         runner = import_runner(runner_name)()
         if runner.is_installed():
-            visible = settings.read_bool_setting(runner_name, default=True, section="runners")
-            if visible:
-                installed.append(runner)
+            installed.append(runner)
     return sorted(installed) if sort else installed
+
+
+def get_visible_runners(sort=True):
+    """Return a list of installed runners that are not hidden."""
+    runners = []
+    for runner_name in __all__:
+        visible = settings.read_bool_setting(runner_name, default=True, section="runners")
+        if visible:
+            runner = import_runner(runner_name)()
+            if runner.is_installed():
+                runners.append(runner)
+    return sorted(runners) if sort else runners
 
 
 def inject_runners(runners):

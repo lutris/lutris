@@ -368,7 +368,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         """Build a ListStore with available runners."""
         runner_liststore = Gtk.ListStore(str, str)
         runner_liststore.append((_("Select a runner from the list"), ""))
-        for runner in runners.get_installed():
+        for runner in runners.get_installed_runners():
             description = runner.description
             runner_liststore.append(("%s (%s)" % (runner.human_name, description), runner.name))
         return runner_liststore

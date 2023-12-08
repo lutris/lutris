@@ -16,9 +16,9 @@ class TestGameDialogCommon(TestCase):
         dlg = GameDialogCommon("test")
         list_store = dlg._get_runner_liststore()
         self.assertTrue(
-            list_store[1][0].startswith(runners.get_installed()[0].human_name)
+            list_store[1][0].startswith(runners.get_installed_runners()[0].human_name)
         )
-        self.assertEqual(list_store[1][1], runners.get_installed()[0].name)
+        self.assertEqual(list_store[1][1], runners.get_installed_runners()[0].name)
 
 
 class TestGameDialog(TestCase):
