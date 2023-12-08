@@ -353,8 +353,7 @@ class LutrisSidebar(Gtk.ListBox):
             "runner": SidebarHeader(_("Runners"), header_index=3),
             "platform": SidebarHeader(_("Platforms"), header_index=4),
         }
-        GObject.add_emission_hook(RunnerBox, "runner-installed", self.update_rows)
-        GObject.add_emission_hook(RunnerBox, "runner-removed", self.update_rows)
+        GObject.add_emission_hook(RunnerBox, "runners-changed", self.update_rows)
         GObject.add_emission_hook(ScriptInterpreter, "runners-installed", self.update_rows)
         GObject.add_emission_hook(ServicesBox, "services-changed", self.update_rows)
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
@@ -483,7 +482,7 @@ class LutrisSidebar(Gtk.ListBox):
         else:
             header = None
 
-        if row.get_header() != header:
+        if header and row.get_header() != header:
             # GTK is messy here; a header can't belong to two rows at once,
             # so we must remove it from the one that owns it, if any, and
             # also from the sidebar itself. Then we can reuse it.

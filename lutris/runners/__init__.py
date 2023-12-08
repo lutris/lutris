@@ -44,6 +44,8 @@ __all__ = [
     "zdoom",
 ]
 
+from lutris import settings
+
 ADDON_RUNNERS = {}
 _cached_runner_human_names = {}
 
@@ -100,7 +102,9 @@ def get_installed(sort=True):
     for runner_name in __all__:
         runner = import_runner(runner_name)()
         if runner.is_installed():
-            installed.append(runner)
+            visible = settings.read_bool_setting(runner_name, default=True, section="runners")
+            if visible:
+                installed.append(runner)
     return sorted(installed) if sort else installed
 
 

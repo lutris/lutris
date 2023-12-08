@@ -2,7 +2,7 @@ from gettext import gettext as _
 
 from gi.repository import GObject, Gtk
 
-from lutris import runners
+from lutris import runners, settings
 from lutris.exceptions import watch_errors
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs import ErrorDialog, QuestionDialog
@@ -13,15 +13,13 @@ from lutris.util.log import logger
 
 class RunnerBox(Gtk.Box):
     __gsignals__ = {
-        "runner-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "runner-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "runners-changed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     def __init__(self, runner_name):
         super().__init__(visible=True)
 
-        self.connect("runner-installed", self.on_runner_installed)
-        self.connect("runner-removed", self.on_runner_removed)
+        self.connect("runners-changed", self.on_runners_changed)
 
         self.set_margin_bottom(12)
         self.set_margin_top(12)
@@ -51,18 +49,35 @@ class RunnerBox(Gtk.Box):
 
         self.pack_start(self.runner_label_box, True, True, 0)
 
+        self.visible_switch = Gtk.Switch(visible=True, valign=Gtk.Align.CENTER)
+        if settings.read_bool_setting(runner_name, default=True, section="runners"):
+            self.visible_switch.set_active(True)
+        self.visible_switch.connect("state-set", self.on_visible_checkbox_changed, runner_name)
+
+        self.pack_start(self.visible_switch, False, False, 12)
+
         self.configure_button = Gtk.Button.new_from_icon_name("preferences-system-symbolic", Gtk.IconSize.BUTTON)
         self.configure_button.set_valign(Gtk.Align.CENTER)
         self.configure_button.set_margin_right(12)
         self.configure_button.connect("clicked", self.on_configure_clicked)
-        self.pack_start(self.configure_button, False, False, 0)
-        if not self.runner.is_installed():
-            self.runner_label_box.set_sensitive(False)
         self.configure_button.show()
+        self.pack_start(self.configure_button, False, False, 0)
         self.action_alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
         self.action_alignment.show()
         self.action_alignment.add(self.get_action_button())
         self.pack_start(self.action_alignment, False, False, 0)
+
+        self._update_installation_state()
+
+    def _update_installation_state(self):
+        is_installed = self.runner.is_installed()
+        self.runner_label_box.set_sensitive(is_installed)
+        self.visible_switch.set_visible(is_installed)
+
+    def on_visible_checkbox_changed(self, _widget, state, runner_name):
+        """Save a setting when an option is toggled"""
+        settings.write_setting(runner_name, state, section="runners")
+        self.emit("runners-changed")
 
     def get_action_button(self):
         """Return a install or remove button"""
@@ -106,7 +121,7 @@ class RunnerBox(Gtk.Box):
             ErrorDialog(ex.message, parent=self.get_toplevel())
             return
         if self.runner.is_installed():
-            self.emit("runner-installed")
+            self.emit("runners-changed")
         else:
             ErrorDialog("Runner failed to install", parent=self.get_toplevel())
 
@@ -123,28 +138,20 @@ class RunnerBox(Gtk.Box):
                 "parent": self.get_toplevel(),
                 "title": _("Do you want to uninstall %s?") % self.runner.human_name,
                 "question": _("This will remove <b>%s</b> and all associated data." % self.runner.human_name)
-
             }
         )
         if Gtk.ResponseType.YES == dialog.result:
             def on_runner_uninstalled():
-                self.emit("runner-removed")
+                self.emit("runners-changed")
 
             self.runner.uninstall(on_runner_uninstalled)
 
     @watch_errors()
-    def on_runner_installed(self, widget):
-        """Called after the runnner is installed"""
-        self.runner_label_box.set_sensitive(True)
+    def on_runners_changed(self, widget):
+        """Called after the runner is installed or removed"""
         self.action_alignment.get_children()[0].destroy()
         self.action_alignment.add(self.get_action_button())
-
-    @watch_errors()
-    def on_runner_removed(self, widget):
-        """Called after the runner is removed"""
-        self.runner_label_box.set_sensitive(False)
-        self.action_alignment.get_children()[0].destroy()
-        self.action_alignment.add(self.get_action_button())
+        self._update_installation_state()
 
     def on_watched_error(self, error):
         ErrorDialog(error, parent=self.get_toplevel())
