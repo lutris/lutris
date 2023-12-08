@@ -53,10 +53,12 @@ class RunnerBox(Gtk.Box):
         if settings.read_bool_setting(runner_name, default=True, section="runners"):
             self.visible_switch.set_active(True)
         self.visible_switch.connect("state-set", self.on_visible_checkbox_changed, runner_name)
+        self.visible_switch.set_tooltip_text(_("Visibility in the sidebar"))
 
         self.pack_start(self.visible_switch, False, False, 12)
 
         self.configure_button = Gtk.Button.new_from_icon_name("preferences-system-symbolic", Gtk.IconSize.BUTTON)
+        self.configure_button.set_tooltip_text(_("Runner configuration"))
         self.configure_button.set_valign(Gtk.Align.CENTER)
         self.configure_button.set_margin_right(12)
         self.configure_button.connect("clicked", self.on_configure_clicked)
@@ -80,19 +82,22 @@ class RunnerBox(Gtk.Box):
         self.emit("runners-changed")
 
     def get_action_button(self):
-        """Return a install or remove button"""
+        """Return an install or remove button"""
         if self.runner.multiple_versions:
             _button = Gtk.Button.new_from_icon_name("system-software-install-symbolic", Gtk.IconSize.BUTTON)
+            _button.set_tooltip_text(_("Manage runner versions"))
             _button.get_style_context().add_class("circular")
             _button.connect("clicked", self.on_versions_clicked)
         else:
             if self.runner.can_uninstall():
                 _button = Gtk.Button.new_from_icon_name("edit-delete-symbolic", Gtk.IconSize.BUTTON)
+                _button.set_tooltip_text(_("Remove runner"))
                 _button.get_style_context().add_class("circular")
                 _button.connect("clicked", self.on_remove_clicked)
                 _button.set_sensitive(self.runner.can_uninstall())
             else:
                 _button = Gtk.Button.new_from_icon_name("system-software-install-symbolic", Gtk.IconSize.BUTTON)
+                _button.set_tooltip_text(_("Remove runner"))
                 _button.get_style_context().add_class("circular")
                 _button.connect("clicked", self.on_install_clicked)
                 _button.set_sensitive(not self.runner.is_installed(flatpak_allowed=False))
@@ -122,7 +127,7 @@ class RunnerBox(Gtk.Box):
             return
         if self.runner.is_installed():
             if not self.visible_switch.get_active():
-                self.visible_switch.set_active(True)
+                self.visible_switch.set_active(True)  # raises runners-changed
             else:
                 self.emit("runners-changed")
         else:
