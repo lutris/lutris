@@ -140,13 +140,13 @@ class libretro(Runner):
     def get_version(self, use_default=True):
         return self.game_config["core"]
 
-    def is_installed(self, core=None):
+    def is_installed(self, flatpak_allowed: bool = True, core=None) -> bool:
         if not core and self.has_explicit_config and self.game_config.get("core"):
             core = self.game_config["core"]
         if not core or self.runner_config.get("runner_executable"):
-            return super().is_installed()
+            return super().is_installed(flatpak_allowed=flatpak_allowed)
         is_core_installed = system.path_exists(self.get_core_path(core))
-        return super().is_installed() and is_core_installed
+        return super().is_installed(flatpak_allowed=flatpak_allowed) and is_core_installed
 
     def is_installed_for(self, interpreter):
         core = interpreter.installer.script["game"].get("core")
@@ -288,7 +288,7 @@ class libretro(Runner):
         command.append("--libretro={}".format(self.get_core_path(core)))
 
         # Ensure the core is available
-        if not self.is_installed(core):
+        if not self.is_installed(core=core):
             self.install(core)
 
         # Main file

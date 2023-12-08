@@ -89,7 +89,7 @@ class flatpak(Runner):
         }
     ]
 
-    def is_installed(self):
+    def is_installed(self, flatpak_allowed: bool = True) -> bool:
         return _flatpak.is_installed()
 
     def get_executable(self) -> str:

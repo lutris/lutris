@@ -429,7 +429,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             return self.is_installed()
         return False
 
-    def is_installed(self):
+    def is_installed(self, flatpak_allowed: bool = True) -> bool:
         """Return whether the runner is installed"""
         try:
             # Don't care where the exe is, only if we can find it.
@@ -439,7 +439,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         except MisconfigurationError:
             pass  # We can still try flatpak even if 'which' fails us!
 
-        return self.flatpak_id and flatpak.is_app_installed(self.flatpak_id)
+        return bool(flatpak_allowed and self.flatpak_id and flatpak.is_app_installed(self.flatpak_id))
 
     def is_installed_for(self, interpreter):
         """Returns whether the runner is installed. Specific runners can extract additional

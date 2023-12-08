@@ -720,7 +720,7 @@ class wine(Runner):
             # which one to get the correct LutrisConfig object.
         return wine_path
 
-    def is_installed(self, version: str = None, fallback: bool = True) -> bool:
+    def is_installed(self, flatpak_allowed: bool = True, version: str = None, fallback: bool = True) -> bool:
         """Check if Wine is installed.
         If no version is passed, checks if any version of wine is available
         """
@@ -737,7 +737,7 @@ class wine(Runner):
     def is_installed_for(self, interpreter):
         try:
             version = self.get_installer_runner_version(interpreter.installer, use_api=True)
-            return self.is_installed(version, fallback=False)
+            return self.is_installed(version=version, fallback=False)
         except MisconfigurationError:
             return False
 

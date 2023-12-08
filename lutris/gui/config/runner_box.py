@@ -80,7 +80,7 @@ class RunnerBox(Gtk.Box):
                 _button = Gtk.Button.new_from_icon_name("system-software-install-symbolic", Gtk.IconSize.BUTTON)
                 _button.get_style_context().add_class("circular")
                 _button.connect("clicked", self.on_install_clicked)
-                _button.set_sensitive(not self.runner.is_installed())
+                _button.set_sensitive(not self.runner.is_installed(flatpak_allowed=False))
         _button.show()
         return _button
 

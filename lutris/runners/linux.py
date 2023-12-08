@@ -123,7 +123,7 @@ class linux(Runner):
         """Linux programs should get individual shader caches if possible."""
         return self.game_path or self.shader_cache_dir
 
-    def is_installed(self):
+    def is_installed(self, flatpak_allowed: bool = True) -> bool:
         """Well of course Linux is installed, you're using Linux right ?"""
         return True
 
