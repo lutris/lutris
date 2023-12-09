@@ -49,17 +49,17 @@ class ImportGameDialog(ModelessDialog):
         self.close_button = self.add_button(Gtk.STOCK_STOP, Gtk.ResponseType.CANCEL)
         key, mod = Gtk.accelerator_parse("Escape")
         self.close_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
-        self.connect("response", self.on_response)
 
         self.show_all()
         self.search_call = AsyncCall(self.search_checksums, self.search_result_finished)
 
-    def on_response(self, _widget, response):
+    def on_response(self, dialog, response: Gtk.ResponseType) -> None:
         if response in (Gtk.ResponseType.CLOSE, Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
             if self.search_call:
                 self.search_call.stop_request.set()
-            else:
-                self.destroy()
+                return  # don't actually close the dialog
+
+        super().on_response(dialog, response)
 
     def get_file_labels_listbox(self, files):
         listbox = Gtk.ListBox(vexpand=True)

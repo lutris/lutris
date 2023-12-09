@@ -17,7 +17,6 @@ class DownloadDialog(ModalDialog):
 
         self.dialog_progress_box.connect("complete", self.download_complete)
         self.dialog_progress_box.connect("cancel", self.download_cancelled)
-        self.connect("response", self.on_response)
 
         self.get_content_area().add(self.dialog_progress_box)
         self.show_all()
@@ -29,13 +28,11 @@ class DownloadDialog(ModalDialog):
 
     def download_complete(self, _widget, _data):
         self.response(Gtk.ResponseType.OK)
-        self.destroy()
 
     def download_cancelled(self, _widget):
         self.response(Gtk.ResponseType.CANCEL)
-        self.destroy()
 
-    def on_response(self, _dialog, response):
-        if response == Gtk.ResponseType.DELETE_EVENT:
+    def on_response(self, dialog, response):
+        if response in (Gtk.ResponseType.DELETE_EVENT, Gtk.ResponseType.CANCEL):
             self.dialog_progress_box.downloader.cancel()
-            self.destroy()
+        super().on_response(dialog, response)

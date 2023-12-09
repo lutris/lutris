@@ -252,7 +252,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         """Install required runners for a game"""
         if self.runners_to_install:
             self.install_runner(self.runners_to_install.pop(0), ui_delegate)
-            return
+
         self.emit("runners-installed")
 
     def install_runner(self, runner, ui_delegate):

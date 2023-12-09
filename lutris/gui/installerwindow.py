@@ -200,9 +200,6 @@ class InstallerWindow(ModelessDialog,
     def on_navigate_home(self, _accel_group, _window, _keyval, _modifier):
         self.stack.navigate_home()
 
-    def on_destroy(self, _widget, _data=None):
-        self.on_cancel_clicked()
-
     @watch_errors()
     def on_cancel_clicked(self, _button=None):
         """Ask a confirmation before cancelling the installation, if it has started."""

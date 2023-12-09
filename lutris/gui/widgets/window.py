@@ -3,7 +3,6 @@ from gi.repository import Gtk
 
 
 class BaseApplicationWindow(Gtk.ApplicationWindow):
-
     """Window used to guide the user through a issue reporting process"""
 
     def __init__(self, application):
@@ -12,7 +11,6 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
         self.set_show_menubar(False)
 
         self.set_position(Gtk.WindowPosition.CENTER)
-        self.connect("delete-event", self.on_destroy)
 
         self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, visible=True)
         self.vbox.set_margin_top(18)
@@ -31,10 +29,6 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
         if tooltip:
             button.set_tooltip_text(tooltip)
         return button
-
-    def on_destroy(self, _widget=None, _data=None):
-        """Destroy callback"""
-        self.destroy()
 
     def present(self):  # pylint: disable=arguments-differ
         """The base implementation doesn't always work, this one does."""

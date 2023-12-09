@@ -121,7 +121,6 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
         self.update_all_checkboxes()
         self.show_all()
-        self.connect("response", self.on_response)
 
     def update_all_checkboxes(self) -> None:
         """Sets the state of the checkboxes at the button that are used to control all

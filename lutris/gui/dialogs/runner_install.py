@@ -125,7 +125,6 @@ class RunnerInstallDialog(ModelessDialog):
         label = Gtk.Label.new(_("%s version management") % self.runner_info["name"])
         self.vbox.add(label)
         self.installing = {}
-        self.connect("response", self.on_destroy)
 
         scrolled_listbox = Gtk.ScrolledWindow()
         self.listbox = Gtk.ListBox()
@@ -410,9 +409,7 @@ class RunnerInstallDialog(ModelessDialog):
             from lutris.util.wine.wine import get_installed_wine_versions
             get_installed_wine_versions.cache_clear()
 
-    def on_destroy(self, _dialog, _data=None):
-        """Override delete handler to prevent closing while downloads are active"""
+    def on_response(self, dialog, response: Gtk.ResponseType) -> None:
         if self.installing:
-            return True
-        self.destroy()
-        return True
+            return
+        super().on_response(dialog, response)
