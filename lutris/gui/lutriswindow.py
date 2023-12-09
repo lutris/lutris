@@ -149,7 +149,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         # Finally trigger the initialization of the view here
         selected_category = settings.read_setting("selected_category", default="runner:all")
-        self.sidebar.selected_category = selected_category.split(":") if selected_category else None
+        self.sidebar.selected_category = selected_category.split(":", maxsplit=1) if selected_category else None
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
