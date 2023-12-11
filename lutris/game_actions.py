@@ -60,18 +60,20 @@ class BaseGameActions:
     @property
     def is_installable(self):
         for game in self.games:
-            if not (not game.is_installed and game.slug):
-                return False
-        return True
+            if not game.is_installed:
+                return True
+
+        return False
 
     def on_install_clicked(self, *_args):
         """Install a game"""
         # Install the currently selected game in the UI
         for game in self.games:
-            if not game.slug:
-                game_id = game.id if game.is_db_stored else game.name
-                raise RuntimeError("No game to install: %s" % game_id)
-            game.emit("game-install")
+            if not game.is_installed:
+                if not game.slug:
+                    game_id = game.id if game.is_db_stored else game.name
+                    raise RuntimeError("No game to install: %s" % game_id)
+                game.emit("game-install")
 
     def on_locate_installed_game(self, *_args):
         """Show the user a dialog to import an existing install to a DRM free service
@@ -84,18 +86,15 @@ class BaseGameActions:
 
     @property
     def is_game_removable(self):
-        if not self.games:
-            return False
-
         for game in self.games:
-            if not (game and (game.is_installed or game.is_db_stored)):
-                return False
+            if game.is_installed or game.is_db_stored:
+                return True
 
-        return True
+        return False
 
     def on_remove_game(self, *_args):
         """Callback that present the uninstall dialog to the user"""
-        game_ids = [g.id for g in self.games]
+        game_ids = [g.id for g in self.games if g.is_installed or g.is_db_stored]
         UninstallMultipleGamesDialog(game_ids, parent=self.window).run()
 
     def on_view_game(self, _widget):
@@ -110,14 +109,15 @@ class GameActions(BaseGameActions):
     @property
     def is_game_launchable(self):
         for game in self.games:
-            if game and game.is_installed and not self.is_game_running:
+            if game.is_installed and not self.is_game_running:
                 return True
+
         return False
 
     @property
     def is_game_running(self):
         for game in self.games:
-            if game and game.is_db_stored and bool(self.application.get_running_game_by_id(game.id)):
+            if game.is_db_stored and self.application.get_running_game_by_id(game.id):
                 return True
         return False
 
@@ -244,7 +244,9 @@ class GameActions(BaseGameActions):
     def on_game_launch(self, *_args):
         """Launch a game"""
         for game in self.games:
-            game.launch(self.window)
+            if game.is_installed and game.is_db_stored:
+                if not self.application.get_running_game_by_id(game.id):
+                    game.launch(self.window)
 
     def get_running_games(self):
         running_games = []
