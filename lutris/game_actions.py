@@ -84,9 +84,13 @@ class BaseGameActions:
 
     @property
     def is_game_removable(self):
+        if not self.games:
+            return False
+
         for game in self.games:
             if not (game and (game.is_installed or game.is_db_stored)):
                 return False
+
         return True
 
     def on_remove_game(self, *_args):
