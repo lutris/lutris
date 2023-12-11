@@ -75,6 +75,7 @@ class flatpak(Runner):
             "option": "working_dir",
             "type": "directory_chooser",
             "label": _("Working directory"),
+            "warn_if_non_writable_parent": True,
             "help": _("The directory to run the command in. Note that this must be a directory inside the sandbox."),
             "advanced": True
         },

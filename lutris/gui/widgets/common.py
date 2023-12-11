@@ -64,10 +64,11 @@ class FileChooserEntry(Gtk.Box):
         text=None,
         default_path=None,
         warn_if_non_empty=False,
+        warn_if_non_writable_parent=False,
         warn_if_ntfs=False,
         activates_default=False,
         shell_quoting=False
-    ):
+    ):  # pylint: disable=too-many-arguments
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
             spacing=0,
@@ -76,6 +77,7 @@ class FileChooserEntry(Gtk.Box):
         self.title = title
         self.action = action
         self.warn_if_non_empty = warn_if_non_empty
+        self.warn_if_non_writable_parent = warn_if_non_writable_parent
         self.warn_if_ntfs = warn_if_ntfs
         self.shell_quoting = shell_quoting
 
@@ -252,14 +254,15 @@ class FileChooserEntry(Gtk.Box):
                 "contains files. Installation will not work properly."
             ))
             self.pack_end(non_empty_label, False, False, 10)
-        parent = system.get_existing_parent(path)
-        if parent is not None and not os.access(parent, os.W_OK):
-            non_writable_destination_label = Gtk.Label(visible=True)
-            non_writable_destination_label.set_markup(_(
-                "<b>Warning</b> The destination folder "
-                "is not writable by the current user."
-            ))
-            self.pack_end(non_writable_destination_label, False, False, 10)
+        if self.warn_if_non_writable_parent:
+            parent = system.get_existing_parent(path)
+            if parent is not None and not os.access(parent, os.W_OK):
+                non_writable_destination_label = Gtk.Label(visible=True)
+                non_writable_destination_label.set_markup(_(
+                    "<b>Warning</b> The destination folder "
+                    "is not writable by the current user."
+                ))
+                self.pack_end(non_writable_destination_label, False, False, 10)
 
         self.open_button.set_sensitive(bool(self.get_open_directory()))
 

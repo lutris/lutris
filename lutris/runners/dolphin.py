@@ -42,6 +42,7 @@ class dolphin(Runner):
         {
             "option": "user_directory",
             "type": "directory_chooser",
+            "warn_if_non_writable_parent": True,
             "advanced": True,
             "label": _("Custom Global User Directory"),
         },

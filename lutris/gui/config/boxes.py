@@ -479,9 +479,12 @@ class ConfigBox(VBox):
         option_name = option["option"]
         label = Label(option["label"])
         default_path = option.get("default_path") or (self.runner.default_path if self.runner else "")
+        warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
+
         file_chooser = FileChooserEntry(
             title=_("Select file"),
             action=Gtk.FileChooserAction.OPEN,
+            warn_if_non_writable_parent=warn_if_non_writable_parent,
             text=text,
             default_path=default_path,
             shell_quoting=shell_quoting
@@ -514,11 +517,17 @@ class ConfigBox(VBox):
         """Generate a file chooser button to select a directory."""
         label = Label(option["label"])
         option_name = option["option"]
+        warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
+
         default_path = None
         if not path and self.game and self.game.runner:
             default_path = self.game.runner.working_dir
         directory_chooser = FileChooserEntry(
-            title=_("Select folder"), action=Gtk.FileChooserAction.SELECT_FOLDER, text=path, default_path=default_path
+            title=_("Select folder"),
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+            warn_if_non_writable_parent=warn_if_non_writable_parent,
+            text=path,
+            default_path=default_path
         )
         directory_chooser.connect("changed", self._on_chooser_file_set, option_name)
         directory_chooser.set_valign(Gtk.Align.CENTER)

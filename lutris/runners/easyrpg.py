@@ -97,6 +97,7 @@ class easyrpg(Runner):
             "option": "save_path",
             "type": "directory_chooser",
             "label": _("Save path"),
+            "warn_if_non_writable_parent": True,
             "help": _(
                 "Instead of storing save files in the game directory they are stored in the specified path. "
                 "The directory must exist."

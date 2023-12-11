@@ -130,6 +130,7 @@ class InstallerWindow(ModelessDialog,
             "Select folder",
             Gtk.FileChooserAction.SELECT_FOLDER,
             warn_if_non_empty=True,
+            warn_if_non_writable_parent=True,
             warn_if_ntfs=True
         )
         self.location_entry.connect("changed", self.on_location_entry_changed)

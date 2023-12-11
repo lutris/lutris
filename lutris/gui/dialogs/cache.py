@@ -42,6 +42,7 @@ class CacheConfigurationDialog(ModalDialog):
         path_chooser = FileChooserEntry(
             title=_("Set the folder for the cache path"),
             action=Gtk.FileChooserAction.SELECT_FOLDER,
+            warn_if_non_writable_parent=True,
             text=self.cache_path,
             activates_default=True
         )

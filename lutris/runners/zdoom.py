@@ -45,6 +45,7 @@ class zdoom(Runner):
             "option": "savedir",
             "type": "directory_chooser",
             "label": _("Save path"),
+            "warn_if_non_writable_parent": True,
             "help": _("User-specified path where save files should be located."),
         },
     ]

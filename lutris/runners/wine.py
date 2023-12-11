@@ -549,6 +549,7 @@ class wine(Runner):
                 "type": "directory_chooser",
                 "section": _("Sandbox"),
                 "label": _("Sandbox directory"),
+                "warn_if_non_writable_parent": True,
                 "help": _("Custom directory for desktop integration folders."),
                 "advanced": True,
             },

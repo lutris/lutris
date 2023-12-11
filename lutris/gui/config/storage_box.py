@@ -53,6 +53,7 @@ class StorageBox(BaseConfigBox):
         directory_chooser = FileChooserEntry(
             title=_("Select folder"),
             action=Gtk.FileChooserAction.SELECT_FOLDER,
+            warn_if_non_writable_parent=True,
             text=path_setting["value"],
             default_path=default_path
         )
