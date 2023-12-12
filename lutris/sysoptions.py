@@ -116,7 +116,7 @@ def get_vk_icd_choices():
 
 system_options = [  # pylint: disable=invalid-name
     {
-        "section": "Lutris",
+        "section": _("Lutris"),
         "option": "game_path",
         "type": "directory_chooser",
         "label": _("Default installation folder"),
@@ -126,7 +126,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("The default folder where you install your games.")
     },
     {
-        "section": "Lutris",
+        "section": _("Lutris"),
         "option": "disable_runtime",
         "type": "bool",
         "label": _("Disable Lutris Runtime"),
@@ -136,7 +136,7 @@ system_options = [  # pylint: disable=invalid-name
                   "Check this option to disable it."),
     },
     {
-        "section": "Lutris",
+        "section": _("Lutris"),
         "option": "prefer_system_libs",
         "type": "bool",
         "label": _("Prefer system libraries"),
@@ -146,7 +146,7 @@ system_options = [  # pylint: disable=invalid-name
     },
 
     {
-        "section": "Gamescope",
+        "section": _("Gamescope"),
         "option": "gamescope",
         "type": "bool",
         "label": _("Enable Gamescope"),
@@ -156,7 +156,7 @@ system_options = [  # pylint: disable=invalid-name
                   "Toggle fullscreen: Super + F"),
     },
     {
-        "section": "Gamescope",
+        "section": _("Gamescope"),
         "option": "gamescope_force_grab_cursor",
         "type": "bool",
         "label": _("Relative Mouse Mode"),
@@ -168,7 +168,7 @@ system_options = [  # pylint: disable=invalid-name
                   "Can help with games where the player's camera faces the floor"),
     },
     {
-        "section": "Gamescope",
+        "section": _("Gamescope"),
         "option": "gamescope_output_res",
         "type": "choice_with_entry",
         "label": _("Output Resolution"),
@@ -181,7 +181,7 @@ system_options = [  # pylint: disable=invalid-name
                   "<b>Custom Resolutions:</b> (width)x(height)"),
     },
     {
-        "section": "Gamescope",
+        "section": _("Gamescope"),
         "option": "gamescope_game_res",
         "type": "choice_with_entry",
         "label": _("Game Resolution"),
@@ -192,7 +192,7 @@ system_options = [  # pylint: disable=invalid-name
                   "<b>Custom Resolutions:</b> (width)x(height)"),
     },
     {
-        "section": "Gamescope",
+        "section": _("Gamescope"),
         "option": "gamescope_window_mode",
         "label": _("Window Mode"),
         "type": "choice",
@@ -207,7 +207,7 @@ system_options = [  # pylint: disable=invalid-name
                   "Toggle fullscreen : Super + F"),
     },
     {
-        "section": "Gamescope",
+        "section": _("Gamescope"),
         "option": "gamescope_fsr_sharpness",
         "label": _("FSR Level"),
         "advanced": True,
@@ -217,7 +217,7 @@ system_options = [  # pylint: disable=invalid-name
                   "Upscaler sharpness from 0 (max) to 20 (min)."),
     },
     {
-        "section": "Gamescope",
+        "section": _("Gamescope"),
         "option": "gamescope_fps_limiter",
         "label": _("FPS Limiter"),
         "advanced": True,
@@ -226,7 +226,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Set a frame-rate limit for gamescope specified in frames per second."),
     },
     {
-        "section": "Gamescope",
+        "section": _("Gamescope"),
         "option": "gamescope_flags",
         "label": _("Custom Settings"),
         "advanced": True,
@@ -236,7 +236,7 @@ system_options = [  # pylint: disable=invalid-name
                   "See 'gamescope --help' for a full list of options."),
     },
     {
-        "section": "CPU",
+        "section": _("CPU"),
         "option": "single_cpu",
         "type": "bool",
         "label": _("Restrict number of cores used"),
@@ -244,7 +244,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Restrict the game to a maximum number of CPU cores."),
     },
     {
-        "section": "CPU",
+        "section": _("CPU"),
         "option": "limit_cpu_count",
         "type": "string",
         "label": _("Restrict number of cores to"),
@@ -252,7 +252,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Maximum number of CPU cores to be used, if 'Restrict number of cores used' is turned on."),
     },
     {
-        "section": "CPU",
+        "section": _("CPU"),
         "option": "gamemode",
         "type": "bool",
         "default": linux.LINUX_SYSTEM.gamemode_available(),
@@ -261,7 +261,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Request a set of optimisations be temporarily applied to the host OS"),
     },
     {
-        "section": "Display",
+        "section": _("Display"),
         "option": "mangohud",
         "type": "bool",
         "label": _("FPS counter (MangoHud)"),
@@ -270,7 +270,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Display the game's FPS + other information. Requires MangoHud to be installed."),
     },
     {
-        "section": "Display",
+        "section": _("Display"),
         "option": "reset_desktop",
         "type": "bool",
         "label": _("Restore resolution on game exit"),
@@ -280,7 +280,7 @@ system_options = [  # pylint: disable=invalid-name
                   "into play to save your bacon."),
     },
     {
-        "section": "Display",
+        "section": _("Display"),
         "option": "restore_gamma",
         "type": "bool",
         "default": False,
@@ -290,7 +290,7 @@ system_options = [  # pylint: disable=invalid-name
                   "your display too bright. Select this option to correct it."),
     },
     {
-        "section": "Display",
+        "section": _("Display"),
         "option": "disable_compositor",
         "label": _("Disable desktop effects"),
         "type": "bool",
@@ -300,7 +300,7 @@ system_options = [  # pylint: disable=invalid-name
                   "reducing stuttering and increasing performance"),
     },
     {
-        "section": "Display",
+        "section": _("Display"),
         "option": "disable_screen_saver",
         "label": _("Disable screen saver"),
         "type": "bool",
@@ -313,7 +313,7 @@ system_options = [  # pylint: disable=invalid-name
     },
 
     {
-        "section": "Display",
+        "section": _("Display"),
         "option": "fps_limit",
         "type": "string",
         "size": "small",
@@ -322,7 +322,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Limit the game's FPS using libstrangle"),
     },
     {
-        "section": "Display",
+        "section": _("Display"),
         "option": "sdl_video_fullscreen",
         "type": "choice",
         "label": _("SDL 1.2 Fullscreen Monitor"),
@@ -334,7 +334,7 @@ system_options = [  # pylint: disable=invalid-name
                   "environment variable"),
     },
     {
-        "section": "Display",
+        "section": _("Display"),
         "option": "display",
         "type": "choice",
         "label": _("Turn off monitors except"),
@@ -347,7 +347,7 @@ system_options = [  # pylint: disable=invalid-name
                   "having display issues when running a game in fullscreen."),
     },
     {
-        "section": "Display",
+        "section": _("Display"),
         "option": "resolution",
         "type": "choice",
         "label": _("Switch resolution to"),
@@ -356,7 +356,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Switch to this screen resolution while the game is running."),
     },
     {
-        "section": "Audio",
+        "section": _("Audio"),
         "option": "reset_pulse",
         "type": "bool",
         "label": _("Reset PulseAudio"),
@@ -366,7 +366,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Restart PulseAudio before launching the game."),
     },
     {
-        "section": "Audio",
+        "section": _("Audio"),
         "option": "pulse_latency",
         "type": "bool",
         "label": _("Reduce PulseAudio latency"),
@@ -377,7 +377,7 @@ system_options = [  # pylint: disable=invalid-name
                   "to improve audio quality on some games"),
     },
     {
-        "section": "Input",
+        "section": _("Input"),
         "option": "use_us_layout",
         "type": "bool",
         "label": _("Switch to US keyboard layout"),
@@ -386,7 +386,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Switch to US keyboard QWERTY layout while game is running"),
     },
     {
-        "section": "Input",
+        "section": _("Input"),
         "option": "antimicro_config",
         "type": "file",
         "label": _("AntiMicroX Profile"),
@@ -395,7 +395,7 @@ system_options = [  # pylint: disable=invalid-name
     },
 
     {
-        "section": "Input",
+        "section": _("Input"),
         "option": "sdl_gamecontrollerconfig",
         "type": "string",
         "label": _("SDL2 gamepad mapping"),
@@ -404,7 +404,7 @@ system_options = [  # pylint: disable=invalid-name
                   "gamecontrollerdb.txt file containing mappings."),
     },
     {
-        "section": "Multi-GPU",
+        "section": _("Multi-GPU"),
         "option": "prime",
         "type": "bool",
         "default": False,
@@ -417,7 +417,7 @@ system_options = [  # pylint: disable=invalid-name
                   "__GLX_VENDOR_LIBRARY_NAME=nvidia environment variables.")
     },
     {
-        "section": "Multi-GPU",
+        "section": _("Multi-GPU"),
         "option": "dri_prime",
         "type": "bool",
         "default": USE_DRI_PRIME,
@@ -430,7 +430,7 @@ system_options = [  # pylint: disable=invalid-name
                   "performance."),
     },
     {
-        "section": "Multi-GPU",
+        "section": _("Multi-GPU"),
         "option": "optimus",
         "type": "choice",
         "default": "off",
@@ -445,7 +445,7 @@ system_options = [  # pylint: disable=invalid-name
                   "Primus VK provide vulkan support under bumblebee."),
     },
     {
-        "section": "Multi-GPU",
+        "section": _("Multi-GPU"),
         "option": "vk_icd",
         "type": "choice",
         # Default is "" which does not set the VK_ICD_FILENAMES env var
@@ -460,7 +460,7 @@ system_options = [  # pylint: disable=invalid-name
                   "across these drivers.")
     },
     {
-        "section": "Text based games",
+        "section": _("Text based games"),
         "option": "terminal",
         "label": _("CLI mode"),
         "type": "bool",
@@ -470,7 +470,7 @@ system_options = [  # pylint: disable=invalid-name
                   "Only useful for ASCII based games. May cause issues with graphical games."),
     },
     {
-        "section": "Text based games",
+        "section": _("Text based games"),
         "option": "terminal_app",
         "label": _("Text based games emulator"),
         "type": "choice_with_entry",
@@ -482,14 +482,14 @@ system_options = [  # pylint: disable=invalid-name
                   "the terminal's command or path."),
     },
     {
-        "section": "Game execution",
+        "section": _("Game execution"),
         "option": "env",
         "type": "mapping",
         "label": _("Environment variables"),
         "help": _("Environment variables loaded at run time"),
     },
     {
-        "section": "Game execution",
+        "section": _("Game execution"),
         "option": "locale",
         "type": "choice_with_entry",
         "label": _("Locale"),
@@ -501,7 +501,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Can be used to force certain locale for an app. Fixes encoding issues in legacy software."),
     },
     {
-        "section": "Game execution",
+        "section": _("Game execution"),
         "option": "prefix_command",
         "type": "string",
         "label": _("Command prefix"),
@@ -510,7 +510,7 @@ system_options = [  # pylint: disable=invalid-name
                   "execution command."),
     },
     {
-        "section": "Game execution",
+        "section": _("Game execution"),
         "option": "manual_command",
         "type": "file",
         "label": _("Manual script"),
@@ -518,7 +518,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Script to execute from the game's contextual menu"),
     },
     {
-        "section": "Game execution",
+        "section": _("Game execution"),
         "option": "prelaunch_command",
         "type": "command_line",
         "label": _("Pre-launch script"),
@@ -526,7 +526,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Script to execute before the game starts"),
     },
     {
-        "section": "Game execution",
+        "section": _("Game execution"),
         "option": "prelaunch_wait",
         "type": "bool",
         "label": _("Wait for pre-launch script completion"),
@@ -535,7 +535,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Run the game only once the pre-launch script has exited"),
     },
     {
-        "section": "Game execution",
+        "section": _("Game execution"),
         "option": "postexit_command",
         "type": "command_line",
         "label": _("Post-exit script"),
@@ -543,7 +543,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Script to execute when the game exits"),
     },
     {
-        "section": "Game execution",
+        "section": _("Game execution"),
         "option": "include_processes",
         "type": "string",
         "label": _("Include processes"),
@@ -554,7 +554,7 @@ system_options = [  # pylint: disable=invalid-name
                   "can be wrapped in quotation marks."),
     },
     {
-        "section": "Game execution",
+        "section": _("Game execution"),
         "option": "exclude_processes",
         "type": "string",
         "label": _("Exclude processes"),
@@ -566,7 +566,7 @@ system_options = [  # pylint: disable=invalid-name
                   "can be wrapped in quotation marks."),
     },
     {
-        "section": "Game execution",
+        "section": _("Game execution"),
         "option": "killswitch",
         "type": "string",
         "label": _("Killswitch file"),
@@ -577,7 +577,7 @@ system_options = [  # pylint: disable=invalid-name
     },
 
     {
-        "section": "Xephyr (Deprecated, use Gamescope)",
+        "section": _("Xephyr (Deprecated, use Gamescope)"),
         "option": "xephyr",
         "label": _("Use Xephyr"),
         "type": "choice",
@@ -592,7 +592,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Run program in Xephyr to support 8BPP and 16BPP color modes"),
     },
     {
-        "section": "Xephyr (Deprecated, use Gamescope)",
+        "section": _("Xephyr (Deprecated, use Gamescope)"),
         "option": "xephyr_resolution",
         "type": "string",
         "label": _("Xephyr resolution"),
@@ -600,7 +600,7 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Screen resolution of the Xephyr server"),
     },
     {
-        "section": "Xephyr (Deprecated, use Gamescope)",
+        "section": _("Xephyr (Deprecated, use Gamescope)"),
         "option": "xephyr_fullscreen",
         "type": "bool",
         "label": _("Xephyr Fullscreen"),
