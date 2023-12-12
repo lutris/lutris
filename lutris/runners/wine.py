@@ -57,7 +57,7 @@ def _get_dxvk_warning(config, option_key):
         return _("<b>Warning</b> Your NVIDIA driver is outdated.\n"
                  "You are currently running driver %s which does not "
                  "fully support all features for Vulkan and DXVK games."
-                ) % (
+                 ) % (
             driver_info["nvrm"]["version"],
         )
 

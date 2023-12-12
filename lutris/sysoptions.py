@@ -122,7 +122,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Default installation folder"),
         "warn_if_non_writable_parent": True,
         "default": os.path.expanduser("~/Games"),
-        "scope": ["runner"],
+        "scope": ["runner", "system"],
         "help": _("The default folder where you install your games.")
     },
     {

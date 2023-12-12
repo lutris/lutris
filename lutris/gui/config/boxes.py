@@ -21,9 +21,10 @@ class ConfigBox(VBox):
 
     config_section = NotImplemented
 
-    def __init__(self, game=None):
+    def __init__(self, config_level, game=None):
         super().__init__()
         self.options = []
+        self.config_level = config_level
         self.game = game
         self.config = None
         self.raw_config = None
@@ -141,7 +142,7 @@ class ConfigBox(VBox):
         for option in self.options:
             try:
                 if "scope" in option:
-                    if self.config_section not in option["scope"]:
+                    if self.config_level not in option["scope"]:
                         continue
                 option_key = option["option"]
                 value = self.config.get(option_key)
@@ -735,8 +736,8 @@ class ConfigBox(VBox):
 class GameBox(ConfigBox):
     config_section = "game"
 
-    def __init__(self, lutris_config, game):
-        ConfigBox.__init__(self, game)
+    def __init__(self, config_level, lutris_config, game):
+        ConfigBox.__init__(self, config_level, game)
         self.lutris_config = lutris_config
         self.runner = game.runner
         if self.runner:
@@ -750,8 +751,8 @@ class RunnerBox(ConfigBox):
 
     config_section = "runner"
 
-    def __init__(self, lutris_config, game=None):
-        ConfigBox.__init__(self, game)
+    def __init__(self, config_level, lutris_config, game=None):
+        ConfigBox.__init__(self, config_level, game)
         self.lutris_config = lutris_config
         try:
             self.runner = import_runner(self.lutris_config.runner_slug)()
@@ -770,8 +771,8 @@ class RunnerBox(ConfigBox):
 class SystemConfigBox(ConfigBox):
     config_section = "system"
 
-    def __init__(self, lutris_config):
-        ConfigBox.__init__(self)
+    def __init__(self, config_level, lutris_config):
+        ConfigBox.__init__(self, config_level)
         self.lutris_config = lutris_config
         self.runner = None
         runner_slug = self.lutris_config.runner_slug

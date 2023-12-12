@@ -22,7 +22,7 @@ class PreferencesDialog(GameDialogCommon):
     }
 
     def __init__(self, parent=None):
-        super().__init__(_("Lutris settings"), parent=parent)
+        super().__init__(_("Lutris settings"), config_level="system", parent=parent)
         self.set_border_width(0)
         self.set_default_size(1010, 600)
         self.lutris_config = LutrisConfig()
@@ -87,7 +87,7 @@ class PreferencesDialog(GameDialogCommon):
             "storage-stack"
         )
 
-        self.system_box = SystemConfigBox(self.lutris_config)
+        self.system_box = SystemConfigBox(self.config_level, self.lutris_config)
         self.page_generators["system-stack"] = self.system_box.generate_widgets
         self.stack.add_named(
             self.build_scrolled_window(self.system_box),

@@ -30,8 +30,9 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     """Base class for config dialogs"""
     no_runner_label = _("Select a runner in the Game Info tab")
 
-    def __init__(self, title, parent=None):
+    def __init__(self, title, config_level, parent=None):
         super().__init__(title, parent=parent, border_width=0)
+        self.config_level = config_level
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
         self.vbox.set_border_width(0)
 
@@ -89,14 +90,14 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.update_advanced_switch_visibility(index)
         self.update_search_entry_visibility(index)
 
-    def build_tabs(self, config_level):
+    def build_tabs(self):
         """Build tabs (for game and runner levels)"""
         self.timer_id = None
-        if config_level == "game":
+        if self.config_level == "game":
             self._build_info_tab()
             self._build_game_tab()
-        self._build_runner_tab(config_level)
-        self._build_system_tab(config_level)
+        self._build_runner_tab()
+        self._build_system_tab()
 
         current_page_index = self.notebook.get_current_page()
         self.update_advanced_switch_visibility(current_page_index)
@@ -431,29 +432,29 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
             self.game_box = self._build_options_tab(_("Game options"),
-                                                    lambda: GameBox(self.lutris_config, self.game),
+                                                    lambda: GameBox(self.config_level, self.lutris_config, self.game),
                                                     advanced=has_advanced(self.game),
                                                     searchable=is_searchable(self.game))
         elif self.runner_name:
             game = Game(None)
             game.runner_name = self.runner_name
             self.game_box = self._build_options_tab(_("Game options"),
-                                                    lambda: GameBox(self.lutris_config, game),
+                                                    lambda: GameBox(self.config_level, self.lutris_config, game),
                                                     advanced=has_advanced(game),
                                                     searchable=is_searchable(game))
         else:
             self._build_missing_options_tab(self.no_runner_label, _("Game options"))
 
-    def _build_runner_tab(self, _config_level):
+    def _build_runner_tab(self):
         if self.runner_name:
             self.runner_box = self._build_options_tab(_("Runner options"),
-                                                      lambda: RunnerBox(self.lutris_config))
+                                                      lambda: RunnerBox(self.config_level, self.lutris_config))
         else:
             self._build_missing_options_tab(self.no_runner_label, _("Runner options"))
 
-    def _build_system_tab(self, _config_level):
+    def _build_system_tab(self):
         self.system_box = self._build_options_tab(_("System options"),
-                                                  lambda: SystemConfigBox(self.lutris_config))
+                                                  lambda: SystemConfigBox(self.config_level, self.lutris_config))
 
     def _build_options_tab(self, notebook_label, box_factory, advanced=True, searchable=True):
         if not self.lutris_config:
@@ -593,8 +594,8 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.option_page_indices.clear()
         self.searchable_page_indices.clear()
         self._build_game_tab()
-        self._build_runner_tab("game")
-        self._build_system_tab("game")
+        self._build_runner_tab()
+        self._build_system_tab()
         self.show_all()
 
     def on_response(self, _widget, response):
