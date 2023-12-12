@@ -65,7 +65,7 @@ def _get_dxvk_warning(config, option_key):
 
 
 def _get_simple_vulkan_support_error(config, option_key, feature):
-    if not LINUX_SYSTEM.is_vulkan_supported():
+    if config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
         return _("<b>Error</b> Vulkan is not installed or is not supported by your system, "
                  "%s is not available.") % feature
     return None
