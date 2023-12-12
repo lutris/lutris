@@ -50,7 +50,6 @@ else:
 
 SITE_URL = sio.read_setting("website") or "https://lutris.net"
 
-DRIVER_HOWTO_URL = "https://github.com/lutris/docs/blob/master/InstallingDrivers.md"
 INSTALLER_URL = SITE_URL + "/api/installers/%s"
 
 INSTALLER_REVISION_URL = SITE_URL + "/api/installers/game/%s/revisions/%s"
