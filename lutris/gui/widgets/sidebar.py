@@ -356,6 +356,7 @@ class LutrisSidebar(Gtk.ListBox):
         }
         GObject.add_emission_hook(RunnerBox, "runner-installed", self.update_rows)
         GObject.add_emission_hook(RunnerBox, "runner-removed", self.update_rows)
+        GObject.add_emission_hook(RunnerConfigDialog, "runner-updated", self.update_rows)
         GObject.add_emission_hook(ScriptInterpreter, "runners-installed", self.update_rows)
         GObject.add_emission_hook(ServicesBox, "services-changed", self.update_rows)
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
@@ -460,19 +461,23 @@ class LutrisSidebar(Gtk.ListBox):
     def _filter_func(self, row):
         if not row or not row.id or row.type in ("category", "dynamic_category"):
             return True
-        if row.type == "user_category":
-            return row.id in self.used_categories
-        if row.type == "service":
-            return row.id in self.active_services
+
         if row.type == "runner":
             if row.id is None:
                 return True  # 'All'
             if row.id in self.installed_runners:
                 runner_config = LutrisConfig(runner_slug=row.id)
                 return runner_config.system_config.get("visible_in_side_panel", True)
-            else:
-                return False
-        return row.id in self.active_platforms
+            return False
+
+        if row.type == "user_category":
+            allowed_ids = self.used_categories
+        elif row.type == "service":
+            allowed_ids = self.active_services
+        else:
+            allowed_ids = self.active_platforms
+
+        return row.id in allowed_ids
 
     def _header_func(self, row, before):
         if not before:
