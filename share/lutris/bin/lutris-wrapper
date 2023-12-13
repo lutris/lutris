@@ -21,7 +21,6 @@ try:
 except ImportError:
     setproctitle = print
 
-
 PR_SET_CHILD_SUBREAPER = 36  # Value of the constant in prctl.h
 
 
@@ -54,7 +53,11 @@ def set_child_subreaper():
     Some init(1) frameworks (e.g., systemd(1)) employ a subreaper
     process for similar reasons.
     """
-    result = ctypes.CDLL(find_library('c')).prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0, 0)
+    clib = ctypes.CDLL(find_library('c'))
+    prctl = clib.prctl
+    prctl.restype = ctypes.c_int
+    prctl.argtypes = [ctypes.c_int, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_ulong]
+    result = prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0, 0)
     if result == -1:
         print("PR_SET_CHILD_SUBREAPER is not supported by your kernel (Linux 3.4 and above)")
 
