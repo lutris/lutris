@@ -706,7 +706,7 @@ class Game(GObject.Object):
         return True
 
     def start_game(self):
-        """Run a background command to lauch the game"""
+        """Run a background command to launch the game"""
         self.game_thread = MonitoredCommand(
             self.game_runtime_config["args"],
             title=self.name,

@@ -115,7 +115,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._inset_fractions = {}
 
     def inset_game(self, game_id, fraction):
-        if fraction > 0:
+        if fraction > 0.0:
             self._inset_fractions[game_id] = fraction
         else:
             del self._inset_fractions[game_id]

@@ -132,9 +132,13 @@ class GameView:
             if fraction > limit:
                 fraction = limit
                 delta = -0.0125
-            elif fraction <= 0:
-                self.image_renderer.inset_game(game.id, 0.0)
-                return False
+            elif fraction <= 0.0:
+                if game.state == game.STATE_LAUNCHING:
+                    fraction = 0.0
+                    delta = 0.0125
+                else:
+                    self.image_renderer.inset_game(game.id, 0.0)
+                    return False
 
             self.image_renderer.inset_game(game.id, fraction)
             return True  # Return True to call again after another timeout
