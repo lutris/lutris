@@ -115,6 +115,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._inset_fractions = {}
 
     def inset_game(self, game_id, fraction):
+        """This function indicates that a particular game should be displayed inset by a certain fraction of
+        its total size; 0 is full size, 0.1 would show it at 90% size, but centered.
+
+        This is not bound as an attribute; it's used for an ephemeral animation, and we wouldn't want
+        to mess with the GameStore to do it. Instead, the cell renderer tracks these per game ID, and
+        the caller uses queue_draw() to trigger a redraw.
+
+        Set the fraction to 0 for a game to remove the effect when done."""
         if fraction > 0.0:
             self._inset_fractions[game_id] = fraction
         else:

@@ -1,3 +1,4 @@
+import time
 from typing import List
 
 from gi.repository import Gdk, Gio, GLib, GObject
@@ -119,24 +120,31 @@ class GameView:
         raise NotImplementedError
 
     def on_game_start(self, game):
-        fraction = 0
-        delta = 0.05
-        limit = 0.1
+        """On game start, we trigger an animation to show the game is starting; it runs at least
+        one cycle, but continues until the game exits the STATE_LAUNCHING state."""
+
+        # We animate by looking at how long the animation has been running;
+        # This keeps things on track even if drawing is low or the timeout we use
+        # is not quite regular.
+
+        start_time = time.monotonic()
+        cycle_time = 0.375
+        max_indent = 0.1
 
         def animate():
-            nonlocal fraction, delta, limit
+            elapsed = time.monotonic() - start_time
+            cycle = elapsed % cycle_time
+            # After 1/2 the cycle, start counting down instead of up
+            if cycle > cycle_time / 2:
+                cycle = cycle_time - cycle
+
+            # scale to achieve the max_indent at cycle_time/2.
+            fraction = max_indent * (cycle * 2 / cycle_time)
 
             self.queue_draw()
 
-            fraction += delta
-            if fraction > limit:
-                fraction = limit
-                delta = -0.0125
-            elif fraction <= 0.0:
-                if game.state == game.STATE_LAUNCHING:
-                    fraction = 0.0
-                    delta = 0.0125
-                else:
+            if elapsed >= cycle_time:
+                if game.state != game.STATE_LAUNCHING:
                     self.image_renderer.inset_game(game.id, 0.0)
                     return False
 
