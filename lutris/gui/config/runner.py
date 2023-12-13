@@ -1,5 +1,7 @@
 from gettext import gettext as _
 
+from gi.repository import GObject
+
 from lutris.config import LutrisConfig
 from lutris.gui.config.common import GameDialogCommon
 from lutris.runners import get_runner_human_name
@@ -7,6 +9,10 @@ from lutris.runners import get_runner_human_name
 
 class RunnerConfigDialog(GameDialogCommon):
     """Runner config edit dialog."""
+
+    __gsignals__ = {
+        "runner-updated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+    }
 
     def __init__(self, runner, parent=None):
         super().__init__(_("Configure %s") % runner.human_name, config_level="runner", parent=parent)
@@ -20,6 +26,7 @@ class RunnerConfigDialog(GameDialogCommon):
     def get_search_entry_placeholder(self):
         return _("Search %s options") % get_runner_human_name(self.runner_name)
 
-    def on_save(self, wigdet, data=None):
+    def on_save(self, _wigdet, data=None):
         self.lutris_config.save()
+        self.emit("runner-updated", self.runner_name)
         self.destroy()
