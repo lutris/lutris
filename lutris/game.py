@@ -794,19 +794,20 @@ class Game(GObject.Object):
             return set()
 
         new_pids = self.get_new_pids()
-        game_pids = set()
+
         game_folder = self.resolve_game_path()
+        folder_pids = set()
         for pid in new_pids:
             cmdline = Process(pid).cmdline or ""
             # pressure-vessel: This could potentially pick up PIDs not started by lutris?
             if game_folder in cmdline or "pressure-vessel" in cmdline:
-                game_pids.add(pid)
+                folder_pids.add(pid)
 
-        game_pids.intersection_update(
+        uuid_pids = set(
             pid for pid in new_pids
-            if Process(pid).environ.get("LUTRIS_GAME_UUID") == self.game_uuid
-        )
-        return game_pids
+            if Process(pid).environ.get("LUTRIS_GAME_UUID") == self.game_uuid)
+
+        return folder_pids & uuid_pids
 
     def get_new_pids(self):
         """Return list of PIDs started since the game was launched"""
