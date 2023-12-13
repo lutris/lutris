@@ -1,6 +1,6 @@
 from typing import List
 
-from gi.repository import Gdk, Gio, GObject
+from gi.repository import Gdk, Gio, GLib, GObject
 
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
@@ -19,11 +19,20 @@ class GameView:
 
     def __init__(self, service):
         self.service = service
+        self.game_start_hook_id = None
+        self.image_renderer = None
 
     def connect_signals(self):
         """Signal handlers common to all views"""
+        self.connect("destroy", self.on_destroy)
         self.connect("button-press-event", self.popup_contextual_menu)
         self.connect("key-press-event", self.handle_key_press)
+
+        self.game_start_hook_id = GObject.add_emission_hook(Game, "game-start", self.on_game_start)
+
+    def on_destroy(self, _widget):
+        if self.game_start_hook_id:
+            GObject.remove_emission_hook(Game, "game-start", self.game_start_hook_id)
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu."""
@@ -108,3 +117,28 @@ class GameView:
 
     def get_game_id_for_path(self, path):
         raise NotImplementedError
+
+    def on_game_start(self, game):
+        fraction = 0
+        delta = 0.05
+        limit = 0.1
+
+        def animate():
+            nonlocal fraction, delta, limit
+
+            self.queue_draw()
+
+            fraction += delta
+            if fraction > limit:
+                fraction = limit
+                delta = -0.0125
+            elif fraction <= 0:
+                self.image_renderer.inset_game(game.id, 0.0)
+                return False
+
+            self.image_renderer.inset_game(game.id, fraction)
+            return True  # Return True to call again after another timeout
+
+        if self.image_renderer:
+            GLib.timeout_add(25, animate)
+        return True  # Return True to continue handling the emission hook

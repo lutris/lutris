@@ -112,6 +112,13 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.badge_alpha = 0.6
         self.badge_fore_color = 1, 1, 1
         self.badge_back_color = 0, 0, 0
+        self._inset_fractions = {}
+
+    def inset_game(self, game_id, fraction):
+        if fraction > 0:
+            self._inset_fractions[game_id] = fraction
+        else:
+            del self._inset_fractions[game_id]
 
     @GObject.Property(type=int, default=0)
     def media_width(self):
@@ -205,20 +212,36 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 x, y = self.get_media_position(surface, cell_area)
                 self.select_badge_metrics(surface)
 
+                cr.save()
+                inset_fraction = self._inset_fractions.get(self.game_id) or 0.0 if self.game_id else 0.0
+                if inset_fraction > 0:
+                    x += (cell_area.width * inset_fraction) / 2
+                    y += (cell_area.height * inset_fraction) / 2
+                    cell_area.y = 0
+                    cell_area.x = 0
+
+                    cr.translate(x, y)
+                    cr.scale(1 - inset_fraction, 1 - inset_fraction)
+                else:
+                    cell_area.y = 0
+                    cell_area.x = 0
+                    cr.translate(x, y)
+
                 if alpha >= 1:
-                    self.render_media(cr, widget, surface, x, y)
+                    self.render_media(cr, widget, surface, 0, 0)
                     if self.show_badges:
-                        self.render_platforms(cr, widget, surface, x, cell_area)
+                        self.render_platforms(cr, widget, surface, 0, cell_area)
 
                         if self.game_id and is_game_missing(self.game_id):
-                            self.render_text_badge(cr, widget, _("Missing"), x, cell_area.y + cell_area.height)
+                            self.render_text_badge(cr, widget, _("Missing"), 0, cell_area.y + cell_area.height)
                 else:
                     cr.push_group()
-                    self.render_media(cr, widget, surface, x, y)
+                    self.render_media(cr, widget, surface, 0, 0)
                     if self.show_badges:
-                        self.render_platforms(cr, widget, surface, x, cell_area)
+                        self.render_platforms(cr, widget, surface, 0, cell_area)
                     cr.pop_group_to_source()
                     cr.paint_with_alpha(alpha)
+                cr.restore()
 
             # Idle time will wait until the widget has drawn whatever it wants to;
             # we can then discard surfaces we aren't using anymore.
@@ -361,6 +384,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def render_text_badge(self, cr, widget, text, left, bottom):
         """Draws a short text in the lower left corner of the media, in the
         style of a badge."""
+
         def get_layout():
             """Constructs a layout with the text to draw, but also returns its size
             in pixels. This is boldfaced, but otherwise in the default font."""

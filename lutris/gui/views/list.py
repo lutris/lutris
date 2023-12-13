@@ -32,7 +32,8 @@ class GameListView(Gtk.TreeView, GameView):
             self.image_renderer = GridViewCellRendererImage()
             self.media_column = Gtk.TreeViewColumn("", self.image_renderer,
                                                    media_path=COL_MEDIA_PATH,
-                                                   is_installed=COL_INSTALLED)
+                                                   is_installed=COL_INSTALLED,
+                                                   game_id=COL_ID)
             self.media_column.set_reorderable(True)
             self.media_column.set_sort_indicator(False)
             self.media_column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
