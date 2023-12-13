@@ -5,6 +5,7 @@ from gettext import gettext as _
 from gi.repository import GLib, GObject, Gtk, Pango
 
 from lutris import runners, services
+from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.exceptions import watch_errors
@@ -466,7 +467,11 @@ class LutrisSidebar(Gtk.ListBox):
         if row.type == "runner":
             if row.id is None:
                 return True  # 'All'
-            return row.id in self.installed_runners
+            if row.id in self.installed_runners:
+                runner_config = LutrisConfig(runner_slug=row.id)
+                return runner_config.system_config.get("visible_in_side_panel", True)
+            else:
+                return False
         return row.id in self.active_platforms
 
     def _header_func(self, row, before):
