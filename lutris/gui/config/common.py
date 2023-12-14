@@ -535,10 +535,11 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.game_box.advanced_visibility = value
 
     def _set_filter(self, value):
-        self.system_box.filter = value
-        if self.runner_name:
+        if self.system_box:
+            self.system_box.filter = value
+        if self.runner_box:
             self.runner_box.filter = value
-        if self.game:
+        if self.game_box:
             self.game_box.filter = value
 
     @watch_errors()
