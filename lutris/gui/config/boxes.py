@@ -296,26 +296,26 @@ class ConfigBox(VBox):
             )
 
         elif option_type == "bool":
-            self.generate_checkbox(option, value)
+            self.generate_checkbox(option, value, default)
             self.tooltip_default = "Enabled" if default else "Disabled"
         elif option_type == "range":
-            self.generate_range(option_key, option["min"], option["max"], option["label"], value)
+            self.generate_range(option_key, option["min"], option["max"], option["label"], value, default)
         elif option_type == "string":
             if "label" not in option:
                 raise ValueError("Option %s has no label" % option)
-            self.generate_entry(option_key, option["label"], value, option_size)
+            self.generate_entry(option_key, option["label"], value, default, option_size)
         elif option_type == "directory_chooser":
-            self.generate_directory_chooser(option, value)
+            self.generate_directory_chooser(option, value, default)
         elif option_type == "file":
-            self.generate_file_chooser(option, value)
+            self.generate_file_chooser(option, value, default)
         elif option_type == "command_line":
-            self.generate_file_chooser(option, value, shell_quoting=True)
+            self.generate_file_chooser(option, value, default, shell_quoting=True)
         elif option_type == "multiple":
-            self.generate_multiple_file_chooser(option_key, option["label"], value)
+            self.generate_multiple_file_chooser(option_key, option["label"], value, default)
         elif option_type == "label":
             self.generate_label(option["label"])
         elif option_type == "mapping":
-            self.generate_editable_grid(option_key, label=option["label"], value=value)
+            self.generate_editable_grid(option_key, label=option["label"], value=value, default=default)
         else:
             raise ValueError("Unknown widget type %s" % option_type)
 
@@ -329,14 +329,16 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(label, True, True, 0)
 
     # Checkbox
-    def generate_checkbox(self, option, value=None):
+    def generate_checkbox(self, option, value=None, default=None):
         """Generate a checkbox."""
 
         label = Label(option["label"])
         self.wrapper.pack_start(label, False, False, 0)
 
         switch = Gtk.Switch()
-        if value is True:
+        if value is None:
+            switch.set_active(default)
+        else:
             switch.set_active(value)
         switch.connect("notify::active", self.checkbox_toggle, option["option"])
         switch.set_valign(Gtk.Align.CENTER)
@@ -348,14 +350,13 @@ class ConfigBox(VBox):
         self.option_changed(widget, option_name, widget.get_active())
 
     # Entry
-    def generate_entry(self, option_name, label, value=None, option_size=None):
+    def generate_entry(self, option_name, label, value=None, default=None, option_size=None):
         """Generate an entry box."""
         label = Label(label)
         self.wrapper.pack_start(label, False, False, 0)
 
         entry = Gtk.Entry()
-        if value:
-            entry.set_text(value)
+        entry.set_text(value or default or "")
         entry.connect("changed", self.entry_changed, option_name)
         expand = option_size != "small"
         self.wrapper.pack_start(entry, expand, expand, 0)
@@ -455,13 +456,15 @@ class ConfigBox(VBox):
         self.option_changed(combobox, option, option_value)
 
     # Range
-    def generate_range(self, option_name, min_val, max_val, label, value=None):
+    def generate_range(self, option_name, min_val, max_val, label, value=None, default=None):
         """Generate a ranged spin button."""
         adjustment = Gtk.Adjustment(float(min_val), float(min_val), float(max_val), 1, 0, 0)
         spin_button = Gtk.SpinButton()
         spin_button.set_adjustment(adjustment)
         if value:
             spin_button.set_value(value)
+        elif default:
+            spin_button.set_value(default)
         spin_button.connect("changed", self.on_spin_button_changed, option_name)
         label = Label(label)
         self.wrapper.pack_start(label, False, False, 0)
@@ -474,36 +477,39 @@ class ConfigBox(VBox):
         self.option_changed(spin_button, option, value)
 
     # File chooser
-    def generate_file_chooser(self, option, text=None, shell_quoting=False):
+    def generate_file_chooser(self, option, path=None, default_path=None, shell_quoting=False):
         """Generate a file chooser button to select a file."""
         option_name = option["option"]
         label = Label(option["label"])
-        default_path = option.get("default_path") or (self.runner.default_path if self.runner else "")
+        chooser_default_path = option.get("default_path") or (self.runner.default_path if self.runner else "")
         warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
+
+        if not path:
+            path = default_path
 
         file_chooser = FileChooserEntry(
             title=_("Select file"),
             action=Gtk.FileChooserAction.OPEN,
             warn_if_non_writable_parent=warn_if_non_writable_parent,
-            text=text,
-            default_path=default_path,
+            text=path,
+            default_path=chooser_default_path,
             shell_quoting=shell_quoting
         )
         # file_chooser.set_size_request(200, 30)
 
         if "default_path" in option:
-            default_path = self.lutris_config.system_config.get(option["default_path"])
-            if default_path and os.path.exists(default_path):
-                file_chooser.entry.set_text(default_path)
+            chooser_default_path = self.lutris_config.system_config.get(option["default_path"])
+            if chooser_default_path and os.path.exists(chooser_default_path):
+                file_chooser.entry.set_text(chooser_default_path)
 
-        if text:
+        if path:
             # If path is relative, complete with game dir
-            if not os.path.isabs(text):
-                text = os.path.expanduser(text)
-                if not os.path.isabs(text):
+            if not os.path.isabs(path):
+                path = os.path.expanduser(path)
+                if not os.path.isabs(path):
                     if self.game and self.game.directory:
-                        text = os.path.join(self.game.directory, text)
-            file_chooser.entry.set_text(text)
+                        path = os.path.join(self.game.directory, path)
+            file_chooser.entry.set_text(path)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
@@ -513,21 +519,24 @@ class ConfigBox(VBox):
         file_chooser.connect("changed", self._on_chooser_file_set, option_name)
 
     # Directory chooser
-    def generate_directory_chooser(self, option, path=None):
+    def generate_directory_chooser(self, option, path=None, default_path=None):
         """Generate a file chooser button to select a directory."""
         label = Label(option["label"])
         option_name = option["option"]
         warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
 
-        default_path = None
+        if not path:
+            path = default_path
+
+        chooser_default_path = None
         if not path and self.game and self.game.runner:
-            default_path = self.game.runner.working_dir
+            chooser_default_path = self.game.runner.working_dir
         directory_chooser = FileChooserEntry(
             title=_("Select folder"),
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             warn_if_non_writable_parent=warn_if_non_writable_parent,
             text=path,
-            default_path=default_path
+            default_path=chooser_default_path
         )
         directory_chooser.connect("changed", self._on_chooser_file_set, option_name)
         directory_chooser.set_valign(Gtk.Align.CENTER)
@@ -543,9 +552,9 @@ class ConfigBox(VBox):
         self.option_changed(entry, option, text)
 
     # Editable grid
-    def generate_editable_grid(self, option_name, label, value=None):
+    def generate_editable_grid(self, option_name, label, value=None, default=None):
         """Adds an editable grid widget"""
-        value = value or {}
+        value = value or default or {}
         try:
             value = list(value.items())
         except AttributeError:
@@ -565,7 +574,7 @@ class ConfigBox(VBox):
         self.option_changed(grid, option, values)
 
     # Multiple file selector
-    def generate_multiple_file_chooser(self, option_name, label, value=None):
+    def generate_multiple_file_chooser(self, option_name, label, value=None, default=None):
         """Generate a multiple file selector."""
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         label = Label(label + ":")
@@ -575,6 +584,9 @@ class ConfigBox(VBox):
         button.set_margin_left(10)
         vbox.pack_start(label, False, False, 5)
         vbox.pack_end(button, False, False, 0)
+
+        if not value:
+            value = default
 
         if value:
             if isinstance(value, str):
