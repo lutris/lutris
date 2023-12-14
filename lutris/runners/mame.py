@@ -190,8 +190,8 @@ class mame(Runner):  # pylint: disable=invalid-name
             "section": _("Graphics"),
             "label": _("Wait for VSync"),
             "help":
-            _("Enable waiting for  the  start  of  vblank  before "
-              "flipping  screens; reduces tearing effects."),
+                _("Enable waiting for  the  start  of  vblank  before "
+                  "flipping  screens; reduces tearing effects."),
             "advanced": True,
             "default": False,
         },
@@ -247,17 +247,17 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     def write_xml_list(self):
         """Write the full game list in XML to disk"""
+        env = runtime.get_env()
+        listxml_command = self.get_command() + ["-listxml"]
         os.makedirs(self.cache_dir, exist_ok=True)
-        output = system.execute(
-            self.get_command() + ["-listxml"],
-            env=runtime.get_env()
-        )
+        output = system.execute(listxml_command, env=env)
         if output:
             with open(self.xml_path, "w", encoding='utf-8') as xml_file:
                 xml_file.write(output)
             logger.info("MAME XML list written to %s", self.xml_path)
         else:
-            logger.warning("Couldn't get any output for mame -listxml")
+            error_output = system.execute(listxml_command, env=env, capture_stderr=True)
+            logger.warning("Couldn't get any output for mame -listxml: %s", error_output)
 
     def get_platform(self):
         selected_platform = self.game_config.get("platform")
