@@ -1,3 +1,4 @@
+import functools
 import shutil
 from gettext import gettext as _
 
@@ -6,6 +7,7 @@ from lutris.util.log import logger
 from lutris.util.system import read_process_output
 
 
+@functools.lru_cache(maxsize=None)
 def get_executable():
     """Return the executable used to access Flatpak. None if Flatpak is not installed.
 
@@ -29,6 +31,7 @@ def get_command():
     return [exe]
 
 
+@functools.lru_cache(maxsize=None)
 def get_installed_apps():
     if not is_installed():
         return []
