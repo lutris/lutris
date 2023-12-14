@@ -463,7 +463,7 @@ class LutrisSidebar(Gtk.ListBox):
         def is_runner_visible(runner_name):
             if runner_name not in self.runner_visibility_cache:
                 runner_config = LutrisConfig(runner_slug=row.id)
-                self.runner_visibility_cache[runner_name] = runner_config.system_config.get(
+                self.runner_visibility_cache[runner_name] = runner_config.runner_config.get(
                     "visible_in_side_panel", True)
             return self.runner_visibility_cache[runner_name]
 
