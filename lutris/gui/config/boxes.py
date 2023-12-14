@@ -75,7 +75,6 @@ class ConfigBox(VBox):
                     frame_visible_count = update_widgets(widget.vbox.get_children())
                     visible_count += frame_visible_count
                     widget.set_visible(frame_visible_count > 0)
-                    widget.set_frame_visible(frame_visible_count > 1)
                 else:
                     widget_visible = self.advanced_visibility or not widget.get_style_context().has_class("advanced")
                     if widget_visible and filter_text and hasattr(widget, "lutris_option_label"):
@@ -719,18 +718,6 @@ class ConfigBox(VBox):
             self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             self.add(self.vbox)
             self.get_style_context().add_class("section-frame")
-
-        def set_frame_visible(self, visible):
-            if visible:
-                self.show_frame()
-            else:
-                self.hide_frame()
-
-        def show_frame(self):
-            self.get_style_context().remove_class("frame-hidden")
-
-        def hide_frame(self):
-            self.get_style_context().add_class("frame-hidden")
 
 
 class GameBox(ConfigBox):

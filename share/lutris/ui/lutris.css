@@ -24,21 +24,13 @@
   padding: 3px 6px;
 }
 
-.section-frame:not(.frame-hidden) {
+.section-frame {
 	margin-top: 12px;
 	margin-bottom: 12px;
 	margin-left: 12px;
 	margin-right: 12px;
 }
 
-.section-frame:not(.frame-hidden) > box {
+.section-frame > box {
 	margin-bottom: 6px;
-}
-
-.section-frame.frame-hidden > border {
-	border: 0px;
-}
-
-.section-frame.frame-hidden > label {
-	font-size: 0px;
 }
