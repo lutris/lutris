@@ -498,7 +498,7 @@ class LutrisSidebar(Gtk.ListBox):
         else:
             header = None
 
-        if row.get_header() != header:
+        if header and row.get_header() != header:
             # GTK is messy here; a header can't belong to two rows at once,
             # so we must remove it from the one that owns it, if any, and
             # also from the sidebar itself. Then we can reuse it.
