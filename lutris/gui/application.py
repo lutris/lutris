@@ -58,6 +58,7 @@ from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.savesync import show_save_stats, upload_save, save_check
 from lutris.services import get_enabled_services
 from lutris.database.services import ServiceGameCollection
+from lutris.util.jobs import AsyncCall
 
 from .lutriswindow import LutrisWindow
 
@@ -833,12 +834,14 @@ class Application(Gtk.Application):
         if not game.slug:
             raise ValueError("Invalid game passed: %s" % game)
             # return True
-        installers = get_installers(game_slug=game.slug)
+        AsyncCall(get_installers, self.on_installers_loaded, game.slug)
+        return True
+
+    def on_installers_loaded(self, installers, _error):
         if installers:
             self.show_installer_window(installers)
         else:
-            ErrorDialog(_("There is no installer available for %s.") % game.name, parent=self.window)
-        return True
+            ErrorDialog(_("No installer available."), parent=self.window)
 
     @watch_errors(error_result=True)
     def on_game_install_update(self, game):

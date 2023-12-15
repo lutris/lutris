@@ -24,6 +24,20 @@ from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, human_size
 from lutris.util.system import is_removeable
+from lutris.util.jobs import AsyncCall
+
+
+class MarkupLabel(Gtk.Label):
+    """Label for installer window"""
+
+    def __init__(self, markup=None, **kwargs):
+        super().__init__(
+            label=markup,
+            use_markup=True,
+            wrap=True,
+            max_width_chars=80,
+            **kwargs)
+        self.set_alignment(0.5, 0)
 
 
 class InstallerWindow(ModelessDialog,
@@ -73,7 +87,7 @@ class InstallerWindow(ModelessDialog,
         content_area.set_spacing(12)
 
         # Header labels
-        self.status_label = InstallerWindow.MarkupLabel(no_show_all=True)
+        self.status_label = MarkupLabel(no_show_all=True)
         content_area.pack_start(self.status_label, False, False, 0)
 
         # Header bar buttons
@@ -196,7 +210,6 @@ class InstallerWindow(ModelessDialog,
 
     def on_navigate_home(self, _accel_group, _window, _keyval, _modifier):
         self.stack.navigate_home()
-
 
     def on_cancel_clicked(self, _button=None):
         """Ask a confirmation before cancelling the installation, if it has started."""
@@ -409,7 +422,8 @@ class InstallerWindow(ModelessDialog,
             if not self.interpreter.launch_install(self):
                 self.stack.navigation_reset()
 
-        self.load_spinner_page(_("Preparing Lutris for installation"), cancellable=False,
+        self.load_spinner_page(_("Preparing Lutris for installation"),
+                               cancellable=False,
                                extra_buttons=[self.cache_button, self.source_button])
         GLib.idle_add(launch_install)
 
@@ -430,7 +444,7 @@ class InstallerWindow(ModelessDialog,
         self.config["create_steam_shortcut"] = checkbutton.get_active()
 
     def on_runners_ready(self, _widget=None):
-        self.load_extras_page()
+        AsyncCall(self.interpreter.get_extras, self.on_extras_loaded)
 
     # Extras Page
     #
@@ -440,30 +454,31 @@ class InstallerWindow(ModelessDialog,
     # If there are no extras, the page triggers as if the user had clicked 'Continue',
     # moving on to pre-installation, then the installer files page.
 
-    def load_extras_page(self):
-        def get_extra_label(extra):
-            """Return a label for the extras picker"""
-            label = extra["name"]
-            _infos = []
-            if extra.get("total_size"):
-                _infos.append(human_size(extra["total_size"]))
-            if extra.get("type"):
-                _infos.append(extra["type"])
-            if _infos:
-                label += " (%s)" % ", ".join(_infos)
-            return label
+    def get_extra_label(self, extra):
+        """Return a label for the extras picker"""
+        label = extra["name"]
+        _infos = []
+        if extra.get("total_size"):
+            _infos.append(human_size(extra["total_size"]))
+        if extra.get("type"):
+            _infos.append(extra["type"])
+        if _infos:
+            label += " (%s)" % ", ".join(_infos)
+        return label
 
+    def on_extras_loaded(self, all_extras, _error):
         all_extras = self.interpreter.get_extras()
         if all_extras:
             self.extras_tree_store.clear()
             for extra_source, extras in all_extras.items():
                 parent = self.extras_tree_store.append(None, (None, None, None, extra_source))
                 for extra in extras:
-                    self.extras_tree_store.append(parent, (False, False, extra["id"], get_extra_label(extra)))
+                    self.extras_tree_store.append(parent, (False, False, extra["id"], self.get_extra_label(extra)))
 
             self.stack.navigate_to_page(self.present_extras_page)
         else:
             self.on_extras_ready()
+
 
     def create_extras_page(self):
         treeview = Gtk.TreeView(self.extras_tree_store)
@@ -491,7 +506,7 @@ class InstallerWindow(ModelessDialog,
 
     def present_extras_page(self):
         """Show installer screen with the extras picker"""
-
+        logger.debug("Showing extras page")
         def on_continue(_button):
             self.on_extras_confirmed(self.extras_tree_store)
 
@@ -562,14 +577,17 @@ class InstallerWindow(ModelessDialog,
         else:
             patch_version = None
 
-        self.interpreter.installer.prepare_game_files(patch_version)
+        AsyncCall(self.interpreter.installer.prepare_game_files, self.on_files_prepared, patch_version)
+        return True
 
+    def on_files_prepared(self, _result, _error):
+        logger.debug("Game files prepared.")
         if not self.interpreter.installer.files:
             return False
 
         self.installer_files_box.load_installer(self.interpreter.installer)
         self.stack.navigate_to_page(self.present_installer_files_page)
-        return True
+
 
     def create_installer_files_page(self):
         return Gtk.ScrolledWindow(
@@ -582,7 +600,7 @@ class InstallerWindow(ModelessDialog,
 
     def present_installer_files_page(self):
         """Show installer screen with the file picker / downloader"""
-
+        logger.debug("Presenting installer files page")
         self.set_status(_(
             "Please review the files needed for the installation then click 'Continue'"))
         self.stack.present_page("installer_files")
@@ -621,6 +639,7 @@ class InstallerWindow(ModelessDialog,
         GLib.idle_add(self.launch_installer_commands)
 
     def launch_installer_commands(self):
+        logger.info("Launching installer commands")
         self.install_in_progress = True
         self.load_spinner_page(_("Installing game data"))
         self.stack.discard_navigation()  # once we really start installing, no going back!
@@ -756,7 +775,7 @@ class InstallerWindow(ModelessDialog,
                     self.load_error_message_page(str(err))
 
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-            label = InstallerWindow.MarkupLabel(message)
+            label = MarkupLabel(message)
             vbox.pack_start(label, False, False, 0)
 
             buttons_box = Gtk.Box()
@@ -949,14 +968,3 @@ class InstallerWindow(ModelessDialog,
                 break
         self.menu_button.set_visible(any_visible)
 
-    class MarkupLabel(Gtk.Label):
-        """Label for installer window"""
-
-        def __init__(self, markup=None, **kwargs):
-            super().__init__(
-                label=markup,
-                use_markup=True,
-                wrap=True,
-                max_width_chars=80,
-                **kwargs)
-            self.set_alignment(0.5, 0)
