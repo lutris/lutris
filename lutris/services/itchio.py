@@ -322,7 +322,7 @@ class ItchIoService(OnlineService):
                     "id": str(upload["id"]),
                 }
             )
-        if len(extras) > 0:
+        if extras:
             all_extras["Bonus Content"] = extras
         return all_extras
 
