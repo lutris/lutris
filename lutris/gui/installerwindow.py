@@ -839,16 +839,16 @@ class InstallerWindow(ModelessDialog,
 
     def load_finish_install_page(self, game_id, status):
         if self.config.get("create_desktop_shortcut"):
-            self.create_shortcut(desktop=True)
+            AsyncCall(self.create_shortcut, None, True)
         if self.config.get("create_menu_shortcut"):
-            self.create_shortcut()
+            AsyncCall(self.create_shortcut, None)
 
         # Save game to trigger a game-updated signal,
         # but take care not to create a blank game
         if game_id:
             game = Game(game_id)
             if self.config.get("create_steam_shortcut"):
-                steam_shortcut.create_shortcut(game)
+                AsyncCall(steam_shortcut.create_shortcut, None, game)
             game.save()
 
         self.install_in_progress = False

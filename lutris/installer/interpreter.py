@@ -382,7 +382,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             logger.warning("No executable found at specified location %s", path)
         else:
             status = (self.installer.script.get("install_complete_text") or _("Installation completed!"))
-        download_lutris_media(self.installer.game_slug)
+        AsyncCall(download_lutris_media, None, self.installer.game_slug)
         self.interpreter_ui_delegate.report_finished(game_id, status)
 
     def cleanup(self):
