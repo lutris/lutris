@@ -20,11 +20,11 @@ from lutris.installer import InstallationKind, get_installers, interpreter
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.util import xdgshortcuts
+from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, human_size
 from lutris.util.system import is_removeable
-from lutris.util.jobs import AsyncCall
 
 
 class MarkupLabel(Gtk.Label):
@@ -479,7 +479,6 @@ class InstallerWindow(ModelessDialog,
         else:
             self.on_extras_ready()
 
-
     def create_extras_page(self):
         treeview = Gtk.TreeView(self.extras_tree_store)
         treeview.set_headers_visible(False)
@@ -507,6 +506,7 @@ class InstallerWindow(ModelessDialog,
     def present_extras_page(self):
         """Show installer screen with the extras picker"""
         logger.debug("Showing extras page")
+
         def on_continue(_button):
             self.on_extras_confirmed(self.extras_tree_store)
 
@@ -587,7 +587,6 @@ class InstallerWindow(ModelessDialog,
 
         self.installer_files_box.load_installer(self.interpreter.installer)
         self.stack.navigate_to_page(self.present_installer_files_page)
-
 
     def create_installer_files_page(self):
         return Gtk.ScrolledWindow(
@@ -967,4 +966,3 @@ class InstallerWindow(ModelessDialog,
                 any_visible = True
                 break
         self.menu_button.set_visible(any_visible)
-

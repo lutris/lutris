@@ -260,25 +260,8 @@ class BaseService(GObject.Object):
         blank if this is not known."""
         return ""
 
-    def install(self, db_game, update=False):
-        """Install a service game, or starts the installer of the game.
-
-        Args:
-            db_game (dict or str): Database fields of the game to add, or (for Lutris service only
-                the slug of the game.)
-
-        Returns:
-            str: The slug of the game that was installed, to be run. None if the game should not be
-                run now. Many installers start from here, but continue running after this returns;
-                they return None.
-        """
+    def get_service_installers(self, db_game, update):
         appid = db_game["appid"]
-        logger.debug("Installing %s from service %s", appid, self.id)
-
-        # Local services (aka game libraries that don't require any type of online interaction) can
-        # be added without going through an install dialog.
-        if self.local:
-            return self.simple_install(db_game)
         if update:
             service_installers = self.get_update_installers(db_game)
         else:
@@ -292,10 +275,7 @@ class BaseService(GObject.Object):
             if existing_game:
                 logger.debug("Found existing game, aborting install")
                 return
-        if update:
-            installer = None
-        else:
-            installer = self.generate_installer(db_game)
+        installer = self.generate_installer(db_game) if not update else None
         if installer:
             if service_installers:
                 installer["version"] = installer["version"] + " (auto-generated)"
@@ -303,9 +283,31 @@ class BaseService(GObject.Object):
         if not service_installers:
             logger.error("No installer found for %s", db_game)
             return
+        return service_installers, db_game
 
+    def install(self, db_game, update=False):
+        """Install a service game, or starts the installer of the game.
+
+        Args:
+            db_game (dict or str): Database fields of the game to add, or (for Lutris service only
+                the slug of the game.)
+
+        Returns:
+            str: The slug of the game that was installed, to be run. None if the game should not be
+                run now. Many installers start from here, but continue running after this returns;
+                they return None.
+        """
+        logger.debug("Installing %s from service %s", db_game["appid"], self.id)
+        # Local services (aka game libraries that don't require any type of online interaction) can
+        # be added without going through an install dialog.
+        if self.local:
+            return self.simple_install(db_game)
+        AsyncCall(self.get_service_installers, self.on_service_installers_loaded, db_game, update)
+
+    def on_service_installers_loaded(self, result, _error):
+        service_installers, db_game = result
         application = Gio.Application.get_default()
-        application.show_installer_window(service_installers, service=self, appid=appid)
+        application.show_installer_window(service_installers, service=self, appid=db_game["appid"])
 
     def simple_install(self, db_game):
         """A simplified version of the install method, used when a game doesn't need any setup"""
