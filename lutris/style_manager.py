@@ -3,6 +3,8 @@ import enum
 from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
+from lutris.exceptions import watch_errors
+from lutris.util.log import logger
 
 PORTAL_BUS_NAME = "org.freedesktop.portal.Desktop"
 PORTAL_OBJECT_PATH = "/org/freedesktop/portal/desktop"
@@ -10,7 +12,6 @@ PORTAL_SETTINGS_INTERFACE = "org.freedesktop.portal.Settings"
 
 
 class ColorScheme(enum.Enum):
-
     NO_PREFERENCE = 0  # Default
     PREFER_DARK = 1
     PREFER_LIGHT = 2
@@ -63,6 +64,7 @@ class StyleManager(GObject.Object):
             self._call_cb,
         )
 
+    @watch_errors()
     def _new_for_bus_cb(self, obj, result):
         proxy = obj.new_for_bus_finish(result)
         if proxy:
@@ -72,6 +74,7 @@ class StyleManager(GObject.Object):
         else:
             raise RuntimeError("Could not start GDBusProxy")
 
+    @watch_errors()
     def _call_cb(self, obj, result):
         values = obj.call_finish(result)
         if values:
@@ -80,6 +83,7 @@ class StyleManager(GObject.Object):
         else:
             raise RuntimeError("Could not read color-scheme")
 
+    @watch_errors()
     def _on_settings_changed(self, _proxy, _sender_name, signal_name, params):
         if signal_name != "SettingChanged":
             return
@@ -114,7 +118,7 @@ class StyleManager(GObject.Object):
     def is_config_dark(self) -> bool:
         return self._is_config_dark
 
-    @is_config_dark.setter  # type: ignore
+    @is_config_dark.setter
     def is_config_dark(self, is_config_dark: bool) -> None:
         if self._is_config_dark == is_config_dark:
             return
@@ -141,7 +145,7 @@ class StyleManager(GObject.Object):
     def color_scheme(self) -> ColorScheme:
         return self._color_scheme
 
-    @color_scheme.setter  # type: ignore
+    @color_scheme.setter
     def color_scheme(self, color_scheme: ColorScheme) -> None:
         if self._color_scheme == color_scheme:
             return
@@ -149,3 +153,6 @@ class StyleManager(GObject.Object):
         self._color_scheme = color_scheme
 
         self.is_system_dark = self.color_scheme == ColorScheme.PREFER_DARK
+
+    def on_watched_error(self, error):
+        logger.exception("Error while reading the style settings: %s", error)
