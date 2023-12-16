@@ -58,4 +58,10 @@ def _make_idle_safe(function):
         function(*args, **kwargs)
         return False  # ignore result from function
 
+    # This is a hack, but if 'function' is a method the
+    # exception handling will want to know what it's __self__ was,
+    # so we'll just paste it right on here.
+
+    if hasattr(function, "__self__"):
+        discarding_result.__self__ = function.__self__
     return discarding_result
