@@ -9,7 +9,7 @@ from lutris.api import format_runner_version, get_default_runner_version_info
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import GameConfigError, MisconfigurationError, MissingExecutableError, UnavailableLibrariesError
+from lutris.exceptions import MisconfigurationError, MissingExecutableError, UnavailableLibrariesError
 from lutris.runners import RunnerInstallationError
 from lutris.util import flatpak, strings, system
 from lutris.util.extract import ExtractFailure, extract_archive
@@ -303,13 +303,8 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         if "command" in launch_config:
             command = strings.split_arguments(launch_config["command"])
-        elif "command" in gameplay_info:
-            command = [gameplay_info["command"][0]]
         else:
-            logger.debug("No command in %s", gameplay_info)
-            logger.debug(launch_config)
-            # The 'file' sort of gameplay_info cannot be made to use a configuration
-            raise GameConfigError(_("The runner could not find a command to apply the configuration to."))
+            command = self.get_command()
 
         exe = self.get_launch_config_exe(launch_config)
         if exe:
