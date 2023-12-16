@@ -8,7 +8,6 @@ from lutris import runners, services
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
-from lutris.exceptions import watch_errors
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
@@ -234,17 +233,14 @@ class RunnerSidebarRow(SidebarRow):
         entries.append(("emblem-system-symbolic", _("Configure"), self.on_configure_runner, "configure"))
         return entries
 
-    @watch_errors()
     def on_run_runner(self, *_args):
         """Runs the runner without no game."""
         self.runner.run(self.get_toplevel())
 
-    @watch_errors()
     def on_configure_runner(self, *_args):
         """Show runner configuration"""
         self.application.show_window(RunnerConfigDialog, runner=self.runner, parent=self.get_toplevel())
 
-    @watch_errors()
     def on_manage_versions(self, *_args):
         """Manage runner versions"""
         dlg_title = _("Manage %s versions") % self.runner.name
