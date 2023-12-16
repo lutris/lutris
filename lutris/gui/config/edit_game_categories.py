@@ -5,7 +5,6 @@ from gettext import gettext as _
 from gi.repository import Gtk
 
 from lutris.database import categories as categories_db
-from lutris.exceptions import watch_errors
 from lutris.gui import dialogs
 from lutris.gui.dialogs import SavableModelessDialog
 
@@ -79,7 +78,6 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
         return hbox
 
-    @watch_errors()
     def on_save(self, _button):
         """Save game info and destroy widget."""
         removed_categories = set()
