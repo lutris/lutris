@@ -7,7 +7,6 @@ from gi.repository import Gtk
 
 from lutris.database.games import get_games
 from lutris.game import Game
-from lutris.gui import dialogs
 from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.util import datapath
@@ -331,6 +330,3 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
                     self.game.uninstall(delete_files=self.delete_files)
             elif self.delete_game:
                 self.game.delete()
-
-    def on_watched_error(self, error: Exception) -> None:
-        dialogs.ErrorDialog(error, parent=self)

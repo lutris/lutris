@@ -9,7 +9,6 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.game import Game
-from lutris.gui import dialogs
 from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
@@ -246,9 +245,6 @@ class RunnerSidebarRow(SidebarRow):
         dlg_title = _("Manage %s versions") % self.runner.name
         self.application.show_window(RunnerInstallDialog, title=dlg_title,
                                      runner=self.runner, parent=self.get_toplevel())
-
-    def on_watched_error(self, error):
-        dialogs.ErrorDialog(error, parent=self.get_toplevel())
 
 
 class CategorySidebarRow(SidebarRow):

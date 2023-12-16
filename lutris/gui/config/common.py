@@ -734,9 +734,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         invalidate_media_caches()
         self._set_image(image_type, self.image_buttons[image_type])
 
-    def on_watched_error(self, error):
-        dialogs.ErrorDialog(error, parent=self)
-
 
 class RunnerMessageBox(UnderslungMessageBox):
     def __init__(self):

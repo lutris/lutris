@@ -6,7 +6,7 @@ from gi.repository import Gtk
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.game import Game
-from lutris.gui.dialogs import ErrorDialog, QuestionDialog, SavableModelessDialog
+from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
 
 
 class EditCategoryGamesDialog(SavableModelessDialog):
@@ -129,6 +129,3 @@ class EditCategoryGamesDialog(SavableModelessDialog):
                 game.add_category(new_name)
 
         self.destroy()
-
-    def on_watched_error(self, error):
-        ErrorDialog(error, parent=self)

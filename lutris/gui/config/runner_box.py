@@ -138,6 +138,3 @@ class RunnerBox(Gtk.Box):
         self.runner_label_box.set_sensitive(False)
         self.action_alignment.get_children()[0].destroy()
         self.action_alignment.add(self.get_action_button())
-
-    def on_watched_error(self, error):
-        ErrorDialog(error, parent=self.get_toplevel())
