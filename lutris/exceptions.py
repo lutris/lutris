@@ -155,44 +155,40 @@ def _create_error_wrapper(handler: Callable, handler_name: str,
     return error_wrapper
 
 
-def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args, **kwargs):
-    error_wrapper = _create_error_wrapper(handler, f"signal '{signal_spec}'",
-                                          error_result=None,
-                                          error_method_name="on_signal_error",
-                                          error_objects=[self])
-    return _original_connect(self, signal_spec, error_wrapper, *args, **kwargs)
+def init_exception_backstops():
+    def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args, **kwargs):
+        error_wrapper = _create_error_wrapper(handler, f"signal '{signal_spec}'",
+                                              error_result=None,
+                                              error_method_name="on_signal_error",
+                                              error_objects=[self])
+        return _original_connect(self, signal_spec, error_wrapper, *args, **kwargs)
 
+    def _error_handling_add_emission_hook(emitting_type, signal_spec, handler, *args, **kwargs):
+        error_wrapper = _create_error_wrapper(handler, f"emission hook '{emitting_type}.{signal_spec}'",
+                                              error_result=True,  # stay attached
+                                              error_method_name="on_emission_hook_error")
+        return _original_add_emission_hook(emitting_type, signal_spec, error_wrapper, *args, **kwargs)
 
-def _error_handling_add_emission_hook(emitting_type, signal_spec, handler, *args, **kwargs):
-    error_wrapper = _create_error_wrapper(handler, f"emission hook '{emitting_type}.{signal_spec}'",
-                                          error_result=True,  # stay attached
-                                          error_method_name="on_emission_hook_error")
-    return _original_add_emission_hook(emitting_type, signal_spec, error_wrapper, *args, **kwargs)
+    def _error_handling_idle_add(handler, *args, **kwargs):
+        error_wrapper = _create_error_wrapper(handler, "idle function",
+                                              error_result=False,  # stop calling idle func
+                                              error_method_name="on_idle_error")
+        return _original_idle_add(error_wrapper, *args, **kwargs)
 
+    def _error_handling_timeout_add(interval, handler, *args, **kwargs):
+        error_wrapper = _create_error_wrapper(handler, "timeout function",
+                                              error_result=False,  # stop calling timeout fund
+                                              error_method_name="on_timeout_error")
+        return _original_timeout_add(interval, error_wrapper, *args, **kwargs)
 
-def _error_handling_idle_add(handler, *args, **kwargs):
-    error_wrapper = _create_error_wrapper(handler, "idle function",
-                                          error_result=False,  # stop calling idle func
-                                          error_method_name="on_idle_error")
-    return _original_idle_add(error_wrapper, *args, **kwargs)
+    _original_connect = Gtk.Widget.connect
+    GObject.Object.connect = _error_handling_connect
 
+    _original_add_emission_hook = GObject.add_emission_hook
+    GObject.add_emission_hook = _error_handling_add_emission_hook
 
-def _error_handling_timeout_add(interval, handler, *args, **kwargs):
-    error_wrapper = _create_error_wrapper(handler, "timeout function",
-                                          error_result=False,  # stop calling timeout fund
-                                          error_method_name="on_timeout_error")
-    return _original_timeout_add(interval, error_wrapper, *args, **kwargs)
+    _original_idle_add = GLib.idle_add
+    GLib.idle_add = _error_handling_idle_add
 
-
-# TODO: explicit init call is probably safer
-_original_connect = Gtk.Widget.connect
-GObject.Object.connect = _error_handling_connect
-
-_original_add_emission_hook = GObject.add_emission_hook
-GObject.add_emission_hook = _error_handling_add_emission_hook
-
-_original_idle_add = GLib.idle_add
-GLib.idle_add = _error_handling_idle_add
-
-_original_timeout_add = GLib.timeout_add
-GLib.timeout_add = _error_handling_timeout_add
+    _original_timeout_add = GLib.timeout_add
+    GLib.timeout_add = _error_handling_timeout_add

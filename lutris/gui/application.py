@@ -58,6 +58,7 @@ from lutris.util.savesync import show_save_stats, upload_save, save_check
 from lutris.services import get_enabled_services
 from lutris.database.services import ServiceGameCollection
 from lutris.util.jobs import AsyncCall
+from lutris.exceptions import init_exception_backstops
 
 from .lutriswindow import LutrisWindow
 
@@ -72,6 +73,10 @@ class Application(Gtk.Application):
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
             register_session=True,
         )
+
+        # Prepare the backstop logic just before the first emission hook (or connection) is
+        # established; this will apply to all connections from this point forward.
+        init_exception_backstops()
 
         GObject.add_emission_hook(Game, "game-launch", self.on_game_launch)
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
