@@ -875,10 +875,6 @@ class Application(Gtk.Application):
                     return game
         return None
 
-    def on_watched_error(self, error):
-        if self.window:
-            ErrorDialog(error, parent=self.window)
-
     @staticmethod
     def get_lutris_action(url):
         installer_info = {

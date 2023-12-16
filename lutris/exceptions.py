@@ -2,7 +2,7 @@
 from functools import wraps
 from gettext import gettext as _
 
-from gi.repository import GLib, GObject, Gtk
+from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris.gui.dialogs import ErrorDialog
 from lutris.util.log import logger
@@ -126,6 +126,11 @@ def _handle_callback_error(error_objects, error):
 
         if not first_toplevel:
             first_toplevel = toplevel
+
+    if not first_toplevel:
+        application = Gio.Application.get_default()
+        if application:
+            first_toplevel = application.window
 
     ErrorDialog(error, parent=first_toplevel)
     return
