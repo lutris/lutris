@@ -1,7 +1,7 @@
 """Exception handling module"""
 from functools import wraps
 from gettext import gettext as _
-from typing import Any, Callable, List
+from typing import Any, Callable, Iterable
 
 from gi.repository import Gio, GLib, GObject, Gtk
 
@@ -105,47 +105,35 @@ def watch_game_errors(game_stop_result, game=None):
     return inner_decorator
 
 
-def _handle_callback_error(error_objects, error, error_method_name):
-    """Handles an error from a callback. This will call the error method named,
-    or if this cannot be found, it will show an ErrorDialog."""
-    first_toplevel = None
+def _get_error_parent(error_objects: Iterable) -> Gtk.Window:
+    """Obtains a top-level window to use as the parent of an
+    error, by examining s list of objects. Any that are None
+    are skipped; we call get_toplevel() on each object that has
+    this method, and return the first non-None result.
+
+    If this fails, we turn to the application's main window instead."""
 
     for error_object in error_objects:
         if not error_object:
             continue
 
-        if error_object and hasattr(error_object, error_method_name):
-            error_method = getattr(error_object, error_method_name)
-            error_method(error)
-            return
-
         if error_object and hasattr(error_object, "get_toplevel"):
             toplevel = error_object.get_toplevel()
-        else:
-            toplevel = None
+            if toplevel:
+                return toplevel
 
-        if not first_toplevel:
-            first_toplevel = toplevel
-
-    if not first_toplevel:
-        application = Gio.Application.get_default()
-        if application:
-            first_toplevel = application.window
-
-    ErrorDialog(error, parent=first_toplevel)
+    application = Gio.Application.get_default()
+    return application.window if application else None
 
 
 def _create_error_wrapper(handler: Callable, handler_name: str,
                           error_result: Any,
                           error_method_name: str,
-                          error_objects: List[Any] = None):
+                          connected_object: Any = None):
     """Wraps a handler function in an error handler that will log and then report
     any exceptions, then return the 'error_result'."""
-    if not error_objects:
-        error_objects = []
 
-    if hasattr(handler, "__self__"):
-        error_objects = [handler.__self__] + error_objects
+    handler_object = handler.__self__ if hasattr(handler, "__self__") else None
 
     def error_wrapper(*args, **kwargs):
         try:
@@ -153,7 +141,11 @@ def _create_error_wrapper(handler: Callable, handler_name: str,
         except Exception as ex:
             logger.exception("Error handling %s: %s", handler_name, ex)
 
-            _handle_callback_error(error_objects, ex, error_method_name)
+            if handler_object and hasattr(handler_object, error_method_name):
+                error_method = getattr(handler_object, error_method_name)
+                error_method(ex)
+            else:
+                ErrorDialog(ex, parent=_get_error_parent([handler_object, connected_object]))
             return error_result
 
     return error_wrapper
@@ -184,7 +176,7 @@ def init_exception_backstops():
         error_wrapper = _create_error_wrapper(handler, f"signal '{signal_spec}'",
                                               error_result=None,
                                               error_method_name="on_signal_error",
-                                              error_objects=[self])
+                                              connected_object=self)
         return _original_connect(self, signal_spec, error_wrapper, *args, **kwargs)
 
     def _error_handling_add_emission_hook(emitting_type, signal_spec, handler, *args, **kwargs):
