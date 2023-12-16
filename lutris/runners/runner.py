@@ -196,16 +196,18 @@ class Runner:  # pylint: disable=too-many-public-methods
         return exe
 
     def get_command(self):
+        """Returns the command line to run the runner itself; generally a game
+        will be appended to this by play()."""
         try:
             exe = self.get_executable()
-            if system.path_exists(exe):
-                return [exe]
+            if not system.path_exists(exe):
+                raise MissingExecutableError(_("The executable '%s' could not be found.") % exe)
+            return [exe]
         except MisconfigurationError:
-            pass
+            if flatpak.is_app_installed(self.flatpak_id):
+                return flatpak.get_run_command(self.flatpak_id)
 
-        if flatpak.is_app_installed(self.flatpak_id):
-            return flatpak.get_run_command(self.flatpak_id)
-        return []
+            raise
 
     def get_env(self, os_env=False, disable_runtime=False):
         """Return environment variables used for a game."""
