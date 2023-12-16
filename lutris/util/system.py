@@ -57,22 +57,42 @@ def get_environment():
     }
 
 
-def execute(command, env=None, cwd=None, capture_stderr=False, quiet=False, shell=False, timeout=None):
+def execute(command, env=None, cwd=None, quiet=False, shell=False, timeout=None):
     """
-        Execute a system command and return its results.
+       Execute a system command and return its standard output; standard error is discarded.
 
-        Params:
-            command (list): A list containing an executable and its parameters
-            env (dict): Dict of values to add to the current environment
-            cwd (str): Working directory
-            capture_stderr (bool): Append stderr to stdout (might cause slowdowns)
-            quiet (bool): Do not display log messages
-            timeout (int): Number of seconds the program is allowed to run, disabled by default
+       Params:
+           command (list): A list containing an executable and its parameters
+           env (dict): Dict of values to add to the current environment
+           cwd (str): Working directory
+           quiet (bool): Do not display log messages
+           timeout (int): Number of seconds the program is allowed to run, disabled by default
 
-        Returns:
-            str: stdout output
+       Returns:
+           str: stdout output
     """
+    stdout, _stderr = _execute(command, env=env, cwd=cwd, quiet=quiet, shell=shell, timeout=timeout)
+    return stdout
 
+
+def execute_with_error(command, env=None, cwd=None, quiet=False, shell=False, timeout=None):
+    """
+       Execute a system command and return its standard output and; standard error in a tuple.
+
+       Params:
+           command (list): A list containing an executable and its parameters
+           env (dict): Dict of values to add to the current environment
+           cwd (str): Working directory
+           quiet (bool): Do not display log messages
+           timeout (int): Number of seconds the program is allowed to run, disabled by default
+
+       Returns:
+           str: stdout output
+    """
+    return _execute(command, env=env, cwd=cwd, capture_stderr=True, quiet=quiet, shell=shell, timeout=timeout)
+
+
+def _execute(command, env=None, cwd=None, capture_stderr=False, quiet=False, shell=False, timeout=None):
     # Check if the executable exists
     if not command:
         logger.error("No executable provided!")
@@ -112,10 +132,7 @@ def execute(command, env=None, cwd=None, capture_stderr=False, quiet=False, shel
         logger.error("Command %s after %s seconds", command, timeout)
         return ""
 
-    if stderr:
-        return (stdout + stderr).strip()
-
-    return stdout.strip()
+    return stdout.strip(), (stderr or "").strip()
 
 
 def spawn(command, env=None, cwd=None, quiet=False, shell=False):

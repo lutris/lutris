@@ -153,7 +153,8 @@ def _get_gamescope_fsr_option():
     no way to query the version number more directly."""
     if system.can_find_executable("gamescope"):
         # '-F fsr' is the trigger in gamescope 3.12.
-        help_text = system.execute(["gamescope", "--help"], capture_stderr=True)
+        stdout, stderr = system.execute_with_error(["gamescope", "--help"])
+        help_text = stdout + stderr
         if "-F, --filter" in help_text:
             return ["-F", "fsr"]
 

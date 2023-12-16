@@ -250,13 +250,12 @@ class mame(Runner):  # pylint: disable=invalid-name
         env = runtime.get_env()
         listxml_command = self.get_command() + ["-listxml"]
         os.makedirs(self.cache_dir, exist_ok=True)
-        output = system.execute(listxml_command, env=env)
+        output, error_output = system.execute_with_error(listxml_command, env=env)
         if output:
             with open(self.xml_path, "w", encoding='utf-8') as xml_file:
                 xml_file.write(output)
             logger.info("MAME XML list written to %s", self.xml_path)
         else:
-            error_output = system.execute(listxml_command, env=env, capture_stderr=True)
             logger.warning("Couldn't get any output for mame -listxml: %s", error_output)
 
     def get_platform(self):
