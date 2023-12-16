@@ -118,7 +118,7 @@ class redream(Runner):
         )
 
     def play(self):
-        command = [self.get_executable()]
+        command = self.get_command()
 
         if self.runner_config.get("fs") is True:
             command.append("--fullscreen=1")

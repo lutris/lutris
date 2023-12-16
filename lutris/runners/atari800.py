@@ -113,7 +113,7 @@ class atari800(Runner):
         return good_bios
 
     def play(self):
-        arguments = [self.get_executable()]
+        arguments = self.get_command()
         if self.runner_config.get("fullscreen"):
             arguments.append("-fullscreen")
         else:

@@ -63,7 +63,7 @@ class jzintv(Runner):
 
     def play(self):
         """Run Intellivision game"""
-        arguments = [self.get_executable()]
+        arguments = self.get_command()
 
         selected_resolution = self.runner_config.get("resolution")
         if selected_resolution:

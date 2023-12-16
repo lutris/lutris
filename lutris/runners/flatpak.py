@@ -131,12 +131,15 @@ class flatpak(Runner):
         )
         command.start()
 
-    def play(self):
+    def get_command(self):
         arch = self.game_config.get("arch", "")
         branch = self.game_config.get("branch", "")
-        args = self.game_config.get("args", "")
-        appid = self.game_config.get("appid", "")
         fcommand = self.game_config.get("fcommand", "")
+        return _flatpak.get_bare_run_command(arch, fcommand, branch)
+
+    def play(self):
+        appid = self.game_config.get("appid", "")
+        args = self.game_config.get("args", "")
 
         if not appid:
             return {"error": "CUSTOM", "text": "No application specified."}
@@ -148,7 +151,7 @@ class flatpak(Runner):
         if any(x in appid for x in ("--", "/")):
             return {"error": "CUSTOM", "text": "Application ID field must not contain options or arguments."}
 
-        command = _flatpak.get_run_command(appid, arch, fcommand, branch)
+        command = self.get_command() + [appid]
         if args:
             command.extend(split_arguments(args))
         return {"command": command}

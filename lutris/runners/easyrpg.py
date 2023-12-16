@@ -449,8 +449,8 @@ class easyrpg(Runner):
 
         return env
 
-    def get_runner_command(self):
-        cmd = [self.get_executable()]
+    def get_command(self):
+        cmd = super().get_command()
 
         # Engine
         autobattle_algo = self.runner_config.get("autobattle_algo")
@@ -518,7 +518,7 @@ class easyrpg(Runner):
         return cmd
 
     def get_run_data(self):
-        cmd = self.get_runner_command()
+        cmd = self.get_command()
 
         if self.default_path:
             game_path = path.expanduser(self.default_path)
@@ -532,7 +532,7 @@ class easyrpg(Runner):
         if not path.isdir(self.game_path):
             return self.directory_not_found(self.game_path)
 
-        cmd = self.get_runner_command()
+        cmd = self.get_command()
 
         cmd.extend(("--project-path", self.game_path))
 

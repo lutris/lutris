@@ -104,7 +104,7 @@ class pico8(Runner):
     @property
     def launch_args(self):
         if self.is_native:
-            args = [self.get_executable()]
+            args = self.get_command()
             args.append("-windowed")
             args.append("0" if self.runner_config.get("fullscreen") else "1")
             if self.runner_config.get("splore"):
@@ -120,8 +120,7 @@ class pico8(Runner):
             for arg in split_arguments(extra_args):
                 args.append(arg)
         else:
-            args = [
-                self.get_executable(),
+            args = self.get_command() + [
                 os.path.join(settings.RUNNER_DIR, "pico8/web/player.html"),
                 "--window-size",
                 self.runner_config.get("window_size"),

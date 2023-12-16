@@ -1148,7 +1148,7 @@ class wine(Runner):
             if not fsync_supported:
                 raise FsyncUnsupportedError(_("Your kernel is not patched for fsync."))
 
-        command = [self.get_executable()]
+        command = self.get_command()
 
         game_exe, args, _working_dir = get_real_executable(game_exe, self.working_dir)
         command.append(game_exe)

@@ -523,7 +523,7 @@ class mednafen(Runner):
         if not system.path_exists(rom):
             return {"error": "FILE_NOT_FOUND", "file": rom}
 
-        command = [self.get_executable()]
+        command = self.get_command()
         for option in options:
             command.append(option)
         command.append(rom)

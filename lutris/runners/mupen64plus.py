@@ -41,7 +41,7 @@ class mupen64plus(Runner):
         return os.path.join(settings.RUNNER_DIR, "mupen64plus")
 
     def play(self):
-        arguments = [self.get_executable()]
+        arguments = self.get_command()
         if self.runner_config.get("hideosd"):
             arguments.append("--noosd")
         else:
