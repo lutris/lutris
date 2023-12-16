@@ -1154,6 +1154,3 @@ class LutrisWindow(Gtk.ApplicationWindow,
                                     completion_function=completion_function,
                                     error_function=error_function,
                                     operation_names=operation_names)
-
-    def on_watched_error(self, error):
-        dialogs.ErrorDialog(error, parent=self)

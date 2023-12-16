@@ -157,9 +157,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
     def on_cancel_clicked(self, _widget):
         self.destroy()
 
-    def on_watched_error(self, error):
-        ErrorDialog(error, parent=self)
-
     # Initial Page
 
     def load_initial_page(self):
