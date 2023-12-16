@@ -4,7 +4,6 @@ from gettext import gettext as _
 from gi.repository import Gio, GLib, Gtk
 
 from lutris import api, sysoptions
-from lutris.exceptions import watch_errors
 from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.dialogs import ErrorDialog, ModelessDialog
 from lutris.gui.dialogs.game_import import ImportGameDialog
@@ -149,15 +148,12 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         self.load_initial_page()
 
-    @watch_errors()
     def on_back_clicked(self, _widget):
         self.stack.navigate_back()
 
-    @watch_errors()
     def on_navigate_home(self, _accel_group, _window, _keyval, _modifier):
         self.stack.navigate_home()
 
-    @watch_errors()
     def on_cancel_clicked(self, _widget):
         self.destroy()
 
@@ -187,7 +183,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.present_page("initial")
         self.display_cancel_button()
 
-    @watch_errors()
     def on_row_activated(self, listbox, row):
         if row.callback_name:
             callback = getattr(self, row.callback_name)
@@ -245,14 +240,12 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.search_entry.grab_focus()
         self.display_cancel_button()
 
-    @watch_errors()
     def _on_search_updated(self, entry):
         if self.search_timer_id:
             GLib.source_remove(self.search_timer_id)
         self.text_query = entry.get_text().strip()
         self.search_timer_id = GLib.timeout_add(750, self.update_search_results)
 
-    @watch_errors()
     def update_search_results(self):
         # Don't start a search while another is going; defer it instead.
         if self.search_spinner.get_visible():
@@ -266,7 +259,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             self.search_spinner.start()
             AsyncCall(api.search_games, self.update_search_results_cb, self.text_query)
 
-    @watch_errors()
     def update_search_results_cb(self, api_games, error):
         if error:
             raise error
@@ -297,7 +289,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.search_frame.show()
         self.search_explanation_label.hide()
 
-    @watch_errors()
     def _on_game_selected(self, listbox, row):
         game_slug = row.api_info["slug"]
         installers = get_installers(game_slug=game_slug)
@@ -333,7 +324,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.present_page("scan_folder")
         self.display_continue_button(self.on_continue_scan_folder_clicked)
 
-    @watch_errors()
     def on_continue_scan_folder_clicked(self, _widget):
         path = self.scan_directory_chooser.get_text()
         if not path:
@@ -359,7 +349,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         spinner.start()
         return spinner
 
-    @watch_errors()
     def _on_folder_scanned(self, result, error):
         def present_installed_games_page():
             if installed or missing:
@@ -484,19 +473,16 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.present_page("install_from_setup")
         self.display_continue_button(self._on_install_setup_continue, label=_("_Install"))
 
-    @watch_errors()
     def on_install_from_setup_game_slug_toggled(self, checkbutton):
         self.install_from_setup_game_slug_entry.set_sensitive(checkbutton.get_active())
         self.on_install_from_setup_game_name_changed()
 
-    @watch_errors()
     def on_install_from_setup_game_name_changed(self, *_args):
         if not self.install_from_setup_game_slug_checkbox.get_active():
             name = self.install_from_setup_game_name_entry.get_text()
             proposed_slug = slugify(name) if name else ""
             self.install_from_setup_game_slug_entry.set_text(proposed_slug)
 
-    @watch_errors()
     def _on_install_setup_continue(self, button):
         name = self.install_from_setup_game_name_entry.get_text().strip()
 
@@ -579,7 +565,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.present_page("install_from_script")
         self.display_continue_button(self.on_continue_install_from_script_clicked, label=_("_Install"))
 
-    @watch_errors()
     def on_continue_install_from_script_clicked(self, _widget):
         path = self.install_script_file_chooser.get_text()
         if not path:
@@ -621,7 +606,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.present_page("import_rom")
         self.display_continue_button(self.on_continue_import_rom_clicked, label=_("_Install"))
 
-    @watch_errors()
     def on_continue_import_rom_clicked(self, _widget):
         path = self.import_rom_file_chooser.get_text()
         if not path:
