@@ -822,6 +822,7 @@ class InstallerWindow(ModelessDialog,
 
     def load_error_message_page(self, message):
         self.stack.navigate_to_page(lambda *x: self.present_error_page(message))
+        self.stack.set_back_allowed(False)
         self.cancel_button.grab_focus()
 
     def present_error_page(self, message):
