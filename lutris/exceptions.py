@@ -2,7 +2,7 @@
 from functools import wraps
 from gettext import gettext as _
 
-from gi.repository import GObject, Gtk
+from gi.repository import GLib, GObject, Gtk
 
 from lutris.gui.dialogs import ErrorDialog
 from lutris.util.log import logger
@@ -181,6 +181,32 @@ def _error_handling_add_emission_hook(emitting_type, signal_spec, handler, *args
     return _original_add_emission_hook(emitting_type, signal_spec, wrapper, *args, **kwargs)
 
 
+def _error_handling_idle_add(handler, *args, **kwargs):
+    def wrapper(*args, **kwargs):
+        try:
+            return handler(*args, **kwargs)
+        except Exception as ex:
+            logger.exception("Error handling idle function: %s", ex)
+            error_objects = [handler.__self__] if hasattr(handler, "__self__") else []
+            _handle_callback_error(error_objects, ex)
+            return False
+
+    return _original_idle_add(wrapper, *args, **kwargs)
+
+
+def _error_handling_timeout_add(interval, handler, *args, **kwargs):
+    def wrapper(*args, **kwargs):
+        try:
+            return handler(*args, **kwargs)
+        except Exception as ex:
+            logger.exception("Error handling timeout function: %s", ex)
+            error_objects = [handler.__self__] if hasattr(handler, "__self__") else []
+            _handle_callback_error(error_objects, ex)
+            return False
+
+    return _original_timeout_add(interval, wrapper, *args, **kwargs)
+
+
 # TODO: explicit init call is probably safer
 # TODO: GObject.add_emission_hook too
 _original_connect = Gtk.Widget.connect
@@ -188,3 +214,9 @@ GObject.Object.connect = _error_handling_connect
 
 _original_add_emission_hook = GObject.add_emission_hook
 GObject.add_emission_hook = _error_handling_add_emission_hook
+
+_original_idle_add = GLib.idle_add
+GLib.idle_add = _error_handling_idle_add
+
+_original_timeout_add = GLib.timeout_add
+GLib.timeout_add = _error_handling_timeout_add
