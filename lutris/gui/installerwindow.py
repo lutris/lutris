@@ -255,12 +255,17 @@ class InstallerWindow(ModelessDialog,
         )
 
     def on_signal_error(self, error):
-        ErrorDialog(error, parent=self)
-        self.stack.navigation_reset()
+        self._handle_callback_error(error)
 
     def on_idle_error(self, error):
-        ErrorDialog(error, parent=self)
-        self.stack.navigation_reset()
+        self._handle_callback_error(error)
+
+    def _handle_callback_error(self, error):
+        if self.install_in_progress:
+            self.load_error_message_page(str(error))
+        else:
+            ErrorDialog(error, parent=self)
+            self.stack.navigation_reset()
 
     def set_status(self, text):
         """Display a short status text."""
