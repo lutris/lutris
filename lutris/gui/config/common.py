@@ -8,7 +8,6 @@ from gi.repository import GdkPixbuf, Gtk, Pango
 
 from lutris import runners, settings
 from lutris.config import LutrisConfig, make_game_config_id
-from lutris.exceptions import watch_errors
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
@@ -254,7 +253,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             box.hide()
         return box
 
-    @watch_errors()
     def on_reset_preferred_launch_config_clicked(self, _button, launch_config_box):
         game_config = self.game.config.game_level.get("game", {})
         game_config.pop("preferred_launch_config_name", None)
@@ -374,7 +372,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             runner_liststore.append(("%s (%s)" % (runner.human_name, description), runner.name))
         return runner_liststore
 
-    @watch_errors()
     def on_slug_change_clicked(self, widget):
         if self.slug_entry.get_sensitive() is False:
             widget.set_label(_("Apply"))
@@ -382,7 +379,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         else:
             self.change_game_slug()
 
-    @watch_errors()
     def on_slug_entry_activate(self, _widget):
         self.change_game_slug()
 
@@ -396,7 +392,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.slug_entry.set_sensitive(False)
         self.slug_change_button.set_label(_("Change"))
 
-    @watch_errors()
     def on_move_clicked(self, _button):
         new_location = DirectoryDialog("Select new location for the game",
                                        default_path=self.game.directory, parent=self)
@@ -406,7 +401,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         move_dialog.connect("game-moved", self.on_game_moved)
         move_dialog.move()
 
-    @watch_errors()
     def on_game_moved(self, dialog):
         """Show a notification when the game is moved"""
         new_directory = dialog.new_directory
@@ -542,7 +536,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if self.game_box:
             self.game_box.filter = value
 
-    @watch_errors()
     def on_runner_changed(self, widget):
         """Action called when runner drop down is changed."""
         new_runner_index = widget.get_active()
@@ -643,7 +636,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             return False
         return True
 
-    @watch_errors()
     def on_save(self, _button):
         """Save game info and destroy widget."""
         if not self.is_valid():
@@ -686,7 +678,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.saved = True
         return True
 
-    @watch_errors()
     def on_custom_image_select(self, _widget, image_type):
         dialog = Gtk.FileChooserNative.new(
             _("Please choose a custom image"),
@@ -731,7 +722,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
         dialog.destroy()
 
-    @watch_errors()
     def on_custom_image_reset_clicked(self, _widget, image_type):
         slug = self.slug or self.game.slug
         service_media = self.service_medias[image_type]
