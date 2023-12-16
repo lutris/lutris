@@ -475,7 +475,11 @@ class InstallerWindow(ModelessDialog,
             label += " (%s)" % ", ".join(_infos)
         return label
 
-    def on_extras_loaded(self, all_extras, _error):
+    def on_extras_loaded(self, all_extras, error):
+        if error:
+            self._handle_callback_error(error)
+            return
+
         if all_extras:
             self.extras_tree_store.clear()
             for extra_source, extras in all_extras.items():
