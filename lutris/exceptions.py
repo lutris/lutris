@@ -106,6 +106,8 @@ def watch_game_errors(game_stop_result, game=None):
 
 
 def _handle_callback_error(error_objects, error, error_method_name):
+    """Handles an error from a callback. This will call the error method named,
+    or if this cannot be found, it will show an ErrorDialog."""
     first_toplevel = None
 
     for error_object in error_objects:
@@ -137,6 +139,8 @@ def _create_error_wrapper(handler: Callable, handler_name: str,
                           error_result: Any,
                           error_method_name: str,
                           error_objects: List[Any] = None):
+    """Wraps a handler function in an error handler that will log and then report
+    any exceptions, then return the 'error_result'."""
     if not error_objects:
         error_objects = []
 
@@ -156,6 +160,26 @@ def _create_error_wrapper(handler: Callable, handler_name: str,
 
 
 def init_exception_backstops():
+    """This function is called once only, during startup, and replaces ("swizzles") a bunch of
+    callback setup functions in GLib. The callbacks are all wrapped with error handlers that
+    log the error and report it.
+
+    This is important to do because PyGObject will straight up crash if an exception escapes
+    these handlers; it's better to tell the user and try to survive.
+
+    You can provide certain methods to provide error handling, but if you do not you get an
+    ErrorDialog. Put these handling methods on the same object as the callback method itself.
+
+    We take care of these methods:
+        GObject.Object.connect (via on_signal_error(self, error))
+        GObject.add_emission_hook (via on_emission_hook_error(self, error))
+        GLib.idle_add (via on_idle_error(self, error))
+        GLib.timeout_add (via on_timeout_error(self, error))
+
+    Idle and timeout handlers will be disconnected if this happens to avoid repeated error reports,
+    but signals and emission hooks will remain connected.
+    """
+
     def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args, **kwargs):
         error_wrapper = _create_error_wrapper(handler, f"signal '{signal_spec}'",
                                               error_result=None,
