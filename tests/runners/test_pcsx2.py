@@ -8,6 +8,8 @@ class TestPCSX2Runner(unittest.TestCase):
 
     def setUp(self):
         self.runner = pcsx2()
+        self.runner.get_executable = lambda: "pcsx2"
+        self.runner.get_command = lambda: ["pcsx2"]
 
     @patch('os.path.isfile')
     def test_play_iso_does_not_exist(self, mock_isfile):
