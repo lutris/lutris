@@ -36,7 +36,6 @@ from gi.repository import Gio, GLib, Gtk, GObject
 from lutris.runners import get_runner_names, import_runner, InvalidRunner, RunnerInstallationError
 from lutris import settings
 from lutris.api import parse_installer_url, get_runners
-from lutris.exceptions import watch_errors
 from lutris.command import exec_command
 from lutris.database import games as games_db
 from lutris.game import Game, export_game, import_game
@@ -762,7 +761,6 @@ class Application(Gtk.Application):
             self.quit_on_game_exit = False
         return 0
 
-    @watch_errors()
     def on_settings_changed(self, dialog, state, setting_key):
         if setting_key == "dark_theme":
             self.style_manager.is_config_dark = state
@@ -771,19 +769,16 @@ class Application(Gtk.Application):
                 self.set_tray_icon()
         return True
 
-    @watch_errors(error_result=True)
     def on_game_launch(self, game):
         game.launch(self.launch_ui_delegate)
         return True  # Return True to continue handling the emission hook
 
-    @watch_errors(error_result=True)
     def on_game_start(self, game):
         self.running_games.append(game)
         if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.hide()  # Hide launcher window
         return True
 
-    @watch_errors()
     def on_game_stop(self, game):
         """Callback to remove the game from the running games"""
         ids = self.get_running_game_ids()
@@ -807,7 +802,6 @@ class Application(Gtk.Application):
                     self.quit()
         return True
 
-    @watch_errors(error_result=True)
     def on_game_install(self, game):
         """Request installation of a game"""
         if game.service and game.service != "lutris":
@@ -843,7 +837,6 @@ class Application(Gtk.Application):
         else:
             ErrorDialog(_("No installer available."), parent=self.window)
 
-    @watch_errors(error_result=True)
     def on_game_install_update(self, game):
         service = get_enabled_services()[game.service]()
         db_game = games_db.get_game_by_field(game.id, "id")
@@ -854,7 +847,6 @@ class Application(Gtk.Application):
             ErrorDialog(_("No updates found"), parent=self.window)
         return True
 
-    @watch_errors(error_result=True)
     def on_game_install_dlc(self, game):
         service = get_enabled_services()[game.service]()
         db_game = games_db.get_game_by_field(game.id, "id")

@@ -161,14 +161,30 @@ def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args, 
         except Exception as ex:
             logger.exception("Error handling signal '%s': %s", signal_spec, ex)
 
-            error_objects = [handler.__self__, self] if hasattr(handler, "__self__") else []
+            error_objects = [handler.__self__, self] if hasattr(handler, "__self__") else [self]
             _handle_callback_error(error_objects, ex)
             return None
 
     return _original_connect(self, signal_spec, wrapper, *args, **kwargs)
 
 
+def _error_handling_add_emission_hook(emitting_type, signal_spec, handler, *args, **kwargs):
+    def wrapper(*args, **kwargs):
+        try:
+            return handler(*args, **kwargs)
+        except Exception as ex:
+            logger.exception("Error handling emission hook '%s.%s': %s", emitting_type, signal_spec, ex)
+            error_objects = [handler.__self__] if hasattr(handler, "__self__") else []
+            _handle_callback_error(error_objects, ex)
+            return True
+
+    return _original_add_emission_hook(emitting_type, signal_spec, wrapper, *args, **kwargs)
+
+
 # TODO: explicit init call is probably safer
 # TODO: GObject.add_emission_hook too
 _original_connect = Gtk.Widget.connect
 GObject.Object.connect = _error_handling_connect
+
+_original_add_emission_hook = GObject.add_emission_hook
+GObject.add_emission_hook = _error_handling_add_emission_hook
