@@ -67,29 +67,6 @@ class FsyncUnsupportedError(Exception):
     """Raised when FSYNC is enabled, but is not supported by the kernel."""
 
 
-def watch_errors(error_result=None, handler_object=None):
-    """Decorator used to catch exceptions for GUI signal handlers. This
-    catches any exception from the decorated function and calls
-    on_watch_errors(error) on the first argument, which we presume to be self.
-    and then the method will return 'error_result'"""
-    captured_handler_object = handler_object
-
-    def inner_decorator(function):
-        @wraps(function)
-        def wrapper(*args, **kwargs):
-            myself = captured_handler_object or args[0]
-            try:
-                return function(*args, **kwargs)
-            except Exception as ex:
-                logger.exception(str(ex), exc_info=ex)
-                myself.on_watched_error(ex)
-                return error_result
-
-        return wrapper
-
-    return inner_decorator
-
-
 def watch_game_errors(game_stop_result, game=None):
     """Decorator used to catch exceptions and send events instead of propagating them normally.
     If 'game_stop_result' is not None, and the decorated function returns that, this will
@@ -208,7 +185,6 @@ def _error_handling_timeout_add(interval, handler, *args, **kwargs):
 
 
 # TODO: explicit init call is probably safer
-# TODO: GObject.add_emission_hook too
 _original_connect = Gtk.Widget.connect
 GObject.Object.connect = _error_handling_connect
 
