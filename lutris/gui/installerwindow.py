@@ -135,8 +135,8 @@ class InstallerWindow(ModelessDialog,
         self.extras_tree_store = Gtk.TreeStore(
             bool,  # is selected?
             bool,  # is inconsistent?
-            str,   # id
-            str,   # label
+            str,  # id
+            str,  # label
         )
 
         self.location_entry = FileChooserEntry(
@@ -218,9 +218,9 @@ class InstallerWindow(ModelessDialog,
 
             remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
             if self.interpreter and self.interpreter.target_path and \
-                    self.interpreter.game_dir_created and \
-                    self.installation_kind == InstallationKind.INSTALL and \
-                    is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
+                self.interpreter.game_dir_created and \
+                self.installation_kind == InstallationKind.INSTALL and \
+                is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
                 remove_checkbox.set_active(self.interpreter.game_dir_created)
                 remove_checkbox.show()
                 widgets.append(remove_checkbox)
@@ -560,9 +560,7 @@ class InstallerWindow(ModelessDialog,
         GLib.idle_add(self.on_extras_ready)
 
     def on_extras_ready(self, *args):
-        if not self.load_installer_files_page():
-            logger.debug("Installer doesn't require files")
-            self.launch_installer_commands()
+        self.load_installer_files_page()
 
     # Installer Files & Downloading Page
     #
@@ -577,13 +575,14 @@ class InstallerWindow(ModelessDialog,
             patch_version = None
 
         AsyncCall(self.interpreter.installer.prepare_game_files, self.on_files_prepared, patch_version)
-        return True
 
     def on_files_prepared(self, _result, _error):
-        logger.debug("Game files prepared.")
         if not self.interpreter.installer.files:
-            return False
+            logger.debug("Installer doesn't require files")
+            self.launch_installer_commands()
+            return
 
+        logger.debug("Game files prepared.")
         self.installer_files_box.load_installer(self.interpreter.installer)
         self.stack.navigate_to_page(self.present_installer_files_page)
 
@@ -932,7 +931,7 @@ class InstallerWindow(ModelessDialog,
     def display_install_button(self, handler, sensitive=True):
         """Displays the continue button, but labels it 'Install'."""
         self.display_continue_button(handler, continue_button_label=_(
-                                     "_Install"), sensitive=sensitive,
+            "_Install"), sensitive=sensitive,
                                      extra_buttons=[self.source_button])
 
     def display_cancel_button(self, extra_buttons=None):
