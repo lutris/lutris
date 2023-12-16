@@ -7,7 +7,7 @@ from gi.repository import GObject
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import MisconfigurationError, watch_errors
+from lutris.exceptions import MisconfigurationError
 from lutris.installer import AUTO_EXE_PREFIX
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependency, ScriptingError
@@ -294,7 +294,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     def on_watched_error(self, error):
         self.interpreter_ui_delegate.report_error(error)
 
-    @watch_errors()
     def _iter_commands(self, result=None, exception=None):
 
         if result == "STOP" or self.cancelled:

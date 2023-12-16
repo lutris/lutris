@@ -6,7 +6,6 @@ from typing import Callable, Dict, List
 from gi.repository import Gtk
 
 from lutris.database.games import get_games
-from lutris.exceptions import watch_errors
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.dialogs import QuestionDialog
@@ -126,6 +125,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         """Sets the state of the checkboxes at the button that are used to control all
         settings together. While we are actually updating these checkboxes en-meass,
         this method does nothing at all."""
+
         def update(checkbox, is_candidate, is_set):
             set_count = 0
             unset_count = 0
@@ -149,7 +149,6 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
                    lambda row: row.game.is_installed,
                    lambda row: row.delete_game)
 
-    @watch_errors()
     @GtkTemplate.Callback
     def on_delete_all_files_checkbox_toggled(self, _widget):
         def update_row(row, active):
@@ -158,7 +157,6 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
         self._apply_all_checkbox(self.delete_all_files_checkbox, update_row)
 
-    @watch_errors()
     @GtkTemplate.Callback
     def on_remove_all_games_checkbox_toggled(self, _widget):
         def update_row(row, active):
@@ -182,12 +180,10 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             self._setting_all_checkboxes = False
             self.update_all_checkboxes()
 
-    @watch_errors()
     @GtkTemplate.Callback
     def on_cancel_button_clicked(self, _widget) -> None:
         self.destroy()
 
-    @watch_errors()
     @GtkTemplate.Callback
     def on_remove_button_clicked(self, _widget) -> None:
         rows = list(self.uninstall_game_list.get_children())
