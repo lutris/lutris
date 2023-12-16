@@ -3,6 +3,7 @@ import enum
 from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
+from lutris.util.log import logger
 
 PORTAL_BUS_NAME = "org.freedesktop.portal.Desktop"
 PORTAL_OBJECT_PATH = "/org/freedesktop/portal/desktop"
@@ -10,7 +11,6 @@ PORTAL_SETTINGS_INTERFACE = "org.freedesktop.portal.Settings"
 
 
 class ColorScheme(enum.Enum):
-
     NO_PREFERENCE = 0  # Default
     PREFER_DARK = 1
     PREFER_LIGHT = 2
@@ -64,21 +64,27 @@ class StyleManager(GObject.Object):
         )
 
     def _new_for_bus_cb(self, obj, result):
-        proxy = obj.new_for_bus_finish(result)
-        if proxy:
-            proxy.connect("g-signal", self._on_settings_changed)
-            self._dbus_proxy = proxy
-            self._read_portal_setting()
-        else:
-            raise RuntimeError("Could not start GDBusProxy")
+        try:
+            proxy = obj.new_for_bus_finish(result)
+            if proxy:
+                proxy.connect("g-signal", self._on_settings_changed)
+                self._dbus_proxy = proxy
+                self._read_portal_setting()
+            else:
+                raise RuntimeError("Could not start GDBusProxy")
+        except Exception as ex:
+            logger.exception("Error setting up style change monitoring: %s", ex)
 
     def _call_cb(self, obj, result):
-        values = obj.call_finish(result)
-        if values:
-            value = values[0]
-            self.color_scheme = self._read_value(value)
-        else:
-            raise RuntimeError("Could not read color-scheme")
+        try:
+            values = obj.call_finish(result)
+            if values:
+                value = values[0]
+                self.color_scheme = self._read_value(value)
+            else:
+                raise RuntimeError("Could not read color-scheme")
+        except Exception as ex:
+            logger.exception("Error reading color-scheme: %s", ex)
 
     def _on_settings_changed(self, _proxy, _sender_name, signal_name, params):
         if signal_name != "SettingChanged":
