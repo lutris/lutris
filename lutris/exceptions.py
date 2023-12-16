@@ -2,6 +2,9 @@
 from functools import wraps
 from gettext import gettext as _
 
+from gi.repository import GObject, Gtk
+
+from lutris.gui.dialogs import ErrorDialog
 from lutris.util.log import logger
 
 
@@ -122,3 +125,50 @@ def watch_game_errors(game_stop_result, game=None):
         return wrapper
 
     return inner_decorator
+
+
+def _handle_callback_error(error_objects, error):
+    first_toplevel = None
+
+    for error_object in error_objects:
+        if not error_object:
+            continue
+
+        if error_object and hasattr(error_object, "on_watched_error"):
+            error_object.on_watched_error(error)
+            return
+
+        if error_object and hasattr(error_object, "get_toplevel"):
+            toplevel = error_object.get_toplevel()
+        else:
+            toplevel = None
+
+        if toplevel and hasattr(toplevel, "on_watched_error"):
+            toplevel.on_watched_error(error)
+            return
+
+        if not first_toplevel:
+            first_toplevel = toplevel
+
+    ErrorDialog(error, parent=first_toplevel)
+    return
+
+
+def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args, **kwargs):
+    def wrapper(*args, **kwargs):
+        try:
+            return handler(*args, **kwargs)
+        except Exception as ex:
+            logger.exception("Error handling signal '%s': %s", signal_spec, ex)
+
+            error_objects = [handler.__self__, self] if hasattr(handler, "__self__") else []
+            _handle_callback_error(error_objects, ex)
+            return None
+
+    return _original_connect(self, signal_spec, wrapper, *args, **kwargs)
+
+
+# TODO: explicit init call is probably safer
+# TODO: GObject.add_emission_hook too
+_original_connect = Gtk.Widget.connect
+GObject.Object.connect = _error_handling_connect
