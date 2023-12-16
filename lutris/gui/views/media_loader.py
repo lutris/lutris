@@ -9,8 +9,7 @@ from lutris.util.log import logger
 def download_media(media_urls, service_media):
     """Download a list of media files concurrently.
 
-    Limits the number of simultaneous downloads to avoid API throttling
-    and UI being overloaded with signals.
+    Limits the number of simultaneous downloads to avoid API throttling.
     """
     icons = {}
     num_workers = 5
@@ -30,5 +29,6 @@ def download_media(media_urls, service_media):
             if system.path_exists(path):
                 icons[slug] = path
 
-    invalidate_media_caches()
+    if icons:
+        invalidate_media_caches()
     return icons

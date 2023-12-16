@@ -7,6 +7,7 @@ from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
 
 from lutris import settings
 from lutris.util import datapath, magic, system
+from lutris.util.jobs import schedule_at_idle
 from lutris.util.log import logger
 
 try:
@@ -113,6 +114,16 @@ def invalidate_media_caches():
     from earlier generations may be invalid and should be reloaded."""
     global _surface_generation_number
     _surface_generation_number += 1
+    schedule_at_idle(queue_draw_all_windows)
+
+
+def queue_draw_all_windows():
+    """Scans through all windows and queues a redraw for each one;
+    we trigger this when invalidate_media_caches() has been called."""
+    application = Gio.Application.get_default()
+    if application:
+        for window in application.get_windows():
+            window.queue_draw()
 
 
 def get_default_icon_path(size):
