@@ -1,6 +1,7 @@
 """Exception handling module"""
 from functools import wraps
 from gettext import gettext as _
+from typing import Any, Callable, List
 
 from gi.repository import Gio, GLib, GObject, Gtk
 
@@ -132,57 +133,55 @@ def _handle_callback_error(error_objects, error, error_method_name):
     ErrorDialog(error, parent=first_toplevel)
 
 
-def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args, **kwargs):
-    def wrapper(*args, **kwargs):
+def _create_error_wrapper(handler: Callable, handler_name: str,
+                          error_result: Any,
+                          error_method_name: str,
+                          error_objects: List[Any] = None):
+    if not error_objects:
+        error_objects = []
+
+    if hasattr(handler, "__self__"):
+        error_objects = [handler.__self__] + error_objects
+
+    def error_wrapper(*args, **kwargs):
         try:
             return handler(*args, **kwargs)
         except Exception as ex:
-            logger.exception("Error handling signal '%s': %s", signal_spec, ex)
+            logger.exception("Error handling %s: %s", handler_name, ex)
 
-            error_objects = [handler.__self__, self] if hasattr(handler, "__self__") else [self]
-            _handle_callback_error(error_objects, ex, "on_signal_error")
-            return None
+            _handle_callback_error(error_objects, ex, error_method_name)
+            return error_result
 
-    return _original_connect(self, signal_spec, wrapper, *args, **kwargs)
+    return error_wrapper
+
+
+def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args, **kwargs):
+    error_wrapper = _create_error_wrapper(handler, f"signal '{signal_spec}'",
+                                          error_result=None,
+                                          error_method_name="on_signal_error",
+                                          error_objects=[self])
+    return _original_connect(self, signal_spec, error_wrapper, *args, **kwargs)
 
 
 def _error_handling_add_emission_hook(emitting_type, signal_spec, handler, *args, **kwargs):
-    def wrapper(*args, **kwargs):
-        try:
-            return handler(*args, **kwargs)
-        except Exception as ex:
-            logger.exception("Error handling emission hook '%s.%s': %s", emitting_type, signal_spec, ex)
-            error_objects = [handler.__self__] if hasattr(handler, "__self__") else []
-            _handle_callback_error(error_objects, ex, "on_emission_hook_error")
-            return True
-
-    return _original_add_emission_hook(emitting_type, signal_spec, wrapper, *args, **kwargs)
+    error_wrapper = _create_error_wrapper(handler, f"emission hook '{emitting_type}.{signal_spec}'",
+                                          error_result=True,  # stay attached
+                                          error_method_name="on_emission_hook_error")
+    return _original_add_emission_hook(emitting_type, signal_spec, error_wrapper, *args, **kwargs)
 
 
 def _error_handling_idle_add(handler, *args, **kwargs):
-    def wrapper(*args, **kwargs):
-        try:
-            return handler(*args, **kwargs)
-        except Exception as ex:
-            logger.exception("Error handling idle function: %s", ex)
-            error_objects = [handler.__self__] if hasattr(handler, "__self__") else []
-            _handle_callback_error(error_objects, ex, "on_idle_error")
-            return False
-
-    return _original_idle_add(wrapper, *args, **kwargs)
+    error_wrapper = _create_error_wrapper(handler, "idle function",
+                                          error_result=False,  # stop calling idle func
+                                          error_method_name="on_idle_error")
+    return _original_idle_add(error_wrapper, *args, **kwargs)
 
 
 def _error_handling_timeout_add(interval, handler, *args, **kwargs):
-    def wrapper(*args, **kwargs):
-        try:
-            return handler(*args, **kwargs)
-        except Exception as ex:
-            logger.exception("Error handling timeout function: %s", ex)
-            error_objects = [handler.__self__] if hasattr(handler, "__self__") else []
-            _handle_callback_error(error_objects, ex, "on_timeout_error")
-            return False
-
-    return _original_timeout_add(interval, wrapper, *args, **kwargs)
+    error_wrapper = _create_error_wrapper(handler, "timeout function",
+                                          error_result=False,  # stop calling timeout fund
+                                          error_method_name="on_timeout_error")
+    return _original_timeout_add(interval, error_wrapper, *args, **kwargs)
 
 
 # TODO: explicit init call is probably safer
