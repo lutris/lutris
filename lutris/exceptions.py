@@ -104,25 +104,22 @@ def watch_game_errors(game_stop_result, game=None):
     return inner_decorator
 
 
-def _handle_callback_error(error_objects, error):
+def _handle_callback_error(error_objects, error, error_method_name):
     first_toplevel = None
 
     for error_object in error_objects:
         if not error_object:
             continue
 
-        if error_object and hasattr(error_object, "on_watched_error"):
-            error_object.on_watched_error(error)
+        if error_object and hasattr(error_object, error_method_name):
+            error_method = getattr(error_object, error_method_name)
+            error_method(error)
             return
 
         if error_object and hasattr(error_object, "get_toplevel"):
             toplevel = error_object.get_toplevel()
         else:
             toplevel = None
-
-        if toplevel and hasattr(toplevel, "on_watched_error"):
-            toplevel.on_watched_error(error)
-            return
 
         if not first_toplevel:
             first_toplevel = toplevel
@@ -133,7 +130,6 @@ def _handle_callback_error(error_objects, error):
             first_toplevel = application.window
 
     ErrorDialog(error, parent=first_toplevel)
-    return
 
 
 def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args, **kwargs):
@@ -144,7 +140,7 @@ def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args, 
             logger.exception("Error handling signal '%s': %s", signal_spec, ex)
 
             error_objects = [handler.__self__, self] if hasattr(handler, "__self__") else [self]
-            _handle_callback_error(error_objects, ex)
+            _handle_callback_error(error_objects, ex, "on_signal_error")
             return None
 
     return _original_connect(self, signal_spec, wrapper, *args, **kwargs)
@@ -157,7 +153,7 @@ def _error_handling_add_emission_hook(emitting_type, signal_spec, handler, *args
         except Exception as ex:
             logger.exception("Error handling emission hook '%s.%s': %s", emitting_type, signal_spec, ex)
             error_objects = [handler.__self__] if hasattr(handler, "__self__") else []
-            _handle_callback_error(error_objects, ex)
+            _handle_callback_error(error_objects, ex, "on_emission_hook_error")
             return True
 
     return _original_add_emission_hook(emitting_type, signal_spec, wrapper, *args, **kwargs)
@@ -170,7 +166,7 @@ def _error_handling_idle_add(handler, *args, **kwargs):
         except Exception as ex:
             logger.exception("Error handling idle function: %s", ex)
             error_objects = [handler.__self__] if hasattr(handler, "__self__") else []
-            _handle_callback_error(error_objects, ex)
+            _handle_callback_error(error_objects, ex, "on_idle_error")
             return False
 
     return _original_idle_add(wrapper, *args, **kwargs)
@@ -183,7 +179,7 @@ def _error_handling_timeout_add(interval, handler, *args, **kwargs):
         except Exception as ex:
             logger.exception("Error handling timeout function: %s", ex)
             error_objects = [handler.__self__] if hasattr(handler, "__self__") else []
-            _handle_callback_error(error_objects, ex)
+            _handle_callback_error(error_objects, ex, "on_timeout_error")
             return False
 
     return _original_timeout_add(interval, wrapper, *args, **kwargs)
