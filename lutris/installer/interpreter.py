@@ -290,51 +290,51 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             )
         self._iter_commands()
 
-    def on_watched_error(self, error):
-        self.interpreter_ui_delegate.report_error(error)
-
     def _iter_commands(self, result=None, exception=None):
-
         if result == "STOP" or self.cancelled:
             return
 
-        commands = self.installer.script.get("installer", [])
-        if exception:
-            logger.error("Last install command failed, show error")
-            self.interpreter_ui_delegate.report_error(exception)
-        elif self.current_command < len(commands):
-            try:
-                command = commands[self.current_command]
-            except KeyError as err:
-                raise ScriptingError(_("Installer commands are not formatted correctly")) from err
-            self.current_command += 1
-            method, params = self._map_command(command)
-            if isinstance(params, dict):
-                status_text = params.pop("description", None)
-            else:
-                status_text = None
-            if status_text:
-                self.interpreter_ui_delegate.report_status(status_text)
-            logger.debug("Installer command: %s", command)
+        try:
+            commands = self.installer.script.get("installer", [])
+            if exception:
+                logger.error("Last install command failed, show error")
+                self.interpreter_ui_delegate.report_error(exception)
+            elif self.current_command < len(commands):
+                try:
+                    command = commands[self.current_command]
+                except KeyError as err:
+                    raise ScriptingError(_("Installer commands are not formatted correctly")) from err
+                self.current_command += 1
+                method, params = self._map_command(command)
+                if isinstance(params, dict):
+                    status_text = params.pop("description", None)
+                else:
+                    status_text = None
+                if status_text:
+                    self.interpreter_ui_delegate.report_status(status_text)
+                logger.debug("Installer command: %s", command)
 
-            if self.target_path and os.path.exists(self.target_path):
-                # Establish a CWD for the command, but remove it afterwards
-                # for safety. We'd better not rely on this, many tasks can be
-                # fiddling with the CWD at the same time.
-                def dispatch():
-                    prev_cwd = os.getcwd()
-                    os.chdir(self.target_path)
-                    try:
-                        return method(params)
-                    finally:
-                        os.chdir(prev_cwd)
+                if self.target_path and os.path.exists(self.target_path):
+                    # Establish a CWD for the command, but remove it afterwards
+                    # for safety. We'd better not rely on this, many tasks can be
+                    # fiddling with the CWD at the same time.
+                    def dispatch():
+                        prev_cwd = os.getcwd()
+                        os.chdir(self.target_path)
+                        try:
+                            return method(params)
+                        finally:
+                            os.chdir(prev_cwd)
 
-                AsyncCall(dispatch, self._iter_commands)
+                    AsyncCall(dispatch, self._iter_commands)
+                else:
+                    AsyncCall(method, self._iter_commands, params)
             else:
-                AsyncCall(method, self._iter_commands, params)
-        else:
-            logger.debug("Commands %d out of %s completed", self.current_command, len(commands))
-            self._finish_install()
+                logger.debug("Commands %d out of %s completed", self.current_command, len(commands))
+                self._finish_install()
+        except Exception as ex:
+            # Redirect errors to the delegate, instead of the default ErrorDialog.
+            self.interpreter_ui_delegate.report_error(ex)
 
     @staticmethod
     def _get_command_name_and_params(command_data):
