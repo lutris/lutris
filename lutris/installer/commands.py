@@ -13,7 +13,7 @@ from gi.repository import GLib
 from lutris import runtime
 from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
-from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError, watch_errors
+from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.runners import InvalidRunner, import_runner, import_task
@@ -436,7 +436,6 @@ class CommandsMixin:
             return "STOP"
         return None
 
-    @watch_errors(error_result=False)
     def _monitor_task(self, command):
         if not command.is_running:
             logger.debug("Return code: %s", command.return_code)
