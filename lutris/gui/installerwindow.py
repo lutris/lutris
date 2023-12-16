@@ -589,7 +589,11 @@ class InstallerWindow(ModelessDialog,
 
         AsyncCall(self.interpreter.installer.prepare_game_files, self.on_files_prepared, patch_version)
 
-    def on_files_prepared(self, _result, _error):
+    def on_files_prepared(self, _result, error):
+        if error:
+            self._handle_callback_error(error)
+            return
+
         if not self.interpreter.installer.files:
             logger.debug("Installer doesn't require files")
             self.launch_installer_commands()
