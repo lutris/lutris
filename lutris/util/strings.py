@@ -12,7 +12,7 @@ from gi.repository import GLib
 
 from lutris.util.log import logger
 
-NO_PLAYTIME = "Never played"
+NO_PLAYTIME = _("Never played")
 
 
 def get_uuid_from_string(value: str) -> str:
@@ -161,7 +161,7 @@ def get_formatted_playtime(playtime: float) -> str:
     else:
         hours_text = ""
 
-    minutes = int((playtime - hours) * 60)
+    minutes = int(round((playtime - hours) * 60, 0))
     if minutes == 1:
         minutes_text = _("1 minute")
     elif minutes > 1:
@@ -175,6 +175,56 @@ def get_formatted_playtime(playtime: float) -> str:
     if playtime:
         return _("Less than a minute")
     return NO_PLAYTIME
+
+
+def parse_playtime(text: str) -> float:
+    """Parses a textual playtime, as produced by get_formatted_playtime(), back into
+    a number, a count of hours (with fractions)."""
+    text = text.strip().casefold()
+
+    if _("Less than a minute").casefold() == text:
+        return 0.0
+
+    if NO_PLAYTIME.casefold() == text:
+        return 0.0
+
+    playtime = 0.0
+    error_message = _("'%s' is not a valid playtime.") % text
+
+    def find_hours(num: float, unit: str) -> float:
+        # This works by reformatted the number and unit and then
+        # comparing to the localized text we would have produced from
+        # formatting; in this way we can recognize the units.
+        normalized = "%d %s" % (num, unit)
+        if normalized == _("1 minute").casefold():
+            return 1 / 60
+        if normalized == (_("%d minutes") % num).casefold():
+            return num / 60
+        if normalized == _("1 hour").casefold():
+            return 1
+        if normalized == (_("%d hours") % num).casefold():
+            return num
+        raise ValueError(error_message)
+
+    parts = iter(text.split())
+    try:
+        while True:
+            num_text = next(parts)
+            try:
+                num = float(num_text)
+            except ValueError as ex:
+                raise ValueError(error_message) from ex
+
+            try:
+                unit = next(parts)
+            except StopIteration as ex:
+                raise ValueError(error_message) from ex
+
+            playtime += find_hours(num, unit)
+    except StopIteration:
+        pass
+
+    return playtime
 
 
 def _split_arguments(args: str, closing_quot: str = '', quotations: str = None) -> List[str]:

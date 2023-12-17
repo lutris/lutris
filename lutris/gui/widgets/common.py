@@ -35,19 +35,6 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
         return position
 
 
-class FloatEntry(Gtk.Entry, Gtk.Editable):
-
-    def do_insert_text(self, new_text, length, position):
-        """Filter inserted characters to only accept floating-point numbers"""
-        decimal_count = self.get_buffer().get_text().count(".")
-        new_text = "".join([c for c in new_text if c.isnumeric() or (c == "." and decimal_count < 1)])
-        if new_text:
-            length = len(new_text)
-            self.get_buffer().insert_text(position, new_text, length)
-            return position + length
-        return position
-
-
 class FileChooserEntry(Gtk.Box):
     """Editable entry with a file picker button"""
 

@@ -15,14 +15,14 @@ from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemConfigBox, UnderslungMessageBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
-from lutris.gui.widgets.common import FloatEntry, Label, NumberEntry, SlugEntry
+from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.scaled_image import ScaledImage
 from lutris.gui.widgets.utils import get_image_file_format, invalidate_media_caches
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.util.log import logger
-from lutris.util.strings import gtk_safe, slugify
+from lutris.util.strings import gtk_safe, parse_playtime, slugify
 
 
 # pylint: disable=too-many-instance-attributes, no-member
@@ -155,8 +155,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
         info_box.pack_start(self._get_year_box(), False, False, 6)  # Year
 
-        # This looks atrocious. Fix it.
-        # info_box.pack_start(self._get_playtime_box(), False, False, 6)  # Playtime
+        info_box.pack_start(self._get_playtime_box(), False, False, 6)  # Playtime
 
         if self.game:
             info_box.pack_start(self._get_slug_box(), False, False, 6)
@@ -326,13 +325,12 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     def _get_playtime_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
 
-        label = Label(_("Playtime (in hours)"))
+        label = Label(_("Playtime"))
         box.pack_start(label, False, False, 0)
-        self.playtime_entry = FloatEntry()
-        self.playtime_entry.set_max_length(10)
+        self.playtime_entry = Gtk.Entry()
 
         if self.game:
-            self.playtime_entry.set_text(f"{self.game.playtime}")
+            self.playtime_entry.set_text(self.game.formatted_playtime)
         box.pack_start(self.playtime_entry, True, True, 0)
 
         return box
@@ -616,12 +614,13 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if self.runner_name == "steam" and not self.lutris_config.game_config.get("appid"):
             ErrorDialog(_("Steam AppID not provided"), parent=self)
             return False
-        # if self.playtime_entry.get_text():
-        #     try:
-        #         float(self.playtime_entry.get_text())
-        #     except ValueError:
-        #         ErrorDialog(_("The entered playtime is invalid"), parent=self)
-        #         return False
+        playtime_text = self.playtime_entry.get_text()
+        if playtime_text and playtime_text != self.game.formatted_playtime:
+            try:
+                parse_playtime(playtime_text)
+            except ValueError as ex:
+                ErrorDialog(ex, parent=self)
+                return False
 
         invalid_fields = []
         runner_class = import_runner(self.runner_name)
@@ -662,9 +661,10 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if self.year_entry.get_text():
             year = int(self.year_entry.get_text())
 
-        # playtime = None
-        # if self.playtime_entry.get_text():
-        #     playtime = float(self.playtime_entry.get_text())
+        playtime = None
+        playtime_text = self.playtime_entry.get_text()
+        if playtime_text and playtime_text != self.game.formatted_playtime:
+            playtime = parse_playtime(playtime_text)
 
         if not self.lutris_config.game_config_id:
             self.lutris_config.game_config_id = make_game_config_id(self.slug)
@@ -673,7 +673,8 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.game.sortname = sortname
         self.game.slug = self.slug
         self.game.year = year
-        # self.game.playtime = playtime
+        if playtime:
+            self.game.playtime = playtime
         self.game.is_installed = True
         self.game.config = self.lutris_config
         self.game.runner_name = self.runner_name
