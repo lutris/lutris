@@ -92,7 +92,7 @@ class TestStringUtils(TestCase):
         self.assertEqual(strings.get_formatted_playtime('-'), strings.NO_PLAYTIME)
         self.assertEqual(strings.get_formatted_playtime(0.5), "30 minutes")
         self.assertEqual(strings.get_formatted_playtime(1.5), "1 hour 30 minutes")
-        self.assertEqual(strings.get_formatted_playtime(45.90), "45 hours 53 minutes")
+        self.assertEqual(strings.get_formatted_playtime(45.90), "45 hours 54 minutes")
 
 
 class TestVersionSort(TestCase):
