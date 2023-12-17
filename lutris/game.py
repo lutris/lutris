@@ -784,7 +784,8 @@ class Game(GObject.Object):
         """Finds the PIDs of processes that need killin'!"""
         pids = self.get_game_pids()
         if self.game_thread and self.game_thread.game_process:
-            pids.add(self.game_thread.game_process.pid)
+            if self.game_thread.game_process.poll() is None:
+                pids.add(self.game_thread.game_process.pid)
         return pids
 
     def get_game_pids(self):
