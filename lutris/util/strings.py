@@ -188,6 +188,13 @@ def parse_playtime(text: str) -> float:
     if NO_PLAYTIME.casefold() == text:
         return 0.0
 
+    # Handle the easy case of "6:23".
+    easy_parts = text.split(":")
+    if len(easy_parts) == 2 and easy_parts[0].strip().isdigit() and easy_parts[1].strip().isdigit():
+        hours = int(easy_parts[0])
+        minutes = int(easy_parts[1])
+        return hours + minutes / 60
+
     playtime = 0.0
     error_message = _("'%s' is not a valid playtime.") % text
 
@@ -206,17 +213,18 @@ def parse_playtime(text: str) -> float:
             return num
         raise ValueError(error_message)
 
-    parts = iter(text.split())
+    parts_iter = iter(text.split())
+
     try:
         while True:
-            num_text = next(parts)
+            num_text = next(parts_iter)
             try:
                 num = float(num_text)
             except ValueError as ex:
                 raise ValueError(error_message) from ex
 
             try:
-                unit = next(parts)
+                unit = next(parts_iter)
             except StopIteration as ex:
                 raise ValueError(error_message) from ex
 
