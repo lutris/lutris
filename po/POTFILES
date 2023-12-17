@@ -1,4 +1,4 @@
-# generated on 2023-12-02T12:38:58+00:00
+# generated on 2023-12-06T11:10:35+00:00
 
 share/applications/net.lutris.Lutris.desktop
 share/metainfo/net.lutris.Lutris.metainfo.xml
@@ -41,7 +41,9 @@ lutris/gui/config/runner_box.py
 lutris/gui/config/runner.py
 lutris/gui/config/runners_box.py
 lutris/gui/config/services_box.py
+lutris/gui/config/storage_box.py
 lutris/gui/config/sysinfo_box.py
+lutris/gui/config/updates_box.py
 lutris/gui/dialogs/cache.py
 lutris/gui/dialogs/delegates.py
 lutris/gui/dialogs/download.py
@@ -221,6 +223,7 @@ lutris/util/mame/ini.py
 lutris/util/mame/__init__.py
 lutris/util/moddb.py
 lutris/util/nvidia.py
+lutris/util/portals.py
 lutris/util/process.py
 lutris/util/process_watcher.py
 lutris/util/resources.py
