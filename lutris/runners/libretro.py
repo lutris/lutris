@@ -287,10 +287,6 @@ class libretro(Runner):
             }
         command.append("--libretro={}".format(self.get_core_path(core)))
 
-        # Ensure the core is available
-        if not self.is_installed(core=core):
-            self.install(core)
-
         # Main file
         file = self.game_config.get("main_file")
         if not file:
