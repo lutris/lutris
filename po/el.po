@@ -289,7 +289,7 @@ msgstr "Εκκίνηση"
 
 #: lutris/game_actions.py:50 lutris/gui/widgets/game_bar.py:212
 msgid "Stop"
-msgstr "Διάκοπη"
+msgstr "Διακοπή"
 
 #: lutris/game_actions.py:51 lutris/gui/dialogs/runner_install.py:210
 #: lutris/gui/installer/script_box.py:62 lutris/gui/widgets/game_bar.py:215
