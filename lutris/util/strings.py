@@ -189,10 +189,10 @@ def parse_playtime(text: str) -> float:
         return 0.0
 
     # Handle the easy case of "6:23".
-    easy_parts = text.split(":")
-    if len(easy_parts) == 2 and easy_parts[0].strip().isdigit() and easy_parts[1].strip().isdigit():
-        hours = int(easy_parts[0])
-        minutes = int(easy_parts[1])
+    parts = text.split(":")
+    if len(parts) == 2 and parts[0].strip().isdigit() and parts[1].strip().isdigit():
+        hours = int(parts[0])
+        minutes = int(parts[1])
         return hours + minutes / 60
 
     playtime = 0.0
@@ -213,7 +213,8 @@ def parse_playtime(text: str) -> float:
             return num
         raise ValueError(error_message)
 
-    parts_iter = iter(text.split())
+    parts = [p.strip() for p in re.split('([0-9\.\,]+)', text) if p and not p.isspace()]
+    parts_iter = iter(parts)
 
     try:
         while True:
