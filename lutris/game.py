@@ -18,7 +18,8 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.exceptions import GameConfigError, MissingExecutableError, watch_game_errors
+from lutris.exception_backstops import watch_game_errors
+from lutris.exceptions import GameConfigError, MissingExecutableError
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
