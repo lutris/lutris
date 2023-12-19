@@ -24,6 +24,7 @@
   <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
+    <release version="0.5.15" date="2023-12-16" urgency="low" />
     <release version="0.5.14" date="2023-10-16" urgency="low">
       <description>
         <ul>
