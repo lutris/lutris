@@ -11,7 +11,7 @@ class cemu(Runner):
     platforms = [_("Wii U")]
     description = _("Wii U emulator")
     runnable_alone = True
-    runner_executable = "cemu/cemu"
+    runner_executable = "cemu/Cemu"
     flatpak_id = "info.cemu.Cemu"
     game_options = [
         {
