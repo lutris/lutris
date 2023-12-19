@@ -218,9 +218,9 @@ class InstallerWindow(ModelessDialog,
 
             remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
             if self.interpreter and self.interpreter.target_path and \
-                    self.interpreter.game_dir_created and \
-                    self.installation_kind == InstallationKind.INSTALL and \
-                    is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
+                self.interpreter.game_dir_created and \
+                self.installation_kind == InstallationKind.INSTALL and \
+                is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
                 remove_checkbox.set_active(self.interpreter.game_dir_created)
                 remove_checkbox.show()
                 widgets.append(remove_checkbox)
@@ -395,18 +395,24 @@ class InstallerWindow(ModelessDialog,
         self.continue_button.grab_focus()
 
     def create_destination_page(self):
+        installer_create_desktop_shortcut = settings.read_bool_setting("installer_create_desktop_shortcut", False)
+        installer_create_menu_shortcut = settings.read_bool_setting("installer_create_menu_shortcut", False)
+
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         vbox.pack_start(self.location_entry, False, False, 0)
 
         desktop_shortcut_button = Gtk.CheckButton(_("Create desktop shortcut"), visible=True)
-        desktop_shortcut_button.set_active(settings.read_bool_setting("installer_create_desktop_shortcut", False))
+        desktop_shortcut_button.set_active(installer_create_desktop_shortcut)
         desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
+        self.config["create_desktop_shortcut"] = installer_create_desktop_shortcut
 
         vbox.pack_start(desktop_shortcut_button, False, False, 0)
 
         menu_shortcut_button = Gtk.CheckButton(_("Create application menu shortcut"), visible=True)
-        menu_shortcut_button.set_active(settings.read_bool_setting("installer_create_menu_shortcut", False))
+        menu_shortcut_button.set_active(installer_create_menu_shortcut)
         menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
+        self.config["create_menu_shortcut"] = installer_create_menu_shortcut
+
         vbox.pack_start(menu_shortcut_button, False, False, 0)
 
         if steam_shortcut.vdf_file_exists():
@@ -949,7 +955,7 @@ class InstallerWindow(ModelessDialog,
         """Displays the continue button, but labels it 'Install'."""
         self.display_continue_button(handler, continue_button_label=_(
             "_Install"), sensitive=sensitive,
-            extra_buttons=[self.source_button])
+                                     extra_buttons=[self.source_button])
 
     def display_cancel_button(self, extra_buttons=None):
         self.display_buttons(extra_buttons or [])
