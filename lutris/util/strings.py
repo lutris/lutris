@@ -213,7 +213,7 @@ def parse_playtime(text: str) -> float:
             return num
         raise ValueError(error_message)
 
-    parts = [p.strip() for p in re.split('([0-9\.\,]+)', text) if p and not p.isspace()]
+    parts = [p.strip() for p in re.split('([0-9.,]+)', text) if p and not p.isspace()]
     parts_iter = iter(parts)
 
     try:
