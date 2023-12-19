@@ -95,25 +95,27 @@ class RunnerInstallDialog(ModelessDialog):
         self.show_all()
 
         self.runner_store = Gtk.ListStore(str, str, str, bool, int, int)
-        jobs.AsyncCall(api.get_runners, self.runner_fetch_cb, self.runner_name)
+        jobs.AsyncCall(self.load_runner_versions, self.runner_fetch_cb, self.runner_name)
 
-    def runner_fetch_cb(self, runner_info, error):
+    def load_runner_versions(self, runner_name):
+        runner_info = api.get_runners(runner_name)
+        remote_versions = {(v["version"], v["architecture"]) for v in runner_info["versions"]}
+        local_versions = self.get_installed_versions()
+        for local_version in local_versions - remote_versions:
+            runner_info["versions"].append({
+                "version": local_version[0],
+                "architecture": local_version[1],
+                "url": "",
+            })
+        self.runner_info = runner_info
+        self.populate_store()
+
+    def runner_fetch_cb(self, _result, error):
         """Clear the box and display versions from runner_info"""
         if error:
             logger.error(error)
             ErrorDialog(_("Unable to get runner versions: %s") % error)
             return
-
-        self.runner_info = runner_info
-        remote_versions = {(v["version"], v["architecture"]) for v in self.runner_info["versions"]}
-        local_versions = self.get_installed_versions()
-        for local_version in local_versions - remote_versions:
-            self.runner_info["versions"].append({
-                "version": local_version[0],
-                "architecture": local_version[1],
-                "url": "",
-            })
-
         if not self.runner_info:
             ErrorDialog(_("Unable to get runner versions from lutris.net"))
             return
@@ -133,13 +135,11 @@ class RunnerInstallDialog(ModelessDialog):
         scrolled_listbox.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
         scrolled_listbox.add(self.listbox)
         self.vbox.pack_start(scrolled_listbox, True, True, 14)
-
-        self.populate_store()
         self.show_all()
-        self.populate_listboxrows(self.runner_store)
+        self.populate_listboxrows()
 
-    def populate_listboxrows(self, store):
-        for runner in store:
+    def populate_listboxrows(self):
+        for runner in self.runner_store:
             row = Gtk.ListBoxRow()
             row.runner = runner
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
