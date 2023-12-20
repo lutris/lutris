@@ -117,6 +117,14 @@ def _get_fsync_warning(config, _option_key):
         return ""
 
 
+def _get_virtual_desktop_warning(config, _option_key):
+    if config.get("Desktop"):
+        version = config.get("version")
+        if "-ge-" in version.casefold():
+            return _("The virtual desktop feature is not supported on 'GE' Wine versions.")
+    return ""
+
+
 class wine(Runner):
     description = _("Runs Windows games")
     human_name = _("Wine")
@@ -417,6 +425,7 @@ class wine(Runner):
                 "section": _("Virtual Desktop"),
                 "label": _("Windowed (virtual desktop)"),
                 "type": "bool",
+                "warning": _get_virtual_desktop_warning,
                 "default": False,
                 "help": _(
                     "Run the whole Windows desktop in a window.\n"
