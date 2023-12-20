@@ -80,6 +80,7 @@ class RunnerInstallDialog(ModelessDialog):
         self.runner_name = runner.name
         self.runner_directory = runner.directory
         self.runner_info = {}
+        self.runner_store = []
         self.installing = {}
         self.set_default_size(640, 480)
         self.runners = []
@@ -94,7 +95,6 @@ class RunnerInstallDialog(ModelessDialog):
 
         self.show_all()
 
-        self.runner_store = Gtk.ListStore(str, str, str, bool, int, int)
         jobs.AsyncCall(self.load_runner_versions, self.runner_fetch_cb, self.runner_name)
 
     def load_runner_versions(self, runner_name):
@@ -107,15 +107,34 @@ class RunnerInstallDialog(ModelessDialog):
                 "architecture": local_version[1],
                 "url": "",
             })
-        self.runner_info = runner_info
-        self.populate_store()
 
-    def runner_fetch_cb(self, _result, error):
+        return runner_info, self.get_runner_store(runner_info)
+
+    def get_runner_store(self, runner_info):
+        """Return a list populated with the runner versions"""
+        runner_store = []
+        version_usage = self.get_usage_stats()
+        ordered = sorted(runner_info["versions"], key=RunnerInstallDialog.get_version_sort_key)
+        for version_info in reversed(ordered):
+            is_installed = os.path.exists(self.get_runner_path(version_info["version"], version_info["architecture"]))
+            games_using = version_usage.get("%(version)s-%(architecture)s" % version_info)
+            runner_store.append(
+                [
+                    version_info["version"], version_info["architecture"], version_info["url"], is_installed, 0,
+                    len(games_using) if games_using else 0
+                ]
+            )
+        return runner_store
+
+    def runner_fetch_cb(self, result, error):
         """Clear the box and display versions from runner_info"""
         if error:
             logger.error(error)
             ErrorDialog(_("Unable to get runner versions: %s") % error)
             return
+
+        self.runner_info, self.runner_store = result
+
         if not self.runner_info:
             ErrorDialog(_("Unable to get runner versions from lutris.net"))
             return
@@ -232,20 +251,6 @@ class RunnerInstallDialog(ModelessDialog):
         runner_version = "%s-%s" % (runner[self.COL_VER], runner[self.COL_ARCH])
         dialog = ShowAppsDialog(_("Wine version usage"), self.get_toplevel(), self.runner_name, runner_version)
         dialog.run()
-
-    def populate_store(self):
-        """Return a ListStore populated with the runner versions"""
-        version_usage = self.get_usage_stats()
-        ordered = sorted(self.runner_info["versions"], key=RunnerInstallDialog.get_version_sort_key)
-        for version_info in reversed(ordered):
-            is_installed = os.path.exists(self.get_runner_path(version_info["version"], version_info["architecture"]))
-            games_using = version_usage.get("%(version)s-%(architecture)s" % version_info)
-            self.runner_store.append(
-                [
-                    version_info["version"], version_info["architecture"], version_info["url"], is_installed, 0,
-                    len(games_using) if games_using else 0
-                ]
-            )
 
     @staticmethod
     def get_version_sort_key(version):
