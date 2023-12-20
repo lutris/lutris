@@ -95,9 +95,9 @@ class RunnerInstallDialog(ModelessDialog):
 
         self.show_all()
 
-        jobs.AsyncCall(self.load_runner_versions, self.runner_fetch_cb, self.runner_name)
+        jobs.AsyncCall(self.fetch_runner_versions, self.runner_fetch_cb, self.runner_name)
 
-    def load_runner_versions(self, runner_name):
+    def fetch_runner_versions(self, runner_name):
         runner_info = api.get_runners(runner_name)
         remote_versions = {(v["version"], v["architecture"]) for v in runner_info["versions"]}
         local_versions = self.get_installed_versions()
@@ -108,9 +108,9 @@ class RunnerInstallDialog(ModelessDialog):
                 "url": "",
             })
 
-        return runner_info, self.get_runner_store(runner_info)
+        return runner_info, self.fetch_runner_store(runner_info)
 
-    def get_runner_store(self, runner_info):
+    def fetch_runner_store(self, runner_info):
         """Return a list populated with the runner versions"""
         runner_store = []
         version_usage = self.get_usage_stats()
@@ -119,10 +119,14 @@ class RunnerInstallDialog(ModelessDialog):
             is_installed = os.path.exists(self.get_runner_path(version_info["version"], version_info["architecture"]))
             games_using = version_usage.get("%(version)s-%(architecture)s" % version_info)
             runner_store.append(
-                [
-                    version_info["version"], version_info["architecture"], version_info["url"], is_installed, 0,
-                    len(games_using) if games_using else 0
-                ]
+                {
+                    "version": version_info["version"],
+                    "architecture": version_info["architecture"],
+                    "url": version_info["url"],
+                    "is_installed": is_installed,
+                    "progress": 0,
+                    "game_count": len(games_using) if games_using else 0
+                }
             )
         return runner_store
 
@@ -165,7 +169,7 @@ class RunnerInstallDialog(ModelessDialog):
             row.hbox = hbox
 
             icon = Gtk.Image.new_from_icon_name(self.INSTALLED_ICON_NAME, Gtk.IconSize.MENU)
-            icon.set_visible(runner[self.COL_INSTALLED])
+            icon.set_visible(runner["is_installed"])
             icon_container = Gtk.Box()
             icon_container.set_size_request(16, 16)
             icon_container.pack_start(icon, False, False, 0)
@@ -173,13 +177,13 @@ class RunnerInstallDialog(ModelessDialog):
             hbox.pack_start(icon_container, False, True, 0)
             row.icon = icon
 
-            lbl_version = Gtk.Label(runner[self.COL_VER])
+            lbl_version = Gtk.Label(runner["version"])
             lbl_version.set_max_width_chars(20)
             lbl_version.set_property("width-chars", 20)
             lbl_version.set_halign(Gtk.Align.START)
             hbox.pack_start(lbl_version, False, False, 5)
 
-            arch_label = Gtk.Label(runner[self.COL_ARCH])
+            arch_label = Gtk.Label(runner["architecture"])
             arch_label.set_max_width_chars(8)
             arch_label.set_halign(Gtk.Align.START)
             hbox.pack_start(arch_label, False, True, 5)
@@ -189,9 +193,9 @@ class RunnerInstallDialog(ModelessDialog):
             hbox.pack_end(install_progress, True, True, 5)
             row.install_progress = install_progress
 
-            if runner[self.COL_INSTALLED]:
+            if runner["is_installed"]:
                 # Check if there are apps installed, if so, show the view apps button
-                app_count = runner[self.COL_USAGE] or 0
+                app_count = runner["game_count"] or 0
                 if app_count > 0:
                     usage_button_text = gettext.ngettext(
                         "View %d game",
@@ -221,19 +225,19 @@ class RunnerInstallDialog(ModelessDialog):
 
         runner = row.runner
         icon = row.icon
-        icon.set_visible(runner[self.COL_INSTALLED])
+        icon.set_visible(runner["is_installed"])
 
         button = row.install_uninstall_cancel_button
         style_context = button.get_style_context()
         if row.handler_id is not None:
             button.disconnect(row.handler_id)
             row.handler_id = None
-        if runner[self.COL_VER] in self.installing:
+        if runner["version"] in self.installing:
             style_context.remove_class("destructive-action")
             button.set_label(_("Cancel"))
             handler_id = button.connect("clicked", self.on_cancel_install, row)
         else:
-            if runner[self.COL_INSTALLED]:
+            if runner["is_installed"]:
                 style_context.add_class("destructive-action")
                 button.set_label(_("Uninstall"))
                 handler_id = button.connect("clicked", self.on_uninstall_runner, row)
@@ -248,7 +252,7 @@ class RunnerInstallDialog(ModelessDialog):
     def on_show_apps_usage(self, _button, row):
         """Return grid with games that uses this wine version"""
         runner = row.runner
-        runner_version = "%s-%s" % (runner[self.COL_VER], runner[self.COL_ARCH])
+        runner_version = "%s-%s" % (runner["version"], runner["architecture"])
         dialog = ShowAppsDialog(_("Wine version usage"), self.get_toplevel(), self.runner_name, runner_version)
         dialog.run()
 
@@ -283,9 +287,9 @@ class RunnerInstallDialog(ModelessDialog):
         info = {"version": version, "architecture": arch}
         return os.path.join(self.runner_directory, format_runner_version(info))
 
-    def get_dest_path(self, row):
+    def get_dest_path(self, runner):
         """Return temporary path where the runners should be downloaded to"""
-        return os.path.join(settings.CACHE_DIR, os.path.basename(row[self.COL_URL]))
+        return os.path.join(settings.CACHE_DIR, os.path.basename(runner["url"]))
 
     def on_cancel_install(self, widget, row):
         self.cancel_install(row)
@@ -293,10 +297,10 @@ class RunnerInstallDialog(ModelessDialog):
     def cancel_install(self, row):
         """Cancel the installation of a runner version"""
         runner = row.runner
-        self.installing[runner[self.COL_VER]].cancel()
+        self.installing[runner["version"]].cancel()
         self.uninstall_runner(row)
-        runner[self.COL_PROGRESS] = 0
-        self.installing.pop(runner[self.COL_VER])
+        runner["progress"] = 0
+        self.installing.pop(runner["version"])
         self.update_listboxrow(row)
         row.install_progress.set_visible(False)
 
@@ -306,10 +310,10 @@ class RunnerInstallDialog(ModelessDialog):
     def uninstall_runner(self, row):
         """Uninstall a runner version"""
         runner = row.runner
-        version = runner[self.COL_VER]
-        arch = runner[self.COL_ARCH]
+        version = runner["version"]
+        arch = runner["architecture"]
         system.remove_folder(self.get_runner_path(version, arch))
-        runner[self.COL_INSTALLED] = False
+        runner["is_installed"] = False
         if self.runner_name == "wine":
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_installed_wine_versions
@@ -325,13 +329,14 @@ class RunnerInstallDialog(ModelessDialog):
         runner = row.runner
         row.install_progress.set_fraction(0.0)
         dest_path = self.get_dest_path(runner)
-        url = runner[self.COL_URL]
+        url = runner["url"]
+        version = runner["version"]
         if not url:
-            ErrorDialog(_("Version %s is not longer available") % runner[self.COL_VER])
+            ErrorDialog(_("Version %s is not longer available") % version)
             return
         downloader = Downloader(url, dest_path, overwrite=True)
         GLib.timeout_add(100, self.get_progress, downloader, row)
-        self.installing[runner[self.COL_VER]] = downloader
+        self.installing[version] = downloader
         downloader.start()
         self.update_listboxrow(row)
 
@@ -347,14 +352,14 @@ class RunnerInstallDialog(ModelessDialog):
         downloader.check_progress()
         percent_downloaded = downloader.progress_percentage
         if percent_downloaded >= 1:
-            runner[self.COL_PROGRESS] = percent_downloaded
+            runner["progress"] = percent_downloaded
             row.install_progress.set_fraction(percent_downloaded / 100)
         else:
-            runner[self.COL_PROGRESS] = 1
+            runner["progress"] = 1
             row.install_progress.pulse()
             row.install_progress.set_text = _("Downloading…")
         if downloader.state == downloader.COMPLETED:
-            runner[self.COL_PROGRESS] = 99
+            runner["progress"] = 99
             row.install_progress.set_text = _("Extracting…")
             self.on_runner_downloaded(row)
             return False
@@ -363,7 +368,7 @@ class RunnerInstallDialog(ModelessDialog):
     def progress_pulse(self, row):
         runner = row.runner
         row.install_progress.pulse()
-        return not runner[self.COL_INSTALLED]
+        return not runner["is_installed"]
 
     def get_usage_stats(self):
         """Return the usage for each version"""
@@ -380,8 +385,8 @@ class RunnerInstallDialog(ModelessDialog):
     def on_runner_downloaded(self, row):
         """Handler called when a runner version is downloaded"""
         runner = row.runner
-        version = runner[self.COL_VER]
-        architecture = runner[self.COL_ARCH]
+        version = runner["version"]
+        architecture = runner["architecture"]
         logger.debug("Runner %s for %s has finished downloading", version, architecture)
         src = self.get_dest_path(runner)
         dst = self.get_runner_path(version, architecture)
@@ -402,9 +407,9 @@ class RunnerInstallDialog(ModelessDialog):
         src, row = row_info
         runner = row.runner
         os.remove(src)
-        runner[self.COL_PROGRESS] = 0
-        runner[self.COL_INSTALLED] = True
-        self.installing.pop(runner[self.COL_VER])
+        runner["progress"] = 0
+        runner["is_installed"] = True
+        self.installing.pop(runner["version"])
         row.install_progress.set_text = ""
         row.install_progress.set_fraction(0.0)
         row.install_progress.hide()
