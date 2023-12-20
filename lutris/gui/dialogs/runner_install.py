@@ -20,6 +20,36 @@ from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 
 
+def get_runner_path(runner_directory, version, arch):
+    """Return the local path where the runner is/will be installed"""
+    info = {"version": version, "architecture": arch}
+    return os.path.join(runner_directory, format_runner_version(info))
+
+
+def get_installed_versions(runner_directory):
+    """List versions available locally"""
+    if not os.path.exists(runner_directory):
+        return set()
+    return {
+        tuple(p.rsplit("-", 1))
+        for p in os.listdir(runner_directory)
+        if "-" in p
+    }
+
+
+def get_usage_stats(runner_name):
+    """Return the usage for each version"""
+    runner_games = get_games_by_runner(runner_name)
+    version_usage = defaultdict(list)
+    for db_game in runner_games:
+        if not db_game["installed"]:
+            continue
+        game = Game(db_game["id"])
+        version = game.config.runner_config["version"]
+        version_usage[version].append(db_game["id"])
+    return version_usage
+
+
 class ShowAppsDialog(ModelessDialog):
     def __init__(self, title, parent, runner_name, runner_version):
         super().__init__(title, parent, border_width=10)
@@ -95,12 +125,15 @@ class RunnerInstallDialog(ModelessDialog):
 
         self.show_all()
 
-        jobs.AsyncCall(self.fetch_runner_versions, self.runner_fetch_cb, self.runner_name)
+        jobs.AsyncCall(self.fetch_runner_versions, self.runner_fetch_cb, self.runner_name, self.runner_directory)
 
-    def fetch_runner_versions(self, runner_name):
+    @staticmethod
+    def fetch_runner_versions(runner_name, runner_directory):
         runner_info = api.get_runners(runner_name)
+        runner_info["runner_name"] = runner_name
+        runner_info["runner_directory"] = runner_directory
         remote_versions = {(v["version"], v["architecture"]) for v in runner_info["versions"]}
-        local_versions = self.get_installed_versions()
+        local_versions = get_installed_versions(runner_directory)
         for local_version in local_versions - remote_versions:
             runner_info["versions"].append({
                 "version": local_version[0],
@@ -108,15 +141,19 @@ class RunnerInstallDialog(ModelessDialog):
                 "url": "",
             })
 
-        return runner_info, self.fetch_runner_store(runner_info)
+        return runner_info, RunnerInstallDialog.fetch_runner_store(runner_info)
 
-    def fetch_runner_store(self, runner_info):
+    @staticmethod
+    def fetch_runner_store(runner_info):
         """Return a list populated with the runner versions"""
         runner_store = []
-        version_usage = self.get_usage_stats()
+        runner_name = runner_info["runner_name"]
+        runner_directory = runner_info["runner_directory"]
+        version_usage = get_usage_stats(runner_name)
         ordered = sorted(runner_info["versions"], key=RunnerInstallDialog.get_version_sort_key)
         for version_info in reversed(ordered):
-            is_installed = os.path.exists(self.get_runner_path(version_info["version"], version_info["architecture"]))
+            is_installed = os.path.exists(
+                get_runner_path(runner_directory, version_info["version"], version_info["architecture"]))
             games_using = version_usage.get("%(version)s-%(architecture)s" % version_info)
             runner_store.append(
                 {
@@ -272,21 +309,6 @@ class RunnerInstallDialog(ModelessDialog):
         # If we fail to extract the version, we'll wind up sorting this one to the end.
         return [], raw_version, version["architecture"]
 
-    def get_installed_versions(self):
-        """List versions available locally"""
-        if not os.path.exists(self.runner_directory):
-            return set()
-        return {
-            tuple(p.rsplit("-", 1))
-            for p in os.listdir(self.runner_directory)
-            if "-" in p
-        }
-
-    def get_runner_path(self, version, arch):
-        """Return the local path where the runner is/will be installed"""
-        info = {"version": version, "architecture": arch}
-        return os.path.join(self.runner_directory, format_runner_version(info))
-
     def get_dest_path(self, runner):
         """Return temporary path where the runners should be downloaded to"""
         return os.path.join(settings.CACHE_DIR, os.path.basename(runner["url"]))
@@ -312,7 +334,7 @@ class RunnerInstallDialog(ModelessDialog):
         runner = row.runner
         version = runner["version"]
         arch = runner["architecture"]
-        system.remove_folder(self.get_runner_path(version, arch))
+        system.remove_folder(get_runner_path(self.runner_directory, version, arch))
         runner["is_installed"] = False
         if self.runner_name == "wine":
             logger.debug("Clearing wine version cache")
@@ -370,18 +392,6 @@ class RunnerInstallDialog(ModelessDialog):
         row.install_progress.pulse()
         return not runner["is_installed"]
 
-    def get_usage_stats(self):
-        """Return the usage for each version"""
-        runner_games = get_games_by_runner(self.runner_name)
-        version_usage = defaultdict(list)
-        for db_game in runner_games:
-            if not db_game["installed"]:
-                continue
-            game = Game(db_game["id"])
-            version = game.config.runner_config["version"]
-            version_usage[version].append(db_game["id"])
-        return version_usage
-
     def on_runner_downloaded(self, row):
         """Handler called when a runner version is downloaded"""
         runner = row.runner
@@ -389,7 +399,7 @@ class RunnerInstallDialog(ModelessDialog):
         architecture = runner["architecture"]
         logger.debug("Runner %s for %s has finished downloading", version, architecture)
         src = self.get_dest_path(runner)
-        dst = self.get_runner_path(version, architecture)
+        dst = get_runner_path(self.runner_directory, version, architecture)
         GLib.timeout_add(100, self.progress_pulse, row)
         jobs.AsyncCall(self.extract, self.on_extracted, src, dst, row)
 
