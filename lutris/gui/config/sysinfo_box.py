@@ -81,7 +81,7 @@ class SystemBox(BaseConfigBox):
                 "callable": linux.LINUX_SYSTEM.has_steam
             },
             {
-                "label": _("In Flatpak:\t\t\t<b>%s</b>"),
+                "label": _("In Flatpak:\t\t<b>%s</b>"),
                 "callable": linux.LINUX_SYSTEM.is_flatpak
             },
         ]
