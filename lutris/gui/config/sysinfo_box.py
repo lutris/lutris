@@ -10,12 +10,58 @@ from lutris.util.wine.wine import is_esync_limit_set, is_fsync_supported, is_ins
 
 
 class SystemBox(BaseConfigBox):
+    features_definitions = [
+        {
+            "name": _("Vulkan support"),
+            "label": _("Vulkan support:\t<b>%s</b>"),
+            "callable": linux.LINUX_SYSTEM.is_vulkan_supported,
+        },
+        {
+            "name": _("Esync support"),
+            "label": _("Esync support:\t<b>%s</b>"),
+            "callable": is_esync_limit_set,
+        },
+        {
+            "name": _("Fsync support"),
+            "label": _("Fsync support:\t<b>%s</b>"),
+            "callable": is_fsync_supported,
+        },
+        {
+            "name": _("Wine installed"),
+            "label": _("Wine installed:\t<b>%s</b>"),
+            "callable": is_installed_systemwide,
+        },
+        {
+            "name": _("Gamescope"),
+            "label": _("Gamescope:\t\t<b>%s</b>"),
+            "callable": system.can_find_executable,
+            "args": ("gamescope",)
+        },
+        {
+            "name": _("Mangohud"),
+            "label": _("Mangohud:\t\t<b>%s</b>"),
+            "callable": system.can_find_executable,
+            "args": ("mangohud",)
+        },
+        {
+            "name": _("Gamemode"),
+            "label": _("Gamemode:\t\t<b>%s</b>"),
+            "callable": linux.LINUX_SYSTEM.gamemode_available
+        },
+        {
+            "name": _("Steam"),
+            "label": _("Steam:\t\t\t<b>%s</b>"),
+            "callable": linux.LINUX_SYSTEM.has_steam
+        },
+        {
+            "name": _("In Flatpak"),
+            "label": _("In Flatpak:\t\t<b>%s</b>"),
+            "callable": linux.LINUX_SYSTEM.is_flatpak
+        },
+    ]
 
     def __init__(self):
         super().__init__()
-
-        self._clipboard_buffer = None
-        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
 
         self.add(self.get_section_label(_("System features")))
         feature_widgets = self.get_feature_widgets()
@@ -42,64 +88,43 @@ class SystemBox(BaseConfigBox):
 
     def get_feature_widgets(self):
         """Return a list of labels related to this system's features"""
-        yes = _("YES")
-        no = _("NO")
         labels = []
-        features = [
-            {
-                "label": _("Vulkan support:\t<b>%s</b>"),
-                "callable": linux.LINUX_SYSTEM.is_vulkan_supported,
-            },
-            {
-                "label": _("Esync support:\t<b>%s</b>"),
-                "callable": is_esync_limit_set,
-            },
-            {
-                "label": _("Fsync support:\t<b>%s</b>"),
-                "callable": is_fsync_supported,
-            },
-            {
-                "label": _("Wine installed:\t<b>%s</b>"),
-                "callable": is_installed_systemwide,
-            },
-            {
-                "label": _("Gamescope:\t\t<b>%s</b>"),
-                "callable": system.can_find_executable,
-                "args": ("gamescope", )
-            },
-            {
-                "label": _("Mangohud:\t\t<b>%s</b>"),
-                "callable": system.can_find_executable,
-                "args": ("mangohud", )
-            },
-            {
-                "label": _("Gamemode:\t\t<b>%s</b>"),
-                "callable": linux.LINUX_SYSTEM.gamemode_available
-            },
-            {
-                "label": _("Steam:\t\t\t<b>%s</b>"),
-                "callable": linux.LINUX_SYSTEM.has_steam
-            },
-            {
-                "label": _("In Flatpak:\t\t<b>%s</b>"),
-                "callable": linux.LINUX_SYSTEM.is_flatpak
-            },
-        ]
+        features = self.get_features()
         for feature in features:
             label = Gtk.Label(visible=True, xalign=0)
             label.set_margin_top(3)
             label.set_margin_bottom(3)
             label.set_margin_start(16)
-            label.set_markup(feature["label"] % (yes if feature["callable"](*feature.get("args", ())) else no))
+            label.set_markup(feature["label"] % feature["available_markup"])
             labels.append(label)
         return labels
 
-    def populate(self):
-        sysinfo_str = gather_system_info_str()
+    def get_features(self):
+        yes = _("YES")
+        no = _("NO")
 
+        def eval_feature(feature):
+            result = feature.copy()
+            func = feature["callable"]
+            args = feature.get("args", ())
+            result["availability"] = bool(func(*args))
+            result["available_markup"] = yes if result["availability"] else no
+            return result
+
+        return [eval_feature(f) for f in self.features_definitions]
+
+    def populate(self):
         text_buffer = self.sysinfo_view.get_buffer()
-        text_buffer.set_text(sysinfo_str)
-        self._clipboard_buffer = sysinfo_str
+        text_buffer.set_text(gather_system_info_str())
 
     def _copy_text(self, _widget):
-        self.clipboard.set_text(self._clipboard_buffer, -1)
+        features = self.get_features()
+        _clipboard_buffer = "[Features]\n"
+
+        for f in features:
+            _clipboard_buffer += "%s: %s\n" % (f["name"], f["availability"])
+
+        _clipboard_buffer += "\n"
+        _clipboard_buffer += gather_system_info_str()
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        clipboard.set_text(_clipboard_buffer.strip(), -1)
