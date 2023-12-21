@@ -444,6 +444,7 @@ class wine(Runner):
                 "section": _("DPI"),
                 "label": _("Enable DPI Scaling"),
                 "type": "bool",
+                "advanced": True,
                 "default": False,
                 "help": _(
                     "Enables the Windows application's DPI scaling.\n"
@@ -455,6 +456,7 @@ class wine(Runner):
                 "section": _("DPI"),
                 "label": _("DPI"),
                 "type": "string",
+                "advanced": True,
                 "help": _(
                     "The DPI to be used if 'Enable DPI Scaling' is turned on.\n"
                     "If blank or 'auto', Lutris will auto-detect this."
