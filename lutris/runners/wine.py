@@ -118,11 +118,7 @@ def _get_fsync_warning(config, _option_key):
 
 
 def _get_virtual_desktop_warning(config, _option_key):
-    if config.get("Desktop"):
-        version = config.get("version")
-        if "-ge-" in version.casefold():
-            return _("The virtual desktop feature is not supported on 'GE' Wine versions.")
-    return ""
+    return _("Wine virtual desktop is no longer supported")
 
 
 class wine(Runner):
@@ -425,6 +421,7 @@ class wine(Runner):
                 "section": _("Virtual Desktop"),
                 "label": _("Windowed (virtual desktop)"),
                 "type": "bool",
+                "advanced": True,
                 "warning": _get_virtual_desktop_warning,
                 "default": False,
                 "help": _(
@@ -438,6 +435,7 @@ class wine(Runner):
                 "section": _("Virtual Desktop"),
                 "label": _("Virtual desktop resolution"),
                 "type": "choice_with_entry",
+                "advanced": True,
                 "choices": DISPLAY_MANAGER.get_resolutions,
                 "help": _("The size of the virtual desktop in pixels."),
             },
