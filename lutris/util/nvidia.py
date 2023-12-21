@@ -39,7 +39,6 @@ def get_nvidia_glx_path():
     try:
         libglx_nvidia = CDLL("libGLX_nvidia.so.0")
     except OSError:
-        logger.error("Unable to load libGLX_nvidia.so.0")
         return None
 
     # from dlinfo(3)
@@ -87,7 +86,6 @@ def get_nvidia_dll_path():
     """
     libglx_path = get_nvidia_glx_path()
     if not libglx_path:
-        logger.warning("Unable to locate libGLX_nvidia")
         return
     nvidia_wine_dir = os.path.join(os.path.dirname(libglx_path), "nvidia/wine")
     if os.path.exists(os.path.join(nvidia_wine_dir, "nvngx.dll")):
