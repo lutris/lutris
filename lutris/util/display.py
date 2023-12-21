@@ -251,6 +251,10 @@ def is_compositing_enabled():
             "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
             "--print-reply=literal", "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.CurrentWM"
         ) == b"deepin wm\n"
+    if _get_command_output("pgrep", "picom") != "":
+        return True
+    if _get_command_output("pgrep", "compton") != "":
+        return True
     return None
 
 
@@ -267,6 +271,7 @@ def _get_compositor_commands():
     """
     start_compositor = None
     stop_compositor = None
+    run_in_background = False
     desktop_environment = get_desktop_environment()
     if desktop_environment is DesktopEnvironment.PLASMA:
         stop_compositor = ("qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.suspend")
@@ -283,21 +288,34 @@ def _get_compositor_commands():
             "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.RequestSwitchWM",
         )
         stop_compositor = start_compositor
-    return start_compositor, stop_compositor
+    elif _get_command_output("pgrep", "picom") != "":
+        start_compositor = ("picom", "")
+        stop_compositor = ("pkill", "picom")
+        run_in_background = True
+    elif _get_command_output("pgrep", "compton") != "":
+        start_compositor = ("compton", "")
+        stop_compositor = ("pkill", "compton")
+        run_in_background = True
+    return start_compositor, stop_compositor, run_in_background
 
 
-def _run_command(*command):
+def _run_command(*command, run_in_background = False):
     """Random _run_command lost in the middle of the project,
     are you lost little _run_command?
     """
     try:
+        if run_in_background:
+            command = ' '.join(command)
         return subprocess.Popen(  # pylint: disable=consider-using-with
             command,
             stdin=subprocess.DEVNULL,
-            close_fds=True
+            close_fds=True,
+            shell=run_in_background,
+            start_new_session=run_in_background
         )
     except FileNotFoundError:
-        logger.error("Oh no")
+        errorMessage = "FileNotFoundError when running command:", command
+        logger.error(errorMessage)
 
 
 def disable_compositing():
@@ -310,9 +328,9 @@ def disable_compositing():
     _COMPOSITING_DISABLED_STACK.append(compositing_enabled)
     if not compositing_enabled:
         return
-    _, stop_compositor = _get_compositor_commands()
+    _, stop_compositor, background = _get_compositor_commands()
     if stop_compositor:
-        _run_command(*stop_compositor)
+        _run_command(*stop_compositor, run_in_background=background)
 
 
 def enable_compositing():
@@ -322,9 +340,9 @@ def enable_compositing():
     compositing_disabled = _COMPOSITING_DISABLED_STACK.pop()
     if not compositing_disabled:
         return
-    start_compositor, _ = _get_compositor_commands()
+    start_compositor, _, background = _get_compositor_commands()
     if start_compositor:
-        _run_command(*start_compositor)
+        _run_command(*start_compositor, run_in_background=background)
 
 
 class DBusScreenSaverInhibitor:
