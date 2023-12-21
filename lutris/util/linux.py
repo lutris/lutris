@@ -527,18 +527,6 @@ def gather_system_info_dict():
     return system_info_readable
 
 
-def gather_system_info_str():
-    system_info_readable = gather_system_info_dict()
-    output = ''
-    for section, dictionary in system_info_readable.items():
-        output += '[%s]\n' % section
-        for key, value in dictionary.items():
-            tabs = " " * (16 - len(key))
-            output += '%s:%s%s\n' % (key, tabs, value)
-        output += '\n'
-    return output
-
-
 def get_terminal_apps():
     """Return the list of installed terminal emulators"""
     return LINUX_SYSTEM.get_terminals()
