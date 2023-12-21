@@ -1,4 +1,5 @@
 from gettext import gettext as _
+from typing import Dict, Iterable, List
 
 from gi.repository import Gdk, Gtk
 
@@ -71,20 +72,24 @@ class SystemBox(BaseConfigBox):
         items = self.get_items()
         self.scrolled_window.add(self.get_grid(items))
 
-    def get_items(self):
+    def get_items(self) -> list:
+        """Assembles a list of items to display; most items are name-value tuples
+        giving various bits of information, section headers appear also, as plain strings."""
         features = self.get_features()
         items = [(f["name"], f["available_text"]) for f in features]
 
         system_info_readable = gather_system_info_dict()
         for section, dictionary in system_info_readable.items():
             items.append(section)
-            for key, value in dictionary.items():
-                items.append((gtk_safe(key), gtk_safe(value)))
+            items.extend(dictionary.items())
 
         return items
 
     @staticmethod
-    def get_grid(items):
+    def get_grid(items: Iterable) -> Gtk.Grid:
+        """Constructs a Gtk.Grid containing labels for each item given; each item
+        may be a name-value tuple, producing two labels, or just a string, giving one
+        that covers two columns; this later is used for section headers."""
         grid = Gtk.Grid(visible=True, row_spacing=6, margin=16)
         row = 0
         for item in items:
@@ -108,7 +113,8 @@ class SystemBox(BaseConfigBox):
         return grid
 
     @staticmethod
-    def get_text(items):
+    def get_text(items: Iterable) -> str:
+        """Constructs text for the clipboard, given the same items as get_grid() takess"""
         lines = []
         for item in items:
             if isinstance(item, str):
@@ -118,7 +124,9 @@ class SystemBox(BaseConfigBox):
                 lines.append(f"{name}: {text}")
         return "\n".join(lines)
 
-    def get_features(self):
+    def get_features(self) -> List[Dict[str, str]]:
+        """Provides a list of features that may be present in your system; each
+        is given as a dict, which hase 'name' and 'available_text' keys."""
         yes = _("YES")
         no = _("NO")
 
@@ -132,7 +140,7 @@ class SystemBox(BaseConfigBox):
 
         return [eval_feature(f) for f in self.features_definitions]
 
-    def on_copy_clicked(self, _widget):
+    def on_copy_clicked(self, _widget) -> None:
         items = self.get_items()
         text = self.get_text(items)
 
