@@ -13,49 +13,49 @@ class SystemBox(BaseConfigBox):
     features_definitions = [
         {
             "name": _("Vulkan support"),
-            "label": _("Vulkan support:\t<b>%s</b>"),
+            "label_markup": _("Vulkan support:\t<b>%s</b>"),
             "callable": linux.LINUX_SYSTEM.is_vulkan_supported,
         },
         {
             "name": _("Esync support"),
-            "label": _("Esync support:\t<b>%s</b>"),
+            "label_markup": _("Esync support:\t<b>%s</b>"),
             "callable": is_esync_limit_set,
         },
         {
             "name": _("Fsync support"),
-            "label": _("Fsync support:\t<b>%s</b>"),
+            "label_markup": _("Fsync support:\t<b>%s</b>"),
             "callable": is_fsync_supported,
         },
         {
             "name": _("Wine installed"),
-            "label": _("Wine installed:\t<b>%s</b>"),
+            "label_markup": _("Wine installed:\t<b>%s</b>"),
             "callable": is_installed_systemwide,
         },
         {
             "name": _("Gamescope"),
-            "label": _("Gamescope:\t\t<b>%s</b>"),
+            "label_markup": _("Gamescope:\t\t<b>%s</b>"),
             "callable": system.can_find_executable,
             "args": ("gamescope",)
         },
         {
             "name": _("Mangohud"),
-            "label": _("Mangohud:\t\t<b>%s</b>"),
+            "label_markup": _("Mangohud:\t\t<b>%s</b>"),
             "callable": system.can_find_executable,
             "args": ("mangohud",)
         },
         {
             "name": _("Gamemode"),
-            "label": _("Gamemode:\t\t<b>%s</b>"),
+            "label_markup": _("Gamemode:\t\t<b>%s</b>"),
             "callable": linux.LINUX_SYSTEM.gamemode_available
         },
         {
             "name": _("Steam"),
-            "label": _("Steam:\t\t\t<b>%s</b>"),
+            "label_markup": _("Steam:\t\t\t<b>%s</b>"),
             "callable": linux.LINUX_SYSTEM.has_steam
         },
         {
             "name": _("In Flatpak"),
-            "label": _("In Flatpak:\t\t<b>%s</b>"),
+            "label_markup": _("In Flatpak:\t\t<b>%s</b>"),
             "callable": linux.LINUX_SYSTEM.is_flatpak
         },
     ]
@@ -95,7 +95,7 @@ class SystemBox(BaseConfigBox):
             label.set_margin_top(3)
             label.set_margin_bottom(3)
             label.set_margin_start(16)
-            label.set_markup(feature["label"] % feature["available_markup"])
+            label.set_markup(feature["label_markup"] % feature["available_text"])
             labels.append(label)
         return labels
 
@@ -108,7 +108,7 @@ class SystemBox(BaseConfigBox):
             func = feature["callable"]
             args = feature.get("args", ())
             result["availability"] = bool(func(*args))
-            result["available_markup"] = yes if result["availability"] else no
+            result["available_text"] = yes if result["availability"] else no
             return result
 
         return [eval_feature(f) for f in self.features_definitions]
@@ -122,7 +122,7 @@ class SystemBox(BaseConfigBox):
         _clipboard_buffer = "[Features]\n"
 
         for f in features:
-            _clipboard_buffer += "%s: %s\n" % (f["name"], f["availability"])
+            _clipboard_buffer += "%s: %s\n" % (f["name"], f["available_text"])
 
         _clipboard_buffer += "\n"
         _clipboard_buffer += gather_system_info_str()
