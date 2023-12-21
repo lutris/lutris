@@ -36,11 +36,6 @@
 }
 
 .info-frame {
-  color: rgb(255, 199, 116);
-  background-color: rgb(47, 47, 47);
-}
-
-.info-frame label selection {
-  color: rgb(47, 47, 47);
-  background-color: rgb(255, 199, 116);
+  color: @theme_text_color;
+  background-color: @theme_base_color;
 }
