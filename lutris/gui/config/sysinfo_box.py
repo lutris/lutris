@@ -62,32 +62,31 @@ class SystemBox(BaseConfigBox):
 
     def __init__(self):
         super().__init__()
-
         self.add(self.get_section_label(_("System features")))
-        features_grid = self.get_features_grid()
-        features_frame = Gtk.Frame(visible=True)
-        features_frame.get_style_context().add_class("info-frame")
-        features_frame.add(features_grid)
-        self.add(features_frame)
+        self.features_frame = Gtk.Frame(visible=True)
+        self.features_frame.get_style_context().add_class("info-frame")
+        self.pack_start(self.features_frame, False, False, 0)
 
-        sysinfo_label = Gtk.Label(halign=Gtk.Align.START, visible=True)
-        sysinfo_label.set_markup(_("<b>System information</b>"))
-        self.pack_start(sysinfo_label, False, False, 0)
+        self.pack_start(self.get_section_label(_("System information")), False, False, 0)
 
+        self.scrolled_window = Gtk.ScrolledWindow(visible=True)
+        self.scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         sysinfo_frame = Gtk.Frame(visible=True)
         sysinfo_frame.get_style_context().add_class("info-frame")
-
-        scrolled_window = Gtk.ScrolledWindow(visible=True)
-        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        sysinfo_grid = self.get_system_info_grid()
-        scrolled_window.add(sysinfo_grid)
-        sysinfo_frame.add(scrolled_window)
+        sysinfo_frame.add(self.scrolled_window)
         self.pack_start(sysinfo_frame, True, True, 0)
 
         button_copy = Gtk.Button(_("Copy to Clipboard"), halign=Gtk.Align.START, visible=True)
         button_copy.connect("clicked", self._copy_text)
 
         self.pack_start(button_copy, False, False, 0)
+
+    def populate(self):
+        features_grid = self.get_features_grid()
+        self.features_frame.add(features_grid)
+
+        sysinfo_grid = self.get_system_info_grid()
+        self.scrolled_window.add(sysinfo_grid)
 
     def get_features_grid(self):
         features = self.get_features()
@@ -139,11 +138,6 @@ class SystemBox(BaseConfigBox):
             return result
 
         return [eval_feature(f) for f in self.features_definitions]
-
-    def populate(self):
-        # text_buffer = self.sysinfo_view.get_buffer()
-        # text_buffer.set_text(gather_system_info_str())
-        pass
 
     def _copy_text(self, _widget):
         features = self.get_features()
