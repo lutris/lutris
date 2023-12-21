@@ -64,8 +64,8 @@ class SystemBox(BaseConfigBox):
         super().__init__()
 
         self.add(self.get_section_label(_("System features")))
-        feature_widgets = self.get_feature_widgets()
-        self.add(self._get_framed_options_list_box(feature_widgets))
+        features_grid = self.get_features_grid()
+        self.add(self._get_framed_options_list_box([features_grid]))
 
         sysinfo_label = Gtk.Label(halign=Gtk.Align.START, visible=True)
         sysinfo_label.set_markup(_("<b>System information</b>"))
@@ -86,18 +86,22 @@ class SystemBox(BaseConfigBox):
 
         self.pack_start(button_copy, False, False, 0)
 
-    def get_feature_widgets(self):
+    def get_features_grid(self):
         """Return a list of labels related to this system's features"""
-        labels = []
+        grid = Gtk.Grid(visible=True, row_spacing=6, margin=16)
+        row = 0
         features = self.get_features()
         for feature in features:
-            label = Gtk.Label(visible=True, xalign=0)
-            label.set_margin_top(3)
-            label.set_margin_bottom(3)
-            label.set_margin_start(16)
-            label.set_markup(feature["label_markup"] % feature["available_text"])
-            labels.append(label)
-        return labels
+            label = Gtk.Label(feature["name"] + ":",
+                              visible=True, xalign=0, yalign=0,
+                              margin_right=30)
+            grid.attach(label, 0, row, 1, 1)
+
+            status = Gtk.Label(visible=True, xalign=0)
+            status.set_markup("<b>%s</b>" % feature["available_text"])
+            grid.attach(status, 1, row, 1, 1)
+            row += 1
+        return grid
 
     def get_features(self):
         yes = _("YES")
