@@ -3,9 +3,9 @@ from gettext import gettext as _
 from gi.repository import Gdk, Gtk
 
 from lutris.gui.config.base_config_box import BaseConfigBox
-from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import linux, system
-from lutris.util.linux import gather_system_info_str
+from lutris.util.linux import gather_system_info_dict, gather_system_info_str
+from lutris.util.strings import gtk_safe
 from lutris.util.wine.wine import is_esync_limit_set, is_fsync_supported, is_installed_systemwide
 
 
@@ -65,19 +65,22 @@ class SystemBox(BaseConfigBox):
 
         self.add(self.get_section_label(_("System features")))
         features_grid = self.get_features_grid()
-        self.add(self._get_framed_options_list_box([features_grid]))
+        features_frame = Gtk.Frame(visible=True)
+        features_frame.get_style_context().add_class("info-frame")
+        features_frame.add(features_grid)
+        self.add(features_frame)
 
         sysinfo_label = Gtk.Label(halign=Gtk.Align.START, visible=True)
         sysinfo_label.set_markup(_("<b>System information</b>"))
         self.pack_start(sysinfo_label, False, False, 0)
 
         sysinfo_frame = Gtk.Frame(visible=True)
+        sysinfo_frame.get_style_context().add_class("info-frame")
+
         scrolled_window = Gtk.ScrolledWindow(visible=True)
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-
-        self.sysinfo_view = LogTextView(autoscroll=False, wrap_mode=Gtk.WrapMode.NONE)
-        self.sysinfo_view.set_cursor_visible(False)
-        scrolled_window.add(self.sysinfo_view)
+        sysinfo_grid = self.get_system_info_grid()
+        scrolled_window.add(sysinfo_grid)
         sysinfo_frame.add(scrolled_window)
         self.pack_start(sysinfo_frame, True, True, 0)
 
@@ -87,19 +90,39 @@ class SystemBox(BaseConfigBox):
         self.pack_start(button_copy, False, False, 0)
 
     def get_features_grid(self):
-        """Return a list of labels related to this system's features"""
+        features = self.get_features()
+        items = ((f["name"], f["available_text"]) for f in features)
+        return self.get_grid(items)
+
+    def get_system_info_grid(self):
+        system_info_readable = gather_system_info_dict()
+        items = []
+        for section, dictionary in system_info_readable.items():
+            items.append("<b>[%s]</b>" % section)
+            for key, value in dictionary.items():
+                items.append((gtk_safe(key), gtk_safe(value)))
+        return self.get_grid(items)
+
+    @staticmethod
+    def get_grid(items):
         grid = Gtk.Grid(visible=True, row_spacing=6, margin=16)
         row = 0
-        features = self.get_features()
-        for feature in features:
-            label = Gtk.Label(feature["name"] + ":",
-                              visible=True, xalign=0, yalign=0,
-                              margin_right=30)
-            grid.attach(label, 0, row, 1, 1)
+        for item in items:
+            if isinstance(item, str):
+                header_label = Gtk.Label(visible=True, xalign=0, yalign=0, margin_top=16)
+                header_label.set_markup(str(item))
+                grid.set_margin_top(0)
+                grid.attach(header_label, 0, row, 2, 1)
+            else:
+                name, markup = item
+                name_label = Gtk.Label(name + ":",
+                                       visible=True, xalign=0, yalign=0,
+                                       margin_right=30)
+                grid.attach(name_label, 0, row, 1, 1)
 
-            status = Gtk.Label(visible=True, xalign=0)
-            status.set_markup("<b>%s</b>" % feature["available_text"])
-            grid.attach(status, 1, row, 1, 1)
+                markup_label = Gtk.Label(visible=True, xalign=0, selectable=True)
+                markup_label.set_markup("<b>%s</b>" % markup)
+                grid.attach(markup_label, 1, row, 1, 1)
             row += 1
         return grid
 
@@ -118,8 +141,9 @@ class SystemBox(BaseConfigBox):
         return [eval_feature(f) for f in self.features_definitions]
 
     def populate(self):
-        text_buffer = self.sysinfo_view.get_buffer()
-        text_buffer.set_text(gather_system_info_str())
+        # text_buffer = self.sysinfo_view.get_buffer()
+        # text_buffer.set_text(gather_system_info_str())
+        pass
 
     def _copy_text(self, _widget):
         features = self.get_features()

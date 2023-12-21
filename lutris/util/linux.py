@@ -476,7 +476,7 @@ def gather_system_info():
     return system_info
 
 
-def gather_system_info_str():
+def gather_system_info_dict():
     """Get all relevant system information already formatted as a string"""
     system_info = gather_system_info()
     system_info_readable = {}
@@ -524,7 +524,11 @@ def gather_system_info_str():
     else:
         graphics_dict["Vulkan"] = "Not Supported"
     system_info_readable["Graphics"] = graphics_dict
+    return system_info_readable
 
+
+def gather_system_info_str():
+    system_info_readable = gather_system_info_dict()
     output = ''
     for section, dictionary in system_info_readable.items():
         output += '[%s]\n' % section
