@@ -261,7 +261,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             hbox.pack_end(self.delete_game_checkbox, False, False, 0)
 
             if game.is_installed and self.game.directory:
-                delete_files_overlay = Gtk.Overlay(width_request=175)
+                delete_files_overlay = Gtk.Overlay(width_request=185)
                 self.delete_files_checkbox = Gtk.CheckButton(_("Delete Files"))
                 self.delete_files_checkbox.set_sensitive(can_delete_files)
                 self.delete_files_checkbox.set_active(can_delete_files)
