@@ -44,10 +44,8 @@ class Dialog(Gtk.Dialog):
 
     def on_response(self, _dialog, response: Gtk.ResponseType) -> None:
         """Handles the dialog response; you can override this but by default
-        this records the response for 'response_type' and destroys the dialog."""
+        this records the response for 'response_type'."""
         self._response_type = response
-        if response != Gtk.ResponseType.NONE:
-            self.destroy()
 
     def add_styled_button(self, button_text: str, response_id: Gtk.ResponseType,
                           css_class: str):
@@ -103,6 +101,13 @@ class ModelessDialog(Dialog):
         # able to come to the front.
         self.set_transient_for(None)
         return False
+
+    def on_response(self, dialog, response: Gtk.ResponseType) -> None:
+        super().on_response(dialog, response)
+        # Modal dialogs self-destruct, but modeless ones must commit
+        # suicide more explicitly.
+        if response != Gtk.ResponseType.NONE:
+            self.destroy()
 
 
 class SavableModelessDialog(ModelessDialog):
