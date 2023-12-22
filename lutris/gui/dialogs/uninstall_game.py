@@ -247,15 +247,18 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             self.delete_files_checkbox: Gtk.CheckButton = None
             self.folder_size_spinner: Gtk.Spinner = None
 
-            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-            label = Gtk.Label(game.name)
-            box.pack_start(label, False, False, 0)
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            vbox.pack_start(hbox, False, False, 0)
+
+            label = Gtk.Label(game.name, selectable=True)
+            hbox.pack_start(label, False, False, 0)
 
             self.delete_game_checkbox = Gtk.CheckButton("Remove from Library", active=False, halign=Gtk.Align.START)
             self.delete_game_checkbox.set_sensitive(game.is_installed)
             self.delete_game_checkbox.set_active(True)
             self.delete_game_checkbox.connect("toggled", self.on_checkbox_toggled)
-            box.pack_end(self.delete_game_checkbox, False, False, 0)
+            hbox.pack_end(self.delete_game_checkbox, False, False, 0)
 
             if game.is_installed and self.game.directory:
                 delete_files_overlay = Gtk.Overlay(width_request=175)
@@ -271,9 +274,14 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
                 if can_delete_files:
                     self.folder_size_spinner.start()
                 delete_files_overlay.add_overlay(self.folder_size_spinner)
-                box.pack_end(delete_files_overlay, False, False, 0)
+                hbox.pack_end(delete_files_overlay, False, False, 0)
 
-            self.add(box)
+                directory_label = Gtk.Label(halign=Gtk.Align.START,
+                                            selectable=True,
+                                            margin_left=6, margin_right=6)
+                directory_label.set_markup("<span font_desc='8'>%s</span>" % gtk_safe(self.game.directory))
+                vbox.pack_start(directory_label, False, False, 0)
+            self.add(vbox)
 
         def on_checkbox_toggled(self, _widget):
             self.checkbox_toggled_handler()
