@@ -1,6 +1,7 @@
 """Commonly used dialogs"""
 import os
 from gettext import gettext as _
+from typing import Callable
 
 import gi
 
@@ -47,6 +48,31 @@ class Dialog(Gtk.Dialog):
         this records the response for 'response_type'."""
         self._response_type = response
 
+    def destroy_at_idle(self, condition: Callable = False):
+        """Adds as idle task to destroy this window at idle time;
+        it can do so conditionally if you provide a callable to check,
+        but it checks only once. You can still explicitly destroy the
+        dialog after calling this. This is used to ensure destruction of
+        ModalDialog after run()."""
+
+        def idle_destroy():
+            nonlocal idle_source_id
+            idle_source_id = None
+            if not condition or condition():
+                self.destroy()
+            return False
+
+        def on_destroy(*_args):
+            nonlocal idle_source_id
+            self.disconnect(on_destroy_id)
+            if idle_source_id:
+                GLib.source_remove(idle_source_id)
+            idle_source_id = None
+
+        self.hide()
+        idle_source_id = GLib.idle_add(idle_destroy)
+        on_destroy_id = self.connect("destroy", on_destroy)
+
     def add_styled_button(self, button_text: str, response_id: Gtk.ResponseType,
                           css_class: str):
         button = self.add_button(button_text, response_id)
@@ -65,7 +91,10 @@ class Dialog(Gtk.Dialog):
 
 
 class ModalDialog(Dialog):
-    """A base class of modal dialogs, which sets the flag for you."""
+    """A base class of modal dialogs, which sets the flag for you.
+
+    Unlike plain Gtk.Dialog, these destroy themselves (at idle-time) after
+    you call run(), even if you forget to. They aren't meant to be reused."""
 
     def __init__(self, title: str = None, parent: Gtk.Widget = None,
                  flags: Gtk.DialogFlags = 0, buttons: Gtk.ButtonsType = None,
@@ -80,6 +109,7 @@ class ModalDialog(Dialog):
         # self.destroy() changes the run() result to NONE.
         if response != Gtk.ResponseType.NONE:
             self.hide()
+            self.destroy_at_idle(condition=lambda: not self.get_visible())
 
 
 class ModelessDialog(Dialog):
