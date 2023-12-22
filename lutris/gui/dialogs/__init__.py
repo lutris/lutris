@@ -73,6 +73,14 @@ class ModalDialog(Dialog):
         super().__init__(title, parent, flags | Gtk.DialogFlags.MODAL, buttons, **kwargs)
         self.set_destroy_with_parent(True)
 
+    def on_response(self, dialog, response: Gtk.ResponseType) -> None:
+        super().on_response(dialog, response)
+        # Model dialogs do return from run() in response from respose() but the
+        # dialog is visible and locks out its parent. So we hide it. Watch out-
+        # self.destroy() changes the run() result to NONE.
+        if response != Gtk.ResponseType.NONE:
+            self.hide()
+
 
 class ModelessDialog(Dialog):
     """A base class for modeless dialogs. They have a parent only temporarily, so

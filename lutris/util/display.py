@@ -299,7 +299,7 @@ def _get_compositor_commands():
     return start_compositor, stop_compositor, run_in_background
 
 
-def _run_command(*command, run_in_background = False):
+def _run_command(*command, run_in_background=False):
     """Random _run_command lost in the middle of the project,
     are you lost little _run_command?
     """
