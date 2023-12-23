@@ -556,8 +556,12 @@ class MoveDialog(ModelessDialog):
         self.progress.set_pulse_step(0.1)
         vbox.add(self.progress)
         self.get_content_area().add(vbox)
-        GLib.timeout_add(125, self.show_progress)
+        self.progress_source_id = GLib.timeout_add(125, self.show_progress)
+        self.connect("destroy", self.on_destroy)
         self.show_all()
+
+    def on_destroy(self, _dialog):
+        GLib.source_remove(self.progress_source_id)
 
     def move(self):
         AsyncCall(self._move_game, self.on_game_moved)
