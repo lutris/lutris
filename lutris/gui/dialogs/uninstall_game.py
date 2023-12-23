@@ -246,6 +246,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             self.checkbox_toggled_handler = checkbox_toggled_handler
             self.delete_files_checkbox: Gtk.CheckButton = None
             self.folder_size_spinner: Gtk.Spinner = None
+            self.directory_label: Gtk.Label = None
 
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -261,27 +262,38 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             hbox.pack_end(self.delete_game_checkbox, False, False, 0)
 
             if game.is_installed and self.game.directory:
-                delete_files_overlay = Gtk.Overlay(width_request=185)
                 self.delete_files_checkbox = Gtk.CheckButton(_("Delete Files"))
                 self.delete_files_checkbox.set_sensitive(can_delete_files)
                 self.delete_files_checkbox.set_active(can_delete_files)
                 self.delete_files_checkbox.set_tooltip_text(self.game.directory)
                 self.delete_files_checkbox.connect("toggled", self.on_checkbox_toggled)
-                delete_files_overlay.add(self.delete_files_checkbox)
 
-                self.folder_size_spinner = Gtk.Spinner(visible=can_delete_files, no_show_all=True,
-                                                       halign=Gtk.Align.END)
+                hbox.pack_end(self.delete_files_checkbox, False, False, 0)
+
+                dir_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, margin_left=6, margin_right=6,
+                                  height_request=16)
+                self.directory_label = Gtk.Label(halign=Gtk.Align.START,
+                                                 selectable=True,
+                                                 valign=Gtk.Align.START)
+                self.directory_label.set_markup(self._get_directory_markup())
+                dir_box.pack_start(self.directory_label, False, False, 0)
+
                 if can_delete_files:
+                    self.folder_size_spinner = Gtk.Spinner(visible=can_delete_files, no_show_all=True)
                     self.folder_size_spinner.start()
-                delete_files_overlay.add_overlay(self.folder_size_spinner)
-                hbox.pack_end(delete_files_overlay, False, False, 0)
+                    dir_box.pack_start(self.folder_size_spinner, False, False, 0)
 
-                directory_label = Gtk.Label(halign=Gtk.Align.START,
-                                            selectable=True,
-                                            margin_left=6, margin_right=6)
-                directory_label.set_markup("<span font_desc='8'>%s</span>" % gtk_safe(self.game.directory))
-                vbox.pack_start(directory_label, False, False, 0)
+                vbox.pack_start(dir_box, False, False, 0)
             self.add(vbox)
+
+        def _get_directory_markup(self, folder_size: int = None):
+            if not self.game.directory or not self.game.is_installed:
+                return ""
+
+            markup = gtk_safe(self.game.directory)
+            if folder_size is not None:
+                markup += f" <i>({human_size(folder_size)})</i>"
+            return "<span font_desc='8'>%s</span>" % markup
 
         def on_checkbox_toggled(self, _widget):
             self.checkbox_toggled_handler()
@@ -292,12 +304,12 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
         def show_folder_size(self, folder_size: int) -> None:
             """Called to stop the spinner and show the size of the game folder."""
-            if self.delete_files_checkbox:
-                self.delete_files_checkbox.set_label(_("Delete Files") + f" ({human_size(folder_size)})")
+            if self.directory_label:
+                self.directory_label.set_markup(self._get_directory_markup(folder_size))
 
-                if self.folder_size_spinner:
-                    self.folder_size_spinner.stop()
-                    self.folder_size_spinner.hide()
+            if self.folder_size_spinner:
+                self.folder_size_spinner.stop()
+                self.folder_size_spinner.hide()
 
         @property
         def delete_files(self) -> bool:
