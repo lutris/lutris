@@ -251,9 +251,9 @@ def is_compositing_enabled():
             "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
             "--print-reply=literal", "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.CurrentWM"
         ) == b"deepin wm\n"
-    if _get_command_output("pgrep", "picom") != "":
+    if _get_command_output("pgrep", "picom") != b"":
         return True
-    if _get_command_output("pgrep", "compton") != "":
+    if _get_command_output("pgrep", "compton") != b"":
         return True
     return None
 
@@ -288,11 +288,11 @@ def _get_compositor_commands():
             "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.RequestSwitchWM",
         )
         stop_compositor = start_compositor
-    elif _get_command_output("pgrep", "picom") != "":
+    elif _get_command_output("pgrep", "picom") != b"":
         start_compositor = ("picom", "")
         stop_compositor = ("pkill", "picom")
         run_in_background = True
-    elif _get_command_output("pgrep", "compton") != "":
+    elif _get_command_output("pgrep", "compton") != b"":
         start_compositor = ("compton", "")
         stop_compositor = ("pkill", "compton")
         run_in_background = True
