@@ -292,8 +292,12 @@ class GameActions(BaseGameActions):
 
     def on_game_duplicate(self, _widget):
         for game in self.games:
+            base_name = game.name.strip().rstrip("0123456789").rstrip()
+            if not base_name:
+                base_name = game.name
+
             for num in range(2, 999):
-                initial_name = game.name + " " + str(num)
+                initial_name = f"{base_name} {num}".strip()
 
                 if not get_game_by_field(initial_name, "name"):
                     break
