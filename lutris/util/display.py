@@ -3,6 +3,7 @@
 import enum
 import os
 import subprocess
+from typing import Any, Dict
 
 import gi
 
@@ -199,6 +200,60 @@ class DesktopEnvironment(enum.Enum):
     UNKNOWN = 999
 
 
+# These desktop environment use a compositor that can be detected with a specific
+# command, and which provide a definite answer; the DE can be asked to start and stop it..
+_compositor_commands_by_de = {
+    DesktopEnvironment.PLASMA: {
+        "check": ["qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.active"],
+        "active_result": b"true\n",
+        "stop_compositor": ["qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.suspend"],
+        "start_compositor": ["qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.resume"]
+    },
+    DesktopEnvironment.MATE: {
+        "check": ["gsettings", "get org.mate.Marco.general", "compositing-manager"],
+        "active_result": b"true\n",
+        "stop_compositor": ["gsettings", "set org.mate.Marco.general", "compositing-manager", "false"],
+        "start_compositor": ["gsettings", "set org.mate.Marco.general", "compositing-manager", "true"]
+    },
+    DesktopEnvironment.XFCE: {
+        "check": ["xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing"],
+        "active_result": b"true\n",
+        "stop_compositor": ["xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=false"],
+        "start_compositor": ["xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=true"]
+    },
+    DesktopEnvironment.DEEPIN: {
+        "check": ["dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
+                  "--print-reply=literal", "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.CurrentWM"],
+        "active_result": b"deepin wm\n",
+        "stop_compositor": [
+            "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
+            "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.RequestSwitchWM"
+        ],
+        "start_compositor": [
+            "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
+            "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.RequestSwitchWM"
+        ],
+    },
+}
+
+# These additional compositors can be detected by looking for their process,
+# and must be started more directly.
+_non_de_compositor_commands = [
+    {
+        "check": ["pgrep", "picom"],
+        "stop_compositor": ["pkill", "picom"],
+        "start_compositor": ["picom", ""],
+        "run_in_background": True
+    },
+    {
+        "check": ["pgrep", "compton"],
+        "stop_compositor": ["pkill", "compton"],
+        "start_compositor": ["compton", ""],
+        "run_in_background": True
+    }
+]
+
+
 def get_desktop_environment():
     """Converts the value of the DESKTOP_SESSION environment variable
     to one of the constants in the DesktopEnvironment class.
@@ -218,7 +273,7 @@ def get_desktop_environment():
     return DesktopEnvironment.UNKNOWN
 
 
-def _get_command_output(*command):
+def _get_command_output(command):
     """Some rogue function that gives no shit about residing in the correct module"""
     try:
         return subprocess.Popen(  # pylint: disable=consider-using-with
@@ -235,27 +290,31 @@ def is_compositing_enabled():
     """Checks whether compositing is currently disabled or enabled.
     Returns True for enabled, False for disabled, and None if unknown.
     """
+
     desktop_environment = get_desktop_environment()
-    if desktop_environment is DesktopEnvironment.PLASMA:
-        return _get_command_output(
-            "qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.active"
-        ) == b"true\n"
-    if desktop_environment is DesktopEnvironment.MATE:
-        return _get_command_output("gsettings", "get org.mate.Marco.general", "compositing-manager") == b"true\n"
-    if desktop_environment is DesktopEnvironment.XFCE:
-        return _get_command_output(
-            "xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing"
-        ) == b"true\n"
-    if desktop_environment is DesktopEnvironment.DEEPIN:
-        return _get_command_output(
-            "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
-            "--print-reply=literal", "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.CurrentWM"
-        ) == b"deepin wm\n"
-    if _get_command_output("pgrep", "picom") != b"":
-        return True
-    if _get_command_output("pgrep", "compton") != b"":
-        return True
+    if desktop_environment in _compositor_commands_by_de:
+        command_set = _compositor_commands_by_de[desktop_environment]
+        return _check_compositor_active(command_set)
+
+    for command_set in _non_de_compositor_commands:
+        if _check_compositor_active(command_set):
+            return True
+
+    # It might be a compositor we don't know about, so return None for unknown.
     return None
+
+
+def _check_compositor_active(command_set: Dict[str, Any]) -> bool:
+    """Applies the 'check' command; and returns whether the result
+    was the desired 'active_result'; if that is omitted, we check for
+    any result at all."""
+    command = command_set["check"]
+    result = _get_command_output(command)
+
+    if "active_result" in command_set:
+        return result == command_set["active_result"]
+
+    return result != b''
 
 
 # One element is appended to this for every invocation of disable_compositing:
@@ -267,36 +326,25 @@ _COMPOSITING_DISABLED_STACK = []
 
 def _get_compositor_commands():
     """Returns the commands to enable/disable compositing on the current
-    desktop environment as a 2-tuple.
+    desktop environment as a 3-tuple: start command, stop-command and
+    a flag to indicate if we need to run the commands in the background.
     """
-    start_compositor = None
-    stop_compositor = None
-    run_in_background = False
     desktop_environment = get_desktop_environment()
-    if desktop_environment is DesktopEnvironment.PLASMA:
-        stop_compositor = ("qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.suspend")
-        start_compositor = ("qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.resume")
-    elif desktop_environment is DesktopEnvironment.MATE:
-        stop_compositor = ("gsettings", "set org.mate.Marco.general", "compositing-manager", "false")
-        start_compositor = ("gsettings", "set org.mate.Marco.general", "compositing-manager", "true")
-    elif desktop_environment is DesktopEnvironment.XFCE:
-        stop_compositor = ("xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=false")
-        start_compositor = ("xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=true")
-    elif desktop_environment is DesktopEnvironment.DEEPIN:
-        start_compositor = (
-            "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
-            "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.RequestSwitchWM",
-        )
-        stop_compositor = start_compositor
-    elif _get_command_output("pgrep", "picom") != b"":
-        start_compositor = ("picom", "")
-        stop_compositor = ("pkill", "picom")
-        run_in_background = True
-    elif _get_command_output("pgrep", "compton") != b"":
-        start_compositor = ("compton", "")
-        stop_compositor = ("pkill", "compton")
-        run_in_background = True
-    return start_compositor, stop_compositor, run_in_background
+    command_set = _compositor_commands_by_de.get(desktop_environment)
+
+    if not command_set:
+        for c in _non_de_compositor_commands:
+            if _check_compositor_active(c):
+                command_set = c
+                break
+
+    if command_set:
+        start_compositor = command_set["start_compositor"]
+        stop_compositor = command_set["stop_compositor"]
+        run_in_background = command_set["run_in_background"]
+        return start_compositor, stop_compositor, run_in_background
+
+    return None, None, False
 
 
 def _run_command(*command, run_in_background=False):
