@@ -5,7 +5,7 @@ from gettext import gettext as _
 
 from lutris import runners
 from lutris.util import linux, system
-from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME
+from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME, is_compositing_enabled
 from lutris.util.system import get_vk_icd_file_sets, get_vulkan_gpu_name
 
 
@@ -296,6 +296,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "default": False,
         "advanced": True,
+        "condition": is_compositing_enabled(),
         "help": _("Disable desktop effects while game is running, "
                   "reducing stuttering and increasing performance"),
     },
