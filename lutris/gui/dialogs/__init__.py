@@ -48,7 +48,7 @@ class Dialog(Gtk.Dialog):
         this records the response for 'response_type'."""
         self._response_type = response
 
-    def destroy_at_idle(self, condition: Callable = False):
+    def destroy_at_idle(self, condition: Callable = None):
         """Adds as idle task to destroy this window at idle time;
         it can do so conditionally if you provide a callable to check,
         but it checks only once. You can still explicitly destroy the
