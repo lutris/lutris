@@ -126,7 +126,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         if fraction > 0.0:
             self._inset_fractions[game_id] = fraction
         else:
-            del self._inset_fractions[game_id]
+            self._inset_fractions.pop(game_id, None)
 
     @GObject.Property(type=int, default=0)
     def media_width(self):
