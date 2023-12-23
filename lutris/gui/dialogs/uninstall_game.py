@@ -303,6 +303,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         def delete_files(self) -> bool:
             """True if the game files should be deleted."""
             return bool(self.game.is_installed and self.game.directory
+                        and self.delete_files_checkbox
                         and self.delete_files_checkbox.get_active())
 
         @delete_files.setter
