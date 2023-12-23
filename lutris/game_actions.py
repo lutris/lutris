@@ -292,6 +292,12 @@ class GameActions(BaseGameActions):
 
     def on_game_duplicate(self, _widget):
         for game in self.games:
+            for num in range(2, 999):
+                initial_name = game.name + " " + str(num)
+
+                if not get_game_by_field(initial_name, "name"):
+                    break
+
             duplicate_game_dialog = InputDialog(
                 {
                     "parent": self.window,
@@ -301,6 +307,7 @@ class GameActions(BaseGameActions):
                         "Please enter the new name for the copy:"
                     ) % gtk_safe(game.name),
                     "title": _("Duplicate game?"),
+                    "initial_value": initial_name
                 }
             )
             result = duplicate_game_dialog.run()

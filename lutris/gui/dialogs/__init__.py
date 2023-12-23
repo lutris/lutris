@@ -315,14 +315,16 @@ class InputDialog(ModalDialog):
         self.user_value = ""
         self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
         self.ok_button = self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.set_default_response(Gtk.ResponseType.OK)
         self.ok_button.set_sensitive(False)
         self.set_title(dialog_settings["title"])
         label = Gtk.Label(visible=True)
         label.set_markup(dialog_settings["question"])
         self.get_content_area().pack_start(label, True, True, 12)
-        self.entry = Gtk.Entry(visible=True)
+        self.entry = Gtk.Entry(visible=True, activates_default=True)
         self.entry.connect("changed", self.on_entry_changed)
         self.get_content_area().pack_start(self.entry, True, True, 12)
+        self.entry.set_text(dialog_settings.get("initial_value") or "")
 
     def on_entry_changed(self, widget):
         self.user_value = widget.get_text()
