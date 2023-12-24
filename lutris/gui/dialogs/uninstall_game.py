@@ -3,7 +3,7 @@ import os
 from gettext import gettext as _
 from typing import Callable, Dict, Iterable, List
 
-from gi.repository import Gtk
+from gi.repository import GObject, Gtk
 
 from lutris.database.games import get_games
 from lutris.game import Game
@@ -45,9 +45,11 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         new_games.sort(key=lambda g: get_natural_sort_key(g.name))
         self.games += new_games
 
+        new_rows = []
         for game in new_games:
-            row = UninstallMultipleGamesDialog.GameRemovalRow(game, self.update_all_checkboxes)
+            row = UninstallMultipleGamesDialog.GameRemovalRow(game)
             self.uninstall_game_list.add(row)
+            new_rows.append(row)
 
         self.update_deletability()
         self.update_folder_sizes(new_games)
@@ -56,6 +58,10 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         self.update_all_checkboxes()
         self.update_uninstall_button()
         self.uninstall_game_list.show_all()
+
+        # Defer the connection until all checkboxes are updated
+        for row in new_rows:
+            row.connect("row-updated", self.on_row_updated)
 
     def update_deletability(self) -> None:
         """Updates the can_delete_files property on each row; adding new rows can set this on existing rows
@@ -142,9 +148,18 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         else:
             self.message_label.hide()
 
+    def on_row_updated(self, row) -> None:
+        directory = row.game.directory
+        if directory and row.can_delete_files:
+            for r in self.uninstall_game_list.get_children():
+                if row != r and r.game.directory == directory and r.can_delete_files:
+                    r.delete_files = row.delete_files
+
+        self.update_all_checkboxes()
+
     def update_all_checkboxes(self) -> None:
         """Sets the state of the checkboxes at the button that are used to control all
-        settings together. While we are actually updating these checkboxes en-meass,
+        settings together. While we are actually updating these checkboxes en-mass,
         this method does nothing at all."""
 
         def update(checkbox, is_candidate, is_set):
@@ -216,19 +231,19 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
     @GtkTemplate.Callback
     def on_remove_button_clicked(self, _widget) -> None:
         rows = list(self.uninstall_game_list.get_children())
-        delete_files_warning_games = [row.game for row in rows
-                                      if row.delete_files and row.has_game_remove_warning]
+        dirs_to_delete = list(set(row.game.directory for row in rows
+                                  if row.delete_files and row.has_game_remove_warning))
 
-        if delete_files_warning_games:
-            if len(delete_files_warning_games) == 1:
+        if dirs_to_delete:
+            if len(dirs_to_delete) == 1:
                 question = _(
                     "Please confirm.\nEverything under <b>%s</b>\n"
                     "will be moved to the trash."
-                ) % gtk_safe(delete_files_warning_games[0].directory)
+                ) % gtk_safe(dirs_to_delete[0])
             else:
                 question = _(
                     "Please confirm.\nAll the files for %d games will be moved to the trash."
-                ) % len(delete_files_warning_games)
+                ) % len(dirs_to_delete)
 
             dlg = QuestionDialog(
                 {
@@ -269,11 +284,14 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
                 row.show_folder_size(size)
 
     class GameRemovalRow(Gtk.ListBoxRow):
-        def __init__(self, game: Game, checkbox_toggled_handler: Callable[[], None]):
+        __gsignals__ = {
+            "row-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        }
+
+        def __init__(self, game: Game):
             super().__init__(activatable=False)
             self.game = game
             self._can_delete_files = False
-            self.checkbox_toggled_handler = checkbox_toggled_handler
             self.delete_files_checkbox: Gtk.CheckButton = None
             self.folder_size_spinner: Gtk.Spinner = None
             self.directory_label: Gtk.Label = None
@@ -324,7 +342,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             return "<span font_desc='8'>%s</span>" % markup
 
         def on_checkbox_toggled(self, _widget):
-            self.checkbox_toggled_handler()
+            self.emit("row-updated")
 
         def show_folder_size_spinner(self):
             if self.folder_size_spinner:
