@@ -92,12 +92,12 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
     def update_folder_sizes(self, new_games: List[Game]) -> None:
         """Starts fetching folder sizes for new games added to the dialog; we only
         do this for the games given in 'new_games', however."""
-        folders_to_size = []
+        folders_to_size = set()
 
         for row in self.uninstall_game_list.get_children():
             game = row.game
             if game in new_games and game.is_installed and game.directory:
-                folders_to_size.append(game.directory)
+                folders_to_size.add(game.directory)
                 row.show_folder_size_spinner()
 
         if folders_to_size:
