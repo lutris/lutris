@@ -162,13 +162,17 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             checkbox.set_visible((set_count + unset_count) > 1 and (set_count > 0 or unset_count > 0))
 
         if not self._setting_all_checkboxes:
-            update(self.delete_all_files_checkbox,
-                   lambda row: row.can_delete_files,
-                   lambda row: row.delete_files)
+            self._setting_all_checkboxes = True
+            try:
+                update(self.delete_all_files_checkbox,
+                       lambda row: row.can_delete_files,
+                       lambda row: row.delete_files)
 
-            update(self.remove_all_games_checkbox,
-                   lambda row: row.game.is_installed,
-                   lambda row: row.delete_game)
+                update(self.remove_all_games_checkbox,
+                       lambda row: row.game.is_installed,
+                       lambda row: row.delete_game)
+            finally:
+                self._setting_all_checkboxes = False
 
     def update_uninstall_button(self) -> None:
         if any(g for g in self.games if g.is_installed):
@@ -195,7 +199,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         """Sets the state of the checkboxes on all rows to agree with 'checkbox';
         the actual change is performed by row_updater, so this can be used for
         either checkbox."""
-        if checkbox.get_visible():
+        if not self._setting_all_checkboxes and checkbox.get_visible():
             active = checkbox.get_active()
             self._setting_all_checkboxes = True
 
