@@ -12,7 +12,7 @@ from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.strings import gtk_safe, human_size
+from lutris.util.strings import get_natural_sort_key, gtk_safe, human_size
 from lutris.util.system import get_disk_size, is_removeable
 
 
@@ -33,6 +33,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
     def __init__(self, game_ids: List[str], parent: Gtk.Window = None, **kwargs):
         super().__init__(parent=parent, **kwargs)
         self.games = [Game(game_id) for game_id in game_ids]
+        self.games.sort(key=lambda g: get_natural_sort_key(g.name))
         self._setting_all_checkboxes = False
 
         to_uninstall = [g for g in self.games if g.is_installed]

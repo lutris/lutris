@@ -42,6 +42,17 @@ def slugify(value: str) -> str:
     return slug
 
 
+def get_natural_sort_key(value: str, number_width: int = 16) -> str:
+    """Returns a string with the numerical parts (runs of digits)
+    0-padded out to 'number_width' digits."""
+
+    def pad_numbers(text):
+        return text.zfill(number_width) if text.isdigit() else text.casefold()
+
+    runs = [pad_numbers(c) for c in re.split('([0-9]+)', value)]
+    return "".join(runs)
+
+
 def lookup_strings_in_text(string: str, text: str) -> List[str]:
     """Return each full line where a string was found in the multi-line text."""
     input_lines = text.split("\n")

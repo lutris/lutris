@@ -1,7 +1,6 @@
 """Main window for the Lutris interface."""
 # pylint:disable=too-many-lines
 import os
-import re
 from collections import namedtuple
 from gettext import gettext as _
 from typing import List
@@ -36,6 +35,7 @@ from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.strings import get_natural_sort_key
 from lutris.util.system import update_desktop_icons
 from lutris.util.wine.wine import esync_display_limit_warning, fsync_display_support_warning
 
@@ -370,13 +370,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
             "playtime": 0.0,
         }
 
-        def natural_sort_key(value):
-            def pad_numbers(text):
-                return text.zfill(16) if text.isdigit() else text.casefold()
-
-            key = [pad_numbers(c) for c in re.split('([0-9]+)', value)]
-            return key
-
         def get_sort_value(item):
             db_game = resolver(item)
             if not db_game:
@@ -394,7 +387,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
                     value = db_game.get(view_sorting)
 
                 if view_sorting == "name":
-                    value = natural_sort_key(value)
+                    value = get_natural_sort_key(value)
 
             # Users may have obsolete view_sorting settings, so
             # we must tolerate them. We treat them all as blank.
