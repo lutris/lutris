@@ -40,7 +40,8 @@ class GlxInfo:
         # combining display and screen)
         output = self._output.replace("  screen", "\nscreen")
         for line in output.split("\n"):
-            if not line.strip():
+            # Skip blank lines, and error lines that may contain no ':'
+            if ":" not in line:
                 continue
 
             key, value = line.split(":", 1)
