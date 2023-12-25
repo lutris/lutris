@@ -205,6 +205,12 @@ class InstallerWindow(ModelessDialog,
         """Open the cache configuration dialog"""
         CacheConfigurationDialog(parent=self)
 
+    def on_response(self, dialog, response: Gtk.ResponseType) -> None:
+        if response in (Gtk.ResponseType.CLOSE, Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
+            self.on_cancel_clicked()
+        else:
+            super().on_response(dialog, response)
+
     def on_back_clicked(self, _button):
         self.stack.navigate_back()
 
