@@ -86,24 +86,27 @@ class DownloadCollectionProgressBox(Gtk.Box):
         """Update file label to file being downloaded"""
         self.file_name_label.set_text(file_name)
 
-    def get_new_file_from_queue(self):
-        """Set downloaded file to new file from queue or None if empty"""
-        if self._file_queue:
+    def get_next_file_from_queue(self):
+        """Returns the file to download; if there isn't one this will pull the next one
+        from the queue and return that. If there are none there, this returns None."""
+        if not self._file_download:
+            if not self._file_queue:
+                return None
+
             self._file_download = self._file_queue.pop()
-            return
-        self._file_download = None
+            self.num_retries = 0
+
+        return self._file_download
 
     def start(self):
         """Start downloading a file."""
-        if not self._file_queue:
+        file = self.get_next_file_from_queue()
+        if not file:
             self.cancel_button.set_sensitive(False)
             self.is_complete = True
             self.emit("complete", {})
-            return None
-        if not self._file_download:
-            self.get_new_file_from_queue()
-            self.num_retries = 0
-        file = self._file_download
+            return
+
         self.update_download_file_label(file.filename)
         if not self.downloader:
             try:
@@ -113,14 +116,13 @@ class DownloadCollectionProgressBox(Gtk.Box):
 
                 ErrorDialog(ex.args[0])
                 self.emit("cancel")
-                return None
+                return
 
-        timer_id = GLib.timeout_add(500, self._progress)
+        GLib.timeout_add(500, self._progress)
         self.cancel_button.show()
         self.cancel_button.set_sensitive(True)
         if not self.downloader.state == self.downloader.DOWNLOADING:
             self.downloader.start()
-        return timer_id
 
     def set_retry_button(self):
         """Transform the cancel button into a retry button"""
