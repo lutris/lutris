@@ -649,7 +649,7 @@ def get_vulkan_gpu_name(icd_files, use_dri_prime):
     freeze. We load the GPU names in the background, until they are ready this returns
     'Not Ready'."""
     key = icd_files, use_dri_prime
-    return _vulkan_gpu_names.get(key, "Not Ready")
+    return _vulkan_gpu_names.get(key, _("GPU Info Not Ready"))
 
 
 def load_vulkan_gpu_names(use_dri_prime):
@@ -698,21 +698,21 @@ def _load_vulkan_gpu_name(icd_files, use_dri_prime):
         try:
             if not shutil.which("vulkaninfo"):
                 logger.warning("vulkaninfo not available, unable to list GPUs")
-                return "Unknown GPU"
+                return _("Unknown GPU")
 
             gpu = fetch_vulkan_gpu_name(False)
 
             if use_dri_prime:
                 prime_gpu = fetch_vulkan_gpu_name(True)
                 if prime_gpu != gpu:
-                    gpu += f" (Discrete GPU: {prime_gpu})"
+                    gpu += _(" (Discrete GPU: %s)") % prime_gpu
 
             return gpu or "Not Found"
         except Exception as ex:
             # Must not raise an exception as @lru_cache does not cache them, and
             # this function must be preloaded or it can slow down
             logger.exception("Fail to load Vulkan GPU names: %s", ex)
-            return "Unknown GPU"
+            return _("Unknown GPU")
 
     key = icd_files, use_dri_prime
     _vulkan_gpu_names[key] = get_name()
