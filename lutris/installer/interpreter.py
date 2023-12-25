@@ -96,6 +96,18 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         if self.installer.creates_game_folder:
             self.target_path = self.get_default_target()
 
+    def on_timeout_error(self, error):
+        self.interpreter_ui_delegate.report_error(error)
+
+    def on_idle_error(self, error):
+        self.interpreter_ui_delegate.report_error(error)
+
+    def on_signal_error(self, error):
+        self.interpreter_ui_delegate.report_error(error)
+
+    def on_emission_hook_error(self, error):
+        self.interpreter_ui_delegate.report_error(error)
+
     @property
     def appid(self):
         logger.warning("Do not access appid from interpreter")
