@@ -10,7 +10,6 @@ import string
 import subprocess
 import zipfile
 from collections import defaultdict
-from functools import lru_cache
 from gettext import gettext as _
 from pathlib import Path
 
@@ -641,27 +640,35 @@ def set_keyboard_layout(layout):
             xkbcomp.communicate()
 
 
-def preload_vulkan_gpu_names(use_dri_prime):
+_vulkan_gpu_names = {}
+
+
+def get_vulkan_gpu_name(icd_files, use_dri_prime):
+    """Retrieves the GPU name associated with a set of ICD files; this does not generate
+    this data as it can be quite slow, and we use this in the UI where we do not want to
+    freeze. We load the GPU names in the background, until they are ready this returns
+    'Not Ready'."""
+    key = icd_files, use_dri_prime
+    return _vulkan_gpu_names.get(key, "Not Ready")
+
+
+def load_vulkan_gpu_names(use_dri_prime):
     """Runs threads to load the GPU data from vulkan info for each ICD file set,
-    and one for the default 'unspecified' info. The results are cached by @lru_cache,
-    so we can just ignore them here."""
+    and one for the default 'unspecified' info."""
 
     try:
         all_files = [":".join(fs) for fs in get_vk_icd_file_sets().values()]
         all_files.append("")
         for files in all_files:
-            # ignore any errors from get_vulkan_gpu_name
-            AsyncCall(get_vulkan_gpu_name, None, files, use_dri_prime, daemon=True)
+            AsyncCall(_load_vulkan_gpu_name, None, files, use_dri_prime, daemon=True)
     except Exception as ex:
         logger.exception("Failed to preload Vulkan GPU Names: %s", ex)
 
 
-# cache this to avoid calling vulkaninfo repeatedly, shouldn't change at runtime
-@lru_cache()
-def get_vulkan_gpu_name(icd_files, use_dri_prime):
+def _load_vulkan_gpu_name(icd_files, use_dri_prime):
     """Runs vulkaninfo to determine the default and DRI_PRIME gpu if available,
     returns 'Not Found' if the GPU is not found or 'Unknown GPU' if vulkaninfo
-    is not available."""
+    is not available or an error occurs trying to use it."""
 
     def fetch_vulkan_gpu_name(prime):
         """Runs vulkaninfo to find the primary GPU"""
@@ -687,18 +694,28 @@ def get_vulkan_gpu_name(icd_files, use_dri_prime):
         # AMD Radeon Pro W6800 (RADV NAVI21) -> AMD Radeon Pro W6800
         return re.sub(r"\s*\(.*?\)", "", result)
 
-    if not shutil.which("vulkaninfo"):
-        logger.warning("vulkaninfo not available, unable to list GPUs")
-        return "Unknown GPU"
+    def get_name():
+        try:
+            if not shutil.which("vulkaninfo"):
+                logger.warning("vulkaninfo not available, unable to list GPUs")
+                return "Unknown GPU"
 
-    gpu = fetch_vulkan_gpu_name(False)
+            gpu = fetch_vulkan_gpu_name(False)
 
-    if use_dri_prime:
-        prime_gpu = fetch_vulkan_gpu_name(True)
-        if prime_gpu != gpu:
-            gpu += f" (Discrete GPU: {prime_gpu})"
+            if use_dri_prime:
+                prime_gpu = fetch_vulkan_gpu_name(True)
+                if prime_gpu != gpu:
+                    gpu += f" (Discrete GPU: {prime_gpu})"
 
-    return gpu or "Not Found"
+            return gpu or "Not Found"
+        except Exception as ex:
+            # Must not raise an exception as @lru_cache does not cache them, and
+            # this function must be preloaded or it can slow down
+            logger.exception("Fail to load Vulkan GPU names: %s", ex)
+            return "Unknown GPU"
+
+    key = icd_files, use_dri_prime
+    _vulkan_gpu_names[key] = get_name()
 
 
 def get_vk_icd_file_sets():

@@ -139,6 +139,8 @@ class ConfigBox(VBox):
 
         # Go thru all options.
         for option in self.options:
+            option = option.copy()  # we will mutate this, so let's not alter the original
+
             try:
                 if "scope" in option:
                     if self.config_level not in option["scope"]:

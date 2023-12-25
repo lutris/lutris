@@ -20,7 +20,7 @@ from lutris.util.display import display_gpu_info, get_gpus_info
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-from lutris.util.system import create_folder, preload_vulkan_gpu_names
+from lutris.util.system import create_folder, load_vulkan_gpu_names
 from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION
 
 
@@ -144,7 +144,7 @@ def run_all_checks() -> None:
     check_libs()
     check_vulkan()
     check_gnome()
-    preload_vulkan_gpu_names(len(gpus_info) > 1)
+    load_vulkan_gpu_names(len(gpus_info) > 1)
     fill_missing_platforms()
     build_path_cache()
 
