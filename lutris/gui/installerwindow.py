@@ -628,7 +628,7 @@ class InstallerWindow(ModelessDialog,
         """Show installer screen with the file picker / downloader"""
         logger.debug("Presenting installer files page")
         self.set_status(_(
-            "Please review the files needed for the installation then click 'Continue'"))
+            "Please review the files needed for the installation then click 'Install'"))
         self.stack.present_page("installer_files")
         self.display_install_button(self.on_files_confirmed, sensitive=self.installer_files_box.is_ready)
 
