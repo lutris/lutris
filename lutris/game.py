@@ -274,7 +274,7 @@ class Game(GObject.Object):
         """Return a GameConfigError based on the runner's output."""
         error = gameplay_info["error"]
         if error == "CUSTOM":
-            message_text = gameplay_info["text"].replace("&", "&amp;")
+            message_text = gameplay_info["text"]
         elif error == "RUNNER_NOT_INSTALLED":
             message_text = _("Error the runner is not installed")
         elif error == "NO_BIOS":
@@ -282,11 +282,11 @@ class Game(GObject.Object):
         elif error == "FILE_NOT_FOUND":
             filename = gameplay_info["file"]
             if filename:
-                message_text = _("The file {} could not be found").format(filename.replace("&", "&amp;"))
+                message_text = _("The file {} could not be found").format(filename)
             else:
                 message_text = _("This game has no executable set. The install process didn't finish properly.")
         elif error == "NOT_EXECUTABLE":
-            file = gameplay_info["file"].replace("&", "&amp;")
+            file = gameplay_info["file"]
             message_text = _("The file %s is not executable") % file
         elif error == "PATH_NOT_SET":
             message_text = _("The path '%s' is not set. please set it in the options.") % gameplay_info["path"]

@@ -604,7 +604,5 @@ class easyrpg(Runner):
 
     @staticmethod
     def directory_not_found(directory):
-        error = _(
-            "The directory {} could not be found"
-        ).format(directory.replace("&", "&amp;"))
+        error = _("The directory {} could not be found").format(directory)
         return {"error": "CUSTOM", "text": error}
