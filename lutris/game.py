@@ -269,12 +269,6 @@ class Game(GObject.Object):
         if not handled:
             self.emit("game-unhandled-error", error)
 
-    @staticmethod
-    def get_config_error(gameplay_info):
-        """Return a GameConfigError based on the runner's output."""
-        message_text = _("Unhandled error: %s") % gameplay_info["error"]
-        return GameConfigError(message_text)
-
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
         return self.resolve_game_path()
@@ -573,8 +567,6 @@ class Game(GObject.Object):
         if not self.runner:
             raise GameConfigError(_("Invalid game configuration: Missing runner"))
         gameplay_info = self.runner.play()
-        if "error" in gameplay_info:
-            raise self.get_config_error(gameplay_info)
 
         if "working_dir" not in gameplay_info:
             gameplay_info["working_dir"] = self.runner.working_dir
