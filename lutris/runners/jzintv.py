@@ -2,6 +2,7 @@
 import os
 from gettext import gettext as _
 
+from lutris.exceptions import MissingBiosError
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -77,7 +78,7 @@ class jzintv(Runner):
             arguments.append("--execimg=%s/exec.bin" % bios_path)
             arguments.append("--gromimg=%s/grom.bin" % bios_path)
         else:
-            return {"error": "NO_BIOS"}
+            raise MissingBiosError()
         rom_path = self.game_config.get("main_file") or ""
         if not system.path_exists(rom_path):
             return {"error": "FILE_NOT_FOUND", "file": rom_path}

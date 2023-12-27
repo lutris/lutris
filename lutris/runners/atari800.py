@@ -3,6 +3,7 @@ import os.path
 from gettext import gettext as _
 
 from lutris.config import LutrisConfig
+from lutris.exceptions import MissingBiosError
 from lutris.runners.runner import Runner
 from lutris.util import display, extract, system
 
@@ -132,7 +133,7 @@ class atari800(Runner):
 
         bios_path = self.runner_config.get("bios_path")
         if not system.path_exists(bios_path):
-            return {"error": "NO_BIOS"}
+            raise MissingBiosError()
         good_bios = self.find_good_bioses(bios_path)
         for bios, filename in good_bios.items():
             arguments.append("-%s" % bios)

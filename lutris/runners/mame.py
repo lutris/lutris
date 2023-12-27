@@ -3,6 +3,7 @@ import os
 from gettext import gettext as _
 
 from lutris import runtime, settings
+from lutris.exceptions import GameConfigError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.jobs import AsyncCall
@@ -328,7 +329,7 @@ class mame(Runner):  # pylint: disable=invalid-name
                 rompath = self.runner_config.get("rompath")
             rom = os.path.basename(self.game_config.get("main_file"))
             if not rompath:
-                return {'error': 'PATH_NOT_SET', 'path': 'rompath'}
+                raise GameConfigError(_("The path '%s' is not set. please set it in the options.") % 'rompath')
             command += ["-rompath", rompath, rom]
 
         if self.game_config.get("autoboot_command"):

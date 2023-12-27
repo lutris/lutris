@@ -156,16 +156,14 @@ class linux(Runner):
         """Run native game."""
         launch_info = {}
 
-        if not self.game_exe or not system.path_exists(self.game_exe):
-            return {"error": "FILE_NOT_FOUND", "file": self.game_exe}
+        exe = self.game_exe
+        if not exe or not system.path_exists(exe):
+            return {"error": "FILE_NOT_FOUND", "file": exe}
 
         # Quit if the file is not executable
-        mode = os.stat(self.game_exe).st_mode
+        mode = os.stat(exe).st_mode
         if not mode & stat.S_IXUSR:
-            return {"error": "NOT_EXECUTABLE", "file": self.game_exe}
-
-        if not system.path_exists(self.game_exe):
-            return {"error": "FILE_NOT_FOUND", "file": self.game_exe}
+            raise GameConfigError(_("The file %s is not executable") % exe)
 
         ld_preload = self.game_config.get("ld_preload")
         if ld_preload:
@@ -175,7 +173,7 @@ class linux(Runner):
         if ld_library_path:
             launch_info["ld_library_path"] = os.path.expanduser(ld_library_path)
 
-        command = [self.get_relative_exe(self.game_exe, self.working_dir)]
+        command = [self.get_relative_exe(exe, self.working_dir)]
 
         args = self.game_config.get("args") or ""
         for arg in split_arguments(args):

@@ -21,6 +21,13 @@ class GameConfigError(MisconfigurationError):
     running properly."""
 
 
+class MissingBiosError(GameConfigError):
+    """Throw this error when the game requires a BIOS, but none is configured."""
+
+    def __init__(self, message=None, *args, **kwarg):
+        super().__init__(message or _("A bios file is required to run this game"), *args, **kwarg)
+
+
 class AuthenticationError(LutrisError):
     """Raised when authentication to a service fails"""
 

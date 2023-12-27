@@ -5,6 +5,7 @@ from gettext import gettext as _
 
 # Lutris Modules
 from lutris.config import LutrisConfig
+from lutris.exceptions import MissingBiosError
 from lutris.runners.runner import Runner
 from lutris.util import system
 
@@ -175,7 +176,7 @@ class hatari(Runner):
             params.append("--tos")
             params.append(self.runner_config["bios_file"])
         else:
-            return {"error": "NO_BIOS"}
+            raise MissingBiosError()
         diska = self.game_config.get("disk-a")
         if not system.path_exists(diska):
             return {"error": "FILE_NOT_FOUND", "file": diska}

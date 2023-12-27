@@ -275,19 +275,12 @@ class Game(GObject.Object):
         error = gameplay_info["error"]
         if error == "CUSTOM":
             message_text = gameplay_info["text"]
-        elif error == "NO_BIOS":
-            message_text = _("A bios file is required to run this game")
         elif error == "FILE_NOT_FOUND":
             filename = gameplay_info["file"]
             if filename:
                 message_text = _("The file {} could not be found").format(filename)
             else:
                 message_text = _("This game has no executable set. The install process didn't finish properly.")
-        elif error == "NOT_EXECUTABLE":
-            file = gameplay_info["file"]
-            message_text = _("The file %s is not executable") % file
-        elif error == "PATH_NOT_SET":
-            message_text = _("The path '%s' is not set. please set it in the options.") % gameplay_info["path"]
         else:
             message_text = _("Unhandled error: %s") % gameplay_info["error"]
         return GameConfigError(message_text)
