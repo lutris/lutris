@@ -275,8 +275,6 @@ class Game(GObject.Object):
         error = gameplay_info["error"]
         if error == "CUSTOM":
             message_text = gameplay_info["text"]
-        elif error == "RUNNER_NOT_INSTALLED":
-            message_text = _("Error the runner is not installed")
         elif error == "NO_BIOS":
             message_text = _("A bios file is required to run this game")
         elif error == "FILE_NOT_FOUND":
