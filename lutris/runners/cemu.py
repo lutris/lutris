@@ -1,6 +1,7 @@
 # Standard Library
 from gettext import gettext as _
 
+from lutris.exceptions import DirectoryNotFoundError
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -64,7 +65,7 @@ class cemu(Runner):
         mlc = self.runner_config.get("mlc")
         if mlc:
             if not system.path_exists(mlc):
-                return {"error": "DIRECTORY_NOT_FOUND", "directory": mlc}
+                raise DirectoryNotFoundError(directory=mlc)
             arguments += ["-m", mlc]
         ud = self.runner_config.get("ud")
         if ud:
@@ -77,6 +78,6 @@ class cemu(Runner):
             arguments.append("--legacy")
         gamedir = self.game_config.get("main_file") or ""
         if not system.path_exists(gamedir):
-            return {"error": "DIRECTORY NOT FOUND", "directory": gamedir}
+            raise DirectoryNotFoundError(directory=gamedir)
         arguments += ["-g", gamedir]
         return {"command": arguments}
