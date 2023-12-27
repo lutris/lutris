@@ -7,7 +7,7 @@ from zipfile import ZipFile
 import requests
 
 from lutris import settings
-from lutris.exceptions import UnspecifiedVersionError
+from lutris.exceptions import GameConfigError, UnspecifiedVersionError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.libretro import RetroConfig
@@ -281,16 +281,13 @@ class libretro(Runner):
         # Core
         core = self.game_config.get("core")
         if not core:
-            return {
-                "error": "CUSTOM",
-                "text": _("No core has been selected for this game"),
-            }
+            raise GameConfigError(_("No core has been selected for this game"))
         command.append("--libretro={}".format(self.get_core_path(core)))
 
         # Main file
         file = self.game_config.get("main_file")
         if not file:
-            return {"error": "CUSTOM", "text": _("No game file specified")}
+            raise GameConfigError(_("No game file specified"))
         if not system.path_exists(file):
             return {"error": "FILE_NOT_FOUND", "file": file}
         command.append(file)

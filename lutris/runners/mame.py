@@ -319,7 +319,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             command.append(self.game_config["machine"])
             device = self.game_config.get("device")
             if not device:
-                return {'error': "CUSTOM", "text": "No device is set for machine %s" % self.game_config["machine"]}
+                raise GameConfigError(_("No device is set for machine %s") % self.game_config["machine"])
             rom = self.game_config.get("main_file")
             if rom:
                 command += ["-" + device, rom]

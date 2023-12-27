@@ -16,6 +16,15 @@ class MisconfigurationError(LutrisError):
     that are less vague."""
 
 
+class DirectoryNotFoundError(MisconfigurationError):
+    """Raise this error if a directory that is required is not present."""
+
+    def __init__(self, *args, message=None, directory=None, **kwarg):
+        if not message and directory:
+            message = _("The directory {} could not be found").format(directory)
+        super().__init__(message, *args, **kwarg)
+
+
 class GameConfigError(MisconfigurationError):
     """Throw this error when the game configuration prevents the game from
     running properly."""
@@ -24,7 +33,7 @@ class GameConfigError(MisconfigurationError):
 class MissingBiosError(GameConfigError):
     """Throw this error when the game requires a BIOS, but none is configured."""
 
-    def __init__(self, message=None, *args, **kwarg):
+    def __init__(self, *args, message=None, **kwarg):
         super().__init__(message or _("A bios file is required to run this game"), *args, **kwarg)
 
 

@@ -2,6 +2,7 @@
 from gettext import gettext as _
 from os import path
 
+from lutris.exceptions import DirectoryNotFoundError, GameConfigError
 # Lutris Modules
 from lutris.runners.runner import Runner
 
@@ -528,9 +529,9 @@ class easyrpg(Runner):
 
     def play(self):
         if not self.game_path:
-            return {"error": "CUSTOM", "text": _("No game directory provided")}
+            raise GameConfigError(_("No game directory provided"))
         if not path.isdir(self.game_path):
-            return self.directory_not_found(self.game_path)
+            raise DirectoryNotFoundError(directory=self.game_path)
 
         cmd = self.get_command()
 
@@ -558,7 +559,7 @@ class easyrpg(Runner):
         if save_path:
             save_path = path.expanduser(save_path)
             if not path.isdir(save_path):
-                return self.directory_not_found(save_path)
+                raise DirectoryNotFoundError(directory=self.game_path)
             cmd.extend(("--save-path", save_path))
 
         record_input = self.game_config.get("record_input")
@@ -601,8 +602,3 @@ class easyrpg(Runner):
             cmd.extend(("--battle-test", battle_test))
 
         return {"command": cmd}
-
-    @staticmethod
-    def directory_not_found(directory):
-        error = _("The directory {} could not be found").format(directory)
-        return {"error": "CUSTOM", "text": error}

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Callable
 
 from lutris.command import MonitoredCommand
-from lutris.exceptions import MissingExecutableError
+from lutris.exceptions import GameConfigError, MissingExecutableError
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
 from lutris.util import flatpak as _flatpak
@@ -142,14 +142,14 @@ class flatpak(Runner):
         args = self.game_config.get("args", "")
 
         if not appid:
-            return {"error": "CUSTOM", "text": "No application specified."}
+            raise GameConfigError(_("No application specified."))
 
         if appid.count(".") < 2:
-            return {"error": "CUSTOM", "text": "Application ID is not specified in correct format."
-                                               "Must be something like: tld.domain.app"}
+            raise GameConfigError(_("Application ID is not specified in correct format."
+                                    "Must be something like: tld.domain.app"))
 
         if any(x in appid for x in ("--", "/")):
-            return {"error": "CUSTOM", "text": "Application ID field must not contain options or arguments."}
+            raise GameConfigError(_("Application ID field must not contain options or arguments."))
 
         command = self.get_command() + [appid]
         if args:

@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 
 from lutris import settings
 from lutris.database.games import get_game_by_field
+from lutris.exceptions import GameConfigError
 from lutris.runners.runner import Runner
 from lutris.util import datapath, linux, resources, system
 from lutris.util.strings import split_arguments
@@ -141,26 +142,19 @@ class web(Runner):
             "help": _("Launch the game in a web browser."),
         },
         {
-            "option":
-            "custom_browser_executable",
-            "label":
-            _("Custom web browser executable"),
-            "type":
-            "file",
+            "option": "custom_browser_executable",
+            "label": _("Custom web browser executable"),
+            "type": "file",
             "help": _(
                 "Select the executable of a browser on your system.\n"
                 "If left blank, Lutris will launch your default browser (xdg-open)."
             ),
         },
         {
-            "option":
-            "custom_browser_args",
-            "label":
-            _("Web browser arguments"),
-            "type":
-            "string",
-            "default":
-            '"$GAME"',
+            "option": "custom_browser_args",
+            "label": _("Web browser arguments"),
+            "type": "string",
+            "default": '"$GAME"',
             "help": _(
                 "Command line arguments to pass to the executable.\n"
                 "$GAME or $URL inserts the game url.\n\n"
@@ -181,22 +175,16 @@ class web(Runner):
     def play(self):
         url = self.game_config.get("main_file")
         if not url:
-            return {
-                "error": "CUSTOM",
-                "text": _("The web address is empty, \n"
-                          "verify the game's configuration."),
-            }
+            raise GameConfigError(_("The web address is empty, \n"
+                                    "verify the game's configuration."))
 
         # check if it's an url or a file
         is_url = urlparse(url).scheme != ""
 
         if not is_url:
             if not system.path_exists(url):
-                return {
-                    "error": "CUSTOM",
-                    "text": _("The file %s does not exist, \n"
-                              "verify the game's configuration.") % url,
-                }
+                raise GameConfigError(_("The file %s does not exist, \n"
+                                        "verify the game's configuration.") % url)
             url = "file://" + url
 
         game_data = get_game_by_field(self.config.game_config_id, "configpath")

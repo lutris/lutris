@@ -4,7 +4,7 @@ from gettext import gettext as _
 
 # Lutris Modules
 from lutris import settings
-from lutris.exceptions import MisconfigurationError, MissingExecutableError
+from lutris.exceptions import GameConfigError, MisconfigurationError, MissingExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
@@ -196,7 +196,7 @@ class vice(Runner):
 
         rom = self.game_config.get("main_file")
         if not rom:
-            return {"error": "CUSTOM", "text": "No rom provided"}
+            raise GameConfigError(_("No rom provided"))
         if not system.path_exists(rom):
             return {"error": "FILE_NOT_FOUND", "file": rom}
 

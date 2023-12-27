@@ -273,9 +273,7 @@ class Game(GObject.Object):
     def get_config_error(gameplay_info):
         """Return a GameConfigError based on the runner's output."""
         error = gameplay_info["error"]
-        if error == "CUSTOM":
-            message_text = gameplay_info["text"]
-        elif error == "FILE_NOT_FOUND":
+        if error == "FILE_NOT_FOUND":
             filename = gameplay_info["file"]
             if filename:
                 message_text = _("The file {} could not be found").format(filename)
