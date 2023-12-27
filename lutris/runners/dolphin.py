@@ -1,6 +1,7 @@
 """Dolphin runner"""
 from gettext import gettext as _
 
+from lutris.exceptions import MissingGameExecutableError
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -69,7 +70,7 @@ class dolphin(Runner):
         # Retrieve the path to the file
         iso = self.game_config.get("main_file") or ""
         if not system.path_exists(iso):
-            return {"error": "FILE_NOT_FOUND", "file": iso}
+            raise MissingGameExecutableError(filename=iso)
         command.extend(["-e", iso])
 
         return {"command": command}

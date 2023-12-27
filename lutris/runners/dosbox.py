@@ -4,6 +4,7 @@ import shlex
 from gettext import gettext as _
 
 from lutris import settings
+from lutris.exceptions import MissingGameExecutableError
 # Lutris Modules
 from lutris.runners.commands.dosbox import dosexec, makeconfig  # NOQA pylint: disable=unused-import
 from lutris.runners.runner import Runner
@@ -150,7 +151,7 @@ class dosbox(Runner):
     def play(self):
         main_file = self.main_file
         if not system.path_exists(main_file):
-            return {"error": "FILE_NOT_FOUND", "file": main_file}
+            raise MissingGameExecutableError(filename=main_file)
         args = shlex.split(self.game_config.get("args") or "")
         command = self.get_command()
 

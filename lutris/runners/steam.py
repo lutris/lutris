@@ -3,7 +3,7 @@ import os
 from gettext import gettext as _
 
 from lutris.command import MonitoredCommand
-from lutris.exceptions import UnavailableRunnerError
+from lutris.exceptions import MissingGameExecutableError, UnavailableRunnerError
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
 from lutris.util import linux, system
@@ -217,7 +217,7 @@ class steam(Runner):
         if self.game_config.get("run_without_steam") and binary_path:
             # Start without steam
             if not system.path_exists(binary_path):
-                return {"error": "FILE_NOT_FOUND", "file": binary_path}
+                raise MissingGameExecutableError(filename=binary_path)
             command = [binary_path]
         else:
             # Start through steam

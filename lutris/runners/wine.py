@@ -10,7 +10,8 @@ from lutris.api import format_runner_version, get_default_runner_version_info
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import (
-    EsyncLimitError, FsyncUnsupportedError, MisconfigurationError, MissingExecutableError, UnspecifiedVersionError
+    EsyncLimitError, FsyncUnsupportedError, MisconfigurationError, MissingExecutableError, MissingGameExecutableError,
+    UnspecifiedVersionError
 )
 from lutris.game import Game
 from lutris.gui.dialogs import FileDialog
@@ -1143,7 +1144,7 @@ class wine(Runner):
             launch_info["env"]["WINE_LARGE_ADDRESS_AWARE"] = "1"
 
         if not game_exe or not system.path_exists(game_exe):
-            return {"error": "FILE_NOT_FOUND", "file": game_exe}
+            raise MissingGameExecutableError(filename=game_exe)
 
         if launch_info["env"].get("WINEESYNC") == "1":
             limit_set = is_esync_limit_set()

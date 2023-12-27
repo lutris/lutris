@@ -272,15 +272,7 @@ class Game(GObject.Object):
     @staticmethod
     def get_config_error(gameplay_info):
         """Return a GameConfigError based on the runner's output."""
-        error = gameplay_info["error"]
-        if error == "FILE_NOT_FOUND":
-            filename = gameplay_info["file"]
-            if filename:
-                message_text = _("The file {} could not be found").format(filename)
-            else:
-                message_text = _("This game has no executable set. The install process didn't finish properly.")
-        else:
-            message_text = _("Unhandled error: %s") % gameplay_info["error"]
+        message_text = _("Unhandled error: %s") % gameplay_info["error"]
         return GameConfigError(message_text)
 
     def get_browse_dir(self):

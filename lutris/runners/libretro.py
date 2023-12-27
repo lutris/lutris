@@ -7,7 +7,7 @@ from zipfile import ZipFile
 import requests
 
 from lutris import settings
-from lutris.exceptions import GameConfigError, UnspecifiedVersionError
+from lutris.exceptions import GameConfigError, MissingGameExecutableError, UnspecifiedVersionError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.libretro import RetroConfig
@@ -289,6 +289,6 @@ class libretro(Runner):
         if not file:
             raise GameConfigError(_("No game file specified"))
         if not system.path_exists(file):
-            return {"error": "FILE_NOT_FOUND", "file": file}
+            raise MissingGameExecutableError(filename=file)
         command.append(file)
         return {"command": command}

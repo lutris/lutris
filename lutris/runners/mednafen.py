@@ -2,6 +2,7 @@
 import subprocess
 from gettext import gettext as _
 
+from lutris.exceptions import MissingGameExecutableError
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -521,7 +522,7 @@ class mednafen(Runner):
                 options.append(control)
 
         if not system.path_exists(rom):
-            return {"error": "FILE_NOT_FOUND", "file": rom}
+            raise MissingGameExecutableError(filename=rom)
 
         command = self.get_command()
         for option in options:

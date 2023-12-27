@@ -3,6 +3,7 @@ import json
 import os
 
 from lutris import settings
+from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import datapath, system
 
@@ -54,7 +55,7 @@ class JsonRunner(Runner):
                 raise RuntimeError("Unhandled type %s" % option["type"])
         main_file = self.game_config.get(self.entry_point_option)
         if not system.path_exists(main_file):
-            return {"error": "FILE_NOT_FOUND", "file": main_file}
+            raise MissingGameExecutableError(filename=main_file)
         arguments.append(main_file)
         return {"command": arguments}
 

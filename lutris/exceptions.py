@@ -23,6 +23,7 @@ class DirectoryNotFoundError(MisconfigurationError):
         if not message and directory:
             message = _("The directory {} could not be found").format(directory)
         super().__init__(message, *args, **kwarg)
+        self.directory = directory
 
 
 class GameConfigError(MisconfigurationError):
@@ -67,6 +68,20 @@ class UnspecifiedVersionError(MisconfigurationError):
 
 class MissingExecutableError(MisconfigurationError):
     """Raised when a program can't be located."""
+
+
+class MissingGameExecutableError(MissingExecutableError):
+    """Raise when a game's executable can't be found is not specified."""
+
+    def __init__(self, *args, message=None, filename=None, **kwargs):
+        if not message:
+            if filename:
+                message = _("The file {} could not be found").format(filename)
+            else:
+                message = _("This game has no executable set. The install process didn't finish properly.")
+
+        super().__init__(message, *args, **kwargs)
+        self.filename = filename
 
 
 class EsyncLimitError(Exception):

@@ -2,6 +2,7 @@
 import os
 from gettext import gettext as _
 
+from lutris.exceptions import MissingGameExecutableError
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -122,7 +123,7 @@ class o2em(Runner):
             arguments.append("-s2=%s" % self.runner_config["controller2"])
         rom_path = self.game_config.get("main_file") or ""
         if not system.path_exists(rom_path):
-            return {"error": "FILE_NOT_FOUND", "file": rom_path}
+            raise MissingGameExecutableError(filename=rom_path)
         romdir = os.path.dirname(rom_path)
         romfile = os.path.basename(rom_path)
         arguments.append("-romdir=%s/" % romdir)

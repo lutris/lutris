@@ -3,6 +3,7 @@ import os
 from gettext import gettext as _
 from shutil import copyfile
 
+from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
@@ -48,7 +49,7 @@ class yuzu(Runner):
     @property
     def yuzu_data_dir(self):
         """Return dir where Yuzu files lie."""
-        candidates = ("~/.local/share/yuzu", )
+        candidates = ("~/.local/share/yuzu",)
         for candidate in candidates:
             path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "nand"))
             if system.path_exists(path):
@@ -64,7 +65,7 @@ class yuzu(Runner):
 
         rom = self.game_config.get("main_file") or ""
         if not system.path_exists(rom):
-            return {"error": "FILE_NOT_FOUND", "file": rom}
+            raise MissingGameExecutableError(filename=rom)
         arguments += ["-g", rom]
         return {"command": arguments}
 

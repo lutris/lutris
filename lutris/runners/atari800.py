@@ -3,7 +3,7 @@ import os.path
 from gettext import gettext as _
 
 from lutris.config import LutrisConfig
-from lutris.exceptions import MissingBiosError
+from lutris.exceptions import MissingBiosError, MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import display, extract, system
 
@@ -141,7 +141,7 @@ class atari800(Runner):
 
         rom = self.game_config.get("main_file") or ""
         if not system.path_exists(rom):
-            return {"error": "FILE_NOT_FOUND", "file": rom}
+            raise MissingGameExecutableError(filename=rom)
         arguments.append(rom)
 
         return {"command": arguments}

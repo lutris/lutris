@@ -2,7 +2,7 @@
 from gettext import gettext as _
 from os import path
 
-from lutris.exceptions import DirectoryNotFoundError, GameConfigError
+from lutris.exceptions import DirectoryNotFoundError, GameConfigError, MissingGameExecutableError
 # Lutris Modules
 from lutris.runners.runner import Runner
 
@@ -571,7 +571,7 @@ class easyrpg(Runner):
         if replay_input:
             replay_input = path.expanduser(replay_input)
             if not path.isfile(replay_input):
-                return {"error": "FILE_NOT_FOUND", "file": replay_input}
+                raise MissingGameExecutableError(filename=replay_input)
             cmd.extend(("--replay-input", replay_input))
 
         load_game_id = self.game_config.get("load_game_id")

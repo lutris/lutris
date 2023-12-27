@@ -5,7 +5,7 @@ from gettext import gettext as _
 
 # Lutris Modules
 from lutris.config import LutrisConfig
-from lutris.exceptions import MissingBiosError
+from lutris.exceptions import MissingBiosError, MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 
@@ -179,7 +179,7 @@ class hatari(Runner):
             raise MissingBiosError()
         diska = self.game_config.get("disk-a")
         if not system.path_exists(diska):
-            return {"error": "FILE_NOT_FOUND", "file": diska}
+            raise MissingGameExecutableError(filename=diska)
         params.append("--disk-a")
         params.append(diska)
 

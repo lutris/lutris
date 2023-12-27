@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.pcsx2 import pcsx2
 
 
@@ -19,8 +20,9 @@ class TestPCSX2Runner(unittest.TestCase):
         mock_config.game_config = {'main_file': main_file}
         mock_config.runner_config = MagicMock()
         self.runner.config = mock_config
-        expected = {'error': 'FILE_NOT_FOUND', 'file': main_file}
-        self.assertEqual(self.runner.play(), expected)
+        with self.assertRaises(MissingGameExecutableError) as cm:
+            self.runner.play()
+        self.assertEqual(cm.exception.filename, main_file)
 
     @patch('lutris.util.system.path_exists')
     @patch('os.path.isfile')

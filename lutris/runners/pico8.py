@@ -8,6 +8,7 @@ from time import sleep
 
 from lutris import settings
 from lutris.database.games import get_game_by_field
+from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.downloader import Downloader
@@ -210,7 +211,7 @@ class pico8(Runner):
                 command.append("-run")
             cartPath = self.cart_path
             if not os.path.exists(cartPath):
-                return {"error": "FILE_NOT_FOUND", "file": cartPath}
+                raise MissingGameExecutableError(filename=cartPath)
             command.append(cartPath)
 
         else:

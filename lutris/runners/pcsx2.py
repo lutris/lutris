@@ -1,6 +1,7 @@
 # Standard Library
 from gettext import gettext as _
 
+from lutris.exceptions import MissingGameExecutableError
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -56,6 +57,6 @@ class pcsx2(Runner):
 
         iso = self.game_config.get("main_file") or ""
         if not system.path_exists(iso):
-            return {"error": "FILE_NOT_FOUND", "file": iso}
+            raise MissingGameExecutableError(filename=iso)
         arguments.append(iso)
         return {"command": arguments}

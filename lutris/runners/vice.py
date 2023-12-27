@@ -4,7 +4,7 @@ from gettext import gettext as _
 
 # Lutris Modules
 from lutris import settings
-from lutris.exceptions import GameConfigError, MisconfigurationError, MissingExecutableError
+from lutris.exceptions import GameConfigError, MisconfigurationError, MissingExecutableError, MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
@@ -32,12 +32,9 @@ class vice(Runner):
     ]
     game_options = [
         {
-            "option":
-            "main_file",
-            "type":
-            "file",
-            "label":
-            _("ROM file"),
+            "option": "main_file",
+            "type": "file",
+            "label": _("ROM file"),
             "help": _(
                 "The game data, commonly called a ROM image.\n"
                 "Supported formats: X64, D64, G64, P64, D67, D71, D81, "
@@ -198,7 +195,7 @@ class vice(Runner):
         if not rom:
             raise GameConfigError(_("No rom provided"))
         if not system.path_exists(rom):
-            return {"error": "FILE_NOT_FOUND", "file": rom}
+            raise MissingGameExecutableError(filename=rom)
 
         params = [self.get_executable(machine)]
         rom_dir = os.path.dirname(rom)

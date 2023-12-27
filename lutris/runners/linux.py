@@ -6,7 +6,7 @@ from gettext import gettext as _
 from typing import Callable
 
 # Lutris Modules
-from lutris.exceptions import GameConfigError, MissingExecutableError
+from lutris.exceptions import GameConfigError, MissingExecutableError, MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.strings import split_arguments
@@ -158,7 +158,7 @@ class linux(Runner):
 
         exe = self.game_exe
         if not exe or not system.path_exists(exe):
-            return {"error": "FILE_NOT_FOUND", "file": exe}
+            raise MissingGameExecutableError(filename=exe)
 
         # Quit if the file is not executable
         mode = os.stat(exe).st_mode
