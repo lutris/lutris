@@ -204,7 +204,7 @@ def convert_to_background(background_path, target_size=(320, 1080)):
     # Resize and crop coverart
     width = int(orig_width * (image_height / orig_height))
     offset = int((width - target_width) / 2)
-    coverart = coverart.resize((width, image_height), resample=Image.BICUBIC)
+    coverart = coverart.resize((width, image_height), resample=Image.Resampling.BICUBIC)
     coverart = coverart.crop((offset, 0, target_width + offset, image_height))
 
     # Resize canvas of coverart by putting transparent pixels on the bottom
@@ -238,7 +238,7 @@ def thumbnail_image(base_image, target_size):
         height = int(base_height * (target_width / base_width))
     x_offset = int((width - target_width) / 2)
     y_offset = int((height - target_height) / 2)
-    base_image = base_image.resize((width, height), resample=Image.BICUBIC)
+    base_image = base_image.resize((width, height), resample=Image.Resampling.BICUBIC)
     base_image = base_image.crop((x_offset, y_offset, width - x_offset, height - y_offset))
     return base_image
 

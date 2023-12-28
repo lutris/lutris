@@ -50,11 +50,15 @@ class DieselGameMedia(ServiceMedia):
             logo_image = logo_image.convert("RGBA")
             logo_width, logo_height = logo_image.size
             if logo_width > self.min_logo_x:
-                logo_image = logo_image.resize((self.min_logo_x, int(
-                    logo_height * (self.min_logo_x / logo_width))), resample=Image.BICUBIC)
+                logo_image = logo_image.resize(
+                    (self.min_logo_x, int(logo_height * (self.min_logo_x / logo_width))),
+                    resample=Image.Resampling.BICUBIC
+                )
             elif logo_height > self.min_logo_y:
                 logo_image = logo_image.resize(
-                    (int(logo_width * (self.min_logo_y / logo_height)), self.min_logo_y), resample=Image.BICUBIC)
+                    (int(logo_width * (self.min_logo_y / logo_height)), self.min_logo_y),
+                    resample=Image.Resampling.BICUBIC
+                )
             thumb_image = paste_overlay(thumb_image, logo_image)
         thumb_path = os.path.join(self.dest_path, filename)
         thumb_image = thumb_image.convert("RGB")
