@@ -23,7 +23,7 @@ from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
-from lutris.util.strings import gtk_safe, human_size
+from lutris.util.strings import human_size
 from lutris.util.system import is_removeable
 
 
@@ -334,7 +334,7 @@ class InstallerWindow(ModelessDialog,
     def present_choose_installer_page(self):
         """Stage where we choose an install script."""
         self.set_status("")
-        self.set_title(_("Install %s") % gtk_safe(self.installers[0]["name"]))
+        self.set_title(_("Install %s") % self.installers[0]["name"])
         self.stack.present_page("choose_installer")
         self.display_cancel_button(extra_buttons=[self.cache_button])
 
@@ -366,7 +366,7 @@ class InstallerWindow(ModelessDialog,
                 application.show_installer_window(installers)
             return
 
-        self.set_title(_("Installing {}").format(gtk_safe(self.interpreter.installer.game_name)))
+        self.set_title(_("Installing {}").format(self.interpreter.installer.game_name))
         self.load_destination_page()
 
     def validate_scripts(self, installers):
