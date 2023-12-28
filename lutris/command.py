@@ -171,9 +171,17 @@ class MonitoredCommand:
             self.on_stdout_output,
         )
 
+    def log_filter(self, line):
+        """Filter out some message we don't want to show to the user."""
+        if "GStreamer-WARNING **" in line:
+            return False
+        if "Bad file descriptor" in line:
+            return False
+        return True
+
     def log_handler_stdout(self, line):
         """Add the line to this command's stdout attribute"""
-        if "GStreamer-WARNING **" in line:
+        if not self.log_filter(line):
             return
         self._stdout.write(line)
 
@@ -183,7 +191,7 @@ class MonitoredCommand:
 
     def log_handler_console_output(self, line):
         """Print the line to stdout"""
-        if "GStreamer-WARNING **" in line:
+        if not self.log_filter(line):
             return
         with contextlib.suppress(BlockingIOError):
             sys.stdout.write(line)
