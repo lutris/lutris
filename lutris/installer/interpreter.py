@@ -167,7 +167,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 if not any(installed_binaries.values()):
                     raise ScriptingError(_("This installer requires %s on your system") % _(" or ").join(dependency))
             else:
-                if system.can_find_executable(dependency):
+                if not system.can_find_executable(dependency):
                     raise ScriptingError(_("This installer requires %s on your system") % dependency)
 
     def _check_dependency(self):
