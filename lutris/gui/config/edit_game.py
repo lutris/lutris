@@ -1,6 +1,6 @@
 from gettext import gettext as _
 
-from lutris.gui.config.common import GameDialogCommon
+from lutris.gui.config.game_common import GameDialogCommon
 
 
 class EditGameConfigDialog(GameDialogCommon):

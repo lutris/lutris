@@ -7,7 +7,7 @@ from gi.repository import GObject, Gtk
 from lutris.config import LutrisConfig
 from lutris.gui.config.accounts_box import AccountsBox
 from lutris.gui.config.boxes import SystemConfigBox
-from lutris.gui.config.common import GameDialogCommon
+from lutris.gui.config.game_common import GameDialogCommon
 from lutris.gui.config.preferences_box import InterfacePreferencesBox
 from lutris.gui.config.runners_box import RunnersBox
 from lutris.gui.config.services_box import ServicesBox

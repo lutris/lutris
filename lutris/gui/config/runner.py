@@ -3,7 +3,7 @@ from gettext import gettext as _
 from gi.repository import GObject
 
 from lutris.config import LutrisConfig
-from lutris.gui.config.common import GameDialogCommon
+from lutris.gui.config.game_common import GameDialogCommon
 from lutris.runners import get_runner_human_name
 
 
