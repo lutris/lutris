@@ -9,7 +9,7 @@ from lutris import settings
 from lutris.api import get_default_runner_version_info
 from lutris.exceptions import MisconfigurationError, UnavailableRunnerError, UnspecifiedVersionError
 from lutris.gui.dialogs import ErrorDialog
-from lutris.util import linux, system
+from lutris.util import cache_single, linux, system
 from lutris.util.log import logger
 from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import parse_version
@@ -171,7 +171,7 @@ def list_proton_versions() -> List[str]:
     return versions
 
 
-@lru_cache(maxsize=8)
+@cache_single
 def get_installed_wine_versions() -> List[str]:
     """Return the list of Wine versions installed"""
     return list_system_wine_versions() + list_lutris_wine_versions() + list_proton_versions()

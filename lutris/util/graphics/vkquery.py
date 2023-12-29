@@ -8,7 +8,6 @@ from ctypes import (
     CDLL, POINTER, Structure, byref, c_char, c_char_p, c_float, c_int32, c_size_t, c_uint8, c_uint32, c_uint64,
     c_void_p, pointer
 )
-from functools import lru_cache
 
 from lutris.util import cache_single
 
@@ -266,7 +265,7 @@ def is_vulkan_supported() -> bool:
     return result == VK_SUCCESS and dev_count.value > 0
 
 
-@lru_cache(maxsize=None)
+@cache_single
 def get_vulkan_api_version():
     """
     Queries libvulkan to get the API version; if this library is missing
@@ -329,7 +328,7 @@ def get_device_info():
     return sorted(device_info, key=lambda t: t.api_version, reverse=True)
 
 
-@lru_cache(maxsize=None)
+@cache_single
 def get_expected_api_version():
     """Returns the version tuple of the API version we expect
     to have; it is the least of the Vulkan library API version, and

@@ -709,8 +709,8 @@ def _load_vulkan_gpu_name(icd_files, use_dri_prime):
 
             return gpu or "Not Found"
         except Exception as ex:
-            # Must not raise an exception as @lru_cache does not cache them, and
-            # this function must be preloaded or it can slow down
+            # Must not raise an exception as we do not cache them, and
+            # this function must be preloaded, or it can slow down the UI.
             logger.exception("Fail to load Vulkan GPU names: %s", ex)
             return _("Unknown GPU")
 

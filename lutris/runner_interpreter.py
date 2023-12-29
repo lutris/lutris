@@ -2,10 +2,9 @@
 import os
 import shlex
 import stat
-from functools import lru_cache
 
 from lutris.exceptions import MissingExecutableError
-from lutris.util import system
+from lutris.util import cache_single, system
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -146,7 +145,7 @@ def get_gamescope_args(launch_arguments, system_config):
     return launch_arguments
 
 
-@lru_cache()
+@cache_single
 def _get_gamescope_fsr_option():
     """Returns a list containing the arguments to insert to trigger FSR in gamescope;
     this changes in later versions, so we have to check the help output. There seems to be
