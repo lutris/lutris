@@ -383,13 +383,14 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
     def change_game_slug(self):
         slug = self.slug_entry.get_text()
-        download_lutris_media(slug)
-
         self.slug = slug
-        for image_type, image_button in self.image_buttons.items():
-            self._set_image(image_type, image_button)
         self.slug_entry.set_sensitive(False)
         self.slug_change_button.set_label(_("Change"))
+        AsyncCall(download_lutris_media, self.refresh_all_images_cb, self.slug)
+
+    def refresh_all_images_cb(self, _result, _error):
+        for image_type, image_button in self.image_buttons.items():
+            self._set_image(image_type, image_button)
 
     def on_move_clicked(self, _button):
         new_location = DirectoryDialog("Select new location for the game",
