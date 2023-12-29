@@ -10,6 +10,7 @@ from lutris.game import Game
 from lutris.installer.errors import MissingGameDependency
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.services.lutris import download_lutris_media
+from lutris.util import cache_single
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -185,7 +186,7 @@ def remove_from_path_cache(game):
     get_path_cache.cache_clear()
 
 
-@lru_cache()
+@cache_single
 def get_path_cache():
     """Return the contents of the path cache file; this
     dict is cached, so do not modify it."""

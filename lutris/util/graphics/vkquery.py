@@ -10,6 +10,8 @@ from ctypes import (
 )
 from functools import lru_cache
 
+from lutris.util import cache_single
+
 VkResult = c_int32  # enum (size == 4)
 VK_SUCCESS = 0
 VK_ERROR_INITIALIZATION_FAILED = -3
@@ -242,7 +244,7 @@ class VkPhysicalDeviceProperties(Structure):
     ]
 
 
-@lru_cache(maxsize=None)
+@cache_single
 def is_vulkan_supported() -> bool:
     """
     Returns True iff vulkan library can be loaded, initialized,
