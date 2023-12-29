@@ -22,6 +22,7 @@ from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, parse_playtime, slugify
+from lutris.util.jobs import AsyncCall
 
 
 # pylint: disable=too-many-instance-attributes, no-member
@@ -724,14 +725,21 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         dialog.destroy()
 
     def on_custom_image_reset_clicked(self, _widget, image_type):
+        AsyncCall(self.refresh_image, self.on_image_refreshed, image_type)
+
+    def refresh_image(self, image_type):
         slug = self.slug or self.game.slug
         service_media = self.service_medias[image_type]
         dest_path = service_media.get_media_path(slug)
         self.game.custom_images.discard(image_type)
+
         if os.path.isfile(dest_path):
             os.remove(dest_path)
         download_lutris_media(self.game.slug)
         invalidate_media_caches()
+        return image_type
+
+    def on_image_refreshed(self, image_type, _error):
         self._set_image(image_type, self.image_buttons[image_type])
 
 
