@@ -5,7 +5,7 @@ from typing import Callable
 from gi.repository import Gio, Gtk
 
 from lutris import settings
-from lutris.api import get_default_runner_version_info, get_runtime_versions_date
+from lutris.api import get_runtime_versions_date
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.dialogs import NoticeDialog
 from lutris.runtime import RuntimeUpdater
@@ -15,6 +15,7 @@ from lutris.util import system
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, time_ago
+from lutris.util.wine.wine import get_default_wine_runner_version_info
 
 
 class UpdatesBox(BaseConfigBox):
@@ -81,7 +82,7 @@ class UpdatesBox(BaseConfigBox):
         return (stable_channel_radio_button, unsupported_channel_radio_button)
 
     def get_wine_update_texts(self):
-        wine_version_info = get_default_runner_version_info("wine")
+        wine_version_info = get_default_wine_runner_version_info()
         wine_version = f"{wine_version_info['version']}-{wine_version_info['architecture']}"
         if system.path_exists(os.path.join(settings.RUNNER_DIR, "wine", wine_version)):
             update_label_text = _(

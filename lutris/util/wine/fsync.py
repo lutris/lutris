@@ -51,7 +51,6 @@ This module's code is based on https://gist.github.com/openglfreak/715d5ab590249
 """
 import ctypes
 import errno
-import functools
 import os
 import subprocess
 

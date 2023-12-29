@@ -1,7 +1,6 @@
 """Utilities for manipulating Wine"""
 import os
 from collections import OrderedDict
-from functools import lru_cache
 from gettext import gettext as _
 from typing import Dict, Generator, List, Tuple
 
@@ -238,13 +237,20 @@ def get_default_wine_version() -> str:
     """Return the default version of wine."""
     installed_versions = get_installed_wine_versions()
     if installed_versions:
-        default_version = get_default_runner_version_info("wine")
+        default_version = get_default_wine_runner_version_info()
         if "version" in default_version and "architecture" in default_version:
             version = default_version["version"] + '-' + default_version["architecture"]
             if version in installed_versions:
                 return version
         return installed_versions[0]
     raise UnavailableRunnerError(_("No versions of Wine are installed."))
+
+
+@cache_single
+def get_default_wine_runner_version_info():
+    """Just returns the runner info for the default Wine, but with
+    caching."""
+    return get_default_runner_version_info("wine")
 
 
 def get_system_wine_version(wine_path: str = "wine") -> str:
