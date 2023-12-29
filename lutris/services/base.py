@@ -51,7 +51,7 @@ class LutrisIcon(LutrisBanner):
     def custom_media_storage_size(self):
         return (128, 128)
 
-    def update_desktop(self):
+    def run_system_update_desktop_icons(self):
         system.update_desktop_icons()
 
 

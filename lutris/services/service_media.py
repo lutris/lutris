@@ -94,7 +94,7 @@ class ServiceMedia:
         """The size this media should be shown at when in the configuration UI."""
         return self.size
 
-    def update_desktop(self):
+    def run_system_update_desktop_icons(self):
         """Update the desktop, if this media type appears there. Most don't."""
 
     def render(self):

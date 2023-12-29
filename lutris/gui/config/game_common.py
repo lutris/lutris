@@ -720,7 +720,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
                     pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
                 invalidate_media_caches()
             self._set_image(image_type, self.image_buttons[image_type])
-            service_media.update_desktop()
+            service_media.run_system_update_desktop_icons()
 
         dialog.destroy()
 
