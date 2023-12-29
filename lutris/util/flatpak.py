@@ -1,4 +1,3 @@
-import functools
 import shutil
 from gettext import gettext as _
 

@@ -1,5 +1,4 @@
 """Functions to interact with the Lutris REST API"""
-import functools
 import json
 import os
 import re
@@ -174,7 +173,6 @@ def format_runner_version(version_info: Dict[str, str]) -> str:
     return version
 
 
-@functools.lru_cache()
 def get_default_runner_version_info(runner_name: str, version: str = None) -> Dict[str, str]:
     """Get the appropriate version for a runner
 
