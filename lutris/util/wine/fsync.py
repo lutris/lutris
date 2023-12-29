@@ -57,6 +57,8 @@ import subprocess
 
 __all__ = ("get_fsync_support",)
 
+from lutris.util import cache_single
+
 
 # pylint: disable=invalid-name,too-few-public-methods
 class timespec(ctypes.Structure):
@@ -253,7 +255,7 @@ def _get_futex_wait_multiple_op(futex_syscall):
     return None
 
 
-@functools.lru_cache(None)
+@cache_single
 def is_futex_wait_multiple_supported():
     """Checks whether the Linux futex FUTEX_WAIT_MULTIPLE operation is
     supported on this kernel.
@@ -267,7 +269,7 @@ def is_futex_wait_multiple_supported():
         return False
 
 
-@functools.lru_cache(None)
+@cache_single
 def is_futex2_supported():
     """Checks whether the Linux futex2 syscall is supported on this
     kernel.
@@ -386,7 +388,7 @@ def _get_futex_waitv_syscall():
     return _futex_waitv_syscall
 
 
-@functools.lru_cache(None)
+@cache_single
 def is_futex_waitv_supported():
     """Checks whether the Linux 5.16 futex_waitv syscall is supported on
     this kernel.
@@ -401,7 +403,7 @@ def is_futex_waitv_supported():
         return False
 
 
-@functools.lru_cache(None)
+@cache_single
 def get_fsync_support():
     """Checks whether the FUTEX_WAIT_MULTIPLE operation, the futex2
     syscalls, or the futex_waitv syscall is supported on this kernel.

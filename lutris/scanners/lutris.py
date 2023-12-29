@@ -1,7 +1,6 @@
 import json
 import os
 import time
-from functools import lru_cache
 
 from lutris import settings
 from lutris.api import get_api_games, get_game_installers
