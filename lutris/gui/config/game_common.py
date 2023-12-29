@@ -706,7 +706,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     def save_custom_media(self, image_type, image_path):
         slug = self.slug or self.game.slug
         service_media = self.service_medias[image_type]
-        service_media = self.service_medias[image_type]
         self.game.custom_images.add(image_type)
         dest_path = service_media.get_media_path(slug)
         file_format = service_media.file_format
@@ -742,9 +741,10 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         return image_type
 
     def image_refreshed_cb(self, image_type, _error):
-        self._set_image(image_type, self.image_buttons[image_type])
-        service_media = self.service_medias[image_type]
-        service_media.run_system_update_desktop_icons()
+        if image_type:
+            self._set_image(image_type, self.image_buttons[image_type])
+            service_media = self.service_medias[image_type]
+            service_media.run_system_update_desktop_icons()
 
 
 class RunnerMessageBox(UnderslungMessageBox):
