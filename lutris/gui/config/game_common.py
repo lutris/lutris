@@ -20,9 +20,9 @@ from lutris.gui.widgets.scaled_image import ScaledImage
 from lutris.gui.widgets.utils import get_image_file_format, invalidate_media_caches
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
+from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, parse_playtime, slugify
-from lutris.util.jobs import AsyncCall
 
 
 # pylint: disable=too-many-instance-attributes, no-member
@@ -693,39 +693,40 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         image_filter.set_name(_("Images"))
         image_filter.add_pixbuf_formats()
         dialog.add_filter(image_filter)
-
         response = dialog.run()
         if response == Gtk.ResponseType.ACCEPT:
-            slug = self.slug or self.game.slug
             image_path = dialog.get_filename()
-            service_media = self.service_medias[image_type]
-            self.game.custom_images.add(image_type)
-            dest_path = service_media.get_media_path(slug)
-            file_format = service_media.file_format
-
-            if image_path != dest_path:
-                if file_format == get_image_file_format(image_path):
-                    shutil.copy(image_path, dest_path, follow_symlinks=True)
-                else:
-                    # If we must transcode the image, we'll scale the image up based on
-                    # the UI scale factor, to try to avoid blurriness. Of course this won't
-                    # work if the user changes the scaling later, but what can you do.
-                    scale_factor = self.get_scale_factor()
-                    width, height = service_media.custom_media_storage_size
-                    width = width * scale_factor
-                    height = height * scale_factor
-                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image_path, width, height)
-                    # JPEG encoding looks rather better at high quality;
-                    # PNG encoding just ignores this option.
-                    pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
-                invalidate_media_caches()
-            self._set_image(image_type, self.image_buttons[image_type])
-            service_media.run_system_update_desktop_icons()
-
+            AsyncCall(self.save_custom_media, self.image_refreshed_cb, image_type, image_path)
         dialog.destroy()
 
     def on_custom_image_reset_clicked(self, _widget, image_type):
-        AsyncCall(self.refresh_image, self.on_image_refreshed, image_type)
+        AsyncCall(self.refresh_image, self.image_refreshed_cb, image_type)
+
+    def save_custom_media(self, image_type, image_path):
+        slug = self.slug or self.game.slug
+        service_media = self.service_medias[image_type]
+        service_media = self.service_medias[image_type]
+        self.game.custom_images.add(image_type)
+        dest_path = service_media.get_media_path(slug)
+        file_format = service_media.file_format
+
+        if image_path != dest_path:
+            if file_format == get_image_file_format(image_path):
+                shutil.copy(image_path, dest_path, follow_symlinks=True)
+            else:
+                # If we must transcode the image, we'll scale the image up based on
+                # the UI scale factor, to try to avoid blurriness. Of course this won't
+                # work if the user changes the scaling later, but what can you do.
+                scale_factor = self.get_scale_factor()
+                width, height = service_media.custom_media_storage_size
+                width = width * scale_factor
+                height = height * scale_factor
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image_path, width, height)
+                # JPEG encoding looks rather better at high quality;
+                # PNG encoding just ignores this option.
+                pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
+            invalidate_media_caches()
+        return image_type
 
     def refresh_image(self, image_type):
         slug = self.slug or self.game.slug
@@ -739,8 +740,10 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         invalidate_media_caches()
         return image_type
 
-    def on_image_refreshed(self, image_type, _error):
+    def image_refreshed_cb(self, image_type, _error):
         self._set_image(image_type, self.image_buttons[image_type])
+        service_media = self.service_medias[image_type]
+        service_media.run_system_update_desktop_icons()
 
 
 class RunnerMessageBox(UnderslungMessageBox):
