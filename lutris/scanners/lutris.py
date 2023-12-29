@@ -185,7 +185,7 @@ def remove_from_path_cache(game):
     get_path_cache.cache_clear()
 
 
-@lru_cache()
+@lru_cache()  # why
 def get_path_cache():
     """Return the contents of the path cache file; this
     dict is cached, so do not modify it."""
