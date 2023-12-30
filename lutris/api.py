@@ -368,14 +368,14 @@ def parse_installer_url(url):
     launch_config_name = None
     try:
         parsed_url = urllib.parse.urlparse(url, scheme="lutris")
-    except Exception:  # pylint: disable=broad-except
+    except Exception as ex:
         logger.warning("Unable to parse url %s", url)
-        return False
+        raise ValueError("Invalid lutris url %s" % url) from ex
     if parsed_url.scheme != "lutris":
-        return False
+        raise ValueError("Invalid lutris url %s" % url)
     url_path = parsed_url.path
     if not url_path:
-        return False
+        raise ValueError("Invalid lutris url %s" % url)
     # urlparse can't parse if the path only contain numbers
     # workaround to remove the scheme manually:
     if url_path.startswith("lutris:"):

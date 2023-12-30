@@ -897,8 +897,6 @@ class Application(Gtk.Application):
         if url:
             url = url[0]
             installer_info = parse_installer_url(url)
-            if installer_info is False:
-                raise ValueError
         return installer_info
 
     def print_game_list(self, command_line, game_list):
