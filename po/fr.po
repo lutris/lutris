@@ -6246,7 +6246,7 @@ msgstr "Steam pour Windows"
 
 #: lutris/services/ubisoft.py:82
 msgid "Ubisoft Connect"
-msgstr "Connexion Ubisoft"
+msgstr "Ubisoft Connect"
 
 #: lutris/services/xdg.py:44
 msgid "Local"
