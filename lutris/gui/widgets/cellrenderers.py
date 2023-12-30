@@ -114,7 +114,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.badge_back_color = 0, 0, 0
         self._inset_fractions = {}
 
-    def inset_game(self, game_id, fraction):
+    def inset_game(self, game_id: str, fraction: float) -> bool:
         """This function indicates that a particular game should be displayed inset by a certain fraction of
         its total size; 0 is full size, 0.1 would show it at 90% size, but centered.
 
@@ -122,11 +122,19 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         to mess with the GameStore to do it. Instead, the cell renderer tracks these per game ID, and
         the caller uses queue_draw() to trigger a redraw.
 
-        Set the fraction to 0 for a game to remove the effect when done."""
+        Set the fraction to 0 for a game to remove the effect when done.
+
+        This returns True if it alters the inset of a game, and False if not because it was
+        already set that way."""
         if fraction > 0.0:
-            self._inset_fractions[game_id] = fraction
-        else:
-            self._inset_fractions.pop(game_id, None)
+            if fraction != self._inset_fractions.get(game_id):
+                self._inset_fractions[game_id] = fraction
+                return True
+        elif game_id in self._inset_fractions:
+            del self._inset_fractions[game_id]
+            return True
+
+        return False
 
     @GObject.Property(type=int, default=0)
     def media_width(self):

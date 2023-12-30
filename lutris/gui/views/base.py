@@ -1,7 +1,7 @@
 import time
 from typing import List
 
-from gi.repository import Gdk, Gio, GLib, GObject
+from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
@@ -111,13 +111,13 @@ class GameView:
             logger.exception("Unable to handle key press: %s", ex)
 
     def get_toplevel(self):
-        return None
+        raise NotImplementedError()
 
     def get_selected(self):
         return []
 
     def get_game_id_for_path(self, path):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def on_game_start(self, game):
         """On game start, we trigger an animation to show the game is starting; it runs at least
@@ -130,25 +130,50 @@ class GameView:
         start_time = time.monotonic()
         cycle_time = 0.375
         max_indent = 0.1
+        toplevel = self.get_toplevel()
+        paused = False
+
+        def is_modally_blocked():
+            # Is there a modal dialog that is block our top-level parent?
+            # if so we want to pause the animated.
+            for w in Gtk.Window.list_toplevels():
+                if w != toplevel and isinstance(w, Gtk.Dialog):
+                    if w.get_modal() and w.get_transient_for() == toplevel:
+                        return True
 
         def animate():
-            elapsed = time.monotonic() - start_time
+            nonlocal paused, start_time
+
+            now = time.monotonic()
+            elapsed = now - start_time
+
+            if elapsed > cycle_time:
+                # Check for pausing only at cycle end, so we don't do it too often,
+                # and to avoid a janky looking visible snap-back to full size.
+                start_time = now
+                paused = is_modally_blocked()
+
             cycle = elapsed % cycle_time
+
             # After 1/2 the cycle, start counting down instead of up
             if cycle > cycle_time / 2:
                 cycle = cycle_time - cycle
 
             # scale to achieve the max_indent at cycle_time/2.
-            fraction = max_indent * (cycle * 2 / cycle_time)
-
-            self.queue_draw()
+            if paused:
+                fraction = 0.0
+            else:
+                fraction = max_indent * (cycle * 2 / cycle_time)
 
             if elapsed >= cycle_time:
                 if game.state != game.STATE_LAUNCHING:
-                    self.image_renderer.inset_game(game.id, 0.0)
+                    if self.image_renderer.inset_game(game.id, 0.0):
+                        self.queue_draw()
                     return False
 
-            self.image_renderer.inset_game(game.id, fraction)
+            if self.image_renderer.inset_game(game.id, fraction):
+                self.queue_draw()
+
             return True  # Return True to call again after another timeout
 
         if self.image_renderer:
