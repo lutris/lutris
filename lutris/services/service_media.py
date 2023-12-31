@@ -49,12 +49,6 @@ class ServiceMedia:
         return [os.path.join(self.dest_path, pattern % slug)
                 for pattern in self.file_patterns]
 
-    def discard_media(self, slug: str) -> None:
-        """Deletes each media file for a game."""
-        for path in self.get_possible_media_paths(slug):
-            if os.path.isfile(path):
-                os.remove(path)
-
     def trash_media(self, slug: str,
                     completion_function: TrashPortal.CompletionFunction = None,
                     error_function: TrashPortal.ErrorFunction = None) -> None:
