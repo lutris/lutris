@@ -5,7 +5,7 @@ from typing import Callable
 from gi.repository import Gio, Gtk
 
 from lutris import settings
-from lutris.api import get_runtime_versions_date
+from lutris.api import get_runtime_versions_date_time_ago
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.dialogs import NoticeDialog
 from lutris.runtime import RuntimeUpdater
@@ -88,7 +88,7 @@ class UpdatesBox(BaseConfigBox):
             update_label_text = _(
                 "Your wine version is up to date. Using: <b>%s</b>\n"
                 "<i>Last checked %s.</i>"
-            ) % (wine_version_info['version'], time_ago(get_runtime_versions_date()))
+            ) % (wine_version_info['version'], get_runtime_versions_date_time_ago())
             update_button_text = _("Check again")
         elif not system.path_exists(os.path.join(settings.RUNNER_DIR, "wine")):
             update_label_text = _(

@@ -8,6 +8,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections import OrderedDict
+from gettext import gettext as _
 from typing import Any, Dict
 
 import requests
@@ -18,6 +19,7 @@ from lutris.util.display import get_gpus_info
 from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.strings import time_ago
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
 USER_INFO_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.json")
@@ -29,10 +31,14 @@ def get_time_from_api_date(date_string):
 
 
 def get_runtime_versions_date() -> float:
+    return os.path.getmtime(settings.RUNTIME_VERSIONS_PATH)
+
+
+def get_runtime_versions_date_time_ago() -> str:
     try:
-        return os.path.getmtime(settings.RUNTIME_VERSIONS_PATH)
+        return time_ago(get_runtime_versions_date())
     except FileNotFoundError:
-        return 0.0
+        return _("never")
 
 
 def check_stale_runtime_versions() -> bool:
