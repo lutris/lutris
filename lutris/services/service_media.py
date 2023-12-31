@@ -35,7 +35,7 @@ class ServiceMedia:
         candidates = self.get_possible_media_paths(slug)
         if len(candidates) > 1:
             for path in candidates:
-                if os.path.isfile(path):
+                if system.path_exists(path) and os.path.isfile(path):
                     return path
         return candidates[0]
 

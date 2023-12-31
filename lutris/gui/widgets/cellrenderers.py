@@ -224,7 +224,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
     def get_media_path(self):
         for path in self.media_paths:
-            if os.path.isfile(path):
+            if system.path_exists(path) and os.path.isfile(path):
                 return path
 
         return None
