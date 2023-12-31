@@ -1,6 +1,7 @@
 # pylint: disable=no-member
-# pylint: disable=using-constant-test
-# pylint: disable=comparison-with-callable
+# pylint:disable=using-constant-test
+# pylint:disable=comparison-with-callable
+import os.path
 from gettext import gettext as _
 from math import floor
 
@@ -101,7 +102,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._media_height = 0
         self._game_id = None
         self._service = None
-        self._media_path = None
+        self._media_paths = []
         self._show_badges = True
         self._platform = None
         self._is_installed = True
@@ -177,14 +178,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def service(self, value):
         self._service = value
 
-    @GObject.Property(type=str)
-    def media_path(self):
+    @GObject.Property(type=GObject.TYPE_PYOBJECT)
+    def media_paths(self):
         """This is the path to the media file to be displayed."""
-        return self._media_path
+        return self._media_paths
 
-    @media_path.setter
-    def media_path(self, value):
-        self._media_path = value
+    @media_paths.setter
+    def media_paths(self, value):
+        self._media_paths = value
 
     @GObject.Property(type=bool, default=True)
     def show_badges(self):
@@ -221,10 +222,17 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def do_get_preferred_height(self, widget):
         return self.media_height, self.media_height
 
+    def get_media_path(self):
+        for path in self.media_paths:
+            if os.path.isfile(path):
+                return path
+
+        return None
+
     def do_render(self, cr, widget, background_area, cell_area, flags):
         media_width = self.media_width
         media_height = self.media_height
-        path = self.media_path
+        path = self.get_media_path()
         alpha = 1 if self.is_installed else 100 / 255
 
         if media_width > 0 and media_height > 0 and path:
