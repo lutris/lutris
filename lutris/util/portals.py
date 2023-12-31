@@ -1,5 +1,5 @@
 import os
-from typing import Callable
+from typing import Callable, Iterable
 
 from gi.repository import Gio, GLib, GObject
 
@@ -17,11 +17,11 @@ class TrashPortal(GObject.Object):
     CompletionFunction = Callable[[], None]
     ErrorFunction = Callable[[Exception], None]
 
-    def __init__(self, file_path: str,
+    def __init__(self, file_paths: Iterable[str],
                  completion_function: CompletionFunction = None,
                  error_function: ErrorFunction = None):
         super().__init__()
-        self.file_path = file_path
+        self.file_paths = list(file_paths)
         self.completion_function = completion_function
         self.error_function = error_function
         Gio.DBusProxy.new_for_bus(
@@ -43,15 +43,18 @@ class TrashPortal(GObject.Object):
 
     def trash_file(self):
         try:
-            flags = os.O_RDONLY | os.O_PATH | os.O_CLOEXEC
-            # You'd think you could use O_NOFOLLOW for any file, but
-            # I find TrashFile fails. We don't want to trash the link target
-            # in any case.
-            if os.path.islink(self.file_path):
-                flags |= os.O_NOFOLLOW
-            file_handle = os.open(self.file_path, flags)
             fds_in = Gio.UnixFDList.new()
-            fds_in.append(file_handle)
+
+            for file_path in self.file_paths:
+                flags = os.O_RDONLY | os.O_PATH | os.O_CLOEXEC
+                # You'd think you could use O_NOFOLLOW for any file, but
+                # I find TrashFile fails. We don't want to trash the link target
+                # in any case.
+                if os.path.islink(file_path):
+                    flags |= os.O_NOFOLLOW
+                file_handle = os.open(file_path, flags)
+                fds_in.append(file_handle)
+
             self._dbus_proxy.call_with_unix_fd_list(
                 "TrashFile",
                 GLib.Variant.new_tuple(
@@ -71,7 +74,7 @@ class TrashPortal(GObject.Object):
         if values:
             result = values[0]
             if result == 0:
-                self.report_error(RuntimeError("The folder could not be moved to the trash."))
+                self.report_error(RuntimeError("The item could not be moved to the trash."))
                 return
         self.report_completion()
 
@@ -79,7 +82,7 @@ class TrashPortal(GObject.Object):
         if self.error_function:
             schedule_at_idle(self.error_function, error)
         else:
-            logger.exception("Failed to trash folder %s: %s", self.file_path, error)
+            logger.exception("Failed to trash %s: %s", ", ".join(self.file_paths), error)
 
     def report_completion(self):
         if self.completion_function:
