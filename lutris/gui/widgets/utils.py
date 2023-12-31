@@ -38,21 +38,21 @@ def open_uri(uri):
     system.spawn(["xdg-open", uri])
 
 
-def get_image_file_format(path):
-    """Returns the file format fo an image, either 'jpeg' or 'png';
-    we deduce this from the file extension, or if that fails the
+def get_image_file_extension(path):
+    """Returns the canonical file extension for an image,
+    either 'jpg' or 'png'; we deduce this from the file extension, or if that fails the
     file's 'magic' prefix bytes."""
-    ext = os.path.splitext(path)[1].lower()
+    ext = os.path.splitext(path)[1].casefold()
     if ext in [".jpg", ".jpeg"]:
-        return "jpeg"
+        return ".jpg"
     if path == ".png":
-        return "png"
+        return ".png"
 
-    file_type = magic.from_file(path).lower()
+    file_type = magic.from_file(path).casefold()
     if "jpeg image data" in file_type:
-        return "jpeg"
+        return ".jpg"
     if "png image data" in file_type:
-        return "png"
+        return ".png"
 
     return None
 

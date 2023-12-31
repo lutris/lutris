@@ -2,6 +2,7 @@ import json
 import os
 import random
 import time
+from typing import List
 
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
@@ -18,8 +19,7 @@ class ServiceMedia:
     visible = True  # This media should be displayed as an option in the UI
     small_size = None
     dest_path = None
-    file_pattern = NotImplemented
-    file_format = NotImplemented
+    file_patterns = NotImplemented
     api_field = NotImplemented
     url_pattern = "%s"
 
@@ -28,11 +28,21 @@ class ServiceMedia:
             os.makedirs(self.dest_path)
 
     def get_filename(self, slug):
-        return self.file_pattern % slug
+        return self.file_patterns[0] % slug
 
     def get_media_path(self, slug):
         """Return the absolute path of a local media file"""
-        return os.path.join(self.dest_path, self.get_filename(slug))
+        candidates = self.get_possible_media_paths(slug)
+        if len(candidates) > 1:
+            for path in candidates:
+                if os.path.isfile(path):
+                    return path
+        return candidates[0]
+
+    def get_possible_media_paths(self, slug: str) -> List[str]:
+        """Return the absolute path of a local media file"""
+        return [os.path.join(self.dest_path, pattern % slug)
+                for pattern in self.file_patterns]
 
     def exists(self, slug):
         """Whether the icon for the specified slug exists locally"""

@@ -35,8 +35,7 @@ class XDGMedia(ServiceMedia):
     source = "local"
     size = (64, 64)
     dest_path = os.path.join(settings.CACHE_DIR, "xdg/icons")
-    file_pattern = "%s.png"
-    file_format = "png"
+    file_patterns = ["%s.png"]
 
 
 class XDGService(BaseService):

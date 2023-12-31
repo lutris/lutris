@@ -25,8 +25,7 @@ class SteamBanner(ServiceMedia):
     service = "steam"
     size = (184, 69)
     dest_path = os.path.join(settings.CACHE_DIR, "steam/banners")
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
+    file_patterns = ["%s.jpg"]
     api_field = "appid"
     url_pattern = "http://cdn.akamai.steamstatic.com/steam/apps/%s/capsule_184x69.jpg"
 
@@ -35,8 +34,7 @@ class SteamCover(ServiceMedia):
     service = "steam"
     size = (200, 300)
     dest_path = os.path.join(settings.CACHE_DIR, "steam/covers")
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
+    file_patterns = ["%s.jpg"]
     api_field = "appid"
     url_pattern = "http://cdn.steamstatic.com/steam/apps/%s/library_600x900.jpg"
 
@@ -45,8 +43,7 @@ class SteamBannerLarge(ServiceMedia):
     service = "steam"
     size = (460, 215)
     dest_path = os.path.join(settings.CACHE_DIR, "steam/header")
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
+    file_patterns = ["%s.jpg"]
     api_field = "appid"
     url_pattern = "https://cdn.cloudflare.steamstatic.com/steam/apps/%s/header.jpg"
 

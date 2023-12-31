@@ -19,8 +19,7 @@ class DolphinBanner(ServiceMedia):
     service = "dolphin"
     source = "local"
     size = (96, 32)
-    file_pattern = "%s.png"
-    file_format = "jpeg"
+    file_patterns = ["%s.png"]
     dest_path = os.path.join(settings.CACHE_DIR, "dolphin/banners/small")
 
 

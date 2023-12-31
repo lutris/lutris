@@ -57,8 +57,7 @@ GAME_IDS = {
 class BattleNetCover(ServiceMedia):
     service = 'battlenet'
     size = (176, 234)
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
+    file_patterns = ["%s.jpg"]
     dest_path = os.path.join(settings.CACHE_DIR, "battlenet/coverart")
     api_field = 'coverart'
 

@@ -30,8 +30,7 @@ class UbisoftCover(ServiceMedia):
     service = "ubisoft"
     size = (160, 186)
     dest_path = os.path.join(settings.CACHE_DIR, "ubisoft/covers")
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
+    file_patterns = ["%s.jpg"]
     api_field = "id"
     url_pattern = "https://ubiservices.cdn.ubi.com/%s/spaceCardAsset/boxArt_mobile.jpg?imwidth=320"
 

@@ -56,8 +56,7 @@ class EAAppGames:
 
 class EAAppArtSmall(ServiceMedia):
     service = "ea_app"
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
+    file_patterns = ["%s.jpg"]
     size = (63, 89)
     dest_path = os.path.join(settings.CACHE_DIR, "ea_app/pack-art-small")
     api_field = "packArtSmall"
