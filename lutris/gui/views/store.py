@@ -11,7 +11,7 @@ from lutris.gui.views.store_item import StoreItem
 from lutris.util.strings import gtk_safe
 
 from . import (
-    COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_MEDIA_PATH,
+    COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_MEDIA_PATHS,
     COL_NAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER, COL_RUNNER_HUMAN_NAME, COL_SLUG, COL_SORTNAME,
     COL_YEAR
 )
@@ -72,7 +72,7 @@ class GameStore(GObject.Object):
             str,
             str,
             str,
-            str,
+            GObject.TYPE_PYOBJECT,
             str,
             str,
             str,
@@ -130,7 +130,7 @@ class GameStore(GObject.Object):
         row[COL_SLUG] = store_item.slug
         row[COL_NAME] = store_item.name
         row[COL_SORTNAME] = store_item.sortname if store_item.sortname else store_item.name
-        row[COL_MEDIA_PATH] = store_item.get_media_path() if settings.SHOW_MEDIA else None
+        row[COL_MEDIA_PATHS] = store_item.get_media_paths() if settings.SHOW_MEDIA else []
         row[COL_YEAR] = store_item.year
         row[COL_RUNNER] = store_item.runner
         row[COL_RUNNER_HUMAN_NAME] = store_item.runner_text
@@ -156,7 +156,7 @@ class GameStore(GObject.Object):
                 store_item.slug,
                 store_item.name,
                 store_item.sortname if store_item.sortname else store_item.name,
-                store_item.get_media_path() if settings.SHOW_MEDIA else None,
+                store_item.get_media_paths() if settings.SHOW_MEDIA else [],
                 store_item.year,
                 store_item.runner,
                 store_item.runner_text,
