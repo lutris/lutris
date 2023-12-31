@@ -1,6 +1,6 @@
 from gettext import gettext as _
 
-from gi.repository import GLib, GObject, Gtk
+from gi.repository import GObject, Gtk
 
 from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
@@ -24,7 +24,6 @@ class ServicesBox(BaseConfigBox):
         self.listbox = Gtk.ListBox(visible=True)
         self.frame.add(self.listbox)
         self.pack_start(self.frame, False, False, 0)
-        GLib.idle_add(self.populate_services)
 
     def populate_services(self):
         for service_key in SERVICES:

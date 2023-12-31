@@ -18,16 +18,18 @@ class AccountsBox(BaseConfigBox):
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         self.pack_start(frame, False, False, 0)
 
-        vbox = Gtk.VBox(visible=True)
-        frame.add(vbox)
+        self.accounts_box = Gtk.VBox(visible=True)
+        frame.add(self.accounts_box)
 
+    def populate_accounts(self):
         main_radio_button = None
         active_steam_account = settings.read_setting(STEAM_ACCOUNT_SETTING)
+
         steam_users = get_steam_users()
         for account in steam_users:
             radio_button = Gtk.RadioButton.new_with_label_from_widget(
                 main_radio_button,
-                account["PersonaName"]
+                account["PersonalName"]
             )
             radio_button.set_margin_top(16)
             radio_button.set_margin_start(16)
@@ -35,11 +37,11 @@ class AccountsBox(BaseConfigBox):
             radio_button.show()
             radio_button.set_active(active_steam_account == account["steamid64"])
             radio_button.connect("toggled", self.on_steam_account_toggled, account["steamid64"])
-            vbox.pack_start(radio_button, True, True, 0)
+            self.accounts_box.pack_start(radio_button, True, True, 0)
             if not main_radio_button:
                 main_radio_button = radio_button
         if not steam_users:
-            vbox.pack_start(Gtk.Label(_("No Steam account found"), visible=True), True, True, 0)
+            self.accounts_box.pack_start(Gtk.Label(_("No Steam account found"), visible=True), True, True, 0)
 
     def on_steam_account_toggled(self, radio_button, steamid64):
         """Handler for switching the active Steam account."""

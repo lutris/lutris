@@ -60,13 +60,18 @@ class PreferencesDialog(GameDialogCommon):
             self.build_scrolled_window(self.runners_box),
             "runners-stack"
         )
+
+        services_box = ServicesBox()
+        self.page_generators["services-stack"] = services_box.populate_services
         self.stack.add_named(
-            self.build_scrolled_window(ServicesBox()),
+            self.build_scrolled_window(services_box),
             "services-stack"
         )
 
+        accounts_box = AccountsBox()
+        self.page_generators["accounts-stack"] = accounts_box.populate_accounts
         self.stack.add_named(
-            self.build_scrolled_window(AccountsBox()),
+            self.build_scrolled_window(accounts_box),
             "accounts-stack"
         )
 
