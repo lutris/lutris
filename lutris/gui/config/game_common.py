@@ -1,5 +1,6 @@
 """Shared config dialog stuff"""
 # pylint: disable=not-an-iterable
+import os.path
 import shutil
 from gettext import gettext as _
 
@@ -702,8 +703,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         response = dialog.run()
         if response == Gtk.ResponseType.ACCEPT:
             image_path = dialog.get_filename()
-            scale_factor = self.get_scale_factor()  # get this here for thread-safety
-            AsyncCall(self.save_custom_media, self.image_refreshed_cb, image_type, image_path, scale_factor)
+            self.save_custom_media(image_type, image_path)
         dialog.destroy()
 
     def on_custom_image_reset_clicked(self, _widget, image_type):
@@ -717,31 +717,66 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
         if image_path not in dest_paths:
             ext = get_image_file_extension(image_path)
-            dest_path = None
+
             for candidate in dest_paths:
                 if candidate.casefold().endswith(ext):
-                    dest_path = candidate
+                    self._save_copied_media_to(candidate, image_type, image_path)
+                    return
 
-            if dest_path:
-                service_media.discard_media(slug)
-                shutil.copy(image_path, dest_path, follow_symlinks=True)
-            else:
-                dest_path = dest_paths[0]
-                file_format = {".jpg": "jpeg", ".png": "png"}[get_image_file_extension(dest_paths[0])]
+            self._save_transcoded_media_to(dest_paths[0], image_type, image_path)
 
-                # If we must transcode the image, we'll scale the image up based on
-                # the UI scale factor, to try to avoid blurriness. Of course this won't
-                # work if the user changes the scaling later, but what can you do.
-                width, height = service_media.custom_media_storage_size
-                width = width * scale_factor
-                height = height * scale_factor
-                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image_path, width, height)
-                # JPEG encoding looks rather better at high quality;
-                # PNG encoding just ignores this option.
-                service_media.discard_media(slug)
-                pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
+    def _save_copied_media_to(self, dest_path, image_type, image_path):
+        """Copies a media file to the dest_path, but trashes the existing media
+        for the game first. When complete, this updates the button indicated by
+        image_type as well."""
+        slug = self.slug or self.game.slug
+        service_media = self.service_medias[image_type]
+
+        def on_trashed():
+            AsyncCall(copy_image, self.image_refreshed_cb)
+
+        def copy_image():
+            shutil.copy(image_path, dest_path, follow_symlinks=True)
             MEDIA_CACHE_INVALIDATED.fire()
-        return image_type
+            return image_type
+
+        service_media.trash_media(slug, completion_function=on_trashed)
+
+    def _save_transcoded_media_to(self, dest_path, image_type, image_path):
+        """Transcode an image, copying it to a new path and selecting the file type
+        based on the file extension of dest_path. Trashes all media for the current
+        game too. Runs in the background, and when complete updates the button indicated
+        by image_type."""
+        slug = self.slug or self.game.slug
+        service_media = self.service_medias[image_type]
+        file_format = {".jpg": "jpeg", ".png": "png"}[get_image_file_extension(dest_path)]
+
+        # If we must transcode the image, we'll scale the image up based on
+        # the UI scale factor, to try to avoid blurriness. Of course this won't
+        # work if the user changes the scaling later, but what can you do.
+        scale_factor = self.get_scale_factor()
+        width, height = service_media.custom_media_storage_size
+        width = width * scale_factor
+        height = height * scale_factor
+        temp_file = dest_path + ".tmp"
+
+        def transcode():
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image_path, width, height)
+            # JPEG encoding looks rather better at high quality;
+            # PNG encoding just ignores this option.
+            pixbuf.savev(temp_file, file_format, ["quality"], ["100"])
+            service_media.trash_media(slug, completion_function=on_trashed)
+
+        def transcode_cb(_result, error):
+            if error:
+                raise error
+
+        def on_trashed():
+            os.rename(temp_file, dest_path)
+            MEDIA_CACHE_INVALIDATED.fire()
+            self.image_refreshed_cb(image_type)
+
+        AsyncCall(transcode, transcode_cb)
 
     def refresh_image(self, image_type):
         slug = self.slug or self.game.slug
@@ -761,7 +796,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     def refresh_image_cb(self, image_type, error):
         return image_type
 
-    def image_refreshed_cb(self, image_type, _error):
+    def image_refreshed_cb(self, image_type, _error=None):
         if image_type:
             self._set_image(image_type, self.image_buttons[image_type])
             service_media = self.service_medias[image_type]
