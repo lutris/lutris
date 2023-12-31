@@ -34,16 +34,14 @@ class LutrisBanner(ServiceMedia):
     service = 'lutris'
     size = BANNER_SIZE
     dest_path = settings.BANNER_PATH
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
+    file_patterns = ["%s.jpg", "%s.png"]
     api_field = 'banner'
 
 
 class LutrisIcon(LutrisBanner):
     size = ICON_SIZE
     dest_path = settings.ICON_PATH
-    file_pattern = "lutris_%s.png"
-    file_format = "png"
+    file_patterns = ["lutris_%s.png"]
     api_field = 'icon'
 
     @property
@@ -57,8 +55,7 @@ class LutrisIcon(LutrisBanner):
 class LutrisCoverart(ServiceMedia):
     service = 'lutris'
     size = (264, 352)
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
+    file_patterns = ["%s.jpg", "%s.png"]
     dest_path = settings.COVERART_PATH
     api_field = 'coverart'
 

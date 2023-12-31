@@ -26,8 +26,7 @@ class ItchIoCover(ServiceMedia):
     service = "itchio"
     size = (315, 250)
     dest_path = os.path.join(settings.CACHE_DIR, "itchio/cover")
-    file_pattern = "%s.png"
-    file_format = "png"
+    file_patterns = ["%s.png"]
 
     def get_media_url(self, details):
         """Extract cover from API"""
