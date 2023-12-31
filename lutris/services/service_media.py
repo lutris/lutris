@@ -10,6 +10,19 @@ from lutris.util.http import HTTPError, download_file
 from lutris.util.log import logger
 
 
+def resolve_media_path(possible_paths: List[str]) -> str:
+    """Selects the best path from a list of paths to media. This will take the first
+    one that exists and has contents, or the just first one if none are usable."""
+    if len(possible_paths) > 1:
+        for path in possible_paths:
+            if system.path_exists(path, exclude_empty=True) and os.path.isfile(path):
+                return path
+    elif not possible_paths:
+        raise ValueError("resolve_media_path() requires at least one path.")
+
+    return possible_paths[0]
+
+
 class ServiceMedia:
     """Information about the service's media format"""
 
@@ -17,8 +30,7 @@ class ServiceMedia:
     size = NotImplemented
     source = "remote"  # set to local if the files don't need to be downloaded
     visible = True  # This media should be displayed as an option in the UI
-    small_size = None
-    dest_path = None
+    dest_path = NotImplemented
     file_patterns = NotImplemented
     api_field = NotImplemented
     url_pattern = "%s"
@@ -30,23 +42,17 @@ class ServiceMedia:
     def get_filename(self, slug):
         return self.file_patterns[0] % slug
 
-    def get_media_path(self, slug):
-        """Return the absolute path of a local media file"""
-        candidates = self.get_possible_media_paths(slug)
-        if len(candidates) > 1:
-            for path in candidates:
-                if system.path_exists(path) and os.path.isfile(path):
-                    return path
-        return candidates[0]
-
     def get_possible_media_paths(self, slug: str) -> List[str]:
-        """Return the absolute path of a local media file"""
+        """Returns a list of each path where the media might be found. At most one of these should
+        be found, but they are in a priority order - the first is in the preferred format."""
         return [os.path.join(self.dest_path, pattern % slug)
                 for pattern in self.file_patterns]
 
-    def exists(self, slug):
-        """Whether the icon for the specified slug exists locally"""
-        return system.path_exists(self.get_media_path(slug))
+    def discard_media(self, slug: str) -> None:
+        """Deletes each media file for a game."""
+        for path in self.get_possible_media_paths(slug):
+            if os.path.isfile(path):
+                os.remove(path)
 
     def get_media_url(self, details):
         if self.api_field not in details:
