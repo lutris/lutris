@@ -707,7 +707,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         dialog.destroy()
 
     def on_custom_image_reset_clicked(self, _widget, image_type):
-        AsyncCall(self.refresh_image, self.image_refreshed_cb, image_type)
+        self.refresh_image(image_type)
 
     def save_custom_media(self, image_type, image_path, scale_factor):
         slug = self.slug or self.game.slug
@@ -748,8 +748,17 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         service_media = self.service_medias[image_type]
         self.game.custom_images.discard(image_type)
 
-        service_media.discard_media(slug)
-        download_lutris_media(slug)
+        def on_trashed():
+            AsyncCall(download, self.image_refreshed_cb)
+
+        def download():
+            download_lutris_media(slug)
+            return image_type
+
+        service_media.trash_media(slug,
+                                  completion_function=on_trashed)
+
+    def refresh_image_cb(self, image_type, error):
         return image_type
 
     def image_refreshed_cb(self, image_type, _error):

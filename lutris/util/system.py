@@ -353,7 +353,7 @@ def remove_folder(path: str,
         return
 
     logger.debug("Trashing folder %s", path)
-    TrashPortal(path,
+    TrashPortal([path],
                 completion_function=completion_function,
                 error_function=error_function)
 
