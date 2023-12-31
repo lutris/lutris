@@ -11,8 +11,7 @@ import cairo
 from gi.repository import GLib, GObject, Gtk, Pango, PangoCairo
 
 from lutris.gui.widgets.utils import (
-    get_default_icon_path, get_media_generation_number, get_runtime_icon_path, get_scaled_surface_by_path,
-    get_surface_size
+    MEDIA_CACHE_INVALIDATED, get_default_icon_path, get_runtime_icon_path, get_scaled_surface_by_path, get_surface_size
 )
 from lutris.scanners.lutris import is_game_missing
 
@@ -472,8 +471,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         in this render, but we'll clear that cache when the media generation number is changed,
         or certain properties are. We also age surfaces from the cache at idle time after
         rendering."""
-        if self.cached_surface_generation != get_media_generation_number():
-            self.cached_surface_generation = get_media_generation_number()
+        if self.cached_surface_generation != MEDIA_CACHE_INVALIDATED.generation_number:
+            self.cached_surface_generation = MEDIA_CACHE_INVALIDATED.generation_number
             self.clear_cache()
 
         key = widget, path, size, preserve_aspect_ratio

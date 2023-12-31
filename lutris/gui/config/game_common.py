@@ -17,7 +17,7 @@ from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.scaled_image import ScaledImage
-from lutris.gui.widgets.utils import get_image_file_format, invalidate_media_caches
+from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED, get_image_file_format
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.util.jobs import AsyncCall
@@ -725,7 +725,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
                 # JPEG encoding looks rather better at high quality;
                 # PNG encoding just ignores this option.
                 pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
-            invalidate_media_caches()
+            MEDIA_CACHE_INVALIDATED.fire()
         return image_type
 
     def refresh_image(self, image_type):
@@ -737,7 +737,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if os.path.isfile(dest_path):
             os.remove(dest_path)
         download_lutris_media(self.game.slug)
-        invalidate_media_caches()
+        MEDIA_CACHE_INVALIDATED.fire()
         return image_type
 
     def image_refreshed_cb(self, image_type, _error):

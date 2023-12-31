@@ -1,7 +1,7 @@
 """Loads game media in parallel"""
 import concurrent.futures
 
-from lutris.gui.widgets.utils import invalidate_media_caches
+from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED
 from lutris.util import system
 from lutris.util.log import logger
 
@@ -30,5 +30,5 @@ def download_media(media_urls, service_media):
                 icons[slug] = path
 
     if icons:
-        invalidate_media_caches()
+        MEDIA_CACHE_INVALIDATED.fire()
     return icons

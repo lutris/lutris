@@ -6,8 +6,8 @@ import cairo
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
 
 from lutris import settings
+from lutris.gui.widgets import Notification
 from lutris.util import datapath, magic, system
-from lutris.util.jobs import schedule_at_idle
 from lutris.util.log import logger
 
 try:
@@ -17,8 +17,7 @@ except ImportError:
 
 ICON_SIZE = (32, 32)
 BANNER_SIZE = (184, 69)
-
-_surface_generation_number = 0
+MEDIA_CACHE_INVALIDATED = Notification()
 
 
 def get_main_window(widget):
@@ -101,29 +100,6 @@ def get_scaled_surface_by_path(path, size, device_scale, preserve_aspect_ratio=T
         cr.paint()
         surface.set_device_scale(device_scale, device_scale)
         return surface
-
-
-def get_media_generation_number():
-    """Returns a number that is incremented whenever cached media may no longer
-    be valid. Caller can check to see if this has changed before using their own caches."""
-    return _surface_generation_number
-
-
-def invalidate_media_caches():
-    """Increments the media generation number; this indicates that cached media
-    from earlier generations may be invalid and should be reloaded."""
-    global _surface_generation_number
-    _surface_generation_number += 1
-    schedule_at_idle(queue_draw_all_windows)
-
-
-def queue_draw_all_windows():
-    """Scans through all windows and queues a redraw for each one;
-    we trigger this when invalidate_media_caches() has been called."""
-    application = Gio.Application.get_default()
-    if application:
-        for window in application.get_windows():
-            window.queue_draw()
 
 
 def get_default_icon_path(size):

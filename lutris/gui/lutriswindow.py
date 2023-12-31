@@ -770,11 +770,15 @@ class LutrisWindow(Gtk.ApplicationWindow,
         regenerates it. This is used to update view settings that can only be
         set during view construction, and not updated later."""
         if view_type in self.views:
+            view = self.views[view_type]
             scrolledwindow = self.games_stack.get_child_by_name(view_type)
-            scrolledwindow.remove(self.views[view_type])
-            del self.views["grid"]
+            scrolledwindow.remove(view)
+            del self.views[view_type]
             if self.current_view_type == view_type:
                 self.redraw_view()
+            # Because the view has hooks and such hooked up, it must be explicitly
+            # destroyed to disconnect everything.
+            view.destroy()
 
     def update_view_settings(self):
         if self.current_view and self.current_view_type == "grid":
