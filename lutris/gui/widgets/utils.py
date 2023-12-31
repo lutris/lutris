@@ -6,7 +6,7 @@ import cairo
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
 
 from lutris import settings
-from lutris.gui.widgets import Notification
+from lutris.gui.widgets import NotificationSource
 from lutris.util import datapath, magic, system
 from lutris.util.log import logger
 
@@ -17,7 +17,7 @@ except ImportError:
 
 ICON_SIZE = (32, 32)
 BANNER_SIZE = (184, 69)
-MEDIA_CACHE_INVALIDATED = Notification()
+MEDIA_CACHE_INVALIDATED = NotificationSource()
 
 
 def get_main_window(widget):

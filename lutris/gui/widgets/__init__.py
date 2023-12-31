@@ -3,7 +3,7 @@ from typing import Callable
 from lutris.util.jobs import schedule_at_idle
 
 
-class Notification:
+class NotificationSource:
     """A class to inform interested code of changes in a global, like a signal but not attached to any
     object."""
 
