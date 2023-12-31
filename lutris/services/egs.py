@@ -33,8 +33,7 @@ BOX_ART_SIZE = (200, 267)
 class DieselGameMedia(ServiceMedia):
     service = "egs"
     remote_size = (200, 267)
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
+    file_patterns = ["%s.jpg"]
     min_logo_x = 300
     min_logo_y = 150
 
@@ -111,8 +110,7 @@ class DieselGameBoxLogo(DieselGameMedia):
     """EGS game box"""
     size = (200, 100)
     remote_size = size
-    file_pattern = "%s.png"
-    file_format = "png"
+    file_patterns = ["%s.png"]
     visible = False
     dest_path = os.path.join(settings.CACHE_DIR, "egs/game_logo")
     api_field = "DieselGameBoxLogo"

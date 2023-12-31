@@ -17,7 +17,7 @@ from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.scaled_image import ScaledImage
-from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED, get_image_file_format
+from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED, get_image_file_extension
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.util.jobs import AsyncCall
@@ -713,13 +713,23 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         slug = self.slug or self.game.slug
         service_media = self.service_medias[image_type]
         self.game.custom_images.add(image_type)
-        dest_path = service_media.get_media_path(slug)
-        file_format = service_media.file_format
+        dest_paths = service_media.get_possible_media_paths(slug)
 
-        if image_path != dest_path:
-            if file_format == get_image_file_format(image_path):
+        if image_path not in dest_paths:
+            ext = get_image_file_extension(image_path)
+            dest_path = None
+            for candidate in dest_paths:
+                if os.path.isfile(candidate):
+                    os.remove(candidate)
+                if candidate.casefold().endswith(ext):
+                    dest_path = candidate
+
+            if dest_path:
                 shutil.copy(image_path, dest_path, follow_symlinks=True)
             else:
+                dest_path = dest_paths[0]
+                file_format = {".jpg": "jpeg", ".png": "png"}[get_image_file_extension(dest_paths[0])]
+
                 # If we must transcode the image, we'll scale the image up based on
                 # the UI scale factor, to try to avoid blurriness. Of course this won't
                 # work if the user changes the scaling later, but what can you do.
