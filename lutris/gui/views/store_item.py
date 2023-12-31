@@ -135,12 +135,12 @@ class StoreItem:
 
         return check_data(self._installed_game_data)
 
-    def get_media_path(self):
+    def get_media_paths(self):
         """Returns the path to the image file for this item"""
         if self._game_data.get("icon"):
-            return self._game_data["icon"]
+            return [self._game_data["icon"]]
 
-        return self.service_media.get_media_path(self.slug)
+        return self.service_media.get_possible_media_paths(self.slug)
 
     @property
     def installed_at(self):
