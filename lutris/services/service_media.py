@@ -8,6 +8,7 @@ from lutris.database.services import ServiceGameCollection
 from lutris.util import system
 from lutris.util.http import HTTPError, download_file
 from lutris.util.log import logger
+from lutris.util.portals import TrashPortal
 
 
 def resolve_media_path(possible_paths: List[str]) -> str:
@@ -53,6 +54,19 @@ class ServiceMedia:
         for path in self.get_possible_media_paths(slug):
             if os.path.isfile(path):
                 os.remove(path)
+
+    def trash_media(self, slug: str,
+                    completion_function: TrashPortal.CompletionFunction = None,
+                    error_function: TrashPortal.ErrorFunction = None) -> None:
+        """Sends each media file for a game to the trash, and invokes callsbacks when this
+        has been completed or has failed."""
+        paths = [path for path in self.get_possible_media_paths(slug) if os.path.exists(path)]
+        if paths:
+            TrashPortal(paths,
+                        completion_function=completion_function,
+                        error_function=error_function)
+        elif completion_function:
+            completion_function()
 
     def get_media_url(self, details):
         if self.api_field not in details:
