@@ -1,7 +1,6 @@
 # pylint: disable=no-member
 # pylint:disable=using-constant-test
 # pylint:disable=comparison-with-callable
-import os.path
 from gettext import gettext as _
 from math import floor
 
@@ -180,7 +179,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
     @GObject.Property(type=GObject.TYPE_PYOBJECT)
     def media_paths(self):
-        """This is the path to the media file to be displayed."""
+        """This is the list of paths where the media to be displayed may be."""
         return self._media_paths
 
     @media_paths.setter
@@ -222,17 +221,10 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def do_get_preferred_height(self, widget):
         return self.media_height, self.media_height
 
-    def get_media_path(self):
-        for path in self.media_paths:
-            if system.path_exists(path) and os.path.isfile(path):
-                return path
-
-        return None
-
     def do_render(self, cr, widget, background_area, cell_area, flags):
         media_width = self.media_width
         media_height = self.media_height
-        path = self.get_media_path()
+        path = resolve_media_path(self.media_paths) if self.media_paths else None
         alpha = 1 if self.is_installed else 100 / 255
 
         if media_width > 0 and media_height > 0 and path:

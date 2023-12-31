@@ -1,6 +1,5 @@
 """Shared config dialog stuff"""
 # pylint: disable=not-an-iterable
-import os
 import shutil
 from gettext import gettext as _
 
@@ -20,6 +19,7 @@ from lutris.gui.widgets.scaled_image import ScaledImage
 from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED, get_image_file_extension
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
+from lutris.services.service_media import resolve_media_path
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, parse_playtime, slugify
@@ -342,7 +342,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         scale_factor = self.get_scale_factor()
         service_media = self.service_medias[image_format]
         game_slug = self.slug or (self.game.slug if self.game else "")
-        media_path = service_media.get_media_path(game_slug)
+        media_path = resolve_media_path(service_media.get_possible_media_paths(game_slug))
         image = ScaledImage.new_from_media_path(media_path, service_media.config_ui_size, scale_factor)
         image_button.set_image(image)
 
@@ -719,12 +719,11 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             ext = get_image_file_extension(image_path)
             dest_path = None
             for candidate in dest_paths:
-                if os.path.isfile(candidate):
-                    os.remove(candidate)
                 if candidate.casefold().endswith(ext):
                     dest_path = candidate
 
             if dest_path:
+                service_media.discard_media(slug)
                 shutil.copy(image_path, dest_path, follow_symlinks=True)
             else:
                 dest_path = dest_paths[0]
@@ -739,6 +738,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image_path, width, height)
                 # JPEG encoding looks rather better at high quality;
                 # PNG encoding just ignores this option.
+                service_media.discard_media(slug)
                 pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
             MEDIA_CACHE_INVALIDATED.fire()
         return image_type
@@ -746,12 +746,10 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     def refresh_image(self, image_type):
         slug = self.slug or self.game.slug
         service_media = self.service_medias[image_type]
-        dest_path = service_media.get_media_path(slug)
         self.game.custom_images.discard(image_type)
 
-        if os.path.isfile(dest_path):
-            os.remove(dest_path)
-        download_lutris_media(self.game.slug)
+        service_media.discard_media(slug)
+        download_lutris_media(slug)
         return image_type
 
     def image_refreshed_cb(self, image_type, _error):
