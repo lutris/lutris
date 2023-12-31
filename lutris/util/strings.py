@@ -286,23 +286,31 @@ def time_ago(timestamp: float) -> str:
         return _("in the future")
     if time_delta < 5:
         return _("just now")
-    output = ""
+    parts = []
     day_in_seconds = 3600 * 24
     hour_in_seconds = 3600
     days = 0
     hours = 0
     if time_delta >= 2 * day_in_seconds:
         days = int(time_delta // day_in_seconds)
-        output += _(f"{days} days ")
+        parts.append(_("%d days") % days)
     if time_delta > 2 * hour_in_seconds:
         hours = int(time_delta // hour_in_seconds)
         time_delta = time_delta - hours * hour_in_seconds
-        output += _(f"{hours} hours ")
+        parts.append(_("%d hours") % hours)
     if not days and hours < 5 and time_delta > 60:
         minutes = int(time_delta // 60)
         time_delta = time_delta - minutes * 60
-        output += _(f"{minutes} minute{'s' if minutes > 1 else ''} ")
+        if minutes != 1:
+            parts.append(_("%d minutes") % minutes)
+        else:
+            parts.append(_("1 minute"))
     if original_time_delta < 90:
         seconds = int(time_delta)
-        output += _(f"{seconds} second{'s' if seconds > 1 else ''} ")
-    return output + _("ago")
+        if seconds != 1:
+            parts.append(_("%d seconds") % seconds)
+        else:
+            parts.append(_("1 second"))
+
+    parts.append(_("ago"))
+    return " ".join(parts)

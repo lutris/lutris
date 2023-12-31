@@ -14,7 +14,7 @@ from lutris.settings import UPDATE_CHANNEL_STABLE, UPDATE_CHANNEL_UNSUPPORTED
 from lutris.util import system
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.strings import gtk_safe, time_ago
+from lutris.util.strings import gtk_safe
 from lutris.util.wine.wine import get_default_wine_runner_version_info
 
 
@@ -135,15 +135,18 @@ class UpdatesBox(BaseConfigBox):
         elif any(result.values()):
             update_text = _("Updated: ")
             names = {
-                "banners": _("banner"),
-                "icons": _("icon"),
-                "covers": _("cover"),
+                ("banners", False): _("banner"),
+                ("icons", False): _("icon"),
+                ("covers", False): _("cover"),
+                ("banners", True): _("banners"),
+                ("icons", True): _("icons"),
+                ("covers", True): _("covers"),
             }
             for key, value in result.items():
                 if value:
                     if not update_text.endswith(": "):
                         update_text += ", "
-                    update_text += f"{value} {names[key]}{'s' if value > 1 else ''}"
+                    update_text += f"{value} {names[(key, value > 1)]}"
             self.update_media_box.show_completion_markup("", update_text)
         else:
             self.update_media_box.show_completion_markup("", _("No new media found."))
