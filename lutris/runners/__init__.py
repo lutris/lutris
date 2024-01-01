@@ -44,29 +44,24 @@ __all__ = [
     "zdoom",
 ]
 
+from lutris.exceptions import LutrisError, MisconfigurationError
+
 ADDON_RUNNERS = {}
 _cached_runner_human_names = {}
 
 
-class InvalidRunnerError(Exception):
-
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
+class InvalidRunnerError(MisconfigurationError):
+    """Raise if a runner name is used that is not known to Lutris."""
 
 
-class RunnerInstallationError(Exception):
-
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
+class RunnerInstallationError(LutrisError):
+    """Raised if the attempt to install a runner fails, perhaps because
+    of invalid data from a server."""
 
 
-class NonInstallableRunnerError(Exception):
-
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
+class NonInstallableRunnerError(LutrisError):
+    """Raised if installed a runner that Lutris cannot install, like Flatpak.
+    These must be installed separately."""
 
 
 def get_runner_module(runner_name):
