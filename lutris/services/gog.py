@@ -17,7 +17,7 @@ from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import i18n, system
-from lutris.util.http import HTTPError, Request, UnauthorizedAccess
+from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
 from lutris.util.log import logger
 from lutris.util.strings import human_size, slugify
 
@@ -123,7 +123,7 @@ class GOGService(OnlineService):
             return False
         try:
             user_data = self.get_user_data()
-        except UnauthorizedAccess:
+        except UnauthorizedAccessError:
             logger.warning("GOG token is invalid")
             return False
         return user_data and "username" in user_data

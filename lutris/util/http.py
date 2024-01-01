@@ -27,7 +27,7 @@ class HTTPError(Exception):
         self.code = code
 
 
-class UnauthorizedAccess(Exception):
+class UnauthorizedAccessError(Exception):
     """Exception raised for 401 HTTP errors"""
 
 
@@ -97,7 +97,7 @@ class Request:
                 request = urllib.request.urlopen(req, timeout=self.timeout)  # pylint: disable=consider-using-with
         except (urllib.error.HTTPError) as error:
             if error.code == 401:
-                raise UnauthorizedAccess("Access to %s denied" % self.url) from error
+                raise UnauthorizedAccessError("Access to %s denied" % self.url) from error
             raise HTTPError("%s" % error, code=error.code) from error
         except CertificateError as error:
             raise HTTPError("%s" % error, code=0) from error

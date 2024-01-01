@@ -27,8 +27,9 @@ from lutris.util.strings import slugify
 PGA_DB = settings.PGA_DB
 
 
-class AuthTokenExpired(Exception):
-    """Exception raised when a token is no longer valid"""
+class AuthTokenExpiredError(Exception):
+    """Exception raised when a token is no longer valid; the sidebar will
+    log-out and log-in again in response to this rather than reporting it."""
 
 
 class LutrisBanner(ServiceMedia):

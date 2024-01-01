@@ -19,7 +19,7 @@ from lutris.gui.widgets.utils import has_stock_icon
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.runners import InvalidRunnerError
 from lutris.services import SERVICES
-from lutris.services.base import AuthTokenExpired, BaseService
+from lutris.services.base import AuthTokenExpiredError, BaseService
 
 TYPE = 0
 SLUG = 1
@@ -165,7 +165,7 @@ class ServiceSidebarRow(SidebarRow):
 
     def service_reloaded_cb(self, error):
         if error:
-            if isinstance(error, AuthTokenExpired):
+            if isinstance(error, AuthTokenExpiredError):
                 self.service.logout()
                 self.service.login(parent=self.get_toplevel())
             else:

@@ -13,7 +13,7 @@ from lutris.util import system
 from lutris.util.log import logger
 
 
-class ExtractFailure(Exception):
+class ExtractError(Exception):
     """Exception raised when and archive fails to extract"""
 
 
@@ -138,7 +138,7 @@ def extract_archive(path: str, to_directory: str = ".", merge_single: bool = Tru
         _do_extract(path, temp_path, opener, mode, extractor)
     except (OSError, zlib.error, tarfile.ReadError, EOFError) as ex:
         logger.error("Extraction failed: %s", ex)
-        raise ExtractFailure(str(ex)) from ex
+        raise ExtractError(str(ex)) from ex
     if merge_single:
         extracted = os.listdir(temp_path)
         if len(extracted) == 1:
@@ -174,7 +174,7 @@ def extract_archive(path: str, to_directory: str = ".", merge_single: bool = Tru
                             destination_path,
                             ex,
                         )
-                        raise ExtractFailure(str(ex)) from ex
+                        raise ExtractError(str(ex)) from ex
             else:
                 shutil.move(source_path, destination_path)
         system.delete_folder(temp_dir)

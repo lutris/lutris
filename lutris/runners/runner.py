@@ -12,7 +12,7 @@ from lutris.database.games import get_game_by_field
 from lutris.exceptions import MisconfigurationError, MissingExecutableError, UnavailableLibrariesError
 from lutris.runners import RunnerInstallationError
 from lutris.util import flatpak, strings, system
-from lutris.util.extract import ExtractFailure, extract_archive
+from lutris.util.extract import ExtractError, extract_archive
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -508,7 +508,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             raise RunnerInstallationError(_("Failed to extract {}").format(archive))
         try:
             extract_archive(archive, dest, merge_single=merge_single)
-        except ExtractFailure as ex:
+        except ExtractError as ex:
             logger.error("Failed to extract the archive %s file may be corrupt", archive)
             raise RunnerInstallationError(_("Failed to extract {}: {}").format(archive, ex)) from ex
         os.remove(archive)

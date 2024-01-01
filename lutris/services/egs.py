@@ -13,7 +13,7 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.widgets.utils import Image, paste_overlay, thumbnail_image
 from lutris.installer import get_installers
-from lutris.services.base import AuthTokenExpired, OnlineService
+from lutris.services.base import AuthTokenExpiredError, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
@@ -313,7 +313,7 @@ class EpicGamesStoreService(OnlineService):
             library = self.get_library()
         except Exception as ex:  # pylint=disable:broad-except
             logger.warning("EGS Token expired")
-            raise AuthTokenExpired from ex
+            raise AuthTokenExpiredError("EGS Token expired") from ex
         egs_games = []
         for game in library:
             egs_game = EGSGame.new_from_api(game)

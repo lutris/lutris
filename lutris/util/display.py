@@ -34,10 +34,6 @@ from lutris.util.log import logger
 from lutris.exceptions import MissingExecutableError
 
 
-class NoScreenDetected(Exception):
-    """Raise this when unable to detect screens"""
-
-
 def get_default_dpi():
     """Computes the DPI to use for the primary monitor
     which we pass to WINE."""
@@ -108,13 +104,7 @@ def _get_graphics_adapters():
 class DisplayManager:
     """Get display and resolution using GnomeDesktop"""
 
-    def __init__(self):
-        if not LIB_GNOME_DESKTOP_AVAILABLE:
-            logger.warning("libgnomedesktop unavailable")
-            return
-        screen = Gdk.Screen.get_default()
-        if not screen:
-            raise NoScreenDetected
+    def __init__(self, screen: Gdk.Screen):
         self.rr_screen = GnomeDesktop.RRScreen.new(screen)
         self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
         self.rr_config.load_current()
@@ -178,10 +168,13 @@ def get_display_manager():
             logger.exception("Failed to instantiate MutterDisplayConfig. Please report with exception: %s", ex)
     else:
         logger.error("DBus is not available, Lutris was not properly installed.")
+
     if LIB_GNOME_DESKTOP_AVAILABLE:
         try:
-            return DisplayManager()
-        except (GLib.Error, NoScreenDetected):
+            screen = Gdk.Screen.get_default()
+            if screen:
+                return DisplayManager(screen)
+        except GLib.Error:
             pass
     return LegacyDisplayManager()
 

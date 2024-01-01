@@ -10,19 +10,14 @@ IGNORED_PROCESSES = (
 )
 
 
-class InvalidPid(Exception):
-    """Exception raised when an operation on a non-existent PID is called"""
-
-
 class Process:
-
     """Python abstraction a Linux process"""
 
     def __init__(self, pid):
         try:
             self.pid = int(pid)
         except ValueError as err:
-            raise InvalidPid("'%s' is not a valid pid" % pid) from err
+            raise ValueError("'%s' is not a valid pid" % pid) from err
 
     def __repr__(self):
         return "Process {}".format(self.pid)
