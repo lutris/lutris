@@ -36,7 +36,6 @@ def duplicate_game_config(game_slug: str, source_config_id: str):
 
 
 class LutrisConfig:
-
     """Class where all the configuration handling happens.
 
     Description
@@ -245,7 +244,7 @@ class LutrisConfig:
                 defaults[option] = default
         return defaults
 
-    def options_as_dict(self, options_type):
+    def options_as_dict(self, options_type: str) -> dict:
         """Convert the option list to a dict with option name as keys"""
         if options_type == "system":
             options = (
@@ -253,7 +252,7 @@ class LutrisConfig:
             )
         else:
             if not self.runner_slug:
-                return None
+                return {}
             attribute_name = options_type + "_options"
 
             try:
