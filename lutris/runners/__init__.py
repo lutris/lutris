@@ -67,7 +67,10 @@ class NonInstallableRunnerError(LutrisError):
 def get_runner_module(runner_name):
     if runner_name not in __all__:
         raise InvalidRunnerError("Invalid runner name '%s'" % runner_name)
-    return __import__("lutris.runners.%s" % runner_name, globals(), locals(), [runner_name], 0)
+    module = __import__("lutris.runners.%s" % runner_name, globals(), locals(), [runner_name], 0)
+    if not module:
+        raise InvalidRunnerError("Runner module for '%s' could not be imported." % runner_name)
+    return module
 
 
 def import_runner(runner_name):
@@ -76,16 +79,12 @@ def import_runner(runner_name):
         return ADDON_RUNNERS[runner_name]
 
     runner_module = get_runner_module(runner_name)
-    if not runner_module:
-        return None
     return getattr(runner_module, runner_name)
 
 
 def import_task(runner, task):
     """Return a runner task."""
     runner_module = get_runner_module(runner)
-    if not runner_module:
-        return None
     return getattr(runner_module, task)
 
 
