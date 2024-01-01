@@ -155,7 +155,7 @@ class GameBar(Gtk.Box):
         return title_label
 
     def get_runner_button(self):
-        icon_name = self.game.runner.name + "-symbolic"
+        icon_name = self.game.runner.name + "-symbolic" if self.game.has_runner else "package-x-generic-symbolic"
         runner_icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
         runner_popover_buttons = self.get_runner_buttons()
         if runner_popover_buttons:
@@ -253,7 +253,7 @@ class GameBar(Gtk.Box):
 
     def get_runner_buttons(self):
         buttons = []
-        if self.game.runner_name and self.game.is_installed:
+        if self.game.has_runner and self.game.is_installed:
             runner = runners.import_runner(self.game.runner_name)(self.game.config)
             for _name, label, callback in runner.context_menu_entries:
                 button = self.get_link_button(label, callback)

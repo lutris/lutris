@@ -208,7 +208,7 @@ class GameActions(BaseGameActions):
             "deletefavorite": game.is_favorite,
             "install_more": not game.service and game.is_installed,
             "execute-script": bool(
-                game.is_installed and game.runner
+                game.is_installed and game.has_runner
                 and game.runner.system_config.get("manual_command")
             ),
             "desktop-shortcut": (

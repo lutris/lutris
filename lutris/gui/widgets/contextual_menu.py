@@ -56,17 +56,6 @@ class ContextualMenu(Gtk.Menu):
         self.append(menu_item)
         return menu_item
 
-    def get_runner_entries(self, game):
-        if not game:
-            return None
-
-        runner = game.runner
-
-        if not runner:
-            return None
-
-        return runner.context_menu_entries
-
     def popup(self, event, game_actions):
         for item in self.get_children():
             self.remove(item)

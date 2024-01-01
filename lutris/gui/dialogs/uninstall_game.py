@@ -403,7 +403,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         @property
         def has_game_remove_warning(self) -> bool:
             """True if the game should not provoke a warning before you delete its files."""
-            return not hasattr(self.game.runner, "no_game_remove_warning")
+            return not self.game.has_runner or not hasattr(self.game.runner, "no_game_remove_warning")
 
         def perform_removal(self) -> None:
             """Performs the actions this row describes, uninstalling or deleting a game."""

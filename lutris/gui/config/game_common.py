@@ -415,12 +415,13 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
     def _build_game_tab(self):
         def is_searchable(game):
-            return game.runner and len(game.runner.game_options) > 8
+            return game.has_runner and len(game.runner.game_options) > 8
 
         def has_advanced(game):
-            for opt in game.runner.game_options:
-                if opt.get("advanced"):
-                    return True
+            if game.has_runner:
+                for opt in game.runner.game_options:
+                    if opt.get("advanced"):
+                        return True
             return False
 
         if self.game and self.runner_name:

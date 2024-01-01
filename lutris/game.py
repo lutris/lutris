@@ -9,6 +9,7 @@ import signal
 import subprocess
 import time
 from gettext import gettext as _
+from typing import cast
 
 from gi.repository import GLib, GObject, Gtk
 
@@ -22,6 +23,7 @@ from lutris.exception_backstops import watch_game_errors
 from lutris.exceptions import GameConfigError, MissingExecutableError
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner
+from lutris.runners.runner import Runner
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
@@ -147,10 +149,15 @@ class Game(GObject.Object):
     @property
     def is_cache_managed(self):
         """Is the DXVK cache receiving updates from lutris?"""
-        if self.runner:
+        try:
+            if not self.has_runner:
+                return False
+
             env = self.runner.system_config.get("env", {})
             return "DXVK_STATE_CACHE_PATH" in env
-        return False
+        except InvalidRunner as ex:
+            logger.exception("Unable to query runner configuration: %s", ex)
+            return False
 
     @property
     def id(self) -> str:
@@ -278,7 +285,7 @@ class Game(GObject.Object):
         it. This can still return an empty string if it can't do that."""
         if self.directory:
             return os.path.expanduser(self.directory)  # expanduser just in case!
-        if self.runner:
+        if self.has_runner:
             return self.runner.resolve_game_path()
         return ""
 
@@ -304,30 +311,31 @@ class Game(GObject.Object):
         self._runner = None
 
     @property
-    def runner_name(self):
+    def runner_name(self) -> str:
         return self._runner_name
 
     @runner_name.setter
-    def runner_name(self, value):
+    def runner_name(self, value: str) -> None:
         self._runner_name = value or ""
         if self._runner and self._runner.name != value:
             self._runner = None
 
     @property
-    def runner(self):
-        if not self.runner_name:
-            return None
+    def has_runner(self) -> bool:
+        return bool(self._runner_name)
+
+    @property
+    def runner(self) -> Runner:
+        if not self.has_runner:
+            raise GameConfigError(_("Invalid game configuration: Missing runner"))
 
         if not self._runner:
-            try:
-                runner_class = import_runner(self.runner_name)
-                self._runner = runner_class(self.config)
-            except InvalidRunner:
-                logger.error("Unable to import runner %s for %s", self.runner_name, self.slug)
-        return self._runner
+            runner_class = import_runner(self.runner_name)
+            self._runner = runner_class(self.config)
+        return cast(Runner, self._runner)
 
     @runner.setter
-    def runner(self, value):
+    def runner(self, value: Runner) -> None:
         self._runner = value
         if value:
             self._runner_name = value.name
@@ -368,7 +376,7 @@ class Game(GObject.Object):
             self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
         remove_steam_shortcut(self)
-        if delete_files and self.runner:
+        if delete_files and self.has_runner:
             # self.directory here, not self.resolve_game_path; no guessing at
             # directories when we delete them
             self.runner.remove_game_data(app_id=self.appid, game_path=self.directory)
@@ -394,7 +402,7 @@ class Game(GObject.Object):
 
     def set_platform_from_runner(self):
         """Set the game's platform from the runner"""
-        if not self.runner:
+        if not self.has_runner:
             logger.warning("Game has no runner, can't set platform")
             return
         self.platform = self.runner.get_platform()
@@ -460,7 +468,7 @@ class Game(GObject.Object):
         if not self.is_installed or not self.is_db_stored:
             logger.error("%s (%s) not installed", self, self.id)
             raise GameConfigError(_("Tried to launch a game that isn't installed."))
-        if not self.runner:
+        if not self.has_runner:
             raise GameConfigError(_("Invalid game configuration: Missing runner"))
 
         return True
@@ -564,8 +572,6 @@ class Game(GObject.Object):
         in which case the game should not be run.
         """
 
-        if not self.runner:
-            raise GameConfigError(_("Invalid game configuration: Missing runner"))
         gameplay_info = self.runner.play()
 
         if "working_dir" not in gameplay_info:

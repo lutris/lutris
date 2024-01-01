@@ -531,7 +531,7 @@ class ConfigBox(VBox):
             path = default_path
 
         chooser_default_path = None
-        if not path and self.game and self.game.runner:
+        if not path and self.game and self.game.has_runner:
             chooser_default_path = self.game.runner.working_dir
         directory_chooser = FileChooserEntry(
             title=_("Select folder"),
