@@ -4,6 +4,7 @@ import os
 import time
 from collections import defaultdict
 from gettext import gettext as _
+from typing import List
 from urllib.parse import parse_qsl, urlencode, urlparse
 
 from lxml import etree
@@ -648,10 +649,10 @@ class GOGService(OnlineService):
             patch_installers.append(installer)
         return patch_installers
 
-    def get_game_platforms(self, db_game):
+    def get_game_platforms(self, db_game: dict) -> List[str]:
         details = db_game.get("details")
         if details:
             worksOn = json.loads(details).get("worksOn")
             if worksOn is not None:
                 return [name for name, works in worksOn.items() if works]
-        return None
+        return []

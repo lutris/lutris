@@ -1,6 +1,7 @@
 import json
 import os
 from gettext import gettext as _
+from typing import List
 
 from PIL import Image
 
@@ -65,9 +66,10 @@ class DolphinService(BaseService):
         """Pull install location from installer"""
         return os.path.dirname(installer["script"]["game"]["main_file"])
 
-    def get_game_platforms(self, db_game):
-        if "details" in db_game:
-            details = json.loads(db_game.get("details"))
+    def get_game_platforms(self, db_game: dict) -> List[str]:
+        details_json = db_game.get("details")
+        if details_json:
+            details = json.loads(details_json)
             if details and details.get("platform"):
                 platform_value = details["platform"]
                 if platform_value.isdigit():
@@ -77,7 +79,7 @@ class DolphinService(BaseService):
                         return [platform]
 
                 return [platform_value]
-        return None
+        return []
 
 
 class DolphinGame(ServiceGame):

@@ -2,6 +2,7 @@
 import os
 import shutil
 from gettext import gettext as _
+from typing import List
 
 from gi.repository import Gio, GObject
 
@@ -339,10 +340,10 @@ class BaseService(GObject.Object):
         """Specific services should implement this"""
         return ""
 
-    def get_game_platforms(self, db_game):
+    def get_game_platforms(self, db_game: dict) -> List[str]:
         """Interprets the database record for this game from this service
-        to extract its platform, or returns None if this is not available."""
-        return None
+        to extract its platform, or returns an empty list if this is not available."""
+        return []
 
 
 class OnlineService(BaseService):

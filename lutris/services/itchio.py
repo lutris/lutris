@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 from gettext import gettext as _
+from typing import List
 from urllib.parse import quote_plus, urlencode
 
 from lutris import settings
@@ -377,7 +378,7 @@ class ItchIoService(OnlineService):
 
         return ""
 
-    def get_game_platforms(self, db_game):
+    def get_game_platforms(self, db_game: dict) -> List[str]:
         platforms = []
         details = json.loads(db_game["details"])
 

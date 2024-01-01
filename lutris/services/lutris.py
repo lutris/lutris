@@ -2,6 +2,7 @@ import json
 import os
 import urllib.parse
 from gettext import gettext as _
+from typing import List
 
 from gi.repository import Gio
 
@@ -143,13 +144,13 @@ class LutrisService(OnlineService):
 
         return ""
 
-    def get_game_platforms(self, db_game):
+    def get_game_platforms(self, db_game: dict) -> List[str]:
         details = db_game.get("details")
         if details:
             platforms = json.loads(details).get("platforms")
             if platforms is not None:
                 return [p.get("name") for p in platforms]
-        return None
+        return []
 
 
 def download_lutris_media(slug):
