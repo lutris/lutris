@@ -10,7 +10,7 @@ from lutris.database.games import get_game_by_field
 from lutris.exceptions import MisconfigurationError
 from lutris.installer import AUTO_EXE_PREFIX
 from lutris.installer.commands import CommandsMixin
-from lutris.installer.errors import MissingGameDependency, ScriptingError
+from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.installer.legacy import get_game_launcher
 from lutris.runners import NonInstallableRunnerError, RunnerInstallationError, steam, wine
@@ -187,7 +187,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 installed_games = [dep for dep in [self._get_game_dependency(dep) for dep in dependency] if dep]
                 if not installed_games:
                     if len(dependency) == 1:
-                        raise MissingGameDependency(slug=dependency)
+                        raise MissingGameDependencyError(slug=dependency)
                     raise ScriptingError(error_message.format(_(" or ").join(dependency)))
                 if index == 0:
                     self.target_path = installed_games[0]["directory"]
@@ -195,7 +195,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             else:
                 game = self._get_game_dependency(dependency)
                 if not game:
-                    raise MissingGameDependency(slug=dependency)
+                    raise MissingGameDependencyError(slug=dependency)
                 if index == 0:
                     self.target_path = game["directory"]
                     self.requires = game["installer_slug"]

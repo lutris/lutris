@@ -17,7 +17,7 @@ from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.installer import InstallationKind, get_installers, interpreter
-from lutris.installer.errors import MissingGameDependency, ScriptingError
+from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall
@@ -352,7 +352,7 @@ class InstallerWindow(ModelessDialog,
                     script = _script
             self.interpreter = interpreter.ScriptInterpreter(script, self)
             self.interpreter.connect("runners-installed", self.on_runners_ready)
-        except MissingGameDependency as ex:
+        except MissingGameDependencyError as ex:
             dlg = QuestionDialog(
                 {
                     "parent": self,

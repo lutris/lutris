@@ -6,7 +6,7 @@ from lutris import settings
 from lutris.api import get_api_games, get_game_installers
 from lutris.database.games import get_games
 from lutris.game import Game
-from lutris.installer.errors import MissingGameDependency
+from lutris.installer.errors import MissingGameDependencyError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.services.lutris import download_lutris_media
 from lutris.util import cache_single
@@ -94,7 +94,7 @@ def scan_directory(dirname):
             logger.info("Found %s in %s", api_game["name"], full_path)
             try:
                 install_game(installer, game_folder)
-            except MissingGameDependency as ex:
+            except MissingGameDependencyError as ex:
                 logger.error("Skipped %s: %s", api_game["name"], ex)
             download_lutris_media(installer["game_slug"])
             slugs_installed.add(api_game["slug"])
