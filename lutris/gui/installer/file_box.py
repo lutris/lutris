@@ -4,7 +4,6 @@ from gettext import gettext as _
 
 from gi.repository import GObject, Gtk
 
-from lutris.gui.installer import UnsupportedProvider
 from lutris.gui.installer.widgets import InstallerLabel
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.installer.installer_file_collection import InstallerFileCollection
@@ -71,7 +70,7 @@ class InstallerFileBox(Gtk.VBox):
         # InstallerFileCollection should not have steam provider
         if self.provider == "steam":
             if isinstance(self.installer_file, InstallerFileCollection):
-                raise UnsupportedProvider(
+                raise RuntimeError(
                     "Installer file is type InstallerFileCollection and do not support 'steam' provider")
             steam_installer = SteamInstaller(self.installer_file.url,
                                              self.installer_file.id)
