@@ -51,7 +51,7 @@ class GameBar(Gtk.Box):
             if game:
                 game_id = game["id"]
         if game_id:
-            self.game = application.get_running_game_by_id(game_id) or Game(game_id)
+            self.game = application.get_game_by_id(game_id)
         else:
             self.game = Game.create_empty_service_game(db_game, self.service)
         self.update_view()

@@ -119,7 +119,7 @@ class GameActions(BaseGameActions):
     @property
     def is_game_running(self):
         for game in self.games:
-            if game.is_db_stored and self.application.get_running_game_by_id(game.id):
+            if game.is_db_stored and self.application.is_game_running_by_id(game.id):
                 return True
         return False
 
@@ -247,7 +247,7 @@ class GameActions(BaseGameActions):
         """Launch a game"""
         for game in self.games:
             if game.is_installed and game.is_db_stored:
-                if not self.application.get_running_game_by_id(game.id):
+                if not self.application.is_game_running_by_id(game.id):
                     game.launch(self.window)
 
     def get_running_games(self):

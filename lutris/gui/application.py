@@ -25,6 +25,7 @@ import tempfile
 
 from datetime import datetime, timedelta
 from gettext import gettext as _
+from typing import List
 
 import gi
 
@@ -865,15 +866,26 @@ class Application(Gtk.Application):
     def get_launch_ui_delegate(self):
         return self.launch_ui_delegate
 
-    def get_running_game_ids(self):
+    def get_running_game_ids(self) -> List[str]:
+        """Returns the ids of the games presently running."""
         return [game.id for game in self.running_games]
 
-    def get_running_game_by_id(self, game_id):
+    def is_game_running_by_id(self, game_id: str) -> bool:
+        """True if the ID is the ID of a game that is running."""
         if game_id:
             for game in self.running_games:
                 if game.id == str(game_id):
-                    return game
-        return None
+                    return True
+        return False
+
+    def get_game_by_id(self, game_id: str) -> Game:
+        """Returns the game with the ID given; if it's running this is the running
+        game instance, and if not it's a fresh copy off the database."""
+        for game in self.running_games:
+            if game.id == str(game_id):
+                return game
+
+        return Game(game_id)
 
     @staticmethod
     def get_lutris_action(url):

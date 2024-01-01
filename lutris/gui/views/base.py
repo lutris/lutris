@@ -74,11 +74,10 @@ class GameView:
     def _get_games_by_ids(self, game_ids: List[str]) -> List[Game]:
         """Resolves a list of game-ids to a list of game objects,
         looking up running games, service games and all that."""
-        application = Gio.Application.get_default()
 
         def _get_game_by_id(id_to_find: str) -> Game:
-            running = application.get_running_game_by_id(id_to_find) if application else None
-            return running or Game(id_to_find)
+            application = Gio.Application.get_default()
+            return application.get_game_by_id(id_to_find) if application else Game(id_to_find)
 
         games = []
         for game_id in game_ids:
@@ -86,15 +85,13 @@ class GameView:
                 db_game = get_game_for_service(self.service.id, game_id)
 
                 if db_game:
-                    game = _get_game_by_id(db_game["id"])
+                    if db_game["id"]:
+                        games.append(_get_game_by_id(db_game["id"]))
                 else:
                     db_game = ServiceGameCollection.get_game(self.service.id, game_id)
-                    game = Game.create_empty_service_game(db_game, self.service)
+                    games.append(Game.create_empty_service_game(db_game, self.service))
             elif game_id:
-                game = _get_game_by_id(game_id)
-            else:
-                continue
-            games.append(game)
+                games.append(_get_game_by_id(game_id))
 
         return games
 
