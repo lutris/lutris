@@ -6,6 +6,7 @@ import cairo
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
 
 from lutris import settings
+from lutris.exceptions import MissingMediaError
 from lutris.gui.widgets import NotificationSource
 from lutris.util import datapath, magic, system
 from lutris.util.log import logger
@@ -78,28 +79,27 @@ def get_scaled_surface_by_path(path, size, device_scale, preserve_aspect_ratio=T
     If the path cannot be read, this returns None.
     """
     pixbuf = get_pixbuf_by_path(path)
-    if pixbuf:
-        pixbuf_width = pixbuf.get_width()
-        pixbuf_height = pixbuf.get_height()
+    pixbuf_width = pixbuf.get_width()
+    pixbuf_height = pixbuf.get_height()
 
-        scale_x = (size[0] / pixbuf_width) * device_scale
-        scale_y = (size[1] / pixbuf_height) * device_scale
+    scale_x = (size[0] / pixbuf_width) * device_scale
+    scale_y = (size[1] / pixbuf_height) * device_scale
 
-        if preserve_aspect_ratio:
-            scale_x = min(scale_x, scale_y)
-            scale_y = scale_x
+    if preserve_aspect_ratio:
+        scale_x = min(scale_x, scale_y)
+        scale_y = scale_x
 
-        pixel_width = int(round(pixbuf_width * scale_x))
-        pixel_height = int(round(pixbuf_height * scale_y))
+    pixel_width = int(round(pixbuf_width * scale_x))
+    pixel_height = int(round(pixbuf_height * scale_y))
 
-        surface = cairo.ImageSurface(cairo.Format.ARGB32, pixel_width, pixel_height)  # pylint:disable=no-member
-        cr = cairo.Context(surface)  # pylint:disable=no-member
-        cr.scale(scale_x, scale_y)
-        Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
-        cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
-        cr.paint()
-        surface.set_device_scale(device_scale, device_scale)
-        return surface
+    surface = cairo.ImageSurface(cairo.Format.ARGB32, pixel_width, pixel_height)  # pylint:disable=no-member
+    cr = cairo.Context(surface)  # pylint:disable=no-member
+    cr.scale(scale_x, scale_y)
+    Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+    cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
+    cr.paint()
+    surface.set_device_scale(device_scale, device_scale)
+    return surface
 
 
 def get_default_icon_path(size):
@@ -115,9 +115,10 @@ def get_default_icon_path(size):
 def get_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
     """Reads an image file and returns the pixbuf. If you provide a size, this scales
     the file to fit that size, preserving the aspect ratio if preserve_aspect_ratio is
-    True. If the file is missing or unreadable, or if 'path' is None, this returns None."""
+    True. If the file is missing or unreadable, or if 'path' is None, this raises
+    MissingMediaError."""
     if not system.path_exists(path, exclude_empty=True):
-        return None
+        raise MissingMediaError(filename=path)
 
     try:
         if size:
@@ -129,8 +130,9 @@ def get_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
             return GdkPixbuf.Pixbuf.new_from_file_at_scale(path, width, height, preserve_aspect_ratio=False)
 
         return GdkPixbuf.Pixbuf.new_from_file(path)
-    except GLib.GError:
+    except GLib.GError as ex:
         logger.exception("Unable to load icon from image %s", path)
+        raise MissingMediaError(message=str(ex), filename=path) from ex
 
 
 def has_stock_icon(name):
@@ -149,6 +151,9 @@ def get_runtime_icon_path(icon_name):
 
     Arguments:
     icon_name -- The name of the icon to retrieve
+
+    Returns:
+        The path to the icon, or raises MissingMediaError if it wasn't found.
     """
     filename = icon_name.lower().replace(" ", "")
     # We prefer bitmaps over SVG, because we've got some SVG icons with the
@@ -165,7 +170,7 @@ def get_runtime_icon_path(icon_name):
             icon_path = os.path.join(settings.RUNTIME_DIR, search_dir, filename + ext)
             if os.path.exists(icon_path):
                 return icon_path
-    return None
+    raise MissingMediaError("The icon '%s' could not be found." % icon_name)
 
 
 def convert_to_background(background_path, target_size=(320, 1080)):

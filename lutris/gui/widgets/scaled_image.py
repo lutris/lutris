@@ -1,9 +1,9 @@
 from gi.repository import Gtk
 
+from lutris.exceptions import MissingMediaError
 from lutris.gui.widgets.utils import (
     ICON_SIZE, get_default_icon_path, get_pixbuf_by_path, get_runtime_icon_path, has_stock_icon
 )
-from lutris.util.log import logger
 
 
 class ScaledImage(Gtk.Image):
@@ -25,9 +25,6 @@ class ScaledImage(Gtk.Image):
 
         pixbuf_size = (size[0] * scale_factor, size[1] * scale_factor) if size else None
         pixbuf = get_pixbuf_by_path(path, pixbuf_size)
-        if not pixbuf:
-            return None
-
         image = ScaledImage(1 / scale_factor)
         image.set_from_pixbuf(pixbuf)
         return image
@@ -35,21 +32,19 @@ class ScaledImage(Gtk.Image):
     @staticmethod
     def new_from_media_path(path, size, scale_factor=1):
         """Constructs an image showing Lutris media, read from the path, scaled to the
-         size given, as with new_scaled_from_path().
+        size given, as with new_scaled_from_path().
 
-         However, if the path is not readable, this will substitute a default icon
-         or banner. If 'size' is square, you get the icon; if not it is a gradient
+        However, if the path is not readable, this will substitute a default icon
+        or banner. If 'size' is square, you get the icon; if not it is a gradient
         filling the full size given."""
 
         pixbuf_size = (size[0] * scale_factor, size[1] * scale_factor)
-        pixbuf = get_pixbuf_by_path(path, pixbuf_size)
-        if not pixbuf:
+
+        try:
+            pixbuf = get_pixbuf_by_path(path, pixbuf_size)
+        except MissingMediaError:
             default_icon = get_default_icon_path(size)
             pixbuf = get_pixbuf_by_path(default_icon, pixbuf_size, preserve_aspect_ratio=False)
-
-            if not pixbuf:
-                logger.error("The default media '%s' could not be loaded", default_icon)
-                return None
 
         image = ScaledImage(1 / scale_factor)
         image.set_from_pixbuf(pixbuf)
@@ -61,9 +56,10 @@ class ScaledImage(Gtk.Image):
         default icon size. If the icon can't be found, we'll fall back onto another,
         stock icon. If you don't supply one (or it's not available) we'll fall back
         further to 'package-x-generic-symbolic'; we always give you something."""
-        path = get_runtime_icon_path(icon_name)
-        icon = ScaledImage.new_scaled_from_path(path, size=ICON_SIZE, scale_factor=scale_factor)
-        if not icon:
+        try:
+            path = get_runtime_icon_path(icon_name)
+            icon = ScaledImage.new_scaled_from_path(path, size=ICON_SIZE, scale_factor=scale_factor)
+        except MissingMediaError:
             if not has_stock_icon(fallback_stock_icon_name):
                 fallback_stock_icon_name = "package-x-generic-symbolic"
 

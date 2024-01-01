@@ -70,6 +70,17 @@ class MissingExecutableError(MisconfigurationError):
     """Raised when a program can't be located."""
 
 
+class MissingMediaError(LutrisError):
+    """Raised when an image file could not be found."""
+
+    def __init__(self, *args, message=None, filename=None, **kwargs):
+        if not message and filename:
+            message = _("The file {} could not be found").format(filename)
+
+        super().__init__(message, *args, **kwargs)
+        self.filename = filename
+
+
 class MissingGameExecutableError(MissingExecutableError):
     """Raise when a game's executable can't be found is not specified."""
 
