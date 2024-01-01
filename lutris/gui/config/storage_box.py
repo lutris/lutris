@@ -3,7 +3,7 @@ from gettext import gettext as _
 
 from gi.repository import Gtk
 
-from lutris.cache import get_cache_path, save_cache_path
+from lutris.cache import get_cache_path, has_custom_cache_path, save_custom_cache_path
 from lutris.config import LutrisConfig
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.common import FileChooserEntry, Label
@@ -32,7 +32,7 @@ class StorageBox(BaseConfigBox):
                 "name": "Installer cache",
                 "setting": "pga_cache_path",
                 "default": "",
-                "value": get_cache_path(),
+                "value": get_cache_path() if has_custom_cache_path() else "",
                 "help": _(
                     "If provided, files downloaded during game installs will be kept there\n"
                     "\nOtherwise, all downloaded files are discarded."
@@ -76,7 +76,7 @@ class StorageBox(BaseConfigBox):
     def on_file_chooser_changed(self, entry, setting):
         text = entry.get_text()
         if setting["setting"] == "pga_cache_path":
-            save_cache_path(text)
+            save_custom_cache_path(text)
         elif setting["setting"] == "game_path":
             lutris_config = LutrisConfig()
             lutris_config.raw_system_config["game_path"] = text

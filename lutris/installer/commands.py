@@ -11,7 +11,7 @@ from pathlib import Path
 from gi.repository import GLib
 
 from lutris import runtime
-from lutris.cache import get_cache_path
+from lutris.cache import get_cache_path, has_custom_cache_path
 from lutris.command import MonitoredCommand
 from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError
 from lutris.installer.errors import ScriptingError
@@ -85,9 +85,9 @@ class CommandsMixin:
     @staticmethod
     def _is_cached_file(file_path):
         """Return whether a file referenced by file_id is stored in the cache"""
-        pga_cache_path = get_cache_path()
-        if not pga_cache_path:
+        if not has_custom_cache_path():
             return False
+        pga_cache_path = get_cache_path()
         return file_path.startswith(pga_cache_path)
 
     def chmodx(self, filename):

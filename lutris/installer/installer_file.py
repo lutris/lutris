@@ -3,8 +3,8 @@ import os
 from gettext import gettext as _
 from urllib.parse import urlparse
 
-from lutris import cache, settings
-from lutris.cache import save_to_cache
+from lutris import cache
+from lutris.cache import has_custom_cache_path, save_to_cache
 from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.errors import ScriptingError
 from lutris.util import system
@@ -175,14 +175,7 @@ class InstallerFile:
         """
         if self.url.startswith("N/A"):
             return False
-        cache_path = cache.get_cache_path()
-        if not cache_path:
-            return False
-        if system.path_exists(cache_path):
-            return True
-
-        logger.warning("Cache path %s does not exist", cache_path)
-        return False
+        return has_custom_cache_path()
 
     @property
     def is_user_pga_caching_allowed(self):
@@ -193,7 +186,7 @@ class InstallerFile:
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
-        _cache_path = cache.get_cache_path() or settings.INSTALLER_CACHE_DIR
+        _cache_path = cache.get_cache_path()
         url_parts = urlparse(self.url)
         if url_parts.netloc.endswith("gog.com"):
             folder = "gog"
@@ -269,8 +262,8 @@ class InstallerFile:
     def remove_previous(self):
         """Remove file at already at destination, prior to starting the download."""
         if (
-                not self.uses_pga_cache()
-                and system.path_exists(self.dest_file)
+            not self.uses_pga_cache()
+            and system.path_exists(self.dest_file)
         ):
             # If we've previously downloaded a directory, we'll need to get rid of it
             # to download a file now. Since we are not using the cache, we don't keep
