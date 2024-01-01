@@ -48,7 +48,7 @@ ADDON_RUNNERS = {}
 _cached_runner_human_names = {}
 
 
-class InvalidRunner(Exception):
+class InvalidRunnerError(Exception):
 
     def __init__(self, message):
         super().__init__(message)
@@ -71,7 +71,7 @@ class NonInstallableRunnerError(Exception):
 
 def get_runner_module(runner_name):
     if runner_name not in __all__:
-        raise InvalidRunner("Invalid runner name '%s'" % runner_name)
+        raise InvalidRunnerError("Invalid runner name '%s'" % runner_name)
     return __import__("lutris.runners.%s" % runner_name, globals(), locals(), [runner_name], 0)
 
 
@@ -123,7 +123,7 @@ def get_runner_human_name(runner_name):
         if runner_name not in _cached_runner_human_names:
             try:
                 _cached_runner_human_names[runner_name] = import_runner(runner_name)().human_name
-            except InvalidRunner:
+            except InvalidRunnerError:
                 _cached_runner_human_names[runner_name] = runner_name  # an obsolete runner
         return _cached_runner_human_names[runner_name]
 

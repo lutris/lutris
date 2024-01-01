@@ -22,7 +22,7 @@ from lutris.database import sql
 from lutris.exception_backstops import watch_game_errors
 from lutris.exceptions import GameConfigError, MissingExecutableError
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
-from lutris.runners import InvalidRunner, import_runner
+from lutris.runners import InvalidRunnerError, import_runner
 from lutris.runners.runner import Runner
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
@@ -155,7 +155,7 @@ class Game(GObject.Object):
 
             env = self.runner.system_config.get("env", {})
             return "DXVK_STATE_CACHE_PATH" in env
-        except InvalidRunner as ex:
+        except InvalidRunnerError as ex:
             logger.exception("Unable to query runner configuration: %s", ex)
             return False
 

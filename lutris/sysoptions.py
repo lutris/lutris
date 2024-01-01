@@ -620,7 +620,7 @@ def with_runner_overrides(runner_slug):
     options = system_options
     try:
         runner = runners.import_runner(runner_slug)
-    except runners.InvalidRunner:
+    except runners.InvalidRunnerError:
         return options
     if not getattr(runner, "system_options_override"):
         runner = runner()

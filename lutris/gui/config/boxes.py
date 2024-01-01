@@ -11,7 +11,7 @@ from gi.repository import Gdk, Gtk
 from lutris import settings, sysoptions
 from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label, VBox
 from lutris.gui.widgets.searchable_combobox import SearchableCombobox
-from lutris.runners import InvalidRunner, import_runner
+from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
@@ -757,7 +757,7 @@ class RunnerBox(ConfigBox):
         self.lutris_config = lutris_config
         try:
             self.runner = import_runner(self.lutris_config.runner_slug)()
-        except InvalidRunner:
+        except InvalidRunnerError:
             self.runner = None
         if self.runner:
             self.options = self.runner.get_runner_options()

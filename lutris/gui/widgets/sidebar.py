@@ -17,7 +17,7 @@ from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.utils import has_stock_icon
 from lutris.installer.interpreter import ScriptInterpreter
-from lutris.runners import InvalidRunner
+from lutris.runners import InvalidRunnerError
 from lutris.services import SERVICES
 from lutris.services.base import AuthTokenExpired, BaseService
 
@@ -217,7 +217,7 @@ class RunnerSidebarRow(SidebarRow):
         # and all visible boxes should be installed.
         try:
             self.runner = runners.import_runner(self.id)()
-        except InvalidRunner:
+        except InvalidRunnerError:
             return entries
 
         if self.runner.multiple_versions:

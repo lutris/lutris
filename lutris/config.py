@@ -5,7 +5,7 @@ import time
 from shutil import copyfile
 
 from lutris import settings, sysoptions
-from lutris.runners import InvalidRunner, import_runner
+from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
 from lutris.util.system import path_exists
 from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
@@ -258,7 +258,7 @@ class LutrisConfig:
 
             try:
                 runner = import_runner(self.runner_slug)
-            except InvalidRunner:
+            except InvalidRunnerError:
                 options = {}
             else:
                 if not getattr(runner, attribute_name):

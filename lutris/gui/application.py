@@ -33,7 +33,7 @@ gi.require_version("Gtk", "3.0")
 
 from gi.repository import Gio, GLib, Gtk, GObject
 
-from lutris.runners import get_runner_names, import_runner, InvalidRunner, RunnerInstallationError
+from lutris.runners import get_runner_names, import_runner, InvalidRunnerError, RunnerInstallationError
 from lutris import settings
 from lutris.api import parse_installer_url, get_runners
 from lutris.command import exec_command
@@ -1039,7 +1039,7 @@ class Application(Gtk.Application):
                 runner = import_runner("wine")
                 runner().install(self.install_ui_delegate, version=version)
                 print(f"Wine version '{version}' has been installed.")
-            except (InvalidRunner, RunnerInstallationError) as ex:
+            except (InvalidRunnerError, RunnerInstallationError) as ex:
                 print(ex.message)
 
     def wine_runner_uninstall(self, version):
@@ -1068,7 +1068,7 @@ Also, check that the version specified is in the correct format.
             else:
                 runner.install(self.install_ui_delegate, version=None, callback=None)
                 print(f"'{runner_name}' has been installed")
-        except (InvalidRunner, RunnerInstallationError) as ex:
+        except (InvalidRunnerError, RunnerInstallationError) as ex:
             print(ex.message)
 
     def uninstall_runner_cli(self, runner_name):
@@ -1079,7 +1079,7 @@ Also, check that the version specified is in the correct format.
         try:
             runner_class = import_runner(runner_name)
             runner = runner_class()
-        except InvalidRunner:
+        except InvalidRunnerError:
             logger.error("Failed to import Runner: %s", runner_name)
             return
         if not runner.is_installed():

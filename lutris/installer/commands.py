@@ -16,7 +16,7 @@ from lutris.command import MonitoredCommand
 from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
-from lutris.runners import InvalidRunner, import_runner, import_task
+from lutris.runners import InvalidRunnerError, import_runner, import_task
 from lutris.runners.wine import wine
 from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
@@ -53,7 +53,7 @@ class CommandsMixin:
         """Runner the runner class from its name"""
         try:
             runner = import_runner(runner_name)
-        except InvalidRunner as err:
+        except InvalidRunnerError as err:
             raise ScriptingError(_("Invalid runner provided %s") % runner_name) from err
         return runner
 
