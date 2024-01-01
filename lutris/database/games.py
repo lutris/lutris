@@ -199,7 +199,7 @@ def get_matching_game(params):
             if game["configpath"] == params.get("configpath"):
                 return game["id"]
         else:
-            if (game["runner"] == params.get("runner") or not all([params.get("runner"), game["runner"]])):
+            if game["runner"] == params.get("runner") or not all([params.get("runner"), game["runner"]]):
                 return game["id"]
     return None
 

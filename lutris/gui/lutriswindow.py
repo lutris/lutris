@@ -407,7 +407,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def get_running_games(self):
         """Return a list of currently running games"""
-        return games_db.get_games_by_ids([game.id for game in self.application.running_games])
+        return games_db.get_games_by_ids(self.application.get_running_game_ids())
 
     def on_get_missing_game_ids(self, missing_ids, error):
         if error:
@@ -846,7 +846,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def on_window_delete(self, *_args):
         app = self.application
-        if app.running_games.get_n_items():
+        if app.running_games:
             self.hide()
             return True
         if app.has_tray_icon():

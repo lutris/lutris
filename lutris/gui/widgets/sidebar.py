@@ -590,7 +590,7 @@ class LutrisSidebar(Gtk.ListBox):
 
     def on_game_stop(self, _game):
         """Hide the "running" section when no games are running"""
-        if not self.application.running_games.get_n_items():
+        if not self.application.running_games:
             self.running_row.hide()
 
             if self.get_selected_row() == self.running_row:

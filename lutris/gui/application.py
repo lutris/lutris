@@ -93,7 +93,7 @@ class Application(Gtk.Application):
         self.launch_ui_delegate = LaunchUIDelegate()
         self.install_ui_delegate = InstallUIDelegate()
 
-        self.running_games = Gio.ListStore.new(Game)
+        self.running_games = []
         self.app_windows = {}
         self.tray = None
 
@@ -790,7 +790,7 @@ class Application(Gtk.Application):
         if game.id in ids:
             logger.debug("Removing %s from running IDs", game.id)
             try:
-                self.running_games.remove(ids.index(game.id))
+                del self.running_games[ids.index(game.id)]
             except ValueError:
                 pass
         elif ids:
@@ -802,7 +802,7 @@ class Application(Gtk.Application):
         if settings.read_setting("hide_client_on_game_start") == "True" and not self.quit_on_game_exit:
             self.window.show()  # Show launcher window
         elif not self.window.is_visible():
-            if self.running_games.get_n_items() == 0:
+            if not self.running_games:
                 if self.quit_on_game_exit or not self.has_tray_icon():
                     self.quit()
         return True
@@ -822,7 +822,7 @@ class Application(Gtk.Application):
                 game_id = None
 
             if game_id:
-                def on_error(game, error):
+                def on_error(_game, error):
                     logger.exception("Unable to install game: %s", error)
                     return True
 
@@ -866,16 +866,11 @@ class Application(Gtk.Application):
         return self.launch_ui_delegate
 
     def get_running_game_ids(self):
-        ids = []
-        for i in range(self.running_games.get_n_items()):
-            game = self.running_games.get_item(i)
-            ids.append(game.id)
-        return ids
+        return [game.id for game in self.running_games]
 
     def get_running_game_by_id(self, game_id):
         if game_id:
-            for i in range(self.running_games.get_n_items()):
-                game = self.running_games.get_item(i)
+            for game in self.running_games:
                 if game.id == str(game_id):
                     return game
         return None
