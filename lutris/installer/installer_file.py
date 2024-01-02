@@ -3,8 +3,7 @@ import os
 from gettext import gettext as _
 from urllib.parse import urlparse
 
-from lutris import cache
-from lutris.cache import has_custom_cache_path, save_to_cache
+from lutris.cache import get_cache_path, has_custom_cache_path, save_to_cache
 from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.errors import ScriptingError
 from lutris.util import system
@@ -186,7 +185,7 @@ class InstallerFile:
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
-        _cache_path = cache.get_cache_path()
+        _cache_path = get_cache_path()
         url_parts = urlparse(self.url)
         if url_parts.netloc.endswith("gog.com"):
             folder = "gog"
@@ -195,8 +194,9 @@ class InstallerFile:
         return os.path.join(_cache_path, self.game_slug, folder)
 
     def prepare(self):
-        """Prepare the file for download, if we've not been redirected to an existing file."""
-        if not self._dest_file and not system.path_exists(self.cache_path):
+        """Prepare the file for download. If we've not been redirected to an existing file,
+        and if we're using our own installer cache, we need to unsure that directory exists."""
+        if not self._dest_file and not has_custom_cache_path() and not os.path.isdir(self.cache_path):
             os.makedirs(self.cache_path)
 
     def create_download_progress_box(self):

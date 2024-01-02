@@ -3,8 +3,7 @@ import os
 from gettext import gettext as _
 from urllib.parse import urlparse
 
-from lutris import cache
-from lutris.cache import has_custom_cache_path
+from lutris.cache import get_cache_path, has_custom_cache_path
 from lutris.gui.widgets.download_collection_progress_box import DownloadCollectionProgressBox
 from lutris.util import system
 from lutris.util.strings import gtk_safe_urls
@@ -122,7 +121,7 @@ class InstallerFileCollection:
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
-        _cache_path = cache.get_cache_path()
+        _cache_path = get_cache_path()
         return os.path.join(_cache_path, self.game_slug)
 
     def prepare(self):
