@@ -698,13 +698,14 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         response = dialog.run()
         if response == Gtk.ResponseType.ACCEPT:
             image_path = dialog.get_filename()
-            AsyncCall(self.save_custom_media, self.image_refreshed_cb, image_type, image_path)
+            scale_factor = self.get_scale_factor()  # get this here for thread-safety
+            AsyncCall(self.save_custom_media, self.image_refreshed_cb, image_type, image_path, scale_factor)
         dialog.destroy()
 
     def on_custom_image_reset_clicked(self, _widget, image_type):
         AsyncCall(self.refresh_image, self.image_refreshed_cb, image_type)
 
-    def save_custom_media(self, image_type, image_path):
+    def save_custom_media(self, image_type, image_path, scale_factor):
         slug = self.slug or self.game.slug
         service_media = self.service_medias[image_type]
         self.game.custom_images.add(image_type)
@@ -718,7 +719,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
                 # If we must transcode the image, we'll scale the image up based on
                 # the UI scale factor, to try to avoid blurriness. Of course this won't
                 # work if the user changes the scaling later, but what can you do.
-                scale_factor = self.get_scale_factor()
                 width, height = service_media.custom_media_storage_size
                 width = width * scale_factor
                 height = height * scale_factor
