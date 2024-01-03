@@ -323,13 +323,14 @@ class mame(Runner):  # pylint: disable=invalid-name
             if rompath:
                 command += ["-rompath", rompath]
             command.append(self.game_config["machine"])
-            slots1 = self.game_config.get("slots")
+            for slot_arg in split_arguments(self.game_config.get("slots")):
+                command.append(slot_arg)
             device = self.game_config.get("device")
             if not device:
                 raise GameConfigError(_("No device is set for machine %s") % self.game_config["machine"])
             rom = self.game_config.get("main_file")
             if rom:
-                command += [slots1, "-" + device, rom]
+                command += ["-" + device, rom]
         else:
             rompath = os.path.dirname(self.game_config.get("main_file"))
             if not rompath:
