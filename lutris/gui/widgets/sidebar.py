@@ -49,7 +49,6 @@ class SidebarRow(Gtk.ListBoxRow):
         self.application = application
         self.type = type_
         self.id = id_
-        self.runner = None
         self.name = name
         self.is_updating = False
         self.buttons = {}
@@ -216,35 +215,41 @@ class RunnerSidebarRow(SidebarRow):
         # Creation is delayed because only installed runners can be imported
         # and all visible boxes should be installed.
         try:
-            self.runner = runners.import_runner(self.id)()
+            runner = self.get_runner()
         except InvalidRunnerError:
             return entries
 
-        if self.runner.multiple_versions:
+        if runner.multiple_versions:
             entries.append((
                 "system-software-install-symbolic",
                 _("Manage Versions"),
                 self.on_manage_versions,
                 "manage-versions"
             ))
-        if self.runner.runnable_alone:
+        if runner.runnable_alone:
             entries.append(("media-playback-start-symbolic", _("Run"), self.on_run_runner, "run"))
         entries.append(("emblem-system-symbolic", _("Configure"), self.on_configure_runner, "configure"))
         return entries
 
+    def get_runner(self):
+        return runners.import_runner(self.id)()
+
     def on_run_runner(self, *_args):
         """Runs the runner without no game."""
-        self.runner.run(self.get_toplevel())
+        runner = self.get_runner()
+        runner.run(self.get_toplevel())
 
     def on_configure_runner(self, *_args):
         """Show runner configuration"""
-        self.application.show_window(RunnerConfigDialog, runner=self.runner, parent=self.get_toplevel())
+        runner = self.get_runner()
+        self.application.show_window(RunnerConfigDialog, runner=runner, parent=self.get_toplevel())
 
     def on_manage_versions(self, *_args):
         """Manage runner versions"""
+        runner = self.get_runner()
         dlg_title = _("Manage %s versions") % self.runner.name
         self.application.show_window(RunnerInstallDialog, title=dlg_title,
-                                     runner=self.runner, parent=self.get_toplevel())
+                                     runner=runner, parent=self.get_toplevel())
 
 
 class CategorySidebarRow(SidebarRow):
