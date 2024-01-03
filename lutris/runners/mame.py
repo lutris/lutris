@@ -127,6 +127,12 @@ class mame(Runner):  # pylint: disable=invalid-name
             "help": _("Command line arguments used when launching the game"),
         },
         {
+            "option": "slots",
+            "type": "string",
+            "label": ("Slot System"),
+            "help": ("For slot devices that is needed for romsloads"),
+        },
+        {
             "option": "autoboot_command",
             "type": "string",
             "section": _("Autoboot"),
@@ -317,12 +323,13 @@ class mame(Runner):  # pylint: disable=invalid-name
             if rompath:
                 command += ["-rompath", rompath]
             command.append(self.game_config["machine"])
+            slots1 = self.game_config.get("slots")
             device = self.game_config.get("device")
             if not device:
                 raise GameConfigError(_("No device is set for machine %s") % self.game_config["machine"])
             rom = self.game_config.get("main_file")
             if rom:
-                command += ["-" + device, rom]
+                command += [slots1, "-" + device, rom]
         else:
             rompath = os.path.dirname(self.game_config.get("main_file"))
             if not rompath:
