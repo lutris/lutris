@@ -239,12 +239,11 @@ class HumbleBundleService(OnlineService):
         if not link:
             raise UnavailableGameError(_("No game found on Humble Bundle"))
         filename = link.split("?")[0].split("/")[-1]
-        return [
-            InstallerFile(installer.game_slug, installer_file_id, {
-                "url": link,
-                "filename": filename
-            })
-        ]
+        file = InstallerFile(installer.game_slug, installer_file_id, {
+            "url": link,
+            "filename": filename
+        })
+        return [file], []
 
     @staticmethod
     def get_filename_for_platform(downloads, platform):

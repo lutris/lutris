@@ -487,10 +487,13 @@ class GOGService(OnlineService):
                                              self._format_links(installer, installer_file_id, links))]
         else:
             files = []
+
+        extra_files = []
         if selected_extras:
             for extra_file in self.get_extra_files(downloads, installer, selected_extras):
-                files.append(extra_file)
-        return files
+                extra_files.append(extra_file)
+
+        return files, extra_files
 
     def read_file_checksum(self, file_path):
         """Return the MD5 checksum for a GOG file

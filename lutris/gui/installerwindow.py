@@ -69,6 +69,7 @@ class InstallerWindow(ModelessDialog,
         self.set_default_size(740, 460)
         self.installers = installers
         self.config = {}
+        self.selected_extra_ids = []
         self.install_in_progress = False
         self.install_complete = False
         self.interpreter = None
@@ -581,7 +582,7 @@ class InstallerWindow(ModelessDialog,
 
         extra_store.foreach(save_extra)
 
-        self.interpreter.extras = selected_extras
+        self.selected_extra_ids = selected_extras
         GLib.idle_add(self.on_extras_ready)
 
     def on_extras_ready(self, *args):
@@ -599,7 +600,8 @@ class InstallerWindow(ModelessDialog,
         else:
             patch_version = None
 
-        AsyncCall(self.interpreter.installer.prepare_game_files, self.on_files_prepared, patch_version)
+        AsyncCall(self.interpreter.installer.prepare_game_files,
+                  self.on_files_prepared, self.selected_extra_ids, patch_version)
 
     def on_files_prepared(self, _result, error):
         if error:
@@ -669,6 +671,7 @@ class InstallerWindow(ModelessDialog,
         self.install_in_progress = True
         self.load_spinner_page(_("Installing game data"))
         self.stack.discard_navigation()  # once we really start installing, no going back!
+        self.interpreter.installer.install_extras()
         self.interpreter.launch_installer_commands()
 
     # Spinner Page

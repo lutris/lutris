@@ -133,6 +133,7 @@ class BaseService(GObject.Object):
         """Refresh the service's games, asynchronously. This raises signals, but
         does so on the main thread- and runs the reload on a worker thread. It calls
         reloaded_callback when done, passing any error (or None on success)"""
+
         def do_reload():
             if self.is_loading:
                 logger.warning("'%s' games are already loading", self.name)
@@ -184,6 +185,14 @@ class BaseService(GObject.Object):
     def generate_installer(self, db_game):
         """Used to generate an installer from the data returned from the services"""
         return {}
+
+    def get_installer_files(self, installer, installer_file_id, selected_extras):
+        """Used to obtains the content files from the service, when an 'N/A' file is left in
+        the installer. This handles 'extras', and must return a tuple; first a list of
+        InstallerFile or InstallerFileCollection objects that are for the files themselves,
+        and then a list of such objects for the extras. This separation allows us to generate
+        extra installer script steps to move the extras in."""
+        return [], []
 
     def match_game(self, service_game, api_game):
         """Match a service game to a lutris game referenced by its slug"""

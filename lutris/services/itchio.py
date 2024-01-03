@@ -526,6 +526,7 @@ class ItchIoService(OnlineService):
         filtered = []
         extras = []
         files = []
+        extra_files = []
         link = None
         filename = "setup.zip"
 
@@ -596,7 +597,7 @@ class ItchIoService(OnlineService):
             if str(extra["id"]) not in selected_extras:
                 continue
             link = self.get_download_link(extra["id"], key)
-            files.append(
+            extra_files.append(
                 InstallerFile(installer.game_slug, str(extra["id"]), {
                     "url": link,
                     "filename": extra["filename"],
@@ -604,7 +605,7 @@ class ItchIoService(OnlineService):
                 })
             )
 
-        return files
+        return files, extra_files
 
     def get_patch_files(self, installer, installer_file_id):
         """Similar to get_installer_files but for patches"""

@@ -106,15 +106,14 @@ class SteamService(BaseService):
         self.match_games()
         return steam_games
 
-    def get_installer_files(self, installer, installer_file_id, _selected_extras):
+    def get_installer_files(self, installer, _installer_file_id, _selected_extras):
         steam_uri = "$STEAM:%s:."
         appid = str(installer.script["game"]["appid"])
-        return [
-            InstallerFile(installer.game_slug, "steam_game", {
-                "url": steam_uri % appid,
-                "filename": appid
-            })
-        ]
+        file = InstallerFile(installer.game_slug, "steam_game", {
+            "url": steam_uri % appid,
+            "filename": appid
+        })
+        return [file], []
 
     def install_from_steam(self, manifest):
         """Create a new Lutris game based on an existing Steam install"""
