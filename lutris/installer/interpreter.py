@@ -70,7 +70,6 @@ class ScriptInterpreter(CommandsMixin):
         self.abort_current_task = None
         self.user_inputs = []
         self.current_command = 0  # Current installer command when iterating through them
-        self.runners_to_install = []
         self.current_resolution = DISPLAY_MANAGER.get_current_resolution()
         self.installer = LutrisInstaller(installer, self, service=self.service, appid=_appid)
 
@@ -199,11 +198,6 @@ class ScriptInterpreter(CommandsMixin):
             return []
         return self.service.get_extras(self.installer.service_appid)
 
-    async def launch_install(self, install_ui_delegate):
-        """Launch the install process; returns False if cancelled by the user."""
-        self.runners_to_install = self.get_runners_to_install()
-        return await self.install_runners(install_ui_delegate)
-
     def create_game_folder(self):
         """Create the game folder if needed and store if is was created"""
         if (
@@ -252,9 +246,9 @@ class ScriptInterpreter(CommandsMixin):
 
         return runners_to_install
 
-    async def install_runners(self, ui_delegate):
+    async def install_runners(self, runners_to_install, ui_delegate):
         """Install required runners for a game"""
-        for runner in self.runners_to_install:
+        for runner in runners_to_install:
             if not await self.install_runner(runner, ui_delegate):
                 return False
         return True

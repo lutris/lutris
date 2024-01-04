@@ -444,7 +444,12 @@ class InstallerWindow(ModelessDialog,
         """Let the interpreter take charge of the next stages."""
 
         async def launch_install():
-            if await self.interpreter.launch_install(self):
+            """Launch the install process."""
+            runners_to_install = self.interpreter.get_runners_to_install()
+            if not runners_to_install:
+                self.on_runners_ready()
+            elif await self.interpreter.install_runners(runners_to_install, self):
+                self.emit("runners-installed")
                 self.on_runners_ready()
             else:
                 self.stack.navigation_reset()
@@ -471,7 +476,6 @@ class InstallerWindow(ModelessDialog,
         self.config["create_steam_shortcut"] = checkbutton.get_active()
 
     def on_runners_ready(self):
-        self.emit("runners-installed")
         AsyncCall(self.interpreter.get_extras, self.on_extras_loaded)
 
     # Extras Page
