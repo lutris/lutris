@@ -1,5 +1,5 @@
 # Third Party Libraries
-from gi.repository import Gtk
+from gi.repository import Gio, Gtk
 
 
 class BaseApplicationWindow(Gtk.ApplicationWindow):
@@ -20,6 +20,9 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
         self.add(self.vbox)
         self.action_buttons = Gtk.Box(spacing=6)
         self.vbox.pack_end(self.action_buttons, False, False, 0)
+
+        app = Gio.Application.get_default()
+        app.hold_for(self)
 
     def get_action_button(self, label, handler=None, tooltip=None):
         """Returns a button that can be used for the action bar"""

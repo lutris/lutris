@@ -151,6 +151,9 @@ class LutrisWindow(Gtk.ApplicationWindow,
         selected_category = settings.read_setting("selected_category", default="runner:all")
         self.sidebar.selected_category = selected_category.split(":", maxsplit=1) if selected_category else None
 
+        app = Gio.Application.get_default()
+        app.hold_for(self)
+
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
         Action.__new__.__defaults__ = (None, None, None, None, None)

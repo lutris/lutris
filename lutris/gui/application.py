@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import asyncio
 import json
 import logging
 import os
@@ -34,7 +34,7 @@ gi.require_version("Gtk", "3.0")
 
 from gi.repository import Gio, GLib, Gtk, GObject
 
-from lutris.runners import get_runner_names, import_runner, InvalidRunnerError, RunnerInstallationError
+from lutris.runners import get_runner_names, import_runner, RunnerInstallationError, InvalidRunnerError
 from lutris import settings
 from lutris.api import parse_installer_url, get_runners
 from lutris.command import exec_command
@@ -51,6 +51,7 @@ from lutris.migrations import migrate
 from lutris.startup import init_lutris, run_all_checks
 from lutris.style_manager import StyleManager
 from lutris.util import datapath, log, system
+from lutris.util.jobs import AsyncCall
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
@@ -58,8 +59,7 @@ from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.savesync import show_save_stats, upload_save, save_check
 from lutris.services import get_enabled_services
 from lutris.database.services import ServiceGameCollection
-from lutris.util.jobs import AsyncCall
-from lutris.exception_backstops import init_exception_backstops
+from lutris.exception_backstops import init_exception_backstops, async_execute
 
 from .lutriswindow import LutrisWindow
 
@@ -91,6 +91,7 @@ class Application(Gtk.Application):
         self.force_updates = False
         self.css_provider = Gtk.CssProvider.new()
         self.window = None
+        self.hold_count = 0
         self.launch_ui_delegate = LaunchUIDelegate()
         self.install_ui_delegate = InstallUIDelegate()
 
@@ -114,6 +115,32 @@ class Application(Gtk.Application):
             self.add_arguments()
         else:
             ErrorDialog(_("Your Linux distribution is too old. Lutris won't function properly."))
+
+    def hold(self):
+        self.hold_count += 1
+
+    def release(self):
+        self.hold_count -= 1
+        if self.hold_count <= 0:
+            asyncio.get_running_loop().stop()
+            self.do_shutdown()
+
+    def hold_for(self, window):
+        def on_destroy(*_args):
+            self.release()
+
+        window.connect("destroy", on_destroy)
+        self.hold()
+
+    def quit(self):
+        asyncio.get_running_loop().stop()
+        self.do_shutdown()
+
+    @property
+    def keep_running(self):
+        if self.hold_count is None:
+            return False
+        return self.hold_count > 0 or len(self.get_windows()) > 0
 
     def add_arguments(self):
         if hasattr(self, "set_option_context_summary"):
@@ -550,7 +577,7 @@ class Application(Gtk.Application):
         # install Runner
         if options.contains("install-runner"):
             runner = options.lookup_value("install-runner").get_string()
-            self.install_runner(runner)
+            self.async_execute(self.install_runner(runner))
             return 0
 
         # Uninstall Runner
@@ -723,7 +750,7 @@ class Application(Gtk.Application):
             service_game = ServiceGameCollection.get_game(service, appid)
             if service_game:
                 service = get_enabled_services()[service]()
-                service.install(service_game)
+                service.install_game(service_game)
                 return 0
 
         if action == "cancel":
@@ -1013,11 +1040,11 @@ class Application(Gtk.Application):
             if i["version"]:
                 print(i)
 
-    def install_runner(self, runner):
+    async def install_runner(self, runner):
         if runner.startswith("lutris"):
-            self.install_wine_cli(runner)
+            await self.install_wine_cli(runner)
         else:
-            self.install_cli(runner)
+            await self.install_cli(runner)
 
     def uninstall_runner(self, runner):
         if "wine" in runner:
@@ -1032,7 +1059,7 @@ class Application(Gtk.Application):
         else:
             self.uninstall_runner_cli(runner)
 
-    def install_wine_cli(self, version):
+    async def install_wine_cli(self, version):
         """
         Downloads wine runner using lutris -r <runner>
         """
@@ -1044,8 +1071,8 @@ class Application(Gtk.Application):
         else:
             try:
                 runner = import_runner("wine")
-                runner().install(self.install_ui_delegate, version=version)
-                print(f"Wine version '{version}' has been installed.")
+                if await runner().install_runner(self.install_ui_delegate, version=version):
+                    print(f"Wine version '{version}' has been installed.")
             except (InvalidRunnerError, RunnerInstallationError) as ex:
                 print(ex.message)
 
@@ -1063,7 +1090,7 @@ Please check if the Wine Runner and specified version are installed (for that us
 Also, check that the version specified is in the correct format.
                 """)
 
-    def install_cli(self, runner_name):
+    async def install_cli(self, runner_name):
         """
         install the runner provided in prepare_runner_cli()
         """
@@ -1073,8 +1100,8 @@ Also, check that the version specified is in the correct format.
             if runner.is_installed():
                 print(f"'{runner_name}' is already installed.")
             else:
-                runner.install(self.install_ui_delegate, version=None, callback=None)
-                print(f"'{runner_name}' has been installed")
+                if await runner.install_runner(self.install_ui_delegate):
+                    print(f"'{runner_name}' has been installed")
         except (InvalidRunnerError, RunnerInstallationError) as ex:
             print(ex.message)
 
@@ -1097,6 +1124,16 @@ Also, check that the version specified is in the correct format.
             print(f"'{runner_name}' has been uninstalled.")
         else:
             print(f"Runner '{runner_name}' cannot be uninstalled.")
+
+    def async_execute(self, coroutine):
+        # Keep the application upon until the function completes.
+        self.hold()
+        task = async_execute(coroutine, error_objects=[self])
+        task.add_done_callback(lambda *_args: self.release())
+
+    def do_quit_mainloop(self):
+        asyncio.get_running_loop().stop()
+        super().do_quit_mainloop(self)
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
