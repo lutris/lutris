@@ -2,8 +2,6 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import GObject
-
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
@@ -22,12 +20,8 @@ from lutris.util.log import logger
 from lutris.util.strings import unpack_dependencies
 
 
-class ScriptInterpreter(GObject.Object, CommandsMixin):
+class ScriptInterpreter(CommandsMixin):
     """Control the execution of an installer"""
-
-    __gsignals__ = {
-        "runners-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
-    }
 
     class InterpreterUIDelegate:
         """This is a base class for objects that provide UI services
@@ -205,11 +199,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             return []
         return self.service.get_extras(self.installer.service_appid)
 
-    def launch_install(self, ui_delegate):
+    async def launch_install(self, install_ui_delegate):
         """Launch the install process; returns False if cancelled by the user."""
         self.runners_to_install = self.get_runners_to_install()
-        self.install_runners(ui_delegate)
-        return True
+        return await self.install_runners(install_ui_delegate)
 
     def create_game_folder(self):
         """Create the game folder if needed and store if is was created"""
@@ -259,26 +252,21 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         return runners_to_install
 
-    def install_runners(self, ui_delegate):
+    async def install_runners(self, ui_delegate):
         """Install required runners for a game"""
-        if self.runners_to_install:
-            self.install_runner(self.runners_to_install.pop(0), ui_delegate)
-            return  # install_runner calls back into this method to get the next one
+        for runner in self.runners_to_install:
+            if not await self.install_runner(runner, ui_delegate):
+                return False
+        return True
 
-        self.emit("runners-installed")
-
-    def install_runner(self, runner, ui_delegate):
+    async def install_runner(self, runner, ui_delegate):
         """Install runner required by the install script"""
-
-        def install_more_runners():
-            self.install_runners(ui_delegate)
 
         logger.debug("Installing %s", runner.name)
         try:
-            runner.install(
+            return await runner.install(
                 ui_delegate,
                 version=runner.get_installer_runner_version(self) if runner.has_runner_versions else None,
-                callback=install_more_runners,
             )
         except (NonInstallableRunnerError, RunnerInstallationError) as ex:
             logger.error(ex.message)

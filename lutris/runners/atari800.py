@@ -84,23 +84,22 @@ class atari800(Runner):
         },
     ]
 
-    def install(self, install_ui_delegate, version=None, callback=None):
+    async def install(self, install_ui_delegate, version=None):
+        if not await super().install(install_ui_delegate, version):
+            return False
 
-        def on_runner_installed(*_args):
-            config_path = system.create_folder("~/.atari800")
-            bios_archive = os.path.join(config_path, "atari800-bioses.zip")
-            install_ui_delegate.download_install_file(self.bios_url, bios_archive)
-            if not system.path_exists(bios_archive):
-                raise RuntimeError(_("Could not download Atari 800 BIOS archive"))
-            extract.extract_archive(bios_archive, config_path)
-            os.remove(bios_archive)
-            config = LutrisConfig(runner_slug="atari800")
-            config.raw_runner_config.update({"bios_path": config_path})
-            config.save()
-            if callback:
-                callback()
-
-        super().install(install_ui_delegate, version, on_runner_installed)
+        config_path = system.create_folder("~/.atari800")
+        bios_archive = os.path.join(config_path, "atari800-bioses.zip")
+        if not await install_ui_delegate.download_install_file(self.bios_url, bios_archive):
+            return False
+        if not system.path_exists(bios_archive):
+            raise RuntimeError(_("Could not download Atari 800 BIOS archive"))
+        extract.extract_archive(bios_archive, config_path)
+        os.remove(bios_archive)
+        config = LutrisConfig(runner_slug="atari800")
+        config.raw_runner_config.update({"bios_path": config_path})
+        config.save()
+        return True
 
     def find_good_bioses(self, bios_path):
         """ Check for correct bios files """

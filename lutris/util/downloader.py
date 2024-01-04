@@ -6,6 +6,7 @@ import requests
 
 from lutris import __version__
 from lutris.util import jobs
+from lutris.util.jobs import call_async
 from lutris.util.log import logger
 
 # `time.time` can skip ahead or even go backwards if the current
@@ -16,7 +17,6 @@ get_time = time.monotonic
 
 
 class Downloader:
-
     """Non-blocking downloader.
 
     Do start() then check_progress() at regular intervals.
@@ -119,6 +119,9 @@ class Downloader:
         if self.error:
             raise self.error
         return self.state == self.COMPLETED
+
+    async def join_async(self):
+        await call_async(self.join)
 
     def cancel(self):
         """Request download stop and remove destination file."""

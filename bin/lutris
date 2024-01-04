@@ -19,6 +19,8 @@ import sys
 import asyncio
 from os.path import dirname, normpath, realpath
 
+from lutris.util.jobs import init_main_loop
+
 LAUNCH_PATH = dirname(realpath(__file__))
 
 # Prevent loading Python modules from home folder
@@ -68,6 +70,7 @@ app = Application()  # pylint: disable=invalid-name
 
 
 async def start(app):
+    init_main_loop()
     app.do_local_command_line(app, sys.argv)
     app.register()
     app.activate()

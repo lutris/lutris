@@ -101,21 +101,20 @@ class redream(Runner):
         },
     ]
 
-    def install(self, install_ui_delegate, version=None, callback=None):
-        def on_runner_installed(*args):
-            license_filename = install_ui_delegate.show_install_file_inquiry(
-                question=_("Do you want to select a premium license file?"),
-                title=_("Use premium version?"),
-                message=_("Use premium version?"))
+    async def install(self, install_ui_delegate, version=None):
+        if not await super().install(install_ui_delegate, version=version):
+            return False
 
-            if license_filename:
-                shutil.copy(
-                    license_filename, os.path.join(settings.RUNNER_DIR, "redream")
-                )
+        license_filename = await install_ui_delegate.show_install_file_inquiry(
+            question=_("Do you want to select a premium license file?"),
+            title=_("Use premium version?"),
+            message=_("Use premium version?"))
 
-        super().install(
-            install_ui_delegate, version=version, callback=on_runner_installed
-        )
+        if license_filename:
+            shutil.copy(
+                license_filename, os.path.join(settings.RUNNER_DIR, "redream")
+            )
+        return True
 
     def play(self):
         command = self.get_command()

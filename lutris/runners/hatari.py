@@ -118,26 +118,24 @@ class hatari(Runner):
         },
     ]
 
-    def install(self, install_ui_delegate, version=None, callback=None):
+    async def install(self, install_ui_delegate, version=None):
+        if not await super().install(install_ui_delegate, version=version):
+            return False
 
-        def on_runner_installed(*args):
-            bios_path = system.create_folder("~/.hatari/bios")
+        bios_path = system.create_folder("~/.hatari/bios")
 
-            bios_filename = install_ui_delegate.show_install_file_inquiry(
-                question=_("Do you want to select an Atari ST BIOS file?"),
-                title=_("Use BIOS file?"),
-                message=_("Select a BIOS file"))
+        bios_filename = await install_ui_delegate.show_install_file_inquiry(
+            question=_("Do you want to select an Atari ST BIOS file?"),
+            title=_("Use BIOS file?"),
+            message=_("Select a BIOS file"))
 
-            if bios_filename:
-                shutil.copy(bios_filename, bios_path)
-                bios_path = os.path.join(bios_path, os.path.basename(bios_filename))
-                config = LutrisConfig(runner_slug="hatari")
-                config.raw_runner_config.update({"bios_file": bios_path})
-                config.save()
-            if callback:
-                callback()
-
-        super().install(install_ui_delegate, version=version, callback=on_runner_installed)
+        if bios_filename:
+            shutil.copy(bios_filename, bios_path)
+            bios_path = os.path.join(bios_path, os.path.basename(bios_filename))
+            config = LutrisConfig(runner_slug="hatari")
+            config.raw_runner_config.update({"bios_file": bios_path})
+            config.save()
+        return True
 
     def play(self):  # pylint: disable=too-many-branches
         params = self.get_command()

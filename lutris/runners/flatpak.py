@@ -99,7 +99,7 @@ class flatpak(Runner):
             raise MissingExecutableError(_("The Flatpak executable could not be found."))
         return exe
 
-    def install(self, install_ui_delegate, version=None, callback=None):
+    async def install(self, install_ui_delegate, version=None):
         raise NonInstallableRunnerError(
             _("Flatpak installation is not handled by Lutris.\n"
               "Install Flatpak with the package provided by your distribution.")

@@ -57,7 +57,7 @@ class InstallUIDelegate:
         The default is 'yes'."""
         return True
 
-    def show_install_file_inquiry(self, question, title, message):
+    async def show_install_file_inquiry(self, question, title, message):
         """Called to ask the user for a file.
 
         Lutris first asks the user the question given (showing the title);
@@ -70,7 +70,7 @@ class InstallUIDelegate:
         """
         return None
 
-    def download_install_file(self, url, destination):
+    async def download_install_file(self, url, destination):
         """Downloads a file from a URL to a destination, overwriting any
         file at that path.
 
@@ -80,7 +80,7 @@ class InstallUIDelegate:
         """
         downloader = Downloader(url, destination, overwrite=True)
         downloader.start()
-        return downloader.join()
+        return await downloader.join_async()
 
 
 class CommandLineUIDelegate(LaunchUIDelegate):
@@ -114,7 +114,7 @@ class DialogInstallUIDelegate(InstallUIDelegate):
         })
         return Gtk.ResponseType.YES == dialog.result
 
-    def show_install_file_inquiry(self, question, title, message):
+    async def show_install_file_inquiry(self, question, title, message):
         dlg = dialogs.QuestionDialog({
             "parent": self,
             "question": question,
@@ -124,9 +124,9 @@ class DialogInstallUIDelegate(InstallUIDelegate):
             dlg = dialogs.FileDialog(message)
             return dlg.filename
 
-    def download_install_file(self, url, destination):
+    async def download_install_file(self, url, destination):
         dialog = DownloadDialog(url, destination, parent=self)
-        dialog.run()
+        await dialog.run_async()
         return dialog.downloader.state == Downloader.COMPLETED
 
 

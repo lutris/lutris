@@ -13,6 +13,7 @@ from lutris.exceptions import MisconfigurationError, MissingExecutableError, Una
 from lutris.runners import RunnerInstallationError
 from lutris.util import flatpak, strings, system
 from lutris.util.extract import ExtractError, extract_archive
+from lutris.util.jobs import call_async
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -464,18 +465,17 @@ class Runner:  # pylint: disable=too-many-public-methods
         but this method allows the runner to apply its configuration."""
         return get_default_runner_version_info(self.name, version)
 
-    def install(self, install_ui_delegate, version=None, callback=None):
+    async def install(self, install_ui_delegate, version=None):
         """Install runner using package management systems."""
         logger.debug(
-            "Installing %s (version=%s, callback=%s)",
+            "Installing %s (version=%s)",
             self.name,
-            version,
-            callback,
+            version
         )
-        opts = {"install_ui_delegate": install_ui_delegate, "callback": callback}
+        opts = {"install_ui_delegate": install_ui_delegate}
         if self.download_url:
             opts["dest"] = self.directory
-            return self.download_and_extract(self.download_url, **opts)
+            return await self.download_and_extract(self.download_url, **opts)
         runner_version_info = self.get_runner_version(version)
         if not runner_version_info:
             raise RunnerInstallationError(_("Failed to retrieve {} ({}) information").format(self.name, version))
@@ -489,21 +489,22 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.name == "libretro" and version:
             opts["merge_single"] = False
             opts["dest"] = os.path.join(settings.RUNNER_DIR, "retroarch/cores")
-        self.download_and_extract(runner_version_info["url"], **opts)
+        return await self.download_and_extract(runner_version_info["url"], **opts)
 
-    def download_and_extract(self, url, dest=None, **opts):
+    async def download_and_extract(self, url, dest=None, **opts):
         install_ui_delegate = opts["install_ui_delegate"]
         merge_single = opts.get("merge_single", False)
-        callback = opts.get("callback")
         tarball_filename = os.path.basename(url)
         runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
         if not dest:
             dest = settings.RUNNER_DIR
 
-        install_ui_delegate.download_install_file(url, runner_archive)
-        self.extract(archive=runner_archive, dest=dest, merge_single=merge_single, callback=callback)
+        if not await install_ui_delegate.download_install_file(url, runner_archive):
+            return False
+        await call_async(self.extract, archive=runner_archive, dest=dest, merge_single=merge_single)
+        return True
 
-    def extract(self, archive=None, dest=None, merge_single=None, callback=None):
+    def extract(self, archive=None, dest=None, merge_single=None):
         if not system.path_exists(archive, exclude_empty=True):
             raise RunnerInstallationError(_("Failed to extract {}").format(archive))
         try:
@@ -522,9 +523,6 @@ class Runner:  # pylint: disable=too-many-public-methods
             runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable)
             if os.path.isfile(runner_executable):
                 system.make_executable(runner_executable)
-
-        if callback:
-            callback()
 
     def remove_game_data(self, app_id=None, game_path=None):
         system.remove_folder(game_path)

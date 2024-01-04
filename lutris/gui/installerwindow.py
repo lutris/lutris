@@ -3,7 +3,7 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import Gio, GLib, Gtk
+from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
 from lutris.config import LutrisConfig
@@ -55,6 +55,10 @@ class InstallerWindow(ModelessDialog,
     that shows the page (and is used alone for the 'Back' button), and this in turn
     uses a create_X_page() function to create the page the first time it is visited.
     """
+
+    __gsignals__ = {
+        "runners-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
 
     def __init__(
         self,
@@ -352,7 +356,6 @@ class InstallerWindow(ModelessDialog,
                 if _script["version"] == installer_version:
                     script = _script
             self.interpreter = interpreter.ScriptInterpreter(script, self)
-            self.interpreter.connect("runners-installed", self.on_runners_ready)
         except MissingGameDependencyError as ex:
             dlg = QuestionDialog(
                 {
@@ -440,8 +443,10 @@ class InstallerWindow(ModelessDialog,
     def on_destination_confirmed(self, _button=None):
         """Let the interpreter take charge of the next stages."""
 
-        def launch_install():
-            if not self.interpreter.launch_install(self):
+        async def launch_install():
+            if await self.interpreter.launch_install(self):
+                self.on_runners_ready()
+            else:
                 self.stack.navigation_reset()
 
         self.load_spinner_page(_("Preparing Lutris for installation"),
@@ -465,7 +470,8 @@ class InstallerWindow(ModelessDialog,
         settings.write_setting("installer_create_steam_shortcut", checkbutton.get_active())
         self.config["create_steam_shortcut"] = checkbutton.get_active()
 
-    def on_runners_ready(self, _widget=None):
+    def on_runners_ready(self):
+        self.emit("runners-installed")
         AsyncCall(self.interpreter.get_extras, self.on_extras_loaded)
 
     # Extras Page
