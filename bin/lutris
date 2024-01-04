@@ -16,6 +16,7 @@ import gettext
 import locale
 import os
 import sys
+import asyncio
 from os.path import dirname, normpath, realpath
 
 LAUNCH_PATH = dirname(realpath(__file__))
@@ -55,7 +56,79 @@ try:
 except ImportError:
     pass
 
+import gi
+
+gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "3.0")
+
+from gi.repository import Gio, GLib, Gtk, GObject
 from lutris.gui.application import Application  # pylint: disable=no-name-in-module
 
 app = Application()  # pylint: disable=invalid-name
-sys.exit(app.run(sys.argv))
+
+
+async def start(app):
+    app.do_local_command_line(app, sys.argv)
+    app.register()
+    app.activate()
+
+
+def glib_update(main_context, loop):
+    while main_context.pending():
+        main_context.iteration(False)
+    loop.call_later(0.01, glib_update, main_context, loop)
+
+
+async def _run_async(dialog):
+    was_modal = dialog.get_modal()
+    destroyed = False
+    response_id = Gtk.ResponseType.NONE
+    ended = loop.create_future()
+
+    def shutdown_loop():
+        if not ended.done():
+            ended.set_result(None)
+
+    def on_response(_dialog, response):
+        nonlocal response_id
+        response_id = response
+        shutdown_loop()
+
+    def on_unmap(_dialog, *_args):
+        shutdown_loop()
+
+    def on_delete(_dialog, *_args):
+        shutdown_loop()
+        return True  # do not destroy
+
+    def on_destroy(_dialog, *_args):
+        nonlocal destroyed
+        destroyed = True
+
+    dialog.set_modal(True)
+    dialog.show()
+
+    source_ids = [
+        dialog.connect("response", on_response),
+        dialog.connect("unmap", on_unmap),
+        dialog.connect("delete-event", on_delete),
+        dialog.connect("destroy", on_destroy),
+    ]
+
+    try:
+        await ended
+        return response_id
+    finally:
+        if not destroyed:
+            dialog.set_modal(was_modal)
+            for source_id in source_ids:
+                dialog.disconnect(source_id)
+
+
+Gtk.Dialog.run_async = _run_async
+
+loop = asyncio.get_event_loop()
+main_context = GLib.MainContext.default()
+loop.create_task(start(app))
+glib_update(main_context, loop)
+loop.run_forever()

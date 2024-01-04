@@ -1,9 +1,12 @@
+import asyncio
+from asyncio import Task, iscoroutine
 from functools import wraps
 from typing import Any, Callable, Iterable
 
 from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris.gui.dialogs import ErrorDialog
+from lutris.util.jobs import get_main_loop
 from lutris.util.log import logger
 
 
@@ -44,6 +47,74 @@ def watch_game_errors(game_stop_result, game=None):
     return inner_decorator
 
 
+def async_execute(coroutine, error_objects: Iterable = None) -> Task:
+    """This schedules the co-routine given (creating a task), but adds error handling
+    like we use for callbacks. The 'error_objects', if provided, are searched for
+    a widget that can provide a top-level for the error dialog."""
+
+    def on_future_error(fut):
+        if not fut.cancelled():
+            err = fut.exception()
+            if err:
+                _handle_error(err,
+                              handler_name=f"function '{coroutine.__name__}'",
+                              error_objects=error_objects)
+
+    task = get_main_loop().create_task(coroutine)
+    task.add_done_callback(on_future_error)
+    return task
+
+
+def create_callback_error_wrapper(handler: Callable, handler_name: str,
+                                  error_result: Any,
+                                  async_result: Any,
+                                  error_method_name: str = None,
+                                  error_objects: Iterable = None):
+    """Wraps a handler function in an error handler that will log and then report
+    any exceptions, then return the 'error_result'. If the handler returns a co-routine
+    we schedule it, and then this function returns 'async_result'.
+
+    'handler_name' is incorporated in the log message.
+
+    This will try to use the method named by 'error_method_name' on the target of the handler,
+    if given, and if then it will search the 'error_objects' until it finds the method. If
+    it never does, it shows n ErrorDialog. These same objects can provide the top-level for
+    the ErrorDialog's parent.
+    """
+    error_objects = list(error_objects) if error_objects else []
+
+    def on_error(error):
+        err_objs = error_objects
+        if hasattr(handler, "__self__"):
+            handler_object = handler.__self__
+            if handler_object:
+                err_objs = [handler_object] + err_objs
+
+        _handle_error(error,
+                      handler_name=handler_name,
+                      error_method_name=error_method_name,
+                      error_objects=err_objs)
+
+    def on_future_error(fut):
+        err = fut.exception()
+        if err:
+            on_error(err)
+
+    def error_wrapper(*args, **kwargs) -> Any:
+        try:
+            result = handler(*args, **kwargs)
+            if iscoroutine(result):
+                task = asyncio.create_task(result)
+                task.add_done_callback(on_future_error)
+                return async_result
+            return result
+        except Exception as ex:
+            on_error(ex)
+            return error_result
+
+    return error_wrapper
+
+
 def _get_error_parent(error_objects: Iterable) -> Gtk.Window:
     """Obtains a top-level window to use as the parent of an
     error, by examining s list of objects. Any that are None
@@ -65,29 +136,18 @@ def _get_error_parent(error_objects: Iterable) -> Gtk.Window:
     return application.window if application else None
 
 
-def _create_error_wrapper(handler: Callable, handler_name: str,
-                          error_result: Any,
-                          error_method_name: str,
-                          connected_object: Any = None):
-    """Wraps a handler function in an error handler that will log and then report
-    any exceptions, then return the 'error_result'."""
+def _handle_error(error: Exception, handler_name: str, error_method_name: str = None,
+                  error_objects: Iterable = None) -> None:
+    logger.exception("Error handling %s: %s", handler_name, error)
 
-    handler_object = handler.__self__ if hasattr(handler, "__self__") else None
+    if error_method_name and error_objects:
+        for error_object in error_objects:
+            if error_object and hasattr(error_object, error_method_name):
+                error_method = getattr(error_object, error_method_name)
+                error_method(error)
+                return
 
-    def error_wrapper(*args, **kwargs):
-        try:
-            return handler(*args, **kwargs)
-        except Exception as ex:
-            logger.exception("Error handling %s: %s", handler_name, ex)
-
-            if handler_object and hasattr(handler_object, error_method_name):
-                error_method = getattr(handler_object, error_method_name)
-                error_method(ex)
-            else:
-                ErrorDialog(ex, parent=_get_error_parent([handler_object, connected_object]))
-            return error_result
-
-    return error_wrapper
+    ErrorDialog(error, parent=_get_error_parent(error_objects or []))
 
 
 def init_exception_backstops():
@@ -111,29 +171,37 @@ def init_exception_backstops():
     but signals and emission hooks will remain connected.
     """
 
-    def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args, **kwargs):
-        error_wrapper = _create_error_wrapper(handler, f"signal '{signal_spec}'",
-                                              error_result=None,
-                                              error_method_name="on_signal_error",
-                                              connected_object=self)
+    def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args,
+                                error_result=None, async_result=None,
+                                **kwargs):
+        error_wrapper = create_callback_error_wrapper(handler, f"signal '{signal_spec}'",
+                                                      error_result=error_result,
+                                                      async_result=async_result,
+                                                      error_method_name="on_signal_error",
+                                                      error_objects=[self])
         return _original_connect(self, signal_spec, error_wrapper, *args, **kwargs)
 
-    def _error_handling_add_emission_hook(emitting_type, signal_spec, handler, *args, **kwargs):
-        error_wrapper = _create_error_wrapper(handler, f"emission hook '{emitting_type}.{signal_spec}'",
-                                              error_result=True,  # stay attached
-                                              error_method_name="on_emission_hook_error")
+    def _error_handling_add_emission_hook(emitting_type, signal_spec, handler, *args,
+                                          error_result=True, async_result=True,
+                                          **kwargs):
+        error_wrapper = create_callback_error_wrapper(handler, f"emission hook '{emitting_type}.{signal_spec}'",
+                                                      error_result=error_result,
+                                                      async_result=async_result,
+                                                      error_method_name="on_emission_hook_error")
         return _original_add_emission_hook(emitting_type, signal_spec, error_wrapper, *args, **kwargs)
 
-    def _error_handling_idle_add(handler, *args, **kwargs):
-        error_wrapper = _create_error_wrapper(handler, "idle function",
-                                              error_result=False,  # stop calling idle func
-                                              error_method_name="on_idle_error")
+    def _error_handling_idle_add(handler, *args, error_result=False, async_result=False, **kwargs):
+        error_wrapper = create_callback_error_wrapper(handler, "idle function",
+                                                      error_result=error_result,
+                                                      async_result=async_result,
+                                                      error_method_name="on_idle_error")
         return _original_idle_add(error_wrapper, *args, **kwargs)
 
-    def _error_handling_timeout_add(interval, handler, *args, **kwargs):
-        error_wrapper = _create_error_wrapper(handler, "timeout function",
-                                              error_result=False,  # stop calling timeout fund
-                                              error_method_name="on_timeout_error")
+    def _error_handling_timeout_add(interval, handler, *args, error_result=False, async_result=False, **kwargs):
+        error_wrapper = create_callback_error_wrapper(handler, "timeout function",
+                                                      error_result=error_result,
+                                                      async_result=async_result,
+                                                      error_method_name="on_timeout_error")
         return _original_timeout_add(interval, error_wrapper, *args, **kwargs)
 
     _original_connect = Gtk.Widget.connect
