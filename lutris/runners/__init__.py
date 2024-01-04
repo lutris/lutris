@@ -6,6 +6,7 @@ __all__ = [
     "steam",
     "web",
     "flatpak",
+    "zdoom",
     # Microsoft based
     "wine",
     "dosbox",
@@ -41,7 +42,6 @@ __all__ = [
     # Misc legacy systems
     "jzintv",
     "o2em",
-    "zdoom",
 ]
 
 from lutris.exceptions import LutrisError, MisconfigurationError
