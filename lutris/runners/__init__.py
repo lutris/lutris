@@ -100,8 +100,9 @@ def get_installed(sort=True):
 
 def inject_runners(runners):
     for runner_name in runners:
-        ADDON_RUNNERS[runner_name] = runners[runner_name]
-        __all__.append(runner_name)
+        if runner_name not in __all__:
+            ADDON_RUNNERS[runner_name] = runners[runner_name]
+            __all__.append(runner_name)
     _cached_runner_human_names.clear()
 
 
