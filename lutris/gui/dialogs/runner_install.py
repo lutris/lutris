@@ -106,7 +106,7 @@ class RunnerInstallDialog(ModelessDialog):
 
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, 0, border_width=10)
-        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.ok_button = self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self.runner_name = runner.name
         self.runner_directory = runner.directory
         self.runner_info = {}
@@ -259,6 +259,7 @@ class RunnerInstallDialog(ModelessDialog):
 
     def update_listboxrow(self, row):
         row.install_progress.set_visible(False)
+        self.ok_button.set_sensitive(not self.installing)
 
         runner = row.runner
         icon = row.icon
@@ -324,7 +325,6 @@ class RunnerInstallDialog(ModelessDialog):
         runner["progress"] = 0
         self.installing.pop(runner["version"])
         self.update_listboxrow(row)
-        row.install_progress.set_visible(False)
 
     def on_uninstall_runner(self, widget, row):
         self.uninstall_runner(row)
