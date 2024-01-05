@@ -247,7 +247,7 @@ class RunnerSidebarRow(SidebarRow):
     def on_manage_versions(self, *_args):
         """Manage runner versions"""
         runner = self.get_runner()
-        dlg_title = _("Manage %s versions") % self.runner.name
+        dlg_title = _("Manage %s versions") % runner.human_name
         self.application.show_window(RunnerInstallDialog, title=dlg_title,
                                      runner=runner, parent=self.get_toplevel())
 
