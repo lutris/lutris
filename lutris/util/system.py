@@ -359,9 +359,14 @@ def remove_folder(path: str,
     """
     if not os.path.exists(path):
         logger.warning("Non existent path: %s", path)
+        if completion_function:
+            completion_function()
         return
     if os.path.samefile(os.path.expanduser("~"), path):
-        raise RuntimeError("Lutris tried to trash home directory!")
+        if error_function:
+            error_function(RuntimeError("Lutris tried to trash home directory!"))
+        return
+
     logger.debug("Trashing folder %s", path)
     TrashPortal(path,
                 completion_function=completion_function,
