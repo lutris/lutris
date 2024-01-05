@@ -290,7 +290,7 @@ class ErrorDialog(Gtk.MessageDialog):
         self.destroy()
 
 
-class QuestionDialog(Gtk.MessageDialog):
+class QuestionDialogAsync(Gtk.MessageDialog):
     """Ask the user a yes or no question."""
 
     YES = Gtk.ResponseType.YES
@@ -305,6 +305,13 @@ class QuestionDialog(Gtk.MessageDialog):
         if "widgets" in dialog_settings:
             for widget in dialog_settings["widgets"]:
                 self.get_message_area().add(widget)
+
+
+class QuestionDialog(QuestionDialogAsync):
+    """Ask the user a yes or no question synchronously."""
+
+    def __init__(self, dialog_settings):
+        super().__init__(dialog_settings)
         self.result = self.run()
         self.destroy()
 

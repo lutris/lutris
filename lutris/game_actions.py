@@ -47,7 +47,7 @@ class BaseGameActions:
     def is_game_launchable(self):
         return False
 
-    def on_game_launch(self, *_args):
+    async def on_game_launch(self, *_args):
         """Launch a game"""
 
     @property
@@ -243,12 +243,12 @@ class GameActions(BaseGameActions):
             "unhide": game.is_hidden,
         }
 
-    def on_game_launch(self, *_args):
+    async def on_game_launch(self, *_args):
         """Launch a game"""
         for game in self.games:
             if game.is_installed and game.is_db_stored:
                 if not self.application.is_game_running_by_id(game.id):
-                    game.launch(self.window)
+                    await game.launch(self.window)
 
     def get_running_games(self):
         running_games = []

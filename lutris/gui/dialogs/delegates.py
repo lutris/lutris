@@ -22,7 +22,7 @@ class LaunchUIDelegate:
     the launch() method, where no delegate is available.
     """
 
-    def check_game_launchable(self, game):
+    async def check_game_launchable(self, game):
         """See if the game can be launched. If there are adverse conditions,
         this can warn the user and ask whether to launch. If this returs
         False, the launch is cancelled. The default is to return True with no
@@ -51,7 +51,7 @@ class InstallUIDelegate:
     ask the user questions. Windows then inherit from DialogLaunchUIDelegate.
     """
 
-    def show_install_yesno_inquiry(self, question, title):
+    async def show_install_yesno_inquiry(self, question, title):
         """Called to ask the user a yes/no question.
 
         The default is 'yes'."""
@@ -106,21 +106,21 @@ class CommandLineUIDelegate(LaunchUIDelegate):
 class DialogInstallUIDelegate(InstallUIDelegate):
     """This provides UI for runner installation via dialogs."""
 
-    def show_install_yesno_inquiry(self, question, title):
-        dialog = dialogs.QuestionDialog({
+    async def show_install_yesno_inquiry(self, question, title):
+        dialog = dialogs.QuestionDialogAsync({
             "parent": self,
             "question": question,
             "title": title,
         })
-        return Gtk.ResponseType.YES == dialog.result
+        return Gtk.ResponseType.YES == await dialog.run_async()
 
     async def show_install_file_inquiry(self, question, title, message):
-        dlg = dialogs.QuestionDialog({
+        dlg = dialogs.QuestionDialogAsync({
             "parent": self,
             "question": question,
             "title": title,
         })
-        if dlg.result == dlg.YES:
+        if await dlg.run_async() == dlg.YES:
             dlg = dialogs.FileDialog(message)
             return dlg.filename
 
@@ -133,10 +133,9 @@ class DialogInstallUIDelegate(InstallUIDelegate):
 class DialogLaunchUIDelegate(LaunchUIDelegate):
     """This provides UI for game launch via dialogs."""
 
-    def check_game_launchable(self, game):
+    async def check_game_launchable(self, game):
         if not game.runner.is_installed():
-            installed = game.runner.install_dialog(self)
-            if not installed:
+            if not await game.runner.install_dialog(self):
                 return False
 
         return True

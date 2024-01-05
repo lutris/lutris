@@ -393,12 +393,12 @@ class Runner:  # pylint: disable=too-many-public-methods
         Reimplement in derived runner if need be."""
         return {"command": self.get_command(), "env": self.get_env()}
 
-    def run(self, ui_delegate):
+    async def run(self, ui_delegate):
         """Run the runner alone."""
         if not self.runnable_alone:
             return
         if not self.is_installed():
-            if not self.install_dialog(ui_delegate):
+            if not await self.install_dialog(ui_delegate):
                 logger.info("Runner install cancelled")
                 return
 
@@ -420,22 +420,24 @@ class Runner:  # pylint: disable=too-many-public-methods
             return False
         return True
 
-    def install_dialog(self, ui_delegate):
+    async def install_dialog(self, ui_delegate):
         """Ask the user if they want to install the runner.
 
         Return success of runner installation.
         """
 
-        if ui_delegate.show_install_yesno_inquiry(
+        if await ui_delegate.show_install_yesno_inquiry(
             question=_("The required runner is not installed.\n"
                        "Do you wish to install it now?"),
             title=_("Required runner unavailable"),
         ):
             if hasattr(self, "get_version"):
                 version = self.get_version(use_default=False)  # pylint: disable=no-member
-                self.install(ui_delegate, version=version)
+                if not await self.install(ui_delegate, version=version):
+                    return False
             else:
-                self.install(ui_delegate)
+                if not await self.install(ui_delegate):
+                    return False
 
             return self.is_installed()
         return False

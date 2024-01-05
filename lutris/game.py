@@ -652,13 +652,13 @@ class Game(GObject.Object):
         return True
 
     @watch_game_errors(game_stop_result=False)
-    def launch(self, launch_ui_delegate):
+    async def launch(self, launch_ui_delegate):
         """Request launching a game. The game may not be installed yet."""
         if not self.check_launchable():
             logger.error("Game is not launchable")
             return False
 
-        if not launch_ui_delegate.check_game_launchable(self):
+        if not await launch_ui_delegate.check_game_launchable(self):
             return False
 
         self.reload_config()  # Reload the config before launching it.

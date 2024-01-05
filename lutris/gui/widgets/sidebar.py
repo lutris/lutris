@@ -234,10 +234,10 @@ class RunnerSidebarRow(SidebarRow):
     def get_runner(self):
         return runners.import_runner(self.id)()
 
-    def on_run_runner(self, *_args):
+    async def on_run_runner(self, *_args):
         """Runs the runner without no game."""
         runner = self.get_runner()
-        runner.run(self.get_toplevel())
+        await runner.run(self.get_toplevel())
 
     def on_configure_runner(self, *_args):
         """Show runner configuration"""
