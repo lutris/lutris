@@ -19,6 +19,7 @@ import sys
 import asyncio
 from os.path import dirname, normpath, realpath
 
+from lutris.gui.dialogs import Dialog
 from lutris.util.jobs import init_main_loop
 
 LAUNCH_PATH = dirname(realpath(__file__))
@@ -123,9 +124,11 @@ async def _run_async(dialog):
         return response_id
     finally:
         if not destroyed:
+            dialog.hide()
             dialog.set_modal(was_modal)
             for source_id in source_ids:
                 dialog.disconnect(source_id)
+            Dialog.destroy_dialog_at_idle(dialog, condition=lambda: not dialog.get_visible())
 
 
 Gtk.Dialog.run_async = _run_async

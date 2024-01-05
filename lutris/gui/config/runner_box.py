@@ -89,10 +89,10 @@ class RunnerBox(Gtk.Box):
         title = _("Manage %s versions") % self.runner.name
         application.show_window(RunnerInstallDialog, title=title, runner=self.runner, parent=window)
 
-    def on_install_clicked(self, widget):
+    async def on_install_clicked(self, widget):
         """Install a runner."""
         logger.debug("Install of %s requested", self.runner)
-        self.runner.install(self.get_toplevel())
+        await self.runner.install(self.get_toplevel())
 
         if self.runner.is_installed():
             self.emit("runner-installed")

@@ -52,7 +52,11 @@ class Dialog(Gtk.Dialog):
         self._response_type = response
 
     def destroy_at_idle(self, condition: Callable = None):
-        """Adds as idle task to destroy this window at idle time;
+        self.destroy_dialog_at_idle(self, condition)
+
+    @staticmethod
+    def destroy_dialog_at_idle(dialog, condition: Callable = None):
+        """Adds as idle task to destroy a window at idle time;
         it can do so conditionally if you provide a callable to check,
         but it checks only once. You can still explicitly destroy the
         dialog after calling this. This is used to ensure destruction of
@@ -62,19 +66,18 @@ class Dialog(Gtk.Dialog):
             nonlocal idle_source_id
             idle_source_id = None
             if not condition or condition():
-                self.destroy()
+                dialog.destroy()
             return False
 
         def on_destroy(*_args):
             nonlocal idle_source_id
-            self.disconnect(on_destroy_id)
+            dialog.disconnect(on_destroy_id)
             if idle_source_id:
                 GLib.source_remove(idle_source_id)
             idle_source_id = None
 
-        self.hide()
         idle_source_id = GLib.idle_add(idle_destroy)
-        on_destroy_id = self.connect("destroy", on_destroy)
+        on_destroy_id = dialog.connect("destroy", on_destroy)
 
     def add_styled_button(self, button_text: str, response_id: Gtk.ResponseType,
                           css_class: str):
