@@ -334,14 +334,23 @@ class RunnerInstallDialog(ModelessDialog):
         runner = row.runner
         version = runner["version"]
         arch = runner["architecture"]
-        system.remove_folder(get_runner_path(self.runner_directory, version, arch))
-        runner["is_installed"] = False
-        if self.runner_name == "wine":
-            logger.debug("Clearing wine version cache")
-            from lutris.util.wine.wine import get_installed_wine_versions
+        runner_path = get_runner_path(self.runner_directory, version, arch)
 
-            get_installed_wine_versions.cache_clear()
-        self.update_listboxrow(row)
+        def on_complete():
+            runner["is_installed"] = False
+            if self.runner_name == "wine":
+                logger.debug("Clearing wine version cache")
+                from lutris.util.wine.wine import get_installed_wine_versions
+
+                get_installed_wine_versions.cache_clear()
+            self.update_listboxrow(row)
+
+        def on_error(error):
+            ErrorDialog(error, parent=self)
+
+        system.remove_folder(runner_path,
+                             completion_function=on_complete,
+                             error_function=on_error)
 
     def on_install_runner(self, _widget, row):
         self.install_runner(row)
