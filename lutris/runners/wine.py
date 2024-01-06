@@ -585,6 +585,7 @@ class wine(Runner):
             ("winecfg", _("Wine configuration"), self.run_winecfg),
             ("wine-regedit", _("Wine registry"), self.run_regedit),
             ("winecpl", _("Wine Control Panel"), self.run_winecpl),
+            ("winetaskmgr", _("Wine Task Manager"), self.run_taskmgr),
             (None, "-", None),
             ("winetricks", _("Winetricks"), self.run_winetricks),
         ]
@@ -894,6 +895,11 @@ class wine(Runner):
         """Execute Wine control panel."""
         self.prelaunch()
         self._run_executable("control")
+
+    def run_taskmgr(self, *args):
+        """Execute Wine task manager"""
+        self.prelaunch()
+        self._run_executable("taskmgr")
 
     def run_winekill(self, *args):
         """Runs wineserver -k."""
