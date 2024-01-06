@@ -18,9 +18,9 @@ MIN_RECOMMENDED_NVIDIA_DRIVER = 515
 @cache_single
 def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
     """Return information about NVidia drivers"""
+    version_file_path = "/proc/driver/nvidia/version"
 
     def read_from_proc() -> Dict[str, Dict[str, str]]:
-        version_file_path = "/proc/driver/nvidia/version"
         try:
             if not os.path.exists(version_file_path):
                 return {}
@@ -76,7 +76,14 @@ def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
             }
         }
 
-    return read_from_proc() or invoke_glxinfo()
+    try:
+        from_proc = read_from_proc()
+        if from_proc:
+            return from_proc
+    except Exception as ex:
+        logger.exception("Unable to read from '%s': %s", version_file_path, ex)
+
+    return invoke_glxinfo()
 
 
 def get_nvidia_gpu_ids() -> List[str]:
