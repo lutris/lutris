@@ -155,8 +155,13 @@ class GameView:
             elapsed = now - start_time
 
             if elapsed > cycle_time:
-                # Check for pausing only at cycle end, so we don't do it too often,
+                # Check for stopping and pausing only at cycle end, so we don't do it too often,
                 # and to avoid a janky looking visible snap-back to full size.
+                if game.state != game.STATE_LAUNCHING:
+                    if self.image_renderer.inset_game(game.id, 0.0):
+                        self.queue_draw()
+                    return False
+
                 start_time = now
                 paused = is_modally_blocked()
 
@@ -171,12 +176,6 @@ class GameView:
                 fraction = 0.0
             else:
                 fraction = max_indent * (cycle * 2 / cycle_time)
-
-            if elapsed >= cycle_time:
-                if game.state != game.STATE_LAUNCHING:
-                    if self.image_renderer.inset_game(game.id, 0.0):
-                        self.queue_draw()
-                    return False
 
             if self.image_renderer.inset_game(game.id, fraction):
                 self.queue_draw()
