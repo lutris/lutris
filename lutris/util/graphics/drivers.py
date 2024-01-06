@@ -7,6 +7,7 @@ import os
 import re
 from typing import Dict, Iterable, List
 
+from lutris.util import cache_single
 from lutris.util.graphics.glxinfo import GlxInfo
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
@@ -14,6 +15,7 @@ from lutris.util.system import read_process_output
 MIN_RECOMMENDED_NVIDIA_DRIVER = 515
 
 
+@cache_single
 def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
     """Return information about NVidia drivers"""
 
