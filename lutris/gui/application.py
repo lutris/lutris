@@ -962,6 +962,7 @@ class Application(Gtk.Application):
                 "slug": game["slug"],
                 "name": game["name"],
                 "service": game["service"],
+                "appid": game["appid"],
                 "installed": game["installed"],
                 "details": game["details"]
             } for game in game_list
