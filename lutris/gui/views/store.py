@@ -180,7 +180,7 @@ class GameStore(GObject.Object):
         if service_id and db_games:
             all_games = get_all_game_for_service(service_id)
             if service_id == "lutris":
-                installed_db_games = {g["id"]: g for g in all_games}
+                installed_db_games = {g["slug"]: g for g in all_games}
             else:
                 installed_db_games = {g["service_id"]: g for g in all_games}
 
