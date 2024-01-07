@@ -102,6 +102,13 @@ def get_game_for_service(service, appid):
         return existing_games[0]
 
 
+def get_all_game_for_service(service):
+    if service == "lutris":
+        return get_games(filters={"installed": "1"})
+
+    return get_games(filters={"service": service})
+
+
 def get_service_games(service):
     """Return the list of all installed games for a service"""
     global _SERVICE_CACHE_ACCESSED

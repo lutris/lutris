@@ -6,7 +6,7 @@ from gi.repository import GLib, GObject, Gtk
 
 from lutris import settings
 from lutris.database import sql
-from lutris.database.games import get_games
+from lutris.database.games import get_all_game_for_service, get_games
 from lutris.gui.views.store_item import StoreItem
 from lutris.util.strings import gtk_safe
 
@@ -94,11 +94,6 @@ class GameStore(GObject.Object):
             self._installed_games = [g["slug"] for g in get_games(filters={"installed": "1"})]
         return self._installed_games
 
-    def add_games(self, games):
-        """Add games to the store"""
-        for game in list(games):
-            GLib.idle_add(self.add_game, game)
-
     def get_row_by_slug(self, slug):
         for model_row in self.store:
             if model_row[COL_SLUG] == slug:
@@ -151,27 +146,52 @@ class GameStore(GObject.Object):
 
     def add_game(self, db_game):
         """Add a PGA game to the store"""
-        game = StoreItem(db_game, self.service_media)
+        store_item = StoreItem(db_game, self.service_media)
+        self.add_item(store_item)
+
+    def add_item(self, store_item):
         self.store.append(
             (
-                game.id,
-                game.slug,
-                game.name,
-                game.sortname if game.sortname else game.name,
-                game.get_media_path() if settings.SHOW_MEDIA else None,
-                game.year,
-                game.runner,
-                game.runner_text,
-                gtk_safe(game.platform),
-                game.lastplayed,
-                game.lastplayed_text,
-                game.installed,
-                game.installed_at,
-                game.installed_at_text,
-                game.playtime,
-                game.playtime_text,
+                store_item.id,
+                store_item.slug,
+                store_item.name,
+                store_item.sortname if store_item.sortname else store_item.name,
+                store_item.get_media_path() if settings.SHOW_MEDIA else None,
+                store_item.year,
+                store_item.runner,
+                store_item.runner_text,
+                gtk_safe(store_item.platform),
+                store_item.lastplayed,
+                store_item.lastplayed_text,
+                store_item.installed,
+                store_item.installed_at,
+                store_item.installed_at_text,
+                store_item.playtime,
+                store_item.playtime_text,
             )
         )
+
+    def add_preloaded_games(self, db_games, service_id):
+        """Add games to the store, but preload their installed-game data
+        all at once, for faster database access. This should be used if all or almost all
+        games are being loaded."""
+
+        installed_db_games = {}
+        if service_id and db_games:
+            all_games = get_all_game_for_service(service_id)
+            if service_id == "lutris":
+                installed_db_games = {g["id"]: g for g in all_games}
+            else:
+                installed_db_games = {g["service_id"]: g for g in all_games}
+
+        for db_game in db_games:
+            if installed_db_games is not None and "appid" in db_game:
+                appid = db_game["appid"]
+                store_item = StoreItem(db_game, self.service_media)
+                store_item.apply_installed_game_data(installed_db_games.get(appid))
+                self.add_item(store_item)
+            else:
+                self.add_game(db_game)
 
     def on_game_updated(self, game):
         if self.service:

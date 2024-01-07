@@ -19,6 +19,7 @@ class StoreItem:
             raise RuntimeError("No game data provided")
         self._game_data = game_data
         self._cached_installed_game_data = None
+        self._cached_installed_game_data_loaded = False
         self.service_media = service_media
 
     def __str__(self):
@@ -32,14 +33,19 @@ class StoreItem:
         """Provides- and caches- the DB data for the installed game corresponding to this one,
         if it's a service game. We can get away with caching this because StoreItem instances are
         very short-lived, so the game won't be changed underneath us."""
-        appid = self._game_data.get("appid")
-        if appid:
-            if self._cached_installed_game_data is None:
-                self._cached_installed_game_data = games.get_game_for_service(self.service,
-                                                                              self._game_data["appid"]) or {}
-            return self._cached_installed_game_data
+        if not self._cached_installed_game_data_loaded:
+            appid = self._game_data.get("appid")
+            service_id = self._game_data.get("service")
+            if appid and service_id:
+                self._cached_installed_game_data = games.get_game_for_service(service_id,
+                                                                              appid) or {}
+                self._cached_installed_game_data_loaded = True
 
-        return None
+        return self._cached_installed_game_data
+
+    def apply_installed_game_data(self, installed_game_data):
+        self._cached_installed_game_data_loaded = True
+        self._cached_installed_game_data = installed_game_data
 
     def _get_game_attribute(self, key):
         value = self._game_data.get(key)

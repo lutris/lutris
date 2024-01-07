@@ -599,8 +599,9 @@ class LutrisWindow(Gtk.ApplicationWindow,
         for view in self.views.values():
             view.service = self.service
         GLib.idle_add(self.update_revealer)
-        for game in games:
-            self.game_store.add_game(game)
+
+        service_id = self.filters.get("service")
+        self.game_store.add_preloaded_games(games, service_id)
         if not games:
             self.show_empty_label()
         self.search_timer_id = None
