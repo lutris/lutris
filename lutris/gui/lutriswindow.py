@@ -177,19 +177,19 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 self.on_view_sorting_state_change,
                 type="s",
                 default=self.view_sorting,
-                enabled=lambda: self.is_view_sort_active
+                enabled=lambda: self.is_view_sort_sensitive
             ),
             "view-sorting-installed-first": Action(
                 self.on_view_sorting_installed_first_change,
                 type="b",
                 default=self.view_sorting_installed_first,
-                enabled=lambda: self.is_view_sort_active
+                enabled=lambda: self.is_view_sort_sensitive
             ),
             "view-sorting-ascending": Action(
                 self.on_view_sorting_direction_change,
                 type="b",
                 default=self.view_sorting_ascending,
-                enabled=lambda: self.is_view_sort_active
+                enabled=lambda: self.is_view_sort_sensitive
             ),
             "show-side-panel": Action(
                 self.on_side_panel_state_change,
@@ -201,6 +201,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 self.hidden_state_change,
                 type="b",
                 default=self.show_hidden_games,
+                enabled=lambda: self.is_show_hidden_sensitive,
                 accel="<Primary>h",
             ),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
@@ -273,6 +274,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
         }
         return filters
 
+    @property
+    def is_show_hidden_sensitive(self):
+        """True if the hidden checkbox will be effective; service views ignore it."""
+        return not self.filters.get("service")
+
     def hidden_state_change(self, action, value):
         """Hides or shows the hidden games"""
         action.set_state(value)
@@ -344,7 +350,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         return params
 
     @property
-    def is_view_sort_active(self):
+    def is_view_sort_sensitive(self):
         """True if the iew sorting options will be effective; dynamic categories ignore them."""
         return self.filters.get("dynamic_category") not in self.dynamic_categories_game_factories
 
