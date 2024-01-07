@@ -118,13 +118,13 @@ class LutrisService(OnlineService):
         return db_game["slug"]
 
     def install(self, db_game):
-        if isinstance(db_game, dict):
-            slug = db_game["slug"]
-        else:
-            slug = db_game
-        installers = get_game_installers(slug)
+        slug = db_game["slug"]
+        return self.install_by_id(slug)
+
+    def install_by_id(self, appid):
+        installers = get_game_installers(appid)  # appid is the slug for Lutris games
         if not installers:
-            raise RuntimeError(_("Lutris has no installers for %s. Try using a different service instead.") % slug)
+            raise RuntimeError(_("Lutris has no installers for %s. Try using a different service instead.") % appid)
         application = Gio.Application.get_default()
         application.show_installer_window(installers)
 

@@ -102,11 +102,13 @@ def get_game_for_service(service, appid):
         return existing_games[0]
 
 
-def get_all_game_for_service(service):
+def get_all_installed_game_for_service(service):
     if service == "lutris":
-        return get_games(filters={"installed": "1"})
+        db_games = get_games(filters={"installed": 1})
+        return {g["slug"]: g for g in db_games}
 
-    return get_games(filters={"service": service})
+    db_games = get_games(filters={"service": service, "installed": 1})
+    return {g["service_id"]: g for g in db_games}
 
 
 def get_service_games(service):

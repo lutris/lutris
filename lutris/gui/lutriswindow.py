@@ -466,10 +466,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 service_game[field] = lutris_game[field]
         return service_game
 
-    def get_service_games(self, service_name):
-        """Switch the current service to service_name and return games if available"""
-        service_games = ServiceGameCollection.get_for_service(service_name)
-        if service_name == "lutris":
+    def get_service_games(self, service_id):
+        """Return games for the service indicated."""
+        service_games = ServiceGameCollection.get_for_service(service_id)
+        if service_id == "lutris":
             lutris_games = {g["slug"]: g for g in games_db.get_games()}
         else:
             lutris_games = {g["service_id"]: g for g in games_db.get_games(filters={"service": self.service.id})}
@@ -482,12 +482,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
         ]
 
     def get_games_from_filters(self):
-        service_name = self.filters.get("service")
-        if service_name in services.SERVICES:
+        service_id = self.filters.get("service")
+        if service_id in services.SERVICES:
             if self.service.online and not self.service.is_authenticated():
                 self.show_label(_("Connect your %s account to access your games") % self.service.name)
                 return []
-            return self.get_service_games(service_name)
+            return self.get_service_games(service_id)
         if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
             return self.dynamic_categories_game_factories[self.filters["dynamic_category"]]()
         if self.filters.get("category") and self.filters["category"] != "all":
@@ -1082,20 +1082,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if self.service:
             logger.debug("Looking up %s game %s", self.service.id, game_id)
             db_game = games_db.get_game_for_service(self.service.id, game_id)
-            if self.service.id == "lutris":
-                if not db_game or not db_game["installed"]:
-                    self.service.install(game_id)
-                    return
+
+            if db_game and db_game["installed"]:
                 game_id = db_game["id"]
             else:
-                if db_game and db_game["installed"]:
-                    game_id = db_game["id"]
-                else:
-                    service_game = ServiceGameCollection.get_game(self.service.id, game_id)
-                    if not service_game:
-                        logger.error("No game %s found for %s", game_id, self.service.id)
-                        return
-                    game_id = self.service.install(service_game)
+                game_id = self.service.install_by_id(game_id)
+
         if game_id:
             game = Game(game_id)
             if game.is_installed:

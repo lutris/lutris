@@ -315,6 +315,14 @@ class BaseService(GObject.Object):
             return self.simple_install(db_game)
         AsyncCall(self.get_service_installers, self.on_service_installers_loaded, db_game, update)
 
+    def install_by_id(self, appid):
+        """Installs a game given the appid for the game on this service."""
+        db_game = ServiceGameCollection.get_game(self.id, appid)
+        if not db_game:
+            logger.error("No game %s found for %s", appid, self.id)
+            return None
+        return self.install(db_game)
+
     def on_service_installers_loaded(self, result, _error):
         service_installers, db_game = result
         application = Gio.Application.get_default()

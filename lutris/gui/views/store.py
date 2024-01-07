@@ -6,7 +6,7 @@ from gi.repository import GLib, GObject, Gtk
 
 from lutris import settings
 from lutris.database import sql
-from lutris.database.games import get_all_game_for_service, get_games
+from lutris.database.games import get_all_installed_game_for_service, get_games
 from lutris.gui.views.store_item import StoreItem
 from lutris.util.strings import gtk_safe
 
@@ -178,11 +178,7 @@ class GameStore(GObject.Object):
 
         installed_db_games = {}
         if service_id and db_games:
-            all_games = get_all_game_for_service(service_id)
-            if service_id == "lutris":
-                installed_db_games = {g["slug"]: g for g in all_games}
-            else:
-                installed_db_games = {g["service_id"]: g for g in all_games}
+            installed_db_games = get_all_installed_game_for_service(service_id)
 
         for db_game in db_games:
             if installed_db_games is not None and "appid" in db_game:
