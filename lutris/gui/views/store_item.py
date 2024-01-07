@@ -48,15 +48,15 @@ class StoreItem:
         self._cached_installed_game_data = installed_game_data
 
     def _get_game_attribute(self, key):
-        value = self._game_data.get(key)
+        if key in self._game_data:
+            return self._game_data[key]
 
-        if not value:
-            game_data = self._installed_game_data
+        installed_game_data = self._installed_game_data
 
-            if game_data:
-                value = game_data.get(key)
+        if installed_game_data:
+            return installed_game_data.get(key)
 
-        return value
+        return None
 
     @property
     def id(self) -> str:  # pylint: disable=invalid-name
