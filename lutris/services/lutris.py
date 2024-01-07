@@ -10,6 +10,7 @@ from lutris import settings
 from lutris.api import get_api_games, get_game_installers, read_api_key
 from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
+from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.views.media_loader import download_media
 from lutris.services.base import LutrisBanner, LutrisCoverart, LutrisCoverartMedium, LutrisIcon, OnlineService
@@ -151,6 +152,9 @@ class LutrisService(OnlineService):
             if platforms is not None:
                 return [p.get("name") for p in platforms]
         return []
+
+    def get_service_db_game(self, game: Game):
+        return ServiceGameCollection.get_game(self.id, game.slug)
 
 
 def download_lutris_media(slug):

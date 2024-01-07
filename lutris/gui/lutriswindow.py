@@ -983,10 +983,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.redraw_view()
 
     def on_game_selection_changed(self, view, selection):
-        if not selection:
-            GLib.idle_add(self.update_revealer)
-            return False
-
         game_ids = [view.get_game_id_for_path(path) for path in selection]
 
         if not game_ids:
@@ -1044,13 +1040,15 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_game_updated(self, game):
         """Updates an individual entry in the view when a game is updated"""
         add_to_path_cache(game)
-        if game.appid and self.service:
-            db_game = ServiceGameCollection.get_game(self.service.id, game.appid)
+        if self.service:
+            db_game = self.service.get_service_db_game(game)
         else:
             db_game = games_db.get_game_by_field(game.id, "id")
-        if not self.is_game_displayed(game) and "id" in db_game:
-            self.game_store.remove_game(db_game["id"])
-            return True
+
+            if db_game and not self.is_game_displayed(game) and "id" in db_game:
+                self.game_store.remove_game(db_game["id"])
+                return True
+
         if db_game:
             updated = self.game_store.update(db_game)
             if not updated:
@@ -1079,7 +1077,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.emit("view-updated")
         return True
 
-    def on_game_activated(self, view, game_id):
+    def on_game_activated(self, _view, game_id):
         """Handles view activations (double click, enter press)"""
         if self.service:
             logger.debug("Looking up %s game %s", self.service.id, game_id)

@@ -116,7 +116,7 @@ class GameStore(GObject.Object):
             self.store.remove(row.iter)
 
     def update(self, db_game):
-        """Update game informations
+        """Update game information
         Return whether a row was updated; False if the game was not already
         present.
         """

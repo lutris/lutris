@@ -354,6 +354,11 @@ class BaseService(GObject.Object):
         to extract its platform, or returns an empty list if this is not available."""
         return []
 
+    def get_service_db_game(self, game: Game):
+        """Returns the row dictionary for the service-game corresponding to the
+        PGA game given, if any, or None."""
+        return ServiceGameCollection.get_game(self.id, game.appid)
+
 
 class OnlineService(BaseService):
     """Base class for online gaming services"""
