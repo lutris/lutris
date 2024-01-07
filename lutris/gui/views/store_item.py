@@ -2,7 +2,6 @@
 import time
 
 from lutris.database import games
-from lutris.database.games import get_service_games
 from lutris.runners import get_runner_human_name
 from lutris.services import SERVICES
 from lutris.util.log import logger
@@ -125,13 +124,16 @@ class StoreItem:
         return gtk_safe(_platform)
 
     @property
-    def installed(self):
+    def installed(self) -> bool:
         """Game is installed"""
-        if "service_id" not in self._game_data:
-            return self.id in get_service_games(self.service)
-        if not self._game_data.get("runner"):
-            return False
-        return self._game_data.get("installed")
+
+        def check_data(data):
+            return bool(data and data.get("installed") and data.get("runner"))
+
+        if "installed" in self._game_data:
+            return check_data(self._game_data)
+
+        return check_data(self._installed_game_data)
 
     def get_media_path(self):
         """Returns the path to the image file for this item"""
