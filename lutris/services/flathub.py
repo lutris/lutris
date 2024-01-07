@@ -182,13 +182,13 @@ class FlathubService(BaseService):
                 "installer": [
                     {
                         "execute":
-                        {
-                            "file": flatpak_cmd[0],
-                            "args": " ".join(flatpak_cmd[1:])
-                                    + f" install --{self.install_type} --app --noninteractive flathub "
-                                    f"app/{db_game['appid']}/{self.arch}/{self.branch}",
-                            "disable_runtime": True
-                        }
+                            {
+                                "file": flatpak_cmd[0],
+                                "args": " ".join(flatpak_cmd[1:])
+                                        + f" install --{self.install_type} --app --noninteractive flathub "
+                                f"app/{db_game['appid']}/{self.arch}/{self.branch}",
+                                "disable_runtime": True
+                            }
                     }
                 ]
             }

@@ -14,6 +14,7 @@ from lutris.game import Game
 from lutris.gui.widgets.utils import Image, paste_overlay, thumbnail_image
 from lutris.installer import get_installers
 from lutris.services.base import AuthTokenExpiredError, OnlineService
+from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
@@ -336,10 +337,11 @@ class EpicGamesStoreService(OnlineService):
         game_config = LutrisConfig(game_config_id=egs_game["configpath"]).game_level
         game_config["game"]["args"] = get_launch_arguments(app_name)
         configpath = write_game_config(lutris_game_id, game_config)
-        game_id = add_game(
+        slug = self.get_installed_slug(egs_game)
+        add_game(
             name=service_game["name"],
             runner=egs_game["runner"],
-            slug=slugify(service_game["name"]),
+            slug=slug,
             directory=egs_game["directory"],
             installed=1,
             installer_slug=lutris_game_id,
@@ -347,7 +349,7 @@ class EpicGamesStoreService(OnlineService):
             service=self.id,
             service_id=app_name,
         )
-        return game_id
+        return slug
 
     def add_installed_games(self):
         """Scan an existing EGS install for games"""
@@ -362,8 +364,12 @@ class EpicGamesStoreService(OnlineService):
             logger.error("Invalid install of EGS at %s", egs_prefix)
             return
         egs_launcher = EGSLauncher(egs_prefix)
+        installed_slugs = []
         for manifest in egs_launcher.iter_manifests():
-            self.install_from_egs(egs_game, manifest)
+            slug = self.install_from_egs(egs_game, manifest)
+            if slug:
+                installed_slugs.append(slug)
+        sync_media(installed_slugs)
         logger.debug("All EGS games imported")
 
     def generate_installer(self, db_game, egs_db_game):

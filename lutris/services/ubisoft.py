@@ -14,6 +14,7 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.installer import get_installers
 from lutris.services.base import OnlineService
+from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.log import logger
@@ -191,12 +192,13 @@ class UbisoftConnectService(OnlineService):
         launch_id = details.get("launchId") or details.get("installId") or details.get("spaceId")
         game_config["game"]["args"] = f"uplay://launch/{launch_id}"
         configpath = write_game_config(lutris_game_id, game_config)
+        slug = self.get_installed_slug(game)
         if existing_game:
             update_existing(
                 id=existing_game["id"],
                 name=game["name"],
                 runner=self.runner,
-                slug=slugify(game["name"]),
+                slug=slug,
                 directory=ubisoft_connect["directory"],
                 installed=1,
                 installer_slug=lutris_game_id,
@@ -205,10 +207,10 @@ class UbisoftConnectService(OnlineService):
                 service_id=game["appid"],
             )
             return existing_game["id"]
-        game_id = add_game(
+        add_game(
             name=game["name"],
             runner=self.runner,
-            slug=slugify(game["name"]),
+            slug=slug,
             directory=ubisoft_connect["directory"],
             installed=1,
             installer_slug=lutris_game_id,
@@ -216,7 +218,7 @@ class UbisoftConnectService(OnlineService):
             service=self.id,
             service_id=game["appid"],
         )
-        return game_id
+        return slug
 
     def add_installed_games(self):
         ubisoft_connect = get_game_by_field(self.client_installer, "slug")
@@ -225,12 +227,16 @@ class UbisoftConnectService(OnlineService):
             return
         prefix_path = ubisoft_connect["directory"].split("drive_c")[0]
         prefix = WinePrefixManager(prefix_path)
+        installed_slugs = []
         for game in ServiceGameCollection.get_for_service(self.id):
             details = json.loads(game["details"])
             install_path = get_ubisoft_registry(prefix, details.get("registryPath"))
             exe = get_ubisoft_registry(prefix, details.get("exe"))
             if install_path and exe:
-                self.install_from_ubisoft(ubisoft_connect, game)
+                slug = self.install_from_ubisoft(ubisoft_connect, game)
+                if slug:
+                    installed_slugs.append(slug)
+        sync_media(installed_slugs)
 
     def generate_installer(self, db_game, ubi_db_game):
         ubisoft_connect = Game(ubi_db_game["id"])

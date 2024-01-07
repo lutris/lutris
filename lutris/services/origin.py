@@ -18,6 +18,7 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.installer import get_installers
 from lutris.services.base import OnlineService
+from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.log import logger
@@ -304,11 +305,13 @@ class OriginService(OnlineService):
             logger.error("Invalid install of Origin at %s", origin_prefix)
             return
         origin_launcher = OriginLauncher(origin_prefix)
-        installed_games = 0
+        installed_slugs = []
         for manifest in origin_launcher.iter_manifests():
-            self.install_from_origin(origin_game, manifest)
-            installed_games += 1
-        logger.debug("Installed %s Origin games", installed_games)
+            slug = self.install_from_origin(origin_game, manifest)
+            if slug:
+                installed_slugs.append(slug)
+        sync_media(installed_slugs)
+        logger.debug("Installed %s Origin games", len(installed_slugs))
 
     def install_from_origin(self, origin_game, manifest):
         if "id" not in manifest:
@@ -326,10 +329,11 @@ class OriginService(OnlineService):
         game_config = LutrisConfig(game_config_id=origin_game["configpath"]).game_level
         game_config["game"]["args"] = get_launch_arguments(manifest["id"])
         configpath = write_game_config(lutris_game_id, game_config)
-        game_id = add_game(
+        slug = self.get_installed_slug(service_game)
+        add_game(
             name=service_game["name"],
             runner=origin_game["runner"],
-            slug=slugify(service_game["name"]),
+            slug=slug,
             directory=origin_game["directory"],
             installed=1,
             installer_slug=lutris_game_id,
@@ -337,7 +341,7 @@ class OriginService(OnlineService):
             service=self.id,
             service_id=offer_id,
         )
-        return game_id
+        return slug
 
     def generate_installer(self, db_game, origin_db_game):
         origin_game = Game(origin_db_game["id"])

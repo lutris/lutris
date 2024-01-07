@@ -2,7 +2,7 @@ import json
 import os
 import urllib.parse
 from gettext import gettext as _
-from typing import List
+from typing import Dict, Iterable, List
 
 from gi.repository import Gio
 
@@ -180,8 +180,17 @@ def download_lutris_media(slug):
         download_media({slug: cover_url}, LutrisCoverart())
 
 
-def sync_media() -> dict:
-    """Downlad all missing media"""
+def sync_media(slugs: Iterable[str] = None) -> Dict[str, int]:
+    """Download missing media for Lutris games; if a set of slugs
+    is not provided, downloads them for all games in the PGA."""
+    if slugs is None:
+        slugs = {game["slug"] for game in get_games()}
+    else:
+        slugs = set(s for s in slugs if s)
+
+    if not slugs:
+        return {}
+
     banners_available = {fn.split(".")[0] for fn in os.listdir(settings.BANNER_PATH)}
     icons_available = {
         fn.split(".")[0].replace("lutris_", "")
@@ -190,18 +199,18 @@ def sync_media() -> dict:
     }
     covers_available = {fn.split(".")[0] for fn in os.listdir(settings.COVERART_PATH)}
     complete_games = banners_available.intersection(icons_available).intersection(covers_available)
-    all_slugs = {game["slug"] for game in get_games()}
-    slugs = all_slugs - complete_games
-    if not slugs:
+
+    slugs_to_download = slugs - complete_games
+    if not slugs_to_download:
         return {}
-    games = get_api_games(list(slugs))
+    games = get_api_games(list(slugs_to_download))
 
     alias_map = {}
     api_slugs = set()
     for game in games:
         api_slugs.add(game["slug"])
         for alias in game["aliases"]:
-            if alias["slug"] in slugs:
+            if alias["slug"] in slugs_to_download:
                 alias_map[game["slug"]] = alias["slug"]
     alias_slugs = set(alias_map.values())
     used_alias_slugs = alias_slugs - api_slugs

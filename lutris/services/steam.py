@@ -13,6 +13,7 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import BaseService
+from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.log import logger
@@ -132,10 +133,11 @@ class SteamService(BaseService):
         game_config = LutrisConfig().game_level
         game_config["game"]["appid"] = appid
         configpath = write_game_config(lutris_game_id, game_config)
-        game_id = add_game(
+        slug = self.get_installed_slug(service_game)
+        add_game(
             name=service_game["name"],
             runner="steam",
-            slug=slugify(service_game["name"]),
+            slug=slug,
             installed=1,
             installer_slug=lutris_game_id,
             configpath=configpath,
@@ -143,7 +145,7 @@ class SteamService(BaseService):
             service=self.id,
             service_id=appid,
         )
-        return game_id
+        return slug
 
     @property
     def steamapps_paths(self):
@@ -152,6 +154,7 @@ class SteamService(BaseService):
     def add_installed_games(self):
         """Syncs installed Steam games with Lutris"""
         stats = {"installed": 0, "removed": 0, "deduped": 0, "paths": []}
+        installed_slugs = []
         installed_appids = []
         for steamapps_path in self.steamapps_paths:
             for appmanifest_file in get_appmanifests(steamapps_path):
@@ -160,7 +163,9 @@ class SteamService(BaseService):
                 app_manifest_path = os.path.join(steamapps_path, appmanifest_file)
                 app_manifest = AppManifest(app_manifest_path)
                 installed_appids.append(app_manifest.steamid)
-                self.install_from_steam(app_manifest)
+                slug = self.install_from_steam(app_manifest)
+                if slug:
+                    installed_slugs.append(slug)
                 stats["installed"] += 1
         if stats["paths"]:
             logger.debug("%s Steam games detected and installed", stats["installed"])
@@ -196,6 +201,7 @@ class SteamService(BaseService):
                     steam_game.remove(no_signal=True)
                     steam_game.delete(no_signal=True)
                     stats["deduped"] += 1
+        sync_media(installed_slugs)
         logger.debug("%s Steam games deduplicated", stats["deduped"])
 
     def generate_installer(self, db_game):
