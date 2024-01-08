@@ -164,6 +164,8 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     def get_drives():
         """Return a list of drives with their filesystems"""
         lsblk_output = system.read_process_output(["lsblk", "-f", "--json"])
+        if not lsblk_output:
+            return []
         return [
             drive
             for drive in json.loads(lsblk_output)["blockdevices"]
