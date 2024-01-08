@@ -769,8 +769,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         self.update_view_settings()
         self.games_stack.set_visible_child_name(view_type)
-        self.update_store()
         self.update_action_state()
+        self.emit("view-updated")
 
     def rebuild_view(self, view_type):
         """Discards the view named by 'view_type' and if it is the current view,
