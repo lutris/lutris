@@ -1,3 +1,21 @@
+lutris (0.5.15) jammy; urgency=medium
+
+  * Fix some crashes happening when using Wayland and a high DPI gaming mouse
+  * Fix crash when opening the system preferences tab for a game
+  * Reduced the locales list to a predefined one (let us know if you need yours added)
+  * Fix Lutris not expanding "~" in paths
+  * Download runtime components from the main window,
+    the "updating runtime" dialog appearing before lutris opens has been removed
+  * Add the ability to open a location in your file browser from file picker widgets
+  * Add the ability to select multiple games in the Lutris window
+  * Fix the export / import feature
+  * Show an animation when a game is launched
+  * Add the ability to disable Wine auto-updates at the expense of losing support
+  * Add playtime editing in the game preferences
+  * Move game files to the trash instead of deleting them when a game is uninstalled
+
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Sun, 07 Jan 2024 17:29:46 -0800
+
 lutris (0.5.14) jammy; urgency=medium
 
   * Add Steam account switcher to handle multiple Steam accounts
