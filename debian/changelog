@@ -5,14 +5,22 @@ lutris (0.5.15) jammy; urgency=medium
   * Reduced the locales list to a predefined one (let us know if you need yours added)
   * Fix Lutris not expanding "~" in paths
   * Download runtime components from the main window,
-    the "updating runtime" dialog appearing before lutris opens has been removed
+    the "updating runtime" dialog appearing before Lutris opens has been removed
   * Add the ability to open a location in your file browser from file picker widgets
-  * Add the ability to select multiple games in the Lutris window
+  * Add the ability to select, remove, or stop multiple games in the Lutris window
+  * Redesigned 'Uninstall Game' dialog now completely removes games by default
   * Fix the export / import feature
   * Show an animation when a game is launched
   * Add the ability to disable Wine auto-updates at the expense of losing support
   * Add playtime editing in the game preferences
-  * Move game files to the trash instead of deleting them when a game is uninstalled
+  * Move game files, runners, and media to the trash instead of deleting them they are uninstalled
+  * Add "Updates" tab in Preferences control and check for updates and correct missing media
+    in the 'Games' view.
+  * Add "Storage" tab in Preferences to control game and installer cache location
+  * Expand "System" tab in Preferences with more system information but less brown.
+  * Add "Run Task Manager" command for Wine games
+  * Add two new, smaller banner sizes for itch.io games.
+
 
  -- Mathieu Comandon <mathieucomandon@gmail.com>  Sun, 07 Jan 2024 17:29:46 -0800
 
