@@ -65,23 +65,9 @@ you can run it directly from the source directory::
     cd lutris
     ./bin/lutris
 
-Alternatively you can install Lutris manually with the help of **virtualenv**.
-
-First, install ``python-virtualenv`` from your distribution's
-repositories, along with dependencies listed in Requirements_.
-Then, create and activate virtual environment for Lutris::
-
-    virtualenv --system-site-packages ~/lutris
-    source ~/lutris/bin/activate
-
-While in the virtual environment, run the installation script::
-
-    python3 setup.py install
-
 Run Lutris
 -----------
 
 If you installed Lutris using a package, you can launch the program by typing
-``lutris`` at the command line (same applies to virtualenv method, but you need to
-activate the virtual environment first). And if you want to run Lutris without
-installing it, start ``./bin/lutris`` from within the source directory.
+``lutris`` at the command line. And if you want to run Lutris from the source tree,
+type ``./bin/lutris``

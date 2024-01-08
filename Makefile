@@ -90,7 +90,7 @@ snap:
 	snapcraft
 
 dev:
-	pip3 install isort flake8 pylint autopep8 pytest mypy mypy-baseline
+	pip3 install isort flake8 pylint autopep8 pytest mypy mypy-baseline nose2
 
 # ============
 # Style checks
