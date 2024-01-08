@@ -709,7 +709,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     def on_custom_image_reset_clicked(self, _widget, image_type):
         self.refresh_image(image_type)
 
-    def save_custom_media(self, image_type, image_path, scale_factor):
+    def save_custom_media(self, image_type, image_path):
         slug = self.slug or self.game.slug
         service_media = self.service_medias[image_type]
         self.game.custom_images.add(image_type)
