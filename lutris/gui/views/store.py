@@ -122,7 +122,7 @@ class GameStore(GObject.Object):
         """
         store_item = StoreItem(db_game, self.service_media)
         row = self.get_row_by_id(store_item.id)
-        if not row:
+        if not row and "service_id" in db_game:
             row = self.get_row_by_id(db_game["service_id"])
         if not row:
             return False
