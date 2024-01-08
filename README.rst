@@ -134,8 +134,7 @@ You can always reach us on:
 * Discord: https://discordapp.com/invite/Pnt5CuY
 * IRC: ircs://irc.libera.chat:6697/lutris
 * Github: https://github.com/lutris
-* Twitter: https://twitter.com/LutrisGaming
-
+* Mastodon: https://fosstodon.org/@lutris
 
 .. |LiberaPayBadge| image:: http://img.shields.io/liberapay/receives/Lutris.svg?logo=liberapay
 .. _LiberaPayBadge: https://liberapay.com/Lutris/
