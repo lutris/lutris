@@ -15,7 +15,6 @@ class DXVKManager(DLLManager):
     versions_path = os.path.join(base_dir, "dxvk_versions.json")
     managed_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9",)
     releases_url = "https://api.github.com/repos/lutris/dxvk/releases"
-    vulkan_api_version = vkquery.get_expected_api_version()
 
     def can_enable(self):
         return LINUX_SYSTEM.is_vulkan_supported()
@@ -23,7 +22,8 @@ class DXVKManager(DLLManager):
     def is_recommended_version(self, version):
         # DXVK 2.x and later require Vulkan 1.3, so if that iss lacking
         # we default to 1.x.
-        if self.vulkan_api_version and self.vulkan_api_version < REQUIRED_VULKAN_API_VERSION:
+        vulkan_api_version = vkquery.get_expected_api_version()
+        if vulkan_api_version and vulkan_api_version < REQUIRED_VULKAN_API_VERSION:
             return version.startswith("v1.")
         return super().is_recommended_version(version)
 
