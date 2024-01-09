@@ -725,11 +725,20 @@ class Game(GObject.Object):
 
     def force_stop(self):
         # If force_stop_game fails, wait a few seconds and try SIGKILL on any survivors
-        self.runner.force_stop_game(self)
-        if self.get_stop_pids():
-            self.force_kill_delayed()
-        else:
-            self.stop_game()
+
+        def force_stop_game():
+            self.runner.force_stop_game(self)
+            return not self.get_stop_pids()
+
+        def force_stop_game_cb(all_dead, error):
+            if error:
+                self.signal_error(error)
+            elif all_dead:
+                self.stop_game()
+            else:
+                self.force_kill_delayed()
+
+        jobs.AsyncCall(force_stop_game, force_stop_game_cb)
 
     def force_kill_delayed(self, death_watch_seconds=5, death_watch_interval_seconds=.5):
         """Forces termination of a running game, but only after a set time has elapsed;
