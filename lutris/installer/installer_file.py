@@ -196,7 +196,7 @@ class InstallerFile:
     def prepare(self):
         """Prepare the file for download. If we've not been redirected to an existing file,
         and if we're using our own installer cache, we need to unsure that directory exists."""
-        if not self._dest_file and not has_custom_cache_path() and not os.path.isdir(self.cache_path):
+        if not self._dest_file and not system.path_exists(self.cache_path):
             os.makedirs(self.cache_path)
 
     def create_download_progress_box(self):
