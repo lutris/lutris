@@ -60,26 +60,6 @@ class dosbox(Runner):
         },
     ]
 
-    scaler_modes = [
-        (_("none"), "none"),
-        ("normal2x", "normal2x"),
-        ("normal3x", "normal3x"),
-        ("hq2x", "hq2x"),
-        ("hq3x", "hq3x"),
-        ("advmame2x", "advmame2x"),
-        ("advmame3x", "advmame3x"),
-        ("2xsai", "2xsai"),
-        ("super2xsai", "super2xsai"),
-        ("supereagle", "supereagle"),
-        ("advinterp2x", "advinterp2x"),
-        ("advinterp3x", "advinterp3x"),
-        ("tv2x", "tv2x"),
-        ("tv3x", "tv3x"),
-        ("rgb2x", "rgb2x"),
-        ("rgb3x", "rgb3x"),
-        ("scan2x", "scan2x"),
-        ("scan3x", "scan3x"),
-    ]
     runner_options = [
         {
             "option": "fullscreen",
@@ -88,17 +68,6 @@ class dosbox(Runner):
             "type": "bool",
             "default": False,
             "help": _("Tells DOSBox to launch the game in fullscreen."),
-        },
-        {
-            "option": "scaler",
-            "section": _("Graphics"),
-            "label": _("Graphic scaler"),
-            "type": "choice",
-            "choices": scaler_modes,
-            "default": "normal3x",
-            "help":
-                _("The algorithm used to scale up the game's base "
-                  "resolution, resulting in different visual styles. "),
         },
         {
             "option": "exit",
@@ -164,11 +133,6 @@ class dosbox(Runner):
         if self.game_config.get("config_file"):
             command.append("-conf")
             command.append(self.make_absolute(self.game_config["config_file"]))
-
-        scaler = self.runner_config.get("scaler")
-        if scaler and scaler != "none":
-            command.append("-scaler")
-            command.append(self.runner_config["scaler"])
 
         if self.runner_config.get("fullscreen"):
             command.append("-fullscreen")
