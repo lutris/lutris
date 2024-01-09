@@ -30,6 +30,7 @@ from lutris.util.display import (
 )
 from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.process import Process
 from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
@@ -510,13 +511,18 @@ class Game(GObject.Object):
 
     def start_antimicrox(self, antimicro_config):
         """Start Antimicrox with a given config path"""
-        try:
-            antimicro_path = system.find_executable("antimicrox")
-        except MissingExecutableError as ex:
-            raise GameConfigError(_("Unable to find Antimicrox, install it or disable the Antimicrox option")) from ex
+        if LINUX_SYSTEM.is_flatpak():
+            antimicro_command = ["flatpak-spawn", "--host", "antimicrox"]
+        else:
+            try:
+                antimicro_command = [system.find_executable("antimicrox")]
+            except MissingExecutableError as ex:
+                raise GameConfigError(
+                    _("Unable to find Antimicrox, install it or disable the Antimicrox option")
+                ) from ex
 
-        logger.info("Starting Antic")
-        antimicro_command = [antimicro_path, "--hidden", "--tray", "--profile", antimicro_config]
+        logger.info("Starting Antimicro")
+        antimicro_command += ["--hidden", "--tray", "--profile", antimicro_config]
         self.antimicro_thread = MonitoredCommand(antimicro_command)
         self.antimicro_thread.start()
 
