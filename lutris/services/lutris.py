@@ -154,7 +154,9 @@ class LutrisService(OnlineService):
         return []
 
     def get_service_db_game(self, game: Game):
-        return ServiceGameCollection.get_game(self.id, game.slug)
+        if game.service == self.id and game.slug:
+            return ServiceGameCollection.get_game(self.id, game.slug)
+        return None
 
 
 def download_lutris_media(slug):
