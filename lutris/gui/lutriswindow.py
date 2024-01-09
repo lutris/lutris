@@ -1059,8 +1059,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
             updated = self.game_store.update(db_game)
             if not updated:
                 self.update_store()
-        else:
-            logger.debug("Can't get DB game for %s (service: %s)", game, self.service)
 
         return True
 

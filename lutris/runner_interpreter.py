@@ -47,7 +47,10 @@ def get_launch_parameters(runner, gameplay_info):
 
     # MangoHud
     if runner.name == "steam":
-        logger.info("Do not enable Mangodhud for Steam games in Lutris. Edit the launch options in Steam and set them to mangohud %%command%%")
+        logger.info(
+            "Do not enable Mangodhud for Steam games in Lutris. "
+            "Edit the launch options in Steam and set them to mangohud %%command%%"
+        )
     else:
         mango_args, mango_env = get_mangohud_conf(system_config)
         if mango_args:
