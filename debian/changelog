@@ -13,7 +13,7 @@ lutris (0.5.15) jammy; urgency=medium
   * Show an animation when a game is launched
   * Add the ability to disable Wine auto-updates at the expense of losing support
   * Add playtime editing in the game preferences
-  * Move game files, runners, and media to the trash instead of deleting them they are uninstalled
+  * Move game files, runners to the trash instead of deleting them they are uninstalled
   * Add "Updates" tab in Preferences control and check for updates and correct missing media
     in the 'Games' view.
   * Add "Storage" tab in Preferences to control game and installer cache location
