@@ -736,19 +736,20 @@ class Game(GObject.Object):
         Invokes stop_game() when the game is dead."""
 
         def death_watch():
-            """Wait for the processes to die; returns True if do they all did."""
+            """Wait for the processes to die; kill them if they do not."""
             for _n in range(int(death_watch_seconds / death_watch_interval_seconds)):
                 time.sleep(death_watch_interval_seconds)
                 if not self.get_stop_pids():
-                    return True
-            return False
+                    return
 
-        def death_watch_cb(all_died, error):
+            # Once we get past the time limit, starting killing!
+            self.kill_processes(signal.SIGKILL)
+
+        def death_watch_cb(_result, error):
             """Called after the death watch to more firmly kill any survivors."""
             if error:
                 self.signal_error(error)
-            elif not all_died:
-                self.kill_processes(signal.SIGKILL)
+
             # If we still can't kill everything, we'll still say we stopped it.
             self.stop_game()
 
