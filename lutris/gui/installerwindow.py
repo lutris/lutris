@@ -25,6 +25,7 @@ from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import human_size
 from lutris.util.system import is_removeable
+from lutris.util.linux import LINUX_SYSTEM
 
 
 class MarkupLabel(Gtk.Label):
@@ -812,10 +813,14 @@ class InstallerWindow(ModelessDialog,
             buttons_box.set_margin_bottom(40)
             vbox.pack_start(buttons_box, False, False, 0)
 
-            autodetect_button = Gtk.Button(label=_("Autodetect"))
-            autodetect_button.connect("clicked", wrapped_callback, requires)
-            autodetect_button.grab_focus()
-            buttons_box.pack_start(autodetect_button, True, True, 40)
+            if not LINUX_SYSTEM.is_flatpak():
+                # Lutris flatplak doesn't autodetect files on CD-ROM properly
+                # and selecting this option doesn't let the user click "Back"
+                # so the only option is to cancel the install.
+                autodetect_button = Gtk.Button(label=_("Autodetect"))
+                autodetect_button.connect("clicked", wrapped_callback, requires)
+                autodetect_button.grab_focus()
+                buttons_box.pack_start(autodetect_button, True, True, 40)
 
             browse_button = Gtk.Button(label=_("Browse…"))
             callback_data = {"callback": wrapped_callback, "requires": requires}
