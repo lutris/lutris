@@ -46,10 +46,13 @@ def get_launch_parameters(runner, gameplay_info):
         launch_arguments.insert(0, "pvkrun")
 
     # MangoHud
-    mango_args, mango_env = get_mangohud_conf(system_config)
-    if mango_args:
-        launch_arguments = mango_args + launch_arguments
-        env.update(mango_env)
+    if runner.name == "steam":
+        logger.info("Do not enable Mangodhud for Steam games in Lutris. Edit the launch options in Steam and set them to mangohud %%command%%")
+    else:
+        mango_args, mango_env = get_mangohud_conf(system_config)
+        if mango_args:
+            launch_arguments = mango_args + launch_arguments
+            env.update(mango_env)
 
     # Libstrangle
     fps_limit = system_config.get("fps_limit") or ""
