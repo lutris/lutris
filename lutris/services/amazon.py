@@ -502,8 +502,7 @@ class AmazonService(OnlineService):
         if not response:
             logger.error("There was an error getting patches: %s", game_id)
             raise UnavailableGameError(_(
-                "Unable to get the patches of game, "
-                "please check your Amazon credentials and internet connectivity"), game_id)
+                "Unable to get the patches of game"), game_id)
         return response
 
     def get_game_patches(self, game_id, version, file_list):
@@ -580,7 +579,7 @@ class AmazonService(OnlineService):
         except HTTPError as ex:
             logger.error("Failed http request %s", fuel_url)
             raise UnavailableGameError(_(
-                "Unable to get fuel.json file, please check your Amazon credentials")) from ex
+                "Unable to get fuel.json file.")) from ex
 
         try:
             res_yaml_text = request.text

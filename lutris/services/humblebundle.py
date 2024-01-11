@@ -131,10 +131,7 @@ class HumbleBundleService(OnlineService):
         try:
             request.get()
         except HTTPError:
-            logger.error(
-                "Failed to request %s, check your Humble Bundle credentials",
-                url,
-            )
+            logger.error("Failed to request %s", url)
             return
         return request.json
 
