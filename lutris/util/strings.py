@@ -165,20 +165,12 @@ def get_formatted_playtime(playtime: float) -> str:
         return NO_PLAYTIME
 
     hours = math.floor(playtime)
-    if hours == 1:
-        hours_text = _("1 hour")
-    elif hours > 1:
-        hours_text = _("%d hours") % hours
-    else:
-        hours_text = ""
+    hours_unit = _("hour") if hours == 1 else _("hours")
+    hours_text = f"{hours} {hours_unit}" if hours > 0 else ""
 
     minutes = int(round((playtime - hours) * 60, 0))
-    if minutes == 1:
-        minutes_text = _("1 minute")
-    elif minutes > 1:
-        minutes_text = _("%d minutes") % minutes
-    else:
-        minutes_text = ""
+    minutes_unit = _("minute") if minutes == 1 else _("minutes")
+    minutes_text = f"{minutes} {minutes_unit}" if minutes > 0 else ""
 
     formatted_time = " ".join([text for text in (hours_text, minutes_text) if text])
     if formatted_time:
@@ -197,6 +189,8 @@ def parse_playtime(text: str) -> float:
 
     if NO_PLAYTIME.casefold() == text:
         return 0.0
+
+    # Handle a single number - assumed to be a count of hours
     try:
         return float(text)
     except ValueError:
@@ -223,6 +217,9 @@ def parse_playtime(text: str) -> float:
             return num / 60
         raise ValueError(error_message)
 
+    # Handle the fancy format made of number unit pairts, like
+    # "1 hour 23 minutes" or "2h57m"; we split this up into digit
+    # and non-digit parts.
     parts = [p.strip() for p in re.split('([0-9.,]+)', text) if p and not p.isspace()]
     parts_iter = iter(parts)
 
