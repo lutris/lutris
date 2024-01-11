@@ -1,4 +1,5 @@
 """Generic service utilities"""
+import json
 import os
 import shutil
 from gettext import gettext as _
@@ -194,19 +195,19 @@ class BaseService(GObject.Object):
         extra installer script steps to move the extras in."""
         return [], []
 
-    def match_game(self, service_game, api_game):
+    def match_game(self, service_game, lutris_game):
         """Match a service game to a lutris game referenced by its slug"""
         if not service_game:
             return
         sql.db_update(
             PGA_DB,
             "service_games",
-            {"lutris_slug": api_game["slug"]},
+            {"lutris_slug": lutris_game["slug"]},
             conditions={"appid": service_game["appid"], "service": self.id}
         )
         unmatched_lutris_games = get_games(
             searches={"installer_slug": self.matcher},
-            filters={"slug": api_game["slug"]},
+            filters={"slug": lutris_game["slug"]},
             excludes={"service": self.id}
         )
         for game in unmatched_lutris_games:
@@ -217,6 +218,12 @@ class BaseService(GObject.Object):
                 {"service": self.id, "service_id": service_game["appid"]},
                 conditions={"id": game["id"]}
             )
+
+        # Copy playtimes from Steam's data
+        for game in get_games(filters={"service": self.id, "service_id": service_game["appid"]}):
+            steam_game_playtime = json.loads(service_game["details"]).get("playtime_forever")
+            playtime = steam_game_playtime / 60
+            sql.db_update(PGA_DB, "games", {"playtime": playtime}, conditions={"id": game["id"]})
 
     def match_games(self):
         """Matching of service games to lutris games"""
