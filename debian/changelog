@@ -20,6 +20,9 @@ lutris (0.5.15) jammy; urgency=medium
   * Expand "System" tab in Preferences with more system information but less brown.
   * Add "Run Task Manager" command for Wine games
   * Add two new, smaller banner sizes for itch.io games.
+  * Ignore Wine virtual desktop setting when using Wine-GE/Proton to avoid crash
+  * Ignore MangoHUD setting when launching Steam to avoid crash
+  * Sync Steam playtimes with the Lutris library
 
 
  -- Mathieu Comandon <mathieucomandon@gmail.com>  Sun, 07 Jan 2024 17:29:46 -0800
