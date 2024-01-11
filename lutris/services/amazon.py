@@ -641,10 +641,6 @@ class AmazonService(OnlineService):
         return [file_collection], []
 
     def get_installed_slug(self, db_game):
-        slug = db_game.get("lutris_slug")
-        if slug:
-            return slug
-
         details = json.loads(db_game["details"])
         return slugify(details["product"]["title"])
 

@@ -71,6 +71,9 @@ class ScummvmService(BaseService):
             }
         }
 
+    def get_installed_slug(self, db_game):
+        return db_game.get("lutris_slug") or slugify(db_game["name"])
+
     def get_installed_runner_name(self, db_game):
         return "scummvm"
 

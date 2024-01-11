@@ -328,7 +328,7 @@ class ItchIoService(OnlineService):
         return all_extras
 
     def get_installed_slug(self, db_game):
-        return db_game.get("lutris_slug") or db_game["slug"]
+        return db_game["slug"]
 
     def generate_installer(self, db_game):
         """Auto generate installer for itch.io game"""

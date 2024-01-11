@@ -263,8 +263,8 @@ class BaseService(GObject.Object):
     def get_installed_slug(self, db_game):
         """Returns the slug the game will have after installation, by default. This
         is Lutris's slug, not the one for the service. By default, we derive it from
-        the Game's name, but services override this if they provide the slug."""
-        return db_game.get("lutris_slug") or slugify(db_game["name"])
+        the Game's name."""
+        return slugify(db_game["name"])
 
     def get_installed_runner_name(self, db_game):
         """Returns the name of the runner this game will have after installation, or
