@@ -922,7 +922,6 @@ class wine(Runner):
             "Desktop": prefix_manager.set_virtual_desktop,
             "WineDesktop": prefix_manager.set_desktop_size,
         }
-
         for key, path in self.reg_keys.items():
             value = self.runner_config.get(key) or "auto"
             if not value or value == "auto" and key not in managed_keys:
@@ -931,6 +930,12 @@ class wine(Runner):
                 if key in managed_keys:
                     # Do not pass fallback 'auto' value to managed keys
                     if value == "auto":
+                        value = None
+                    if value and key in ("Desktop", "WineDesktop") and (
+                            "wine-ge" in self.get_executable().lower()
+                            or "proton" in self.get_executable().lower()
+                    ):
+                        logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
                         value = None
                     managed_keys[key](value)
                     continue
