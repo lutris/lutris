@@ -119,7 +119,13 @@ def _get_fsync_warning(config, _option_key):
 
 
 def _get_virtual_desktop_warning(config, _option_key):
-    return _("Wine virtual desktop is no longer supported")
+    message = _("Wine virtual desktop is no longer supported")
+    if config.get("Desktop"):
+        version = str(config.get("version")).casefold()
+        if "-ge-" in version or "proton" in version:
+            message += "\n"
+            message += _("Virtual desktops cannot be enabled in Proton or GE Wine versions.")
+    return message
 
 
 class wine(Runner):
@@ -932,8 +938,8 @@ class wine(Runner):
                     if value == "auto":
                         value = None
                     if value and key in ("Desktop", "WineDesktop") and (
-                            "wine-ge" in self.get_executable().lower()
-                            or "proton" in self.get_executable().lower()
+                        "wine-ge" in self.get_executable().lower()
+                        or "proton" in self.get_executable().lower()
                     ):
                         logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
                         value = None
