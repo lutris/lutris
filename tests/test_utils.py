@@ -94,6 +94,27 @@ class TestStringUtils(TestCase):
         self.assertEqual(strings.get_formatted_playtime(1.5), "1 hour 30 minutes")
         self.assertEqual(strings.get_formatted_playtime(45.90), "45 hours 54 minutes")
 
+    def test_parse_playtime(self):
+        self.assertEqual(strings.parse_playtime("0"), 0)
+        self.assertEqual(strings.parse_playtime("2.5"), 2.5)
+        self.assertEqual(strings.parse_playtime("30m"), 0.5)
+        self.assertEqual(strings.parse_playtime("30 min"), 0.5)
+        self.assertEqual(strings.parse_playtime("30 minutes"), 0.5)
+        self.assertEqual(strings.parse_playtime("1 hour"), 1)
+        self.assertEqual(strings.parse_playtime("1h"), 1)
+        self.assertEqual(strings.parse_playtime("1 hour 30 minutes"), 1.5)
+        self.assertEqual(strings.parse_playtime("1hour 30minutes"), 1.5)
+        self.assertEqual(strings.parse_playtime("1hour30minutes"), 1.5)
+        self.assertEqual(strings.parse_playtime("1hour30minute"), 1.5)
+        self.assertEqual(strings.parse_playtime("1HoUr30MiNuTe"), 1.5)
+        self.assertEqual(strings.parse_playtime("1h30min"), 1.5)
+        self.assertEqual(strings.parse_playtime("1h30m"), 1.5)
+        self.assertEqual(strings.parse_playtime("1H30M"), 1.5)
+        self.assertEqual(strings.parse_playtime("1 h 30 m"), 1.5)
+        self.assertEqual(strings.parse_playtime("2h45m"), 2.75)
+        self.assertEqual(strings.parse_playtime("2h45"), 2.75)
+        self.assertEqual(strings.parse_playtime("2:45"), 2.75)
+
 
 class TestVersionSort(TestCase):
     def test_parse_version(self):

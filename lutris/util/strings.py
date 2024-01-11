@@ -189,8 +189,7 @@ def get_formatted_playtime(playtime: float) -> str:
 
 
 def parse_playtime(text: str) -> float:
-    """Parses a textual playtime, as produced by get_formatted_playtime(), back into
-    a number, a count of hours (with fractions)."""
+    """Parses a textual playtime into hours"""
     text = text.strip().casefold()
 
     if _("Less than a minute").casefold() == text:
@@ -198,6 +197,10 @@ def parse_playtime(text: str) -> float:
 
     if NO_PLAYTIME.casefold() == text:
         return 0.0
+    try:
+        return float(text)
+    except ValueError:
+        pass
 
     # Handle the easy case of "6:23".
     parts = text.split(":")
@@ -210,17 +213,19 @@ def parse_playtime(text: str) -> float:
     error_message = _("'%s' is not a valid playtime.") % text
 
     def find_hours(num: float, unit: str) -> float:
-        # This works by reformatted the number and unit and then
+        # This works by reformatting the number and unit and then
         # comparing to the localized text we would have produced from
         # formatting; in this way we can recognize the units.
+        hour_units = ["h", "hr", "hours", "hour", _("hour"), _("hours")]
+        minute_units = ["m", "min", "minute", "minutes", _("minute"), _("minutes")]
+        if unit in hour_units:
+            unit = "hours"
+        if unit in minute_units:
+            unit = "minutes"
         normalized = "%d %s" % (num, unit)
-        if normalized == _("1 minute").casefold():
-            return 1 / 60
-        if normalized == (_("%d minutes") % num).casefold():
+        if normalized == "%d minutes" % num:
             return num / 60
-        if normalized == _("1 hour").casefold():
-            return 1
-        if normalized == (_("%d hours") % num).casefold():
+        if normalized == "%d hours" % num:
             return num
         raise ValueError(error_message)
 
@@ -238,7 +243,10 @@ def parse_playtime(text: str) -> float:
             try:
                 unit = next(parts_iter)
             except StopIteration as ex:
-                raise ValueError(error_message) from ex
+                if playtime:
+                    unit = "minutes"
+                else:
+                    raise ValueError(error_message) from ex
 
             playtime += find_hours(num, unit)
     except StopIteration:
