@@ -213,20 +213,14 @@ def parse_playtime(text: str) -> float:
     error_message = _("'%s' is not a valid playtime.") % text
 
     def find_hours(num: float, unit: str) -> float:
-        # This works by reformatting the number and unit and then
-        # comparing to the localized text we would have produced from
-        # formatting; in this way we can recognize the units.
+        # This function works out how many hours are meant by some
+        # number of some unit.
         hour_units = ["h", "hr", "hours", "hour", _("hour"), _("hours")]
         minute_units = ["m", "min", "minute", "minutes", _("minute"), _("minutes")]
         if unit in hour_units:
-            unit = "hours"
-        if unit in minute_units:
-            unit = "minutes"
-        normalized = "%d %s" % (num, unit)
-        if normalized == "%d minutes" % num:
-            return num / 60
-        if normalized == "%d hours" % num:
             return num
+        if unit in minute_units:
+            return num / 60
         raise ValueError(error_message)
 
     parts = [p.strip() for p in re.split('([0-9.,]+)', text) if p and not p.isspace()]
