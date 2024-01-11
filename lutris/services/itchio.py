@@ -529,6 +529,7 @@ class ItchIoService(OnlineService):
         extra_files = []
         link = None
         filename = "setup.zip"
+        selected_extras_ids = set(x["id"] for x in selected_extras or [])
 
         file = next(_file.copy() for _file in installer.script_files if _file.id == installer_file_id)
         if not file.url.startswith("N/A"):
@@ -542,9 +543,9 @@ class ItchIoService(OnlineService):
             "date": int(datetime.datetime.now().timestamp())
         }
 
-        if not link or len(selected_extras) > 0:
+        if not link or len(selected_extras_ids) > 0:
             for upload in uploads["uploads"]:
-                if selected_extras and (upload["type"] in self.extra_types):
+                if selected_extras_ids and (upload["type"] in self.extra_types):
                     extras.append(upload)
                     continue
                 # default =  games/tools ("executables")
@@ -594,7 +595,7 @@ class ItchIoService(OnlineService):
             )
 
         for extra in extras:
-            if str(extra["id"]) not in selected_extras:
+            if str(extra["id"]) not in selected_extras_ids:
                 continue
             link = self.get_download_link(extra["id"], key)
             extra_files.append(

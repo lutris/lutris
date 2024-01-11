@@ -70,7 +70,7 @@ class InstallerWindow(ModelessDialog,
         self.set_default_size(740, 460)
         self.installers = installers
         self.config = {}
-        self.selected_extra_ids = []
+        self.selected_extras = []
         self.install_in_progress = False
         self.install_complete = False
         self.interpreter = None
@@ -137,7 +137,7 @@ class InstallerWindow(ModelessDialog,
         self.extras_tree_store = Gtk.TreeStore(
             bool,  # is selected?
             bool,  # is inconsistent?
-            str,  # id
+            object,  # extras dict
             str,  # label
         )
 
@@ -499,7 +499,7 @@ class InstallerWindow(ModelessDialog,
             for extra_source, extras in all_extras.items():
                 parent = self.extras_tree_store.append(None, (None, None, None, extra_source))
                 for extra in extras:
-                    self.extras_tree_store.append(parent, (False, False, extra["id"], self.get_extra_label(extra)))
+                    self.extras_tree_store.append(parent, (False, False, extra, self.get_extra_label(extra)))
 
             self.stack.navigate_to_page(self.present_extras_page)
         else:
@@ -577,13 +577,13 @@ class InstallerWindow(ModelessDialog,
         selected_extras = []
 
         def save_extra(store, path, iter_):
-            selected, _inconsistent, id_, _label = store[iter_]
-            if selected and id_:
-                selected_extras.append(id_)
+            selected, _inconsistent, extra, _label = store[iter_]
+            if selected and extra:
+                selected_extras.append(extra)
 
         extra_store.foreach(save_extra)
 
-        self.selected_extra_ids = selected_extras
+        self.selected_extras = selected_extras
         GLib.idle_add(self.on_extras_ready)
 
     def on_extras_ready(self, *args):
@@ -602,7 +602,7 @@ class InstallerWindow(ModelessDialog,
             patch_version = None
 
         AsyncCall(self.interpreter.installer.prepare_game_files,
-                  self.on_files_prepared, self.selected_extra_ids, patch_version)
+                  self.on_files_prepared, self.selected_extras, patch_version)
 
     def on_files_prepared(self, _result, error):
         if error:

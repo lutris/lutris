@@ -148,7 +148,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             errors.append("Scripts can't have both extends and requires")
         return errors
 
-    def prepare_game_files(self, extra_ids, patch_version=None):
+    def prepare_game_files(self, extras, patch_version=None):
         """Gathers necessary files before iterating through them."""
         if not self.script_files:
             return
@@ -177,7 +177,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                     # If a patch version is given download the patch files instead of the installer
                     installer_files = self.service.get_patch_files(self, installer_file_id)
                 else:
-                    content_files, extra_files = self.service.get_installer_files(self, installer_file_id, extra_ids)
+                    content_files, extra_files = self.service.get_installer_files(self, installer_file_id, extras)
                     self.extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
                     installer_files = content_files + extra_files
             except UnavailableGameError as ex:

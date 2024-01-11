@@ -289,7 +289,8 @@ class GOGService(OnlineService):
         return self.make_api_request(url)
 
     def get_download_info(self, downlink):
-        """Return file download information"""
+        """Return file download information, a list of dict containing the 'url' and
+        'filename' for each file."""
         logger.info("Getting download info for %s", downlink)
         try:
             response = self.make_api_request(downlink)
@@ -298,12 +299,18 @@ class GOGService(OnlineService):
             raise UnavailableGameError(_("The download of '%s' failed.") % downlink) from ex
         if not response:
             raise UnavailableGameError(_("The download of '%s' failed.") % downlink)
+
+        expanded = []
         for field in ("checksum", "downlink"):
             field_url = response[field]
             parsed = urlparse(field_url)
             query = dict(parse_qsl(parsed.query))
-            response[field + "_filename"] = os.path.basename(query.get("path") or parsed.path)
-        return response
+            filename = os.path.basename(query.get("path") or parsed.path)
+            expanded.append({
+                "url": response[field],
+                "filename": filename
+            })
+        return expanded
 
     def get_downloads(self, gogid):
         """Return all available downloads for a GOG ID"""
@@ -333,6 +340,7 @@ class GOGService(OnlineService):
                     "type": download.get("type", "").strip(),
                     "total_size": download.get("total_size", 0),
                     "id": str(download["id"]),
+                    "downlinks": [f.get("downlink") for f in download.get("files") or []]
                 } for download in product["downloads"].get("bonus_content") or []
             ]
             if extras:
@@ -382,25 +390,31 @@ class GOGService(OnlineService):
             if not downlink:
                 logger.error("No download information for %s", game_file)
                 continue
-            download_info = self.get_download_info(downlink)
-            for field in ('checksum', 'downlink'):
+            for info in self.get_download_info(downlink):
                 download_links.append({
                     "name": download.get("name", ""),
                     "os": download.get("os", ""),
                     "type": download.get("type", ""),
                     "total_size": download.get("total_size", 0),
                     "id": str(game_file["id"]),
-                    "url": download_info[field],
-                    "filename": download_info[field + "_filename"]
+                    "url": info["url"],
+                    "filename": info["filename"]
                 })
         return download_links
 
-    def get_extra_files(self, downloads, installer, selected_extras):
+    def get_extra_files(self, installer, selected_extras):
         extra_files = []
-        for extra in downloads["bonus_content"]:
-            if str(extra["id"]) not in selected_extras:
-                continue
-            links = self.query_download_links(extra)
+        for extra in selected_extras:
+            if extra.get("downlinks"):
+                links = [info for link in extra.get("downlinks") for info in self.get_download_info(link)]
+            elif str(extra["id"]) in selected_extras:
+                links = self.query_download_links(extra)
+            else:
+                links = []
+
+            if not links:
+                logger.error("No download link for bonus content '%s' could be obtained.", extra.get("name"))
+
             for link in links:
                 if link["filename"].endswith(".xml"):
                     # GOG gives a link for checksum XML files for bonus content
@@ -490,7 +504,7 @@ class GOGService(OnlineService):
 
         extra_files = []
         if selected_extras:
-            for extra_file in self.get_extra_files(downloads, installer, selected_extras):
+            for extra_file in self.get_extra_files(installer, selected_extras):
                 extra_files.append(extra_file)
 
         return files, extra_files
