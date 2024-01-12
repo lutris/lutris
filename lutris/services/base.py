@@ -1,5 +1,4 @@
 """Generic service utilities"""
-import json
 import os
 import shutil
 from gettext import gettext as _
@@ -218,12 +217,6 @@ class BaseService(GObject.Object):
                 {"service": self.id, "service_id": service_game["appid"]},
                 conditions={"id": game["id"]}
             )
-
-        # Copy playtimes from Steam's data
-        for game in get_games(filters={"service": self.id, "service_id": service_game["appid"]}):
-            steam_game_playtime = json.loads(service_game["details"]).get("playtime_forever")
-            playtime = steam_game_playtime / 60
-            sql.db_update(PGA_DB, "games", {"playtime": playtime}, conditions={"id": game["id"]})
 
     def match_games(self):
         """Matching of service games to lutris games"""

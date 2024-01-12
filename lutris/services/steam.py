@@ -8,6 +8,7 @@ from gi.repository import Gio
 
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
+from lutris.database import sql
 from lutris.database.games import add_game, get_game_by_field, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
@@ -20,6 +21,8 @@ from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_active_steamid64, get_steam_library, get_steamapps_dirs
 from lutris.util.strings import slugify
+
+PGA_DB = settings.PGA_DB
 
 
 class SteamBanner(ServiceMedia):
@@ -106,6 +109,15 @@ class SteamService(BaseService):
             game.save()
         self.match_games()
         return steam_games
+
+    def match_game(self, service_game, lutris_game):
+        super().match_game(service_game, lutris_game)
+
+        # Copy playtimes from Steam's data
+        for game in get_games(filters={"service": self.id, "service_id": service_game["appid"]}):
+            steam_game_playtime = json.loads(service_game["details"]).get("playtime_forever")
+            playtime = steam_game_playtime / 60
+            sql.db_update(PGA_DB, "games", {"playtime": playtime}, conditions={"id": game["id"]})
 
     def get_installer_files(self, installer, _installer_file_id, _selected_extras):
         steam_uri = "$STEAM:%s:."
