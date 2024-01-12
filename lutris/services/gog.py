@@ -332,17 +332,19 @@ class GOGService(OnlineService):
         products = [game, *dlcs] if dlcs else [game]
         all_extras = {}
         for product in products:
-            extras = [
-                {
-                    "name": download.get("name", "").strip().capitalize(),
-                    "type": download.get("type", "").strip(),
-                    "total_size": download.get("total_size", 0),
-                    "id": str(download["id"]),
-                    "downlinks": [f.get("downlink") for f in download.get("files") or []]
-                } for download in product["downloads"].get("bonus_content") or []
-            ]
-            if extras:
-                all_extras[product.get("title", "").strip()] = extras
+            # Extras for DLCs you don't own are listed, but are not installable.
+            if product.get("is_installable"):
+                extras = [
+                    {
+                        "name": download.get("name", "").strip().capitalize(),
+                        "type": download.get("type", "").strip(),
+                        "total_size": download.get("total_size", 0),
+                        "id": str(download["id"]),
+                        "downlinks": [f.get("downlink") for f in download.get("files") or []]
+                    } for download in product["downloads"].get("bonus_content") or []
+                ]
+                if extras:
+                    all_extras[product.get("title", "").strip()] = extras
         return all_extras
 
     def get_installers(self, downloads, runner, language="en"):
