@@ -293,9 +293,10 @@ class GOGService(OnlineService):
             response = self.make_api_request(downlink)
         except HTTPError as ex:
             logger.error("HTTP error: %s", ex)
-            raise UnavailableGameError(_("The download of '%s' failed.") % downlink) from ex
+            return []
         if not response:
-            raise UnavailableGameError(_("The download of '%s' failed.") % downlink)
+            logger.error("No download info obtained for %s", downlink)
+            return []
 
         expanded = []
         for field in ("checksum", "downlink"):
