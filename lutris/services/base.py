@@ -236,14 +236,14 @@ class BaseService(GObject.Object):
                     continue
                 self.match_game(service_games.get(provider_game["slug"]), lutris_game)
 
-    def match_existing_game(self, db_games, appid):
+    def match_existing_game(self, db_games, appid, no_signal=False):
         """Checks if a game is already installed and populates the service info"""
         for _game in db_games:
             logger.debug("Matching %s with existing install: %s", appid, _game)
             game = Game(_game["id"])
             game.appid = appid
             game.service = self.id
-            game.save()
+            game.save(no_signal=no_signal)
             service_game = ServiceGameCollection.get_game(self.id, appid)
             sql.db_update(PGA_DB, "service_games", {"lutris_slug": game.slug}, {"id": service_game["id"]})
             return game
@@ -281,11 +281,12 @@ class BaseService(GObject.Object):
         for service_installer in service_installers:
             existing_game = self.match_existing_game(
                 get_games(filters={"installer_slug": service_installer["slug"], "installed": "1"}),
-                appid
+                appid,
+                no_signal=True  # we're on a thread here, signals can crash us!
             )
             if existing_game:
                 logger.debug("Found existing game, aborting install")
-                return
+                return None, None, existing_game
         installer = self.generate_installer(db_game) if not update else None
         if installer:
             if service_installers:
@@ -294,7 +295,7 @@ class BaseService(GObject.Object):
         if not service_installers:
             logger.error("No installer found for %s", db_game)
             return
-        return service_installers, db_game
+        return service_installers, db_game, None
 
     def install(self, db_game, update=False):
         """Install a service game, or starts the installer of the game.
@@ -323,10 +324,20 @@ class BaseService(GObject.Object):
             return None
         return self.install(db_game)
 
-    def on_service_installers_loaded(self, result, _error):
-        service_installers, db_game = result
-        application = Gio.Application.get_default()
-        application.show_installer_window(service_installers, service=self, appid=db_game["appid"])
+    def on_service_installers_loaded(self, result, error):
+        if error:
+            raise error  # bounce this error off the backstop for default handling
+
+        service_installers, db_game, existing_game = result
+
+        # If an existing game was found, it may have been updated,
+        # and it's not safe to fire this until we get here.
+        if existing_game:
+            existing_game.emit("game-updated")
+
+        if service_installers and db_game:
+            application = Gio.Application.get_default()
+            application.show_installer_window(service_installers, service=self, appid=db_game["appid"])
 
     def simple_install(self, db_game):
         """A simplified version of the install method, used when a game doesn't need any setup"""
