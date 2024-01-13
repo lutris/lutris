@@ -5,7 +5,6 @@ from gi.repository import Gio
 
 from lutris.database.games import get_game_by_field, get_games
 from lutris.game import Game
-from lutris.installer import get_installers
 from lutris.services.steam import SteamGame, SteamService
 from lutris.util import system
 from lutris.util.log import logger
@@ -57,22 +56,21 @@ class SteamWindowsService(SteamService):
 
     def install(self, db_game):
         steam_game = self.get_steam()
-        if not steam_game:
-            installers = get_installers(
-                game_slug=self.client_installer,
-            )
-            appid = None
-        else:
-            installers = [self.generate_installer(db_game, steam_game)]
-            appid = db_game["appid"]
-            db_games = get_games(filters={"service_id": appid, "installed": "1", "service": self.id})
-            existing_game = self.match_existing_game(db_games, appid)
-            if existing_game:
-                logger.debug("Found steam game: %s", existing_game)
-                game = Game(existing_game.id)
-                game.save()
-                return
         application = Gio.Application.get_default()
+        if not steam_game:
+            application.show_lutris_installer_window(game_slug=self.client_installer)
+            return
+
+        installers = [self.generate_installer(db_game, steam_game)]
+        appid = db_game["appid"]
+        db_games = get_games(filters={"service_id": appid, "installed": "1", "service": self.id})
+        existing_game = self.match_existing_game(db_games, appid)
+        if existing_game:
+            logger.debug("Found steam game: %s", existing_game)
+            game = Game(existing_game.id)
+            game.save()
+            return
+
         application.show_installer_window(
             installers,
             service=self,

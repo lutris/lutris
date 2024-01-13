@@ -12,7 +12,6 @@ from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field, update_existing
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.installer import get_installers
 from lutris.services.base import OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
@@ -282,8 +281,7 @@ class UbisoftConnectService(OnlineService):
         application = Gio.Application.get_default()
         if not ubisoft_connect or not ubisoft_connect["installed"]:
             logger.warning("Ubisoft Connect (%s) not installed", self.client_installer)
-            installers = get_installers(game_slug=self.client_installer)
-            application.show_installer_window(installers)
+            application.show_lutris_installer_window(game_slug=self.client_installer)
         else:
             application.show_installer_window(
                 [self.generate_installer(db_game, ubisoft_connect)],

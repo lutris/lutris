@@ -402,6 +402,15 @@ class Application(Gtk.Application):
             installation_kind=installation_kind
         )
 
+    def show_lutris_installer_window(self, game_slug):
+        def on_installers_ready(installers, error):
+            if error:
+                ErrorDialog(error, parent=self.window)
+            else:
+                self.show_installer_window(installers)
+
+        AsyncCall(get_installers, on_installers_ready, game_slug=game_slug)
+
     def on_app_window_destroyed(self, app_window, window_key):
         """Remove the reference to the window when it has been destroyed"""
         window_key = str(app_window.__class__.__name__) + window_key
