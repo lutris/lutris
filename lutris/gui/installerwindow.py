@@ -16,7 +16,7 @@ from lutris.gui.installer.script_picker import InstallerPicker
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.navigation_stack import NavigationStack
-from lutris.installer import InstallationKind, get_installers, interpreter
+from lutris.installer import InstallationKind, interpreter
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.util import xdgshortcuts
@@ -363,9 +363,8 @@ class InstallerWindow(ModelessDialog,
                 }
             )
             if dlg.result == Gtk.ResponseType.YES:
-                installers = get_installers(game_slug=ex.slug)
                 application = Gio.Application.get_default()
-                application.show_installer_window(installers)
+                application.show_lutris_installer_window(game_slug=ex.slug)
             return
 
         self.set_title(_("Installing {}").format(self.interpreter.installer.game_name))
