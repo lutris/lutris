@@ -161,11 +161,11 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                     installer_file_id = file.id
                     installer_file_url = file.url
                     break
-        self.files = [file.copy() for file in self.script_files if file.id != installer_file_id]
-        self.extra_file_paths = []
+        files = [file.copy() for file in self.script_files if file.id != installer_file_id]
+        extra_file_paths = []
 
         # Run variable substitution on the URLs from the script
-        for file in self.files:
+        for file in files:
             file.set_url(self.interpreter._substitute(file.url))
             if is_moddb_url(file.url):
                 file.set_url(ModDB().transform_url(file.url))
@@ -178,7 +178,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                     installer_files = self.service.get_patch_files(self, installer_file_id)
                 else:
                     content_files, extra_files = self.service.get_installer_files(self, installer_file_id, extras)
-                    self.extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
+                    extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
                     installer_files = content_files + extra_files
             except UnavailableGameError as ex:
                 logger.error("Game not available: %s", ex)
@@ -186,14 +186,20 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
             if installer_files:
                 for installer_file in installer_files:
-                    self.files.append(installer_file)
+                    files.append(installer_file)
             else:
                 # Failed to get the service game, put back a user provided file
                 logger.debug("Unable to get files from service. Setting %s to manual.", installer_file_id)
-                self.files.insert(0, InstallerFile(self.game_slug, installer_file_id, {
+                files.insert(0, InstallerFile(self.game_slug, installer_file_id, {
                     "url": installer_file_url,
                     "filename": ""
                 }))
+
+            # Commit changes only at the end; this is more robust in this method is runner
+            # my two threads concurrently- the GIL can probably save us. It's not desirable
+            # to do this, but this is the easiest workaround.
+            self.files = files
+            self.extra_file_paths = extra_file_paths
 
     def install_extras(self):
         # Copy extras to game folder; this updates the installer script, so it needs
