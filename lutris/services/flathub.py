@@ -6,7 +6,6 @@ from gettext import gettext as _
 from pathlib import Path
 
 import requests
-from gi.repository import Gio
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
@@ -108,14 +107,10 @@ class FlathubService(BaseService):
         logger.debug("Installing %s from service %s", app_id, self.id)
         # Check if Flathub repo is active on the system
         if not self.is_flathub_remote_active():
-            logger.error("Flathub is not configured on the system. Visit https://flatpak.org/setup/ for instructions.")
-            return
+            raise RuntimeError(
+                _("Flathub is not configured on the system. Visit https://flatpak.org/setup/ for instructions."))
         # Install the game
-        service_installers = self.get_installers_from_api(app_id)
-        if not service_installers:
-            service_installers = [self.generate_installer(db_game)]
-        application = Gio.Application.get_default()
-        application.show_installer_window(service_installers, service=self, appid=app_id)
+        self.install_from_api(db_game, app_id)
 
     def get_installed_apps(self):
         """Get list of installed Flathub apps"""

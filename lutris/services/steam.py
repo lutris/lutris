@@ -4,8 +4,6 @@ import os
 from collections import defaultdict
 from gettext import gettext as _
 
-from gi.repository import Gio
-
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database import sql
@@ -242,8 +240,4 @@ class SteamService(BaseService):
             game = Game(existing_game.id)
             game.save()
             return
-        service_installers = self.get_installers_from_api(appid)
-        if not service_installers:
-            service_installers = [self.generate_installer(db_game)]
-        application = Gio.Application.get_default()
-        application.show_installer_window(service_installers, service=self, appid=appid)
+        self.install_from_api(db_game, appid)
