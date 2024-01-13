@@ -288,9 +288,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
     def _on_game_selected(self, listbox, row):
         game_slug = row.api_info["slug"]
-        installers = get_installers(game_slug=game_slug)
         application = Gio.Application.get_default()
-        application.show_installer_window(installers)
+        application.show_lutris_installer_window(game_slug=game_slug)
         self.destroy()
 
     # Scan Folder Page
