@@ -846,21 +846,31 @@ class Application(Gtk.Application):
     def on_game_install_update(self, game):
         service = get_enabled_services()[game.service]()
         db_game = games_db.get_game_by_field(game.id, "id")
-        installers = service.get_update_installers(db_game)
-        if installers:
-            self.show_installer_window(installers, service, game.appid, installation_kind=InstallationKind.UPDATE)
-        else:
-            ErrorDialog(_("No updates found"), parent=self.window)
+
+        def on_installers_ready(installers, error):
+            if error:
+                ErrorDialog(error, parent=self.window)
+            elif installers:
+                self.show_installer_window(installers, service, game.appid, installation_kind=InstallationKind.UPDATE)
+            else:
+                ErrorDialog(_("No updates found"), parent=self.window)
+
+        AsyncCall(service.get_update_installers, on_installers_ready, db_game)
         return True
 
     def on_game_install_dlc(self, game):
         service = get_enabled_services()[game.service]()
         db_game = games_db.get_game_by_field(game.id, "id")
-        installers = service.get_dlc_installers_runner(db_game, db_game["runner"])
-        if installers:
-            self.show_installer_window(installers, service, game.appid, installation_kind=InstallationKind.DLC)
-        else:
-            ErrorDialog(_("No DLC found"), parent=self.window)
+
+        def on_installers_ready(installers, error):
+            if error:
+                ErrorDialog(error, parent=self.window)
+            elif installers:
+                self.show_installer_window(installers, service, game.appid, installation_kind=InstallationKind.DLC)
+            else:
+                ErrorDialog(_("No DLC found"), parent=self.window)
+
+        AsyncCall(service.get_dlc_installers_runner, on_installers_ready, db_game, db_game["runner"])
         return True
 
     def get_launch_ui_delegate(self):
