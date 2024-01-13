@@ -186,6 +186,22 @@ class BaseService(GObject.Object):
         """Used to generate an installer from the data returned from the services"""
         return {}
 
+    def install_from_api(self, db_game, appid=None):
+        """Install a game, using the API or generate_installer() to obtain the installer."""
+        if not appid:
+            appid = db_game["appid"]
+
+        def on_installers_ready(service_installers, error):
+            if error:
+                raise error  # bounce any error off the backstop
+
+            if not service_installers:
+                service_installers = [self.generate_installer(db_game)]
+            application = Gio.Application.get_default()
+            application.show_installer_window(service_installers, service=self, appid=appid)
+
+        AsyncCall(self.get_installers_from_api, on_installers_ready, appid)
+
     def get_installer_files(self, installer, installer_file_id, selected_extras):
         """Used to obtains the content files from the service, when an 'N/A' file is left in
         the installer. This handles 'extras', and must return a tuple; first a list of
