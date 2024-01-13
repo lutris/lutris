@@ -559,7 +559,8 @@ class MoveDialog(ModelessDialog):
         return True
 
     def _move_game(self):
-        self.new_directory = self.game.move(self.destination)
+        # not safe fire a signal from a thread- it will surely hit GTK and may crash
+        self.new_directory = self.game.move(self.destination, no_signal=True)
 
     def _move_game_cb(self, _result, error):
         if error and isinstance(error, InvalidGameMoveError):
@@ -578,6 +579,7 @@ class MoveDialog(ModelessDialog):
     def on_game_moved(self, _result, error):
         if error:
             ErrorDialog(error, parent=self)
+        self.game.emit("game-updated")  # because we could not fire this on the thread
         self.emit("game-moved")
         self.destroy()
 
