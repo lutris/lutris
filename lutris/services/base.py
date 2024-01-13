@@ -17,7 +17,6 @@ from lutris.gui.dialogs import NoticeDialog
 from lutris.gui.dialogs.webconnect_dialog import DEFAULT_USER_AGENT, WebConnectDialog
 from lutris.gui.views.media_loader import download_media
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
-from lutris.installer import get_installers
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
@@ -420,8 +419,7 @@ class OnlineService(BaseService):
                 _("This service requires a game launcher. The following steps will install it.\n"
                   "Once the client is installed, you can login to %s.") % self.name)
             application = Gio.Application.get_default()
-            installers = get_installers(game_slug=self.client_installer)
-            application.show_installer_window(installers)
+            application.show_lutris_installer_window(game_slug=self.client_installer)
             return
         logger.debug("Connecting to %s", self.name)
         dialog = WebConnectDialog(self, parent)

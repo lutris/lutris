@@ -12,7 +12,6 @@ from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.widgets.utils import Image, paste_overlay, thumbnail_image
-from lutris.installer import get_installers
 from lutris.services.base import AuthTokenExpiredError, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
@@ -413,10 +412,7 @@ class EpicGamesStoreService(OnlineService):
         application = Gio.Application.get_default()
         if not egs_game or not egs_game["installed"]:
             logger.warning("EGS (%s) not installed", self.client_installer)
-            installers = get_installers(
-                game_slug=self.client_installer,
-            )
-            application.show_installer_window(installers)
+            application.show_lutris_installer_window(game_slug=self.client_installer)
         else:
             application.show_installer_window(
                 [self.generate_installer(db_game, egs_game)],
