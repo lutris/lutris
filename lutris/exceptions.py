@@ -95,6 +95,10 @@ class MissingGameExecutableError(MissingExecutableError):
         self.filename = filename
 
 
+class InvalidGameMoveError(LutrisError):
+    """Raised when a game can't be moved as desired; we may have to just set the location."""
+
+
 class EsyncLimitError(Exception):
     """Raised when the ESYNC limit is not set correctly."""
 

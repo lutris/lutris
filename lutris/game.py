@@ -20,7 +20,7 @@ from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.exception_backstops import watch_game_errors
-from lutris.exceptions import GameConfigError, MissingExecutableError
+from lutris.exceptions import GameConfigError, InvalidGameMoveError, MissingExecutableError
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.runners.runner import Runner
@@ -960,16 +960,22 @@ class Game(GObject.Object):
         logger.info("Moving %s to %s", self, new_location)
         new_config = ""
         old_location = self.directory
-        if os.path.exists(old_location):
-            game_directory = os.path.basename(old_location)
-            target_directory = os.path.join(new_location, game_directory)
-        else:
-            target_directory = new_location
+        target_directory = self._get_move_target_directory(new_location)
+
+        # Raise errors before actually changing anything!
+        if not old_location:
+            raise InvalidGameMoveError(_("The game has no location currently set, so it can't be moved."))
+
+        if not system.path_exists(old_location):
+            raise InvalidGameMoveError(
+                _("The location '%s' does not exist, perhaps the files have already been moved?") % old_location)
+
+        if new_location.startswith(old_location):
+            raise InvalidGameMoveError(
+                _("Lutris can't move '%s' to a location inside of itself, '%s'.") % (old_location, new_location))
+
         self.directory = target_directory
         self.save()
-        if not old_location:
-            logger.info("Previous location wasn't set. Cannot continue moving")
-            return target_directory
 
         with open(self.config.game_config_path, encoding='utf-8') as config_file:
             for line in config_file.readlines():
@@ -980,12 +986,6 @@ class Game(GObject.Object):
         with open(self.config.game_config_path, "w", encoding='utf-8') as config_file:
             config_file.write(new_config)
 
-        if not system.path_exists(old_location):
-            logger.warning("Location %s doesn't exist, files already moved?", old_location)
-            return target_directory
-        if new_location.startswith(old_location):
-            logger.warning("Can't move %s to one of its children %s", old_location, new_location)
-            return target_directory
         try:
             shutil.move(old_location, new_location)
         except OSError as ex:
@@ -994,6 +994,20 @@ class Game(GObject.Object):
                 old_location, new_location, ex
             )
         return target_directory
+
+    def set_location(self, new_location):
+        target_directory = self._get_move_target_directory(new_location)
+        self.directory = target_directory
+        self.save()
+        return target_directory
+
+    def _get_move_target_directory(self, new_location):
+        old_location = self.directory
+        if old_location and os.path.exists(old_location):
+            game_directory = os.path.basename(old_location)
+            return os.path.join(new_location, game_directory)
+
+        return new_location
 
 
 def export_game(slug, dest_dir):

@@ -11,6 +11,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gdk, GLib, GObject, Gtk
 
 from lutris import api, settings
+from lutris.exceptions import InvalidGameMoveError
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
@@ -522,19 +523,6 @@ class InstallerSourceDialog(ModelessDialog):
         self.show_all()
 
 
-class WarningMessageDialog(Gtk.MessageDialog):
-    def __init__(self, message, secondary_message="", parent=None):
-        super().__init__(type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent)
-
-        self.set_default_response(Gtk.ResponseType.OK)
-        self.set_markup("<b>%s</b>" % message)
-        if secondary_message:
-            self.props.secondary_use_markup = True
-            self.props.secondary_text = secondary_message
-        self.run()
-        self.destroy()
-
-
 class MoveDialog(ModelessDialog):
     __gsignals__ = {
         "game-moved": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -564,7 +552,7 @@ class MoveDialog(ModelessDialog):
         GLib.source_remove(self.progress_source_id)
 
     def move(self):
-        AsyncCall(self._move_game, self.on_game_moved)
+        AsyncCall(self._move_game, self._move_game_cb)
 
     def show_progress(self):
         self.progress.pulse()
@@ -572,6 +560,20 @@ class MoveDialog(ModelessDialog):
 
     def _move_game(self):
         self.new_directory = self.game.move(self.destination)
+
+    def _move_game_cb(self, _result, error):
+        if error and isinstance(error, InvalidGameMoveError):
+            secondary = _("Do you want to change the game location anyway? No files can be moved, "
+                          "and the game configuration may need to be adjusted.")
+            dlg = WarningDialog(str(error), secondary=secondary, parent=self)
+            if dlg.result == Gtk.ResponseType.OK:
+                self.new_directory = self.game.set_location(self.destination)
+                self.on_game_moved(None, None)
+            else:
+                self.destroy()
+            return
+
+        self.on_game_moved(_result, error)
 
     def on_game_moved(self, _result, error):
         if error:
