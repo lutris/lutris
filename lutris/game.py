@@ -244,7 +244,6 @@ class Game(GObject.Object):
         """Do not show this game in the UI"""
         self.is_hidden = is_hidden
         self.save()
-        self.emit("game-updated")
 
     @property
     def log_buffer(self):
@@ -410,7 +409,7 @@ class Game(GObject.Object):
         if not self.platform:
             logger.warning("The %s runner didn't provide a platform for %s", self.runner.human_name, self)
 
-    def save(self):
+    def save(self, no_signal=False):
         """
         Save the game's config and metadata.
         """
@@ -445,7 +444,8 @@ class Game(GObject.Object):
             "has_custom_coverart_big": "coverart_big" in self.custom_images
         }
         self._id = str(games_db.add_or_update(**game_data))
-        self.emit("game-updated")
+        if not no_signal:
+            self.emit("game-updated")
 
     def save_platform(self):
         """Save only the platform field- do not restore any other values the user may have changed
@@ -956,7 +956,7 @@ class Game(GObject.Object):
             return
         export_bash_script(self.runner, gameplay_info, script_path)
 
-    def move(self, new_location):
+    def move(self, new_location, no_signal=False):
         logger.info("Moving %s to %s", self, new_location)
         new_config = ""
         old_location = self.directory
@@ -975,7 +975,7 @@ class Game(GObject.Object):
                 _("Lutris can't move '%s' to a location inside of itself, '%s'.") % (old_location, new_location))
 
         self.directory = target_directory
-        self.save()
+        self.save(no_signal=no_signal)
 
         with open(self.config.game_config_path, encoding='utf-8') as config_file:
             for line in config_file.readlines():
