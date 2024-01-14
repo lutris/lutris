@@ -90,7 +90,6 @@ class BaseService(GObject.Object):
     is_loading = False
 
     __gsignals__ = {
-        "service-games-load": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "service-login": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "service-logout": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -150,7 +149,6 @@ class BaseService(GObject.Object):
             self.emit("service-games-loaded")
             reloaded_callback(error)
 
-        self.emit("service-games-load")
         AsyncCall(do_reload, reload_cb)
 
     def load(self):

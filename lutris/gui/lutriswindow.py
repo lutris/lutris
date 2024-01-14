@@ -140,7 +140,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.update_action_state()
 
         self.connect("view-updated", self.update_store)
-        GObject.add_emission_hook(BaseService, "service-login", self.on_service_login)
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
@@ -843,14 +842,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.window_y = settings.read_setting("window_y")
         if self.window_x and self.window_y:
             self.move(int(self.window_x), int(self.window_y))
-
-    def on_service_login(self, service):
-        service.start_reload(self._service_reloaded_cb)
-        return True
-
-    def _service_reloaded_cb(self, error):
-        if error:
-            dialogs.ErrorDialog(error, parent=self)
 
     def on_service_logout(self, service):
         if self.service and service.id == self.service.id:

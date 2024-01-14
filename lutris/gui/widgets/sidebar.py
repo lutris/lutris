@@ -160,9 +160,17 @@ class ServiceSidebarRow(SidebarRow):
         if self.service.online and not self.service.is_connected():
             self.service.logout()
             return
-        self.service.start_reload(self.service_reloaded_cb)
+        self.start_reload()
 
-    def service_reloaded_cb(self, error):
+    def start_reload(self):
+        self.set_is_updating(True)
+        self.service.start_reload(self._service_reloaded_cb)
+
+    def set_is_updating(self, is_updating):
+        self.is_updating = is_updating
+        self.update_buttons()
+
+    def _service_reloaded_cb(self, error):
         if error:
             if isinstance(error, AuthTokenExpiredError):
                 self.service.logout()
@@ -361,10 +369,9 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-updated", self.update_rows)
         GObject.add_emission_hook(Game, "game-removed", self.update_rows)
-        GObject.add_emission_hook(BaseService, "service-login", self.on_service_auth_changed)
-        GObject.add_emission_hook(BaseService, "service-logout", self.on_service_auth_changed)
-        GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
-        GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
+        GObject.add_emission_hook(BaseService, "service-login", self.on_service_login)
+        GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
+        GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_loaded)
         self.set_filter_func(self._filter_func)
         self.set_header_func(self._header_func)
         self.show_all()
@@ -604,20 +611,26 @@ class LutrisSidebar(Gtk.ListBox):
 
         return True
 
+    def on_service_login(self, service):
+        self.on_service_auth_changed(service)
+        row = self.service_rows.get(service.id)
+        if row:
+            row.start_reload()
+        return True
+
+    def on_service_logout(self, service):
+        self.on_service_auth_changed(service)
+        return True
+
     def on_service_auth_changed(self, service):
-        if service.id in self.service_rows:
-            self.service_rows[service.id].create_button_box()
-            self.service_rows[service.id].update_buttons()
+        row = self.service_rows.get(service.id)
+        if row:
+            row.create_button_box()
+            row.update_buttons()
         return True
 
-    def on_service_games_updating(self, service):
-        if service.id in self.service_rows:
-            self.service_rows[service.id].is_updating = True
-            self.service_rows[service.id].update_buttons()
-        return True
-
-    def on_service_games_updated(self, service):
-        if service.id in self.service_rows:
-            self.service_rows[service.id].is_updating = False
-            self.service_rows[service.id].update_buttons()
+    def on_service_games_loaded(self, service):
+        row = self.service_rows.get(service.id)
+        if row:
+            row.set_is_updating(False)
         return True
