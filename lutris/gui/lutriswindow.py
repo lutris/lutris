@@ -260,7 +260,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Grab the initial focus after the sidebar is initialized - so the view is ready."""
         self.current_view.grab_focus()
 
-    def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
+    def on_drag_data_received(self, _widget, _drag_context, _x, _y, data, _info, _time):
         """Handler for drop event"""
         file_paths = [unquote(urlparse(uri).path) for uri in data.get_uris()]
         dialog = ImportGameDialog(file_paths, parent=self)
@@ -599,11 +599,25 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self._game_store_generation += 1
         generation = self._game_store_generation
 
-        def make_game_store():
-            games = self.get_games_from_filters()
+        def make_game_store(games):
             game_store = GameStore(service, service_media)
             game_store.add_preloaded_games(games, service_id)
             return games, game_store
+
+        def on_games_ready(games, error):
+            if generation != self._game_store_generation:
+                return  # no longer applicable, we got switched again!
+
+            if error:
+                raise error  # bounce any error against the backstop
+
+            # Since get_games_from_filters() seems to be much faster than making a GameStore,
+            # we defer the spinner to here, when we know how many games we will show. If there
+            # are "many" we show a spinner while the store is built.
+            if len(games) > 64:
+                self.show_spinner()
+
+            AsyncCall(make_game_store, apply_store, games)
 
         def apply_store(result, error):
             if generation != self._game_store_generation:
@@ -640,8 +654,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 self.show_empty_label()
 
         self.search_timer_id = None
-        self.show_spinner()
-        AsyncCall(make_game_store, apply_store)
+
+        AsyncCall(self.get_games_from_filters, on_games_ready)
         return False
 
     def _bind_zoom_adjustment(self):
