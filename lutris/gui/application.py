@@ -81,7 +81,6 @@ class Application(Gtk.Application):
 
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
-        GObject.add_emission_hook(Game, "game-install", self.on_game_install)
         GObject.add_emission_hook(Game, "game-install-update", self.on_game_install_update)
         GObject.add_emission_hook(Game, "game-install-dlc", self.on_game_install_dlc)
         GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
@@ -405,8 +404,10 @@ class Application(Gtk.Application):
         def on_installers_ready(installers, error):
             if error:
                 ErrorDialog(error, parent=self.window)
-            else:
+            elif installers:
                 self.show_installer_window(installers)
+            else:
+                ErrorDialog(_("No installer available."), parent=self.window)
 
         AsyncCall(get_installers, on_installers_ready, game_slug=game_slug)
 
@@ -810,41 +811,6 @@ class Application(Gtk.Application):
                 if self.quit_on_game_exit or not self.has_tray_icon():
                     self.quit()
         return True
-
-    def on_game_install(self, game):
-        """Request installation of a game"""
-        if game.service and game.service != "lutris":
-            service = get_enabled_services()[game.service]()
-            db_game = service.get_service_db_game(game)
-            if not db_game:
-                logger.error("Can't find %s for %s", game.name, service.name)
-                return True
-            try:
-                game_id = service.install(db_game)
-            except ValueError as e:
-                logger.debug(e)
-                game_id = None
-
-            if game_id:
-                def on_error(_game, error):
-                    logger.exception("Unable to install game: %s", error)
-                    return True
-
-                game = Game(game_id)
-                game.connect("game-error", on_error)
-                game.launch(self.launch_ui_delegate)
-            return True
-        if not game.slug:
-            raise ValueError("Invalid game passed: %s" % game)
-            # return True
-        AsyncCall(get_installers, self.on_installers_loaded, game.slug)
-        return True
-
-    def on_installers_loaded(self, installers, _error):
-        if installers:
-            self.show_installer_window(installers)
-        else:
-            ErrorDialog(_("No installer available."), parent=self.window)
 
     def on_game_install_update(self, game):
         service = get_enabled_services()[game.service]()

@@ -1114,7 +1114,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
             if game.is_installed:
                 game.launch(launch_ui_delegate=self)
             else:
-                game.emit("game-install")
+                game.install(launch_ui_delegate=self)
 
     @property
     def download_queue(self) -> DownloadQueue:
