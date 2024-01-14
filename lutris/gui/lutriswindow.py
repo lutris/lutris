@@ -594,21 +594,23 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def update_store(self, *_args, **_kwargs):
         service_id = self.filters.get("service")
+        service = self.service
+        service_media = self.service_media
         self._game_store_generation += 1
         generation = self._game_store_generation
 
         def make_game_store():
             games = self.get_games_from_filters()
-            game_store = GameStore(self.service, self.service_media)
+            game_store = GameStore(service, service_media)
             game_store.add_preloaded_games(games, service_id)
             return games, game_store
 
         def apply_store(result, error):
+            if generation != self._game_store_generation:
+                return  # no longer applicable, we got switched again!
+
             if error:
                 raise error  # bounce any error against the backstop
-
-            if generation != self._game_store_generation:
-                return  # no longer applicable!
 
             games, game_store = result
 
@@ -632,11 +634,13 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 self.current_view = self.views[view_type]
                 self.current_view.set_game_store(self.game_store)
 
-            if not games:
+            if games:
+                self.hide_overlay()
+            else:
                 self.show_empty_label()
 
-        self.hide_overlay()
         self.search_timer_id = None
+        self.show_spinner()
         AsyncCall(make_game_store, apply_store)
         return False
 
@@ -666,15 +670,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if icon_type != self.icon_type:
             GLib.idle_add(self.save_icon_type, icon_type)
 
-    def show_overlay(self, widget, halign=Gtk.Align.FILL, valign=Gtk.Align.FILL):
-        """Display a widget in the blank overlay"""
-        for child in self.blank_overlay.get_children():
-            child.destroy()
-        self.blank_overlay.set_halign(halign)
-        self.blank_overlay.set_valign(valign)
-        self.blank_overlay.add(widget)
-        self.blank_overlay.props.visible = True
-
     def show_label(self, message):
         """Display a label in the middle of the UI"""
         self.show_overlay(Gtk.Label(message, visible=True))
@@ -695,15 +690,23 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.show_overlay(splash_box, Gtk.Align.FILL, Gtk.Align.FILL)
 
     def show_spinner(self):
-        spinner = Gtk.Spinner(visible=True)
+        spinner = Gtk.Spinner(visible=True, width_request=32, height_request=32)
         spinner.start()
+        self.show_overlay(spinner, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
+
+    def show_overlay(self, widget, halign=Gtk.Align.FILL, valign=Gtk.Align.FILL):
+        """Display a widget in the blank overlay"""
         for child in self.blank_overlay.get_children():
             child.destroy()
-        self.blank_overlay.add(spinner)
-        self.blank_overlay.props.visible = True
+        self.blank_overlay.set_halign(halign)
+        self.blank_overlay.set_valign(valign)
+        self.blank_overlay.add(widget)
+        self.blank_overlay.show()
+        self.games_stack.hide()
 
     def hide_overlay(self):
-        self.blank_overlay.props.visible = False
+        self.blank_overlay.hide()
+        self.games_stack.show()
         for child in self.blank_overlay.get_children():
             child.destroy()
 
@@ -764,18 +767,15 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if not self.game_store:
             logger.error("No game store yet")
             return
-        self.game_store = GameStore(self.service, self.service_media)
 
         view_type = self.current_view_type
 
-        if view_type in self.views:
-            self.current_view = self.views[view_type]
-            self.current_view.set_game_store(self.game_store)
-        else:
+        if view_type not in self.views:
+            self.game_store = GameStore(self.service, self.service_media)
             if view_type == "grid":
                 self.current_view = GameGridView(
                     self.game_store,
-                    hide_text=settings.read_setting("hide_text_under_icons") == "True"
+                    hide_text=settings.read_bool_setting("hide_text_under_icons")
                 )
             else:
                 self.current_view = GameListView(self.game_store)
