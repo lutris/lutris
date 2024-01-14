@@ -358,7 +358,7 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(ScriptInterpreter, "runners-installed", self.update_rows)
         GObject.add_emission_hook(ServicesBox, "services-changed", self.update_rows)
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
-        GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
+        GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-updated", self.update_rows)
         GObject.add_emission_hook(BaseService, "service-login", self.on_service_auth_changed)
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_auth_changed)
@@ -593,9 +593,9 @@ class LutrisSidebar(Gtk.ListBox):
         self.running_row.show()
         return True
 
-    def on_game_stop(self, _game):
+    def on_game_stopped(self, _game):
         """Hide the "running" section when no games are running"""
-        if not self.application.running_games:
+        if not self.application.has_running_games:
             self.running_row.hide()
 
             if self.get_selected_row() == self.running_row:

@@ -871,7 +871,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def on_window_delete(self, *_args):
         app = self.application
-        if app.running_games:
+        if app.has_running_games:
             self.hide()
             return True
         if app.has_tray_icon():
