@@ -90,6 +90,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.set_service(self.filters.get("service"))
         self.icon_type = self.load_icon_type()
         self.game_store = GameStore(self.service, self.service_media)
+        self._game_store_generation = 0
         self.current_view = Gtk.Box()
         self.views = {}
 
@@ -592,25 +593,51 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 self.show_label(_("No games found"))
 
     def update_store(self, *_args, **_kwargs):
-        self.game_store.store.clear()
-        self.hide_overlay()
-        games = self.get_games_from_filters()
-        if games:
-            if len(games) > 1:
-                self.search_entry.set_placeholder_text(_("Search %s games") % len(games))
-            else:
-                self.search_entry.set_placeholder_text(_("Search 1 game"))
-        else:
-            self.search_entry.set_placeholder_text(_("Search games"))
-        for view in self.views.values():
-            view.service = self.service
-        GLib.idle_add(self.update_revealer)
-
         service_id = self.filters.get("service")
-        self.game_store.add_preloaded_games(games, service_id)
-        if not games:
-            self.show_empty_label()
+        self._game_store_generation += 1
+        generation = self._game_store_generation
+
+        def make_game_store():
+            games = self.get_games_from_filters()
+            game_store = GameStore(self.service, self.service_media)
+            game_store.add_preloaded_games(games, service_id)
+            return games, game_store
+
+        def apply_store(result, error):
+            if error:
+                raise error  # bounce any error against the backstop
+
+            if generation != self._game_store_generation:
+                return  # no longer applicable!
+
+            games, game_store = result
+
+            if games:
+                if len(games) > 1:
+                    self.search_entry.set_placeholder_text(_("Search %s games") % len(games))
+                else:
+                    self.search_entry.set_placeholder_text(_("Search 1 game"))
+            else:
+                self.search_entry.set_placeholder_text(_("Search games"))
+
+            for view in self.views.values():
+                view.service = self.service
+
+            GLib.idle_add(self.update_revealer)
+            self.game_store = game_store
+
+            view_type = self.current_view_type
+
+            if view_type in self.views:
+                self.current_view = self.views[view_type]
+                self.current_view.set_game_store(self.game_store)
+
+            if not games:
+                self.show_empty_label()
+
+        self.hide_overlay()
         self.search_timer_id = None
+        AsyncCall(make_game_store, apply_store)
         return False
 
     def _bind_zoom_adjustment(self):
