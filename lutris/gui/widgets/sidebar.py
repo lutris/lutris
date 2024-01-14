@@ -152,7 +152,7 @@ class ServiceSidebarRow(SidebarRow):
 
     def on_service_run(self, button):
         """Run a launcher associated with a service"""
-        self.service.run()
+        self.service.run(self.get_toplevel())
 
     def on_refresh_clicked(self, button):
         """Reload the service games"""
