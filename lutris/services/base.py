@@ -106,7 +106,7 @@ class BaseService(GObject.Object):
         """Launch the game client"""
         launcher = self.get_launcher()
         if launcher:
-            launcher.emit("game-launch")
+            launcher.launch()
 
     def is_launchable(self):
         if self.client_installer:
