@@ -713,11 +713,8 @@ class Game(GObject.Object):
         return True
 
     @watch_game_errors(game_stop_result=False)
-    def launch(self, launch_ui_delegate=None):
+    def launch(self, launch_ui_delegate):
         """Request launching a game. The game may not be installed yet."""
-        if not launch_ui_delegate:
-            launch_ui_delegate = Gio.Application.get_default().launch_ui_delegate
-
         if not self.check_launchable():
             logger.error("Game is not launchable")
             return False

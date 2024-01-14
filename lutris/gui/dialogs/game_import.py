@@ -2,7 +2,7 @@ from collections import OrderedDict
 from copy import deepcopy
 from gettext import gettext as _
 
-from gi.repository import GLib, Gtk
+from gi.repository import Gio, GLib, Gtk
 
 from lutris.config import write_game_config
 from lutris.database.games import add_game
@@ -216,7 +216,10 @@ class ImportGameDialog(ModelessDialog):
         launch_button.connect("clicked", self.on_launch_clicked, game)
 
     def on_launch_clicked(self, _button, game):
-        game.launch()
+        # We can't use this window as the delegate because we
+        # are destroying it.
+        application = Gio.Application.get_default()
+        game.launch(application.launch_ui_delegate)
         self.destroy()
 
     def display_existing_game_info(self, filename, game):

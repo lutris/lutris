@@ -906,12 +906,15 @@ class InstallerWindow(ModelessDialog,
     def on_launch_clicked(self, button):
         """Launch a game after it's been installed."""
         button.set_sensitive(False)
-        self.on_cancel_clicked(button)
         game = Game(self.interpreter.installer.game_id)
         if game.is_db_stored:
-            game.launch()
+            # Since we're closing this window, we can't use
+            # it as the delegate.
+            application = Gio.Application.get_default()
+            game.launch(application.launch_ui_delegate)
         else:
             logger.error("Game has no ID, launch button should not be drawn")
+        self.on_cancel_clicked(button)
 
     def on_window_focus(self, _widget, *_args):
         """Remove urgency hint (flashing indicator) when window receives focus"""
