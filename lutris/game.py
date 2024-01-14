@@ -366,12 +366,8 @@ class Game(GObject.Object):
             game.connect("game-error", on_error)
             game.launch(launch_ui_delegate)
 
-    def install_updates(self, launch_ui_delegate=None):
-        application = Gio.Application.get_default()
-        if not launch_ui_delegate:
-            launch_ui_delegate = application.launch_ui_delegate
-
-        service = launch_ui_delegate.get_service(self.service)
+    def install_updates(self, install_ui_delegate):
+        service = install_ui_delegate.get_service(self.service)
         db_game = games_db.get_game_by_field(self.id, "id")
 
         def on_installers_ready(installers, error):
@@ -380,18 +376,16 @@ class Game(GObject.Object):
 
             if not installers:
                 raise RuntimeError(_("No updates found"))
+
+            application = Gio.Application.get_default()
             application.show_installer_window(installers, service, self.appid,
                                               installation_kind=InstallationKind.UPDATE)
 
         jobs.AsyncCall(service.get_update_installers, on_installers_ready, db_game)
         return True
 
-    def install_dlc(self, launch_ui_delegate=None):
-        application = Gio.Application.get_default()
-        if not launch_ui_delegate:
-            launch_ui_delegate = application.launch_ui_delegate
-
-        service = launch_ui_delegate.get_service(self.service)
+    def install_dlc(self, install_ui_delegate):
+        service = install_ui_delegate.get_service(self.service)
         db_game = games_db.get_game_by_field(self.id, "id")
 
         def on_installers_ready(installers, error):
@@ -401,6 +395,7 @@ class Game(GObject.Object):
             if not installers:
                 raise RuntimeError(_("No DLC found"))
 
+            application = Gio.Application.get_default()
             application.show_installer_window(installers, service, self.appid, installation_kind=InstallationKind.DLC)
 
         jobs.AsyncCall(service.get_dlc_installers_runner, on_installers_ready, db_game, db_game["runner"])

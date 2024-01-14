@@ -10,7 +10,14 @@ from lutris.services import get_enabled_services
 from lutris.util.downloader import Downloader
 
 
-class LaunchUIDelegate:
+class Delegate:
+    def get_service(self, service_id):
+        """Returns a new service object by its id. This seems dumb, but it is a work-around
+        for Python's circular import limitations."""
+        return get_enabled_services()[service_id]()
+
+
+class LaunchUIDelegate(Delegate):
     """These objects provide UI for the game while it is being launched;
     one provided to the launch() method.
 
@@ -42,13 +49,8 @@ class LaunchUIDelegate:
         """
         return {}  # primary game
 
-    def get_service(self, service_id):
-        """Returns a new service object by its id. This seems dumb, but it is a work-around
-        for Python's circular import limitations."""
-        return get_enabled_services()[service_id]()
 
-
-class InstallUIDelegate:
+class InstallUIDelegate(Delegate):
     """These objects provide UI for a runner as it is installing itself.
     One of these must be provided to the install() method.
 
