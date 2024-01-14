@@ -614,7 +614,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
             # Since get_games_from_filters() seems to be much faster than making a GameStore,
             # we defer the spinner to here, when we know how many games we will show. If there
             # are "many" we show a spinner while the store is built.
-            if len(games) > 64:
+            if len(games) > 512:
                 self.show_spinner()
 
             AsyncCall(make_game_store, apply_store, games)
