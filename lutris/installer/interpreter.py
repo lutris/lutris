@@ -8,6 +8,7 @@ from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import MisconfigurationError
+from lutris.gui.dialogs.delegates import Delegate
 from lutris.installer import AUTO_EXE_PREFIX
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
@@ -29,7 +30,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         "runners-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    class InterpreterUIDelegate:
+    class InterpreterUIDelegate(Delegate):
         """This is a base class for objects that provide UI services
         for running scripts. The InstallerWindow inherits from this."""
 

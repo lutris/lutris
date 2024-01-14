@@ -32,7 +32,7 @@ from lutris.util.system import path_exists
 class BaseGameActions:
     def __init__(self, games, window, application=None):
         self.application = application or Gio.Application.get_default()
-        self.window = window  # also used as a LaunchUIDelegate
+        self.window = window  # also used as a LaunchUIDelegate and InstallUIDelegate
         self.games = games
 
     def get_game_actions(self):
@@ -278,11 +278,11 @@ class GameActions(BaseGameActions):
 
     def on_update_clicked(self, _widget):
         for game in self.games:
-            game.install_updates(launch_ui_delegate=self.window)
+            game.install_updates(install_ui_delegate=self.window)
 
     def on_install_dlc_clicked(self, _widget):
         for game in self.games:
-            game.install_dlc(launch_ui_delegate=self.window)
+            game.install_dlc(install_ui_delegate=self.window)
 
     def on_game_duplicate(self, _widget):
         for game in self.games:
