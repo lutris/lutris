@@ -28,16 +28,15 @@ class AccountsBox(BaseConfigBox):
 
         steam_users = get_steam_users()
         for account in steam_users:
-            radio_button = Gtk.RadioButton.new_with_label_from_widget(
-                main_radio_button,
-                account["PersonalName"]
-            )
+            steamid64 = account["steamid64"]
+            name = account.get("PersonalName") or f"#{steamid64}"
+            radio_button = Gtk.RadioButton.new_with_label_from_widget(main_radio_button, name)
             radio_button.set_margin_top(16)
             radio_button.set_margin_start(16)
             radio_button.set_margin_bottom(16)
             radio_button.show()
-            radio_button.set_active(active_steam_account == account["steamid64"])
-            radio_button.connect("toggled", self.on_steam_account_toggled, account["steamid64"])
+            radio_button.set_active(active_steam_account == steamid64)
+            radio_button.connect("toggled", self.on_steam_account_toggled, steamid64)
             self.accounts_box.pack_start(radio_button, True, True, 0)
             if not main_radio_button:
                 main_radio_button = radio_button
