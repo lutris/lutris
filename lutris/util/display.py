@@ -334,7 +334,7 @@ def _get_compositor_commands():
     if command_set:
         start_compositor = command_set["start_compositor"]
         stop_compositor = command_set["stop_compositor"]
-        run_in_background = command_set["run_in_background"]
+        run_in_background = bool(command_set.get("run_in_background"))
         return start_compositor, stop_compositor, run_in_background
 
     return None, None, False
