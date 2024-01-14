@@ -55,10 +55,6 @@ def sort_func(model, row1, row2, sort_col):
 
 
 class GameStore(GObject.Object):
-    __gsignals__ = {
-        "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, ()),
-    }
-
     def __init__(self, service, service_media):
         super().__init__()
         self.service = service
