@@ -909,7 +909,7 @@ class InstallerWindow(ModelessDialog,
         self.on_cancel_clicked(button)
         game = Game(self.interpreter.installer.game_id)
         if game.is_db_stored:
-            game.emit("game-launch")
+            game.launch()
         else:
             logger.error("Game has no ID, launch button should not be drawn")
 

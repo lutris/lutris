@@ -79,7 +79,6 @@ class Application(Gtk.Application):
         # established; this will apply to all connections from this point forward.
         init_exception_backstops()
 
-        GObject.add_emission_hook(Game, "game-launch", self.on_game_launch)
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
         GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
         GObject.add_emission_hook(Game, "game-install", self.on_game_install)
@@ -783,10 +782,6 @@ class Application(Gtk.Application):
             if self.window.get_visible():
                 self.set_tray_icon()
         return True
-
-    def on_game_launch(self, game):
-        game.launch(self.launch_ui_delegate)
-        return True  # Return True to continue handling the emission hook
 
     def on_game_start(self, game):
         self.running_games.append(game)
