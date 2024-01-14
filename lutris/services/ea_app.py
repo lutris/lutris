@@ -170,14 +170,6 @@ class EAAppService(OnlineService):
     def api_url(self):
         return "https://api%s.origin.com" % random.randint(1, 4)
 
-    def run(self):
-        db_game = get_game_by_field(self.client_installer, "slug")
-        game = Game(db_game["id"])
-        game.launch()
-
-    def is_launchable(self):
-        return get_game_by_field(self.client_installer, "slug")
-
     def is_connected(self):
         return bool(self.access_token)
 

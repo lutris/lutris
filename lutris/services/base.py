@@ -102,20 +102,20 @@ class BaseService(GObject.Object):
             return self._matcher
         return self.id
 
-    def run(self):
+    def run(self, launch_ui_delegate):
         """Launch the game client"""
         launcher = self.get_launcher()
         if launcher:
-            launcher.launch()
+            launcher.launch(launch_ui_delegate)
 
     def is_launchable(self):
         if self.client_installer:
-            return get_game_by_field(self.client_installer, "slug")
+            return bool(get_game_by_field(self.client_installer, "slug"))
         return False
 
     def get_launcher(self):
         if not self.client_installer:
-            return
+            return None
         db_launcher = get_game_by_field(self.client_installer, "slug")
         if db_launcher:
             return Game(db_launcher["id"])
