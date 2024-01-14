@@ -61,7 +61,6 @@ class Game(GObject.Object):
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-install": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-install-update": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-install-dlc": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -348,6 +347,40 @@ class Game(GObject.Object):
                 disable_compositing()
                 self.compositor_disabled = True
 
+    def install(self, launch_ui_delegate=None):
+        """Request installation of a game"""
+        application = Gio.Application.get_default()
+        if not launch_ui_delegate:
+            launch_ui_delegate = application.launch_ui_delegate
+
+        if not self.slug:
+            raise ValueError("Invalid game passed: %s" % self)
+
+        if not self.service or self.service == "lutris":
+            application.show_lutris_installer_window(game_slug=self.slug)
+            return
+
+        service = launch_ui_delegate.get_service(self.service)
+        db_game = service.get_service_db_game(self)
+        if not db_game:
+            logger.error("Can't find %s for %s", self.name, service.name)
+            return
+
+        try:
+            game_id = service.install(db_game)
+        except ValueError as e:
+            logger.debug(e)
+            game_id = None
+
+        if game_id:
+            def on_error(_game, error):
+                logger.exception("Unable to install game: %s", error)
+                return True
+
+            game = Game(game_id)
+            game.connect("game-error", on_error)
+            game.launch(launch_ui_delegate)
+
     def uninstall(self, delete_files: bool = False) -> None:
         """Uninstall a game, but do not remove it from the library.
 
@@ -370,7 +403,6 @@ class Game(GObject.Object):
         if self.id in LOG_BUFFERS:  # Reset game logs on removal
             log_buffer = LOG_BUFFERS[self.id]
             log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
-
 
     def delete(self) -> None:
         """Delete a game from the library; must be uninstalled first."""
@@ -571,7 +603,6 @@ class Game(GObject.Object):
             self.runner.apply_launch_config(gameplay_info, config)
 
         return gameplay_info
-
 
     def get_path_from_config(self):
         """Return the path of the main entry point for a game"""

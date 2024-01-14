@@ -6,6 +6,7 @@ from lutris.exceptions import UnavailableRunnerError
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.dialogs.download import DownloadDialog
+from lutris.services import get_enabled_services
 from lutris.util.downloader import Downloader
 
 
@@ -40,6 +41,11 @@ class LaunchUIDelegate:
         The default is the select the primary game.
         """
         return {}  # primary game
+
+    def get_service(self, service_id):
+        """Returns a new service object by its id. This seems dumb, but it is a work-around
+        for Python's circular import limitations."""
+        return get_enabled_services()[service_id]()
 
 
 class InstallUIDelegate:
