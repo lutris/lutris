@@ -163,8 +163,8 @@ class ServiceSidebarRow(SidebarRow):
         self.start_reload()
 
     def start_reload(self):
-        self.set_is_updating(True)
         self.service.start_reload(self._service_reloaded_cb)
+        self.set_is_updating(True)
 
     def set_is_updating(self, is_updating):
         self.is_updating = is_updating
@@ -609,17 +609,13 @@ class LutrisSidebar(Gtk.ListBox):
         return True  # continue to handle this emission hook
 
     def on_service_login(self, service):
-        self.on_service_auth_changed(service)
         row = self.service_rows.get(service.id)
         if row:
+            row.create_button_box()
             row.start_reload()
         return True
 
     def on_service_logout(self, service):
-        self.on_service_auth_changed(service)
-        return True
-
-    def on_service_auth_changed(self, service):
         row = self.service_rows.get(service.id)
         if row:
             row.create_button_box()
