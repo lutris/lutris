@@ -21,6 +21,7 @@ from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.exception_backstops import watch_game_errors
 from lutris.exceptions import GameConfigError, InvalidGameMoveError, MissingExecutableError
+from lutris.installer import InstallationKind
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import import_runner
 from lutris.runners.runner import Runner
@@ -61,8 +62,6 @@ class Game(GObject.Object):
         "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-install-update": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-install-dlc": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
@@ -334,6 +333,7 @@ class Game(GObject.Object):
                 self.compositor_disabled = True
 
     def install(self, launch_ui_delegate=None):
+        """Request installation of a game"""
         application = Gio.Application.get_default()
         if not launch_ui_delegate:
             launch_ui_delegate = application.launch_ui_delegate
@@ -341,7 +341,6 @@ class Game(GObject.Object):
         if not self.slug:
             raise ValueError("Invalid game passed: %s" % self)
 
-        """Request installation of a game"""
         if not self.service or self.service == "lutris":
             application.show_lutris_installer_window(game_slug=self.slug)
             return
@@ -366,6 +365,46 @@ class Game(GObject.Object):
             game = Game(game_id)
             game.connect("game-error", on_error)
             game.launch(launch_ui_delegate)
+
+    def install_updates(self, launch_ui_delegate=None):
+        application = Gio.Application.get_default()
+        if not launch_ui_delegate:
+            launch_ui_delegate = application.launch_ui_delegate
+
+        service = launch_ui_delegate.get_service(self.service)
+        db_game = games_db.get_game_by_field(self.id, "id")
+
+        def on_installers_ready(installers, error):
+            if error:
+                raise error  # bounce errors off the backstop
+
+            if not installers:
+                raise RuntimeError(_("No updates found"))
+            application.show_installer_window(installers, service, self.appid,
+                                              installation_kind=InstallationKind.UPDATE)
+
+        jobs.AsyncCall(service.get_update_installers, on_installers_ready, db_game)
+        return True
+
+    def install_dlc(self, launch_ui_delegate=None):
+        application = Gio.Application.get_default()
+        if not launch_ui_delegate:
+            launch_ui_delegate = application.launch_ui_delegate
+
+        service = launch_ui_delegate.get_service(self.service)
+        db_game = games_db.get_game_by_field(self.id, "id")
+
+        def on_installers_ready(installers, error):
+            if error:
+                raise error  # bounce errors off the backstop
+
+            if not installers:
+                raise RuntimeError(_("No DLC found"))
+
+            application.show_installer_window(installers, service, self.appid, installation_kind=InstallationKind.DLC)
+
+        jobs.AsyncCall(service.get_dlc_installers_runner, on_installers_ready, db_game, db_game["runner"])
+        return True
 
     def remove(self, delete_files: bool = False, no_signal: bool = False) -> None:
         """Uninstall a game, and removes it from the library if this it has no playtime.

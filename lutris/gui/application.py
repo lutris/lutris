@@ -81,8 +81,6 @@ class Application(Gtk.Application):
 
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
-        GObject.add_emission_hook(Game, "game-install-update", self.on_game_install_update)
-        GObject.add_emission_hook(Game, "game-install-dlc", self.on_game_install_dlc)
         GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
 
         GLib.set_application_name(_("Lutris"))
@@ -810,36 +808,6 @@ class Application(Gtk.Application):
             if not self.has_running_games:
                 if self.quit_on_game_exit or not self.has_tray_icon():
                     self.quit()
-        return True
-
-    def on_game_install_update(self, game):
-        service = get_enabled_services()[game.service]()
-        db_game = games_db.get_game_by_field(game.id, "id")
-
-        def on_installers_ready(installers, error):
-            if error:
-                ErrorDialog(error, parent=self.window)
-            elif installers:
-                self.show_installer_window(installers, service, game.appid, installation_kind=InstallationKind.UPDATE)
-            else:
-                ErrorDialog(_("No updates found"), parent=self.window)
-
-        AsyncCall(service.get_update_installers, on_installers_ready, db_game)
-        return True
-
-    def on_game_install_dlc(self, game):
-        service = get_enabled_services()[game.service]()
-        db_game = games_db.get_game_by_field(game.id, "id")
-
-        def on_installers_ready(installers, error):
-            if error:
-                ErrorDialog(error, parent=self.window)
-            elif installers:
-                self.show_installer_window(installers, service, game.appid, installation_kind=InstallationKind.DLC)
-            else:
-                ErrorDialog(_("No DLC found"), parent=self.window)
-
-        AsyncCall(service.get_dlc_installers_runner, on_installers_ready, db_game, db_game["runner"])
         return True
 
     def get_launch_ui_delegate(self):

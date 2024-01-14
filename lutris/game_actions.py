@@ -278,11 +278,11 @@ class GameActions(BaseGameActions):
 
     def on_update_clicked(self, _widget):
         for game in self.games:
-            game.emit("game-install-update")
+            game.install_updates(launch_ui_delegate=self.window)
 
     def on_install_dlc_clicked(self, _widget):
         for game in self.games:
-            game.emit("game-install-dlc")
+            game.install_dlc(launch_ui_delegate=self.window)
 
     def on_game_duplicate(self, _widget):
         for game in self.games:
