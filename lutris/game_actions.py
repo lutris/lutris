@@ -73,7 +73,7 @@ class BaseGameActions:
                 if not game.slug:
                     game_id = game.id if game.is_db_stored else game.name
                     raise RuntimeError("No game to install: %s" % game_id)
-                game.emit("game-install")
+                game.install(launch_ui_delegate=self.window)
 
     def on_locate_installed_game(self, *_args):
         """Show the user a dialog to import an existing install to a DRM free service
