@@ -216,7 +216,7 @@ class ImportGameDialog(ModelessDialog):
         launch_button.connect("clicked", self.on_launch_clicked, game)
 
     def on_launch_clicked(self, _button, game):
-        game.emit("game-launch")
+        game.launch()
         self.destroy()
 
     def display_existing_game_info(self, filename, game):

@@ -1112,7 +1112,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if game_id:
             game = Game(game_id)
             if game.is_installed:
-                game.emit("game-launch")
+                game.launch(launch_ui_delegate=self)
             else:
                 game.emit("game-install")
 

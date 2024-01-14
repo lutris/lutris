@@ -194,7 +194,7 @@ class EpicGamesStoreService(OnlineService):
     def run(self):
         egs = get_game_by_field(self.client_installer, "slug")
         egs_game = Game(egs["id"])
-        egs_game.emit("game-launch")
+        egs_game.launch()
 
     def is_launchable(self):
         return get_game_by_field(self.client_installer, "slug")

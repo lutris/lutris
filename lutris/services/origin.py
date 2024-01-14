@@ -164,7 +164,7 @@ class OriginService(OnlineService):
     def run(self):
         db_game = get_game_by_field(self.client_installer, "slug")
         game = Game(db_game["id"])
-        game.emit("game-launch")
+        game.launch()
 
     def is_launchable(self):
         return get_game_by_field(self.client_installer, "slug")

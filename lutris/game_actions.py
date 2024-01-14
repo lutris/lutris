@@ -246,7 +246,7 @@ class GameActions(BaseGameActions):
         for game in self.games:
             if game.is_installed and game.is_db_stored:
                 if not self.application.is_game_running_by_id(game.id):
-                    game.launch(self.window)
+                    game.launch(launch_ui_delegate=self.window)
 
     def get_running_games(self):
         running_games = []
