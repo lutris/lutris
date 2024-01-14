@@ -139,7 +139,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
-        GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
+        GObject.add_emission_hook(Game, "game-state-changed", self.on_game_state_changed)
         GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_removed)
         GObject.add_emission_hook(Game, "game-unhandled-error", self.on_game_unhandled_error)
@@ -1067,13 +1067,14 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         return True
 
-    def on_game_stopped(self, game):
+    def on_game_state_changed(self, game):
         """Updates the game list when a game stops; this keeps the 'running' page updated."""
-        selected_row = self.sidebar.get_selected_row()
-        # Only update the running page- we lose the selected row when we do this,
-        # but on the running page this is okay.
-        if selected_row is not None and selected_row.id == "running":
-            self.game_store.remove_game(game.id)
+        if game.state == game.STATE_STOPPED:
+            selected_row = self.sidebar.get_selected_row()
+            # Only update the running page - we lose the selected row when we do this,
+            # but on the running page this is okay.
+            if selected_row is not None and selected_row.id == "running":
+                self.game_store.remove_game(game.id)
         return True
 
     def on_game_installed(self, game):

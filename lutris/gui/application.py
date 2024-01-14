@@ -79,8 +79,7 @@ class Application(Gtk.Application):
         # established; this will apply to all connections from this point forward.
         init_exception_backstops()
 
-        GObject.add_emission_hook(Game, "game-start", self.on_game_start)
-        GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
+        GObject.add_emission_hook(Game, "game-state-changed", self.on_game_state_changed)
         GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
 
         GLib.set_application_name(_("Lutris"))
@@ -782,32 +781,33 @@ class Application(Gtk.Application):
                 self.set_tray_icon()
         return True
 
-    def on_game_start(self, game):
-        self._running_games.append(game)
-        if settings.read_setting("hide_client_on_game_start") == "True":
-            self.window.hide()  # Hide launcher window
-        return True
+    def on_game_state_changed(self, game):
+        """Call back track games starting and stopping; this may show and hide the window
+        or even quit Lutris."""
+        if game.state == game.STATE_LAUNCHING:
+            self._running_games.append(game)
+            if settings.read_setting("hide_client_on_game_start") == "True":
+                self.window.hide()  # Hide launcher window
+        elif game.state == game.STATE_STOPPED:
+            running_game_ids = [g.id for g in self._running_games]
+            if game.id in running_game_ids:
+                logger.debug("Removing %s from running IDs", game.id)
+                try:
+                    del self._running_games[running_game_ids.index(game.id)]
+                except ValueError:
+                    pass
+            elif running_game_ids:
+                logger.warning("%s not in %s", game.id, running_game_ids)
+            else:
+                logger.debug("Game has already been removed from running IDs?")
 
-    def on_game_stopped(self, game):
-        """Callback to quit Lutris is last game stops while the window is hidden."""
-        running_game_ids = [g.id for g in self._running_games]
-        if game.id in running_game_ids:
-            logger.debug("Removing %s from running IDs", game.id)
-            try:
-                del self._running_games[running_game_ids.index(game.id)]
-            except ValueError:
-                pass
-        elif running_game_ids:
-            logger.warning("%s not in %s", game.id, running_game_ids)
-        else:
-            logger.debug("Game has already been removed from running IDs?")
+            if settings.read_bool_setting("hide_client_on_game_start") and not self.quit_on_game_exit:
+                self.window.show()  # Show launcher window
+            elif not self.window.is_visible():
+                if not self.has_running_games:
+                    if self.quit_on_game_exit or not self.has_tray_icon():
+                        self.quit()
 
-        if settings.read_bool_setting("hide_client_on_game_start") and not self.quit_on_game_exit:
-            self.window.show()  # Show launcher window
-        elif not self.window.is_visible():
-            if not self.has_running_games:
-                if self.quit_on_game_exit or not self.has_tray_icon():
-                    self.quit()
         return True
 
     def get_launch_ui_delegate(self):

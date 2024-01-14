@@ -26,7 +26,7 @@ class GameView:
         self.service_media = None
         self.cache_notification_id = None
         self.missing_games_updated_id = None
-        self.game_start_hook_id = None
+        self.game_state_changed_hook_id = None
         self.image_renderer = None
 
     def connect_signals(self):
@@ -38,7 +38,8 @@ class GameView:
         self.connect("button-press-event", self.popup_contextual_menu)
         self.connect("key-press-event", self.handle_key_press)
 
-        self.game_start_hook_id = GObject.add_emission_hook(Game, "game-start", self.on_game_start)
+        self.game_state_changed_hook_id = GObject.add_emission_hook(Game, "game-state-changed",
+                                                                    self.on_game_state_changed)
 
     def set_game_store(self, game_store):
         self.game_store = game_store
@@ -66,8 +67,8 @@ class GameView:
         if self.missing_games_updated_id:
             MISSING_GAMES.updated.unregister(self.missing_games_updated_id)
 
-        if self.game_start_hook_id:
-            GObject.remove_emission_hook(Game, "game-start", self.game_start_hook_id)
+        if self.game_state_changed_hook_id:
+            GObject.remove_emission_hook(Game, "game-state-changed", self.game_state_changed_hook_id)
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu."""
@@ -150,14 +151,18 @@ class GameView:
     def get_game_id_for_path(self, path):
         raise NotImplementedError()
 
-    def on_game_start(self, game):
+    def on_game_state_changed(self, game):
         """On game start, we trigger an animation to show the game is starting; it runs at least
         one cycle, but continues until the game exits the STATE_LAUNCHING state."""
 
+        if game.state == game.STATE_LAUNCHING:
+            self._start_launching_animation(game)
+        return True  # Return True to continue handling the emission hook
+
+    def _start_launching_animation(self, game):
         # We animate by looking at how long the animation has been running;
         # This keeps things on track even if drawing is low or the timeout we use
         # is not quite regular.
-
         start_time = time.monotonic()
         cycle_time = 0.375
         max_indent = 0.1
@@ -208,4 +213,3 @@ class GameView:
 
         if self.image_renderer:
             GLib.timeout_add(25, animate)
-        return True  # Return True to continue handling the emission hook

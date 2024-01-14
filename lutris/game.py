@@ -1,6 +1,7 @@
 """Module that actually runs the games."""
 
 # pylint: disable=too-many-public-methods disable=too-many-lines
+# pylint: disable=too-many-public-methods disable=too-many-instance-attributes
 import json
 import os
 import shlex
@@ -57,9 +58,7 @@ class Game(GObject.Object):
         # fix merged Dec 2020, but we support older GNOME!
         "game-error": (GObject.SIGNAL_RUN_LAST, bool, (object,)),
         "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
-        "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-state-changed": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -105,7 +104,7 @@ class Game(GObject.Object):
         self.prelaunch_executor = None
         self.heartbeat = None
         self.killswitch = None
-        self.state = self.STATE_STOPPED
+        self._state = self.STATE_STOPPED
         self.game_runtime_config = {}
         self.resolution_changed = False
         self.compositor_disabled = False
@@ -140,6 +139,29 @@ class Game(GObject.Object):
         if self.runner_name:
             value += " (%s)" % self.runner_name
         return value
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, new_state):
+        if self._state != new_state:
+            self._state = new_state
+            self.emit("game-state-changed")
+
+    @property
+    def is_cache_managed(self):
+        """Is the DXVK cache receiving updates from lutris?"""
+        try:
+            if not self.has_runner:
+                return False
+
+            env = self.runner.system_config.get("env", {})
+            return "DXVK_STATE_CACHE_PATH" in env
+        except InvalidRunnerError as ex:
+            logger.exception("Unable to query runner configuration: %s", ex)
+            return False
 
     @property
     def id(self) -> str:
@@ -727,8 +749,6 @@ class Game(GObject.Object):
             logger.error("No prelaunch PIDs could be obtained. Game stop may be ineffective.")
             self.prelaunch_pids = None
 
-        self.emit("game-start")
-
         @watch_game_errors(game_stop_result=False, game=self)
         def configure_game(_ignored, error):
             if error:
@@ -757,7 +777,6 @@ class Game(GObject.Object):
         self.game_thread.start()
         self.timer.start()
         self.state = self.STATE_RUNNING
-        self.emit("game-started")
 
         # Game is running, let's update discord status
         if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
@@ -870,7 +889,6 @@ class Game(GObject.Object):
             # Inspect why it could have crashed
 
         self.state = self.STATE_STOPPED
-        self.emit("game-stopped")
         if os.path.exists(self.now_playing_path):
             os.unlink(self.now_playing_path)
         if not self.timer.finished:

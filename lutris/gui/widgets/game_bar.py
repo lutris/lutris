@@ -24,9 +24,8 @@ class GameBar(Gtk.Box):
         self.application = application
         self.window = window
 
-        self.game_start_hook_id = GObject.add_emission_hook(Game, "game-start", self.on_game_state_changed)
-        self.game_started_hook_id = GObject.add_emission_hook(Game, "game-started", self.on_game_state_changed)
-        self.game_stopped_hook_id = GObject.add_emission_hook(Game, "game-stopped", self.on_game_state_changed)
+        self.game_state_changed_hook_id = GObject.add_emission_hook(
+            Game, "game-state-changed", self.on_game_state_changed)
         self.game_updated_hook_id = GObject.add_emission_hook(Game, "game-updated", self.on_game_state_changed)
         self.game_removed_hook_id = GObject.add_emission_hook(Game, "game-removed", self.on_game_state_changed)
         self.game_installed_hook_id = GObject.add_emission_hook(Game, "game-installed", self.on_game_state_changed)
@@ -57,9 +56,7 @@ class GameBar(Gtk.Box):
         self.update_view()
 
     def on_destroy(self, widget):
-        GObject.remove_emission_hook(Game, "game-start", self.game_start_hook_id)
-        GObject.remove_emission_hook(Game, "game-started", self.game_started_hook_id)
-        GObject.remove_emission_hook(Game, "game-stopped", self.game_stopped_hook_id)
+        GObject.remove_emission_hook(Game, "game-state-changed", self.game_state_changed_hook_id)
         GObject.remove_emission_hook(Game, "game-updated", self.game_updated_hook_id)
         GObject.remove_emission_hook(Game, "game-removed", self.game_removed_hook_id)
         GObject.remove_emission_hook(Game, "game-installed", self.game_installed_hook_id)
