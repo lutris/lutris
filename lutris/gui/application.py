@@ -80,7 +80,7 @@ class Application(Gtk.Application):
         init_exception_backstops()
 
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
-        GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
+        GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-install", self.on_game_install)
         GObject.add_emission_hook(Game, "game-install-update", self.on_game_install_update)
         GObject.add_emission_hook(Game, "game-install-dlc", self.on_game_install_dlc)
@@ -93,7 +93,7 @@ class Application(Gtk.Application):
         self.launch_ui_delegate = LaunchUIDelegate()
         self.install_ui_delegate = InstallUIDelegate()
 
-        self.running_games = []
+        self._running_games = []
         self.app_windows = {}
         self.tray = None
 
@@ -784,30 +784,29 @@ class Application(Gtk.Application):
         return True
 
     def on_game_start(self, game):
-        self.running_games.append(game)
+        self._running_games.append(game)
         if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.hide()  # Hide launcher window
         return True
 
-    def on_game_stop(self, game):
-        """Callback to remove the game from the running games"""
-        ids = self.get_running_game_ids()
-        if game.id in ids:
+    def on_game_stopped(self, game):
+        """Callback to quit Lutris is last game stops while the window is hidden."""
+        running_game_ids = [g.id for g in self._running_games]
+        if game.id in running_game_ids:
             logger.debug("Removing %s from running IDs", game.id)
             try:
-                del self.running_games[ids.index(game.id)]
+                del self._running_games[running_game_ids.index(game.id)]
             except ValueError:
                 pass
-        elif ids:
-            logger.warning("%s not in %s", game.id, ids)
+        elif running_game_ids:
+            logger.warning("%s not in %s", game.id, running_game_ids)
         else:
             logger.debug("Game has already been removed from running IDs?")
 
-        game.emit("game-stopped")
-        if settings.read_setting("hide_client_on_game_start") == "True" and not self.quit_on_game_exit:
+        if settings.read_bool_setting("hide_client_on_game_start") and not self.quit_on_game_exit:
             self.window.show()  # Show launcher window
         elif not self.window.is_visible():
-            if not self.running_games:
+            if not self.has_running_games:
                 if self.quit_on_game_exit or not self.has_tray_icon():
                     self.quit()
         return True
@@ -880,22 +879,27 @@ class Application(Gtk.Application):
     def get_launch_ui_delegate(self):
         return self.launch_ui_delegate
 
+    def get_running_games(self) -> List[str]:
+        # This method reflects games that have stopped even if the 'game-stopped' signal
+        # has not been handled yet; that handler will still clean up the list though.
+        return [g for g in self._running_games if g.state != g.STATE_STOPPED]
+
+    @property
+    def has_running_games(self):
+        return bool(self.get_running_games())
+
     def get_running_game_ids(self) -> List[str]:
         """Returns the ids of the games presently running."""
-        return [game.id for game in self.running_games]
+        return [game.id for game in self.get_running_games()]
 
     def is_game_running_by_id(self, game_id: str) -> bool:
         """True if the ID is the ID of a game that is running."""
-        if game_id:
-            for game in self.running_games:
-                if game.id == str(game_id):
-                    return True
-        return False
+        return game_id and str(game_id) in self.get_running_game_ids()
 
     def get_game_by_id(self, game_id: str) -> Game:
         """Returns the game with the ID given; if it's running this is the running
         game instance, and if not it's a fresh copy off the database."""
-        for game in self.running_games:
+        for game in self.get_running_games():
             if game.id == str(game_id):
                 return game
 

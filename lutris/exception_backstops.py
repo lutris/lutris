@@ -30,14 +30,12 @@ def watch_game_errors(game_stop_result, game=None):
             try:
                 result = function(*args, **kwargs)
                 if game_stop_result is not None and result == game_stop_result and game.state != game.STATE_STOPPED:
-                    game.state = game.STATE_STOPPED
-                    game.emit("game-stop")
+                    game.stop_game()
                 return result
             except Exception as ex:
                 logger.exception("%s has encountered an error: %s", game, ex, exc_info=ex)
                 if game.state != game.STATE_STOPPED:
-                    game.state = game.STATE_STOPPED
-                    game.emit("game-stop")
+                    game.stop_game()
                 game.signal_error(ex)
                 return game_stop_result
 

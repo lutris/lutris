@@ -11,7 +11,7 @@ import time
 from gettext import gettext as _
 from typing import cast
 
-from gi.repository import GLib, GObject, Gtk, Gio
+from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
 from lutris.command import MonitoredCommand
@@ -58,7 +58,6 @@ class Game(GObject.Object):
         "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -643,10 +642,10 @@ class Game(GObject.Object):
 
     @watch_game_errors(game_stop_result=False)
     def launch(self, launch_ui_delegate=None):
+        """Request launching a game. The game may not be installed yet."""
         if not launch_ui_delegate:
             launch_ui_delegate = Gio.Application.get_default().launch_ui_delegate
 
-        """Request launching a game. The game may not be installed yet."""
         if not self.check_launchable():
             logger.error("Game is not launchable")
             return False
@@ -810,7 +809,7 @@ class Game(GObject.Object):
             # Inspect why it could have crashed
 
         self.state = self.STATE_STOPPED
-        self.emit("game-stop")
+        self.emit("game-stopped")
         if os.path.exists(self.now_playing_path):
             os.unlink(self.now_playing_path)
         if not self.timer.finished:
