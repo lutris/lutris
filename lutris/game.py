@@ -346,16 +346,13 @@ class Game(GObject.Object):
                 disable_compositing()
                 self.compositor_disabled = True
 
-    def install(self, launch_ui_delegate=None):
+    def install(self, launch_ui_delegate):
         """Request installation of a game"""
-        application = Gio.Application.get_default()
-        if not launch_ui_delegate:
-            launch_ui_delegate = application.launch_ui_delegate
-
         if not self.slug:
             raise ValueError("Invalid game passed: %s" % self)
 
         if not self.service or self.service == "lutris":
+            application = Gio.Application.get_default()
             application.show_lutris_installer_window(game_slug=self.slug)
             return
 
