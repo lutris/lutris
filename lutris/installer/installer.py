@@ -195,11 +195,11 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                     "filename": ""
                 }))
 
-            # Commit changes only at the end; this is more robust in this method is runner
-            # my two threads concurrently- the GIL can probably save us. It's not desirable
-            # to do this, but this is the easiest workaround.
-            self.files = files
-            self.extra_file_paths = extra_file_paths
+        # Commit changes only at the end; this is more robust in this method is runner
+        # my two threads concurrently- the GIL can probably save us. It's not desirable
+        # to do this, but this is the easiest workaround.
+        self.files = files
+        self.extra_file_paths = extra_file_paths
 
     def install_extras(self):
         # Copy extras to game folder; this updates the installer script, so it needs
