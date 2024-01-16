@@ -1,3 +1,11 @@
+lutris (0.5.16) jammy; urgency=medium
+
+  * Fix bug that prevented installers to complete
+  * Better handling of Steam configurations for the Steam account picker
+  * Load game library in a background thread
+
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Mon, 15 Jan 2024 16:10:35 -0800
+
 lutris (0.5.15) jammy; urgency=medium
 
   * Fix some crashes happening when using Wayland and a high DPI gaming mouse
