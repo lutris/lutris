@@ -26,9 +26,11 @@
   <releases>
     <release version="0.5.16" date="2024-01-15" urgency="low">
       <description>
-        <li>Fix bug that prevented installers to complete</li>
-        <li>Better handling of Steam configurations for the Steam account picker</li>
-        <li>Load game library in a background thread</li>
+        <ul>
+           <li>Fix bug that prevented installers to complete</li>
+           <li>Better handling of Steam configurations for the Steam account picker</li>
+           <li>Load game library in a background thread</li>
+        </ul>
       </description>
     </release>
     <release version="0.5.15" date="2024-01-07" urgency="low">
