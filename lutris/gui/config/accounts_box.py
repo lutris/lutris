@@ -29,7 +29,7 @@ class AccountsBox(BaseConfigBox):
         steam_users = get_steam_users()
         for account in steam_users:
             steamid64 = account["steamid64"]
-            name = account.get("PersonalName") or f"#{steamid64}"
+            name = account.get("PersonaName") or f"#{steamid64}"
             radio_button = Gtk.RadioButton.new_with_label_from_widget(main_radio_button, name)
             radio_button.set_margin_top(16)
             radio_button.set_margin_start(16)
