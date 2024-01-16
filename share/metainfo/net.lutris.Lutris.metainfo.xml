@@ -33,29 +33,31 @@
     </release>
     <release version="0.5.15" date="2024-01-07" urgency="low">
       <description>
-        <li>Fix some  crashes happening when using Wayland and a high DPI gaming mouse</li>
-        <li>Fix crash when opening the system preferences tab for a game</li>
-        <li>Reduced the locales list to a predefined one (let us know if you need yours added)</li>
-        <li>Fix Lutris not expanding "~" in paths</li>
-        <li>Download runtime components from the main window,</li>
-        <li>the "updating runtime" dialog appearing before Lutris opens has been removed</li>
-        <li>Add the ability to open a location in your file browser from file picker widgets</li>
-        <li>Add the ability to select, remove, or stop multiple games in the Lutris window</li>
-        <li>Redesigned 'Uninstall Game' dialog now completely removes games by default</li>
-        <li>Fix the export / import feature</li>
-        <li>Show an animation when a game is launched</li>
-        <li>Add the ability to disable Wine auto-updates at the expense of losing support</li>
-        <li>Add playtime editing in the game preferences</li>
-        <li>Move game files, runners to the trash instead of deleting them they are uninstalled</li>
-        <li>Add "Updates" tab in Preferences control and check for updates and correct missing media</li>
-        <li>in the 'Games' view.</li>
-        <li>Add "Storage" tab in Preferences to control game and installer cache location</li>
-        <li>Expand "System" tab in Preferences with more system information but less brown.</li>
-        <li>Add "Run Task Manager" command for Wine games</li>
-        <li>Add two new, smaller banner sizes for itch.io games.</li>
-        <li>Ignore Wine virtual desktop setting when using Wine-GE/Proton to avoid crash</li>
-        <li>Ignore MangoHUD setting when launching Steam to avoid crash</li>
-        <li>Sync Steam playtimes with the Lutris library</li>
+        <ul>
+           <li>Fix some  crashes happening when using Wayland and a high DPI gaming mouse</li>
+           <li>Fix crash when opening the system preferences tab for a game</li>
+           <li>Reduced the locales list to a predefined one (let us know if you need yours added)</li>
+           <li>Fix Lutris not expanding "~" in paths</li>
+           <li>Download runtime components from the main window,</li>
+           <li>the "updating runtime" dialog appearing before Lutris opens has been removed</li>
+           <li>Add the ability to open a location in your file browser from file picker widgets</li>
+           <li>Add the ability to select, remove, or stop multiple games in the Lutris window</li>
+           <li>Redesigned 'Uninstall Game' dialog now completely removes games by default</li>
+           <li>Fix the export / import feature</li>
+           <li>Show an animation when a game is launched</li>
+           <li>Add the ability to disable Wine auto-updates at the expense of losing support</li>
+           <li>Add playtime editing in the game preferences</li>
+           <li>Move game files, runners to the trash instead of deleting them they are uninstalled</li>
+           <li>Add "Updates" tab in Preferences control and check for updates and correct missing media</li>
+           <li>in the 'Games' view.</li>
+           <li>Add "Storage" tab in Preferences to control game and installer cache location</li>
+           <li>Expand "System" tab in Preferences with more system information but less brown.</li>
+           <li>Add "Run Task Manager" command for Wine games</li>
+           <li>Add two new, smaller banner sizes for itch.io games.</li>
+           <li>Ignore Wine virtual desktop setting when using Wine-GE/Proton to avoid crash</li>
+           <li>Ignore MangoHUD setting when launching Steam to avoid crash</li>
+           <li>Sync Steam playtimes with the Lutris library</li>
+        </ul>
       </description>
     </release>
     <release version="0.5.14" date="2023-10-16" urgency="low">
