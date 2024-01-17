@@ -97,12 +97,6 @@
                 <property name="hexpand">True</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
                   <object class="GtkOverlay">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
@@ -130,11 +124,26 @@
                         <property name="pass-through">True</property>
                       </packing>
                     </child>
+                    <child type="overlay">
+                      <object class="GtkSpinner" id="game_view_spinner">
+                        <property name="width-request">32</property>
+                        <property name="height-request">32</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="no-show-all">True</property>
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">True</property>
+                      </object>
+                      <packing>
+                        <property name="index">1</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">True</property>
                     <property name="fill">True</property>
-                    <property name="position">2</property>
+                    <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
@@ -149,7 +158,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">3</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
               </object>

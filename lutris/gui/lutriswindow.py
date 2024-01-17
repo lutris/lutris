@@ -63,6 +63,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
     download_revealer: Gtk.Revealer = GtkTemplate.Child()
+    game_view_spinner: Gtk.Spinner = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         width = int(settings.read_setting("width") or self.default_width)
@@ -704,9 +705,14 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.show_overlay(splash_box, Gtk.Align.FILL, Gtk.Align.FILL)
 
     def show_spinner(self):
-        spinner = Gtk.Spinner(visible=True, width_request=32, height_request=32)
-        spinner.start()
-        self.show_overlay(spinner, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
+        # This is inconsistent, but we can't use the blank overlay for the spinner- it
+        # won't reliably start as a child of blank_overlay. It seems like it fails if
+        # blank_overlay has never yet been visible.
+        # It works better if created up front and shown like this.
+        self.game_view_spinner.start()
+        self.game_view_spinner.show()
+        self.games_stack.hide()
+        self.blank_overlay.hide()
 
     def show_overlay(self, widget, halign=Gtk.Align.FILL, valign=Gtk.Align.FILL):
         """Display a widget in the blank overlay"""
@@ -717,9 +723,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.blank_overlay.add(widget)
         self.blank_overlay.show()
         self.games_stack.hide()
+        self.game_view_spinner.hide()
 
     def hide_overlay(self):
         self.blank_overlay.hide()
+        self.game_view_spinner.hide()
         self.games_stack.show()
         for child in self.blank_overlay.get_children():
             child.destroy()
