@@ -111,11 +111,12 @@ class SteamService(BaseService):
     def match_game(self, service_game, lutris_game):
         super().match_game(service_game, lutris_game)
 
-        # Copy playtimes from Steam's data
-        for game in get_games(filters={"service": self.id, "service_id": service_game["appid"]}):
-            steam_game_playtime = json.loads(service_game["details"]).get("playtime_forever")
-            playtime = steam_game_playtime / 60
-            sql.db_update(PGA_DB, "games", {"playtime": playtime}, conditions={"id": game["id"]})
+        if service_game:
+            # Copy playtimes from Steam's data
+            for game in get_games(filters={"service": self.id, "service_id": service_game["appid"]}):
+                steam_game_playtime = json.loads(service_game["details"]).get("playtime_forever")
+                playtime = steam_game_playtime / 60
+                sql.db_update(PGA_DB, "games", {"playtime": playtime}, conditions={"id": game["id"]})
 
     def get_installer_files(self, installer, _installer_file_id, _selected_extras):
         steam_uri = "$STEAM:%s:."
