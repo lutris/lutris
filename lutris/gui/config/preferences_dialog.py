@@ -24,7 +24,7 @@ class PreferencesDialog(GameDialogCommon):
     def __init__(self, parent=None):
         super().__init__(_("Lutris settings"), config_level="system", parent=parent)
         self.set_border_width(0)
-        self.set_size_request(1010, 600)
+        self.set_default_size(1010, 600)
         self.lutris_config = LutrisConfig()
         self.page_generators = {}
 
