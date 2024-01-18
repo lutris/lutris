@@ -1,0 +1,37 @@
+{
+    "human_name": "Supermodel",
+    "description": "A Sega Model 3 Arcade Emulator",
+    "platforms": ["Arcade"],
+    "runner_executable": "supermodel/supermodel",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ROM file",
+            "help": "A Model 3 Rom File"
+        }
+    ],
+    "runner_options": [
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "label": "Fullscreen",
+            "default": false,
+            "argument": "-fullscreen"
+        },
+        {
+            "option": "ws",
+            "type": "bool",
+            "label": "Expand 3D field of view to screen width",
+            "default": false,
+            "argument": "-wide-screen"
+        },
+        {
+            "option": "wbg",
+            "type": "bool",
+            "label": "When wide-screen mode is enabled, also expand the 2D background layer to screen width",
+            "default": false,
+            "argument": "-wide-bg"
+        }
+    ]
+}
