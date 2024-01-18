@@ -80,7 +80,7 @@ class BaseConfigBox(VBox):
                                 label: str,
                                 margin: int = 12,
                                 when_setting_changed: Callable[[bool], None] = None):
-        checkbox = Gtk.Switch(visible=True)
+        checkbox = Gtk.Switch(visible=True, valign=Gtk.Align.CENTER)
         checkbox.set_active(setting_value)
         checkbox.connect("state-set", self.on_setting_change, setting_key, when_setting_changed)
 
@@ -96,7 +96,7 @@ class BaseConfigBox(VBox):
             spacing=12, margin=margin,
             visible=True
         )
-        label = Gtk.Label(label, visible=True)
+        label = Gtk.Label(label, visible=True, wrap=True)
         label.set_alignment(0, 0.5)
         box.pack_start(label, True, True, 0)
         box.pack_end(widget, False, False, 0)
