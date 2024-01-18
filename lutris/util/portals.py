@@ -43,7 +43,10 @@ class TrashPortal(GObject.Object):
 
     def trash_file(self):
         try:
-            file_handle = os.open(self.file_path, os.O_RDONLY)
+            flags = os.O_RDONLY | os.O_PATH | os.O_CLOEXEC
+            if not os.path.isdir(self.file_path):
+                flags |= os.O_NOFOLLOW
+            file_handle = os.open(self.file_path, flags)
             fds_in = Gio.UnixFDList.new()
             fds_in.append(file_handle)
             self._dbus_proxy.call_with_unix_fd_list(
