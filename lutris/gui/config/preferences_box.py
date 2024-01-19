@@ -3,6 +3,7 @@ from gettext import gettext as _
 from gi.repository import Gtk
 
 from lutris.gui.config.base_config_box import BaseConfigBox
+from lutris.gui.widgets.status_icon import supports_status_icon
 
 
 class InterfacePreferencesBox(BaseConfigBox):
@@ -19,6 +20,10 @@ class InterfacePreferencesBox(BaseConfigBox):
         "hide_badges_on_icons": "<Primary>p"
     }
 
+    settings_availability = {
+        "show_tray_icon": supports_status_icon
+    }
+
     def __init__(self, accelerators):
         super().__init__()
         self.accelerators = accelerators
@@ -28,8 +33,11 @@ class InterfacePreferencesBox(BaseConfigBox):
         frame.add(listbox)
         self.pack_start(frame, False, False, 0)
         for setting_key, label in self.settings_options.items():
-            list_box_row = Gtk.ListBoxRow(visible=True)
-            list_box_row.set_selectable(False)
-            list_box_row.set_activatable(False)
-            list_box_row.add(self.get_setting_box(setting_key, label))
-            listbox.add(list_box_row)
+            available = setting_key not in self.settings_availability or self.settings_availability[setting_key]()
+
+            if available:
+                list_box_row = Gtk.ListBoxRow(visible=True)
+                list_box_row.set_selectable(False)
+                list_box_row.set_activatable(False)
+                list_box_row.add(self.get_setting_box(setting_key, label))
+                listbox.add(list_box_row)

@@ -2,61 +2,79 @@
 from gettext import gettext as _
 
 import gi
-from gi.repository import Gtk
+from gi.repository import Gdk, GdkX11, Gtk
 
 from lutris.database.games import get_games
 from lutris.game import Game
+from lutris.util import cache_single
 
 try:
     gi.require_version('AppIndicator3', '0.1')
     from gi.repository import AppIndicator3 as AppIndicator
+
     APP_INDICATOR_SUPPORTED = True
 except (ImportError, ValueError):
     APP_INDICATOR_SUPPORTED = False
 
 
+@cache_single
+def supports_status_icon():
+    if APP_INDICATOR_SUPPORTED:
+        return True
+
+    display = Gdk.Display.get_default()
+    return isinstance(display, GdkX11.X11Display)
+
+
 class LutrisStatusIcon:
+    """This is a proxy for the status icon, which can be an AppIndicator or a Gtk.StatusIcon. Or if
+    neither is supported, it can be a null object that silently does nothing."""
 
     def __init__(self, application):
         self.application = application
-        self.icon = self.create()
-        self.menu = self.get_menu()
-        self.set_visible(True)
-        if APP_INDICATOR_SUPPORTED:
-            self.icon.set_menu(self.menu)
-        else:
-            self.icon.connect("activate", self.on_activate)
-            self.icon.connect("popup-menu", self.on_menu_popup)
+        self.indicator = None
+        self.tray_icon = None
+        self.menu = None
 
-    def create(self):
-        """Create an appindicator"""
-        if APP_INDICATOR_SUPPORTED:
-            return AppIndicator.Indicator.new(
-                "net.lutris.Lutris", "lutris", AppIndicator.IndicatorCategory.APPLICATION_STATUS
-            )
-        return LutrisTray(self.application)
+        if supports_status_icon():
+            self.menu = self._get_menu()
+            if APP_INDICATOR_SUPPORTED:
+                self.indicator = AppIndicator.Indicator.new(
+                    "net.lutris.Lutris", "lutris", AppIndicator.IndicatorCategory.APPLICATION_STATUS
+                )
+                self.indicator.set_menu(self.menu)
+            else:
+                self.tray_icon = self._get_tray_icon()
+                self.tray_icon.connect("activate", self.on_activate)
+                self.tray_icon.connect("popup-menu", self.on_menu_popup)
+
+            self.set_visible(True)
 
     def is_visible(self):
         """Whether the icon is visible"""
-        if APP_INDICATOR_SUPPORTED:
-            return self.icon.get_status() != AppIndicator.IndicatorStatus.PASSIVE
-        return self.icon.get_visible()
+        if self.indicator:
+            return self.indicator.get_status() != AppIndicator.IndicatorStatus.PASSIVE
+
+        if self.tray_icon:
+            return self.tray_icon.get_visible()
+
+        return False
 
     def set_visible(self, value):
         """Set the visibility of the icon"""
-        if APP_INDICATOR_SUPPORTED:
+        if self.indicator:
             if value:
                 visible = AppIndicator.IndicatorStatus.ACTIVE
             else:
                 visible = AppIndicator.IndicatorStatus.PASSIVE
-            self.icon.set_status(visible)
-        else:
-            self.icon.set_visible(value)
+            self.indicator.set_status(visible)
+        elif self.tray_icon:
+            self.tray_icon.set_visible(value)
 
-    def get_menu(self):
+    def _get_menu(self):
         """Instantiates the menu attached to the tray icon"""
         menu = Gtk.Menu()
-        installed_games = self.add_games()
+        installed_games = self._get_installed_games()
         number_of_games_in_menu = 10
         for game in installed_games[:number_of_games_in_menu]:
             menu.append(self._make_menu_item_for_game(game))
@@ -74,6 +92,13 @@ class LutrisStatusIcon:
         menu.append(quit_menu)
         menu.show_all()
         return menu
+
+    def _get_tray_icon(self):
+        tray_icon = Gtk.StatusIcon()
+        tray_icon.set_tooltip_text(_("Lutris"))
+        tray_icon.set_visible(True)
+        tray_icon.set_from_icon_name("lutris")
+        return tray_icon
 
     def update_present_menu(self):
         app_window = self.application.window
@@ -113,7 +138,7 @@ class LutrisStatusIcon:
         return menu_item
 
     @staticmethod
-    def add_games():
+    def _get_installed_games():
         """Adds installed games in order of last use"""
         installed_games = get_games(filters={"installed": 1})
         installed_games.sort(
@@ -125,15 +150,3 @@ class LutrisStatusIcon:
     def on_game_selected(self, _widget, game_id):
         launch_ui_delegate = self.application.get_launch_ui_delegate()
         Game(game_id).launch(launch_ui_delegate)
-
-
-class LutrisTray(Gtk.StatusIcon):
-
-    """Lutris tray icon"""
-
-    def __init__(self, application, **_kwargs):
-        super().__init__()
-        self.set_tooltip_text(_("Lutris"))
-        self.set_visible(True)
-        self.application = application
-        self.set_from_icon_name("lutris")
