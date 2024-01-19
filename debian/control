@@ -46,6 +46,7 @@ Recommends: python3-evdev,
             fluidsynth,
             gamescope,
             gamemode,
+            gir1.2-appindicator3-0.1,
             xdg-desktop-portal,
             xdg-desktop-portal-gtk | xdg-desktop-portal-kde,
 Description: video game preservation platform

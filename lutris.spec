@@ -31,6 +31,7 @@ Requires:       cabextract
 Requires:       mesa-vulkan-drivers
 Requires:       vulkan-loader
 Recommends:     wine-core
+Recommends:     libappindicator-gtk3
 
 %ifarch x86_64
 Requires:       mesa-vulkan-drivers(x86-32)
