@@ -16,7 +16,7 @@ from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import linux
 from lutris.util.downloader import Downloader
-from lutris.util.http import HTTPError, Request
+from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -132,7 +132,7 @@ class ItchIoService(OnlineService):
             return False
         try:
             profile = self.fetch_profile()
-        except HTTPError:
+        except (HTTPError, UnauthorizedAccessError):
             logger.warning("Not connected to itch.io account.")
             return False
         return profile and "user" in profile
@@ -160,9 +160,15 @@ class ItchIoService(OnlineService):
         url = "{}/{}".format(self.api_url, path)
         if query is not None and isinstance(query, dict):
             url += "?{}".format(urlencode(query, quote_via=quote_plus))
-        request = Request(url, cookies=self.load_cookies())
-        request.get()
-        return request.json
+        try:
+            request = Request(url, cookies=self.load_cookies())
+            request.get()
+            return request.json
+        except UnauthorizedAccessError:
+            # We aren't logged in, so we'll log out! This allows you to
+            # log in again.
+            self.logout()
+            raise
 
     def fetch_profile(self):
         """Do API request to get users online profile"""
