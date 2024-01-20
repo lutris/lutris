@@ -434,6 +434,7 @@ class LutrisSidebar(Gtk.ListBox):
         # I wanted this to be on top but it really messes with the headers when showing/hiding the row.
         self.add(self.running_row)
         self.show_all()
+        self.missing_row.hide()
         self.running_row.hide()
 
         # Create the dynamic rows that are initially needed

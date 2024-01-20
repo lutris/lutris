@@ -1,15 +1,18 @@
 import json
 import os
 import time
+from typing import Iterable
 
 from lutris import settings
 from lutris.api import get_api_games, get_game_installers
 from lutris.database.games import get_games
 from lutris.game import Game
+from lutris.gui.widgets import NotificationSource
 from lutris.installer.errors import MissingGameDependencyError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.services.lutris import download_lutris_media
 from lutris.util import cache_single
+from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -201,17 +204,102 @@ def read_path_cache():
             return {}
 
 
-def get_missing_game_ids():
-    """Return a list of IDs for games that can't be found"""
-    logger.debug("Checking for missing games")
-    missing_ids = []
-    for game_id, path in get_path_cache().items():
-        if not os.path.exists(path):
-            missing_ids.append(game_id)
-    return missing_ids
+class MissingGames:
+    """This class is a singleton that holds a set of game-ids for games whose directories
+    are missing. It is updated on a background thread, but there's a NotificationSource ('updated')
+    that fires when that thread has made changes and exited, so that the UI cab update then."""
+    CHECK_STALL = 3
+
+    def __init__(self):
+        self.updated = NotificationSource()
+        self.missing_game_ids = set()
+        self._check_game_ids = None
+        self._check_game_queue = []
+        self._check_all_games = False
+        self._changed = False
+
+    def update_all_missing(self):
+        """This starts the check for all games; the actual list of game-ids will be obtained
+        on the worker thread, and this method will start it."""
+        self._check_all_games = True
+        self.update_missing()
+
+    def update_missing(self, game_ids: Iterable[str] = None):
+        """Starts checking the missing status on a list of games. This starts the worker
+        thread, but if it is running already, it queues the games. The worker will pause
+        briefly before processing extra games just to limit the rate of filesystem accesses."""
+
+        # The presence of this set indicates that the worker is running
+        start_fetch = self._check_game_ids is None
+
+        if not self._check_game_ids:
+            self._check_game_ids = set()
+
+        if game_ids:
+            self._check_game_ids |= set(game_ids)
+
+        if start_fetch:
+            initial_delay = self.CHECK_STALL if game_ids else 0
+            AsyncCall(self._fetch, None, initial_delay)
+
+    def _fetch(self, initial_delay=0):
+        """This is the method that runs on the worker thread; it continues until all
+        games are processed, even extras added while it is running."""
+        time.sleep(initial_delay)
+        logger.debug("Checking for missing games")
+        try:
+            while True:
+                game_id = self._next_game_id()
+                if not game_id:
+                    break
+
+                path = get_path_cache().get(game_id)
+
+                if path:
+                    if os.path.exists(path):
+                        if game_id in self.missing_game_ids:
+                            self.missing_game_ids.discard(game_id)
+                            self._changed = True
+                    elif game_id not in self.missing_game_ids:
+                        self.missing_game_ids.add(game_id)
+                        self._changed = True
+        except Exception as ex:
+            logger.exception("Unable to detect missing games: %s", ex)
+        finally:
+            # Clearing out _check_game_ids is how we know the worker is no longer running
+            self._check_game_ids = None
+            self._notify_changed()
+
+    def _notify_changed(self):
+        """Fires the 'updated' notification if changes have been made since the last time
+        this method was called."""
+        if self._changed:
+            self._changed = False
+            self.updated.fire()
+
+    def _next_game_id(self):
+        """Returns the next game-id to check, or None if we're done. This will detect
+        additional games once the queue empties, and moves hem to the queue, but fires
+        the notification then too."""
+        if self._check_all_games:
+            self._check_all_games = False
+            path_cache = get_path_cache()
+            self._check_game_queue = list(path_cache)
+            self._check_game_ids.clear()
+
+        if not self._check_game_queue and self._check_game_ids:
+            # If more ids have arrived while fetching the old ones, we do not
+            # just check them too. We notify immediate and wait a little,
+            # then continue checking. This will
+            self._notify_changed()
+            time.sleep(self.CHECK_STALL)
+            self._check_game_queue = list(self._check_game_ids)
+            self._check_game_ids.clear()
+
+        if self._check_game_queue:
+            return self._check_game_queue.pop()
+
+        return None
 
 
-def is_game_missing(game_id):
-    cache = get_path_cache()
-    path = cache.get(str(game_id))
-    return path and not os.path.exists(os.path.expanduser(path))
+MISSING_GAMES = MissingGames()
