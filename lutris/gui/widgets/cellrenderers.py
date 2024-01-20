@@ -14,7 +14,7 @@ from lutris.exceptions import MissingMediaError
 from lutris.gui.widgets.utils import (
     MEDIA_CACHE_INVALIDATED, get_default_icon_path, get_runtime_icon_path, get_scaled_surface_by_path, get_surface_size
 )
-from lutris.scanners.lutris import is_game_missing
+from lutris.scanners.lutris import MISSING_GAMES
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -248,8 +248,9 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                     if self.show_badges:
                         self.render_platforms(cr, widget, surface, 0, cell_area)
 
-                        if self.game_id and is_game_missing(self.game_id):
+                        if self.game_id and self.game_id in MISSING_GAMES.missing_game_ids:
                             self.render_text_badge(cr, widget, _("Missing"), 0, cell_area.y + cell_area.height)
+                            MISSING_GAMES.update_missing([self.game_id])
                 else:
                     cr.push_group()
                     self.render_media(cr, widget, surface, 0, 0)

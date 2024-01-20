@@ -28,7 +28,7 @@ from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
-from lutris.scanners.lutris import add_to_path_cache, get_missing_game_ids, remove_from_path_cache
+from lutris.scanners.lutris import MISSING_GAMES, add_to_path_cache, remove_from_path_cache
 # pylint: disable=no-member
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
@@ -148,6 +148,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         GObject.add_emission_hook(Game, "game-removed", self.on_game_removed)
         GObject.add_emission_hook(Game, "game-unhandled-error", self.on_game_unhandled_error)
         GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
+        MISSING_GAMES.updated.register(self.update_missing_games_sidebar_row)
 
         # Finally trigger the initialization of the view here
         selected_category = settings.read_setting("selected_category", default="runner:all")
@@ -254,7 +255,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_load(self, widget, data=None):
         """Finish initializing the view"""
         self._bind_zoom_adjustment()
-        AsyncCall(get_missing_game_ids, self.on_get_missing_game_ids)
+        MISSING_GAMES.update_all_missing()
         self.current_view.grab_focus()
 
     def on_sidebar_realize(self, widget, data=None):
@@ -417,23 +418,18 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Return a list of currently running games"""
         return games_db.get_games_by_ids(self.application.get_running_game_ids())
 
-    def on_get_missing_game_ids(self, missing_ids, error):
-        if error:
-            logger.error(str(error))
-            return
-        self.get_missing_games(missing_ids)
+    def get_missing_games(self):
+        return games_db.get_games_by_ids(MISSING_GAMES.missing_game_ids)
 
-    def get_missing_games(self, missing_ids: list = None) -> list:
-        if missing_ids is None:
-            missing_ids = get_missing_game_ids()
-        missing_games = games_db.get_games_by_ids(missing_ids)
+    def update_missing_games_sidebar_row(self) -> None:
+        missing_games = self.get_missing_games()
         if missing_games:
             self.sidebar.missing_row.show()
         else:
+            missing_ids = MISSING_GAMES.missing_game_ids
             if missing_ids:
                 logger.warning("Path cache out of date? (%s IDs missing)", len(missing_ids))
             self.sidebar.missing_row.hide()
-        return missing_games
 
     def get_recent_games(self):
         """Return a list of currently running games"""
@@ -1126,7 +1122,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_game_removed(self, game):
         """Simple method used to refresh the view"""
         remove_from_path_cache(game)
-        self.get_missing_games()
+        MISSING_GAMES.update_missing([game.id])
+        self.update_missing_games_sidebar_row()
         self.emit("view-updated")
         return True
 

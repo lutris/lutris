@@ -9,6 +9,7 @@ from lutris.game import Game
 from lutris.game_actions import BaseGameActions, get_game_actions
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED
+from lutris.scanners.lutris import MISSING_GAMES
 from lutris.util.log import logger
 
 
@@ -22,12 +23,14 @@ class GameView:
     def __init__(self, service):
         self.service = service
         self.cache_notification_id = None
+        self.missing_games_updated_id = None
         self.game_start_hook_id = None
         self.image_renderer = None
 
     def connect_signals(self):
         """Signal handlers common to all views"""
         self.cache_notification_id = MEDIA_CACHE_INVALIDATED.register(self.on_media_cache_invalidated)
+        self.missing_games_updated_id = MISSING_GAMES.updated.register(self.on_missing_games_updated)
 
         self.connect("destroy", self.on_destroy)
         self.connect("button-press-event", self.popup_contextual_menu)
@@ -38,9 +41,16 @@ class GameView:
     def on_media_cache_invalidated(self):
         self.queue_draw()
 
+    def on_missing_games_updated(self):
+        if self.image_renderer and self.image_renderer.show_badges:
+            self.queue_draw()
+
     def on_destroy(self, _widget):
         if self.cache_notification_id:
             MEDIA_CACHE_INVALIDATED.unregister(self.cache_notification_id)
+
+        if self.missing_games_updated_id:
+            MISSING_GAMES.updated.unregister(self.missing_games_updated_id)
 
         if self.game_start_hook_id:
             GObject.remove_emission_hook(Game, "game-start", self.game_start_hook_id)
