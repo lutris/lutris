@@ -246,16 +246,12 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 if alpha >= 1:
                     self.render_media(cr, widget, surface, 0, 0)
                     if self.show_badges:
-                        self.render_platforms(cr, widget, surface, 0, cell_area)
-
-                        if self.game_id and self.game_id in MISSING_GAMES.missing_game_ids:
-                            self.render_text_badge(cr, widget, _("Missing"), 0, cell_area.y + cell_area.height)
-                            MISSING_GAMES.update_missing([self.game_id])
+                        self._render_badges(cr, widget, surface, cell_area)
                 else:
                     cr.push_group()
                     self.render_media(cr, widget, surface, 0, 0)
                     if self.show_badges:
-                        self.render_platforms(cr, widget, surface, 0, cell_area)
+                        self._render_badges(cr, widget, surface, cell_area)
                     cr.pop_group_to_source()
                     cr.paint_with_alpha(alpha)
                 cr.restore()
@@ -351,9 +347,16 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         cr.rectangle(x, y, width, height)
         cr.fill()
 
+    def _render_badges(self, cr, widget, surface, cell_area):
+        self.render_platforms(cr, widget, surface, 0, cell_area)
+
+        if self.game_id:
+            if self.game_id in MISSING_GAMES.missing_game_ids:
+                self.render_text_badge(cr, widget, _("Missing"), 0, cell_area.y + cell_area.height)
+            MISSING_GAMES.update_missing(self.game_id)
+
     def render_platforms(self, cr, widget, surface, surface_x, cell_area):
-        """Renders the stack of platform icons. They appear lined up vertically to the
-        right of 'media_right', if that will fit in 'cell_area'."""
+        """Renders the stack of platform icons."""
         platform = self.platform
         if platform and self.badge_size:
             icon_paths = self.get_platform_icon_paths(platform)

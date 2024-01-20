@@ -1122,7 +1122,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_game_removed(self, game):
         """Simple method used to refresh the view"""
         remove_from_path_cache(game)
-        MISSING_GAMES.update_missing([game.id])
+        MISSING_GAMES.update_missing(game.id)
         self.update_missing_games_sidebar_row()
         self.emit("view-updated")
         return True
