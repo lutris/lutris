@@ -45,7 +45,12 @@ def detect_game_from_installer(game_folder, installer):
     except KeyError:
         exe_path = installer["script"].get("exe")
     if not exe_path:
-        return
+        try:
+            exe_path = installer["script"]["game"].get("main_file")
+        except KeyError:
+            pass
+    if not exe_path:
+        return None
     exe_path = exe_path.replace("$GAMEDIR/", "")
     full_path = os.path.join(game_folder, exe_path)
     if os.path.exists(full_path):
