@@ -140,7 +140,7 @@ class BattleNetService(BaseService):
         game_config = LutrisConfig(game_config_id=bnet_game["configpath"]).game_level
         game_config["game"]["args"] = '--exec="launch %s"' % game.ngdp
         configpath = write_game_config(lutris_game_id, game_config)
-        slug = self.get_installed_slug(bnet_game)
+        slug = service_game["slug"]
         add_game(
             name=service_game["name"],
             runner=bnet_game["runner"],
