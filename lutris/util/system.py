@@ -690,6 +690,8 @@ def _load_vulkan_gpu_name(icd_files, use_dri_prime):
         with subprocess.Popen(infocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                               env=subprocess_env) as infoget:
             result = infoget.communicate()[0].decode("utf-8").strip()
+            # This can get removed when we only have 1 vulkaninfo call during the lifetime of the program
+            print("VULKANINFO CALLED")
 
         if "Failed to detect any valid GPUs" in result or "ERROR: [Loader Message]" in result:
             return "No GPU"
