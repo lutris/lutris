@@ -1193,26 +1193,6 @@ class wine(Runner):
         alive for some reason, but the caller will detect this and SIGKILL it."""
         self.run_winekill()
 
-    @staticmethod
-    def parse_wine_path(path, prefix_path=None):
-        """Take a Windows path, return the corresponding Linux path."""
-        if not prefix_path:
-            prefix_path = os.path.expanduser("~/.wine")
-
-        path = path.replace("\\\\", "/").replace("\\", "/")
-
-        if path[1] == ":":  # absolute path
-            drive = os.path.join(prefix_path, "dosdevices", path[:2].lower())
-            if os.path.islink(drive):  # Try to resolve the path
-                drive = os.readlink(drive)
-            return os.path.join(drive, path[3:])
-
-        if path[0] == "/":  # drive-relative path. C is as good a guess as any..
-            return os.path.join(prefix_path, "drive_c", path[1:])
-
-        # Relative path
-        return path
-
     def extract_icon(self, game_slug):
         """Extracts the 128*128 icon from EXE and saves it, if not resizes the biggest icon found.
         returns true if an icon is saved, false if not"""
