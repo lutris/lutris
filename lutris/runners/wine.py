@@ -25,7 +25,6 @@ from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-from lutris.util.steam.config import get_steam_dir
 from lutris.util.strings import split_arguments
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
@@ -1089,18 +1088,7 @@ class wine(Runner):
 
         # Proton support
         if wine_config_version and "Proton" in wine_config_version:
-            steam_dir = get_steam_dir()
-            if steam_dir:  # May be None for example if Proton-GE is used but Steam is not installed
-                env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = steam_dir
-
-            prefix_path = self.prefix_path
-            if prefix_path:
-                env["STEAM_COMPAT_DATA_PATH"] = prefix_path
-
-            env["STEAM_COMPAT_APP_ID"] = '0'
-            env["SteamAppId"] = '0'
-            if "SteamGameId" not in env:
-                env["SteamGameId"] = "lutris-game"
+            env["GAMEID"] = "ULWGL-foo"
         return env
 
     def get_runtime_env(self):
@@ -1149,6 +1137,14 @@ class wine(Runner):
                 wine_prefix.restore_desktop_integration()
         except Exception as ex:
             logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
+
+    def get_command(self):
+        exe = self.get_executable()
+        ulwgl_path = os.path.join(settings.RUNTIME_DIR, "ulwgl")
+        if "Proton" in exe and system.path_exists(ulwgl_path):
+            proton_path = exe[:exe.index("files/bin")]
+            return [os.path.join(ulwgl_path, "gamelauncher.sh"), proton_path]
+        return super().get_command()
 
     def play(self):  # pylint: disable=too-many-return-statements # noqa: C901
         game_exe = self.game_exe
