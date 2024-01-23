@@ -44,7 +44,10 @@ class TrashPortal(GObject.Object):
     def trash_file(self):
         try:
             flags = os.O_RDONLY | os.O_PATH | os.O_CLOEXEC
-            if not os.path.isdir(self.file_path):
+            # You'd think you could use O_NOFOLLOW for any file, but
+            # I find TrashFile fails. We don't want to trash the link target
+            # in any case.
+            if os.path.islink(self.file_path):
                 flags |= os.O_NOFOLLOW
             file_handle = os.open(self.file_path, flags)
             fds_in = Gio.UnixFDList.new()
