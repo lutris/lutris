@@ -22,7 +22,7 @@ from lutris.database import sql
 from lutris.exception_backstops import watch_game_errors
 from lutris.exceptions import GameConfigError, InvalidGameMoveError, MissingExecutableError
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
-from lutris.runners import InvalidRunnerError, import_runner
+from lutris.runners import import_runner
 from lutris.runners.runner import Runner
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
@@ -146,19 +146,6 @@ class Game(GObject.Object):
         if self.runner_name:
             value += " (%s)" % self.runner_name
         return value
-
-    @property
-    def is_cache_managed(self):
-        """Is the DXVK cache receiving updates from lutris?"""
-        try:
-            if not self.has_runner:
-                return False
-
-            env = self.runner.system_config.get("env", {})
-            return "DXVK_STATE_CACHE_PATH" in env
-        except InvalidRunnerError as ex:
-            logger.exception("Unable to query runner configuration: %s", ex)
-            return False
 
     @property
     def id(self) -> str:

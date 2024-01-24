@@ -26,7 +26,6 @@ from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, slugify
 from lutris.util.system import path_exists
-from lutris.util.wine.shader_cache import update_shader_cache
 
 
 class BaseGameActions:
@@ -152,7 +151,6 @@ class GameActions(BaseGameActions):
             ("deletefavorite", _("Remove from favorites"), self.on_delete_favorite_game),
             ("hide", _("Hide game from library"), self.on_hide_game),
             ("unhide", _("Unhide game from library"), self.on_unhide_game),
-            ("update-shader-cache", _("Update shader cache"), self.on_update_shader_cache),
             (None, "-", None),
             ("install", _("Install"), self.on_install_clicked),
             ("install_more", _("Install another version"), self.on_install_clicked),
@@ -197,7 +195,6 @@ class GameActions(BaseGameActions):
             "install": self.is_installable,
             "play": self.is_game_launchable,
             "update": game.is_updatable,
-            "update-shader-cache": game.is_cache_managed,
             "install_dlcs": game.is_updatable,
             "stop": self.is_game_running,
             "configure": bool(game.is_installed),
@@ -285,10 +282,6 @@ class GameActions(BaseGameActions):
     def on_install_dlc_clicked(self, _widget):
         for game in self.games:
             game.emit("game-install-dlc")
-
-    def on_update_shader_cache(self, _widget):
-        for game in self.games:
-            update_shader_cache(game)
 
     def on_game_duplicate(self, _widget):
         for game in self.games:
