@@ -1089,6 +1089,7 @@ class wine(Runner):
         # Proton support
         if wine_config_version and "Proton" in wine_config_version:
             env["GAMEID"] = "ULWGL-foo"
+            env["PROTONPATH"] = wine_exe[:wine_exe.index("files/bin")]
         return env
 
     def get_runtime_env(self):
@@ -1142,8 +1143,7 @@ class wine(Runner):
         exe = self.get_executable()
         ulwgl_path = os.path.join(settings.RUNTIME_DIR, "ulwgl")
         if "Proton" in exe and system.path_exists(ulwgl_path):
-            proton_path = exe[:exe.index("files/bin")]
-            return [os.path.join(ulwgl_path, "gamelauncher.sh"), proton_path]
+            return [os.path.join(ulwgl_path, "gamelauncher.sh")]
         return super().get_command()
 
     def play(self):  # pylint: disable=too-many-return-statements # noqa: C901
