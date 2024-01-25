@@ -117,7 +117,10 @@ class GameListView(Gtk.TreeView, GameView):
         self.model.set_sort_func(col, sort_func, sort_col)
 
     def get_path_at(self, x, y):
-        path, _col, _cx, _cy = self.get_path_at_pos(x, y)
+        path_at = self.get_path_at_pos(x, y)
+        if path_at is None:
+            return None
+        path, _col, _cx, _cy = path_at
         return path
 
     def set_selected(self, path):
