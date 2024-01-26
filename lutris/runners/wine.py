@@ -1087,7 +1087,7 @@ class wine(Runner):
         env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
 
         # Proton support
-        if wine_config_version and "Proton" in wine_config_version:
+        if wine_config_version and "Proton" in wine_config_version and "lutris" not in wine_config_version:
             env["GAMEID"] = "ULWGL-foo"
             env["PROTONPATH"] = wine_exe[:wine_exe.index("files/bin")]
         return env
