@@ -190,22 +190,33 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         return box
 
     def _get_slug_box(self):
-        slug_box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        identifier_box = Gtk.VBox(spacing=12, margin_right=12, margin_left=12)
 
-        label = Label(_("Identifier"))
-        slug_box.pack_start(label, False, False, 0)
+        slug_entry_box = Gtk.Box(spacing=12, margin_right=0, margin_left=0)
+
+        slug_entry_box.pack_start(Label(_("Identifier")), False, False, 0)
 
         self.slug_entry = SlugEntry()
         self.slug_entry.set_text(self.game.slug)
         self.slug_entry.set_sensitive(False)
         self.slug_entry.connect("activate", self.on_slug_entry_activate)
-        slug_box.pack_start(self.slug_entry, True, True, 0)
+        slug_entry_box.pack_start(self.slug_entry, True, True, 0)
 
         self.slug_change_button = Gtk.Button(_("Change"))
         self.slug_change_button.connect("clicked", self.on_slug_change_clicked)
-        slug_box.pack_start(self.slug_change_button, False, False, 0)
+        slug_entry_box.pack_start(self.slug_change_button, False, False, 0)
 
-        return slug_box
+        identifier_box.pack_start(slug_entry_box, True, True, 0)
+
+        game_id_box = Gtk.Box(spacing=12, margin_right=0, margin_left=12)
+        label = Label(_("Internal ID"))
+        game_id_box.pack_start(label, False, False, 0)
+        game_id_label = Label(_(str(self.game.id)))
+        game_id_box.pack_start(game_id_label, True, True, 0)
+
+        identifier_box.pack_start(game_id_box, True, True, 0)
+
+        return identifier_box
 
     def _get_directory_box(self):
         """Return widget displaying the location of the game and allowing to move it"""
