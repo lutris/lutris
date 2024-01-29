@@ -112,14 +112,16 @@ def create_prefix(  # noqa: C901
         if not runner:
             runner = import_runner("wine")()
         wine_path = runner.get_executable()
-    wineboot_path = os.path.join(os.path.dirname(wine_path), "wineboot")
-    if not system.path_exists(wineboot_path):
-        logger.error(
-            "No wineboot executable found in %s, "
-            "your wine installation is most likely broken",
-            wine_path,
-        )
-        return
+    logger.info("Winepath: %s", wine_path)
+    if not 'Proton' in wine_path:
+        wineboot_path = os.path.join(os.path.dirname(wine_path), "wineboot")
+        if not system.path_exists(wineboot_path):
+            logger.error(
+                "No wineboot executable found in %s, "
+                "your wine installation is most likely broken",
+                wine_path,
+            )
+            return
 
     wineenv = {
         "WINEARCH": arch,
@@ -136,16 +138,24 @@ def create_prefix(  # noqa: C901
         wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
         overrides["mscoree"] = "disabled"
 
-    system.execute([wineboot_path], env=wineenv)
-    for loop_index in range(1000):
-        time.sleep(0.5)
-        if system.path_exists(os.path.join(prefix, "user.reg")):
-            break
-        if loop_index == 60:
-            logger.warning("Wine prefix creation is taking longer than expected...")
-    if not os.path.exists(os.path.join(prefix, "user.reg")):
-        logger.error("No user.reg found after prefix creation. Prefix might not be valid")
-        return
+    if not 'Proton' in wine_path:
+        system.execute([wineboot_path], env=wineenv)
+        for loop_index in range(1000):
+            time.sleep(0.5)
+            if system.path_exists(os.path.join(prefix, "user.reg")):
+                break
+            if loop_index == 60:
+                logger.warning("Wine prefix creation is taking longer than expected...")
+        if not os.path.exists(os.path.join(prefix, "user.reg")):
+            logger.error("No user.reg found after prefix creation. Prefix might not be valid")
+            return
+    else:
+        # TODO: Determine and insert GAMEID and STORE
+        wineenv["GAMEID"] = "ulwgl-foo"
+        wineenv["PROTONPATH"] = settings.RUNNER_DIR
+        ulwgl_path = os.path.join(settings.RUNTIME_DIR, "ulwgl")
+        system.execute([os.path.join(ulwgl_path, "gamelauncher.sh"), "createprefix"], env=wineenv)
+
     logger.info("%s Prefix created in %s", arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
     prefix_manager.setup_defaults()
@@ -305,9 +315,18 @@ def wineexec(  # noqa: C901
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
+    if 'Proton' in wine_path:
+        # TODO: Determine and insert GAMEID and STORE
+        wineenv["GAMEID"] = "ulwgl-foo"
+        wineenv["PROTONPATH"] = os.path.abspath(os.path.join(os.path.dirname(wine_path),"../../"))
+
     baseenv = runner.get_env(disable_runtime=disable_runtime)
     baseenv.update(wineenv)
     baseenv.update(env)
+
+    if 'Proton' in wine_path:
+        ulwgl_path = os.path.join(settings.RUNTIME_DIR, "ulwgl", "gamelauncher.sh")
+        wine_path = ulwgl_path
 
     command_parameters = [wine_path]
     if executable:
@@ -376,25 +395,27 @@ def winetricks(
         if not runner:
             runner = import_runner("wine")()
         winetricks_wine = runner.get_executable()
-    if arch not in ("win32", "win64"):
-        arch = detect_arch(prefix, winetricks_wine)
-    args = app
-    if str(silent).lower() in ("yes", "on", "true"):
-        args = "--unattended " + args
+    # We only need to perform winetricks if not using ulwgl/proton. ulwgl uses protonfixes
+    if not 'Proton' in wine_path:
+        if arch not in ("win32", "win64"):
+            arch = detect_arch(prefix, winetricks_wine)
+        args = app
+        if str(silent).lower() in ("yes", "on", "true"):
+            args = "--unattended " + args
 
-    return wineexec(
-        None,
-        prefix=prefix,
-        winetricks_wine=winetricks_wine,
-        wine_path=winetricks_path,
-        working_dir=working_dir,
-        arch=arch,
-        args=args,
-        config=config,
-        env=env,
-        disable_runtime=disable_runtime,
-        runner=runner
-    )
+        return wineexec(
+            None,
+            prefix=prefix,
+            winetricks_wine=winetricks_wine,
+            wine_path=winetricks_path,
+            working_dir=working_dir,
+            arch=arch,
+            args=args,
+            config=config,
+            env=env,
+            disable_runtime=disable_runtime,
+            runner=runner
+        )
 
 
 def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, env=None, runner=None):
