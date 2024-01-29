@@ -1088,7 +1088,8 @@ class wine(Runner):
 
         # Proton support
         if wine_config_version and "Proton" in wine_config_version and "lutris" not in wine_config_version:
-            env["GAMEID"] = "ULWGL-foo"
+            if not ("GAMEID" in env):
+                env["GAMEID"] = "ULWGL-foo"
             env["PROTONPATH"] = wine_exe[:wine_exe.index("files/bin")]
         return env
 
