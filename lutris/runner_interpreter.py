@@ -31,17 +31,6 @@ def get_launch_parameters(runner, gameplay_info):
     if system_config["locale"] != "":
         env["LC_ALL"] = system_config["locale"]
 
-    # Optimus
-    optimus = system_config.get("optimus")
-    if optimus == "primusrun" and system.can_find_executable("primusrun"):
-        launch_arguments.insert(0, "primusrun")
-    elif optimus == "optirun" and system.can_find_executable("optirun"):
-        launch_arguments.insert(0, "virtualgl")
-        launch_arguments.insert(0, "-b")
-        launch_arguments.insert(0, "optirun")
-    elif optimus == "pvkrun" and system.can_find_executable("pvkrun"):
-        launch_arguments.insert(0, "pvkrun")
-
     # MangoHud
     if runner.name == "steam":
         logger.info(
