@@ -34,9 +34,6 @@ SYSTEM_COMPONENTS = {
         "fluidsynth",
     ],
     "OPTIONAL_COMMANDS": [
-        "optirun",
-        "primusrun",
-        "pvkrun",
         "pulseaudio",
         "lsi-steam",
         "Xephyr",

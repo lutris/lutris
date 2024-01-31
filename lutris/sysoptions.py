@@ -67,18 +67,6 @@ def get_output_list():
     return choices
 
 
-def get_optirun_choices():
-    """Return menu choices (label, value) for Optimus"""
-    choices = [(_("Off"), "off")]
-    if system.can_find_executable("primusrun"):
-        choices.append(("primusrun", "primusrun"))
-    if system.can_find_executable("optirun"):
-        choices.append(("optirun/virtualgl", "optirun"))
-    if system.can_find_executable("pvkrun"):
-        choices.append(("primus vk", "pvkrun"))
-    return choices
-
-
 def get_vk_icd_choices():
     """Return available Vulkan ICD loaders"""
     # fallback in case any ICDs don't match a known type
@@ -422,21 +410,6 @@ system_options = [  # pylint: disable=invalid-name
                   "option will run the game with the 'DRI_PRIME=1' environment variable, "
                   "activating your discrete graphic chip for high 3D "
                   "performance."),
-    },
-    {
-        "section": _("Multi-GPU"),
-        "option": "optimus",
-        "type": "choice",
-        "default": "off",
-        "choices": get_optirun_choices,
-        "label": _("Optimus launcher (NVIDIA Optimus laptops)"),
-        "advanced": True,
-        "help": _("If you have installed the primus or bumblebee packages, "
-                  "select what launcher will run the game with the command, "
-                  "activating your NVIDIA graphic chip for high 3D "
-                  "performance. primusrun normally has better performance, but"
-                  "optirun/virtualgl works better for more games."
-                  "Primus VK provide vulkan support under bumblebee."),
     },
     {
         "section": _("Multi-GPU"),
