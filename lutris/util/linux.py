@@ -41,7 +41,6 @@ SYSTEM_COMPONENTS = {
         "lsi-steam",
         "Xephyr",
         "nvidia-smi",
-        "strangle",
         "xgamma",
     ],
     "TERMINALS": [
