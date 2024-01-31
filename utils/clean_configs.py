@@ -14,7 +14,7 @@ for filename in os.listdir(CONFIG_DIR):
 
 extra_configs = config_files - config_paths
 for extra in extra_configs:
-    print(os.unlink(os.path.join(CONFIG_DIR, extra)))
+    os.unlink(os.path.join(CONFIG_DIR, extra))
 
 print("Lutris configs:", len(config_paths))
 print("Config files:", len(config_files))

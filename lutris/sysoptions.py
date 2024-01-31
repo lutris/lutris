@@ -315,16 +315,6 @@ system_options = [  # pylint: disable=invalid-name
                   "Requires the screen saver's functionality "
                   "to be exposed over DBus."),
     },
-
-    {
-        "section": _("Display"),
-        "option": "fps_limit",
-        "type": "string",
-        "size": "small",
-        "label": _("FPS limit"),
-        "condition": system.can_find_executable("strangle"),
-        "help": _("Limit the game's FPS using libstrangle"),
-    },
     {
         "section": _("Display"),
         "option": "sdl_video_fullscreen",
