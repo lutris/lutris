@@ -47,17 +47,6 @@ def get_default_dpi():
     return 96
 
 
-def restore_gamma():
-    """Restores gamma to a normal level."""
-    xgamma_path = system.find_executable("xgamma")
-    try:
-        subprocess.Popen([xgamma_path, "-gamma", "1.0"])  # pylint: disable=consider-using-with
-    except (FileNotFoundError, TypeError):
-        logger.warning("xgamma is not available on your system")
-    except PermissionError:
-        logger.warning("you do not have permission to call xgamma")
-
-
 def has_graphic_adapter_description(match_text):
     """Returns True if a graphics adapter is found with 'match_text' in its description."""
     for adapter in _get_graphics_adapters():

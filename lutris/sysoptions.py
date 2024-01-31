@@ -272,16 +272,6 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "section": _("Display"),
-        "option": "restore_gamma",
-        "type": "bool",
-        "default": False,
-        "label": _("Restore gamma on game exit"),
-        "advanced": True,
-        "help": _("Some games don't correctly restores gamma on exit, making "
-                  "your display too bright. Select this option to correct it."),
-    },
-    {
-        "section": _("Display"),
         "option": "disable_compositor",
         "label": _("Disable desktop effects"),
         "type": "bool",
