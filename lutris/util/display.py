@@ -25,13 +25,11 @@ except ImportError:
 
 from gi.repository import Gdk, GLib, Gio, Gtk
 
-from lutris.util import system
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
 from lutris.util.graphics import drivers
 from lutris.util.graphics.displayconfig import MutterDisplayManager
 from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution, get_outputs
 from lutris.util.log import logger
-from lutris.exceptions import MissingExecutableError
 
 
 def get_default_dpi():
@@ -47,14 +45,6 @@ def get_default_dpi():
     return 96
 
 
-def has_graphic_adapter_description(match_text):
-    """Returns True if a graphics adapter is found with 'match_text' in its description."""
-    for adapter in _get_graphics_adapters():
-        if match_text in adapter[1]:
-            return True
-    return False
-
-
 def get_gpus_info():
     """Return the information related to each GPU on the system"""
     return {card: drivers.get_gpu_info(card) for card in drivers.get_gpus()}
@@ -67,27 +57,6 @@ def display_gpu_info(gpu_id, gpu_info):
         logger.info(gpu_string)
     except KeyError:
         logger.error("Unable to get GPU information from '%s'", gpu_id)
-
-
-def _get_graphics_adapters():
-    """Return the list of graphics cards available on a system
-
-    Returns:
-        list: list of tuples containing PCI ID and description of the display controller
-    """
-    try:
-        lspci_path = system.find_executable("lspci")
-    except MissingExecutableError:
-        logger.warning("lspci is not available. List of graphics cards not available")
-        return []
-
-    dev_subclasses = ["VGA", "XGA", "3D controller", "Display controller"]
-    return [
-        (pci_id, device_desc.split(": ")[1]) for pci_id, device_desc in [
-            line.split(maxsplit=1) for line in system.execute(lspci_path, timeout=3).split("\n")
-            if any(subclass in line for subclass in dev_subclasses)
-        ]
-    ]
 
 
 class DisplayManager:
