@@ -277,21 +277,11 @@ has known regressions with the current default build. Abusing this feature
 slows down the development of the Wine project.
 Example: ``version: staging-2.21-x86_64``
 
-``Desktop``: Run the game in a Wine virtual desktop. This should be used if the
-game has issues with Linux window managers such as crashes on Alt-Tab.
-Example: ``Desktop: true``
-
-``WineDesktop``: Set the resolution of the Wine virtual desktop. If not provided,
-the virtual desktop will take up the whole screen, which is likely the desired
-behavior. It is unlikely that you would add this directive in an installer but
-can be useful is a game is picky about the resolution it's running in.
-Example: ``WineDesktop: 1024x768``
-
 ``dxvk``: Use this to disable DXVK if needed. (``dxvk: false``)
 
 ``dxvk_version``: Use this to define a specific DXVK version. (``dxvk_version: 1.10.3``)
 
-``esync``: Use this to enable esync. (``esync: true``)
+``esync``: Use this to disable esync. (``esync: false``)
 
 ``overrides``: Overrides for Wine DLLs. List your DLL overrides in a
 mapping with the following values:
@@ -321,15 +311,6 @@ customization of system features. As with runner configuration options, system
 directives should be used carefully, only adding them when absolutely necessary
 to run a game.
 
-``restore_gamma``: If the game doesn't restore the correct gamma on exit, you
-can use this option to call xgamma and reset the default values. This option
-won't work on Wayland.
-Example: ``restore_gamma: true``
-
-``terminal``: Run the game in a terminal if the game is a text based one. Do
-not use this option to get the console output of the game, this will result in
-a broken installer. **Only use this option for text based games.**
-
 ``env``: Sets environment variables before launching a game and during install.
 Do not **ever** use this directive to enable a framerate counter. Do not use
 this directive to override Wine DLLs. Variable substitution is available in
@@ -345,20 +326,12 @@ Example::
 ``single_cpu``: Run the game on a single CPU core. Useful for some old games
 that handle multicore CPUs poorly. (``single_cpu: true``)
 
-``disable_runtime``: **DO NOT DISABLE THE LUTRIS RUNTIME IN LUTRIS INSTALLERS**
-
 ``pulse_latency``: Set PulseAudio latency to 60 msecs. Can reduce audio
 stuttering. (``pulse_latency: true``)
 
 ``use_us_layout``: Change the keyboard layout to a standard US one while the
 game is running.  Useful for games that handle other layouts poorly and don't
 have key remapping options. (``use_us_layou: true``)
-
-``xephyr``: Run the game in Xephyr. This is useful for games only handling 256
-color modes. To enable Xephyr, pass the desired bit per plane value. (``xephyr: 8bpp``)
-
-``xephyr_resolution``: Used with the ``xephyr`` option, this sets the size of
-the Xephyr window. (``xephyr_resolution: 1024x768``)
 
 
 Fetching required files

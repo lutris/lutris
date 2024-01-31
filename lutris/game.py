@@ -26,7 +26,7 @@ from lutris.runners import import_runner
 from lutris.runners.runner import Runner
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
-    DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
+    DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing
 )
 from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
@@ -910,9 +910,6 @@ class Game(GObject.Object):
         if self.runner.system_config.get("use_us_layout"):
             with subprocess.Popen(["setxkbmap"], env=os.environ) as setxkbmap:
                 setxkbmap.communicate()
-
-        if self.runner.system_config.get("restore_gamma"):
-            restore_gamma()
 
         # Clear Discord Client Status
         if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
