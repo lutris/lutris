@@ -97,10 +97,8 @@ def get_nvidia_gpu_ids() -> List[str]:
         logger.warning(
             "Unexpected error accessing %s. Using lspci instead.", gpus_dir, exc_info=e
         )
-    values = read_process_output(
-        # 10de is NVIDIA's vendor ID, 0300 gets you video controllers.
-        ["lspci", "-D", "-n", "-d", "10de::0300"],
-    ).splitlines()
+    # 10de is NVIDIA's vendor ID, 0300 gets you video controllers.
+    values = read_process_output(["lspci", "-D", "-n", "-d", "10de::0300"]).splitlines()
     return [line.split(maxsplit=1)[0] for line in values]
 
 

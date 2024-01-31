@@ -25,9 +25,7 @@ from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import import_runner
 from lutris.runners.runner import Runner
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
-from lutris.util.display import (
-    DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing
-)
+from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing
 from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
