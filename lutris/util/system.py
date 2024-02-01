@@ -1,5 +1,4 @@
 """System utilities"""
-import glob
 import hashlib
 import os
 import re
@@ -9,7 +8,6 @@ import stat
 import string
 import subprocess
 import zipfile
-from collections import defaultdict
 from gettext import gettext as _
 from pathlib import Path
 
@@ -17,7 +15,6 @@ from gi.repository import Gio, GLib
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
-from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.portals import TrashPortal
 
@@ -32,19 +29,6 @@ PROTECTED_HOME_FOLDERS = (
     _("Projects"),
     _("Games")
 )
-
-# vulkan dirs used by distros or containers that aren't from:
-# https://github.com/KhronosGroup/Vulkan-Loader/blob/v1.3.235/docs/LoaderDriverInterface.md#driver-discovery-on-linux
-# don't include the /vulkan suffix
-VULKAN_DATA_DIRS = [
-    "/usr/local/etc",  # standard site-local location
-    "/usr/local/share",  # standard site-local location
-    "/etc",  # standard location
-    "/usr/share",  # standard location
-    "/usr/lib/x86_64-linux-gnu/GL",  # Flatpak GL extension
-    "/usr/lib/i386-linux-gnu/GL",  # Flatpak GL32 extension
-    "/opt/amdgpu-pro/etc"  # AMD GPU Pro - TkG
-]
 
 
 def get_environment():
@@ -180,12 +164,13 @@ def spawn(command, env=None, cwd=None, quiet=False, shell=False):
         logger.error("Could not run command %s (env: %s): %s", command, env, ex)
 
 
-def read_process_output(command, timeout=5):
+def read_process_output(command, timeout=5, env=None):
     """Return the output of a command as a string"""
     try:
         return subprocess.check_output(
             command,
             timeout=timeout,
+            env=env,
             encoding="utf-8",
             errors="ignore"
         ).strip()
@@ -643,132 +628,3 @@ def set_keyboard_layout(layout):
         with subprocess.Popen(setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin) as setxkbmap:
             setxkbmap.communicate()
             xkbcomp.communicate()
-
-
-_vulkan_gpu_names = {}
-
-
-def get_vulkan_gpu_name(icd_files, use_dri_prime):
-    """Retrieves the GPU name associated with a set of ICD files; this does not generate
-    this data as it can be quite slow, and we use this in the UI where we do not want to
-    freeze. We load the GPU names in the background, until they are ready this returns
-    'Not Ready'."""
-    key = icd_files, use_dri_prime
-    return _vulkan_gpu_names.get(key, _("GPU Info Not Ready"))
-
-
-def load_vulkan_gpu_names(use_dri_prime):
-    """Runs threads to load the GPU data from vulkan info for each ICD file set,
-    and one for the default 'unspecified' info."""
-
-    try:
-        all_files = [":".join(fs) for fs in get_vk_icd_file_sets().values()]
-        all_files.append("")
-        for files in all_files:
-            AsyncCall(_load_vulkan_gpu_name, None, files, use_dri_prime, daemon=True)
-    except Exception as ex:
-        logger.exception("Failed to preload Vulkan GPU Names: %s", ex)
-
-
-def fetch_vulkan_gpu_name(icd_files, prime):
-    """Runs vulkaninfo to find the primary GPU"""
-    subprocess_env = dict(os.environ)
-    if icd_files:
-        subprocess_env["VK_DRIVER_FILES"] = icd_files
-        subprocess_env["VK_ICD_FILENAMES"] = icd_files
-    # How is prime going to be useful in case
-    # of full AMD setups or AMD + Intel setups?
-    if prime:
-        subprocess_env["DRI_PRIME"] = "1"
-
-    infocmd = "vulkaninfo --summary | grep deviceName | head -n 1 | tr -s '[:blank:]' | cut -d ' ' -f 3-"
-    with subprocess.Popen(infocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                          env=subprocess_env) as infoget:
-        result = infoget.communicate()[0].decode("utf-8").strip()
-        # This can get removed when we only have 1 vulkaninfo call during the lifetime of the program
-        print(f"VULKANINFO: ICD: {icd_files} Prime: {prime}")
-
-    if "Failed to detect any valid GPUs" in result or "ERROR: [Loader Message]" in result:
-        return "No GPU"
-
-    # Shorten result to just the friendly name of the GPU
-    # vulkaninfo returns Vendor Friendly Name (Chip Developer Name)
-    # AMD Radeon Pro W6800 (RADV NAVI21) -> AMD Radeon Pro W6800
-    return re.sub(r"\s*\(.*?\)", "", result)
-
-
-def _load_vulkan_gpu_name(icd_files, use_dri_prime):
-    """Runs vulkaninfo to determine the default and DRI_PRIME gpu if available,
-    returns 'Not Found' if the GPU is not found or 'Unknown GPU' if vulkaninfo
-    is not available or an error occurs trying to use it."""
-    def get_name():
-        try:
-            if not shutil.which("vulkaninfo"):
-                logger.warning("vulkaninfo not available, unable to list GPUs")
-                return _("Unknown GPU")
-            gpu = fetch_vulkan_gpu_name(icd_files, False)
-            if use_dri_prime:
-                prime_gpu = fetch_vulkan_gpu_name(icd_files, True)
-                if prime_gpu != gpu:
-                    gpu += _(" (Discrete GPU: %s)") % prime_gpu
-
-            return gpu or "Not Found"
-        except Exception as ex:
-            # Must not raise an exception as we do not cache them, and
-            # this function must be preloaded, or it can slow down the UI.
-            logger.exception("Fail to load Vulkan GPU names: %s", ex)
-            return _("Unknown GPU")
-
-    key = icd_files, use_dri_prime
-    _vulkan_gpu_names[key] = get_name()
-
-
-def add_icd_search_path(paths):
-    icd_paths = []
-    if paths:
-        # unixy env vars with multiple paths are : delimited
-        for path in paths.split(":"):
-            path = os.path.join(path, "vulkan")
-            if os.path.exists(path) and path not in icd_paths:
-                icd_paths.append(path)
-    return icd_paths
-
-
-def get_vk_icd_files():
-    """Returns available vulkan ICD files in the same search order as vulkan-loader,
-    but in a single list"""
-    icd_search_paths = []
-    for path in VULKAN_DATA_DIRS:
-        icd_search_paths += add_icd_search_path(path)
-    all_icd_files = []
-    for data_dir in icd_search_paths:
-        path = os.path.join(data_dir, "icd.d", "*.json")
-        # sort here as directory enumeration order is not guaranteed in linux
-        # so it's consistent every time
-        icd_files = sorted(glob.glob(path))
-        if icd_files:
-            all_icd_files += icd_files
-    return all_icd_files
-
-
-def get_vk_icd_file_sets():
-    """Returns the vulkan ICD files in a default-dict of lists; the keys are the separate
-    drivers, 'intel', 'amdradv', 'amdvlkpro', 'amdvlk', 'nvidia', and 'unknown'."""
-    sets = defaultdict(list)
-    all_icd_files = get_vk_icd_files()
-    # Add loaders for each vendor
-    for loader in all_icd_files:
-        if "intel" in loader:
-            sets["intel"].append(loader)
-        elif "radeon" in loader:
-            sets["amdradv"].append(loader)
-        elif "nvidia" in loader:
-            sets["nvidia"].append(loader)
-        elif "amd" in loader:
-            if "pro" in loader:
-                sets["amdvlkpro"].append(loader)
-            else:
-                sets["amdvlk"].append(loader)
-        else:
-            sets["unknown"].append(loader)
-    return sets

@@ -122,6 +122,10 @@ def get_nvidia_gpu_info(gpu_id: str) -> Dict[str, str]:
             key, value = line.split(":", 1)
             info[key] = value.strip()
         return info
+    return get_lspci_nvidia_gpu_info(gpu_id)
+
+
+def get_lspci_nvidia_gpu_info(gpu_id: str) -> Dict[str, str]:
     lspci_data = read_process_output(["lspci", "-v", "-s", gpu_id])
     model_info = re.search(r"NVIDIA Corporation \w+ \[(.+?)\]", lspci_data)
     if model_info:
@@ -138,8 +142,8 @@ def get_nvidia_gpu_info(gpu_id: str) -> Dict[str, str]:
 
     info = {
         "Model": f"NVIDIA {model}",
-        "IRQ": irq,
-        "Bus Location": gpu_id,
+        "IRQ": str(irq),
+        "Bus Location": str(gpu_id),
     }
     for line in lspci_data.splitlines():
         if ":" not in line:
@@ -175,7 +179,7 @@ def is_nvidia() -> bool:
     return "NVIDIA" in glx_info.opengl_vendor  # type: ignore[attr-defined]
 
 
-def get_gpus() -> Iterable[str]:
+def get_gpu_cards() -> Iterable[str]:
     """Return GPUs connected to the system"""
     if not os.path.exists("/sys/class/drm"):
         logger.error("No GPU available on this system!")
@@ -211,7 +215,7 @@ def get_gpu_info(card: str) -> Dict[str, str]:
 
 def is_amd() -> bool:
     """Return true if the system uses the AMD driver"""
-    for card in get_gpus():
+    for card in get_gpu_cards():
         if get_gpu_info(card)["DRIVER"] == "amdgpu":
             return True
     return False
@@ -229,7 +233,7 @@ def check_driver() -> None:
         for gpu_id in gpus:
             gpu_info = get_nvidia_gpu_info(gpu_id)
             logger.info("GPU: %s", gpu_info.get("Model"))
-    for card in get_gpus():
+    for card in get_gpu_cards():
         # pylint: disable=logging-format-interpolation
         logger.info(
             "GPU: {PCI_ID} {PCI_SUBSYS_ID} using {DRIVER} driver".format(

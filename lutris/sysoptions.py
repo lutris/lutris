@@ -5,8 +5,8 @@ from gettext import gettext as _
 
 from lutris import runners
 from lutris.util import linux, system
-from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME, is_compositing_enabled
-from lutris.util.system import get_vk_icd_file_sets, get_vulkan_gpu_name
+from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, is_compositing_enabled
+from lutris.util.graphics.gpu import GPUS
 
 
 def get_resolution_choices():
@@ -45,6 +45,13 @@ def get_locale_choices():
     ]
 
 
+def get_gpu_list():
+    choices = [(_("Auto"), "")]
+    for card, gpu in GPUS.items():
+        choices.append((gpu.short_name, card))
+    return choices
+
+
 def get_output_choices():
     """Return list of outputs for drop-downs"""
     displays = DISPLAY_MANAGER.get_display_names()
@@ -64,44 +71,6 @@ def get_output_list():
         # Display name can't be used because they might not be in the right order
         # Using DISPLAYS to get the number of connected monitors
         choices.append((output, str(index)))
-    return choices
-
-
-def get_vk_icd_choices():
-    """Return available Vulkan ICD loaders"""
-    # fallback in case any ICDs don't match a known type
-    icd_file_sets = get_vk_icd_file_sets()
-
-    intel_files = ":".join(icd_file_sets["intel"])
-    amdradv_files = ":".join(icd_file_sets["amdradv"])
-    nvidia_files = ":".join(icd_file_sets["nvidia"])
-    amdvlk_files = ":".join(icd_file_sets["amdvlk"])
-    amdvlkpro_files = ":".join(icd_file_sets["amdvlkpro"])
-    unknown_files = ":".join(icd_file_sets["unknown"])
-
-    # default choice should always be blank so the env var gets left as is
-    # This ensures Lutris doesn't change the vulkan loader behavior unless you select
-    # a specific ICD from the list, to avoid surprises
-    choices = [("Unspecified", "")]
-
-    if intel_files:
-        choices.append(("Intel Open Source (MESA: ANV)", intel_files))
-    if amdradv_files:
-        choices.append(("AMD RADV Open Source (MESA: RADV)", amdradv_files))
-    if nvidia_files:
-        choices.append(("Nvidia Proprietary", nvidia_files))
-    if amdvlk_files:
-        if not amdvlkpro_files:
-            choices.append(("AMDVLK/AMDGPU-PRO Proprietary", amdvlk_files))
-        else:
-            choices.append(("AMDVLK Open source", amdvlk_files))
-    if amdvlkpro_files:
-        choices.append(("AMDGPU-PRO Proprietary", amdvlkpro_files))
-    if unknown_files:
-        choices.append(("Unknown Vendor", unknown_files))
-
-    choices = [(prefix + ": " + get_vulkan_gpu_name(files, USE_DRI_PRIME), files) for prefix, files in choices]
-
     return choices
 
 
@@ -253,6 +222,15 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "section": _("Display"),
+        "option": "gpu",
+        "type": "choice",
+        "label": _("GPU"),
+        "choices": get_gpu_list,
+        "default": "",
+        "help": _("GPU to use to run games"),
+    },
+    {
+        "section": _("Display"),
         "option": "mangohud",
         "type": "bool",
         "label": _("FPS counter (MangoHud)"),
@@ -365,7 +343,6 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "help": _("Path to an AntiMicroX profile file"),
     },
-
     {
         "section": _("Input"),
         "option": "sdl_gamecontrollerconfig",
@@ -374,47 +351,6 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "help": _("SDL_GAMECONTROLLERCONFIG mapping string or path to a custom "
                   "gamecontrollerdb.txt file containing mappings."),
-    },
-    {
-        "section": _("Multi-GPU"),
-        "option": "prime",
-        "type": "bool",
-        "default": False,
-        "condition": True,
-        "label": _("Enable NVIDIA Prime Render Offload"),
-        "help": _("If you have the latest NVIDIA driver and the properly patched xorg-server (see "
-                  "https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/primerenderoffload.html"
-                  "), you can launch a game on your NVIDIA GPU by toggling this switch. This will apply "
-                  "__NV_PRIME_RENDER_OFFLOAD=1 and "
-                  "__GLX_VENDOR_LIBRARY_NAME=nvidia environment variables.")
-    },
-    {
-        "section": _("Multi-GPU"),
-        "option": "dri_prime",
-        "type": "bool",
-        "default": USE_DRI_PRIME,
-        "condition": USE_DRI_PRIME,
-        "label": _("Use discrete graphics"),
-        "advanced": True,
-        "help": _("If you have open source graphic drivers (Mesa), selecting this "
-                  "option will run the game with the 'DRI_PRIME=1' environment variable, "
-                  "activating your discrete graphic chip for high 3D "
-                  "performance."),
-    },
-    {
-        "section": _("Multi-GPU"),
-        "option": "vk_icd",
-        "type": "choice",
-        # Default is "" which does not set the VK_ICD_FILENAMES env var
-        # (Matches "Unspecified" in dropdown)
-        "default": "",
-        "choices": get_vk_icd_choices,
-        "label": _("Vulkan ICD loader"),
-        "advanced": True,
-        "help": _("The ICD loader is a library that is placed between a Vulkan "
-                  "application and any number of Vulkan drivers, in order to support "
-                  "multiple drivers and the instance-level functionality that works "
-                  "across these drivers.")
     },
     {
         "section": _("Text based games"),
