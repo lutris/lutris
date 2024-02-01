@@ -1,6 +1,6 @@
 """Timer module"""
 # Standard Library
-import datetime
+import time
 
 
 class Timer:
@@ -15,12 +15,12 @@ class Timer:
     def start(self):
         """Starts the timer"""
         self._end = None
-        self._start = datetime.datetime.now()
+        self._start = time.monotonic()
         self.finished = False
 
     def end(self):
         """Ends the timer"""
-        self._end = datetime.datetime.now()
+        self._end = time.monotonic()
         self.finished = True
 
     @property
@@ -30,8 +30,8 @@ class Timer:
             return 0
 
         if not self.finished:
-            _duration = (datetime.datetime.now() - self._start).seconds
+            _duration = time.monotonic() - self._start
         else:
-            _duration = (self._end - self._start).seconds
+            _duration = self._end - self._start
 
         return _duration
