@@ -490,6 +490,7 @@ class CommandsMixin:
 
             json_data = selective_merge(json_data, params.get("data", {}))
             json_file.seek(0)
+            json_file.truncate()
             json_file.write(json.dumps(json_data, indent=2))
 
     def write_config(self, params):
