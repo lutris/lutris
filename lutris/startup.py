@@ -16,7 +16,7 @@ from lutris.game import Game
 from lutris.runners.json import load_json_runners
 from lutris.scanners.lutris import build_path_cache
 from lutris.services import DEFAULT_SERVICES
-from lutris.util.graphics import drivers, vkquery
+from lutris.util.graphics import vkquery
 from lutris.util.graphics.drivers import get_gpu_cards
 from lutris.util.graphics.gpu import GPU, GPUS
 from lutris.util.linux import LINUX_SYSTEM
@@ -44,36 +44,6 @@ def init_dirs():
     ]
     for directory in directories:
         create_folder(directory)
-
-
-def get_drivers():
-    """Report on the currently running driver"""
-    driver_info = {}
-    if drivers.is_nvidia():
-        driver_info = drivers.get_nvidia_driver_info()
-        # pylint: disable=logging-format-interpolation
-        logger.info("Using {vendor} drivers {version} for {arch}".format(**driver_info["nvrm"]))
-        gpus = drivers.get_nvidia_gpu_ids()
-        for gpu_id in gpus:
-            gpu_info = drivers.get_nvidia_gpu_info(gpu_id)
-            logger.info("GPU: %s", gpu_info.get("Model"))
-    elif LINUX_SYSTEM.glxinfo:
-        # pylint: disable=no-member
-        if hasattr(LINUX_SYSTEM.glxinfo, "GLX_MESA_query_renderer"):
-            driver_info = {
-                "vendor": LINUX_SYSTEM.glxinfo.opengl_vendor,
-                "version": LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version,
-                "device": LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.device
-            }
-            logger.info(
-                "Running %s Mesa driver %s on %s",
-                LINUX_SYSTEM.glxinfo.opengl_vendor,
-                LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version,
-                LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.device,
-            )
-    else:
-        logger.warning("glxinfo is not available on your system, unable to detect driver version")
-    return driver_info
 
 
 def check_libs(all_components=False):
@@ -138,10 +108,10 @@ def fill_missing_platforms():
 
 def run_all_checks() -> None:
     """Run all startup checks"""
-    get_drivers()  # drivers dict is not used, but may log information
     for card in get_gpu_cards():
         gpu = GPU(card)
-        logger.info(gpu)
+        driver_info = gpu.get_driver_info()
+        logger.info("%s Driver %s", gpu, driver_info.get("version"))
         GPUS[card] = gpu
 
     check_libs()

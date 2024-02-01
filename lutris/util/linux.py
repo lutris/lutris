@@ -226,7 +226,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         try:
             minimum_nvidia_version_supported = 515
             driver_info = drivers.get_nvidia_driver_info()
-            driver_version = driver_info["nvrm"]["version"]
+            driver_version = driver_info["version"]
             if not driver_version:
                 return False
             major_version = int(driver_version.split(".")[0])

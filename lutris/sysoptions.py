@@ -104,7 +104,93 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("When the runtime is enabled, prioritize the system libraries"
                   " over the provided ones."),
     },
-
+    {
+        "section": _("Display"),
+        "option": "gpu",
+        "type": "choice",
+        "label": _("GPU"),
+        "choices": get_gpu_list,
+        "default": "",
+        "help": _("GPU to use to run games"),
+    },
+    {
+        "section": _("Display"),
+        "option": "mangohud",
+        "type": "bool",
+        "label": _("FPS counter (MangoHud)"),
+        "default": False,
+        "condition": system.can_find_executable("mangohud"),
+        "help": _("Display the game's FPS + other information. Requires MangoHud to be installed."),
+    },
+    {
+        "section": _("Display"),
+        "option": "reset_desktop",
+        "type": "bool",
+        "label": _("Restore resolution on game exit"),
+        "default": False,
+        "advanced": True,
+        "help": _("Some games don't restore your screen resolution when \n"
+                  "closed or when they crash. This is when this option comes \n"
+                  "into play to save your bacon."),
+    },
+    {
+        "section": _("Display"),
+        "option": "disable_compositor",
+        "label": _("Disable desktop effects"),
+        "type": "bool",
+        "default": False,
+        "advanced": True,
+        "condition": is_compositing_enabled(),
+        "help": _("Disable desktop effects while game is running, "
+                  "reducing stuttering and increasing performance"),
+    },
+    {
+        "section": _("Display"),
+        "option": "disable_screen_saver",
+        "label": _("Disable screen saver"),
+        "type": "bool",
+        "default": SCREEN_SAVER_INHIBITOR is not None,
+        "advanced": True,
+        "condition": SCREEN_SAVER_INHIBITOR is not None,
+        "help": _("Disable the screen saver while a game is running. "
+                  "Requires the screen saver's functionality "
+                  "to be exposed over DBus."),
+    },
+    {
+        "section": _("Display"),
+        "option": "sdl_video_fullscreen",
+        "type": "choice",
+        "label": _("SDL 1.2 Fullscreen Monitor"),
+        "choices": get_output_list,
+        "default": "off",
+        "advanced": True,
+        "help": _("Hint SDL 1.2 games to use a specific monitor when going "
+                  "fullscreen by setting the SDL_VIDEO_FULLSCREEN "
+                  "environment variable"),
+    },
+    {
+        "section": _("Display"),
+        "option": "display",
+        "type": "choice",
+        "label": _("Turn off monitors except"),
+        "choices": get_output_choices,
+        "default": "off",
+        "advanced": True,
+        "help": _("Only keep the selected screen active while the game is "
+                  "running. \n"
+                  "This is useful if you have a dual-screen setup, and are \n"
+                  "having display issues when running a game in fullscreen."),
+    },
+    {
+        "section": _("Display"),
+        "option": "resolution",
+        "type": "choice",
+        "label": _("Switch resolution to"),
+        "advanced": True,
+        "choices": get_resolution_choices,
+        "default": "off",
+        "help": _("Switch to this screen resolution while the game is running."),
+    },
     {
         "section": _("Gamescope"),
         "option": "gamescope",
@@ -220,91 +306,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Enable Feral GameMode"),
         "help": _("Request a set of optimisations be temporarily applied to the host OS"),
     },
-    {
-        "section": _("Display"),
-        "option": "gpu",
-        "type": "choice",
-        "label": _("GPU"),
-        "choices": get_gpu_list,
-        "default": "",
-        "help": _("GPU to use to run games"),
-    },
-    {
-        "section": _("Display"),
-        "option": "mangohud",
-        "type": "bool",
-        "label": _("FPS counter (MangoHud)"),
-        "default": False,
-        "condition": system.can_find_executable("mangohud"),
-        "help": _("Display the game's FPS + other information. Requires MangoHud to be installed."),
-    },
-    {
-        "section": _("Display"),
-        "option": "reset_desktop",
-        "type": "bool",
-        "label": _("Restore resolution on game exit"),
-        "default": False,
-        "help": _("Some games don't restore your screen resolution when \n"
-                  "closed or when they crash. This is when this option comes \n"
-                  "into play to save your bacon."),
-    },
-    {
-        "section": _("Display"),
-        "option": "disable_compositor",
-        "label": _("Disable desktop effects"),
-        "type": "bool",
-        "default": False,
-        "advanced": True,
-        "condition": is_compositing_enabled(),
-        "help": _("Disable desktop effects while game is running, "
-                  "reducing stuttering and increasing performance"),
-    },
-    {
-        "section": _("Display"),
-        "option": "disable_screen_saver",
-        "label": _("Disable screen saver"),
-        "type": "bool",
-        "default": SCREEN_SAVER_INHIBITOR is not None,
-        "advanced": False,
-        "condition": SCREEN_SAVER_INHIBITOR is not None,
-        "help": _("Disable the screen saver while a game is running. "
-                  "Requires the screen saver's functionality "
-                  "to be exposed over DBus."),
-    },
-    {
-        "section": _("Display"),
-        "option": "sdl_video_fullscreen",
-        "type": "choice",
-        "label": _("SDL 1.2 Fullscreen Monitor"),
-        "choices": get_output_list,
-        "default": "off",
-        "advanced": True,
-        "help": _("Hint SDL 1.2 games to use a specific monitor when going "
-                  "fullscreen by setting the SDL_VIDEO_FULLSCREEN "
-                  "environment variable"),
-    },
-    {
-        "section": _("Display"),
-        "option": "display",
-        "type": "choice",
-        "label": _("Turn off monitors except"),
-        "choices": get_output_choices,
-        "default": "off",
-        "advanced": True,
-        "help": _("Only keep the selected screen active while the game is "
-                  "running. \n"
-                  "This is useful if you have a dual-screen setup, and are \n"
-                  "having display issues when running a game in fullscreen."),
-    },
-    {
-        "section": _("Display"),
-        "option": "resolution",
-        "type": "choice",
-        "label": _("Switch resolution to"),
-        "choices": get_resolution_choices,
-        "default": "off",
-        "help": _("Switch to this screen resolution while the game is running."),
-    },
+
     {
         "section": _("Audio"),
         "option": "reset_pulse",
