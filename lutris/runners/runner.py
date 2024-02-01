@@ -13,6 +13,7 @@ from lutris.exceptions import MisconfigurationError, MissingExecutableError, Una
 from lutris.runners import RunnerInstallationError
 from lutris.util import flatpak, strings, system
 from lutris.util.extract import ExtractError, extract_archive
+from lutris.util.graphics.gpu import GPUS
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -234,25 +235,21 @@ class Runner:  # pylint: disable=too-many-public-methods
         if sdl_video_fullscreen and sdl_video_fullscreen != "off":
             env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = sdl_video_fullscreen
 
-        # DRI Prime
-        if self.system_config.get("dri_prime"):
-            env["DRI_PRIME"] = "1"
-
-        # Prime vars
-        prime = self.system_config.get("prime")
-        if prime:
-            env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
-            env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
-            env["__VK_LAYER_NV_optimus"] = "NVIDIA_only"
+        if self.system_config.get("gpu"):
+            gpu = GPUS[self.system_config["gpu"]]
+            if gpu.driver == "nvidia":
+                env["DRI_PRIME"] = "1"
+                env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
+                env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
+                env["__VK_LAYER_NV_optimus"] = "NVIDIA_only"
+            else:
+                env["DRI_PRIME"] = gpu.pci_id
+            env["VK_ICD_FILENAMES"] = gpu.icd_files  # Deprecated
+            env["VK_DRIVER_FILES"] = gpu.icd_files   # Current form
 
         # Set PulseAudio latency to 60ms
         if self.system_config.get("pulse_latency"):
             env["PULSE_LATENCY_MSEC"] = "60"
-
-        # Vulkan ICD files
-        vk_icd = self.system_config.get("vk_icd")
-        if vk_icd:
-            env["VK_ICD_FILENAMES"] = vk_icd
 
         runtime_ld_library_path = None
 

@@ -16,11 +16,12 @@ from lutris.game import Game
 from lutris.runners.json import load_json_runners
 from lutris.scanners.lutris import build_path_cache
 from lutris.services import DEFAULT_SERVICES
-from lutris.util.display import display_gpu_info, get_gpus_info
 from lutris.util.graphics import drivers, vkquery
+from lutris.util.graphics.drivers import get_gpu_cards
+from lutris.util.graphics.gpu import GPU, GPUS
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-from lutris.util.system import create_folder, load_vulkan_gpu_names
+from lutris.util.system import create_folder
 from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION
 
 
@@ -138,13 +139,14 @@ def fill_missing_platforms():
 def run_all_checks() -> None:
     """Run all startup checks"""
     get_drivers()  # drivers dict is not used, but may log information
-    gpus_info = get_gpus_info()
-    for gpu_id, gpu_info in gpus_info.items():
-        display_gpu_info(gpu_id, gpu_info)
+    for card in get_gpu_cards():
+        gpu = GPU(card)
+        logger.info(gpu)
+        GPUS[card] = gpu
+
     check_libs()
     check_vulkan()
     check_gnome()
-    load_vulkan_gpu_names(len(gpus_info) > 1)
     fill_missing_platforms()
     build_path_cache()
 

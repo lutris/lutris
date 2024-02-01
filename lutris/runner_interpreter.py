@@ -4,6 +4,7 @@ import shlex
 import stat
 
 from lutris.util import cache_single, system
+from lutris.util.graphics.gpu import GPUS
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -124,6 +125,10 @@ def get_gamescope_args(launch_arguments, system_config):
         launch_arguments.insert(0, "-h")
         launch_arguments.insert(0, game_width)
         launch_arguments.insert(0, "-w")
+    if system_config.get("gpu"):
+        gpu = GPUS[system_config["gpu"]]
+        launch_arguments.insert(0, gpu.pci_id)
+        launch_arguments.insert(0, "--prefer-vk-device")
     launch_arguments.insert(0, "gamescope")
     return launch_arguments
 

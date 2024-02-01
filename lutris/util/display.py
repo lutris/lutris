@@ -26,7 +26,6 @@ except ImportError:
 from gi.repository import Gdk, GLib, Gio, Gtk
 
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
-from lutris.util.graphics import drivers
 from lutris.util.graphics.displayconfig import MutterDisplayManager
 from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution, get_outputs
 from lutris.util.log import logger
@@ -43,20 +42,6 @@ def get_default_dpi():
             dpi = 96 * scale
             return int(dpi)
     return 96
-
-
-def get_gpus_info():
-    """Return the information related to each GPU on the system"""
-    return {card: drivers.get_gpu_info(card) for card in drivers.get_gpus()}
-
-
-def display_gpu_info(gpu_id, gpu_info):
-    """Log GPU information"""
-    try:
-        gpu_string = f"GPU: {gpu_info['PCI_ID']} {gpu_info['PCI_SUBSYS_ID']} ({gpu_info['DRIVER']} drivers)"
-        logger.info(gpu_string)
-    except KeyError:
-        logger.error("Unable to get GPU information from '%s'", gpu_id)
 
 
 class DisplayManager:
@@ -138,7 +123,6 @@ def get_display_manager():
 
 
 DISPLAY_MANAGER = get_display_manager()
-USE_DRI_PRIME = len(list(drivers.get_gpus())) > 1
 
 
 class DesktopEnvironment(enum.Enum):
