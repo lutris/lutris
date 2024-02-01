@@ -6,6 +6,7 @@ from typing import Dict
 
 from lutris.util import system
 from lutris.util.graphics import drivers
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 VULKANINFO_AVAILABLE = shutil.which("vulkaninfo")
@@ -82,8 +83,17 @@ class GPU:
         return f"{self.short_name} ({self.pci_id}:{self.pci_subsys_id} {self.driver})"
 
     def get_driver_info(self):
+        driver_info = {}
         if self.driver == "nvidia":
-            return drivers.get_nvidia_driver_info()
+            driver_info = drivers.get_nvidia_driver_info()
+        elif LINUX_SYSTEM.glxinfo:
+            if hasattr(LINUX_SYSTEM.glxinfo, "GLX_MESA_query_renderer"):
+                driver_info = {
+                    "vendor": LINUX_SYSTEM.glxinfo.opengl_vendor,
+                    "version": LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version,
+                    "device": LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.device
+                }
+        return driver_info
 
     def get_gpu_info(self) -> Dict[str, str]:
         """Return information about a GPU"""

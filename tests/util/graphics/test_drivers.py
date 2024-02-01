@@ -10,13 +10,11 @@ NVRM version: NVIDIA UNIX x86_64 Kernel Module  525.105.17  Tue Mar 28 18:02:59 
 GCC version:  gcc version 11.3.0 (Ubuntu 11.3.0-1ubuntu1~22.04)
 """
 PROPRIETARY_MODULE_OUTPUT = {
-    "nvrm": {
-        "vendor": "NVIDIA",
-        "platform": "UNIX",
-        "arch": "x86_64",
-        "version": "525.105.17",
-        "date": "Tue Mar 28 18:02:59 UTC 2023",
-    }
+    "vendor": "NVIDIA",
+    "platform": "UNIX",
+    "arch": "x86_64",
+    "version": "525.105.17",
+    "date": "Tue Mar 28 18:02:59 UTC 2023",
 }
 
 OPEN_MODULE_VERSION_FILE = """\
@@ -24,12 +22,10 @@ NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  515.43.04  Release Buil
 GCC version:  gcc version 12.1.0 (GCC)
 """
 OPEN_MODULE_OUTPUT = {
-    "nvrm": {
-        "vendor": "NVIDIA",
-        "platform": "UNIX",
-        "arch": "x86_64",
-        "version": "515.43.04",
-    }
+    "vendor": "NVIDIA",
+    "platform": "UNIX",
+    "arch": "x86_64",
+    "version": "515.43.04",
 }
 DRIVER_VERSION_FILES = (
     ("Proprietary", PROPRIETARY_MODULE_VERSION_FILE, PROPRIETARY_MODULE_OUTPUT),
@@ -160,12 +156,10 @@ class TestGetNvidiaDriverInfo(unittest.TestCase):
         self.assertEqual(
             actual,
             {
-                "nvrm": {
-                    "vendor": "NVIDIA Corporation",
-                    "platform": "Linux",
-                    "arch": "x86_64",
-                    "version": "525.105.17",
-                }
+                "vendor": "NVIDIA Corporation",
+                "platform": "Linux",
+                "arch": "x86_64",
+                "version": "525.105.17",
             },
         )
 

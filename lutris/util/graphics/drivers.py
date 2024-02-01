@@ -43,21 +43,17 @@ def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
         nvrm_version = content[0].split(": ")[1].strip().split()
         if "Open" in nvrm_version:
             return {
-                "nvrm": {
-                    "vendor": nvrm_version[0],
-                    "platform": nvrm_version[1],
-                    "arch": nvrm_version[6],
-                    "version": nvrm_version[7],
-                }
-            }
-        return {
-            "nvrm": {
                 "vendor": nvrm_version[0],
                 "platform": nvrm_version[1],
-                "arch": nvrm_version[2],
-                "version": nvrm_version[5],
-                "date": " ".join(nvrm_version[6:]),
+                "arch": nvrm_version[6],
+                "version": nvrm_version[7],
             }
+        return {
+            "vendor": nvrm_version[0],
+            "platform": nvrm_version[1],
+            "arch": nvrm_version[2],
+            "version": nvrm_version[5],
+            "date": " ".join(nvrm_version[6:]),
         }
 
     def invoke_glxinfo() -> Dict[str, Dict[str, str]]:
@@ -68,12 +64,10 @@ def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
         if "nvidia" not in vendor.lower():
             raise RuntimeError("Expected NVIDIA vendor information, received %s." % vendor)
         return {
-            "nvrm": {
-                "vendor": vendor,
-                "platform": platform,
-                "arch": arch,
-                "version": glx_info.opengl_version.rsplit(maxsplit=1)[-1],  # type: ignore[attr-defined]
-            }
+            "vendor": vendor,
+            "platform": platform,
+            "arch": arch,
+            "version": glx_info.opengl_version.rsplit(maxsplit=1)[-1],  # type: ignore[attr-defined]
         }
 
     try:
@@ -221,32 +215,11 @@ def is_amd() -> bool:
     return False
 
 
-def check_driver() -> None:
-    """Report on the currently running driver"""
-    if is_nvidia():
-        driver_info = get_nvidia_driver_info()
-        # pylint: disable=logging-format-interpolation
-        logger.info(
-            "Using {vendor} drivers {version} for {arch}".format(**driver_info["nvrm"])
-        )
-        gpus = get_nvidia_gpu_ids()
-        for gpu_id in gpus:
-            gpu_info = get_nvidia_gpu_info(gpu_id)
-            logger.info("GPU: %s", gpu_info.get("Model"))
-    for card in get_gpu_cards():
-        # pylint: disable=logging-format-interpolation
-        logger.info(
-            "GPU: {PCI_ID} {PCI_SUBSYS_ID} using {DRIVER} driver".format(
-                **get_gpu_info(card)
-            )
-        )
-
-
 def is_outdated() -> bool:
     if not is_nvidia():
         return False
     driver_info = get_nvidia_driver_info()
-    driver_version = driver_info["nvrm"]["version"]
+    driver_version = driver_info["version"]
     if not driver_version:
         logger.error("Failed to get Nvidia version")
         return True

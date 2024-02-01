@@ -58,7 +58,7 @@ def _get_dxvk_warning(config, option_key):
                  "You are currently running driver %s which does not "
                  "fully support all features for Vulkan and DXVK games."
                  ) % (
-            driver_info["nvrm"]["version"],
+            driver_info["version"],
         )
 
     return None
