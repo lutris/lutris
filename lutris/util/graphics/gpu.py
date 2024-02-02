@@ -142,6 +142,7 @@ class GPU:
         for device in devices:
             if f"0000:{device[0]}" == self.pci_slot:
                 return device[1]
+        return "No GPU"
 
     def get_icd_files(self):
         loader = self.driver
