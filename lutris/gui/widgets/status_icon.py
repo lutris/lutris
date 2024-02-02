@@ -35,6 +35,7 @@ class LutrisStatusIcon:
         self.indicator = None
         self.tray_icon = None
         self.menu = None
+        self.present_menu = None
 
         if supports_status_icon():
             self.menu = self._get_menu()
@@ -102,7 +103,7 @@ class LutrisStatusIcon:
 
     def update_present_menu(self):
         app_window = self.application.window
-        if app_window:
+        if app_window and self.present_menu:
             if app_window.get_visible():
                 self.present_menu.set_label(_("Hide Lutris"))
             else:
