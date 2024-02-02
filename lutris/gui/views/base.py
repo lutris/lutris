@@ -35,8 +35,14 @@ class GameView:
         self.connect("destroy", self.on_destroy)
         self.connect("button-press-event", self.popup_contextual_menu)
         self.connect("key-press-event", self.handle_key_press)
+        self.connect("game-selected", self.on_game_selected)
 
         self.game_start_hook_id = GObject.add_emission_hook(Game, "game-start", self.on_game_start)
+
+    def on_game_selected(self, view, selection):
+        for path in selection:
+            game_id = self.get_game_id_for_path(path)
+            MISSING_GAMES.update_missing(game_id)
 
     def on_media_cache_invalidated(self):
         self.queue_draw()
