@@ -419,14 +419,14 @@ class LutrisWindow(Gtk.ApplicationWindow,
         return games_db.get_games_by_ids(self.application.get_running_game_ids())
 
     def get_missing_games(self):
-        return games_db.get_games_by_ids(MISSING_GAMES.missing_game_ids)
+        return games_db.get_games_by_ids(MISSING_GAMES.get_missing_game_ids())
 
     def update_missing_games_sidebar_row(self) -> None:
         missing_games = self.get_missing_games()
         if missing_games:
             self.sidebar.missing_row.show()
         else:
-            missing_ids = MISSING_GAMES.missing_game_ids
+            missing_ids = MISSING_GAMES.get_missing_game_ids()
             if missing_ids:
                 logger.warning("Path cache out of date? (%s IDs missing)", len(missing_ids))
             self.sidebar.missing_row.hide()

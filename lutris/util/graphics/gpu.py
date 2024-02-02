@@ -82,9 +82,8 @@ class GPU:
     def __str__(self):
         if self.pci_id:
             return f"{self.short_name} ({self.pci_id} {self.pci_subsys_id} {self.driver})"
-        else:
-            return f"{self.short_name} ({self.driver})"
 
+        return f"{self.short_name} ({self.driver})"
 
     def get_driver_info(self):
         driver_info = {}
