@@ -351,9 +351,10 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.render_platforms(cr, widget, surface, 0, cell_area)
 
         if self.game_id:
-            if self.game_id in MISSING_GAMES.missing_game_ids:
+            if not MISSING_GAMES.is_populated(self.game_id):
+                MISSING_GAMES.update_missing(self.game_id)
+            elif MISSING_GAMES.is_missing(self.game_id):
                 self.render_text_badge(cr, widget, _("Missing"), 0, cell_area.y + cell_area.height)
-            MISSING_GAMES.update_missing(self.game_id)
 
     def render_platforms(self, cr, widget, surface, surface_x, cell_area):
         """Renders the stack of platform icons."""

@@ -2,8 +2,6 @@ import json
 import os
 import time
 
-from gi.repository import GLib
-
 from lutris import settings
 from lutris.api import get_api_games, get_game_installers
 from lutris.database.games import get_games
@@ -13,7 +11,7 @@ from lutris.installer.errors import MissingGameDependencyError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.services.lutris import download_lutris_media
 from lutris.util import cache_single
-from lutris.util.jobs import AsyncCall
+from lutris.util.jobs import AsyncCall, schedule_at_idle
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -217,31 +215,41 @@ class MissingGames:
 
     def __init__(self):
         self.updated = NotificationSource()
-        self.missing_game_ids = set()
+        self._games_missing = {}
         self._update_scheduled = False
         self._pending_game_ids = set()
+
+    def is_missing(self, game_id):
+        """True if game_id is missing; if the status is not populated, returns False."""
+        return bool(self._games_missing.get(game_id))
+
+    def is_populated(self, game_id):
+        """True if the missing status for a game is known, false if it needs to be updated."""
+        return game_id in self._games_missing
+
+    def get_missing_game_ids(self):
+        """Returns a new set of all the game IDs for known missing games."""
+        return set(t[0] for t in self._games_missing.items() if t[1])
 
     def update_all_missing(self) -> None:
         """This starts the check for all games; the actual list of game-ids will be obtained
         on the worker thread, and this method will start it."""
         self._pending_game_ids = None  # indicate 'update all games'
-        self._schedule_update(delay=0)
+        self._schedule_update()
 
     def update_missing(self, game_id: str) -> None:
         """Starts checking the missing status on a games. This starts the worker thread
-        as required, though only after a brief delay. This is a way to reduce the pounding on
-        the filesystem, and also to accumulate multiple games before doing the update.
-
-        Even if the delay is 0, the update won't be immediate - you always need to handle the
-        'updated' notification."""
+        as required, and does not block the current thread to do the check. You need to handle
+        the 'updated' notification to obtain the result."""
 
         if self._pending_game_ids is not None:
             self._pending_game_ids.add(game_id)
-        self._schedule_update(delay=3)
+        self._schedule_update()
 
-    def _schedule_update(self, delay: float) -> None:
-        """Sets up a timeout to run the _update_missing_games method after a delay,
+    def _schedule_update(self) -> None:
+        """Sets up a timeout to run the _update_missing_games method at idle time,
         unless it is already scheduled, in which case this method does nothing."""
+
         def start():
             game_ids = self._pending_game_ids
             self._pending_game_ids = set()
@@ -250,7 +258,7 @@ class MissingGames:
 
         if not self._update_scheduled and self._has_more_updates():
             self._update_scheduled = True
-            GLib.timeout_add(delay * 1000, start)  # delay is in seconds, not milliseconds
+            schedule_at_idle(start)
 
     def _has_more_updates(self):
         """True if there are more updates to do; note that None here means
@@ -259,7 +267,7 @@ class MissingGames:
 
     def _update_missing_games(self, game_ids):
         """This is the method that runs on the worker thread; it checks each game given
-        and returns True if any changes to missing_game_ids was made.."""
+        and returns True if any changes to missing_game_ids was made."""
         logger.debug("Checking for missing games")
 
         changed = False
@@ -271,12 +279,10 @@ class MissingGames:
             path = path_cache.get(game_id)
 
             if path:
-                if os.path.exists(path):
-                    if game_id in self.missing_game_ids:
-                        self.missing_game_ids.discard(game_id)
-                        changed = True
-                elif game_id not in self.missing_game_ids:
-                    self.missing_game_ids.add(game_id)
+                old_status = self._games_missing.get(game_id)
+                new_status = not os.path.exists(path)
+                if old_status != new_status:
+                    self._games_missing[game_id] = new_status
                     changed = True
         return changed
 
@@ -288,8 +294,8 @@ class MissingGames:
         elif changed:
             self.updated.fire()
 
-        # In case more games are pending already, we'll update again soon.
-        self._schedule_update(.5)
+        # In case more games are pending already, we'll update again
+        self._schedule_update()
 
 
 MISSING_GAMES = MissingGames()
