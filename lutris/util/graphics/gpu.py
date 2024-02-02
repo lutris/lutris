@@ -80,7 +80,11 @@ class GPU:
             self.name = self.get_lspci_name()
 
     def __str__(self):
-        return f"{self.short_name} ({self.pci_id}:{self.pci_subsys_id} {self.driver})"
+        if self.pci_id:
+            return f"{self.short_name} ({self.pci_id} {self.pci_subsys_id} {self.driver})"
+        else:
+            return f"{self.short_name} ({self.driver})"
+
 
     def get_driver_info(self):
         driver_info = {}
