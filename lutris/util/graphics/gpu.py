@@ -155,6 +155,7 @@ class GPU:
             "vc4-drm": "broadcom",
             "v3d": "broadcom",
             "virtio-pci": "lvp",
+            "i915": "intel",
         }
         if self.driver in loader_map:
             loader = loader_map[self.driver]
