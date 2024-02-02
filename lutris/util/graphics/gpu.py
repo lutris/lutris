@@ -136,7 +136,7 @@ class GPU:
             (pci_id, device_desc.split(": ")[1])
             for pci_id, device_desc in [
                 line.split(maxsplit=1)
-                for line in system.execute("lspci", timeout=3).split("\n")
+                for line in system.execute(["lspci"], timeout=3).split("\n")
             ]
         ]
         for device in devices:
