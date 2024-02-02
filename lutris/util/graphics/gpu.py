@@ -97,7 +97,7 @@ class GPU:
 
     def get_gpu_info(self) -> Dict[str, str]:
         """Return information about a GPU"""
-        infos = {"DRIVER": "", "PCI_ID": "", "PCI_SUBSYS_ID": ""}
+        infos = {"DRIVER": "", "PCI_ID": "", "PCI_SUBSYS_ID": "", "PCI_SLOT_NAME": ""}
         try:
             with open(
                 f"/sys/class/drm/{self.card}/device/uevent", encoding="utf-8"
