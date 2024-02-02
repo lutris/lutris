@@ -145,8 +145,12 @@ class GPU:
 
     def get_icd_files(self):
         loader = self.driver
-        if self.driver == "amdgpu":
-            loader = "radeon"
+        loader_map = {
+            "amdgpu": "radeon",
+            "vc4-drm": "broadcom",
+        }
+        if self.driver in loader_map:
+            loader = loader_map[self.driver]
         icd_files = []
         for icd_file in get_vk_icd_files():
             if loader in icd_file:
