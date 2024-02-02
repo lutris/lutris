@@ -148,6 +148,7 @@ class GPU:
         loader_map = {
             "amdgpu": "radeon",
             "vc4-drm": "broadcom",
+            "v3d": "broadcom",
         }
         if self.driver in loader_map:
             loader = loader_map[self.driver]
