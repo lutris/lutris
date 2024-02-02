@@ -154,6 +154,7 @@ class GPU:
             "amdgpu": "radeon",
             "vc4-drm": "broadcom",
             "v3d": "broadcom",
+            "virtio-pci": "lvp",
         }
         if self.driver in loader_map:
             loader = loader_map[self.driver]
