@@ -222,13 +222,9 @@ class MissingGames:
         """This starts the check for all games; the actual list of game-ids will be obtained
         on the worker thread, and this method will start it."""
 
-        def start():
-            AsyncCall(self._update_missing_games, self._update_missing_games_cb)
-            return False  # do not run again
-
         if not self._update_running:
             self._update_running = True
-            schedule_at_idle(start)
+            AsyncCall(self._update_missing_games, self._update_missing_games_cb)
 
     def _update_missing_games(self):
         """This is the method that runs on the worker thread; it checks each game given
@@ -237,12 +233,8 @@ class MissingGames:
         logger.debug("Checking for missing games")
 
         changed = False
-        path_cache = get_path_cache()
-        game_ids = set(path_cache)
 
-        for game_id in game_ids:
-            path = path_cache.get(game_id)
-
+        for game_id, path in get_path_cache().items():
             if path:
                 old_status = game_id in self.missing_game_ids
                 new_status = not os.path.exists(path)
