@@ -11,7 +11,7 @@ from lutris.installer.errors import MissingGameDependencyError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.services.lutris import download_lutris_media
 from lutris.util import cache_single
-from lutris.util.jobs import AsyncCall, schedule_at_idle
+from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
