@@ -216,7 +216,12 @@ class MissingGames:
     def __init__(self):
         self.updated = NotificationSource()
         self.missing_game_ids = set()
-        self._update_running = False
+        self._update_running = None
+
+    @property
+    def is_initialized(self):
+        """True if the missing games have ever been updated."""
+        return self._update_running is not None
 
     def update_all_missing(self) -> None:
         """This starts the check for all games; the actual list of game-ids will be obtained

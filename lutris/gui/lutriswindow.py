@@ -255,7 +255,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_load(self, widget, data=None):
         """Finish initializing the view"""
         self._bind_zoom_adjustment()
-        MISSING_GAMES.update_all_missing()
         self.current_view.grab_focus()
 
     def on_sidebar_realize(self, widget, data=None):
@@ -1034,7 +1033,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.set_service(service_name)
         self._bind_zoom_adjustment()
         self.redraw_view()
-        if row_type == "dynamic_category" and row_id == "missing":
+
+        if not MISSING_GAMES.is_initialized or (row_type == "dynamic_category" and row_id == "missing"):
             MISSING_GAMES.update_all_missing()
 
     def on_game_selection_changed(self, view, selection):
