@@ -274,8 +274,8 @@ class MissingGames:
         if game_ids is None:
             game_ids = path_cache
 
-        if len(game_ids) > 1:
-            logger.debug("Checking for %d missing games", len(game_ids))
+        for game_id in game_ids:
+            logger.debug("Checking for missing game %s", game_id)
 
         for game_id in game_ids:
             path = path_cache.get(game_id)
