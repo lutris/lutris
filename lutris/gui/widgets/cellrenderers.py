@@ -9,7 +9,7 @@ import gi
 gi.require_version('PangoCairo', '1.0')
 
 import cairo
-from gi.repository import GLib, GObject, Gtk, Pango, PangoCairo
+from gi.repository import Gdk, GLib, GObject, Gtk, Pango, PangoCairo
 
 from lutris.exceptions import MissingMediaError
 from lutris.gui.widgets.utils import (
@@ -235,33 +235,33 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 surface = self._get_cached_surface_by_path(widget, path,
                                                            preserve_aspect_ratio=False)
             if surface:
-                x, y = self.get_media_position(surface, cell_area)
+                media_area = self.get_media_area(surface, cell_area)
                 self.select_badge_metrics(surface)
 
                 cr.save()
+
+                # Adjust context to place media_area at 0,0 and scale it.
                 inset_fraction = self._inset_fractions.get(self.game_id) or 0.0 if self.game_id else 0.0
                 if inset_fraction > 0:
-                    x += (cell_area.width * inset_fraction) / 2
-                    y += (cell_area.height * inset_fraction) / 2
-                    cell_area.y = 0
-                    cell_area.x = 0
-
-                    cr.translate(x, y)
+                    media_area.x += (media_area.width * inset_fraction) / 2
+                    media_area.y += (media_area.height * inset_fraction) / 2
+                    cr.translate(media_area.x, media_area.y)
                     cr.scale(1 - inset_fraction, 1 - inset_fraction)
                 else:
-                    cell_area.y = 0
-                    cell_area.x = 0
-                    cr.translate(x, y)
+                    cr.translate(media_area.x, media_area.y)
+
+                media_area.x = 0
+                media_area.y = 0
 
                 if alpha >= 1:
                     self.render_media(cr, widget, surface, 0, 0)
                     if self.show_badges:
-                        self._render_badges(cr, widget, surface, cell_area)
+                        self._render_badges(cr, widget, surface, media_area)
                 else:
                     cr.push_group()
                     self.render_media(cr, widget, surface, 0, 0)
                     if self.show_badges:
-                        self._render_badges(cr, widget, surface, cell_area)
+                        self._render_badges(cr, widget, surface, media_area)
                     cr.pop_group_to_source()
                     cr.paint_with_alpha(alpha)
                 cr.restore()
@@ -339,13 +339,16 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             and is_bright_pixel(pixel_width - corner_pixel_width, pixel_height - corner_pixel_height)
         )
 
-    def get_media_position(self, surface, cell_area):
+    @staticmethod
+    def get_media_area(surface, cell_area):
         """Computes the position of the upper left corner where we will render
         a surface within the cell area."""
+        media_area = Gdk.Rectangle()
         width, height = get_surface_size(surface)
-        x = round(cell_area.x + (cell_area.width - width) / 2)  # centered
-        y = round(cell_area.y + cell_area.height - height)  # at bottom of cell
-        return x, y
+        media_area.x = round(cell_area.x + (cell_area.width - width) / 2)  # centered
+        media_area.y = round(cell_area.y + cell_area.height - height)  # at bottom of cell
+        media_area.width, media_area.height = width, height
+        return media_area
 
     def render_media(self, cr, widget, surface, x, y):
         """Renders the media itself, given the surface containing it
@@ -357,8 +360,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         cr.rectangle(x, y, width, height)
         cr.fill()
 
-    def _render_badges(self, cr, widget, surface, cell_area):
-        self.render_platforms(cr, widget, surface, 0, cell_area)
+    def _render_badges(self, cr, widget, surface, media_area):
+        self.render_platforms(cr, widget, surface, 0, media_area)
 
         game_id = self.game_id
         if game_id:
@@ -366,15 +369,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 game_id = self.service.resolve_game_id(game_id)
 
             if game_id in MISSING_GAMES.missing_game_ids:
-                self.render_text_badge(cr, widget, _("Missing"), 0, cell_area.y + cell_area.height)
+                self.render_text_badge(cr, widget, _("Missing"), 0, media_area.y + media_area.height)
 
-    def render_platforms(self, cr, widget, surface, surface_x, cell_area):
+    def render_platforms(self, cr, widget, surface, surface_x, media_area):
         """Renders the stack of platform icons."""
         platform = self.platform
         if platform and self.badge_size:
             icon_paths = self.get_platform_icon_paths(platform)
             if icon_paths:
-                self.render_badge_stack(cr, widget, surface, surface_x, icon_paths, cell_area)
+                self.render_badge_stack(cr, widget, surface, surface_x, icon_paths, media_area)
 
     @staticmethod
     def get_platform_icon_paths(platform):
@@ -398,10 +401,10 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
     _platform_icon_paths = {}
 
-    def render_badge_stack(self, cr, widget, surface, surface_x, icon_paths, cell_area):
-        """Renders a vertical stack of badges, placed at the edge of the media, off to the right
-        of 'media_right' if this will fit in the 'cell_area'. The icons in icon_paths are drawn from
-        top to bottom, and spaced to fit in 'cell_area', even if they overlap because of this."""
+    def render_badge_stack(self, cr, widget, surface, surface_x, icon_paths, media_area):
+        """Renders a vertical stack of badges, placed at the edge of the media, just to the left
+        of 'media_area.right'. The icons in icon_paths are drawn from top to bottom, and spaced
+        to fit in 'media_area', even if they overlap because of this."""
 
         badge_width = self.badge_size[0]
         badge_height = self.badge_size[1]
@@ -421,10 +424,10 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         media_right = surface_x + get_surface_size(surface)[0]
 
         x = media_right - badge_width
-        spacing = (cell_area.height - badge_height * len(icon_paths)) / max(1, len(icon_paths) - 1)
+        spacing = (media_area.height - badge_height * len(icon_paths)) / max(1, len(icon_paths) - 1)
         spacing = min(spacing, 1)
         y_offset = floor(badge_height + spacing)
-        y = cell_area.y + cell_area.height - badge_height - y_offset * (len(icon_paths) - 1)
+        y = media_area.y + media_area.height - badge_height - y_offset * (len(icon_paths) - 1)
 
         for icon_path in icon_paths:
             render_badge(x, y, icon_path)
