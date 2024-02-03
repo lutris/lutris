@@ -37,7 +37,6 @@ class GameView:
         self.connect("destroy", self.on_destroy)
         self.connect("button-press-event", self.popup_contextual_menu)
         self.connect("key-press-event", self.handle_key_press)
-        self.connect("game-selected", self.on_game_selected)
 
         self.game_start_hook_id = GObject.add_emission_hook(Game, "game-start", self.on_game_start)
 
@@ -52,14 +51,6 @@ class GameView:
             self.image_renderer.media_width = size[0]
             self.image_renderer.media_height = size[1]
             self.image_renderer.service = self.service
-
-    def on_game_selected(self, view, selection):
-        for path in selection:
-            game_id = self.get_game_id_for_path(path)
-            if self.service:
-                game_id = self.service.resolve_game_id(game_id)
-            if game_id:
-                MISSING_GAMES.update_missing(game_id)
 
     def on_media_cache_invalidated(self):
         self.queue_draw()
