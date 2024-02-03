@@ -268,12 +268,14 @@ class MissingGames:
     def _update_missing_games(self, game_ids):
         """This is the method that runs on the worker thread; it checks each game given
         and returns True if any changes to missing_game_ids was made."""
-        logger.debug("Checking for missing games")
 
         changed = False
         path_cache = get_path_cache()
         if game_ids is None:
             game_ids = path_cache
+
+        if len(game_ids) > 1:
+            logger.debug("Checking for %d missing games", len(game_ids))
 
         for game_id in game_ids:
             path = path_cache.get(game_id)
