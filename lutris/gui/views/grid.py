@@ -16,7 +16,7 @@ class GameGridView(Gtk.IconView, GameView):
 
     def __init__(self, store, hide_text=False):
         Gtk.IconView.__init__(self)
-        GameView.__init__(self, store.service)
+        GameView.__init__(self)
 
         Gtk.IconView.set_selection_mode(self, Gtk.SelectionMode.MULTIPLE)
 
@@ -45,18 +45,12 @@ class GameGridView(Gtk.IconView, GameView):
         self.connect("style-updated", self.on_style_updated)
 
     def set_game_store(self, game_store):
-        self.game_store = game_store
-        self.service_media = game_store.service_media
+        super().set_game_store(game_store)
         self.model = game_store.store
         self.set_model(self.model)
 
-        size = game_store.service_media.size
-
-        if self.image_renderer:
-            self.image_renderer.media_width = size[0]
-            self.image_renderer.media_height = size[1]
-
         if self.text_renderer:
+            size = game_store.service_media.size
             cell_width = max(size[0], self.min_width)
             self.text_renderer.set_width(cell_width)
 

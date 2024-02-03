@@ -20,8 +20,10 @@ class GameView:
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
     }
 
-    def __init__(self, service):
-        self.service = service
+    def __init__(self):
+        self.game_store = None
+        self.service = None
+        self.service_media = None
         self.cache_notification_id = None
         self.missing_games_updated_id = None
         self.game_start_hook_id = None
@@ -39,10 +41,25 @@ class GameView:
 
         self.game_start_hook_id = GObject.add_emission_hook(Game, "game-start", self.on_game_start)
 
+    def set_game_store(self, game_store):
+        self.game_store = game_store
+        self.service = game_store.service
+        self.service_media = game_store.service_media
+
+        size = self.service_media.size
+
+        if self.image_renderer:
+            self.image_renderer.media_width = size[0]
+            self.image_renderer.media_height = size[1]
+            self.image_renderer.service = self.service
+
     def on_game_selected(self, view, selection):
         for path in selection:
             game_id = self.get_game_id_for_path(path)
-            MISSING_GAMES.update_missing(game_id)
+            if self.service:
+                game_id = self.service.resolve_game_id(game_id)
+            if game_id:
+                MISSING_GAMES.update_missing(game_id)
 
     def on_media_cache_invalidated(self):
         self.queue_draw()
