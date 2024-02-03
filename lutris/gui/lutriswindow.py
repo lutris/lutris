@@ -255,7 +255,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_load(self, widget, data=None):
         """Finish initializing the view"""
         self._bind_zoom_adjustment()
-        MISSING_GAMES.update_all_missing()
         self.current_view.grab_focus()
 
     def on_sidebar_realize(self, widget, data=None):
@@ -419,14 +418,14 @@ class LutrisWindow(Gtk.ApplicationWindow,
         return games_db.get_games_by_ids(self.application.get_running_game_ids())
 
     def get_missing_games(self):
-        return games_db.get_games_by_ids(MISSING_GAMES.get_missing_game_ids())
+        return games_db.get_games_by_ids(MISSING_GAMES.missing_game_ids)
 
     def update_missing_games_sidebar_row(self) -> None:
         missing_games = self.get_missing_games()
         if missing_games:
             self.sidebar.missing_row.show()
         else:
-            missing_ids = MISSING_GAMES.get_missing_game_ids()
+            missing_ids = MISSING_GAMES.missing_game_ids
             if missing_ids:
                 logger.warning("Path cache out of date? (%s IDs missing)", len(missing_ids))
             self.sidebar.missing_row.hide()
@@ -1032,6 +1031,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.set_service(service_name)
         self._bind_zoom_adjustment()
         self.redraw_view()
+        MISSING_GAMES.update_all_missing()
 
     def on_game_selection_changed(self, view, selection):
         game_ids = [view.get_game_id_for_path(path) for path in selection]
@@ -1122,7 +1122,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_game_removed(self, game):
         """Simple method used to refresh the view"""
         remove_from_path_cache(game)
-        MISSING_GAMES.update_missing(game.id)
         self.update_missing_games_sidebar_row()
         self.emit("view-updated")
         return True

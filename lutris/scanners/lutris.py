@@ -215,89 +215,52 @@ class MissingGames:
 
     def __init__(self):
         self.updated = NotificationSource()
-        self._games_missing = {}
-        self._update_scheduled = False
-        self._pending_game_ids = set()
-
-    def is_missing(self, game_id):
-        """True if game_id is missing; if the status is not populated, returns False."""
-        return bool(self._games_missing.get(game_id))
-
-    def is_populated(self, game_id):
-        """True if the missing status for a game is known, false if it needs to be updated."""
-        return game_id in self._games_missing
-
-    def get_missing_game_ids(self):
-        """Returns a new set of all the game IDs for known missing games."""
-        return set(t[0] for t in self._games_missing.items() if t[1])
+        self.missing_game_ids = set()
+        self._update_running = False
 
     def update_all_missing(self) -> None:
         """This starts the check for all games; the actual list of game-ids will be obtained
         on the worker thread, and this method will start it."""
-        self._pending_game_ids = None  # indicate 'update all games'
-        self._schedule_update()
-
-    def update_missing(self, game_id: str) -> None:
-        """Starts checking the missing status on a games. This starts the worker thread
-        as required, and does not block the current thread to do the check. You need to handle
-        the 'updated' notification to obtain the result."""
-
-        if self._pending_game_ids is not None:
-            self._pending_game_ids.add(game_id)
-        self._schedule_update()
-
-    def _schedule_update(self) -> None:
-        """Sets up a timeout to run the _update_missing_games method at idle time,
-        unless it is already scheduled, in which case this method does nothing."""
 
         def start():
-            game_ids = self._pending_game_ids
-            self._pending_game_ids = set()
-            AsyncCall(self._update_missing_games, self._update_missing_games_cb, game_ids)
+            AsyncCall(self._update_missing_games, self._update_missing_games_cb)
             return False  # do not run again
 
-        if not self._update_scheduled and self._has_more_updates():
-            self._update_scheduled = True
+        if not self._update_running:
+            self._update_running = True
             schedule_at_idle(start)
 
-    def _has_more_updates(self):
-        """True if there are more updates to do; note that None here means
-        'update all games', but an empty set is 'nothing to do'."""
-        return self._pending_game_ids is None or len(self._pending_game_ids) > 0
-
-    def _update_missing_games(self, game_ids):
+    def _update_missing_games(self):
         """This is the method that runs on the worker thread; it checks each game given
         and returns True if any changes to missing_game_ids was made."""
 
+        logger.debug("Checking for missing games")
+
         changed = False
         path_cache = get_path_cache()
-        if game_ids is None:
-            game_ids = path_cache
-
-        for game_id in game_ids:
-            logger.debug("Checking for missing game %s", game_id)
+        game_ids = set(path_cache)
 
         for game_id in game_ids:
             path = path_cache.get(game_id)
 
             if path:
-                old_status = self._games_missing.get(game_id)
+                old_status = game_id in self.missing_game_ids
                 new_status = not os.path.exists(path)
                 if old_status != new_status:
-                    self._games_missing[game_id] = new_status
+                    if new_status:
+                        self.missing_game_ids.add(game_id)
+                    else:
+                        self.missing_game_ids.discard(game_id)
                     changed = True
         return changed
 
     def _update_missing_games_cb(self, changed, error):
-        self._update_scheduled = False
+        self._update_running = False
 
         if error:
             logger.exception("Unable to detect missing games: %s", error)
         elif changed:
             self.updated.fire()
-
-        # In case more games are pending already, we'll update again
-        self._schedule_update()
 
 
 MISSING_GAMES = MissingGames()
