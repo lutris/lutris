@@ -692,7 +692,7 @@ class ConfigBox(VBox):
 
         btn.set_visible(False)
         self.set_style_property("font-weight", "normal", wrapper)
-        self.raw_config.pop(option_key)
+        self.raw_config.pop(option_key, None)
         self.lutris_config.update_cascaded_config()
 
         reset_value = self.config.get(option_key)
