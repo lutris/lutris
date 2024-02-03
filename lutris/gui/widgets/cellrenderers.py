@@ -1,3 +1,4 @@
+# pylint: disable=no-member
 # pylint:disable=using-constant-test
 # pylint:disable=comparison-with-callable
 from gettext import gettext as _
@@ -99,6 +100,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._media_width = 0
         self._media_height = 0
         self._game_id = None
+        self._service = None
         self._media_path = None
         self._show_badges = True
         self._platform = None
@@ -166,6 +168,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     @game_id.setter
     def game_id(self, value):
         self._game_id = value
+
+    @GObject.Property(type=GObject.TYPE_PYOBJECT)
+    def service(self):
+        return self._service
+
+    @service.setter
+    def service(self, value):
+        self._service = value
 
     @GObject.Property(type=str)
     def media_path(self):
@@ -350,11 +360,16 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def _render_badges(self, cr, widget, surface, cell_area):
         self.render_platforms(cr, widget, surface, 0, cell_area)
 
-        if self.game_id:
-            if not MISSING_GAMES.is_populated(self.game_id):
-                MISSING_GAMES.update_missing(self.game_id)
-            elif MISSING_GAMES.is_missing(self.game_id):
-                self.render_text_badge(cr, widget, _("Missing"), 0, cell_area.y + cell_area.height)
+        game_id = self.game_id
+        if game_id:
+            if self.service:
+                game_id = self.service.resolve_game_id(game_id)
+
+            if game_id:
+                if not MISSING_GAMES.is_populated(game_id):
+                    MISSING_GAMES.update_missing(game_id)
+                elif MISSING_GAMES.is_missing(game_id):
+                    self.render_text_badge(cr, widget, _("Missing"), 0, cell_area.y + cell_area.height)
 
     def render_platforms(self, cr, widget, surface, surface_x, cell_area):
         """Renders the stack of platform icons."""

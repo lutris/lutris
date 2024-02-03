@@ -23,7 +23,7 @@ class GameListView(Gtk.TreeView, GameView):
 
     def __init__(self, store):
         Gtk.TreeView.__init__(self)
-        GameView.__init__(self, store.service)
+        GameView.__init__(self)
 
         self.set_rules_hint(True)
 
@@ -65,21 +65,16 @@ class GameListView(Gtk.TreeView, GameView):
         self.get_selection().connect("changed", self.on_cursor_changed)
 
     def set_game_store(self, game_store):
-        self.game_store = game_store
-        self.service_media = game_store.service_media
+        super().set_game_store(game_store)
+
         self.model = game_store.store
         self.set_model(self.model)
         self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
         self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
         self.set_sort_with_column(COL_PLAYTIME_TEXT, COL_PLAYTIME)
 
-        size = game_store.service_media.size
-
-        if self.image_renderer:
-            self.image_renderer.media_width = size[0]
-            self.image_renderer.media_height = size[1]
-
         if self.media_column:
+            size = game_store.service_media.size
             media_width = size[0]
             self.media_column.set_fixed_width(media_width)
 

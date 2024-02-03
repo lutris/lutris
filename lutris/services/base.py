@@ -10,7 +10,7 @@ from lutris import api, settings
 from lutris.api import get_game_installers
 from lutris.config import write_game_config
 from lutris.database import sql
-from lutris.database.games import add_game, get_game_by_field, get_games
+from lutris.database.games import add_game, get_game_by_field, get_game_for_service, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.dialogs import NoticeDialog
@@ -387,6 +387,14 @@ class BaseService(GObject.Object):
         """Interprets the database record for this game from this service
         to extract its platform, or returns an empty list if this is not available."""
         return []
+
+    def resolve_game_id(self, appid):
+        db_game = get_game_for_service(self.id, appid)
+
+        if db_game and db_game.get("id"):
+            return str(db_game.get("id"))
+
+        return None
 
     def get_service_db_game(self, game: Game):
         """Returns the row dictionary for the service-game corresponding to the
