@@ -59,6 +59,13 @@ def register_error_handler(error_class: Type[TError], handler: Callable[[TError,
 def get_error_handler(error_class: Type[TError]) -> Callable[[TError, Gtk.Window], Any]:
     """Returns the register error handler for an exception class. If none is registered,
     this returns a default handler that shows an ErrorDialog."""
+    if not isinstance(error_class, type):
+        if isinstance(error_class, BaseException):
+            logger.debug("An error was passed where an error class should be passed.")
+            error_class = type(error_class)
+        else:
+            raise ValueError(f"'{error_class}' was passed to get_error_handler, but an error class is required here.")
+
     if error_class in _error_handlers:
         return _error_handlers[error_class]
 

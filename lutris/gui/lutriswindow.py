@@ -967,7 +967,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Open the about dialog."""
         dialogs.AboutDialog(parent=self)
 
-    def on_game_unhandled_error(self, game, error):
+    def on_game_unhandled_error(self, _game: Game, error: BaseException) -> bool:
         """Called when a game has sent the 'game-error' signal"""
 
         error_handler = get_error_handler(type(error))
