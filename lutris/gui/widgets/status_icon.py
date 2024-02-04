@@ -2,7 +2,7 @@
 from gettext import gettext as _
 
 import gi
-from gi.repository import Gdk, GdkX11, Gtk
+from gi.repository import Gdk, Gtk
 
 from lutris.database.games import get_games
 from lutris.game import Game
@@ -23,7 +23,7 @@ def supports_status_icon():
         return True
 
     display = Gdk.Display.get_default()
-    return isinstance(display, GdkX11.X11Display)
+    return "x11" in type(display).__name__.casefold()
 
 
 class LutrisStatusIcon:
