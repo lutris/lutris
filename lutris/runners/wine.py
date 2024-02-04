@@ -1164,13 +1164,13 @@ class wine(Runner):
             limit_set = is_esync_limit_set()
 
             if not limit_set:
-                raise EsyncLimitError(_("Your ESYNC limits are not set correctly."))
+                raise EsyncLimitError()
 
         if launch_info["env"].get("WINEFSYNC") == "1":
             fsync_supported = is_fsync_supported()
 
             if not fsync_supported:
-                raise FsyncUnsupportedError(_("Your kernel is not patched for fsync."))
+                raise FsyncUnsupportedError()
 
         command = self.get_command()
 

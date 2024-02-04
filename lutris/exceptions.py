@@ -102,6 +102,19 @@ class InvalidGameMoveError(LutrisError):
 class EsyncLimitError(Exception):
     """Raised when the ESYNC limit is not set correctly."""
 
+    def __init__(self, *args, message=None, **kwarg):
+        if not message:
+            message = _("Your ESYNC limits are not set correctly.")
+
+        super().__init__(message, *args, **kwarg)
+
 
 class FsyncUnsupportedError(Exception):
     """Raised when FSYNC is enabled, but is not supported by the kernel."""
+
+    def __init__(self, *args, message=None, **kwarg):
+        if not message:
+            message = _("Your kernel is not patched for fsync."
+                        " Please get a patched kernel to use fsync.")
+
+        super().__init__(message, *args, **kwarg)
