@@ -266,7 +266,7 @@ class ErrorDialog(Gtk.MessageDialog):
     """Display an error message."""
 
     def __init__(self, error, secondary=None, parent=None):
-        super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
+        super().__init__(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, parent=parent)
 
         # Some errors contain < and > and lok like markup, but aren't-
         # we'll need to protect the message box against this
