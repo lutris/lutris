@@ -295,6 +295,14 @@ class ErrorDialog(Gtk.MessageDialog):
                 child.set_selectable(True)
 
         if isinstance(error, BaseException):
+            content_area = self.get_content_area()
+            spacing = content_area.get_spacing()
+            content_area.set_spacing(0)
+
+            details_expander = self.get_details_expander(error)
+            details_expander.set_margin_top(spacing)
+            content_area.pack_end(details_expander, False, False, 0)
+
             action_area = self.get_action_area()
             copy_button = Gtk.Button(_("Copy to Clipboard"), visible=True)
             action_area.pack_start(copy_button, False, True, 0)
@@ -304,12 +312,35 @@ class ErrorDialog(Gtk.MessageDialog):
         self.run()
         self.destroy()
 
-    @staticmethod
-    def on_copy_clicked(_button, error: BaseException):
-        formatted = traceback.format_exception(type(error), error, error.__traceback__)
-        text = "\n".join([str(error), ""] + formatted)
+    def on_copy_clicked(self, _button, error: BaseException):
+        details = self.format_error(error)
         clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-        clipboard.set_text(text.strip(), -1)
+        clipboard.set_text(details, -1)
+
+    def get_details_expander(self, error: BaseException) -> Gtk.Widget:
+        details = self.format_error(error, include_message=False)
+        expander = Gtk.Expander.new("Details")
+
+        details_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+        details_box.pack_start(Gtk.Separator(margin_top=6), False, False, 0)
+
+        details_textview = Gtk.TextView(editable=False)
+        details_textview.get_buffer().set_text(details)
+
+        details_scrolledwindow = Gtk.ScrolledWindow(height_request=200)
+        details_scrolledwindow.add(details_textview)
+        details_box.pack_start(details_scrolledwindow, False, False, 0)
+        expander.add(details_box)
+        expander.show_all()
+        return expander
+
+    @staticmethod
+    def format_error(error: BaseException, include_message: bool = True):
+        formatted = traceback.format_exception(type(error), error, error.__traceback__)
+        if include_message:
+            formatted = [str(error), ""] + formatted
+        return "\n".join(formatted).strip()
 
 
 class QuestionDialog(Gtk.MessageDialog):
