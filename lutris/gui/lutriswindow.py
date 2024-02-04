@@ -12,11 +12,13 @@ from lutris import services, settings
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
-from lutris.exceptions import EsyncLimitError, FsyncUnsupportedError
+from lutris.exception_backstops import get_error_handler, register_error_handler
+from lutris.exceptions import EsyncLimitError
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.preferences_dialog import PreferencesDialog
+from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
 from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.download_queue import DownloadQueue
@@ -37,7 +39,6 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import get_natural_sort_key
 from lutris.util.system import update_desktop_icons
-from lutris.util.wine.wine import esync_display_limit_warning, fsync_display_support_warning
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
@@ -969,12 +970,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_game_unhandled_error(self, game, error):
         """Called when a game has sent the 'game-error' signal"""
 
-        if isinstance(error, FsyncUnsupportedError):
-            fsync_display_support_warning(parent=self)
-        elif isinstance(error, EsyncLimitError):
-            esync_display_limit_warning(parent=self)
-        else:
-            dialogs.ErrorDialog(error, parent=self)
+        error_handler = get_error_handler(type(error))
+        error_handler(error, self)
         return True
 
     @GtkTemplate.Callback
@@ -1195,3 +1192,15 @@ class LutrisWindow(Gtk.ApplicationWindow,
                                     completion_function=completion_function,
                                     error_function=error_function,
                                     operation_names=operation_names)
+
+
+def _handle_esynclimiterror(error: EsyncLimitError, parent: Gtk.Window) -> None:
+    message = _(
+        "Your limits are not set correctly."
+        " Please increase them as described here:"
+        " <a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
+        "How-to:-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>")
+    ErrorDialog(message, parent=parent)
+
+
+register_error_handler(EsyncLimitError, _handle_esynclimiterror)

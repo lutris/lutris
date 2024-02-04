@@ -7,7 +7,6 @@ from typing import Dict, Generator, List, Tuple
 from lutris import settings
 from lutris.api import get_default_runner_version_info
 from lutris.exceptions import MisconfigurationError, UnavailableRunnerError, UnspecifiedVersionError
-from lutris.gui.dialogs import ErrorDialog
 from lutris.util import cache_single, linux, system
 from lutris.util.log import logger
 from lutris.util.steam.config import get_steamapps_dirs
@@ -288,22 +287,6 @@ def get_real_executable(windows_executable: str, working_dir: str) -> Tuple[
         return ("start", ["/unix", windows_executable], working_dir)
 
     return (windows_executable, [], working_dir)
-
-
-def esync_display_limit_warning(parent=None):
-    ErrorDialog(_(
-        "Your limits are not set correctly."
-        " Please increase them as described here:"
-        " <a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
-        "How-to:-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
-    ), parent=parent)
-
-
-def fsync_display_support_warning(parent=None):
-    ErrorDialog(_(
-        "Your kernel is not patched for fsync."
-        " Please get a patched kernel to use fsync."
-    ), parent=parent)
 
 
 def get_overrides_env(overrides: Dict[str, str]) -> str:

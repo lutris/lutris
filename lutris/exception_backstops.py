@@ -110,7 +110,7 @@ def _create_error_wrapper(handler: Callable, handler_name: str,
                 error_method(ex)
             else:
                 error_handler = get_error_handler(type(ex))
-                error_handler(ex, parent=_get_error_parent([handler_object, connected_object]))
+                error_handler(ex, _get_error_parent([handler_object, connected_object]))
             return error_result
 
     return error_wrapper
