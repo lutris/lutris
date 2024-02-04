@@ -228,9 +228,9 @@ class AboutDialog(GtkBuilderDialog):
 class NoticeDialog(Gtk.MessageDialog):
     """Display a message to the user."""
 
-    def __init__(self, message, secondary=None, parent=None):
+    def __init__(self, message_markup: str, secondary: str = None, parent: Gtk.Window = None):
         super().__init__(message_type=Gtk.MessageType.INFO, buttons=Gtk.ButtonsType.OK, parent=parent)
-        self.set_markup(message)
+        self.set_markup(message_markup)
         if secondary:
             self.format_secondary_text(secondary[:256])
 
@@ -247,9 +247,9 @@ class WarningDialog(Gtk.MessageDialog):
     """Display a warning to the user, who responds with whether to proceed, like
     a QuestionDialog."""
 
-    def __init__(self, message, secondary=None, parent=None):
+    def __init__(self, message_markup: str, secondary: str = None, parent: Gtk.Window = None):
         super().__init__(message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK_CANCEL, parent=parent)
-        self.set_markup(message)
+        self.set_markup(message_markup)
         if secondary:
             self.format_secondary_text(secondary[:256])
 
@@ -265,17 +265,24 @@ class WarningDialog(Gtk.MessageDialog):
 class ErrorDialog(Gtk.MessageDialog):
     """Display an error message."""
 
-    def __init__(self, error, secondary=None, parent=None):
+    def __init__(self, error, message_markup: str = None, secondary: str = None, parent: Gtk.Window = None):
         super().__init__(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, parent=parent)
 
-        # Some errors contain < and > and lok like markup, but aren't-
-        # we'll need to protect the message box against this
-        message = gtk_safe(error) if isinstance(error, BaseException) else str(error)
+        if isinstance(error, BaseException):
+            if secondary:
+                # Some errors contain < and > and look like markup, but aren't-
+                # we'll need to protect the message dialog against this. To use markup,
+                # you must pass the message itself directly.
+                message_markup = message_markup or gtk_safe(str(error))
+            elif not message_markup:
+                message_markup = "<span weight='bold'>%s</span>" % _("Lutris has encountered an error")
+                secondary = str(error)
+        elif not message_markup:
+            message_markup = gtk_safe(str(error))
 
         # Gtk doesn't wrap long labels containing no space correctly
         # the length of the message is limited to avoid display issues
-
-        self.set_markup(message[:256])
+        self.set_markup(message_markup[:256])
 
         if secondary:
             self.format_secondary_text(secondary[:256])
@@ -288,7 +295,7 @@ class ErrorDialog(Gtk.MessageDialog):
         if isinstance(error, BaseException):
             action_area = self.get_action_area()
             copy_button = Gtk.Button(_("Copy to Clipboard"), visible=True)
-            action_area.pack_start(copy_button, False, False, 0)
+            action_area.pack_start(copy_button, False, True, 0)
             action_area.set_child_secondary(copy_button, True)
             copy_button.connect("clicked", self.on_copy_clicked, error)
 
@@ -581,7 +588,7 @@ class MoveDialog(ModelessDialog):
         if error and isinstance(error, InvalidGameMoveError):
             secondary = _("Do you want to change the game location anyway? No files can be moved, "
                           "and the game configuration may need to be adjusted.")
-            dlg = WarningDialog(str(error), secondary=secondary, parent=self)
+            dlg = WarningDialog(message_markup=error, secondary=secondary, parent=self)
             if dlg.result == Gtk.ResponseType.OK:
                 self.new_directory = self.game.set_location(self.destination)
                 self.on_game_moved(None, None)
