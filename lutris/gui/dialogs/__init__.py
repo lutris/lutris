@@ -2,7 +2,7 @@
 import os
 import traceback
 from gettext import gettext as _
-from typing import Callable
+from typing import Callable, Union
 
 import gi
 
@@ -265,7 +265,9 @@ class WarningDialog(Gtk.MessageDialog):
 class ErrorDialog(Gtk.MessageDialog):
     """Display an error message."""
 
-    def __init__(self, error, message_markup: str = None, secondary: str = None, parent: Gtk.Window = None):
+    def __init__(self, error: Union[str, BaseException],
+                 message_markup: str = None, secondary: str = None,
+                 parent: Gtk.Window = None):
         super().__init__(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, parent=parent)
 
         if isinstance(error, BaseException):

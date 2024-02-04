@@ -171,13 +171,13 @@ class RunnerInstallDialog(ModelessDialog):
         """Clear the box and display versions from runner_info"""
         if error:
             logger.error(error)
-            ErrorDialog(_("Unable to get runner versions: %s") % error)
+            ErrorDialog(_("Unable to get runner versions: %s") % error, parent=self)
             return
 
         self.runner_info, self.runner_store = result
 
         if not self.runner_info:
-            ErrorDialog(_("Unable to get runner versions from lutris.net"))
+            ErrorDialog(_("Unable to get runner versions from lutris.net"), parent=self)
             return
 
         for child_widget in self.vbox.get_children():
@@ -363,7 +363,7 @@ class RunnerInstallDialog(ModelessDialog):
         url = runner["url"]
         version = runner["version"]
         if not url:
-            ErrorDialog(_("Version %s is not longer available") % version)
+            ErrorDialog(_("Version %s is not longer available") % version, parent=self)
             return
         downloader = Downloader(url, dest_path, overwrite=True)
         GLib.timeout_add(100, self.get_progress, downloader, row)
