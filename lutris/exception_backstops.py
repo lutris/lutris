@@ -1,5 +1,7 @@
+import inspect
 from functools import wraps
-from typing import Any, Callable, Iterable
+from gettext import gettext as _
+from typing import Any, Callable, Dict, Iterable, Type, TypeVar
 
 from gi.repository import Gio, GLib, GObject, Gtk
 
@@ -44,6 +46,29 @@ def watch_game_errors(game_stop_result, game=None):
     return inner_decorator
 
 
+_error_handlers: Dict[Type[BaseException], Callable[[BaseException, Gtk.Window], Any]] = {}
+TError = TypeVar('TError', bound=BaseException)
+
+
+def register_error_handler(error_class: Type[TError], handler: Callable[[TError, Gtk.Window], Any]) -> None:
+    """Records a function to call to handle errors of a particular class or its subclasses. The
+    function is given the error and a parent window, and can display a modal dialog."""
+    _error_handlers[error_class] = handler
+
+
+def get_error_handler(error_class: Type[TError]) -> Callable[[TError, Gtk.Window], Any]:
+    """Returns the register error handler for an exception class. If none is registered,
+    this returns a default handler that shows an ErrorDialog."""
+    if error_class in _error_handlers:
+        return _error_handlers[error_class]
+
+    for base_class in inspect.getmro(error_class):
+        if base_class in _error_handlers:
+            return _error_handlers[base_class]
+
+    return lambda e, p: ErrorDialog(e, parent=p)
+
+
 def _get_error_parent(error_objects: Iterable) -> Gtk.Window:
     """Obtains a top-level window to use as the parent of an
     error, by examining s list of objects. Any that are None
@@ -84,7 +109,8 @@ def _create_error_wrapper(handler: Callable, handler_name: str,
                 error_method = getattr(handler_object, error_method_name)
                 error_method(ex)
             else:
-                ErrorDialog(ex, parent=_get_error_parent([handler_object, connected_object]))
+                error_handler = get_error_handler(type(ex))
+                error_handler(ex, parent=_get_error_parent([handler_object, connected_object]))
             return error_result
 
     return error_wrapper
@@ -136,6 +162,10 @@ def init_exception_backstops():
                                               error_method_name="on_timeout_error")
         return _original_timeout_add(interval, error_wrapper, *args, **kwargs)
 
+    def _handle_keyerror(error: KeyError, parent: Gtk.Window) -> None:
+        message = _("The key '%s' could not be found.") % error.args[0]
+        ErrorDialog(message, parent=parent)
+
     _original_connect = Gtk.Widget.connect
     GObject.Object.connect = _error_handling_connect
 
@@ -147,3 +177,5 @@ def init_exception_backstops():
 
     _original_timeout_add = GLib.timeout_add
     GLib.timeout_add = _error_handling_timeout_add
+
+    register_error_handler(KeyError, _handle_keyerror)
