@@ -1200,7 +1200,7 @@ def _handle_esynclimiterror(error: EsyncLimitError, parent: Gtk.Window) -> None:
         " Please increase them as described here:"
         " <a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
         "How-to:-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>")
-    ErrorDialog(message, parent=parent)
+    ErrorDialog(error, message_markup=message, parent=parent)
 
 
 register_error_handler(EsyncLimitError, _handle_esynclimiterror)
