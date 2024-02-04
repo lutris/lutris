@@ -319,7 +319,7 @@ class ErrorDialog(Gtk.MessageDialog):
 
     def get_details_expander(self, error: BaseException) -> Gtk.Widget:
         details = self.format_error(error, include_message=False)
-        expander = Gtk.Expander.new("Details")
+        expander = Gtk.Expander.new(_("Error details"))
 
         details_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
@@ -328,7 +328,7 @@ class ErrorDialog(Gtk.MessageDialog):
         details_textview = Gtk.TextView(editable=False)
         details_textview.get_buffer().set_text(details)
 
-        details_scrolledwindow = Gtk.ScrolledWindow(height_request=200)
+        details_scrolledwindow = Gtk.ScrolledWindow(width_request=800, height_request=400)
         details_scrolledwindow.add(details_textview)
         details_box.pack_start(details_scrolledwindow, False, False, 0)
         expander.add(details_box)
