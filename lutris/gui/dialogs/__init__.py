@@ -1,5 +1,6 @@
 """Commonly used dialogs"""
 import os
+import traceback
 from gettext import gettext as _
 from typing import Callable
 
@@ -284,8 +285,22 @@ class ErrorDialog(Gtk.MessageDialog):
             if isinstance(child, Gtk.Label):
                 child.set_selectable(True)
 
+        if isinstance(error, BaseException):
+            action_area = self.get_action_area()
+            copy_button = Gtk.Button(_("Copy to Clipboard"), visible=True)
+            action_area.pack_start(copy_button, False, False, 0)
+            action_area.set_child_secondary(copy_button, True)
+            copy_button.connect("clicked", self.on_copy_clicked, error)
+
         self.run()
         self.destroy()
+
+    @staticmethod
+    def on_copy_clicked(_button, error: BaseException):
+        formatted = traceback.format_exception(type(error), error, error.__traceback__)
+        text = "\n".join([str(error), ""] + formatted)
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        clipboard.set_text(text.strip(), -1)
 
 
 class QuestionDialog(Gtk.MessageDialog):
