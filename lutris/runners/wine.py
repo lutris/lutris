@@ -1150,7 +1150,7 @@ class wine(Runner):
 
     def get_command(self):
         exe = self.get_executable()
-        ulwgl_path = os.path.join(os.path.expanduser("~/.local/share"), "ULWGL")
+        ulwgl_path = os.path.join(os.path.join(settings.RUNTIME_DIR, "ulwgl"))
         if "Proton" in exe and system.path_exists(ulwgl_path):
             return [os.path.join(ulwgl_path, "ulwgl-run")]
         return super().get_command()
