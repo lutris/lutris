@@ -1090,7 +1090,11 @@ class wine(Runner):
         if wine_config_version and "Proton" in wine_config_version and "lutris" not in wine_config_version:
             if "GAMEID" not in env:
                 env["GAMEID"] = "ULWGL-foo"
-            env["PROTONPATH"] = wine_exe[:wine_exe.index("files/bin")]
+            # In stable versions of proton this can be dist/bin insteasd of files/bin
+            if os.path.exists(wine_exe[:wine_exe.index("files/bin")]):
+                env["PROTONPATH"] = wine_exe[:wine_exe.index("files/bin")]
+            else
+                env["PROTONPATH"] = wine_exe[:wine_exe.index("dist/bin")]
         return env
 
     def get_runtime_env(self):
