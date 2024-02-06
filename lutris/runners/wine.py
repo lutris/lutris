@@ -1050,11 +1050,15 @@ class wine(Runner):
         env["WINE"] = wine_exe
         env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "mono")
         env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "gecko")
-        if is_gstreamer_build(wine_exe):
-            path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
-            path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
-            if os.path.exists(path_64) or os.path.exists(path_32):
-                env["GST_PLUGIN_SYSTEM_PATH_1_0"] = path_64 + ":" + path_32
+
+        # We don't want to override gstreamer for proton, it has it's own version
+        if not "Proton" in WINE_DIR:
+            if is_gstreamer_build(wine_exe):
+                path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
+                path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
+                if os.path.exists(path_64) or os.path.exists(path_32):
+                    env["GST_PLUGIN_SYSTEM_PATH_1_0"] = path_64 + ":" + path_32
+
         if self.prefix_path:
             env["WINEPREFIX"] = self.prefix_path
 
