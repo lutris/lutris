@@ -1091,7 +1091,7 @@ class wine(Runner):
             if "GAMEID" not in env:
                 env["GAMEID"] = "ULWGL-foo"
             # In stable versions of proton this can be dist/bin insteasd of files/bin
-            if os.path.exists(wine_exe[:wine_exe.index("files/bin")]):
+            if "files/bin" in wine_exe:
                 env["PROTONPATH"] = wine_exe[:wine_exe.index("files/bin")]
             else:
                 env["PROTONPATH"] = wine_exe[:wine_exe.index("dist/bin")]
