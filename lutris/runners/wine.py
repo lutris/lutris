@@ -1142,9 +1142,9 @@ class wine(Runner):
 
     def get_command(self):
         exe = self.get_executable()
-        ulwgl_path = os.path.join(settings.RUNTIME_DIR, "ulwgl")
+        ulwgl_path = os.path.join(os.path.expanduser("~/.local/share"), "ULWGL")
         if "Proton" in exe and system.path_exists(ulwgl_path):
-            return [os.path.join(ulwgl_path, "gamelauncher.sh")]
+            return [os.path.join(ulwgl_path, "ulwgl-run")]
         return super().get_command()
 
     def play(self):  # pylint: disable=too-many-return-statements # noqa: C901
