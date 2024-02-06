@@ -1093,7 +1093,7 @@ class wine(Runner):
             # In stable versions of proton this can be dist/bin insteasd of files/bin
             if os.path.exists(wine_exe[:wine_exe.index("files/bin")]):
                 env["PROTONPATH"] = wine_exe[:wine_exe.index("files/bin")]
-            else
+            else:
                 env["PROTONPATH"] = wine_exe[:wine_exe.index("dist/bin")]
         return env
 
