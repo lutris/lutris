@@ -328,7 +328,7 @@ class GameActions(BaseGameActions):
 
             # Download in the background; we'll update the LutrisWindow when this
             # completes, no need to wait for it.
-            AsyncCall(download_lutris_media, None , db_game["slug"])
+            AsyncCall(download_lutris_media, None, db_game["slug"])
 
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
