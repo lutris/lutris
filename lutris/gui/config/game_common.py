@@ -742,7 +742,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if os.path.isfile(dest_path):
             os.remove(dest_path)
         download_lutris_media(self.game.slug)
-        MEDIA_CACHE_INVALIDATED.fire()
         return image_type
 
     def image_refreshed_cb(self, image_type, _error):
