@@ -22,6 +22,7 @@ from lutris.gui.dialogs.uninstall_game import UninstallMultipleGamesDialog
 from lutris.gui.widgets.utils import open_uri
 from lutris.services.lutris import download_lutris_media
 from lutris.util import xdgshortcuts
+from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, slugify
@@ -322,9 +323,12 @@ class GameActions(BaseGameActions):
             db_game.pop("service_id", None)
 
             game_id = add_game(**db_game)
-            download_lutris_media(db_game["slug"])
             new_game = Game(game_id)
             new_game.save()
+
+            # Download in the background; we'll update the LutrisWindow when this
+            # completes, no need to wait for it.
+            AsyncCall(download_lutris_media, None , db_game["slug"])
 
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
