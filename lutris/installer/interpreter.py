@@ -277,7 +277,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         try:
             runner.install(
                 ui_delegate,
-                version=runner.get_installer_runner_version(self) if runner.has_runner_versions else None,
+                version=runner.get_installer_runner_version(self.installer) if runner.has_runner_versions else None,
                 callback=install_more_runners,
             )
         except (NonInstallableRunnerError, RunnerInstallationError) as ex:
