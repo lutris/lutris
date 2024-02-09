@@ -285,16 +285,6 @@ class GameActions(BaseGameActions):
 
     def on_game_duplicate(self, _widget):
         for game in self.games:
-            base_name = game.name.strip().rstrip("0123456789").rstrip()
-            if not base_name:
-                base_name = game.name
-
-            for num in range(2, 999):
-                initial_name = f"{base_name} {num}".strip()
-
-                if not get_game_by_field(initial_name, "name"):
-                    break
-
             duplicate_game_dialog = InputDialog(
                 {
                     "parent": self.window,
@@ -304,7 +294,7 @@ class GameActions(BaseGameActions):
                         "Please enter the new name for the copy:"
                     ) % gtk_safe(game.name),
                     "title": _("Duplicate game?"),
-                    "initial_value": initial_name
+                    "initial_value": game.name
                 }
             )
             result = duplicate_game_dialog.run()
@@ -321,7 +311,7 @@ class GameActions(BaseGameActions):
             duplicate_game_dialog.destroy()
             db_game = get_game_by_field(game.id, "id")
             db_game["name"] = new_name
-            db_game["slug"] = slugify(new_name)
+            db_game["slug"] = slugify(new_name) if new_name != game.name else game.slug
             db_game["lastplayed"] = None
             db_game["playtime"] = 0.0
             db_game["configpath"] = new_config_id
