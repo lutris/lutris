@@ -226,9 +226,9 @@ class InstallerWindow(ModelessDialog,
 
             remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
             if self.interpreter and self.interpreter.target_path and \
-                self.interpreter.game_dir_created and \
-                self.installation_kind == InstallationKind.INSTALL and \
-                is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
+                    self.interpreter.game_dir_created and \
+                    self.installation_kind == InstallationKind.INSTALL and \
+                    is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
                 remove_checkbox.set_active(self.interpreter.game_dir_created)
                 remove_checkbox.show()
                 widgets.append(remove_checkbox)
@@ -968,7 +968,7 @@ class InstallerWindow(ModelessDialog,
         """Displays the continue button, but labels it 'Install'."""
         self.display_continue_button(handler, continue_button_label=_(
             "_Install"), sensitive=sensitive,
-                                     extra_buttons=[self.source_button])
+            extra_buttons=[self.source_button])
 
     def display_cancel_button(self, extra_buttons=None):
         self.display_buttons(extra_buttons or [])

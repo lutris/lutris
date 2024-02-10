@@ -9,7 +9,7 @@ from gettext import gettext as _
 from gi.repository import GLib, Gtk
 
 from lutris import api, settings
-from lutris.api import format_runner_version
+from lutris.api import format_runner_version, parse_version_architecture
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog, ModelessDialog
@@ -31,9 +31,8 @@ def get_installed_versions(runner_directory):
     if not os.path.exists(runner_directory):
         return set()
     return {
-        tuple(p.rsplit("-", 1))
+        parse_version_architecture(p)
         for p in os.listdir(runner_directory)
-        if "-" in p
     }
 
 
