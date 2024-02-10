@@ -14,7 +14,7 @@ from typing import Any, Dict, Optional, Tuple
 import requests
 
 from lutris import settings
-from lutris.util import http, system, cache_single
+from lutris.util import cache_single, http, system
 from lutris.util.graphics.gpu import get_gpus_info
 from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM

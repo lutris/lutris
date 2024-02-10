@@ -122,6 +122,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.install_from_setup_game_name_entry = Gtk.Entry()
         self.install_from_setup_game_slug_checkbox = Gtk.CheckButton(label="Identifier")
         self.install_from_setup_game_slug_entry = Gtk.Entry(sensitive=False)
+        self.install_from_setup_game_slug_entry.connect("focus-out-event",
+                                                        self.on_install_from_setup_game_slug_entry_focus_out)
         self.installer_presets = Gtk.ListStore(str, str)
         self.install_preset_dropdown = Gtk.ComboBox.new_with_model(self.installer_presets)
         self.installer_locale = Gtk.ListStore(str, str)
@@ -464,6 +466,10 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         grid.set_vexpand(True)
         return grid
 
+    def on_install_from_setup_game_slug_entry_focus_out(self, *args):
+        slug = slugify(self.install_from_setup_game_slug_entry.get_text())
+        self.install_from_setup_game_slug_entry.set_text(slug)
+
     def present_install_from_setup_page(self):
         self.set_page_title_markup(_("<b>Select setup file</b>"))
         self.stack.present_page("install_from_setup")
@@ -487,7 +493,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             return
 
         if self.install_from_setup_game_slug_checkbox.get_active():
-            game_slug = self.install_from_setup_game_slug_entry.get_text()
+            game_slug = slugify(self.install_from_setup_game_slug_entry.get_text())
         else:
             game_slug = slugify(name)
 
