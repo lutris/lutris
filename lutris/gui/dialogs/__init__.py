@@ -362,29 +362,33 @@ class QuestionDialog(Gtk.MessageDialog):
         self.destroy()
 
 
-class InputDialog(ModalDialog):
-    """Ask the user for a text input"""
+class DuplicateGameDialog(ModalDialog):
+    """Ask the user for a duplicate game's new name and slug"""
 
-    def __init__(self, dialog_settings):
-        super().__init__(parent=dialog_settings["parent"])
+    def __init__(self, game, parent: Gtk.Window):
+        super().__init__(parent=parent)
         self.set_border_width(12)
-        self.user_value = ""
+        self.new_name = ""
         self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
         self.ok_button = self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self.set_default_response(Gtk.ResponseType.OK)
         self.ok_button.set_sensitive(False)
-        self.set_title(dialog_settings["title"])
+        self.set_title(_("Duplicate game?"))
         label = Gtk.Label(visible=True)
-        label.set_markup(dialog_settings["question"])
+        label.set_markup(_(
+            "Do you wish to duplicate %s?\nThe configuration will be duplicated, "
+            "but the games files will <b>not be duplicated</b>.\n"
+            "Please enter the new name for the copy:"
+        ) % gtk_safe(game.name))
         self.get_content_area().pack_start(label, True, True, 12)
-        self.entry = Gtk.Entry(visible=True, activates_default=True)
-        self.entry.connect("changed", self.on_entry_changed)
-        self.get_content_area().pack_start(self.entry, True, True, 12)
-        self.entry.set_text(dialog_settings.get("initial_value") or "")
+        self.name_entry = Gtk.Entry(visible=True, activates_default=True)
+        self.name_entry.connect("changed", self.on_entry_changed)
+        self.get_content_area().pack_start(self.name_entry, True, True, 12)
+        self.name_entry.set_text(game.name or "")
 
     def on_entry_changed(self, widget):
-        self.user_value = widget.get_text()
-        self.ok_button.set_sensitive(bool(self.user_value))
+        self.new_name = widget.get_text()
+        self.ok_button.set_sensitive(bool(self.new_name))
 
 
 class DirectoryDialog:

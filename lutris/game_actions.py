@@ -16,7 +16,7 @@ from lutris.gui import dialogs
 from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.config.edit_game_categories import EditGameCategoriesDialog
-from lutris.gui.dialogs import InputDialog
+from lutris.gui.dialogs import DuplicateGameDialog
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_game import UninstallMultipleGamesDialog
 from lutris.gui.widgets.utils import open_uri
@@ -25,7 +25,7 @@ from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
-from lutris.util.strings import gtk_safe, slugify
+from lutris.util.strings import slugify
 from lutris.util.system import path_exists
 
 
@@ -286,23 +286,12 @@ class GameActions(BaseGameActions):
 
     def on_game_duplicate(self, _widget):
         for game in self.games:
-            duplicate_game_dialog = InputDialog(
-                {
-                    "parent": self.window,
-                    "question": _(
-                        "Do you wish to duplicate %s?\nThe configuration will be duplicated, "
-                        "but the games files will <b>not be duplicated</b>.\n"
-                        "Please enter the new name for the copy:"
-                    ) % gtk_safe(game.name),
-                    "title": _("Duplicate game?"),
-                    "initial_value": game.name
-                }
-            )
+            duplicate_game_dialog = DuplicateGameDialog(game, parent=self.window)
             result = duplicate_game_dialog.run()
             if result != Gtk.ResponseType.OK:
                 duplicate_game_dialog.destroy()
                 return
-            new_name = duplicate_game_dialog.user_value
+            new_name = duplicate_game_dialog.new_name
 
             old_config_id = game.game_config_id
             if old_config_id:
