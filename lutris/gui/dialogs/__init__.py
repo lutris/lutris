@@ -366,9 +366,8 @@ class DuplicateGameDialog(ModalDialog):
     """Ask the user for a duplicate game's new name and slug"""
 
     def __init__(self, game, parent: Gtk.Window):
-        super().__init__(parent=parent)
+        super().__init__(parent=parent, use_header_bar=True)
         self.set_border_width(12)
-        self.new_name = ""
         self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
         self.ok_button = self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self.set_default_response(Gtk.ResponseType.OK)
@@ -380,15 +379,38 @@ class DuplicateGameDialog(ModalDialog):
             "but the games files will <b>not be duplicated</b>.\n"
             "Please enter the new name for the copy:"
         ) % gtk_safe(game.name))
-        self.get_content_area().pack_start(label, True, True, 12)
-        self.name_entry = Gtk.Entry(visible=True, activates_default=True)
-        self.name_entry.connect("changed", self.on_entry_changed)
-        self.get_content_area().pack_start(self.name_entry, True, True, 12)
-        self.name_entry.set_text(game.name or "")
+
+        self.grid = Gtk.Grid(row_spacing=6, column_spacing=6,
+                             halign=Gtk.Align.FILL)
+
+        content_area = self.get_content_area()
+        content_area.set_spacing(12)
+        content_area.pack_start(label, True, True, 0)
+        content_area.pack_start(self.grid, True, True, 0)
+        self.name_entry = self.add_entry_box(_("Name"), game.name, row=0)
+        self.slug_entry = self.add_entry_box(_("Identifier"), game.slug, row=1)
+        self.show_all()
+
+    def add_entry_box(self, label_text: str, initial_value: str, row: int) -> Gtk.Entry:
+        label = Gtk.Label(label_text, halign=Gtk.Align.START)
+        entry = Gtk.Entry(activates_default=True, halign=Gtk.Align.FILL, hexpand=True)
+        entry.set_text(initial_value or "")
+        entry.connect("changed", self.on_entry_changed)
+
+        self.grid.attach(label, 0, row, 1, 1)
+        self.grid.attach(entry, 1, row, 1, 1)
+        return entry
+
+    @property
+    def new_name(self):
+        return self.name_entry.get_text()
+
+    @property
+    def new_slug(self):
+        return self.slug_entry.get_text()
 
     def on_entry_changed(self, widget):
-        self.new_name = widget.get_text()
-        self.ok_button.set_sensitive(bool(self.new_name))
+        self.ok_button.set_sensitive(bool(self.new_name and self.new_slug))
 
 
 class DirectoryDialog:

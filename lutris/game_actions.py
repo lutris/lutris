@@ -292,6 +292,7 @@ class GameActions(BaseGameActions):
                 duplicate_game_dialog.destroy()
                 return
             new_name = duplicate_game_dialog.new_name
+            new_slug = duplicate_game_dialog.new_slug
 
             old_config_id = game.game_config_id
             if old_config_id:
@@ -301,7 +302,7 @@ class GameActions(BaseGameActions):
             duplicate_game_dialog.destroy()
             db_game = get_game_by_field(game.id, "id")
             db_game["name"] = new_name
-            db_game["slug"] = slugify(new_name) if new_name != game.name else game.slug
+            db_game["slug"] = new_slug
             db_game["lastplayed"] = None
             db_game["playtime"] = 0.0
             db_game["configpath"] = new_config_id
