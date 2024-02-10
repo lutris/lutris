@@ -151,19 +151,6 @@ class Game(GObject.Object):
             self.emit("game-state-changed")
 
     @property
-    def is_cache_managed(self):
-        """Is the DXVK cache receiving updates from lutris?"""
-        try:
-            if not self.has_runner:
-                return False
-
-            env = self.runner.system_config.get("env", {})
-            return "DXVK_STATE_CACHE_PATH" in env
-        except InvalidRunnerError as ex:
-            logger.exception("Unable to query runner configuration: %s", ex)
-            return False
-
-    @property
     def id(self) -> str:
         if not self._id:
             logger.error("The game '%s' has no ID, it is not stored in the database.", self.name)
