@@ -17,7 +17,7 @@ from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.strings import gtk_safe
+from lutris.util.strings import gtk_safe, slugify
 
 
 class Dialog(Gtk.Dialog):
@@ -389,6 +389,7 @@ class DuplicateGameDialog(ModalDialog):
         content_area.pack_start(self.grid, True, True, 0)
         self.name_entry = self.add_entry_box(_("Name"), game.name, row=0)
         self.slug_entry = self.add_entry_box(_("Identifier"), game.slug, row=1)
+        self.slug_entry.connect("focus-out-event", self.on_slug_entry_focus_out)
         self.show_all()
 
     def add_entry_box(self, label_text: str, initial_value: str, row: int) -> Gtk.Entry:
@@ -407,10 +408,13 @@ class DuplicateGameDialog(ModalDialog):
 
     @property
     def new_slug(self):
-        return self.slug_entry.get_text()
+        return slugify(self.slug_entry.get_text())
 
-    def on_entry_changed(self, widget):
+    def on_entry_changed(self, _widget):
         self.ok_button.set_sensitive(bool(self.new_name and self.new_slug))
+
+    def on_slug_entry_focus_out(self, *args):
+        self.slug_entry.set_text(self.new_slug)
 
 
 class DirectoryDialog:

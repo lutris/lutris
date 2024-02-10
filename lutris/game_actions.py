@@ -25,7 +25,6 @@ from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
-from lutris.util.strings import slugify
 from lutris.util.system import path_exists
 
 
