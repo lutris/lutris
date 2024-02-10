@@ -9,7 +9,7 @@ import urllib.parse
 import urllib.request
 from collections import OrderedDict
 from gettext import gettext as _
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Tuple
 
 import requests
 
@@ -179,6 +179,17 @@ def format_runner_version(version_info: Dict[str, str]) -> str:
     return version
 
 
+def parse_version_architecture(version_name: Optional[str]) -> Tuple[Optional[str], str]:
+    """Splits a version that ends with an architecture into the plain version and
+    architecture, as a tuple. If the version has no architecture, this provides
+    the system's architecture instead."""
+    if version_name:
+        if version_name.endswith("-i386") or version_name.endswith("-x86_64"):
+            version, arch = version_name.rsplit("-", 1)
+            return version, arch
+    return version_name, LINUX_SYSTEM.arch
+
+
 def get_default_runner_version_info(runner_name: str, version: str = None) -> Dict[str, str]:
     """Get the appropriate version for a runner
 
@@ -191,44 +202,66 @@ def get_default_runner_version_info(runner_name: str, version: str = None) -> Di
         a dict containing only the version itself.
     """
 
-    if not version:
+    version, arch = parse_version_architecture(version)
+
+    def get_from_cache():
+        # Prefer to provide the info from our local cache if we can; if this can't find
+        # an unambiguous result, we'll fall back on the API which should know what the default is.
         runtime_versions = get_runtime_versions()
         if runtime_versions:
             try:
                 runner_versions = runtime_versions["runners"][runner_name]
+                runner_versions = [r for r in runner_versions if r["architecture"] in (LINUX_SYSTEM.arch, "all")]
+                if version:
+                    runner_versions = [r for r in runner_versions if r["version"] == version]
+                if len(runner_versions) == 1:
+                    return runner_versions[0]
             except KeyError:
-                runner_versions = []
-            for runner_version in runner_versions:
-                if runner_version["architecture"] in (LINUX_SYSTEM.arch, "all"):
-                    return runner_version
-    logger.info(
-        "Getting runner information for %s%s",
-        runner_name,
-        " (version: %s)" % version if version else "",
-    )
-    arch = LINUX_SYSTEM.arch
-    versions = download_runner_versions(runner_name)
-    # Please someone clean up the abomination that is the code below.
-    if version:
-        if version.endswith("-i386") or version.endswith("-x86_64"):
-            version, arch = version.rsplit("-", 1)
-        versions = [v for v in versions if v["version"] == version]
-    versions_for_arch = [v for v in versions if v["architecture"] == arch]
-    if len(versions_for_arch) == 1:
-        return versions_for_arch[0]
+                pass
+        return None
 
-    if len(versions_for_arch) > 1:
-        default_version = [v for v in versions_for_arch if v["default"] is True]
-        if default_version:
-            return default_version[0]
-    elif len(versions) > 1 and LINUX_SYSTEM.is_64_bit:
-        default_version = [v for v in versions if v["default"] is True]
-        if default_version:
-            return default_version[0]
-    # If we didn't find a proper version yet, return the first available.
-    if len(versions_for_arch) >= 1:
-        return versions_for_arch[0]
-    return {}
+    def iter_get_from_api_candidates():
+        """A generator yielding possible version infos, or None for those that are available;
+        we pick the first non-None value yielded."""
+        versions = download_runner_versions(runner_name)
+
+        def select_info(predicate=None, accept_ambiguous=False):
+            candidates = [v for v in versions if predicate(v)]
+
+            if candidates and (accept_ambiguous or len(candidates) == 1):
+                return candidates[0]
+
+            return None
+
+        if version:
+            yield select_info(lambda v: v["architecture"] == arch and v["version"] == version)
+        else:
+            yield select_info(lambda v: v["architecture"] == arch and v["default"])
+
+        # Try various fallbacks to get some version - we prefer the default version
+        # or a version with the right architecture.
+        yield select_info(lambda v: v["architecture"] == arch and v["default"])
+        yield select_info(lambda v: v["architecture"] == arch)
+
+        # 64-bit system can use 32-bit version, if it's the default.
+        if LINUX_SYSTEM.is_64_bit:
+            yield select_info(lambda v: v["default"])
+
+        yield select_info(lambda v: v["architecture"] == arch, accept_ambiguous=True)
+
+    def get_from_api():
+        logger.info(
+            "Getting runner information for %s%s",
+            runner_name,
+            " (version: %s)" % version if version else "",
+        )
+
+        for candidate in iter_get_from_api_candidates():
+            if candidate:
+                return candidate
+        return None
+
+    return get_from_cache() or get_from_api()
 
 
 def get_http_post_response(url, payload):
