@@ -718,10 +718,11 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if image_path not in dest_paths:
             ext = get_image_file_extension(image_path)
 
-            for candidate in dest_paths:
-                if candidate.casefold().endswith(ext):
-                    self._save_copied_media_to(candidate, image_type, image_path)
-                    return
+            if ext:
+                for candidate in dest_paths:
+                    if candidate.casefold().endswith(ext):
+                        self._save_copied_media_to(candidate, image_type, image_path)
+                        return
 
             self._save_transcoded_media_to(dest_paths[0], image_type, image_path)
 
