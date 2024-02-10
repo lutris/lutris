@@ -371,7 +371,6 @@ class DuplicateGameDialog(ModalDialog):
         self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
         self.ok_button = self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self.set_default_response(Gtk.ResponseType.OK)
-        self.ok_button.set_sensitive(False)
         self.set_title(_("Duplicate game?"))
         label = Gtk.Label(visible=True)
         label.set_markup(_(
@@ -390,6 +389,7 @@ class DuplicateGameDialog(ModalDialog):
         self.name_entry = self.add_entry_box(_("Name"), game.name, row=0)
         self.slug_entry = self.add_entry_box(_("Identifier"), game.slug, row=1)
         self.slug_entry.connect("focus-out-event", self.on_slug_entry_focus_out)
+        self.ok_button.set_sensitive(self.is_ready)
         self.show_all()
 
     def add_entry_box(self, label_text: str, initial_value: str, row: int) -> Gtk.Entry:
@@ -410,8 +410,12 @@ class DuplicateGameDialog(ModalDialog):
     def new_slug(self):
         return slugify(self.slug_entry.get_text())
 
+    @property
+    def is_ready(self):
+        return bool(self.new_name and self.new_slug)
+
     def on_entry_changed(self, _widget):
-        self.ok_button.set_sensitive(bool(self.new_name and self.new_slug))
+        self.ok_button.set_sensitive(self.is_ready)
 
     def on_slug_entry_focus_out(self, *args):
         self.slug_entry.set_text(self.new_slug)
