@@ -5,7 +5,7 @@ from gettext import gettext as _
 from typing import Dict, Generator, List, Tuple
 
 from lutris import settings
-from lutris.api import get_default_runner_version_info
+from lutris.api import get_default_wine_runner_version_info
 from lutris.exceptions import MisconfigurationError, UnavailableRunnerError, UnspecifiedVersionError
 from lutris.util import cache_single, linux, system
 from lutris.util.log import logger
@@ -243,13 +243,6 @@ def get_default_wine_version() -> str:
                 return version
         return installed_versions[0]
     raise UnavailableRunnerError(_("No versions of Wine are installed."))
-
-
-@cache_single
-def get_default_wine_runner_version_info():
-    """Just returns the runner info for the default Wine, but with
-    caching."""
-    return get_default_runner_version_info("wine")
 
 
 def get_system_wine_version(wine_path: str = "wine") -> str:

@@ -5,7 +5,7 @@ from typing import Callable
 from gi.repository import Gio, Gtk
 
 from lutris import settings
-from lutris.api import get_runtime_versions_date_time_ago
+from lutris.api import get_runtime_versions_date_time_ago, get_default_wine_runner_version_info
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.dialogs import NoticeDialog
 from lutris.runtime import RuntimeUpdater
@@ -15,7 +15,6 @@ from lutris.util import system
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
-from lutris.util.wine.wine import get_default_wine_runner_version_info
 
 
 class UpdatesBox(BaseConfigBox):
