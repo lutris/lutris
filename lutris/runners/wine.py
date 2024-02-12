@@ -1052,7 +1052,7 @@ class wine(Runner):
         env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "gecko")
 
         # We don't want to override gstreamer for proton, it has it's own version
-        if "Proton" not in WINE_DIR:
+        if ('Proton' not in WINE_DIR) or ('lutris' in WINE_DIR and 'Proton' in WINE_DIR):
             if is_gstreamer_build(wine_exe):
                 path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
                 path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
@@ -1151,7 +1151,7 @@ class wine(Runner):
     def get_command(self):
         exe = self.get_executable()
         ulwgl_path = os.path.join(os.path.join(settings.RUNTIME_DIR, "ulwgl"))
-        if "Proton" in exe and system.path_exists(ulwgl_path):
+        if "Proton" in exe and "lutris" not in exe and system.path_exists(ulwgl_path):
             return [os.path.join(ulwgl_path, "ulwgl-run")]
         return super().get_command()
 
