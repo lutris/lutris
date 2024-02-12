@@ -113,7 +113,8 @@ def create_prefix(  # noqa: C901
             runner = import_runner("wine")()
         wine_path = runner.get_executable()
     logger.info("Winepath: %s", wine_path)
-    if 'Proton' not in wine_path:
+
+    if ('Proton' not in wine_path) or ('lutris' in wine_path and 'Proton' in wine_path):
         wineboot_path = os.path.join(os.path.dirname(wine_path), "wineboot")
         if not system.path_exists(wineboot_path):
             logger.error(
@@ -138,7 +139,7 @@ def create_prefix(  # noqa: C901
         wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
         overrides["mscoree"] = "disabled"
 
-    if 'Proton' not in wine_path:
+    if ('Proton' not in wine_path) or ('lutris' in wine_path and 'Proton' in wine_path):
         system.execute([wineboot_path], env=wineenv)
         for loop_index in range(1000):
             time.sleep(0.5)
@@ -396,7 +397,7 @@ def winetricks(
             runner = import_runner("wine")()
         winetricks_wine = runner.get_executable()
     # We only need to perform winetricks if not using ulwgl/proton. ulwgl uses protonfixes
-    if 'Proton' not in wine_path:
+    if ('Proton' not in wine_path) or ('lutris' in wine_path and 'Proton' in wine_path):
         if arch not in ("win32", "win64"):
             arch = detect_arch(prefix, winetricks_wine)
         args = app
