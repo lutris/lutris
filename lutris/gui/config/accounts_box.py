@@ -4,6 +4,8 @@ from gi.repository import Gtk
 
 from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
+from lutris.util.jobs import AsyncCall
+from lutris.util.library_sync import sync_local_library
 from lutris.util.steam.config import STEAM_ACCOUNT_SETTING, get_steam_users
 
 
@@ -59,6 +61,12 @@ class AccountsBox(BaseConfigBox):
         )
         self.space_widget(label, top=0)
         box.add(label)
+
+        button = Gtk.Button(_("Sync now"), visible=True)
+        button.connect("clicked", self.on_sync_clicked)
+        self.space_widget(button)
+        box.add(button)
+
         return box
 
     def populate_accounts(self):
@@ -87,3 +95,11 @@ class AccountsBox(BaseConfigBox):
     def on_steam_account_toggled(self, radio_button, steamid64):
         """Handler for switching the active Steam account."""
         settings.write_setting(STEAM_ACCOUNT_SETTING, steamid64)
+
+    def on_sync_clicked(self, button):
+
+        def sync_cb(result, error):
+            button.set_sensitive(True)
+
+        button.set_sensitive(False)
+        AsyncCall(sync_local_library, sync_cb)
