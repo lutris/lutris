@@ -68,6 +68,7 @@ def is_excluded_exe(filename):
         "unins000",
         "uninstal",
         "update",
+        "setup",
         "config.exe",
         "gsarcade.exe",
         "dosbox.exe",
