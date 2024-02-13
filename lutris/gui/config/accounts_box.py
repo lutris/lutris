@@ -8,19 +8,58 @@ from lutris.util.steam.config import STEAM_ACCOUNT_SETTING, get_steam_users
 
 
 class AccountsBox(BaseConfigBox):
-
     def __init__(self):
         super().__init__()
-        self.add(self.get_section_label(_("Steam accounts")))
-        self.add(self.get_description_label(
-            _("Select which Steam account is used for Lutris integration and creating Steam shortcuts.")
-        ))
+        self.add(self.get_section_label(_("Lutris")))
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         frame.get_style_context().add_class("info-frame")
         self.pack_start(frame, False, False, 0)
 
-        self.accounts_box = Gtk.VBox(visible=True)
+        frame.add(self.get_lutris_options())
+
+        self.add(self.get_section_label(_("Steam accounts")))
+        self.add(
+            self.get_description_label(
+                _(
+                    "Select which Steam account is used for Lutris integration and creating Steam shortcuts."
+                )
+            )
+        )
+        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
+        frame.get_style_context().add_class("info-frame")
+        self.pack_start(frame, False, False, 0)
+
+        self.accounts_box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True
+        )
         frame.add(self.accounts_box)
+
+    def space_widget(self, widget, top=16, bottom=16):
+        widget.set_margin_top(top)
+        widget.set_margin_start(16)
+        widget.set_margin_bottom(bottom)
+
+    def get_lutris_options(self):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
+        checkbutton = Gtk.CheckButton.new_with_label(
+            _("Keep your game library synced with Lutris.net")
+        )
+        checkbutton.show()
+        self.space_widget(checkbutton, bottom=0)
+        box.add(checkbutton)
+
+        label = Gtk.Label(visible=True)
+        label.set_alignment(0, 0.5)
+        label.set_markup(
+            _(
+                "<i>This will send play time, last played, runner, platform \n"
+                "and store information to the lutris website so you can \n"
+                "sync this data on multiple devices (this is currently being implemented)</i>"
+            )
+        )
+        self.space_widget(label, top=0)
+        box.add(label)
+        return box
 
     def populate_accounts(self):
         main_radio_button = None
@@ -30,10 +69,10 @@ class AccountsBox(BaseConfigBox):
         for account in steam_users:
             steamid64 = account["steamid64"]
             name = account.get("PersonaName") or f"#{steamid64}"
-            radio_button = Gtk.RadioButton.new_with_label_from_widget(main_radio_button, name)
-            radio_button.set_margin_top(16)
-            radio_button.set_margin_start(16)
-            radio_button.set_margin_bottom(16)
+            radio_button = Gtk.RadioButton.new_with_label_from_widget(
+                main_radio_button, name
+            )
+            self.space_widget(radio_button)
             radio_button.show()
             radio_button.set_active(active_steam_account == steamid64)
             radio_button.connect("toggled", self.on_steam_account_toggled, steamid64)
@@ -41,7 +80,9 @@ class AccountsBox(BaseConfigBox):
             if not main_radio_button:
                 main_radio_button = radio_button
         if not steam_users:
-            self.accounts_box.pack_start(Gtk.Label(_("No Steam account found"), visible=True), True, True, 0)
+            self.accounts_box.pack_start(
+                Gtk.Label(_("No Steam account found"), visible=True), True, True, 0
+            )
 
     def on_steam_account_toggled(self, radio_button, steamid64):
         """Handler for switching the active Steam account."""
