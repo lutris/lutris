@@ -38,7 +38,7 @@ class LutrisBanner(ServiceMedia):
     dest_path = settings.BANNER_PATH
     file_pattern = "%s.jpg"
     file_format = "jpeg"
-    api_field = 'banner_url'
+    api_field = 'banner'
 
 
 class LutrisIcon(LutrisBanner):
@@ -46,7 +46,7 @@ class LutrisIcon(LutrisBanner):
     dest_path = settings.ICON_PATH
     file_pattern = "lutris_%s.png"
     file_format = "png"
-    api_field = 'icon_url'
+    api_field = 'icon'
 
     @property
     def custom_media_storage_size(self):

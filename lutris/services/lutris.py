@@ -86,17 +86,14 @@ class LutrisService(OnlineService):
         credentials = read_api_key()
         if not credentials:
             return []
-        url = settings.SITE_URL + "/api/games/library/%s" % urllib.parse.quote(credentials["username"])
+        url = settings.SITE_URL + "/api/users/library"
         request = http.Request(url, headers={"Authorization": "Token " + credentials["token"]})
         try:
             response = request.get()
         except http.HTTPError as ex:
             logger.error("Unable to load library: %s", ex)
             return []
-        response_data = response.json
-        if response_data:
-            return response_data["games"]
-        return []
+        return response.json
 
     def load(self):
         lutris_games = self.get_library()
@@ -174,11 +171,11 @@ def download_lutris_media(slug):
         logger.debug("Unable to load %s: %s", slug, ex)
         return
     response_data = response.json
-    icon_url = response_data.get("icon_url")
+    icon_url = response_data.get("icon")
     if icon_url:
         download_media({slug: icon_url}, LutrisIcon())
 
-    banner_url = response_data.get("banner_url")
+    banner_url = response_data.get("banner")
     if banner_url:
         download_media({slug: banner_url}, LutrisBanner())
 
