@@ -14,6 +14,7 @@ from lutris.util import cache_single
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+from lutris.util.system import fix_path_case
 
 GAME_PATH_CACHE_PATH = os.path.join(settings.CACHE_DIR, "game-paths.json")
 
@@ -133,6 +134,12 @@ def get_path_from_config(game):
                 path = os.path.expanduser(path)
                 if not path.startswith("/"):
                     path = os.path.join(game.directory, path)
+
+                # The Wine runner fixes case mismatches automatically,
+                # sort of like Windows, so we need to do the same.
+                if game.runner_name == "wine":
+                    path = fix_path_case(path)
+
                 return path
 
     logger.warning("No path found in %s", game.config)
