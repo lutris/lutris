@@ -272,8 +272,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Load the initial filters when creating the view"""
         # The main sidebar-category filter will be populated when the sidebar row is selected, after this
         filters = {
-            "hidden": settings.read_setting("show_hidden_games").lower() == "true",
-            "installed": settings.read_setting("filter_installed").lower() == "true"
+            "hidden": self.show_hidden_games,
+            "installed": self.filter_installed
         }
         return filters
 
@@ -285,9 +285,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def hidden_state_change(self, action, value):
         """Hides or shows the hidden games"""
         action.set_state(value)
-        settings.write_setting("show_hidden_games", str(value).lower(), section="lutris")
         self.filters["hidden"] = bool(value)
         self.emit("view-updated")
+        if not self.hide_hidden_games_on_launch:
+            settings.write_setting("show_hidden_games", str(value).lower(), section="lutris")
 
     @property
     def current_view_type(self):
@@ -324,7 +325,13 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     @property
     def show_hidden_games(self):
+        if self.hide_hidden_games_on_launch:
+            return False
         return settings.read_setting("show_hidden_games").lower() == "true"
+
+    @property
+    def hide_hidden_games_on_launch(self):
+        return settings.read_bool_setting("hide_hidden_games_on_launch")
 
     @property
     def sort_params(self):
@@ -1063,6 +1070,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.on_settings_changed(None, not state, "hide_badges_on_icons")
 
     def on_settings_changed(self, dialog, state, setting_key):
+        if setting_key == "hide_hidden_games_on_launch":
+            settings.write_setting("show_hidden_games", "false", section="lutris")
         if setting_key == "hide_text_under_icons":
             self.rebuild_view("grid")
         else:

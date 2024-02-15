@@ -14,6 +14,7 @@ class InterfacePreferencesBox(BaseConfigBox):
         "show_tray_icon": _("Show Tray Icon"),
         "dark_theme": _("Use dark theme (requires dark theme variant for Gtk)"),
         "discord_rpc": _("Enable Discord Rich Presence for Available Games"),
+        "hide_hidden_games_on_launch": _("Always keeps hidden games hidden on lutris launch"),
     }
 
     settings_accelerators = {
