@@ -19,12 +19,12 @@ def get_local_library():
             {
                 "name": pga_game["name"],
                 "slug": pga_game["slug"],
-                "playtime": pga_game["playtime"],
-                "lastplayed": pga_game["lastplayed"],
-                "platform": pga_game["platform"],
-                "runner": pga_game["runner"],
-                "service": pga_game["service"],
-                "service_id": pga_game["service_id"],
+                "playtime": "%0.5f" % (pga_game["playtime"] or 0),
+                "lastplayed": pga_game["lastplayed"] or 0,
+                "platform": pga_game["platform"] or "",
+                "runner": pga_game["runner"] or "",
+                "service": pga_game["service"] or "",
+                "service_id": pga_game["service_id"] or "",
             }
         )
     return game_library
