@@ -1,4 +1,5 @@
 import json
+import time
 
 from lutris import settings
 from lutris.api import read_api_key
@@ -30,15 +31,20 @@ def get_local_library():
 
 
 def sync_local_library():
+    sync_started_at = int(time.time())
     library = get_local_library()
     payload = json.dumps(library, indent=2)
     credentials = read_api_key()
+    url = LIBRARY_URL
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Token " + credentials["token"],
+    }
+    if settings.read_setting("last_library_sync_at"):
+        url += "?since=%s" % settings.read_setting("last_library_sync_at")
     request = http.Request(
-        LIBRARY_URL,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": "Token " + credentials["token"],
-        },
+        url,
+        headers=headers,
     )
     try:
         request.post(data=payload.encode())
@@ -109,3 +115,4 @@ def sync_local_library():
                 service_id=remote_game["service_id"],
                 installed=0,
             )
+    settings.write_setting("last_library_sync_at", sync_started_at)
