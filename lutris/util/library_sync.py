@@ -102,6 +102,7 @@ def sync_local_library():
                 runner=remote_game["runner"],
                 platform=remote_game["platform"],
                 lastplayed=remote_game["lastplayed"],
+                playtime=remote_game["playtime"],
                 service=remote_game["service"],
                 service_id=remote_game["service_id"],
                 installed=0,
