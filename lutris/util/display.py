@@ -7,6 +7,7 @@ from typing import Any, Dict
 
 import gi
 
+
 try:
     gi.require_version("GnomeDesktop", "3.0")
     from gi.repository import GnomeDesktop
@@ -25,6 +26,7 @@ except ImportError:
 
 from gi.repository import Gdk, GLib, Gio, Gtk
 
+from lutris.util import cache_single
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
 from lutris.util.graphics.displayconfig import MutterDisplayManager
 from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution, get_outputs
@@ -259,6 +261,7 @@ def _check_compositor_active(command_set: Dict[str, Any]) -> bool:
 _COMPOSITING_DISABLED_STACK = []
 
 
+@cache_single
 def _get_compositor_commands():
     """Returns the commands to enable/disable compositing on the current
     desktop environment as a 3-tuple: start command, stop-command and
