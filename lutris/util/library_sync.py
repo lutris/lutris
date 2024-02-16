@@ -2,7 +2,7 @@ import json
 
 from lutris import settings
 from lutris.api import read_api_key
-from lutris.database.games import add_or_update, get_games_where
+from lutris.database.games import add_game, get_games, get_games_where
 from lutris.game import Game
 from lutris.util import http
 from lutris.util.log import logger
@@ -12,10 +12,8 @@ LIBRARY_URL = settings.SITE_URL + "/api/users/library"
 
 def get_local_library():
     game_library = []
-    pga_games = get_games_where(lastplayed__not=0)
+    pga_games = get_games()
     for pga_game in pga_games:
-        if not pga_game["lastplayed"] or not pga_game["playtime"]:
-            continue
         game_library.append(
             {
                 "name": pga_game["name"],
@@ -50,6 +48,7 @@ def sync_local_library():
     library_keys = set()
     duplicate_keys = set()
     library_map = {}
+    library_slugs = set()
     for game in library:
         key = (
             game["slug"],
@@ -61,6 +60,7 @@ def sync_local_library():
             duplicate_keys.add(key)
         library_keys.add(key)
         library_map[key] = game
+        library_slugs.add(game["slug"])
     for remote_game in request.json:
         remote_key = (
             remote_game["slug"],
@@ -95,8 +95,10 @@ def sync_local_library():
             if changed:
                 game.save()
         else:
+            if remote_game["slug"] in library_slugs:
+                continue
             logger.info("Create %s", remote_key)
-            add_or_update(
+            add_game(
                 name=remote_game["name"],
                 slug=remote_game["slug"],
                 runner=remote_game["runner"],
