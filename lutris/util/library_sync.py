@@ -2,7 +2,7 @@ import json
 
 from lutris import settings
 from lutris.api import read_api_key
-from lutris.database.games import add_or_update, get_games, get_games_where
+from lutris.database.games import add_or_update, get_games_where
 from lutris.game import Game
 from lutris.util import http
 from lutris.util.log import logger
@@ -12,8 +12,10 @@ LIBRARY_URL = settings.SITE_URL + "/api/users/library"
 
 def get_local_library():
     game_library = []
-    pga_games = get_games()
+    pga_games = get_games_where(lastplayed__not=0)
     for pga_game in pga_games:
+        if not pga_game["lastplayed"]:
+            continue
         game_library.append(
             {
                 "name": pga_game["name"],
