@@ -14,7 +14,15 @@ LIBRARY_URL = settings.SITE_URL + "/api/users/library"
 def get_local_library():
     game_library = []
     pga_games = get_games()
+    if settings.read_setting("last_library_sync_at"):
+        since = int(settings.read_setting("last_library_sync_at"))
+    else:
+        since = None
     for pga_game in pga_games:
+        lastplayed = pga_game["lastplayed"] or 0
+        installed_at = pga_game["installed_at"] or 0
+        if since and lastplayed < since and installed_at < since:
+            continue
         game_library.append(
             {
                 "name": pga_game["name"],
