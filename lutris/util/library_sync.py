@@ -14,7 +14,7 @@ def get_local_library():
     game_library = []
     pga_games = get_games_where(lastplayed__not=0)
     for pga_game in pga_games:
-        if not pga_game["lastplayed"]:
+        if not pga_game["lastplayed"] or not pga_game["playtime"]:
             continue
         game_library.append(
             {
