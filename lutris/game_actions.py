@@ -337,14 +337,12 @@ class GameActions(BaseGameActions):
     def on_add_favorite_game(self, _widget):
         """Add to favorite Games list"""
         for game in self.games:
-            if not game.is_favorite:
-                game.add_to_favorites()
+            game.mark_as_favorite(True)
 
     def on_delete_favorite_game(self, _widget):
         """delete from favorites"""
         for game in self.games:
-            if game.is_favorite:
-                game.remove_from_favorites()
+            game.mark_as_favorite(False)
 
     def on_edit_game_categories(self, _widget):
         """Edit game categories"""
@@ -354,14 +352,12 @@ class GameActions(BaseGameActions):
     def on_hide_game(self, _widget):
         """Add a game to the list of hidden games"""
         for game in self.games:
-            if not game.is_hidden:
-                game.set_hidden(True)
+            game.mark_as_hidden(True)
 
     def on_unhide_game(self, _widget):
         """Removes a game from the list of hidden games"""
         for game in self.games:
-            if game.is_hidden:
-                game.set_hidden(False)
+            game.mark_as_hidden(False)
 
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""

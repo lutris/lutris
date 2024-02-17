@@ -19,5 +19,5 @@ def migrate():
         return []
     for game_id in game_ids:
         game = Game(game_id)
-        game.set_hidden(True)
+        game.mark_as_hidden(True)
     settings.write_setting("library_ignores", '', section="lutris")
