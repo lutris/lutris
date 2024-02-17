@@ -126,21 +126,6 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "section": _("Display"),
-        "option": "prime",
-        "type": "bool",
-        "default": False,
-        "advanced": True,
-        "condition": True,
-        "warning": get_nvidia_prime_render_offload_warning,
-        "label": _("Enable NVIDIA Prime Render Offload"),
-        "help": _("If you have the latest NVIDIA driver and the properly patched xorg-server (see "
-                  "https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/primerenderoffload.html"
-                  "), you can launch a game on your NVIDIA GPU by toggling this switch. This will apply "
-                  "__NV_PRIME_RENDER_OFFLOAD=1 and "
-                  "__VK_LAYER_NV_optimus=NVIDIA_only environment variables.")
-    },
-    {
-        "section": _("Display"),
         "option": "mangohud",
         "type": "bool",
         "label": _("FPS counter (MangoHud)"),
