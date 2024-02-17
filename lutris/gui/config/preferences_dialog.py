@@ -69,7 +69,7 @@ class PreferencesDialog(GameDialogCommon):
         )
 
         accounts_box = AccountsBox()
-        self.page_generators["accounts-stack"] = accounts_box.populate_accounts
+        self.page_generators["accounts-stack"] = accounts_box.populate_steam_accounts
         self.stack.add_named(
             self.build_scrolled_window(accounts_box),
             "accounts-stack"

@@ -69,7 +69,7 @@ class AccountsBox(BaseConfigBox):
 
         return box
 
-    def populate_accounts(self):
+    def populate_steam_accounts(self):
         main_radio_button = None
         active_steam_account = settings.read_setting(STEAM_ACCOUNT_SETTING)
 
@@ -97,7 +97,6 @@ class AccountsBox(BaseConfigBox):
         settings.write_setting(STEAM_ACCOUNT_SETTING, steamid64)
 
     def on_sync_clicked(self, button):
-
         def sync_cb(result, error):
             button.set_sensitive(True)
 
