@@ -219,11 +219,11 @@ class ConfigBox(VBox):
                 option_container = hbox
                 hbox.set_margin_left(18)
                 hbox.pack_end(placeholder, False, False, 5)
+                hbox.pack_start(self.wrapper, True, True, 0)
+
                 # Grey out option if condition unmet
                 if "condition" in option and not option["condition"]:
-                    hbox.set_sensitive(False)
-
-                hbox.pack_start(self.wrapper, True, True, 0)
+                    self.wrapper.set_sensitive(False)
 
                 if "warning" in option:
                     option_body = option_container
@@ -238,7 +238,7 @@ class ConfigBox(VBox):
                     option_body = option_container
                     option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
                     option_container.pack_start(option_body, False, False, 0)
-                    error = ConfigErrorBox(option["error"], option_key, hbox)
+                    error = ConfigErrorBox(option["error"], option_key, self.wrapper)
                     error.update_warning(self.config)
                     self.error_boxes[option_key] = error
                     option_container.pack_start(error, False, False, 0)
@@ -853,11 +853,11 @@ class ConfigWarningBox(ConfigMessageBox):
 
 
 class ConfigErrorBox(ConfigMessageBox):
-    def __init__(self, error, option_key, option_container):
+    def __init__(self, error, option_key, wrapper):
         super().__init__(error, option_key, icon_name="dialog-error")
-        self.option_container = option_container
+        self.wrapper = wrapper
 
     def update_warning(self, config):
         visible = super().update_warning(config)
-        self.option_container.set_sensitive(not visible)
+        self.wrapper.set_sensitive(not visible)
         return visible
