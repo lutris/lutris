@@ -1,4 +1,3 @@
-
 import sqlite3
 import threading
 
@@ -31,9 +30,11 @@ def cursor_execute(cursor, query, params=None):
     if not lock:
         logger.error("Database is busy. Not executing %s", query)
         return
-    results = cursor.execute(query, params)
-    DB_LOCK.release()
-    return results
+
+    try:
+        return cursor.execute(query, params)
+    finally:
+        DB_LOCK.release()
 
 
 def db_insert(db_path, table, fields):
@@ -68,7 +69,7 @@ def db_update(db_path, table, updated_fields, conditions):
 
 def db_delete(db_path, table, field, value):
     with db_cursor(db_path) as cursor:
-        cursor_execute(cursor, "delete from {0} where {1}=?".format(table, field), (value, ))
+        cursor_execute(cursor, "delete from {0} where {1}=?".format(table, field), (value,))
 
 
 def db_select(db_path, table, fields=None, condition=None):
@@ -85,7 +86,7 @@ def db_select(db_path, table, fields=None, condition=None):
                 placeholders = ", ".join("?" * len(condition_value))
                 where_condition = " where {} in (" + placeholders + ")"
             else:
-                condition_value = (condition_value, )
+                condition_value = (condition_value,)
                 where_condition = " where {}=?"
             query = query + where_condition
             query = query.format(columns, table, condition_field)
