@@ -20,7 +20,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         self.available_games = [Game(x['id']) for x in games_db.get_games(sorts=[("installed", "DESC"),
                                                                                  ("name", "COLLATE NOCASE ASC")
                                                                                  ])]
-        self.category_games = [Game(x) for x in categories_db.get_game_ids_for_category(self.category)]
+        self.category_games = [Game(x) for x in categories_db.get_game_ids_for_categories([self.category])]
         self.grid = Gtk.Grid()
 
         self.set_default_size(500, 350)
