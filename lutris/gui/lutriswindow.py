@@ -270,8 +270,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     @property
     def is_show_hidden_sensitive(self):
-        """True if the hidden checkbox will be effective; service views ignore it."""
-        return not self.filters.get("service")
+        """True if there are any hiden games to show."""
+        return bool(categories_db.get_game_ids_for_categories([".hidden"]))
 
     def on_show_hidden_clicked(self, action, value):
         """Hides or shows the hidden games"""
@@ -526,6 +526,9 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if filter_text:
             if self.filters.get("category") == "favorite":
                 self.show_label(_("Add a game matching '%s' to your favorites to see it here.") % filter_text)
+            elif self.filters.get("category") == ".hidden":
+                self.show_label(
+                    _("No hidden games matching '%s' found.") % filter_text)
             elif self.filters.get("installed") and has_uninstalled_games:
                 self.show_label(
                     _("No installed games matching '%s' found. Press Ctrl+I to show uninstalled games.") % filter_text)
@@ -534,6 +537,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
         else:
             if self.filters.get("category") == "favorite":
                 self.show_label(_("Add games to your favorites to see them here."))
+            elif self.filters.get("category") == ".hidden":
+                self.show_label(_("No games are hidden."))
             elif self.filters.get("installed") and has_uninstalled_games:
                 self.show_label(_("No installed games found. Press Ctrl+I to show uninstalled games."))
             elif (
@@ -1051,6 +1056,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_game_updated(self, game):
         """Updates an individual entry in the view when a game is updated"""
         add_to_path_cache(game)
+        self.update_action_state()
+
         if self.service:
             db_game = self.service.get_service_db_game(game)
         else:
