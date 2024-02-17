@@ -170,11 +170,6 @@ class Game(GObject.Object):
         """Return whether the game can be upgraded"""
         return self.is_installed and self.service in ["gog", "itchio"]
 
-    @property
-    def is_favorite(self):
-        """Return whether the game is in the user's favorites"""
-        return "favorite" in self.get_categories()
-
     def get_categories(self):
         """Return the categories the game is in."""
         return categories_db.get_categories_in_game(self.id) if self.is_db_stored else []
@@ -218,25 +213,33 @@ class Game(GObject.Object):
         if not no_signal:
             self.emit("game-updated")
 
-    def add_to_favorites(self):
-        """Add the game to the 'favorite' category"""
-        self.add_category("favorite")
+    @property
+    def is_favorite(self) -> bool:
+        """Return whether the game is in the user's favorites"""
+        return "favorite" in self.get_categories()
 
-    def remove_from_favorites(self):
-        """Remove game from favorites"""
-        self.remove_category("favorite")
+    def mark_as_favorite(self, is_favorite: bool) -> None:
+        """Place the game in the favorite's category, or remove it.
+        This change is applied at once, and does not need to be saved."""
+        if self.is_favorite != bool(is_favorite):
+            if is_favorite:
+                self.add_category("favorite")
+            else:
+                self.remove_category("favorite")
 
     @property
-    def is_hidden(self):
+    def is_hidden(self) -> bool:
         """Return whether the game is in the user's favorites"""
         return ".hidden" in self.get_categories()
 
-    def set_hidden(self, is_hidden):
-        """Do not show this game in the UI"""
-        if is_hidden:
-            self.add_category(".hidden")
-        else:
-            self.remove_category(".hidden")
+    def mark_as_hidden(self, is_hidden: bool) -> None:
+        """Place the game in the hidden category, or remove it.
+        This change is applied at once, and does not need to be saved."""
+        if self.is_hidden != bool(is_hidden):
+            if is_hidden:
+                self.add_category(".hidden")
+            else:
+                self.remove_category(".hidden")
 
     @property
     def log_buffer(self):
