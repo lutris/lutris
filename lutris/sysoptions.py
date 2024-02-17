@@ -52,9 +52,15 @@ def get_gpu_list():
     return choices
 
 
-def get_dri_prime_no_gpu_warning(config, option_key):
-    if config.get(option_key) and not config.get("gpu"):
-        return _("Discrete graphics can be activated only once you have specified a GPU explicitly.")
+def get_nvidia_prime_render_offload_warning(config, option_key):
+    if config.get(option_key):
+        gpu = config.get("gpu")
+        if not gpu:
+            return _("NVIDIA Prime Render Offload only works once you have specified a GPU explicitly.")
+
+        gpu_info = GPUS.get(gpu)
+        if gpu_info and gpu_info.driver != "nvidia":
+            return _("NVIDIA Prime Render Offload only works with an NVIDIA GPU.")
 
 
 def get_output_choices():
@@ -120,17 +126,18 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "section": _("Display"),
-        "option": "dri_prime",
+        "option": "prime",
         "type": "bool",
         "default": False,
         "advanced": True,
         "condition": True,
-        "warning": get_dri_prime_no_gpu_warning,
-        "label": _("Use discrete graphics"),
-        "help": _("Selecting this option will run the game with the 'DRI_PRIME' environment "
-                  "variable configured, activating your discrete graphic chip for high 3D "
-                  "performance. __NV_PRIME_RENDER_OFFLOAD and __GLX_VENDOR_LIBRARY_NAME are "
-                  "configured as well for NVidia GPUs."),
+        "warning": get_nvidia_prime_render_offload_warning,
+        "label": _("Enable NVIDIA Prime Render Offload"),
+        "help": _("If you have the latest NVIDIA driver and the properly patched xorg-server (see "
+                  "https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/primerenderoffload.html"
+                  "), you can launch a game on your NVIDIA GPU by toggling this switch. This will apply "
+                  "__NV_PRIME_RENDER_OFFLOAD=1 and "
+                  "__VK_LAYER_NV_optimus=NVIDIA_only environment variables.")
     },
     {
         "section": _("Display"),
