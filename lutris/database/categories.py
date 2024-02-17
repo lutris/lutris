@@ -33,23 +33,30 @@ def get_category(name):
 
 def get_game_ids_for_categories(included_category_names=None, excluded_category_names=None):
     """Get the ids of games in database."""
-    query = (
-        "SELECT games.id FROM games "
-        "LEFT OUTER JOIN games_categories ON games.id = games_categories.game_id "
-        "LEFT OUTER JOIN categories ON categories.id = games_categories.category_id"
-    )
-
     filters = []
     parameters = []
 
     if included_category_names:
+        # Query that finds games in the included categories
+        query = (
+            "SELECT games.id FROM games "
+            "INNER JOIN games_categories ON games.id = games_categories.game_id "
+            "INNER JOIN categories ON categories.id = games_categories.category_id"
+        )
         filters.append("categories.name IN (%s)" % ", ".join(repeat("?", len(included_category_names))))
         parameters.extend(included_category_names)
+    else:
+        # Or, if you listed none, we fall back to all games
+        query = "SELECT games.id FROM games"
 
     if excluded_category_names:
-        exclude_filter = "categories.name NOT IN (%s)" % ", ".join(repeat("?", len(excluded_category_names)))
-        if not included_category_names:
-            exclude_filter = f"({exclude_filter} OR categories.name IS NULL)"
+        # Sub-query to exclude the excluded categories, if any.
+        exclude_filter = (
+            "NOT EXISTS(SELECT * FROM games_categories AS gc "
+            "INNER JOIN categories AS c ON gc.category_id = c.id "
+            "WHERE gc.game_id = games.id "
+            "AND c.name IN (%s))" % ", ".join(repeat("?", len(excluded_category_names)))
+        )
         filters.append(exclude_filter)
         parameters.extend(excluded_category_names)
 
