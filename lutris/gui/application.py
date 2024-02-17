@@ -476,16 +476,7 @@ class Application(Gtk.Application):
 
         logger.info("Starting Lutris %s", settings.VERSION)
         init_lutris()
-
-        # Perform migrations early if any command line options
-        # might require it to be done, just in case. We migrate
-        # also during the init dialog, but it should be harmless
-        # to do it twice.
-        #
-        # This way, in typical lutris usage, you get to see the
-        # init dialog when migration is happening.
-        if argc:
-            migrate()
+        migrate()
 
         run_all_checks()
         if options.contains("dest"):
