@@ -237,14 +237,14 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         if self.system_config.get("gpu"):
             gpu = GPUS[self.system_config["gpu"]]
-            if gpu.driver == "nvidia":
-                env["DRI_PRIME"] = "1"
-                env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
-                if self.system_config.get("prime"):
+            if self.system_config.get("dri_prime"):
+                if gpu.driver == "nvidia":
+                    env["DRI_PRIME"] = "1"
                     env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
+                    env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
                     env["__VK_LAYER_NV_optimus"] = "NVIDIA_only"
-            else:
-                env["DRI_PRIME"] = gpu.pci_id
+                else:
+                    env["DRI_PRIME"] = gpu.pci_id
             env["VK_ICD_FILENAMES"] = gpu.icd_files  # Deprecated
             env["VK_DRIVER_FILES"] = gpu.icd_files   # Current form
 
