@@ -462,10 +462,19 @@ class LutrisSidebar(Gtk.ListBox):
         """Selects the row for the category indicated by a category tuple,
         like ('service', 'lutris')"""
         selected_row_type, selected_row_id = value or ("category", "all")
-        for row in self.get_children():
+        children = list(self.get_children())
+        for row in children:
             if row.type == selected_row_type and row.id == selected_row_id:
-                self.select_row(row)
+                if row.get_visible():
+                    self.select_row(row)
+                    return
+
                 break
+
+        for row in children:
+            if row.get_visible():
+                self.select_row(row)
+                return
 
     def _filter_func(self, row):
         def is_runner_visible(runner_name):
