@@ -197,9 +197,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 accel="F9",
             ),
             "show-hidden-games": Action(
-                self.hidden_state_change,
-                type="b",
-                default=self.show_hidden_games,
+                self.on_show_hidden_clicked,
                 enabled=lambda: self.is_show_hidden_sensitive,
                 accel="<Primary>h",
             ),
@@ -275,11 +273,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """True if the hidden checkbox will be effective; service views ignore it."""
         return not self.filters.get("service")
 
-    def hidden_state_change(self, action, value):
+    def on_show_hidden_clicked(self, action, value):
         """Hides or shows the hidden games"""
-        action.set_state(value)
-        settings.write_setting("show_hidden_games", str(value).lower(), section="lutris")
-        self.update_store()
+        self.sidebar.hidden_row.show()
+        self.sidebar.selected_category = "category", ".hidden"
 
     @property
     def current_view_type(self):
@@ -1029,9 +1026,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def is_game_displayed(self, game):
         """Return whether a game should be displayed on the view"""
-        if game.is_hidden and not self.show_hidden_games:
-            return False
-
         row = self.sidebar.get_selected_row()
 
         if row:

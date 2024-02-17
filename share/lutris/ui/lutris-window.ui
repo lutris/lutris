@@ -514,9 +514,9 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="receives-default">False</property>
-            <property name="action-name">win.show-hidden-games</property>
-            <property name="text" translatable="yes">Show _Hidden Games</property>
-            <accelerator key="h" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+            <property name="action-name">win.show-side-panel</property>
+            <property name="text" translatable="yes">Show Side _Panel</property>
+            <accelerator key="0xffffff" signal="clicked"/>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -529,9 +529,9 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="receives-default">False</property>
-            <property name="action-name">win.show-side-panel</property>
-            <property name="text" translatable="yes">Show Side _Panel</property>
-            <accelerator key="0xffffff" signal="clicked"/>
+            <property name="action-name">win.show-hidden-games</property>
+            <property name="text" translatable="yes">Show _Hidden Games</property>
+            <accelerator key="h" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
           </object>
           <packing>
             <property name="expand">False</property>
