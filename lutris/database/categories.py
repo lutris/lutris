@@ -1,4 +1,5 @@
 import re
+from itertools import repeat
 
 from lutris import settings
 from lutris.database import sql
@@ -30,16 +31,34 @@ def get_category(name):
         return categories[0]
 
 
-def get_game_ids_for_category(category_name):
+def get_game_ids_for_categories(included_category_names=None, excluded_category_names=None):
     """Get the ids of games in database."""
     query = (
-        "SELECT game_id FROM games_categories "
-        "JOIN categories ON categories.id = games_categories.category_id "
-        "WHERE categories.name=?"
+        "SELECT games.id FROM games "
+        "LEFT OUTER JOIN games_categories ON games.id = games_categories.game_id "
+        "LEFT OUTER JOIN categories ON categories.id = games_categories.category_id"
     )
+
+    filters = []
+    parameters = []
+
+    if included_category_names:
+        filters.append("categories.name IN (%s)" % ", ".join(repeat("?", len(included_category_names))))
+        parameters.extend(included_category_names)
+
+    if excluded_category_names:
+        exclude_filter = "categories.name NOT IN (%s)" % ", ".join(repeat("?", len(excluded_category_names)))
+        if not included_category_names:
+            exclude_filter = f"({exclude_filter} OR categories.name IS NULL)"
+        filters.append(exclude_filter)
+        parameters.extend(excluded_category_names)
+
+    if filters:
+        query += " WHERE %s" % " AND ".join(filters)
+
     return [
-        game["game_id"]
-        for game in sql.db_query(settings.DB_PATH, query, (category_name,))
+        game["id"]
+        for game in sql.db_query(settings.DB_PATH, query, tuple(parameters))
     ]
 
 
