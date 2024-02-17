@@ -86,10 +86,6 @@ DATABASE = {
             "type": "REAL"
         },
         {
-            "name": "hidden",
-            "type": "INTEGER"
-        },
-        {
             "name": "service",
             "type": "TEXT"
         },
