@@ -344,6 +344,7 @@ class LutrisSidebar(Gtk.ListBox):
         self.category_rows = {}
         # A dummy objects that allows inspecting why/when we have a show() call on the object.
         self.running_row = DummyRow()
+        self.hidden_row = DummyRow()
         self.missing_row = DummyRow()
         self.row_headers = {
             "library": SidebarHeader(_("Library"), header_index=0),
@@ -416,14 +417,15 @@ class LutrisSidebar(Gtk.ListBox):
                 Gtk.Image.new_from_icon_name("favorite-symbolic", Gtk.IconSize.MENU)
             )
         )
-        self.add(
-            SidebarRow(
-                ".hidden",
-                "category",
-                _("Hidden"),
-                Gtk.Image.new_from_icon_name("action-unavailable-symbolic", Gtk.IconSize.MENU)
-            )
+
+        self.hidden_row = SidebarRow(
+            ".hidden",
+            "category",
+            _("Hidden"),
+            Gtk.Image.new_from_icon_name("action-unavailable-symbolic", Gtk.IconSize.MENU)
         )
+        self.add(self.hidden_row)
+
         self.missing_row = SidebarRow(
             "missing",
             "dynamic_category",
@@ -441,6 +443,7 @@ class LutrisSidebar(Gtk.ListBox):
         # I wanted this to be on top but it really messes with the headers when showing/hiding the row.
         self.add(self.running_row)
         self.show_all()
+        self.hidden_row.hide()
         self.missing_row.hide()
         self.running_row.hide()
 
