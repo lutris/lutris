@@ -52,11 +52,6 @@ def get_gpu_list():
     return choices
 
 
-def get_dri_prime_no_gpu_warning(config, option_key):
-    if config.get(option_key) and not config.get("gpu"):
-        return _("Discrete graphics can be activated only once you have specified a GPU explicitly.")
-
-
 def get_output_choices():
     """Return list of outputs for drop-downs"""
     displays = DISPLAY_MANAGER.get_display_names()
@@ -117,20 +112,6 @@ system_options = [  # pylint: disable=invalid-name
         "choices": get_gpu_list,
         "default": "",
         "help": _("GPU to use to run games"),
-    },
-    {
-        "section": _("Display"),
-        "option": "dri_prime",
-        "type": "bool",
-        "default": False,
-        "advanced": True,
-        "condition": True,
-        "warning": get_dri_prime_no_gpu_warning,
-        "label": _("Use discrete graphics"),
-        "help": _("Selecting this option will run the game with the 'DRI_PRIME' environment "
-                  "variable configured, activating your discrete graphic chip for high 3D "
-                  "performance. __NV_PRIME_RENDER_OFFLOAD and __GLX_VENDOR_LIBRARY_NAME are "
-                  "configured as well for NVidia GPUs."),
     },
     {
         "section": _("Display"),
