@@ -986,6 +986,9 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self._bind_zoom_adjustment()
         self.redraw_view()
 
+        if row_type != "category" or row_id != ".hidden":
+            self.sidebar.hidden_row.hide()
+
         if not MISSING_GAMES.is_initialized or (row_type == "dynamic_category" and row_id == "missing"):
             MISSING_GAMES.update_all_missing()
 
