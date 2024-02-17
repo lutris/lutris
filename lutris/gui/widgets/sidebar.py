@@ -416,6 +416,14 @@ class LutrisSidebar(Gtk.ListBox):
                 Gtk.Image.new_from_icon_name("favorite-symbolic", Gtk.IconSize.MENU)
             )
         )
+        self.add(
+            SidebarRow(
+                ".hidden",
+                "category",
+                _("Hidden"),
+                Gtk.Image.new_from_icon_name("action-unavailable-symbolic", Gtk.IconSize.MENU)
+            )
+        )
         self.missing_row = SidebarRow(
             "missing",
             "dynamic_category",

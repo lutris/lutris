@@ -267,7 +267,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Load the initial filters when creating the view"""
         # The main sidebar-category filter will be populated when the sidebar row is selected, after this
         return {
-            "hidden": self.show_hidden_games,
             "installed": self.filter_installed
         }
 
@@ -280,7 +279,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Hides or shows the hidden games"""
         action.set_state(value)
         settings.write_setting("show_hidden_games", str(value).lower(), section="lutris")
-        self.filters["hidden"] = bool(value)
         self.update_store()
 
     @property
@@ -464,18 +462,19 @@ class LutrisWindow(Gtk.ApplicationWindow,
             return self.get_service_games(service_id)
         if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
             return self.dynamic_categories_game_factories[self.filters["dynamic_category"]]()
-        if self.filters.get("category") and self.filters["category"] != "all":
-            game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
-        else:
-            game_ids = None
+
+        category = self.filters.get("category")
+        included = [category] if category != "all" else None
+        excluded = [".hidden"] if category != ".hidden" else []
+        category_game_ids = categories_db.get_game_ids_for_categories(included, excluded)
+
         searches, filters, excludes = self.get_sql_filters()
         games = games_db.get_games(
             searches=searches,
             filters=filters,
             excludes=excludes
         )
-        if game_ids is not None:
-            games = [game for game in games if game["id"] in game_ids]
+        games = [game for game in games if game["id"] in category_game_ids]
         return self.apply_view_sort(games)
 
     def get_sql_filters(self):
@@ -492,8 +491,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
             searches = {"name": self.filters["text"]}
         else:
             searches = None
-        if not self.filters.get("hidden"):
-            sql_excludes["hidden"] = 1
         return searches, sql_filters, sql_excludes
 
     def get_service_media(self, icon_type):
@@ -529,16 +526,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Display a label when the view is empty"""
         filter_text = self.filters.get("text")
         has_uninstalled_games = games_db.get_game_count("installed", "0")
-        has_hidden_games = games_db.get_game_count("hidden", "1")
         if filter_text:
             if self.filters.get("category") == "favorite":
                 self.show_label(_("Add a game matching '%s' to your favorites to see it here.") % filter_text)
             elif self.filters.get("installed") and has_uninstalled_games:
                 self.show_label(
                     _("No installed games matching '%s' found. Press Ctrl+I to show uninstalled games.") % filter_text)
-            elif self.filters.get("hidden") is False and has_hidden_games:  # but not if missing!
-                self.show_label(_("No visible games matching '%s' found. Press Ctrl+H to show hidden games.") %
-                                filter_text)
             else:
                 self.show_label(_("No games matching '%s' found ") % filter_text)
         else:
@@ -546,8 +539,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 self.show_label(_("Add games to your favorites to see them here."))
             elif self.filters.get("installed") and has_uninstalled_games:
                 self.show_label(_("No installed games found. Press Ctrl+I to show uninstalled games."))
-            elif self.filters.get("hidden") is False and has_hidden_games:  # but not if missing!
-                self.show_label(_("No visible games found. Press Ctrl+H to show hidden games."))
             elif (
                 not self.filters.get("runner")
                 and not self.filters.get("service")

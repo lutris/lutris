@@ -79,7 +79,6 @@ class Game(GObject.Object):
         self.sortname = game_data.get("sortname") or ""
         self.game_config_id = game_data.get("configpath") or ""
         self.is_installed = bool(game_data.get("installed") and self.game_config_id)
-        self.is_hidden = bool(game_data.get("hidden"))
         self.platform = game_data.get("platform") or ""
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
@@ -207,6 +206,9 @@ class Game(GObject.Object):
 
     def remove_category(self, category_name, no_signal=False):
         """remove game from category"""
+        if not self.is_db_stored:
+            return
+
         category = categories_db.get_category(category_name)
         if category is None:
             return
@@ -218,27 +220,23 @@ class Game(GObject.Object):
 
     def add_to_favorites(self):
         """Add the game to the 'favorite' category"""
-        if self.id is None:
-            raise RuntimeError("Games that do not have IDs cannot be favorites.")
-
-        favorite = categories_db.get_category("favorite")
-        if not favorite:
-            favorite_id = categories_db.add_category("favorite")
-        else:
-            favorite_id = favorite["id"]
-        categories_db.add_game_to_category(self.id, favorite_id)
-        self.emit("game-updated")
+        self.add_category("favorite")
 
     def remove_from_favorites(self):
         """Remove game from favorites"""
-        favorite = categories_db.get_category("favorite")
-        categories_db.remove_category_from_game(self.id, favorite["id"])
-        self.emit("game-updated")
+        self.remove_category("favorite")
+
+    @property
+    def is_hidden(self):
+        """Return whether the game is in the user's favorites"""
+        return ".hidden" in self.get_categories()
 
     def set_hidden(self, is_hidden):
         """Do not show this game in the UI"""
-        self.is_hidden = is_hidden
-        self.save()
+        if is_hidden:
+            self.add_category(".hidden")
+        else:
+            self.remove_category(".hidden")
 
     @property
     def log_buffer(self):
@@ -477,7 +475,6 @@ class Game(GObject.Object):
             "configpath": configpath,
             "id": self.id,
             "playtime": self.playtime,
-            "hidden": self.is_hidden,
             "service": self.service,
             "service_id": self.appid,
             "discord_id": self.discord_id,
@@ -1159,7 +1156,6 @@ def import_game(file_path, dest_dir):
         lastplayed=lutris_config["lastplayed"],
         configpath=lutris_config["configpath"],
         playtime=lutris_config["playtime"],
-        hidden=lutris_config["hidden"],
         service=lutris_config["service"],
         service_id=lutris_config["service_id"],
     )
