@@ -39,7 +39,6 @@ def get_local_library():
 
 
 def sync_local_library():
-    sync_started_at = int(time.time())
     library = get_local_library()
     payload = json.dumps(library, indent=2)
     credentials = read_api_key()
@@ -123,4 +122,4 @@ def sync_local_library():
                 service_id=remote_game["service_id"],
                 installed=0,
             )
-    settings.write_setting("last_library_sync_at", sync_started_at)
+    settings.write_setting("last_library_sync_at",  int(time.time()))
