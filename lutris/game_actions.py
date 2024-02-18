@@ -30,7 +30,7 @@ from lutris.util.system import path_exists
 
 
 class BaseGameActions:
-    def __init__(self, games, window, application=None):
+    def __init__(self, games: List[Game], window: Gtk.Window, application=None):
         self.application = application or Gio.Application.get_default()
         self.window = window  # also used as a LaunchUIDelegate and InstallUIDelegate
         self.games = games
@@ -456,7 +456,7 @@ class ServiceGameActions(BaseGameActions):
         }
 
 
-def get_game_actions(games: List[Game], window, application=None) -> BaseGameActions:
+def get_game_actions(games: List[Game], window: Gtk.Window, application=None) -> BaseGameActions:
     if games:
         if len(games) == 1:
             game = games[0]
