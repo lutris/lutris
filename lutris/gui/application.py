@@ -813,7 +813,7 @@ class Application(Gtk.Application):
     def get_launch_ui_delegate(self):
         return self.launch_ui_delegate
 
-    def get_running_games(self) -> List[str]:
+    def get_running_games(self) -> List[Game]:
         # This method reflects games that have stopped even if the 'game-stopped' signal
         # has not been handled yet; that handler will still clean up the list though.
         return [g for g in self._running_games if g.state != g.STATE_STOPPED]
@@ -828,7 +828,7 @@ class Application(Gtk.Application):
 
     def is_game_running_by_id(self, game_id: str) -> bool:
         """True if the ID is the ID of a game that is running."""
-        return game_id and str(game_id) in self.get_running_game_ids()
+        return bool(game_id and str(game_id) in self.get_running_game_ids())
 
     def get_game_by_id(self, game_id: str) -> Game:
         """Returns the game with the ID given; if it's running this is the running
