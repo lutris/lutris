@@ -370,7 +370,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
             # Users may have obsolete view_sorting settings, so
             # we must tolerate them. We treat them all as blank.
             value = value or sort_defaults.get(self.view_sorting, "")
-
+            if self.view_sorting == "year":
+                contains_year = bool(value)
+                if self.view_reverse_order:
+                    contains_year = not contains_year
+                value = [contains_year, value]
             if self.view_sorting_installed_first:
                 # We want installed games to always be first, even in
                 # a descending sort.
