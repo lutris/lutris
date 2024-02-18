@@ -427,7 +427,7 @@ class GameRemovalRow(Gtk.ListBoxRow):
             self.folder_size_spinner.hide()
 
     @property
-    def delete_files_property(self) -> bool:
+    def delete_files(self) -> bool:
         """True if the game files should be deleted."""
         return bool(
             self.game.is_installed
@@ -436,8 +436,8 @@ class GameRemovalRow(Gtk.ListBoxRow):
             and self.delete_files_checkbox.get_active()
         )
 
-    @delete_files_property.setter
-    def delete_files_property(self, active: bool) -> None:
+    @delete_files.setter
+    def delete_files(self, active: bool) -> None:
         self.delete_files_checkbox.set_active(active)
 
     @property
