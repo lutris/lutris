@@ -18,7 +18,7 @@ def migrate():
             continue
 
         sql.db_update(
-            settings.PGA_DB,
+            settings.DB_PATH,
             "games",
             {"discord_id": game['discord_id']},
             {"slug": game['slug']}

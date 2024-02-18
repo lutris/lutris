@@ -7,15 +7,15 @@ from lutris.util.log import logger
 
 
 def add_source(uri):
-    sql.db_insert(settings.PGA_DB, "sources", {"uri": uri})
+    sql.db_insert(settings.DB_PATH, "sources", {"uri": uri})
 
 
 def delete_source(uri):
-    sql.db_delete(settings.PGA_DB, "sources", "uri", uri)
+    sql.db_delete(settings.DB_PATH, "sources", "uri", uri)
 
 
 def read_sources():
-    with sql.db_cursor(settings.PGA_DB) as cursor:
+    with sql.db_cursor(settings.DB_PATH) as cursor:
         rows = cursor.execute("select uri from sources")
         results = rows.fetchall()
     return [row[0] for row in results]
@@ -25,10 +25,10 @@ def write_sources(sources):
     db_sources = read_sources()
     for uri in db_sources:
         if uri not in sources:
-            sql.db_delete(settings.PGA_DB, "sources", "uri", uri)
+            sql.db_delete(settings.DB_PATH, "sources", "uri", uri)
     for uri in sources:
         if uri not in db_sources:
-            sql.db_insert(settings.PGA_DB, "sources", {"uri": uri})
+            sql.db_insert(settings.DB_PATH, "sources", {"uri": uri})
 
 
 def check_for_file(game, file_id):

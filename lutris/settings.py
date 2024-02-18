@@ -44,9 +44,9 @@ RUNTIME_VERSIONS_PATH = os.path.join(CACHE_DIR, "versions.json")
 ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128", "apps")
 
 if "nosetests" in sys.argv[0] or "nose2" in sys.argv[0] or "pytest" in sys.argv[0]:
-    PGA_DB = "/tmp/pga.db"
+    DB_PATH = "/tmp/pga.db"
 else:
-    PGA_DB = sio.read_setting("pga_path") or os.path.join(DATA_DIR, "pga.db")
+    DB_PATH = sio.read_setting("pga_path") or os.path.join(DATA_DIR, "pga.db")
 
 SITE_URL = sio.read_setting("website") or "https://lutris.net"
 

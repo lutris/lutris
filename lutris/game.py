@@ -356,7 +356,7 @@ class Game(GObject.Object):
             delete_files (bool): Delete the game files
             no_signal (bool): Don't emit game-removed signal
         """
-        sql.db_update(settings.PGA_DB, "games", {"installed": 0, "runner": ""}, {"id": self.id})
+        sql.db_update(settings.DB_PATH, "games", {"installed": 0, "runner": ""}, {"id": self.id})
         if self.config:
             self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)

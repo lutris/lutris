@@ -172,7 +172,7 @@ def get_schema(tablename):
     """
     tables = []
     query = "pragma table_info('%s')" % tablename
-    with sql.db_cursor(settings.PGA_DB) as cursor:
+    with sql.db_cursor(settings.DB_PATH) as cursor:
         for row in cursor.execute(query).fetchall():
             field = {
                 "name": row[1],
@@ -200,7 +200,7 @@ def create_table(name, schema):
     fields = ", ".join([field_to_string(**f) for f in schema])
     query = "CREATE TABLE IF NOT EXISTS %s (%s)" % (name, fields)
     logger.debug("[PGAQuery] %s", query)
-    with sql.db_cursor(settings.PGA_DB) as cursor:
+    with sql.db_cursor(settings.DB_PATH) as cursor:
         cursor.execute(query)
 
 
@@ -225,7 +225,7 @@ def migrate(table, schema):
             if field["name"] not in columns:
                 logger.info("Migrating %s field %s", table, field["name"])
                 migrated_fields.append(field["name"])
-                sql.add_field(settings.PGA_DB, table, field)
+                sql.add_field(settings.DB_PATH, table, field)
     else:
         create_table(table, schema)
     return migrated_fields

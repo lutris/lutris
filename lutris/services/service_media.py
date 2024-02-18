@@ -3,13 +3,10 @@ import os
 import random
 import time
 
-from lutris import settings
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
 from lutris.util.http import HTTPError, download_file
 from lutris.util.log import logger
-
-PGA_DB = settings.PGA_DB
 
 
 class ServiceMedia:

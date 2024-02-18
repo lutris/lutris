@@ -192,7 +192,7 @@ class GameStore(GObject.Object):
     def on_game_updated(self, game):
         if self.service:
             db_games = sql.filtered_query(
-                settings.PGA_DB,
+                settings.DB_PATH,
                 "service_games",
                 filters=({
                     "service": self.service_media.service,
@@ -201,7 +201,7 @@ class GameStore(GObject.Object):
             )
         else:
             db_games = sql.filtered_query(
-                settings.PGA_DB,
+                settings.DB_PATH,
                 "games",
                 filters=({
                     "id": game.id

@@ -130,7 +130,7 @@ def init_lutris():
     except sqlite3.DatabaseError as err:
         raise RuntimeError(
             _("Failed to open database file in %s. Try renaming this file and relaunch Lutris") %
-            settings.PGA_DB
+            settings.DB_PATH
         ) from err
     for service in DEFAULT_SERVICES:
         if not settings.read_setting(service, section="services"):
