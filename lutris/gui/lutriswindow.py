@@ -189,10 +189,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 default=self.view_sorting_installed_first,
                 enabled=lambda: self.is_view_sort_sensitive
             ),
-            "view-sorting-ascending": Action(
+            "view-reverse-order": Action(
                 self.on_view_sorting_direction_change,
                 type="b",
-                default=self.view_sorting_ascending,
+                default=self.view_reverse_order,
                 enabled=lambda: self.is_view_sort_sensitive
             ),
             "show-side-panel": Action(
@@ -305,7 +305,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     @property
     def show_tray_icon(self):
         """Setting to hide or show status icon"""
-        return settings.read_setting("show_tray_icon", default="false").lower() == "true"
+        return settings.read_bool_setting("show_tray_icon", default="false").lower() == "true"
 
     @property
     def view_sorting(self):
@@ -315,8 +315,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
         return value
 
     @property
-    def view_sorting_ascending(self):
-        return settings.read_setting("view_sorting_ascending").lower() != "false"
+    def view_reverse_order(self):
+        return settings.read_bool_setting("view_reverse_order")
 
     @property
     def view_sorting_installed_first(self):
@@ -325,32 +325,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
     @property
     def show_hidden_games(self):
         return settings.read_setting("show_hidden_games").lower() == "true"
-
-    @property
-    def sort_params(self):
-        """This provides a list of sort options for SQL generation; this isn't
-        exactly a match for what self.apply_view_sort does, but it is as close
-        as may be, in the hope that a faster DB sort will get is close and result
-        in a faster sort overall."""
-
-        params = []
-
-        if self.view_sorting_installed_first:
-            params.append(("installed", "COLLATE NOCASE DESC"))
-
-        if self.view_sorting == "name":
-            key = "CASE WHEN sortname <> '' THEN sortname ELSE name END"
-        else:
-            key = self.view_sorting
-
-        params.append((
-            key,
-            "COLLATE NOCASE ASC"
-            if self.view_sorting_ascending
-            else "COLLATE NOCASE DESC"
-        ))
-
-        return params
 
     @property
     def is_view_sort_sensitive(self):
@@ -367,8 +341,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         the sort is set to descending.
 
         This treats 'name' sorting specially, applying a natural sort so that
-        'Mega slap battler 20' comes after 'Mega slap battler 3'. For this reason,
-        we can't just accept the sort the database gives us via self.sort_params;
+        'Mega slap battler 20' comes after 'Mega slap battler 3'.
         that'll get us close, but we must resort to get it right."""
         view_sorting = self.view_sorting
         sort_defaults = {
@@ -398,6 +371,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 if view_sorting == "name":
                     value = get_natural_sort_key(value)
 
+
             # Users may have obsolete view_sorting settings, so
             # we must tolerate them. We treat them all as blank.
             value = value or sort_defaults.get(view_sorting, "")
@@ -405,14 +379,14 @@ class LutrisWindow(Gtk.ApplicationWindow,
             if self.view_sorting_installed_first:
                 # We want installed games to always be first, even in
                 # a descending sort.
-                if self.view_sorting_ascending:
+                if self.view_reverse_order:
                     installation_flag = not installation_flag
 
                 return [installation_flag, value]
 
             return value
 
-        return sorted(items, key=get_sort_value, reverse=not self.view_sorting_ascending)
+        return sorted(items, key=get_sort_value, reverse=not self.view_reverse_order)
 
     def get_running_games(self):
         """Return a list of currently running games"""
@@ -504,8 +478,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         games = games_db.get_games(
             searches=searches,
             filters=filters,
-            excludes=excludes,
-            sorts=self.sort_params
+            excludes=excludes
         )
         if game_ids is not None:
             return [game for game in games if game["id"] in game_ids]
@@ -999,8 +972,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.emit("view-updated")
 
     def on_view_sorting_direction_change(self, action, value):
-        self.actions["view-sorting-ascending"].set_state(value)
-        settings.write_setting("view_sorting_ascending", bool(value))
+        self.actions["view-reverse-order"].set_state(value)
+        settings.write_setting("view_reverse_order", bool(value))
         self.emit("view-updated")
 
     def on_view_sorting_installed_first_change(self, action, value):
