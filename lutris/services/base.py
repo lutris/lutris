@@ -24,8 +24,6 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
-PGA_DB = settings.PGA_DB
-
 
 class AuthTokenExpiredError(Exception):
     """Exception raised when a token is no longer valid; the sidebar will
@@ -176,7 +174,7 @@ class BaseService(GObject.Object):
 
     def wipe_game_cache(self):
         logger.debug("Deleting games from service-games for %s", self.id)
-        sql.db_delete(PGA_DB, "service_games", "service", self.id)
+        sql.db_delete(settings.DB_PATH, "service_games", "service", self.id)
 
     def get_update_installers(self, db_game):
         return []
@@ -214,7 +212,7 @@ class BaseService(GObject.Object):
         if not service_game:
             return
         sql.db_update(
-            PGA_DB,
+            settings.DB_PATH,
             "service_games",
             {"lutris_slug": lutris_game["slug"]},
             conditions={"appid": service_game["appid"], "service": self.id}
@@ -227,7 +225,7 @@ class BaseService(GObject.Object):
         for game in unmatched_lutris_games:
             logger.debug("Updating unmatched game %s", game)
             sql.db_update(
-                PGA_DB,
+                settings.DB_PATH,
                 "games",
                 {"service": self.id, "service_id": service_game["appid"]},
                 conditions={"id": game["id"]}
@@ -260,7 +258,7 @@ class BaseService(GObject.Object):
             game.service = self.id
             game.save(no_signal=no_signal)
             service_game = ServiceGameCollection.get_game(self.id, appid)
-            sql.db_update(PGA_DB, "service_games", {"lutris_slug": game.slug}, {"id": service_game["id"]})
+            sql.db_update(settings.DB_PATH, "service_games", {"lutris_slug": game.slug}, {"id": service_game["id"]})
             return game
 
     def get_installers_from_api(self, appid):

@@ -13,7 +13,7 @@ def migrate():
     for game in games:
         if 'sortname' not in game.keys() or game['sortname'] is None:
             sql.db_update(
-                settings.PGA_DB,
+                settings.DB_PATH,
                 "games",
                 {"sortname": ""},
                 {"slug": game['slug']}

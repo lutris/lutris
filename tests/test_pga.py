@@ -12,8 +12,8 @@ setup_test_environment()
 
 class DatabaseTester(unittest.TestCase):
     def setUp(self):
-        if os.path.exists(settings.PGA_DB):
-            os.remove(settings.PGA_DB)
+        if os.path.exists(settings.DB_PATH):
+            os.remove(settings.DB_PATH)
         schema.syncdb()
 
 
@@ -75,8 +75,8 @@ class TestDbCreator(DatabaseTester):
             {'name': 'name', 'type': 'TEXT'}
         ]
         schema.create_table('testing', fields)
-        sql.db_insert(settings.PGA_DB, 'testing', {'name': "testok"})
-        results = sql.db_select(settings.PGA_DB, 'testing',
+        sql.db_insert(settings.DB_PATH, 'testing', {'name': "testok"})
+        results = sql.db_select(settings.DB_PATH, 'testing',
                                 fields=['id', 'name'])
         self.assertEqual(results[0]['name'], "testok")
 
@@ -114,7 +114,7 @@ class TestMigration(DatabaseTester):
             'name': 'counter',
             'type': 'INTEGER'
         }
-        sql.add_field(settings.PGA_DB, self.tablename, field)
+        sql.add_field(settings.DB_PATH, self.tablename, field)
         _schema = schema.get_schema(self.tablename)
         self.assertEqual(_schema[2]['name'], 'counter')
         self.assertEqual(_schema[2]['type'], 'INTEGER')
@@ -126,7 +126,7 @@ class TestMigration(DatabaseTester):
             'type': 'TEXT'
         }
         with self.assertRaises(OperationalError):
-            sql.add_field(settings.PGA_DB, self.tablename, field)
+            sql.add_field(settings.DB_PATH, self.tablename, field)
 
     def test_cant_create_empty_table(self):
         with self.assertRaises(OperationalError):

@@ -18,7 +18,7 @@ def get_games(
     sorts=None
 ):
     return sql.filtered_query(
-        settings.PGA_DB,
+        settings.DB_PATH,
         "games",
         searches=searches,
         filters=filters,
@@ -76,7 +76,7 @@ def get_games_where(**conditions):
         # Inspect and document why we should return
         # an empty list when no condition is present.
         return []
-    return sql.db_query(settings.PGA_DB, query, tuple(condition_values))
+    return sql.db_query(settings.DB_PATH, query, tuple(condition_values))
 
 
 def get_games_by_ids(game_ids):
@@ -130,7 +130,7 @@ def get_game_by_field(value, field="slug"):
     """Query a game based on a database field"""
     if field not in ("slug", "installer_slug", "id", "configpath", "name"):
         raise ValueError("Can't query by field '%s'" % field)
-    game_result = sql.db_select(settings.PGA_DB, "games", condition=(field, value))
+    game_result = sql.db_select(settings.DB_PATH, "games", condition=(field, value))
     if game_result:
         return game_result[0]
     return {}
@@ -138,12 +138,12 @@ def get_game_by_field(value, field="slug"):
 
 def get_games_by_runner(runner):
     """Return all games using a specific runner"""
-    return sql.db_select(settings.PGA_DB, "games", condition=("runner", runner))
+    return sql.db_select(settings.DB_PATH, "games", condition=("runner", runner))
 
 
 def get_games_by_slug(slug):
     """Return all games using a specific slug"""
-    return sql.db_select(settings.PGA_DB, "games", condition=("slug", slug))
+    return sql.db_select(settings.DB_PATH, "games", condition=("slug", slug))
 
 
 def add_game(**game_data):
@@ -151,7 +151,7 @@ def add_game(**game_data):
     game_data["installed_at"] = int(time.time())
     if "slug" not in game_data:
         game_data["slug"] = slugify(game_data["name"])
-    return sql.db_insert(settings.PGA_DB, "games", game_data)
+    return sql.db_insert(settings.DB_PATH, "games", game_data)
 
 
 def add_games_bulk(games):
@@ -164,7 +164,7 @@ def add_games_bulk(games):
         Returns:
             list: List of inserted game ids
     """
-    return [sql.db_insert(settings.PGA_DB, "games", game) for game in games]
+    return [sql.db_insert(settings.DB_PATH, "games", game) for game in games]
 
 
 def add_or_update(**params):
@@ -187,7 +187,7 @@ def update_existing(**params):
     game_id = get_matching_game(params)
     if game_id:
         params["id"] = game_id
-        sql.db_update(settings.PGA_DB, "games", params, {"id": game_id})
+        sql.db_update(settings.DB_PATH, "games", params, {"id": game_id})
         return game_id
     return None
 
@@ -215,12 +215,12 @@ def get_matching_game(params):
 
 def delete_game(game_id):
     """Delete a game from the PGA."""
-    sql.db_delete(settings.PGA_DB, "games", "id", game_id)
+    sql.db_delete(settings.DB_PATH, "games", "id", game_id)
 
 
 def get_used_runners():
     """Return a list of the runners in use by installed games."""
-    with sql.db_cursor(settings.PGA_DB) as cursor:
+    with sql.db_cursor(settings.DB_PATH) as cursor:
         query = "select distinct runner from games where runner is not null order by runner"
         rows = cursor.execute(query)
         results = rows.fetchall()
@@ -229,7 +229,7 @@ def get_used_runners():
 
 def get_used_platforms():
     """Return a list of platforms currently in use"""
-    with sql.db_cursor(settings.PGA_DB) as cursor:
+    with sql.db_cursor(settings.DB_PATH) as cursor:
         query = (
             "select distinct platform from games "
             "where platform is not null and platform is not '' order by platform"
@@ -240,6 +240,6 @@ def get_used_platforms():
 
 
 def get_game_count(param, value):
-    res = sql.db_select(settings.PGA_DB, "games", fields=("COUNT(id)",), condition=(param, value))
+    res = sql.db_select(settings.DB_PATH, "games", fields=("COUNT(id)",), condition=(param, value))
     if res:
         return res[0]["COUNT(id)"]
