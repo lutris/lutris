@@ -84,9 +84,9 @@ class GameBar(Gtk.Box):
         self.play_button = self.get_play_button(game_actions)
         hbox.pack_start(self.play_button, False, False, 0)
 
-        if self.game.is_installed:
-            hbox.pack_start(self.get_runner_button(), False, False, 0)
-            hbox.pack_start(self.get_platform_label(), False, False, 0)
+
+        hbox.pack_start(self.get_runner_button(), False, False, 0)
+        hbox.pack_start(self.get_platform_label(), False, False, 0)
         if self.game.lastplayed:
             hbox.pack_start(self.get_last_played_label(), False, False, 0)
         if self.game.playtime:
@@ -155,7 +155,9 @@ class GameBar(Gtk.Box):
         return title_label
 
     def get_runner_button(self):
-        icon_name = self.game.runner.name + "-symbolic" if self.game.has_runner else "package-x-generic-symbolic"
+        if not self.game.has_runner:
+            return Gtk.Box()
+        icon_name = self.game.runner.name + "-symbolic"
         runner_icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
         runner_popover_buttons = self.get_runner_buttons()
         if runner_popover_buttons:
@@ -168,6 +170,8 @@ class GameBar(Gtk.Box):
 
     def get_platform_label(self):
         platform_label = Gtk.Label(visible=True)
+        if not self.game.platform:
+            return platform_label
         platform_label.set_size_request(120, -1)
         platform_label.set_alignment(0, 0.5)
         platform = gtk_safe(self.game.platform)
