@@ -9,11 +9,11 @@ from lutris.database.games import add_game
 from lutris.game import Game
 from lutris.gui.dialogs import ModelessDialog
 from lutris.scanners.default_installers import DEFAULT_INSTALLERS
-from lutris.scanners.lutris import get_path_cache
 from lutris.scanners.tosec import clean_rom_name, guess_platform, search_tosec_by_md5
 from lutris.services.lutris import download_lutris_media
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.path_cache import get_path_cache
 from lutris.util.strings import gtk_safe, slugify
 from lutris.util.system import get_md5_hash, get_md5_in_zip
 

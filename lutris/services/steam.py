@@ -190,7 +190,7 @@ class SteamService(BaseService):
                 logger.warning("Steam game %s has no AppID")
                 continue
             if appid not in installed_appids:
-                steam_game.remove(no_signal=True)
+                steam_game.uninstall(no_signal=True)
                 stats["removed"] += 1
         logger.debug("%s Steam games removed", stats["removed"])
 
@@ -207,7 +207,7 @@ class SteamService(BaseService):
                 steam_game = Game(game_id)
                 if not steam_game.playtime:
                     # Unsafe to emit a signal from a worker thread!
-                    steam_game.remove(no_signal=True)
+                    steam_game.uninstall(no_signal=True)
                     steam_game.delete(no_signal=True)
                     stats["deduped"] += 1
         sync_media(installed_slugs)

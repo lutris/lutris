@@ -28,7 +28,6 @@ class GameBar(Gtk.Box):
         self.game_started_hook_id = GObject.add_emission_hook(Game, "game-started", self.on_game_state_changed)
         self.game_stopped_hook_id = GObject.add_emission_hook(Game, "game-stopped", self.on_game_state_changed)
         self.game_updated_hook_id = GObject.add_emission_hook(Game, "game-updated", self.on_game_state_changed)
-        self.game_removed_hook_id = GObject.add_emission_hook(Game, "game-removed", self.on_game_state_changed)
         self.game_installed_hook_id = GObject.add_emission_hook(Game, "game-installed", self.on_game_state_changed)
         self.connect("destroy", self.on_destroy)
 
@@ -61,14 +60,8 @@ class GameBar(Gtk.Box):
         GObject.remove_emission_hook(Game, "game-started", self.game_started_hook_id)
         GObject.remove_emission_hook(Game, "game-stopped", self.game_stopped_hook_id)
         GObject.remove_emission_hook(Game, "game-updated", self.game_updated_hook_id)
-        GObject.remove_emission_hook(Game, "game-removed", self.game_removed_hook_id)
         GObject.remove_emission_hook(Game, "game-installed", self.game_installed_hook_id)
         return True
-
-    def clear_view(self):
-        """Clears all widgets from the container"""
-        for child in self.get_children():
-            child.destroy()
 
     def update_view(self):
         """Populate the view with widgets"""
@@ -282,6 +275,8 @@ class GameBar(Gtk.Box):
             self.game = game
         elif self.game != game:
             return True
-        self.clear_view()
+
+        for child in self.get_children():
+            child.destroy()
         self.update_view()
         return True

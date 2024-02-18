@@ -5,12 +5,14 @@ from typing import Callable, Iterable, List
 
 from gi.repository import GObject, Gtk
 
+from lutris import settings
 from lutris.database.games import get_games
 from lutris.game import Game
 from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
+from lutris.util.library_sync import delete_from_remote_library, sync_local_library
 from lutris.util.log import logger
 from lutris.util.strings import get_natural_sort_key, gtk_safe, human_size
 from lutris.util.system import get_disk_size, is_removeable
@@ -225,7 +227,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
                 update(
                     self.remove_all_games_checkbox,
                     lambda row: row.game.is_installed,
-                    lambda row: row.delete_game,
+                    lambda row: row.remove_from_library,
                 )
             finally:
                 self._setting_all_checkboxes = False
@@ -246,7 +248,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
     def on_remove_all_games_checkbox_toggled(self, _widget):
         def update_row(row, active):
             if row.game.is_installed:
-                row.delete_game = active
+                row.remove_from_library = active
 
         self._apply_all_checkbox(self.remove_all_games_checkbox, update_row)
 
@@ -303,8 +305,19 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             if dlg.result != Gtk.ResponseType.YES:
                 return
 
+        games_removed_from_library = []
+        if settings.read_bool_setting("library_sync_enabled"):
+            for row in rows:
+                if row.remove_from_library:
+                    games_removed_from_library.append(row.game.as_library_item)
+            if games_removed_from_library:
+                sync_local_library()
+
         for row in rows:
             row.perform_removal()
+
+        if settings.read_bool_setting("library_sync_enabled") and games_removed_from_library:
+            delete_from_remote_library(games_removed_from_library)
 
         self.destroy()
 
@@ -452,26 +465,25 @@ class GameRemovalRow(Gtk.ListBoxRow):
             self.delete_files_checkbox.set_active(can_delete)
 
     @property
-    def delete_game(self) -> bool:
+    def remove_from_library(self) -> bool:
         """True if the game should be rmoved from the database."""
         if not self.game.is_installed:
             return True
-
         return bool(self.remove_from_library_checkbox.get_active())
 
-    @delete_game.setter
-    def delete_game(self, active: bool) -> None:
+    @remove_from_library.setter
+    def remove_from_library(self, active: bool) -> None:
         self.remove_from_library_checkbox.set_active(active)
 
     def perform_removal(self) -> None:
         """Performs the actions this row describes, uninstalling or deleting a game."""
-        # We uninstall installed games, and delete games where self.delete_game is true;
+        # We uninstall installed games, and delete games where self.remove_from_library is true;
         # but we must be careful to fire the game-removed single only once.
         if self.game.is_installed:
-            if self.delete_game:
+            if self.remove_from_library:
                 self.game.uninstall(delete_files=self.delete_files, no_signal=True)
                 self.game.delete()
             else:
                 self.game.uninstall(delete_files=self.delete_files)
-        elif self.delete_game:
+        elif self.remove_from_library:
             self.game.delete()

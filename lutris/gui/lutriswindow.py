@@ -1,5 +1,6 @@
 """Main window for the Lutris interface."""
-# pylint:disable=too-many-lines
+# pylint: disable=too-many-lines
+# pylint: disable=no-member
 import os
 from collections import namedtuple
 from gettext import gettext as _
@@ -30,13 +31,12 @@ from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
-from lutris.scanners.lutris import MISSING_GAMES, add_to_path_cache, remove_from_path_cache
-# pylint: disable=no-member
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache, remove_from_path_cache
 from lutris.util.strings import get_natural_sort_key
 from lutris.util.system import update_desktop_icons
 

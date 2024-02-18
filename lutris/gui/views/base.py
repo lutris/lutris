@@ -9,8 +9,8 @@ from lutris.game import Game
 from lutris.game_actions import BaseGameActions, get_game_actions
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED
-from lutris.scanners.lutris import MISSING_GAMES
 from lutris.util.log import logger
+from lutris.util.path_cache import MISSING_GAMES
 
 
 class GameView:

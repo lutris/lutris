@@ -1,6 +1,6 @@
 # pylint: disable=no-member
-# pylint:disable=using-constant-test
-# pylint:disable=comparison-with-callable
+# pylint: disable=using-constant-test
+# pylint: disable=comparison-with-callable
 from gettext import gettext as _
 from math import floor
 
@@ -15,7 +15,7 @@ from lutris.exceptions import MissingMediaError
 from lutris.gui.widgets.utils import (
     MEDIA_CACHE_INVALIDATED, get_default_icon_path, get_runtime_icon_path, get_scaled_surface_by_path, get_surface_size
 )
-from lutris.scanners.lutris import MISSING_GAMES
+from lutris.util.path_cache import MISSING_GAMES
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):

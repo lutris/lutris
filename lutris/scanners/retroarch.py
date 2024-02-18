@@ -2,7 +2,6 @@ import os
 
 from lutris.config import write_game_config
 from lutris.database.games import add_game, get_games
-from lutris.game import Game
 from lutris.util.log import logger
 from lutris.util.retroarch.core_config import RECOMMENDED_CORES
 from lutris.util.strings import slugify
@@ -80,8 +79,7 @@ def scan_directory(dirname):
         installer_slug = "%s-libretro-%s" % (slug, core)
         existing_game = get_games(filters={"installer_slug": installer_slug})
         if existing_game:
-            game = Game(existing_game[0]["id"])
-            game.remove()
+            continue
         configpath = write_game_config(slug, config)
         game_id = add_game(
             name=name,

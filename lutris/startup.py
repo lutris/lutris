@@ -1,4 +1,5 @@
 """Check to run at program start"""
+
 import sqlite3
 from gettext import gettext as _
 
@@ -14,13 +15,13 @@ from lutris.database.games import get_games
 from lutris.database.schema import syncdb
 from lutris.game import Game
 from lutris.runners.json import load_json_runners
-from lutris.scanners.lutris import build_path_cache
 from lutris.services import DEFAULT_SERVICES
 from lutris.util.graphics import vkquery
 from lutris.util.graphics.drivers import get_gpu_cards
 from lutris.util.graphics.gpu import GPU, GPUS
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.path_cache import build_path_cache
 from lutris.util.system import create_folder
 from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION
 

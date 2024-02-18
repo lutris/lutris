@@ -40,12 +40,15 @@ class AccountsBox(BaseConfigBox):
         widget.set_margin_top(top)
         widget.set_margin_start(16)
         widget.set_margin_bottom(bottom)
+        return widget
 
     def get_lutris_options(self):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
         checkbutton = Gtk.CheckButton.new_with_label(
             _("Keep your game library synced with Lutris.net")
         )
+        checkbutton.set_active(settings.read_bool_setting("library_sync_enabled"))
+        checkbutton.connect("toggled", self.on_sync_toggled)
         checkbutton.show()
         self.space_widget(checkbutton, bottom=0)
         box.add(checkbutton)
@@ -89,12 +92,18 @@ class AccountsBox(BaseConfigBox):
                 main_radio_button = radio_button
         if not steam_users:
             self.accounts_box.pack_start(
-                Gtk.Label(_("No Steam account found"), visible=True), True, True, 0
+                self.space_widget(Gtk.Label(_("No Steam account found"), visible=True)),
+                True,
+                True,
+                0,
             )
 
     def on_steam_account_toggled(self, radio_button, steamid64):
         """Handler for switching the active Steam account."""
         settings.write_setting(STEAM_ACCOUNT_SETTING, steamid64)
+
+    def on_sync_toggled(self, checkbutton):
+        settings.write_setting("library_sync_enabled", checkbutton.get_active())
 
     def on_sync_clicked(self, button):
         def sync_cb(result, error):

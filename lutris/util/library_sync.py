@@ -123,3 +123,32 @@ def sync_local_library():
                 installed=0,
             )
     settings.write_setting("last_library_sync_at", int(time.time()))
+
+
+def delete_from_remote_library(games):
+    for game in games:
+        print(game)
+        payload = {
+            "name": game["name"],
+            "slug": game["slug"],
+            "runner": game["runner"],
+            "platform": game["platform"],
+            "lastplayed": game["lastplayed"],
+            "playtime": game["playtime"],
+            "service": game["service"],
+            "service_id": game["service_id"],
+        }
+    credentials = read_api_key()
+    url = LIBRARY_URL
+    request = http.Request(
+        url,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": "Token " + credentials["token"],
+        },
+    )
+    try:
+        request.post(data=json.dumps(payload).encode())
+    except http.HTTPError as ex:
+        logger.error(ex)
+        return None

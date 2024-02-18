@@ -32,6 +32,7 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.process import Process
 from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
+from lutris.util.system import fix_path_case
 from lutris.util.timer import Timer
 from lutris.util.yaml import write_yaml_to_file
 
@@ -135,6 +136,20 @@ class Game(GObject.Object):
 
         game.service = service.id if service else None
         return game
+
+    @property
+    def as_library_item(self):
+        """Return a representation of the game suitable for the remote library"""
+        return {
+            "name": self.name,
+            "slug": self.slug,
+            "runner": self.runner_name,
+            "platform": self.platform,
+            "playtime": self.playtime,
+            "lastplayed": self.lastplayed,
+            "service": self.service,
+            "service_id": self.appid,
+        }
 
     def __repr__(self):
         return self.__str__()
@@ -335,19 +350,6 @@ class Game(GObject.Object):
             if not self.compositor_disabled:
                 disable_compositing()
                 self.compositor_disabled = True
-
-    def remove(self, delete_files: bool = False, no_signal: bool = False) -> None:
-        """Uninstall a game, and removes it from the library if this it has no playtime.
-
-        Params:
-            delete_files (bool): Delete the game files
-            no_signal (bool): Don't emit game-removed signal
-        """
-        if self.playtime:
-            self.uninstall(delete_files=delete_files, no_signal=no_signal)
-        else:
-            self.uninstall(delete_files=delete_files, no_signal=True)
-            self.delete(no_signal=no_signal)
 
     def uninstall(self, delete_files: bool = False, no_signal: bool = False) -> None:
         """Uninstall a game, but do not remove it from the library.
@@ -577,6 +579,40 @@ class Game(GObject.Object):
             self.runner.apply_launch_config(gameplay_info, config)
 
         return gameplay_info
+
+
+    def get_path_from_config(self):
+        """Return the path of the main entry point for a game"""
+        if not self.config:
+            logger.warning("%s has no configuration", self)
+            return ""
+        game_config = self.config.game_config
+
+        # Skip MAME roms referenced by their ID
+        if self.runner_name == "mame":
+            if "main_file" in game_config and "." not in game_config["main_file"]:
+                return ""
+
+        for key in ["exe", "main_file", "iso", "rom", "disk-a", "path", "files"]:
+            if key in game_config:
+                path = game_config[key]
+                if key == "files":
+                    path = path[0]
+
+                if path:
+                    path = os.path.expanduser(path)
+                    if not path.startswith("/"):
+                        path = os.path.join(self.directory, path)
+
+                    # The Wine runner fixes case mismatches automatically,
+                    # sort of like Windows, so we need to do the same.
+                    if self.runner_name == "wine":
+                        path = fix_path_case(path)
+
+                    return path
+
+        logger.warning("No path found in %s", self.config)
+        return ""
 
     @watch_game_errors(game_stop_result=False)
     def configure_game(self, launch_ui_delegate):
