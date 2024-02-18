@@ -441,30 +441,30 @@ class GameRemovalRow(Gtk.ListBoxRow):
         self.delete_files_checkbox.set_active(active)
 
     @property
-    def can_delete_files_property(self):
+    def can_delete_files(self):
         return self._can_delete_files
 
-    @can_delete_files_property.setter
-    def can_delete_files_property(self, can_delete):
+    @can_delete_files.setter
+    def can_delete_files(self, can_delete):
         if self._can_delete_files != can_delete and self.delete_files_checkbox:
             self._can_delete_files = can_delete
             self.delete_files_checkbox.set_sensitive(can_delete)
             self.delete_files_checkbox.set_active(can_delete)
 
     @property
-    def delete_game_property(self) -> bool:
+    def delete_game(self) -> bool:
         """True if the game should be rmoved from the database."""
         if not self.game.is_installed:
             return True
 
         return bool(self.remove_from_library_checkbox.get_active())
 
-    @delete_game_property.setter
-    def delete_game_property(self, active: bool) -> None:
+    @delete_game.setter
+    def delete_game(self, active: bool) -> None:
         self.remove_from_library_checkbox.set_active(active)
 
     @property
-    def has_game_remove_warning_property(self) -> bool:
+    def has_game_remove_warning(self) -> bool:
         """True if the game should not provoke a warning before you delete its files."""
         return not self.game.has_runner or not hasattr(
             self.game.runner, "no_game_remove_warning"
@@ -475,10 +475,10 @@ class GameRemovalRow(Gtk.ListBoxRow):
         # We uninstall installed games, and delete games where self.delete_game is true;
         # but we must be careful to fire the game-removed single only once.
         if self.game.is_installed:
-            if self.delete_game_property:
-                self.game.uninstall(delete_files=self.delete_files_property, no_signal=True)
+            if self.delete_game:
+                self.game.uninstall(delete_files=self.delete_files, no_signal=True)
                 self.game.delete()
             else:
-                self.game.uninstall(delete_files=self.delete_files_property)
-        elif self.delete_game_property:
+                self.game.uninstall(delete_files=self.delete_files)
+        elif self.delete_game:
             self.game.delete()
