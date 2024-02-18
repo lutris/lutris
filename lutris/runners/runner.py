@@ -235,7 +235,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if sdl_video_fullscreen and sdl_video_fullscreen != "off":
             env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = sdl_video_fullscreen
 
-        if self.system_config.get("gpu"):
+        if self.system_config.get("gpu") and len(GPUS) > 1:
             gpu = GPUS[self.system_config["gpu"]]
             if gpu.driver == "nvidia":
                 env["DRI_PRIME"] = "1"
@@ -245,7 +245,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             else:
                 env["DRI_PRIME"] = gpu.pci_id
             env["VK_ICD_FILENAMES"] = gpu.icd_files  # Deprecated
-            env["VK_DRIVER_FILES"] = gpu.icd_files   # Current form
+            env["VK_DRIVER_FILES"] = gpu.icd_files  # Current form
 
         # Set PulseAudio latency to 60ms
         if self.system_config.get("pulse_latency"):
