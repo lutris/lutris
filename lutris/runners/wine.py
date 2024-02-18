@@ -133,6 +133,7 @@ class wine(Runner):
     platforms = [_("Windows")]
     multiple_versions = True
     entry_point_option = "exe"
+    has_runner_versions = True
 
     game_options = [
         {
