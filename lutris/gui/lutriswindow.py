@@ -271,11 +271,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def load_filters(self):
         """Load the initial filters when creating the view"""
         # The main sidebar-category filter will be populated when the sidebar row is selected, after this
-        filters = {
-            "hidden": settings.read_setting("show_hidden_games").lower() == "true",
-            "installed": settings.read_setting("filter_installed").lower() == "true"
+        return {
+            "hidden": self.show_hidden_games,
+            "installed": self.filter_installed
         }
-        return filters
 
     @property
     def is_show_hidden_sensitive(self):
@@ -296,16 +295,16 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     @property
     def filter_installed(self):
-        return settings.read_setting("filter_installed").lower() == "true"
+        return settings.read_bool_setting("filter_installed", True)
 
     @property
     def side_panel_visible(self):
-        return settings.read_setting("side_panel_visible").lower() != "false"
+        return settings.read_bool_setting("side_panel_visible", True)
 
     @property
     def show_tray_icon(self):
         """Setting to hide or show status icon"""
-        return settings.read_bool_setting("show_tray_icon", default="false").lower() == "true"
+        return settings.read_bool_setting("show_tray_icon", False)
 
     @property
     def view_sorting(self):
@@ -316,19 +315,19 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     @property
     def view_reverse_order(self):
-        return settings.read_bool_setting("view_reverse_order")
+        return settings.read_bool_setting("view_reverse_order", False)
 
     @property
     def view_sorting_installed_first(self):
-        return settings.read_setting("view_sorting_installed_first").lower() != "false"
+        return settings.read_bool_setting("view_sorting_installed_first", True)
 
     @property
     def show_hidden_games(self):
-        return settings.read_setting("show_hidden_games").lower() == "true"
+        return settings.read_bool_setting("show_hidden_games", False)
 
     @property
     def is_view_sort_sensitive(self):
-        """True if the iew sorting options will be effective; dynamic categories ignore them."""
+        """True if the view sorting options will be effective; dynamic categories ignore them."""
         return self.filters.get("dynamic_category") not in self.dynamic_categories_game_factories
 
     def apply_view_sort(self, items, resolver=lambda i: i):
@@ -341,9 +340,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         the sort is set to descending.
 
         This treats 'name' sorting specially, applying a natural sort so that
-        'Mega slap battler 20' comes after 'Mega slap battler 3'.
-        that'll get us close, but we must resort to get it right."""
-        view_sorting = self.view_sorting
+        'Mega slap battler 20' comes after 'Mega slap battler 3'."""
         sort_defaults = {
             "name": "",
             "year": 0,
@@ -356,25 +353,23 @@ class LutrisWindow(Gtk.ApplicationWindow,
             db_game = resolver(item)
             if not db_game:
                 installation_flag = False
-                value = sort_defaults.get(view_sorting, "")
+                value = sort_defaults.get(self.view_sorting, "")
             else:
                 installation_flag = bool(db_game.get("installed"))
 
                 # When sorting by name, check for a valid sortname first, then fall back
                 # on name if valid sortname is not available.
                 sortname = db_game.get("sortname")
-                if view_sorting == "name" and sortname:
+                if self.view_sorting == "name" and sortname:
                     value = sortname
                 else:
-                    value = db_game.get(view_sorting)
+                    value = db_game.get(self.view_sorting)
 
-                if view_sorting == "name":
+                if self.view_sorting == "name":
                     value = get_natural_sort_key(value)
-
-
             # Users may have obsolete view_sorting settings, so
             # we must tolerate them. We treat them all as blank.
-            value = value or sort_defaults.get(view_sorting, "")
+            value = value or sort_defaults.get(self.view_sorting, "")
 
             if self.view_sorting_installed_first:
                 # We want installed games to always be first, even in
