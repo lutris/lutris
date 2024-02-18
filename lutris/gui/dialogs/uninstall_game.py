@@ -12,6 +12,7 @@ from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
+from lutris.util.path_cache import remove_from_path_cache
 from lutris.util.library_sync import delete_from_remote_library, sync_local_library
 from lutris.util.log import logger
 from lutris.util.strings import get_natural_sort_key, gtk_safe, human_size
@@ -480,6 +481,7 @@ class GameRemovalRow(Gtk.ListBoxRow):
         # We uninstall installed games, and delete games where self.remove_from_library is true;
         # but we must be careful to fire the game-removed single only once.
         if self.game.is_installed:
+            remove_from_path_cache(self.game)
             if self.remove_from_library:
                 self.game.uninstall(delete_files=self.delete_files, no_signal=True)
                 self.game.delete()
@@ -487,3 +489,4 @@ class GameRemovalRow(Gtk.ListBoxRow):
                 self.game.uninstall(delete_files=self.delete_files)
         elif self.remove_from_library:
             self.game.delete()
+
