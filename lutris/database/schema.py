@@ -199,7 +199,7 @@ def create_table(name, schema):
     """Creates a new table in the database"""
     fields = ", ".join([field_to_string(**f) for f in schema])
     query = "CREATE TABLE IF NOT EXISTS %s (%s)" % (name, fields)
-    logger.debug("[PGAQuery] %s", query)
+    logger.debug("[Query] %s", query)
     with sql.db_cursor(settings.DB_PATH) as cursor:
         cursor.execute(query)
 
