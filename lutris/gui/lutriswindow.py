@@ -475,7 +475,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
             excludes=excludes
         )
         if game_ids is not None:
-            return [game for game in games if game["id"] in game_ids]
+            games = [game for game in games if game["id"] in game_ids]
         return self.apply_view_sort(games)
 
     def get_sql_filters(self):
