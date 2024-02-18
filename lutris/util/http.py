@@ -139,6 +139,9 @@ class Request:
     def post(self, data=None):
         return self._request("POST", data)
 
+    def delete(self, data=None):
+        return self._request("DELETE", data)
+
     def write_to_file(self, path):
         content = self.content
         logger.debug("Writing to %s", path)
