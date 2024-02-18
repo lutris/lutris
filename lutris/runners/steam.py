@@ -107,11 +107,6 @@ class steam(Runner):
         {"option": "gamemode", "default": False},
     ]
 
-    def __init__(self, config=None):
-        super().__init__(config)
-        self.own_game_remove_method = _("Remove game data (through Steam)")
-        self.no_game_remove_warning = True
-
     @property
     def runnable_alone(self):
         return not linux.LINUX_SYSTEM.is_flatpak()
