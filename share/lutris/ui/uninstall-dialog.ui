@@ -2,7 +2,7 @@
 <!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
-  <template class="UninstallMultipleGamesDialog" parent="GtkDialog">
+  <template class="UninstallDialog" parent="GtkDialog">
     <property name="can-focus">False</property>
     <property name="window-position">center-on-parent</property>
     <property name="default-width">800</property>

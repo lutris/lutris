@@ -146,7 +146,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
-        GObject.add_emission_hook(Game, "game-removed", self.on_game_removed)
         GObject.add_emission_hook(Game, "game-unhandled-error", self.on_game_unhandled_error)
         GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
         MISSING_GAMES.updated.register(self.update_missing_games_sidebar_row)
@@ -1092,7 +1091,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_game_installed(self, game):
         return True
 
-    def on_game_removed(self, _game):
+    def on_game_removed(self):
         """Simple method used to refresh the view"""
         self.sidebar.update_rows()
         self.update_missing_games_sidebar_row()
