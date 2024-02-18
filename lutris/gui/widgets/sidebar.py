@@ -360,7 +360,6 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
         GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
         GObject.add_emission_hook(Game, "game-updated", self.update_rows)
-        GObject.add_emission_hook(Game, "game-removed", self.update_rows)
         GObject.add_emission_hook(BaseService, "service-login", self.on_service_auth_changed)
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_auth_changed)
         GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)

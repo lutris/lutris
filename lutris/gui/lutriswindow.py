@@ -36,7 +36,7 @@ from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache, remove_from_path_cache
+from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
 from lutris.util.strings import get_natural_sort_key
 from lutris.util.system import update_desktop_icons
 
@@ -1092,9 +1092,9 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_game_installed(self, game):
         return True
 
-    def on_game_removed(self, game):
+    def on_game_removed(self, _game):
         """Simple method used to refresh the view"""
-        remove_from_path_cache(game)
+        self.sidebar.update_rows()
         self.update_missing_games_sidebar_row()
         self.emit("view-updated")
         return True
