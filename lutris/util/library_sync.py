@@ -11,13 +11,10 @@ from lutris.util.log import logger
 LIBRARY_URL = settings.SITE_URL + "/api/users/library"
 
 
-def get_local_library():
+def get_local_library(since=None):
     game_library = []
     pga_games = get_games()
-    if settings.read_setting("last_library_sync_at"):
-        since = int(settings.read_setting("last_library_sync_at"))
-    else:
-        since = None
+
     for pga_game in pga_games:
         lastplayed = pga_game["lastplayed"] or 0
         installed_at = pga_game["installed_at"] or 0
@@ -39,22 +36,25 @@ def get_local_library():
 
 
 def sync_local_library():
-    library = get_local_library()
-    payload = json.dumps(library, indent=2)
+    if settings.read_setting("last_library_sync_at"):
+        since = int(settings.read_setting("last_library_sync_at"))
+    else:
+        since = None
+    local_library = get_local_library()
+    local_library_updates = get_local_library(since=since)
     credentials = read_api_key()
     url = LIBRARY_URL
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Token " + credentials["token"],
-    }
     if settings.read_setting("last_library_sync_at"):
         url += "?since=%s" % settings.read_setting("last_library_sync_at")
     request = http.Request(
         url,
-        headers=headers,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": "Token " + credentials["token"],
+        },
     )
     try:
-        request.post(data=payload.encode())
+        request.post(data=json.dumps(local_library_updates).encode())
     except http.HTTPError as ex:
         logger.error("Could not send local library to server: %s", ex)
         return None
@@ -62,7 +62,7 @@ def sync_local_library():
     duplicate_keys = set()
     library_map = {}
     library_slugs = set()
-    for game in library:
+    for game in local_library:
         key = (
             game["slug"],
             game["runner"] or "",
@@ -122,4 +122,4 @@ def sync_local_library():
                 service_id=remote_game["service_id"],
                 installed=0,
             )
-    settings.write_setting("last_library_sync_at",  int(time.time()))
+    settings.write_setting("last_library_sync_at", int(time.time()))
