@@ -6,6 +6,8 @@ from math import floor
 
 import gi
 
+from lutris.services.service_media import resolve_media_path
+
 gi.require_version('PangoCairo', '1.0')
 
 import cairo
