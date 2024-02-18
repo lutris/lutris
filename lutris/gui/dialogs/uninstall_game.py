@@ -20,6 +20,7 @@ from lutris.util.system import get_disk_size, is_removeable
 class UninstallMultipleGamesDialog(Gtk.Dialog):
     """A dialog to uninstall and remove games. It lists the games and offers checkboxes to delete
     the game files, and to remove from the library."""
+
     __gtype_name__ = "UninstallMultipleGamesDialog"
 
     header_bar: Gtk.HeaderBar = GtkTemplate.Child()
@@ -71,7 +72,10 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         self.any_protected = False
 
         def is_shared(directory: str) -> bool:
-            dir_users = set(str(g["id"]) for g in get_games(filters={"directory": directory, "installed": 1}))
+            dir_users = set(
+                str(g["id"])
+                for g in get_games(filters={"directory": directory, "installed": 1})
+            )
             for g in self.games:
                 dir_users.discard(g.id)
             return bool(dir_users)
@@ -79,7 +83,9 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         for row in self.uninstall_game_list.get_children():
             game = row.game
             if game.is_installed and game.directory:
-                if game.config and is_removeable(game.directory, game.config.system_config):
+                if game.config and is_removeable(
+                    game.directory, game.config.system_config
+                ):
                     shared_dir = is_shared(game.directory)
                     self.any_shared = self.any_shared or shared_dir
                     row.can_delete_files = not shared_dir
@@ -104,7 +110,11 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
                 row.show_folder_size_spinner()
 
         if folders_to_size:
-            AsyncCall(self._get_next_folder_size, self._get_next_folder_size_cb, folders_to_size)
+            AsyncCall(
+                self._get_next_folder_size,
+                self._get_next_folder_size_cb,
+                folders_to_size,
+            )
 
     def update_subtitle(self) -> None:
         """Updates the dialog subtitle according to what games are being removed."""
@@ -121,7 +131,9 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             subtitle = _("Remove %d games") % len(to_remove)
         else:
             subtitle = _("Uninstall %d games and remove %d games") % (
-                len(to_uninstall), len(to_remove))
+                len(to_uninstall),
+                len(to_remove),
+            )
 
         self.header_bar.set_subtitle(subtitle)
 
@@ -131,19 +143,39 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         messages = []
 
         if to_uninstall:
-            messages.append(_("After you uninstall these games, you won't be able play them in Lutris."))
-            messages.append(_("Uninstalled games that you remove from the library will no longer appear in the "
-                              "'Games' view, but those that remain will retain their playtime data."))
+            messages.append(
+                _(
+                    "After you uninstall these games, you won't be able play them in Lutris."
+                )
+            )
+            messages.append(
+                _(
+                    "Uninstalled games that you remove from the library will no longer appear in the "
+                    "'Games' view, but those that remain will retain their playtime data."
+                )
+            )
         else:
-            messages.append(_("After you remove these games, they will no longer "
-                              "appear in the 'Games' view."))
+            messages.append(
+                _(
+                    "After you remove these games, they will no longer "
+                    "appear in the 'Games' view."
+                )
+            )
 
         if self.any_shared:
-            messages.append(_("Some of the game directories cannot be removed because they are shared "
-                              "with other games that you are not removing."))
+            messages.append(
+                _(
+                    "Some of the game directories cannot be removed because they are shared "
+                    "with other games that you are not removing."
+                )
+            )
 
         if self.any_protected:
-            messages.append(_("Some of the game directories cannot be removed because they are protected."))
+            messages.append(
+                _(
+                    "Some of the game directories cannot be removed because they are protected."
+                )
+            )
 
         if messages:
             self.message_label.set_markup("\n\n".join(messages))
@@ -177,18 +209,24 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
             checkbox.set_active(set_count > 0)
             checkbox.set_inconsistent(set_count > 0 and unset_count > 0)
-            checkbox.set_visible((set_count + unset_count) > 1 and (set_count > 0 or unset_count > 0))
+            checkbox.set_visible(
+                (set_count + unset_count) > 1 and (set_count > 0 or unset_count > 0)
+            )
 
         if not self._setting_all_checkboxes:
             self._setting_all_checkboxes = True
             try:
-                update(self.delete_all_files_checkbox,
-                       lambda row: row.can_delete_files,
-                       lambda row: row.delete_files)
+                update(
+                    self.delete_all_files_checkbox,
+                    lambda row: row.can_delete_files,
+                    lambda row: row.delete_files,
+                )
 
-                update(self.remove_all_games_checkbox,
-                       lambda row: row.game.is_installed,
-                       lambda row: row.delete_game)
+                update(
+                    self.remove_all_games_checkbox,
+                    lambda row: row.game.is_installed,
+                    lambda row: row.delete_game,
+                )
             finally:
                 self._setting_all_checkboxes = False
 
@@ -212,8 +250,9 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
         self._apply_all_checkbox(self.remove_all_games_checkbox, update_row)
 
-    def _apply_all_checkbox(self, checkbox,
-                            row_updater: Callable[['GameRemovalRow', bool], None]):
+    def _apply_all_checkbox(
+        self, checkbox, row_updater: Callable[["GameRemovalRow", bool], None]
+    ):
         """Sets the state of the checkboxes on all rows to agree with 'checkbox';
         the actual change is performed by row_updater, so this can be used for
         either checkbox."""
@@ -234,8 +273,13 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
     @GtkTemplate.Callback
     def on_remove_button_clicked(self, _widget) -> None:
         rows = list(self.uninstall_game_list.get_children())
-        dirs_to_delete = list(set(row.game.directory for row in rows
-                                  if row.delete_files and row.has_game_remove_warning))
+        dirs_to_delete = list(
+            set(
+                row.game.directory
+                for row in rows
+                if row.delete_files and row.has_game_remove_warning
+            )
+        )
 
         if dirs_to_delete:
             if len(dirs_to_delete) == 1:
@@ -265,7 +309,11 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         self.destroy()
 
     def on_response(self, _dialog, response: Gtk.ResponseType) -> None:
-        if response in (Gtk.ResponseType.DELETE_EVENT, Gtk.ResponseType.CANCEL, Gtk.ResponseType.OK):
+        if response in (
+            Gtk.ResponseType.DELETE_EVENT,
+            Gtk.ResponseType.CANCEL,
+            Gtk.ResponseType.OK,
+        ):
             self.destroy()
 
     @staticmethod
@@ -285,7 +333,11 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         directory, size, remaining_directories = result
 
         if remaining_directories:
-            AsyncCall(self._get_next_folder_size, self._get_next_folder_size_cb, remaining_directories)
+            AsyncCall(
+                self._get_next_folder_size,
+                self._get_next_folder_size_cb,
+                remaining_directories,
+            )
 
         for row in self.uninstall_game_list.get_children():
             if directory == row.game.directory:
@@ -311,10 +363,14 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             label = Gtk.Label(game.name, selectable=True)
             hbox.pack_start(label, False, False, 0)
 
-            self.remove_from_library_checkbox = Gtk.CheckButton("Remove from Library", active=False, halign=Gtk.Align.START)
+            self.remove_from_library_checkbox = Gtk.CheckButton(
+                "Remove from Library", active=False, halign=Gtk.Align.START
+            )
             self.remove_from_library_checkbox.set_sensitive(game.is_installed)
             self.remove_from_library_checkbox.set_active(True)
-            self.remove_from_library_checkbox.connect("toggled", self.on_checkbox_toggled)
+            self.remove_from_library_checkbox.connect(
+                "toggled", self.on_checkbox_toggled
+            )
             hbox.pack_end(self.remove_from_library_checkbox, False, False, 0)
 
             if game.is_installed and self.game.directory:
@@ -326,11 +382,16 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
                 hbox.pack_end(self.delete_files_checkbox, False, False, 0)
 
-                dir_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, margin_left=6, margin_right=6,
-                                  height_request=16)
-                self.directory_label = Gtk.Label(halign=Gtk.Align.START,
-                                                 selectable=True,
-                                                 valign=Gtk.Align.START)
+                dir_box = Gtk.Box(
+                    orientation=Gtk.Orientation.HORIZONTAL,
+                    spacing=6,
+                    margin_left=6,
+                    margin_right=6,
+                    height_request=16,
+                )
+                self.directory_label = Gtk.Label(
+                    halign=Gtk.Align.START, selectable=True, valign=Gtk.Align.START
+                )
                 self.directory_label.set_markup(self._get_directory_markup())
                 dir_box.pack_start(self.directory_label, False, False, 0)
 
@@ -369,9 +430,12 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         @property
         def delete_files(self) -> bool:
             """True if the game files should be deleted."""
-            return bool(self.game.is_installed and self.game.directory
-                        and self.delete_files_checkbox
-                        and self.delete_files_checkbox.get_active())
+            return bool(
+                self.game.is_installed
+                and self.game.directory
+                and self.delete_files_checkbox
+                and self.delete_files_checkbox.get_active()
+            )
 
         @delete_files.setter
         def delete_files(self, active: bool) -> None:
@@ -403,7 +467,9 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
         @property
         def has_game_remove_warning(self) -> bool:
             """True if the game should not provoke a warning before you delete its files."""
-            return not self.game.has_runner or not hasattr(self.game.runner, "no_game_remove_warning")
+            return not self.game.has_runner or not hasattr(
+                self.game.runner, "no_game_remove_warning"
+            )
 
         def perform_removal(self) -> None:
             """Performs the actions this row describes, uninstalling or deleting a game."""
