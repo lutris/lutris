@@ -277,7 +277,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             set(
                 row.game.directory
                 for row in rows
-                if row.delete_files and row.has_game_remove_warning
+                if row.delete_files
             )
         )
 
@@ -462,13 +462,6 @@ class GameRemovalRow(Gtk.ListBoxRow):
     @delete_game.setter
     def delete_game(self, active: bool) -> None:
         self.remove_from_library_checkbox.set_active(active)
-
-    @property
-    def has_game_remove_warning(self) -> bool:
-        """True if the game should not provoke a warning before you delete its files."""
-        return not self.game.has_runner or not hasattr(
-            self.game.runner, "no_game_remove_warning"
-        )
 
     def perform_removal(self) -> None:
         """Performs the actions this row describes, uninstalling or deleting a game."""
