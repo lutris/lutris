@@ -62,7 +62,6 @@ class Game(GObject.Object):
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-install": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-install-update": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -351,12 +350,11 @@ class Game(GObject.Object):
                 disable_compositing()
                 self.compositor_disabled = True
 
-    def uninstall(self, delete_files: bool = False, no_signal: bool = False) -> None:
+    def uninstall(self, delete_files: bool = False) -> None:
         """Uninstall a game, but do not remove it from the library.
 
         Params:
             delete_files (bool): Delete the game files
-            no_signal (bool): Don't emit game-removed signal
         """
         sql.db_update(settings.DB_PATH, "games", {"installed": 0, "runner": ""}, {"id": self.id})
         if self.config:
@@ -375,16 +373,12 @@ class Game(GObject.Object):
             log_buffer = LOG_BUFFERS[self.id]
             log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
 
-        if not no_signal:
-            self.emit("game-removed")
 
-    def delete(self, no_signal: bool = False) -> None:
+    def delete(self) -> None:
         """Delete a game from the library; must be uninstalled first."""
         if self.is_installed:
             raise RuntimeError(_("Uninstall the game before deleting"))
         games_db.delete_game(self.id)
-        if not no_signal:
-            self.emit("game-removed")
         self._id = None
 
     def set_platform_from_runner(self):

@@ -18,7 +18,7 @@ from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.config.edit_game_categories import EditGameCategoriesDialog
 from lutris.gui.dialogs import InputDialog
 from lutris.gui.dialogs.log import LogWindow
-from lutris.gui.dialogs.uninstall_game import UninstallMultipleGamesDialog
+from lutris.gui.dialogs.uninstall_dialog import UninstallDialog
 from lutris.gui.widgets.utils import open_uri
 from lutris.services.lutris import download_lutris_media
 from lutris.util import xdgshortcuts
@@ -96,7 +96,7 @@ class BaseGameActions:
         """Callback that present the uninstall dialog to the user"""
         game_ids = [g.id for g in self.games if g.is_installed or g.is_db_stored]
         application = Gio.Application.get_default()
-        dlg = application.show_window(UninstallMultipleGamesDialog, parent=self.window)
+        dlg = application.show_window(UninstallDialog, parent=self.window)
         dlg.add_games(game_ids)
 
     def on_view_game(self, _widget):

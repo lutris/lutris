@@ -12,19 +12,19 @@ from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
-from lutris.util.path_cache import remove_from_path_cache
 from lutris.util.library_sync import delete_from_remote_library, sync_local_library
 from lutris.util.log import logger
+from lutris.util.path_cache import remove_from_path_cache
 from lutris.util.strings import get_natural_sort_key, gtk_safe, human_size
 from lutris.util.system import get_disk_size, is_removeable
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "uninstall-dialog.ui"))
-class UninstallMultipleGamesDialog(Gtk.Dialog):
+class UninstallDialog(Gtk.Dialog):
     """A dialog to uninstall and remove games. It lists the games and offers checkboxes to delete
     the game files, and to remove from the library."""
 
-    __gtype_name__ = "UninstallMultipleGamesDialog"
+    __gtype_name__ = "UninstallDialog"
 
     header_bar: Gtk.HeaderBar = GtkTemplate.Child()
     message_label: Gtk.Label = GtkTemplate.Child()
@@ -36,6 +36,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
     def __init__(self, parent: Gtk.Window = None, **kwargs):
         super().__init__(parent=parent, **kwargs)
+        self.parent = parent
         self._setting_all_checkboxes = False
         self.games: List[Game] = []
         self.any_shared = False
@@ -319,7 +320,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
         if settings.read_bool_setting("library_sync_enabled") and games_removed_from_library:
             delete_from_remote_library(games_removed_from_library)
-
+        self.parent.on_game_removed()
         self.destroy()
 
     def on_response(self, _dialog, response: Gtk.ResponseType) -> None:
@@ -478,15 +479,13 @@ class GameRemovalRow(Gtk.ListBoxRow):
 
     def perform_removal(self) -> None:
         """Performs the actions this row describes, uninstalling or deleting a game."""
-        # We uninstall installed games, and delete games where self.remove_from_library is true;
-        # but we must be careful to fire the game-removed single only once.
+        # We uninstall installed games, and delete games where self.remove_from_library is true
         if self.game.is_installed:
             remove_from_path_cache(self.game)
             if self.remove_from_library:
-                self.game.uninstall(delete_files=self.delete_files, no_signal=True)
+                self.game.uninstall(delete_files=self.delete_files)
                 self.game.delete()
             else:
                 self.game.uninstall(delete_files=self.delete_files)
         elif self.remove_from_library:
             self.game.delete()
-
