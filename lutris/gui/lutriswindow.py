@@ -52,9 +52,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
     default_height = 600
 
     __gtype_name__ = "LutrisWindow"
-    __gsignals__ = {
-        "view-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
-    }
     games_stack = GtkTemplate.Child()
     sidebar_revealer = GtkTemplate.Child()
     sidebar_scrolled = GtkTemplate.Child()
@@ -139,7 +136,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         self.update_action_state()
 
-        self.connect("view-updated", self.update_store)
         GObject.add_emission_hook(BaseService, "service-login", self.on_service_login)
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
@@ -285,7 +281,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         action.set_state(value)
         settings.write_setting("show_hidden_games", str(value).lower(), section="lutris")
         self.filters["hidden"] = bool(value)
-        self.emit("view-updated")
+        self.update_store()
 
     @property
     def current_view_type(self):
@@ -788,7 +784,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.update_view_settings()
         self.games_stack.set_visible_child_name(view_type)
         self.update_action_state()
-        self.emit("view-updated")
+        self.update_store()
 
     def rebuild_view(self, view_type):
         """Discards the view named by 'view_type' and if it is the current view,
@@ -822,7 +818,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_service_games_updated(self, service):
         """Request a view update when service games are loaded"""
         if self.service and service.id == self.service.id:
-            self.emit("view-updated")
+            self.update_store()
         return True
 
     def save_window_state(self):
@@ -853,7 +849,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def on_service_logout(self, service):
         if self.service and service.id == self.service.id:
-            self.emit("view-updated")
+            self.update_store()
         return True
 
     @GtkTemplate.Callback
@@ -910,7 +906,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Callback to handle uninstalled game filter switch"""
         action.set_state(value)
         self.set_show_installed_state(value.get_boolean())
-        self.emit("view-updated")
+        self.update_store()
 
     @GtkTemplate.Callback
     def on_search_entry_changed(self, entry):
@@ -967,17 +963,17 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.actions["view-sorting"].set_state(value)
         value = str(value).strip("'")
         settings.write_setting("view_sorting", value)
-        self.emit("view-updated")
+        self.update_store()
 
     def on_view_sorting_direction_change(self, action, value):
         self.actions["view-reverse-order"].set_state(value)
         settings.write_setting("view_reverse_order", bool(value))
-        self.emit("view-updated")
+        self.update_store()
 
     def on_view_sorting_installed_first_change(self, action, value):
         self.actions["view-sorting-installed-first"].set_state(value)
         settings.write_setting("view_sorting_installed_first", bool(value))
-        self.emit("view-updated")
+        self.update_store()
 
     def on_side_panel_state_change(self, action, value):
         """Callback to handle side panel toggle"""
@@ -1095,7 +1091,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Simple method used to refresh the view"""
         self.sidebar.update_rows()
         self.update_missing_games_sidebar_row()
-        self.emit("view-updated")
+        self.update_store()
         return True
 
     def on_game_activated(self, _view, game_id):
