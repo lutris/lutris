@@ -397,8 +397,7 @@ class BaseService(GObject.Object):
         return None
 
     def get_service_db_game(self, game: Game):
-        """Returns the row dictionary for the service-game corresponding to the
-        PGA game given, if any, or None."""
+        """Returns the row dictionary for the service-game corresponding to the game given, if any, or None."""
         if game.service == self.id and game.appid:
             return ServiceGameCollection.get_game(self.id, game.appid)
         return None

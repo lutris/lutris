@@ -84,7 +84,6 @@ class GameBar(Gtk.Box):
         self.play_button = self.get_play_button(game_actions)
         hbox.pack_start(self.play_button, False, False, 0)
 
-
         hbox.pack_start(self.get_runner_button(), False, False, 0)
         hbox.pack_start(self.get_platform_label(), False, False, 0)
         if self.game.lastplayed:

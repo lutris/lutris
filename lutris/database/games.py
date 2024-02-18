@@ -147,7 +147,7 @@ def get_games_by_slug(slug):
 
 
 def add_game(**game_data):
-    """Add a game to the PGA database."""
+    """Add a game to the database."""
     game_data["installed_at"] = int(time.time())
     if "slug" not in game_data:
         game_data["slug"] = slugify(game_data["name"])
@@ -156,7 +156,7 @@ def add_game(**game_data):
 
 def add_games_bulk(games):
     """
-        Add a list of games to the PGA database.
+        Add a list of games to the database.
         The dicts must have an identical set of keys.
 
         Args:
@@ -168,7 +168,7 @@ def add_games_bulk(games):
 
 
 def add_or_update(**params):
-    """Add a game to the PGA or update an existing one
+    """Add a game to the database or update an existing one
 
     If an 'id' is provided in the parameters then it
     will try to match it, otherwise it will try matching

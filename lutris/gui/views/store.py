@@ -145,7 +145,7 @@ class GameStore(GObject.Object):
         return True
 
     def add_game(self, db_game):
-        """Add a PGA game to the store"""
+        """Add a game to the store"""
         store_item = StoreItem(db_game, self.service_media)
         self.add_item(store_item)
 
