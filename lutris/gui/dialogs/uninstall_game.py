@@ -311,11 +311,11 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             label = Gtk.Label(game.name, selectable=True)
             hbox.pack_start(label, False, False, 0)
 
-            self.delete_game_checkbox = Gtk.CheckButton("Remove from Library", active=False, halign=Gtk.Align.START)
-            self.delete_game_checkbox.set_sensitive(game.is_installed)
-            self.delete_game_checkbox.set_active(True)
-            self.delete_game_checkbox.connect("toggled", self.on_checkbox_toggled)
-            hbox.pack_end(self.delete_game_checkbox, False, False, 0)
+            self.remove_from_library_checkbox = Gtk.CheckButton("Remove from Library", active=False, halign=Gtk.Align.START)
+            self.remove_from_library_checkbox.set_sensitive(game.is_installed)
+            self.remove_from_library_checkbox.set_active(True)
+            self.remove_from_library_checkbox.connect("toggled", self.on_checkbox_toggled)
+            hbox.pack_end(self.remove_from_library_checkbox, False, False, 0)
 
             if game.is_installed and self.game.directory:
                 self.delete_files_checkbox = Gtk.CheckButton(_("Delete Files"))
@@ -394,11 +394,11 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             if not self.game.is_installed:
                 return True
 
-            return bool(self.delete_game_checkbox.get_active())
+            return bool(self.remove_from_library_checkbox.get_active())
 
         @delete_game.setter
         def delete_game(self, active: bool) -> None:
-            self.delete_game_checkbox.set_active(active)
+            self.remove_from_library_checkbox.set_active(active)
 
         @property
         def has_game_remove_warning(self) -> bool:
