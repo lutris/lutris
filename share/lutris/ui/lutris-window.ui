@@ -384,8 +384,8 @@
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">False</property>
-            <property name="action-name">win.view-sorting-ascending</property>
-            <property name="text" translatable="yes">Sort Ascending</property>
+            <property name="action-name">win.view-reverse-order</property>
+            <property name="text" translatable="yes">Reverse order</property>
           </object>
           <packing>
             <property name="expand">False</property>
