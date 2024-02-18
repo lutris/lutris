@@ -374,7 +374,9 @@ class LutrisWindow(Gtk.ApplicationWindow,
             if self.view_sorting_installed_first:
                 # We want installed games to always be first, even in
                 # a descending sort.
-                if self.view_reverse_order or (self.view_sorting == "name" and not self.view_reverse_order):
+                if self.view_reverse_order:
+                    installation_flag = not installation_flag
+                if self.view_sorting == "name":
                     installation_flag = not installation_flag
                 return [installation_flag, value]
             return value
