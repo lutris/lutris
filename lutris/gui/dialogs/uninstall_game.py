@@ -48,7 +48,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
         new_rows = []
         for game in new_games:
-            row = UninstallMultipleGamesDialog.GameRemovalRow(game)
+            row = GameRemovalRow(game)
             self.uninstall_game_list.add(row)
             new_rows.append(row)
 
@@ -343,143 +343,144 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
             if directory == row.game.directory:
                 row.show_folder_size(size)
 
-    class GameRemovalRow(Gtk.ListBoxRow):
-        __gsignals__ = {
-            "row-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        }
 
-        def __init__(self, game: Game):
-            super().__init__(activatable=False)
-            self.game = game
-            self._can_delete_files = False
-            self.delete_files_checkbox: Gtk.CheckButton = None
-            self.folder_size_spinner: Gtk.Spinner = None
-            self.directory_label: Gtk.Label = None
+class GameRemovalRow(Gtk.ListBoxRow):
+    __gsignals__ = {
+        "row-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
 
-            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            vbox.pack_start(hbox, False, False, 0)
+    def __init__(self, game: Game):
+        super().__init__(activatable=False)
+        self.game = game
+        self._can_delete_files = False
+        self.delete_files_checkbox: Gtk.CheckButton = None
+        self.folder_size_spinner: Gtk.Spinner = None
+        self.directory_label: Gtk.Label = None
 
-            label = Gtk.Label(game.name, selectable=True)
-            hbox.pack_start(label, False, False, 0)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox.pack_start(hbox, False, False, 0)
 
-            self.remove_from_library_checkbox = Gtk.CheckButton(
-                "Remove from Library", active=False, halign=Gtk.Align.START
+        label = Gtk.Label(game.name, selectable=True)
+        hbox.pack_start(label, False, False, 0)
+
+        self.remove_from_library_checkbox = Gtk.CheckButton(
+            "Remove from Library", active=False, halign=Gtk.Align.START
+        )
+        self.remove_from_library_checkbox.set_sensitive(game.is_installed)
+        self.remove_from_library_checkbox.set_active(True)
+        self.remove_from_library_checkbox.connect(
+            "toggled", self.on_checkbox_toggled
+        )
+        hbox.pack_end(self.remove_from_library_checkbox, False, False, 0)
+
+        if game.is_installed and self.game.directory:
+            self.delete_files_checkbox = Gtk.CheckButton(_("Delete Files"))
+            self.delete_files_checkbox.set_sensitive(False)
+            self.delete_files_checkbox.set_active(False)
+            self.delete_files_checkbox.set_tooltip_text(self.game.directory)
+            self.delete_files_checkbox.connect("toggled", self.on_checkbox_toggled)
+
+            hbox.pack_end(self.delete_files_checkbox, False, False, 0)
+
+            dir_box = Gtk.Box(
+                orientation=Gtk.Orientation.HORIZONTAL,
+                spacing=6,
+                margin_left=6,
+                margin_right=6,
+                height_request=16,
             )
-            self.remove_from_library_checkbox.set_sensitive(game.is_installed)
-            self.remove_from_library_checkbox.set_active(True)
-            self.remove_from_library_checkbox.connect(
-                "toggled", self.on_checkbox_toggled
+            self.directory_label = Gtk.Label(
+                halign=Gtk.Align.START, selectable=True, valign=Gtk.Align.START
             )
-            hbox.pack_end(self.remove_from_library_checkbox, False, False, 0)
+            self.directory_label.set_markup(self._get_directory_markup())
+            dir_box.pack_start(self.directory_label, False, False, 0)
 
-            if game.is_installed and self.game.directory:
-                self.delete_files_checkbox = Gtk.CheckButton(_("Delete Files"))
-                self.delete_files_checkbox.set_sensitive(False)
-                self.delete_files_checkbox.set_active(False)
-                self.delete_files_checkbox.set_tooltip_text(self.game.directory)
-                self.delete_files_checkbox.connect("toggled", self.on_checkbox_toggled)
+            self.folder_size_spinner = Gtk.Spinner(visible=False, no_show_all=True)
+            dir_box.pack_start(self.folder_size_spinner, False, False, 0)
 
-                hbox.pack_end(self.delete_files_checkbox, False, False, 0)
+            vbox.pack_start(dir_box, False, False, 0)
+        self.add(vbox)
 
-                dir_box = Gtk.Box(
-                    orientation=Gtk.Orientation.HORIZONTAL,
-                    spacing=6,
-                    margin_left=6,
-                    margin_right=6,
-                    height_request=16,
-                )
-                self.directory_label = Gtk.Label(
-                    halign=Gtk.Align.START, selectable=True, valign=Gtk.Align.START
-                )
-                self.directory_label.set_markup(self._get_directory_markup())
-                dir_box.pack_start(self.directory_label, False, False, 0)
+    def _get_directory_markup(self, folder_size: int = None):
+        if not self.game.directory or not self.game.is_installed:
+            return ""
 
-                self.folder_size_spinner = Gtk.Spinner(visible=False, no_show_all=True)
-                dir_box.pack_start(self.folder_size_spinner, False, False, 0)
+        markup = gtk_safe(self.game.directory)
+        if folder_size is not None:
+            markup += f" <i>({human_size(folder_size)})</i>"
+        return "<span font_desc='8'>%s</span>" % markup
 
-                vbox.pack_start(dir_box, False, False, 0)
-            self.add(vbox)
+    def on_checkbox_toggled(self, _widget):
+        self.emit("row-updated")
 
-        def _get_directory_markup(self, folder_size: int = None):
-            if not self.game.directory or not self.game.is_installed:
-                return ""
+    def show_folder_size_spinner(self):
+        if self.folder_size_spinner:
+            self.folder_size_spinner.start()
+            self.folder_size_spinner.show()
 
-            markup = gtk_safe(self.game.directory)
-            if folder_size is not None:
-                markup += f" <i>({human_size(folder_size)})</i>"
-            return "<span font_desc='8'>%s</span>" % markup
+    def show_folder_size(self, folder_size: int) -> None:
+        """Called to stop the spinner and show the size of the game folder."""
+        if self.directory_label:
+            self.directory_label.set_markup(self._get_directory_markup(folder_size))
 
-        def on_checkbox_toggled(self, _widget):
-            self.emit("row-updated")
+        if self.folder_size_spinner:
+            self.folder_size_spinner.stop()
+            self.folder_size_spinner.hide()
 
-        def show_folder_size_spinner(self):
-            if self.folder_size_spinner:
-                self.folder_size_spinner.start()
-                self.folder_size_spinner.show()
+    @property
+    def delete_files(self) -> bool:
+        """True if the game files should be deleted."""
+        return bool(
+            self.game.is_installed
+            and self.game.directory
+            and self.delete_files_checkbox
+            and self.delete_files_checkbox.get_active()
+        )
 
-        def show_folder_size(self, folder_size: int) -> None:
-            """Called to stop the spinner and show the size of the game folder."""
-            if self.directory_label:
-                self.directory_label.set_markup(self._get_directory_markup(folder_size))
+    @delete_files.setter
+    def delete_files(self, active: bool) -> None:
+        self.delete_files_checkbox.set_active(active)
 
-            if self.folder_size_spinner:
-                self.folder_size_spinner.stop()
-                self.folder_size_spinner.hide()
+    @property
+    def can_delete_files(self):
+        return self._can_delete_files
 
-        @property
-        def delete_files(self) -> bool:
-            """True if the game files should be deleted."""
-            return bool(
-                self.game.is_installed
-                and self.game.directory
-                and self.delete_files_checkbox
-                and self.delete_files_checkbox.get_active()
-            )
+    @can_delete_files.setter
+    def can_delete_files(self, can_delete):
+        if self._can_delete_files != can_delete and self.delete_files_checkbox:
+            self._can_delete_files = can_delete
+            self.delete_files_checkbox.set_sensitive(can_delete)
+            self.delete_files_checkbox.set_active(can_delete)
 
-        @delete_files.setter
-        def delete_files(self, active: bool) -> None:
-            self.delete_files_checkbox.set_active(active)
+    @property
+    def delete_game(self) -> bool:
+        """True if the game should be rmoved from the database."""
+        if not self.game.is_installed:
+            return True
 
-        @property
-        def can_delete_files(self):
-            return self._can_delete_files
+        return bool(self.remove_from_library_checkbox.get_active())
 
-        @can_delete_files.setter
-        def can_delete_files(self, can_delete):
-            if self._can_delete_files != can_delete and self.delete_files_checkbox:
-                self._can_delete_files = can_delete
-                self.delete_files_checkbox.set_sensitive(can_delete)
-                self.delete_files_checkbox.set_active(can_delete)
+    @delete_game.setter
+    def delete_game(self, active: bool) -> None:
+        self.remove_from_library_checkbox.set_active(active)
 
-        @property
-        def delete_game(self) -> bool:
-            """True if the game should be rmoved from the database."""
-            if not self.game.is_installed:
-                return True
+    @property
+    def has_game_remove_warning(self) -> bool:
+        """True if the game should not provoke a warning before you delete its files."""
+        return not self.game.has_runner or not hasattr(
+            self.game.runner, "no_game_remove_warning"
+        )
 
-            return bool(self.remove_from_library_checkbox.get_active())
-
-        @delete_game.setter
-        def delete_game(self, active: bool) -> None:
-            self.remove_from_library_checkbox.set_active(active)
-
-        @property
-        def has_game_remove_warning(self) -> bool:
-            """True if the game should not provoke a warning before you delete its files."""
-            return not self.game.has_runner or not hasattr(
-                self.game.runner, "no_game_remove_warning"
-            )
-
-        def perform_removal(self) -> None:
-            """Performs the actions this row describes, uninstalling or deleting a game."""
-            # We uninstall installed games, and delete games where self.delete_game is true;
-            # but we must be careful to fire the game-removed single only once.
-            if self.game.is_installed:
-                if self.delete_game:
-                    self.game.uninstall(delete_files=self.delete_files, no_signal=True)
-                    self.game.delete()
-                else:
-                    self.game.uninstall(delete_files=self.delete_files)
-            elif self.delete_game:
+    def perform_removal(self) -> None:
+        """Performs the actions this row describes, uninstalling or deleting a game."""
+        # We uninstall installed games, and delete games where self.delete_game is true;
+        # but we must be careful to fire the game-removed single only once.
+        if self.game.is_installed:
+            if self.delete_game:
+                self.game.uninstall(delete_files=self.delete_files, no_signal=True)
                 self.game.delete()
+            else:
+                self.game.uninstall(delete_files=self.delete_files)
+        elif self.delete_game:
+            self.game.delete()
