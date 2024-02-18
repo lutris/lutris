@@ -148,12 +148,12 @@ class Game(GObject.Object):
     @property
     def id(self) -> str:
         if not self._id:
-            logger.error("The game '%s' has no ID, it is not stored in the PGA.", self.name)
+            logger.error("The game '%s' has no ID, it is not stored in the database.", self.name)
         return cast(str, self._id)
 
     @property
     def is_db_stored(self) -> bool:
-        """True if this Game has an ID, which means it is saved in the PGA."""
+        """True if this Game has an ID, which means it is saved in the database."""
         return bool(self._id)
 
     @property

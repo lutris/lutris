@@ -390,7 +390,7 @@ class UninstallMultipleGamesDialog(Gtk.Dialog):
 
         @property
         def delete_game(self) -> bool:
-            """True if the game should be rmoved from the PGA."""
+            """True if the game should be rmoved from the database."""
             if not self.game.is_installed:
                 return True
 
