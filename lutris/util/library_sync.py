@@ -148,7 +148,7 @@ def delete_from_remote_library(games):
         },
     )
     try:
-        request.post(data=json.dumps(payload).encode())
+        request.delete(data=json.dumps(payload).encode())
     except http.HTTPError as ex:
         logger.error(ex)
         return None
