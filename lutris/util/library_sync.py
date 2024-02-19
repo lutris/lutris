@@ -126,9 +126,9 @@ def sync_local_library():
 
 
 def delete_from_remote_library(games):
+    payload = []
     for game in games:
-        print(game)
-        payload = {
+        payload.append({
             "name": game["name"],
             "slug": game["slug"],
             "runner": game["runner"],
@@ -137,7 +137,7 @@ def delete_from_remote_library(games):
             "playtime": game["playtime"],
             "service": game["service"],
             "service_id": game["service_id"],
-        }
+        })
     credentials = read_api_key()
     url = LIBRARY_URL
     request = http.Request(
@@ -151,4 +151,6 @@ def delete_from_remote_library(games):
         request.delete(data=json.dumps(payload).encode())
     except http.HTTPError as ex:
         logger.error(ex)
+        logger.error(request.content)
         return None
+    return request.json
