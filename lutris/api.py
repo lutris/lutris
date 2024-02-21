@@ -142,7 +142,7 @@ def fetch_user_info():
 def read_user_info():
     if not os.path.exists(USER_INFO_FILE_PATH):
         return {}
-    with open(USER_INFO_FILE_PATH) as user_info_file:
+    with open(USER_INFO_FILE_PATH, encoding="utf-8") as user_info_file:
         user_info = json.load(user_info_file)
     return user_info
 

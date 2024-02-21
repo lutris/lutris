@@ -5,7 +5,7 @@ from gi.repository import Gtk
 from lutris import settings
 from lutris.api import disconnect, read_user_info
 from lutris.gui.config.base_config_box import BaseConfigBox
-from lutris.gui.dialogs import ClientLoginDialog
+from lutris.gui.dialogs import ClientLoginDialog, QuestionDialog
 from lutris.util.jobs import AsyncCall
 from lutris.util.library_sync import sync_local_library
 from lutris.util.steam.config import STEAM_ACCOUNT_SETTING, get_steam_users
@@ -94,16 +94,11 @@ class AccountsBox(BaseConfigBox):
             _(
                 "<i>This will send play time, last played, runner, platform \n"
                 "and store information to the lutris website so you can \n"
-                "sync this data on multiple devices (this is currently being implemented)</i>"
+                "sync this data on multiple devices</i>"
             )
         )
         self.space_widget(label, top=0)
         box.add(label)
-
-        button = Gtk.Button(_("Sync now"), visible=True)
-        button.connect("clicked", self.on_sync_clicked)
-        self.space_widget(button)
-        box.add(button)
 
         return box
 
@@ -155,11 +150,13 @@ class AccountsBox(BaseConfigBox):
         settings.write_setting(STEAM_ACCOUNT_SETTING, steamid64)
 
     def on_sync_toggled(self, checkbutton):
-        settings.write_setting("library_sync_enabled", checkbutton.get_active())
-
-    def on_sync_clicked(self, button):
-        def sync_cb(result, error):
-            button.set_sensitive(True)
-
-        button.set_sensitive(False)
-        AsyncCall(sync_local_library, sync_cb)
+        if not settings.read_setting("last_library_sync_at"):
+            sync_warn_dialog = QuestionDialog({
+                "title": _("Synchronize library?"),
+                "question": _("Enable library sync and run a full sync with lutris.net?")
+            })
+            if sync_warn_dialog.result == Gtk.ResponseType.YES:
+                AsyncCall(sync_local_library, None)
+                settings.write_setting("library_sync_enabled", checkbutton.get_active())
+        else:
+            settings.write_setting("library_sync_enabled", checkbutton.get_active())
