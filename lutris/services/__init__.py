@@ -23,13 +23,12 @@ from lutris.util import system
 from lutris.util.dolphin.cache_reader import DOLPHIN_GAME_CACHE_FILE
 from lutris.util.linux import LINUX_SYSTEM
 
-DEFAULT_SERVICES = ["lutris", "gog", "egs", "ea_app", "ubisoft", "steam"]
+DEFAULT_SERVICES = ["gog", "egs", "ea_app", "ubisoft", "steam"]
 
 
 def get_services():
     """Return a mapping of available services"""
     _services = {
-        "lutris": LutrisService,
         "gog": GOGService,
         "humblebundle": HumbleBundleService,
         "egs": EpicGamesStoreService,
@@ -51,6 +50,8 @@ def get_services():
         _services["dolphin"] = DolphinService
     if system.path_exists(SCUMMVM_CONFIG_FILE):
         _services["scummvm"] = ScummvmService
+    if os.environ.get("LUTRIS_SERVICE_ENABLED") == "1":
+        _services["lutris"] = LutrisService
     return _services
 
 
