@@ -35,9 +35,9 @@ from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
+from lutris.util.library_sync import sync_local_library
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
-from lutris.util.library_sync import sync_local_library
 from lutris.util.strings import get_natural_sort_key
 from lutris.util.system import update_desktop_icons
 
@@ -239,7 +239,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Tasks that can be run after the UI has been initialized."""
         if settings.read_setting("library_sync_enabled"):
             AsyncCall(sync_local_library, None)
-
 
     def update_action_state(self):
         """This invokes the functions to update the enabled states of all the actions
@@ -469,7 +468,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
             return self.dynamic_categories_game_factories[self.filters["dynamic_category"]]()
 
-        category = self.filters.get("category")
+        category = self.filters.get("category") or "all"
         included = [category] if category != "all" else None
         excluded = [".hidden"] if category != ".hidden" else []
         category_game_ids = categories_db.get_game_ids_for_categories(included, excluded)
