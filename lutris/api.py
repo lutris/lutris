@@ -107,7 +107,13 @@ def connect(username, password):
             token = json_dict["token"]
             with open(API_KEY_FILE_PATH, "w", encoding='utf-8') as token_file:
                 token_file.write("%s:%s" % (username, token))
-            get_user_info()
+            account_info = fetch_user_info()
+
+            if not account_info:
+                logger.warning("Unable to fetch user info")
+            else:
+                with open(USER_INFO_FILE_PATH, "w", encoding='utf-8') as token_file:
+                    json.dump(account_info, token_file, indent=2)
             return token
     except (requests.RequestException, requests.ConnectionError, requests.HTTPError, requests.TooManyRedirects,
             requests.Timeout) as ex:
@@ -122,7 +128,7 @@ def disconnect():
             os.remove(file_path)
 
 
-def get_user_info():
+def fetch_user_info():
     """Retrieves the user info to cache it locally"""
     credentials = read_api_key()
     if not credentials:
@@ -130,11 +136,15 @@ def get_user_info():
     url = settings.SITE_URL + "/api/users/me"
     request = http.Request(url, headers={"Authorization": "Token " + credentials["token"]})
     response = request.get()
-    account_info = response.json
-    if not account_info:
-        logger.warning("Unable to fetch user info for %s", credentials["username"])
-    with open(USER_INFO_FILE_PATH, "w", encoding='utf-8') as token_file:
-        json.dump(account_info, token_file, indent=2)
+    return response.json
+
+
+def read_user_info():
+    if not os.path.exists(USER_INFO_FILE_PATH):
+        return {}
+    with open(USER_INFO_FILE_PATH) as user_info_file:
+        user_info = json.load(user_info_file)
+    return user_info
 
 
 def get_runners(runner_name):
