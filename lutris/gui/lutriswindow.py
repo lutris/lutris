@@ -37,6 +37,7 @@ from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
+from lutris.util.library_sync import sync_local_library
 from lutris.util.strings import get_natural_sort_key
 from lutris.util.system import update_desktop_icons
 
@@ -150,6 +151,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
         selected_category = settings.read_setting("selected_category", default="runner:all")
         self.sidebar.selected_category = selected_category.split(":", maxsplit=1) if selected_category else None
 
+        GLib.timeout_add(1000, self.sync_library)
+
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
         Action.__new__.__defaults__ = (None, None, None, None, None)
@@ -231,6 +234,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
             self.add_action(action)
             if value.accel:
                 app.add_accelerator(value.accel, "win." + name)
+
+    def sync_library(self):
+        """Tasks that can be run after the UI has been initialized."""
+        if settings.read_setting("library_sync_enabled"):
+            AsyncCall(sync_local_library, None)
+
 
     def update_action_state(self):
         """This invokes the functions to update the enabled states of all the actions
@@ -1084,6 +1093,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         return True
 
     def on_game_installed(self, game):
+        self.sync_library()
         return True
 
     def on_game_removed(self):
