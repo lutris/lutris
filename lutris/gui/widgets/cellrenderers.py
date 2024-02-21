@@ -6,8 +6,6 @@ from math import floor
 
 import gi
 
-from lutris.services.service_media import resolve_media_path
-
 gi.require_version('PangoCairo', '1.0')
 
 import cairo
@@ -17,6 +15,7 @@ from lutris.exceptions import MissingMediaError
 from lutris.gui.widgets.utils import (
     MEDIA_CACHE_INVALIDATED, get_default_icon_path, get_runtime_icon_path, get_scaled_surface_by_path, get_surface_size
 )
+from lutris.services.service_media import resolve_media_path
 from lutris.util.path_cache import MISSING_GAMES
 
 
