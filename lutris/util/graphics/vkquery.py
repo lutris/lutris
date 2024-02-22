@@ -253,15 +253,11 @@ def is_vulkan_supported() -> bool:
         vulkan = _get_vulkan()
     except OSError:
         return False
-    app_info = VkApplicationInfo("vkinfo", version=(0, 1, 0))
-    create_info = VkInstanceCreateInfo(app_info)
-    instance = VkInstance()
-    result = vulkan.vkCreateInstance(byref(create_info), 0, byref(instance))
-    if result != VK_SUCCESS:
+    instance = _get_vk_instance()
+    if not instance:
         return False
     dev_count = c_uint32(0)
     result = vulkan.vkEnumeratePhysicalDevices(instance, byref(dev_count), None)
-    vulkan.vkDestroyInstance(instance, 0)
     return result == VK_SUCCESS and dev_count.value > 0
 
 
@@ -299,11 +295,8 @@ def get_device_info():
         vulkan = _get_vulkan()
     except OSError:
         return []
-    app_info = VkApplicationInfo("vkinfo", version=(0, 1, 0))
-    create_info = VkInstanceCreateInfo(app_info)
-    instance = VkInstance()
-    result = vulkan.vkCreateInstance(byref(create_info), 0, byref(instance))
-    if result != VK_SUCCESS:
+    instance = _get_vk_instance()
+    if not instance:
         return []
     dev_count = c_uint32(0)
     result = vulkan.vkEnumeratePhysicalDevices(instance, byref(dev_count), None)
@@ -324,7 +317,6 @@ def get_device_info():
             name = dev_props.deviceName.decode("utf-8")
             device_info.append(DeviceInfo(name, dev_props.apiVersion))
 
-    vulkan.vkDestroyInstance(instance, 0)
     return sorted(device_info, key=lambda t: t.api_version, reverse=True)
 
 
@@ -354,6 +346,20 @@ def format_version(version):
 
     return "(none)"
 
+
+@cache_single
+def _get_vk_instance():
+    try:
+        vulkan = _get_vulkan()
+    except OSError:
+        return []
+    app_info = VkApplicationInfo("vkinfo", version=(0, 1, 0))
+    create_info = VkInstanceCreateInfo(app_info)
+    instance = VkInstance()
+    result = vulkan.vkCreateInstance(byref(create_info), 0, byref(instance))
+    if result != VK_SUCCESS:
+        return None
+    return instance
 
 def _get_vulkan():
     vulkan = CDLL("libvulkan.so.1")
