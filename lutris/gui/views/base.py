@@ -6,7 +6,7 @@ from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.game_actions import BaseGameActions, get_game_actions
+from lutris.game_actions import GameActions, get_game_actions
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED
 from lutris.util.log import logger
@@ -85,10 +85,10 @@ class GameView:
             contextual_menu.popup(event, game_actions)
             return True
 
-    def get_selected_game_actions(self) -> BaseGameActions:
+    def get_selected_game_actions(self) -> GameActions:
         return self.get_game_actions_for_paths(self.get_selected())
 
-    def get_game_actions_for_paths(self, paths) -> BaseGameActions:
+    def get_game_actions_for_paths(self, paths) -> GameActions:
         game_ids = []
         for path in paths:
             game_ids.append(self.get_game_id_for_path(path))

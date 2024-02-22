@@ -29,7 +29,7 @@ from lutris.util.strings import gtk_safe, slugify
 from lutris.util.system import path_exists
 
 
-class BaseGameActions:
+class GameActions:
     def __init__(self, games: List[Game], window: Gtk.Window, application=None):
         self.application = application or Gio.Application.get_default()
         self.window = window  # also used as a LaunchUIDelegate and InstallUIDelegate
@@ -45,6 +45,10 @@ class BaseGameActions:
 
     @property
     def is_game_launchable(self):
+        for game in self.games:
+            if game.is_installed and not self.is_game_running:
+                return True
+
         return False
 
     def on_game_launch(self, *_args):
@@ -52,10 +56,26 @@ class BaseGameActions:
 
     @property
     def is_game_running(self):
+        for game in self.games:
+            if game.is_db_stored and self.application.is_game_running_by_id(game.id):
+                return True
         return False
 
     def on_game_stop(self, *_args):
         """Stops the game"""
+        games = self.get_running_games()
+        for game in games:
+            game.force_stop()
+
+    def get_running_games(self):
+        running_games = []
+        for game in self.games:
+            if game and game.is_db_stored:
+                ids = self.application.get_running_game_ids()
+                for game_id in ids:
+                    if str(game_id) == game.id:
+                        running_games.append(game)
+        return running_games
 
     @property
     def is_installable(self):
@@ -74,75 +94,6 @@ class BaseGameActions:
                     game_id = game.id if game.is_db_stored else game.name
                     raise RuntimeError("No game to install: %s" % game_id)
                 game.install(launch_ui_delegate=self.window)
-
-    def on_locate_installed_game(self, *_args):
-        """Show the user a dialog to import an existing install to a DRM free service
-
-        Params:
-            games ([Game]): List of Game instances without a database ID, populated with fields the service can provides
-        """
-        for game in self.games:
-            AddGameDialog(self.window, game=game, runner=game.runner_name)
-
-    @property
-    def is_game_removable(self):
-        for game in self.games:
-            if game.is_installed or game.is_db_stored:
-                return True
-
-        return False
-
-    def on_remove_game(self, *_args):
-        """Callback that present the uninstall dialog to the user"""
-        game_ids = [g.id for g in self.games if g.is_installed or g.is_db_stored]
-        application = Gio.Application.get_default()
-        dlg = application.show_window(UninstallDialog, parent=self.window)
-        dlg.add_games(game_ids)
-
-    def on_view_game(self, _widget):
-        """Callback to open a game on lutris.net"""
-        for game in self.games:
-            open_uri("https://lutris.net/games/%s" % game.slug.replace("_", "-"))
-
-
-class GameActions(BaseGameActions):
-    @property
-    def is_game_launchable(self):
-        for game in self.games:
-            if game.is_installed and not self.is_game_running:
-                return True
-
-        return False
-
-    @property
-    def is_game_running(self):
-        for game in self.games:
-            if game.is_db_stored and self.application.is_game_running_by_id(game.id):
-                return True
-        return False
-
-    def get_game_actions(self):
-        return []
-
-    def get_displayed_entries(self):
-        """Return a dictionary of actions that should be shown for a game"""
-        return {}
-
-    def get_running_games(self):
-        running_games = []
-        for game in self.games:
-            if game and game.is_db_stored:
-                ids = self.application.get_running_game_ids()
-                for game_id in ids:
-                    if str(game_id) == game.id:
-                        running_games.append(game)
-        return running_games
-
-    def on_game_stop(self, *_args):
-        """Stops the game"""
-        games = self.get_running_games()
-        for game in games:
-            game.force_stop()
 
     def on_add_favorite_game(self, _widget):
         """Add to favorite Games list"""
@@ -163,6 +114,35 @@ class GameActions(BaseGameActions):
         """Removes a game from the list of hidden games"""
         for game in self.games:
             game.mark_as_hidden(False)
+
+    def on_locate_installed_game(self, *_args):
+        """Show the user a dialog to import an existing install to a DRM free service
+
+        Params:
+            games ([Game]): List of Game instances without a database ID, populated with fields the service can provides
+        """
+        for game in self.games:
+            AddGameDialog(self.window, game=game, runner=game.runner_name)
+
+    def on_view_game(self, _widget):
+        """Callback to open a game on lutris.net"""
+        for game in self.games:
+            open_uri("https://lutris.net/games/%s" % game.slug.replace("_", "-"))
+
+    @property
+    def is_game_removable(self):
+        for game in self.games:
+            if game.is_installed or game.is_db_stored:
+                return True
+
+        return False
+
+    def on_remove_game(self, *_args):
+        """Callback that present the uninstall dialog to the user"""
+        game_ids = [g.id for g in self.games if g.is_installed or g.is_db_stored]
+        application = Gio.Application.get_default()
+        dlg = application.show_window(UninstallDialog, parent=self.window)
+        dlg.add_games(game_ids)
 
 
 class MultiGameActions(GameActions):
@@ -439,7 +419,7 @@ class SingleGameActions(GameActions):
         return configs[config_index - 1]["name"] if config_index > 0 else ""
 
 
-class ServiceGameActions(BaseGameActions):
+class ServiceGameActions(GameActions):
     """Regroup a list of callbacks for a service game"""
 
     def get_game_actions(self):
@@ -458,7 +438,7 @@ class ServiceGameActions(BaseGameActions):
         }
 
 
-def get_game_actions(games: List[Game], window: Gtk.Window, application=None) -> BaseGameActions:
+def get_game_actions(games: List[Game], window: Gtk.Window, application=None) -> GameActions:
     if games:
         if len(games) == 1:
             game = games[0]
@@ -472,4 +452,4 @@ def get_game_actions(games: List[Game], window: Gtk.Window, application=None) ->
 
     # If given no games, or the games are not of a kind we can handle,
     # the base class acts as an empty set of actions.
-    return BaseGameActions(games, window, application)
+    return GameActions(games, window, application)
