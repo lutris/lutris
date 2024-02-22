@@ -30,6 +30,11 @@ from lutris.util.system import path_exists
 
 
 class GameActions:
+    """These classes provide a set of action to apply to a game or list of games, and can be used
+    to populate menus. The base class handles the no-games case, for which there are no actions. But
+    it also includes the code for actions that are shared between the subclasses. It also has methods for
+    actions that are invokes externally by the GameBar."""
+
     def __init__(self, window: Gtk.Window, application=None):
         self.application = application or Gio.Application.get_default()
         self.window = window  # also used as a LaunchUIDelegate and InstallUIDelegate
@@ -39,11 +44,17 @@ class GameActions:
         return []
 
     def get_game_actions(self):
-        """Return a list of game actions and their callbacks"""
+        """Return a list of game actions and their callbacks, Each item is a tuple
+        of two strs and a callable, the action ID, it's human-readable name, and
+        a callback to invoke to perform it. Menu separators are represented hre
+        as (None, "-", None).
+        """
         return []
 
     def get_displayed_entries(self):
-        """Return a dictionary of actions that should be shown for a game"""
+        """Return a dictionary of flags indicating which actions are visible; the keys
+        are the action ids from get_game_actions(), and the values are booleans indicating
+        the action's visibility."""
         return {}
 
     @property
@@ -149,6 +160,10 @@ class GameActions:
 
 
 class MultiGameActions(GameActions):
+    """This actions class handles actions on multiple games together, and only iof they
+    are 'db stored' games, not service games. This supports a subset of the actions
+    of SingleGameActions."""
+
     def __init__(self, games: List[Game], window: Gtk.Window, application=None):
         super().__init__(window, application)
         self.games = games
@@ -169,7 +184,6 @@ class MultiGameActions(GameActions):
         ]
 
     def get_displayed_entries(self):
-        """Return a dictionary of actions that should be shown for a game"""
         return {
             "stop": self.is_game_running,
             "favorite": any(g for g in self.games if not g.is_favorite),
@@ -181,6 +195,10 @@ class MultiGameActions(GameActions):
 
 
 class SingleGameActions(GameActions):
+    """This actions class handles actions on a single game, which is a 'db stored' game,
+    not a service game. This provides the largest selection of actions, including many
+    that are unique to it."""
+
     def __init__(self, game: Game, window: Gtk.Window, application=None):
         super().__init__(window, application)
         self.game = game
@@ -432,7 +450,8 @@ class SingleGameActions(GameActions):
 
 
 class ServiceGameActions(GameActions):
-    """Regroup a list of callbacks for a service game"""
+    """This actions class supports a single service game, which has an idiosyncratic set of
+    actions."""
 
     def __init__(self, game: Game, window: Gtk.Window, application=None):
         super().__init__(window, application)
@@ -458,6 +477,9 @@ class ServiceGameActions(GameActions):
 
 
 def get_game_actions(games: List[Game], window: Gtk.Window, application=None) -> GameActions:
+    """Creates a GameActions instance (which may be a subclass) for the list of games given. If
+    it can't figure out a suitable class, it falls back to the base GameActions class, which
+    provides no actions."""
     if games:
         if len(games) == 1:
             game = games[0]
