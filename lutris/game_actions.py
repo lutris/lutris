@@ -30,10 +30,13 @@ from lutris.util.system import path_exists
 
 
 class GameActions:
-    def __init__(self, games: List[Game], window: Gtk.Window, application=None):
+    def __init__(self, window: Gtk.Window, application=None):
         self.application = application or Gio.Application.get_default()
         self.window = window  # also used as a LaunchUIDelegate and InstallUIDelegate
-        self.games = games
+
+    def get_games(self):
+        """Return the list of games that the actions apply to."""
+        return []
 
     def get_game_actions(self):
         """Return a list of game actions and their callbacks"""
@@ -45,7 +48,7 @@ class GameActions:
 
     @property
     def is_game_launchable(self):
-        for game in self.games:
+        for game in self.get_games():
             if game.is_installed and not self.is_game_running:
                 return True
 
@@ -56,7 +59,7 @@ class GameActions:
 
     @property
     def is_game_running(self):
-        for game in self.games:
+        for game in self.get_games():
             if game.is_db_stored and self.application.is_game_running_by_id(game.id):
                 return True
         return False
@@ -69,7 +72,7 @@ class GameActions:
 
     def get_running_games(self):
         running_games = []
-        for game in self.games:
+        for game in self.get_games():
             if game and game.is_db_stored:
                 ids = self.application.get_running_game_ids()
                 for game_id in ids:
@@ -79,7 +82,7 @@ class GameActions:
 
     @property
     def is_installable(self):
-        for game in self.games:
+        for game in self.get_games():
             if not game.is_installed:
                 return True
 
@@ -88,7 +91,7 @@ class GameActions:
     def on_install_clicked(self, *_args):
         """Install a game"""
         # Install the currently selected game in the UI
-        for game in self.games:
+        for game in self.get_games():
             if not game.is_installed:
                 if not game.slug:
                     game_id = game.id if game.is_db_stored else game.name
@@ -97,22 +100,22 @@ class GameActions:
 
     def on_add_favorite_game(self, _widget):
         """Add to favorite Games list"""
-        for game in self.games:
+        for game in self.get_games():
             game.mark_as_favorite(True)
 
     def on_delete_favorite_game(self, _widget):
         """delete from favorites"""
-        for game in self.games:
+        for game in self.get_games():
             game.mark_as_favorite(False)
 
     def on_hide_game(self, _widget):
         """Add a game to the list of hidden games"""
-        for game in self.games:
+        for game in self.get_games():
             game.mark_as_hidden(True)
 
     def on_unhide_game(self, _widget):
         """Removes a game from the list of hidden games"""
-        for game in self.games:
+        for game in self.get_games():
             game.mark_as_hidden(False)
 
     def on_locate_installed_game(self, *_args):
@@ -121,17 +124,17 @@ class GameActions:
         Params:
             games ([Game]): List of Game instances without a database ID, populated with fields the service can provides
         """
-        for game in self.games:
+        for game in self.get_games():
             AddGameDialog(self.window, game=game, runner=game.runner_name)
 
     def on_view_game(self, _widget):
         """Callback to open a game on lutris.net"""
-        for game in self.games:
+        for game in self.get_games():
             open_uri("https://lutris.net/games/%s" % game.slug.replace("_", "-"))
 
     @property
     def is_game_removable(self):
-        for game in self.games:
+        for game in self.get_games():
             if game.is_installed or game.is_db_stored:
                 return True
 
@@ -139,13 +142,20 @@ class GameActions:
 
     def on_remove_game(self, *_args):
         """Callback that present the uninstall dialog to the user"""
-        game_ids = [g.id for g in self.games if g.is_installed or g.is_db_stored]
+        game_ids = [g.id for g in self.get_games() if g.is_installed or g.is_db_stored]
         application = Gio.Application.get_default()
         dlg = application.show_window(UninstallDialog, parent=self.window)
         dlg.add_games(game_ids)
 
 
 class MultiGameActions(GameActions):
+    def __init__(self, games: List[Game], window: Gtk.Window, application=None):
+        super().__init__(window, application)
+        self.games = games
+
+    def get_games(self):
+        return self.games
+
     def get_game_actions(self):
         return [
             ("stop", _("Stop"), self.on_game_stop),
@@ -171,9 +181,12 @@ class MultiGameActions(GameActions):
 
 
 class SingleGameActions(GameActions):
-    @property
-    def game(self):
-        return self.games[0]
+    def __init__(self, game: Game, window: Gtk.Window, application=None):
+        super().__init__(window, application)
+        self.game = game
+
+    def get_games(self):
+        return [self.game]
 
     def get_game_actions(self):
         return [
@@ -421,6 +434,13 @@ class SingleGameActions(GameActions):
 class ServiceGameActions(GameActions):
     """Regroup a list of callbacks for a service game"""
 
+    def __init__(self, game: Game, window: Gtk.Window, application=None):
+        super().__init__(window, application)
+        self.game = game
+
+    def get_games(self):
+        return [self.game]
+
     def get_game_actions(self):
         return [
             ("install", _("Install"), self.on_install_clicked),
@@ -442,13 +462,13 @@ def get_game_actions(games: List[Game], window: Gtk.Window, application=None) ->
         if len(games) == 1:
             game = games[0]
             if game.is_db_stored:
-                return SingleGameActions(games, window, application)
+                return SingleGameActions(game, window, application)
 
             if game.service:
-                return ServiceGameActions(games, window, application)
+                return ServiceGameActions(game, window, application)
         elif all(g.is_db_stored for g in games):
             return MultiGameActions(games, window)
 
     # If given no games, or the games are not of a kind we can handle,
     # the base class acts as an empty set of actions.
-    return GameActions(games, window, application)
+    return GameActions(window, application)
