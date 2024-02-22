@@ -387,7 +387,7 @@ class GameActions(BaseGameActions):
         for game in self.games:
             launch_config_name = self._select_game_launch_config_name(game)
             if launch_config_name is not None:
-                xdgshortcuts.create_launcher(game.slug, game.id, game.name, menu=True)
+                xdgshortcuts.create_launcher(game.slug, game.id, launch_config_name, menu=True)
 
     def on_create_steam_shortcut(self, *_args):
         """Add the selected game to steam as a nonsteam-game."""
