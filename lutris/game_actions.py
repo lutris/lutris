@@ -461,7 +461,7 @@ def get_game_actions(games: List[Game], window: Gtk.Window, application=None) ->
 
             if game.service:
                 return ServiceGameActions(games, window, application)
-        else:
+        elif all(g.is_db_stored for g in games):
             return GameActions(games, window)
 
     # If given no games, or the games are not of a kind we can handle,
