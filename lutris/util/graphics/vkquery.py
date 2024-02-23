@@ -349,6 +349,10 @@ def format_version(version):
 
 @cache_single
 def _get_vk_instance():
+    """Returns our VKInstance, or None if it can't be obtained.
+
+    We've had user see crashes when destroying this, so we don't- we
+    allocate it on demand and keep it for the lifetime of Lutris."""
     try:
         vulkan = _get_vulkan()
     except OSError:
@@ -360,6 +364,7 @@ def _get_vk_instance():
     if result != VK_SUCCESS:
         return None
     return instance
+
 
 def _get_vulkan():
     vulkan = CDLL("libvulkan.so.1")
@@ -382,9 +387,5 @@ def _get_vulkan():
     vkEnumerateInstanceVersion = vulkan.vkEnumerateInstanceVersion
     vkEnumerateInstanceVersion.restype = VkResult
     vkEnumerateInstanceVersion.argtypes = [POINTER(c_uint32)]
-
-    vkDestroyInstance = vulkan.vkDestroyInstance
-    vkDestroyInstance.restype = None
-    vkDestroyInstance.argtypes = [VkInstance, c_void_p]
 
     return vulkan
