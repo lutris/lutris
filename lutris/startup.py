@@ -1,5 +1,5 @@
 """Check to run at program start"""
-
+import os
 import sqlite3
 from gettext import gettext as _
 
@@ -63,6 +63,8 @@ def check_libs(all_components=False):
 
 def check_vulkan():
     """Reports if Vulkan is enabled on the system"""
+    if os.environ.get("LUTRIS_NO_VKQUERY"):
+        return
     if not vkquery.is_vulkan_supported():
         logger.warning("Vulkan is not available or your system isn't Vulkan capable")
     else:

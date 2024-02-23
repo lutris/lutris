@@ -65,6 +65,8 @@ def _get_dxvk_warning(config, option_key):
 
 
 def _get_simple_vulkan_support_error(config, option_key, feature):
+    if os.environ.get("LUTRIS_NO_VKQUERY"):
+        return None
     if config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
         return _("<b>Error</b> Vulkan is not installed or is not supported by your system, "
                  "%s is not available.") % feature
@@ -72,6 +74,8 @@ def _get_simple_vulkan_support_error(config, option_key, feature):
 
 
 def _get_dxvk_version_warning(config, _option_key):
+    if os.environ.get("LUTRIS_NO_VKQUERY"):
+        return None
     if config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported():
         version = config.get("dxvk_version")
         if version and not version.startswith("v1."):

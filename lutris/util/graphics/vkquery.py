@@ -1,4 +1,9 @@
+
 # pylint: disable=wildcard-import, unused-wildcard-import, invalid-name
+# Shit python (?) module that will likely crash the Lutris client.
+# We should not be doing that we live a life of shame knowing we are shipping this code
+# to you. We are terribly sorry and know we should do better but right now, you get what you get.
+# If you want a life without suffering, you can run Lutris with LUTRIS_NO_VKQUERY=1
 # Vulkan detection by Patryk Obara (@dreamer)
 
 """Query Vulkan capabilities"""
