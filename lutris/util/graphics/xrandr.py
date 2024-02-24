@@ -13,21 +13,16 @@ Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary"
 
 def _get_vidmodes():
     """Return video modes from XrandR"""
-    logger.debug("Retrieving video modes from XrandR")
-    return read_process_output([LINUX_SYSTEM.get("xrandr")]).split("\n")
-
-
-def _log_vidmodes(message):
-    """Write the xrandr output to the log for debugging purposes"""
-    if logger.isEnabledFor(logging.DEBUG):
-        xrandr_output = read_process_output([LINUX_SYSTEM.get("xrandr")])
-        logger.debug("%s\n%s", message, xrandr_output)
+    xrandr_output = read_process_output([LINUX_SYSTEM.get("xrandr")]).split("\n")
+    logger.debug("Retrieving %s video modes from XrandR", len(xrandr_output))
+    return xrandr_output
 
 
 def get_outputs():  # pylint: disable=too-many-locals
     """Return list of namedtuples containing output 'name', 'geometry',
     'rotation' and whether it is the 'primary' display."""
     outputs = []
+    logger.debug("Retrieving display outputs")
     vid_modes = _get_vidmodes()
     position = None
     rotate = None
@@ -93,13 +88,14 @@ def turn_off_except(display):
 def get_resolutions():
     """Return the list of supported screen resolutions."""
     resolution_list = []
+    logger.debug("Retrieving resolution list")
     for line in _get_vidmodes():
         if line.startswith("  "):
             resolution_match = re.match(r".*?(\d+x\d+).*", line)
             if resolution_match:
                 resolution_list.append(resolution_match.groups()[0])
     if not resolution_list:
-        _log_vidmodes("Unable to generate resolution list from xrandr output")
+        logger.error("Unable to generate resolution list from xrandr output")
         return ['%sx%s' % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
     return sorted(set(resolution_list), key=lambda x: int(x.split("x")[0]), reverse=True)
 
@@ -179,7 +175,7 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
                 resolution_match = re.match(r".*?(\d+x\d+).*", line)
                 if resolution_match:
                     return resolution_match.groups()[0].split("x")
-        _log_vidmodes("Unable to find the current resolution from xrandr output")
+        logger.error("Unable to find the current resolution from xrandr output")
         return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
 
     @staticmethod
