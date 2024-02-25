@@ -23,6 +23,7 @@ from lutris.util.strings import slugify
 
 class ItchIoCover(ServiceMedia):
     """itch.io game cover"""
+
     service = "itchio"
     size = (315, 250)
     dest_path = os.path.join(settings.CACHE_DIR, "itchio/cover")
@@ -44,16 +45,19 @@ class ItchIoCover(ServiceMedia):
 
 class ItchIoCoverMedium(ItchIoCover):
     """itch.io game cover, at 60% size"""
+
     size = (189, 150)
 
 
 class ItchIoCoverSmall(ItchIoCover):
     """itch.io game cover, at 30% size"""
+
     size = (95, 75)
 
 
 class ItchIoGame(ServiceGame):
     """itch.io Game"""
+
     service = "itchio"
 
     @classmethod
@@ -67,7 +71,7 @@ class ItchIoGame(ServiceGame):
         return service_game
 
 
-class ItchIoGameTraits():
+class ItchIoGameTraits:
     """Game Traits Helper Class"""
 
     def __init__(self, traits):
@@ -118,7 +122,7 @@ class ItchIoService(OnlineService):
         "audio_assets",
         "graphical_assets",
         "sourcecode",
-        "other"
+        "other",
     )
 
     def login_callback(self, url):
@@ -349,10 +353,7 @@ class ItchIoService(OnlineService):
         elif "p_windows" in details["traits"]:
             runner = "wine"
             game_config = {"exe": AUTO_WIN32_EXE}
-            script = [
-                {"task": {"name": "create_prefix"}},
-                {"install_or_extract": "itchupload"}
-            ]
+            script = [{"task": {"name": "create_prefix"}}, {"install_or_extract": "itchupload"}]
         else:
             logger.warning("No supported platforms found")
             return {}
@@ -365,12 +366,10 @@ class ItchIoService(OnlineService):
             "runner": runner,
             "itchid": db_game["appid"],
             "script": {
-                "files": [
-                    {"itchupload": "N/A:Select the installer from itch.io"}
-                ],
+                "files": [{"itchupload": "N/A:Select the installer from itch.io"}],
                 "game": game_config,
                 "installer": script,
-            }
+            },
         }
 
     def get_installed_runner_name(self, db_game):
@@ -414,9 +413,7 @@ class ItchIoService(OnlineService):
 
         if stamp:
             dbg = games_db.get_games_where(
-                installed_at__lessthan=stamp,
-                service=self.id,
-                service_id=db_game["service_id"]
+                installed_at__lessthan=stamp, service=self.id, service_id=db_game["service_id"]
             )
             return len(dbg)
         return False
@@ -450,10 +447,7 @@ class ItchIoService(OnlineService):
                 except HTTPError as error:
                     if error.code == 400:
                         # Bad request probably means the upload was removed
-                        logger.info("Upload %s for %s seems to be removed.",
-                                    info["upload"],
-                                    db_game["name"]
-                                    )
+                        logger.info("Upload %s for %s seems to be removed.", info["upload"], db_game["name"])
                         outdated = True
 
                 if upload:
@@ -478,22 +472,22 @@ class ItchIoService(OnlineService):
                     "files": [],
                     "installer": [
                         {"extract": {"file": "itchupload", "dst": "$CACHE"}},
-                    ]
-                }
+                    ],
+                },
             }
 
             if patch_url:
                 installer["script"]["files"] = [
-                    {"itchupload": {
-                        "url": patch_url,
-                        "filename": "update.zip",
-                        "downloader": Downloader(patch_url, None, overwrite=True, cookies=self.load_cookies()),
-                    }}
+                    {
+                        "itchupload": {
+                            "url": patch_url,
+                            "filename": "update.zip",
+                            "downloader": Downloader(patch_url, None, overwrite=True, cookies=self.load_cookies()),
+                        }
+                    }
                 ]
             else:
-                installer["script"]["files"] = [
-                    {"itchupload": "N/A:Select the installer from itch.io"}
-                ]
+                installer["script"]["files"] = [{"itchupload": "N/A:Select the installer from itch.io"}]
 
             if db_game["runner"] == "linux":
                 installer["script"]["installer"].append(
@@ -506,11 +500,7 @@ class ItchIoService(OnlineService):
 
             if patch_url:
                 installer["script"]["installer"].append(
-                    {"write_json": {
-                        "data": info,
-                        "file": info_filename,
-                        "merge": True
-                    }}
+                    {"write_json": {"data": info, "file": info_filename, "merge": True}}
                 )
 
             patch_installers.append(installer)
@@ -545,7 +535,7 @@ class ItchIoService(OnlineService):
             "appid": installer.service_appid,
             "slug": installer.game_slug,
             "runner": installer.runner,
-            "date": int(datetime.datetime.now().timestamp())
+            "date": int(datetime.datetime.now().timestamp()),
         }
 
         if not link or len(selected_extras_ids) > 0:
@@ -585,18 +575,20 @@ class ItchIoService(OnlineService):
 
         if link:
             # Adding a file with some basic info for e.g. patching
-            installer.script["installer"].append({"write_json": {
-                "data": data,
-                "file": "$GAMEDIR/.lutrisgame.json",
-                "merge": False
-            }})
+            installer.script["installer"].append(
+                {"write_json": {"data": data, "file": "$GAMEDIR/.lutrisgame.json", "merge": False}}
+            )
 
             files.append(
-                InstallerFile(installer.game_slug, installer_file_id, {
-                    "url": link,
-                    "filename": filename or file.filename or "setup.zip",
-                    "downloader": Downloader(link, None, overwrite=True, cookies=self.load_cookies()),
-                })
+                InstallerFile(
+                    installer.game_slug,
+                    installer_file_id,
+                    {
+                        "url": link,
+                        "filename": filename or file.filename or "setup.zip",
+                        "downloader": Downloader(link, None, overwrite=True, cookies=self.load_cookies()),
+                    },
+                )
             )
 
         for extra in extras:
@@ -604,11 +596,15 @@ class ItchIoService(OnlineService):
                 continue
             link = self.get_download_link(extra["id"], key)
             extra_files.append(
-                InstallerFile(installer.game_slug, str(extra["id"]), {
-                    "url": link,
-                    "filename": extra["filename"],
-                    "downloader": Downloader(link, None, overwrite=True, cookies=self.load_cookies()),
-                })
+                InstallerFile(
+                    installer.game_slug,
+                    str(extra["id"]),
+                    {
+                        "url": link,
+                        "filename": extra["filename"],
+                        "downloader": Downloader(link, None, overwrite=True, cookies=self.load_cookies()),
+                    },
+                )
             )
 
         return files, extra_files
@@ -636,4 +632,4 @@ class ItchIoService(OnlineService):
 
     def _rfc3999_to_timestamp(self, _s):
         # Python does ootb not fully comply with RFC3999; Cut after seconds
-        return datetime.datetime.fromisoformat(_s[:_s.rfind(".")]).timestamp()
+        return datetime.datetime.fromisoformat(_s[: _s.rfind(".")]).timestamp()

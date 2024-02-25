@@ -31,7 +31,7 @@ class type_double(PrimativeType):
     @staticmethod
     def decode(data):
         # data = 64-bit
-        val, = struct.unpack("<d", data)
+        (val,) = struct.unpack("<d", data)
         return val
 
 
@@ -41,7 +41,7 @@ class type_float(PrimativeType):
     @staticmethod
     def decode(data):
         # data = 32-bit
-        val, = struct.unpack("<f", data)
+        (val,) = struct.unpack("<f", data)
         return val
 
 
@@ -111,7 +111,7 @@ class type_fixed32(PrimativeType):
     @staticmethod
     def decode(data):
         # data = 32-bit
-        val, = struct.unpack("<I", data)
+        (val,) = struct.unpack("<I", data)
         return int(val)
 
 
@@ -121,7 +121,7 @@ class type_fixed64(PrimativeType):
     @staticmethod
     def decode(data):
         # data = 64-bit
-        val, = struct.unpack("<Q", data)
+        (val,) = struct.unpack("<Q", data)
         return int(val)
 
 
@@ -131,7 +131,7 @@ class type_sfixed32(PrimativeType):
     @staticmethod
     def decode(data):
         # data = 32-bit
-        val, = struct.unpack("<i", data)
+        (val,) = struct.unpack("<i", data)
         return int(val)
 
 
@@ -141,7 +141,7 @@ class type_sfixed64(PrimativeType):
     @staticmethod
     def decode(data):
         # data = 64-bit
-        val, = struct.unpack("<q", data)
+        (val,) = struct.unpack("<q", data)
         return int(val)
 
 
@@ -183,7 +183,7 @@ class Message:
         i = 0
         while 1:
             c = ord(stream.read(1))
-            res |= ((c & 127) << (i * 7))
+            res |= (c & 127) << (i * 7)
             if c & 128 == 0:
                 break
             i += 1
@@ -191,9 +191,9 @@ class Message:
 
     @staticmethod
     def signed_to_long(x, bits):
-        " converts a previously read signed varint into a long "
-        if x > 0x7fffffffffffffff:
-            x -= (1 << 64)
+        "converts a previously read signed varint into a long"
+        if x > 0x7FFFFFFFFFFFFFFF:
+            x -= 1 << 64
             x |= ~((1 << bits) - 1)
         else:
             x &= (1 << bits) - 1
@@ -235,7 +235,6 @@ class Message:
                 return i
 
     def decode(self, s: bytes):
-
         f = BytesIO(s)
         while f.tell() < len(s):
             field_number, _, data = self.read_tag(f)

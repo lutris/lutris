@@ -8,7 +8,6 @@ DB_LOCK = threading.RLock()
 
 
 class db_cursor(object):
-
     def __init__(self, db_path):
         self.db_path = db_path
         self.db_conn = None
@@ -53,7 +52,7 @@ def db_insert(db_path, table, fields):
 
 def db_update(db_path, table, updated_fields, conditions):
     """Update `table` with the values given in the dict `values` on the
-       condition given with the `row` tuple.
+    condition given with the `row` tuple.
     """
     columns = "=?, ".join(list(updated_fields.keys())) + "=?"
     field_values = tuple(updated_fields.values())
@@ -130,14 +129,7 @@ def add_field(db_path, tablename, field):
         cursor.execute(query)
 
 
-def filtered_query(
-    db_path,
-    table,
-    searches=None,
-    filters=None,
-    excludes=None,
-    sorts=None
-):
+def filtered_query(db_path, table, searches=None, filters=None, excludes=None, sorts=None):
     query = "select * from %s" % table
     params = []
     sql_filters = []
@@ -155,9 +147,7 @@ def filtered_query(
     if sql_filters:
         query += " WHERE " + " AND ".join(sql_filters)
     if sorts:
-        query += " ORDER BY %s" % ", ".join(
-            ["%s %s" % (sort[0], sort[1]) for sort in sorts]
-        )
+        query += " ORDER BY %s" % ", ".join(["%s %s" % (sort[0], sort[1]) for sort in sorts])
     else:
         query += " ORDER BY slug ASC"
     return db_query(db_path, query, tuple(params))

@@ -5,6 +5,7 @@ from gettext import gettext as _
 
 from lutris import settings
 from lutris.exceptions import MissingGameExecutableError
+
 # Lutris Modules
 from lutris.runners.commands.dosbox import dosexec, makeconfig  # NOQA pylint: disable=unused-import
 from lutris.runners.runner import Runner
@@ -102,9 +103,7 @@ class dosbox(Runner):
 
     def get_run_data(self):
         env = self.get_env()
-        env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
-            self.libs_dir,
-            env.get("LD_LIBRARY_PATH")]))
+        env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [self.libs_dir, env.get("LD_LIBRARY_PATH")]))
         return {"env": env, "command": self.get_command()}
 
     @property

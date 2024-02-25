@@ -172,9 +172,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
         self.progressbar.set_fraction(progress)
         self.update_speed_and_time()
         megabytes = 1024 * 1024
-        progress_text = _(
-            "{downloaded} / {size} ({speed:0.2f}MB/s), {time} remaining"
-        ).format(
+        progress_text = _("{downloaded} / {size} ({speed:0.2f}MB/s), {time} remaining").format(
             downloaded=human_size(downloaded_size),
             size=human_size(self.full_size),
             speed=float(self.avg_speed) / megabytes,

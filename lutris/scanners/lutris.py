@@ -1,4 +1,3 @@
-
 import os
 
 from lutris.api import get_api_games, get_game_installers
@@ -63,8 +62,8 @@ def find_game(game_folder, api_game):
 def get_used_directories():
     directories = set()
     for game in get_games():
-        if game['directory']:
-            directories.add(game['directory'])
+        if game["directory"]:
+            directories.add(game["directory"])
     return directories
 
 

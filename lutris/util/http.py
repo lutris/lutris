@@ -32,7 +32,6 @@ class UnauthorizedAccessError(Exception):
 
 
 class Request:
-
     def __init__(
         self,
         url,
@@ -95,7 +94,7 @@ class Request:
                 request = self.opener.open(req, timeout=self.timeout)
             else:
                 request = urllib.request.urlopen(req, timeout=self.timeout)  # pylint: disable=consider-using-with
-        except (urllib.error.HTTPError) as error:
+        except urllib.error.HTTPError as error:
             if error.code == 401:
                 raise UnauthorizedAccessError("Access to %s denied" % self.url) from error
             raise HTTPError("%s" % error, code=error.code) from error

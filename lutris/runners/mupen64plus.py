@@ -29,12 +29,7 @@ class mupen64plus(Runner):
             "label": _("Fullscreen"),
             "default": True,
         },
-        {
-            "option": "hideosd",
-            "type": "bool",
-            "label": _("Hide OSD"),
-            "default": True
-        },
+        {"option": "hideosd", "type": "bool", "label": _("Hide OSD"), "default": True},
     ]
 
     @property

@@ -15,16 +15,14 @@ from lutris.util.wine.prefix import WinePrefixManager
 
 class DLLManager:
     """Utility class to install dlls to a Wine prefix"""
+
     component = NotImplemented
     base_dir = NotImplemented
     managed_dlls = NotImplemented
     managed_appdata_files = []  # most managers have none
     versions_path = NotImplemented
     releases_url = NotImplemented
-    archs = {
-        32: "x32",
-        64: "x64"
-    }
+    archs = {32: "x32", 64: "x64"}
 
     def __init__(self, prefix=None, arch="win64", version=None):
         self.prefix = prefix
@@ -49,6 +47,7 @@ class DLLManager:
             return self._version
         versions = self.versions
         if versions:
+
             def get_preference_key(v):
                 return not self.is_compatible_version(v), not self.is_recommended_version(v)
 
@@ -88,7 +87,8 @@ class DLLManager:
         version = self.version
         if not version:
             raise RuntimeError(
-                "No path can be generated for %s because no version information is available." % self.component)
+                "No path can be generated for %s because no version information is available." % self.component
+            )
         return os.path.join(self.base_dir, version)
 
     @property
@@ -103,13 +103,12 @@ class DLLManager:
     def load_versions(self) -> list:
         if not system.path_exists(self.versions_path):
             return []
-        with open(self.versions_path, "r", encoding='utf-8') as version_file:
+        with open(self.versions_path, "r", encoding="utf-8") as version_file:
             try:
                 versions = [v["tag_name"] for v in json.load(version_file)]
             except (KeyError, json.decoder.JSONDecodeError):
                 logger.warning(
-                    "Invalid versions file %s, deleting so it is downloaded on next start.",
-                    self.versions_path
+                    "Invalid versions file %s, deleting so it is downloaded on next start.", self.versions_path
                 )
                 os.remove(self.versions_path)
                 return []
@@ -129,14 +128,11 @@ class DLLManager:
         The DLL might not be available for all architectures so
         only check if one exists for the supported ones
         """
-        return any(
-            system.path_exists(os.path.join(self.path, arch, dll_name + ".dll"))
-            for arch in self.archs.values()
-        )
+        return any(system.path_exists(os.path.join(self.path, arch, dll_name + ".dll")) for arch in self.archs.values())
 
     def get_download_url(self):
         """Fetch the download URL from the JSON version file"""
-        with open(self.versions_path, "r", encoding='utf-8') as version_file:
+        with open(self.versions_path, "r", encoding="utf-8") as version_file:
             releases = json.load(version_file)
         for release in releases:
             if release["tag_name"] != self.version:
@@ -267,8 +263,9 @@ class DLLManager:
         """Enable Dlls for the current prefix"""
         if not self.is_available():
             if not self.download():
-                logger.error("%s %s could not be enabled because it is not available locally",
-                             self.component, self.version)
+                logger.error(
+                    "%s %s could not be enabled because it is not available locally", self.component, self.version
+                )
                 return
         for system_dir, arch, dll in self._iter_dlls():
             dll_path = os.path.join(self.path, arch, "%s.dll" % dll)
@@ -307,7 +304,8 @@ class DLLManager:
                 if self.is_compatible_version(version):
                     return  # got a compatible version, that'll do.
 
-                logger.warning("Version %s of %s is not compatible with this version of Lutris.", version,
-                               self.component)
+                logger.warning(
+                    "Version %s of %s is not compatible with this version of Lutris.", version, self.component
+                )
 
             # We found nothing compatible, and downloaded everything, we just give up.

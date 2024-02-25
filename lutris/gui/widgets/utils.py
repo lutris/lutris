@@ -163,7 +163,8 @@ def get_runtime_icon_path(icon_name):
         "icons/hicolor/24x24/apps",
         "icons",
         "icons/hicolor/scalable/apps",
-        "icons/hicolor/symbolic/apps"]
+        "icons/hicolor/symbolic/apps",
+    ]
     extensions = [".png", ".svg"]
     for search_dir in search_directories:
         for ext in extensions:
@@ -189,7 +190,7 @@ def convert_to_background(background_path, target_size=(320, 1080)):
     coverart = coverart.crop((offset, 0, target_width + offset, image_height))
 
     # Resize canvas of coverart by putting transparent pixels on the bottom
-    coverart_bg = Image.new('RGBA', (target_width, target_height), (0, 0, 0, 0))
+    coverart_bg = Image.new("RGBA", (target_width, target_height), (0, 0, 0, 0))
     coverart_bg.paste(coverart, (0, 0, target_width, image_height))
 
     # Apply a tint to the base image
@@ -197,7 +198,7 @@ def convert_to_background(background_path, target_size=(320, 1080)):
     # coverart = Image.blend(coverart, tint, 0.6)
 
     # Paste coverart on transparent image while applying a gradient mask
-    background = Image.new('RGBA', (target_width, target_height), (0, 0, 0, 0))
+    background = Image.new("RGBA", (target_width, target_height), (0, 0, 0, 0))
     mask = Image.open(os.path.join(datapath.get(), "media/mask.png"))
     background.paste(coverart_bg, mask=mask)
 
@@ -230,20 +231,14 @@ def paste_overlay(base_image, overlay_image, position=0.7):
     offset_x = int((base_width - overlay_width) / 2)
     offset_y = int((base_height - overlay_height) / 2)
     base_image.paste(
-        overlay_image, (
-            offset_x,
-            offset_y,
-            overlay_width + offset_x,
-            overlay_height + offset_y
-        ),
-        mask=overlay_image
+        overlay_image, (offset_x, offset_y, overlay_width + offset_x, overlay_height + offset_y), mask=overlay_image
     )
     return base_image
 
 
 def image2pixbuf(image):
     """Converts a PIL Image to a GDK Pixbuf"""
-    image_array = array.array('B', image.tobytes())
+    image_array = array.array("B", image.tobytes())
     width, height = image.size
     return GdkPixbuf.Pixbuf.new_from_data(image_array, GdkPixbuf.Colorspace.RGB, True, 8, width, height, width * 4)
 

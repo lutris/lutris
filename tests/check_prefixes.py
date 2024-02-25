@@ -21,7 +21,7 @@ def get_registries():
 
 
 def check_registry(registry_path):
-    with open(registry_path, 'r') as registry_file:
+    with open(registry_path, "r") as registry_file:
         original_content = registry_file.read()
 
     try:
@@ -31,8 +31,8 @@ def check_registry(registry_path):
         raise
     content = wine_registry.render()
     if content != original_content:
-        wrong_path = os.path.join(os.path.dirname(__file__), 'error.reg')
-        with open(wrong_path, 'w') as wrong_reg:
+        wrong_path = os.path.join(os.path.dirname(__file__), "error.reg")
+        with open(wrong_path, "w") as wrong_reg:
             wrong_reg.write(content)
 
         print("Content of parsed registry doesn't match: {}".format(registry_path))

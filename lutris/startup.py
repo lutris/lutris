@@ -71,23 +71,25 @@ def check_vulkan():
         required_api_version = REQUIRED_VULKAN_API_VERSION
         library_api_version = vkquery.get_vulkan_api_version()
         if library_api_version and library_api_version < required_api_version:
-            logger.warning("Vulkan reports an API version of %s. "
-                           "%s is required for the latest DXVK.",
-                           vkquery.format_version(library_api_version),
-                           vkquery.format_version(required_api_version))
+            logger.warning(
+                "Vulkan reports an API version of %s. " "%s is required for the latest DXVK.",
+                vkquery.format_version(library_api_version),
+                vkquery.format_version(required_api_version),
+            )
 
         devices = vkquery.get_device_info()
 
         if devices and devices[0].api_version < required_api_version:
-            logger.warning("Vulkan reports that the '%s' device has API version of %s. "
-                           "%s is required for the latest DXVK.",
-                           devices[0].name,
-                           vkquery.format_version(devices[0].api_version),
-                           vkquery.format_version(required_api_version))
+            logger.warning(
+                "Vulkan reports that the '%s' device has API version of %s. " "%s is required for the latest DXVK.",
+                devices[0].name,
+                vkquery.format_version(devices[0].api_version),
+                vkquery.format_version(required_api_version),
+            )
 
 
 def check_gnome():
-    required_names = ['svg', 'png', 'jpeg']
+    required_names = ["svg", "png", "jpeg"]
     format_names = [f.get_name() for f in GdkPixbuf.Pixbuf.get_formats()]
     for required in required_names:
         if required not in format_names:
@@ -132,8 +134,7 @@ def init_lutris():
         syncdb()
     except sqlite3.DatabaseError as err:
         raise RuntimeError(
-            _("Failed to open database file in %s. Try renaming this file and relaunch Lutris") %
-            settings.DB_PATH
+            _("Failed to open database file in %s. Try renaming this file and relaunch Lutris") % settings.DB_PATH
         ) from err
     for service in DEFAULT_SERVICES:
         if not settings.read_setting(service, section="services"):

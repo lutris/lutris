@@ -2,6 +2,7 @@
 from gettext import gettext as _
 
 from lutris.exceptions import DirectoryNotFoundError
+
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -21,7 +22,8 @@ class cemu(Runner):
             "label": _("Game directory"),
             "help": _(
                 "The directory in which the game lives. "
-                "If installed into Cemu, this will be in the mlc directory, such as mlc/usr/title/00050000/101c9500."),
+                "If installed into Cemu, this will be in the mlc directory, such as mlc/usr/title/00050000/101c9500."
+            ),
         }
     ]
     runner_options = [
@@ -30,23 +32,27 @@ class cemu(Runner):
             "label": _("Fullscreen"),
             "type": "bool",
             "default": True,
-        }, {
+        },
+        {
             "option": "mlc",
             "label": _("Custom mlc folder location"),
             "type": "directory_chooser",
-        }, {
+        },
+        {
             "option": "ud",
             "label": _("Render in upside down mode"),
             "type": "bool",
             "default": False,
             "advanced": True,
-        }, {
+        },
+        {
             "option": "nsight",
             "label": _("NSight debugging options"),
             "type": "bool",
             "default": False,
             "advanced": True,
-        }, {
+        },
+        {
             "option": "legacy",
             "label": _("Intel legacy graphics mode"),
             "type": "bool",

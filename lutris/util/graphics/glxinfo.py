@@ -49,7 +49,7 @@ class GlxInfo:
             value = value.strip()
 
             if not value and key.startswith(("Extended_renderer_info", "Memory_info")):
-                self._section = key[key.index("(") + 1:-1]
+                self._section = key[key.index("(") + 1 : -1]
                 setattr(self, self._section, Container())
                 continue
             if self._section:

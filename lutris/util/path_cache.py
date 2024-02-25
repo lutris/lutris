@@ -16,7 +16,7 @@ GAME_PATH_CACHE_PATH = os.path.join(settings.CACHE_DIR, "game-paths.json")
 
 def get_game_paths():
     game_paths = {}
-    all_games = get_games(filters={'installed': 1})
+    all_games = get_games(filters={"installed": 1})
     for db_game in all_games:
         if db_game.runner in ("steam", "web"):
             continue

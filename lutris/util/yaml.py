@@ -10,7 +10,7 @@ def read_yaml_from_file(filename: str):
     """Read filename and return parsed yaml"""
     if not path_exists(filename):
         return {}
-    with open(filename, "r", encoding='utf-8') as yaml_file:
+    with open(filename, "r", encoding="utf-8") as yaml_file:
         try:
             yaml_content = yaml.safe_load(yaml_file) or {}
         except (yaml.scanner.ScannerError, yaml.parser.ParserError):
@@ -21,5 +21,5 @@ def read_yaml_from_file(filename: str):
 
 def write_yaml_to_file(config: dict, filepath: str):
     yaml_config = yaml.safe_dump(config, default_flow_style=False)
-    with open(filepath, "w", encoding='utf-8') as filehandler:
+    with open(filepath, "w", encoding="utf-8") as filehandler:
         filehandler.write(yaml_config)

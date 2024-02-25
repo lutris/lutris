@@ -6,10 +6,7 @@ from lutris.util.log import logger
 
 
 def is_excluded_elf(filename):
-    excluded = (
-        "xdg-open",
-        "uninstall"
-    )
+    excluded = ("xdg-open", "uninstall")
     _fn = filename.lower()
     return any(exclude in _fn for exclude in excluded)
 
@@ -58,7 +55,7 @@ def is_excluded_dir(path):
         "windows",
         "ProgramData",
         "users",
-        "GameSpy Arcade"
+        "GameSpy Arcade",
     )
     return any(dir_name in excluded for dir_name in path.split("/"))
 
@@ -96,10 +93,6 @@ def find_windows_game_executable(path):
             elif "PE32 executable (GUI) Intel 80386" in file_type:
                 candidates["32bit"] = abspath
         if candidates:
-            return (
-                candidates.get("link")
-                or candidates.get("64bit")
-                or candidates.get("32bit")
-            )
+            return candidates.get("link") or candidates.get("64bit") or candidates.get("32bit")
     logger.error("Couldn't find a Windows executable in %s", path)
     return ""

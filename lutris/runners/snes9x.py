@@ -32,13 +32,7 @@ class snes9x(Runner):
     ]
 
     runner_options = [
-        {
-            "option": "fullscreen",
-            "type": "bool",
-            "section": _("Graphics"),
-            "label": _("Fullscreen"),
-            "default": "1"
-        },
+        {"option": "fullscreen", "type": "bool", "section": _("Graphics"), "label": _("Fullscreen"), "default": "1"},
         {
             "option": "maintain_aspect_ratio",
             "type": "bool",

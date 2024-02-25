@@ -5,6 +5,7 @@ from datetime import datetime
 
 try:
     from webdav4.client import Client
+
     WEBDAV_AVAILABLE = True
 except ImportError:
     WEBDAV_AVAILABLE = False
@@ -67,7 +68,7 @@ class SaveInfo:
             path_files[os.path.basename(path)] = os.stat(path)
             return path_files
         for root, _dirs, files in os.walk(path):
-            basedir = root[len(path) + 1:]
+            basedir = root[len(path) + 1 :]
             for path_file in files:
                 path_files[os.path.join(basedir, path_file)] = os.stat(os.path.join(root, path_file))
         return path_files
@@ -77,11 +78,13 @@ class SaveInfo:
         output = []
         for path_file in sorted(path_files, key=lambda k: path_files[k].st_mtime, reverse=True):
             fstats = path_files[path_file]
-            output.append({
-                "file": path_file,
-                "size": fstats.st_size,
-                "modified": fstats.st_mtime,
-            })
+            output.append(
+                {
+                    "file": path_file,
+                    "size": fstats.st_size,
+                    "modified": fstats.st_mtime,
+                }
+            )
         return output
 
     def get_save_files(self) -> dict:
@@ -105,8 +108,10 @@ class SaveInfo:
         for save_file in sorted(save_files, key=lambda k: save_files[k].st_mtime, reverse=True):
             fstats = save_files[save_file]
             total_size += fstats.st_size
-            print("%s (%s)\t\t%s" % (save_file, human_size(fstats.st_size),
-                                     datetime.fromtimestamp(fstats.st_mtime).strftime("%c")))
+            print(
+                "%s (%s)\t\t%s"
+                % (save_file, human_size(fstats.st_size), datetime.fromtimestamp(fstats.st_mtime).strftime("%c"))
+            )
         print("Total size: %s" % human_size(total_size))
 
 
@@ -122,14 +127,15 @@ def show_save_stats(game, output_format="text"):
     else:
         for section in save_info.save_types:
             if section in save_info.save_config:
-                save_info.print_dir_details(section.capitalize(), os.path.join(
-                    save_info.basedir, save_info.save_config[section]))
+                save_info.print_dir_details(
+                    section.capitalize(), os.path.join(save_info.basedir, save_info.save_config[section])
+                )
 
 
 def create_dirs(client, path):
     parts = path.split("/")
     for i in range(len(parts)):
-        relpath = os.path.join(*parts[:i + 1])
+        relpath = os.path.join(*parts[: i + 1])
         if relpath in DIR_CREATE_CACHE:
             continue
         if not client.exists(relpath):
@@ -213,7 +219,7 @@ def upload_save(game, sections=None):
     basepath = save_files["saves"]["path"]
     if os.path.isfile(basepath):
         basepath = os.path.dirname(basepath)
-    relpath = basepath[len(save_files["basedir"]) + 1:]
+    relpath = basepath[len(save_files["basedir"]) + 1 :]
     create_dirs(client, os.path.join(save_dest_dir, relpath))
     for save_file in save_files["saves"]["files"]:
         upload_file_source = os.path.join(basepath, save_file["file"])

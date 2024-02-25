@@ -44,12 +44,7 @@ class vice(Runner):
     ]
 
     runner_options = [
-        {
-            "option": "joy",
-            "type": "bool",
-            "label": _("Use joysticks"),
-            "default": False
-        },
+        {"option": "joy", "type": "bool", "label": _("Use joysticks"), "default": False},
         {
             "option": "fullscreen",
             "type": "bool",
@@ -123,7 +118,6 @@ class vice(Runner):
             raise MisconfigurationError("Invalid machine '%s'" % machine) from ex
 
     def install(self, install_ui_delegate, version=None, callback=None):
-
         def on_runner_installed(*args):
             config_path = system.create_folder("~/.vice")
             lib_dir = os.path.join(settings.RUNNER_DIR, "vice/lib/vice")

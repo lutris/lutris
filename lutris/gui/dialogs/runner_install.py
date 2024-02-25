@@ -30,10 +30,7 @@ def get_installed_versions(runner_directory):
     """List versions available locally"""
     if not os.path.exists(runner_directory):
         return set()
-    return {
-        parse_version_architecture(p)
-        for p in os.listdir(runner_directory)
-    }
+    return {parse_version_architecture(p) for p in os.listdir(runner_directory)}
 
 
 def get_usage_stats(runner_name):
@@ -93,6 +90,7 @@ class ShowAppsDialog(ModelessDialog):
 
 class RunnerInstallDialog(ModelessDialog):
     """Dialog displaying available runner version and downloads them"""
+
     COL_VER = 0
     COL_ARCH = 1
     COL_URL = 2
@@ -100,8 +98,9 @@ class RunnerInstallDialog(ModelessDialog):
     COL_PROGRESS = 4
     COL_USAGE = 5
 
-    INSTALLED_ICON_NAME = "software-installed-symbolic" \
-        if has_stock_icon("software-installed-symbolic") else "wine-symbolic"
+    INSTALLED_ICON_NAME = (
+        "software-installed-symbolic" if has_stock_icon("software-installed-symbolic") else "wine-symbolic"
+    )
 
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, 0, border_width=10)
@@ -134,11 +133,13 @@ class RunnerInstallDialog(ModelessDialog):
         remote_versions = {(v["version"], v["architecture"]) for v in runner_info["versions"]}
         local_versions = get_installed_versions(runner_directory)
         for local_version in local_versions - remote_versions:
-            runner_info["versions"].append({
-                "version": local_version[0],
-                "architecture": local_version[1],
-                "url": "",
-            })
+            runner_info["versions"].append(
+                {
+                    "version": local_version[0],
+                    "architecture": local_version[1],
+                    "url": "",
+                }
+            )
 
         return runner_info, RunnerInstallDialog.fetch_runner_store(runner_info)
 
@@ -152,7 +153,8 @@ class RunnerInstallDialog(ModelessDialog):
         ordered = sorted(runner_info["versions"], key=RunnerInstallDialog.get_version_sort_key)
         for version_info in reversed(ordered):
             is_installed = os.path.exists(
-                get_runner_path(runner_directory, version_info["version"], version_info["architecture"]))
+                get_runner_path(runner_directory, version_info["version"], version_info["architecture"])
+            )
             games_using = version_usage.get("%(version)s-%(architecture)s" % version_info)
             runner_store.append(
                 {
@@ -161,7 +163,7 @@ class RunnerInstallDialog(ModelessDialog):
                     "url": version_info["url"],
                     "is_installed": is_installed,
                     "progress": 0,
-                    "game_count": len(games_using) if games_using else 0
+                    "game_count": len(games_using) if games_using else 0,
                 }
             )
         return runner_store
@@ -233,11 +235,7 @@ class RunnerInstallDialog(ModelessDialog):
                 # Check if there are apps installed, if so, show the view apps button
                 app_count = runner["game_count"] or 0
                 if app_count > 0:
-                    usage_button_text = gettext.ngettext(
-                        "View %d game",
-                        "View %d games",
-                        app_count
-                    ) % app_count
+                    usage_button_text = gettext.ngettext("View %d game", "View %d games", app_count) % app_count
 
                     usage_button = Gtk.LinkButton.new_with_label(usage_button_text)
                     usage_button.set_valign(Gtk.Align.CENTER)
@@ -347,9 +345,7 @@ class RunnerInstallDialog(ModelessDialog):
         def on_error(error):
             ErrorDialog(error, parent=self)
 
-        system.remove_folder(runner_path,
-                             completion_function=on_complete,
-                             error_function=on_error)
+        system.remove_folder(runner_path, completion_function=on_complete, error_function=on_error)
 
     def on_install_runner(self, _widget, row):
         self.install_runner(row)
@@ -435,6 +431,7 @@ class RunnerInstallDialog(ModelessDialog):
         if self.runner_name == "wine":
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_installed_wine_versions
+
             get_installed_wine_versions.cache_clear()
 
     def on_response(self, dialog, response: Gtk.ResponseType) -> None:

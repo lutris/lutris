@@ -31,6 +31,7 @@ from lutris.util.strings import slugify
 
 class AmazonBanner(ServiceMedia):
     """Game logo"""
+
     service = "amazon"
     size = (200, 112)
     dest_path = os.path.join(settings.CACHE_DIR, "amazon/banners")
@@ -44,6 +45,7 @@ class AmazonBanner(ServiceMedia):
 
 class AmazonGame(ServiceGame):
     """Representation of a Amazon game"""
+
     service = "amazon"
 
     @classmethod
@@ -66,9 +68,7 @@ class AmazonService(OnlineService):
     runner = "wine"
     has_extras = False
     drm_free = False
-    medias = {
-        "banner": AmazonBanner
-    }
+    medias = {"banner": AmazonBanner}
     default_format = "banner"
 
     login_window_width = 400
@@ -163,7 +163,7 @@ class AmazonService(OnlineService):
 
     def save_user_data(self, user_data):
         """Save the user data file"""
-        with open(self.user_path, "w", encoding='utf-8') as user_file:
+        with open(self.user_path, "w", encoding="utf-8") as user_file:
             user_file.write(json.dumps(user_data))
 
     def load_user_data(self):
@@ -173,7 +173,7 @@ class AmazonService(OnlineService):
         if not os.path.exists(self.user_path):
             raise AuthenticationError(_("No Amazon user data available, please log in again"))
 
-        with open(self.user_path, "r", encoding='utf-8') as user_file:
+        with open(self.user_path, "r", encoding="utf-8") as user_file:
             user_data = json.load(user_file)
 
         return user_data
@@ -336,7 +336,7 @@ class AmazonService(OnlineService):
         """Return the user's library of Amazon games"""
         if system.path_exists(self.cache_path):
             logger.debug("Returning cached Amazon library")
-            with open(self.cache_path, "r", encoding='utf-8') as amazon_cache:
+            with open(self.cache_path, "r", encoding="utf-8") as amazon_cache:
                 return json.load(amazon_cache)
 
         access_token = self.get_access_token()
@@ -378,7 +378,7 @@ class AmazonService(OnlineService):
         # by using the top level ID whenever we can.
         games = [sorted(gl, key=lambda g: g["id"])[0] for gl in games_by_asin.values()]
 
-        with open(self.cache_path, "w", encoding='utf-8') as amazon_cache:
+        with open(self.cache_path, "w", encoding="utf-8") as amazon_cache:
             json.dump(games, amazon_cache)
 
         return games
@@ -439,8 +439,7 @@ class AmazonService(OnlineService):
 
         if not response:
             logger.error("There was an error getting game manifest: %s", game_id)
-            raise UnavailableGameError(_(
-                "Unable to get game manifest info"))
+            raise UnavailableGameError(_("Unable to get game manifest info"))
 
         return response
 
@@ -457,24 +456,22 @@ class AmazonService(OnlineService):
             request.get()
         except HTTPError as ex:
             logger.error("Failed http request %s", url)
-            raise UnavailableGameError(_(
-                "Unable to get game manifest")) from ex
+            raise UnavailableGameError(_("Unable to get game manifest")) from ex
 
         content = request.content
 
         header_size = struct.unpack(">I", content[:4])[0]
 
         header = ManifestHeader()
-        header.decode(content[4: 4 + header_size])
+        header.decode(content[4 : 4 + header_size])
 
         if header.compression.algorithm == CompressionAlgorithm.none:
-            raw_manifest = content[4 + header_size:]
+            raw_manifest = content[4 + header_size :]
         elif header.compression.algorithm == CompressionAlgorithm.lzma:
-            raw_manifest = lzma.decompress(content[4 + header_size:])
+            raw_manifest = lzma.decompress(content[4 + header_size :])
         else:
             logger.error("Unknown compression algorithm found in manifest")
-            raise UnavailableGameError(_(
-                "Unknown compression algorithm found in manifest"))
+            raise UnavailableGameError(_("Unknown compression algorithm found in manifest"))
 
         manifest = Manifest()
         manifest.decode(raw_manifest)
@@ -491,17 +488,14 @@ class AmazonService(OnlineService):
         }
 
         response = self.request_sds(
-            "com.amazonaws.gearbox."
-            "softwaredistribution.service.model."
-            "SoftwareDistributionService.GetPatches",
+            "com.amazonaws.gearbox." "softwaredistribution.service.model." "SoftwareDistributionService.GetPatches",
             access_token,
             request_data,
         )
 
         if not response:
             logger.error("There was an error getting patches: %s", game_id)
-            raise UnavailableGameError(_(
-                "Unable to get the patches of game"), game_id)
+            raise UnavailableGameError(_("Unable to get the patches of game"), game_id)
         return response
 
     def get_game_patches(self, game_id, version, file_list):
@@ -511,7 +505,7 @@ class AmazonService(OnlineService):
         def get_batches(to_batch, batch_size):
             i = 0
             while i < len(to_batch):
-                yield to_batch[i:i + batch_size]
+                yield to_batch[i : i + batch_size]
                 i += batch_size
 
         batches = get_batches(file_list, 500)
@@ -536,13 +530,12 @@ class AmazonService(OnlineService):
                 hashes.append(file_hash)
                 files.append({"path": file.path.decode().replace("\\", "/"), "size": file.size, "url": None})
 
-                hashpairs.append({
-                    'sourceHash': None,
-                    'targetHash': {
-                        'value': file_hash,
-                        'algorithm': HashAlgorithm.get_name(file.hash.algorithm)
+                hashpairs.append(
+                    {
+                        "sourceHash": None,
+                        "targetHash": {"value": file_hash, "algorithm": HashAlgorithm.get_name(file.hash.algorithm)},
                     }
-                })
+                )
             for __, directory in enumerate(package.dirs):
                 if directory.path is not None:
                     directories.append(directory.path.decode().replace("\\", "/"))
@@ -577,8 +570,7 @@ class AmazonService(OnlineService):
             request.get()
         except HTTPError as ex:
             logger.error("Failed http request %s", fuel_url)
-            raise UnavailableGameError(_(
-                "Unable to get fuel.json file.")) from ex
+            raise UnavailableGameError(_("Unable to get fuel.json file.")) from ex
 
         try:
             res_yaml_text = request.text
@@ -589,8 +581,7 @@ class AmazonService(OnlineService):
                 logger.exception("Unparesable yaml response from %s:\n%s", fuel_url, res_yaml_text)
                 res_json = json.loads(res_yaml_text)
             except Exception:
-                raise UnavailableGameError(_(
-                    "Invalid response from Amazon APIs")) from ex
+                raise UnavailableGameError(_("Invalid response from Amazon APIs")) from ex
 
         if res_json["Main"] is None or res_json["Main"]["Command"] is None:
             return None, None
@@ -629,11 +620,11 @@ class AmazonService(OnlineService):
         files = []
         for file_hash, file in file_dict.items():
             file_name = os.path.basename(file["path"])
-            files.append(InstallerFile(installer.game_slug, file_hash, {
-                "url": file["url"],
-                "filename": file_name,
-                "size": file["size"]
-            }))
+            files.append(
+                InstallerFile(
+                    installer.game_slug, file_hash, {"url": file["url"], "filename": file_name, "size": file["size"]}
+                )
+            )
         # return should be a list of files, so we return a list containing a InstallerFileCollection
         file_collection = InstallerFileCollection(installer.game_slug, "amazongame", files)
         return [file_collection], []
@@ -655,7 +646,8 @@ class AmazonService(OnlineService):
         installer = [
             {"task": {"name": "create_prefix"}},
             {"mkdir": "$GAMEDIR/drive_c/game"},
-            {"autosetup_amazon": {"files": file_dict, "directories": directories}}]
+            {"autosetup_amazon": {"files": file_dict, "directories": directories}},
+        ]
 
         # try to get fuel file that contain the main exe
         fuel_file = {k: v for k, v in file_dict.items() if "fuel.json" in v["path"]}
@@ -682,12 +674,12 @@ class AmazonService(OnlineService):
                     "exe": f"$GAMEDIR/drive_c/game/{game_cmd}",
                     "args": game_args,
                     "prefix": "$GAMEDIR",
-                    "working_dir": "$GAMEDIR/drive_c/game"
+                    "working_dir": "$GAMEDIR/drive_c/game",
                 },
                 "system": {},
                 "files": [{"amazongame": "N/A:Select the installer from Amazon Games"}],
-                "installer": installer
-            }
+                "installer": installer,
+            },
         }
 
     def get_installed_runner_name(self, db_game):

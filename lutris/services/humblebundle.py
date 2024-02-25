@@ -21,6 +21,7 @@ from lutris.util.log import logger
 
 class HumbleBundleIcon(ServiceMedia):
     """HumbleBundle icon"""
+
     service = "humblebundle"
     size = (70, 70)
     dest_path = os.path.join(settings.CACHE_DIR, "humblebundle/icons")
@@ -38,6 +39,7 @@ class HumbleBigIcon(HumbleBundleIcon):
 
 class HumbleBundleGame(ServiceGame):
     """Service game for DRM free Humble Bundle games"""
+
     service = "humblebundle"
 
     @classmethod
@@ -60,11 +62,7 @@ class HumbleBundleService(OnlineService):
     icon = "humblebundle"
     online = True
     drm_free = True
-    medias = {
-        "small_icon": HumbleSmallIcon,
-        "icon": HumbleBundleIcon,
-        "big_icon": HumbleBigIcon
-    }
+    medias = {"small_icon": HumbleSmallIcon, "icon": HumbleBundleIcon, "big_icon": HumbleBigIcon}
     default_format = "icon"
 
     api_url = "https://www.humblebundle.com/"
@@ -78,14 +76,18 @@ class HumbleBundleService(OnlineService):
     supported_platforms = ("linux", "windows")
 
     def login(self, parent=None):
-        dialog = QuestionDialog({
-            "title": _("Workaround for Humble Bundle authentication"),
-            "question": _("Humble Bundle is restricting API calls from software like Lutris and GameHub.\n"
-                          "Authentication to the service will likely fail.\n"
-                          "There is a workaround involving copying cookies "
-                          "from Firefox, do you want to do this instead?"),
-            "parent": parent
-        })
+        dialog = QuestionDialog(
+            {
+                "title": _("Workaround for Humble Bundle authentication"),
+                "question": _(
+                    "Humble Bundle is restricting API calls from software like Lutris and GameHub.\n"
+                    "Authentication to the service will likely fail.\n"
+                    "There is a workaround involving copying cookies "
+                    "from Firefox, do you want to do this instead?"
+                ),
+                "parent": parent,
+            }
+        )
         if dialog.result == Gtk.ResponseType.YES:
             dialog = HumbleBundleCookiesDialog()
             if dialog.cookies_content:
@@ -143,11 +145,11 @@ class HumbleBundleService(OnlineService):
         # logger.debug("Getting Humble Bundle order %s", gamekey)
         cache_filename = self.order_path(gamekey)
         if os.path.exists(cache_filename):
-            with open(cache_filename, encoding='utf-8') as cache_file:
+            with open(cache_filename, encoding="utf-8") as cache_file:
                 return json.load(cache_file)
         response = self.make_api_request(self.api_url + "api/v1/order/%s?all_tpkds=true" % gamekey)
         os.makedirs(self.cache_path, exist_ok=True)
-        with open(cache_filename, "w", encoding='utf-8') as cache_file:
+        with open(cache_filename, "w", encoding="utf-8") as cache_file:
             json.dump(response, cache_file)
         return response
 
@@ -180,10 +182,7 @@ class HumbleBundleService(OnlineService):
         if not gamekeys:
             gamekeys = self.make_api_request(self.api_url + "api/v1/user/order")
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-            future_orders = [
-                executor.submit(self.get_order, gamekey["gamekey"])
-                for gamekey in gamekeys
-            ]
+            future_orders = [executor.submit(self.get_order, gamekey["gamekey"]) for gamekey in gamekeys]
             for order in future_orders:
                 orders.append(order.result())
         logger.info("Loaded %s Humble Bundle orders", len(orders))
@@ -197,8 +196,9 @@ class HumbleBundleService(OnlineService):
                 continue
             available_platforms = [d["platform"] for d in product["downloads"]]
             if platform not in available_platforms:
-                logger.warning("Requested platform %s not available in available platforms: %s",
-                               platform, available_platforms)
+                logger.warning(
+                    "Requested platform %s not available in available platforms: %s", platform, available_platforms
+                )
 
                 if "linux" in available_platforms:
                     platform = "linux"
@@ -213,7 +213,7 @@ class HumbleBundleService(OnlineService):
                     "product": order["product"],
                     "gamekey": order["gamekey"],
                     "created": order["created"],
-                    "download": download
+                    "download": download,
                 }
 
     def get_downloads(self, humbleid, platform):
@@ -235,10 +235,7 @@ class HumbleBundleService(OnlineService):
         if not link:
             raise UnavailableGameError(_("No game found on Humble Bundle"))
         filename = link.split("?")[0].split("/")[-1]
-        file = InstallerFile(installer.game_slug, installer_file_id, {
-            "url": link,
-            "filename": filename
-        })
+        file = InstallerFile(installer.game_slug, installer_file_id, {"url": link, "filename": filename})
         return [file], []
 
     @staticmethod
@@ -287,7 +284,7 @@ class HumbleBundleService(OnlineService):
                 ]
             else:
                 script = [{"extract": {"file": "humblegame"}}]
-                system_config = {"gamemode": 'false'}  # Unity games crash with gamemode
+                system_config = {"gamemode": "false"}  # Unity games crash with gamemode
         elif "windows" in platforms:
             runner = "wine"
             game_config = {"exe": AUTO_WIN32_EXE, "prefix": "$GAMEDIR"}
@@ -295,12 +292,10 @@ class HumbleBundleService(OnlineService):
             if filename.lower().endswith(".zip"):
                 script = [
                     {"task": {"name": "create_prefix", "prefix": "$GAMEDIR"}},
-                    {"extract": {"file": "humblegame", "dst": "$GAMEDIR/drive_c/%s" % db_game["slug"]}}
+                    {"extract": {"file": "humblegame", "dst": "$GAMEDIR/drive_c/%s" % db_game["slug"]}},
                 ]
             else:
-                script = [
-                    {"task": {"name": "wineexec", "executable": "humblegame"}}
-                ]
+                script = [{"task": {"name": "wineexec", "executable": "humblegame"}}]
         else:
             logger.warning("Unsupported platforms: %s", platforms)
             return {}
@@ -314,11 +309,9 @@ class HumbleBundleService(OnlineService):
             "script": {
                 "game": game_config,
                 "system": system_config,
-                "files": [
-                    {"humblegame": "N/A:Select the installer from Humble Bundle"}
-                ],
-                "installer": script
-            }
+                "files": [{"humblegame": "N/A:Select the installer from Humble Bundle"}],
+                "installer": script,
+            },
         }
 
     def get_installed_runner_name(self, db_game):

@@ -16,13 +16,9 @@ class InterfacePreferencesBox(BaseConfigBox):
         "discord_rpc": _("Enable Discord Rich Presence for Available Games"),
     }
 
-    settings_accelerators = {
-        "hide_badges_on_icons": "<Primary>p"
-    }
+    settings_accelerators = {"hide_badges_on_icons": "<Primary>p"}
 
-    settings_availability = {
-        "show_tray_icon": supports_status_icon
-    }
+    settings_availability = {"show_tray_icon": supports_status_icon}
 
     def __init__(self, accelerators):
         super().__init__()

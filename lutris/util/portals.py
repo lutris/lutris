@@ -17,9 +17,12 @@ class TrashPortal(GObject.Object):
     CompletionFunction = Callable[[], None]
     ErrorFunction = Callable[[Exception], None]
 
-    def __init__(self, file_paths: Iterable[str],
-                 completion_function: CompletionFunction = None,
-                 error_function: ErrorFunction = None):
+    def __init__(
+        self,
+        file_paths: Iterable[str],
+        completion_function: CompletionFunction = None,
+        error_function: ErrorFunction = None,
+    ):
         super().__init__()
         self.file_paths = list(file_paths)
         self.completion_function = completion_function
@@ -64,7 +67,7 @@ class TrashPortal(GObject.Object):
                 GObject.G_MAXINT,
                 fds_in,
                 None,
-                self._call_cb
+                self._call_cb,
             )
         except Exception as ex:
             self.report_error(ex)

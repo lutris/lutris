@@ -81,19 +81,9 @@ def get_machine_info(machine):
         "devices": [
             {
                 "info": device.attrib,
-                "name": "".join(
-                    [instance.attrib["name"] for instance in device.findall("instance")]
-                ),
-                "briefname": "".join(
-                    [
-                        instance.attrib["briefname"]
-                        for instance in device.findall("instance")
-                    ]
-                ),
-                "extensions": [
-                    extension.attrib["name"]
-                    for extension in device.findall("extension")
-                ],
+                "name": "".join([instance.attrib["name"] for instance in device.findall("instance")]),
+                "briefname": "".join([instance.attrib["briefname"] for instance in device.findall("instance")]),
+                "extensions": [extension.attrib["name"] for extension in device.findall("extension")],
             }
             for device in machine.findall("device")
         ],
@@ -109,7 +99,7 @@ def get_supported_systems(xml_path, force=False):
     """
     systems_cache_path = os.path.join(CACHE_DIR, "systems.json")
     if os.path.exists(systems_cache_path) and not force:
-        with open(systems_cache_path, "r", encoding='utf-8') as systems_cache_file:
+        with open(systems_cache_path, "r", encoding="utf-8") as systems_cache_file:
             try:
                 systems = json.load(systems_cache_file)
             except json.JSONDecodeError:
@@ -117,20 +107,14 @@ def get_supported_systems(xml_path, force=False):
                 systems = None
         if systems:
             return systems
-    systems = {
-        machine.attrib["name"]: get_machine_info(machine)
-        for machine in iter_machines(xml_path, is_system)
-    }
+    systems = {machine.attrib["name"]: get_machine_info(machine) for machine in iter_machines(xml_path, is_system)}
     if not systems:
         return {}
-    with open(systems_cache_path, "w", encoding='utf-8') as systems_cache_file:
+    with open(systems_cache_path, "w", encoding="utf-8") as systems_cache_file:
         json.dump(systems, systems_cache_file, indent=2)
     return systems
 
 
 def get_games(xml_path):
     """Return a list of all games"""
-    return {
-        machine.attrib["name"]: get_machine_info(machine)
-        for machine in iter_machines(xml_path, is_game)
-    }
+    return {machine.attrib["name"]: get_machine_info(machine) for machine in iter_machines(xml_path, is_game)}

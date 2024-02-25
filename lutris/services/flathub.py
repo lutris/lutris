@@ -19,11 +19,12 @@ from lutris.util.strings import slugify
 
 class FlathubBanner(ServiceMedia):
     """Standard size of a Flathub banner"""
+
     service = "flathub"
     size = (128, 128)
     dest_path = os.path.join(settings.CACHE_DIR, "flathub/banners")
     file_patterns = ["%s.png"]
-    url_field = 'iconDesktopUrl'
+    url_field = "iconDesktopUrl"
 
     def get_media_url(self, details):
         return details.get(self.url_field)
@@ -31,6 +32,7 @@ class FlathubBanner(ServiceMedia):
 
 class FlathubGame(ServiceGame):
     """Representation of a Flathub game"""
+
     service = "flathub"
 
     @classmethod
@@ -41,10 +43,7 @@ class FlathubGame(ServiceGame):
         service_game.slug = slugify(flathub_game["name"])
         service_game.lutris_slug = slugify(flathub_game["name"])
         service_game.name = flathub_game["name"]
-        service_game.details = {
-            "summary": flathub_game["summary"],
-            "version": flathub_game["currentReleaseVersion"]
-        }
+        service_game.details = {"summary": flathub_game["summary"], "version": flathub_game["currentReleaseVersion"]}
         service_game.runner = "flatpak"
         service_game.details = json.dumps(flathub_game)
         return service_game
@@ -56,9 +55,7 @@ class FlathubService(BaseService):
     id = "flathub"
     name = _("Flathub")
     icon = "flathub"
-    medias = {
-        "banner": FlathubBanner
-    }
+    medias = {"banner": FlathubBanner}
     default_format = "banner"
     api_url = "https://flathub.org/api/v1/apps/category/Game"
     cache_path = os.path.join(settings.CACHE_DIR, "flathub-library.json")
@@ -66,10 +63,7 @@ class FlathubService(BaseService):
     branch = "stable"
     arch = "x86_64"
     install_type = "system"  # can be either system (default) or user
-    install_locations = {
-        "system": "var/lib/flatpak/app/",
-        "user": f"{Path.home()}/.local/share/flatpak/app/"
-    }
+    install_locations = {"system": "var/lib/flatpak/app/", "user": f"{Path.home()}/.local/share/flatpak/app/"}
     runner = "flatpak"
     game_class = FlathubGame
 
@@ -107,7 +101,8 @@ class FlathubService(BaseService):
         # Check if Flathub repo is active on the system
         if not self.is_flathub_remote_active():
             raise RuntimeError(
-                _("Flathub is not configured on the system. Visit https://flatpak.org/setup/ for instructions."))
+                _("Flathub is not configured on the system. Visit https://flatpak.org/setup/ for instructions.")
+            )
         # Install the game
         self.install_from_api(db_game, app_id)
 
@@ -115,8 +110,14 @@ class FlathubService(BaseService):
         """Get list of installed Flathub apps"""
         try:
             flatpak_cmd = self.get_flatpak_cmd()
-            process = subprocess.run(flatpak_cmd + ["list", "--app", "--columns=application"],
-                                     capture_output=True, check=True, encoding="utf-8", text=True, timeout=5.0)
+            process = subprocess.run(
+                flatpak_cmd + ["list", "--app", "--columns=application"],
+                capture_output=True,
+                check=True,
+                encoding="utf-8",
+                text=True,
+                timeout=5.0,
+            )
             return process.stdout.splitlines() or []
         except (TimeoutError, subprocess.CalledProcessError) as err:
             logger.exception("Error occurred while getting installed flatpak apps: %s", err)
@@ -129,7 +130,7 @@ class FlathubService(BaseService):
             logger.warning("Remotes not found, Flathub considered installed")
             return True
         for remote in remotes:
-            if 'flathub' in remote.values():
+            if "flathub" in remote.values():
                 return True
         return False
 
@@ -137,16 +138,18 @@ class FlathubService(BaseService):
         """Get a list of dictionaries containing name, title and url"""
         try:
             flatpak_cmd = self.get_flatpak_cmd()
-            process = subprocess.run(flatpak_cmd + ["remotes", "--columns=name,title,url"],
-                                     capture_output=True, check=True, encoding="utf-8", text=True, timeout=5.0)
+            process = subprocess.run(
+                flatpak_cmd + ["remotes", "--columns=name,title,url"],
+                capture_output=True,
+                check=True,
+                encoding="utf-8",
+                text=True,
+                timeout=5.0,
+            )
             entries = []
             for line in process.stdout.splitlines():
                 cols = line.split("\t")
-                entries.append({
-                    "name": cols[0].lower(),
-                    "title": cols[1].lower(),
-                    "url": cols[2]
-                })
+                entries.append({"name": cols[0].lower(), "title": cols[1].lower(), "url": cols[2]})
             return entries
         except (TimeoutError, subprocess.CalledProcessError) as err:
             logger.exception("Error occurred while getting installed flatpak apps: %s", err)
@@ -167,33 +170,31 @@ class FlathubService(BaseService):
                     "appid": db_game["appid"],
                     "arch": self.arch,
                     "branch": self.branch,
-                    "install_type": self.install_type
+                    "install_type": self.install_type,
                 },
-                "system": {
-                    "disable_runtime": True
-                },
+                "system": {"disable_runtime": True},
                 "require-binaries": flatpak_cmd[0],
                 "installer": [
                     {
-                        "execute":
-                            {
-                                "file": flatpak_cmd[0],
-                                "args": " ".join(flatpak_cmd[1:])
-                                        + f" install --{self.install_type} --app --noninteractive flathub "
-                                f"app/{db_game['appid']}/{self.arch}/{self.branch}",
-                                "disable_runtime": True
-                            }
+                        "execute": {
+                            "file": flatpak_cmd[0],
+                            "args": " ".join(flatpak_cmd[1:])
+                            + f" install --{self.install_type} --app --noninteractive flathub "
+                            f"app/{db_game['appid']}/{self.arch}/{self.branch}",
+                            "disable_runtime": True,
+                        }
                     }
-                ]
-            }
+                ],
+            },
         }
 
     def get_installed_runner_name(self, db_game):
         return self.runner
 
     def get_game_directory(self, _installer):
-        install_type, application, arch, branch = (_installer["script"]["game"][key] for key in
-                                                   ("install_type", "application", "arch", "branch"))
+        install_type, application, arch, branch = (
+            _installer["script"]["game"][key] for key in ("install_type", "application", "arch", "branch")
+        )
         return os.path.join(self.install_locations[install_type], application, arch, branch)
 
     # def add_installed_games(self):

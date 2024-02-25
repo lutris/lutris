@@ -29,6 +29,7 @@ from lutris.util.strings import gtk_safe, parse_playtime, slugify
 # pylint: disable=too-many-instance-attributes, no-member
 class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     """Base class for config dialogs"""
+
     no_runner_label = _("Select a runner in the Game Info tab")
 
     def __init__(self, title, config_level, parent=None):
@@ -398,8 +399,9 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self._set_image(image_type, image_button)
 
     def on_move_clicked(self, _button):
-        new_location = DirectoryDialog("Select new location for the game",
-                                       default_path=self.game.directory, parent=self)
+        new_location = DirectoryDialog(
+            "Select new location for the game", default_path=self.game.directory, parent=self
+        )
         if not new_location.folder or new_location.folder == self.game.directory:
             return
         move_dialog = dialogs.MoveDialog(self.game, new_location.folder, parent=self)
@@ -431,39 +433,42 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
-            self.game_box = self._build_options_tab(_("Game options"),
-                                                    lambda: GameBox(self.config_level, self.lutris_config, self.game),
-                                                    advanced=has_advanced(self.game),
-                                                    searchable=is_searchable(self.game))
+            self.game_box = self._build_options_tab(
+                _("Game options"),
+                lambda: GameBox(self.config_level, self.lutris_config, self.game),
+                advanced=has_advanced(self.game),
+                searchable=is_searchable(self.game),
+            )
         elif self.runner_name:
             game = Game(None)
             game.runner_name = self.runner_name
-            self.game_box = self._build_options_tab(_("Game options"),
-                                                    lambda: GameBox(self.config_level, self.lutris_config, game),
-                                                    advanced=has_advanced(game),
-                                                    searchable=is_searchable(game))
+            self.game_box = self._build_options_tab(
+                _("Game options"),
+                lambda: GameBox(self.config_level, self.lutris_config, game),
+                advanced=has_advanced(game),
+                searchable=is_searchable(game),
+            )
         else:
             self._build_missing_options_tab(self.no_runner_label, _("Game options"))
 
     def _build_runner_tab(self):
         if self.runner_name:
-            self.runner_box = self._build_options_tab(_("Runner options"),
-                                                      lambda: RunnerBox(self.config_level, self.lutris_config))
+            self.runner_box = self._build_options_tab(
+                _("Runner options"), lambda: RunnerBox(self.config_level, self.lutris_config)
+            )
         else:
             self._build_missing_options_tab(self.no_runner_label, _("Runner options"))
 
     def _build_system_tab(self):
-        self.system_box = self._build_options_tab(_("System options"),
-                                                  lambda: SystemConfigBox(self.config_level, self.lutris_config))
+        self.system_box = self._build_options_tab(
+            _("System options"), lambda: SystemConfigBox(self.config_level, self.lutris_config)
+        )
 
     def _build_options_tab(self, notebook_label, box_factory, advanced=True, searchable=True):
         if not self.lutris_config:
             raise RuntimeError("Lutris config not loaded yet")
         config_box = box_factory()
-        page_index = self._add_notebook_tab(
-            self.build_scrolled_window(config_box),
-            notebook_label
-        )
+        page_index = self._add_notebook_tab(self.build_scrolled_window(config_box), notebook_label)
 
         if page_index == 0:
             config_box.generate_widgets()
@@ -490,10 +495,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.search_entry.show_all()
 
         # Advanced settings toggle
-        switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
-                             spacing=5,
-                             no_show_all=True,
-                             visible=True)
+        switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5, no_show_all=True, visible=True)
         switch_box.set_tooltip_text(_("Show advanced options"))
 
         switch_label = Gtk.Label(_("Advanced"), no_show_all=True, visible=True)
@@ -549,12 +551,12 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             dlg = QuestionDialog(
                 {
                     "parent": self,
-                    "question":
-                        _("Are you sure you want to change the runner for this game ? "
-                          "This will reset the full configuration for this game and "
-                          "is not reversible."),
-                    "title":
-                        _("Confirm runner change"),
+                    "question": _(
+                        "Are you sure you want to change the runner for this game ? "
+                        "This will reset the full configuration for this game and "
+                        "is not reversible."
+                    ),
+                    "title": _("Confirm runner change"),
                 }
             )
 
@@ -791,8 +793,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             download_lutris_media(slug)
             return image_type
 
-        service_media.trash_media(slug,
-                                  completion_function=on_trashed)
+        service_media.trash_media(slug, completion_function=on_trashed)
 
     def refresh_image_cb(self, image_type, error):
         return image_type

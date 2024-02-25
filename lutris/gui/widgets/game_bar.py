@@ -14,12 +14,15 @@ from lutris.util.strings import gtk_safe
 class GameBar(Gtk.Box):
     def __init__(self, db_game, application, window):
         """Create the game bar with a database row"""
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, visible=True,
-                         margin_top=12,
-                         margin_left=12,
-                         margin_bottom=12,
-                         margin_right=12,
-                         spacing=6)
+        super().__init__(
+            orientation=Gtk.Orientation.VERTICAL,
+            visible=True,
+            margin_top=12,
+            margin_left=12,
+            margin_bottom=12,
+            margin_right=12,
+            spacing=6,
+        )
 
         self.application = application
         self.window = window
@@ -268,10 +271,7 @@ class GameBar(Gtk.Box):
 
     def on_game_state_changed(self, game):
         """Handler called when the game has changed state"""
-        if (
-            (self.game.is_db_stored and game.id == self.game.id)
-            or (self.appid and game.appid == self.appid)
-        ):
+        if (self.game.is_db_stored and game.id == self.game.id) or (self.appid and game.appid == self.appid):
             self.game = game
         elif self.game != game:
             return True

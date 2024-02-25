@@ -116,10 +116,7 @@ class SteamService(BaseService):
     def get_installer_files(self, installer, _installer_file_id, _selected_extras):
         steam_uri = "$STEAM:%s:."
         appid = str(installer.script["game"]["appid"])
-        file = InstallerFile(installer.game_slug, "steam_game", {
-            "url": steam_uri % appid,
-            "filename": appid
-        })
+        file = InstallerFile(installer.game_slug, "steam_game", {"url": steam_uri % appid, "filename": appid})
         return [file], []
 
     def install_from_steam(self, manifest):
@@ -219,9 +216,7 @@ class SteamService(BaseService):
             "game_slug": self.get_installed_slug(db_game),
             "runner": self.get_installed_runner_name(db_game),
             "appid": db_game["appid"],
-            "script": {
-                "game": {"appid": db_game["appid"]}
-            }
+            "script": {"game": {"appid": db_game["appid"]}},
         }
 
     def get_installed_runner_name(self, db_game):

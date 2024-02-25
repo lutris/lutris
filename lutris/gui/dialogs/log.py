@@ -11,7 +11,6 @@ from lutris.util import datapath
 
 
 class LogWindow(GObject.Object):
-
     def __init__(self, game, buffer, application=None):
         super().__init__()
         ui_filename = os.path.join(datapath.get(), "ui/log-window.ui")
@@ -53,18 +52,12 @@ class LogWindow(GObject.Object):
         now = datetime.now()
         log_filename = "%s (%s).log" % (self.title, now.strftime("%Y-%m-%d-%H-%M"))
         file_dialog = FileDialog(
-            message="Save the logs to...",
-            default_path=os.path.expanduser("~/%s" % log_filename),
-            mode="save"
+            message="Save the logs to...", default_path=os.path.expanduser("~/%s" % log_filename), mode="save"
         )
         log_path = file_dialog.filename
         if not log_path:
             return
 
-        text = self.buffer.get_text(
-            self.buffer.get_start_iter(),
-            self.buffer.get_end_iter(),
-            True
-        )
-        with open(log_path, "w", encoding='utf-8') as log_file:
+        text = self.buffer.get_text(self.buffer.get_start_iter(), self.buffer.get_end_iter(), True)
+        with open(log_path, "w", encoding="utf-8") as log_file:
             log_file.write(text)

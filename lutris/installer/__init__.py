@@ -21,7 +21,7 @@ class InstallationKind(enum.Enum):
 def read_script(filename):
     """Return scripts from a local file"""
     logger.debug("Loading script(s) from %s", filename)
-    with open(filename, "r", encoding='utf-8') as local_file:
+    with open(filename, "r", encoding="utf-8") as local_file:
         script = yaml.safe_load(local_file.read())
         if isinstance(script, list):
             return script

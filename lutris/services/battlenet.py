@@ -26,44 +26,49 @@ except (ImportError, TypeError) as ex:
     BNET_ENABLED = False
 
 GAME_IDS = {
-    's1': ('s1', 'StarCraft', 'S1', 'starcraft-remastered'),
-    's2': ('s2', 'StarCraft II', 'S2', 'starcraft-ii'),
-    'wow': ('wow', 'World of Warcraft', 'WoW', 'world-of-warcraft'),
-    'wow_classic': ('wow_classic', 'World of Warcraft Classic', 'WoW_wow_classic', 'world-of-warcraft-classic'),
-    'pro': ('pro', 'Overwatch 2', 'Pro', 'overwatch-2'),
-    'w3': ('w3', 'Warcraft III', 'W3', 'warcraft-iii-reforged'),
-    'hsb': ('hsb', 'Hearthstone', 'WTCG', 'hearthstone'),
-    'hero': ('hero', 'Heroes of the Storm', 'Hero', 'heroes-of-the-storm'),
-    'd3cn': ('d3cn', '暗黑破壞神III', 'D3CN', 'diablo-iii'),
-    'd3': ('d3', 'Diablo III', 'D3', 'diablo-iii'),
-    'fenris': ('fenris', 'Diablo IV', 'Fen', 'diablo-iv'),
-    'viper': ('viper', 'Call of Duty: Black Ops 4', 'VIPR', 'call-of-duty-black-ops-4'),
-    'odin': ('odin', 'Call of Duty: Modern Warfare', 'ODIN', 'call-of-duty-modern-warfare'),
-    'lazarus': ('lazarus', 'Call of Duty: MW2 Campaign Remastered', 'LAZR',
-                'call-of-duty-modern-warfare-2-campaign-remastered'),
-    'zeus': ('zeus', 'Call of Duty: Black Ops Cold War', 'ZEUS', 'call-of-duty-black-ops-cold-war'),
-    'rtro': ('rtro', 'Blizzard Arcade Collection', 'RTRO', 'blizzard-arcade-collection'),
-    'wlby': ('wlby', 'Crash Bandicoot 4: It\'s About Time', 'WLBY', 'crash-bandicoot-4-its-about-time'),
-    'osi': ('osi', 'Diablo® II: Resurrected', 'OSI', 'diablo-2-ressurected'),
-    'fore': ('fore', 'Call of Duty: Vanguard', 'FORE', 'call-of-duty-vanguard'),
-    'd2': ('d2', 'Diablo® II', 'Diablo II', 'diablo-ii'),
-    'd2LOD': ('d2LOD', 'Diablo® II: Lord of Destruction®', 'Diablo II', 'diablo-ii-lord-of-destruction'),
-    'w3ROC': ('w3ROC', 'Warcraft® III: Reign of Chaos', 'Warcraft III', "warcraft-iii-reign-of-chaos"),
-    'w3tft': ('w3tft', 'Warcraft® III: The Frozen Throne®', 'Warcraft III', "warcraft-iii-the-frozen-throne"),
-    'sca': ('sca', 'StarCraft® Anthology', 'Starcraft', 'starcraft')
+    "s1": ("s1", "StarCraft", "S1", "starcraft-remastered"),
+    "s2": ("s2", "StarCraft II", "S2", "starcraft-ii"),
+    "wow": ("wow", "World of Warcraft", "WoW", "world-of-warcraft"),
+    "wow_classic": ("wow_classic", "World of Warcraft Classic", "WoW_wow_classic", "world-of-warcraft-classic"),
+    "pro": ("pro", "Overwatch 2", "Pro", "overwatch-2"),
+    "w3": ("w3", "Warcraft III", "W3", "warcraft-iii-reforged"),
+    "hsb": ("hsb", "Hearthstone", "WTCG", "hearthstone"),
+    "hero": ("hero", "Heroes of the Storm", "Hero", "heroes-of-the-storm"),
+    "d3cn": ("d3cn", "暗黑破壞神III", "D3CN", "diablo-iii"),
+    "d3": ("d3", "Diablo III", "D3", "diablo-iii"),
+    "fenris": ("fenris", "Diablo IV", "Fen", "diablo-iv"),
+    "viper": ("viper", "Call of Duty: Black Ops 4", "VIPR", "call-of-duty-black-ops-4"),
+    "odin": ("odin", "Call of Duty: Modern Warfare", "ODIN", "call-of-duty-modern-warfare"),
+    "lazarus": (
+        "lazarus",
+        "Call of Duty: MW2 Campaign Remastered",
+        "LAZR",
+        "call-of-duty-modern-warfare-2-campaign-remastered",
+    ),
+    "zeus": ("zeus", "Call of Duty: Black Ops Cold War", "ZEUS", "call-of-duty-black-ops-cold-war"),
+    "rtro": ("rtro", "Blizzard Arcade Collection", "RTRO", "blizzard-arcade-collection"),
+    "wlby": ("wlby", "Crash Bandicoot 4: It's About Time", "WLBY", "crash-bandicoot-4-its-about-time"),
+    "osi": ("osi", "Diablo® II: Resurrected", "OSI", "diablo-2-ressurected"),
+    "fore": ("fore", "Call of Duty: Vanguard", "FORE", "call-of-duty-vanguard"),
+    "d2": ("d2", "Diablo® II", "Diablo II", "diablo-ii"),
+    "d2LOD": ("d2LOD", "Diablo® II: Lord of Destruction®", "Diablo II", "diablo-ii-lord-of-destruction"),
+    "w3ROC": ("w3ROC", "Warcraft® III: Reign of Chaos", "Warcraft III", "warcraft-iii-reign-of-chaos"),
+    "w3tft": ("w3tft", "Warcraft® III: The Frozen Throne®", "Warcraft III", "warcraft-iii-the-frozen-throne"),
+    "sca": ("sca", "StarCraft® Anthology", "Starcraft", "starcraft"),
 }
 
 
 class BattleNetCover(ServiceMedia):
-    service = 'battlenet'
+    service = "battlenet"
     size = (176, 234)
     file_patterns = ["%s.jpg"]
     dest_path = os.path.join(settings.CACHE_DIR, "battlenet/coverart")
-    api_field = 'coverart'
+    api_field = "coverart"
 
 
 class BattleNetGame(ServiceGame):
     """Game from Battle.net"""
+
     service = "battlenet"
     runner = "wine"
     installer_slug = "battlenet"
@@ -75,13 +80,15 @@ class BattleNetGame(ServiceGame):
         service_game.name = blizzard_game[1]
         service_game.appid = blizzard_game[0]
         service_game.slug = blizzard_game[3]
-        service_game.details = json.dumps({
-            "id": blizzard_game[0],
-            "name": blizzard_game[1],
-            "slug": blizzard_game[3],
-            "product_code": blizzard_game[2],
-            "coverart": "https://lutris.net/games/cover/%s.jpg" % blizzard_game[3]
-        })
+        service_game.details = json.dumps(
+            {
+                "id": blizzard_game[0],
+                "name": blizzard_game[1],
+                "slug": blizzard_game[3],
+                "product_code": blizzard_game[2],
+                "coverart": "https://lutris.net/games/cover/%s.jpg" % blizzard_game[3],
+            }
+        )
         return service_game
 
 
@@ -92,9 +99,7 @@ class BattleNetService(BaseService):
     name = _("Battle.net")
     icon = "battlenet"
     runner = "wine"
-    medias = {
-        "coverart": BattleNetCover
-    }
+    medias = {"coverart": BattleNetCover}
     default_format = "coverart"
     client_installer = "battlenet"
     cookies_path = os.path.join(settings.CACHE_DIR, ".bnet.auth")
@@ -150,7 +155,7 @@ class BattleNetService(BaseService):
             configpath=configpath,
             service=self.id,
             service_id=app_id,
-            platform="Windows"
+            platform="Windows",
         )
         return slug
 
@@ -175,19 +180,21 @@ class BattleNetService(BaseService):
                     "args": '--exec="launch %s"' % db_game["appid"],
                 },
                 "installer": [
-                    {"task": {
-                        "name": "wineexec",
-                        "executable": egs_exe,
-                        "args": '--exec="install %s"' % db_game["appid"],
-                        "prefix": egs_game.config.game_config["prefix"],
-                        "description": (
-                            "Battle.net will now open. Please launch "
-                            "the installation of %s then close Battle.net "
-                            "once the game has been downloaded." % db_game["name"]
-                        )
-                    }}
-                ]
-            }
+                    {
+                        "task": {
+                            "name": "wineexec",
+                            "executable": egs_exe,
+                            "args": '--exec="install %s"' % db_game["appid"],
+                            "prefix": egs_game.config.game_config["prefix"],
+                            "description": (
+                                "Battle.net will now open. Please launch "
+                                "the installation of %s then close Battle.net "
+                                "once the game has been downloaded." % db_game["name"]
+                            ),
+                        }
+                    }
+                ],
+            },
         }
 
     def get_installed_runner_name(self, db_game):
@@ -197,21 +204,19 @@ class BattleNetService(BaseService):
         bnet_game = get_game_by_field(self.client_installer, "slug")
         application = Gio.Application.get_default()
         application.show_installer_window(
-            [self.generate_installer(db_game, bnet_game)],
-            service=self,
-            appid=db_game["appid"]
+            [self.generate_installer(db_game, bnet_game)], service=self, appid=db_game["appid"]
         )
 
 
 class BlizzardProductDbParser:
     # Adapted from DatabaseParser in https://github.com/bartok765/galaxy_blizzard_plugin
-    NOT_GAMES = ('bna', 'agent')
+    NOT_GAMES = ("bna", "agent")
     PRODUCT_DB_PATH = "/drive_c/ProgramData/Battle.net/Agent/product.db"
 
     def __init__(self, prefix_path):
         self.data = self.load_product_db(prefix_path + self.PRODUCT_DB_PATH)
         self.products = {}
-        self._region = ''
+        self._region = ""
         self.parse()
 
     @property
@@ -220,7 +225,7 @@ class BlizzardProductDbParser:
 
     @staticmethod
     def load_product_db(product_db_path):
-        with open(product_db_path, 'rb') as f:
+        with open(product_db_path, "rb") as f:
             pdb = f.read()
         return pdb
 
@@ -237,8 +242,7 @@ class BlizzardProductDbParser:
 
         for product_install in database.product_installs:  # pylint: disable=no-member
             # process region
-            if product_install.product_code in ['agent',
-                                                'bna'] and not self.region:
+            if product_install.product_code in ["agent", "bna"] and not self.region:
                 self._region = product_install.settings.play_region
 
             ngdp_code = product_install.product_code

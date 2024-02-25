@@ -4,6 +4,7 @@ from io import BytesIO
 
 try:
     import pefile
+
     PEFILE_AVAILABLE = True
 except ImportError:
     pefile = None
@@ -15,11 +16,11 @@ from PIL import Image
 
 
 class ExtractIcon(object):
-    GRPICONDIRENTRY_format = ('GRPICONDIRENTRY',
-                              ('B,Width', 'B,Height', 'B,ColorCount', 'B,Reserved',
-                               'H,Planes', 'H,BitCount', 'I,BytesInRes', 'H,ID'))
-    GRPICONDIR_format = ('GRPICONDIR',
-                         ('H,Reserved', 'H,Type', 'H,Count'))
+    GRPICONDIRENTRY_format = (
+        "GRPICONDIRENTRY",
+        ("B,Width", "B,Height", "B,ColorCount", "B,Reserved", "H,Planes", "H,BitCount", "I,BytesInRes", "H,ID"),
+    )
+    GRPICONDIR_format = ("GRPICONDIR", ("H,Reserved", "H,Type", "H,Count"))
     RES_ICON = 1
     RES_CURSOR = 2
 
@@ -27,8 +28,7 @@ class ExtractIcon(object):
         self.pe = pefile.PE(filepath)
 
     def find_resource_base(self, res_type):
-        rt_base_idx = [entry.id for
-                       entry in self.pe.DIRECTORY_ENTRY_RESOURCE.entries].index(
+        rt_base_idx = [entry.id for entry in self.pe.DIRECTORY_ENTRY_RESOURCE.entries].index(
             pefile.RESOURCE_TYPE[res_type]
         )
 
@@ -64,17 +64,17 @@ class ExtractIcon(object):
         return res_dir
 
     def get_group_icons(self):
-        rt_base_dir = self.find_resource_base('RT_GROUP_ICON')
+        rt_base_dir = self.find_resource_base("RT_GROUP_ICON")
         groups = []
         for res_index in range(0, len(rt_base_dir.directory.entries)):
-            grp_icon_dir_entry = self.find_resource('RT_GROUP_ICON', res_index)
+            grp_icon_dir_entry = self.find_resource("RT_GROUP_ICON", res_index)
 
             if not grp_icon_dir_entry:
                 continue
 
             data_rva = grp_icon_dir_entry.data.struct.OffsetToData
             size = grp_icon_dir_entry.data.struct.Size
-            data = self.pe.get_memory_mapped_image()[data_rva:data_rva + size]
+            data = self.pe.get_memory_mapped_image()[data_rva : data_rva + size]
             file_offset = self.pe.get_offset_from_rva(data_rva)
 
             grp_icon_dir = pefile.Structure(self.GRPICONDIR_format, file_offset=file_offset)
@@ -95,21 +95,21 @@ class ExtractIcon(object):
         return groups
 
     def get_icon(self, index):
-        icon_entry = self.find_resource('RT_ICON', -index)
+        icon_entry = self.find_resource("RT_ICON", -index)
         if not icon_entry:
             return None
 
         data_rva = icon_entry.data.struct.OffsetToData
         size = icon_entry.data.struct.Size
-        data = self.pe.get_memory_mapped_image()[data_rva:data_rva + size]
+        data = self.pe.get_memory_mapped_image()[data_rva : data_rva + size]
 
         return data
 
     def export_raw(self, entries, index=None):
         if index is not None:
-            entries = entries[index:index + 1]
+            entries = entries[index : index + 1]
 
-        ico = struct.pack('<HHH', 0, self.RES_ICON, len(entries))
+        ico = struct.pack("<HHH", 0, self.RES_ICON, len(entries))
         data_offset = None
         data = []
         info = []
@@ -117,7 +117,7 @@ class ExtractIcon(object):
             if data_offset is None:
                 data_offset = len(ico) + ((grp_icon.sizeof() + 2) * len(entries))
 
-            nfo = grp_icon.__pack__()[:-2] + struct.pack('<L', data_offset)
+            nfo = grp_icon.__pack__()[:-2] + struct.pack("<L", data_offset)
             info.append(nfo)
 
             raw_data = self.get_icon(grp_icon.ID)
@@ -127,7 +127,7 @@ class ExtractIcon(object):
             data.append(raw_data)
             data_offset += len(raw_data)
 
-        raw = ico + b''.join(info + data)
+        raw = ico + b"".join(info + data)
         return raw
 
     def export(self, entries, index=None):
@@ -135,9 +135,9 @@ class ExtractIcon(object):
         return Image.open(BytesIO(raw))
 
     def _get_bmp_header(self, data):
-        if data[0:4] == b'\x89PNG':
-            header = b''
+        if data[0:4] == b"\x89PNG":
+            header = b""
         else:
-            dib_size = struct.unpack('<L', data[0:4])[0]
-            header = b'BM' + struct.pack('<LLL', len(data) + 14, 0, 14 + dib_size)
+            dib_size = struct.unpack("<L", data[0:4])[0]
+            header = b"BM" + struct.pack("<LLL", len(data) + 14, 0, 14 + dib_size)
         return header

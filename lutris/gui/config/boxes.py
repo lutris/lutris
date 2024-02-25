@@ -208,8 +208,7 @@ class ConfigBox(VBox):
                 if value != default and option_key not in self.raw_config:
                     helptext = helptext + "\n\n" if helptext else ""
                     helptext += _(
-                        "<i>(Italic indicates that this option is "
-                        "modified in a lower configuration level.)</i>"
+                        "<i>(Italic indicates that this option is " "modified in a lower configuration level.)</i>"
                     )
                 if helptext:
                     self.wrapper.props.has_tooltip = True
@@ -495,7 +494,7 @@ class ConfigBox(VBox):
             warn_if_non_writable_parent=warn_if_non_writable_parent,
             text=path,
             default_path=chooser_default_path,
-            shell_quoting=shell_quoting
+            shell_quoting=shell_quoting,
         )
         # file_chooser.set_size_request(200, 30)
 
@@ -538,7 +537,7 @@ class ConfigBox(VBox):
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             warn_if_non_writable_parent=warn_if_non_writable_parent,
             text=path,
-            default_path=chooser_default_path
+            default_path=chooser_default_path,
         )
         directory_chooser.connect("changed", self._on_chooser_file_set, option_name)
         directory_chooser.set_valign(Gtk.Align.CENTER)
@@ -763,10 +762,9 @@ class RunnerBox(ConfigBox):
             self.options = self.runner.get_runner_options()
 
         if lutris_config.level == "game":
-            self.generate_top_info_box(_(
-                "If modified, these options supersede the same options from "
-                "the base runner configuration."
-            ))
+            self.generate_top_info_box(
+                _("If modified, these options supersede the same options from " "the base runner configuration.")
+            )
 
 
 class SystemConfigBox(ConfigBox):
@@ -784,24 +782,31 @@ class SystemConfigBox(ConfigBox):
             self.options = sysoptions.system_options
 
         if lutris_config.game_config_id and runner_slug:
-            self.generate_top_info_box(_(
-                "If modified, these options supersede the same options from "
-                "the base runner configuration, which themselves supersede "
-                "the global preferences."
-            ))
+            self.generate_top_info_box(
+                _(
+                    "If modified, these options supersede the same options from "
+                    "the base runner configuration, which themselves supersede "
+                    "the global preferences."
+                )
+            )
         elif runner_slug:
-            self.generate_top_info_box(_(
-                "If modified, these options supersede the same options from "
-                "the global preferences."
-            ))
+            self.generate_top_info_box(
+                _("If modified, these options supersede the same options from " "the global preferences.")
+            )
 
 
 class UnderslungMessageBox(Gtk.Box):
     """A box to display a message with an icon inside the configuration dialog."""
 
     def __init__(self, icon_name, margin_left=18, margin_right=18, margin_bottom=6):
-        super().__init__(spacing=6, visible=False, margin_left=margin_left, margin_right=margin_right,
-                         margin_bottom=margin_bottom, no_show_all=True)
+        super().__init__(
+            spacing=6,
+            visible=False,
+            margin_left=margin_left,
+            margin_right=margin_right,
+            margin_bottom=margin_bottom,
+            no_show_all=True,
+        )
 
         image = Gtk.Image(visible=True)
         image.set_from_icon_name(icon_name, Gtk.IconSize.DND)

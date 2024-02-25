@@ -31,18 +31,18 @@ class AuthTokenExpiredError(Exception):
 
 
 class LutrisBanner(ServiceMedia):
-    service = 'lutris'
+    service = "lutris"
     size = BANNER_SIZE
     dest_path = settings.BANNER_PATH
     file_patterns = ["%s.jpg", "%s.png"]
-    api_field = 'banner'
+    api_field = "banner"
 
 
 class LutrisIcon(LutrisBanner):
     size = ICON_SIZE
     dest_path = settings.ICON_PATH
     file_patterns = ["lutris_%s.png"]
-    api_field = 'icon'
+    api_field = "icon"
 
     @property
     def custom_media_storage_size(self):
@@ -53,11 +53,11 @@ class LutrisIcon(LutrisBanner):
 
 
 class LutrisCoverart(ServiceMedia):
-    service = 'lutris'
+    service = "lutris"
     size = (264, 352)
     file_patterns = ["%s.jpg", "%s.png"]
     dest_path = settings.COVERART_PATH
-    api_field = 'coverart'
+    api_field = "coverart"
 
     @property
     def config_ui_size(self):
@@ -70,6 +70,7 @@ class LutrisCoverartMedium(LutrisCoverart):
 
 class BaseService(GObject.Object):
     """Base class for local services"""
+
     id = NotImplemented
     _matcher = None
     has_extras = False
@@ -212,12 +213,12 @@ class BaseService(GObject.Object):
             settings.DB_PATH,
             "service_games",
             {"lutris_slug": lutris_game["slug"]},
-            conditions={"appid": service_game["appid"], "service": self.id}
+            conditions={"appid": service_game["appid"], "service": self.id},
         )
         unmatched_lutris_games = get_games(
             searches={"installer_slug": self.matcher},
             filters={"slug": lutris_game["slug"]},
-            excludes={"service": self.id}
+            excludes={"service": self.id},
         )
         for game in unmatched_lutris_games:
             logger.debug("Updating unmatched game %s", game)
@@ -225,14 +226,12 @@ class BaseService(GObject.Object):
                 settings.DB_PATH,
                 "games",
                 {"service": self.id, "service_id": service_game["appid"]},
-                conditions={"id": game["id"]}
+                conditions={"id": game["id"]},
             )
 
     def match_games(self):
         """Matching of service games to lutris games"""
-        service_games = {
-            str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.id)
-        }
+        service_games = {str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.id)}
         lutris_games = api.get_api_games(list(service_games.keys()), service=self.id)
         for lutris_game in lutris_games:
             for provider_game in lutris_game["provider_games"]:
@@ -292,7 +291,7 @@ class BaseService(GObject.Object):
             existing_game = self.match_existing_game(
                 get_games(filters={"installer_slug": service_installer["slug"], "installed": "1"}),
                 appid,
-                no_signal=True  # we're on a thread here, signals can crash us!
+                no_signal=True,  # we're on a thread here, signals can crash us!
             )
             if existing_game:
                 logger.debug("Found existing game, aborting install")
@@ -418,8 +417,12 @@ class OnlineService(BaseService):
     def login(self, parent=None):
         if self.client_installer and not self.is_launcher_installed():
             NoticeDialog(
-                _("This service requires a game launcher. The following steps will install it.\n"
-                  "Once the client is installed, you can login to %s.") % self.name)
+                _(
+                    "This service requires a game launcher. The following steps will install it.\n"
+                    "Once the client is installed, you can login to %s."
+                )
+                % self.name
+            )
             application = Gio.Application.get_default()
             application.show_lutris_installer_window(game_slug=self.client_installer)
             return

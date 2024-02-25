@@ -27,7 +27,7 @@ USER_INFO_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.json")
 
 def get_time_from_api_date(date_string):
     """Convert a date string originating from the API and convert it to a datetime object"""
-    return time.strptime(date_string[:date_string.find(".")], "%Y-%m-%dT%H:%M:%S")
+    return time.strptime(date_string[: date_string.find(".")], "%Y-%m-%dT%H:%M:%S")
 
 
 def get_runtime_versions_date() -> float:
@@ -85,7 +85,7 @@ def read_api_key():
     """Read the API token from disk"""
     if not system.path_exists(API_KEY_FILE_PATH):
         return None
-    with open(API_KEY_FILE_PATH, "r", encoding='utf-8') as token_file:
+    with open(API_KEY_FILE_PATH, "r", encoding="utf-8") as token_file:
         api_string = token_file.read()
     try:
         username, token = api_string.split(":")
@@ -105,18 +105,23 @@ def connect(username, password):
         json_dict = response.json()
         if "token" in json_dict:
             token = json_dict["token"]
-            with open(API_KEY_FILE_PATH, "w", encoding='utf-8') as token_file:
+            with open(API_KEY_FILE_PATH, "w", encoding="utf-8") as token_file:
                 token_file.write("%s:%s" % (username, token))
             account_info = fetch_user_info()
 
             if not account_info:
                 logger.warning("Unable to fetch user info")
             else:
-                with open(USER_INFO_FILE_PATH, "w", encoding='utf-8') as token_file:
+                with open(USER_INFO_FILE_PATH, "w", encoding="utf-8") as token_file:
                     json.dump(account_info, token_file, indent=2)
             return token
-    except (requests.RequestException, requests.ConnectionError, requests.HTTPError, requests.TooManyRedirects,
-            requests.Timeout) as ex:
+    except (
+        requests.RequestException,
+        requests.ConnectionError,
+        requests.HTTPError,
+        requests.TooManyRedirects,
+        requests.Timeout,
+    ) as ex:
         logger.error("Unable to connect to server (%s): %s", login_url, ex)
         return False
 
@@ -155,9 +160,7 @@ def get_runners(runner_name):
 
     answers = socket.getaddrinfo(host, 443)
     (_family, _type, _proto, _canonname, _sockaddr) = answers[0]
-    headers = OrderedDict({
-        'Host': host
-    })
+    headers = OrderedDict({"Host": host})
     session = requests.Session()
     session.headers = headers
     response = session.get(api_url, headers=headers)
@@ -467,7 +470,7 @@ def parse_installer_url(url):
         "action": action,
         "service": service,
         "appid": appid,
-        "launch_config_name": launch_config_name
+        "launch_config_name": launch_config_name,
     }
 
 

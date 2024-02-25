@@ -49,7 +49,7 @@ def get_natural_sort_key(value: str, number_width: int = 16) -> str:
     def pad_numbers(text):
         return text.zfill(number_width) if text.isdigit() else text.casefold()
 
-    runs = [pad_numbers(c) for c in re.split('([0-9]+)', value)]
+    runs = [pad_numbers(c) for c in re.split("([0-9]+)", value)]
     return "".join(runs)
 
 
@@ -78,8 +78,8 @@ def parse_version(version: str) -> Tuple[List[int], str, str]:
     if not version_match:
         return [], "", ""
     version_number = version_match.groups()[0]
-    prefix = version[0:version_match.span()[0]]
-    suffix = version[version_match.span()[1]:]
+    prefix = version[0 : version_match.span()[0]]
+    suffix = version[version_match.span()[1] :]
     return [int(p) for p in version_number.split(".")], suffix, prefix
 
 
@@ -118,16 +118,13 @@ def gtk_safe_urls(text: str) -> str:
     if not text:
         return ""
 
-    parts = re.split(
-        r"(http[s]?://("
-        r"?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)",
-        text)
+    parts = re.split(r"(http[s]?://(" r"?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)", text)
 
     for index, part in enumerate(parts):
         if len(part) > 0:
             part = gtk_safe(part)
             if index % 2 != 0:  # every odd numbered part is the group in the regular expression
-                part = f"<a href=\"{part}\">{part}</a>"
+                part = f'<a href="{part}">{part}</a>'
             parts[index] = part
 
     return "".join(parts)
@@ -220,7 +217,7 @@ def parse_playtime(text: str) -> float:
     # Handle the fancy format made of number unit pairts, like
     # "1 hour 23 minutes" or "2h57m"; we split this up into digit
     # and non-digit parts.
-    parts = [p.strip() for p in re.split('([0-9.,]+)', text) if p and not p.isspace()]
+    parts = [p.strip() for p in re.split("([0-9.,]+)", text) if p and not p.isspace()]
     parts_iter = iter(parts)
 
     try:
@@ -246,7 +243,7 @@ def parse_playtime(text: str) -> float:
     return playtime
 
 
-def _split_arguments(args: str, closing_quot: str = '', quotations: str = None) -> List[str]:
+def _split_arguments(args: str, closing_quot: str = "", quotations: str = None) -> List[str]:
     if quotations is None:
         quotations = ["'", '"']
     try:

@@ -6,8 +6,8 @@ from typing import Callable, Union
 
 import gi
 
-gi.require_version('Gdk', '3.0')
-gi.require_version('Gtk', '3.0')
+gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "3.0")
 
 from gi.repository import Gdk, GLib, GObject, Gtk
 
@@ -26,9 +26,14 @@ class Dialog(Gtk.Dialog):
     the response for you via 'response_type' or 'confirmed' and destory this
     dialog if it isn't NONE."""
 
-    def __init__(self, title: str = None, parent: Gtk.Widget = None,
-                 flags: Gtk.DialogFlags = 0, buttons: Gtk.ButtonsType = None,
-                 **kwargs):
+    def __init__(
+        self,
+        title: str = None,
+        parent: Gtk.Widget = None,
+        flags: Gtk.DialogFlags = 0,
+        buttons: Gtk.ButtonsType = None,
+        **kwargs,
+    ):
         super().__init__(title, parent, flags, buttons, **kwargs)
         self._response_type = Gtk.ResponseType.NONE
         self.connect("response", self.on_response)
@@ -75,16 +80,14 @@ class Dialog(Gtk.Dialog):
         idle_source_id = GLib.idle_add(idle_destroy)
         on_destroy_id = self.connect("destroy", on_destroy)
 
-    def add_styled_button(self, button_text: str, response_id: Gtk.ResponseType,
-                          css_class: str):
+    def add_styled_button(self, button_text: str, response_id: Gtk.ResponseType, css_class: str):
         button = self.add_button(button_text, response_id)
         if css_class:
             style_context = button.get_style_context()
             style_context.add_class(css_class)
         return button
 
-    def add_default_button(self, button_text: str, response_id: Gtk.ResponseType,
-                           css_class: str = "suggested-action"):
+    def add_default_button(self, button_text: str, response_id: Gtk.ResponseType, css_class: str = "suggested-action"):
         """Adds a button to the dialog with a particular response id, but
         also makes it the default and styles it as the suggested action."""
         button = self.add_styled_button(button_text, response_id, css_class)
@@ -98,9 +101,14 @@ class ModalDialog(Dialog):
     Unlike plain Gtk.Dialog, these destroy themselves (at idle-time) after
     you call run(), even if you forget to. They aren't meant to be reused."""
 
-    def __init__(self, title: str = None, parent: Gtk.Widget = None,
-                 flags: Gtk.DialogFlags = 0, buttons: Gtk.ButtonsType = None,
-                 **kwargs):
+    def __init__(
+        self,
+        title: str = None,
+        parent: Gtk.Widget = None,
+        flags: Gtk.DialogFlags = 0,
+        buttons: Gtk.ButtonsType = None,
+        **kwargs,
+    ):
         super().__init__(title, parent, flags | Gtk.DialogFlags.MODAL, buttons, **kwargs)
         self.set_destroy_with_parent(True)
 
@@ -120,9 +128,14 @@ class ModelessDialog(Dialog):
     its own window group, so it treats its own modal dialogs separately, and it resets
     its transient-for after being created."""
 
-    def __init__(self, title: str = None, parent: Gtk.Widget = None,
-                 flags: Gtk.DialogFlags = 0, buttons: Gtk.ButtonsType = None,
-                 **kwargs):
+    def __init__(
+        self,
+        title: str = None,
+        parent: Gtk.Widget = None,
+        flags: Gtk.DialogFlags = 0,
+        buttons: Gtk.ButtonsType = None,
+        **kwargs,
+    ):
         super().__init__(title, parent, flags, buttons, **kwargs)
         # These are not stuck above the 'main' window, but can be
         # re-ordered freely.
@@ -265,9 +278,13 @@ class WarningDialog(Gtk.MessageDialog):
 class ErrorDialog(Gtk.MessageDialog):
     """Display an error message."""
 
-    def __init__(self, error: Union[str, BaseException],
-                 message_markup: str = None, secondary: str = None,
-                 parent: Gtk.Window = None):
+    def __init__(
+        self,
+        error: Union[str, BaseException],
+        message_markup: str = None,
+        secondary: str = None,
+        parent: Gtk.Window = None,
+    ):
         super().__init__(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, parent=parent)
 
         if isinstance(error, BaseException):
@@ -436,7 +453,6 @@ class FileDialog:
 
 
 class InstallOrPlayDialog(ModalDialog):
-
     def __init__(self, game_name, parent=None):
         super().__init__(title=_("%s is already installed") % game_name, parent=parent, border_width=10)
         self.action = "play"
@@ -619,8 +635,10 @@ class MoveDialog(ModelessDialog):
 
     def _move_game_cb(self, _result, error):
         if error and isinstance(error, InvalidGameMoveError):
-            secondary = _("Do you want to change the game location anyway? No files can be moved, "
-                          "and the game configuration may need to be adjusted.")
+            secondary = _(
+                "Do you want to change the game location anyway? No files can be moved, "
+                "and the game configuration may need to be adjusted."
+            )
             dlg = WarningDialog(message_markup=error, secondary=secondary, parent=self)
             if dlg.result == Gtk.ResponseType.OK:
                 self.new_directory = self.game.set_location(self.destination)
@@ -651,22 +669,24 @@ class HumbleBundleCookiesDialog(ModalDialog):
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
         self.get_content_area().add(vbox)
         label = Gtk.Label()
-        label.set_markup(_(
-            "<b>Humble Bundle Authentication via cookie import</b>\n"
-            "\n"
-            "<b>In Firefox</b>\n"
-            "- Install the following extension: "
-            "<a href='https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/'>"
-            "https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/"
-            "</a>\n"
-            "- Open a tab to humblebundle.com and make sure you are logged in.\n"
-            "- Click the cookie icon in the top right corner, next to the settings menu\n"
-            "- Check 'Prefix HttpOnly cookies' and click 'humblebundle.com'\n"
-            "- Open the generated file and paste the contents below. Click OK to finish.\n"
-            "- You can delete the cookies file generated by Firefox\n"
-            "- Optionally, <a href='https://support.humblebundle.com/hc/en-us/requests/new'>"
-            "open a support ticket</a> to ask Humble Bundle to fix their configuration."
-        ))
+        label.set_markup(
+            _(
+                "<b>Humble Bundle Authentication via cookie import</b>\n"
+                "\n"
+                "<b>In Firefox</b>\n"
+                "- Install the following extension: "
+                "<a href='https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/'>"
+                "https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/"
+                "</a>\n"
+                "- Open a tab to humblebundle.com and make sure you are logged in.\n"
+                "- Click the cookie icon in the top right corner, next to the settings menu\n"
+                "- Check 'Prefix HttpOnly cookies' and click 'humblebundle.com'\n"
+                "- Open the generated file and paste the contents below. Click OK to finish.\n"
+                "- You can delete the cookies file generated by Firefox\n"
+                "- Optionally, <a href='https://support.humblebundle.com/hc/en-us/requests/new'>"
+                "open a support ticket</a> to ask Humble Bundle to fix their configuration."
+            )
+        )
         vbox.pack_start(label, False, False, 24)
         self.textview = Gtk.TextView()
         self.textview.set_left_margin(12)

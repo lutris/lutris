@@ -88,9 +88,7 @@ def get_nvidia_gpu_ids() -> List[str]:
     except PermissionError:
         logger.info("Permission denied to %s. Using lspci instead.", gpus_dir)
     except OSError as e:
-        logger.warning(
-            "Unexpected error accessing %s. Using lspci instead.", gpus_dir, exc_info=e
-        )
+        logger.warning("Unexpected error accessing %s. Using lspci instead.", gpus_dir, exc_info=e)
     # 10de is NVIDIA's vendor ID, 0300 gets you video controllers.
     values = read_process_output(["lspci", "-D", "-n", "-d", "10de::0300"]).splitlines()
     return [line.split(maxsplit=1)[0] for line in values]
@@ -156,19 +154,13 @@ def is_nvidia() -> bool:
     try:
         return os.path.exists("/proc/driver/nvidia")
     except OSError:
-        logger.info(
-            "Could not determine whether /proc/driver/nvidia exists. "
-            "Falling back to alternative method"
-        )
+        logger.info("Could not determine whether /proc/driver/nvidia exists. " "Falling back to alternative method")
     try:
         with open("/proc/modules", encoding="utf-8") as f:
             modules = f.read()
         return bool(re.search(r"^nvidia ", modules, flags=re.MULTILINE))
     except OSError:
-        logger.error(
-            "Could not access /proc/modules to find the Nvidia drivers. "
-            "Nvidia card may not be detected."
-        )
+        logger.error("Could not access /proc/modules to find the Nvidia drivers. " "Nvidia card may not be detected.")
     glx_info = GlxInfo()
     return "NVIDIA" in glx_info.opengl_vendor  # type: ignore[attr-defined]
 
@@ -181,9 +173,7 @@ def get_gpu_cards() -> Iterable[str]:
     try:
         cardlist = os.listdir("/sys/class/drm/")
     except PermissionError:
-        logger.error(
-            "Your system does not allow reading from /sys/class/drm, no GPU detected."
-        )
+        logger.error("Your system does not allow reading from /sys/class/drm, no GPU detected.")
         return []
     for cardname in cardlist:
         if re.match(r"^card\d$", cardname):
@@ -194,9 +184,7 @@ def get_gpu_info(card: str) -> Dict[str, str]:
     """Return information about a GPU"""
     infos = {"DRIVER": "", "PCI_ID": "", "PCI_SUBSYS_ID": ""}
     try:
-        with open(
-            f"/sys/class/drm/{card}/device/uevent", encoding="utf-8"
-        ) as card_uevent:
+        with open(f"/sys/class/drm/{card}/device/uevent", encoding="utf-8") as card_uevent:
             content = card_uevent.readlines()
     except FileNotFoundError:
         logger.error("Unable to read driver information for card %s", card)

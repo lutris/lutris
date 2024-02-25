@@ -37,7 +37,7 @@ def get_services():
         "ea_app": EAAppService,
         "ubisoft": UbisoftConnectService,
         "amazon": AmazonService,
-        "flathub": FlathubService
+        "flathub": FlathubService,
     }
     if BNET_ENABLED:
         _services["battlenet"] = BattleNetService
@@ -61,7 +61,6 @@ SERVICES = get_services()
 # Those services are not yet ready to be used
 WIP_SERVICES = {
     "mame": MAMEService,
-
 }
 
 if os.environ.get("LUTRIS_ENABLE_ALL_SERVICES"):
@@ -70,6 +69,7 @@ if os.environ.get("LUTRIS_ENABLE_ALL_SERVICES"):
 
 def get_enabled_services():
     return {
-        key: _class for key, _class in SERVICES.items()
+        key: _class
+        for key, _class in SERVICES.items()
         if settings.read_setting(key, section="services").lower() == "true"
     }

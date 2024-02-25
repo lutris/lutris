@@ -4,22 +4,10 @@ from lutris.util.log import logger
 
 
 class ServiceGameCollection:
-
     @classmethod
-    def get_service_games(
-        cls,
-        searches=None,
-        filters=None,
-        excludes=None,
-        sorts=None
-    ):
+    def get_service_games(cls, searches=None, filters=None, excludes=None, sorts=None):
         return sql.filtered_query(
-            settings.DB_PATH,
-            "service_games",
-            searches=searches,
-            filters=filters,
-            excludes=excludes,
-            sorts=sorts
+            settings.DB_PATH, "service_games", searches=searches, filters=filters, excludes=excludes, sorts=sorts
         )
 
     @classmethod

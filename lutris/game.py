@@ -42,7 +42,7 @@ HEARTBEAT_DELAY = 2000
 
 class Game(GObject.Object):
     """This class takes cares of loading the configuration for a game
-       and running it.
+    and running it.
     """
 
     now_playing_path = os.path.join(settings.CACHE_DIR, "now-playing.txt")
@@ -92,7 +92,7 @@ class Game(GObject.Object):
         self.service = game_data.get("service")
         self.appid = game_data.get("service_id")
         self.playtime = float(game_data.get("playtime") or 0.0)
-        self.discord_id = game_data.get('discord_id')  # Discord App ID for RPC
+        self.discord_id = game_data.get("discord_id")  # Discord App ID for RPC
 
         self._config = None
         self._runner = None
@@ -193,7 +193,7 @@ class Game(GObject.Object):
         if category is None:
             category_id = categories_db.add_category(category_name)
         else:
-            category_id = category['id']
+            category_id = category["id"]
         categories_db.add_game_to_category(self.id, category_id)
 
         if not no_signal:
@@ -207,7 +207,7 @@ class Game(GObject.Object):
         category = categories_db.get_category(category_name)
         if category is None:
             return
-        category_id = category['id']
+        category_id = category["id"]
         categories_db.remove_category_from_game(self.id, category_id)
 
         if not no_signal:
@@ -370,6 +370,7 @@ class Game(GObject.Object):
             game_id = None
 
         if game_id:
+
             def on_error(_game, error):
                 logger.exception("Unable to install game: %s", error)
                 return True
@@ -390,8 +391,9 @@ class Game(GObject.Object):
                 raise RuntimeError(_("No updates found"))
 
             application = Gio.Application.get_default()
-            application.show_installer_window(installers, service, self.appid,
-                                              installation_kind=InstallationKind.UPDATE)
+            application.show_installer_window(
+                installers, service, self.appid, installation_kind=InstallationKind.UPDATE
+            )
 
         jobs.AsyncCall(service.get_update_installers, on_installers_ready, db_game)
         return True
@@ -483,7 +485,7 @@ class Game(GObject.Object):
             "discord_id": self.discord_id,
             "has_custom_banner": "banner" in self.custom_images,
             "has_custom_icon": "icon" in self.custom_images,
-            "has_custom_coverart_big": "coverart_big" in self.custom_images
+            "has_custom_coverart_big": "coverart_big" in self.custom_images,
         }
         self._id = str(games_db.add_or_update(**game_data))
         if not no_signal:
@@ -498,12 +500,7 @@ class Game(GObject.Object):
     def save_lastplayed(self):
         """Save only the lastplayed field- do not restore any other values the user may have changed
         in another window."""
-        games_db.update_existing(
-            id=self.id,
-            slug=self.slug,
-            lastplayed=self.lastplayed,
-            playtime=self.playtime
-        )
+        games_db.update_existing(id=self.id, slug=self.slug, lastplayed=self.lastplayed, playtime=self.playtime)
         self.emit("game-updated")
 
     def check_launchable(self):
@@ -788,7 +785,7 @@ class Game(GObject.Object):
         self.emit("game-started")
 
         # Game is running, let's update discord status
-        if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
+        if settings.read_setting("discord_rpc") == "True" and self.discord_id:
             try:
                 discord.client.update(self.discord_id)
             except AssertionError:
@@ -815,7 +812,7 @@ class Game(GObject.Object):
 
         jobs.AsyncCall(force_stop_game, force_stop_game_cb)
 
-    def force_kill_delayed(self, death_watch_seconds=5, death_watch_interval_seconds=.5):
+    def force_kill_delayed(self, death_watch_seconds=5, death_watch_interval_seconds=0.5):
         """Forces termination of a running game, but only after a set time has elapsed;
         Invokes stop_game() when the game is dead."""
 
@@ -875,9 +872,7 @@ class Game(GObject.Object):
             if game_folder in cmdline or "pressure-vessel" in cmdline:
                 folder_pids.add(pid)
 
-        uuid_pids = set(
-            pid for pid in new_pids
-            if Process(pid).environ.get("LUTRIS_GAME_UUID") == self.game_uuid)
+        uuid_pids = set(pid for pid in new_pids if Process(pid).environ.get("LUTRIS_GAME_UUID") == self.game_uuid)
 
         return folder_pids & uuid_pids
 
@@ -939,6 +934,7 @@ class Game(GObject.Object):
         logger.info("Stopping %s", self)
 
         if self.game_thread:
+
             def stop_cb(_result, error):
                 if error:
                     self.signal_error(error)
@@ -1000,7 +996,7 @@ class Game(GObject.Object):
                 setxkbmap.communicate()
 
         # Clear Discord Client Status
-        if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
+        if settings.read_setting("discord_rpc") == "True" and self.discord_id:
             discord.client.clear()
 
         self.process_return_codes()
@@ -1040,22 +1036,24 @@ class Game(GObject.Object):
 
         if not system.path_exists(old_location):
             raise InvalidGameMoveError(
-                _("The location '%s' does not exist, perhaps the files have already been moved?") % old_location)
+                _("The location '%s' does not exist, perhaps the files have already been moved?") % old_location
+            )
 
         if new_location.startswith(old_location):
             raise InvalidGameMoveError(
-                _("Lutris can't move '%s' to a location inside of itself, '%s'.") % (old_location, new_location))
+                _("Lutris can't move '%s' to a location inside of itself, '%s'.") % (old_location, new_location)
+            )
 
         self.directory = target_directory
         self.save(no_signal=no_signal)
 
-        with open(self.config.game_config_path, encoding='utf-8') as config_file:
+        with open(self.config.game_config_path, encoding="utf-8") as config_file:
             for line in config_file.readlines():
                 if target_directory in line:
                     new_config += line
                 else:
                     new_config += line.replace(old_location, target_directory)
-        with open(self.config.game_config_path, "w", encoding='utf-8') as config_file:
+        with open(self.config.game_config_path, "w", encoding="utf-8") as config_file:
             config_file.write(new_config)
 
         try:
@@ -1063,7 +1061,9 @@ class Game(GObject.Object):
         except OSError as ex:
             logger.error(
                 "Failed to move %s to %s, you may have to move files manually (Exception: %s)",
-                old_location, new_location, ex
+                old_location,
+                new_location,
+                ex,
             )
         return target_directory
 
@@ -1111,10 +1111,7 @@ def export_game(slug, dest_dir):
         json.dump(db_game, config_file, indent=2)
     archive_path = os.path.join(dest_dir, "%s.tar.xz" % slug)
     command = ["tar", "cJf", archive_path, os.path.basename(game_path)]
-    system.execute(
-        command,
-        cwd=os.path.dirname(game_path)
-    )
+    system.execute(command, cwd=os.path.dirname(game_path))
     logger.info("%s exported to %s", slug, archive_path)
 
 
@@ -1139,10 +1136,10 @@ def import_game(file_path, dest_dir):
     with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         lutris_config = json.load(config_file)
     old_dir = lutris_config["directory"]
-    with open(os.path.join(game_dir, game_config), 'r', encoding="utf-8") as config_file:
+    with open(os.path.join(game_dir, game_config), "r", encoding="utf-8") as config_file:
         config_data = config_file.read()
     config_data = config_data.replace(old_dir, game_dir)
-    with open(os.path.join(game_dir, game_config), 'w', encoding="utf-8") as config_file:
+    with open(os.path.join(game_dir, game_config), "w", encoding="utf-8") as config_file:
         config_file.write(config_data)
     with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         lutris_config = json.load(config_file)

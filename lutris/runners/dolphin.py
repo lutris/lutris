@@ -2,6 +2,7 @@
 from gettext import gettext as _
 
 from lutris.exceptions import MissingGameExecutableError
+
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -13,7 +14,9 @@ class dolphin(Runner):
     description = _("GameCube and Wii emulator")
     human_name = _("Dolphin")
     platforms = PLATFORMS
-    require_libs = ["libOpenGL.so.0", ]
+    require_libs = [
+        "libOpenGL.so.0",
+    ]
     runnable_alone = True
     runner_executable = "dolphin/dolphin-emu"
     flatpak_id = "org.DolphinEmu.dolphin-emu"

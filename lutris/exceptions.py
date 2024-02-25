@@ -48,11 +48,8 @@ class UnavailableGameError(LutrisError):
 
 class UnavailableLibrariesError(MisconfigurationError):
     def __init__(self, libraries, arch=None):
-        message = _(
-            "The following {arch} libraries are required but are not installed on your system:\n{libs}"
-        ).format(
-            arch=arch if arch else "",
-            libs=", ".join(libraries)
+        message = _("The following {arch} libraries are required but are not installed on your system:\n{libs}").format(
+            arch=arch if arch else "", libs=", ".join(libraries)
         )
         super().__init__(message)
         self.libraries = libraries
@@ -114,7 +111,6 @@ class FsyncUnsupportedError(Exception):
 
     def __init__(self, *args, message=None, **kwarg):
         if not message:
-            message = _("Your kernel is not patched for fsync."
-                        " Please get a patched kernel to use fsync.")
+            message = _("Your kernel is not patched for fsync." " Please get a patched kernel to use fsync.")
 
         super().__init__(message, *args, **kwarg)

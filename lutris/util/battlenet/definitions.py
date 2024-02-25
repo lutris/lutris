@@ -1,4 +1,4 @@
-﻿import dataclasses as dc
+import dataclasses as dc
 import json
 from typing import List, Optional
 
@@ -50,9 +50,9 @@ class ConfigGameInfo(object):
 @dc.dataclass
 class ProductDbInfo(object):
     uninstall_tag: str
-    ngdp: str = ''
-    install_path: str = ''
-    version: str = ''
+    ngdp: str = ""
+    install_path: str = ""
+    version: str = ""
     playable: bool = False
     installed: bool = False
 
@@ -68,63 +68,73 @@ class Singleton(type):
 
 class _Blizzard(object, metaclass=Singleton):
     TITLE_ID_MAP = {
-        21297: RegionalGameInfo('s1', True),
-        21298: RegionalGameInfo('s2', True),
-        5730135: RegionalGameInfo('wow', True),
-        5272175: RegionalGameInfo('prometheus', False),
-        22323: RegionalGameInfo('w3', False),
-        1146311730: RegionalGameInfo('destiny2', False),
-        1465140039: RegionalGameInfo('hs_beta', True),
-        1214607983: RegionalGameInfo('heroes', True),
-        17459: RegionalGameInfo('diablo3', True),
-        4613486: RegionalGameInfo('fenris', True),
-        1447645266: RegionalGameInfo('viper', False),
-        1329875278: RegionalGameInfo('odin', True),
-        1279351378: RegionalGameInfo('lazarus', False),
-        1514493267: RegionalGameInfo('zeus', False),
-        1381257807: RegionalGameInfo('rtro', False),
-        1464615513: RegionalGameInfo('wlby', False),
-        5198665: RegionalGameInfo('osi', False),
-        1179603525: RegionalGameInfo('fore', False)
+        21297: RegionalGameInfo("s1", True),
+        21298: RegionalGameInfo("s2", True),
+        5730135: RegionalGameInfo("wow", True),
+        5272175: RegionalGameInfo("prometheus", False),
+        22323: RegionalGameInfo("w3", False),
+        1146311730: RegionalGameInfo("destiny2", False),
+        1465140039: RegionalGameInfo("hs_beta", True),
+        1214607983: RegionalGameInfo("heroes", True),
+        17459: RegionalGameInfo("diablo3", True),
+        4613486: RegionalGameInfo("fenris", True),
+        1447645266: RegionalGameInfo("viper", False),
+        1329875278: RegionalGameInfo("odin", True),
+        1279351378: RegionalGameInfo("lazarus", False),
+        1514493267: RegionalGameInfo("zeus", False),
+        1381257807: RegionalGameInfo("rtro", False),
+        1464615513: RegionalGameInfo("wlby", False),
+        5198665: RegionalGameInfo("osi", False),
+        1179603525: RegionalGameInfo("fore", False),
     }
-    TITLE_ID_MAP_CN = {
-        **TITLE_ID_MAP,
-        17459: RegionalGameInfo('d3cn', False)
-    }
+    TITLE_ID_MAP_CN = {**TITLE_ID_MAP, 17459: RegionalGameInfo("d3cn", False)}
     BATTLENET_GAMES = [
-        BlizzardGame('s1', 'StarCraft', 'S1'),
-        BlizzardGame('s2', 'StarCraft II', 'S2'),
-        BlizzardGame('wow', 'World of Warcraft', 'WoW'),
-        BlizzardGame('wow_classic', 'World of Warcraft Classic', 'WoW_wow_classic'),
-        BlizzardGame('prometheus', 'Overwatch', 'Pro'),
-        BlizzardGame('w3', 'Warcraft III', 'W3'),
-        BlizzardGame('hs_beta', 'Hearthstone', 'WTCG'),
-        BlizzardGame('heroes', 'Heroes of the Storm', 'Hero'),
-        BlizzardGame('d3cn', '暗黑破壞神III', 'D3CN'),
-        BlizzardGame('diablo3', 'Diablo III', 'D3'),
-        BlizzardGame('fenris', 'Diablo IV', 'FEN'),
-        BlizzardGame('viper', 'Call of Duty: Black Ops 4', 'VIPR'),
-        BlizzardGame('odin', 'Call of Duty: Modern Warfare', 'ODIN'),
-        BlizzardGame('lazarus', 'Call of Duty: MW2 Campaign Remastered', 'LAZR'),
-        BlizzardGame('zeus', 'Call of Duty: Black Ops Cold War', 'ZEUS'),
-        BlizzardGame('rtro', 'Blizzard Arcade Collection', 'RTRO'),
-        BlizzardGame('wlby', 'Crash Bandicoot 4: It\'s About Time', 'WLBY'),
-        BlizzardGame('osi', 'Diablo® II: Resurrected', 'OSI'),
-        BlizzardGame('fore', 'Call of Duty: Vanguard', 'FORE')
+        BlizzardGame("s1", "StarCraft", "S1"),
+        BlizzardGame("s2", "StarCraft II", "S2"),
+        BlizzardGame("wow", "World of Warcraft", "WoW"),
+        BlizzardGame("wow_classic", "World of Warcraft Classic", "WoW_wow_classic"),
+        BlizzardGame("prometheus", "Overwatch", "Pro"),
+        BlizzardGame("w3", "Warcraft III", "W3"),
+        BlizzardGame("hs_beta", "Hearthstone", "WTCG"),
+        BlizzardGame("heroes", "Heroes of the Storm", "Hero"),
+        BlizzardGame("d3cn", "暗黑破壞神III", "D3CN"),
+        BlizzardGame("diablo3", "Diablo III", "D3"),
+        BlizzardGame("fenris", "Diablo IV", "FEN"),
+        BlizzardGame("viper", "Call of Duty: Black Ops 4", "VIPR"),
+        BlizzardGame("odin", "Call of Duty: Modern Warfare", "ODIN"),
+        BlizzardGame("lazarus", "Call of Duty: MW2 Campaign Remastered", "LAZR"),
+        BlizzardGame("zeus", "Call of Duty: Black Ops Cold War", "ZEUS"),
+        BlizzardGame("rtro", "Blizzard Arcade Collection", "RTRO"),
+        BlizzardGame("wlby", "Crash Bandicoot 4: It's About Time", "WLBY"),
+        BlizzardGame("osi", "Diablo® II: Resurrected", "OSI"),
+        BlizzardGame("fore", "Call of Duty: Vanguard", "FORE"),
     ]
     CLASSIC_GAMES = [
-        ClassicGame('d2', 'Diablo® II', 'Diablo II', 'Diablo II', 'DisplayIcon', "Game.exe", "com.blizzard.diabloii"),
-        ClassicGame('d2LOD', 'Diablo® II: Lord of Destruction®', 'Diablo II'),  # TODO exe and bundleid
-        ClassicGame('w3ROC', 'Warcraft® III: Reign of Chaos', 'Warcraft III', 'Warcraft III',
-                    'InstallLocation', 'Warcraft III.exe', 'com.blizzard.WarcraftIII'),
-        ClassicGame('w3tft', 'Warcraft® III: The Frozen Throne®', 'Warcraft III', 'Warcraft III',
-                    'InstallLocation', 'Warcraft III.exe', 'com.blizzard.WarcraftIII'),
-        ClassicGame('sca', 'StarCraft® Anthology', 'Starcraft', 'StarCraft')  # TODO exe and bundleid
+        ClassicGame("d2", "Diablo® II", "Diablo II", "Diablo II", "DisplayIcon", "Game.exe", "com.blizzard.diabloii"),
+        ClassicGame("d2LOD", "Diablo® II: Lord of Destruction®", "Diablo II"),  # TODO exe and bundleid
+        ClassicGame(
+            "w3ROC",
+            "Warcraft® III: Reign of Chaos",
+            "Warcraft III",
+            "Warcraft III",
+            "InstallLocation",
+            "Warcraft III.exe",
+            "com.blizzard.WarcraftIII",
+        ),
+        ClassicGame(
+            "w3tft",
+            "Warcraft® III: The Frozen Throne®",
+            "Warcraft III",
+            "Warcraft III",
+            "InstallLocation",
+            "Warcraft III.exe",
+            "com.blizzard.WarcraftIII",
+        ),
+        ClassicGame("sca", "StarCraft® Anthology", "Starcraft", "StarCraft"),  # TODO exe and bundleid
     ]
 
     def __init__(self):
-        self._games = {
-            game.uid: game for game in self.BATTLENET_GAMES + self.CLASSIC_GAMES}
+        self._games = {game.uid: game for game in self.BATTLENET_GAMES + self.CLASSIC_GAMES}
 
     def __getitem__(self, key: str) -> BlizzardGame:
         """
@@ -149,9 +159,7 @@ class _Blizzard(object, metaclass=Singleton):
         :param cn: flag if china game definitions should be search though
         """
         return [
-            self[info.uid] for info
-            in (self.TITLE_ID_MAP_CN if cn else self.TITLE_ID_MAP).values()
-            if info.try_for_free
+            self[info.uid] for info in (self.TITLE_ID_MAP_CN if cn else self.TITLE_ID_MAP).values() if info.try_for_free
         ]
 
 

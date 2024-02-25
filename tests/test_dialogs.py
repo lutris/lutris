@@ -3,6 +3,7 @@ from unittest import TestCase
 from lutris import runners
 from lutris.gui.application import Application
 from lutris.gui.config.add_game_dialog import AddGameDialog
+
 # from lutris import settings
 from lutris.gui.config.game_common import GameDialogCommon
 from lutris.gui.views.store import sort_func
@@ -15,9 +16,7 @@ class TestGameDialogCommon(TestCase):
     def test_get_runner_liststore(self):
         dlg = GameDialogCommon("test", config_level="system")
         list_store = dlg._get_runner_liststore()
-        self.assertTrue(
-            list_store[1][0].startswith(runners.get_installed()[0].human_name)
-        )
+        self.assertTrue(list_store[1][0].startswith(runners.get_installed()[0].human_name))
         self.assertEqual(list_store[1][1], runners.get_installed()[0].name)
 
 
@@ -61,44 +60,44 @@ class TestSort(TestCase):
             self.cols = coldict
 
     def test_sort_strings_with_caps(self):
-        row1 = self.FakeRow({'name': 'Abc'})
-        row2 = self.FakeRow({'name': 'Def'})
+        row1 = self.FakeRow({"name": "Abc"})
+        row2 = self.FakeRow({"name": "Def"})
         model = self.FakeModel([row1, row2])
-        assert sort_func(model, 0, 1, 'name') == -1
+        assert sort_func(model, 0, 1, "name") == -1
 
     def test_sort_strings_with_one_caps(self):
-        row1 = self.FakeRow({'name': 'abc'})
-        row2 = self.FakeRow({'name': 'Def'})
+        row1 = self.FakeRow({"name": "abc"})
+        row2 = self.FakeRow({"name": "Def"})
         model = self.FakeModel([row1, row2])
-        assert sort_func(model, 0, 1, 'name') == -1
+        assert sort_func(model, 0, 1, "name") == -1
 
     def test_sort_strings_with_no_caps(self):
-        row1 = self.FakeRow({'name': 'abc'})
-        row2 = self.FakeRow({'name': 'def'})
+        row1 = self.FakeRow({"name": "abc"})
+        row2 = self.FakeRow({"name": "def"})
         model = self.FakeModel([row1, row2])
-        assert sort_func(model, 0, 1, 'name') == -1
+        assert sort_func(model, 0, 1, "name") == -1
 
     def test_sort_int(self):
-        row1 = self.FakeRow({'name': 1})
-        row2 = self.FakeRow({'name': 2})
+        row1 = self.FakeRow({"name": 1})
+        row2 = self.FakeRow({"name": 2})
         model = self.FakeModel([row1, row2])
-        assert sort_func(model, 0, 1, 'name') == -1
+        assert sort_func(model, 0, 1, "name") == -1
 
     def test_sort_mismatched_types(self):
-        row1 = self.FakeRow({'name': 'abc'})
-        row2 = self.FakeRow({'name': 1})
+        row1 = self.FakeRow({"name": "abc"})
+        row2 = self.FakeRow({"name": 1})
         model = self.FakeModel([row1, row2])
         with self.assertRaises(TypeError):
-            assert sort_func(model, 0, 1, 'name') == -1
+            assert sort_func(model, 0, 1, "name") == -1
 
     def test_both_none(self):
         row1 = self.FakeRow({})
         row2 = self.FakeRow({})
         model = self.FakeModel([row1, row2])
-        assert sort_func(model, 0, 1, 'name') == 0
+        assert sort_func(model, 0, 1, "name") == 0
 
     def test_one_none(self):
         row1 = self.FakeRow({})
-        row2 = self.FakeRow({'name': 'abc'})
+        row2 = self.FakeRow({"name": "abc"})
         model = self.FakeModel([row1, row2])
-        assert sort_func(model, 0, 1, 'name') == -1
+        assert sort_func(model, 0, 1, "name") == -1

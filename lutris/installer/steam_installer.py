@@ -17,8 +17,8 @@ class SteamInstaller(GObject.Object):
     """Handles installation of Steam games"""
 
     __gsignals__ = {
-        "steam-game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
-        "steam-state-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "steam-game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "steam-state-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
     }
 
     def __init__(self, steam_uri, file_id):
@@ -86,16 +86,12 @@ class SteamInstaller(GObject.Object):
         if not data_path or not os.path.exists(data_path):
             logger.info("No path found for Steam game %s", self.appid)
             return ""
-        return os.path.abspath(
-            os.path.join(data_path, self.steam_rel_path)
-        )
+        return os.path.abspath(os.path.join(data_path, self.steam_rel_path))
 
     def _monitor_steam_game_install(self):
         if self.cancelled:
             return False
-        states = get_app_state_log(
-            self.runner.steam_data_dir, self.appid, self.install_start_time
-        )
+        states = get_app_state_log(self.runner.steam_data_dir, self.appid, self.install_start_time)
         if states and states != self.prev_states:
             self.state = states[-1].split(",")[-1]
             logger.debug("Steam installation status: %s", states)

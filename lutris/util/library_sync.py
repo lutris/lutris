@@ -128,16 +128,18 @@ def sync_local_library():
 def delete_from_remote_library(games):
     payload = []
     for game in games:
-        payload.append({
-            "name": game["name"],
-            "slug": game["slug"],
-            "runner": game["runner"],
-            "platform": game["platform"],
-            "lastplayed": game["lastplayed"],
-            "playtime": game["playtime"],
-            "service": game["service"],
-            "service_id": game["service_id"],
-        })
+        payload.append(
+            {
+                "name": game["name"],
+                "slug": game["slug"],
+                "runner": game["runner"],
+                "platform": game["platform"],
+                "lastplayed": game["lastplayed"],
+                "playtime": game["playtime"],
+                "service": game["service"],
+                "service_id": game["service_id"],
+            }
+        )
     credentials = read_api_key()
     url = LIBRARY_URL
     request = http.Request(

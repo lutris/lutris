@@ -32,18 +32,11 @@ class MarkupLabel(Gtk.Label):
     """Label for installer window"""
 
     def __init__(self, markup=None, **kwargs):
-        super().__init__(
-            label=markup,
-            use_markup=True,
-            wrap=True,
-            max_width_chars=80,
-            **kwargs)
+        super().__init__(label=markup, use_markup=True, wrap=True, max_width_chars=80, **kwargs)
         self.set_alignment(0.5, 0)
 
 
-class InstallerWindow(ModelessDialog,
-                      DialogInstallUIDelegate,
-                      ScriptInterpreter.InterpreterUIDelegate):  # pylint: disable=too-many-public-methods
+class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter.InterpreterUIDelegate):  # pylint: disable=too-many-public-methods
     """GUI for the install process.
 
     This window is divided into pages; as you go through the install each page
@@ -57,14 +50,7 @@ class InstallerWindow(ModelessDialog,
     uses a create_X_page() function to create the page the first time it is visited.
     """
 
-    def __init__(
-        self,
-        installers,
-        service=None,
-        appid=None,
-        installation_kind=InstallationKind.INSTALL,
-        **kwargs
-    ):
+    def __init__(self, installers, service=None, appid=None, installation_kind=InstallationKind.INSTALL, **kwargs):
         ModelessDialog.__init__(self, use_header_bar=True, **kwargs)
         ScriptInterpreter.InterpreterUIDelegate.__init__(self, service, appid)
         self.set_default_size(740, 460)
@@ -124,10 +110,11 @@ class InstallerWindow(ModelessDialog,
         self.menu_button.set_popover(Gtk.Popover(child=self.menu_box, can_focus=False, relative_to=self.menu_button))
         self.get_header_bar().pack_end(self.menu_button)
 
-        self.cache_button = self.add_menu_button(_("Configure download cache"),
-                                                 self.on_cache_clicked,
-                                                 tooltip=_(
-                                                     "Change where Lutris downloads game installer files."))
+        self.cache_button = self.add_menu_button(
+            _("Configure download cache"),
+            self.on_cache_clicked,
+            tooltip=_("Change where Lutris downloads game installer files."),
+        )
 
         self.source_button = self.add_menu_button(_("View installer source"), self.on_source_clicked)
 
@@ -146,7 +133,7 @@ class InstallerWindow(ModelessDialog,
             Gtk.FileChooserAction.SELECT_FOLDER,
             warn_if_non_empty=True,
             warn_if_non_writable_parent=True,
-            warn_if_ntfs=True
+            warn_if_ntfs=True,
         )
         self.location_entry.connect("changed", self.on_location_entry_changed)
 
@@ -225,10 +212,13 @@ class InstallerWindow(ModelessDialog,
             widgets = []
 
             remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
-            if self.interpreter and self.interpreter.target_path and \
-                    self.interpreter.game_dir_created and \
-                    self.installation_kind == InstallationKind.INSTALL and \
-                    is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
+            if (
+                self.interpreter
+                and self.interpreter.target_path
+                and self.interpreter.game_dir_created
+                and self.installation_kind == InstallationKind.INSTALL
+                and is_removeable(self.interpreter.target_path, LutrisConfig().system_config)
+            ):
                 remove_checkbox.set_active(self.interpreter.game_dir_created)
                 remove_checkbox.show()
                 widgets.append(remove_checkbox)
@@ -238,7 +228,7 @@ class InstallerWindow(ModelessDialog,
                     "parent": self,
                     "question": _("Are you sure you want to cancel the installation?"),
                     "title": _("Cancel installation?"),
-                    "widgets": widgets
+                    "widgets": widgets,
                 }
             )
             if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
@@ -256,11 +246,7 @@ class InstallerWindow(ModelessDialog,
         self.destroy()
 
     def on_source_clicked(self, _button):
-        InstallerSourceDialog(
-            self.interpreter.installer.script_pretty,
-            self.interpreter.installer.game_name,
-            self
-        )
+        InstallerSourceDialog(self.interpreter.installer.script_pretty, self.interpreter.installer.game_name, self)
 
     def on_signal_error(self, error):
         self._handle_callback_error(error)
@@ -307,7 +293,13 @@ class InstallerWindow(ModelessDialog,
         GLib.idle_add(self.load_log_page)
 
     def begin_disc_prompt(self, message, requires, installer, callback):
-        GLib.idle_add(self.load_ask_for_disc_page, message, requires, installer, callback, )
+        GLib.idle_add(
+            self.load_ask_for_disc_page,
+            message,
+            requires,
+            installer,
+            callback,
+        )
 
     def begin_input_menu(self, alias, options, preselect, callback):
         GLib.idle_add(self.load_input_menu_page, alias, options, preselect, callback)
@@ -327,10 +319,7 @@ class InstallerWindow(ModelessDialog,
         installer_picker = InstallerPicker(self.installers)
         installer_picker.connect("installer-selected", self.on_installer_selected)
         return Gtk.ScrolledWindow(
-            hexpand=True,
-            vexpand=True,
-            child=installer_picker,
-            shadow_type=Gtk.ShadowType.ETCHED_IN
+            hexpand=True, vexpand=True, child=installer_picker, shadow_type=Gtk.ShadowType.ETCHED_IN
         )
 
     def present_choose_installer_page(self):
@@ -434,15 +423,18 @@ class InstallerWindow(ModelessDialog,
 
         self.set_status(_("Select installation directory"))
         self.stack.present_page("destination")
-        self.display_continue_button(self.on_destination_confirmed,
-                                     extra_buttons=[self.cache_button, self.source_button])
+        self.display_continue_button(
+            self.on_destination_confirmed, extra_buttons=[self.cache_button, self.source_button]
+        )
 
     def on_destination_confirmed(self, _button=None):
         """Let the interpreter take charge of the next stages."""
 
-        self.load_spinner_page(_("Preparing Lutris for installation"),
-                               cancellable=False,
-                               extra_buttons=[self.cache_button, self.source_button])
+        self.load_spinner_page(
+            _("Preparing Lutris for installation"),
+            cancellable=False,
+            extra_buttons=[self.cache_button, self.source_button],
+        )
         GLib.idle_add(self.launch_install)
 
     def launch_install(self):
@@ -521,11 +513,7 @@ class InstallerWindow(ModelessDialog,
         treeview.append_column(label_column)
 
         return Gtk.ScrolledWindow(
-            hexpand=True,
-            vexpand=True,
-            child=treeview,
-            visible=True,
-            shadow_type=Gtk.ShadowType.ETCHED_IN
+            hexpand=True, vexpand=True, child=treeview, visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN
         )
 
     def present_extras_page(self):
@@ -535,10 +523,12 @@ class InstallerWindow(ModelessDialog,
         def on_continue(_button):
             self.on_extras_confirmed(self.extras_tree_store)
 
-        self.set_status(_(
-            "This game has extra content. \nSelect which one you want and "
-            "they will be available in the 'extras' folder where the game is installed."
-        ))
+        self.set_status(
+            _(
+                "This game has extra content. \nSelect which one you want and "
+                "they will be available in the 'extras' folder where the game is installed."
+            )
+        )
         self.stack.present_page("extras")
         self.display_continue_button(on_continue, extra_buttons=[self.cache_button, self.source_button])
 
@@ -600,8 +590,9 @@ class InstallerWindow(ModelessDialog,
         else:
             patch_version = None
 
-        AsyncCall(self.interpreter.installer.prepare_game_files,
-                  self.on_files_prepared, self.selected_extras, patch_version)
+        AsyncCall(
+            self.interpreter.installer.prepare_game_files, self.on_files_prepared, self.selected_extras, patch_version
+        )
 
     def on_files_prepared(self, _result, error):
         if error:
@@ -623,14 +614,13 @@ class InstallerWindow(ModelessDialog,
             vexpand=True,
             child=self.installer_files_box,
             visible=True,
-            shadow_type=Gtk.ShadowType.ETCHED_IN
+            shadow_type=Gtk.ShadowType.ETCHED_IN,
         )
 
     def present_installer_files_page(self):
         """Show installer screen with the file picker / downloader"""
         logger.debug("Presenting installer files page")
-        self.set_status(_(
-            "Please review the files needed for the installation then click 'Install'"))
+        self.set_status(_("Please review the files needed for the installation then click 'Install'"))
         self.stack.present_page("installer_files")
         self.display_install_button(self.on_files_confirmed, sensitive=self.installer_files_box.is_ready)
 
@@ -714,12 +704,7 @@ class InstallerWindow(ModelessDialog,
 
     def create_log_page(self):
         log_textview = LogTextView(self.log_buffer)
-        return Gtk.ScrolledWindow(
-            hexpand=True,
-            vexpand=True,
-            child=log_textview,
-            shadow_type=Gtk.ShadowType.ETCHED_IN
-        )
+        return Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=log_textview, shadow_type=Gtk.ShadowType.ETCHED_IN)
 
     def present_log_page(self):
         """Creates a TextBuffer and attach it to a command"""
@@ -899,9 +884,7 @@ class InstallerWindow(ModelessDialog,
     def present_finished_page(self, game_id, status):
         self.set_status(status)
         self.stack.present_page("nothing")
-        self.display_continue_button(self.on_launch_clicked,
-                                     continue_button_label=_("_Launch"),
-                                     suggested_action=False)
+        self.display_continue_button(self.on_launch_clicked, continue_button_label=_("_Launch"), suggested_action=False)
 
     def on_launch_clicked(self, button):
         """Launch a game after it's been installed."""
@@ -932,11 +915,9 @@ class InstallerWindow(ModelessDialog,
             xdgshortcuts.create_launcher(game_slug, game_id, game_name, menu=True)
 
     # Buttons
-    def display_continue_button(self, handler,
-                                continue_button_label=_("_Continue"),
-                                sensitive=True,
-                                suggested_action=True,
-                                extra_buttons=None):
+    def display_continue_button(
+        self, handler, continue_button_label=_("_Continue"), sensitive=True, suggested_action=True, extra_buttons=None
+    ):
         """This shows the continue button, the close button, and any extra buttons you
         indicate. This will also set the label and sensitivity of the continue button.
 
@@ -969,9 +950,9 @@ class InstallerWindow(ModelessDialog,
 
     def display_install_button(self, handler, sensitive=True):
         """Displays the continue button, but labels it 'Install'."""
-        self.display_continue_button(handler, continue_button_label=_(
-            "_Install"), sensitive=sensitive,
-            extra_buttons=[self.source_button])
+        self.display_continue_button(
+            handler, continue_button_label=_("_Install"), sensitive=sensitive, extra_buttons=[self.source_button]
+        )
 
     def display_cancel_button(self, extra_buttons=None):
         self.display_buttons(extra_buttons or [])
@@ -991,9 +972,7 @@ class InstallerWindow(ModelessDialog,
             self.cancel_button.set_tooltip_text("")
             style_context.remove_class("destructive-action")
 
-        all_buttons = [self.cache_button,
-                       self.source_button,
-                       self.continue_button]
+        all_buttons = [self.cache_button, self.source_button, self.continue_button]
 
         for b in all_buttons:
             b.set_visible(b in buttons)

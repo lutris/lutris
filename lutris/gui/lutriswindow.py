@@ -43,9 +43,7 @@ from lutris.util.system import update_desktop_icons
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow,
-                   DialogLaunchUIDelegate,
-                   DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -74,7 +72,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
             name="lutris",
             icon_name="lutris",
             application=application,
-            **kwargs
+            **kwargs,
         )
         update_desktop_icons()
         load_icon_theme()
@@ -172,26 +170,26 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 self.on_toggle_badges,
                 type="b",
                 default=settings.read_setting("hide_badges_on_icons"),
-                accel="<Primary>p"
+                accel="<Primary>p",
             ),
             "icon-type": Action(self.on_icontype_state_change, type="s", default=self.icon_type),
             "view-sorting": Action(
                 self.on_view_sorting_state_change,
                 type="s",
                 default=self.view_sorting,
-                enabled=lambda: self.is_view_sort_sensitive
+                enabled=lambda: self.is_view_sort_sensitive,
             ),
             "view-sorting-installed-first": Action(
                 self.on_view_sorting_installed_first_change,
                 type="b",
                 default=self.view_sorting_installed_first,
-                enabled=lambda: self.is_view_sort_sensitive
+                enabled=lambda: self.is_view_sort_sensitive,
             ),
             "view-reverse-order": Action(
                 self.on_view_sorting_direction_change,
                 type="b",
                 default=self.view_reverse_order,
-                enabled=lambda: self.is_view_sort_sensitive
+                enabled=lambda: self.is_view_sort_sensitive,
             ),
             "show-side-panel": Action(
                 self.on_side_panel_state_change,
@@ -227,6 +225,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 action.connect("change-state", value.callback)
             self.actions[name] = action
             if value.enabled:
+
                 def updater(action=action, value=value):
                     action.props.enabled = value.enabled()
 
@@ -272,9 +271,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def load_filters(self):
         """Load the initial filters when creating the view"""
         # The main sidebar-category filter will be populated when the sidebar row is selected, after this
-        return {
-            "installed": self.filter_installed
-        }
+        return {"installed": self.filter_installed}
 
     @property
     def is_show_hidden_sensitive(self):
@@ -382,6 +379,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
                     installation_flag = not installation_flag
                 return [installation_flag, value]
             return value
+
         reverse = self.view_reverse_order if self.view_sorting == "name" else not self.view_reverse_order
         return sorted(items, key=get_sort_value, reverse=reverse)
 
@@ -407,12 +405,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def get_recent_games(self):
         """Return a list of currently running games"""
         searches, _filters, excludes = self.get_sql_filters()
-        games = games_db.get_games(searches=searches, filters={'installed': '1'}, excludes=excludes)
-        return sorted(
-            games,
-            key=lambda game: max(game["installed_at"] or 0, game["lastplayed"] or 0),
-            reverse=True
-        )
+        games = games_db.get_games(searches=searches, filters={"installed": "1"}, excludes=excludes)
+        return sorted(games, key=lambda game: max(game["installed_at"] or 0, game["lastplayed"] or 0), reverse=True)
 
     def game_matches(self, game):
         if self.filters.get("installed"):
@@ -452,10 +446,9 @@ class LutrisWindow(Gtk.ApplicationWindow,
             lutris_games = {g["service_id"]: g for g in games_db.get_games(filters={"service": self.service.id})}
 
         return [
-            self.combine_games(game, lutris_games.get(game["appid"])) for game in self.apply_view_sort(
-                service_games,
-                lambda game: lutris_games.get(game["appid"]) or game
-            ) if self.game_matches(game)
+            self.combine_games(game, lutris_games.get(game["appid"]))
+            for game in self.apply_view_sort(service_games, lambda game: lutris_games.get(game["appid"]) or game)
+            if self.game_matches(game)
         ]
 
     def get_games_from_filters(self):
@@ -474,11 +467,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         category_game_ids = categories_db.get_game_ids_for_categories(included, excluded)
 
         searches, filters, excludes = self.get_sql_filters()
-        games = games_db.get_games(
-            searches=searches,
-            filters=filters,
-            excludes=excludes
-        )
+        games = games_db.get_games(searches=searches, filters=filters, excludes=excludes)
         games = [game for game in games if game["id"] in category_game_ids]
         return self.apply_view_sort(games)
 
@@ -535,11 +524,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
             if self.filters.get("category") == "favorite":
                 self.show_label(_("Add a game matching '%s' to your favorites to see it here.") % filter_text)
             elif self.filters.get("category") == ".hidden":
-                self.show_label(
-                    _("No hidden games matching '%s' found.") % filter_text)
+                self.show_label(_("No hidden games matching '%s' found.") % filter_text)
             elif self.filters.get("installed") and has_uninstalled_games:
                 self.show_label(
-                    _("No installed games matching '%s' found. Press Ctrl+I to show uninstalled games.") % filter_text)
+                    _("No installed games matching '%s' found. Press Ctrl+I to show uninstalled games.") % filter_text
+                )
             else:
                 self.show_label(_("No games matching '%s' found ") % filter_text)
         else:
@@ -662,7 +651,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         side_splash.set_alignment(0, 0)
 
         center_splash = Gtk.Image(visible=True)
-        center_splash.set_alignment(.5, .5)
+        center_splash.set_alignment(0.5, 0.5)
         center_splash.set_from_file(os.path.join(datapath.get(), "media/splash-%s.svg" % theme))
 
         splash_box = Gtk.HBox(visible=True, margin_top=24)
@@ -719,9 +708,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
             return Gtk.ApplicationWindow.do_key_press_event(self, event)
 
         if (  # pylint: disable=too-many-boolean-expressions
-            not Gdk.KEY_0 <= event.keyval <= Gdk.KEY_z or event.state & Gdk.ModifierType.CONTROL_MASK
-            or event.state & Gdk.ModifierType.SHIFT_MASK or event.state & Gdk.ModifierType.META_MASK
-            or event.state & Gdk.ModifierType.MOD1_MASK or self.search_entry.has_focus()
+            not Gdk.KEY_0 <= event.keyval <= Gdk.KEY_z
+            or event.state & Gdk.ModifierType.CONTROL_MASK
+            or event.state & Gdk.ModifierType.SHIFT_MASK
+            or event.state & Gdk.ModifierType.META_MASK
+            or event.state & Gdk.ModifierType.MOD1_MASK
+            or self.search_entry.has_focus()
         ):
             return Gtk.ApplicationWindow.do_key_press_event(self, event)
         self.search_entry.grab_focus()
@@ -735,10 +727,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         setting_key = "icon_type_%sview" % self.current_view_type
         if self.service and self.service.id != "lutris":
             setting_key += "_%s" % self.service.id
-        self.icon_type = settings.read_setting(
-            setting_key,
-            default=default_icon_types.get(setting_key, "")
-        )
+        self.icon_type = settings.read_setting(setting_key, default=default_icon_types.get(setting_key, ""))
         return self.icon_type
 
     def save_icon_type(self, icon_type):
@@ -762,8 +751,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
             self.game_store = GameStore(self.service, self.service_media)
             if view_type == "grid":
                 self.current_view = GameGridView(
-                    self.game_store,
-                    hide_text=settings.read_bool_setting("hide_text_under_icons")
+                    self.game_store, hide_text=settings.read_bool_setting("hide_text_under_icons")
                 )
             else:
                 self.current_view = GameListView(self.game_store)
@@ -804,9 +792,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def update_view_settings(self):
         if self.current_view and self.current_view_type == "grid":
-            show_badges = settings.read_setting("hide_badges_on_icons") != 'True'
-            self.current_view.show_badges = show_badges and not bool(
-                self.filters.get("platform"))
+            show_badges = settings.read_setting("hide_badges_on_icons") != "True"
+            self.current_view.show_badges = show_badges and not bool(self.filters.get("platform"))
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
@@ -920,14 +907,14 @@ class LutrisWindow(Gtk.ApplicationWindow,
     @GtkTemplate.Callback
     def on_search_entry_key_press(self, widget, event):
         if event.keyval == Gdk.KEY_Down:
-            if self.current_view_type == 'grid':
-                self.current_view.select_path(Gtk.TreePath('0'))  # needed for gridview only
+            if self.current_view_type == "grid":
+                self.current_view.select_path(Gtk.TreePath("0"))  # needed for gridview only
                 # if game_bar is alive at this point it can mess grid item selection up
                 # for some unknown reason,
                 # it is safe to close it here, it will be reopened automatically.
                 if self.game_bar:
                     self.game_bar.destroy()  # for gridview only
-            self.current_view.set_cursor(Gtk.TreePath('0'), None, False)  # needed for both view types
+            self.current_view.set_cursor(Gtk.TreePath("0"), None, False)  # needed for both view types
             self.current_view.grab_focus()
 
     @GtkTemplate.Callback
@@ -1147,10 +1134,13 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         AsyncCall(create_runtime_updater, create_runtime_updater_cb)
 
-    def install_runtime_component_updates(self, updaters: List[ComponentUpdater],
-                                          runtime_updater: RuntimeUpdater,
-                                          completion_function: DownloadQueue.CompletionFunction = None,
-                                          error_function: DownloadQueue.ErrorFunction = None) -> bool:
+    def install_runtime_component_updates(
+        self,
+        updaters: List[ComponentUpdater],
+        runtime_updater: RuntimeUpdater,
+        completion_function: DownloadQueue.CompletionFunction = None,
+        error_function: DownloadQueue.ErrorFunction = None,
+    ) -> bool:
         """Installs a list of component updates. This displays progress bars
         in the sidebar as it installs updates, one at a time."""
 
@@ -1163,10 +1153,13 @@ class LutrisWindow(Gtk.ApplicationWindow,
             for updater in updaters:
                 updater.join()
 
-        return queue.start_multiple(install_updates, (u.get_progress for u in updaters),
-                                    completion_function=completion_function,
-                                    error_function=error_function,
-                                    operation_names=operation_names)
+        return queue.start_multiple(
+            install_updates,
+            (u.get_progress for u in updaters),
+            completion_function=completion_function,
+            error_function=error_function,
+            operation_names=operation_names,
+        )
 
 
 def _handle_esynclimiterror(error: EsyncLimitError, parent: Gtk.Window) -> None:
@@ -1174,7 +1167,8 @@ def _handle_esynclimiterror(error: EsyncLimitError, parent: Gtk.Window) -> None:
         "Your limits are not set correctly."
         " Please increase them as described here:"
         " <a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
-        "How-to:-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>")
+        "How-to:-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
+    )
     ErrorDialog(error, message_markup=message, parent=parent)
 
 

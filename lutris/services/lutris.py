@@ -21,15 +21,16 @@ from lutris.util.log import logger
 
 class LutrisGame(ServiceGame):
     """Service game created from the Lutris API"""
+
     service = "lutris"
 
     @classmethod
     def new_from_api(cls, api_payload):
         """Create an instance of LutrisGame from the API response"""
         service_game = LutrisGame()
-        service_game.appid = api_payload['slug']
-        service_game.slug = api_payload['slug']
-        service_game.name = api_payload['name']
+        service_game.appid = api_payload["slug"]
+        service_game.slug = api_payload["slug"]
+        service_game.name = api_payload["name"]
         service_game.details = json.dumps(api_payload)
         return service_game
 
@@ -61,9 +62,7 @@ class LutrisService(OnlineService):
 
     def match_games(self):
         """Matching lutris games is much simpler... No API call needed."""
-        service_games = {
-            str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.id)
-        }
+        service_games = {str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.id)}
         for lutris_game in get_games():
             self.match_game(service_games.get(lutris_game["slug"]), lutris_game)
 
@@ -196,9 +195,7 @@ def sync_media(slugs: Iterable[str] = None) -> Dict[str, int]:
 
     banners_available = {fn.split(".")[0] for fn in os.listdir(settings.BANNER_PATH)}
     icons_available = {
-        fn.split(".")[0].replace("lutris_", "")
-        for fn in os.listdir(settings.ICON_PATH)
-        if fn.startswith("lutris_")
+        fn.split(".")[0].replace("lutris_", "") for fn in os.listdir(settings.ICON_PATH) if fn.startswith("lutris_")
     }
     covers_available = {fn.split(".")[0] for fn in os.listdir(settings.COVERART_PATH)}
     complete_games = banners_available.intersection(icons_available).intersection(covers_available)
@@ -228,19 +225,12 @@ def sync_media(slugs: Iterable[str] = None) -> Dict[str, int]:
         if game["slug"] not in banners_available and game["banner_url"]
     }
     icon_urls = {
-        game["slug"]: game["icon_url"]
-        for game in games
-        if game["slug"] not in icons_available and game["icon_url"]
+        game["slug"]: game["icon_url"] for game in games if game["slug"] not in icons_available and game["icon_url"]
     }
     cover_urls = {
-        game["slug"]: game["coverart"]
-        for game in games
-        if game["slug"] not in covers_available and game["coverart"]
+        game["slug"]: game["coverart"] for game in games if game["slug"] not in covers_available and game["coverart"]
     }
-    logger.debug(
-        "Syncing %s banners, %s icons and %s covers",
-        len(banner_urls), len(icon_urls), len(cover_urls)
-    )
+    logger.debug("Syncing %s banners, %s icons and %s covers", len(banner_urls), len(icon_urls), len(cover_urls))
     download_media(banner_urls, LutrisBanner())
     download_media(icon_urls, LutrisIcon())
     download_media(cover_urls, LutrisCoverart())

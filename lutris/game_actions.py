@@ -263,35 +263,14 @@ class SingleGameActions(GameActions):
             "deletefavorite": game.is_favorite,
             "install_more": not game.service and game.is_installed,
             "execute-script": bool(
-                game.is_installed and game.has_runner
-                and game.runner.system_config.get("manual_command")
+                game.is_installed and game.has_runner and game.runner.system_config.get("manual_command")
             ),
-            "desktop-shortcut": (
-                game.is_installed
-                and not xdgshortcuts.desktop_launcher_exists(game.slug, game.id)
-            ),
-            "menu-shortcut": (
-                game.is_installed
-                and not xdgshortcuts.menu_launcher_exists(game.slug, game.id)
-            ),
-            "steam-shortcut": (
-                game.is_installed
-                and not has_steam_shortcut
-                and not is_steam_game
-            ),
-            "rm-desktop-shortcut": bool(
-                game.is_installed
-                and xdgshortcuts.desktop_launcher_exists(game.slug, game.id)
-            ),
-            "rm-menu-shortcut": bool(
-                game.is_installed
-                and xdgshortcuts.menu_launcher_exists(game.slug, game.id)
-            ),
-            "rm-steam-shortcut": bool(
-                game.is_installed
-                and has_steam_shortcut
-                and not is_steam_game
-            ),
+            "desktop-shortcut": (game.is_installed and not xdgshortcuts.desktop_launcher_exists(game.slug, game.id)),
+            "menu-shortcut": (game.is_installed and not xdgshortcuts.menu_launcher_exists(game.slug, game.id)),
+            "steam-shortcut": (game.is_installed and not has_steam_shortcut and not is_steam_game),
+            "rm-desktop-shortcut": bool(game.is_installed and xdgshortcuts.desktop_launcher_exists(game.slug, game.id)),
+            "rm-menu-shortcut": bool(game.is_installed and xdgshortcuts.menu_launcher_exists(game.slug, game.id)),
+            "rm-steam-shortcut": bool(game.is_installed and has_steam_shortcut and not is_steam_game),
             "remove": self.is_game_removable,
             "view": True,
             "hide": game.is_installed and not game.is_hidden,
@@ -323,11 +302,7 @@ class SingleGameActions(GameActions):
         _buffer = game.log_buffer
         if not _buffer:
             logger.info("No log for game %s", game)
-        return LogWindow(
-            game=game,
-            buffer=_buffer,
-            application=self.application
-        )
+        return LogWindow(game=game, buffer=_buffer, application=self.application)
 
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
@@ -398,9 +373,10 @@ class SingleGameActions(GameActions):
                     "Do you wish to duplicate %s?\nThe configuration will be duplicated, "
                     "but the games files will <b>not be duplicated</b>.\n"
                     "Please enter the new name for the copy:"
-                ) % gtk_safe(game.name),
+                )
+                % gtk_safe(game.name),
                 "title": _("Duplicate game?"),
-                "initial_value": game.name
+                "initial_value": game.name,
             }
         )
         result = duplicate_game_dialog.run()
@@ -469,11 +445,7 @@ class ServiceGameActions(GameActions):
 
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
-        return {
-            "install": self.is_installable,
-            "add": self.is_installable,
-            "view": True
-        }
+        return {"install": self.is_installable, "add": self.is_installable, "view": True}
 
 
 def get_game_actions(games: List[Game], window: Gtk.Window, application=None) -> GameActions:

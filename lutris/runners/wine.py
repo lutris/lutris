@@ -10,14 +10,27 @@ from lutris.api import format_runner_version
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import (
-    EsyncLimitError, FsyncUnsupportedError, MisconfigurationError, MissingExecutableError, MissingGameExecutableError,
-    UnspecifiedVersionError
+    EsyncLimitError,
+    FsyncUnsupportedError,
+    MisconfigurationError,
+    MissingExecutableError,
+    MissingGameExecutableError,
+    UnspecifiedVersionError,
 )
 from lutris.game import Game
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
-    create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
-    set_regedit_file, winecfg, wineexec, winekill, winetricks
+    create_prefix,
+    delete_registry_key,
+    eject_disc,
+    install_cab_component,
+    open_wine_terminal,
+    set_regedit,
+    set_regedit_file,
+    winecfg,
+    wineexec,
+    winekill,
+    winetricks,
 )
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -34,9 +47,21 @@ from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, ExtractIcon
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
-    WINE_DEFAULT_ARCH, WINE_DIR, WINE_PATHS, detect_arch, get_default_wine_runner_version_info,
-    get_default_wine_version, get_installed_wine_versions, get_overrides_env, get_proton_paths, get_real_executable,
-    get_system_wine_version, get_wine_path_for_version, is_esync_limit_set, is_fsync_supported, is_gstreamer_build
+    WINE_DEFAULT_ARCH,
+    WINE_DIR,
+    WINE_PATHS,
+    detect_arch,
+    get_default_wine_runner_version_info,
+    get_default_wine_version,
+    get_installed_wine_versions,
+    get_overrides_env,
+    get_proton_paths,
+    get_real_executable,
+    get_system_wine_version,
+    get_wine_path_for_version,
+    is_esync_limit_set,
+    is_fsync_supported,
+    is_gstreamer_build,
 )
 
 
@@ -54,12 +79,11 @@ def _get_prefix_warning(config, _option_key):
 def _get_dxvk_warning(config, option_key):
     if drivers.is_outdated():
         driver_info = drivers.get_nvidia_driver_info()
-        return _("<b>Warning</b> Your NVIDIA driver is outdated.\n"
-                 "You are currently running driver %s which does not "
-                 "fully support all features for Vulkan and DXVK games."
-                 ) % (
-            driver_info["version"],
-        )
+        return _(
+            "<b>Warning</b> Your NVIDIA driver is outdated.\n"
+            "You are currently running driver %s which does not "
+            "fully support all features for Vulkan and DXVK games."
+        ) % (driver_info["version"],)
 
     return None
 
@@ -68,8 +92,10 @@ def _get_simple_vulkan_support_error(config, option_key, feature):
     if os.environ.get("LUTRIS_NO_VKQUERY"):
         return None
     if config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
-        return _("<b>Error</b> Vulkan is not installed or is not supported by your system, "
-                 "%s is not available.") % feature
+        return (
+            _("<b>Error</b> Vulkan is not installed or is not supported by your system, " "%s is not available.")
+            % feature
+        )
     return None
 
 
@@ -81,12 +107,10 @@ def _get_dxvk_version_warning(config, _option_key):
         if version and not version.startswith("v1."):
             library_api_version = vkquery.get_vulkan_api_version()
             if library_api_version and library_api_version < REQUIRED_VULKAN_API_VERSION:
-                return _("<b>Warning</b> Lutris has detected that Vulkan API version %s is installed, "
-                         "but to use the latest DXVK version, %s is required."
-                         ) % (
-                    vkquery.format_version(library_api_version),
-                    vkquery.format_version(REQUIRED_VULKAN_API_VERSION)
-                )
+                return _(
+                    "<b>Warning</b> Lutris has detected that Vulkan API version %s is installed, "
+                    "but to use the latest DXVK version, %s is required."
+                ) % (vkquery.format_version(library_api_version), vkquery.format_version(REQUIRED_VULKAN_API_VERSION))
 
             devices = vkquery.get_device_info()
 
@@ -97,7 +121,7 @@ def _get_dxvk_version_warning(config, _option_key):
                 ) % (
                     devices[0].name,
                     vkquery.format_version(devices[0].api_version),
-                    vkquery.format_version(REQUIRED_VULKAN_API_VERSION)
+                    vkquery.format_version(REQUIRED_VULKAN_API_VERSION),
                 )
 
     return None
@@ -107,9 +131,11 @@ def _get_esync_warning(config, _option_key):
     if config.get("esync"):
         limits_set = is_esync_limit_set()
         if not limits_set:
-            return _("<b>Warning</b> Your limits are not set correctly. Please increase them as described here:\n"
-                     "<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
-                     "How-to-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>")
+            return _(
+                "<b>Warning</b> Your limits are not set correctly. Please increase them as described here:\n"
+                "<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
+                "How-to-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
+            )
     return ""
 
 
@@ -151,7 +177,7 @@ class wine(Runner):
             "type": "string",
             "label": _("Arguments"),
             "help": _("Windows command line arguments used when launching the game"),
-            "validator": shlex.split
+            "validator": shlex.split,
         },
         {
             "option": "working_dir",
@@ -169,7 +195,7 @@ class wine(Runner):
             "label": _("Wine prefix"),
             "warning": _get_prefix_warning,
             "help": _(
-                'The prefix used by Wine.\n'
+                "The prefix used by Wine.\n"
                 "It's a directory containing a set of files and "
                 "folders making up a confined Windows environment."
             ),
@@ -190,7 +216,7 @@ class wine(Runner):
         "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
         "Desktop": "MANAGED",
         "WineDesktop": "MANAGED",
-        "ShowCrashDialog": "MANAGED"
+        "ShowCrashDialog": "MANAGED",
     }
 
     core_processes = (
@@ -246,8 +272,7 @@ class wine(Runner):
                 "label": _("Custom Wine executable"),
                 "type": "file",
                 "advanced": True,
-                "help": _("The Wine executable to be used if you have "
-                          'selected "Custom" as the Wine version.'),
+                "help": _("The Wine executable to be used if you have " 'selected "Custom" as the Wine version.'),
             },
             {
                 "option": "system_winetricks",
@@ -269,7 +294,8 @@ class wine(Runner):
                 "help": _(
                     "Use DXVK to "
                     "increase compatibility and performance in Direct3D 11, 10 "
-                    "and 9 applications by translating their calls to Vulkan."),
+                    "and 9 applications by translating their calls to Vulkan."
+                ),
             },
             {
                 "option": "dxvk_version",
@@ -282,7 +308,6 @@ class wine(Runner):
                 "default": DXVKManager().version,
                 "warning": _get_dxvk_version_warning,
             },
-
             {
                 "option": "vkd3d",
                 "section": _("Graphics"),
@@ -292,8 +317,8 @@ class wine(Runner):
                 "default": True,
                 "active": True,
                 "help": _(
-                    "Use VKD3D to enable support for Direct3D 12 "
-                    "applications by translating their calls to Vulkan."),
+                    "Use VKD3D to enable support for Direct3D 12 " "applications by translating their calls to Vulkan."
+                ),
             },
             {
                 "option": "vkd3d_version",
@@ -334,9 +359,7 @@ class wine(Runner):
                 "error": lambda c, k: _get_simple_vulkan_support_error(c, k, _("DXVK-NVAPI / DLSS")),
                 "default": True,
                 "advanced": True,
-                "help": _(
-                    "Enable emulation of Nvidia's NVAPI and add DLSS support, if available."
-                ),
+                "help": _("Enable emulation of Nvidia's NVAPI and add DLSS support, if available."),
             },
             {
                 "option": "dxvk_nvapi_version",
@@ -528,8 +551,7 @@ class wine(Runner):
                     (_("Full (CAUTION: Will cause MASSIVE slowdown)"), "+all"),
                 ],
                 "default": "-all",
-                "help": _("Output debugging information in the game log "
-                          "(might affect performance)"),
+                "help": _("Output debugging information in the game log " "(might affect performance)"),
             },
             {
                 "option": "ShowCrashDialog",
@@ -544,9 +566,9 @@ class wine(Runner):
                 "label": _("Autoconfigure joypads"),
                 "advanced": True,
                 "default": False,
-                "help":
-                    _("Automatically disables one of Wine's detected joypad "
-                      "to avoid having 2 controllers detected"),
+                "help": _(
+                    "Automatically disables one of Wine's detected joypad " "to avoid having 2 controllers detected"
+                ),
             },
             {
                 "option": "sandbox",
@@ -701,8 +723,8 @@ class wine(Runner):
         resolved = super().resolve_config_path(path, relative_to)
         resolved = system.fix_path_case(resolved)
 
-        if not os.path.exists(resolved) and '\\' in path:
-            fixed = path.replace('\\', '/')
+        if not os.path.exists(resolved) and "\\" in path:
+            fixed = path.replace("\\", "/")
             fixed_resolved = super().resolve_config_path(fixed, relative_to)
             fixed_resolved = system.fix_path_case(fixed_resolved)
             return fixed_resolved
@@ -771,8 +793,7 @@ class wine(Runner):
             if not db_game:
                 db_game = get_game_by_field(installer.requires, field="slug")
             if not db_game:
-                raise MisconfigurationError(
-                    _("The required game '%s' could not be found.") % installer.requires)
+                raise MisconfigurationError(_("The required game '%s' could not be found.") % installer.requires)
             game = Game(db_game["id"])
             version = game.config.runner_config["version"]
 
@@ -836,7 +857,7 @@ class wine(Runner):
             working_dir=self.prefix_path,
             config=self,
             env=self.get_env(os_env=True),
-            runner=self
+            runner=self,
         )
 
     def run_wineexec(self, *args):
@@ -862,7 +883,7 @@ class wine(Runner):
             arch=self.wine_arch,
             config=self,
             env=self.get_env(os_env=True),
-            runner=self
+            runner=self,
         )
 
     def run_regedit(self, *args):
@@ -898,7 +919,7 @@ class wine(Runner):
             disable_runtime=disable_runtime,
             system_winetricks=system_winetricks,
             env=self.get_env(os_env=True, disable_runtime=disable_runtime),
-            runner=self
+            runner=self,
         )
 
     def run_winecpl(self, *args):
@@ -941,9 +962,10 @@ class wine(Runner):
                     # Do not pass fallback 'auto' value to managed keys
                     if value == "auto":
                         value = None
-                    if value and key in ("Desktop", "WineDesktop") and (
-                        "wine-ge" in self.get_executable().lower()
-                        or "proton" in self.get_executable().lower()
+                    if (
+                        value
+                        and key in ("Desktop", "WineDesktop")
+                        and ("wine-ge" in self.get_executable().lower() or "proton" in self.get_executable().lower())
                     ):
                         logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
                         value = None
@@ -1004,7 +1026,7 @@ class wine(Runner):
             (VKD3DManager, "vkd3d", "vkd3d_version"),
             (DXVKNVAPIManager, "dxvk_nvapi", "dxvk_nvapi_version"),
             (D3DExtrasManager, "d3d_extras", "d3d_extras_version"),
-            (dgvoodoo2Manager, "dgvoodoo2", "dgvoodoo2_version")
+            (dgvoodoo2Manager, "dgvoodoo2", "dgvoodoo2_version"),
         ]
 
         managers = {}
@@ -1012,11 +1034,7 @@ class wine(Runner):
             enabled = bool(self.runner_config.get(enabled_option))
             version = self.runner_config.get(version_option)
             if enabled or not enabled_only:
-                manager = manager_class(
-                    self.prefix_path,
-                    arch=self.wine_arch,
-                    version=version
-                )
+                manager = manager_class(self.prefix_path, arch=self.wine_arch, version=version)
 
                 if not manager.can_enable():
                     enabled = False
@@ -1057,7 +1075,7 @@ class wine(Runner):
         env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "gecko")
 
         # We don't want to override gstreamer for proton, it has it's own version
-        if ('Proton' not in WINE_DIR) or ('lutris' in WINE_DIR and 'Proton' in WINE_DIR):
+        if ("Proton" not in WINE_DIR) or ("lutris" in WINE_DIR and "Proton" in WINE_DIR):
             if is_gstreamer_build(wine_exe):
                 path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
                 path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
@@ -1101,9 +1119,9 @@ class wine(Runner):
                 env["GAMEID"] = "ULWGL-foo"
             # In stable versions of proton this can be dist/bin insteasd of files/bin
             if "files/bin" in wine_exe:
-                env["PROTONPATH"] = wine_exe[:wine_exe.index("files/bin")]
+                env["PROTONPATH"] = wine_exe[: wine_exe.index("files/bin")]
             else:
-                env["PROTONPATH"] = wine_exe[:wine_exe.index("dist/bin")]
+                env["PROTONPATH"] = wine_exe[: wine_exe.index("dist/bin")]
         return env
 
     def get_runtime_env(self):

@@ -29,9 +29,7 @@ class DolphinService(BaseService):
     name = _("Dolphin")
     runner = "dolphin"
     local = True
-    medias = {
-        "icon": DolphinBanner
-    }
+    medias = {"icon": DolphinBanner}
 
     def load(self):
         if not system.path_exists(DOLPHIN_GAME_CACHE_FILE):
@@ -51,11 +49,8 @@ class DolphinService(BaseService):
             "game_slug": self.get_installed_slug(db_game),
             "runner": self.get_installed_runner_name(db_game),
             "script": {
-                "game": {
-                    "main_file": details["path"],
-                    "platform": details["platform"]
-                },
-            }
+                "game": {"main_file": details["path"], "platform": details["platform"]},
+            },
         }
 
     def get_installed_runner_name(self, db_game):
@@ -98,10 +93,7 @@ class DolphinGame(ServiceGame):
         service_game.slug = slugify(name)
         service_game.icon = service_game.get_banner(cache_entry)
 
-        service_game.details = json.dumps({
-            "path": cache_entry["file_path"],
-            "platform": cache_entry["platform"][:-1]
-        })
+        service_game.details = json.dumps({"path": cache_entry["file_path"], "platform": cache_entry["platform"][:-1]})
         return service_game
 
     @staticmethod

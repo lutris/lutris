@@ -51,8 +51,9 @@ class LogTextView(Gtk.TextView):
 
         # Found nothing try from the beginning
         if next_occurence is None:
-            next_occurence = self.props.buffer.get_start_iter(
-            ).forward_search(searched_entry.get_text(), Gtk.TextSearchFlags.CASE_INSENSITIVE, None)
+            next_occurence = self.props.buffer.get_start_iter().forward_search(
+                searched_entry.get_text(), Gtk.TextSearchFlags.CASE_INSENSITIVE, None
+            )
 
         # Highlight if result
         if next_occurence is not None:
@@ -71,8 +72,9 @@ class LogTextView(Gtk.TextView):
 
         # Found nothing ? Try from the end
         if previous_occurence is None:
-            previous_occurence = self.props.buffer.get_end_iter(
-            ).backward_search(searched_entry.get_text(), Gtk.TextSearchFlags.CASE_INSENSITIVE, None)
+            previous_occurence = self.props.buffer.get_end_iter().backward_search(
+                searched_entry.get_text(), Gtk.TextSearchFlags.CASE_INSENSITIVE, None
+            )
 
         # Highlight if result
         if previous_occurence is not None:

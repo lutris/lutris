@@ -178,7 +178,7 @@ class Runner:  # pylint: disable=too-many-public-methods
                 "default": True,
                 "advanced": True,
                 "scope": ["runner"],
-                "help": _("Show this runner in the side panel if it is installed or available through Flatpak.")
+                "help": _("Show this runner in the side panel if it is installed or available through Flatpak."),
             }
         )
         return runner_options
@@ -226,7 +226,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if sdl_gamecontrollerconfig:
             path = os.path.expanduser(sdl_gamecontrollerconfig)
             if system.path_exists(path):
-                with open(path, "r", encoding='utf-8') as controllerdb_file:
+                with open(path, "r", encoding="utf-8") as controllerdb_file:
                     sdl_gamecontrollerconfig = controllerdb_file.read()
             env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
 
@@ -259,8 +259,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         if runtime_ld_library_path:
             ld_library_path = env.get("LD_LIBRARY_PATH")
-            env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
-                runtime_ld_library_path, ld_library_path]))
+            env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [runtime_ld_library_path, ld_library_path]))
 
         # Apply user overrides at the end
         env.update(self.system_config.get("env") or {})
@@ -423,8 +422,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         """
 
         if ui_delegate.show_install_yesno_inquiry(
-            question=_("The required runner is not installed.\n"
-                       "Do you wish to install it now?"),
+            question=_("The required runner is not installed.\n" "Do you wish to install it now?"),
             title=_("Required runner unavailable"),
         ):
             if hasattr(self, "get_version"):
@@ -479,9 +477,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         if "wine" in self.name:
             opts["merge_single"] = True
-            opts["dest"] = os.path.join(
-                self.directory, format_runner_version(runner_version_info)
-            )
+            opts["dest"] = os.path.join(self.directory, format_runner_version(runner_version_info))
 
         if self.name == "libretro" and version:
             opts["merge_single"] = False
@@ -513,6 +509,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.name == "wine":
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_installed_wine_versions
+
             get_installed_wine_versions.cache_clear()
 
         if self.runner_executable:
@@ -538,7 +535,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     def find_option(self, options_group, option_name):
         """Retrieve an option dict if it exists in the group"""
-        if options_group not in ['game_options', 'runner_options']:
+        if options_group not in ["game_options", "runner_options"]:
             return None
         output = None
         for item in getattr(self, options_group):

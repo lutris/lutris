@@ -88,12 +88,16 @@ class MonitoredCommand:
 
     def get_wrapper_command(self):
         """Return launch arguments for the wrapper script"""
-        wrapper_command = [
-            WRAPPER_SCRIPT,
-            self._title,
-            str(len(self.include_processes)),
-            str(len(self.exclude_processes)),
-        ] + self.include_processes + self.exclude_processes
+        wrapper_command = (
+            [
+                WRAPPER_SCRIPT,
+                self._title,
+                str(len(self.include_processes)),
+                str(len(self.exclude_processes)),
+            ]
+            + self.include_processes
+            + self.exclude_processes
+        )
         if not self.terminal:
             return wrapper_command + self.command
 
@@ -122,7 +126,7 @@ class MonitoredCommand:
 
         # not clear why this needs to be added, the path is already added in
         # the wrappper script.
-        env['PYTHONPATH'] = ':'.join(sys.path)
+        env["PYTHONPATH"] = ":".join(sys.path)
         # Drop bad values of environment keys, those will confuse the Python
         # interpreter.
         env["LUTRIS_GAME_UUID"] = str(uuid.uuid4())
@@ -150,7 +154,7 @@ class MonitoredCommand:
         """Run the thread."""
         if os.environ.get("LUTRIS_DEBUG_ENV") == "1":
             for key, value in self.env.items():
-                logger.debug("%s=\"%s\"", key, value)
+                logger.debug('%s="%s"', key, value)
         wrapper_command = self.get_wrapper_command()
         env = self.get_child_environment()
         self.game_process = self.execute_process(wrapper_command, env)
@@ -201,11 +205,11 @@ class MonitoredCommand:
         """Get the return code from the file written by the wrapper"""
         return_code_path = "/tmp/lutris-%s" % self.env["LUTRIS_GAME_UUID"]
         if os.path.exists(return_code_path):
-            with open(return_code_path, encoding='utf-8') as return_code_file:
+            with open(return_code_path, encoding="utf-8") as return_code_file:
                 return_code = return_code_file.read()
             os.unlink(return_code_path)
         else:
-            return_code = ''
+            return_code = ""
             logger.warning("No file %s", return_code_path)
         return return_code
 

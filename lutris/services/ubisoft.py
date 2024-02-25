@@ -27,6 +27,7 @@ from lutris.util.wine.prefix import WinePrefixManager
 
 class UbisoftCover(ServiceMedia):
     """Ubisoft connect cover art"""
+
     service = "ubisoft"
     size = (160, 186)
     dest_path = os.path.join(settings.CACHE_DIR, "ubisoft/covers")
@@ -49,9 +50,7 @@ class UbisoftCover(ServiceMedia):
             return
         base_dir = ubi_game["directory"]
         asset_file = os.path.join(
-            base_dir,
-            "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/assets",
-            url
+            base_dir, "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/assets", url
         )
         cache_path = os.path.join(self.dest_path, self.get_filename(slug))
         if os.path.exists(asset_file):
@@ -62,6 +61,7 @@ class UbisoftCover(ServiceMedia):
 
 class UbisoftGame(ServiceGame):
     """Service game for games from Ubisoft connect"""
+
     service = "ubisoft"
 
     @classmethod
@@ -77,6 +77,7 @@ class UbisoftGame(ServiceGame):
 
 class UbisoftConnectService(OnlineService):
     """Service class for Ubisoft Connect"""
+
     id = "ubisoft"
     name = _("Ubisoft Connect")
     icon = "ubisoft"
@@ -91,13 +92,11 @@ class UbisoftConnectService(OnlineService):
     login_url = consts.LOGIN_URL
     redirect_uri = "https://connect.ubisoft.com/change_domain/"
     scripts = {
-        "https://connect.ubisoft.com/ready": (
-            'window.location.replace("https://connect.ubisoft.com/change_domain/");'
-        ),
+        "https://connect.ubisoft.com/ready": ('window.location.replace("https://connect.ubisoft.com/change_domain/");'),
         "https://connect.ubisoft.com/change_domain/": (
             'window.location.replace(localStorage.getItem("PRODloginData") +","+ '
             'localStorage.getItem("PRODrememberMe") +"," + localStorage.getItem("PRODlastProfile"));'
-        )
+        ),
     }
     medias = {
         "cover": UbisoftCover,
@@ -113,13 +112,13 @@ class UbisoftConnectService(OnlineService):
 
     def login_callback(self, credentials):
         """Called after the user has logged in successfully"""
-        url = credentials[len("https://connect.ubisoft.com/change_domain/"):]
+        url = credentials[len("https://connect.ubisoft.com/change_domain/") :]
         unquoted_url = unquote(url)
         storage_jsons = json.loads("[" + unquoted_url + "]")
         user_data = self.client.authorise_with_local_storage(storage_jsons)
         self.client.set_auth_lost_callback(self.auth_lost)
         self.emit("service-login")
-        return (user_data['userId'], user_data['username'])
+        return (user_data["userId"], user_data["username"])
 
     def is_connected(self):
         return self.is_authenticated()
@@ -130,9 +129,7 @@ class UbisoftConnectService(OnlineService):
             return
         base_dir = ubi_game["directory"]
         configurations_path = os.path.join(
-            base_dir,
-            "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/"
-            "cache/configuration/configurations"
+            base_dir, "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/" "cache/configuration/configurations"
         )
         if not os.path.exists(configurations_path):
             return
@@ -143,7 +140,7 @@ class UbisoftConnectService(OnlineService):
     def load(self):
         self.client.authorise_with_stored_credentials(self.load_credentials())
         response = self.client.get_club_titles()
-        games = response['data']['viewer']['ownedGames'].get('nodes', [])
+        games = response["data"]["viewer"]["ownedGames"].get("nodes", [])
         ubi_games = []
         for game in games:
             if "ownedPlatformGroups" in game:
@@ -168,7 +165,7 @@ class UbisoftConnectService(OnlineService):
     def store_credentials(self, credentials):
         if not os.path.exists(os.path.dirname(self.token_path)):
             os.mkdir(os.path.dirname(self.token_path))
-        with open(self.token_path, "w", encoding='utf-8') as auth_file:
+        with open(self.token_path, "w", encoding="utf-8") as auth_file:
             auth_file.write(json.dumps(credentials, indent=2))
 
     def load_credentials(self):
@@ -257,18 +254,21 @@ class UbisoftConnectService(OnlineService):
                     "args": f"uplay://launch/{launch_id}",
                 },
                 "installer": [
-                    {"task": {
-                        "name": "wineexec",
-                        "executable": uc_exe,
-                        "args": f"uplay://install/{install_id}",
-                        "prefix": ubisoft_connect.config.game_config["prefix"],
-                        "description": (
-                            "Ubisoft will now open and install %s. "
-                            "Close Ubisoft Connect to complete the install process."
-                        ) % db_game["name"]
-                    }}
-                ]
-            }
+                    {
+                        "task": {
+                            "name": "wineexec",
+                            "executable": uc_exe,
+                            "args": f"uplay://install/{install_id}",
+                            "prefix": ubisoft_connect.config.game_config["prefix"],
+                            "description": (
+                                "Ubisoft will now open and install %s. "
+                                "Close Ubisoft Connect to complete the install process."
+                            )
+                            % db_game["name"],
+                        }
+                    }
+                ],
+            },
         }
 
     def get_installed_runner_name(self, db_game):
@@ -283,7 +283,5 @@ class UbisoftConnectService(OnlineService):
             application.show_lutris_installer_window(game_slug=self.client_installer)
         else:
             application.show_installer_window(
-                [self.generate_installer(db_game, ubisoft_connect)],
-                service=self,
-                appid=db_game["appid"]
+                [self.generate_installer(db_game, ubisoft_connect)], service=self, appid=db_game["appid"]
             )

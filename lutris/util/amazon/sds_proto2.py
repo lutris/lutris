@@ -1,5 +1,11 @@
 from lutris.util.amazon.protobuf_decoder import (
-    Message, type_bool, type_bytes, type_enum, type_int64, type_string, type_uint32
+    Message,
+    type_bool,
+    type_bytes,
+    type_enum,
+    type_int64,
+    type_string,
+    type_uint32,
 )
 
 
@@ -39,8 +45,7 @@ class Dir(Message):
     mode = None
 
     def __init__(self):
-        self.__lookup__ = [("optional", type_string, "path", 1),
-                           ("optional", type_uint32, "mode", 2)]
+        self.__lookup__ = [("optional", type_string, "path", 1), ("optional", type_uint32, "mode", 2)]
 
 
 class File(Message):
@@ -53,13 +58,15 @@ class File(Message):
     system = None
 
     def __init__(self):
-        self.__lookup__ = [("optional", type_string, "path", 1),
-                           ("optional", type_uint32, "mode", 2),
-                           ("optional", type_int64, "size", 3),
-                           ("optional", type_string, "created", 4),
-                           ("optional", Hash, "hash", 5),
-                           ("optional", type_bool, "hidden", 6),
-                           ("optional", type_bool, "system", 7)]
+        self.__lookup__ = [
+            ("optional", type_string, "path", 1),
+            ("optional", type_uint32, "mode", 2),
+            ("optional", type_int64, "size", 3),
+            ("optional", type_string, "created", 4),
+            ("optional", Hash, "hash", 5),
+            ("optional", type_bool, "hidden", 6),
+            ("optional", type_bool, "system", 7),
+        ]
 
 
 class Hash(Message):
@@ -67,8 +74,7 @@ class Hash(Message):
     value = None
 
     def __init__(self):
-        self.__lookup__ = [("optional", type_enum, "algorithm", 1),
-                           ("optional", type_bytes, "value", 2)]
+        self.__lookup__ = [("optional", type_enum, "algorithm", 1), ("optional", type_bytes, "value", 2)]
 
 
 class Manifest(Message):
@@ -84,9 +90,11 @@ class ManifestHeader(Message):
     signature = None
 
     def __init__(self):
-        self.__lookup__ = [("optional", CompressionSettings, "compression", 1),
-                           ("optional", Hash, "hash", 2),
-                           ("optional", Signature, "signature", 3)]
+        self.__lookup__ = [
+            ("optional", CompressionSettings, "compression", 1),
+            ("optional", Hash, "hash", 2),
+            ("optional", Signature, "signature", 3),
+        ]
 
 
 class Package(Message):
@@ -95,9 +103,11 @@ class Package(Message):
     dirs = None
 
     def __init__(self):
-        self.__lookup__ = [("optional", type_string, "name", 1),
-                           ("repeated", File, "files", 2),
-                           ("repeated", Dir, "dirs", 3)]
+        self.__lookup__ = [
+            ("optional", type_string, "name", 1),
+            ("repeated", File, "files", 2),
+            ("repeated", Dir, "dirs", 3),
+        ]
 
 
 class Signature(Message):
@@ -105,5 +115,4 @@ class Signature(Message):
     value = None
 
     def __init__(self):
-        self.__lookup__ = [("optional", type_enum, "algorithm", 1),
-                           ("optional", type_bytes, "value", 2)]
+        self.__lookup__ = [("optional", type_enum, "algorithm", 1), ("optional", type_bytes, "value", 2)]

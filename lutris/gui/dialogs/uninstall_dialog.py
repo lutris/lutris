@@ -76,10 +76,7 @@ class UninstallDialog(Gtk.Dialog):
         self.any_protected = False
 
         def is_shared(directory: str) -> bool:
-            dir_users = set(
-                str(g["id"])
-                for g in get_games(filters={"directory": directory, "installed": 1})
-            )
+            dir_users = set(str(g["id"]) for g in get_games(filters={"directory": directory, "installed": 1}))
             for g in self.games:
                 dir_users.discard(g.id)
             return bool(dir_users)
@@ -87,9 +84,7 @@ class UninstallDialog(Gtk.Dialog):
         for row in self.uninstall_game_list.get_children():
             game = row.game
             if game.is_installed and game.directory:
-                if game.config and is_removeable(
-                    game.directory, game.config.system_config
-                ):
+                if game.config and is_removeable(game.directory, game.config.system_config):
                     shared_dir = is_shared(game.directory)
                     self.any_shared = self.any_shared or shared_dir
                     row.can_delete_files = not shared_dir
@@ -147,11 +142,7 @@ class UninstallDialog(Gtk.Dialog):
         messages = []
 
         if to_uninstall:
-            messages.append(
-                _(
-                    "After you uninstall these games, you won't be able play them in Lutris."
-                )
-            )
+            messages.append(_("After you uninstall these games, you won't be able play them in Lutris."))
             messages.append(
                 _(
                     "Uninstalled games that you remove from the library will no longer appear in the "
@@ -159,12 +150,7 @@ class UninstallDialog(Gtk.Dialog):
                 )
             )
         else:
-            messages.append(
-                _(
-                    "After you remove these games, they will no longer "
-                    "appear in the 'Games' view."
-                )
-            )
+            messages.append(_("After you remove these games, they will no longer " "appear in the 'Games' view."))
 
         if self.any_shared:
             messages.append(
@@ -175,11 +161,7 @@ class UninstallDialog(Gtk.Dialog):
             )
 
         if self.any_protected:
-            messages.append(
-                _(
-                    "Some of the game directories cannot be removed because they are protected."
-                )
-            )
+            messages.append(_("Some of the game directories cannot be removed because they are protected."))
 
         if messages:
             self.message_label.set_markup("\n\n".join(messages))
@@ -213,9 +195,7 @@ class UninstallDialog(Gtk.Dialog):
 
             checkbox.set_active(set_count > 0)
             checkbox.set_inconsistent(set_count > 0 and unset_count > 0)
-            checkbox.set_visible(
-                (set_count + unset_count) > 1 and (set_count > 0 or unset_count > 0)
-            )
+            checkbox.set_visible((set_count + unset_count) > 1 and (set_count > 0 or unset_count > 0))
 
         if not self._setting_all_checkboxes:
             self._setting_all_checkboxes = True
@@ -254,9 +234,7 @@ class UninstallDialog(Gtk.Dialog):
 
         self._apply_all_checkbox(self.remove_all_games_checkbox, update_row)
 
-    def _apply_all_checkbox(
-        self, checkbox, row_updater: Callable[["GameRemovalRow", bool], None]
-    ):
+    def _apply_all_checkbox(self, checkbox, row_updater: Callable[["GameRemovalRow", bool], None]):
         """Sets the state of the checkboxes on all rows to agree with 'checkbox';
         the actual change is performed by row_updater, so this can be used for
         either checkbox."""
@@ -277,24 +255,17 @@ class UninstallDialog(Gtk.Dialog):
     @GtkTemplate.Callback
     def on_remove_button_clicked(self, _widget) -> None:
         rows = list(self.uninstall_game_list.get_children())
-        dirs_to_delete = list(
-            set(
-                row.game.directory
-                for row in rows
-                if row.delete_files
-            )
-        )
+        dirs_to_delete = list(set(row.game.directory for row in rows if row.delete_files))
 
         if dirs_to_delete:
             if len(dirs_to_delete) == 1:
-                question = _(
-                    "Please confirm.\nEverything under <b>%s</b>\n"
-                    "will be moved to the trash."
-                ) % gtk_safe(dirs_to_delete[0])
+                question = _("Please confirm.\nEverything under <b>%s</b>\n" "will be moved to the trash.") % gtk_safe(
+                    dirs_to_delete[0]
+                )
             else:
-                question = _(
-                    "Please confirm.\nAll the files for %d games will be moved to the trash."
-                ) % len(dirs_to_delete)
+                question = _("Please confirm.\nAll the files for %d games will be moved to the trash.") % len(
+                    dirs_to_delete
+                )
 
             dlg = QuestionDialog(
                 {
@@ -379,9 +350,7 @@ class GameRemovalRow(Gtk.ListBoxRow):
         label = Gtk.Label(game.name, selectable=True)
         hbox.pack_start(label, False, False, 0)
 
-        self.remove_from_library_checkbox = Gtk.CheckButton(
-            _("Remove from Library"), halign=Gtk.Align.START
-        )
+        self.remove_from_library_checkbox = Gtk.CheckButton(_("Remove from Library"), halign=Gtk.Align.START)
         self.remove_from_library_checkbox.set_sensitive(game.is_installed)
         self.remove_from_library_checkbox.set_active(True)
         self.remove_from_library_checkbox.connect("toggled", self.on_checkbox_toggled)
@@ -403,9 +372,7 @@ class GameRemovalRow(Gtk.ListBoxRow):
                 margin_right=6,
                 height_request=16,
             )
-            self.directory_label = Gtk.Label(
-                halign=Gtk.Align.START, selectable=True, valign=Gtk.Align.START
-            )
+            self.directory_label = Gtk.Label(halign=Gtk.Align.START, selectable=True, valign=Gtk.Align.START)
             self.directory_label.set_markup(self._get_directory_markup())
             dir_box.pack_start(self.directory_label, False, False, 0)
 

@@ -115,19 +115,23 @@ class DialogInstallUIDelegate(InstallUIDelegate):
     """This provides UI for runner installation via dialogs."""
 
     def show_install_yesno_inquiry(self, question, title):
-        dialog = dialogs.QuestionDialog({
-            "parent": self,
-            "question": question,
-            "title": title,
-        })
+        dialog = dialogs.QuestionDialog(
+            {
+                "parent": self,
+                "question": question,
+                "title": title,
+            }
+        )
         return Gtk.ResponseType.YES == dialog.result
 
     def show_install_file_inquiry(self, question, title, message):
-        dlg = dialogs.QuestionDialog({
-            "parent": self,
-            "question": question,
-            "title": title,
-        })
+        dlg = dialogs.QuestionDialog(
+            {
+                "parent": self,
+                "question": question,
+                "title": title,
+            }
+        )
         if dlg.result == dlg.YES:
             dlg = dialogs.FileDialog(message)
             return dlg.filename
@@ -199,12 +203,7 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
             config_index = get_preferred_config_index()
 
         if config_index is None:
-            dlg = dialogs.LaunchConfigSelectDialog(
-                game,
-                configs,
-                title=_("Select game to launch"),
-                parent=self
-            )
+            dlg = dialogs.LaunchConfigSelectDialog(game, configs, title=_("Select game to launch"), parent=self)
             if not dlg.confirmed:
                 return None  # no error here- the user cancelled out
 

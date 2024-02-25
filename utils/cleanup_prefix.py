@@ -4,11 +4,7 @@ import sys
 from copy import copy
 
 PROGRAM_FILES_IGNORES = {
-    "Common Files": {
-        "Microsoft Shared": "*",
-        "System": "*",
-        "InstallShield": "*"
-    },
+    "Common Files": {"Microsoft Shared": "*", "System": "*", "InstallShield": "*"},
     "Internet Explorer": "*",
     "Windows Media Player": "*",
     "Windows NT": "*",
@@ -131,7 +127,7 @@ def get_content_folders(path):
     found_dirs = []
     for root, _dirs, files in os.walk(path, topdown=True):
         # print(root, files, dirs)
-        relpath = root[len(path):].strip("/")
+        relpath = root[len(path) :].strip("/")
         path_parts = relpath.split("/")
         if is_ignored_path(path_parts):
             continue

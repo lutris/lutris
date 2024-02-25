@@ -8,7 +8,10 @@ from typing import Any, Dict, List
 
 from lutris import settings
 from lutris.api import (
-    check_stale_runtime_versions, download_runtime_versions, format_runner_version, get_time_from_api_date
+    check_stale_runtime_versions,
+    download_runtime_versions,
+    format_runner_version,
+    get_time_from_api_date,
 )
 from lutris.gui.widgets.progress_box import ProgressInfo
 from lutris.settings import UPDATE_CHANNEL_STABLE
@@ -112,12 +115,7 @@ def get_paths(version: str = None, prefer_system_libs: bool = True, wine_path: s
 
 
 class ComponentUpdater:
-    (
-        PENDING,
-        DOWNLOADING,
-        EXTRACTING,
-        COMPLETED
-    ) = list(range(4))
+    (PENDING, DOWNLOADING, EXTRACTING, COMPLETED) = list(range(4))
 
     status_formats = {
         PENDING: _("Updating %s"),
@@ -135,7 +133,7 @@ class ComponentUpdater:
         """True if this update should be installed; false to discard it."""
         return True
 
-    def install_update(self, updater: 'RuntimeUpdater') -> None:
+    def install_update(self, updater: "RuntimeUpdater") -> None:
         """Performs the update; runs on a worker thread, and returns when complete.
         However, some updates spawn a further thread to extract in parallel with the
         next update even after this."""
@@ -257,7 +255,7 @@ class RuntimeComponentUpdater(ComponentUpdater):
     def name(self) -> str:
         return self.remote_runtime_info["name"]
 
-    def install_update(self, updater: 'RuntimeUpdater') -> None:
+    def install_update(self, updater: "RuntimeUpdater") -> None:
         raise NotImplementedError
 
     def get_progress(self) -> ProgressInfo:
@@ -411,8 +409,7 @@ class RuntimeFilesComponentUpdater(RuntimeComponentUpdater):
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
             future_downloads = {
-                executor.submit(self._download_component, component): component["filename"]
-                for component in downloads
+                executor.submit(self._download_component, component): component["filename"] for component in downloads
             }
             for future in concurrent.futures.as_completed(future_downloads):
                 if not future.cancelled() and future.exception():
@@ -476,7 +473,7 @@ class RunnerComponentUpdater(ComponentUpdater):
 
         return True
 
-    def install_update(self, updater: 'RuntimeUpdater') -> None:
+    def install_update(self, updater: "RuntimeUpdater") -> None:
         url = self.upstream_runner["url"]
         archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(url))
         self.state = ComponentUpdater.DOWNLOADING

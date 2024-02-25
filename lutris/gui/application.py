@@ -67,7 +67,6 @@ LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATU
 
 
 class Application(Gtk.Application):
-
     def __init__(self):
         super().__init__(
             application_id="net.lutris.Lutris",
@@ -113,13 +112,15 @@ class Application(Gtk.Application):
 
     def add_arguments(self):
         if hasattr(self, "set_option_context_summary"):
-            self.set_option_context_summary(_(
-                "Run a game directly by adding the parameter lutris:rungame/game-identifier.\n"
-                "If several games share the same identifier you can use the numerical ID "
-                "(displayed when running lutris --list-games) and add "
-                "lutris:rungameid/numerical-id.\n"
-                "To install a game, add lutris:install/game-identifier."
-            ))
+            self.set_option_context_summary(
+                _(
+                    "Run a game directly by adding the parameter lutris:rungame/game-identifier.\n"
+                    "If several games share the same identifier you can use the numerical ID "
+                    "(displayed when running lutris --list-games) and add "
+                    "lutris:rungameid/numerical-id.\n"
+                    "To install a game, add lutris:install/game-identifier."
+                )
+            )
         else:
             logger.warning("GLib.set_option_context_summary missing, was added in GLib 2.56 (Released 2018-03-12)")
         self.add_main_option(
@@ -220,7 +221,7 @@ class Application(Gtk.Application):
         )
         self.add_main_option(
             "list-all-service-games",
-            ord('a'),
+            ord("a"),
             GLib.OptionFlags.NONE,
             GLib.OptionArg.NONE,
             _("List all games for all services in database"),
@@ -391,11 +392,7 @@ class Application(Gtk.Application):
 
     def show_installer_window(self, installers, service=None, appid=None, installation_kind=InstallationKind.INSTALL):
         self.show_window(
-            InstallerWindow,
-            installers=installers,
-            service=service,
-            appid=appid,
-            installation_kind=installation_kind
+            InstallerWindow, installers=installers, service=service, appid=appid, installation_kind=installation_kind
         )
 
     def show_lutris_installer_window(self, game_slug):
@@ -486,9 +483,7 @@ class Application(Gtk.Application):
 
         # List game
         if options.contains("list-games"):
-            game_list = games_db.get_games(filters=(
-                {"installed": 1} if options.contains("installed") else None)
-            )
+            game_list = games_db.get_games(filters=({"installed": 1} if options.contains("installed") else None))
             if options.contains("json"):
                 self.print_game_json(command_line, game_list)
             else:
@@ -501,9 +496,9 @@ class Application(Gtk.Application):
             game_list = games_db.get_games(filters={"installed": 1, "service": service})
             service_game_list = ServiceGameCollection.get_for_service(service)
             for game in service_game_list:
-                game['installed'] = any(('service_id', game['appid']) in item.items() for item in game_list)
+                game["installed"] = any(("service_id", game["appid"]) in item.items() for item in game_list)
             if options.contains("installed"):
-                service_game_list = [d for d in service_game_list if d['installed']]
+                service_game_list = [d for d in service_game_list if d["installed"]]
             if options.contains("json"):
                 self.print_service_game_json(command_line, service_game_list)
             else:
@@ -515,10 +510,13 @@ class Application(Gtk.Application):
             game_list = games_db.get_games(filters={"installed": 1})
             service_game_list = ServiceGameCollection.get_service_games()
             for game in service_game_list:
-                game['installed'] = any(('service_id', game['appid']) in item.items() for item in game_list if
-                                        item['service'] == game['service'])
+                game["installed"] = any(
+                    ("service_id", game["appid"]) in item.items()
+                    for item in game_list
+                    if item["service"] == game["service"]
+                )
             if options.contains("installed"):
-                service_game_list = [d for d in service_game_list if d['installed']]
+                service_game_list = [d for d in service_game_list if d["installed"]]
             if options.contains("json"):
                 self.print_service_game_json(command_line, service_game_list)
             else:
@@ -574,6 +572,7 @@ class Application(Gtk.Application):
             return 0
 
         if LUTRIS_EXPERIMENTAL_FEATURES_ENABLED:
+
             def get_game_match(slug):
                 # First look for an exact match
                 games = games_db.get_games_by_slug(slug)
@@ -581,8 +580,10 @@ class Application(Gtk.Application):
                     # Then look for matches
                     games = games_db.get_games(searches={"slug": slug})
                 if len(games) > 1:
-                    self._print(command_line, "Multiple games matching %s: %s" %
-                                (slug, ",".join(game["slug"] for game in games)))
+                    self._print(
+                        command_line,
+                        "Multiple games matching %s: %s" % (slug, ",".join(game["slug"] for game in games)),
+                    )
                     return
                 if not games:
                     self._print(command_line, "No matching game for %s" % slug)
@@ -650,9 +651,10 @@ class Application(Gtk.Application):
                 except (KeyError, IndexError):
                     file_name = os.path.basename(installer_file)
                 file_path = os.path.join(tempfile.gettempdir(), file_name)
-                self._print(command_line, _("download {url} to {file} started").format(
-                    url=installer_file, file=file_path))
-                with open(file_path, 'wb') as dest_file:
+                self._print(
+                    command_line, _("download {url} to {file} started").format(url=installer_file, file=file_path)
+                )
+                with open(file_path, "wb") as dest_file:
                     dest_file.write(request.content)
                 installer_file = file_path
                 action = "install"
@@ -677,8 +679,9 @@ class Application(Gtk.Application):
             elif action == "install":
                 # Installers can use game or installer slugs
                 self.quit_on_game_exit = True
-                db_game = games_db.get_game_by_field(game_slug, "slug") \
-                    or games_db.get_game_by_field(game_slug, "installer_slug")
+                db_game = games_db.get_game_by_field(game_slug, "slug") or games_db.get_game_by_field(
+                    game_slug, "installer_slug"
+                )
             else:
                 # Dazed and confused, try anything that might works
                 db_game = (
@@ -838,7 +841,7 @@ class Application(Gtk.Application):
             "action": None,
             "service": None,
             "appid": None,
-            "launch_config_name": None
+            "launch_config_name": None,
         }
 
         if url:
@@ -872,15 +875,10 @@ class Application(Gtk.Application):
                 "platform": game["platform"] or None,
                 "year": game["year"] or None,
                 "directory": game["directory"] or None,
-                "playtime": (
-                    str(timedelta(hours=game["playtime"]))
-                    if game["playtime"] else None
-                ),
-                "lastplayed": (
-                    str(datetime.fromtimestamp(game["lastplayed"]))
-                    if game["lastplayed"] else None
-                )
-            } for game in game_list
+                "playtime": (str(timedelta(hours=game["playtime"])) if game["playtime"] else None),
+                "lastplayed": (str(datetime.fromtimestamp(game["lastplayed"])) if game["lastplayed"] else None),
+            }
+            for game in game_list
         ]
         self._print(command_line, json.dumps(games, indent=2))
 
@@ -906,8 +904,9 @@ class Application(Gtk.Application):
                 "service": game["service"],
                 "appid": game["appid"],
                 "installed": game["installed"],
-                "details": game["details"]
-            } for game in game_list
+                "details": game["details"],
+            }
+            for game in game_list
         ]
         self._print(command_line, json.dumps(games, indent=2))
 
@@ -1000,11 +999,13 @@ class Application(Gtk.Application):
             system.remove_folder(runner_path)
             print(f"Wine version '{version}' has been removed.")
         else:
-            print(f"""
+            print(
+                f"""
 Specified version of Wine is not installed: {version}.
 Please check if the Wine Runner and specified version are installed (for that use --list-wine-versions).
 Also, check that the version specified is in the correct format.
-                """)
+                """
+            )
 
     def install_cli(self, runner_name):
         """

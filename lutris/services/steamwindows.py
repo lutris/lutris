@@ -42,8 +42,8 @@ class SteamWindowsService(SteamService):
                     "exe": steam_game.config.game_config["exe"],
                     "args": "-no-cef-sandbox -applaunch %s" % db_game["appid"],
                     "prefix": steam_game.config.game_config["prefix"],
-                }
-            }
+                },
+            },
         }
 
     def get_installed_runner_name(self, db_game):
@@ -71,11 +71,7 @@ class SteamWindowsService(SteamService):
             game.save()
             return
 
-        application.show_installer_window(
-            installers,
-            service=self,
-            appid=appid
-        )
+        application.show_installer_window(installers, service=self, appid=appid)
 
     @property
     def steamapps_paths(self):

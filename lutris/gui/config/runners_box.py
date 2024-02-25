@@ -18,10 +18,11 @@ class RunnersBox(BaseConfigBox):
         self.search_entry_placeholder_text = ""
 
         self.add(self.get_section_label(_("Add, remove or configure runners")))
-        self.add(self.get_description_label(
-            _("Runners are programs such as emulators, engines or "
-              "translation layers capable of running games.")
-        ))
+        self.add(
+            self.get_description_label(
+                _("Runners are programs such as emulators, engines or " "translation layers capable of running games.")
+            )
+        )
         self.search_failed_label = Gtk.Label(_("No runners matched the search"))
         self.pack_start(self.search_failed_label, False, False, 0)
         self.runner_list_frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)

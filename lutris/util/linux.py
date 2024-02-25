@@ -116,7 +116,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                     logger.warning("Command '%s' not found on your system", command)
 
         # Detect if system is 64bit capable
-        self.is_64_bit = sys.maxsize > 2 ** 32
+        self.is_64_bit = sys.maxsize > 2**32
         self.arch = self.get_arch()
         self.shared_libraries = self.get_shared_libraries()
         self.populate_libraries()
@@ -145,7 +145,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         """Parse the output of /proc/cpuinfo"""
         cpus = [{}]
         cpu_index = 0
-        with open("/proc/cpuinfo", encoding='utf-8') as cpuinfo:
+        with open("/proc/cpuinfo", encoding="utf-8") as cpuinfo:
             for line in cpuinfo.readlines():
                 if not line.strip():
                     cpu_index += 1
@@ -161,20 +161,16 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         lsblk_output = system.read_process_output(["lsblk", "-f", "--json"])
         if not lsblk_output:
             return []
-        return [
-            drive
-            for drive in json.loads(lsblk_output)["blockdevices"]
-            if drive["fstype"] != "squashfs"
-        ]
+        return [drive for drive in json.loads(lsblk_output)["blockdevices"] if drive["fstype"] != "squashfs"]
 
     @staticmethod
     def get_ram_info():
         """Parse the output of /proc/meminfo and return RAM information in kB"""
         mem = {}
-        with open("/proc/meminfo", encoding='utf-8') as meminfo:
+        with open("/proc/meminfo", encoding="utf-8") as meminfo:
             for line in meminfo.readlines():
                 key, value = line.split(":", 1)
-                mem[key.strip()] = value.strip('kB \n')
+                mem[key.strip()] = value.strip("kB \n")
         return mem
 
     @staticmethod
@@ -201,7 +197,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     @staticmethod
     def get_kernel_version():
         """Get kernel info from /proc/version"""
-        with open("/proc/version", encoding='utf-8') as kernel_info:
+        with open("/proc/version", encoding="utf-8") as kernel_info:
             info = kernel_info.readlines()[0]
             version = info.split(" ")[2]
         return version
@@ -217,7 +213,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         return False
 
     def nvidia_gamescope_support(self):
-        """ Return whether gamescope is supported if we're on nvidia"""
+        """Return whether gamescope is supported if we're on nvidia"""
         if not drivers.is_nvidia():
             return True
 
@@ -274,8 +270,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         while devices:
             device = devices.pop()
             devices.extend(device.get("children", []))
-            if (mount_point in device.get("mountpoints", [])
-                    or mount_point == device.get("mountpoint")):
+            if mount_point in device.get("mountpoints", []) or mount_point == device.get("mountpoint"):
                 return device["fstype"]
         return None
 
@@ -481,7 +476,7 @@ def gather_system_info_dict():
     system_info_readable = {}
     # Add system information
     system_dict = {}
-    system_dict["OS"] = ' '.join(system_info["dist"])
+    system_dict["OS"] = " ".join(system_info["dist"])
     system_dict["Arch"] = system_info["arch"]
     system_dict["Kernel"] = system_info["kernel"]
     system_dict["Desktop"] = system_info["env"].get("XDG_CURRENT_DESKTOP", "Not found")
@@ -515,11 +510,9 @@ def gather_system_info_dict():
     if vkquery.is_vulkan_supported():
         graphics_dict["Vulkan Version"] = vkquery.format_version(vkquery.get_vulkan_api_version())
 
-        graphics_dict["Vulkan Drivers"] = ", ".join({
-            "%s (%s)" % (name, vkquery.format_version(version))
-            for name, version
-            in vkquery.get_device_info()
-        })
+        graphics_dict["Vulkan Drivers"] = ", ".join(
+            {"%s (%s)" % (name, vkquery.format_version(version)) for name, version in vkquery.get_device_info()}
+        )
     else:
         graphics_dict["Vulkan"] = "Not Supported"
     system_info_readable["Graphics"] = graphics_dict

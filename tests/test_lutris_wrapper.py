@@ -4,29 +4,29 @@ import subprocess
 import sys
 import unittest
 
-if os.path.isfile('share/lutris/bin/lutris-wrapper'):
-    lutris_wrapper_bin = 'share/lutris/bin/lutris-wrapper'
+if os.path.isfile("share/lutris/bin/lutris-wrapper"):
+    lutris_wrapper_bin = "share/lutris/bin/lutris-wrapper"
 else:
-    lutris_wrapper_bin = 'lutris-wrapper'
+    lutris_wrapper_bin = "lutris-wrapper"
 
 
 class LutrisWrapperTestCase(unittest.TestCase):
     def test_excluded_initial_process(self):
         "Test that an excluded process that starts a monitored process works"
         env = os.environ.copy()
-        env['PYTHONPATH'] = ':'.join(sys.path)
+        env["PYTHONPATH"] = ":".join(sys.path)
         # run the lutris-wrapper with a bash subshell. bash is "excluded"
         wrapper_proc = subprocess.Popen(
             [
                 sys.executable,
                 lutris_wrapper_bin,
-                'title',
-                '0',
-                '1',
-                'bash',
-                'bash',
-                '-c',
-                "echo Hello World; exec 1>&-; while sleep infinity; do true; done"
+                "title",
+                "0",
+                "1",
+                "bash",
+                "bash",
+                "-c",
+                "echo Hello World; exec 1>&-; while sleep infinity; do true; done",
             ],
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
@@ -36,7 +36,7 @@ class LutrisWrapperTestCase(unittest.TestCase):
             # Wait for the "Hello World" message that indicates that the process
             # tree has started. This message arrives on stdout.
             for line in wrapper_proc.stdout:
-                if line.strip() == b'Hello World':
+                if line.strip() == b"Hello World":
                     # We found the output we're looking for.
                     break
             else:
@@ -60,7 +60,7 @@ class LutrisWrapperTestCase(unittest.TestCase):
     def test_cleanup_children(self):
         "Test that nonresponsive child processes can be killed with 2x sigterm"
         env = os.environ.copy()
-        env['PYTHONPATH'] = ':'.join(sys.path)
+        env["PYTHONPATH"] = ":".join(sys.path)
         # First, we run the lutris-wrapper with a bash subshell which ignores
         # SIGTERMs, emits a message to indicate readiness, and then closes
         # stdout.
@@ -68,12 +68,12 @@ class LutrisWrapperTestCase(unittest.TestCase):
             [
                 sys.executable,
                 lutris_wrapper_bin,
-                'title',
-                '0',
-                '0',
-                'bash',
-                '-c',
-                "trap '' SIGTERM; echo Hello World; exec 1>&-; while sleep infinity; do true; done"
+                "title",
+                "0",
+                "0",
+                "bash",
+                "-c",
+                "trap '' SIGTERM; echo Hello World; exec 1>&-; while sleep infinity; do true; done",
             ],
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
@@ -83,7 +83,7 @@ class LutrisWrapperTestCase(unittest.TestCase):
             # Wait for the "Hello World" message that indicates that the process
             # tree has started. This message arrives on stdout.
             for line in wrapper_proc.stdout:
-                if line.strip() == b'Hello World':
+                if line.strip() == b"Hello World":
                     # We found the output we're looking for.
                     break
             else:
@@ -94,7 +94,7 @@ class LutrisWrapperTestCase(unittest.TestCase):
 
             # Wait for confirmation that lutris-wrapper got our signal.
             for line in wrapper_proc.stdout:
-                if line.strip() == b'--terminated processes--':
+                if line.strip() == b"--terminated processes--":
                     break
             else:
                 self.fail("stdout EOF unexpectedly")

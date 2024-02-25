@@ -18,8 +18,7 @@ DEFAULT_DLL_OVERRIDES = {
 
 def is_prefix(path):
     """Return True if the path is prefix"""
-    return os.path.isdir(os.path.join(path, "drive_c")) \
-        and os.path.exists(os.path.join(path, "user.reg"))
+    return os.path.isdir(os.path.join(path, "drive_c")) and os.path.exists(os.path.join(path, "user.reg"))
 
 
 def find_prefix(path):
@@ -110,7 +109,7 @@ class WinePrefixManager:
     def get_key_path(self, key):
         for prefix in (self.hkcu_prefix, self.hklm_prefix):
             if key.startswith(prefix):
-                return key[len(prefix) + 1:]
+                return key[len(prefix) + 1 :]
         raise ValueError("The key {} is currently not supported by WinePrefixManager".format(key))
 
     def get_registry_key(self, key, subkey):
@@ -152,7 +151,7 @@ class WinePrefixManager:
             if not folder:
                 logger.warning("Couldn't load shell folder name for %s", key)
                 continue
-            desktop_folders.append(folder[folder.rfind("\\") + 1:])
+            desktop_folders.append(folder[folder.rfind("\\") + 1 :])
         return desktop_folders or DEFAULT_DESKTOP_FOLDERS
 
     def enable_desktop_integration_sandbox(self, desktop_dir):
@@ -253,7 +252,7 @@ class WinePrefixManager:
             # save the setting in the new form.
             obsolete_path = os.path.join(self.path, ".lutris_destkop_integration")
             if os.path.isfile(obsolete_path):
-                with open(obsolete_path, "r", encoding='utf-8') as f:
+                with open(obsolete_path, "r", encoding="utf-8") as f:
                     desktop_dir = f.read()
                 self._set_desktop_integration_assignment(desktop_dir)
                 os.unlink(obsolete_path)
@@ -311,7 +310,7 @@ class WinePrefixManager:
         obsolete_path = os.path.join(self.path, ".lutris_dpi_assignment")
         try:
             if os.path.isfile(obsolete_path):
-                with open(obsolete_path, "r", encoding='utf-8') as f:
+                with open(obsolete_path, "r", encoding="utf-8") as f:
                     dpi_assigned = int(f.read())
                 set_lutris_directory_settings(self.path, int(dpi_assigned))
                 os.unlink(obsolete_path)
@@ -320,8 +319,7 @@ class WinePrefixManager:
 
         settings = get_lutris_directory_settings(self.path)
 
-        key_paths = [self.hkcu_prefix + "/Software/Wine/Fonts",
-                     self.hkcu_prefix + "/Control Panel/Desktop"]
+        key_paths = [self.hkcu_prefix + "/Software/Wine/Fonts", self.hkcu_prefix + "/Control Panel/Desktop"]
 
         def assign_dpi(dpi):
             for key_path in key_paths:

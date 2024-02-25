@@ -27,18 +27,14 @@ class AccountsBox(BaseConfigBox):
         self.add(self.get_section_label(_("Steam accounts")))
         self.add(
             self.get_description_label(
-                _(
-                    "Select which Steam account is used for Lutris integration and creating Steam shortcuts."
-                )
+                _("Select which Steam account is used for Lutris integration and creating Steam shortcuts.")
             )
         )
         self.frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         self.frame.get_style_context().add_class("info-frame")
         self.pack_start(self.frame, False, False, 0)
 
-        self.accounts_box = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True
-        )
+        self.accounts_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
         self.frame.add(self.accounts_box)
 
     def space_widget(self, widget, top=16, bottom=16):
@@ -79,9 +75,7 @@ class AccountsBox(BaseConfigBox):
 
         box.add(self.get_user_box())
 
-        checkbutton = Gtk.CheckButton.new_with_label(
-            _("Keep your game library synced with Lutris.net")
-        )
+        checkbutton = Gtk.CheckButton.new_with_label(_("Keep your game library synced with Lutris.net"))
         checkbutton.set_active(settings.read_bool_setting("library_sync_enabled"))
         checkbutton.connect("toggled", self.on_sync_toggled)
         checkbutton.show()
@@ -110,9 +104,7 @@ class AccountsBox(BaseConfigBox):
         for account in steam_users:
             steamid64 = account["steamid64"]
             name = account.get("PersonaName") or f"#{steamid64}"
-            radio_button = Gtk.RadioButton.new_with_label_from_widget(
-                main_radio_button, name
-            )
+            radio_button = Gtk.RadioButton.new_with_label_from_widget(main_radio_button, name)
             self.space_widget(radio_button)
             radio_button.show()
             radio_button.set_active(active_steam_account == steamid64)
@@ -151,10 +143,12 @@ class AccountsBox(BaseConfigBox):
 
     def on_sync_toggled(self, checkbutton):
         if not settings.read_setting("last_library_sync_at"):
-            sync_warn_dialog = QuestionDialog({
-                "title": _("Synchronize library?"),
-                "question": _("Enable library sync and run a full sync with lutris.net?")
-            })
+            sync_warn_dialog = QuestionDialog(
+                {
+                    "title": _("Synchronize library?"),
+                    "question": _("Enable library sync and run a full sync with lutris.net?"),
+                }
+            )
             if sync_warn_dialog.result == Gtk.ResponseType.YES:
                 AsyncCall(sync_local_library, None)
                 settings.write_setting("library_sync_enabled", checkbutton.get_active())

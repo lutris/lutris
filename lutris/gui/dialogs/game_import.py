@@ -20,11 +20,7 @@ from lutris.util.system import get_md5_hash, get_md5_in_zip
 
 class ImportGameDialog(ModelessDialog):
     def __init__(self, files, parent=None) -> None:
-        super().__init__(
-            _("Import a game"),
-            parent=parent,
-            border_width=10
-        )
+        super().__init__(_("Import a game"), parent=parent, border_width=10)
         self.files = files
         self.progress_labels = {}
         self.checksum_labels = {}
@@ -41,9 +37,7 @@ class ImportGameDialog(ModelessDialog):
 
         scrolledwindow = Gtk.ScrolledWindow(child=self.get_file_labels_listbox(files))
         scrolledwindow.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        frame = Gtk.Frame(
-            shadow_type=Gtk.ShadowType.ETCHED_IN,
-            child=scrolledwindow)
+        frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN, child=scrolledwindow)
         self.get_content_area().pack_start(frame, True, True, 6)
 
         self.close_button = self.add_button(Gtk.STOCK_STOP, Gtk.ResponseType.CANCEL)
@@ -204,8 +198,7 @@ class ImportGameDialog(ModelessDialog):
         except Exception as ex:
             logger.exception(_("Failed to import a ROM: %s"), ex)
             error_label = self.error_labels[filename]
-            error_label.set_markup(
-                "<span style=\"italic\" foreground=\"red\">%s</span>" % gtk_safe(str(ex)))
+            error_label.set_markup('<span style="italic" foreground="red">%s</span>' % gtk_safe(str(ex)))
             error_label.show()
 
         return False
@@ -256,7 +249,8 @@ class ImportGameDialog(ModelessDialog):
             installer = deepcopy(DEFAULT_INSTALLERS[self.platform])
         except KeyError as error:
             raise RuntimeError(
-                _("Lutris does not have a default installer for the '%s' platform.") % self.platform) from error
+                _("Lutris does not have a default installer for the '%s' platform.") % self.platform
+            ) from error
 
         for key, value in installer["game"].items():
             if value == "rom":
@@ -270,7 +264,7 @@ class ImportGameDialog(ModelessDialog):
             directory="",
             installed=1,
             installer_slug="%s-%s" % (slug, installer["runner"]),
-            configpath=configpath
+            configpath=configpath,
         )
         download_lutris_media(slug)
         return game_id

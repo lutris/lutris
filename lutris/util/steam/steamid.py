@@ -64,13 +64,17 @@ TYPE_URL_PATH_MAP = {
 }
 
 TEXTUAL_ID_REGEX = re.compile(r"^STEAM_(?P<X>\d+):(?P<Y>\d+):(?P<Z>\d+)$")
-COMMUNITY32_REGEX = re.compile(r".*/(?P<path>{paths})/\[(?P<type>[{type_chars}]):1:(?P<steamid>\d+)\]$".format(
-    paths="|".join("|".join(paths) for paths in TYPE_URL_PATH_MAP.values()),
-    type_chars="".join(c for c in TYPE_LETTER_MAP.values())
-))
-COMMUNITY64_REGEX = re.compile(r".*/(?P<path>{paths})/(?P<steamid>\d+)$".format(
-    paths="|".join("|".join(paths) for paths in TYPE_URL_PATH_MAP.values())
-))
+COMMUNITY32_REGEX = re.compile(
+    r".*/(?P<path>{paths})/\[(?P<type>[{type_chars}]):1:(?P<steamid>\d+)\]$".format(
+        paths="|".join("|".join(paths) for paths in TYPE_URL_PATH_MAP.values()),
+        type_chars="".join(c for c in TYPE_LETTER_MAP.values()),
+    )
+)
+COMMUNITY64_REGEX = re.compile(
+    r".*/(?P<path>{paths})/(?P<steamid>\d+)$".format(
+        paths="|".join("|".join(paths) for paths in TYPE_URL_PATH_MAP.values())
+    )
+)
 
 
 class SteamIDError(ValueError):
@@ -155,10 +159,8 @@ class SteamID:
         url = urllib.parse.urlparse(steam_id)
         match = COMMUNITY32_REGEX.match(url.path)
         if match:
-            if (match.group("path") not in
-                    TYPE_URL_PATH_MAP[LETTER_TYPE_MAP[match.group("type")]]):
-                warnings.warn("Community URL ({}) path doesn't "
-                              "match type character".format(url.path))
+            if match.group("path") not in TYPE_URL_PATH_MAP[LETTER_TYPE_MAP[match.group("type")]]:
+                warnings.warn("Community URL ({}) path doesn't " "match type character".format(url.path))
             steamid = int(match.group("steamid"))
             instance = steamid & 1
             account_number = (steamid - instance) / 2
@@ -212,14 +214,8 @@ class SteamID:
             return cls(0, 0, TYPE_INVALID, 0)
         match = TEXTUAL_ID_REGEX.match(steam_id)
         if not match:
-            raise SteamIDError("ID '{}' doesn't match format {}".format(
-                steam_id, TEXTUAL_ID_REGEX.pattern))
-        return cls(
-            int(match.group("Z")),
-            int(match.group("Y")),
-            account_type,
-            int(match.group("X"))
-        )
+            raise SteamIDError("ID '{}' doesn't match format {}".format(steam_id, TEXTUAL_ID_REGEX.pattern))
+        return cls(int(match.group("Z")), int(match.group("Y")), account_type, int(match.group("X")))
 
     def __init__(self, account_number, instance, account_type, universe):
         if universe not in UNIVERSES:
@@ -227,11 +223,9 @@ class SteamID:
         if account_type not in ACCOUNT_TYPES:
             raise SteamIDError("Invalid type {}".format(account_type))
         if account_number < 0 or account_number > (2**32) - 1:
-            raise SteamIDError(
-                "Account number ({}) out of range".format(account_number))
+            raise SteamIDError("Account number ({}) out of range".format(account_number))
         if instance not in [1, 0]:
-            raise SteamIDError(
-                "Expected instance to be 1 or 0, got {}".format(instance))
+            raise SteamIDError("Expected instance to be 1 or 0, got {}".format(instance))
         self.account_number = int(account_number)  # Z
         self.instance = instance  # Y
         self.account_type = account_type
@@ -241,8 +235,9 @@ class SteamID:
     def type_name(self):
         """The account type as a string"""
 
-        return {v: k for k, v in globals().iteritems()
-                if k.startswith("TYPE_")}.get(self.account_type, self.account_type)
+        return {v: k for k, v in globals().iteritems() if k.startswith("TYPE_")}.get(
+            self.account_type, self.account_type
+        )
 
     def __str__(self):
         """The textual representation of the SteamID
@@ -286,10 +281,12 @@ class SteamID:
 
     def __eq__(self, other):
         try:
-            return (self.account_number == other.account_number
-                    and self.instance == other.instance
-                    and self.account_type == other.type
-                    and self.universe == other.universe)
+            return (
+                self.account_number == other.account_number
+                and self.instance == other.instance
+                and self.account_type == other.type
+                and self.universe == other.universe
+            )
         except AttributeError:
             return False  # Should probably raise TypeError
 
@@ -306,13 +303,11 @@ class SteamID:
         """
 
         try:
-            return "[{}:1:{}]".format(
-                TYPE_LETTER_MAP[self.account_type],
-                self.get_32_bit_community_id()
-            )
+            return "[{}:1:{}]".format(TYPE_LETTER_MAP[self.account_type], self.get_32_bit_community_id())
         except KeyError as ex:
-            raise SteamIDError("Cannot create 32-bit indentifier for "
-                               "SteamID with type {}".format(self.type_name)) from ex
+            raise SteamIDError(
+                "Cannot create 32-bit indentifier for " "SteamID with type {}".format(self.type_name)
+            ) from ex
 
     def get_32_bit_community_id(self):
         return (self.account_number * 2) + self.instance
@@ -339,10 +334,7 @@ class SteamID:
         path_func = self.as_64 if id64 else self.as_32
         try:
             return urllib.parse.urljoin(
-                self.base_community_url,
-                "/".join((TYPE_URL_PATH_MAP[self.account_type][0], path_func()))
+                self.base_community_url, "/".join((TYPE_URL_PATH_MAP[self.account_type][0], path_func()))
             )
         except KeyError as ex:
-            raise SteamIDError(
-                "Cannot generate community URL for type {}".format(
-                    self.type_name)) from ex
+            raise SteamIDError("Cannot generate community URL for type {}".format(self.type_name)) from ex

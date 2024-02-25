@@ -12,8 +12,5 @@ def migrate():
             continue
         print("Migrating Steam game %s" % game["name"])
         sql.db_update(
-            settings.DB_PATH,
-            "games",
-            {"service": "steam", "service_id": game["steamid"]},
-            {"id": game["id"]}
+            settings.DB_PATH, "games", {"service": "steam", "service_id": game["steamid"]}, {"id": game["id"]}
         )

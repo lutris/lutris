@@ -27,15 +27,11 @@ def get_libretro_cores():
     # Get core identifiers from info dir
     info_path = get_default_config_path("info")
     if not os.path.exists(info_path):
-        req = requests.get(
-            "http://buildbot.libretro.com/assets/frontend/info.zip",
-            allow_redirects=True,
-            timeout=5
-        )
+        req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True, timeout=5)
         if req.status_code == requests.codes.ok:  # pylint: disable=no-member
-            with open(get_default_config_path('info.zip'), 'wb') as info_zip:
+            with open(get_default_config_path("info.zip"), "wb") as info_zip:
                 info_zip.write(req.content)
-            with ZipFile(get_default_config_path('info.zip'), 'r') as info_zip:
+            with ZipFile(get_default_config_path("info.zip"), "r") as info_zip:
                 info_zip.extractall(info_path)
         else:
             logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code, req.reason)
@@ -74,11 +70,7 @@ class libretro(Runner):
     has_runner_versions = True
 
     game_options = [
-        {
-            "option": "main_file",
-            "type": "file",
-            "label": _("ROM file")
-        },
+        {"option": "main_file", "type": "file", "label": _("ROM file")},
         {
             "option": "core",
             "type": "choice",
@@ -196,7 +188,7 @@ class libretro(Runner):
         # TODO: review later
         # Create retroarch.cfg if it doesn't exist.
         if not system.path_exists(config_file):
-            with open(config_file, "w", encoding='utf-8') as f:
+            with open(config_file, "w", encoding="utf-8") as f:
                 f.write("# Lutris RetroArch Configuration")
                 f.close()
 

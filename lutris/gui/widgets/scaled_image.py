@@ -2,7 +2,11 @@ from gi.repository import Gtk
 
 from lutris.exceptions import MissingMediaError
 from lutris.gui.widgets.utils import (
-    ICON_SIZE, get_default_icon_path, get_pixbuf_by_path, get_runtime_icon_path, has_stock_icon
+    ICON_SIZE,
+    get_default_icon_path,
+    get_pixbuf_by_path,
+    get_runtime_icon_path,
+    has_stock_icon,
 )
 
 
@@ -10,7 +14,8 @@ class ScaledImage(Gtk.Image):
     """This class provides a rather basic feature the GtkImage doesn't offer - the ability
     to scale the image rendered. Scaling a pixbuf is not the same thing - that discards
     pixel data. This will preserve it on high-DPI displays by scaling only at drawing time."""
-    __gtype_name__ = 'ScaledImage'
+
+    __gtype_name__ = "ScaledImage"
 
     def __init__(self, scale_factor, *args, **kwargs):
         super().__init__(*args, **kwargs)

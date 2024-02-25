@@ -31,36 +31,36 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             "go-next-symbolic",
             _("Import previously installed Lutris games"),
             _("Scan a folder for games installed from a previous Lutris installation"),
-            "scan_folder"
+            "scan_folder",
         ),
         (
             "application-x-executable-symbolic",
             "go-next-symbolic",
             _("Install a Windows game from an executable"),
             _("Launch a Windows executable (.exe) installer"),
-            "install_from_setup"
+            "install_from_setup",
         ),
         (
             "x-office-document-symbolic",
             "go-next-symbolic",
             _("Install from a local install script"),
             _("Run a YAML install script"),
-            "install_from_script"
+            "install_from_script",
         ),
         (
             "application-x-firmware-symbolic",
             "go-next-symbolic",
             _("Import a ROM"),
             _("Import a ROM that is known to Lutris"),
-            "import_rom"
+            "import_rom",
         ),
         (
             "list-add-symbolic",
             "view-more-horizontal-symbolic",
             _("Add locally installed game"),
             _("Manually configure a game available locally"),
-            "add_local_game"
-        )
+            "add_local_game",
+        ),
     ]
 
     def __init__(self, **kwargs):
@@ -122,20 +122,17 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.install_from_setup_game_name_entry = Gtk.Entry()
         self.install_from_setup_game_slug_checkbox = Gtk.CheckButton(label="Identifier")
         self.install_from_setup_game_slug_entry = Gtk.Entry(sensitive=False)
-        self.install_from_setup_game_slug_entry.connect("focus-out-event",
-                                                        self.on_install_from_setup_game_slug_entry_focus_out)
+        self.install_from_setup_game_slug_entry.connect(
+            "focus-out-event", self.on_install_from_setup_game_slug_entry_focus_out
+        )
         self.installer_presets = Gtk.ListStore(str, str)
         self.install_preset_dropdown = Gtk.ComboBox.new_with_model(self.installer_presets)
         self.installer_locale = Gtk.ListStore(str, str)
         self.install_locale_dropdown = Gtk.ComboBox.new_with_model(self.installer_locale)
 
-        self.install_script_file_chooser = FileChooserEntry(
-            title=_("Select script"), action=Gtk.FileChooserAction.OPEN
-        )
+        self.install_script_file_chooser = FileChooserEntry(title=_("Select script"), action=Gtk.FileChooserAction.OPEN)
 
-        self.import_rom_file_chooser = FileChooserEntry(
-            title=_("Select ROM file"), action=Gtk.FileChooserAction.OPEN
-        )
+        self.import_rom_file_chooser = FileChooserEntry(title=_("Select ROM file"), action=Gtk.FileChooserAction.OPEN)
 
         self.stack.add_named_factory("initial", self.create_initial_page)
         self.stack.add_named_factory("search_installers", self.create_search_installers_page)
@@ -265,7 +262,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.search_spinner.stop()
         self.search_spinner.hide()
         total_count = api_games.get("count", 0)
-        count = len(api_games.get('results', []))
+        count = len(api_games.get("results", []))
 
         if not count:
             self.search_result_label.set_markup(_("No results"))
@@ -277,11 +274,11 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             row.destroy()
         for game in api_games.get("results", []):
             platforms = ",".join(gtk_safe(platform["name"]) for platform in game["platforms"])
-            year = game['year'] or ""
+            year = game["year"] or ""
             if platforms and year:
                 platforms = ", " + platforms
 
-            row = self._get_listbox_row("", gtk_safe(game['name']), f"{year}{platforms}")
+            row = self._get_listbox_row("", gtk_safe(game["name"]), f"{year}{platforms}")
             row.api_info = game
             self.search_listbox.add(row)
         self.search_result_label.show()
@@ -441,7 +438,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.install_preset_dropdown.pack_start(renderer_text, True)
         self.install_preset_dropdown.add_attribute(renderer_text, "text", 1)
         self.install_preset_dropdown.set_id_column(0)
-        self.install_preset_dropdown.set_active_id('win10')
+        self.install_preset_dropdown.set_active_id("win10")
 
         grid.attach(self.install_preset_dropdown, 1, 3, 1, 1)
         self.install_preset_dropdown.set_halign(Gtk.Align.START)
@@ -514,21 +511,11 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             "game_slug": game_slug,
             "runner": "wine",
             "script": {
-                "game": {
-                    "exe": AUTO_WIN32_EXE, "prefix": "$GAMEDIR"
-                },
-                "files": [
-                    {"setupfile": "N/A:%s" % _("Select the setup file")}
-                ],
-                "installer": [
-                    {"task": {"name": "wineexec", "executable": "setupfile", "arch": arch}}
-                ],
-                "system": {
-                    "env": {
-                        "LC_ALL": locale_selected
-                    }
-                }
-            }
+                "game": {"exe": AUTO_WIN32_EXE, "prefix": "$GAMEDIR"},
+                "files": [{"setupfile": "N/A:%s" % _("Select the setup file")}],
+                "installer": [{"task": {"name": "wineexec", "executable": "setupfile", "arch": arch}}],
+                "system": {"env": {"LC_ALL": locale_selected}},
+            },
         }
         if win_ver_task:
             installer["script"]["installer"].insert(0, win_ver_task)
@@ -694,12 +681,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         return label
 
     def _get_explanation_label(self, markup):
-        label = Gtk.Label(
-            visible=True,
-            margin_right=12,
-            margin_left=12,
-            margin_top=12,
-            margin_bottom=12)
+        label = Gtk.Label(visible=True, margin_right=12, margin_left=12, margin_top=12, margin_bottom=12)
         label.set_markup(markup)
         label.set_line_wrap(True)
         return label
@@ -709,13 +691,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         row.set_selectable(False)
         row.set_activatable(True)
 
-        box = Gtk.Box(
-            spacing=12,
-            margin_right=12,
-            margin_left=12,
-            margin_top=12,
-            margin_bottom=12,
-            visible=True)
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12, margin_top=12, margin_bottom=12, visible=True)
 
         if left_icon_name:
             icon = self._get_icon(left_icon_name)

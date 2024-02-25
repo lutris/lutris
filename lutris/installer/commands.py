@@ -71,14 +71,16 @@ class CommandsMixin:
                 if not param_present:
                     raise ScriptingError(
                         _("One of {params} parameter is mandatory for the {cmd} command").format(
-                            params=_(" or ").join(param), cmd=command_name),
+                            params=_(" or ").join(param), cmd=command_name
+                        ),
                         command_data,
                     )
             else:
                 if param not in command_data:
                     raise ScriptingError(
                         _("The {param} parameter is mandatory for the {cmd} command").format(
-                            param=param, cmd=command_name),
+                            param=param, cmd=command_name
+                        ),
                         command_data,
                     )
 
@@ -107,8 +109,7 @@ class CommandsMixin:
             self._check_required_params([("file", "command")], data, "execute")
             if "command" in data and "file" in data:
                 raise ScriptingError(
-                    _("Parameters file and command can't be used "
-                      "at the same time for the execute command"),
+                    _("Parameters file and command can't be used " "at the same time for the execute command"),
                     data,
                 )
 
@@ -231,16 +232,20 @@ class CommandsMixin:
         requires = data.get("requires")
         message = data.get(
             "message",
-            _("Insert or mount game disc and click Autodetect or\n"
-              "use Browse if the disc is mounted on a non standard location."),
+            _(
+                "Insert or mount game disc and click Autodetect or\n"
+                "use Browse if the disc is mounted on a non standard location."
+            ),
         )
         message += (
-            _("\n\nLutris is looking for a mounted disk drive or image \n"
-              "containing the following file or folder:\n"
-              "<i>%s</i>") % requires
+            _(
+                "\n\nLutris is looking for a mounted disk drive or image \n"
+                "containing the following file or folder:\n"
+                "<i>%s</i>"
+            )
+            % requires
         )
-        self.interpreter_ui_delegate.begin_disc_prompt(message, requires, self.installer,
-                                                       self._find_matching_disc)
+        self.interpreter_ui_delegate.begin_disc_prompt(message, requires, self.installer, self._find_matching_disc)
         return "STOP"
 
     def _find_matching_disc(self, _widget, requires, extra_path=None):
@@ -369,8 +374,8 @@ class CommandsMixin:
         filename = self._substitute(data["file"])
         logger.debug("Substituting variables for file %s", filename)
         tmp_filename = filename + ".tmp"
-        with open(filename, "r", encoding='utf-8') as source_file:
-            with open(tmp_filename, "w", encoding='utf-8') as dest_file:
+        with open(filename, "r", encoding="utf-8") as source_file:
+            with open(tmp_filename, "w", encoding="utf-8") as dest_file:
                 line = "."
                 while line:
                     line = source_file.readline()
@@ -404,12 +409,8 @@ class CommandsMixin:
 
         if runner_name.startswith("wine"):
             data["wine_path"] = self.get_wine_path()
-            data["prefix"] = data.get("prefix") \
-                or self.installer.script.get("game", {}).get("prefix") \
-                or "$GAMEDIR"
-            data["arch"] = data.get("arch") \
-                or self.installer.script.get("game", {}).get("arch") \
-                or WINE_DEFAULT_ARCH
+            data["prefix"] = data.get("prefix") or self.installer.script.get("game", {}).get("prefix") or "$GAMEDIR"
+            data["arch"] = data.get("arch") or self.installer.script.get("game", {}).get("arch") or WINE_DEFAULT_ARCH
             if task_name == "wineexec":
                 data["env"] = self.script_env
 
@@ -461,7 +462,7 @@ class CommandsMixin:
         if not mode.startswith(("a", "w")):
             raise ScriptingError(_("Wrong value for write_file mode: '%s'") % mode)
 
-        with open(dest_file_path, mode, encoding='utf-8') as dest_file:
+        with open(dest_file_path, mode, encoding="utf-8") as dest_file:
             dest_file.write(self._substitute(params["content"]))
 
     def write_json(self, params):
@@ -480,7 +481,7 @@ class CommandsMixin:
         # create an empty file if it doesn't exist
         Path(filename).touch(exist_ok=True)
 
-        with open(filename, "r+" if merge else "w", encoding='utf-8') as json_file:
+        with open(filename, "r+" if merge else "w", encoding="utf-8") as json_file:
             json_data = {}
             if merge:
                 try:
@@ -547,11 +548,7 @@ class CommandsMixin:
             return result
 
     def _extract_gog_game(self, file_id):
-        self.extract({
-            "src": file_id,
-            "dst": "$GAMEDIR",
-            "extractor": "innoextract"
-        })
+        self.extract({"src": file_id, "dst": "$GAMEDIR", "extractor": "innoextract"})
         app_path = os.path.join(self.target_path, "app")
         if system.path_exists(app_path):
             for app_content in os.listdir(app_path):
@@ -566,18 +563,14 @@ class CommandsMixin:
 
     def _get_scummvm_arguments(self, gog_config_path):
         """Return a ScummVM configuration from the GOG config files"""
-        with open(gog_config_path, encoding='utf-8') as gog_config_file:
+        with open(gog_config_path, encoding="utf-8") as gog_config_file:
             gog_config = json.loads(gog_config_file.read())
         game_tasks = [task for task in gog_config["playTasks"] if task["category"] == "game"]
         arguments = game_tasks[0]["arguments"]
         game_id = arguments.split()[-1]
         arguments = " ".join(arguments.split()[:-1])
         base_dir = os.path.dirname(gog_config_path)
-        return {
-            "game_id": game_id,
-            "path": base_dir,
-            "arguments": arguments
-        }
+        return {"game_id": game_id, "path": base_dir, "arguments": arguments}
 
     def autosetup_gog_game(self, file_id, silent=False):
         """Automatically guess the best way to install a GOG game by inspecting its contents.
@@ -640,12 +633,7 @@ class CommandsMixin:
             if silent:
                 args += " /SUPPRESSMSGBOXES /VERYSILENT /NOGUI"
             self.installer.is_gog = True
-            return self.task({
-                "name": "wineexec",
-                "prefix": "$GAMEDIR",
-                "executable": file_id,
-                "args": args
-            })
+            return self.task({"name": "wineexec", "prefix": "$GAMEDIR", "executable": file_id, "args": args})
 
     def autosetup_amazon(self, file_and_dir_dict):
         files = file_and_dir_dict["files"]
@@ -657,7 +645,7 @@ class CommandsMixin:
 
         # move installed files from CACHE to game folder
         for file_hash, file in self.game_files.items():
-            file_dir = os.path.dirname(files[file_hash]['path'])
+            file_dir = os.path.dirname(files[file_hash]["path"])
             self.move({"src": file, "dst": f"$GAMEDIR/drive_c/game/{file_dir}"})
 
     def install_or_extract(self, file_id):
@@ -667,15 +655,9 @@ class CommandsMixin:
         if runner != "wine":
             raise ScriptingError(_("install_or_extract only works with wine!"))
         if file_path.endswith(".exe"):
-            params = {
-                "name": "wineexec",
-                "executable": file_id
-            }
+            params = {"name": "wineexec", "executable": file_id}
             return self.task(params)
 
         slug = self.installer.game_slug
-        params = {
-            "file": file_id,
-            "dst": f"$GAMEDIR/drive_c/{slug}"
-        }
+        params = {"file": file_id, "dst": f"$GAMEDIR/drive_c/{slug}"}
         return self.extract(params)

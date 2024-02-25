@@ -28,28 +28,11 @@ class SystemBox(BaseConfigBox):
             "name": _("Wine installed"),
             "callable": is_installed_systemwide,
         },
-        {
-            "name": _("Gamescope"),
-            "callable": system.can_find_executable,
-            "args": ("gamescope",)
-        },
-        {
-            "name": _("Mangohud"),
-            "callable": system.can_find_executable,
-            "args": ("mangohud",)
-        },
-        {
-            "name": _("Gamemode"),
-            "callable": linux.LINUX_SYSTEM.gamemode_available
-        },
-        {
-            "name": _("Steam"),
-            "callable": linux.LINUX_SYSTEM.has_steam
-        },
-        {
-            "name": _("In Flatpak"),
-            "callable": linux.LINUX_SYSTEM.is_flatpak
-        },
+        {"name": _("Gamescope"), "callable": system.can_find_executable, "args": ("gamescope",)},
+        {"name": _("Mangohud"), "callable": system.can_find_executable, "args": ("mangohud",)},
+        {"name": _("Gamemode"), "callable": linux.LINUX_SYSTEM.gamemode_available},
+        {"name": _("Steam"), "callable": linux.LINUX_SYSTEM.has_steam},
+        {"name": _("In Flatpak"), "callable": linux.LINUX_SYSTEM.is_flatpak},
     ]
 
     def __init__(self):
@@ -101,9 +84,7 @@ class SystemBox(BaseConfigBox):
                 grid.attach(header_label, 0, row, 2, 1)
             else:
                 name, text = item
-                name_label = Gtk.Label(name + ":",
-                                       visible=True, xalign=0, yalign=0,
-                                       margin_right=30)
+                name_label = Gtk.Label(name + ":", visible=True, xalign=0, yalign=0, margin_right=30)
                 grid.attach(name_label, 0, row, 1, 1)
 
                 markup_label = Gtk.Label(visible=True, xalign=0, selectable=True)

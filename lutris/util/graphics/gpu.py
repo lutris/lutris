@@ -94,7 +94,7 @@ class GPU:
                 driver_info = {
                     "vendor": LINUX_SYSTEM.glxinfo.opengl_vendor,
                     "version": LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version,
-                    "device": LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.device
+                    "device": LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.device,
                 }
         return driver_info
 
@@ -102,9 +102,7 @@ class GPU:
         """Return information about a GPU"""
         infos = {"DRIVER": "", "PCI_ID": "", "PCI_SUBSYS_ID": "", "PCI_SLOT_NAME": ""}
         try:
-            with open(
-                f"/sys/class/drm/{self.card}/device/uevent", encoding="utf-8"
-            ) as card_uevent:
+            with open(f"/sys/class/drm/{self.card}/device/uevent", encoding="utf-8") as card_uevent:
                 content = card_uevent.readlines()
         except FileNotFoundError:
             logger.error("Unable to read driver information for card %s", self.card)
@@ -119,18 +117,13 @@ class GPU:
         subprocess_env = dict(os.environ)
         subprocess_env["VK_DRIVER_FILES"] = self.icd_files  # Currently supported
         subprocess_env["VK_ICD_FILENAMES"] = self.icd_files  # Deprecated
-        vulkaninfo_output = system.read_process_output(
-            "vulkaninfo", env=subprocess_env
-        ).split("\n")
+        vulkaninfo_output = system.read_process_output("vulkaninfo", env=subprocess_env).split("\n")
         result = ""
         for line in vulkaninfo_output:
             if "deviceName" not in line:
                 continue
             result = line.split("= ", maxsplit=1)[1].strip()
-        if (
-            "Failed to detect any valid GPUs" in result
-            or "ERROR: [Loader Message]" in result
-        ):
+        if "Failed to detect any valid GPUs" in result or "ERROR: [Loader Message]" in result:
             return "No GPU"
         return result
 
@@ -138,8 +131,7 @@ class GPU:
         devices = [
             (pci_id, device_desc.split(": ")[1])
             for pci_id, device_desc in [
-                line.split(maxsplit=1)
-                for line in system.execute(["lspci"], timeout=3).split("\n")
+                line.split(maxsplit=1) for line in system.execute(["lspci"], timeout=3).split("\n")
             ]
         ]
         for device in devices:

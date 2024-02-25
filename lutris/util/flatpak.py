@@ -46,15 +46,17 @@ def get_installed_apps():
             except ValueError:
                 logger.error("Not able to parse Flatpak output: %s", package)
                 continue
-            packages.append({
-                "name": name,
-                "appid": appid,
-                "version": version,
-                "branch": branch,
-                "arch": arch,
-                "origin": origin,
-                "installation": installation
-            })
+            packages.append(
+                {
+                    "name": name,
+                    "appid": appid,
+                    "version": version,
+                    "branch": branch,
+                    "arch": arch,
+                    "origin": origin,
+                    "installation": installation,
+                }
+            )
     return packages
 
 

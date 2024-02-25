@@ -32,22 +32,23 @@ class ryujinx(Runner):
             "label": _("Encryption keys"),
             "type": "file",
             "help": _("File containing the encryption keys."),
-        }, {
+        },
+        {
             "option": "title_keys",
             "label": _("Title keys"),
             "type": "file",
             "help": _("File containing the title keys."),
-        }
+        },
     ]
 
     @property
     def ryujinx_data_dir(self):
         """Return dir where Ryujinx files lie."""
-        candidates = ("~/.local/share/ryujinx", )
+        candidates = ("~/.local/share/ryujinx",)
         for candidate in candidates:
             path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "nand"))
             if system.path_exists(path):
-                return path[:-len("nand")]
+                return path[: -len("nand")]
 
     def play(self):
         """Run the game."""
@@ -59,7 +60,7 @@ class ryujinx(Runner):
         return {"command": arguments}
 
     def _update_key(self, key_type):
-        """Update a keys file if set """
+        """Update a keys file if set"""
         ryujinx_data_dir = self.ryujinx_data_dir
         if not ryujinx_data_dir:
             logger.error("Ryujinx data dir not set")

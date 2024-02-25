@@ -70,10 +70,8 @@ class InstallerFileBox(Gtk.VBox):
         # InstallerFileCollection should not have steam provider
         if self.provider == "steam":
             if isinstance(self.installer_file, InstallerFileCollection):
-                raise RuntimeError(
-                    "Installer file is type InstallerFileCollection and do not support 'steam' provider")
-            steam_installer = SteamInstaller(self.installer_file.url,
-                                             self.installer_file.id)
+                raise RuntimeError("Installer file is type InstallerFileCollection and do not support 'steam' provider")
+            steam_installer = SteamInstaller(self.installer_file.url, self.installer_file.id)
             steam_installer.connect("steam-game-installed", self.on_download_complete)
             steam_installer.connect("steam-state-changed", self.on_state_changed)
             self.start_func = steam_installer.install_steam_game
@@ -81,9 +79,7 @@ class InstallerFileBox(Gtk.VBox):
 
             steam_box = Gtk.HBox(spacing=6)
             info_box = Gtk.VBox(spacing=6)
-            steam_label = InstallerLabel(_("Steam game <b>{appid}</b>").format(
-                appid=steam_installer.appid
-            ))
+            steam_label = InstallerLabel(_("Steam game <b>{appid}</b>").format(appid=steam_installer.appid))
             info_box.add(steam_label)
             self.state_label = InstallerLabel("")
             info_box.add(self.state_label)
@@ -92,7 +88,7 @@ class InstallerFileBox(Gtk.VBox):
         raise ValueError("Invalid provider %s" % self.provider)
 
     def get_combobox_model(self):
-        """"Return the combobox's model"""
+        """ "Return the combobox's model"""
         model = Gtk.ListStore(str, str)
         if "download" in self.installer_file.providers:
             model.append(["download", _("Download")])
@@ -153,10 +149,7 @@ class InstallerFileBox(Gtk.VBox):
             label = InstallerLabel(self.installer_file.get_label())
             label.props.can_focus = True
             box.pack_start(label, False, False, 0)
-            location_entry = FileChooserEntry(
-                self.installer_file.human_url,
-                Gtk.FileChooserAction.OPEN
-            )
+            location_entry = FileChooserEntry(self.installer_file.human_url, Gtk.FileChooserAction.OPEN)
             location_entry.connect("changed", self.on_location_changed)
             location_entry.show()
             box.pack_start(location_entry, False, False, 0)
@@ -170,11 +163,7 @@ class InstallerFileBox(Gtk.VBox):
 
     def get_widgets(self):
         """Return the widget with the source of the file and a way to change its source"""
-        box = Gtk.HBox(
-            spacing=12,
-            margin_top=6,
-            margin_bottom=6
-        )
+        box = Gtk.HBox(spacing=12, margin_top=6, margin_bottom=6)
         self.file_provider_widget = self.get_file_provider_label()
         box.pack_start(self.file_provider_widget, True, True, 0)
         source_box = Gtk.HBox()

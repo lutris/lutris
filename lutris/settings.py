@@ -58,7 +58,7 @@ RUNTIME_URL = SITE_URL + "/api/runtimes"
 
 STEAM_API_KEY = sio.read_setting("steam_api_key") or "34C9698CEB394AB4401D65927C6B3752"
 
-SHOW_MEDIA = os.environ.get("LUTRIS_HIDE_MEDIA") != "1" and sio.read_setting("hide_media") != 'True'
+SHOW_MEDIA = os.environ.get("LUTRIS_HIDE_MEDIA") != "1" and sio.read_setting("hide_media") != "True"
 
 DEFAULT_RESOLUTION_WIDTH = sio.read_setting("default_resolution_width", default="1280")
 DEFAULT_RESOLUTION_HEIGHT = sio.read_setting("default_resolution_height", default="720")
@@ -79,7 +79,7 @@ def get_lutris_directory_settings(directory):
         path = os.path.join(directory, "lutris.json")
         try:
             if os.path.isfile(path):
-                with open(path, "r", encoding='utf-8') as f:
+                with open(path, "r", encoding="utf-8") as f:
                     json_data = json.load(f)
                     if not isinstance(json_data, dict):
                         logger.error("'%s' does not contain a dict, and will be ignored.", path)
@@ -109,7 +109,7 @@ def set_lutris_directory_settings(directory, settings, merge=True):
     # we'll save to a temporary file and rename.
     temp_path = os.path.join(directory, "lutris.json.tmp")
     try:
-        with open(temp_path, "w", encoding='utf-8') as f:
+        with open(temp_path, "w", encoding="utf-8") as f:
             f.write(json.dumps(settings, indent=2))
         os.rename(temp_path, path)
         return True

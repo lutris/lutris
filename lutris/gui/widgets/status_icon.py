@@ -9,7 +9,7 @@ from lutris.game import Game
 from lutris.util import cache_single
 
 try:
-    gi.require_version('AppIndicator3', '0.1')
+    gi.require_version("AppIndicator3", "0.1")
     from gi.repository import AppIndicator3 as AppIndicator
 
     APP_INDICATOR_SUPPORTED = True

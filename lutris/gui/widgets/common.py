@@ -9,13 +9,13 @@ from gettext import gettext as _
 from gi.repository import GLib, GObject, Gtk, Pango
 
 from lutris.gui.widgets.utils import open_uri
+
 # Lutris Modules
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
 
 
 class SlugEntry(Gtk.Entry, Gtk.Editable):
-
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept alphanumeric and dashes"""
         new_text = "".join([c for c in new_text if c.isalnum() or c == "-"]).lower()
@@ -25,7 +25,6 @@ class SlugEntry(Gtk.Entry, Gtk.Editable):
 
 
 class NumberEntry(Gtk.Entry, Gtk.Editable):
-
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept numbers"""
         new_text = "".join([c for c in new_text if c.isnumeric()])
@@ -54,13 +53,9 @@ class FileChooserEntry(Gtk.Box):
         warn_if_non_writable_parent=False,
         warn_if_ntfs=False,
         activates_default=False,
-        shell_quoting=False
+        shell_quoting=False,
     ):  # pylint: disable=too-many-arguments
-        super().__init__(
-            orientation=Gtk.Orientation.VERTICAL,
-            spacing=0,
-            visible=True
-        )
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=0, visible=True)
         self.title = title
         self.action = action
         self.warn_if_non_empty = warn_if_non_empty
@@ -228,27 +223,27 @@ class FileChooserEntry(Gtk.Box):
             warning_image.set_from_icon_name("dialog-warning", Gtk.IconSize.DND)
             ntfs_box.add(warning_image)
             ntfs_label = Gtk.Label(visible=True)
-            ntfs_label.set_markup(_(
-                "<b>Warning!</b> The selected path is located on a drive formatted by Windows.\n"
-                "Games and programs installed on Windows drives <b>don't work</b>."
-            ))
+            ntfs_label.set_markup(
+                _(
+                    "<b>Warning!</b> The selected path is located on a drive formatted by Windows.\n"
+                    "Games and programs installed on Windows drives <b>don't work</b>."
+                )
+            )
             ntfs_box.add(ntfs_label)
             self.pack_end(ntfs_box, False, False, 10)
         if self.warn_if_non_empty and os.path.exists(path) and os.listdir(path):
             non_empty_label = Gtk.Label(visible=True)
-            non_empty_label.set_markup(_(
-                "<b>Warning!</b> The selected path "
-                "contains files. Installation will not work properly."
-            ))
+            non_empty_label.set_markup(
+                _("<b>Warning!</b> The selected path " "contains files. Installation will not work properly.")
+            )
             self.pack_end(non_empty_label, False, False, 10)
         if self.warn_if_non_writable_parent:
             parent = system.get_existing_parent(path)
             if parent is not None and not os.access(parent, os.W_OK):
                 non_writable_destination_label = Gtk.Label(visible=True)
-                non_writable_destination_label.set_markup(_(
-                    "<b>Warning</b> The destination folder "
-                    "is not writable by the current user."
-                ))
+                non_writable_destination_label.set_markup(
+                    _("<b>Warning</b> The destination folder " "is not writable by the current user.")
+                )
                 self.pack_end(non_writable_destination_label, False, False, 10)
 
         self.open_button.set_sensitive(bool(self.get_open_directory()))
@@ -280,8 +275,8 @@ class FileChooserEntry(Gtk.Box):
         original_path = self.get_path()
         path = original_path.strip("\r\n")
 
-        if path.startswith('file:///'):
-            path = urllib.parse.unquote(path[len('file://'):])
+        if path.startswith("file:///"):
+            path = urllib.parse.unquote(path[len("file://") :])
 
         path = os.path.expanduser(path)
 

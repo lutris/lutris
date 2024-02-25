@@ -35,10 +35,10 @@ def get_outputs():  # pylint: disable=too-many-locals
         fields = line.split()
         if "connected" in fields[1:] and len(fields) >= 4:
             try:
-                connected_index = fields.index('connected', 1)
+                connected_index = fields.index("connected", 1)
                 name_fields = fields[:connected_index]
                 name = " ".join(name_fields)
-                data_fields = fields[connected_index + 1:]
+                data_fields = fields[connected_index + 1 :]
                 if data_fields[0] == "primary":
                     data_fields = data_fields[1:]
                 geometry, rotate, *_ = data_fields
@@ -50,8 +50,7 @@ def get_outputs():  # pylint: disable=too-many-locals
                 position = "{x_pos}x{y_pos}".format(x_pos=x_pos, y_pos=y_pos)
             except ValueError as ex:
                 logger.error(
-                    "Unhandled xrandr line %s, error: %s. "
-                    "Please send your xrandr output to the dev team", line, ex
+                    "Unhandled xrandr line %s, error: %s. " "Please send your xrandr output to the dev team", line, ex
                 )
                 continue
         elif "*" in line:
@@ -96,7 +95,7 @@ def get_resolutions():
                 resolution_list.append(resolution_match.groups()[0])
     if not resolution_list:
         logger.error("Unable to generate resolution list from xrandr output")
-        return ['%sx%s' % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
+        return ["%sx%s" % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
     return sorted(set(resolution_list), key=lambda x: int(x.split("x")[0]), reverse=True)
 
 

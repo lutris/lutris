@@ -15,6 +15,7 @@ from lutris.util.log import logger
 class DownloadQueue(Gtk.ScrolledWindow):
     """This class is a widget that displays a stack of progress boxes, which you can create
     and destroy with its methods."""
+
     __gtype_name__ = "DownloadQueue"
 
     download_box: Gtk.Box = GtkTemplate.Child()
@@ -90,11 +91,14 @@ class DownloadQueue(Gtk.ScrolledWindow):
             if not self.progress_boxes:
                 self.revealer.set_reveal_child(False)
 
-    def start(self, operation: Callable[[], Any],
-              progress_function: ProgressBox.ProgressFunction,
-              completion_function: CompletionFunction = None,
-              error_function: ErrorFunction = None,
-              operation_name: str = None) -> bool:
+    def start(
+        self,
+        operation: Callable[[], Any],
+        progress_function: ProgressBox.ProgressFunction,
+        completion_function: CompletionFunction = None,
+        error_function: ErrorFunction = None,
+        operation_name: str = None,
+    ) -> bool:
         """Runs 'operation' on a thread, while displaying a progress bar. The 'progress_function'
         controls this progress bar, and it is removed when the 'operation' completes.
 
@@ -109,16 +113,22 @@ class DownloadQueue(Gtk.ScrolledWindow):
             error_function:         Called on the main threa don error, with exception
             operation_name:         Name of operation, to prevent duplicate queued work."""
 
-        return self.start_multiple(operation, [progress_function],
-                                   completion_function=completion_function,
-                                   error_function=error_function,
-                                   operation_names=[operation_name] if operation_name else None)
+        return self.start_multiple(
+            operation,
+            [progress_function],
+            completion_function=completion_function,
+            error_function=error_function,
+            operation_names=[operation_name] if operation_name else None,
+        )
 
-    def start_multiple(self, operation: Callable[[], Any],
-                       progress_functions: Iterable[ProgressBox.ProgressFunction],
-                       completion_function: CompletionFunction = None,
-                       error_function: ErrorFunction = None,
-                       operation_names: List[str] = None) -> bool:
+    def start_multiple(
+        self,
+        operation: Callable[[], Any],
+        progress_functions: Iterable[ProgressBox.ProgressFunction],
+        completion_function: CompletionFunction = None,
+        error_function: ErrorFunction = None,
+        operation_names: List[str] = None,
+    ) -> bool:
         """Runs 'operation' on a thread, while displaying a set of progress bars. The
         'progress_functions' control these progress bars, and they are removed when the
         'operation' completes.

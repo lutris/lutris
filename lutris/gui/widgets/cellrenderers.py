@@ -6,14 +6,18 @@ from math import floor
 
 import gi
 
-gi.require_version('PangoCairo', '1.0')
+gi.require_version("PangoCairo", "1.0")
 
 import cairo
 from gi.repository import Gdk, GLib, GObject, Gtk, Pango, PangoCairo
 
 from lutris.exceptions import MissingMediaError
 from lutris.gui.widgets.utils import (
-    MEDIA_CACHE_INVALIDATED, get_default_icon_path, get_runtime_icon_path, get_scaled_surface_by_path, get_surface_size
+    MEDIA_CACHE_INVALIDATED,
+    get_default_icon_path,
+    get_runtime_icon_path,
+    get_scaled_surface_by_path,
+    get_surface_size,
 )
 from lutris.services.service_media import resolve_media_path
 from lutris.util.path_cache import MISSING_GAMES
@@ -233,8 +237,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             if not surface:
                 # The default icon needs to be scaled to fill the cell space.
                 path = get_default_icon_path((media_width, media_height))
-                surface = self._get_cached_surface_by_path(widget, path,
-                                                           preserve_aspect_ratio=False)
+                surface = self._get_cached_surface_by_path(widget, path, preserve_aspect_ratio=False)
             if surface:
                 media_area = self.get_media_area(surface, cell_area)
                 self.select_badge_metrics(surface)
@@ -325,7 +328,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 data = surface.get_data()
 
                 offset = (y * stride) + x * 4
-                pixel = data[offset: offset + 4]
+                pixel = data[offset : offset + 4]
 
                 for channel in pixel:
                     if channel < 128:
@@ -535,5 +538,4 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def _get_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
         cell_size = size or (self.media_width, self.media_height)
         scale_factor = widget.get_scale_factor() if widget else 1
-        return get_scaled_surface_by_path(path, cell_size, scale_factor,
-                                          preserve_aspect_ratio=preserve_aspect_ratio)
+        return get_scaled_surface_by_path(path, cell_size, scale_factor, preserve_aspect_ratio=preserve_aspect_ratio)

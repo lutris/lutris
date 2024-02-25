@@ -24,11 +24,13 @@ class IssueReportWindow(BaseApplicationWindow):
         self.vbox.add(title_label)
         self.vbox.add(Gtk.HSeparator())
 
-        issue_entry_label = Gtk.Label(_(
-            "Describe the problem you're having in the text box below. "
-            "This information will be sent the Lutris team along with your system information. "
-            "You can also save this information locally if you are offline."
-        ))
+        issue_entry_label = Gtk.Label(
+            _(
+                "Describe the problem you're having in the text box below. "
+                "This information will be sent the Lutris team along with your system information. "
+                "You can also save this information locally if you are offline."
+            )
+        )
         issue_entry_label.set_max_width_chars(80)
         issue_entry_label.set_property("wrap", True)
         self.vbox.add(issue_entry_label)
@@ -56,8 +58,8 @@ class IssueReportWindow(BaseApplicationWindow):
     def get_issue_info(self):
         buffer = self.textview.get_buffer()
         return {
-            'comment': buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True),
-            'system': gather_system_info()
+            "comment": buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True),
+            "system": gather_system_info(),
         }
 
     def on_save(self, _button):
@@ -81,7 +83,7 @@ class IssueReportWindow(BaseApplicationWindow):
             return
         issue_path = os.path.join(target_path, "lutris-issue-report.json")
         issue_info = self.get_issue_info()
-        with open(issue_path, "w", encoding='utf-8') as issue_file:
+        with open(issue_path, "w", encoding="utf-8") as issue_file:
             json.dump(issue_info, issue_file, indent=2)
         dialog.destroy()
         NoticeDialog(_("Issue saved in %s") % issue_path)

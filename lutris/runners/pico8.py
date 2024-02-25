@@ -132,8 +132,7 @@ class pico8(Runner):
         return {"command": self.launch_args, "env": self.get_env(os_env=False)}
 
     def is_installed(self, flatpak_allowed: bool = True) -> bool:
-        """Checks if pico8 runner is installed and if the pico8 executable available.
-        """
+        """Checks if pico8 runner is installed and if the pico8 executable available."""
         if self.is_native and system.path_exists(self.runner_config.get("runner_executable")):
             return True
         return system.path_exists(os.path.join(settings.RUNNER_DIR, "pico8/web/player.html"))

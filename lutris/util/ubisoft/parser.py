@@ -88,7 +88,7 @@ class UbisoftParser(object):
         multiplier = 1
         record_size = 0
         tmp_size = 0
-        if header[offset - 1] == 0x0a:
+        if header[offset - 1] == 0x0A:
             while header[offset] != 0x08 or record_size == 0:
                 record_size += header[offset] * multiplier
                 multiplier *= 256
@@ -138,10 +138,10 @@ class UbisoftParser(object):
 
                     if object_size > 500:
                         records[install_id] = {
-                            'size': object_size,
-                            'offset': global_offset + header_size,
-                            'install_id': install_id,
-                            'launch_id': launch_id
+                            "size": object_size,
+                            "offset": global_offset + header_size,
+                            "install_id": install_id,
+                            "launch_id": launch_id,
                         }
                     global_offset_tmp = global_offset
                     global_offset += object_size + header_size
@@ -184,13 +184,14 @@ class UbisoftParser(object):
                 i += 1
 
             if game_id > 256 * 256:
-                game_id -= (128 * 256 * math.ceil(game_id / (256 * 256)))
-                game_id -= (128 * math.ceil(game_id / 256))
+                game_id -= 128 * 256 * math.ceil(game_id / (256 * 256))
+                game_id -= 128 * math.ceil(game_id / 256)
             else:
                 if game_id > 256:
-                    game_id -= (128 * math.ceil(game_id / 256))
+                    game_id -= 128 * math.ceil(game_id / 256)
 
             return str(game_id)
+
         """
             0Ah - file start
             0Ah - hidden games records
@@ -216,79 +217,82 @@ class UbisoftParser(object):
         data = self.settings_raw
         if data[global_offset] != 0:
             buffer = int(data[global_offset])
-            fav_records = data[global_offset + 1:global_offset + buffer + 1]
+            fav_records = data[global_offset + 1 : global_offset + buffer + 1]
         else:
             fav_records = []
 
         global_offset = len(fav_records) + 3
         if data[global_offset] != 0:
             buffer = int(data[global_offset])
-            hidden_records = data[global_offset + 1:global_offset + buffer + 1]
+            hidden_records = data[global_offset + 1 : global_offset + buffer + 1]
         else:
             hidden_records = []
 
         pos = 0
         while pos < len(fav_records):
             rec_size = fav_records[pos + 1] - 1
-            rec_data = fav_records[pos + 3:pos + 3 + rec_size]
+            rec_data = fav_records[pos + 3 : pos + 3 + rec_size]
             fav.add(get_game_id(rec_data, rec_size))
             pos += rec_size + 3
 
         pos = 0
         while pos < len(hidden_records):
             rec_size = hidden_records[pos + 1] - 1
-            rec_data = hidden_records[pos + 3:pos + 3 + rec_size]
+            rec_data = hidden_records[pos + 3 : pos + 3 + rec_size]
             hidden.add(get_game_id(rec_data, rec_size))
             pos += rec_size + 3
 
         return fav, hidden
 
     def _get_field_from_yaml(self, game_yaml, field="name"):
-        field_value = ''
+        field_value = ""
 
-        if field in game_yaml['root']:
-            field_value = game_yaml['root'][field]
+        if field in game_yaml["root"]:
+            field_value = game_yaml["root"][field]
         # Fallback 1
         if field == "name" and field_value.lower() in UBISOFT_CONFIGURATIONS_BLACKLISTED_NAMES:
-            if 'installer' in game_yaml['root'] and 'game_identifier' in game_yaml['root']['installer']:
-                field_value = game_yaml['root']['installer']['game_identifier']
+            if "installer" in game_yaml["root"] and "game_identifier" in game_yaml["root"]["installer"]:
+                field_value = game_yaml["root"]["installer"]["game_identifier"]
         # Fallback 2
         if field_value.lower() in UBISOFT_CONFIGURATIONS_BLACKLISTED_NAMES:
-            if 'localizations' in game_yaml and 'default' in game_yaml['localizations'] and field_value in \
-                    game_yaml['localizations']['default']:
-                field_value = game_yaml['localizations']['default'][field_value]
+            if (
+                "localizations" in game_yaml
+                and "default" in game_yaml["localizations"]
+                and field_value in game_yaml["localizations"]["default"]
+            ):
+                field_value = game_yaml["localizations"]["default"][field_value]
         return field_value
 
     def _get_steam_game_properties_from_yaml(self, game_yaml):
-        path = ''
-        third_party_id = ''
-        if 'third_party_steam' in game_yaml['root']['start_game']:
-            path = game_yaml['root']['start_game']['third_party_steam']['game_installation_status_register']
-            third_party_id = game_yaml['root']['start_game']['third_party_steam']['steam_app_id']
-        elif 'steam' in game_yaml['root']['start_game']:
-            path = game_yaml['root']['start_game']['steam']['game_installation_status_register']
-            third_party_id = game_yaml['root']['start_game']['steam']['steam_app_id']
+        path = ""
+        third_party_id = ""
+        if "third_party_steam" in game_yaml["root"]["start_game"]:
+            path = game_yaml["root"]["start_game"]["third_party_steam"]["game_installation_status_register"]
+            third_party_id = game_yaml["root"]["start_game"]["third_party_steam"]["steam_app_id"]
+        elif "steam" in game_yaml["root"]["start_game"]:
+            path = game_yaml["root"]["start_game"]["steam"]["game_installation_status_register"]
+            third_party_id = game_yaml["root"]["start_game"]["steam"]["steam_app_id"]
         return path, third_party_id
 
     def _get_registry_properties_from_yaml(self, game_yaml):
-        game_registry_path = ''
-        exe = ''
-        if 'online' not in game_yaml['root']['start_game']:
+        game_registry_path = ""
+        exe = ""
+        if "online" not in game_yaml["root"]["start_game"]:
             return None, None
-        registry_path = game_yaml['root']['start_game']['online']['executables'][0]['working_directory']['register']
+        registry_path = game_yaml["root"]["start_game"]["online"]["executables"][0]["working_directory"]["register"]
         game_registry_path = registry_path
         try:
-            exe = game_yaml['root']['start_game']['online']['executables'][0]['path']['relative']
+            exe = game_yaml["root"]["start_game"]["online"]["executables"][0]["path"]["relative"]
         except KeyError:
-            exe = game_yaml['root']['start_game']['online']['executables'][0]['path']['register']
+            exe = game_yaml["root"]["start_game"]["online"]["executables"][0]["path"]["register"]
         return game_registry_path, exe
 
     def _parse_game(self, game_yaml, install_id, launch_id):
-        space_id = ''
+        space_id = ""
         launch_id = str(launch_id)
         install_id = str(install_id)
-        if 'space_id' in game_yaml['root']:
-            space_id = game_yaml['root']['space_id']
+        if "space_id" in game_yaml["root"]:
+            space_id = game_yaml["root"]["space_id"]
         game_name = self._get_field_from_yaml(game_yaml, "name")
         thumb_image = self._get_field_from_yaml(game_yaml, "thumb_image")
         registry_path, exe = self._get_registry_properties_from_yaml(game_yaml)
@@ -299,7 +303,7 @@ class UbisoftParser(object):
             "name": game_name,
             "thumbImage": thumb_image,
             "registryPath": registry_path,
-            "exe": exe
+            "exe": exe,
         }
 
     def _iter_configuration_items(self):
@@ -309,18 +313,18 @@ class UbisoftParser(object):
                 yield game
 
     def _parse_configuration_item(self, conf_item):
-        stream = self.configuration_raw[
-            conf_item['offset']: conf_item['offset'] + conf_item['size']
-        ].decode("utf8", errors='ignore')
-        if stream and 'start_game' in stream:
-            return yaml.load(stream.replace('\t', ' '), Loader=yaml.FullLoader)
+        stream = self.configuration_raw[conf_item["offset"] : conf_item["offset"] + conf_item["size"]].decode(
+            "utf8", errors="ignore"
+        )
+        if stream and "start_game" in stream:
+            return yaml.load(stream.replace("\t", " "), Loader=yaml.FullLoader)
 
     def parse_games(self, configuration_data):
         self.configuration_raw = configuration_data
         for game in self._iter_configuration_items():
             yaml_object = self._parse_configuration_item(game)
             if yaml_object:
-                yield self._parse_game(yaml_object, game['install_id'], game['launch_id'])
+                yield self._parse_game(yaml_object, game["install_id"], game["launch_id"])
 
     def get_owned_local_games(self, ownership_data):
         self.ownership_raw = ownership_data

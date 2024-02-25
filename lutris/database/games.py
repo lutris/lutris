@@ -11,36 +11,26 @@ _SERVICE_CACHE = {}
 _SERVICE_CACHE_ACCESSED = False  # Keep time of last access to have a self degrading cache
 
 
-def get_games(
-    searches=None,
-    filters=None,
-    excludes=None,
-    sorts=None
-):
+def get_games(searches=None, filters=None, excludes=None, sorts=None):
     return sql.filtered_query(
-        settings.DB_PATH,
-        "games",
-        searches=searches,
-        filters=filters,
-        excludes=excludes,
-        sorts=sorts
+        settings.DB_PATH, "games", searches=searches, filters=filters, excludes=excludes, sorts=sorts
     )
 
 
 def get_games_where(**conditions):
     """
-        Query games table based on conditions
+    Query games table based on conditions
 
-        Args:
-            conditions (dict): named arguments with each field matches its desired value.
-            Special values for field names can be used:
-                <field>__lessthan will return rows where `field` is less than the value
-                <field>__isnull will return rows where `field` is NULL if the value is True
-                <field>__not will invert the condition using `!=` instead of `=`
-                <field>__in will match rows for every value of `value`, which should be an iterable
+    Args:
+        conditions (dict): named arguments with each field matches its desired value.
+        Special values for field names can be used:
+            <field>__lessthan will return rows where `field` is less than the value
+            <field>__isnull will return rows where `field` is NULL if the value is True
+            <field>__not will invert the condition using `!=` instead of `=`
+            <field>__in will match rows for every value of `value`, which should be an iterable
 
-        Returns:
-            list: Rows matching the query
+    Returns:
+        list: Rows matching the query
 
     """
     query = "select * from games"
@@ -86,7 +76,7 @@ def get_games_by_ids(game_ids):
     return list(
         chain.from_iterable(
             [
-                get_games_where(id__in=list(game_ids)[page * size:page * size + size])
+                get_games_where(id__in=list(game_ids)[page * size : page * size + size])
                 for page in range(math.ceil(len(game_ids) / size))
             ]
         )
@@ -156,13 +146,13 @@ def add_game(**game_data):
 
 def add_games_bulk(games):
     """
-        Add a list of games to the database.
-        The dicts must have an identical set of keys.
+    Add a list of games to the database.
+    The dicts must have an identical set of keys.
 
-        Args:
-            games (list): list of games in dict format
-        Returns:
-            list: List of inserted game ids
+    Args:
+        games (list): list of games in dict format
+    Returns:
+        list: List of inserted game ids
     """
     return [sql.db_insert(settings.DB_PATH, "games", game) for game in games]
 
@@ -231,8 +221,7 @@ def get_used_platforms():
     """Return a list of platforms currently in use"""
     with sql.db_cursor(settings.DB_PATH) as cursor:
         query = (
-            "select distinct platform from games "
-            "where platform is not null and platform is not '' order by platform"
+            "select distinct platform from games " "where platform is not null and platform is not '' order by platform"
         )
         rows = cursor.execute(query)
         results = rows.fetchall()

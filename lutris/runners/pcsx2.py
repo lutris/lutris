@@ -2,6 +2,7 @@
 from gettext import gettext as _
 
 from lutris.exceptions import MissingGameExecutableError
+
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -14,12 +15,14 @@ class pcsx2(Runner):
     runnable_alone = True
     runner_executable = "pcsx2/PCSX2"
     flatpak_id = "net.pcsx2.PCSX2"
-    game_options = [{
-        "option": "main_file",
-        "type": "file",
-        "label": _("ISO file"),
-        "default_path": "game_path",
-    }]
+    game_options = [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": _("ISO file"),
+            "default_path": "game_path",
+        }
+    ]
 
     runner_options = [
         {
@@ -28,18 +31,8 @@ class pcsx2(Runner):
             "label": _("Fullscreen"),
             "default": False,
         },
-        {
-            "option": "full_boot",
-            "type": "bool",
-            "label": _("Fullboot"),
-            "default": False
-        },
-        {
-            "option": "nogui",
-            "type": "bool",
-            "label": _("No GUI"),
-            "default": False
-        }
+        {"option": "full_boot", "type": "bool", "label": _("Fullboot"), "default": False},
+        {"option": "nogui", "type": "bool", "label": _("No GUI"), "default": False},
     ]
 
     # PCSX2 currently uses an AppImage, no need for the runtime.

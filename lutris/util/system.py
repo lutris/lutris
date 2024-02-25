@@ -27,32 +27,29 @@ PROTECTED_HOME_FOLDERS = (
     _("Videos"),
     _("Pictures"),
     _("Projects"),
-    _("Games")
+    _("Games"),
 )
 
 
 def get_environment():
     """Return a safe to use copy of the system's environment.
     Values starting with BASH_FUNC can cause issues when written in a text file."""
-    return {
-        key: value for key, value in os.environ.items()
-        if not key.startswith("BASH_FUNC")
-    }
+    return {key: value for key, value in os.environ.items() if not key.startswith("BASH_FUNC")}
 
 
 def execute(command, env=None, cwd=None, quiet=False, shell=False, timeout=None):
     """
-       Execute a system command and return its standard output; standard error is discarded.
+    Execute a system command and return its standard output; standard error is discarded.
 
-       Params:
-           command (list): A list containing an executable and its parameters
-           env (dict): Dict of values to add to the current environment
-           cwd (str): Working directory
-           quiet (bool): Do not display log messages
-           timeout (int): Number of seconds the program is allowed to run, disabled by default
+    Params:
+        command (list): A list containing an executable and its parameters
+        env (dict): Dict of values to add to the current environment
+        cwd (str): Working directory
+        quiet (bool): Do not display log messages
+        timeout (int): Number of seconds the program is allowed to run, disabled by default
 
-       Returns:
-           str: stdout output
+    Returns:
+        str: stdout output
     """
     stdout, _stderr = _execute(command, env=env, cwd=cwd, quiet=quiet, shell=shell, timeout=timeout)
     return stdout
@@ -60,17 +57,17 @@ def execute(command, env=None, cwd=None, quiet=False, shell=False, timeout=None)
 
 def execute_with_error(command, env=None, cwd=None, quiet=False, shell=False, timeout=None):
     """
-       Execute a system command and return its standard output and; standard error in a tuple.
+    Execute a system command and return its standard output and; standard error in a tuple.
 
-       Params:
-           command (list): A list containing an executable and its parameters
-           env (dict): Dict of values to add to the current environment
-           cwd (str): Working directory
-           quiet (bool): Do not display log messages
-           timeout (int): Number of seconds the program is allowed to run, disabled by default
+    Params:
+        command (list): A list containing an executable and its parameters
+        env (dict): Dict of values to add to the current environment
+        cwd (str): Working directory
+        quiet (bool): Do not display log messages
+        timeout (int): Number of seconds the program is allowed to run, disabled by default
 
-       Returns:
-           str: stdout output
+    Returns:
+        str: stdout output
     """
     return _execute(command, env=env, cwd=cwd, capture_stderr=True, quiet=quiet, shell=shell, timeout=timeout)
 
@@ -105,7 +102,7 @@ def _execute(command, env=None, cwd=None, capture_stderr=False, quiet=False, she
             stderr=subprocess.PIPE if capture_stderr else subprocess.DEVNULL,
             env=existing_env,
             cwd=cwd,
-            errors="replace"
+            errors="replace",
         ) as command_process:
             stdout, stderr = command_process.communicate(timeout=timeout)
     except (OSError, TypeError) as ex:
@@ -120,14 +117,14 @@ def _execute(command, env=None, cwd=None, capture_stderr=False, quiet=False, she
 
 def spawn(command, env=None, cwd=None, quiet=False, shell=False):
     """
-        Execute a system command but discard its results and do not wait
-        for it to complete.
+    Execute a system command but discard its results and do not wait
+    for it to complete.
 
-        Params:
-            command (list): A list containing an executable and its parameters
-            env (dict): Dict of values to add to the current environment
-            cwd (str): Working directory
-            quiet (bool): Do not display log messages
+    Params:
+        command (list): A list containing an executable and its parameters
+        env (dict): Dict of values to add to the current environment
+        cwd (str): Working directory
+        quiet (bool): Do not display log messages
     """
 
     # Check if the executable exists
@@ -153,12 +150,7 @@ def spawn(command, env=None, cwd=None, quiet=False, shell=False):
     # (especially when using regedit with wine)
     try:
         subprocess.Popen(  # pylint: disable=consider-using-with
-            command,
-            shell=shell,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            env=existing_env,
-            cwd=cwd
+            command, shell=shell, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=existing_env, cwd=cwd
         )
     except (OSError, TypeError) as ex:
         logger.error("Could not run command %s (env: %s): %s", command, env, ex)
@@ -167,13 +159,7 @@ def spawn(command, env=None, cwd=None, quiet=False, shell=False):
 def read_process_output(command, timeout=5, env=None):
     """Return the output of a command as a string"""
     try:
-        return subprocess.check_output(
-            command,
-            timeout=timeout,
-            env=env,
-            encoding="utf-8",
-            errors="ignore"
-        ).strip()
+        return subprocess.check_output(command, timeout=timeout, env=env, encoding="utf-8", errors="ignore").strip()
     except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as ex:
         logger.error("%s command failed: %s", command, ex)
         return ""
@@ -181,7 +167,7 @@ def read_process_output(command, timeout=5, env=None):
 
 def get_md5_in_zip(filename):
     """Return the md5 hash of a file in a zip"""
-    with zipfile.ZipFile(filename, 'r') as archive:
+    with zipfile.ZipFile(filename, "r") as archive:
         files = archive.namelist()
         if len(files) > 1:
             logger.warning("More than 1 file in archive %s, reading 1st one: %s", filename, files[0])
@@ -318,8 +304,8 @@ def merge_folders(source, destination):
     # We do not use shutil.copytree() here because that would copy
     # the file permissions, and we do not want them.
     source = os.path.abspath(source)
-    for (dirpath, dirnames, filenames) in os.walk(source):
-        source_relpath = dirpath[len(source):].strip("/")
+    for dirpath, dirnames, filenames in os.walk(source):
+        source_relpath = dirpath[len(source) :].strip("/")
         dst_abspath = os.path.join(destination, source_relpath)
         for dirname in dirnames:
             new_dir = os.path.join(dst_abspath, dirname)
@@ -335,9 +321,11 @@ def merge_folders(source, destination):
             shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename), follow_symlinks=False)
 
 
-def remove_folder(path: str,
-                  completion_function: TrashPortal.CompletionFunction = None,
-                  error_function: TrashPortal.ErrorFunction = None) -> None:
+def remove_folder(
+    path: str,
+    completion_function: TrashPortal.CompletionFunction = None,
+    error_function: TrashPortal.ErrorFunction = None,
+) -> None:
     """Trashes a folder specified by path, asynchronously. The folder
     likely exists after this returns, since it's using DBus to ask
     for the entrashification.
@@ -353,9 +341,7 @@ def remove_folder(path: str,
         return
 
     logger.debug("Trashing folder %s", path)
-    TrashPortal([path],
-                completion_function=completion_function,
-                error_function=error_function)
+    TrashPortal([path], completion_function=completion_function, error_function=error_function)
 
 
 def delete_folder(path):
@@ -472,7 +458,7 @@ def reverse_expanduser(path):
         return path
     user_path = os.path.expanduser("~")
     if path.startswith(user_path):
-        path = path[len(user_path):].strip("/")
+        path = path[len(user_path) :].strip("/")
         return "~/" + path
     return path
 
@@ -565,9 +551,7 @@ def get_disk_size(path):
     total_size = 0
     for base, _dirs, files in os.walk(path):
         total_size += sum(
-            os.stat(os.path.join(base, f)).st_size
-            for f in files
-            if os.path.isfile(os.path.join(base, f))
+            os.stat(os.path.join(base, f)).st_size for f in files if os.path.isfile(os.path.join(base, f))
         )
     return total_size
 
@@ -575,11 +559,11 @@ def get_disk_size(path):
 def get_locale_list():
     """Return list of available locales"""
     try:
-        with subprocess.Popen(['locale', '-a'], stdout=subprocess.PIPE) as locale_getter:
+        with subprocess.Popen(["locale", "-a"], stdout=subprocess.PIPE) as locale_getter:
             output = locale_getter.communicate()
-        locales = output[0].decode('ASCII').split()  # locale names use only ascii characters
+        locales = output[0].decode("ASCII").split()  # locale names use only ascii characters
     except FileNotFoundError:
-        lang = os.environ.get('LANG', '')
+        lang = os.environ.get("LANG", "")
         if lang:
             locales = [lang]
         else:

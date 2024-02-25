@@ -57,7 +57,7 @@ def get_shortcuts():
     if not shortcut_path or not os.path.exists(shortcut_path):
         return []
     with open(shortcut_path, "rb") as shortcut_file:
-        shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts']
+        shortcuts = vdf.binary_loads(shortcut_file.read())["shortcuts"]
     return shortcuts
 
 
@@ -84,17 +84,13 @@ def create_shortcut(game, launch_config_name=None):
     shortcut_path = get_shortcuts_vdf_path()
     if os.path.exists(shortcut_path):
         with open(shortcut_path, "rb") as shortcut_file:
-            shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
+            shortcuts = vdf.binary_loads(shortcut_file.read())["shortcuts"].values()
     else:
         shortcuts = []
 
     shortcuts = list(shortcuts) + [generate_shortcut(game, launch_config_name)]
 
-    updated_shortcuts = {
-        'shortcuts': {
-            str(index): elem for index, elem in enumerate(shortcuts)
-        }
-    }
+    updated_shortcuts = {"shortcuts": {str(index): elem for index, elem in enumerate(shortcuts)}}
     with open(shortcut_path, "wb") as shortcut_file:
         shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
     set_artwork(game)
@@ -106,16 +102,12 @@ def remove_shortcut(game):
     if not shortcut_path or not os.path.exists(shortcut_path):
         return
     with open(shortcut_path, "rb") as shortcut_file:
-        shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
+        shortcuts = vdf.binary_loads(shortcut_file.read())["shortcuts"].values()
     other_shortcuts = [s for s in shortcuts if not matches_id(s, game)]
     # Quit early if no shortcut is removed
     if len(shortcuts) == len(other_shortcuts):
         return
-    updated_shortcuts = {
-        'shortcuts': {
-            str(index): elem for index, elem in enumerate(other_shortcuts)
-        }
-    }
+    updated_shortcuts = {"shortcuts": {str(index): elem for index, elem in enumerate(other_shortcuts)}}
     with open(shortcut_path, "wb") as shortcut_file:
         shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
 
@@ -125,8 +117,8 @@ def generate_preliminary_id(game):
     if lutris_binary == "/app/bin/lutris":
         lutris_binary = "/usr/bin/flatpak"
     exe = f'"{lutris_binary}"'
-    unique_id = ''.join([exe, game.name])
-    top = binascii.crc32(str.encode(unique_id, 'utf-8')) | 0x80000000
+    unique_id = "".join([exe, game.name])
+    top = binascii.crc32(str.encode(unique_id, "utf-8")) | 0x80000000
     return (top << 32) | 0x02000000
 
 
@@ -141,11 +133,9 @@ def generate_shortcut_id(game):
 def generate_shortcut(game, launch_config_name):
     lutris_binary = shutil.which("lutris")
 
-    launch_options = format_installer_url({
-        "action": "rungameid",
-        "game_slug": game.id,
-        "launch_config_name": launch_config_name
-    })
+    launch_options = format_installer_url(
+        {"action": "rungameid", "game_slug": game.id, "launch_config_name": launch_config_name}
+    )
 
     launch_options = shlex.quote(launch_options)
 
@@ -153,19 +143,19 @@ def generate_shortcut(game, launch_config_name):
         lutris_binary = "/usr/bin/flatpak"
         launch_options = "run net.lutris.Lutris " + launch_options
     return {
-        'appid': generate_shortcut_id(game),
-        'AppName': game.name,
-        'Exe': f'"{lutris_binary}"',
-        'StartDir': f'"{os.path.dirname(lutris_binary)}"',
-        'icon': resources.get_icon_path(game.slug),
-        'LaunchOptions': launch_options,
-        'IsHidden': 0,
-        'AllowDesktopConfig': 1,
-        'AllowOverlay': 1,
-        'OpenVR': 0,
-        'Devkit': 0,
-        'DevkitOverrideAppID': 0,
-        'LastPlayTime': 0,
+        "appid": generate_shortcut_id(game),
+        "AppName": game.name,
+        "Exe": f'"{lutris_binary}"',
+        "StartDir": f'"{os.path.dirname(lutris_binary)}"',
+        "icon": resources.get_icon_path(game.slug),
+        "LaunchOptions": launch_options,
+        "IsHidden": 0,
+        "AllowDesktopConfig": 1,
+        "AllowOverlay": 1,
+        "OpenVR": 0,
+        "Devkit": 0,
+        "DevkitOverrideAppID": 0,
+        "LastPlayTime": 0,
     }
 
 

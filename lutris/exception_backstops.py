@@ -45,7 +45,7 @@ def watch_game_errors(game_stop_result, game=None):
 
 
 _error_handlers: Dict[Type[BaseException], Callable[[BaseException, Gtk.Window], Any]] = {}
-TError = TypeVar('TError', bound=BaseException)
+TError = TypeVar("TError", bound=BaseException)
 
 
 def register_error_handler(error_class: Type[TError], handler: Callable[[TError, Gtk.Window], Any]) -> None:
@@ -95,10 +95,9 @@ def _get_error_parent(error_objects: Iterable) -> Gtk.Window:
     return application.window if application else None
 
 
-def _create_error_wrapper(handler: Callable, handler_name: str,
-                          error_result: Any,
-                          error_method_name: str,
-                          connected_object: Any = None):
+def _create_error_wrapper(
+    handler: Callable, handler_name: str, error_result: Any, error_method_name: str, connected_object: Any = None
+):
     """Wraps a handler function in an error handler that will log and then report
     any exceptions, then return the 'error_result'."""
 
@@ -143,28 +142,40 @@ def init_exception_backstops():
     """
 
     def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args, **kwargs):
-        error_wrapper = _create_error_wrapper(handler, f"signal '{signal_spec}'",
-                                              error_result=None,
-                                              error_method_name="on_signal_error",
-                                              connected_object=self)
+        error_wrapper = _create_error_wrapper(
+            handler,
+            f"signal '{signal_spec}'",
+            error_result=None,
+            error_method_name="on_signal_error",
+            connected_object=self,
+        )
         return _original_connect(self, signal_spec, error_wrapper, *args, **kwargs)
 
     def _error_handling_add_emission_hook(emitting_type, signal_spec, handler, *args, **kwargs):
-        error_wrapper = _create_error_wrapper(handler, f"emission hook '{emitting_type}.{signal_spec}'",
-                                              error_result=True,  # stay attached
-                                              error_method_name="on_emission_hook_error")
+        error_wrapper = _create_error_wrapper(
+            handler,
+            f"emission hook '{emitting_type}.{signal_spec}'",
+            error_result=True,  # stay attached
+            error_method_name="on_emission_hook_error",
+        )
         return _original_add_emission_hook(emitting_type, signal_spec, error_wrapper, *args, **kwargs)
 
     def _error_handling_idle_add(handler, *args, **kwargs):
-        error_wrapper = _create_error_wrapper(handler, "idle function",
-                                              error_result=False,  # stop calling idle func
-                                              error_method_name="on_idle_error")
+        error_wrapper = _create_error_wrapper(
+            handler,
+            "idle function",
+            error_result=False,  # stop calling idle func
+            error_method_name="on_idle_error",
+        )
         return _original_idle_add(error_wrapper, *args, **kwargs)
 
     def _error_handling_timeout_add(interval, handler, *args, **kwargs):
-        error_wrapper = _create_error_wrapper(handler, "timeout function",
-                                              error_result=False,  # stop calling timeout fund
-                                              error_method_name="on_timeout_error")
+        error_wrapper = _create_error_wrapper(
+            handler,
+            "timeout function",
+            error_result=False,  # stop calling timeout fund
+            error_method_name="on_timeout_error",
+        )
         return _original_timeout_add(interval, error_wrapper, *args, **kwargs)
 
     def _handle_keyerror(error: KeyError, parent: Gtk.Window) -> None:

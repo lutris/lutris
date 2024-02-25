@@ -1,7 +1,7 @@
 # pylint: disable=no-member,unnecessary-dunder-call
 from collections import Counter
 
-_iter_values = 'values'
+_iter_values = "values"
 _range = range
 _string_type = str
 import collections as _c
@@ -182,13 +182,13 @@ class VDFDict(dict):
         return _iView(self)
 
     def get_all_for(self, key):
-        """ Returns all values of the given key """
+        """Returns all values of the given key"""
         if not isinstance(key, _string_type):
             raise TypeError("Key needs to be a string.")
         return [self[(idx, key)] for idx in _range(self.__kcount[key])]
 
     def remove_all_for(self, key):
-        """ Removes all items with the given key """
+        """Removes all items with the given key"""
         if not isinstance(key, _string_type):
             raise TypeError("Key need to be a string.")
 

@@ -26,8 +26,7 @@ class reicast(Runner):
             "option": "iso",
             "type": "file",
             "label": _("Disc image file"),
-            "help": _("The game data.\n"
-                      "Supported formats: ISO, CDI"),
+            "help": _("The game data.\n" "Supported formats: ISO, CDI"),
         }
     ]
 
@@ -82,6 +81,7 @@ class reicast(Runner):
             for mapping_file in os.listdir(mapping_source):
                 shutil.copy(os.path.join(mapping_source, mapping_file), mapping_path)
             system.create_folder("~/.reicast/data")
+
         super().install(install_ui_delegate, version, on_runner_installed)
 
     def get_joypads(self):
@@ -92,7 +92,7 @@ class reicast(Runner):
         joypad_devices = joypad.get_joypads()
         name_counter = Counter([j[1] for j in joypad_devices])
         name_indexes = {}
-        for (dev, joy_name) in joypad_devices:
+        for dev, joy_name in joypad_devices:
             dev_id = re.findall(r"(\d+)", dev)[0]
             if name_counter[joy_name] > 1:
                 if joy_name not in name_indexes:
@@ -118,28 +118,24 @@ class reicast(Runner):
 
         config_path = os.path.expanduser("~/.reicast/emu.cfg")
         if system.path_exists(config_path):
-            with open(config_path, "r", encoding='utf-8') as config_file:
+            with open(config_path, "r", encoding="utf-8") as config_file:
                 parser.read_file(config_file)
 
         for section in config:
             if not parser.has_section(section):
                 parser.add_section(section)
-            for (key, value) in config[section].items():
+            for key, value in config[section].items():
                 parser.set(section, key, str(value))
 
-        with open(config_path, "w", encoding='utf-8') as config_file:
+        with open(config_path, "w", encoding="utf-8") as config_file:
             parser.write(config_file)
 
     def play(self):
         fullscreen = "1" if self.runner_config.get("fullscreen") else "0"
         reicast_config = {
-            "x11": {
-                "fullscreen": fullscreen
-            },
+            "x11": {"fullscreen": fullscreen},
             "input": {},
-            "players": {
-                "nb": "1"
-            },
+            "players": {"nb": "1"},
         }
         players = 1
         reicast_config["input"] = {}
@@ -154,6 +150,4 @@ class reicast(Runner):
         self.write_config(reicast_config)
 
         iso = self.game_config.get("iso")
-        return {
-            "command": self.get_command() + ["-config", f"config:image={iso}"]
-        }
+        return {"command": self.get_command() + ["-config", f"config:image={iso}"]}

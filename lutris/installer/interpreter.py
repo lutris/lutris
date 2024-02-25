@@ -87,9 +87,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             self.service = self.installer.service
         script_errors = self.installer.get_errors()
         if script_errors:
-            raise ScriptingError(
-                _("Invalid script: \n{}").format("\n".join(script_errors)), self.installer.script
-            )
+            raise ScriptingError(_("Invalid script: \n{}").format("\n".join(script_errors)), self.installer.script)
 
         self._check_binary_dependencies()
         self._check_dependency()
@@ -135,8 +133,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         variable as set for the game during the install process.
         """
         return {
-            key: self._substitute(value) for key, value in
-            self.installer.script.get('system', {}).get('env', {}).items()
+            key: self._substitute(value)
+            for key, value in self.installer.script.get("system", {}).get("env", {}).items()
         }
 
     @staticmethod
@@ -161,8 +159,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         for dependency in binary_dependencies:
             if isinstance(dependency, tuple):
                 installed_binaries = {
-                    dependency_option: system.can_find_executable(dependency_option)
-                    for dependency_option in dependency
+                    dependency_option: system.can_find_executable(dependency_option) for dependency_option in dependency
                 }
                 if not any(installed_binaries.values()):
                     raise ScriptingError(_("This installer requires %s on your system") % _(" or ").join(dependency))
@@ -377,13 +374,16 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             and not os.path.isfile(path)
             and self.installer.runner not in ("web", "browser")
         ):
-            status = _(
-                "The executable at path %s can't be found, please check the destination folder.\n"
-                "Some parts of the installation process may have not completed successfully."
-            ) % path
+            status = (
+                _(
+                    "The executable at path %s can't be found, please check the destination folder.\n"
+                    "Some parts of the installation process may have not completed successfully."
+                )
+                % path
+            )
             logger.warning("No executable found at specified location %s", path)
         else:
-            status = (self.installer.script.get("install_complete_text") or _("Installation completed!"))
+            status = self.installer.script.get("install_complete_text") or _("Installation completed!")
         AsyncCall(download_lutris_media, None, self.installer.game_slug)
         self.interpreter_ui_delegate.report_finished(game_id, status)
 

@@ -32,8 +32,7 @@ class zdoom(Runner):
             "option": "files",
             "type": "multiple",
             "label": _("PWAD files"),
-            "help": _("Used to load one or more PWAD files which generally contain "
-                      "user-created levels."),
+            "help": _("Used to load one or more PWAD files which generally contain " "user-created levels."),
         },
         {
             "option": "warp",
@@ -50,18 +49,8 @@ class zdoom(Runner):
         },
     ]
     runner_options = [
-        {
-            "option": "2",
-            "label": _("Pixel Doubling"),
-            "type": "bool",
-            "default": False
-        },
-        {
-            "option": "4",
-            "label": _("Pixel Quadrupling"),
-            "type": "bool",
-            "default": False
-        },
+        {"option": "2", "label": _("Pixel Doubling"), "type": "bool", "default": False},
+        {"option": "4", "label": _("Pixel Quadrupling"), "type": "bool", "default": False},
         {
             "option": "nostartup",
             "label": _("Disable Startup Screens"),
@@ -83,12 +72,9 @@ class zdoom(Runner):
             },
         },
         {
-            "option":
-            "config",
-            "label":
-            _("Config file"),
-            "type":
-            "file",
+            "option": "config",
+            "label": _("Config file"),
+            "type": "file",
             "help": _(
                 "Used to load a user-created configuration file. If specified, "
                 "the file must contain the wad directory list or launch will fail."

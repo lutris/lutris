@@ -18,7 +18,6 @@ from lutris.util.strings import gtk_safe
 
 
 class UpdatesBox(BaseConfigBox):
-
     def __init__(self):
         super().__init__()
         self.add(self.get_section_label(_("Wine update channel")))
@@ -26,55 +25,53 @@ class UpdatesBox(BaseConfigBox):
         update_channel_radio_buttons = self.get_update_channel_radio_buttons()
 
         update_label_text, update_button_text = self.get_wine_update_texts()
-        self.update_runners_box = UpdateButtonBox(update_label_text,
-                                                  update_button_text,
-                                                  clicked=self.on_runners_update_clicked)
+        self.update_runners_box = UpdateButtonBox(
+            update_label_text, update_button_text, clicked=self.on_runners_update_clicked
+        )
 
         self.pack_start(self._get_framed_options_list_box(update_channel_radio_buttons), False, False, 0)
         self.pack_start(self._get_framed_options_list_box([self.update_runners_box]), False, False, 0)
 
         self.add(self.get_section_label(_("Runtime updates")))
-        self.add(self.get_description_label(
-            _("Runtime components include DXVK, VKD3D and Winetricks.")
-        ))
-        self.update_runtime_box = UpdateButtonBox("",
-                                                  _("Check for Updates"),
-                                                  clicked=self.on_runtime_update_clicked)
+        self.add(self.get_description_label(_("Runtime components include DXVK, VKD3D and Winetricks.")))
+        self.update_runtime_box = UpdateButtonBox("", _("Check for Updates"), clicked=self.on_runtime_update_clicked)
 
         update_runtime_box = self.get_setting_box(
             "auto_update_runtime",
             _("Automatically Update the Lutris runtime"),
             default=True,
-            extra_widget=self.update_runtime_box
+            extra_widget=self.update_runtime_box,
         )
         self.pack_start(self._get_framed_options_list_box([update_runtime_box]), False, False, 0)
         self.add(self.get_section_label(_("Media updates")))
-        self.update_media_box = UpdateButtonBox("",
-                                                _("Download Missing Media"),
-                                                clicked=self.on_download_media_clicked)
+        self.update_media_box = UpdateButtonBox("", _("Download Missing Media"), clicked=self.on_download_media_clicked)
         self.pack_start(self._get_framed_options_list_box([self.update_media_box]), False, False, 0)
 
     def get_update_channel_radio_buttons(self):
         update_channel = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
-        markup = _("<b>Stable</b>:\n"
-                   "Wine-GE updates are downloaded automatically and the latest version "
-                   "is always used unless overridden in the settings.\n"
-                   "\n"
-                   "This allows us to keep track of regressions more efficiently and provide "
-                   "fixes more reliably.")
-        stable_channel_radio_button = self._get_radio_button(markup,
-                                                             active=update_channel == UPDATE_CHANNEL_STABLE,
-                                                             group=None)
+        markup = _(
+            "<b>Stable</b>:\n"
+            "Wine-GE updates are downloaded automatically and the latest version "
+            "is always used unless overridden in the settings.\n"
+            "\n"
+            "This allows us to keep track of regressions more efficiently and provide "
+            "fixes more reliably."
+        )
+        stable_channel_radio_button = self._get_radio_button(
+            markup, active=update_channel == UPDATE_CHANNEL_STABLE, group=None
+        )
 
-        markup = _("<b>Self-maintained</b>:\n"
-                   "Wine updates are no longer delivered automatically and you have full responsibility "
-                   "of your Wine versions.\n"
-                   "\n"
-                   "Please note that this mode is <b>fully unsupported</b>. In order to submit issues on Github "
-                   "or ask for help on Discord, switch back to the <b>Stable channel</b>.")
-        unsupported_channel_radio_button = self._get_radio_button(markup,
-                                                                  active=update_channel == UPDATE_CHANNEL_UNSUPPORTED,
-                                                                  group=stable_channel_radio_button)
+        markup = _(
+            "<b>Self-maintained</b>:\n"
+            "Wine updates are no longer delivered automatically and you have full responsibility "
+            "of your Wine versions.\n"
+            "\n"
+            "Please note that this mode is <b>fully unsupported</b>. In order to submit issues on Github "
+            "or ask for help on Discord, switch back to the <b>Stable channel</b>."
+        )
+        unsupported_channel_radio_button = self._get_radio_button(
+            markup, active=update_channel == UPDATE_CHANNEL_UNSUPPORTED, group=stable_channel_radio_button
+        )
         # Safer to connect these after the active property has been initialized on all radio buttons
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
@@ -84,22 +81,22 @@ class UpdatesBox(BaseConfigBox):
         wine_version_info = get_default_wine_runner_version_info()
         wine_version = f"{wine_version_info['version']}-{wine_version_info['architecture']}"
         if system.path_exists(os.path.join(settings.RUNNER_DIR, "wine", wine_version)):
-            update_label_text = _(
-                "Your wine version is up to date. Using: <b>%s</b>\n"
-                "<i>Last checked %s.</i>"
-            ) % (wine_version_info['version'], get_runtime_versions_date_time_ago())
+            update_label_text = _("Your wine version is up to date. Using: <b>%s</b>\n" "<i>Last checked %s.</i>") % (
+                wine_version_info["version"],
+                get_runtime_versions_date_time_ago(),
+            )
             update_button_text = _("Check again")
         elif not system.path_exists(os.path.join(settings.RUNNER_DIR, "wine")):
-            update_label_text = _(
-                "You don't have any Wine version installed.\n"
-                "We recommend <b>%s</b>"
-            ) % wine_version_info['version']
-            update_button_text = _("Download %s") % wine_version_info['version']
+            update_label_text = (
+                _("You don't have any Wine version installed.\n" "We recommend <b>%s</b>")
+                % wine_version_info["version"]
+            )
+            update_button_text = _("Download %s") % wine_version_info["version"]
         else:
-            update_label_text = _(
-                "You don't have the recommended Wine version: <b>%s</b>"
-            ) % wine_version_info['version']
-            update_button_text = _("Download %s") % wine_version_info['version']
+            update_label_text = (
+                _("You don't have the recommended Wine version: <b>%s</b>") % wine_version_info["version"]
+            )
+            update_button_text = _("Download %s") % wine_version_info["version"]
         return update_label_text, update_button_text
 
     def apply_wine_update_texts(self, completion_markup: str = "") -> None:
@@ -165,18 +162,21 @@ class UpdatesBox(BaseConfigBox):
         updater.update_runners = True
         component_updaters = updater.create_component_updaters()
         if component_updaters:
+
             def on_complete(_result):
                 self.apply_wine_update_texts()
 
-            started = window.install_runtime_component_updates(component_updaters, updater,
-                                                               completion_function=on_complete,
-                                                               error_function=self.update_runners_box.show_error)
+            started = window.install_runtime_component_updates(
+                component_updaters,
+                updater,
+                completion_function=on_complete,
+                error_function=self.update_runners_box.show_error,
+            )
 
             if started:
                 self.update_runners_box.show_running_markup(_("<i>Downloading...</i>"))
             else:
-                NoticeDialog(_("Updates are already being downloaded and installed."),
-                             parent=self.get_toplevel())
+                NoticeDialog(_("Updates are already being downloaded and installed."), parent=self.get_toplevel())
         else:
             self.apply_wine_update_texts(_("No updates are required at this time."))
 
@@ -188,8 +188,7 @@ class UpdatesBox(BaseConfigBox):
 
         self._trigger_updates(get_updater, self.update_runtime_box)
 
-    def _trigger_updates(self, updater_factory: Callable,
-                         update_box: 'UpdateButtonBox') -> None:
+    def _trigger_updates(self, updater_factory: Callable, update_box: "UpdateButtonBox") -> None:
         window = self._get_main_window()
         if not window:
             return
@@ -197,35 +196,36 @@ class UpdatesBox(BaseConfigBox):
         updater = updater_factory()
         component_updaters = updater.create_component_updaters()
         if component_updaters:
+
             def on_complete(_result):
                 if len(component_updaters) == 1:
                     update_box.show_completion_markup("", _("1 component has been updated."))
                 else:
-                    update_box.show_completion_markup("",
-                                                      _("%d components have been updated.") % len(component_updaters))
+                    update_box.show_completion_markup(
+                        "", _("%d components have been updated.") % len(component_updaters)
+                    )
 
-            started = window.install_runtime_component_updates(component_updaters, updater,
-                                                               completion_function=on_complete,
-                                                               error_function=update_box.show_error)
+            started = window.install_runtime_component_updates(
+                component_updaters, updater, completion_function=on_complete, error_function=update_box.show_error
+            )
 
             if started:
                 update_box.show_running_markup(_("<i>Checking for updates...</i>"))
             else:
-                NoticeDialog(_("Updates are already being downloaded and installed."),
-                             parent=self.get_toplevel())
+                NoticeDialog(_("Updates are already being downloaded and installed."), parent=self.get_toplevel())
         else:
             update_box.show_completion_markup("", _("No updates are required at this time."))
 
     def on_update_channel_toggled(self, checkbox, value):
-        """Update setting when update channel is toggled
-        """
+        """Update setting when update channel is toggled"""
         if not checkbox.get_active():
             return
         last_setting = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
         if last_setting == UPDATE_CHANNEL_STABLE and value == UPDATE_CHANNEL_UNSUPPORTED:
-            NoticeDialog(_(
-                "Without the Wine-GE updates enabled, we can no longer provide support on Github and Discord."
-            ), parent=self.get_toplevel())
+            NoticeDialog(
+                _("Without the Wine-GE updates enabled, we can no longer provide support on Github and Discord."),
+                parent=self.get_toplevel(),
+            )
         settings.write_setting("wine-update-channel", value)
 
 

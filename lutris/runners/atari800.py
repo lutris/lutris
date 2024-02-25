@@ -85,7 +85,6 @@ class atari800(Runner):
     ]
 
     def install(self, install_ui_delegate, version=None, callback=None):
-
         def on_runner_installed(*_args):
             config_path = system.create_folder("~/.atari800")
             bios_archive = os.path.join(config_path, "atari800-bioses.zip")
@@ -103,7 +102,7 @@ class atari800(Runner):
         super().install(install_ui_delegate, version, on_runner_installed)
 
     def find_good_bioses(self, bios_path):
-        """ Check for correct bios files """
+        """Check for correct bios files"""
         good_bios = {}
         for filename in os.listdir(bios_path):
             real_hash = system.get_md5_hash(os.path.join(bios_path, filename))

@@ -10,17 +10,12 @@ def migrate():
     """
     logger.info("Updating Games Discord APP ID's")
     # Get Slugs from all games
-    slugs_to_update = [game['slug'] for game in get_games()]
+    slugs_to_update = [game["slug"] for game in get_games()]
     # Retrieve game data
     games = get_api_games(slugs_to_update)
     for game in games:
-        if not game['discord_id']:
+        if not game["discord_id"]:
             continue
 
-        sql.db_update(
-            settings.DB_PATH,
-            "games",
-            {"discord_id": game['discord_id']},
-            {"slug": game['slug']}
-        )
-        logger.info("Updated %s", game['name'])
+        sql.db_update(settings.DB_PATH, "games", {"discord_id": game["discord_id"]}, {"slug": game["slug"]})
+        logger.info("Updated %s", game["name"])

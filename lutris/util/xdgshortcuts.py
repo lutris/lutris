@@ -58,11 +58,7 @@ def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desk
     desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
     lutris_executable = get_lutris_executable()
 
-    url = format_installer_url({
-        "action": "rungameid",
-        "game_slug": game_id,
-        "launch_config_name": launch_config_name
-    })
+    url = format_installer_url({"action": "rungameid", "game_slug": game_id, "launch_config_name": launch_config_name})
 
     launcher_content = dedent(
         """
@@ -72,27 +68,17 @@ def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desk
         Icon={}
         Exec=env LUTRIS_SKIP_INIT=1 {} {}
         Categories=Game
-        """.format(
-            game_name,
-            "lutris_{}".format(game_slug),
-            lutris_executable,
-            shlex.quote(url)
-        )
+        """.format(game_name, "lutris_{}".format(game_slug), lutris_executable, shlex.quote(url))
     )
 
     launcher_filename = get_xdg_basename(game_slug, game_id)
     tmp_launcher_path = os.path.join(CACHE_DIR, launcher_filename)
-    with open(tmp_launcher_path, "w", encoding='utf-8') as tmp_launcher:
+    with open(tmp_launcher_path, "w", encoding="utf-8") as tmp_launcher:
         tmp_launcher.write(launcher_content)
         tmp_launcher.close()
     os.chmod(
         tmp_launcher_path,
-        stat.S_IREAD
-        | stat.S_IWRITE
-        | stat.S_IEXEC
-        | stat.S_IRGRP
-        | stat.S_IWGRP
-        | stat.S_IXGRP,
+        stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP,
     )
 
     if desktop:

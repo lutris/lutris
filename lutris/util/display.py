@@ -63,7 +63,7 @@ class DisplayManager:
         resolutions = ["%sx%s" % (mode.get_width(), mode.get_height()) for mode in self.rr_screen.list_modes()]
         if not resolutions:
             logger.error("Failed to generate resolution list from default GdkScreen")
-            return ['%sx%s' % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
+            return ["%sx%s" % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
         return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
 
     def _get_primary_output(self):
@@ -144,31 +144,46 @@ _compositor_commands_by_de = {
         "check": ["qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.active"],
         "active_result": b"true\n",
         "stop_compositor": ["qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.suspend"],
-        "start_compositor": ["qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.resume"]
+        "start_compositor": ["qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.resume"],
     },
     DesktopEnvironment.MATE: {
         "check": ["gsettings", "get org.mate.Marco.general", "compositing-manager"],
         "active_result": b"true\n",
         "stop_compositor": ["gsettings", "set org.mate.Marco.general", "compositing-manager", "false"],
-        "start_compositor": ["gsettings", "set org.mate.Marco.general", "compositing-manager", "true"]
+        "start_compositor": ["gsettings", "set org.mate.Marco.general", "compositing-manager", "true"],
     },
     DesktopEnvironment.XFCE: {
         "check": ["xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing"],
         "active_result": b"true\n",
         "stop_compositor": ["xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=false"],
-        "start_compositor": ["xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=true"]
+        "start_compositor": ["xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=true"],
     },
     DesktopEnvironment.DEEPIN: {
-        "check": ["dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
-                  "--print-reply=literal", "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.CurrentWM"],
+        "check": [
+            "dbus-send",
+            "--session",
+            "--dest=com.deepin.WMSwitcher",
+            "--type=method_call",
+            "--print-reply=literal",
+            "/com/deepin/WMSwitcher",
+            "com.deepin.WMSwitcher.CurrentWM",
+        ],
         "active_result": b"deepin wm\n",
         "stop_compositor": [
-            "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
-            "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.RequestSwitchWM"
+            "dbus-send",
+            "--session",
+            "--dest=com.deepin.WMSwitcher",
+            "--type=method_call",
+            "/com/deepin/WMSwitcher",
+            "com.deepin.WMSwitcher.RequestSwitchWM",
         ],
         "start_compositor": [
-            "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
-            "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.RequestSwitchWM"
+            "dbus-send",
+            "--session",
+            "--dest=com.deepin.WMSwitcher",
+            "--type=method_call",
+            "/com/deepin/WMSwitcher",
+            "com.deepin.WMSwitcher.RequestSwitchWM",
         ],
     },
 }
@@ -180,14 +195,14 @@ _non_de_compositor_commands = [
         "check": ["pgrep", "picom"],
         "stop_compositor": ["pkill", "picom"],
         "start_compositor": ["picom", ""],
-        "run_in_background": True
+        "run_in_background": True,
     },
     {
         "check": ["pgrep", "compton"],
         "stop_compositor": ["pkill", "compton"],
         "start_compositor": ["compton", ""],
-        "run_in_background": True
-    }
+        "run_in_background": True,
+    },
 ]
 
 
@@ -214,10 +229,7 @@ def _get_command_output(command):
     """Some rogue function that gives no shit about residing in the correct module"""
     try:
         return subprocess.Popen(  # pylint: disable=consider-using-with
-            command,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            close_fds=True
+            command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, close_fds=True
         ).communicate()[0]
     except FileNotFoundError:
         logger.error("Unable to run command, %s not found", command[0])
@@ -251,7 +263,7 @@ def _check_compositor_active(command_set: Dict[str, Any]) -> bool:
     if "active_result" in command_set:
         return result == command_set["active_result"]
 
-    return result != b''
+    return result != b""
 
 
 # One element is appended to this for every invocation of disable_compositing:
@@ -291,13 +303,13 @@ def _run_command(*command, run_in_background=False):
     """
     try:
         if run_in_background:
-            command = ' '.join(command)
+            command = " ".join(command)
         return subprocess.Popen(  # pylint: disable=consider-using-with
             command,
             stdin=subprocess.DEVNULL,
             close_fds=True,
             shell=run_in_background,
-            start_new_session=run_in_background
+            start_new_session=run_in_background,
         )
     except FileNotFoundError:
         errorMessage = "FileNotFoundError when running command:", command
@@ -348,7 +360,8 @@ class DBusScreenSaverInhibitor:
         """Sets a dbus proxy to be used instead of Gtk.Application methods, this
         method can raise an exception."""
         self.proxy = Gio.DBusProxy.new_for_bus_sync(
-            bus_type, Gio.DBusProxyFlags.NONE, None, name, path, interface, None)
+            bus_type, Gio.DBusProxyFlags.NONE, None, name, path, interface, None
+        )
 
     def inhibit(self, game_name):
         """Inhibit the screen saver.
@@ -412,8 +425,9 @@ def _get_screen_saver_inhibitor():
         try:
             inhibitor.set_dbus_iface(name, path, interface)
         except GLib.Error as err:
-            logger.warning("Failed to set up a DBus proxy for name %s, path %s, "
-                           "interface %s: %s", name, path, interface, err)
+            logger.warning(
+                "Failed to set up a DBus proxy for name %s, path %s, " "interface %s: %s", name, path, interface, err
+            )
 
     return inhibitor
 

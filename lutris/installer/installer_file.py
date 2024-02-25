@@ -200,11 +200,9 @@ class InstallerFile:
             os.makedirs(self.cache_path)
 
     def create_download_progress_box(self):
-        return DownloadProgressBox({
-            "url": self.url,
-            "dest": self.dest_file,
-            "referer": self.referer
-        }, downloader=self.downloader)
+        return DownloadProgressBox(
+            {"url": self.url, "dest": self.dest_file, "referer": self.referer}, downloader=self.downloader
+        )
 
     def check_hash(self):
         """Checks the checksum of `file` and compare it to `value`
@@ -217,7 +215,7 @@ class InstallerFile:
         if not self.checksum or not self.dest_file:
             return
         try:
-            hash_type, expected_hash = self.checksum.split(':', 1)
+            hash_type, expected_hash = self.checksum.split(":", 1)
         except ValueError as err:
             raise ScriptingError(_("Invalid checksum, expected format (type:hash) "), self.checksum) from err
 
@@ -261,10 +259,7 @@ class InstallerFile:
 
     def remove_previous(self):
         """Remove file at already at destination, prior to starting the download."""
-        if (
-            not self.uses_pga_cache()
-            and system.path_exists(self.dest_file)
-        ):
+        if not self.uses_pga_cache() and system.path_exists(self.dest_file):
             # If we've previously downloaded a directory, we'll need to get rid of it
             # to download a file now. Since we are not using the cache, we don't keep
             # these files anyway - so it should be safe to just nuke and pave all this.

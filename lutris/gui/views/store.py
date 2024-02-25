@@ -11,9 +11,22 @@ from lutris.gui.views.store_item import StoreItem
 from lutris.util.strings import gtk_safe
 
 from . import (
-    COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT,
-    COL_MEDIA_PATHS, COL_NAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER, COL_RUNNER_HUMAN_NAME,
-    COL_SLUG, COL_SORTNAME, COL_YEAR
+    COL_ID,
+    COL_INSTALLED,
+    COL_INSTALLED_AT,
+    COL_INSTALLED_AT_TEXT,
+    COL_LASTPLAYED,
+    COL_LASTPLAYED_TEXT,
+    COL_MEDIA_PATHS,
+    COL_NAME,
+    COL_PLATFORM,
+    COL_PLAYTIME,
+    COL_PLAYTIME_TEXT,
+    COL_RUNNER,
+    COL_RUNNER_HUMAN_NAME,
+    COL_SLUG,
+    COL_SORTNAME,
+    COL_YEAR,
 )
 
 
@@ -190,19 +203,10 @@ class GameStore(GObject.Object):
             db_games = sql.filtered_query(
                 settings.DB_PATH,
                 "service_games",
-                filters=({
-                    "service": self.service_media.service,
-                    "appid": game.appid
-                })
+                filters=({"service": self.service_media.service, "appid": game.appid}),
             )
         else:
-            db_games = sql.filtered_query(
-                settings.DB_PATH,
-                "games",
-                filters=({
-                    "id": game.id
-                })
-            )
+            db_games = sql.filtered_query(settings.DB_PATH, "games", filters=({"id": game.id}))
 
         for db_game in db_games:
             GLib.idle_add(self.update, db_game)

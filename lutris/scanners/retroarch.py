@@ -30,15 +30,11 @@ ROM_FLAGS = [
     "F",
     "U",
     "E",
-    "UE"
-    "W",
-    "M3"
+    "UE" "W",
+    "M3",
 ]
 
-EXTRA_FLAGS = [
-    "!",
-    "S"
-]
+EXTRA_FLAGS = ["!", "S"]
 
 
 def clean_rom_name(name):
@@ -70,12 +66,7 @@ def scan_directory(dirname):
         logger.info("Importing '%s'", name)
         slug = slugify(name)
         core = core_matches[ext]
-        config = {
-            "game": {
-                "core": core_matches[ext],
-                "main_file": os.path.join(dirname, filename)
-            }
-        }
+        config = {"game": {"core": core_matches[ext], "main_file": os.path.join(dirname, filename)}}
         installer_slug = "%s-libretro-%s" % (slug, core)
         existing_game = get_games(filters={"installer_slug": installer_slug})
         if existing_game:
@@ -88,7 +79,7 @@ def scan_directory(dirname):
             directory=dirname,
             installed=1,
             installer_slug=installer_slug,
-            configpath=configpath
+            configpath=configpath,
         )
         added_games.append(game_id)
     return added_games

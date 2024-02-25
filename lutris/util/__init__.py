@@ -3,7 +3,7 @@ from functools import wraps
 
 
 def selective_merge(base_obj, delta_obj):
-    """ used by write_json """
+    """used by write_json"""
     if not isinstance(base_obj, dict):
         return delta_obj
     common_keys = set(base_obj).intersection(delta_obj)

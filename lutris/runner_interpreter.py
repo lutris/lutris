@@ -77,8 +77,7 @@ def get_launch_parameters(runner, gameplay_info):
     game_ld_library_path = gameplay_info.get("ld_library_path")
     if game_ld_library_path:
         ld_library_path = env.get("LD_LIBRARY_PATH")
-        env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
-            game_ld_library_path, ld_library_path]))
+        env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [game_ld_library_path, ld_library_path]))
 
     # Feral gamemode
     gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available()
@@ -169,7 +168,7 @@ def export_bash_script(runner, gameplay_info, script_path):
     script_content += "\n# Command\n"
     script_content += " ".join([shlex.quote(c) for c in command])
 
-    with open(script_path, "w", encoding='utf-8') as script_file:
+    with open(script_path, "w", encoding="utf-8") as script_file:
         script_file.write(script_content)
 
     os.chmod(script_path, os.stat(script_path).st_mode | stat.S_IEXEC)

@@ -26,7 +26,7 @@ class StorageBox(BaseConfigBox):
                 "setting": "game_path",
                 "default": os.path.expanduser("~/Games"),
                 "value": base_runner.default_path,
-                "help": _("The default folder where you install your games.")
+                "help": _("The default folder where you install your games."),
             },
             {
                 "name": "Installer cache",
@@ -36,8 +36,8 @@ class StorageBox(BaseConfigBox):
                 "help": _(
                     "If provided, files downloaded during game installs will be kept there\n"
                     "\nOtherwise, all downloaded files are discarded."
-                )
-            }
+                ),
+            },
         ]
         for path_setting in path_settings:
             widgets.append(self.get_directory_chooser(path_setting))
@@ -55,7 +55,7 @@ class StorageBox(BaseConfigBox):
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             warn_if_non_writable_parent=True,
             text=path_setting["value"],
-            default_path=default_path
+            default_path=default_path,
         )
         directory_chooser.connect("changed", self.on_file_chooser_changed, path_setting)
         wrapper.pack_start(label, False, False, 0)

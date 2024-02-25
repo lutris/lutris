@@ -28,9 +28,9 @@ class RunnerBox(Gtk.Box):
         self.set_margin_right(12)
         self.runner = runners.import_runner(runner_name)()
 
-        runner_icon = ScaledImage.get_runtime_icon_image(self.runner.name,
-                                                         scale_factor=self.get_scale_factor(),
-                                                         visible=True)
+        runner_icon = ScaledImage.get_runtime_icon_image(
+            self.runner.name, scale_factor=self.get_scale_factor(), visible=True
+        )
         runner_icon.set_margin_right(12)
         self.pack_start(runner_icon, False, True, 6)
 
@@ -109,11 +109,11 @@ class RunnerBox(Gtk.Box):
             {
                 "parent": self.get_toplevel(),
                 "title": _("Do you want to uninstall %s?") % self.runner.human_name,
-                "question": _("This will remove <b>%s</b> and all associated data." % self.runner.human_name)
-
+                "question": _("This will remove <b>%s</b> and all associated data." % self.runner.human_name),
             }
         )
         if Gtk.ResponseType.YES == dialog.result:
+
             def on_runner_uninstalled():
                 self.emit("runner-removed")
 

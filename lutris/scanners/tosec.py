@@ -87,11 +87,7 @@ def scan_folder(folder, extract_archives=False):
             basename, ext = os.path.splitext(filename)
             if ext not in archive_formats:
                 continue
-            extract_archive(
-                os.path.join(folder, filename),
-                os.path.join(folder, basename),
-                merge_single=False
-            )
+            extract_archive(os.path.join(folder, filename), os.path.join(folder, basename), merge_single=False)
             for archive_file in os.listdir(os.path.join(folder, basename)):
                 archive_contents.append("%s/%s" % (basename, archive_file))
 
@@ -132,15 +128,9 @@ def scan_folder(folder, extract_archives=False):
                 if base_name in saves:
                     save_file = saves[base_name]
                     _base_name, ext = os.path.splitext(save_file)
-                    os.rename(
-                        os.path.join(folder, save_file),
-                        os.path.join(folder, dest_base_name + ext)
-                    )
+                    os.rename(os.path.join(folder, save_file), os.path.join(folder, dest_base_name + ext))
                 try:
-                    os.rename(
-                        os.path.join(folder, source),
-                        os.path.join(folder, dest)
-                    )
+                    os.rename(os.path.join(folder, source), os.path.join(folder, dest))
                 except FileNotFoundError:
                     logger.error("Failed to rename %s to %s", source, dest)
 
@@ -162,7 +152,7 @@ def clean_rom_name(name):
             good_index = i
         if c in ("(", "]"):
             in_parens = False
-    name = name[:len(name) - good_index].strip()
+    name = name[: len(name) - good_index].strip()
     if name.endswith(", The"):
         name = "The " + name[:-5]
     return name

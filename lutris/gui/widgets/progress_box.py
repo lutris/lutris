@@ -19,7 +19,7 @@ class ProgressInfo:
         self.has_ended = False
 
     @classmethod
-    def ended(cls, label_markup: str = "") -> 'ProgressInfo':
+    def ended(cls, label_markup: str = "") -> "ProgressInfo":
         """Creates a ProgressInfo whose has_ended flag is set, to indicate that
         the monitored process is over."""
         info = cls(1.0, label_markup=label_markup)
@@ -45,22 +45,17 @@ class ProgressBox(Gtk.Box):
     This class needs only a function that returns a Progress object, which describes the current
     progress and optionally can stop the update."""
 
-    ProgressFunction = Callable[[], 'ProgressInfo']
+    ProgressFunction = Callable[[], "ProgressInfo"]
 
-    def __init__(self,
-                 progress_function: ProgressFunction,
-                 **kwargs):
+    def __init__(self, progress_function: ProgressFunction, **kwargs):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL, no_show_all=True, spacing=6, **kwargs)
 
         self.progress_function = progress_function
         self.progress = ProgressInfo(0.0)
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True, spacing=6,
-                       valign=Gtk.Align.CENTER)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True, spacing=6, valign=Gtk.Align.CENTER)
 
-        self.label = Gtk.Label("", visible=False,
-                               wrap=True, ellipsize=Pango.EllipsizeMode.MIDDLE,
-                               xalign=0)
+        self.label = Gtk.Label("", visible=False, wrap=True, ellipsize=Pango.EllipsizeMode.MIDDLE, xalign=0)
         vbox.pack_start(self.label, False, False, 0)
 
         self.progressbar = Gtk.ProgressBar(pulse_step=0.4, visible=True)

@@ -28,9 +28,7 @@ class ScummvmService(BaseService):
     icon = "scummvm"
     name = _("ScummVM")
     local = True
-    medias = {
-        "icon": ScummvmBanner
-    }
+    medias = {"icon": ScummvmBanner}
 
     def load(self):
         if not system.path_exists(SCUMMVM_CONFIG_FILE):
@@ -49,9 +47,7 @@ class ScummvmService(BaseService):
             game.appid = section
             game.runner = "scummvm"
             game.lutris_slug = game.slug
-            game.details = json.dumps({
-                "path": config[section]["path"]
-            })
+            game.details = json.dumps({"path": config[section]["path"]})
             game.save()
 
     def generate_installer(self, db_game):
@@ -67,7 +63,7 @@ class ScummvmService(BaseService):
                     "game_id": db_game["appid"],
                     "path": details["path"],
                 }
-            }
+            },
         }
 
     def get_installed_slug(self, db_game):

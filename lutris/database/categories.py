@@ -6,10 +6,10 @@ from lutris.database import sql
 
 
 def strip_category_name(name):
-    """"This strips the name given, and also removes extra internal whitespace."""
+    """ "This strips the name given, and also removes extra internal whitespace."""
     name = (name or "").strip()
     if not is_reserved_category(name):
-        name = re.sub(' +', ' ', name)  # Remove excessive whitespaces
+        name = re.sub(" +", " ", name)  # Remove excessive whitespaces
     return name
 
 
@@ -21,7 +21,10 @@ def is_reserved_category(name):
 
 def get_categories():
     """Get the list of every category in database."""
-    return sql.db_select(settings.DB_PATH, "categories", )
+    return sql.db_select(
+        settings.DB_PATH,
+        "categories",
+    )
 
 
 def get_category(name):
@@ -63,10 +66,7 @@ def get_game_ids_for_categories(included_category_names=None, excluded_category_
     if filters:
         query += " WHERE %s" % " AND ".join(filters)
 
-    return [
-        game["id"]
-        for game in sql.db_query(settings.DB_PATH, query, tuple(parameters))
-    ]
+    return [game["id"] for game in sql.db_query(settings.DB_PATH, query, tuple(parameters))]
 
 
 def get_categories_in_game(game_id):
@@ -77,10 +77,7 @@ def get_categories_in_game(game_id):
         "JOIN games ON games.id = games_categories.game_id "
         "WHERE games.id=?"
     )
-    return [
-        category["name"]
-        for category in sql.db_query(settings.DB_PATH, query, (game_id,))
-    ]
+    return [category["name"] for category in sql.db_query(settings.DB_PATH, query, (game_id,))]
 
 
 def add_category(category_name):
@@ -110,9 +107,9 @@ def remove_unused_categories():
 
     empty_categories = sql.db_query(settings.DB_PATH, query)
     for category in empty_categories:
-        if category['name'] == 'favorite':
+        if category["name"] == "favorite":
             continue
 
         query = "DELETE FROM categories WHERE categories.id=?"
         with sql.db_cursor(settings.DB_PATH) as cursor:
-            sql.cursor_execute(cursor, query, (category['id'],))
+            sql.cursor_execute(cursor, query, (category["id"],))

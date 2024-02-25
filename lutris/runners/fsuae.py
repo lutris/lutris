@@ -14,53 +14,21 @@ AMIGAS = {
             "891e9a547772fe0c6c19b610baf8bc4ea7fcb785",
             "c39bd9094d4e5f4e28c1411f3086950406062e87",
             "90933936cce43ca9bc6bf375662c076b27e3c458",
-        ]
+        ],
     },
-    "A500+": {
-        "name": _("Amiga 500+"),
-        "bios_sha1": [
-            "c5839f5cb98a7a8947065c3ed2f14f5f42e334a1"
-        ]
-    },
-    "A600": {
-        "name": _("Amiga 600"),
-        "bios_sha1": [
-            "02843c4253bbd29aba535b0aa3bd9a85034ecde4"
-        ]
-    },
-    "A1200": {
-        "name": _("Amiga 1200"),
-        "bios_sha1": [
-            "e21545723fe8374e91342617604f1b3d703094f1"
-        ]
-    },
-    "A3000": {
-        "name": _("Amiga 3000"),
-        "bios_sha1": [
-            "f8e210d72b4c4853e0c9b85d223ba20e3d1b36ee"
-        ]
-    },
+    "A500+": {"name": _("Amiga 500+"), "bios_sha1": ["c5839f5cb98a7a8947065c3ed2f14f5f42e334a1"]},
+    "A600": {"name": _("Amiga 600"), "bios_sha1": ["02843c4253bbd29aba535b0aa3bd9a85034ecde4"]},
+    "A1200": {"name": _("Amiga 1200"), "bios_sha1": ["e21545723fe8374e91342617604f1b3d703094f1"]},
+    "A3000": {"name": _("Amiga 3000"), "bios_sha1": ["f8e210d72b4c4853e0c9b85d223ba20e3d1b36ee"]},
     "A4000": {
         "name": _("Amiga 4000"),
-        "bios_sha1": [
-            "5fe04842d04a489720f0f4bb0e46948199406f49",
-            "c3c481160866e60d085e436a24db3617ff60b5f9"
-        ]
+        "bios_sha1": ["5fe04842d04a489720f0f4bb0e46948199406f49", "c3c481160866e60d085e436a24db3617ff60b5f9"],
     },
-    "A1000": {
-        "name": _("Amiga 1000"),
-        "bios_sha1": [
-            "11f9e62cf299f72184835b7b2a70a16333fc0d88"
-        ]
-    },
+    "A1000": {"name": _("Amiga 1000"), "bios_sha1": ["11f9e62cf299f72184835b7b2a70a16333fc0d88"]},
     "CD32": {
         "name": _("Amiga CD32"),
-        "bios_sha1": [
-            "3525be8887f79b5929e017b42380a79edfee542d"
-        ],
-        "bios_ext_sha1": [
-            "5bef3d628ce59cc02a66e6e4ae0da48f60e78f7f"
-        ]
+        "bios_sha1": ["3525be8887f79b5929e017b42380a79edfee542d"],
+        "bios_ext_sha1": ["5bef3d628ce59cc02a66e6e4ae0da48f60e78f7f"],
     },
     "CDTV": {
         "name": _("Commodore CDTV"),
@@ -69,10 +37,8 @@ AMIGAS = {
             "c39bd9094d4e5f4e28c1411f3086950406062e87",
             "90933936cce43ca9bc6bf375662c076b27e3c458",
         ],
-        "bios_ext_sha1": [
-            "7ba40ffa17e500ed9fed041f3424bd81d9c907be"
-        ]
-    }
+        "bios_ext_sha1": ["7ba40ffa17e500ed9fed041f3424bd81d9c907be"],
+    },
 }
 
 
@@ -239,13 +205,14 @@ class fsuae(Runner):
             "label": _("Additionnal floppies"),
             "default_path": "game_path",
             "help": _("The additional floppy disk image(s)."),
-        }, {
+        },
+        {
             "option": "cdrom_image",
             "section": _("Media"),
             "label": _("CD-ROM image"),
             "type": "file",
-            "help": _("CD-ROM image to use on non CD32/CDTV models")
-        }
+            "help": _("CD-ROM image to use on non CD32/CDTV models"),
+        },
     ]
 
     runner_options = [
@@ -291,8 +258,7 @@ class fsuae(Runner):
             "label": _("Scanlines display style"),
             "type": "bool",
             "default": False,
-            "help": _("Activates a display filter adding scanlines to imitate "
-                      "the displays of yesteryear."),
+            "help": _("Activates a display filter adding scanlines to imitate " "the displays of yesteryear."),
         },
         {
             "option": "grafixcard",
@@ -305,7 +271,7 @@ class fsuae(Runner):
             "help": _(
                 "Use this option to enable a graphics card. This option is none by default, in "
                 "which case only chipset graphics (OCS/ECS/AGA) support is available."
-            )
+            ),
         },
         {
             "option": "grafixmemory",
@@ -318,7 +284,7 @@ class fsuae(Runner):
             "help": _(
                 "Override the amount of graphics memory on the graphics card. The 0 MB option is "
                 "not really valid, but exists for user interface reasons."
-            )
+            ),
         },
         {
             "option": "cpumodel",
@@ -327,9 +293,11 @@ class fsuae(Runner):
             "choices": cpumodel_choices,
             "default": "auto",
             "advanced": True,
-            "help": _("Use this option to override the CPU model in the emulated Amiga. All Amiga "
-                      "models imply a default CPU model, so you only need to use this option if you "
-                      "want to use another CPU."),
+            "help": _(
+                "Use this option to override the CPU model in the emulated Amiga. All Amiga "
+                "models imply a default CPU model, so you only need to use this option if you "
+                "want to use another CPU."
+            ),
         },
         {
             "option": "fmemory",
@@ -347,9 +315,11 @@ class fsuae(Runner):
             "choices": zorroiii_choices,
             "default": "0",
             "advanced": True,
-            "help": _("Override the amount of Zorro III Fast memory, specified in KB. Must be a "
-                      "multiple of 1024. The default value depends on [amiga_model]. Requires a "
-                      "processor with 32-bit address bus, (use for example the A1200/020 model)."),
+            "help": _(
+                "Override the amount of Zorro III Fast memory, specified in KB. Must be a "
+                "multiple of 1024. The default value depends on [amiga_model]. Requires a "
+                "processor with 32-bit address bus, (use for example the A1200/020 model)."
+            ),
         },
         {
             "option": "fdvolume",
@@ -359,8 +329,7 @@ class fsuae(Runner):
             "choices": flsound_choices,
             "default": "0",
             "advanced": True,
-            "help": _("Set volume to 0 to disable floppy drive clicks "
-                      "when the drive is empty. Max volume is 100.")
+            "help": _("Set volume to 0 to disable floppy drive clicks " "when the drive is empty. Max volume is 100."),
         },
         {
             "option": "fdspeed",
@@ -375,7 +344,7 @@ class fsuae(Runner):
                 "For example, you can specify 800 to get an 8x increase in "
                 "speed. Use 0 to specify turbo mode. Turbo mode means that "
                 "all floppy operations complete immediately. The default is 100 for most models."
-            )
+            ),
         },
         {
             "option": "jitcompiler",
@@ -390,8 +359,7 @@ class fsuae(Runner):
             "type": "bool",
             "default": False,
             "advanced": True,
-            "help": _("Automatically uses Feral GameMode daemon if available. "
-                      "Set to true to disable the feature.")
+            "help": _("Automatically uses Feral GameMode daemon if available. " "Set to true to disable the feature."),
         },
         {
             "option": "govwarning",
@@ -399,9 +367,9 @@ class fsuae(Runner):
             "type": "bool",
             "default": False,
             "advanced": True,
-            "help":
-                _("Warn if running with a CPU governor other than performance. "
-                  "Set to true to disable the warning.")
+            "help": _(
+                "Warn if running with a CPU governor other than performance. " "Set to true to disable the warning."
+            ),
         },
         {
             "option": "bsdsocket",

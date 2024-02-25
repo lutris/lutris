@@ -83,7 +83,7 @@ system_options = [  # pylint: disable=invalid-name
         "warn_if_non_writable_parent": True,
         "default": os.path.expanduser("~/Games"),
         "scope": ["runner", "system"],
-        "help": _("The default folder where you install your games.")
+        "help": _("The default folder where you install your games."),
     },
     {
         "section": _("Lutris"),
@@ -91,9 +91,11 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "label": _("Disable Lutris Runtime"),
         "default": False,
-        "help": _("The Lutris Runtime loads some libraries before running the "
-                  "game, which can cause some incompatibilities in some cases. "
-                  "Check this option to disable it."),
+        "help": _(
+            "The Lutris Runtime loads some libraries before running the "
+            "game, which can cause some incompatibilities in some cases. "
+            "Check this option to disable it."
+        ),
     },
     {
         "section": _("Lutris"),
@@ -101,8 +103,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "label": _("Prefer system libraries"),
         "default": True,
-        "help": _("When the runtime is enabled, prioritize the system libraries"
-                  " over the provided ones."),
+        "help": _("When the runtime is enabled, prioritize the system libraries" " over the provided ones."),
     },
     {
         "section": _("Display"),
@@ -130,9 +131,11 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Restore resolution on game exit"),
         "default": False,
         "advanced": True,
-        "help": _("Some games don't restore your screen resolution when \n"
-                  "closed or when they crash. This is when this option comes \n"
-                  "into play to save your bacon."),
+        "help": _(
+            "Some games don't restore your screen resolution when \n"
+            "closed or when they crash. This is when this option comes \n"
+            "into play to save your bacon."
+        ),
     },
     {
         "section": _("Display"),
@@ -142,8 +145,7 @@ system_options = [  # pylint: disable=invalid-name
         "default": False,
         "advanced": True,
         "condition": is_compositing_enabled(),
-        "help": _("Disable desktop effects while game is running, "
-                  "reducing stuttering and increasing performance"),
+        "help": _("Disable desktop effects while game is running, " "reducing stuttering and increasing performance"),
     },
     {
         "section": _("Display"),
@@ -153,9 +155,11 @@ system_options = [  # pylint: disable=invalid-name
         "default": SCREEN_SAVER_INHIBITOR is not None,
         "advanced": True,
         "condition": SCREEN_SAVER_INHIBITOR is not None,
-        "help": _("Disable the screen saver while a game is running. "
-                  "Requires the screen saver's functionality "
-                  "to be exposed over DBus."),
+        "help": _(
+            "Disable the screen saver while a game is running. "
+            "Requires the screen saver's functionality "
+            "to be exposed over DBus."
+        ),
     },
     {
         "section": _("Display"),
@@ -165,9 +169,11 @@ system_options = [  # pylint: disable=invalid-name
         "choices": get_output_list,
         "default": "off",
         "advanced": True,
-        "help": _("Hint SDL 1.2 games to use a specific monitor when going "
-                  "fullscreen by setting the SDL_VIDEO_FULLSCREEN "
-                  "environment variable"),
+        "help": _(
+            "Hint SDL 1.2 games to use a specific monitor when going "
+            "fullscreen by setting the SDL_VIDEO_FULLSCREEN "
+            "environment variable"
+        ),
     },
     {
         "section": _("Display"),
@@ -177,10 +183,12 @@ system_options = [  # pylint: disable=invalid-name
         "choices": get_output_choices,
         "default": "off",
         "advanced": True,
-        "help": _("Only keep the selected screen active while the game is "
-                  "running. \n"
-                  "This is useful if you have a dual-screen setup, and are \n"
-                  "having display issues when running a game in fullscreen."),
+        "help": _(
+            "Only keep the selected screen active while the game is "
+            "running. \n"
+            "This is useful if you have a dual-screen setup, and are \n"
+            "having display issues when running a game in fullscreen."
+        ),
     },
     {
         "section": _("Display"),
@@ -199,8 +207,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Enable Gamescope"),
         "default": False,
         "condition": system.can_find_executable("gamescope") and linux.LINUX_SYSTEM.nvidia_gamescope_support(),
-        "help": _("Use gamescope to draw the game window isolated from your desktop.\n"
-                  "Toggle fullscreen: Super + F"),
+        "help": _("Use gamescope to draw the game window isolated from your desktop.\n" "Toggle fullscreen: Super + F"),
     },
     {
         "section": _("Gamescope"),
@@ -210,9 +217,11 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "default": False,
         "condition": bool(system.can_find_executable("gamescope")),
-        "help": _("Always use relative mouse mode instead of flipping\n"
-                  "dependent on cursor visibility\n"
-                  "Can help with games where the player's camera faces the floor"),
+        "help": _(
+            "Always use relative mouse mode instead of flipping\n"
+            "dependent on cursor visibility\n"
+            "Can help with games where the player's camera faces the floor"
+        ),
     },
     {
         "section": _("Gamescope"),
@@ -222,10 +231,12 @@ system_options = [  # pylint: disable=invalid-name
         "choices": DISPLAY_MANAGER.get_resolutions,
         "advanced": True,
         "condition": system.can_find_executable("gamescope"),
-        "help": _("Set the resolution used by gamescope.\n"
-                  "Resizing the gamescope window will update these settings.\n"
-                  "\n"
-                  "<b>Custom Resolutions:</b> (width)x(height)"),
+        "help": _(
+            "Set the resolution used by gamescope.\n"
+            "Resizing the gamescope window will update these settings.\n"
+            "\n"
+            "<b>Custom Resolutions:</b> (width)x(height)"
+        ),
     },
     {
         "section": _("Gamescope"),
@@ -234,9 +245,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Game Resolution"),
         "choices": DISPLAY_MANAGER.get_resolutions,
         "condition": system.can_find_executable("gamescope"),
-        "help": _("Set the maximum resolution used by the game.\n"
-                  "\n"
-                  "<b>Custom Resolutions:</b> (width)x(height)"),
+        "help": _("Set the maximum resolution used by the game.\n" "\n" "<b>Custom Resolutions:</b> (width)x(height)"),
     },
     {
         "section": _("Gamescope"),
@@ -250,8 +259,7 @@ system_options = [  # pylint: disable=invalid-name
         ),
         "default": "-f",
         "condition": system.can_find_executable("gamescope"),
-        "help": _("Run gamescope in fullscreen, windowed or borderless mode\n"
-                  "Toggle fullscreen : Super + F"),
+        "help": _("Run gamescope in fullscreen, windowed or borderless mode\n" "Toggle fullscreen : Super + F"),
     },
     {
         "section": _("Gamescope"),
@@ -260,8 +268,9 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "type": "string",
         "condition": system.can_find_executable("gamescope"),
-        "help": _("Use AMD FidelityFX™ Super Resolution 1.0 for upscaling.\n"
-                  "Upscaler sharpness from 0 (max) to 20 (min)."),
+        "help": _(
+            "Use AMD FidelityFX™ Super Resolution 1.0 for upscaling.\n" "Upscaler sharpness from 0 (max) to 20 (min)."
+        ),
     },
     {
         "section": _("Gamescope"),
@@ -279,8 +288,9 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "type": "string",
         "condition": system.can_find_executable("gamescope"),
-        "help": _("Set additional flags for gamescope (if available).\n"
-                  "See 'gamescope --help' for a full list of options."),
+        "help": _(
+            "Set additional flags for gamescope (if available).\n" "See 'gamescope --help' for a full list of options."
+        ),
     },
     {
         "section": _("CPU"),
@@ -307,7 +317,6 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Enable Feral GameMode"),
         "help": _("Request a set of optimisations be temporarily applied to the host OS"),
     },
-
     {
         "section": _("Audio"),
         "option": "reset_pulse",
@@ -326,8 +335,7 @@ system_options = [  # pylint: disable=invalid-name
         "default": False,
         "advanced": True,
         "condition": system.can_find_executable("pulseaudio") or system.can_find_executable("pipewire-pulse"),
-        "help": _("Set the environment variable PULSE_LATENCY_MSEC=60 "
-                  "to improve audio quality on some games"),
+        "help": _("Set the environment variable PULSE_LATENCY_MSEC=60 " "to improve audio quality on some games"),
     },
     {
         "section": _("Input"),
@@ -352,8 +360,10 @@ system_options = [  # pylint: disable=invalid-name
         "type": "string",
         "label": _("SDL2 gamepad mapping"),
         "advanced": True,
-        "help": _("SDL_GAMECONTROLLERCONFIG mapping string or path to a custom "
-                  "gamecontrollerdb.txt file containing mappings."),
+        "help": _(
+            "SDL_GAMECONTROLLERCONFIG mapping string or path to a custom "
+            "gamecontrollerdb.txt file containing mappings."
+        ),
     },
     {
         "section": _("Text based games"),
@@ -362,8 +372,10 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "default": False,
         "advanced": True,
-        "help": _("Enable a terminal for text-based games. "
-                  "Only useful for ASCII based games. May cause issues with graphical games."),
+        "help": _(
+            "Enable a terminal for text-based games. "
+            "Only useful for ASCII based games. May cause issues with graphical games."
+        ),
     },
     {
         "section": _("Text based games"),
@@ -373,9 +385,11 @@ system_options = [  # pylint: disable=invalid-name
         "choices": linux.get_terminal_apps,
         "default": linux.get_default_terminal(),
         "advanced": True,
-        "help": _("The terminal emulator used with the CLI mode. "
-                  "Choose from the list of detected terminal apps or enter "
-                  "the terminal's command or path."),
+        "help": _(
+            "The terminal emulator used with the CLI mode. "
+            "Choose from the list of detected terminal apps or enter "
+            "the terminal's command or path."
+        ),
     },
     {
         "section": _("Game execution"),
@@ -389,9 +403,7 @@ system_options = [  # pylint: disable=invalid-name
         "option": "locale",
         "type": "choice_with_entry",
         "label": _("Locale"),
-        "choices": (
-            get_locale_choices
-        ),
+        "choices": (get_locale_choices),
         "default": "",
         "advanced": False,
         "help": _("Can be used to force certain locale for an app. Fixes encoding issues in legacy software."),
@@ -402,8 +414,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "string",
         "label": _("Command prefix"),
         "advanced": True,
-        "help": _("Command line instructions to add in front of the game's "
-                  "execution command."),
+        "help": _("Command line instructions to add in front of the game's " "execution command."),
     },
     {
         "section": _("Game execution"),
@@ -444,10 +455,12 @@ system_options = [  # pylint: disable=invalid-name
         "type": "string",
         "label": _("Include processes"),
         "advanced": True,
-        "help": _("What processes to include in process monitoring. "
-                  "This is to override the built-in exclude list.\n"
-                  "Space-separated list, processes including spaces "
-                  "can be wrapped in quotation marks."),
+        "help": _(
+            "What processes to include in process monitoring. "
+            "This is to override the built-in exclude list.\n"
+            "Space-separated list, processes including spaces "
+            "can be wrapped in quotation marks."
+        ),
     },
     {
         "section": _("Game execution"),
@@ -455,11 +468,13 @@ system_options = [  # pylint: disable=invalid-name
         "type": "string",
         "label": _("Exclude processes"),
         "advanced": True,
-        "help": _("What processes to exclude in process monitoring. "
-                  "For example background processes that stick around "
-                  "after the game has been closed.\n"
-                  "Space-separated list, processes including spaces "
-                  "can be wrapped in quotation marks."),
+        "help": _(
+            "What processes to exclude in process monitoring. "
+            "For example background processes that stick around "
+            "after the game has been closed.\n"
+            "Space-separated list, processes including spaces "
+            "can be wrapped in quotation marks."
+        ),
     },
     {
         "section": _("Game execution"),
@@ -467,11 +482,12 @@ system_options = [  # pylint: disable=invalid-name
         "type": "string",
         "label": _("Killswitch file"),
         "advanced": True,
-        "help": _("Path to a file which will stop the game when deleted \n"
-                  "(usually /dev/input/js0 to stop the game on joystick "
-                  "unplugging)"),
+        "help": _(
+            "Path to a file which will stop the game when deleted \n"
+            "(usually /dev/input/js0 to stop the game on joystick "
+            "unplugging)"
+        ),
     },
-
     {
         "section": _("Xephyr (Deprecated, use Gamescope)"),
         "option": "xephyr",

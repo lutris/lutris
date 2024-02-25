@@ -57,9 +57,7 @@ class steam(Runner):
             "type": "bool",
             "default": False,
             "advanced": True,
-            "help": _(
-                "Run the game directly without Steam, requires the game binary path to be set"
-            ),
+            "help": _("Run the game directly without Steam, requires the game binary path to be set"),
         },
         {
             "option": "steamless_binary",
@@ -182,11 +180,13 @@ class steam(Runner):
         return ""
 
     def install(self, install_ui_delegate, version=None, callback=None):
-        raise NonInstallableRunnerError(_(
-            "Steam for Linux installation is not handled by Lutris.\n"
-            "Please go to "
-            "<a href='http://steampowered.com'>http://steampowered.com</a>"
-            " or install Steam with the package provided by your distribution.")
+        raise NonInstallableRunnerError(
+            _(
+                "Steam for Linux installation is not handled by Lutris.\n"
+                "Please go to "
+                "<a href='http://steampowered.com'>http://steampowered.com</a>"
+                " or install Steam with the package provided by your distribution."
+            )
         )
 
     def install_game(self, appid, generate_acf=False):
@@ -198,7 +198,7 @@ class steam(Runner):
             if not steamapps_path:
                 raise UnavailableRunnerError(_("Could not find Steam path, is Steam installed?"))
             acf_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)
-            with open(acf_path, "w", encoding='utf-8') as acf_file:
+            with open(acf_path, "w", encoding="utf-8") as acf_file:
                 acf_file.write(acf_content)
         system.spawn(self.get_command() + [f"steam://install/{appid}"])
 

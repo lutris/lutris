@@ -45,11 +45,9 @@ class XDGService(BaseService):
     runner = "linux"
     online = False
     local = True
-    medias = {
-        "icon": XDGMedia
-    }
+    medias = {"icon": XDGMedia}
 
-    ignored_games = ("lutris", )
+    ignored_games = ("lutris",)
     ignored_executables = ("lutris", "steam")
     ignored_categories = ("Emulator", "Development", "Utility")
 
@@ -118,8 +116,8 @@ class XDGService(BaseService):
                     "exe": details["exe"],
                     "args": details["args"],
                 },
-                "system": {"disable_runtime": True}
-            }
+                "system": {"disable_runtime": True},
+            },
         }
 
     def get_installed_runner_name(self, db_game):
@@ -154,10 +152,12 @@ class XDGGame(ServiceGame):
         service_game.appid = get_appid(xdg_app)
         service_game.slug = cls.get_slug(xdg_app)
         exe, args = cls.get_command_args(xdg_app)
-        service_game.details = json.dumps({
-            "exe": exe,
-            "args": args,
-        })
+        service_game.details = json.dumps(
+            {
+                "exe": exe,
+                "args": args,
+            }
+        )
         return service_game
 
     @staticmethod

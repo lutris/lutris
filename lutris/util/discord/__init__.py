@@ -1,3 +1,3 @@
-__all__ = ['client']
+__all__ = ["client"]
 
 from .rpc import client

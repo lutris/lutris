@@ -24,45 +24,41 @@ def get_word_len(string):
 class DolphinCacheReader:
     header_size = 20
     structure = {
-        'valid': 'b',
-        'file_path': 's',
-        'file_name': 's',
-
-        'file_size': 8,
-        'volume_size': 8,
-        'volume_size_type': 4,
-        'is_datel_disc': 'b',
-        'is_nkit': 'b',
-
-        'short_names': 'a',
-        'long_names': 'a',
-        'short_makers': 'a',
-        'long_makers': 'a',
-        'descriptions': 'a',
-        'internal_name': 's',
-        'game_id': 's',
-        'gametdb_id': 's',
-        'title_id': 8,
-        'maker_id': 's',
-
-        'region': 4,
-        'country': 4,
-        'platform': 1,
-        'platform_': 3,
-        'blob_type': 4,
-        'block_size': 8,
-        'compression_method': 's',
-        'revision': 2,
-        'disc_number': 1,
-        'apploader_date': 's',
-
-        'custom_name': 's',
-        'custom_description': 's',
-        'custom_maker': 's',
-        'volume_banner': 'i',
-        'custom_banner': 'i',
-        'default_cover': 'c',
-        'custom_cover': 'c',
+        "valid": "b",
+        "file_path": "s",
+        "file_name": "s",
+        "file_size": 8,
+        "volume_size": 8,
+        "volume_size_type": 4,
+        "is_datel_disc": "b",
+        "is_nkit": "b",
+        "short_names": "a",
+        "long_names": "a",
+        "short_makers": "a",
+        "long_makers": "a",
+        "descriptions": "a",
+        "internal_name": "s",
+        "game_id": "s",
+        "gametdb_id": "s",
+        "title_id": 8,
+        "maker_id": "s",
+        "region": 4,
+        "country": 4,
+        "platform": 1,
+        "platform_": 3,
+        "blob_type": 4,
+        "block_size": 8,
+        "compression_method": "s",
+        "revision": 2,
+        "disc_number": 1,
+        "apploader_date": "s",
+        "custom_name": "s",
+        "custom_description": "s",
+        "custom_maker": "s",
+        "volume_banner": "i",
+        "custom_banner": "i",
+        "default_cover": "c",
+        "custom_cover": "c",
     }
 
     def __init__(self):
@@ -76,15 +72,15 @@ class DolphinCacheReader:
     def get_game(self):
         game = {}
         for key, i in self.structure.items():
-            if i == 's':
+            if i == "s":
                 game[key] = self.get_string()
-            elif i == 'b':
+            elif i == "b":
                 game[key] = self.get_boolean()
-            elif i == 'a':
+            elif i == "a":
                 game[key] = self.get_array()
-            elif i == 'i':
+            elif i == "i":
                 game[key] = self.get_image()
-            elif i == 'c':
+            elif i == "c":
                 game[key] = self.get_cover()
             else:
                 game[key] = self.get_raw(i)
@@ -101,12 +97,12 @@ class DolphinCacheReader:
         return games
 
     def get_boolean(self):
-        res = bool(get_word_len(self.cache_content[self.offset:self.offset + 1]))
+        res = bool(get_word_len(self.cache_content[self.offset : self.offset + 1]))
         self.offset += 1
         return res
 
     def get_array(self):
-        array_len = get_word_len(self.cache_content[self.offset:self.offset + 4])
+        array_len = get_word_len(self.cache_content[self.offset : self.offset + 4])
         self.offset += 4
         array = {}
         for _i in range(array_len):
@@ -115,29 +111,29 @@ class DolphinCacheReader:
         return array
 
     def get_image(self):
-        data_len = get_word_len(self.cache_content[self.offset:self.offset + 4])
+        data_len = get_word_len(self.cache_content[self.offset : self.offset + 4])
         self.offset += 4
-        res = self.cache_content[self.offset:self.offset + data_len * 4]  # vector<u32>
+        res = self.cache_content[self.offset : self.offset + data_len * 4]  # vector<u32>
         self.offset += data_len * 4
-        width = get_word_len(self.cache_content[self.offset:self.offset + 4])
+        width = get_word_len(self.cache_content[self.offset : self.offset + 4])
         self.offset += 4
-        height = get_word_len(self.cache_content[self.offset:self.offset + 4])
+        height = get_word_len(self.cache_content[self.offset : self.offset + 4])
         self.offset += 4
         return (width, height), res
 
     def get_cover(self):
-        array_len = get_word_len(self.cache_content[self.offset:self.offset + 4])
+        array_len = get_word_len(self.cache_content[self.offset : self.offset + 4])
         self.offset += 4
         return self.get_raw(array_len)
 
     def get_raw(self, word_len):
-        res = get_hex_string(self.cache_content[self.offset:self.offset + word_len])
+        res = get_hex_string(self.cache_content[self.offset : self.offset + word_len])
         self.offset += word_len
         return res
 
     def get_string(self):
-        word_len = get_word_len(self.cache_content[self.offset:self.offset + 4])
+        word_len = get_word_len(self.cache_content[self.offset : self.offset + 4])
         self.offset += 4
-        string = self.cache_content[self.offset:self.offset + word_len]
+        string = self.cache_content[self.offset : self.offset + word_len]
         self.offset += word_len
-        return string.decode('utf8')
+        return string.decode("utf8")

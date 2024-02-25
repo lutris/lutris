@@ -17,15 +17,18 @@ def get_terminal_script(command, cwd, env):
     env["TERM"] = "xterm"
     exported_environment = "\n".join('export %s="%s" ' % (key, value) for key, value in env.items())
     command = " ".join(['"%s"' % token for token in command])
-    with open(script_path, "w", encoding='utf-8') as script_file:
+    with open(script_path, "w", encoding="utf-8") as script_file:
         script_file.write(
-            dedent("""\
+            dedent(
+                """\
             #!/bin/sh
             cd "%s"
             %s
             exec %s
             exit $?
-            """) % (cwd, exported_environment, command)
+            """
+            )
+            % (cwd, exported_environment, command)
         )
         os.chmod(script_path, 0o744)
     return script_path
@@ -39,7 +42,7 @@ def get_bash_rc_file(cwd, env, aliases=None):
     aliases = aliases or {}
     alias_commands = "\n".join('alias %s="%s"' % (key, value) for key, value in aliases.items())
     current_bashrc = os.path.expanduser("~/.bashrc")
-    with open(script_path, "w", encoding='utf-8') as script_file:
+    with open(script_path, "w", encoding="utf-8") as script_file:
         script_file.write(
             dedent(
                 """
@@ -48,7 +51,8 @@ def get_bash_rc_file(cwd, env, aliases=None):
             %s
             %s
             cd "%s"
-            """ % (
+            """
+                % (
                     current_bashrc,
                     exported_environment,
                     alias_commands,

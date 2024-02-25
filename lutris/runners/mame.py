@@ -84,7 +84,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type": "choice_with_search",
             "label": _("Machine"),
             "choices": get_system_choices,
-            "help": _("The emulated machine.")
+            "help": _("The emulated machine."),
         },
         {
             "option": "device",
@@ -137,8 +137,9 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type": "string",
             "section": _("Autoboot"),
             "label": _("Autoboot command"),
-            "help": _("Autotype this command when the system has started, "
-                      "an enter keypress is automatically added."),
+            "help": _(
+                "Autotype this command when the system has started, " "an enter keypress is automatically added."
+            ),
         },
         {
             "option": "autoboot_delay",
@@ -147,7 +148,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "label": _("Delay before entering autoboot command"),
             "min": 0,
             "max": 120,
-        }
+        },
     ]
 
     runner_options = [
@@ -173,8 +174,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type": "bool",
             "section": _("Graphics"),
             "label": _("CRT effect ()"),
-            "help": _("Applies a CRT effect to the screen."
-                      "Requires OpenGL renderer."),
+            "help": _("Applies a CRT effect to the screen." "Requires OpenGL renderer."),
             "default": False,
         },
         {
@@ -196,9 +196,9 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type": "bool",
             "section": _("Graphics"),
             "label": _("Wait for VSync"),
-            "help":
-                _("Enable waiting for  the  start  of  vblank  before "
-                  "flipping  screens; reduces tearing effects."),
+            "help": _(
+                "Enable waiting for  the  start  of  vblank  before " "flipping  screens; reduces tearing effects."
+            ),
             "advanced": True,
             "default": False,
         },
@@ -220,8 +220,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             ],
             "default": "SCRLOCK",
             "advanced": True,
-            "help": _("Key to switch between Full Keyboard Mode and "
-                      "Partial Keyboard Mode (default: Scroll Lock)"),
+            "help": _("Key to switch between Full Keyboard Mode and " "Partial Keyboard Mode (default: Scroll Lock)"),
         },
     ]
 
@@ -238,7 +237,6 @@ class mame(Runner):  # pylint: disable=invalid-name
         return self._platforms
 
     def install(self, install_ui_delegate, version=None, callback=None):
-
         def on_runner_installed(*args):
             AsyncCall(write_mame_xml, notify_mame_xml)
 
@@ -259,7 +257,7 @@ class mame(Runner):  # pylint: disable=invalid-name
         os.makedirs(self.cache_dir, exist_ok=True)
         output, error_output = system.execute_with_error(listxml_command, env=env)
         if output:
-            with open(self.xml_path, "w", encoding='utf-8') as xml_file:
+            with open(self.xml_path, "w", encoding="utf-8") as xml_file:
                 xml_file.write(output)
             logger.info("MAME XML list written to %s", self.xml_path)
         else:
@@ -288,7 +286,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             system.execute(
                 self.get_command() + ["-createconfig", "-inipath", self.config_dir],
                 env=runtime.get_env(),
-                cwd=self.working_dir
+                cwd=self.working_dir,
             )
 
     def get_shader_params(self, shader_dir, shaders):
@@ -296,11 +294,7 @@ class mame(Runner):  # pylint: disable=invalid-name
         params = []
         shader_path = os.path.join(self.working_dir, "shaders", shader_dir)
         for index, shader in enumerate(shaders):
-            params += [
-                "-gl_glsl",
-                "-glsl_shader_mame%s" % index,
-                os.path.join(shader_path, shader)
-            ]
+            params += ["-gl_glsl", "-glsl_shader_mame%s" % index, os.path.join(shader_path, shader)]
         return params
 
     def play(self):
@@ -337,7 +331,7 @@ class mame(Runner):  # pylint: disable=invalid-name
                 rompath = self.runner_config.get("rompath")
             rom = os.path.basename(self.game_config.get("main_file"))
             if not rompath:
-                raise GameConfigError(_("The path '%s' is not set. please set it in the options.") % 'rompath')
+                raise GameConfigError(_("The path '%s' is not set. please set it in the options.") % "rompath")
             command += ["-rompath", rompath, rom]
 
         if self.game_config.get("autoboot_command"):

@@ -1,4 +1,3 @@
-
 # pylint: disable=wildcard-import, unused-wildcard-import, invalid-name
 # Shit python (?) module that will likely crash the Lutris client.
 # We should not be doing that we live a life of shame knowing we are shipping this code
@@ -8,10 +7,23 @@
 
 """Query Vulkan capabilities"""
 from collections import namedtuple
+
 # Standard Library
 from ctypes import (
-    CDLL, POINTER, Structure, byref, c_char, c_char_p, c_float, c_int32, c_size_t, c_uint8, c_uint32, c_uint64,
-    c_void_p, pointer
+    CDLL,
+    POINTER,
+    Structure,
+    byref,
+    c_char,
+    c_char_p,
+    c_float,
+    c_int32,
+    c_size_t,
+    c_uint8,
+    c_uint32,
+    c_uint64,
+    c_void_p,
+    pointer,
 )
 
 from lutris.util import cache_single
@@ -38,7 +50,7 @@ VkInstance = c_void_p  # handle (struct ptr)
 VkPhysicalDevice = c_void_p  # handle (struct ptr)
 VkDeviceSize = c_uint64
 
-DeviceInfo = namedtuple('DeviceInfo', 'name api_version')
+DeviceInfo = namedtuple("DeviceInfo", "name api_version")
 
 
 def vk_make_version(major, minor, patch):
@@ -220,7 +232,7 @@ class VkPhysicalDeviceLimits(Structure):
         ("standardSampleLocations", VkBool32),
         ("optimalBufferCopyOffsetAlignment", VkDeviceSize),
         ("optimalBufferCopyRowPitchAlignment", VkDeviceSize),
-        ("nonCoherentAtomSize", VkDeviceSize)
+        ("nonCoherentAtomSize", VkDeviceSize),
     ]
 
 
@@ -230,7 +242,7 @@ class VkPhysicalDeviceSparseProperties(Structure):
         ("residencyStandard2DMultisampleBlockShape", VkBool32),
         ("residencyStandard3DBlockShape", VkBool32),
         ("residencyAlignedMipSize", VkBool32),
-        ("residencyNonResidentStrict", VkBool32)
+        ("residencyNonResidentStrict", VkBool32),
     ]
 
 
@@ -244,7 +256,7 @@ class VkPhysicalDeviceProperties(Structure):
         ("deviceName", c_char * VK_MAX_PHYSICAL_DEVICE_NAME_SIZE),
         ("pipelineCacheUUID", c_uint8 * VK_UUID_SIZE),
         ("limits", VkPhysicalDeviceLimits),
-        ("sparseProperties", VkPhysicalDeviceSparseProperties)
+        ("sparseProperties", VkPhysicalDeviceSparseProperties),
     ]
 
 

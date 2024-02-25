@@ -21,7 +21,7 @@ class TestPersonnalGameArchive(DatabaseTester):
     def test_add_game(self):
         games_db.add_game(name="LutrisTest", runner="Linux")
         game_list = games_db.get_games()
-        game_names = [item['name'] for item in game_list]
+        game_names = [item["name"] for item in game_list]
         self.assertTrue("LutrisTest" in game_names)
 
     def test_delete_game(self):
@@ -33,52 +33,48 @@ class TestPersonnalGameArchive(DatabaseTester):
     def test_get_game_list(self):
         self.game_id = games_db.add_game(name="LutrisTest", runner="Linux")
         game_list = games_db.get_games()
-        self.assertEqual(game_list[0]['id'], self.game_id)
-        self.assertEqual(game_list[0]['slug'], 'lutristest')
-        self.assertEqual(game_list[0]['name'], 'LutrisTest')
-        self.assertEqual(game_list[0]['runner'], 'Linux')
+        self.assertEqual(game_list[0]["id"], self.game_id)
+        self.assertEqual(game_list[0]["slug"], "lutristest")
+        self.assertEqual(game_list[0]["name"], "LutrisTest")
+        self.assertEqual(game_list[0]["runner"], "Linux")
 
     def test_filter(self):
         games_db.add_game(name="foobar", runner="Linux")
         games_db.add_game(name="bang", runner="Linux")
-        game_list = games_db.get_games(searches={"name": 'bang'})
+        game_list = games_db.get_games(searches={"name": "bang"})
         self.assertEqual(len(game_list), 1)
-        self.assertEqual(game_list[0]['name'], 'bang')
+        self.assertEqual(game_list[0]["name"], "bang")
 
     def test_can_filter_by_installed_games(self):
         games_db.add_game(name="installed_game", runner="Linux", installed=1)
         games_db.add_game(name="bang", runner="Linux", installed=0)
-        game_list = games_db.get_games(filters={'installed': 1})
+        game_list = games_db.get_games(filters={"installed": 1})
         self.assertEqual(len(game_list), 1)
-        self.assertEqual(game_list[0]['name'], 'installed_game')
+        self.assertEqual(game_list[0]["name"], "installed_game")
 
     def test_game_with_same_slug_is_updated(self):
         games_db.add_game(name="some game", runner="linux")
         game = games_db.get_game_by_field("some-game", "slug")
-        self.assertFalse(game['directory'])
-        games_db.add_or_update(name="some game", runner='linux', directory="/foo")
+        self.assertFalse(game["directory"])
+        games_db.add_or_update(name="some game", runner="linux", directory="/foo")
         game = games_db.get_game_by_field("some-game", "slug")
-        self.assertEqual(game['directory'], '/foo')
+        self.assertEqual(game["directory"], "/foo")
 
 
 class TestDbCreator(DatabaseTester):
     def test_can_generate_fields(self):
-        text_field = schema.field_to_string('name', 'TEXT')
+        text_field = schema.field_to_string("name", "TEXT")
         self.assertEqual(text_field, "name TEXT")
 
-        id_field = schema.field_to_string('id', 'INTEGER', indexed=True)
+        id_field = schema.field_to_string("id", "INTEGER", indexed=True)
         self.assertEqual(id_field, "id INTEGER PRIMARY KEY")
 
     def test_can_create_table(self):
-        fields = [
-            {'name': 'id', 'type': 'INTEGER', 'indexed': True},
-            {'name': 'name', 'type': 'TEXT'}
-        ]
-        schema.create_table('testing', fields)
-        sql.db_insert(settings.DB_PATH, 'testing', {'name': "testok"})
-        results = sql.db_select(settings.DB_PATH, 'testing',
-                                fields=['id', 'name'])
-        self.assertEqual(results[0]['name'], "testok")
+        fields = [{"name": "id", "type": "INTEGER", "indexed": True}, {"name": "name", "type": "TEXT"}]
+        schema.create_table("testing", fields)
+        sql.db_insert(settings.DB_PATH, "testing", {"name": "testok"})
+        results = sql.db_select(settings.DB_PATH, "testing", fields=["id", "name"])
+        self.assertEqual(results[0]["name"], "testok")
 
 
 class TestMigration(DatabaseTester):
@@ -86,15 +82,11 @@ class TestMigration(DatabaseTester):
         super().setUp()
         self.tablename = "basetable"
         self.schema = [
+            {"name": "id", "type": "INTEGER", "indexed": True},
             {
-                'name': 'id',
-                'type': 'INTEGER',
-                'indexed': True
+                "name": "name",
+                "type": "TEXT",
             },
-            {
-                'name': 'name',
-                'type': 'TEXT',
-            }
         ]
 
     def create_table(self):
@@ -103,44 +95,38 @@ class TestMigration(DatabaseTester):
     def test_get_schema(self):
         self.create_table()
         _schema = schema.get_schema(self.tablename)
-        self.assertEqual(_schema[0]['name'], 'id')
-        self.assertEqual(_schema[0]['type'], 'INTEGER')
-        self.assertEqual(_schema[1]['name'], 'name')
-        self.assertEqual(_schema[1]['type'], 'TEXT')
+        self.assertEqual(_schema[0]["name"], "id")
+        self.assertEqual(_schema[0]["type"], "INTEGER")
+        self.assertEqual(_schema[1]["name"], "name")
+        self.assertEqual(_schema[1]["type"], "TEXT")
 
     def test_add_field(self):
         self.create_table()
-        field = {
-            'name': 'counter',
-            'type': 'INTEGER'
-        }
+        field = {"name": "counter", "type": "INTEGER"}
         sql.add_field(settings.DB_PATH, self.tablename, field)
         _schema = schema.get_schema(self.tablename)
-        self.assertEqual(_schema[2]['name'], 'counter')
-        self.assertEqual(_schema[2]['type'], 'INTEGER')
+        self.assertEqual(_schema[2]["name"], "counter")
+        self.assertEqual(_schema[2]["type"], "INTEGER")
 
     def test_cant_add_existing_field(self):
         self.create_table()
-        field = {
-            'name': 'name',
-            'type': 'TEXT'
-        }
+        field = {"name": "name", "type": "TEXT"}
         with self.assertRaises(OperationalError):
             sql.add_field(settings.DB_PATH, self.tablename, field)
 
     def test_cant_create_empty_table(self):
         with self.assertRaises(OperationalError):
-            schema.create_table('emptytable', [])
+            schema.create_table("emptytable", [])
 
     def test_can_know_if_table_exists(self):
         self.create_table()
         self.assertTrue(schema.get_schema(self.tablename))
-        self.assertFalse(schema.get_schema('notatable'))
+        self.assertFalse(schema.get_schema("notatable"))
 
     def test_can_migrate(self):
         self.create_table()
-        self.schema.append({'name': 'new_field', 'type': 'TEXT'})
+        self.schema.append({"name": "new_field", "type": "TEXT"})
         migrated = schema.migrate(self.tablename, self.schema)
         _schema = schema.get_schema(self.tablename)
-        self.assertEqual(_schema[2]['name'], 'new_field')
-        self.assertEqual(migrated, ['new_field'])
+        self.assertEqual(_schema[2]["name"], "new_field")
+        self.assertEqual(migrated, ["new_field"])

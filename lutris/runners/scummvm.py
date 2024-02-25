@@ -39,7 +39,9 @@ def _get_scale_factor_warning(config, _option_key):
             scale_factor = config["scale-factor"]
             if scale_factor not in _supported_scale_factors[scaler]:
                 return _("<b>Warning</b> The '%s' scaler does not work with a scale factor of %s.") % (
-                    scaler, scale_factor)
+                    scaler,
+                    scale_factor,
+                )
 
     return None
 
@@ -52,16 +54,8 @@ class scummvm(Runner):
     runner_executable = "scummvm/bin/scummvm"
     flatpak_id = "org.scummvm.ScummVM"
     game_options = [
-        {
-            "option": "game_id",
-            "type": "string",
-            "label": _("Game identifier")
-        },
-        {
-            "option": "path",
-            "type": "directory_chooser",
-            "label": _("Game files location")
-        },
+        {"option": "game_id", "type": "string", "label": _("Game identifier")},
+        {"option": "path", "type": "directory_chooser", "label": _("Game files location")},
         {
             "option": "args",
             "type": "string",
@@ -105,9 +99,7 @@ class scummvm(Runner):
         "debug-flags": "--debug-flags=%s",
     }
 
-    option_empty_map = {
-        "fullscreen": "--no-fullscreen"
-    }
+    option_empty_map = {"fullscreen": "--no-fullscreen"}
 
     runner_options = [
         {
@@ -157,9 +149,9 @@ class scummvm(Runner):
                 ("tv2x", "tv2x"),
             ],
             "warning": _get_opengl_warning,
-            "help":
-                _("The algorithm used to scale up the game's base "
-                  "resolution, resulting in different visual styles. "),
+            "help": _(
+                "The algorithm used to scale up the game's base " "resolution, resulting in different visual styles. "
+            ),
         },
         {
             "option": "scale-factor",
@@ -174,11 +166,12 @@ class scummvm(Runner):
                 ("4", "4"),
                 ("5", "5"),
             ],
-            "help":
-                _("Changes the resolution of the game. "
-                  "For example, a 2x scale will take a 320x200 "
-                  "resolution game and scale it up to 640x400. "),
-            "warning": _get_scale_factor_warning
+            "help": _(
+                "Changes the resolution of the game. "
+                "For example, a 2x scale will take a 320x200 "
+                "resolution game and scale it up to 640x400. "
+            ),
+            "warning": _get_scale_factor_warning,
         },
         {
             "option": "renderer",
@@ -189,7 +182,7 @@ class scummvm(Runner):
                 (_("Auto"), ""),
                 (_("Software"), "software"),
                 (_("OpenGL"), "opengl"),
-                (_("OpenGL (with shaders)"), "opengl_shaders")
+                (_("OpenGL (with shaders)"), "opengl_shaders"),
             ],
             "default": "",
             "advanced": True,
@@ -242,8 +235,10 @@ class scummvm(Runner):
             "section": _("Graphics"),
             "label": _("Filtering"),
             "type": "bool",
-            "help": _("Uses bilinear interpolation instead of nearest neighbor "
-                      "resampling for the aspect ratio correction and stretch mode."),
+            "help": _(
+                "Uses bilinear interpolation instead of nearest neighbor "
+                "resampling for the aspect ratio correction and stretch mode."
+            ),
             "default": False,
             "advanced": True,
         },
@@ -258,8 +253,10 @@ class scummvm(Runner):
             "option": "platform",
             "type": "string",
             "label": _("Platform"),
-            "help": _("Specifes platform of game. Allowed values: 2gs, 3do, acorn, amiga, atari, c64, "
-                      "fmtowns, nes, mac, pc pc98, pce, segacd, wii, windows"),
+            "help": _(
+                "Specifes platform of game. Allowed values: 2gs, 3do, acorn, amiga, atari, c64, "
+                "fmtowns, nes, mac, pc pc98, pce, segacd, wii, windows"
+            ),
             "advanced": True,
         },
         {
@@ -280,8 +277,10 @@ class scummvm(Runner):
             "option": "engine-speed",
             "type": "string",
             "label": _("Engine speed"),
-            "help": _("Sets frames per second limit (0 - 100) for Grim Fandango "
-                      "or Escape from Monkey Island (default: 60)."),
+            "help": _(
+                "Sets frames per second limit (0 - 100) for Grim Fandango "
+                "or Escape from Monkey Island (default: 60)."
+            ),
             "advanced": True,
         },
         {
@@ -357,8 +356,10 @@ class scummvm(Runner):
                 ("op3lpt", "op3lpt"),
                 ("rwopl3", "rwopl3"),
             ],
-            "help": _("Chooses which emulator is used by ScummVM when the AdLib emulator "
-                      "is chosen as the Preferred device."),
+            "help": _(
+                "Chooses which emulator is used by ScummVM when the AdLib emulator "
+                "is chosen as the Preferred device."
+            ),
             "advanced": True,
         },
         {
@@ -416,8 +417,10 @@ class scummvm(Runner):
             "label": _("True Roland MT-32"),
             "type": "bool",
             "default": False,
-            "help": _("Tells ScummVM that the MIDI device is an actual Roland MT-32, "
-                      "LAPC-I, CM-64, CM-32L, CM-500 or other MT-32 device."),
+            "help": _(
+                "Tells ScummVM that the MIDI device is an actual Roland MT-32, "
+                "LAPC-I, CM-64, CM-32L, CM-500 or other MT-32 device."
+            ),
             "advanced": True,
         },
         {
@@ -426,8 +429,10 @@ class scummvm(Runner):
             "label": _("Enable Roland GS"),
             "type": "bool",
             "default": False,
-            "help": _("Tells ScummVM that the MIDI device is a GS device that has "
-                      "an MT-32 map, such as an SC-55, SC-88 or SC-8820."),
+            "help": _(
+                "Tells ScummVM that the MIDI device is a GS device that has "
+                "an MT-32 map, such as an SC-55, SC-88 or SC-8820."
+            ),
             "advanced": True,
         },
         {
@@ -550,10 +555,9 @@ class scummvm(Runner):
 
     def get_game_list(self):
         """Return the entire list of games supported by ScummVM."""
-        with subprocess.Popen(self.get_command() + ["--list-games"],
-                              stdout=subprocess.PIPE,
-                              encoding="utf-8",
-                              universal_newlines=True) as scummvm_process:
+        with subprocess.Popen(
+            self.get_command() + ["--list-games"], stdout=subprocess.PIPE, encoding="utf-8", universal_newlines=True
+        ) as scummvm_process:
             scumm_output = scummvm_process.communicate()[0]
             game_list = str.split(scumm_output, "\n")
         game_array = []
@@ -566,7 +570,7 @@ class scummvm(Runner):
                     dir_limit = None
                 if dir_limit is not None:
                     game_dir = game[0:dir_limit]
-                    game_name = game[dir_limit + 1:len(game)].strip()
+                    game_name = game[dir_limit + 1 : len(game)].strip()
                     game_array.append([game_dir, game_name])
             # The actual list is below a separator
             if game.startswith("-----"):

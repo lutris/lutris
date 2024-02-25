@@ -9,12 +9,7 @@ from lutris.gui.widgets.common import FileChooserEntry
 
 class CacheConfigurationDialog(ModalDialog):
     def __init__(self, parent=None):
-        super().__init__(
-            _("Download cache configuration"),
-            parent=parent,
-            flags=Gtk.DialogFlags.MODAL,
-            border_width=10
-        )
+        super().__init__(_("Download cache configuration"), parent=parent, flags=Gtk.DialogFlags.MODAL, border_width=10)
         self.timer_id = None
         self.set_size_request(480, 150)
 
@@ -44,7 +39,7 @@ class CacheConfigurationDialog(ModalDialog):
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             warn_if_non_writable_parent=True,
             text=self.cache_path,
-            activates_default=True
+            activates_default=True,
         )
         path_chooser.connect("changed", self._on_cache_path_set)
         box.pack_start(path_chooser, True, True, 0)
@@ -52,11 +47,13 @@ class CacheConfigurationDialog(ModalDialog):
         prefs_box.pack_start(box, False, False, 6)
         cache_help_label = Gtk.Label(visible=True)
         cache_help_label.set_size_request(400, -1)
-        cache_help_label.set_markup(_(
-            "If provided, this location will be used by installers to cache "
-            "downloaded files locally for future re-use. \nIf left empty, the "
-            "installer files are discarded after the install completion."
-        ))
+        cache_help_label.set_markup(
+            _(
+                "If provided, this location will be used by installers to cache "
+                "downloaded files locally for future re-use. \nIf left empty, the "
+                "installer files are discarded after the install completion."
+            )
+        )
         prefs_box.pack_start(cache_help_label, False, False, 6)
         return prefs_box
 

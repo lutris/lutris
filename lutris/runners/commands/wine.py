@@ -14,8 +14,13 @@ from lutris.util.strings import split_arguments
 from lutris.util.wine.cabinstall import CabInstaller
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.wine import (
-    WINE_DEFAULT_ARCH, WINE_DIR, detect_arch, get_overrides_env, get_real_executable, is_installed_systemwide,
-    is_prefix_directory
+    WINE_DEFAULT_ARCH,
+    WINE_DIR,
+    detect_arch,
+    get_overrides_env,
+    get_real_executable,
+    is_installed_systemwide,
+    is_prefix_directory,
 )
 
 
@@ -41,7 +46,7 @@ def set_regedit(
     }
     # Make temporary reg file
     reg_path = os.path.join(settings.CACHE_DIR, "winekeys.reg")
-    with open(reg_path, "w", encoding='utf-8') as reg_file:
+    with open(reg_path, "w", encoding="utf-8") as reg_file:
         reg_file.write('REGEDIT4\n\n[%s]\n"%s"=%s\n' % (path, key, formatted_value[type]))
     logger.debug("Setting [%s]:%s=%s", path, key, formatted_value[type])
     set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix, arch=arch)
@@ -79,13 +84,7 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH
 
 
 def create_prefix(  # noqa: C901
-    prefix,
-    wine_path=None,
-    arch=WINE_DEFAULT_ARCH,
-    overrides=None,
-    install_gecko=None,
-    install_mono=None,
-    runner=None
+    prefix, wine_path=None, arch=WINE_DEFAULT_ARCH, overrides=None, install_gecko=None, install_mono=None, runner=None
 ):
     """Create a new Wine prefix."""
     # pylint: disable=too-many-locals
@@ -114,12 +113,11 @@ def create_prefix(  # noqa: C901
         wine_path = runner.get_executable()
     logger.info("Winepath: %s", wine_path)
 
-    if ('Proton' not in wine_path) or ('lutris' in wine_path and 'Proton' in wine_path):
+    if ("Proton" not in wine_path) or ("lutris" in wine_path and "Proton" in wine_path):
         wineboot_path = os.path.join(os.path.dirname(wine_path), "wineboot")
         if not system.path_exists(wineboot_path):
             logger.error(
-                "No wineboot executable found in %s, "
-                "your wine installation is most likely broken",
+                "No wineboot executable found in %s, " "your wine installation is most likely broken",
                 wine_path,
             )
             return
@@ -139,7 +137,7 @@ def create_prefix(  # noqa: C901
         wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
         overrides["mscoree"] = "disabled"
 
-    if ('Proton' not in wine_path) or ('lutris' in wine_path and 'Proton' in wine_path):
+    if ("Proton" not in wine_path) or ("lutris" in wine_path and "Proton" in wine_path):
         system.execute([wineboot_path], env=wineenv)
         for loop_index in range(1000):
             time.sleep(0.5)
@@ -233,7 +231,7 @@ def wineexec(  # noqa: C901
     disable_runtime=False,
     env=None,
     overrides=None,
-    runner=None
+    runner=None,
 ):
     """
     Execute a Wine command.
@@ -316,7 +314,7 @@ def wineexec(  # noqa: C901
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
-    if 'Proton' in wine_path:
+    if "Proton" in wine_path:
         # TODO: Determine and insert GAMEID and STORE
         wineenv["GAMEID"] = "ulwgl-foo"
         wineenv["PROTONPATH"] = os.path.abspath(os.path.join(os.path.dirname(wine_path), "../../"))
@@ -325,7 +323,7 @@ def wineexec(  # noqa: C901
     baseenv.update(wineenv)
     baseenv.update(env)
 
-    if 'Proton' in wine_path:
+    if "Proton" in wine_path:
         ulwgl_path = os.path.join(os.path.join(settings.RUNTIME_DIR, "ulwgl"), "ulwgl-run")
         wine_path = ulwgl_path
 
@@ -385,7 +383,7 @@ def winetricks(
     env=None,
     disable_runtime=False,
     system_winetricks=False,
-    runner=None
+    runner=None,
 ):
     """Execute winetricks."""
     winetricks_path, working_dir, env = find_winetricks(env, system_winetricks)
@@ -397,7 +395,7 @@ def winetricks(
             runner = import_runner("wine")()
         winetricks_wine = runner.get_executable()
     # We only need to perform winetricks if not using ulwgl/proton. ulwgl uses protonfixes
-    if ('Proton' not in wine_path) or ('lutris' in wine_path and 'Proton' in wine_path):
+    if ("Proton" not in wine_path) or ("lutris" in wine_path and "Proton" in wine_path):
         if arch not in ("win32", "win64"):
             arch = detect_arch(prefix, winetricks_wine)
         args = app
@@ -415,7 +413,7 @@ def winetricks(
             config=config,
             env=env,
             disable_runtime=disable_runtime,
-            runner=runner
+            runner=runner,
         )
 
 
@@ -435,7 +433,7 @@ def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, en
         config=config,
         env=env,
         include_processes=["winecfg.exe"],
-        runner=runner
+        runner=runner,
     )
 
 

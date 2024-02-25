@@ -75,8 +75,7 @@ class web(Runner):
             "label": _("Disable menu bar and default shortcuts"),
             "type": "bool",
             "default": False,
-            "help": _("This also disables default keyboard shortcuts, "
-                      "like copy/paste and fullscreen toggling."),
+            "help": _("This also disables default keyboard shortcuts, " "like copy/paste and fullscreen toggling."),
         },
         {
             "option": "disable_scrolling",
@@ -90,8 +89,7 @@ class web(Runner):
             "label": _("Hide mouse cursor"),
             "type": "bool",
             "default": False,
-            "help": _("Prevents the mouse cursor from showing "
-                      "when hovering above the window."),
+            "help": _("Prevents the mouse cursor from showing " "when hovering above the window."),
         },
         {
             "option": "open_links",
@@ -108,8 +106,7 @@ class web(Runner):
             "label": _("Remove default <body> margin & padding"),
             "type": "bool",
             "default": False,
-            "help": _("Sets margin and padding to zero "
-                      "on &lt;html&gt; and &lt;body&gt; elements."),
+            "help": _("Sets margin and padding to zero " "on &lt;html&gt; and &lt;body&gt; elements."),
         },
         {
             "option": "enable_flash",
@@ -175,16 +172,14 @@ class web(Runner):
     def play(self):
         url = self.game_config.get("main_file")
         if not url:
-            raise GameConfigError(_("The web address is empty, \n"
-                                    "verify the game's configuration."))
+            raise GameConfigError(_("The web address is empty, \n" "verify the game's configuration."))
 
         # check if it's an url or a file
         is_url = urlparse(url).scheme != ""
 
         if not is_url:
             if not system.path_exists(url):
-                raise GameConfigError(_("The file %s does not exist, \n"
-                                        "verify the game's configuration.") % url)
+                raise GameConfigError(_("The file %s does not exist, \n" "verify the game's configuration.") % url)
             url = "file://" + url
 
         game_data = get_game_by_field(self.config.game_config_id, "configpath")

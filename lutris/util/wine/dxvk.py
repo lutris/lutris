@@ -13,7 +13,12 @@ class DXVKManager(DLLManager):
     component = "DXVK"
     base_dir = os.path.join(RUNTIME_DIR, "dxvk")
     versions_path = os.path.join(base_dir, "dxvk_versions.json")
-    managed_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9",)
+    managed_dlls = (
+        "dxgi",
+        "d3d11",
+        "d3d10core",
+        "d3d9",
+    )
     releases_url = "https://api.github.com/repos/lutris/dxvk/releases"
 
     def can_enable(self):
@@ -38,15 +43,15 @@ class DXVKManager(DLLManager):
         Very basic check to see if a dll contains the string "dxvk".
         """
         try:
-            with open(dll_path, 'rb') as file:
-                prev_block_end = b''
+            with open(dll_path, "rb") as file:
+                prev_block_end = b""
                 while True:
                     block = file.read(2 * 1024 * 1024)  # 2 MiB
                     if not block:
                         break
-                    if b'dxvk' in prev_block_end + block[:4]:
+                    if b"dxvk" in prev_block_end + block[:4]:
                         return True
-                    if b'dxvk' in block:
+                    if b"dxvk" in block:
                         return True
 
                     prev_block_end = block[-4:]

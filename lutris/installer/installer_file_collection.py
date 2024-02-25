@@ -13,7 +13,7 @@ AMAZON_DOMAIN = "a2z.com"
 
 class InstallerFileCollection:
     """Representation of a collection of files in the `files` sections of an installer.
-       Store files in a folder"""
+    Store files in a folder"""
 
     def __init__(self, game_slug, file_id, files_list, dest_file=None):
         self.game_slug = game_slug

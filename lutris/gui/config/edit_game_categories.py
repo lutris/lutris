@@ -34,10 +34,12 @@ class EditGameCategoriesDialog(SavableModelessDialog):
         # frame.set_label("Categories") # probably too much redundancy
         sw = Gtk.ScrolledWindow()
         row = Gtk.VBox()
-        categories = sorted([c for c in categories_db.get_categories() if c['name'] != 'favorite'],
-                            key=lambda c: locale.strxfrm(c['name']))
+        categories = sorted(
+            [c for c in categories_db.get_categories() if c["name"] != "favorite"],
+            key=lambda c: locale.strxfrm(c["name"]),
+        )
         for category in categories:
-            label = category['name']
+            label = category["name"]
             checkbutton_option = Gtk.CheckButton(label)
             if label in self.game_categories:
                 checkbutton_option.set_active(True)

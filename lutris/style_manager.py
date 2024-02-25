@@ -139,9 +139,7 @@ class StyleManager(GObject.Object):
         self._is_dark = is_dark
         self.notify("is-dark")
 
-        self.gtksettings.set_property(
-            "gtk-application-prefer-dark-theme", is_dark
-        )
+        self.gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
 
     @property
     def color_scheme(self) -> ColorScheme:

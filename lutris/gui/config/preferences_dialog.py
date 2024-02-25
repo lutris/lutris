@@ -49,55 +49,31 @@ class PreferencesDialog(GameDialogCommon):
         hbox.add(self.stack)
         self.vbox.pack_start(hbox, True, True, 0)
         self.vbox.set_border_width(0)  # keep everything flush with the window edge
-        self.stack.add_named(
-            self.build_scrolled_window(InterfacePreferencesBox(self.accelerators)),
-            "prefs-stack"
-        )
+        self.stack.add_named(self.build_scrolled_window(InterfacePreferencesBox(self.accelerators)), "prefs-stack")
 
         self.runners_box = RunnersBox()
         self.page_generators["runners-stack"] = self.runners_box.populate_runners
-        self.stack.add_named(
-            self.build_scrolled_window(self.runners_box),
-            "runners-stack"
-        )
+        self.stack.add_named(self.build_scrolled_window(self.runners_box), "runners-stack")
 
         services_box = ServicesBox()
         self.page_generators["services-stack"] = services_box.populate_services
-        self.stack.add_named(
-            self.build_scrolled_window(services_box),
-            "services-stack"
-        )
+        self.stack.add_named(self.build_scrolled_window(services_box), "services-stack")
 
         accounts_box = AccountsBox()
         self.page_generators["accounts-stack"] = accounts_box.populate_steam_accounts
-        self.stack.add_named(
-            self.build_scrolled_window(accounts_box),
-            "accounts-stack"
-        )
+        self.stack.add_named(self.build_scrolled_window(accounts_box), "accounts-stack")
 
-        self.stack.add_named(
-            self.build_scrolled_window(UpdatesBox()),
-            "updates-stack"
-        )
+        self.stack.add_named(self.build_scrolled_window(UpdatesBox()), "updates-stack")
 
         sysinfo_box = SystemBox()
         self.page_generators["sysinfo-stack"] = sysinfo_box.populate
-        self.stack.add_named(
-            self.build_scrolled_window(sysinfo_box),
-            "sysinfo-stack"
-        )
+        self.stack.add_named(self.build_scrolled_window(sysinfo_box), "sysinfo-stack")
 
-        self.stack.add_named(
-            self.build_scrolled_window(StorageBox()),
-            "storage-stack"
-        )
+        self.stack.add_named(self.build_scrolled_window(StorageBox()), "storage-stack")
 
         self.system_box = SystemConfigBox(self.config_level, self.lutris_config)
         self.page_generators["system-stack"] = self.system_box.generate_widgets
-        self.stack.add_named(
-            self.build_scrolled_window(self.system_box),
-            "system-stack"
-        )
+        self.stack.add_named(self.build_scrolled_window(self.system_box), "system-stack")
 
     def on_sidebar_activated(self, _listbox, row):
         stack_id = row.get_children()[0].stack_id

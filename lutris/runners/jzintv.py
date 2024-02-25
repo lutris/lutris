@@ -3,6 +3,7 @@ import os
 from gettext import gettext as _
 
 from lutris.exceptions import MissingBiosError, MissingGameExecutableError
+
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -38,12 +39,7 @@ class jzintv(Runner):
                 "necessary to the emulation."
             ),
         },
-        {
-            "option": "fullscreen",
-            "type": "bool",
-            "section": _("Graphics"),
-            "label": _("Fullscreen")
-        },
+        {"option": "fullscreen", "type": "bool", "section": _("Graphics"), "label": _("Fullscreen")},
         {
             "option": "resolution",
             "type": "choice",
@@ -58,7 +54,7 @@ class jzintv(Runner):
                 ("1680 x 1050", "4"),
                 ("1600 x 1200", "6"),
             ),
-            "default": "0"
+            "default": "0",
         },
     ]
 

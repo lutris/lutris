@@ -10,7 +10,7 @@ class ServiceGame:
 
     service = NotImplemented
     installer_slug = NotImplemented
-    medias = (ServiceMedia, )
+    medias = (ServiceMedia,)
 
     def __init__(self):
         self.appid = None  # External ID of the game on the 3rd party service

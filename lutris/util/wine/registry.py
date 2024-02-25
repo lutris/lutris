@@ -100,8 +100,7 @@ class WineRegistry:
         """Return an array of the unprocessed contents of a registry file"""
         if not system.path_exists(reg_filename):
             return []
-        with open(reg_filename, "r", encoding='utf-8') as reg_file:
-
+        with open(reg_filename, "r", encoding="utf-8") as reg_file:
             try:
                 registry_content = reg_file.readlines()
             except Exception:  # pylint: disable=broad-except
@@ -131,9 +130,9 @@ class WineRegistry:
                     current_key.parse(line)
                 add_next_to_value = line.endswith("\\")
             elif line.startswith(self.version_header):
-                self.version = int(line[len(self.version_header):])
+                self.version = int(line[len(self.version_header) :])
             elif line.startswith(self.relative_to_header):
-                self.relative_to = line[len(self.relative_to_header):]
+                self.relative_to = line[len(self.relative_to_header) :]
             elif line.startswith("#arch"):
                 self.arch = line.split("=")[1]
 
@@ -158,7 +157,7 @@ class WineRegistry:
                 "Invalid Wine prefix path %s, make sure to "
                 "create the prefix before saving to a registry" % prefix_path
             )
-        with open(path, "w", encoding='utf-8') as registry_file:
+        with open(path, "w", encoding="utf-8") as registry_file:
             registry_file.write(self.render())
 
     def query(self, path, subkey):
@@ -213,9 +212,7 @@ class WineRegistry:
 
 
 class WineRegistryKey:
-
     def __init__(self, key_def=None, path=None):
-
         self.subkeys = OrderedDict()
         self.metas = OrderedDict()
 
@@ -310,7 +307,7 @@ class WineRegistryKey:
             # The exception let us know if it worked or not
             for i in [0, 1, 2]:
                 try:
-                    out += ("\\u{}{}".format("0" * i, chunk).encode().decode("unicode_escape"))
+                    out += "\\u{}{}".format("0" * i, chunk).encode().decode("unicode_escape")
                     break
                 except UnicodeDecodeError:
                     pass

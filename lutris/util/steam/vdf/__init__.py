@@ -17,7 +17,7 @@ from io import StringIO as unicodeIO
 
 string_type = str
 int_type = int
-BOMS = '\ufffe\ufeff'
+BOMS = "\ufffe\ufeff"
 
 
 def strip_bom(line):
@@ -35,8 +35,8 @@ _unescape_char_map = {
     r"\a": "\a",
     r"\\": "\\",
     r"\?": "?",
-    r"\"": "\"",
-    r"\'": "\'",
+    r"\"": '"',
+    r"\'": "'",
 }
 _escape_char_map = {v: k for k, v in _unescape_char_map.items()}
 
@@ -56,6 +56,7 @@ def _escape(text):
 def _unescape(text):
     return re.sub(r"(\\n|\\t|\\v|\\b|\\r|\\f|\\a|\\\\|\\\?|\\\"|\\')", _re_unescape_match, text)
 
+
 # parsing and dumping for KV1
 
 
@@ -74,19 +75,21 @@ def parse(fp, mapper=dict, merge_duplicate_keys=True, escaped=True):
     """
     if not issubclass(mapper, dict):
         raise TypeError("Expected mapper to be subclass of dict, got %s" % type(mapper))
-    if not hasattr(fp, 'readline'):
+    if not hasattr(fp, "readline"):
         raise TypeError("Expected fp to be a file-like object supporting line iteration")
 
     lineno = 0
     stack = [mapper()]
     expect_bracket = False
 
-    re_keyvalue = re.compile(r'^("(?P<qkey>(?:\\.|[^\\"])+)"|(?P<key>#?[a-z0-9\-\_\\\?]+))'
-                             r'([ \t]*('
-                             r'"(?P<qval>(?:\\.|[^\\"])*)(?P<vq_end>")?'
-                             r'|(?P<val>[a-z0-9\-\_\\\?\*\.]+)'
-                             r'))?',
-                             flags=re.I)
+    re_keyvalue = re.compile(
+        r'^("(?P<qkey>(?:\\.|[^\\"])+)"|(?P<key>#?[a-z0-9\-\_\\\?]+))'
+        r"([ \t]*("
+        r'"(?P<qval>(?:\\.|[^\\"])*)(?P<vq_end>")?'
+        r"|(?P<val>[a-z0-9\-\_\\\?\*\.]+)"
+        r"))?",
+        flags=re.I,
+    )
 
     for lineno, line in enumerate(fp, 1):
         if lineno == 1:
@@ -95,7 +98,7 @@ def parse(fp, mapper=dict, merge_duplicate_keys=True, escaped=True):
         line = line.lstrip()
 
         # skip empty and comment lines
-        if line == "" or line[0] == '/':
+        if line == "" or line[0] == "/":
             continue
 
         # one level deeper
@@ -104,8 +107,10 @@ def parse(fp, mapper=dict, merge_duplicate_keys=True, escaped=True):
             continue
 
         if expect_bracket:
-            raise SyntaxError("vdf.parse: expected openning bracket",
-                              (getattr(fp, 'name', '<%s>' % fp.__class__.__name__), lineno, 1, line))
+            raise SyntaxError(
+                "vdf.parse: expected openning bracket",
+                (getattr(fp, "name", "<%s>" % fp.__class__.__name__), lineno, 1, line),
+            )
 
         # one level back
         if line[0] == "}":
@@ -113,8 +118,10 @@ def parse(fp, mapper=dict, merge_duplicate_keys=True, escaped=True):
                 stack.pop()
                 continue
 
-            raise SyntaxError("vdf.parse: one too many closing parenthasis",
-                              (getattr(fp, 'name', '<%s>' % fp.__class__.__name__), lineno, 0, line))
+            raise SyntaxError(
+                "vdf.parse: one too many closing parenthasis",
+                (getattr(fp, "name", "<%s>" % fp.__class__.__name__), lineno, 0, line),
+            )
 
         # parse keyvalue pairs
         while True:
@@ -125,11 +132,13 @@ def parse(fp, mapper=dict, merge_duplicate_keys=True, escaped=True):
                     line += next(fp)
                     continue
                 except StopIteration:
-                    raise SyntaxError("vdf.parse: unexpected EOF (open key quote?)",
-                                      (getattr(fp, 'name', '<%s>' % fp.__class__.__name__), lineno, 0, line))
+                    raise SyntaxError(
+                        "vdf.parse: unexpected EOF (open key quote?)",
+                        (getattr(fp, "name", "<%s>" % fp.__class__.__name__), lineno, 0, line),
+                    )
 
-            key = match.group('key') if match.group('qkey') is None else match.group('qkey')
-            val = match.group('val') if match.group('qval') is None else match.group('qval')
+            key = match.group("key") if match.group("qkey") is None else match.group("qkey")
+            val = match.group("val") if match.group("qval") is None else match.group("qval")
 
             if escaped:
                 key = _unescape(key)
@@ -149,13 +158,15 @@ def parse(fp, mapper=dict, merge_duplicate_keys=True, escaped=True):
             else:
                 # if the value is line consume one more line and try to match again,
                 # until we get the KeyValue pair
-                if match.group('vq_end') is None and match.group('qval') is not None:
+                if match.group("vq_end") is None and match.group("qval") is not None:
                     try:
                         line += next(fp)
                         continue
                     except StopIteration:
-                        raise SyntaxError("vdf.parse: unexpected EOF (open quote for value?)",
-                                          (getattr(fp, 'name', '<%s>' % fp.__class__.__name__), lineno, 0, line))
+                        raise SyntaxError(
+                            "vdf.parse: unexpected EOF (open quote for value?)",
+                            (getattr(fp, "name", "<%s>" % fp.__class__.__name__), lineno, 0, line),
+                        )
 
                 stack[-1][key] = _unescape(val) if escaped else val
 
@@ -163,8 +174,10 @@ def parse(fp, mapper=dict, merge_duplicate_keys=True, escaped=True):
             break
 
     if len(stack) != 1:
-        raise SyntaxError("vdf.parse: unclosed parenthasis or quotes (EOF)",
-                          (getattr(fp, 'name', '<%s>' % fp.__class__.__name__), lineno, 0, line))
+        raise SyntaxError(
+            "vdf.parse: unclosed parenthasis or quotes (EOF)",
+            (getattr(fp, "name", "<%s>" % fp.__class__.__name__), lineno, 0, line),
+        )
 
     return stack.pop()
 
@@ -199,7 +212,7 @@ def dumps(obj, pretty=False, escaped=True):
     if not isinstance(escaped, bool):
         raise TypeError("Expected escaped to be of type bool")
 
-    return ''.join(_dump_gen(obj, pretty, escaped))
+    return "".join(_dump_gen(obj, pretty, escaped))
 
 
 def dump(obj, fp, pretty=False, escaped=True):
@@ -209,7 +222,7 @@ def dump(obj, fp, pretty=False, escaped=True):
     """
     if not isinstance(obj, dict):
         raise TypeError("Expected data to be an instance of``dict``")
-    if not hasattr(fp, 'write'):
+    if not hasattr(fp, "write"):
         raise TypeError("Expected fp to have write() method")
     if not isinstance(pretty, bool):
         raise TypeError("Expected pretty to be of type bool")
@@ -265,17 +278,17 @@ class COLOR(BASE_INT):
     pass
 
 
-BIN_NONE = b'\x00'
-BIN_STRING = b'\x01'
-BIN_INT32 = b'\x02'
-BIN_FLOAT32 = b'\x03'
-BIN_POINTER = b'\x04'
-BIN_WIDESTRING = b'\x05'
-BIN_COLOR = b'\x06'
-BIN_UINT64 = b'\x07'
-BIN_END = b'\x08'
-BIN_INT64 = b'\x0A'
-BIN_END_ALT = b'\x0B'
+BIN_NONE = b"\x00"
+BIN_STRING = b"\x01"
+BIN_INT32 = b"\x02"
+BIN_FLOAT32 = b"\x03"
+BIN_POINTER = b"\x04"
+BIN_WIDESTRING = b"\x05"
+BIN_COLOR = b"\x06"
+BIN_UINT64 = b"\x07"
+BIN_END = b"\x08"
+BIN_INT64 = b"\x0A"
+BIN_END_ALT = b"\x0B"
 
 
 def binary_loads(s, mapper=dict, merge_duplicate_keys=True, alt_format=False):
@@ -297,31 +310,31 @@ def binary_loads(s, mapper=dict, merge_duplicate_keys=True, alt_format=False):
         raise TypeError("Expected mapper to be subclass of dict, got %s" % type(mapper))
 
     # helpers
-    int32 = struct.Struct('<i')
-    uint64 = struct.Struct('<Q')
-    int64 = struct.Struct('<q')
-    float32 = struct.Struct('<f')
+    int32 = struct.Struct("<i")
+    uint64 = struct.Struct("<Q")
+    int64 = struct.Struct("<q")
+    float32 = struct.Struct("<f")
 
     def read_string(s, idx, wide=False):
         if wide:
-            end = s.find(b'\x00\x00', idx)
+            end = s.find(b"\x00\x00", idx)
             if (end - idx) % 2 != 0:
                 end += 1
         else:
-            end = s.find(b'\x00', idx)
+            end = s.find(b"\x00", idx)
 
         if end == -1:
             raise SyntaxError("Unterminated cstring (offset: %d)" % idx)
         result = s[idx:end]
         if wide:
-            result = result.decode('utf-16')
+            result = result.decode("utf-16")
         elif bytes is not str:
-            result = result.decode('utf-8', 'replace')
+            result = result.decode("utf-8", "replace")
         else:
             try:
-                result.decode('ascii')
+                result.decode("ascii")
             except:
-                result = result.decode('utf-8', 'replace')
+                result = result.decode("utf-8", "replace")
         return result, end + (2 if wide else 1)
 
     stack = [mapper()]
@@ -329,7 +342,7 @@ def binary_loads(s, mapper=dict, merge_duplicate_keys=True, alt_format=False):
     CURRENT_BIN_END = BIN_END if not alt_format else BIN_END_ALT
 
     while len(s) > idx:
-        t = s[idx:idx + 1]
+        t = s[idx : idx + 1]
         idx += 1
 
         if t == CURRENT_BIN_END:
@@ -383,21 +396,21 @@ def binary_dumps(obj, alt_format=False):
     """
     Serialize ``obj`` to a binary VDF formatted ``bytes``.
     """
-    return b''.join(_binary_dump_gen(obj, alt_format=alt_format))
+    return b"".join(_binary_dump_gen(obj, alt_format=alt_format))
 
 
 def _binary_dump_gen(obj, level=0, alt_format=False):
     if level == 0 and len(obj) == 0:
         return
 
-    int32 = struct.Struct('<i')
-    uint64 = struct.Struct('<Q')
-    int64 = struct.Struct('<q')
-    float32 = struct.Struct('<f')
+    int32 = struct.Struct("<i")
+    uint64 = struct.Struct("<Q")
+    int64 = struct.Struct("<q")
+    float32 = struct.Struct("<f")
 
     for key, value in obj.items():
         if isinstance(key, string_type):
-            key = key.encode('utf-8')
+            key = key.encode("utf-8")
         else:
             raise TypeError("dict keys must be of type str, got %s" % type(key))
 
@@ -411,10 +424,10 @@ def _binary_dump_gen(obj, level=0, alt_format=False):
             yield BIN_INT64 + key + BIN_NONE + int64.pack(value)
         elif isinstance(value, string_type):
             try:
-                value = value.encode('utf-8') + BIN_NONE
+                value = value.encode("utf-8") + BIN_NONE
                 yield BIN_STRING
             except:
-                value = value.encode('utf-16') + BIN_NONE * 2
+                value = value.encode("utf-16") + BIN_NONE * 2
                 yield BIN_WIDESTRING
             yield key + BIN_NONE + value
         elif isinstance(value, float):
@@ -446,10 +459,10 @@ def vbkv_loads(s, mapper=dict, merge_duplicate_keys=True):
     same key into one instead of overwriting. You can se this to ``False`` if you are
     using ``VDFDict`` and need to preserve the duplicates.
     """
-    if s[:4] != b'VBKV':
+    if s[:4] != b"VBKV":
         raise ValueError("Invalid header")
 
-    checksum, = struct.unpack('<i', s[4:8])
+    (checksum,) = struct.unpack("<i", s[4:8])
 
     if checksum != crc32(s[8:]):
         raise ValueError("Invalid checksum")
@@ -461,7 +474,7 @@ def vbkv_dumps(obj):
     """
     Serialize ``obj`` to a VBKV formatted ``bytes``.
     """
-    data = b''.join(_binary_dump_gen(obj, alt_format=True))
+    data = b"".join(_binary_dump_gen(obj, alt_format=True))
     checksum = crc32(data)
 
-    return b'VBKV' + struct.pack('<i', checksum) + data
+    return b"VBKV" + struct.pack("<i", checksum) + data

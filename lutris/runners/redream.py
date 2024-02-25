@@ -21,12 +21,7 @@ class redream(Runner):
         }
     ]
     runner_options = [
-        {
-            "option": "fs",
-            "type": "bool",
-            "section": _("Graphics"),
-            "label": _("Fullscreen"),
-            "default": False},
+        {"option": "fs", "type": "bool", "section": _("Graphics"), "label": _("Fullscreen"), "default": False},
         {
             "option": "ar",
             "type": "choice",
@@ -106,16 +101,13 @@ class redream(Runner):
             license_filename = install_ui_delegate.show_install_file_inquiry(
                 question=_("Do you want to select a premium license file?"),
                 title=_("Use premium version?"),
-                message=_("Use premium version?"))
+                message=_("Use premium version?"),
+            )
 
             if license_filename:
-                shutil.copy(
-                    license_filename, os.path.join(settings.RUNNER_DIR, "redream")
-                )
+                shutil.copy(license_filename, os.path.join(settings.RUNNER_DIR, "redream"))
 
-        super().install(
-            install_ui_delegate, version=version, callback=on_runner_installed
-        )
+        super().install(install_ui_delegate, version=version, callback=on_runner_installed)
 
     def play(self):
         command = self.get_command()

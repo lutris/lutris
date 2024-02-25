@@ -46,19 +46,19 @@ class ServiceMedia:
     def get_possible_media_paths(self, slug: str) -> List[str]:
         """Returns a list of each path where the media might be found. At most one of these should
         be found, but they are in a priority order - the first is in the preferred format."""
-        return [os.path.join(self.dest_path, pattern % slug)
-                for pattern in self.file_patterns]
+        return [os.path.join(self.dest_path, pattern % slug) for pattern in self.file_patterns]
 
-    def trash_media(self, slug: str,
-                    completion_function: TrashPortal.CompletionFunction = None,
-                    error_function: TrashPortal.ErrorFunction = None) -> None:
+    def trash_media(
+        self,
+        slug: str,
+        completion_function: TrashPortal.CompletionFunction = None,
+        error_function: TrashPortal.ErrorFunction = None,
+    ) -> None:
         """Sends each media file for a game to the trash, and invokes callsbacks when this
         has been completed or has failed."""
         paths = [path for path in self.get_possible_media_paths(slug) if os.path.exists(path)]
         if paths:
-            TrashPortal(paths,
-                        completion_function=completion_function,
-                        error_function=error_function)
+            TrashPortal(paths, completion_function=completion_function, error_function=error_function)
         elif completion_function:
             completion_function()
 

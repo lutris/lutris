@@ -119,14 +119,14 @@ class hatari(Runner):
     ]
 
     def install(self, install_ui_delegate, version=None, callback=None):
-
         def on_runner_installed(*args):
             bios_path = system.create_folder("~/.hatari/bios")
 
             bios_filename = install_ui_delegate.show_install_file_inquiry(
                 question=_("Do you want to select an Atari ST BIOS file?"),
                 title=_("Use BIOS file?"),
-                message=_("Select a BIOS file"))
+                message=_("Select a BIOS file"),
+            )
 
             if bios_filename:
                 shutil.copy(bios_filename, bios_path)

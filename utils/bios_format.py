@@ -12,10 +12,12 @@ for bios_line in bios_list.split("\n"):
         continue
     filename, _rest = bios_line.split(maxsplit=1)
     sysname, checksum = _rest.rsplit(maxsplit=1)
-    bioses.append({
-        "filename": filename,
-        "description": sysname,
-        "md5sum": checksum,
-    })
+    bioses.append(
+        {
+            "filename": filename,
+            "description": sysname,
+            "md5sum": checksum,
+        }
+    )
 
 print(json.dumps(bioses, indent=4))

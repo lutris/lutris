@@ -24,7 +24,7 @@ WINE_PATHS: Dict[str, str] = {
 
 # Insert additional system-wide Wine installations.
 try:
-    for _candidate in os.listdir('/usr/lib/'):
+    for _candidate in os.listdir("/usr/lib/"):
         if _candidate.startswith("wine-"):
             _wine_path = os.path.join("/usr/lib/", _candidate, "bin/wine")
             if os.path.isfile(_wine_path):
@@ -90,7 +90,7 @@ def detect_prefix_arch(prefix_path: str) -> str:
 
     prefix_path = os.path.expanduser(prefix_path)
     registry_path = os.path.join(prefix_path, "system.reg")
-    with open(registry_path, "r", encoding='utf-8') as registry:
+    with open(registry_path, "r", encoding="utf-8") as registry:
         for _line_no in range(5):
             line = registry.readline()
             if "win64" in line:
@@ -131,11 +131,7 @@ def is_installed_systemwide() -> bool:
 
 def list_system_wine_versions() -> List[str]:
     """Return the list of wine versions installed on the system"""
-    return [
-        name
-        for name, path in WINE_PATHS.items()
-        if get_system_wine_version(path)
-    ]
+    return [name for name, path in WINE_PATHS.items() if get_system_wine_version(path)]
 
 
 def list_lutris_wine_versions() -> List[str]:
@@ -238,7 +234,7 @@ def get_default_wine_version() -> str:
     if installed_versions:
         default_version = get_default_wine_runner_version_info()
         if "version" in default_version and "architecture" in default_version:
-            version = default_version["version"] + '-' + default_version["architecture"]
+            version = default_version["version"] + "-" + default_version["architecture"]
             if version in installed_versions:
                 return version
         return installed_versions[0]
@@ -260,8 +256,7 @@ def get_system_wine_version(wine_path: str = "wine") -> str:
     return version
 
 
-def get_real_executable(windows_executable: str, working_dir: str) -> Tuple[
-        str, List[str], str]:
+def get_real_executable(windows_executable: str, working_dir: str) -> Tuple[str, List[str], str]:
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""
 
@@ -287,9 +282,7 @@ def get_overrides_env(overrides: Dict[str, str]) -> str:
     Output a string of dll overrides usable with WINEDLLOVERRIDES
     See: https://wiki.winehq.org/Wine_User%27s_Guide#WINEDLLOVERRIDES.3DDLL_Overrides
     """
-    default_overrides = {
-        "winemenubuilder": ""
-    }
+    default_overrides = {"winemenubuilder": ""}
     overrides.update(default_overrides)
     override_buckets = OrderedDict([("n,b", []), ("b,n", []), ("b", []), ("n", []), ("d", []), ("", [])])
     for dll, value in overrides.items():
