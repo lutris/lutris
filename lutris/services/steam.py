@@ -56,7 +56,7 @@ class SteamGame(ServiceGame):
     runner = "steam"
 
     @classmethod
-    def new_from_steam_game(cls, steam_game, game_id=None):
+    def new_from_steam_game(cls, steam_game):
         """Return a Steam game instance from an AppManifest"""
         game = cls()
         game.appid = steam_game["appid"]
