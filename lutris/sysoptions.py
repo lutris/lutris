@@ -319,16 +319,6 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "section": _("Audio"),
-        "option": "reset_pulse",
-        "type": "bool",
-        "label": _("Reset PulseAudio"),
-        "default": False,
-        "advanced": True,
-        "condition": system.can_find_executable("pulseaudio"),
-        "help": _("Restart PulseAudio before launching the game."),
-    },
-    {
-        "section": _("Audio"),
         "option": "pulse_latency",
         "type": "bool",
         "label": _("Reduce PulseAudio latency"),

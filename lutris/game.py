@@ -686,10 +686,6 @@ class Game(GObject.Object):
         if "working_dir" in gameplay_info:
             self.game_runtime_config["working_dir"] = gameplay_info["working_dir"]
 
-        # Audio control
-        if self.runner.system_config.get("reset_pulse"):
-            audio.reset_pulse()
-
         # Input control
         if self.runner.system_config.get("use_us_layout"):
             system.set_keyboard_layout("us")

@@ -34,9 +34,7 @@ SYSTEM_COMPONENTS = {
         "fluidsynth",
     ],
     "OPTIONAL_COMMANDS": [
-        "pulseaudio",
         "lsi-steam",
-        "Xephyr",
         "nvidia-smi",
     ],
     "TERMINALS": [
