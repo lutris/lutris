@@ -1,4 +1,5 @@
 import os
+
 from lutris.database.games import get_games
 
 CONFIG_DIR = os.path.expanduser("~/.config/lutris/games")

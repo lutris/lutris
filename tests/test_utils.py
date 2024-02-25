@@ -2,9 +2,9 @@ import os
 from collections import OrderedDict
 from unittest import TestCase
 
-from lutris.util.wine import wine
 from lutris.util import fileio, strings, system
 from lutris.util.steam import vdfutils
+from lutris.util.wine import wine
 
 
 class TestFileUtils(TestCase):

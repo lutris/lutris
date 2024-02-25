@@ -1,8 +1,6 @@
 """Whatever it is we want to do with audio module"""
-# Standard Library
 import time
 
-# Lutris Modules
 from lutris.util import system
 from lutris.util.log import logger
 

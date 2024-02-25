@@ -22,7 +22,6 @@ ignore = [
     "B024", # `DiscordRichPresenceBase` is an abstract base class, but it has no abstract methods
     "B905", # `zip()` without an explicit `strict=` parameter
     "ARG002", # Unused method argument: `mock_path_exists`
-    "I001", # Import block is un-sorted or un-formatted
     "E722", # Do not use bare `except`
     "B904", # Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
     "B008", # Do not perform function call `_try_import_moddb_library` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
