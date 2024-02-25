@@ -5,7 +5,7 @@ from collections import namedtuple
 
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
 from lutris.util.linux import LINUX_SYSTEM
-from lutris.util.log import logger, logging
+from lutris.util.log import logger
 from lutris.util.system import read_process_output
 
 Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate"))
