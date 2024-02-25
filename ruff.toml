@@ -1,3 +1,6 @@
+line-length = 120
+
+[lint]
 select = ["A", "ARG", "B", "E", "F", "I", "W", "PERF", "RUF"]
 ignore = [
     # Ignores that is not worth/too hard to fix
@@ -33,12 +36,5 @@ ignore = [
     "B020", # Loop control variable `upstream_runners` overrides iterable it iterates
     "B018", # Found useless expression. Either assign it to a variable or remove it
 ]
-
-
 fixable = ["ALL"]
 unfixable = []
-
-line-length = 120
-
-[format]
-quote-style = "single"
