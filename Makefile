@@ -89,42 +89,28 @@ snap:
 	snapcraft clean lutris -s pull
 	snapcraft
 
+req-python:
+	pip3 install PyYAML lxml requests Pillow setproctitle python-magic distro dbus-python types-requests \
+	 types-PyYAML evdev PyGObject pypresence protobuf moddb
+
 dev:
-	pip3 install isort flake8 pylint autopep8 pytest mypy mypy-baseline nose2
+	pip3 install ruff==0.1.13 mypy==1.8.0 mypy-baseline nose2
 
 # ============
 # Style checks
 # ============
 
-style: isort autopep8  ## Format code
-
-isort:
-	isort lutris
-
-autopep8:
-	autopep8 --in-place --recursive --ignore E402 setup.py lutris
-
+style:
+	ruff format . --check
 
 # ===============
 # Static analysis
 # ===============
 
-check: isort-check flake8 pylint mypy
+check: ruff_lint mypy
 
-isort-check:
-	isort lutris -c
-
-flake8:
-	flake8 . --count --max-complexity=25 --max-line-length=120 --show-source --statistics
-
-pylint:
-	pylint lutris --rcfile=.pylintrc --output-format=colorized
-
-bandit:
-	bandit . --recursive --skip B101,B105,B107,B108,B303,B310,B311,B314,B320,B404,B405,B410,B602,B603,B607,B608
-
-black:
-	black . --check
+ruff_lint:
+	ruff check .
 
 mypy:
 	mypy . --install-types --non-interactive 2>&1 | mypy-baseline filter

@@ -1,0 +1,44 @@
+select = ["A", "ARG", "B", "E", "F", "I", "W", "PERF", "RUF"]
+ignore = [
+    # Ignores that is not worth/too hard to fix
+    "RUF001", #  String contains ambiguous `！` (FULLWIDTH EXCLAMATION MARK). Did you mean `!` (EXCLAMATION MARK)? - used ,mostly on tests
+    "B028", # No explicit `stacklevel` keyword argument found - not sure why this is needed
+    "E402", # Module level import not at top of file - gtk stuff
+
+    # Ignores that should be fixed and removed
+    "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
+    "PERF401", # Use a list comprehension to create a transformed list
+    "RUF100", # [*] Unused `noqa` directive (non-enabled: `C901`) - unused pylint/noqa directives that should be removed
+    "RUF013", # PEP 484 prohibits implicit `Optional`
+    "PERF203", # `try`-`except` within a loop incurs performance overhead
+    "RUF015", #  Prefer `next(...)` over single element slice - opinionated, but some cases could be changed
+    "PERF102",# When using only the values of a dict use the `values()` method
+    "B011", # Do not `assert False` (`python -O` removes these calls), raise `AssertionError()`
+    "RUF005", # Consider iterable unpacking instead of concatenation
+    "A003", # Class attribute `id` is shadowing a Python builtin
+    "B024", # `DiscordRichPresenceBase` is an abstract base class, but it has no abstract methods
+    "B905", # `zip()` without an explicit `strict=` parameter
+    "ARG002", # Unused method argument: `mock_path_exists`
+    "I001", # Import block is un-sorted or un-formatted
+    "E722", # Do not use bare `except`
+    "B904", # Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+    "B008", # Do not perform function call `_try_import_moddb_library` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+    "ARG005", # Unused lambda argument: `e`
+    "ARG003", # Unused class method argument: `game_id`
+    "ARG001", # Unused function argument: `args`
+    "PERF402", # Use `list` or `list.copy` to create a copy of a list
+    "B009", # Do not call `getattr` with a constant attribute value. It is not any safer than normal property access.
+    "A002", # Argument `type` is shadowing a Python builtin
+    "ARG004", # Unused static method argument: `x`
+    "B020", # Loop control variable `upstream_runners` overrides iterable it iterates
+    "B018", # Found useless expression. Either assign it to a variable or remove it
+]
+
+
+fixable = ["ALL"]
+unfixable = []
+
+line-length = 120
+
+[format]
+quote-style = "single"
