@@ -73,6 +73,8 @@ class Application(Gtk.Application):
             register_session=True,
         )
 
+        Gtk.init_check()
+
         # Prepare the backstop logic just before the first emission hook (or connection) is
         # established; this will apply to all connections from this point forward.
         init_exception_backstops()

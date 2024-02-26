@@ -16,7 +16,7 @@ jobs:
       - name: Install Ubuntu dependencies
         run: |
           sudo apt update
-          sudo apt-get install libdbus-1-dev pkg-config libgirepository1.0-dev cmake libcairo2-dev libgtk-3-dev libwebkit2gtk-4.0-dev
+          sudo apt-get install libdbus-1-dev pkg-config libgirepository1.0-dev cmake libcairo2-dev libgtk-3-dev libwebkit2gtk-4.0-dev x11-xserver-utils
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
