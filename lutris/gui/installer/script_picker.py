@@ -6,7 +6,7 @@ from lutris.gui.installer.script_box import InstallerScriptBox
 class InstallerPicker(Gtk.ListBox):
     """List box to pick between several installers"""
 
-    __gsignals__ = {"installer-selected": (GObject.SIGNAL_RUN_FIRST, None, (str,))}
+    __gsignals__ = {"installer-selected": (GObject.SignalFlags.RUN_FIRST, None, (str,))}
 
     def __init__(self, scripts):
         super().__init__()

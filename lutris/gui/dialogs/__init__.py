@@ -596,7 +596,7 @@ class InstallerSourceDialog(ModelessDialog):
 
 class MoveDialog(ModelessDialog):
     __gsignals__ = {
-        "game-moved": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-moved": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
     def __init__(self, game, destination, parent=None):

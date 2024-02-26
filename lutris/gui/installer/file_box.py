@@ -17,9 +17,9 @@ class InstallerFileBox(Gtk.VBox):
     """Container for an installer file downloader / selector"""
 
     __gsignals__ = {
-        "file-available": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "file-ready": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "file-unready": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "file-available": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "file-ready": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "file-unready": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
     def __init__(self, installer_file):

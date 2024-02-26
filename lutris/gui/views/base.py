@@ -16,8 +16,8 @@ from lutris.util.path_cache import MISSING_GAMES
 class GameView:
     # pylint: disable=no-member
     __gsignals__ = {
-        "game-selected": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
-        "game-activated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "game-selected": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
+        "game-activated": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
     }
 
     def __init__(self):

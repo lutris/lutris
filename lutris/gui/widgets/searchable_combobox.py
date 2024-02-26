@@ -11,7 +11,7 @@ class SearchableCombobox(Gtk.Bin):
     """
 
     __gsignals__ = {
-        "changed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
     }
 
     def __init__(self, choice_func, initial=None):

@@ -17,8 +17,8 @@ class SteamInstaller(GObject.Object):
     """Handles installation of Steam games"""
 
     __gsignals__ = {
-        "steam-game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
-        "steam-state-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "steam-game-installed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
+        "steam-state-changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
     }
 
     def __init__(self, steam_uri, file_id):

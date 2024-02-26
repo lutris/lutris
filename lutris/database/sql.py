@@ -1,5 +1,6 @@
 import sqlite3
 import threading
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from lutris.util.log import logger
 
@@ -8,27 +9,29 @@ DB_LOCK = threading.RLock()
 
 
 class db_cursor(object):
-    def __init__(self, db_path):
+    def __init__(self, db_path: str) -> None:
         self.db_path = db_path
         self.db_conn = None
 
-    def __enter__(self):
+    def __enter__(self) -> sqlite3.Cursor:
         self.db_conn = sqlite3.connect(self.db_path)
+        assert self.db_conn is not None
         cursor = self.db_conn.cursor()
         return cursor
 
-    def __exit__(self, _type, value, traceback):
+    def __exit__(self, _type, value, traceback) -> None:
+        assert self.db_conn is not None
         self.db_conn.commit()
         self.db_conn.close()
 
 
-def cursor_execute(cursor, query, params=None):
+def cursor_execute(cursor: sqlite3.Cursor, query: str, params: Optional[Tuple] = None) -> Optional[sqlite3.Cursor]:
     """Execute a SQL query, run it in a lock block"""
     params = params or ()
     lock = DB_LOCK.acquire(timeout=1)  # pylint: disable=consider-using-with
     if not lock:
         logger.error("Database is busy. Not executing %s", query)
-        return
+        return None
 
     try:
         return cursor.execute(query, params)
@@ -36,7 +39,7 @@ def cursor_execute(cursor, query, params=None):
         DB_LOCK.release()
 
 
-def db_insert(db_path, table, fields):
+def db_insert(db_path: str, table: str, fields: Dict) -> Optional[int]:
     columns = ", ".join(list(fields.keys()))
     placeholders = ("?, " * len(fields))[:-2]
     field_values = tuple(fields.values())
@@ -50,7 +53,7 @@ def db_insert(db_path, table, fields):
     return inserted_id
 
 
-def db_update(db_path, table, updated_fields, conditions):
+def db_update(db_path: str, table: str, updated_fields: Dict, conditions: Dict) -> Optional[sqlite3.Cursor]:
     """Update `table` with the values given in the dict `values` on the
     condition given with the `row` tuple.
     """
@@ -66,12 +69,14 @@ def db_update(db_path, table, updated_fields, conditions):
     return result
 
 
-def db_delete(db_path, table, field, value):
+def db_delete(db_path: str, table: str, field: str, value: Union[str, int]) -> None:
     with db_cursor(db_path) as cursor:
         cursor_execute(cursor, "delete from {0} where {1}=?".format(table, field), (value,))
 
 
-def db_select(db_path, table, fields=None, condition=None):
+def db_select(
+    db_path: str, table: str, fields: Optional[Tuple] = None, condition: Optional[Tuple] = None
+) -> List[Dict]:
     if fields:
         columns = ", ".join(fields)
     else:
@@ -105,7 +110,7 @@ def db_select(db_path, table, fields=None, condition=None):
     return results
 
 
-def db_query(db_path, query, params=()):
+def db_query(db_path: str, query: str, params=()) -> List:
     with db_cursor(db_path) as cursor:
         cursor_execute(cursor, query, params)
         rows = cursor.fetchall()
@@ -119,7 +124,7 @@ def db_query(db_path, query, params=()):
     return results
 
 
-def add_field(db_path, tablename, field):
+def add_field(db_path: str, tablename: str, field: Dict[str, Any]) -> None:
     query = "ALTER TABLE %s ADD COLUMN %s %s" % (
         tablename,
         field["name"],
@@ -129,7 +134,7 @@ def add_field(db_path, tablename, field):
         cursor.execute(query)
 
 
-def filtered_query(db_path, table, searches=None, filters=None, excludes=None, sorts=None):
+def filtered_query(db_path: str, table: str, searches=None, filters=None, excludes=None, sorts=None) -> List[Dict]:
     query = "select * from %s" % table
     params = []
     sql_filters = []

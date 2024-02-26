@@ -10,7 +10,7 @@ from lutris.services import SERVICES
 
 class ServicesBox(BaseConfigBox):
     __gsignals__ = {
-        "services-changed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "services-changed": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
     def __init__(self):

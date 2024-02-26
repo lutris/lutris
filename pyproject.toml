@@ -14,11 +14,13 @@ disable_error_code = [
     "dict-item",  # Dictionaries are always fully dynamic
     "var-annotated",  # Never require type annotations
     "assignment",  # Allow incompatible types in assignment (used heavily in lutris class structure).
+    "no-any-return",  # e.g. in database type is not known and we need to return specific type, even if it's Any
 ]
 allow_redefinition = true
 follow_imports = "silent"
 ignore_missing_imports = true
 implicit_optional = true
+disallow_any_generics = false # For now it is easier to use non typed Dict, List etc. this should be re-enabled in the future
 
 [tool.mypy-baseline]
 # --baseline-path: the file where the baseline should be stored

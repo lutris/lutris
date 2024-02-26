@@ -56,13 +56,13 @@ class Game(GObject.Object):
     __gsignals__ = {
         # SIGNAL_RUN_LAST works around bug https://gitlab.gnome.org/GNOME/glib/-/issues/513
         # fix merged Dec 2020, but we support older GNOME!
-        "game-error": (GObject.SIGNAL_RUN_LAST, bool, (object,)),
-        "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
-        "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-error": (GObject.SignalFlags.RUN_LAST, bool, (object,)),
+        "game-unhandled-error": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
+        "game-start": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "game-started": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "game-stopped": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "game-updated": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "game-installed": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
     def __init__(self, game_id: str = None):

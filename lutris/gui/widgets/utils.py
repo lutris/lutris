@@ -141,6 +141,8 @@ def has_stock_icon(name):
         return False
 
     theme = Gtk.IconTheme.get_default()
+    if theme is None:
+        return False
     return theme.has_icon(name)
 
 
