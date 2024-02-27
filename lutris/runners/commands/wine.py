@@ -151,9 +151,9 @@ def create_prefix(  # noqa: C901
             return
     else:
         # TODO: Determine and insert GAMEID and STORE
-        wineenv["GAMEID"] = "ulwgl-foo"
-        wineenv["PROTONPATH"] = settings.RUNNER_DIR
-        ulwgl_path = system.find_executable('ulwgl-run')
+        wineenv["GAMEID"] = "ulwgl-foo"  # Wrong
+        wineenv["PROTONPATH"] = settings.RUNNER_DIR  # Wrong, optional
+        ulwgl_path = system.find_executable("ulwgl-run")
         system.execute([ulwgl_path, "createprefix"], env=wineenv)
 
     logger.info("%s Prefix created in %s", arch, prefix)
@@ -315,19 +315,17 @@ def wineexec(  # noqa: C901
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
-    if "Proton" in wine_path:
+    if "Proton" in wine_path:  # wrong condition, catches lutris-GE-Proton
         # TODO: Determine and insert GAMEID and STORE
-        wineenv["GAMEID"] = "ulwgl-foo"
-        wineenv["PROTONPATH"] = os.path.abspath(os.path.join(os.path.dirname(wine_path), "../../"))
+        wineenv["GAMEID"] = "ulwgl-foo"  # wrong, this value should never be used.
+        wineenv["PROTONPATH"] = os.path.abspath(os.path.join(os.path.dirname(wine_path), "../../"))  # wrong, proton path is optional
 
     baseenv = runner.get_env(disable_runtime=disable_runtime)
     baseenv.update(wineenv)
     baseenv.update(env)
 
-    if "Proton" in wine_path:
-        result = subprocess.run(['which', 'ulwgl-run'], stdout=subprocess.PIPE, text=True)
-        ulwgl_path = result.stdout.strip()
-        wine_path = ulwgl_path
+    if "Proton" in wine_path:  # wrong condition, protonpath optional
+        wine_path = system.find_executable("ulwgl-run")  # wrong, should be checked before
 
     command_parameters = [wine_path]
     if executable:

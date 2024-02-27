@@ -1114,15 +1114,16 @@ class wine(Runner):
 
         env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
 
-        # Proton support
-        if wine_config_version and "Proton" in wine_config_version and "lutris" not in wine_config_version:
+        if (
+            wine_config_version and "Proton" in wine_config_version and "lutris" not in wine_config_version
+        ):  # duplicated code
             if "GAMEID" not in env:
-                env["GAMEID"] = "ULWGL-foo"
+                env["GAMEID"] = "ULWGL-foo"  # wrong value, needs to be fixed
             # In stable versions of proton this can be dist/bin insteasd of files/bin
             if "files/bin" in wine_exe:
                 env["PROTONPATH"] = wine_exe[: wine_exe.index("files/bin")]
             else:
-                env["PROTONPATH"] = wine_exe[: wine_exe.index("dist/bin")]
+                env["PROTONPATH"] = wine_exe[: wine_exe.index("dist/bin")]  # Wrong, proton path should be optional
         return env
 
     def get_runtime_env(self):
@@ -1174,9 +1175,8 @@ class wine(Runner):
 
     def get_command(self):
         exe = self.get_executable()
-        result = subprocess.run(['which', 'ulwgl-run'], stdout=subprocess.PIPE, text=True)
-        ulwgl_path = result.stdout.strip()
-        if "Proton" in exe and "lutris" not in exe and system.path_exists(ulwgl_path):
+        ulwgl_path = system.find_executable("ulwgl-run")
+        if "Proton" in exe and "lutris" not in exe and ulwgl_path:
             return [ulwgl_path]
         return super().get_command()
 
