@@ -3,6 +3,7 @@
 import os
 import shlex
 import time
+import subprocess
 
 from lutris import runtime, settings
 from lutris.command import MonitoredCommand
@@ -152,8 +153,9 @@ def create_prefix(  # noqa: C901
         # TODO: Determine and insert GAMEID and STORE
         wineenv["GAMEID"] = "ulwgl-foo"
         wineenv["PROTONPATH"] = settings.RUNNER_DIR
-        ulwgl_path = os.path.join(os.path.join(settings.RUNTIME_DIR, "ulwgl"))
-        system.execute([os.path.join(ulwgl_path, "ulwgl-run"), "createprefix"], env=wineenv)
+        result = subprocess.run(['which', 'ulwgl-run'], stdout=subprocess.PIPE, text=True)
+        ulwgl_path = result.stdout.strip()
+        system.execute([ulwgl_path, "createprefix"], env=wineenv)
 
     logger.info("%s Prefix created in %s", arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
@@ -324,7 +326,8 @@ def wineexec(  # noqa: C901
     baseenv.update(env)
 
     if "Proton" in wine_path:
-        ulwgl_path = os.path.join(os.path.join(settings.RUNTIME_DIR, "ulwgl"), "ulwgl-run")
+        result = subprocess.run(['which', 'ulwgl-run'], stdout=subprocess.PIPE, text=True)
+        ulwgl_path = result.stdout.strip()
         wine_path = ulwgl_path
 
     command_parameters = [wine_path]
