@@ -2,6 +2,7 @@
 # pylint: disable=too-many-lines
 import os
 import shlex
+import subprocess
 from gettext import gettext as _
 from typing import Dict, Tuple
 
@@ -1173,9 +1174,10 @@ class wine(Runner):
 
     def get_command(self):
         exe = self.get_executable()
-        ulwgl_path = os.path.join(os.path.join(settings.RUNTIME_DIR, "ulwgl"))
+        result = subprocess.run(['which', 'ulwgl-run'], stdout=subprocess.PIPE, text=True)
+        ulwgl_path = result.stdout.strip()
         if "Proton" in exe and "lutris" not in exe and system.path_exists(ulwgl_path):
-            return [os.path.join(ulwgl_path, "ulwgl-run")]
+            return [ulwgl_path]
         return super().get_command()
 
     def play(self):  # pylint: disable=too-many-return-statements # noqa: C901
