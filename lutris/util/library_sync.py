@@ -3,6 +3,7 @@ import time
 
 from lutris import settings
 from lutris.api import read_api_key
+from lutris.database.categories import get_all_games_categories, get_categories
 from lutris.database.games import add_game, get_games, get_games_where
 from lutris.game import Game
 from lutris.util import http
@@ -14,12 +15,15 @@ LIBRARY_URL = settings.SITE_URL + "/api/users/library"
 def get_local_library(since=None):
     game_library = []
     pga_games = get_games()
+    categories = {r["id"]: r["name"] for r in get_categories()}
+    games_categories = get_all_games_categories()
 
     for pga_game in pga_games:
         lastplayed = pga_game["lastplayed"] or 0
         installed_at = pga_game["installed_at"] or 0
         if since and lastplayed < since and installed_at < since:
             continue
+        game_categories = [categories[cat_id] for cat_id in games_categories.get(pga_game["id"], [])]
         game_library.append(
             {
                 "name": pga_game["name"],
@@ -30,6 +34,7 @@ def get_local_library(since=None):
                 "runner": pga_game["runner"] or "",
                 "service": pga_game["service"] or "",
                 "service_id": pga_game["service_id"] or "",
+                "categories": game_categories,
             }
         )
     return game_library

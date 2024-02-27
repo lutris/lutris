@@ -1,5 +1,6 @@
 import re
 from itertools import repeat
+from collections import defaultdict
 
 from lutris import settings
 from lutris.database import sql
@@ -21,10 +22,14 @@ def is_reserved_category(name):
 
 def get_categories():
     """Get the list of every category in database."""
-    return sql.db_select(
-        settings.DB_PATH,
-        "categories",
-    )
+    return sql.db_select(settings.DB_PATH, "categories")
+
+
+def get_all_games_categories():
+    games_categories = defaultdict(list)
+    for row in sql.db_select(settings.DB_PATH, "games_categories"):
+        games_categories[row["game_id"]].append(row["category_id"])
+    return games_categories
 
 
 def get_category(name):

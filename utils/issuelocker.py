@@ -4,8 +4,8 @@ import os
 import subprocess
 
 PROJECT_ROOT = os.path.expanduser("~/Projects/lutris")
-OWNER="lutris"
-REPO="lutris"
+OWNER = "lutris"
+REPO = "lutris"
 
 response = subprocess.check_output(
     "gh issue list -L 200 --state closed --json number --search 'is:unlocked'",
