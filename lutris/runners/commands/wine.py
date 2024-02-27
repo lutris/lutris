@@ -2,8 +2,8 @@
 # pylint: disable=too-many-arguments
 import os
 import shlex
-import time
 import subprocess
+import time
 
 from lutris import runtime, settings
 from lutris.command import MonitoredCommand
@@ -153,8 +153,7 @@ def create_prefix(  # noqa: C901
         # TODO: Determine and insert GAMEID and STORE
         wineenv["GAMEID"] = "ulwgl-foo"
         wineenv["PROTONPATH"] = settings.RUNNER_DIR
-        result = subprocess.run(['which', 'ulwgl-run'], stdout=subprocess.PIPE, text=True)
-        ulwgl_path = result.stdout.strip()
+        ulwgl_path = system.find_executable('ulwgl-run')
         system.execute([ulwgl_path, "createprefix"], env=wineenv)
 
     logger.info("%s Prefix created in %s", arch, prefix)
