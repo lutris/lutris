@@ -2,7 +2,6 @@
 # pylint: disable=too-many-lines
 import os
 import shlex
-import subprocess
 from gettext import gettext as _
 from typing import Dict, Tuple
 
@@ -40,6 +39,7 @@ from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
+from lutris.util.wine import proton
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION, DXVKManager
@@ -56,7 +56,6 @@ from lutris.util.wine.wine import (
     get_default_wine_version,
     get_installed_wine_versions,
     get_overrides_env,
-    get_proton_paths,
     get_real_executable,
     get_system_wine_version,
     get_wine_path_for_version,
@@ -1076,7 +1075,7 @@ class wine(Runner):
         env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "gecko")
 
         # We don't want to override gstreamer for proton, it has it's own version
-        if ("Proton" not in WINE_DIR) or ("lutris" in WINE_DIR and "Proton" in WINE_DIR):
+        if not proton.is_proton_path(WINE_DIR):
             if is_gstreamer_build(wine_exe):
                 path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
                 path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
@@ -1114,9 +1113,7 @@ class wine(Runner):
 
         env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
 
-        if (
-            wine_config_version and "Proton" in wine_config_version and "lutris" not in wine_config_version
-        ):  # duplicated code
+        if proton.is_proton_path(wine_config_version):
             if "GAMEID" not in env:
                 env["GAMEID"] = "ULWGL-foo"  # wrong value, needs to be fixed
             # In stable versions of proton this can be dist/bin insteasd of files/bin
@@ -1133,7 +1130,7 @@ class wine(Runner):
             exe = self.get_executable()
             if WINE_DIR:
                 wine_path = os.path.dirname(os.path.dirname(exe))
-            for proton_path in get_proton_paths():
+            for proton_path in proton.get_proton_paths():
                 if proton_path in exe:
                     wine_path = os.path.dirname(os.path.dirname(exe))
         except MisconfigurationError:

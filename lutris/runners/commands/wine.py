@@ -2,7 +2,6 @@
 # pylint: disable=too-many-arguments
 import os
 import shlex
-import subprocess
 import time
 
 from lutris import runtime, settings
@@ -12,6 +11,7 @@ from lutris.util import linux, system
 from lutris.util.log import logger
 from lutris.util.shell import get_shell_command
 from lutris.util.strings import split_arguments
+from lutris.util.wine import proton
 from lutris.util.wine.cabinstall import CabInstaller
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.wine import (
@@ -138,7 +138,7 @@ def create_prefix(  # noqa: C901
         wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
         overrides["mscoree"] = "disabled"
 
-    if ("Proton" not in wine_path) or ("lutris" in wine_path and "Proton" in wine_path):
+    if not proton.is_proton_path(wine_path):
         system.execute([wineboot_path], env=wineenv)
         for loop_index in range(1000):
             time.sleep(0.5)
@@ -153,8 +153,7 @@ def create_prefix(  # noqa: C901
         # TODO: Determine and insert GAMEID and STORE
         wineenv["GAMEID"] = "ulwgl-foo"  # Wrong
         wineenv["PROTONPATH"] = settings.RUNNER_DIR  # Wrong, optional
-        ulwgl_path = system.find_executable("ulwgl-run")
-        system.execute([ulwgl_path, "createprefix"], env=wineenv)
+        system.execute([proton.get_ulwgl_path(), "createprefix"], env=wineenv)
 
     logger.info("%s Prefix created in %s", arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
@@ -315,17 +314,19 @@ def wineexec(  # noqa: C901
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
-    if "Proton" in wine_path:  # wrong condition, catches lutris-GE-Proton
+    if proton.is_proton_path(wine_path):
         # TODO: Determine and insert GAMEID and STORE
         wineenv["GAMEID"] = "ulwgl-foo"  # wrong, this value should never be used.
-        wineenv["PROTONPATH"] = os.path.abspath(os.path.join(os.path.dirname(wine_path), "../../"))  # wrong, proton path is optional
+        wineenv["PROTONPATH"] = os.path.abspath(
+            os.path.join(os.path.dirname(wine_path), "../../")
+        )  # wrong, proton path is optional
 
     baseenv = runner.get_env(disable_runtime=disable_runtime)
     baseenv.update(wineenv)
     baseenv.update(env)
 
     if "Proton" in wine_path:  # wrong condition, protonpath optional
-        wine_path = system.find_executable("ulwgl-run")  # wrong, should be checked before
+        wine_path = proton.get_ulwgl_path()  # wrong, should be checked before
 
     command_parameters = [wine_path]
     if executable:

@@ -1,6 +1,6 @@
 import re
-from itertools import repeat
 from collections import defaultdict
+from itertools import repeat
 
 from lutris import settings
 from lutris.database import sql

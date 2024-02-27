@@ -226,6 +226,7 @@ def find_executable(exec_name: str) -> str:
         exe = shutil.which(exec_name)
         if exe:
             return exe
+    raise MissingExecutableError(_("The executable '%s' could not be found.") % exec_name)
 
 
 def get_pid(program, multiple=False):
