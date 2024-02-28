@@ -115,6 +115,7 @@ class XDGService(BaseService):
                 "game": {
                     "exe": details["exe"],
                     "args": details["args"],
+                    "working_dir": details["path"],
                 },
                 "system": {"disable_runtime": True},
             },
@@ -152,13 +153,26 @@ class XDGGame(ServiceGame):
         service_game.appid = get_appid(xdg_app)
         service_game.slug = cls.get_slug(xdg_app)
         exe, args = cls.get_command_args(xdg_app)
+        path = cls.get_desktop_entry_path(xdg_app)
         service_game.details = json.dumps(
             {
                 "exe": exe,
                 "args": args,
+                "path": path,
             }
         )
         return service_game
+
+    @staticmethod
+    def get_desktop_entry_path(xdg_app):
+        """Retrieve the Path variable from the .desktop file"""
+        desktop_entry = xdg_app.get_filename()
+        with open(desktop_entry, 'r') as f:
+            contents = f.read()
+            match = re.search(r'^Path=(.*)$', contents, re.MULTILINE)
+            if match:
+                return match.group(1)
+        return None
 
     @staticmethod
     def get_command_args(app):
