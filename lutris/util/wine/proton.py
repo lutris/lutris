@@ -56,3 +56,11 @@ def list_proton_versions() -> List[str]:
             if os.path.isfile(path):
                 versions.append(version)
     return versions
+
+
+def get_proton_path_for_version(version):
+    for proton_path in get_proton_paths():
+        if os.path.isfile(os.path.join(proton_path, version, "dist/bin/wine")):
+            return os.path.join(proton_path, version, "dist/bin/wine")
+        if os.path.isfile(os.path.join(proton_path, version, "files/bin/wine")):
+            return os.path.join(proton_path, version, "files/bin/wine")

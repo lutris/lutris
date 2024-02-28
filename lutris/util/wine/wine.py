@@ -138,11 +138,7 @@ def get_wine_path_for_version(version: str, config: dict = None) -> str:
     if version in WINE_PATHS:
         return system.find_executable(WINE_PATHS[version])
     if "Proton" in version:
-        for proton_path in proton.get_proton_paths():
-            if os.path.isfile(os.path.join(proton_path, version, "dist/bin/wine")):
-                return os.path.join(proton_path, version, "dist/bin/wine")
-            if os.path.isfile(os.path.join(proton_path, version, "files/bin/wine")):
-                return os.path.join(proton_path, version, "files/bin/wine")
+        return proton.get_proton_path_for_version(version)
     if version == "custom":
         if config is None:
             raise RuntimeError("Custom wine paths are only supported when a configuration is available.")
@@ -158,6 +154,7 @@ def parse_wine_version(version: str) -> Tuple[List[int], str, str]:
     Wine versions for correct parsing."""
     version = version.replace("Proton7-", "Proton-7.")
     version = version.replace("Proton8-", "Proton-8.")
+    version = version.replace("Proton9-", "Proton-9.")
     return parse_version(version)
 
 
