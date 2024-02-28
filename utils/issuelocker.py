@@ -14,8 +14,8 @@ response = subprocess.check_output(
 )
 issues = json.loads(response)
 for issue in issues:
-    print(f"Locking issue {issue["number"]}")
+    print(f"Locking issue {issue['number']}")
     subprocess.check_output(
-        f"gh api --method PUT /repos/{OWNER}/{REPO}/issues/{issue["number"]}/lock -f lock_reason='resolved'",
+        f"gh api --method PUT /repos/{OWNER}/{REPO}/issues/{issue['number']}/lock -f lock_reason='resolved'",
         shell=True,
     )
