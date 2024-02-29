@@ -114,10 +114,11 @@ def change_resolution(resolution):
         if resolution not in get_resolutions():
             logger.warning("Resolution %s doesn't exist.", resolution)
         else:
-            logger.info("Changing resolution to %s", resolution)
-            with subprocess.Popen([LINUX_SYSTEM.get("xrandr"), "-s", resolution]) as xrandr:
+            output_name = get_outputs()[0].name
+            logger.info("Changing resolution on %s to %s", output_name, resolution)
+            args = [LINUX_SYSTEM.get("xrandr"), "--output", output_name, "--mode", resolution]
+            with subprocess.Popen(args) as xrandr:
                 xrandr.communicate()
-
     else:
         for display in resolution:
             logger.debug("Switching to %s on %s", display.mode, display.name)
