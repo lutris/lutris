@@ -1172,9 +1172,12 @@ class wine(Runner):
 
     def get_command(self):
         exe = self.get_executable()
-        ulwgl_path = system.find_executable("ulwgl-run")
-        if "Proton" in exe and "lutris" not in exe and ulwgl_path:
-            return [ulwgl_path]
+        try:
+            ulwgl_path = system.find_executable("ulwgl-run")
+            if "Proton" in exe and "lutris" not in exe:
+                return [ulwgl_path]
+        except MissingExecutableError:
+            pass  # No ULWGL, fall back to normal Wine
         return super().get_command()
 
     def play(self):  # pylint: disable=too-many-return-statements # noqa: C901
