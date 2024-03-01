@@ -2,6 +2,7 @@
 import os
 from typing import Generator, List
 
+from lutris import settings
 from lutris.util import system
 from lutris.util.steam.config import get_steamapps_dirs
 
@@ -11,7 +12,11 @@ def is_proton_path(wine_path):
 
 
 def get_ulwgl_path():
-    return system.find_executable("ulwgl-run")
+    if system.can_find_executable("ulwgl-run"):
+        return system.find_executable("ulwgl-run")
+    lutris_runtime_path = os.path.join(settings.RUNTIME_DIR, "ulwgl", "ulwgl-run")
+    if system.path_exists(lutris_runtime_path):
+        return lutris_runtime_path
 
 
 def _iter_proton_locations() -> Generator[str, None, None]:
