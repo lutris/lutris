@@ -14,7 +14,7 @@ def is_proton_path(wine_path):
 def get_ulwgl_path():
     if system.can_find_executable("ulwgl-run"):
         return system.find_executable("ulwgl-run")
-    lutris_runtime_path = os.path.join(settings.RUNTIME_DIR, "ulwgl", "ulwgl-run")
+    lutris_runtime_path = os.path.join(settings.RUNTIME_DIR, "ULWGL", "ulwgl_run.py")
     if system.path_exists(lutris_runtime_path):
         return lutris_runtime_path
 
