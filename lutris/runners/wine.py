@@ -1173,8 +1173,11 @@ class wine(Runner):
     def get_command(self):
         exe = self.get_executable()
         ulwgl_path = system.find_executable("ulwgl-run")
-        if "Proton" in exe and "lutris" not in exe and ulwgl_path:
-            return [ulwgl_path]
+        if proton.is_proton_path(exe):
+            ulwgl_path = proton.get_ulwgl_path()
+            if ulwgl_path:
+                return [ulwgl_path]
+            raise MissingExecutableError("Install ULWGL to use Proton")
         return super().get_command()
 
     def play(self):  # pylint: disable=too-many-return-statements # noqa: C901
