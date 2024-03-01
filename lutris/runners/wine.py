@@ -1172,7 +1172,6 @@ class wine(Runner):
 
     def get_command(self):
         exe = self.get_executable()
-        ulwgl_path = system.find_executable("ulwgl-run")
         if proton.is_proton_path(exe):
             ulwgl_path = proton.get_ulwgl_path()
             if ulwgl_path:
