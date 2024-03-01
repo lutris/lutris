@@ -32,7 +32,7 @@ SYSTEM_PROCESSES = {
 class ProcessWatcher:
     """Keeps track of child processes of the client"""
 
-    def __init__(self, include_processes, exclude_processes):
+    def __init__(self, include_processes, exclude_processes) -> None:
         """Create a process watcher.
         Params:
             exclude_processes (str or list): list of processes that shouldn't be monitored
@@ -53,7 +53,7 @@ class ProcessWatcher:
         return {p[0:15] for p in process_list}
 
     @staticmethod
-    def iterate_children():
+    def iterate_children() -> Process:
         """Iterates through all children process of the lutris client.
         This is not accurate since not all processes are started by
         lutris but are started by Systemd instead.
@@ -68,7 +68,7 @@ class ProcessWatcher:
             if child.name and child.name not in self.unmonitored_processes:
                 yield child
 
-    def is_alive(self, message=None):
+    def is_alive(self, message=None) -> bool:
         """Returns whether at least one watched process exists"""
         if message:
             sys.stdout.write("%s\n" % message)

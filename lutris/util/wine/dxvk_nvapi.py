@@ -15,16 +15,16 @@ class DXVKNVAPIManager(DLLManager):
     releases_url = "https://api.github.com/repos/lutris/dxvk-nvapi/releases"
     dlss_dlls = ("nvngx", "_nvngx")
 
-    def can_enable(self):
+    def can_enable(self) -> bool:
         return LINUX_SYSTEM.is_vulkan_supported()
 
-    def disable_dll(self, system_dir, _arch, dll):  # pylint: disable=unused-argument
+    def disable_dll(self, system_dir: str, _arch: str, dll: str) -> None:  # pylint: disable=unused-argument
         """Remove DLL from Wine prefix"""
         wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
         if system.path_exists(wine_dll_path):
             os.remove(wine_dll_path)
 
-    def enable(self):
+    def enable(self) -> None:
         """Enable Dlls for the current prefix"""
         super().enable()
         dlss_dll_dir = get_nvidia_dll_path()
@@ -37,7 +37,7 @@ class DXVKNVAPIManager(DLLManager):
             dll_path = os.path.join(dlss_dll_dir, "%s.dll" % dll)
             self.enable_dll(system_dir, "x64", dll_path)
 
-    def disable(self):
+    def disable(self) -> None:
         """Disable DLLs for the current prefix"""
         super().disable()
         windows_path = os.path.join(self.prefix, "drive_c/windows")

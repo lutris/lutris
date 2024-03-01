@@ -2,7 +2,7 @@ import glob
 import os
 import re
 import shutil
-from typing import Dict
+from typing import Dict, List, Optional
 
 from lutris.util import system
 from lutris.util.graphics import drivers
@@ -23,12 +23,12 @@ VULKAN_DATA_DIRS = [
 GPUS = {}
 
 
-def get_gpus_info():
+def get_gpus_info() -> Dict:
     """Return the information related to each GPU on the system"""
     return {card: drivers.get_gpu_info(card) for card in drivers.get_gpu_cards()}
 
 
-def display_gpu_info(gpu_id, gpu_info):
+def display_gpu_info(gpu_id: str, gpu_info: Dict) -> None:
     """Log GPU information"""
     try:
         gpu_string = f"GPU: {gpu_info['PCI_ID']} {gpu_info['PCI_SUBSYS_ID']} ({gpu_info['DRIVER']} drivers)"
@@ -37,7 +37,7 @@ def display_gpu_info(gpu_id, gpu_info):
         logger.error("Unable to get GPU information from '%s'", gpu_id)
 
 
-def add_icd_search_path(paths):
+def add_icd_search_path(paths: Optional[str]) -> List[str]:
     icd_paths = []
     if paths:
         # unixy env vars with multiple paths are : delimited
@@ -48,7 +48,7 @@ def add_icd_search_path(paths):
     return icd_paths
 
 
-def get_vk_icd_files():
+def get_vk_icd_files() -> List[str]:
     """Returns available vulkan ICD files in the same search order as vulkan-loader,
     but in a single list"""
     icd_search_paths = []
@@ -66,7 +66,7 @@ def get_vk_icd_files():
 
 
 class GPU:
-    def __init__(self, card):
+    def __init__(self, card) -> None:
         self.card = card
         self.gpu_info = self.get_gpu_info()
         self.driver = self.gpu_info["DRIVER"]
@@ -79,13 +79,13 @@ class GPU:
         else:
             self.name = self.get_lspci_name()
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.pci_id:
             return f"{self.short_name} ({self.pci_id} {self.pci_subsys_id} {self.driver})"
 
         return f"{self.short_name} ({self.driver})"
 
-    def get_driver_info(self):
+    def get_driver_info(self) -> Dict:
         driver_info = {}
         if self.driver == "nvidia":
             driver_info = drivers.get_nvidia_driver_info()
@@ -112,7 +112,7 @@ class GPU:
             infos[key] = value.strip()
         return infos
 
-    def get_vulkaninfo_name(self):
+    def get_vulkaninfo_name(self) -> str:
         """Runs vulkaninfo to find the GPU name"""
         subprocess_env = dict(os.environ)
         subprocess_env["VK_DRIVER_FILES"] = self.icd_files  # Currently supported
@@ -127,7 +127,7 @@ class GPU:
             return "No GPU"
         return result
 
-    def get_lspci_name(self):
+    def get_lspci_name(self) -> str:
         devices = [
             (pci_id, device_desc.split(": ")[1])
             for pci_id, device_desc in [
@@ -139,7 +139,7 @@ class GPU:
                 return device[1]
         return "No GPU"
 
-    def get_icd_files(self):
+    def get_icd_files(self) -> str:
         loader = self.driver
         loader_map = {
             "amdgpu": "radeon",
@@ -157,7 +157,7 @@ class GPU:
         return ":".join(icd_files)
 
     @property
-    def short_name(self):
+    def short_name(self) -> str:
         """Shorten result to just the friendly name of the GPU
         vulkaninfo returns Vendor Friendly Name (Chip Developer Name)
         AMD Radeon Pro W6800 (RADV NAVI21) -> AMD Radeon Pro W6800"""

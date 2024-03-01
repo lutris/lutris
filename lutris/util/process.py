@@ -1,5 +1,6 @@
 """Class to manipulate a process"""
 import os
+from typing import Dict, List, Optional
 
 from lutris.util.log import logger
 
@@ -13,19 +14,20 @@ IGNORED_PROCESSES = (
 class Process:
     """Python abstraction a Linux process"""
 
-    def __init__(self, pid):
+    # TODO MYPY - pid is sometimes str and sometimes int
+    def __init__(self, pid) -> None:
         try:
             self.pid = int(pid)
         except ValueError as err:
             raise ValueError("'%s' is not a valid pid" % pid) from err
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Process {}".format(self.pid)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{} ({}:{})".format(self.name, self.pid, self.state)
 
-    def _read_content(self, file_path):
+    def _read_content(self, file_path) -> str:
         """Return the contents from a file in /proc"""
         try:
             with open(file_path, encoding="utf-8") as proc_file:
@@ -37,7 +39,7 @@ class Process:
             return ""
         return content.strip("\x00")
 
-    def get_stat(self, parsed=True):
+    def get_stat(self, parsed: bool = True):
         stat_filename = "/proc/{}/stat".format(self.pid)
         try:
             with open(stat_filename, encoding="utf-8") as stat_file:
@@ -48,7 +50,7 @@ class Process:
             return _stat[_stat.rfind(")") + 1 :].split()
         return _stat
 
-    def get_thread_ids(self):
+    def get_thread_ids(self) -> List:
         """Return a list of thread ids opened by process."""
         basedir = "/proc/{}/task/".format(self.pid)
         if os.path.isdir(basedir):
@@ -59,7 +61,7 @@ class Process:
         else:
             return []
 
-    def get_children_pids_of_thread(self, tid):
+    def get_children_pids_of_thread(self, tid: int) -> List[str]:
         """Return pids of child processes opened by thread `tid` of process."""
         children_path = "/proc/{}/task/{}/children".format(self.pid, tid)
         try:
@@ -70,7 +72,7 @@ class Process:
         return children_content.strip().split()
 
     @property
-    def name(self):
+    def name(self) -> Optional[str]:
         """Filename of the executable."""
         _stat = self.get_stat(parsed=False)
         if _stat:
@@ -78,7 +80,7 @@ class Process:
         return None
 
     @property
-    def state(self):
+    def state(self) -> Optional[str]:
         """One character from the string "RSDZTW" where R is running, S is
         sleeping in an interruptible wait, D is waiting in uninterruptible disk
         sleep, Z is zombie, T is traced or stopped (on a signal), and W is
@@ -90,21 +92,22 @@ class Process:
         return None
 
     @property
-    def cmdline(self):
+    def cmdline(self) -> Optional[str]:
         """Return command line used to run the process `pid`."""
         cmdline_path = "/proc/{}/cmdline".format(self.pid)
         _cmdline_content = self._read_content(cmdline_path)
         if _cmdline_content:
             return _cmdline_content.replace("\x00", " ").replace("\\", "/")
+        return None
 
     @property
-    def cwd(self):
+    def cwd(self) -> str:
         """Return current working dir of process"""
         cwd_path = "/proc/%d/cwd" % int(self.pid)
         return os.readlink(cwd_path)
 
     @property
-    def environ(self):
+    def environ(self) -> Dict:
         """Return the process' environment variables"""
         environ_path = "/proc/{}/environ".format(self.pid)
         _environ_text = self._read_content(environ_path)
@@ -118,7 +121,7 @@ class Process:
         return dict(env_vars)
 
     @property
-    def children(self):
+    def children(self) -> List["Process"]:
         """Return the child processes of this process"""
         _children = []
         for tid in self.get_thread_ids():
@@ -132,7 +135,7 @@ class Process:
             yield child
             yield from child.iter_children()
 
-    def wait_for_finish(self):
+    def wait_for_finish(self) -> int:
         """Waits until the process finishes
         This only works if self.pid is a child process of Lutris
         """

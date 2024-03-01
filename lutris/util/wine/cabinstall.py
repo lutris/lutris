@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import tempfile
 import xml.etree.ElementTree
+from typing import List, Optional, Tuple
 
 from lutris.util.log import logger
 from lutris.util.system import execute, read_process_output
@@ -15,7 +16,7 @@ class CabInstaller:
     Based on an implementation by tonix64: https://github.com/tonix64/python-installcab
     """
 
-    def __init__(self, prefix, arch=None, wine_path=None):
+    def __init__(self, prefix, arch=None, wine_path=None) -> None:
         self.prefix = prefix
         self.winearch = arch or self.get_wineprefix_arch()
         self.tmpdir = tempfile.mkdtemp()
@@ -25,35 +26,35 @@ class CabInstaller:
         self.strip_dlls = False  # When registering, strip the full path
 
     @staticmethod
-    def process_key(key):
+    def process_key(key: str) -> str:
         """I have no clue why"""
         return key.strip("\\").replace("HKEY_CLASSES_ROOT", "HKEY_LOCAL_MACHINE\\Software\\Classes")
 
     @staticmethod
-    def get_arch_from_manifest(root):
+    def get_arch_from_manifest(root) -> str:
         registry_keys = root.findall("{urn:schemas-microsoft-com:asm.v3}assemblyIdentity")
         arch = registry_keys[0].attrib["processorArchitecture"]
         arch_map = {"amd64": "win64", "x86": "win32", "wow64": "wow64"}
         return arch_map[arch]
 
-    def get_winebin(self, arch):
+    def get_winebin(self, arch: str) -> str:
         wine_path = self.wine_path or "wine"
         return wine_path if arch in ("win32", "wow64") else wine_path + "64"
 
     @staticmethod
-    def get_arch_from_dll(dll_path):
+    def get_arch_from_dll(dll_path: str) -> str:
         if "x86-64" in read_process_output(["file", dll_path]):
             return "win64"
         return "win32"
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         logger.info("Cleaning up %s", self.tmpdir)
         shutil.rmtree(self.tmpdir)
 
-    def check_dll_arch(self, dll_path):
+    def check_dll_arch(self, dll_path: str) -> str:
         return self.get_arch_from_dll(dll_path)
 
-    def replace_variables(self, value, arch):
+    def replace_variables(self, value: str, arch: str) -> str:
         if "$(" in value:
             value = value.replace("$(runtime.help)", "C:\\windows\\help")
             value = value.replace("$(runtime.inf)", "C:\\windows\\inf")
@@ -70,7 +71,7 @@ class CabInstaller:
         value = value.replace("\\", "\\\\")
         return value
 
-    def process_value(self, reg_value, arch):
+    def process_value(self, reg_value, arch: str):
         attrs = reg_value.attrib
         name = attrs["name"]
         value = attrs["value"]
@@ -115,7 +116,7 @@ class CabInstaller:
                     value = value.lower().replace("c:\\\\windows\\\\syswow64\\\\", "")
         return name, value
 
-    def get_registry_from_manifest(self, file_name):
+    def get_registry_from_manifest(self, file_name: str) -> Tuple[str, str]:
         out = ""
         root = xml.etree.ElementTree.parse(file_name).getroot()
         arch = self.get_arch_from_manifest(root)
@@ -131,7 +132,7 @@ class CabInstaller:
                 out += "\n"
         return (out, arch)
 
-    def get_wineprefix_arch(self):
+    def get_wineprefix_arch(self) -> str:
         with open(os.path.join(self.prefix, "system.reg"), encoding="utf-8") as reg_file:
             for line in reg_file.readlines():
                 if line.startswith("#arch=win32"):
@@ -140,7 +141,7 @@ class CabInstaller:
                     return "win64"
         return "win64"
 
-    def get_system32_realdir(self, arch):
+    def get_system32_realdir(self, arch: str) -> str:
         dest_map = {
             ("win64", "win32"): "Syswow64",
             ("win64", "win64"): "System32",
@@ -149,23 +150,24 @@ class CabInstaller:
         }
         return dest_map[(self.winearch, arch)]
 
-    def get_dll_destdir(self, dll_path):
+    def get_dll_destdir(self, dll_path: str) -> str:
         if self.get_arch_from_dll(dll_path) == "win32" and self.winearch == "win64":
             return os.path.join(self.prefix, "drive_c/windows/syswow64")
         return os.path.join(self.prefix, "drive_c/windows/system32")
 
-    def install_dll(self, dll_path):
+    def install_dll(self, dll_path: str) -> Optional[str]:
         dest_dir = self.get_dll_destdir(dll_path)
         logger.debug("Copying %s to %s", dll_path, dest_dir)
         shutil.copy(dll_path, dest_dir)
 
         dest_dll_path = os.path.join(dest_dir, os.path.basename(dll_path))
         if not self.register_dlls:
-            return
+            return None
         arch = self.get_arch_from_dll(dest_dll_path)
         subprocess.call([self.get_winebin(arch), "regsvr32", os.path.basename(dest_dll_path)])
+        return None
 
-    def get_registry_files(self, output_files):
+    def get_registry_files(self, output_files: List[str]) -> List[Tuple[str, str]]:
         reg_files = []
         for file_path in output_files:
             if file_path.endswith(".manifest"):
@@ -180,11 +182,11 @@ class CabInstaller:
                 self.install_dll(file_path)
         return reg_files
 
-    def apply_to_registry(self, file_path, arch):
+    def apply_to_registry(self, file_path: str, arch: str) -> None:
         logger.info("Applying %s to registry", file_path)
         subprocess.call([self.get_winebin(arch), "regedit", os.path.join(self.tmpdir, file_path)])
 
-    def extract_from_cab(self, cabfile, component):
+    def extract_from_cab(self, cabfile: str, component: str) -> List[str]:
         """Extracts files matching a `component` name from a `cabfile`
 
         Params:
@@ -197,7 +199,7 @@ class CabInstaller:
         execute(["cabextract", "-F", "*%s*" % component, "-d", self.tmpdir, cabfile])
         return [os.path.join(r, file) for r, d, f in os.walk(self.tmpdir) for file in f]
 
-    def install(self, cabfile, component):
+    def install(self, cabfile: str, component: str) -> None:
         """Install `component` from `cabfile`"""
         logger.info("Installing %s from %s", component, cabfile)
 

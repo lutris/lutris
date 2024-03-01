@@ -5,7 +5,7 @@ import subprocess
 import tarfile
 import uuid
 import zlib
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
@@ -17,12 +17,12 @@ class ExtractError(Exception):
     """Exception raised when and archive fails to extract"""
 
 
-def random_id():
+def random_id() -> str:
     """Return a random ID"""
     return str(uuid.uuid4())[:8]
 
 
-def is_7zip_supported(path, extractor):
+def is_7zip_supported(path: str, extractor: Optional[str]) -> bool:
     supported_extractors = (
         "7z",
         "xz",
@@ -69,9 +69,10 @@ def is_7zip_supported(path, extractor):
     if ext:
         ext = ext.lstrip(".").lower()
         return ext in supported_extractors
+    return False
 
 
-def guess_extractor(path):
+def guess_extractor(path: str) -> Optional[str]:
     """Guess what extractor should be used from a file name"""
     if path.endswith(".tar"):
         extractor = "tar"
@@ -96,7 +97,8 @@ def guess_extractor(path):
     return extractor
 
 
-def get_archive_opener(extractor):
+# TODO MYPY - First item should be str, but first extractors are quite strange
+def get_archive_opener(extractor: Optional[str]):
     """Return the archive opener and optional mode for an extractor"""
     mode = None
     if extractor == "tar":
@@ -124,7 +126,9 @@ def get_archive_opener(extractor):
     return opener, mode
 
 
-def extract_archive(path: str, to_directory: str = ".", merge_single: bool = True, extractor=None) -> Tuple[str, str]:
+def extract_archive(
+    path: str, to_directory: str = ".", merge_single: bool = True, extractor: Optional[str] = None
+) -> Tuple[str, str]:
     path = os.path.abspath(path)
     logger.debug("Extracting %s to %s", path, to_directory)
 
@@ -182,7 +186,7 @@ def extract_archive(path: str, to_directory: str = ".", merge_single: bool = Tru
     return path, to_directory
 
 
-def _do_extract(archive: str, dest: str, opener, mode: str = None, extractor=None) -> None:
+def _do_extract(archive: str, dest: str, opener, mode: Optional[str] = None, extractor: Optional[str] = None) -> None:
     if opener == "gz":
         decompress_gz(archive, dest)
     elif opener == "7zip":
@@ -266,7 +270,7 @@ def get_innoextract_path() -> str:
     return inno_path
 
 
-def check_inno_exe(path) -> bool:
+def check_inno_exe(path: str) -> bool:
     """Check if a path in a compatible innosetup archive"""
     try:
         innoextract_path = get_innoextract_path()
@@ -293,7 +297,7 @@ def decompress_gog(file_path: str, destination_path: str) -> None:
         raise RuntimeError("innoextract failed to extract GOG setup file")
 
 
-def decompress_gz(file_path: str, dest_path: str):
+def decompress_gz(file_path: str, dest_path: str) -> None:
     """Decompress a gzip file."""
     if dest_path:
         dest_filename = os.path.join(dest_path, os.path.basename(file_path[:-3]))
@@ -307,7 +311,7 @@ def decompress_gz(file_path: str, dest_path: str):
         gzipped_file.close()
 
 
-def extract_7zip(path: str, dest: str, archive_type: str = None) -> None:
+def extract_7zip(path: str, dest: str, archive_type: Optional[str] = None) -> None:
     _7zip_path = os.path.join(settings.RUNTIME_DIR, "p7zip/7z")
     if not system.path_exists(_7zip_path):
         _7zip_path = system.find_required_executable("7z")

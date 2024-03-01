@@ -1,5 +1,6 @@
 import json
 import time
+from typing import Dict, List, Optional
 
 from lutris import settings
 from lutris.api import read_api_key
@@ -12,7 +13,7 @@ from lutris.util.log import logger
 LIBRARY_URL = settings.SITE_URL + "/api/users/library"
 
 
-def get_local_library(since=None):
+def get_local_library(since: Optional[int] = None) -> List:
     game_library = []
     pga_games = get_games()
     categories = {r["id"]: r["name"] for r in get_categories()}
@@ -40,7 +41,7 @@ def get_local_library(since=None):
     return game_library
 
 
-def sync_local_library():
+def sync_local_library() -> None:
     if settings.read_setting("last_library_sync_at"):
         since = int(settings.read_setting("last_library_sync_at"))
     else:
@@ -94,7 +95,7 @@ def sync_local_library():
             conditions = {"slug": remote_game["slug"]}
             for key in ("runner", "platform", "service"):
                 if remote_game[key]:
-                    conditions[key] = remote_game[key]
+                    conditions[key] = remote_game[key]  # type: ignore # TODO looks like mypy bug
             pga_game = get_games_where(**conditions)
             if len(pga_game) == 0:
                 logger.error("No game found for %s", remote_key)
@@ -130,7 +131,7 @@ def sync_local_library():
     settings.write_setting("last_library_sync_at", int(time.time()))
 
 
-def delete_from_remote_library(games):
+def delete_from_remote_library(games: List) -> Optional[Dict]:
     payload = []
     for game in games:
         payload.append(

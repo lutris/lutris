@@ -4,6 +4,7 @@ import shlex
 import shutil
 import stat
 from textwrap import dedent
+from typing import Optional
 
 from gi.repository import GLib
 
@@ -14,13 +15,13 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 
-def get_lutris_executable():
+def get_lutris_executable() -> str:
     if LINUX_SYSTEM.is_flatpak():
         return "flatpak run net.lutris.Lutris"
     return "lutris"
 
 
-def get_xdg_entry(directory):
+def get_xdg_entry(directory: str) -> str:
     """Return the path for specific user folders"""
     special_dir = {
         "DESKTOP": GLib.UserDirectory.DIRECTORY_DESKTOP,
@@ -37,7 +38,7 @@ def get_xdg_entry(directory):
     return GLib.get_user_special_dir(special_dir[directory])
 
 
-def get_xdg_basename(game_slug, game_id, base_dir=None):
+def get_xdg_basename(game_slug: str, game_id: str, base_dir: Optional[str] = None) -> str:
     """Return the filename for .desktop shortcuts"""
     if base_dir:
         # When base dir is provided, lookup possible combinations
@@ -53,7 +54,14 @@ def get_xdg_basename(game_slug, game_id, base_dir=None):
     return "net.lutris.{}-{}.desktop".format(game_slug, game_id)
 
 
-def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desktop=False, menu=False):
+def create_launcher(
+    game_slug: str,
+    game_id: str,
+    game_name: str,
+    launch_config_name: Optional[str] = None,
+    desktop: bool = False,
+    menu: bool = False,
+) -> None:
     """Create a .desktop file."""
     desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
     lutris_executable = get_lutris_executable()
@@ -96,7 +104,7 @@ def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desk
     os.remove(tmp_launcher_path)
 
 
-def get_launcher_path(game_slug, game_id):
+def get_launcher_path(game_slug: str, game_id: str) -> str:
     """Return the path of a XDG game launcher.
     When legacy is set, it will return the old path with only the slug,
     otherwise it will return the path with slug + id
@@ -106,7 +114,7 @@ def get_launcher_path(game_slug, game_id):
     return os.path.join(desktop_dir, get_xdg_basename(game_slug, game_id, base_dir=desktop_dir))
 
 
-def get_menu_launcher_path(game_slug, game_id):
+def get_menu_launcher_path(game_slug: str, game_id: str) -> str:
     """Return the path to a XDG menu launcher, prioritizing legacy paths if
     they exist
     """
@@ -114,17 +122,17 @@ def get_menu_launcher_path(game_slug, game_id):
     return os.path.join(menu_dir, get_xdg_basename(game_slug, game_id, base_dir=menu_dir))
 
 
-def desktop_launcher_exists(game_slug, game_id):
+def desktop_launcher_exists(game_slug: str, game_id: str) -> bool:
     """Return True if there is an existing desktop icon for a game"""
     return system.path_exists(get_launcher_path(game_slug, game_id))
 
 
-def menu_launcher_exists(game_slug, game_id):
+def menu_launcher_exists(game_slug: str, game_id: str) -> bool:
     """Return True if there is an existing application menu entry for a game"""
     return system.path_exists(get_menu_launcher_path(game_slug, game_id))
 
 
-def remove_launcher(game_slug, game_id, desktop=False, menu=False):
+def remove_launcher(game_slug: str, game_id: str, desktop: bool = False, menu: bool = False) -> None:
     """Remove existing .desktop file."""
     if desktop:
         launcher_path = get_launcher_path(game_slug, game_id)

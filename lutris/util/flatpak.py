@@ -1,5 +1,6 @@
 import shutil
 from gettext import gettext as _
+from typing import Dict, List, Optional
 
 from lutris.exceptions import UnavailableRunnerError
 from lutris.util import cache_single
@@ -8,7 +9,7 @@ from lutris.util.system import read_process_output
 
 
 @cache_single
-def get_executable():
+def get_executable() -> Optional[str]:
     """Return the executable used to access Flatpak. None if Flatpak is not installed.
 
     In the case where Lutris is a Flatpak, we use flatpak-spawn.
@@ -16,12 +17,12 @@ def get_executable():
     return shutil.which("flatpak-spawn") or shutil.which("flatpak")
 
 
-def is_installed():
+def is_installed() -> bool:
     """Returns Flatpak is installed"""
     return bool(get_executable())
 
 
-def get_command():
+def get_command() -> List[str]:
     """Return the full command used to interact with Flatpak."""
     exe = get_executable()
     if not exe:
@@ -32,7 +33,7 @@ def get_command():
 
 
 @cache_single
-def get_installed_apps():
+def get_installed_apps() -> List[Dict]:
     if not is_installed():
         return []
 
@@ -60,7 +61,7 @@ def get_installed_apps():
     return packages
 
 
-def is_app_installed(appid):
+def is_app_installed(appid: str) -> bool:
     """Return whether an app is installed"""
     if not appid:
         return False
@@ -70,14 +71,18 @@ def is_app_installed(appid):
     return False
 
 
-def get_run_command(appid, arch=None, fcommand=None, branch=None):
+def get_run_command(
+    appid: str, arch: Optional[str] = None, fcommand: Optional[str] = None, branch: Optional[str] = None
+) -> List[str]:
     """Return command to launch a Flatpak app"""
     command = get_bare_run_command(arch, fcommand, branch)
     command.append(appid)
     return command
 
 
-def get_bare_run_command(arch=None, fcommand=None, branch=None):
+def get_bare_run_command(
+    arch: Optional[str] = None, fcommand: Optional[str] = None, branch: Optional[str] = None
+) -> List[str]:
     """Return command to launch a Flatpak app, without the app-id at the end;
     this is the 'command' of the flatpak runner itself, and a program's
     appid must be appended to it."""

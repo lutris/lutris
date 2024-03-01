@@ -2,7 +2,7 @@
 import os
 from collections import OrderedDict
 from gettext import gettext as _
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 from lutris import settings
 from lutris.api import get_default_wine_runner_version_info
@@ -158,11 +158,11 @@ def parse_wine_version(version: str) -> Tuple[List[int], str, str]:
     return parse_version(version)
 
 
-def version_sort(versions: List[str], reverse: bool = False) -> List[str]:
-    def version_key(version):
+def version_sort(versions: List[str], reverse: bool = False):
+    def version_key(version: str) -> List[Union[str, int]]:
         version_list, prefix, suffix = parse_wine_version(version)
         # Normalize the length of sub-versions
-        sort_key = version_list + [0] * (10 - len(version_list))
+        sort_key: List[Union[str, int]] = version_list + [0] * (10 - len(version_list))
         sort_key.append(prefix)
         sort_key.append(suffix)
         return sort_key

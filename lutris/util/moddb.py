@@ -26,7 +26,7 @@ def _try_import_moddb_library():
 class ModDB:
     def __init__(
         self, moddb_lib: types.ModuleType = _try_import_moddb_library(), parse_page_method: types.MethodType = None
-    ):
+    ) -> None:
         if moddb_lib is None:
             logger.warning(
                 "The moddb library is not available, though the installer"
@@ -38,7 +38,7 @@ class ModDB:
         if self.parse is None and self.moddb_lib is not None:
             self.parse = self.moddb_lib.parse_page
 
-    def transform_url(self, moddb_permalink_url):
+    def transform_url(self, moddb_permalink_url: str) -> str:
         # no-op in case the lib did not load
         if self.moddb_lib is None:
             return moddb_permalink_url
@@ -54,7 +54,7 @@ class ModDB:
         # dumb autoselect for now: rank mirrors by capacity (lower is better), pick first (lowest load)
         return sorted(mirrors_list, key=lambda m: m.capacity)[0]
 
-    def _get_html_and_resolve_mirrors_list(self, moddb_permalink_url):
+    def _get_html_and_resolve_mirrors_list(self, moddb_permalink_url: str):
         # make sure the url is not that of a mirrored file
         # if this isn't checked, the helper might hang
         # while downloading a file instead of a web page
@@ -66,7 +66,8 @@ class ModDB:
                 " installers.rst for details."
             )
 
-        moddb_obj = self.parse(moddb_permalink_url)
+        # TODO MYPY - mypy thinks that moddb is Optional
+        moddb_obj = self.parse(moddb_permalink_url)  # type: ignore[misc]
         if not isinstance(moddb_obj, self.moddb_lib.pages.File):
             raise RuntimeError("Provided URL does not point to the page of a file hosted on moddb.com")
 
@@ -76,5 +77,5 @@ class ModDB:
 
         return mirrors_list
 
-    def _is_moddb_mirror_url(self, url):
+    def _is_moddb_mirror_url(self, url: str) -> bool:
         return re.match(MODDB_MIRROR_URL_MATCHER, url.lower()) is not None

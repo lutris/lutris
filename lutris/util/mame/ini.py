@@ -1,4 +1,6 @@
 """Manipulate MAME ini files"""
+from typing import Optional, Tuple
+
 # Lutris Modules
 from lutris.util.system import path_exists
 
@@ -7,14 +9,14 @@ class MameIni:
 
     """Looks like an ini file and yet it is not one!"""
 
-    def __init__(self, ini_path):
+    def __init__(self, ini_path: str) -> None:
         if not path_exists(ini_path):
             raise OSError("File %s does not exist" % ini_path)
         self.ini_path = ini_path
         self.lines = []
         self.config = {}
 
-    def parse(self, line):
+    def parse(self, line: str) -> Tuple[Optional[str], Optional[str]]:
         """Store configuration value from a line"""
         line = line.strip()
         if not line or line.startswith("#"):
@@ -24,7 +26,7 @@ class MameIni:
             return key, _value[0]
         return key, None
 
-    def read(self):
+    def read(self) -> None:
         """Reads the content of the ini file"""
         with open(self.ini_path, "r", encoding="utf-8") as ini_file:
             for line in ini_file.readlines():
@@ -34,7 +36,7 @@ class MameIni:
                 if config_key:
                     self.config[config_key] = config_value
 
-    def write(self):
+    def write(self) -> None:
         """Writes the file to disk"""
         with open(self.ini_path, "w", encoding="utf-8") as ini_file:
             for line in self.lines:

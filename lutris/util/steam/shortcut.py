@@ -4,8 +4,10 @@ import os
 import re
 import shlex
 import shutil
+from typing import Any, Dict, Optional
 
 from lutris.api import format_installer_url
+from lutris.game import Game
 from lutris.util import resources, system
 from lutris.util.log import logger
 from lutris.util.steam import vdf
@@ -42,7 +44,7 @@ def vdf_file_exists() -> bool:
         return False
 
 
-def matches_id(shortcut, game):
+def matches_id(shortcut: Dict, game: Game) -> bool:
     """Test if the game seems to be the one a shortcut refers to."""
     id_match = re.match(r".*lutris:rungameid/(\d+)", shortcut.get("LaunchOptions", ""))
     if not id_match:
@@ -51,6 +53,7 @@ def matches_id(shortcut, game):
     return game_id == game.id
 
 
+# TODO MYPY this function may return List, but in shortcut_exists is Dict used
 def get_shortcuts():
     """Return all Steam shortcuts"""
     shortcut_path = get_shortcuts_vdf_path()
@@ -61,7 +64,7 @@ def get_shortcuts():
     return shortcuts
 
 
-def shortcut_exists(game):
+def shortcut_exists(game: Game) -> bool:
     try:
         shortcuts = get_shortcuts()
         if not shortcuts:
@@ -72,11 +75,11 @@ def shortcut_exists(game):
         return False
 
 
-def is_steam_game(game):
+def is_steam_game(game: Game) -> bool:
     return game.runner_name == "steam"
 
 
-def create_shortcut(game, launch_config_name=None):
+def create_shortcut(game: Game, launch_config_name: Optional[str] = None) -> None:
     if is_steam_game(game):
         logger.warning("Not updating shortcut for Steam game")
         return
@@ -96,7 +99,7 @@ def create_shortcut(game, launch_config_name=None):
     set_artwork(game)
 
 
-def remove_shortcut(game):
+def remove_shortcut(game: Game) -> None:
     logger.info("Removing Steam shortcut for %s", game)
     shortcut_path = get_shortcuts_vdf_path()
     if not shortcut_path or not os.path.exists(shortcut_path):
@@ -112,7 +115,7 @@ def remove_shortcut(game):
         shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
 
 
-def generate_preliminary_id(game):
+def generate_preliminary_id(game: Game) -> int:
     lutris_binary = shutil.which("lutris")
     if lutris_binary == "/app/bin/lutris":
         lutris_binary = "/usr/bin/flatpak"
@@ -122,15 +125,15 @@ def generate_preliminary_id(game):
     return (top << 32) | 0x02000000
 
 
-def generate_appid(game):
+def generate_appid(game: Game) -> str:
     return str(generate_preliminary_id(game) >> 32)
 
 
-def generate_shortcut_id(game):
+def generate_shortcut_id(game: Game) -> int:
     return (generate_preliminary_id(game) >> 32) - 0x100000000
 
 
-def generate_shortcut(game, launch_config_name):
+def generate_shortcut(game: Game, launch_config_name: Optional[str]) -> Dict[str, Any]:
     lutris_binary = shutil.which("lutris")
 
     launch_options = format_installer_url(
@@ -146,7 +149,8 @@ def generate_shortcut(game, launch_config_name):
         "appid": generate_shortcut_id(game),
         "AppName": game.name,
         "Exe": f'"{lutris_binary}"',
-        "StartDir": f'"{os.path.dirname(lutris_binary)}"',
+        #  TODO MYPY - which may return None
+        "StartDir": f'"{os.path.dirname(lutris_binary)}"',  # type: ignore[type-var]
         "icon": resources.get_icon_path(game.slug),
         "LaunchOptions": launch_options,
         "IsHidden": 0,
@@ -159,7 +163,7 @@ def generate_shortcut(game, launch_config_name):
     }
 
 
-def set_artwork(game):
+def set_artwork(game: Game) -> None:
     config_path = get_config_path()
     if not config_path:
         return None

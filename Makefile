@@ -91,7 +91,7 @@ snap:
 
 req-python:
 	pip3 install PyYAML lxml requests Pillow setproctitle python-magic distro dbus-python types-requests \
-	 types-PyYAML evdev PyGObject pypresence protobuf moddb
+	 types-PyYAML evdev PyGObject pypresence protobuf moddb webdav4
 
 dev:
 	pip3 install ruff==0.2.2 mypy==1.8.0 mypy-baseline nose2

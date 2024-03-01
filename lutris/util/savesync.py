@@ -2,6 +2,7 @@ import json
 import os
 import platform
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 try:
     from webdav4.client import Client
@@ -25,7 +26,7 @@ class SaveInfo:
     save_types = ["saves", "logs", "configs", "screenshots"]
     default_synced_types = ["saves", "configs"]
 
-    def __init__(self, game: Game):
+    def __init__(self, game: Game) -> None:
         self.game = game
         self.save_config = self.game.config.game_level["game"].get("save_config")
         if not self.save_config:
@@ -98,7 +99,7 @@ class SaveInfo:
                 results[section]["files"] = self.format_dir_info(path)
         return results
 
-    def print_dir_details(self, title: str, path: str):
+    def print_dir_details(self, title: str, path: str) -> None:
         save_files = self.get_dir_info(path)
         if not save_files:
             return
@@ -115,7 +116,7 @@ class SaveInfo:
         print("Total size: %s" % human_size(total_size))
 
 
-def show_save_stats(game, output_format="text"):
+def show_save_stats(game: Game, output_format: str = "text") -> None:
     try:
         save_info = SaveInfo(game)
     except ValueError:
@@ -123,7 +124,7 @@ def show_save_stats(game, output_format="text"):
         return
 
     if output_format == "json":
-        print(json.dumps(save_info.get_save_files()), indent=2)
+        print(json.dumps(save_info.get_save_files()), indent=2)  # type: ignore[call-overload] # TODO not sure what caused this
     else:
         for section in save_info.save_types:
             if section in save_info.save_config:
@@ -132,7 +133,7 @@ def show_save_stats(game, output_format="text"):
                 )
 
 
-def create_dirs(client, path):
+def create_dirs(client: Client, path: str) -> None:
     parts = path.split("/")
     for i in range(len(parts)):
         relpath = os.path.join(*parts[: i + 1])
@@ -144,26 +145,26 @@ def create_dirs(client, path):
         DIR_CREATE_CACHE.append(relpath)
 
 
-def get_webdav_client():
+def get_webdav_client() -> Optional[Client]:
     if not WEBDAV_AVAILABLE:
         logger.error("Python package 'webdav4' not installed.")
-        return
+        return None
     webdav_host = settings.read_setting("webdav_host")
     if not webdav_host:
         logger.error("No remote host set (webdav_host)")
-        return
+        return None
     webdav_user = settings.read_setting("webdav_user")
     if not webdav_user:
         logger.error("No remote username set (webdav_user)")
-        return
+        return None
     webdav_pass = settings.read_setting("webdav_pass")
     if not webdav_pass:
         logger.error("No remote password set (webdav_pass)")
-        return
+        return None
     return Client(webdav_host, auth=(webdav_user, webdav_pass), timeout=50)
 
 
-def get_existing_saves(client, game_base_dir):
+def get_existing_saves(client: Client, game_base_dir: str) -> List[str]:
     if not client.exists(game_base_dir):
         return []
     base_dir_content = client.ls(game_base_dir)
@@ -177,7 +178,7 @@ def get_existing_saves(client, game_base_dir):
     return saves
 
 
-def upload_save(game, sections=None):
+def upload_save(game: Game, sections: Optional[List[str]] = None) -> None:
     if not sections:
         sections = SYNC_TYPES
     try:
@@ -228,20 +229,20 @@ def upload_save(game, sections=None):
         client.upload_file(upload_file_source, upload_file_dest)
 
 
-def load_save_info(save_info_path):
+def load_save_info(save_info_path: str) -> Dict[str, Any]:
     with open(save_info_path, "r", encoding="utf-8") as save_info_file:
         save_info = json.load(save_info_file)
     return save_info
 
 
-def parse_save_info(save_info_path: str):
+def parse_save_info(save_info_path: str) -> Dict[str, Any]:
     """Parse the filename of a save info file and extract its information"""
     save_info_name, _ext = os.path.splitext(os.path.basename(save_info_path))
     hostname, ts = save_info_name.rsplit("-", maxsplit=1)
     return {"hostname": hostname, "datetime": datetime.fromtimestamp(int(ts))}
 
 
-def save_check(game):
+def save_check(game: Game) -> None:
     try:
         save_info = SaveInfo(game)
     except ValueError:

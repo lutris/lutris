@@ -19,6 +19,7 @@ allow_redefinition = true
 follow_imports = "silent"
 ignore_missing_imports = true
 implicit_optional = true
+# disallow_untyped_defs = true
 
 [tool.mypy-baseline]
 # --baseline-path: the file where the baseline should be stored

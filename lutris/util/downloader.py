@@ -1,6 +1,7 @@
 import os
 import threading
 import time
+from typing import Tuple
 
 import requests
 
@@ -53,10 +54,10 @@ class Downloader:
         self.file_pointer = None
         self.progress_event = threading.Event()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "downloader for %s" % self.url
 
-    def start(self):
+    def start(self) -> None:
         """Start download job."""
         logger.debug("⬇ %s", self.url)
         self.state = self.DOWNLOADING
@@ -65,15 +66,15 @@ class Downloader:
             os.remove(self.dest)
         self.file_pointer = open(self.dest, "wb")  # pylint: disable=consider-using-with
         self.thread = jobs.AsyncCall(self.async_download, None)
-        self.stop_request = self.thread.stop_request
+        self.stop_request = self.thread.stop_request  # type: ignore[attr-defined]
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the state of the downloader"""
         self.state = self.INIT
         self.error = None
         self.downloaded_size = 0  # Bytes
         self.full_size = 0  # Bytes
-        self.progress_fraction = 0
+        self.progress_fraction = 0.0
         self.progress_percentage = 0
         self.speed = 0
         self.average_speed = 0
@@ -85,7 +86,7 @@ class Downloader:
         self.time_left_check_time = 0
         self.file_pointer = None
 
-    def check_progress(self, blocking=False):
+    def check_progress(self, blocking: bool = False) -> float:
         """Append last downloaded chunk to dest file and store stats.
 
         blocking: if true and still downloading, block until some progress is made.
@@ -98,7 +99,7 @@ class Downloader:
             self.get_stats()
         return self.progress_fraction
 
-    def join(self, progress_callback=None):
+    def join(self, progress_callback=None) -> bool:
         """Blocks waiting for the download to complete.
 
         'progress_callback' is invoked repeatedly as the download
@@ -114,7 +115,7 @@ class Downloader:
             raise self.error
         return self.state == self.COMPLETED
 
-    def cancel(self):
+    def cancel(self) -> None:
         """Request download stop and remove destination file."""
         logger.debug("❌ %s", self.url)
         self.state = self.CANCELLED
@@ -126,7 +127,7 @@ class Downloader:
         if os.path.isfile(self.dest):
             os.remove(self.dest)
 
-    def async_download(self):
+    def async_download(self) -> None:
         try:
             headers = requests.utils.default_headers()
             headers["User-Agent"] = "Lutris/%s" % __version__
@@ -150,7 +151,7 @@ class Downloader:
             logger.exception("Download failed: %s", ex)
             self.on_download_failed(ex)
 
-    def on_download_failed(self, error: Exception):
+    def on_download_failed(self, error: Exception) -> None:
         # Cancelling closes the file, which can result in an
         # error. If so, we just remain cancelled.
         if self.state != self.CANCELLED:
@@ -160,7 +161,7 @@ class Downloader:
             self.file_pointer.close()
             self.file_pointer = None
 
-    def on_download_completed(self):
+    def on_download_completed(self) -> None:
         if self.state == self.CANCELLED:
             return
 
@@ -172,10 +173,10 @@ class Downloader:
             self.progress_fraction = 1.0
             self.progress_percentage = 100
         self.state = self.COMPLETED
-        self.file_pointer.close()
+        self.file_pointer.close()  # type: ignore[attr-defined]
         self.file_pointer = None
 
-    def get_stats(self):
+    def get_stats(self) -> None:
         """Calculate and store download stats."""
         self.speed, self.average_speed = self.get_speed()
         self.time_left = self.get_average_time_left()
@@ -186,7 +187,7 @@ class Downloader:
             self.progress_fraction = float(self.downloaded_size) / float(self.full_size)
             self.progress_percentage = self.progress_fraction * 100
 
-    def get_speed(self):
+    def get_speed(self) -> Tuple[float, float]:
         """Return (speed, average speed) tuple."""
         elapsed_time = get_time() - self.last_check_time
         chunk_size = self.downloaded_size - self.last_size

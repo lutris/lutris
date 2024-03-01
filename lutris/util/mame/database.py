@@ -2,6 +2,7 @@
 # Standard Library
 import json
 import os
+from typing import Dict
 from xml.etree import ElementTree
 
 # Lutris Modules
@@ -21,7 +22,7 @@ def simplify_manufacturer(manufacturer):
     return manufacturer_map.get(manufacturer, manufacturer)
 
 
-def is_game(machine):
+def is_game(machine) -> bool:
     """Return True if the given machine game is an original arcade game
     Clones return False
     """
@@ -35,7 +36,7 @@ def is_game(machine):
     )
 
 
-def has_software_list(machine):
+def has_software_list(machine) -> bool:
     """Return True if the machine has an associated software list"""
     _has_software_list = False
     for elem in machine:
@@ -44,7 +45,7 @@ def has_software_list(machine):
     return _has_software_list
 
 
-def is_system(machine):
+def is_system(machine) -> bool:
     """Given a machine XML tag, return True if it is a computer, console or
     handheld.
     """
@@ -57,7 +58,7 @@ def is_system(machine):
     return has_software_list(machine)
 
 
-def iter_machines(xml_path, filter_func=None):
+def iter_machines(xml_path: str, filter_func=None):
     """Iterate through machine nodes in the MAME XML"""
     try:
         root = ElementTree.parse(xml_path).getroot()
@@ -70,7 +71,7 @@ def iter_machines(xml_path, filter_func=None):
         yield machine
 
 
-def get_machine_info(machine):
+def get_machine_info(machine) -> Dict:
     """Return human readable information about a machine node"""
     return {
         "description": machine.find("description").text,
@@ -92,7 +93,7 @@ def get_machine_info(machine):
     }
 
 
-def get_supported_systems(xml_path, force=False):
+def get_supported_systems(xml_path: str, force: bool = False) -> Dict:
     """Return supported systems (computers and consoles) supported.
     From the full XML list extracted from MAME, filter the systems that are
     runnable, not clones and have the ability to run software.
@@ -115,6 +116,6 @@ def get_supported_systems(xml_path, force=False):
     return systems
 
 
-def get_games(xml_path):
+def get_games(xml_path: str) -> Dict:
     """Return a list of all games"""
     return {machine.attrib["name"]: get_machine_info(machine) for machine in iter_machines(xml_path, is_game)}
