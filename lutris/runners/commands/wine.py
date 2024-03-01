@@ -84,8 +84,15 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH
     )
 
 
-def create_prefix(  # noqa: C901
-    prefix, wine_path=None, arch=WINE_DEFAULT_ARCH, overrides=None, install_gecko=None, install_mono=None, runner=None
+def create_prefix(
+    prefix,
+    wine_path=None,
+    arch=WINE_DEFAULT_ARCH,
+    overrides=None,
+    install_gecko=None,
+    install_mono=None,
+    runner=None,
+    env=None,
 ):
     """Create a new Wine prefix."""
     # pylint: disable=too-many-locals
@@ -114,7 +121,7 @@ def create_prefix(  # noqa: C901
         wine_path = runner.get_executable()
     logger.info("Winepath: %s", wine_path)
 
-    if ("Proton" not in wine_path) or ("lutris" in wine_path and "Proton" in wine_path):
+    if not proton.is_proton_path(wine_path):
         wineboot_path = os.path.join(os.path.dirname(wine_path), "wineboot")
         if not system.path_exists(wineboot_path):
             logger.error(
@@ -150,9 +157,11 @@ def create_prefix(  # noqa: C901
             logger.error("No user.reg found after prefix creation. Prefix might not be valid")
             return
     else:
-        # TODO: Determine and insert GAMEID and STORE
-        wineenv["GAMEID"] = "ulwgl-foo"  # Wrong
-        wineenv["PROTONPATH"] = settings.RUNNER_DIR  # Wrong, optional
+        # TODO: Move this to somewhere that has a reference to the game object
+        game = None
+        wineenv["GAMEID"] = proton.get_game_id(game)
+        wineenv["PROTONPATH"] = proton.get_proton_path_from_bin(wine_path)
+
         system.execute([proton.get_ulwgl_path(), "createprefix"], env=wineenv)
 
     logger.info("%s Prefix created in %s", arch, prefix)
@@ -216,7 +225,7 @@ def use_lutris_runtime(wine_path, force_disable=False):
 
 
 # pragma pylint: disable=too-many-locals
-def wineexec(  # noqa: C901
+def wineexec(
     executable,
     args="",
     wine_path=None,
@@ -314,19 +323,18 @@ def wineexec(  # noqa: C901
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
+    # TODO: Move this to somewhere that a reference to the game object
     if proton.is_proton_path(wine_path):
-        # TODO: Determine and insert GAMEID and STORE
-        wineenv["GAMEID"] = "ulwgl-foo"  # wrong, this value should never be used.
-        wineenv["PROTONPATH"] = os.path.abspath(
-            os.path.join(os.path.dirname(wine_path), "../../")
-        )  # wrong, proton path is optional
+        game = None
+        wineenv["GAMEID"] = proton.get_game_id(game)
+        wineenv["PROTONPATH"] = proton.get_proton_path_from_bin(wine_path)
 
     baseenv = runner.get_env(disable_runtime=disable_runtime)
     baseenv.update(wineenv)
     baseenv.update(env)
 
-    if "Proton" in wine_path:  # wrong condition, protonpath optional
-        wine_path = proton.get_ulwgl_path()  # wrong, should be checked before
+    if proton.is_proton_path(wine_path):
+        wine_path = proton.get_ulwgl_path()
 
     command_parameters = [wine_path]
     if executable:

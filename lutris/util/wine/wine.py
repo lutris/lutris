@@ -138,7 +138,7 @@ def get_wine_path_for_version(version: str, config: dict = None) -> str:
     if version in WINE_PATHS:
         return system.find_executable(WINE_PATHS[version])
     if "Proton" in version:
-        return proton.get_proton_path_for_version(version)
+        return proton.get_proton_bin_for_version(version)
     if version == "custom":
         if config is None:
             raise RuntimeError("Custom wine paths are only supported when a configuration is available.")

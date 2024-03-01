@@ -63,9 +63,18 @@ def list_proton_versions() -> List[str]:
     return versions
 
 
-def get_proton_path_for_version(version):
+def get_proton_bin_for_version(version):
     for proton_path in get_proton_paths():
         if os.path.isfile(os.path.join(proton_path, version, "dist/bin/wine")):
             return os.path.join(proton_path, version, "dist/bin/wine")
         if os.path.isfile(os.path.join(proton_path, version, "files/bin/wine")):
             return os.path.join(proton_path, version, "files/bin/wine")
+
+
+def get_proton_path_from_bin(wine_path):
+    """Return a location suitable for PROTONPATH from the wine executable"""
+    return os.path.abspath(os.path.join(os.path.dirname(wine_path), "../../"))
+
+
+def get_game_id(game):
+    return "ULWGL-foo"
