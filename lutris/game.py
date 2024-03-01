@@ -554,7 +554,7 @@ class Game(GObject.Object):
             antimicro_command = ["flatpak-spawn", "--host", "antimicrox"]
         else:
             try:
-                antimicro_command = [system.find_executable("antimicrox")]
+                antimicro_command = [system.find_required_executable("antimicrox")]
             except MissingExecutableError as ex:
                 raise GameConfigError(
                     _("Unable to find Antimicrox, install it or disable the Antimicrox option")

@@ -136,7 +136,7 @@ def get_wine_path_for_version(version: str, config: dict = None) -> str:
         raise UnspecifiedVersionError(_("The Wine version must be specified."))
 
     if version in WINE_PATHS:
-        return system.find_executable(WINE_PATHS[version])
+        return system.find_required_executable(WINE_PATHS[version])
     if proton.is_proton_path(version):
         return proton.get_proton_bin_for_version(version)
     if version == "custom":

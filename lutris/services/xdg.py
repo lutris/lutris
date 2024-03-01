@@ -181,7 +181,7 @@ class XDGGame(ServiceGame):
         args = list(map(lambda arg: re.sub("%[^%]", "", arg).replace("%%", "%"), command[1:]))
         exe = command[0]
         if not exe.startswith("/"):
-            exe = system.find_executable(exe)
+            exe = system.find_required_executable(exe)
         return exe, subprocess.list2cmdline(args)
 
     @staticmethod

@@ -365,7 +365,7 @@ def find_winetricks(env=None, system_winetricks=False):
     """Find winetricks path."""
     winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
     if system_winetricks or not system.path_exists(winetricks_path):
-        winetricks_path = system.find_executable("winetricks")
+        winetricks_path = system.find_required_executable("winetricks")
         working_dir = None
     else:
         # We will use our own zenity if available, which is here, and it

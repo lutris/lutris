@@ -139,13 +139,15 @@ class steam(Runner):
     def get_executable(self) -> str:
         if linux.LINUX_SYSTEM.is_flatpak():
             # Fallback to xgd-open for Steam URIs in Flatpak
-            return system.find_executable("xdg-open")
-        if self.runner_config.get("lsi_steam") and system.can_find_executable("lsi-steam"):
-            return system.find_executable("lsi-steam")
+            return system.find_required_executable("xdg-open")
+        if self.runner_config.get("lsi_steam"):
+            lsi_steam_path = system.find_executable("lsi-steam")
+            if lsi_steam_path:
+                return lsi_steam_path
         runner_executable = self.runner_config.get("runner_executable")
         if runner_executable and os.path.isfile(runner_executable):
             return runner_executable
-        return system.find_executable(self.runner_executable)
+        return system.find_required_executable(self.runner_executable)
 
     @property
     def working_dir(self):

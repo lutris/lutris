@@ -10,6 +10,7 @@ import subprocess
 import zipfile
 from gettext import gettext as _
 from pathlib import Path
+from typing import Optional
 
 from gi.repository import Gio, GLib
 
@@ -215,18 +216,24 @@ def make_executable(exec_path):
 
 def can_find_executable(exec_name: str) -> bool:
     """Checks if an executable can be located; if false,
-    find_executable will raise an exception."""
-    return bool(exec_name) and bool(shutil.which(exec_name))
+    find_executable will return None, and find_required_executable
+    will raise an exception."""
+    return bool(find_executable(exec_name))
 
 
-def find_executable(exec_name: str) -> str:
+def find_executable(exec_name: str) -> Optional[str]:
+    """Return the absolute path of an executable, or None if
+    it could not be found."""
+    return shutil.which(exec_name) if exec_name else None
+
+
+def find_required_executable(exec_name: str) -> str:
     """Return the absolute path of an executable, but raises a
     MissingExecutableError if it could not be found."""
-    if exec_name:
-        exe = shutil.which(exec_name)
-        if exe:
-            return exe
-    raise MissingExecutableError(_("The executable '%s' could not be found.") % exec_name)
+    exe = find_executable(exec_name)
+    if not exe:
+        raise MissingExecutableError(_("The executable '%s' could not be found.") % exec_name)
+    return exe
 
 
 def get_pid(program, multiple=False):
@@ -442,11 +449,11 @@ def get_pids_using_file(path):
     if not os.path.exists(path):
         logger.error("Can't return PIDs using non existing file: %s", path)
         return set()
-    try:
-        fuser_path = find_executable("fuser")
-    except MissingExecutableError:
+
+    fuser_path = find_executable("fuser")
+    if not fuser_path:
         logger.warning("fuser not available, please install psmisc")
-        return set([])
+        return set()
     fuser_output = execute([fuser_path, path], quiet=True)
     return set(fuser_output.split())
 
