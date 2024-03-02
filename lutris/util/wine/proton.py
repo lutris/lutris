@@ -17,9 +17,12 @@ def get_ulwgl_path():
         script_path = os.path.join(custom_path, "ulwgl_run.py")
         if system.path_exists(script_path):
             return script_path
-    ulwgl_path = system.find_executable("ulwgl-run")
-    if ulwgl_path:
-        return ulwgl_path
+    if system.can_find_executable("ulwgl-run"):
+        return system.find_executable("ulwgl-run")
+    for path_candidate in ("/usr/share", "/usr/local/share", "/opt"):
+        script_path = os.path.join(path_candidate, "ULWGL", "ulwgl_run.py")
+        if system.path_exists(script_path):
+            return script_path
     lutris_runtime_path = os.path.join(settings.RUNTIME_DIR, "ULWGL", "ulwgl_run.py")
     if system.path_exists(lutris_runtime_path):
         return lutris_runtime_path
