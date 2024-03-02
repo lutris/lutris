@@ -19,7 +19,13 @@ def get_ulwgl_path():
             return script_path
     if system.can_find_executable("ulwgl-run"):
         return system.find_executable("ulwgl-run")
-    for path_candidate in ("/usr/share", "/usr/local/share", "/opt"):
+    path_candidates = (
+        os.path.expanduser("~/.local/share"),
+        "/usr/share",
+        "/usr/local/share",
+        "/opt"
+    )
+    for path_candidate in path_candidates:
         script_path = os.path.join(path_candidate, "ULWGL", "ulwgl_run.py")
         if system.path_exists(script_path):
             return script_path
