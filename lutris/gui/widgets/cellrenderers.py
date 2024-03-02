@@ -524,13 +524,11 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         if key in self.cached_surfaces_old:
             surface = self.cached_surfaces_old[key]
         else:
-            try:
-                surface = self._get_surface_by_path(widget, path, size, preserve_aspect_ratio)
+            surface = self._get_surface_by_path(widget, path, size, preserve_aspect_ratio)
+            if surface:
                 # We cache missing surfaces too, but only a successful load trigger
                 # cache cycling
                 self.cached_surfaces_loaded += 1
-            except MissingMediaError:
-                surface = None
 
         self.cached_surfaces_new[key] = surface
         return surface

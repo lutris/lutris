@@ -5,6 +5,7 @@ from lutris.gui.widgets.utils import (
     ICON_SIZE,
     get_default_icon_path,
     get_pixbuf_by_path,
+    get_required_pixbuf_by_path,
     get_runtime_icon_path,
     has_stock_icon,
 )
@@ -29,7 +30,7 @@ class ScaledImage(Gtk.Image):
         pass your widget's get_scale_factor() here."""
 
         pixbuf_size = (size[0] * scale_factor, size[1] * scale_factor) if size else None
-        pixbuf = get_pixbuf_by_path(path, pixbuf_size)
+        pixbuf = get_required_pixbuf_by_path(path, pixbuf_size)
         image = ScaledImage(1 / scale_factor)
         image.set_from_pixbuf(pixbuf)
         return image
@@ -45,11 +46,10 @@ class ScaledImage(Gtk.Image):
 
         pixbuf_size = (size[0] * scale_factor, size[1] * scale_factor)
 
-        try:
-            pixbuf = get_pixbuf_by_path(path, pixbuf_size)
-        except MissingMediaError:
+        pixbuf = get_pixbuf_by_path(path, pixbuf_size)
+        if not pixbuf:
             default_icon = get_default_icon_path(size)
-            pixbuf = get_pixbuf_by_path(default_icon, pixbuf_size, preserve_aspect_ratio=False)
+            pixbuf = get_required_pixbuf_by_path(default_icon, pixbuf_size, preserve_aspect_ratio=False)
 
         image = ScaledImage(1 / scale_factor)
         image.set_from_pixbuf(pixbuf)

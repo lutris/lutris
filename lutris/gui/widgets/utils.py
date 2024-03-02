@@ -76,9 +76,12 @@ def get_scaled_surface_by_path(path, size, device_scale, preserve_aspect_ratio=T
     If you pass True for preserve_aspect_ratio, the aspect ratio of the image is preserved,
     but will be no larger than the size (times the device_scale).
 
-    If the path cannot be read, this returns None.
+    If there's no file at the path, or it is empty, this function returns None.
     """
     pixbuf = get_pixbuf_by_path(path)
+    if not pixbuf:
+        return None
+
     pixbuf_width = pixbuf.get_width()
     pixbuf_height = pixbuf.get_height()
 
@@ -115,21 +118,32 @@ def get_default_icon_path(size):
 def get_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
     """Reads an image file and returns the pixbuf. If you provide a size, this scales
     the file to fit that size, preserving the aspect ratio if preserve_aspect_ratio is
-    True. If the file is missing or unreadable, or if 'path' is None, this raises
-    MissingMediaError."""
+    True. If the file is missing or empty, or if 'path' is None or empty,
+    this returns None. Still raises GLib.GError for corrupt files."""
     if not system.path_exists(path, exclude_empty=True):
-        raise MissingMediaError(filename=path)
+        return None
 
+    if size:
+        # new_from_file_at_size scales but preserves aspect ratio
+        width, height = size
+        if preserve_aspect_ratio:
+            return GdkPixbuf.Pixbuf.new_from_file_at_size(path, width, height)
+
+        return GdkPixbuf.Pixbuf.new_from_file_at_scale(path, width, height, preserve_aspect_ratio=False)
+
+    return GdkPixbuf.Pixbuf.new_from_file(path)
+
+
+def get_required_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
+    """Reads an image file and returns the pixbuf. If you provide a size, this scales
+    the file to fit that size, preserving the aspect ratio if preserve_aspect_ratio is
+    True. If the file is missing or unreadable, or if 'path' is None or empty, this raises
+    MissingMediaError."""
     try:
-        if size:
-            # new_from_file_at_size scales but preserves aspect ratio
-            width, height = size
-            if preserve_aspect_ratio:
-                return GdkPixbuf.Pixbuf.new_from_file_at_size(path, width, height)
-
-            return GdkPixbuf.Pixbuf.new_from_file_at_scale(path, width, height, preserve_aspect_ratio=False)
-
-        return GdkPixbuf.Pixbuf.new_from_file(path)
+        pixbuf = get_pixbuf_by_path(path, size, preserve_aspect_ratio)
+        if not pixbuf:
+            raise MissingMediaError(filename=path)
+        return pixbuf
     except GLib.GError as ex:
         logger.exception("Unable to load icon from image %s", path)
         raise MissingMediaError(message=str(ex), filename=path) from ex
