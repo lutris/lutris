@@ -23,15 +23,13 @@ def get_ulwgl_path():
         os.path.expanduser("~/.local/share"),
         "/usr/share",
         "/usr/local/share",
-        "/opt"
+        "/opt",
+        settings.RUNTIME_DIR,
     )
     for path_candidate in path_candidates:
         script_path = os.path.join(path_candidate, "ULWGL", "ulwgl_run.py")
         if system.path_exists(script_path):
             return script_path
-    lutris_runtime_path = os.path.join(settings.RUNTIME_DIR, "ULWGL", "ulwgl_run.py")
-    if system.path_exists(lutris_runtime_path):
-        return lutris_runtime_path
 
 
 def _iter_proton_locations() -> Generator[str, None, None]:
