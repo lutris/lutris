@@ -67,7 +67,6 @@ class libretro(Runner):
     runnable_alone = True
     runner_executable = "retroarch/retroarch"
     flatpak_id = "org.libretro.RetroArch"
-    has_runner_versions = True
 
     game_options = [
         {"option": "main_file", "type": "file", "label": _("ROM file")},

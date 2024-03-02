@@ -1,6 +1,5 @@
 from gi.repository import Gtk
 
-from lutris.exceptions import MissingMediaError
 from lutris.gui.widgets.utils import (
     ICON_SIZE,
     get_default_icon_path,

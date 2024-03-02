@@ -3,7 +3,7 @@
 import os
 import shlex
 from gettext import gettext as _
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version
@@ -163,7 +163,6 @@ class wine(Runner):
     platforms = [_("Windows")]
     multiple_versions = True
     entry_point_option = "exe"
-    has_runner_versions = True
 
     game_options = [
         {
@@ -782,7 +781,9 @@ class wine(Runner):
         except MisconfigurationError:
             return False
 
-    def get_installer_runner_version(self, installer, use_runner_config: bool = True, use_api: bool = False) -> str:
+    def get_installer_runner_version(
+        self, installer, use_runner_config: bool = True, use_api: bool = False
+    ) -> Optional[str]:
         # If a version is specified in the script choose this one
         version = None
         if installer.script.get(installer.runner):
@@ -802,7 +803,7 @@ class wine(Runner):
             try:
                 return wine.get_runner_version_and_config()[0]
             except UnspecifiedVersionError:
-                pass  # prefer the error message below for this
+                pass  # fall back to the API in this case
 
         if not version and use_api:
             # Try to obtain the default wine version from the Lutris API.
@@ -810,9 +811,6 @@ class wine(Runner):
             if "version" in default_version_info:
                 logger.debug("Default wine version is %s", default_version_info["version"])
                 version = format_runner_version(default_version_info)
-
-        if not version:
-            raise UnspecifiedVersionError(_("The installer does not specify a Wine version."))
 
         return version
 

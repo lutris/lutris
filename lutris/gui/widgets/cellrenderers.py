@@ -11,7 +11,6 @@ gi.require_version("PangoCairo", "1.0")
 import cairo
 from gi.repository import Gdk, GLib, GObject, Gtk, Pango, PangoCairo
 
-from lutris.exceptions import MissingMediaError
 from lutris.gui.widgets.utils import (
     MEDIA_CACHE_INVALIDATED,
     get_default_icon_path,

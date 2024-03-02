@@ -34,19 +34,20 @@ class CommandsMixin:
         """Return absolute path of wine version used during the installation, but
         None if the wine exe can't be located."""
         runner = self.get_runner_class(self.installer.runner)()
-        try:
-            version = runner.get_installer_runner_version(self.installer, use_runner_config=False)
-        except (UnspecifiedVersionError, RuntimeError):
-            # Special case that lets the Wine configuration explicit specify the path
-            # to the Wine executable, not just a version number.
-            if self.installer.runner == "wine":
-                try:
-                    config_version, runner_config = wine.get_runner_version_and_config()
-                    return get_wine_path_for_version(config_version, config=runner_config.runner_level)
-                except UnspecifiedVersionError:
-                    pass
+        version = runner.get_installer_runner_version(self.installer, use_runner_config=False)
+        if version:
+            return get_wine_path_for_version(version)
 
-            version = get_default_wine_version()
+        # Special case that lets the Wine configuration explicit specify the path
+        # to the Wine executable, not just a version number.
+        if self.installer.runner == "wine":
+            try:
+                config_version, runner_config = wine.get_runner_version_and_config()
+                return get_wine_path_for_version(config_version, config=runner_config.runner_level)
+            except UnspecifiedVersionError:
+                pass
+
+        version = get_default_wine_version()
         return get_wine_path_for_version(version)
 
     def get_runner_class(self, runner_name):
