@@ -43,7 +43,7 @@ class CommandsMixin:
         if self.installer.runner == "wine":
             try:
                 config_version, runner_config = wine.get_runner_version_and_config()
-                return get_wine_path_for_version(config_version, config=runner_config.runner_level)
+                return get_wine_path_for_version(config_version, config=runner_config.runner_level["wine"])
             except UnspecifiedVersionError:
                 pass
 
