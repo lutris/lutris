@@ -61,10 +61,11 @@ class ScaledImage(Gtk.Image):
         default icon size. If the icon can't be found, we'll fall back onto another,
         stock icon. If you don't supply one (or it's not available) we'll fall back
         further to 'package-x-generic-symbolic'; we always give you something."""
-        try:
-            path = get_runtime_icon_path(icon_name)
+
+        path = get_runtime_icon_path(icon_name)
+        if path:
             icon = ScaledImage.new_scaled_from_path(path, size=ICON_SIZE, scale_factor=scale_factor)
-        except MissingMediaError:
+        else:
             if not has_stock_icon(fallback_stock_icon_name):
                 fallback_stock_icon_name = "package-x-generic-symbolic"
 

@@ -395,10 +395,9 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
         icon_paths = []
         for p in platforms:
-            try:
-                icon_paths.append(get_runtime_icon_path(p + "-symbolic"))
-            except MissingMediaError:
-                continue  # just leave the missing icons out
+            icon_path = get_runtime_icon_path(p + "-symbolic")
+            if icon_path:
+                icon_paths.append(icon_path)
 
         GridViewCellRendererImage._platform_icon_paths[platform] = icon_paths
         return icon_paths

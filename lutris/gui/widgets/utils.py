@@ -167,7 +167,7 @@ def get_runtime_icon_path(icon_name):
     icon_name -- The name of the icon to retrieve
 
     Returns:
-        The path to the icon, or raises MissingMediaError if it wasn't found.
+        The path to the icon, or None if it wasn't found.
     """
     filename = icon_name.lower().replace(" ", "")
     # We prefer bitmaps over SVG, because we've got some SVG icons with the
@@ -185,7 +185,7 @@ def get_runtime_icon_path(icon_name):
             icon_path = os.path.join(settings.RUNTIME_DIR, search_dir, filename + ext)
             if os.path.exists(icon_path):
                 return icon_path
-    raise MissingMediaError("The icon '%s' could not be found." % icon_name)
+    return None
 
 
 def convert_to_background(background_path, target_size=(320, 1080)):
