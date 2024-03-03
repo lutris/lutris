@@ -1,7 +1,7 @@
 import json
 import os
 from gettext import gettext as _
-from typing import Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Optional
 
 from gi.repository import Gio
 
@@ -169,17 +169,17 @@ def download_lutris_media(slug):
         logger.debug("Unable to load %s: %s", slug, ex)
         return
     response_data = response.json
-    icon_url = response_data.get("icon")
+    icon_url = _get_response_game_icon(response_data)
     if icon_url:
         download_media({slug: icon_url}, LutrisIcon())
 
-    banner_url = response_data.get("banner")
+    banner_url = _get_response_game_banner(response_data)
     if banner_url:
         download_media({slug: banner_url}, LutrisBanner())
 
-    cover_url = response_data.get("coverart")
-    if cover_url:
-        download_media({slug: cover_url}, LutrisCoverart())
+    coverart_url = _get_response_game_coverart(response_data)
+    if coverart_url:
+        download_media({slug: coverart_url}, LutrisCoverart())
 
 
 def sync_media(slugs: Iterable[str] = None) -> Dict[str, int]:
@@ -220,22 +220,38 @@ def sync_media(slugs: Iterable[str] = None) -> Dict[str, int]:
                 game["slug"] = alias_map[game["slug"]]
                 continue
     banner_urls = {
-        game["slug"]: game["banner_url"]
+        game["slug"]: _get_response_game_banner(game)
         for game in games
-        if game["slug"] not in banners_available and game["banner_url"]
+        if game["slug"] not in banners_available and _get_response_game_banner(game)
     }
     icon_urls = {
-        game["slug"]: game["icon_url"] for game in games if game["slug"] not in icons_available and game["icon_url"]
+        game["slug"]: _get_response_game_icon(game)
+        for game in games
+        if game["slug"] not in icons_available and _get_response_game_icon(game)
     }
-    cover_urls = {
-        game["slug"]: game["coverart"] for game in games if game["slug"] not in covers_available and game["coverart"]
+    coverart_urls = {
+        game["slug"]: _get_response_game_coverart(game)
+        for game in games
+        if game["slug"] not in covers_available and _get_response_game_coverart(game)
     }
-    logger.debug("Syncing %s banners, %s icons and %s covers", len(banner_urls), len(icon_urls), len(cover_urls))
+    logger.debug("Syncing %s banners, %s icons and %s covers", len(banner_urls), len(icon_urls), len(coverart_urls))
     download_media(banner_urls, LutrisBanner())
     download_media(icon_urls, LutrisIcon())
-    download_media(cover_urls, LutrisCoverart())
+    download_media(coverart_urls, LutrisCoverart())
     return {
         "banners": len(banner_urls),
         "icons": len(icon_urls),
-        "covers": len(cover_urls),
+        "covers": len(coverart_urls),
     }
+
+
+def _get_response_game_coverart(api_game: Dict[str, Any]) -> Optional[str]:
+    return api_game.get("coverart")
+
+
+def _get_response_game_banner(api_game: Dict[str, Any]) -> Optional[str]:
+    return api_game.get("banner_url") or api_game.get("banner")
+
+
+def _get_response_game_icon(api_game: Dict[str, Any]) -> Optional[str]:
+    return api_game.get("icon_url") or api_game.get("icon")
