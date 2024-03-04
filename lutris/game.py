@@ -23,7 +23,7 @@ from lutris.exception_backstops import watch_game_errors
 from lutris.exceptions import GameConfigError, InvalidGameMoveError, MissingExecutableError
 from lutris.installer import InstallationKind
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
-from lutris.runners import import_runner
+from lutris.runners import import_runner, is_valid_runner_name
 from lutris.runners.runner import Runner
 from lutris.util import discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing
@@ -318,7 +318,7 @@ class Game(GObject.Object):
 
     @property
     def has_runner(self) -> bool:
-        return bool(self._runner_name)
+        return bool(self._runner_name and is_valid_runner_name(self._runner_name))
 
     @property
     def runner(self) -> Runner:

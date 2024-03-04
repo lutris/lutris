@@ -65,7 +65,7 @@ class NonInstallableRunnerError(LutrisError):
 
 
 def get_runner_module(runner_name):
-    if runner_name not in __all__:
+    if not is_valid_runner_name(runner_name):
         raise InvalidRunnerError("Invalid runner name '%s'" % runner_name)
     module = __import__("lutris.runners.%s" % runner_name, globals(), locals(), [runner_name], 0)
     if not module:
@@ -108,6 +108,10 @@ def inject_runners(runners):
 
 def get_runner_names():
     return __all__
+
+
+def is_valid_runner_name(runner_name: str) -> bool:
+    return runner_name in __all__
 
 
 def get_runner_human_name(runner_name):
