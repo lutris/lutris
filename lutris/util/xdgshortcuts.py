@@ -68,7 +68,7 @@ def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desk
         Icon={}
         Exec=env LUTRIS_SKIP_INIT=1 {} {}
         Categories=Game
-        """.format(game_name, "lutris_{}".format(game_slug), lutris_executable, shlex.quote(url))
+        """.format(launch_config_name or game_name, "lutris_{}".format(game_slug), lutris_executable, shlex.quote(url))
     )
 
     launcher_filename = get_xdg_basename(game_slug, game_id)
