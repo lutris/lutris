@@ -501,7 +501,7 @@ def format_installer_url(installer_info):
     if launch_config_name:
         parts.append(launch_config_name)
 
-    parts = [urllib.parse.quote(str(part)) for part in parts]
+    parts = [urllib.parse.quote(str(part), safe="") for part in parts]
     path = "/".join(parts)
 
     if revision:
