@@ -1,11 +1,12 @@
 import json
 import os
+from typing import Any, Dict, Optional
 
 from lutris.util import system
 from lutris.util.log import logger
 
 
-def get_gog_game_path(target_path):
+def get_gog_game_path(target_path: str) -> Optional[str]:
     """Return the absolute path where a GOG game is installed"""
     gog_game_path = os.path.join(target_path, "drive_c/GOG Games/")
     if not os.path.exists(gog_game_path):
@@ -17,19 +18,19 @@ def get_gog_game_path(target_path):
     return os.path.join(gog_game_path, games[0])
 
 
-def get_gog_config(gog_game_path):
+def get_gog_config(gog_game_path: str) -> Optional[Dict[str, Any]]:
     """Extract runtime information such as executable paths from GOG files"""
     config_filename = [fn for fn in os.listdir(gog_game_path) if fn.startswith("goggame") and fn.endswith(".info")]
     if not config_filename:
         logger.error("No config file found in %s", gog_game_path)
-        return
+        return None
     gog_config_path = os.path.join(gog_game_path, config_filename[0])
     with open(gog_config_path, encoding="utf-8") as gog_config_file:
         gog_config = json.loads(gog_config_file.read())
     return gog_config
 
 
-def get_game_config(task, gog_game_path):
+def get_game_config(task: Dict, gog_game_path: str) -> Optional[Dict[str, Any]]:
     def resolve_path(path):
         """GOG's paths are relative to the gog_game_path, not relative to each other,
         so we resolve them all to absolute paths and fix casing issues. If required,
@@ -47,7 +48,7 @@ def get_game_config(task, gog_game_path):
 
     config = {}
     if "path" not in task:
-        return
+        return None
 
     config["exe"] = resolve_path(task["path"])
     if task.get("workingDir"):
@@ -59,7 +60,7 @@ def get_game_config(task, gog_game_path):
     return config
 
 
-def convert_gog_config_to_lutris(gog_config, gog_game_path):
+def convert_gog_config_to_lutris(gog_config: Dict, gog_game_path: str) -> Dict:
     play_tasks = gog_config["playTasks"]
     lutris_config = {"launch_configs": []}
     for task in play_tasks:
@@ -73,8 +74,9 @@ def convert_gog_config_to_lutris(gog_config, gog_game_path):
     return lutris_config
 
 
-def get_gog_config_from_path(target_path):
+def get_gog_config_from_path(target_path: str) -> Optional[Dict]:
     """Return the GOG configuration for a root path"""
     gog_game_path = get_gog_game_path(target_path)
     if gog_game_path:
         return get_gog_config(gog_game_path)
+    return None

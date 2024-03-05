@@ -26,7 +26,7 @@ class DXVKManager(DLLManager):
             return True
         return LINUX_SYSTEM.is_vulkan_supported()
 
-    def is_recommended_version(self, version):
+    def is_recommended_version(self, version: str) -> bool:
         # DXVK 2.x and later require Vulkan 1.3, so if that iss lacking
         # we default to 1.x.
         if os.environ.get("LUTRIS_NO_VKQUERY"):
@@ -37,7 +37,7 @@ class DXVKManager(DLLManager):
         return super().is_recommended_version(version)
 
     @staticmethod
-    def is_managed_dll(dll_path):
+    def is_managed_dll(dll_path: str) -> bool:
         """Check if a given DLL path is provided by the component
 
         Very basic check to see if a dll contains the string "dxvk".

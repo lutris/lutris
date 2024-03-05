@@ -1,12 +1,12 @@
 import dataclasses as dc
 import json
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import requests
 
 
 class DataclassJSONEncoder(json.JSONEncoder):
-    def default(self, o):
+    def default(self, o: Any) -> Any:
         if dc.is_dataclass(o):
             return dc.asdict(o)
         return super().default(o)
@@ -133,7 +133,7 @@ class _Blizzard(object, metaclass=Singleton):
         ClassicGame("sca", "StarCraft® Anthology", "Starcraft", "StarCraft"),  # TODO exe and bundleid
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._games = {game.uid: game for game in self.BATTLENET_GAMES + self.CLASSIC_GAMES}
 
     def __getitem__(self, key: str) -> BlizzardGame:

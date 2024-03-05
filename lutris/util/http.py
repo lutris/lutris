@@ -7,6 +7,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from ssl import CertificateError
+from typing import Dict, Optional
 
 import certifi
 
@@ -14,7 +15,7 @@ from lutris.settings import PROJECT, SITE_URL, VERSION, read_setting
 from lutris.util import system
 from lutris.util.log import logger
 
-DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 30
+DEFAULT_TIMEOUT = int(read_setting("default_http_timeout") or 30)
 
 ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
@@ -22,7 +23,7 @@ ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=ce
 class HTTPError(Exception):
     """Exception raised on request failures"""
 
-    def __init__(self, message, code=None):
+    def __init__(self, message: str, code=None) -> None:
         super().__init__(message)
         self.code = code
 
@@ -34,8 +35,8 @@ class UnauthorizedAccessError(Exception):
 class Request:
     def __init__(
         self,
-        url,
-        timeout=DEFAULT_TIMEOUT,
+        url: str,
+        timeout: int = DEFAULT_TIMEOUT,
         stop_request=None,
         headers=None,
         cookies=None,
@@ -63,7 +64,7 @@ class Request:
             self.opener = None
 
     @staticmethod
-    def _clean_url(url):
+    def _clean_url(url: str) -> str:
         """Checks that a given URL is valid and return a usable version"""
         if not url:
             raise ValueError("An URL is required!")
@@ -80,10 +81,10 @@ class Request:
         return url
 
     @property
-    def user_agent(self):
+    def user_agent(self) -> str:
         return "{} {}".format(PROJECT, VERSION)
 
-    def _request(self, method, data=None):
+    def _request(self, method: str, data=None) -> "Request":
         logger.debug("%s %s", method, self.url)
         try:
             req = urllib.request.Request(url=self.url, data=data, headers=self.headers, method=method)
@@ -105,7 +106,8 @@ class Request:
 
         self.response_headers = request.getheaders()
         self.status_code = request.getcode()
-        if self.status_code > 299:
+        # TODO MYPY - Looks that mypy thinks that status_code may be None
+        if self.status_code > 299:  # type: ignore[operator]
             logger.warning("Request responded with code %s", self.status_code)
 
         try:
@@ -141,7 +143,7 @@ class Request:
     def delete(self, data=None):
         return self._request("DELETE", data)
 
-    def write_to_file(self, path):
+    def write_to_file(self, path: str) -> None:
         content = self.content
         logger.debug("Writing to %s", path)
         if not content:
@@ -154,7 +156,7 @@ class Request:
             dest_file.write(content)
 
     @property
-    def json(self):
+    def json(self) -> Dict:
         _raw_json = self.text
         if _raw_json:
             try:
@@ -164,13 +166,13 @@ class Request:
         return {}
 
     @property
-    def text(self):
+    def text(self) -> str:
         if self.content:
             return self.content.decode()
         return ""
 
 
-def download_file(url, dest, overwrite=False, raise_errors=False):
+def download_file(url: str, dest: str, overwrite: bool = False, raise_errors: bool = False) -> Optional[str]:
     """Save a remote resource locally"""
     if system.path_exists(dest):
         if overwrite:

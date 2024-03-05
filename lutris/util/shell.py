@@ -1,11 +1,12 @@
 """Controls execution of programs in separate shells"""
 import os
 from textwrap import dedent
+from typing import Dict, List, Optional
 
 from lutris import settings
 
 
-def get_terminal_script(command, cwd, env):
+def get_terminal_script(command: List[str], cwd: str, env: Dict) -> str:
     """Write command in a script file and run it.
 
     Running it from a file is likely the only way to set env vars only
@@ -34,7 +35,7 @@ def get_terminal_script(command, cwd, env):
     return script_path
 
 
-def get_bash_rc_file(cwd, env, aliases=None):
+def get_bash_rc_file(cwd: str, env: Dict, aliases: Optional[Dict] = None) -> str:
     """Return a bash prompt configured with pre-defined environment variables and aliases"""
     script_path = os.path.join(settings.CACHE_DIR, "bashrc.sh")
     env["TERM"] = "xterm"
@@ -63,7 +64,7 @@ def get_bash_rc_file(cwd, env, aliases=None):
     return script_path
 
 
-def get_shell_command(cwd, env, aliases=None):
+def get_shell_command(cwd: str, env: Dict, aliases: Optional[Dict] = None) -> str:
     """Generates a scripts whichs opens a bash shell configured with given
     environment variables and aliases.
     """

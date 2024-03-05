@@ -22,7 +22,7 @@ class TrashPortal(GObject.Object):
         file_paths: Iterable[str],
         completion_function: CompletionFunction = None,
         error_function: ErrorFunction = None,
-    ):
+    ) -> None:
         super().__init__()
         self.file_paths = list(file_paths)
         self.completion_function = completion_function
@@ -38,13 +38,13 @@ class TrashPortal(GObject.Object):
             self._new_for_bus_cb,
         )
 
-    def _new_for_bus_cb(self, obj, result):
+    def _new_for_bus_cb(self, obj, result) -> None:
         proxy = obj.new_for_bus_finish(result)
         if proxy:
             self._dbus_proxy = proxy
             self.trash_file()
 
-    def trash_file(self):
+    def trash_file(self) -> None:
         try:
             fds_in = Gio.UnixFDList.new()
 
@@ -58,7 +58,8 @@ class TrashPortal(GObject.Object):
                 file_handle = os.open(file_path, flags)
                 fds_in.append(file_handle)
 
-            self._dbus_proxy.call_with_unix_fd_list(
+            # TODO MYPY - None argument is not recognized
+            self._dbus_proxy.call_with_unix_fd_list(  # type: ignore[union-attr]
                 "TrashFile",
                 GLib.Variant.new_tuple(
                     GLib.Variant.new_handle(0),
@@ -87,6 +88,6 @@ class TrashPortal(GObject.Object):
         else:
             logger.exception("Failed to trash %s: %s", ", ".join(self.file_paths), error)
 
-    def report_completion(self):
+    def report_completion(self) -> None:
         if self.completion_function:
             schedule_at_idle(self.completion_function)

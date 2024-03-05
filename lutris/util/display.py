@@ -3,7 +3,7 @@
 import enum
 import os
 import subprocess
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import gi
 
@@ -49,16 +49,16 @@ def get_default_dpi():
 class DisplayManager:
     """Get display and resolution using GnomeDesktop"""
 
-    def __init__(self, screen: Gdk.Screen):
+    def __init__(self, screen: Gdk.Screen) -> None:
         self.rr_screen = GnomeDesktop.RRScreen.new(screen)
         self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
         self.rr_config.load_current()
 
-    def get_display_names(self):
+    def get_display_names(self) -> List:
         """Return names of connected displays"""
         return [output_info.get_display_name() for output_info in self.rr_config.get_outputs()]
 
-    def get_resolutions(self):
+    def get_resolutions(self) -> List:
         """Return available resolutions"""
         resolutions = ["%sx%s" % (mode.get_width(), mode.get_height()) for mode in self.rr_screen.list_modes()]
         if not resolutions:
@@ -297,7 +297,7 @@ def _get_compositor_commands():
     return None, None, False
 
 
-def _run_command(*command, run_in_background=False):
+def _run_command(*command, run_in_background: bool = False):
     """Random _run_command lost in the middle of the project,
     are you lost little _run_command?
     """
@@ -316,7 +316,7 @@ def _run_command(*command, run_in_background=False):
         logger.error(errorMessage)
 
 
-def disable_compositing():
+def disable_compositing() -> None:
     """Disable compositing if not already disabled."""
     compositing_enabled = is_compositing_enabled()
     if compositing_enabled is None:
@@ -331,7 +331,7 @@ def disable_compositing():
         _run_command(*stop_compositor, run_in_background=background)
 
 
-def enable_compositing():
+def enable_compositing() -> None:
     """Re-enable compositing if the corresponding call to disable_compositing
     disabled it."""
 
@@ -353,17 +353,17 @@ class DBusScreenSaverInhibitor:
     org.gnome.ScreenSaver interfaces one can declare a DBus interface which
     requires the Inhibit() and UnInhibit() methods to be exposed."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.proxy = None
 
-    def set_dbus_iface(self, name, path, interface, bus_type=Gio.BusType.SESSION):
+    def set_dbus_iface(self, name: str, path: str, interface, bus_type=Gio.BusType.SESSION) -> None:
         """Sets a dbus proxy to be used instead of Gtk.Application methods, this
         method can raise an exception."""
         self.proxy = Gio.DBusProxy.new_for_bus_sync(
             bus_type, Gio.DBusProxyFlags.NONE, None, name, path, interface, None
         )
 
-    def inhibit(self, game_name):
+    def inhibit(self, game_name: str):
         """Inhibit the screen saver.
         Returns a cookie that must be passed to the corresponding uninhibit() call.
         If an error occurs, None is returned instead."""

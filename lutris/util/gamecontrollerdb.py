@@ -33,17 +33,17 @@ class ControllerMapping:
         "y",
     ]
 
-    def __init__(self, guid, name, mapping):
+    def __init__(self, guid: str, name: str, mapping) -> None:
         self.guid = guid
         self.name = name
         self.mapping = mapping
         self.keys = {}
         self.parse()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def parse(self):
+    def parse(self) -> None:
         key_maps = self.mapping.split(",")
         for key_map in key_maps:
             if not key_map:
@@ -58,19 +58,19 @@ class ControllerMapping:
 class GameControllerDB:
     db_path = os.path.join(RUNTIME_DIR, "gamecontrollerdb/gamecontrollerdb.txt")
 
-    def __init__(self):
+    def __init__(self) -> None:
         if not system.path_exists(self.db_path):
             raise OSError("Path to gamecontrollerdb.txt not provided or invalid")
         self.controllers = {}
         self.parsedb()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "GameControllerDB <%s>" % self.db_path
 
     def __getitem__(self, value):
         return self.controllers[value]
 
-    def parsedb(self):
+    def parsedb(self) -> None:
         with open(self.db_path, "r", encoding="utf-8") as db:
             for line in db.readlines():
                 line = line.strip()

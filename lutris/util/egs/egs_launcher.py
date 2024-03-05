@@ -1,6 +1,7 @@
 """Interact with an exiting EGS install"""
 import json
 import os
+from typing import Generator
 
 from lutris.util.log import logger
 
@@ -11,7 +12,7 @@ class EGSLauncher:
     def __init__(self, prefix_path):
         self.prefix_path = prefix_path
 
-    def iter_manifests(self):
+    def iter_manifests(self) -> Generator:
         manifests_path = os.path.join(self.prefix_path, "drive_c", self.manifests_paths)
         if not os.path.exists(manifests_path):
             logger.warning("No valid path for EGS games manifests in %s", manifests_path)

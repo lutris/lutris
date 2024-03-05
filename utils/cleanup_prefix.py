@@ -2,6 +2,7 @@ import os
 import shutil
 import sys
 from copy import copy
+from typing import List
 
 PROGRAM_FILES_IGNORES = {
     "Common Files": {"Microsoft Shared": "*", "System": "*", "InstallShield": "*"},
@@ -81,7 +82,7 @@ KNOWN_DIRS = [
 ]
 
 
-def delete_known_dirs(prefix_path):
+def delete_known_dirs(prefix_path: str) -> None:
     for known_dir in KNOWN_DIRS:
         full_path = os.path.join(prefix_path, "drive_c", known_dir)
         if not os.path.exists(full_path):
@@ -90,7 +91,7 @@ def delete_known_dirs(prefix_path):
         shutil.rmtree(full_path)
 
 
-def remove_empty_dirs(dirname):
+def remove_empty_dirs(dirname: str) -> List[str]:
     empty_folders = []
     for root, dirs, files in os.walk(dirname, topdown=True):
         if not files and not dirs:
@@ -100,7 +101,7 @@ def remove_empty_dirs(dirname):
     return empty_folders
 
 
-def cleanup_prefix(path):
+def cleanup_prefix(path: str) -> None:
     print("Cleanup prefix", path)
     delete_known_dirs(path)
     empty_folders = True
@@ -108,7 +109,7 @@ def cleanup_prefix(path):
         empty_folders = remove_empty_dirs(path)
 
 
-def is_ignored_path(path_parts):
+def is_ignored_path(path_parts: List[str]) -> bool:
     ignored_dirs = copy(IGNORED_DIRS)
     if len(path_parts) in (0, 1):
         return True
@@ -123,7 +124,7 @@ def is_ignored_path(path_parts):
     return False
 
 
-def get_content_folders(path):
+def get_content_folders(path: str) -> List[str]:
     found_dirs = []
     for root, _dirs, files in os.walk(path, topdown=True):
         # print(root, files, dirs)
@@ -145,7 +146,7 @@ def get_content_folders(path):
     return folders
 
 
-def find_exes_in_path(folder):
+def find_exes_in_path(folder: str) -> List[str]:
     exes = []
     for filename in os.listdir(folder):
         abspath = os.path.join(folder, filename)
@@ -159,7 +160,7 @@ def find_exes_in_path(folder):
     return exes
 
 
-def scan_prefix(path):
+def scan_prefix(path: str) -> None:
     print("Scanning prefix %s", path)
     folders = get_content_folders(path)
     exes = []

@@ -5,6 +5,7 @@ import json
 import time
 from datetime import datetime
 from gettext import gettext as _
+from typing import Dict
 
 import requests
 
@@ -12,7 +13,7 @@ from lutris.util.log import logger
 from lutris.util.ubisoft.consts import CHROME_USERAGENT, CLUB_APPID
 
 
-def parse_date(date_str):
+def parse_date(date_str: str) -> datetime:
     date_example = "2022-01-25T05:44:59.192453"
     return datetime.strptime(date_str[: len(date_example)], "%Y-%m-%dT%H:%M:%S.%f")
 
@@ -39,7 +40,7 @@ class UbisoftConnectClient:
             time.sleep(1.5)
         self._session.close()
 
-    def request(self, method, url, *args, **kwargs):
+    def request(self, method: str, url, *args, **kwargs):
         try:
             return self._session.request(method, url, *args, **kwargs)
         except Exception as ex:
@@ -51,7 +52,7 @@ class UbisoftConnectClient:
     def is_authenticated(self):
         return self.token is not None
 
-    def _do_request(self, method, *args, **kwargs):
+    def _do_request(self, method: str, *args, **kwargs):
         if not kwargs or "headers" not in kwargs:
             logger.info("No headers in kwargs, using session headers")
             kwargs["headers"] = self._session.headers
@@ -67,7 +68,7 @@ class UbisoftConnectClient:
             raise RuntimeError(result["message"])
         return result
 
-    def _do_request_safe(self, method, *args, **kwargs):
+    def _do_request_safe(self, method: str, *args, **kwargs):
         result = {}
         try:
             refresh_needed = False
@@ -175,7 +176,7 @@ class UbisoftConnectClient:
             j["refreshTime"] = round(refresh_time.timestamp())
             self.restore_credentials(j)
 
-    def restore_credentials(self, data):
+    def restore_credentials(self, data: Dict) -> None:
         self.token = data["ticket"]
         self.session_id = data["sessionId"]
         self.user_id = data["userId"]
@@ -187,7 +188,7 @@ class UbisoftConnectClient:
 
         self._session.headers.update({"Authorization": f"Ubi_v1 t={self.token}", "Ubi-SessionId": self.session_id})
 
-    def get_credentials(self):
+    def get_credentials(self) -> Dict:
         creds = {
             "ticket": self.token,
             "sessionId": self.session_id,
@@ -312,7 +313,7 @@ class UbisoftConnectClient:
             return None
         return sub_games
 
-    def activate_game(self, activation_id):
+    def activate_game(self, activation_id: str) -> bool:
         response = self._do_request_safe(
             "post", f"https://api-uplayplusvault.ubi.com/v1/games/activate/{activation_id}"
         )

@@ -1,4 +1,6 @@
 """Steam game library watcher"""
+from typing import List
+
 # Third Party Libraries
 # pylint: disable=too-few-public-methods
 from gi.repository import Gio, GLib
@@ -11,7 +13,7 @@ class SteamWatcher:
 
     """Watches a Steam library folder and notify changes"""
 
-    def __init__(self, steamapps_paths, callback=None):
+    def __init__(self, steamapps_paths: List[str], callback=None) -> None:
         self.monitors = []
         self.callback = callback
         for steam_path in steamapps_paths:
@@ -24,7 +26,7 @@ class SteamWatcher:
             except GLib.Error as ex:
                 logger.exception(ex)
 
-    def _on_directory_changed(self, _monitor, _file, _other_file, event_type):
+    def _on_directory_changed(self, _monitor, _file, _other_file, event_type) -> None:
         path = _file.get_path()
         if not path.endswith(".acf"):
             return

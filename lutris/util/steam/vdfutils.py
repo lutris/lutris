@@ -1,9 +1,11 @@
 """Read and write VDF files"""
+from typing import Dict
+
 # Lutris Modules
 from lutris.util.log import logger
 
 
-def vdf_parse(steam_config_file, config):
+def vdf_parse(steam_config_file, config: Dict) -> Dict:
     """Parse a Steam config file and return the contents as a dict."""
     line = " "
     while line:
@@ -37,7 +39,7 @@ def vdf_parse(steam_config_file, config):
     return config
 
 
-def to_vdf(dict_data, level=0):
+def to_vdf(dict_data: Dict, level: int = 0) -> str:
     """Convert a dictionnary to Steam config file format"""
     vdf_data = ""
     for key in dict_data:
@@ -52,7 +54,7 @@ def to_vdf(dict_data, level=0):
     return vdf_data
 
 
-def vdf_write(vdf_path, config):
+def vdf_write(vdf_path: str, config) -> None:
     """Write a Steam configuration to a vdf file"""
     vdf_data = to_vdf(config)
     with open(vdf_path, "w", encoding="utf-8") as vdf_file:

@@ -3,6 +3,7 @@ import os
 import re
 from collections import OrderedDict
 from datetime import datetime
+from typing import List, Optional, Union
 
 from lutris.util import system
 from lutris.util.log import logger
@@ -39,34 +40,35 @@ class WindowsFileTime:
     ticks_per_seconds = 10000000  # 1 tick every 100 nanoseconds
     epoch_delta = 11644473600  # 3600 * 24 * ((1970 - 1601) * 365 + 89)
 
-    def __init__(self, timestamp=None):
+    # TODO MYPY - this is used as normal float value, but is Optional[float]
+    def __init__(self, timestamp=None) -> None:
         self.timestamp = timestamp
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<{}>: {}".format(self.__class__.__name__, self.timestamp)
 
     @classmethod
-    def from_hex(cls, hexvalue):
+    def from_hex(cls, hexvalue: str) -> "WindowsFileTime":
         timestamp = int(hexvalue, 16)
         return WindowsFileTime(timestamp)
 
-    def to_hex(self):
+    def to_hex(self) -> str:
         return "{:x}".format(self.timestamp)
 
     @classmethod
-    def from_unix_timestamp(cls, timestamp):
+    def from_unix_timestamp(cls, timestamp: float) -> "WindowsFileTime":
         timestamp = timestamp + cls.epoch_delta
         timestamp = int(timestamp * cls.ticks_per_seconds)
         return WindowsFileTime(timestamp)
 
-    def to_unix_timestamp(self):
+    def to_unix_timestamp(self) -> float:
         if not self.timestamp:
             raise ValueError("No timestamp set")
         unix_ts = self.timestamp / self.ticks_per_seconds
         unix_ts = unix_ts - self.epoch_delta
         return unix_ts
 
-    def to_date_time(self):
+    def to_date_time(self) -> datetime:
         return datetime.fromtimestamp(self.to_unix_timestamp())
 
 
@@ -74,7 +76,7 @@ class WineRegistry:
     version_header = "WINE REGISTRY Version "
     relative_to_header = ";; All keys relative to "
 
-    def __init__(self, reg_filename=None):
+    def __init__(self, reg_filename: Optional[str] = None) -> None:
         self.arch = WINE_DEFAULT_ARCH
         self.version = 2
         self.relative_to = "\\\\User\\\\S-1-5-21-0-0-0-1000"
@@ -85,18 +87,18 @@ class WineRegistry:
                 logger.error("No registry file at %s", reg_filename)
             self.parse_reg_file(reg_filename)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Windows Registry @ %s" % self.reg_filename
 
     @property
-    def prefix_path(self):
+    def prefix_path(self) -> Optional[str]:
         """Return the Wine prefix path (where the .reg files are located)"""
         if self.reg_filename:
             return os.path.dirname(self.reg_filename)
         return None
 
     @staticmethod
-    def get_raw_registry(reg_filename):
+    def get_raw_registry(reg_filename: str) -> List[str]:
         """Return an array of the unprocessed contents of a registry file"""
         if not system.path_exists(reg_filename):
             return []
@@ -108,7 +110,7 @@ class WineRegistry:
                 registry_content = []
         return registry_content
 
-    def parse_reg_file(self, reg_filename):
+    def parse_reg_file(self, reg_filename: str) -> None:
         registry_lines = self.get_raw_registry(reg_filename)
         current_key = None
         add_next_to_value = False
@@ -136,7 +138,7 @@ class WineRegistry:
             elif line.startswith("#arch"):
                 self.arch = line.split("=")[1]
 
-    def render(self):
+    def render(self) -> str:
         content = "{}{}\n".format(self.version_header, self.version)
         content += "{}{}\n\n".format(self.relative_to_header, self.relative_to)
         content += "#arch={}\n".format(self.arch)
@@ -145,7 +147,7 @@ class WineRegistry:
             content += self.keys[key].render()
         return content
 
-    def save(self, path=None):
+    def save(self, path: Optional[str] = None) -> None:
         """Write the registry to a file"""
         if not path:
             path = self.reg_filename
@@ -160,27 +162,28 @@ class WineRegistry:
         with open(path, "w", encoding="utf-8") as registry_file:
             registry_file.write(self.render())
 
-    def query(self, path, subkey):
+    # TODO MYPY - this probably should return Union[str, int, None], but is used mostly as str
+    def query(self, path: str, subkey: str):
         key = self.keys.get(path)
         if key:
             return key.get_subkey(subkey)
         return
 
-    def set_value(self, path, subkey, value):
+    def set_value(self, path: str, subkey: str, value: Union[str, int]) -> None:
         key = self.keys.get(path)
         if not key:
             key = WineRegistryKey(path=path)
             self.keys[key.name] = key
         key.set_subkey(subkey, value)
 
-    def clear_key(self, path):
+    def clear_key(self, path: str) -> None:
         """Removes all subkeys from a key"""
         key = self.keys.get(path)
         if not key:
             return
         key.subkeys.clear()
 
-    def clear_subkeys(self, path, keys):
+    def clear_subkeys(self, path: str, keys: List[str]) -> None:
         """Remove some subkeys from a key"""
         key = self.keys.get(path)
         if not key:
@@ -190,13 +193,13 @@ class WineRegistry:
                 continue
             key.subkeys.pop(subkey)
 
-    def get_unix_path(self, windows_path):
+    def get_unix_path(self, windows_path: str) -> Optional[str]:
         windows_path = windows_path.replace("\\", "/")
         if not self.prefix_path:
-            return
+            return None
         drives_path = os.path.join(self.prefix_path, "dosdevices")
         if not system.path_exists(drives_path):
-            return
+            return None
         letter, relpath = windows_path.split(":", 1)
         relpath = relpath.strip("/")
         drive_link = os.path.join(drives_path, letter.lower() + ":")
@@ -204,7 +207,7 @@ class WineRegistry:
             drive_path = os.readlink(drive_link)
         except FileNotFoundError:
             logger.error("Unable to read link for %s", drive_link)
-            return
+            return None
 
         if not os.path.isabs(drive_path):
             drive_path = os.path.join(drives_path, drive_path)
@@ -212,7 +215,8 @@ class WineRegistry:
 
 
 class WineRegistryKey:
-    def __init__(self, key_def=None, path=None):
+    # TODO MYPY - key_def is Optional[str], but is used as str
+    def __init__(self, key_def=None, path: Optional[str] = None) -> None:
         self.subkeys = OrderedDict()
         self.metas = OrderedDict()
 
@@ -237,10 +241,10 @@ class WineRegistryKey:
         else:
             self.timestamp = float("{}.{}".format(ts_parts[0], ts_parts[1]))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{0} {1}".format(self.raw_name, self.raw_timestamp)
 
-    def parse(self, line):
+    def parse(self, line: str) -> None:
         """Parse a registry line, populating meta and subkeys"""
         if len(line) < 4:
             # Line is too short, nothing to parse
@@ -261,7 +265,8 @@ class WineRegistryKey:
             key, value = line.split("=", 1)
             self.subkeys["default"] = value
 
-    def add_to_last(self, line):
+    # TODO MYPY - name suggest that this is str, but is used List[str]
+    def add_to_last(self, line) -> None:
         try:
             last_subkey = next(reversed(self.subkeys))
         except StopIteration:
@@ -269,7 +274,7 @@ class WineRegistryKey:
             return
         self.subkeys[last_subkey] += "\n{}".format(line)
 
-    def render(self):
+    def render(self) -> str:
         """Return the content of the key in the wine .reg format"""
         content = self.raw_name + " " + self.raw_timestamp + "\n"
         for key, value in self.metas.items():
@@ -285,7 +290,7 @@ class WineRegistryKey:
             content += "{}={}\n".format(key, value)
         return content
 
-    def render_value(self, value):
+    def render_value(self, value: Union[str, int]) -> str:
         if isinstance(value, int):
             return "dword:{:08x}".format(value)
         if isinstance(value, str):
@@ -293,7 +298,7 @@ class WineRegistryKey:
         raise NotImplementedError("TODO")
 
     @staticmethod
-    def decode_unicode(string):
+    def decode_unicode(string: str) -> str:
         # There may be a r"\\" in front of r"\x", so replace the r"\\" to r"\x005c"
         # to avoid missing matches. Example: r"C:\\users\\x1234\\\x0041\x0042CD".
         # Note the difference between r"\\x1234", r"\\\x0041" and r"\x0042".
@@ -313,7 +318,7 @@ class WineRegistryKey:
                     pass
         return out
 
-    def add_meta(self, meta_line):
+    def add_meta(self, meta_line: str) -> None:
         if not meta_line.startswith("#"):
             raise ValueError("Key metas should start with '#'")
         meta_line = meta_line[1:]
@@ -328,13 +333,13 @@ class WineRegistryKey:
             raise ValueError("Invalid meta line '{}'".format(meta_line))
         self.metas[key] = value
 
-    def get_meta(self, name):
+    def get_meta(self, name: str) -> Union[str, None]:
         return self.metas.get(name)
 
-    def set_subkey(self, name, value):
+    def set_subkey(self, name: str, value: Union[str, int]) -> None:
         self.subkeys[name] = self.render_value(value)
 
-    def get_subkey(self, name):
+    def get_subkey(self, name: str) -> Union[str, int, None]:
         if name not in self.subkeys:
             return None
         value = self.subkeys[name]

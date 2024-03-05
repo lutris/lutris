@@ -12,5 +12,5 @@ class VKD3DManager(DLLManager):
     managed_dlls = ("d3d12", "d3d12core")
     releases_url = "https://api.github.com/repos/lutris/vkd3d/releases"
 
-    def can_enable(self):
+    def can_enable(self) -> bool:
         return LINUX_SYSTEM.is_vulkan_supported()

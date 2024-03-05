@@ -2,6 +2,7 @@
 import json
 import os
 import time
+from typing import Dict
 
 from lutris import settings
 from lutris.database.games import get_games
@@ -14,7 +15,7 @@ from lutris.util.log import logger
 GAME_PATH_CACHE_PATH = os.path.join(settings.CACHE_DIR, "game-paths.json")
 
 
-def get_game_paths():
+def get_game_paths() -> Dict[int, str]:
     game_paths = {}
     all_games = get_games(filters={"installed": 1})
     for db_game in all_games:
@@ -28,7 +29,7 @@ def get_game_paths():
     return game_paths
 
 
-def build_path_cache(recreate=False):
+def build_path_cache(recreate: bool = False) -> None:
     """Generate a new cache path"""
     if os.path.exists(GAME_PATH_CACHE_PATH) and not recreate:
         return
@@ -41,7 +42,7 @@ def build_path_cache(recreate=False):
     logger.debug("Game path cache built in %0.2f seconds", end_time - start_time)
 
 
-def add_to_path_cache(game):
+def add_to_path_cache(game: Game) -> None:
     """Add or update the path of a game in the cache"""
     logger.debug("Adding %s to path cache", game)
     path = game.get_path_from_config()
@@ -56,13 +57,13 @@ def add_to_path_cache(game):
 
 
 @cache_single
-def get_path_cache():
+def get_path_cache() -> Dict:
     """Return the contents of the path cache file; this
     dict is cached, so do not modify it."""
     return read_path_cache()
 
 
-def read_path_cache():
+def read_path_cache() -> Dict:
     """Read the contents of the path cache file, and does not cache it."""
     with open(GAME_PATH_CACHE_PATH, encoding="utf-8") as cache_file:
         try:
@@ -71,7 +72,7 @@ def read_path_cache():
             return {}
 
 
-def remove_from_path_cache(game):
+def remove_from_path_cache(game: Game) -> None:
     logger.debug("Removing %s from path cache", game)
     current_cache = read_path_cache()
     if game.id not in current_cache:
@@ -88,13 +89,13 @@ class MissingGames:
     are missing. It is updated on a background thread, but there's a NotificationSource ('updated')
     that fires when that thread has made changes and exited, so that the UI cab update then."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.updated = NotificationSource()
         self.missing_game_ids = set()
         self._update_running = None
 
     @property
-    def is_initialized(self):
+    def is_initialized(self) -> bool:
         """True if the missing games have ever been updated."""
         return self._update_running is not None
 
@@ -106,7 +107,7 @@ class MissingGames:
             self._update_running = True
             AsyncCall(self._update_missing_games, self._update_missing_games_cb)
 
-    def _update_missing_games(self):
+    def _update_missing_games(self) -> bool:
         """This is the method that runs on the worker thread; it checks each game given
         and returns True if any changes to missing_game_ids was made."""
 
@@ -126,7 +127,7 @@ class MissingGames:
                     changed = True
         return changed
 
-    def _update_missing_games_cb(self, changed, error):
+    def _update_missing_games_cb(self, changed: bool, error: str) -> None:
         self._update_running = False
 
         if error:

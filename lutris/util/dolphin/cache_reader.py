@@ -1,5 +1,6 @@
 """Reads the Dolphin game database, stored in a binary format"""
 import os
+from typing import Dict, List, Tuple
 
 from lutris.util.log import logger
 
@@ -7,12 +8,14 @@ DOLPHIN_GAME_CACHE_FILE = os.path.expanduser("~/.cache/dolphin-emu/gamelist.cach
 SUPPORTED_CACHE_VERSION = 24
 
 
-def get_hex_string(string):
+# TODO MYPY - string is not string, but also bytes
+def get_hex_string(string) -> str:
     """Return the hexadecimal representation of a string"""
     return " ".join("{:02x}".format(c) for c in string)
 
 
-def get_word_len(string):
+# TODO MYPY - string is not string, but also bytes
+def get_word_len(string) -> int:
     """Return the length of a string as specified in the Dolphin format"""
     return int("0x" + "".join("{:02x}".format(c) for c in string[::-1]), 0)
 
@@ -61,7 +64,7 @@ class DolphinCacheReader:
         "custom_cover": "c",
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.offset = 0
         with open(DOLPHIN_GAME_CACHE_FILE, "rb") as dolphin_cache_file:
             self.cache_content = dolphin_cache_file.read()
@@ -69,7 +72,7 @@ class DolphinCacheReader:
         if cache_version != SUPPORTED_CACHE_VERSION:
             logger.warning("Dolphin cache version expected %s but found %s", SUPPORTED_CACHE_VERSION, cache_version)
 
-    def get_game(self):
+    def get_game(self) -> Dict:
         game = {}
         for key, i in self.structure.items():
             if i == "s":
@@ -86,7 +89,7 @@ class DolphinCacheReader:
                 game[key] = self.get_raw(i)
         return game
 
-    def get_games(self):
+    def get_games(self) -> List:
         self.offset += self.header_size
         games = []
         while self.offset < len(self.cache_content):
@@ -96,12 +99,12 @@ class DolphinCacheReader:
                 logger.error("Failed to read Dolphin database: %s", ex)
         return games
 
-    def get_boolean(self):
+    def get_boolean(self) -> bool:
         res = bool(get_word_len(self.cache_content[self.offset : self.offset + 1]))
         self.offset += 1
         return res
 
-    def get_array(self):
+    def get_array(self) -> Dict:
         array_len = get_word_len(self.cache_content[self.offset : self.offset + 4])
         self.offset += 4
         array = {}
@@ -110,7 +113,7 @@ class DolphinCacheReader:
             array[array_key] = self.get_string()
         return array
 
-    def get_image(self):
+    def get_image(self) -> Tuple[Tuple[int, int], bytes]:
         data_len = get_word_len(self.cache_content[self.offset : self.offset + 4])
         self.offset += 4
         res = self.cache_content[self.offset : self.offset + data_len * 4]  # vector<u32>
@@ -121,17 +124,17 @@ class DolphinCacheReader:
         self.offset += 4
         return (width, height), res
 
-    def get_cover(self):
+    def get_cover(self) -> str:
         array_len = get_word_len(self.cache_content[self.offset : self.offset + 4])
         self.offset += 4
         return self.get_raw(array_len)
 
-    def get_raw(self, word_len):
+    def get_raw(self, word_len) -> str:
         res = get_hex_string(self.cache_content[self.offset : self.offset + word_len])
         self.offset += word_len
         return res
 
-    def get_string(self):
+    def get_string(self) -> str:
         word_len = get_word_len(self.cache_content[self.offset : self.offset + 4])
         self.offset += 4
         string = self.cache_content[self.offset : self.offset + word_len]
