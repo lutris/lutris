@@ -39,3 +39,8 @@
   color: @theme_text_color;
   background-color: @theme_base_color;
 }
+
+.in-app-notification {
+    padding: 5px;
+    border-radius: 0
+}
