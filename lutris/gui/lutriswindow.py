@@ -10,6 +10,7 @@ from urllib.parse import unquote, urlparse
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
 from lutris import services, settings
+from lutris.api import read_user_info
 from lutris.api import LUTRIS_ACCOUNT_CONNECTED
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
@@ -44,7 +45,8 @@ from lutris.util.system import update_desktop_icons
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
+                   DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -62,6 +64,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     viewtype_icon = GtkTemplate.Child()
     download_revealer: Gtk.Revealer = GtkTemplate.Child()
     game_view_spinner: Gtk.Spinner = GtkTemplate.Child()
+    notification_revealer: Gtk.Revealer = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         width = int(settings.read_setting("width") or self.default_width)
@@ -135,6 +138,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.game_revealer.add(self.revealer_box)
 
         self.update_action_state()
+        self.update_notification()
 
         GObject.add_emission_hook(BaseService, "service-login", self.on_service_login)
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
@@ -228,7 +232,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 action.connect("change-state", value.callback)
             self.actions[name] = action
             if value.enabled:
-
                 def updater(action=action, value=value):
                     action.props.enabled = value.enabled()
 
@@ -819,6 +822,15 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         settings.write_setting("filter_installed", bool(filter_installed))
         self.filters["installed"] = filter_installed
 
+    def update_notification(self):
+        logged_in = bool(read_user_info())
+        self.notification_revealer.set_reveal_child(not logged_in)
+
+    @GtkTemplate.Callback
+    def on_lutris_log_in_button_clicked(self, _button):
+        service = LutrisService()
+        service.login(parent=self)
+
     def on_service_games_updated(self, service):
         """Request a view update when service games are loaded"""
         if self.service and service.id == self.service.id:
@@ -844,6 +856,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.move(int(self.window_x), int(self.window_y))
 
     def on_service_login(self, service):
+        self.update_notification()
         service.start_reload(self._service_reloaded_cb)
         return True
 
@@ -852,6 +865,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             dialogs.ErrorDialog(error, parent=self)
 
     def on_service_logout(self, service):
+        self.update_notification()
         if self.service and service.id == self.service.id:
             self.update_store()
         return True
