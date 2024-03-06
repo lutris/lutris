@@ -21,8 +21,8 @@ def get_ulwgl_path():
         return system.find_executable("ulwgl-run")
     path_candidates = (
         os.path.expanduser("~/.local/share"),
-        "/usr/share",
         "/usr/local/share",
+        "/usr/share",
         "/opt",
         settings.RUNTIME_DIR,
     )

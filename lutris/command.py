@@ -175,11 +175,13 @@ class MonitoredCommand:
             self.on_stdout_output,
         )
 
-    def log_filter(self, line):
+    def log_filter(self, line: str) -> bool:
         """Filter out some message we don't want to show to the user."""
         if "GStreamer-WARNING **" in line:
             return False
         if "Bad file descriptor" in line:
+            return False
+        if "'libgamemodeauto.so.0' from LD_PRELOAD" in line:
             return False
         return True
 
