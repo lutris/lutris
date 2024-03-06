@@ -50,26 +50,26 @@ def _iter_proton_locations() -> Generator[str, None, None]:
 def get_proton_paths() -> List[str]:
     """Get the Folder that contains all the Proton versions. Can probably be improved"""
     paths = set()
-    for path in _iter_proton_locations():
-        proton_versions = [p for p in os.listdir(path) if "Proton" in p]
-        for version in proton_versions:
-            if system.path_exists(os.path.join(path, version, "dist/bin/wine")):
-                paths.add(path)
-            if system.path_exists(os.path.join(path, version, "files/bin/wine")):
-                paths.add(path)
+    for proton_path in _iter_proton_locations():
+        for version in [p for p in os.listdir(proton_path) if "Proton" in p]:
+            if system.path_exists(os.path.join(proton_path, version, "dist/bin/wine")):
+                paths.add(proton_path)
+            if system.path_exists(os.path.join(proton_path, version, "files/bin/wine")):
+                paths.add(proton_path)
     return list(paths)
 
 
 def list_proton_versions() -> List[str]:
     """Return the list of Proton versions installed in Steam"""
-    versions = []
+    ulwgl_path = get_ulwgl_path()
+    if not ulwgl_path:
+        return []
+    versions = ["GE-Proton (Latest)"]
     for proton_path in get_proton_paths():
-        proton_versions = [p for p in os.listdir(proton_path) if "Proton" in p]
-        for version in proton_versions:
+        for version in [p for p in os.listdir(proton_path) if "Proton" in p]:
             path = os.path.join(proton_path, version, "dist/bin/wine")
             if os.path.isfile(path):
                 versions.append(version)
-            # Support Proton Experimental
             path = os.path.join(proton_path, version, "files/bin/wine")
             if os.path.isfile(path):
                 versions.append(version)
@@ -78,10 +78,12 @@ def list_proton_versions() -> List[str]:
 
 def get_proton_bin_for_version(version):
     for proton_path in get_proton_paths():
-        if os.path.isfile(os.path.join(proton_path, version, "dist/bin/wine")):
-            return os.path.join(proton_path, version, "dist/bin/wine")
-        if os.path.isfile(os.path.join(proton_path, version, "files/bin/wine")):
-            return os.path.join(proton_path, version, "files/bin/wine")
+        path = os.path.join(proton_path, version, "dist/bin/wine")
+        if os.path.isfile(path):
+            return path
+        path = os.path.join(proton_path, version, "files/bin/wine")
+        if os.path.isfile(path):
+            return path
 
 
 def get_proton_path_from_bin(wine_path):

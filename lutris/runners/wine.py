@@ -1073,12 +1073,11 @@ class wine(Runner):
         env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "gecko")
 
         # We don't want to override gstreamer for proton, it has it's own version
-        if not proton.is_proton_path(WINE_DIR):
-            if is_gstreamer_build(wine_exe):
-                path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
-                path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
-                if os.path.exists(path_64) or os.path.exists(path_32):
-                    env["GST_PLUGIN_SYSTEM_PATH_1_0"] = path_64 + ":" + path_32
+        if not proton.is_proton_path(WINE_DIR) and is_gstreamer_build(wine_exe):
+            path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
+            path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
+            if os.path.exists(path_64) or os.path.exists(path_32):
+                env["GST_PLUGIN_SYSTEM_PATH_1_0"] = path_64 + ":" + path_32
 
         if self.prefix_path:
             env["WINEPREFIX"] = self.prefix_path
@@ -1112,9 +1111,6 @@ class wine(Runner):
         env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
 
         if proton.is_proton_path(wine_config_version):
-            # Move this
-            game = None
-            env["GAMEID"] = proton.get_game_id(game)
             # In stable versions of proton this can be dist/bin insteasd of files/bin
             if "files/bin" in wine_exe:
                 env["PROTONPATH"] = wine_exe[: wine_exe.index("files/bin")]

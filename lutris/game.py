@@ -35,6 +35,7 @@ from lutris.util.process import Process
 from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
 from lutris.util.system import fix_path_case
 from lutris.util.timer import Timer
+from lutris.util.wine import proton
 from lutris.util.yaml import write_yaml_to_file
 
 HEARTBEAT_DELAY = 2000
@@ -675,6 +676,7 @@ class Game(GObject.Object):
             return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
         env["game_name"] = self.name  # What is this used for??
+        env["GAMEID"] = proton.get_game_id(self)
         self.game_runtime_config = {
             "args": command,
             "env": env,
