@@ -21,7 +21,7 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.preferences_dialog import PreferencesDialog
-from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs import ErrorDialog, ClientLoginDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
 from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.download_queue import DownloadQueue
@@ -829,8 +829,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
 
     @GtkTemplate.Callback
     def on_lutris_log_in_button_clicked(self, _button):
-        service = LutrisService()
-        service.login(parent=self)
+        ClientLoginDialog(parent=self)
 
     def on_service_games_updated(self, service):
         """Request a view update when service games are loaded"""
