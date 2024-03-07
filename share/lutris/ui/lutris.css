@@ -44,3 +44,7 @@
     padding: 5px;
     border-radius: 0
 }
+
+.in-app-notification label link {
+    color: unset;
+}
