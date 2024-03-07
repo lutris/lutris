@@ -501,7 +501,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         switch_label = Gtk.Label(_("Advanced"), no_show_all=True, visible=True)
         switch = Gtk.Switch(no_show_all=True, visible=True, valign=Gtk.Align.CENTER)
         switch.set_state(settings.read_setting("show_advanced_options") == "True")
-        switch.connect("state_set", lambda _w, s: self.on_show_advanced_options_toggled(bool(s)))
+        switch.connect("state-set", lambda _w, s: self.on_show_advanced_options_toggled(bool(s)))
 
         switch_box.pack_start(switch_label, False, False, 0)
         switch_box.pack_end(switch, False, False, 0)

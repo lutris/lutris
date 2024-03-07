@@ -105,15 +105,17 @@ class AccountsBox(BaseConfigBox):
 
     def get_lutris_options(self):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
-
         box.add(self.get_user_box())
 
-        checkbutton = Gtk.CheckButton.new_with_label(_("Keep your game library synced with Lutris.net"))
-        checkbutton.set_active(settings.read_bool_setting("library_sync_enabled"))
-        checkbutton.connect("toggled", self.on_sync_toggled)
-        checkbutton.show()
-        self.space_widget(checkbutton, bottom=0)
-        box.add(checkbutton)
+        sync_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, visible=True)
+        sync_label = Gtk.Label(_("Keep your game library synced with Lutris.net"), visible=True)
+        sync_switch = Gtk.Switch(visible=True)
+        sync_switch.set_active(settings.read_bool_setting("library_sync_enabled"))
+        sync_switch.connect("state-set", self.on_sync_state_set)
+        sync_box.pack_start(sync_label, False, False, 0)
+        sync_box.pack_end(sync_switch, False, False, 0)
+        self.space_widget(sync_box, bottom=0)
+        box.add(sync_box)
 
         label = Gtk.Label(visible=True)
         label.set_alignment(0, 0.5)
@@ -190,7 +192,7 @@ class AccountsBox(BaseConfigBox):
         """Handler for switching the active Steam account."""
         settings.write_setting(STEAM_ACCOUNT_SETTING, steamid64)
 
-    def on_sync_toggled(self, checkbutton):
+    def on_sync_state_set(self, switch, state):
         if not settings.read_setting("last_library_sync_at"):
             sync_warn_dialog = QuestionDialog(
                 {
@@ -200,8 +202,8 @@ class AccountsBox(BaseConfigBox):
             )
             if sync_warn_dialog.result == Gtk.ResponseType.YES:
                 AsyncCall(sync_local_library, None)
-                settings.write_setting("library_sync_enabled", checkbutton.get_active())
+                settings.write_setting("library_sync_enabled", state)
         else:
-            settings.write_setting("library_sync_enabled", checkbutton.get_active())
+            settings.write_setting("library_sync_enabled", state)
 
-        self.sync_frame.set_visible(checkbutton.get_active())
+        self.sync_frame.set_visible(state)
