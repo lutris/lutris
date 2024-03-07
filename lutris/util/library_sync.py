@@ -54,6 +54,9 @@ def sync_local_library(force: bool = False) -> None:
     local_library = get_local_library()
     local_library_updates = get_local_library(since=since)
     credentials = read_api_key()
+    if not credentials:
+        return
+
     url = LIBRARY_URL
     if since:
         url += "?since=%s" % since

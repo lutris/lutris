@@ -237,10 +237,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             if value.accel:
                 app.add_accelerator(value.accel, "win." + name)
 
-    def sync_library(self):
+    def sync_library(self, force=False):
         """Tasks that can be run after the UI has been initialized."""
         if settings.read_setting("library_sync_enabled"):
-            AsyncCall(sync_local_library, None)
+            AsyncCall(sync_local_library, None, force=force)
 
     def update_action_state(self):
         """This invokes the functions to update the enabled states of all the actions
@@ -844,8 +844,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         return True
 
     def on_lutris_account_connected(self):
-        if settings.read_bool_setting("library_sync_enabled"):
-            AsyncCall(sync_local_library, None, force=True)
+        self.sync_library(force=True)
 
     def on_local_library_updated(self):
         self.redraw_view()
