@@ -20,6 +20,7 @@ from lutris.installer.interpreter import ScriptInterpreter
 from lutris.runners import InvalidRunnerError
 from lutris.services import SERVICES
 from lutris.services.base import AuthTokenExpiredError, BaseService
+from lutris.util.library_sync import LOCAL_LIBRARY_SYNCED, LOCAL_LIBRARY_SYNCING
 
 TYPE = 0
 SLUG = 1
@@ -327,6 +328,7 @@ class LutrisSidebar(Gtk.ListBox):
 
         self.category_rows = {}
         # A dummy objects that allows inspecting why/when we have a show() call on the object.
+        self.games_row = DummyRow()
         self.running_row = DummyRow()
         self.hidden_row = DummyRow()
         self.missing_row = DummyRow()
@@ -349,6 +351,8 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_auth_changed)
         GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
+        LOCAL_LIBRARY_SYNCING.register(self.on_local_library_syncing)
+        LOCAL_LIBRARY_SYNCED.register(self.on_local_library_synced)
         self.set_filter_func(self._filter_func)
         self.set_header_func(self._header_func)
         self.show_all()
@@ -375,14 +379,13 @@ class LutrisSidebar(Gtk.ListBox):
 
         # Create the basic rows that are not data dependant
 
-        self.add(
-            SidebarRow(
-                "all",
-                "category",
-                _("Games"),
-                Gtk.Image.new_from_icon_name("applications-games-symbolic", Gtk.IconSize.MENU),
-            )
+        self.games_row = SidebarRow(
+            "all",
+            "category",
+            _("Games"),
+            Gtk.Image.new_from_icon_name("applications-games-symbolic", Gtk.IconSize.MENU),
         )
+        self.add(self.games_row)
 
         self.add(
             SidebarRow(
@@ -621,3 +624,11 @@ class LutrisSidebar(Gtk.ListBox):
             self.service_rows[service.id].is_updating = False
             self.service_rows[service.id].update_buttons()
         return True
+
+    def on_local_library_syncing(self):
+        self.games_row.is_updating = True
+        self.games_row.update_buttons()
+
+    def on_local_library_synced(self):
+        self.games_row.is_updating = False
+        self.games_row.update_buttons()
