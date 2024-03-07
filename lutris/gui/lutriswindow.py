@@ -11,7 +11,7 @@ from urllib.parse import unquote, urlparse
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
 from lutris import services, settings
-from lutris.api import read_user_info
+from lutris.api import read_user_info, LUTRIS_ACCOUNT_DISCONNECTED
 from lutris.api import LUTRIS_ACCOUNT_CONNECTED
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
@@ -151,6 +151,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
         GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
         MISSING_GAMES.updated.register(self.update_missing_games_sidebar_row)
         LUTRIS_ACCOUNT_CONNECTED.register(self.on_lutris_account_connected)
+        LUTRIS_ACCOUNT_DISCONNECTED.register(self.on_lutris_account_disconnected)
         LOCAL_LIBRARY_UPDATED.register(self.on_local_library_updated)
 
         # Finally trigger the initialization of the view here
@@ -872,7 +873,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
         return True
 
     def on_lutris_account_connected(self):
+        self.update_notification()
         self.sync_library(force=True)
+
+    def on_lutris_account_disconnected(self):
+        self.update_notification()
 
     def on_local_library_updated(self):
         self.redraw_view()
