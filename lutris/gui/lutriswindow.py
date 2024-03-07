@@ -45,8 +45,7 @@ from lutris.util.system import update_desktop_icons
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
-                   DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -233,6 +232,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
                 action.connect("change-state", value.callback)
             self.actions[name] = action
             if value.enabled:
+
                 def updater(action=action, value=value):
                     action.props.enabled = value.enabled()
 
@@ -568,6 +568,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
             else:
                 self.show_label(_("No games found"))
 
+        self.update_notification()
+
     def update_store(self, *_args, **_kwargs):
         service_id = self.filters.get("service")
         service = self.service
@@ -677,7 +679,15 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
         splash_box = Gtk.HBox(visible=True, margin_top=24)
         splash_box.pack_start(side_splash, False, False, 12)
         splash_box.set_center_widget(center_splash)
+        splash_box.is_splash = True
         self.show_overlay(splash_box, Gtk.Align.FILL, Gtk.Align.FILL)
+
+    def is_showing_splash(self):
+        if self.blank_overlay.get_visible():
+            for ch in self.blank_overlay.get_children():
+                if hasattr(ch, "is_splash"):
+                    return True
+        return False
 
     def show_spinner(self):
         # This is inconsistent, but we can't use the blank overlay for the spinner- it
@@ -824,8 +834,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
         self.filters["installed"] = filter_installed
 
     def update_notification(self):
-        logged_in = bool(read_user_info())
-        self.notification_revealer.set_reveal_child(not logged_in)
+        show_notification = not read_user_info() and self.is_showing_splash()
+        self.notification_revealer.set_reveal_child(show_notification)
 
     @GtkTemplate.Callback
     def on_lutris_log_in_button_clicked(self, _button):
