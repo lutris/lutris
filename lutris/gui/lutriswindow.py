@@ -239,7 +239,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def sync_library(self, force=False):
         """Tasks that can be run after the UI has been initialized."""
-        if settings.read_setting("library_sync_enabled"):
+        if settings.read_bool_setting("library_sync_enabled"):
             AsyncCall(sync_local_library, None, force=force)
 
     def update_action_state(self):
