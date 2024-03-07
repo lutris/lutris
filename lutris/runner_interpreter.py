@@ -88,18 +88,24 @@ def get_launch_parameters(runner, gameplay_info):
     has_gamescope = system_config.get("gamescope") and system.can_find_executable("gamescope")
     if has_gamescope:
         launch_arguments = get_gamescope_args(launch_arguments, system_config)
+        if system_config.get("gamescope_hdr"):
+            env["ENABLE_HDR_WSI"] = "1"
 
     return launch_arguments, env
 
 
 def get_gamescope_args(launch_arguments, system_config):
     """Insert gamescope at the start of the launch arguments"""
+    if system_config.get("gamescope_hdr"):
+        launch_arguments.insert(0, "DISABLE_HDR_WSI=1")
+        launch_arguments.insert(0, "DXVK_HDR=1")
+        launch_arguments.insert(0, "ENABLE_GAMESCOPE_WSI=1")
+        launch_arguments.insert(0, "env")
     launch_arguments.insert(0, "--")
     if system_config.get("gamescope_force_grab_cursor"):
         launch_arguments.insert(0, "--force-grab-cursor")
     if system_config.get("gamescope_fsr_sharpness"):
-        gamescope_fsr_sharpness = system_config["gamescope_fsr_sharpness"]
-        launch_arguments.insert(0, gamescope_fsr_sharpness)
+        launch_arguments.insert(0, system_config["gamescope_fsr_sharpness"])
         launch_arguments.insert(0, "--fsr-sharpness")
         launch_arguments[0:0] = _get_gamescope_fsr_option()
     if system_config.get("gamescope_flags"):
@@ -128,6 +134,9 @@ def get_gamescope_args(launch_arguments, system_config):
         gpu = GPUS[system_config["gpu"]]
         launch_arguments.insert(0, gpu.pci_id)
         launch_arguments.insert(0, "--prefer-vk-device")
+    if system_config.get("gamescope_hdr"):
+        launch_arguments.insert(0, "--hdr-debug-force-output")
+        launch_arguments.insert(0, "--hdr-enabled")
     launch_arguments.insert(0, "gamescope")
     return launch_arguments
 

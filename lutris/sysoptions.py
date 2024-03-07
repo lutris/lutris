@@ -211,6 +211,16 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "section": _("Gamescope"),
+        "option": "gamescope_hdr",
+        "type": "bool",
+        "label": _("Enable HDR (Experimental)"),
+        "advanced": True,
+        "default": False,
+        "condition": bool(system.can_find_executable("gamescope")),
+        "help": _("Enable HDR for games that support it.\bn" "Requires Plasma 6 and VK_hdr_layer."),
+    },
+    {
+        "section": _("Gamescope"),
         "option": "gamescope_force_grab_cursor",
         "type": "bool",
         "label": _("Relative Mouse Mode"),
