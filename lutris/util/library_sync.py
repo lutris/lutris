@@ -45,8 +45,19 @@ LOCAL_LIBRARY_SYNCING = NotificationSource()
 LOCAL_LIBRARY_SYNCED = NotificationSource()
 LOCAL_LIBRARY_UPDATED = NotificationSource()
 
+_is_local_library_syncing = False
+
+
+def get_is_local_library_syncing() -> bool:
+    return _is_local_library_syncing
+
 
 def sync_local_library(force: bool = False) -> None:
+    global _is_local_library_syncing
+
+    if _is_local_library_syncing:
+        return
+
     if not force and settings.read_setting("last_library_sync_at"):
         since = int(settings.read_setting("last_library_sync_at"))
     else:
@@ -64,6 +75,7 @@ def sync_local_library(force: bool = False) -> None:
     LOCAL_LIBRARY_SYNCING.fire()
     any_local_changes = False
     try:
+        _is_local_library_syncing = True
         request = http.Request(
             url,
             headers={
@@ -145,6 +157,7 @@ def sync_local_library(force: bool = False) -> None:
                 )
         settings.write_setting("last_library_sync_at", int(time.time()))
     finally:
+        _is_local_library_syncing = False
         LOCAL_LIBRARY_SYNCED.fire()
         if any_local_changes:
             LOCAL_LIBRARY_UPDATED.fire()

@@ -5,10 +5,17 @@ from gi.repository import Gtk
 from lutris import settings
 from lutris.api import disconnect, read_user_info
 from lutris.gui.config.base_config_box import BaseConfigBox
+from lutris.gui.config.updates_box import UpdateButtonBox
 from lutris.gui.dialogs import ClientLoginDialog, QuestionDialog
 from lutris.util.jobs import AsyncCall
-from lutris.util.library_sync import sync_local_library
+from lutris.util.library_sync import (
+    LOCAL_LIBRARY_SYNCED,
+    LOCAL_LIBRARY_SYNCING,
+    get_is_local_library_syncing,
+    sync_local_library,
+)
 from lutris.util.steam.config import STEAM_ACCOUNT_SETTING, get_steam_users
+from lutris.util.strings import time_ago
 
 
 class AccountsBox(BaseConfigBox):
@@ -24,6 +31,19 @@ class AccountsBox(BaseConfigBox):
         self.bullshit_box.add(self.lutris_options)
         frame.add(self.bullshit_box)
 
+        self.library_syncing_source_id = None
+        self.library_synced_source_id = None
+
+        self.sync_box = UpdateButtonBox(self.get_sync_box_label(), _("Sync Again"), clicked=self.on_sync_again_clicked)
+
+        self.connect("realize", self.on_realize)
+        self.connect("unrealize", self.on_unrealize)
+
+        self.sync_frame = self._get_framed_options_list_box([self.sync_box])
+        self.sync_frame.set_visible(settings.read_bool_setting("library_sync_enabled"))
+
+        self.pack_start(self.sync_frame, False, False, 0)
+
         self.add(self.get_section_label(_("Steam accounts")))
         self.add(
             self.get_description_label(
@@ -36,6 +56,19 @@ class AccountsBox(BaseConfigBox):
 
         self.accounts_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
         self.frame.add(self.accounts_box)
+
+    def on_realize(self, _widget):
+        self.library_syncing_source_id = LOCAL_LIBRARY_SYNCING.register(self.on_local_library_syncing)
+        self.library_synced_source_id = LOCAL_LIBRARY_SYNCED.register(self.on_local_library_synced)
+
+        if get_is_local_library_syncing():
+            self.on_local_library_syncing()
+
+    def on_unrealize(self, _widget):
+        # The destroy signal never fires for this sub-widget, so we use
+        # realize/unrealize for this instead.
+        LOCAL_LIBRARY_SYNCING.unregister(self.library_syncing_source_id)
+        LOCAL_LIBRARY_SYNCED.unregister(self.library_synced_source_id)
 
     def space_widget(self, widget, top=16, bottom=16):
         widget.set_margin_top(top)
@@ -137,6 +170,22 @@ class AccountsBox(BaseConfigBox):
     def on_connect_response(self, _dialog, bliblu):
         self.rebuild_lutris_options()
 
+    def on_sync_again_clicked(self, _button):
+        AsyncCall(sync_local_library, None, force=True)
+
+    def on_local_library_syncing(self):
+        self.sync_box.show_running_markup(_("<i>Syncing library...</i>"))
+
+    def on_local_library_synced(self):
+        self.sync_box.show_completion_markup(self.get_sync_box_label(), "")
+
+    def get_sync_box_label(self):
+        synced_at = settings.read_setting("last_library_sync_at")
+        if synced_at:
+            return _("<i>Last synced %s.</i>") % time_ago(int(synced_at))
+
+        return ""
+
     def on_steam_account_toggled(self, radio_button, steamid64):
         """Handler for switching the active Steam account."""
         settings.write_setting(STEAM_ACCOUNT_SETTING, steamid64)
@@ -154,3 +203,5 @@ class AccountsBox(BaseConfigBox):
                 settings.write_setting("library_sync_enabled", checkbutton.get_active())
         else:
             settings.write_setting("library_sync_enabled", checkbutton.get_active())
+
+        self.sync_frame.set_visible(checkbutton.get_active())

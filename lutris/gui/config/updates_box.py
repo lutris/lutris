@@ -85,7 +85,7 @@ class UpdatesBox(BaseConfigBox):
                 wine_version_info["version"],
                 get_runtime_versions_date_time_ago(),
             )
-            update_button_text = _("Check again")
+            update_button_text = _("Check Again")
         elif not system.path_exists(os.path.join(settings.RUNNER_DIR, "wine")):
             update_label_text = (
                 _("You don't have any Wine version installed.\n" "We recommend <b>%s</b>")
