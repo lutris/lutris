@@ -131,7 +131,7 @@ class AccountsBox(BaseConfigBox):
         self.rebuild_lutris_options()
 
     def on_login_clicked(self, _widget):
-        login_dialog = ClientLoginDialog(parent=None)
+        login_dialog = ClientLoginDialog(parent=self.get_toplevel())
         login_dialog.connect("connected", self.on_connect_response)
 
     def on_connect_response(self, _dialog, bliblu):

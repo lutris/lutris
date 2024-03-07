@@ -14,6 +14,7 @@ from typing import Any, Dict, Optional, Tuple
 import requests
 
 from lutris import settings
+from lutris.gui.widgets import NotificationSource
 from lutris.util import cache_single, http, system
 from lutris.util.graphics.gpu import get_gpus_info
 from lutris.util.http import HTTPError, Request
@@ -95,6 +96,10 @@ def read_api_key():
     return {"token": token, "username": username}
 
 
+LUTRIS_ACCOUNT_CONNECTED = NotificationSource()
+LUTRIS_ACCOUNT_DISCONNECTED = NotificationSource()
+
+
 def connect(username, password):
     """Connect to the Lutris API"""
     login_url = settings.SITE_URL + "/api/accounts/token"
@@ -114,6 +119,7 @@ def connect(username, password):
             else:
                 with open(USER_INFO_FILE_PATH, "w", encoding="utf-8") as token_file:
                     json.dump(account_info, token_file, indent=2)
+            LUTRIS_ACCOUNT_CONNECTED.fire()
             return token
     except (
         requests.RequestException,
@@ -131,6 +137,7 @@ def disconnect():
     for file_path in [API_KEY_FILE_PATH, USER_INFO_FILE_PATH]:
         if system.path_exists(file_path):
             os.remove(file_path)
+    LUTRIS_ACCOUNT_DISCONNECTED.fire()
 
 
 def fetch_user_info():

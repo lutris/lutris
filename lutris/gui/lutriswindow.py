@@ -10,6 +10,7 @@ from urllib.parse import unquote, urlparse
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
 from lutris import services, settings
+from lutris.api import LUTRIS_ACCOUNT_CONNECTED
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
@@ -35,7 +36,7 @@ from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
-from lutris.util.library_sync import sync_local_library
+from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, sync_local_library
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
 from lutris.util.strings import get_natural_sort_key
@@ -144,6 +145,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         GObject.add_emission_hook(Game, "game-unhandled-error", self.on_game_unhandled_error)
         GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
         MISSING_GAMES.updated.register(self.update_missing_games_sidebar_row)
+        LUTRIS_ACCOUNT_CONNECTED.register(self.on_lutris_account_connected)
+        LOCAL_LIBRARY_UPDATED.register(self.on_local_library_updated)
 
         # Finally trigger the initialization of the view here
         selected_category = settings.read_setting("selected_category", default="runner:all")
@@ -839,6 +842,13 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         if self.service and service.id == self.service.id:
             self.update_store()
         return True
+
+    def on_lutris_account_connected(self):
+        if settings.read_bool_setting("library_sync_enabled"):
+            AsyncCall(sync_local_library, None, force=True)
+
+    def on_local_library_updated(self):
+        self.redraw_view()
 
     @GtkTemplate.Callback
     def on_resize(self, widget, *_args):
