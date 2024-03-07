@@ -225,6 +225,7 @@ class SingleGameActions(GameActions):
             ("install_more", _("Install another version"), self.on_install_clicked),
             ("install_dlcs", "Install DLCs", self.on_install_dlc_clicked),
             ("update", _("Install updates"), self.on_update_clicked),
+            ("add", _("Locate installed game"), self.on_locate_installed_game),
             ("desktop-shortcut", _("Create desktop shortcut"), self.on_create_desktop_shortcut),
             ("rm-desktop-shortcut", _("Delete desktop shortcut"), self.on_remove_desktop_shortcut),
             ("menu-shortcut", _("Create application menu shortcut"), self.on_create_menu_shortcut),
@@ -251,6 +252,7 @@ class SingleGameActions(GameActions):
         return {
             "duplicate": game.is_installed,
             "install": self.is_installable,
+            "add": not game.is_installed,
             "play": self.is_game_launchable,
             "update": game.is_updatable,
             "install_dlcs": game.is_updatable,
