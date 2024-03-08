@@ -138,7 +138,7 @@ class Downloader:
             response.raise_for_status()
             self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
             self.progress_event.set()
-            for chunk in response.iter_content(chunk_size=1024):
+            for chunk in response.iter_content(chunk_size=8192):
                 if not self.file_pointer:
                     break
                 if chunk:
