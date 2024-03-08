@@ -123,9 +123,9 @@
                         <child>
                           <object class="GtkButton" id="lutris_log_in_button">
                             <property name="label" translatable="yes">Log In</property>
-                            <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">True</property>
+                            <property name="no-show-all">True</property>
                             <signal name="clicked" handler="on_lutris_log_in_button_clicked" swapped="no"/>
                           </object>
                           <packing>
@@ -133,6 +133,21 @@
                             <property name="fill">True</property>
                             <property name="pack-type">end</property>
                             <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="turn_on_library_sync_button">
+                            <property name="label" translatable="yes">Turn on Library Sync</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="no-show-all">True</property>
+                            <signal name="clicked" handler="on_turn_on_library_sync_button_clicked" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="pack-type">end</property>
+                            <property name="position">2</property>
                           </packing>
                         </child>
                         <style>
