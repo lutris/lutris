@@ -1115,7 +1115,10 @@ class wine(Runner):
             if "files/bin" in wine_exe:
                 env["PROTONPATH"] = wine_exe[: wine_exe.index("files/bin")]
             else:
-                env["PROTONPATH"] = wine_exe[: wine_exe.index("dist/bin")]  # Wrong, proton path should be optional
+                try:
+                    env["PROTONPATH"] = wine_exe[: wine_exe.index("dist/bin")]
+                except ValueError:
+                    logger.info("Not setting PROTONPATH for %s", wine_exe)
         return env
 
     def get_runtime_env(self):
