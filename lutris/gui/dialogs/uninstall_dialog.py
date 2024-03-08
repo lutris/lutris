@@ -352,7 +352,7 @@ class GameRemovalRow(Gtk.ListBoxRow):
 
         self.remove_from_library_checkbox = Gtk.CheckButton(_("Remove from Library"), halign=Gtk.Align.START)
         self.remove_from_library_checkbox.set_sensitive(game.is_installed)
-        self.remove_from_library_checkbox.set_active(True)
+        self.remove_from_library_checkbox.set_active(not settings.read_bool_setting("library_sync_enabled"))
         self.remove_from_library_checkbox.connect("toggled", self.on_checkbox_toggled)
         hbox.pack_end(self.remove_from_library_checkbox, False, False, 0)
 
@@ -435,7 +435,7 @@ class GameRemovalRow(Gtk.ListBoxRow):
 
     @property
     def remove_from_library(self) -> bool:
-        """True if the game should be rmoved from the database."""
+        """True if the game should be removed from the database."""
         if not self.game.is_installed:
             return True
         return bool(self.remove_from_library_checkbox.get_active())
