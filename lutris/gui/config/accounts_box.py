@@ -202,8 +202,8 @@ class AccountsBox(BaseConfigBox):
             )
             if sync_warn_dialog.result == Gtk.ResponseType.YES:
                 AsyncCall(sync_local_library, None)
-                settings.write_setting("library_sync_enabled", state)
-        else:
-            settings.write_setting("library_sync_enabled", state)
+            else:
+                return
 
+        self.on_setting_change(switch, state, "library_sync_enabled")
         self.sync_frame.set_visible(state)
