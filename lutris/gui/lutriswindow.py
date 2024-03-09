@@ -64,8 +64,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     download_revealer: Gtk.Revealer = GtkTemplate.Child()
     game_view_spinner: Gtk.Spinner = GtkTemplate.Child()
     notification_revealer: Gtk.Revealer = GtkTemplate.Child()
-    lutris_log_in_button: Gtk.Button = GtkTemplate.Child()
-    turn_on_library_sync_button: Gtk.Button = GtkTemplate.Child()
+    lutris_log_in_label: Gtk.Label = GtkTemplate.Child()
+    turn_on_library_sync_label: Gtk.Label = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         width = int(settings.read_setting("width") or self.default_width)
@@ -839,22 +839,22 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         show_notification = self.is_showing_splash()
         if show_notification:
             if not read_user_info():
-                self.lutris_log_in_button.show()
-                self.turn_on_library_sync_button.hide()
+                self.lutris_log_in_label.show()
+                self.turn_on_library_sync_label.hide()
             elif not settings.read_bool_setting("library_sync_enabled"):
-                self.lutris_log_in_button.hide()
-                self.turn_on_library_sync_button.show()
+                self.lutris_log_in_label.hide()
+                self.turn_on_library_sync_label.show()
             else:
                 show_notification = False
 
         self.notification_revealer.set_reveal_child(show_notification)
 
     @GtkTemplate.Callback
-    def on_lutris_log_in_button_clicked(self, _button):
+    def on_lutris_log_in_label_activate_link(self, _label, _url):
         ClientLoginDialog(parent=self)
 
     @GtkTemplate.Callback
-    def on_turn_on_library_sync_button_clicked(self, _button):
+    def on_turn_on_library_sync_label_activate_link(self, _label, _url):
         settings.write_setting("library_sync_enabled", True)
         self.sync_library(force=True)
         self.update_notification()
