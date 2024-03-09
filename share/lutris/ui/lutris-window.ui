@@ -111,7 +111,7 @@
                           <object class="GtkLabel" id="notification_label">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">Log in to &lt;a href="https://lutris.net/"&gt;Lutris.net&lt;/a&gt; to view your game library</property>
+                            <property name="label" translatable="yes">Login to &lt;a href="https://lutris.net/"&gt;Lutris.net&lt;/a&gt; to view your game library</property>
                             <property name="use-markup">True</property>
                           </object>
                           <packing>
@@ -124,7 +124,7 @@
                           <object class="GtkLabel" id="lutris_log_in_label">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">&lt;a href=""&gt;Log In&lt;/a&gt;</property>
+                            <property name="label" translatable="yes">&lt;a href=""&gt;Login&lt;/a&gt;</property>
                             <property name="use-markup">True</property>
                             <signal name="activate-link" handler="on_lutris_log_in_label_activate_link" swapped="no"/>
                           </object>
