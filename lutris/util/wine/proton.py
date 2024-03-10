@@ -1,11 +1,15 @@
 """Utility module to deal with Proton and ULWGL"""
 import json
 import os
+from gettext import gettext as _
 from typing import Generator, List
 
 from lutris import settings
 from lutris.util import system
 from lutris.util.steam.config import get_steamapps_dirs
+
+GE_PROTON_LATEST = _("GE-Proton (Latest)")
+
 
 
 def is_proton_path(wine_path):
@@ -65,7 +69,7 @@ def list_proton_versions() -> List[str]:
     ulwgl_path = get_ulwgl_path()
     if not ulwgl_path:
         return []
-    versions = ["GE-Proton (Latest)"]
+    versions = [GE_PROTON_LATEST]
     for proton_path in get_proton_paths():
         for version in [p for p in os.listdir(proton_path) if "Proton" in p]:
             path = os.path.join(proton_path, version, "dist/bin/wine")
@@ -93,7 +97,7 @@ def get_proton_path_from_bin(wine_path):
 
 
 def get_game_id(game):
-    default_id = "ULWGL-default"
+    default_id = "ulwgl-default"
     games_path = os.path.join(settings.RUNTIME_DIR, "ulwgl-games/ulwgl-games.json")
     if not os.path.exists(games_path):
         return default_id
