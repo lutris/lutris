@@ -1,5 +1,6 @@
 """Utility module to deal with Proton and ULWGL"""
 import os
+import json
 from typing import Generator, List
 
 from lutris import settings
@@ -92,4 +93,20 @@ def get_proton_path_from_bin(wine_path):
 
 
 def get_game_id(game):
-    return "ULWGL-foo"
+    default_id = "ULWGL-default"
+    games_path = os.path.join(settings.RUNTIME_DIR, "ulwgl-games/ulwgl-games.json")
+    if not os.path.exists(games_path):
+        return default_id
+    with open(games_path, "r", encoding="utf-8") as games_file:
+        ulwgl_games = json.load(games_file)
+    for ulwgl_game in ulwgl_games:
+        if (
+            ulwgl_game["store"]
+            and (
+                ulwgl_game["store"] == game.service
+                or (ulwgl_game["store"] == "humble" and game.service == "humblebundle")
+            )
+            and ulwgl_game["appid"] == game.appid
+        ):
+            return ulwgl_game["ulwgl_id"].upper()
+    return default_id
