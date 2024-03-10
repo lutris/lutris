@@ -677,6 +677,7 @@ class Game(GObject.Object):
         command, env = get_launch_parameters(self.runner, gameplay_info)
         env["game_name"] = self.name  # What is this used for??
         env["GAMEID"] = proton.get_game_id(self)
+        env["STORE"] = self.service if self.service != "humblebundle" else "humble"
         self.game_runtime_config = {
             "args": command,
             "env": env,

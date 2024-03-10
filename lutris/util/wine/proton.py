@@ -1,6 +1,6 @@
 """Utility module to deal with Proton and ULWGL"""
-import os
 import json
+import os
 from typing import Generator, List
 
 from lutris import settings
@@ -108,5 +108,5 @@ def get_game_id(game):
             )
             and ulwgl_game["appid"] == game.appid
         ):
-            return ulwgl_game["ulwgl_id"].upper()
+            return ulwgl_game["ulwgl_id"]
     return default_id
