@@ -289,6 +289,7 @@ def time_ago(timestamp: float) -> str:
     hours = 0
     if time_delta >= 2 * day_in_seconds:
         days = int(time_delta // day_in_seconds)
+        time_delta = time_delta - days * day_in_seconds
         parts.append(_("%d days") % days)
     if time_delta > 2 * hour_in_seconds:
         hours = int(time_delta // hour_in_seconds)
