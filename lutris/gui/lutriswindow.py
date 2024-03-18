@@ -39,7 +39,7 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, sync_local_library
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
-from lutris.util.strings import get_natural_sort_key
+from lutris.util.strings import get_natural_sort_key, strip_accents
 from lutris.util.system import update_desktop_icons
 
 
@@ -407,17 +407,20 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def get_recent_games(self):
         """Return a list of currently running games"""
-        searches, _filters, excludes = self.get_sql_filters()
-        games = games_db.get_games(searches=searches, filters={"installed": "1"}, excludes=excludes)
+        games = games_db.get_games(filters={"installed": "1"})
+        games = [game for game in games if self.game_matches(game)]
         return sorted(games, key=lambda game: max(game["installed_at"] or 0, game["lastplayed"] or 0), reverse=True)
 
     def game_matches(self, game):
         if self.filters.get("installed"):
             if game["appid"] not in games_db.get_service_games(self.service.id):
                 return False
-        if not self.filters.get("text"):
+        text = self.filters.get("text")
+        if not text:
             return True
-        return self.filters["text"] in game["name"].lower()
+        text = strip_accents(text).casefold()
+        name = strip_accents(game["name"]).casefold()
+        return text in name
 
     def set_service(self, service_name):
         if self.service and self.service.id == service_name:
@@ -469,26 +472,24 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         excluded = [".hidden"] if category != ".hidden" else []
         category_game_ids = categories_db.get_game_ids_for_categories(included, excluded)
 
-        searches, filters, excludes = self.get_sql_filters()
-        games = games_db.get_games(searches=searches, filters=filters, excludes=excludes)
-        games = [game for game in games if game["id"] in category_game_ids]
+        filters = self.get_sql_filters()
+        games = games_db.get_games(filters=filters)
+        games = [game for game in games if game["id"] in category_game_ids and self.game_matches(game)]
         return self.apply_view_sort(games)
 
     def get_sql_filters(self):
         """Return the current filters for the view"""
         sql_filters = {}
-        sql_excludes = {}
         if self.filters.get("runner"):
             sql_filters["runner"] = self.filters["runner"]
         if self.filters.get("platform"):
             sql_filters["platform"] = self.filters["platform"]
         if self.filters.get("installed"):
             sql_filters["installed"] = "1"
-        if self.filters.get("text"):
-            searches = {"name": self.filters["text"]}
-        else:
-            searches = None
-        return searches, sql_filters, sql_excludes
+
+        # We omit the "text" search here because SQLite does a fairly literal
+        # search, which is accent sensitive. We'll do better with self.game_matches()
+        return sql_filters
 
     def get_service_media(self, icon_type):
         """Return the ServiceMedia class used for this view"""

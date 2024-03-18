@@ -42,6 +42,38 @@ def slugify(value: str) -> str:
     return slug
 
 
+def strip_accents(value: str) -> str:
+    """Returns a string that is 'value', but with combining characters removed.
+
+    This normalizes the text to form KD, which also removes any compatibility characters,
+    so things like ellipsis are expanded to '...'.
+
+    This also strips leading a trailing whitespace, and normalizes all remaining whitespace
+    to single spaces.
+
+    This does allow non-ASCII characters (like Greek or Cyrillic), and does not interfere with
+    casing.
+
+    We use this for a more forgiving search.
+    """
+    if value:
+        decomposed = unicodedata.normalize("NFKD", value)
+        result = ""
+        prev_whitespace = False
+        for ch in reversed(decomposed.strip()):
+            combining = unicodedata.combining(ch)
+            if not combining:
+                whitespace = ch.isspace()
+                if whitespace:
+                    if not prev_whitespace:
+                        result += " "
+                else:
+                    result += ch
+                prev_whitespace = whitespace
+        return result[::-1]  # We built the text backwards, so we must reverse it
+    return value
+
+
 def get_natural_sort_key(value: str, number_width: int = 16) -> str:
     """Returns a string with the numerical parts (runs of digits)
     0-padded out to 'number_width' digits."""
