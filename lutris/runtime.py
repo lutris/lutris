@@ -243,7 +243,10 @@ class RuntimeUpdater:
 class RuntimeComponentUpdater(ComponentUpdater):
     """A base class for component updates that use the timestamp from a runtime-info dict
     to decide when an update is required.
-    (PS. You are not expected to understand what this docstring means)
+
+    These dicts are part of the 'versions.json' file, sent down from the server. They describe
+    what versions of components are available from the server. This dict includes the modification
+    date-time of the component, and we compare it to the mtime of the relevant directory.
     """
 
     def __init__(self, remote_runtime_info: Dict[str, Any]) -> None:

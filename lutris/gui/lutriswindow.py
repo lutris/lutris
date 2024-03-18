@@ -1129,13 +1129,17 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         we can determine that there are updates to perform."""
 
         def create_runtime_updater():
-            """WTF"""
+            """This function runs on a worker thread and decides what component updates are
+            required; we do this on a thread because it involves hitting the Lutris.net website,
+            which can easily block."""
             runtime_updater = RuntimeUpdater(force=force_updates)
             component_updaters = runtime_updater.create_component_updaters()
             return component_updaters, runtime_updater
 
         def create_runtime_updater_cb(result, error):
-            """WTF"""
+            """Picks up the component updates when we know what they are, and begins the installation.
+            This must be done on the main thread, since it updates the UI. This would be so much less
+            ugly with asyncio, but here we are."""
             if error:
                 logger.exception("Failed to obtain updates from Lutris.net: %s", error)
             else:
