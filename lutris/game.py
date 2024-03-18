@@ -666,6 +666,14 @@ class Game(GObject.Object):
         logger.warning("No path found in %s", self.config)
         return ""
 
+    def get_store_name(self) -> str:
+        store = self.service
+        if not store:
+            return ""
+        if self.service == "humblebundle":
+            return "humble"
+        return store
+
     @watch_game_errors(game_stop_result=False)
     def configure_game(self, launch_ui_delegate):
         """Get the game ready to start, applying all the options.
@@ -675,9 +683,12 @@ class Game(GObject.Object):
         if not gameplay_info:  # if user cancelled- not an error
             return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
+
+        if env.get("WINEARCH") == "win32" and "ulwgl" in " ".join(command):
+            raise RuntimeError("Proton is not compatible with 32bit prefixes")
         env["game_name"] = self.name  # What is this used for??
         env["GAMEID"] = proton.get_game_id(self)
-        env["STORE"] = self.service if self.service != "humblebundle" else "humble"
+        env["STORE"] = self.get_store_name()
         self.game_runtime_config = {
             "args": command,
             "env": env,
