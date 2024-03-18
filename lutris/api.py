@@ -8,6 +8,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections import OrderedDict
+from datetime import datetime
 from gettext import gettext as _
 from typing import Any, Dict, Optional, Tuple
 
@@ -43,12 +44,16 @@ def get_runtime_versions_date_time_ago() -> str:
 
 
 def check_stale_runtime_versions() -> bool:
-    """True if runtime versions file that download_runtime_versions() creates
-    is missing or stale; if true we must call that function."""
+    """Check if the runtime needs to be updated"""
     try:
-        threshold = time.time() + 6 * 60 * 60  # 6 hours from now
         modified_at = get_runtime_versions_date()
-        return threshold < modified_at
+        should_update_at = modified_at + 6 * 60 * 60
+        logger.debug(
+            "Modified at %s, will update after %s",
+            datetime.fromtimestamp(modified_at).strftime("%c"),
+            datetime.fromtimestamp(should_update_at).strftime("%c"),
+        )
+        return should_update_at < time.time()
     except FileNotFoundError:
         return True
 

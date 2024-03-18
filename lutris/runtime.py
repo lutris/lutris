@@ -242,7 +242,9 @@ class RuntimeUpdater:
 
 class RuntimeComponentUpdater(ComponentUpdater):
     """A base class for component updates that use the timestamp from a runtime-info dict
-    to decide when an update is required."""
+    to decide when an update is required.
+    (PS. You are not expected to understand what this docstring means)
+    """
 
     def __init__(self, remote_runtime_info: Dict[str, Any]) -> None:
         self.remote_runtime_info = remote_runtime_info

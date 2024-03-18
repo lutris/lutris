@@ -11,7 +11,6 @@ from lutris.util.steam.config import get_steamapps_dirs
 GE_PROTON_LATEST = _("GE-Proton (Latest)")
 
 
-
 def is_proton_path(wine_path):
     return "Proton" in wine_path and "lutris" not in wine_path
 

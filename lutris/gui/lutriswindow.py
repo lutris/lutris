@@ -1129,17 +1129,21 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         we can determine that there are updates to perform."""
 
         def create_runtime_updater():
+            """WTF"""
             runtime_updater = RuntimeUpdater(force=force_updates)
             component_updaters = runtime_updater.create_component_updaters()
             return component_updaters, runtime_updater
 
         def create_runtime_updater_cb(result, error):
+            """WTF"""
             if error:
                 logger.exception("Failed to obtain updates from Lutris.net: %s", error)
             else:
                 component_updaters, runtime_updater = result
                 if component_updaters:
                     self.install_runtime_component_updates(component_updaters, runtime_updater)
+                else:
+                    logger.debug("Runtime up to date")
 
         AsyncCall(create_runtime_updater, create_runtime_updater_cb)
 
