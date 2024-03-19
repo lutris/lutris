@@ -413,7 +413,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def game_matches(self, game):
         if self.filters.get("installed"):
-            if game["appid"] not in games_db.get_service_games(self.service.id):
+            if "appid" in game and game["appid"] not in games_db.get_service_games(self.service.id):
                 return False
         text = self.filters.get("text")
         if not text:
