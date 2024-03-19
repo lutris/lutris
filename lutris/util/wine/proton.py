@@ -24,14 +24,14 @@ def get_ulwgl_path():
     if system.can_find_executable("ulwgl-run"):
         return system.find_executable("ulwgl-run")
     path_candidates = (
-        os.path.expanduser("~/.local/share"),
+        "/app/share",  # prioritize flatpak due to non-rolling release distros
         "/usr/local/share",
         "/usr/share",
         "/opt",
         settings.RUNTIME_DIR,
     )
     for path_candidate in path_candidates:
-        script_path = os.path.join(path_candidate, "ULWGL", "ulwgl_run.py")
+        script_path = os.path.join(path_candidate, "ulwgl", "ulwgl_run.py")
         if system.path_exists(script_path):
             return script_path
 
