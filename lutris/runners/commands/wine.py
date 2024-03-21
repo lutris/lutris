@@ -159,7 +159,7 @@ def create_prefix(
     else:
         wineenv["PROTONPATH"] = proton.get_proton_path_from_bin(wine_path)
 
-        system.execute([proton.get_ulwgl_path(), "createprefix"], env=wineenv)
+        system.execute([proton.get_umu_path(), "createprefix"], env=wineenv)
 
     logger.info("%s Prefix created in %s", arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
@@ -331,7 +331,7 @@ def wineexec(
     baseenv.update(env)
 
     if proton.is_proton_path(wine_path):
-        wine_path = proton.get_ulwgl_path()
+        wine_path = proton.get_umu_path()
 
     command_parameters = [wine_path]
     if executable:
@@ -400,7 +400,7 @@ def winetricks(
         if not runner:
             runner = import_runner("wine")()
         winetricks_wine = runner.get_executable()
-    # We only need to perform winetricks if not using ulwgl/proton. ulwgl uses protonfixes
+    # We only need to perform winetricks if not using umu/proton. umu uses protonfixes
     if ("Proton" not in wine_path) or ("lutris" in wine_path and "Proton" in wine_path):
         if arch not in ("win32", "win64"):
             arch = detect_arch(prefix, winetricks_wine)

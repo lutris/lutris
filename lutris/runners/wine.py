@@ -1172,10 +1172,10 @@ class wine(Runner):
     def get_command(self):
         exe = self.get_executable()
         if proton.is_proton_path(exe):
-            ulwgl_path = proton.get_ulwgl_path()
-            if ulwgl_path:
-                return [ulwgl_path]
-            raise MissingExecutableError("Install ULWGL to use Proton")
+            umu_path = proton.get_umu_path()
+            if umu_path:
+                return [umu_path]
+            raise MissingExecutableError("Install umu to use Proton")
         return super().get_command()
 
     def play(self):  # pylint: disable=too-many-return-statements # noqa: C901

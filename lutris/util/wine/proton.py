@@ -1,4 +1,4 @@
-"""Utility module to deal with Proton and ULWGL"""
+"""Utility module to deal with Proton and umu"""
 import json
 import os
 from gettext import gettext as _
@@ -15,14 +15,14 @@ def is_proton_path(wine_path):
     return "Proton" in wine_path and "lutris" not in wine_path
 
 
-def get_ulwgl_path():
-    custom_path = settings.read_setting("ulwgl_path")
+def get_umu_path():
+    custom_path = settings.read_setting("umu_path")
     if custom_path:
-        script_path = os.path.join(custom_path, "ulwgl_run.py")
+        script_path = os.path.join(custom_path, "umu_run.py")
         if system.path_exists(script_path):
             return script_path
-    if system.can_find_executable("ulwgl-run"):
-        return system.find_executable("ulwgl-run")
+    if system.can_find_executable("umu-run"):
+        return system.find_executable("umu-run")
     path_candidates = (
         "/app/share",  # prioritize flatpak due to non-rolling release distros
         "/usr/local/share",
@@ -31,7 +31,7 @@ def get_ulwgl_path():
         settings.RUNTIME_DIR,
     )
     for path_candidate in path_candidates:
-        script_path = os.path.join(path_candidate, "ulwgl", "ulwgl_run.py")
+        script_path = os.path.join(path_candidate, "umu", "umu_run.py")
         if system.path_exists(script_path):
             return script_path
 
@@ -65,8 +65,8 @@ def get_proton_paths() -> List[str]:
 
 def list_proton_versions() -> List[str]:
     """Return the list of Proton versions installed in Steam"""
-    ulwgl_path = get_ulwgl_path()
-    if not ulwgl_path:
+    umu_path = get_umu_path()
+    if not umu_path:
         return []
     versions = [GE_PROTON_LATEST]
     for proton_path in get_proton_paths():
@@ -96,20 +96,20 @@ def get_proton_path_from_bin(wine_path):
 
 
 def get_game_id(game):
-    default_id = "ulwgl-default"
-    games_path = os.path.join(settings.RUNTIME_DIR, "ulwgl-games/ulwgl-games.json")
+    default_id = "umu-default"
+    games_path = os.path.join(settings.RUNTIME_DIR, "umu-games/umu-games.json")
     if not os.path.exists(games_path):
         return default_id
     with open(games_path, "r", encoding="utf-8") as games_file:
-        ulwgl_games = json.load(games_file)
-    for ulwgl_game in ulwgl_games:
+        umu_games = json.load(games_file)
+    for umu_game in umu_games:
         if (
-            ulwgl_game["store"]
+            umu_game["store"]
             and (
-                ulwgl_game["store"] == game.service
-                or (ulwgl_game["store"] == "humble" and game.service == "humblebundle")
+                umu_game["store"] == game.service
+                or (umu_game["store"] == "humble" and game.service == "humblebundle")
             )
-            and ulwgl_game["appid"] == game.appid
+            and umu_game["appid"] == game.appid
         ):
-            return ulwgl_game["ulwgl_id"]
+            return umu_game["umu_id"]
     return default_id

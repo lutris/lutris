@@ -684,7 +684,7 @@ class Game(GObject.Object):
             return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
 
-        if env.get("WINEARCH") == "win32" and "ulwgl" in " ".join(command):
+        if env.get("WINEARCH") == "win32" and "umu" in " ".join(command):
             raise RuntimeError("Proton is not compatible with 32bit prefixes")
         env["game_name"] = self.name  # What is this used for??
         env["GAMEID"] = proton.get_game_id(self)
