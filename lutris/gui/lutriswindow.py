@@ -408,19 +408,30 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def get_recent_games(self):
         """Return a list of currently running games"""
         games = games_db.get_games(filters={"installed": "1"})
-        games = [game for game in games if self.game_matches(game)]
+        games = self.filter_games(games)
         return sorted(games, key=lambda game: max(game["installed_at"] or 0, game["lastplayed"] or 0), reverse=True)
 
-    def game_matches(self, game):
-        if self.filters.get("installed"):
-            if "appid" in game and game["appid"] not in games_db.get_service_games(self.service.id):
-                return False
+    def filter_games(self, games):
+        """Filters a list of games according to the 'installed' and 'text' filters, if those are
+        set. But if not, can just return games unchanged."""
+        installed = bool(self.filters.get("installed"))
         text = self.filters.get("text")
-        if not text:
-            return True
-        text = strip_accents(text).casefold()
-        name = strip_accents(game["name"]).casefold()
-        return text in name
+        if text:
+            text = strip_accents(text).casefold()
+
+        def game_matches(game):
+            if installed:
+                if "appid" in game and game["appid"] not in games_db.get_service_games(self.service.id):
+                    return False
+            if not text:
+                return True
+            name = strip_accents(game["name"]).casefold()
+            return text in name
+
+        if installed or text:
+            return [game for game in games if game_matches(game)]
+
+        return games
 
     def set_service(self, service_name):
         if self.service and self.service.id == service_name:
@@ -451,11 +462,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         else:
             lutris_games = {g["service_id"]: g for g in games_db.get_games(filters={"service": self.service.id})}
 
-        return [
-            self.combine_games(game, lutris_games.get(game["appid"]))
-            for game in self.apply_view_sort(service_games, lambda game: lutris_games.get(game["appid"]) or game)
-            if self.game_matches(game)
-        ]
+        return self.filter_games(
+            [
+                self.combine_games(game, lutris_games.get(game["appid"]))
+                for game in self.apply_view_sort(service_games, lambda game: lutris_games.get(game["appid"]) or game)
+            ]
+        )
 
     def get_games_from_filters(self):
         service_id = self.filters.get("service")
@@ -474,7 +486,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         filters = self.get_sql_filters()
         games = games_db.get_games(filters=filters)
-        games = [game for game in games if game["id"] in category_game_ids and self.game_matches(game)]
+        games = self.filter_games([game for game in games if game["id"] in category_game_ids])
         return self.apply_view_sort(games)
 
     def get_sql_filters(self):
@@ -488,7 +500,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             sql_filters["installed"] = "1"
 
         # We omit the "text" search here because SQLite does a fairly literal
-        # search, which is accent sensitive. We'll do better with self.game_matches()
+        # search, which is accent sensitive. We'll do better with self.filter_games()
         return sql_filters
 
     def get_service_media(self, icon_type):

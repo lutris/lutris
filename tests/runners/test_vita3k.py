@@ -1,8 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from lutris.runners.vita3k import MissingVitaTitleIDError
-from lutris.runners.vita3k import vita3k
+from lutris.runners.vita3k import MissingVitaTitleIDError, vita3k
 
 
 class TestVita3kRunner(unittest.TestCase):
@@ -19,7 +18,7 @@ class TestVita3kRunner(unittest.TestCase):
         mock_config.game_config = {"main_file": main_file}
         mock_config.runner_config = MagicMock()
         self.runner.config = mock_config
-        with self.assertRaises(MissingVitaTitleIDError) as cm:
+        with self.assertRaises(MissingVitaTitleIDError):
             self.runner.play()
 
     @patch("lutris.util.system.path_exists")
@@ -43,9 +42,7 @@ class TestVita3kRunner(unittest.TestCase):
         mock_isfile.return_value = True
         mock_config = MagicMock()
         mock_config.game_config = {"main_file": main_file}
-        mock_config.runner_config = {
-            "fullscreen": False
-        }
+        mock_config.runner_config = {"fullscreen": False}
         self.runner.config = mock_config
         expected = {"command": [self.runner.get_executable(), "-r", main_file]}
         self.assertEqual(self.runner.play(), expected)

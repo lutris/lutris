@@ -1,10 +1,8 @@
-import os
 from gettext import gettext as _
 
 from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
-from lutris.util import system
-from lutris.util.log import logger
+
 
 class MissingVitaTitleIDError(MissingGameExecutableError):
     """Raise when the Title ID field has not be supplied to the Vita runner game options"""
@@ -30,7 +28,10 @@ class vita3k(Runner):
             "type": "string",
             "label": _("Title ID of Installed Application"),
             "argument": "-r",
-            "help": _("Title ID of installed application. Eg.\"PCSG00042\". User installed apps are located in ux0:/app/&lt;title-id&gt;."),
+            "help": _(
+                'Title ID of installed application. Eg."PCSG00042". User installed apps are located in '
+                "ux0:/app/&lt;title-id&gt;."
+            ),
         }
     ]
     runner_options = [
@@ -47,14 +48,17 @@ class vita3k(Runner):
             "type": "file",
             "label": _("Config location"),
             "argument": "-c",
-            "help": _("Get a configuration file from a given location. If a filename is given, it must end with \".yml\", otherwise it will be assumed to be a directory."),
+            "help": _(
+                'Get a configuration file from a given location. If a filename is given, it must end with ".yml", '
+                "otherwise it will be assumed to be a directory."
+            ),
         },
         {
             "option": "load-config",
             "label": _("Load configuration file"),
             "type": "bool",
             "argument": "-f",
-            "help": _("If trues, informs the emualtor to load the config file from the \"Config location\" option.")
+            "help": _('If trues, informs the emualtor to load the config file from the "Config location" option.'),
         },
     ]
 
@@ -72,15 +76,15 @@ class vita3k(Runner):
                     continue
                 if option["type"] == "bool":
                     if self.runner_config.get(option["option"]):
-                        if 'argument' in option:
+                        if "argument" in option:
                             arguments.append(option["argument"])
                 elif option["type"] == "choice":
                     if self.runner_config.get(option["option"]) != "off":
-                        if 'argument' in option:
+                        if "argument" in option:
                             arguments.append(option["argument"])
                         arguments.append(config.get(option["option"]))
                 elif option["type"] in ("string", "file"):
-                    if 'argument' in option:
+                    if "argument" in option:
                         arguments.append(option["argument"])
                     arguments.append(config.get(option["option"]))
                 else:
@@ -98,4 +102,4 @@ class vita3k(Runner):
 
     @property
     def game_path(self):
-        return self.game_config.get(self.entry_point_option, '')
+        return self.game_config.get(self.entry_point_option, "")
