@@ -50,6 +50,7 @@ DEFAULT_INSTALLERS = {
     },
     "amiga": {"runner": "fsuae", "game": {"main_file": "rom"}},
     "amiga-1200": {"runner": "fsuae", "game": {"main_file": "rom"}, "fsuae": {"model": "A1200"}},
+    "amiga-cd32": {"runner": "fsuae", "game": {"main_file": "rom"}, "fsuae": {"model": "CD32"}},
     "ds": {
         "runner": "libretro",
         "game": {"core": "desmume", "main_file": "rom"},
