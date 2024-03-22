@@ -66,6 +66,7 @@ SYSTEM_COMPONENTS = {
         "alacritty",
         "kgx",
         "deepin-terminal",
+        "wezterm",
     ],
     "LIBRARIES": {
         "OPENGL": ["libGL.so.1"],
