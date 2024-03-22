@@ -9,7 +9,7 @@ from lutris.util import system
 from lutris.util.steam.config import get_steamapps_dirs
 
 GE_PROTON_LATEST = _("GE-Proton (Latest)")
-
+DEFAULT_GAMEID = "umu-default"
 
 def is_proton_path(wine_path):
     return "Proton" in wine_path and "lutris" not in wine_path
@@ -96,10 +96,9 @@ def get_proton_path_from_bin(wine_path):
 
 
 def get_game_id(game):
-    default_id = "umu-default"
     games_path = os.path.join(settings.RUNTIME_DIR, "umu-games/umu-games.json")
     if not os.path.exists(games_path):
-        return default_id
+        return DEFAULT_GAMEID
     with open(games_path, "r", encoding="utf-8") as games_file:
         umu_games = json.load(games_file)
     for umu_game in umu_games:
@@ -112,4 +111,4 @@ def get_game_id(game):
             and umu_game["appid"] == game.appid
         ):
             return umu_game["umu_id"]
-    return default_id
+    return DEFAULT_GAMEID

@@ -157,6 +157,7 @@ def create_prefix(
             logger.error("No user.reg found after prefix creation. Prefix might not be valid")
             return
     else:
+        wineenv["GAMEID"] = proton.DEFAULT_GAMEID
         wineenv["PROTONPATH"] = proton.get_proton_path_from_bin(wine_path)
 
         system.execute([proton.get_umu_path(), "createprefix"], env=wineenv)
