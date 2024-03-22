@@ -147,21 +147,24 @@ def create_prefix(
 
     if not proton.is_proton_path(wine_path):
         system.execute([wineboot_path], env=wineenv)
-        for loop_index in range(1000):
-            time.sleep(0.5)
-            if system.path_exists(os.path.join(prefix, "user.reg")):
-                break
-            if loop_index == 60:
-                logger.warning("Wine prefix creation is taking longer than expected...")
-        if not os.path.exists(os.path.join(prefix, "user.reg")):
-            logger.error("No user.reg found after prefix creation. Prefix might not be valid")
-            return
     else:
         wineenv["GAMEID"] = proton.DEFAULT_GAMEID
         wineenv["PROTONPATH"] = proton.get_proton_path_from_bin(wine_path)
 
         system.execute([proton.get_umu_path(), "createprefix"], env=wineenv)
-
+    for loop_index in range(1000):
+        time.sleep(0.5)
+        if (
+            system.path_exists(os.path.join(prefix, "user.reg"))
+            and system.path_exists(os.path.join(prefix, "userdef.reg"))
+            and system.path_exists(os.path.join(prefix, "system.reg"))
+        ):
+            break
+        if loop_index == 60:
+            logger.warning("Wine prefix creation is taking longer than expected...")
+    if not os.path.exists(os.path.join(prefix, "user.reg")):
+        logger.error("No user.reg found after prefix creation. Prefix might not be valid")
+        return
     logger.info("%s Prefix created in %s", arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
     prefix_manager.setup_defaults()
