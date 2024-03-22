@@ -152,8 +152,8 @@ def create_prefix(
         wineenv["ULWGL_LOG"] = "debug"
         wineenv["WINEARCH"] = "win64"
         wineenv["PROTONPATH"] = proton.get_proton_path_from_bin(wine_path)
-        _stdout, stderr = system.execute_with_error([proton.get_umu_path(), "createprefix"], env=wineenv)
-        logger.debug(stderr)
+        command = MonitoredCommand([proton.get_umu_path(), "createprefix"], env=wineenv)
+        command.start()
 
     for loop_index in range(1000):
         time.sleep(0.5)
