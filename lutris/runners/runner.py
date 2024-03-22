@@ -6,10 +6,10 @@ from typing import Callable, Dict, Optional
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, get_default_runner_version_info
-from lutris.monitored_command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import MisconfigurationError, MissingExecutableError, UnavailableLibrariesError
+from lutris.monitored_command import MonitoredCommand
 from lutris.runners import RunnerInstallationError
 from lutris.util import flatpak, strings, system
 from lutris.util.extract import ExtractError, extract_archive

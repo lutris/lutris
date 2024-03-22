@@ -104,6 +104,7 @@ style:
 	ruff format . --check
 
 format:
+	ruff check --select I --fix
 	ruff format .
 
 # ===============

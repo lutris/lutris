@@ -2,8 +2,8 @@
 import os
 from gettext import gettext as _
 
-from lutris.monitored_command import MonitoredCommand
 from lutris.exceptions import MissingGameExecutableError, UnavailableRunnerError
+from lutris.monitored_command import MonitoredCommand
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
 from lutris.util import linux, system

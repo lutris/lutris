@@ -35,7 +35,6 @@ from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
 from lutris.api import get_runners, parse_installer_url
-from lutris.monitored_command import exec_command
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import init_exception_backstops
@@ -48,6 +47,7 @@ from lutris.gui.installerwindow import InstallationKind, InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.installer import get_installers
 from lutris.migrations import migrate
+from lutris.monitored_command import exec_command
 from lutris.runners import InvalidRunnerError, RunnerInstallationError, get_runner_names, import_runner
 from lutris.services import get_enabled_services
 from lutris.startup import init_lutris, run_all_checks

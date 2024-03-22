@@ -8,7 +8,6 @@ from typing import List
 
 from gi.repository import Gio, Gtk
 
-from lutris.monitored_command import MonitoredCommand
 from lutris.config import duplicate_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.game import Game
@@ -20,6 +19,7 @@ from lutris.gui.dialogs import InputDialog
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_dialog import UninstallDialog
 from lutris.gui.widgets.utils import open_uri
+from lutris.monitored_command import MonitoredCommand
 from lutris.services.lutris import download_lutris_media
 from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall

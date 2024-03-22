@@ -14,7 +14,6 @@ from typing import cast
 from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
-from lutris.monitored_command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
@@ -22,6 +21,7 @@ from lutris.database import sql
 from lutris.exception_backstops import watch_game_errors
 from lutris.exceptions import GameConfigError, InvalidGameMoveError, MissingExecutableError
 from lutris.installer import InstallationKind
+from lutris.monitored_command import MonitoredCommand
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import import_runner, is_valid_runner_name
 from lutris.runners.runner import Runner

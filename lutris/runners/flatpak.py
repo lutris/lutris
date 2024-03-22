@@ -4,8 +4,8 @@ from gettext import gettext as _
 from pathlib import Path
 from typing import Callable
 
-from lutris.monitored_command import MonitoredCommand
 from lutris.exceptions import GameConfigError, MissingExecutableError
+from lutris.monitored_command import MonitoredCommand
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
 from lutris.util import flatpak as _flatpak
