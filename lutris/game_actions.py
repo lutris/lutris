@@ -8,7 +8,7 @@ from typing import List
 
 from gi.repository import Gio, Gtk
 
-from lutris.command import MonitoredCommand
+from lutris.monitored_command import MonitoredCommand
 from lutris.config import duplicate_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.game import Game

@@ -12,7 +12,7 @@ from gi.repository import GLib
 
 from lutris import runtime
 from lutris.cache import get_cache_path, has_custom_cache_path
-from lutris.command import MonitoredCommand
+from lutris.monitored_command import MonitoredCommand
 from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller

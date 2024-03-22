@@ -35,7 +35,7 @@ from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
 from lutris.api import get_runners, parse_installer_url
-from lutris.command import exec_command
+from lutris.monitored_command import exec_command
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import init_exception_backstops

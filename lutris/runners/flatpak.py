@@ -4,7 +4,7 @@ from gettext import gettext as _
 from pathlib import Path
 from typing import Callable
 
-from lutris.command import MonitoredCommand
+from lutris.monitored_command import MonitoredCommand
 from lutris.exceptions import GameConfigError, MissingExecutableError
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner

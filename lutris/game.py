@@ -14,7 +14,7 @@ from typing import cast
 from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
-from lutris.command import MonitoredCommand
+from lutris.monitored_command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db

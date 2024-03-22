@@ -2,7 +2,7 @@
 import os
 from gettext import gettext as _
 
-from lutris.command import MonitoredCommand
+from lutris.monitored_command import MonitoredCommand
 from lutris.exceptions import MissingGameExecutableError, UnavailableRunnerError
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner

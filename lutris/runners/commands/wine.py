@@ -5,7 +5,7 @@ import shlex
 import time
 
 from lutris import runtime, settings
-from lutris.command import MonitoredCommand
+from lutris.monitored_command import MonitoredCommand
 from lutris.runners import import_runner
 from lutris.util import linux, system
 from lutris.util.log import logger
