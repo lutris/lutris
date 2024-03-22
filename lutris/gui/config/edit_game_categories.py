@@ -11,12 +11,19 @@ from lutris.gui.dialogs import SavableModelessDialog
 class EditGameCategoriesDialog(SavableModelessDialog):
     """Game category edit dialog."""
 
-    def __init__(self, parent, game):
-        super().__init__(_("Categories - %s") % game.name, parent=parent, border_width=10)
+    def __init__(self, parent, games):
+        name = games[0].name if len(games) == 1 else _("%s games") % len(games)
+        super().__init__(_("Categories - %s") % name, parent=parent, border_width=10)
 
-        self.game = game
-        self.game_id = game.id
-        self.game_categories = categories_db.get_categories_in_game(self.game_id)
+        self.games = games
+        self.game_ids = [game.id for game in games]
+        self.categories = sorted(
+            [c["name"] for c in categories_db.get_categories() if c["name"] != "favorite"], key=locale.strxfrm
+        )
+        self.game_categories = {game_id: categories_db.get_categories_in_game(game_id) for game_id in self.game_ids}
+        self.category_games = {
+            category: [t[0] for t in self.game_categories.items() if category in t[1]] for category in self.categories
+        }
 
         self.grid = Gtk.Grid()
 
@@ -34,15 +41,16 @@ class EditGameCategoriesDialog(SavableModelessDialog):
         # frame.set_label("Categories") # probably too much redundancy
         sw = Gtk.ScrolledWindow()
         row = Gtk.VBox()
-        categories = sorted(
-            [c for c in categories_db.get_categories() if c["name"] != "favorite"],
-            key=lambda c: locale.strxfrm(c["name"]),
-        )
-        for category in categories:
-            label = category["name"]
+
+        for category in self.categories:
+            label = category
             checkbutton_option = Gtk.CheckButton(label)
-            if label in self.game_categories:
+            games_included = len(self.category_games.get(category) or [])
+            if len(self.game_ids) == games_included:
                 checkbutton_option.set_active(True)
+            elif games_included > 0:
+                checkbutton_option.set_inconsistent(True)
+                checkbutton_option.connect("toggled", self.on_inconsistent_checkbutton_toggled)
             self.grid.attach_next_to(checkbutton_option, None, Gtk.PositionType.BOTTOM, 3, 1)
 
         row.pack_start(self.grid, True, True, 0)
@@ -79,22 +87,29 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
         return hbox
 
+    @staticmethod
+    def on_inconsistent_checkbutton_toggled(checkbutton):
+        checkbutton.set_inconsistent(False)
+
     def on_save(self, _button):
         """Save game info and destroy widget."""
-        removed_categories = set()
-        added_categories = set()
 
-        for category_checkbox in self.grid.get_children():
-            label = category_checkbox.get_label()
+        for game in self.games:
+            for category_checkbox in self.grid.get_children():
+                removed_categories = set()
+                added_categories = set()
 
-            if label in self.game_categories:
-                if not category_checkbox.get_active():
-                    removed_categories.add(label)
-            else:
-                if category_checkbox.get_active():
-                    added_categories.add(label)
+                if not category_checkbox.get_inconsistent():
+                    label = category_checkbox.get_label()
 
-        if added_categories or removed_categories:
-            self.game.update_game_categories(added_categories, removed_categories)
+                    if label in self.game_categories[game.id]:
+                        if not category_checkbox.get_active():
+                            removed_categories.add(label)
+                    else:
+                        if category_checkbox.get_active():
+                            added_categories.add(label)
+
+                if added_categories or removed_categories:
+                    game.update_game_categories(added_categories, removed_categories)
 
         self.destroy()
