@@ -1,29 +1,27 @@
 # pylint: disable=no-member
 import locale
 from gettext import gettext as _
+from typing import Sequence
 
 from gi.repository import Gtk
 
 from lutris.database import categories as categories_db
+from lutris.game import Game
 from lutris.gui.dialogs import SavableModelessDialog
 
 
 class EditGameCategoriesDialog(SavableModelessDialog):
     """Game category edit dialog."""
 
-    def __init__(self, parent, games):
-        name = games[0].name if len(games) == 1 else _("%s games") % len(games)
-        super().__init__(_("Categories - %s") % name, parent=parent, border_width=10)
+    def __init__(self, parent):
+        super().__init__(_("Categories"), parent=parent, border_width=10)
 
-        self.games = games
-        self.game_ids = [game.id for game in games]
+        self.category_checkboxes = {}
+        self.games = []
+        self.game_ids = []
         self.categories = sorted(
             [c["name"] for c in categories_db.get_categories() if c["name"] != "favorite"], key=locale.strxfrm
         )
-        self.game_categories = {game_id: categories_db.get_categories_in_game(game_id) for game_id in self.game_ids}
-        self.category_games = {
-            category: [t[0] for t in self.game_categories.items() if category in t[1]] for category in self.categories
-        }
 
         self.grid = Gtk.Grid()
 
@@ -36,6 +34,37 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
         self.show_all()
 
+    def add_games(self, games: Sequence[Game]) -> None:
+        def mark_category_checkbox(checkbox, included):
+            first = len(self.games) == 0
+            if first:
+                checkbox.set_active(included)
+            elif not checkbox.get_inconsistent() and checkbox.get_active() != included:
+                checkbox.set_active(False)
+                checkbox.set_inconsistent(True)
+
+        def add_game(game):
+            categories = categories_db.get_categories_in_game(game.id)
+            other_checkboxes = set(self.category_checkboxes.values())
+            for category in categories:
+                category_checkbox = self.category_checkboxes.get(category)
+                if category_checkbox:
+                    other_checkboxes.discard(category_checkbox)
+                    mark_category_checkbox(category_checkbox, included=True)
+
+            for category_checkbox in other_checkboxes:
+                mark_category_checkbox(category_checkbox, included=False)
+
+            self.games.append(game)
+            self.game_ids.append(game.id)
+
+        for g in games:
+            if g.id not in self.game_ids:
+                add_game(g)
+
+        title = self.games[0].name if len(self.games) == 1 else _("%s games") % len(self.games)
+        self.set_title(title)
+
     def _create_category_checkboxes(self):
         frame = Gtk.Frame()
         # frame.set_label("Categories") # probably too much redundancy
@@ -45,13 +74,9 @@ class EditGameCategoriesDialog(SavableModelessDialog):
         for category in self.categories:
             label = category
             checkbutton_option = Gtk.CheckButton(label)
-            games_included = len(self.category_games.get(category) or [])
-            if len(self.game_ids) == games_included:
-                checkbutton_option.set_active(True)
-            elif games_included > 0:
-                checkbutton_option.set_inconsistent(True)
-                checkbutton_option.connect("toggled", self.on_inconsistent_checkbutton_toggled)
+            checkbutton_option.connect("toggled", self.on_inconsistent_checkbutton_toggled)
             self.grid.attach_next_to(checkbutton_option, None, Gtk.PositionType.BOTTOM, 3, 1)
+            self.category_checkboxes[category] = checkbutton_option
 
         row.pack_start(self.grid, True, True, 0)
         sw.add_with_viewport(row)
@@ -101,8 +126,8 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
                 if not category_checkbox.get_inconsistent():
                     label = category_checkbox.get_label()
-
-                    if label in self.game_categories[game.id]:
+                    game_categories = categories_db.get_categories_in_game(game.id)
+                    if label in game_categories:
                         if not category_checkbox.get_active():
                             removed_categories.add(label)
                     else:
