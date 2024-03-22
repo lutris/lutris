@@ -103,11 +103,10 @@ class GameActions:
         """Install a game"""
         # Install the currently selected game in the UI
         for game in self.get_games():
-            if not game.is_installed:
-                if not game.slug:
-                    game_id = game.id if game.is_db_stored else game.name
-                    raise RuntimeError("No game to install: %s" % game_id)
-                game.install(launch_ui_delegate=self.window)
+            if not game.slug:
+                game_id = game.id if game.is_db_stored else game.name
+                raise RuntimeError("No game to install: %s" % game_id)
+            game.install(launch_ui_delegate=self.window)
 
     def on_add_favorite_game(self, _widget):
         """Add to favorite Games list"""
