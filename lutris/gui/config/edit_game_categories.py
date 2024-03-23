@@ -13,8 +13,10 @@ from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
 class EditGameCategoriesDialog(SavableModelessDialog):
     """Game category edit dialog."""
 
-    def __init__(self, parent):
-        super().__init__(_("Categories"), parent=parent, border_width=10)
+    def __init__(self, game=None, parent=None):
+        title = game.name if game else _("Categories")
+
+        super().__init__(title, parent=parent, border_width=10)
         self.set_default_size(350, 250)
 
         self.category_checkboxes = {}
@@ -30,6 +32,9 @@ class EditGameCategoriesDialog(SavableModelessDialog):
         self.vbox.set_spacing(10)
         self.vbox.pack_start(self._create_category_checkboxes(), True, True, 0)
         self.vbox.pack_start(self._create_add_category(), False, False, 0)
+
+        if game:
+            self.add_games([game])
 
         self.vbox.show_all()
 
@@ -61,8 +66,11 @@ class EditGameCategoriesDialog(SavableModelessDialog):
             if g.id not in self.game_ids:
                 add_game(g)
 
-        title = self.games[0].name if len(self.games) == 1 else _("%d games") % len(self.games)
-        self.set_title(title)
+        if len(self.games) > 1:
+            subtitle = _("%d games") % len(self.games)
+            header_bar = self.get_header_bar()
+            if header_bar:
+                header_bar.set_subtitle(subtitle)
 
     def _create_category_checkboxes(self):
         frame = Gtk.Frame()
@@ -70,10 +78,10 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
         for category in self.categories:
             label = category
-            checkbutton_option = Gtk.CheckButton(label)
-            checkbutton_option.connect("toggled", self.on_checkbutton_toggled)
-            self.checkbox_grid.attach_next_to(checkbutton_option, None, Gtk.PositionType.BOTTOM, 3, 1)
-            self.category_checkboxes[category] = checkbutton_option
+            checkbutton = Gtk.CheckButton(label)
+            checkbutton.connect("toggled", self.on_checkbutton_toggled)
+            self.checkbox_grid.attach_next_to(checkbutton, None, Gtk.PositionType.BOTTOM, 3, 1)
+            self.category_checkboxes[category] = checkbutton
 
         scrolledwindow.add(self.checkbox_grid)
         frame.add(scrolledwindow)
