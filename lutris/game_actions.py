@@ -159,11 +159,18 @@ class GameActions:
 
     def on_edit_game_categories(self, _widget):
         """Edit game categories"""
+        games = self.get_games()
+        if len(games) == 1:
+            # Individual games get individual separate windows
+            self.application.show_window(EditGameCategoriesDialog, game=games[0], parent=self.window)
+        else:
 
-        def add_games(window):
-            window.add_games(self.get_games())
+            def add_games(window):
+                window.add_games(self.get_games())
 
-        self.application.show_window(EditGameCategoriesDialog, update_function=add_games, parent=self.window)
+            # Multi-select means a common categories window for all of them; we can wind
+            # up adding games to it if it's already open
+            self.application.show_window(EditGameCategoriesDialog, update_function=add_games, parent=self.window)
 
 
 class MultiGameActions(GameActions):
