@@ -361,11 +361,12 @@ class Application(Gtk.Application):
             return kwargs["game"].id
         return str(kwargs)
 
-    def show_window(self, window_class, **kwargs):
+    def show_window(self, window_class, /, update_function=None, **kwargs):
         """Instantiate a window keeping 1 instance max
 
         Params:
             window_class (Gtk.Window): class to create the instance from
+            update_function (Callable): Function to initialize or update the window (if possible before being shown)
             kwargs (dict): Additional arguments to pass to the instanciated window
 
         Returns:
@@ -374,7 +375,10 @@ class Application(Gtk.Application):
         window_key = str(window_class.__name__) + self.get_window_key(**kwargs)
         if self.app_windows.get(window_key):
             self.app_windows[window_key].present()
-            return self.app_windows[window_key]
+            window_inst = self.app_windows[window_key]
+            if update_function:
+                update_function(window_inst)
+            return window_inst
         if issubclass(window_class, Gtk.Dialog):
             if "parent" in kwargs:
                 window_inst = window_class(**kwargs)
@@ -384,6 +388,8 @@ class Application(Gtk.Application):
         else:
             window_inst = window_class(application=self, **kwargs)
         window_inst.connect("destroy", self.on_app_window_destroyed, self.get_window_key(**kwargs))
+        if update_function:
+            update_function(window_inst)
         self.app_windows[window_key] = window_inst
         logger.debug("Showing window %s", window_key)
         window_inst.show()
