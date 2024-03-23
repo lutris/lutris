@@ -1,5 +1,4 @@
 # pylint: disable=no-member
-import locale
 from gettext import gettext as _
 from typing import Sequence
 
@@ -9,6 +8,7 @@ from lutris.database import categories as categories_db
 from lutris.database.categories import is_reserved_category
 from lutris.game import Game
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
+from lutris.util.strings import get_natural_sort_key
 
 
 class EditGameCategoriesDialog(SavableModelessDialog):
@@ -22,10 +22,9 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
         self.category_checkboxes = {}
         self.games = []
-        self.game_ids = []
         self.categories = sorted(
             [c["name"] for c in categories_db.get_categories() if not is_reserved_category(c["name"])],
-            key=locale.strxfrm,
+            key=lambda c: get_natural_sort_key(c),
         )
 
         self.checkbox_grid = Gtk.Grid()
@@ -69,10 +68,10 @@ class EditGameCategoriesDialog(SavableModelessDialog):
                 mark_category_checkbox(category_checkbox, included=False)
 
             self.games.append(game)
-            self.game_ids.append(game.id)
 
+        existing_game_ids = set(game.id for game in self.games)
         for g in games:
-            if g.id not in self.game_ids:
+            if g.id not in existing_game_ids:
                 add_game(g)
 
         if len(self.games) > 1:
@@ -98,6 +97,8 @@ class EditGameCategoriesDialog(SavableModelessDialog):
         return frame
 
     def _create_add_category(self):
+        """Creates a box that carries the controls to add a new category."""
+
         def on_add_category(*_args):
             category = categories_db.strip_category_name(category_entry.get_text())
             if not categories_db.is_reserved_category(category) and category not in self.category_checkboxes:
@@ -122,10 +123,11 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
     @staticmethod
     def on_checkbutton_toggled(checkbutton):
+        # If the user toggles a checkbox, it is no longer inconsistent.
         checkbutton.set_inconsistent(False)
 
     def on_save(self, _button):
-        """Save game info and destroy widget."""
+        """Save category changes and destroy widget."""
 
         changes = []
 

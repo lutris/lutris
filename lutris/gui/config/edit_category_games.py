@@ -7,6 +7,7 @@ from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.game import Game
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
+from lutris.util.strings import get_natural_sort_key
 
 
 class EditCategoryGamesDialog(SavableModelessDialog):
@@ -17,9 +18,9 @@ class EditCategoryGamesDialog(SavableModelessDialog):
 
         self.category = category["name"]
         self.category_id = category["id"]
-        self.available_games = [
-            Game(x["id"]) for x in games_db.get_games(sorts=[("installed", "DESC"), ("name", "COLLATE NOCASE ASC")])
-        ]
+        self.available_games = sorted(
+            [Game(x["id"]) for x in games_db.get_games()], key=lambda g: (g.is_installed, get_natural_sort_key(g.name))
+        )
         self.category_games = [Game(x) for x in categories_db.get_game_ids_for_categories([self.category])]
         self.grid = Gtk.Grid()
 
