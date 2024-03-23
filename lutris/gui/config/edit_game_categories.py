@@ -31,7 +31,7 @@ class EditGameCategoriesDialog(SavableModelessDialog):
         self.vbox.pack_start(self._create_category_checkboxes(), True, True, 0)
         self.vbox.pack_start(self._create_add_category(), False, False, 0)
 
-        self.show_all()
+        self.vbox.show_all()
 
     def add_games(self, games: Sequence[Game]) -> None:
         def mark_category_checkbox(checkbox, included):

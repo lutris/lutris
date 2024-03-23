@@ -159,8 +159,11 @@ class GameActions:
 
     def on_edit_game_categories(self, _widget):
         """Edit game categories"""
-        dlg = self.application.show_window(EditGameCategoriesDialog, parent=self.window)
-        dlg.add_games(self.get_games())
+
+        def add_games(window):
+            window.add_games(self.get_games())
+
+        self.application.show_window(EditGameCategoriesDialog, update_function=add_games, parent=self.window)
 
 
 class MultiGameActions(GameActions):
