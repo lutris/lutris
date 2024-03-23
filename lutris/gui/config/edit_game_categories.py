@@ -6,6 +6,7 @@ from typing import Sequence
 from gi.repository import Gtk
 
 from lutris.database import categories as categories_db
+from lutris.database.categories import is_reserved_category
 from lutris.game import Game
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
 
@@ -23,7 +24,8 @@ class EditGameCategoriesDialog(SavableModelessDialog):
         self.games = []
         self.game_ids = []
         self.categories = sorted(
-            [c["name"] for c in categories_db.get_categories() if c["name"] != "favorite"], key=locale.strxfrm
+            [c["name"] for c in categories_db.get_categories() if not is_reserved_category(c["name"])],
+            key=locale.strxfrm,
         )
 
         self.checkbox_grid = Gtk.Grid()
@@ -39,15 +41,22 @@ class EditGameCategoriesDialog(SavableModelessDialog):
         self.vbox.show_all()
 
     def add_games(self, games: Sequence[Game]) -> None:
+        """Adds games to the dialog; this is intended to be used when the dialog is for multiple games,
+        and can be used more than once to accumulate games."""
+
         def mark_category_checkbox(checkbox, included):
-            first = len(self.games) == 0
-            if first:
+            # Checks or unchecks a textbox- but after the first game, this will
+            # compare against the current state and go to 'inconsistent' rather than
+            # reversing the checkbox.
+            if len(self.games) == 0:
                 checkbox.set_active(included)
             elif not checkbox.get_inconsistent() and checkbox.get_active() != included:
                 checkbox.set_active(False)
                 checkbox.set_inconsistent(True)
 
         def add_game(game):
+            # Adds a single game to the dialog, and checks or unchecks
+            # boxes as appropriate.
             categories = categories_db.get_categories_in_game(game.id)
             other_checkboxes = set(self.category_checkboxes.values())
             for category in categories:
@@ -73,6 +82,7 @@ class EditGameCategoriesDialog(SavableModelessDialog):
                 header_bar.set_subtitle(subtitle)
 
     def _create_category_checkboxes(self):
+        """Constructs a frame containing checkboxes for all known (non-special) categories."""
         frame = Gtk.Frame()
         scrolledwindow = Gtk.ScrolledWindow()
 
