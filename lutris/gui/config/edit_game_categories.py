@@ -15,6 +15,7 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
     def __init__(self, parent):
         super().__init__(_("Categories"), parent=parent, border_width=10)
+        self.set_default_size(350, 250)
 
         self.category_checkboxes = {}
         self.games = []
@@ -23,9 +24,7 @@ class EditGameCategoriesDialog(SavableModelessDialog):
             [c["name"] for c in categories_db.get_categories() if c["name"] != "favorite"], key=locale.strxfrm
         )
 
-        self.grid = Gtk.Grid()
-
-        self.set_default_size(350, 250)
+        self.checkbox_grid = Gtk.Grid()
 
         self.vbox.set_homogeneous(False)
         self.vbox.set_spacing(10)
@@ -67,60 +66,51 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
     def _create_category_checkboxes(self):
         frame = Gtk.Frame()
-        # frame.set_label("Categories") # probably too much redundancy
-        sw = Gtk.ScrolledWindow()
-        row = Gtk.VBox()
+        scrolledwindow = Gtk.ScrolledWindow()
 
         for category in self.categories:
             label = category
             checkbutton_option = Gtk.CheckButton(label)
-            checkbutton_option.connect("toggled", self.on_inconsistent_checkbutton_toggled)
-            self.grid.attach_next_to(checkbutton_option, None, Gtk.PositionType.BOTTOM, 3, 1)
+            checkbutton_option.connect("toggled", self.on_checkbutton_toggled)
+            self.checkbox_grid.attach_next_to(checkbutton_option, None, Gtk.PositionType.BOTTOM, 3, 1)
             self.category_checkboxes[category] = checkbutton_option
 
-        row.pack_start(self.grid, True, True, 0)
-        sw.add_with_viewport(row)
-        frame.add(sw)
+        scrolledwindow.add(self.checkbox_grid)
+        frame.add(scrolledwindow)
         return frame
 
     def _create_add_category(self):
         def on_add_category(*_args):
-            category_text = categories_db.strip_category_name(category_entry.get_text())
-            if not categories_db.is_reserved_category(category_text):
-                for category_checkbox in self.grid.get_children():
-                    if category_checkbox.get_label() == category_text:
-                        return
+            category = categories_db.strip_category_name(category_entry.get_text())
+            if not categories_db.is_reserved_category(category) and category not in self.category_checkboxes:
                 category_entry.set_text("")
-                checkbutton_option = Gtk.CheckButton(category_text)
-                checkbutton_option.set_active(True)
-                self.grid.attach_next_to(checkbutton_option, None, Gtk.PositionType.TOP, 3, 1)
-                categories_db.add_category(category_text)
-                self.vbox.show_all()
+                checkbutton = Gtk.CheckButton(category, visible=True, active=True)
+                self.category_checkboxes[category] = checkbutton
+                self.checkbox_grid.attach_next_to(checkbutton, None, Gtk.PositionType.TOP, 3, 1)
+                categories_db.add_category(category)
 
-        hbox = Gtk.HBox()
-        hbox.set_spacing(10)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 
         category_entry = Gtk.Entry()
-        category_entry.set_text("")
         category_entry.connect("activate", on_add_category)
         hbox.pack_start(category_entry, True, True, 0)
 
         button = Gtk.Button.new_with_label(_("Add Category"))
         button.connect("clicked", on_add_category)
         button.set_tooltip_text(_("Adds the category to the list."))
-        hbox.pack_start(button, False, False, 0)
+        hbox.pack_end(button, False, False, 0)
 
         return hbox
 
     @staticmethod
-    def on_inconsistent_checkbutton_toggled(checkbutton):
+    def on_checkbutton_toggled(checkbutton):
         checkbutton.set_inconsistent(False)
 
     def on_save(self, _button):
         """Save game info and destroy widget."""
 
         for game in self.games:
-            for category_checkbox in self.grid.get_children():
+            for category_checkbox in self.category_checkboxes.values():
                 removed_categories = set()
                 added_categories = set()
 
