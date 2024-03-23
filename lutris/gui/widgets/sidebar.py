@@ -22,6 +22,7 @@ from lutris.runners import InvalidRunnerError
 from lutris.services import SERVICES
 from lutris.services.base import AuthTokenExpiredError, BaseService
 from lutris.util.library_sync import LOCAL_LIBRARY_SYNCED, LOCAL_LIBRARY_SYNCING
+from lutris.util.strings import get_natural_sort_key
 
 TYPE = 0
 SLUG = 1
@@ -253,6 +254,10 @@ class CategorySidebarRow(SidebarRow):
         self.category = category
 
         self._sort_name = locale.strxfrm(category["name"])
+
+    @property
+    def sort_key(self):
+        return get_natural_sort_key(self.name)
 
     def get_actions(self):
         """Return the definition of buttons to be added to the row"""
