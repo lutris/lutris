@@ -7,7 +7,7 @@ from gi.repository import Gtk
 
 from lutris.database import categories as categories_db
 from lutris.game import Game
-from lutris.gui.dialogs import SavableModelessDialog
+from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
 
 
 class EditGameCategoriesDialog(SavableModelessDialog):
@@ -61,7 +61,7 @@ class EditGameCategoriesDialog(SavableModelessDialog):
             if g.id not in self.game_ids:
                 add_game(g)
 
-        title = self.games[0].name if len(self.games) == 1 else _("%s games") % len(self.games)
+        title = self.games[0].name if len(self.games) == 1 else _("%d games") % len(self.games)
         self.set_title(title)
 
     def _create_category_checkboxes(self):
@@ -109,6 +109,8 @@ class EditGameCategoriesDialog(SavableModelessDialog):
     def on_save(self, _button):
         """Save game info and destroy widget."""
 
+        changes = []
+
         for game in self.games:
             for category_checkbox in self.category_checkboxes.values():
                 removed_categories = set()
@@ -125,6 +127,26 @@ class EditGameCategoriesDialog(SavableModelessDialog):
                             added_categories.add(label)
 
                 if added_categories or removed_categories:
-                    game.update_game_categories(added_categories, removed_categories)
+                    changes.append((game, added_categories, removed_categories))
+
+        if changes and len(self.games) > 1:
+            if len(changes) == 1:
+                question = _("You are updating the categories on 1 game. Are you sure you want to change it?")
+            else:
+                question = _(
+                    "You are updating the categories on %d games. Are you sure you want to change them?"
+                ) % len(changes)
+            dlg = QuestionDialog(
+                {
+                    "parent": self,
+                    "question": question,
+                    "title": _("Changing Categories"),
+                }
+            )
+            if dlg.result != Gtk.ResponseType.YES:
+                return
+
+        for game, added_categories, removed_categories in changes:
+            game.update_game_categories(added_categories, removed_categories)
 
         self.destroy()
