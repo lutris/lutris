@@ -897,7 +897,7 @@ class Game(GObject.Object):
     def stop_game(self):
         """Cleanup after a game as stopped"""
         duration = self.timer.duration
-        logger.debug("%s has run for %s seconds", self, duration)
+        logger.debug("%s has run for %d seconds", self, duration)
         if duration < 5:
             logger.warning("The game has run for a very short time, did it crash?")
             # Inspect why it could have crashed
