@@ -933,6 +933,7 @@ class wine(Runner):
 
     def run_winekill(self, *args):
         """Runs wineserver -k."""
+
         winekill(
             self.prefix_path,
             arch=self.wine_arch,
@@ -1147,7 +1148,9 @@ class wine(Runner):
             exe = wine_path or self.get_executable()
         except MisconfigurationError:
             return set()
-
+        if proton.is_proton_path(exe):
+            logger.debug("Tracking PIDs of Proton games is not possible at the moment")
+            return set()
         if not exe.startswith("/"):
             exe = system.find_required_executable(exe)
         pids = system.get_pids_using_file(exe)

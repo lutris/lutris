@@ -177,22 +177,22 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_p
     """Kill processes in Wine prefix."""
 
     initial_pids = initial_pids or []
-
-    if not wine_path:
-        if not runner:
-            runner = import_runner("wine")()
-        wine_path = runner.get_executable()
-    wine_root = os.path.dirname(wine_path)
     if not env:
-        env = {"WINEARCH": arch, "WINEPREFIX": prefix}
-    command = [os.path.join(wine_root, "wineserver"), "-k"]
+            env = {"WINEARCH": arch, "WINEPREFIX": prefix}
+    if proton.is_proton_path(wine_path):
+        command = [proton.get_umu_path(), "runinprefix", "wineboot", "-e"]
+        env["GAMEID"] = proton.DEFAULT_GAMEID
+    else:
+        if not wine_path:
+            if not runner:
+                runner = import_runner("wine")()
+            wine_path = runner.get_executable()
+        wine_root = os.path.dirname(wine_path)
 
-    logger.debug("Killing all wine processes: %s", command)
-    logger.debug("\tWine prefix: %s", prefix)
-    logger.debug("\tWine arch: %s", arch)
-    if initial_pids:
-        logger.debug("\tInitial pids: %s", initial_pids)
-
+        command = [os.path.join(wine_root, "wineserver"), "-k"]
+        logger.debug("Killing all wine processes (%s) in prefix %s: %s", initial_pids, prefix, command)
+    logger.debug(command)
+    logger.debug(" ".join(command))
     system.execute(command, env=env, quiet=True)
 
     logger.debug("Waiting for wine processes to terminate")
