@@ -212,6 +212,12 @@ def format_version_architecture(base_version: str, arch: Optional[str] = None) -
     if not base_version:
         return ""
 
+    # A gross hack, since runner versions could be used with non-Wine runners,
+    # but it so happens we don't. 'GE-Proton' versions arbitrarily do not have
+    # an architecture on them - they are always 64-bit.
+    if base_version.startswith("GE-Proton"):
+        return base_version
+
     if arch:
         return "{}-{}".format(base_version, arch)
 
