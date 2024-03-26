@@ -297,7 +297,10 @@ def get_default_runner_version_info(runner_name: str, version: Optional[str] = N
 
         for candidate in iter_get_from_api_candidates():
             if candidate:
-                return candidate
+                if not version:
+                    return candidate
+                if version == candidate.get("version") and arch == candidate.get("architecture"):
+                    return candidate
         return None
 
     return get_from_cache() or get_from_api()
