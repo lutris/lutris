@@ -247,7 +247,10 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if "system" in self.script:
             config["system"] = self._substitute_config(self.script["system"])
         if self.script.get(self.runner):
-            config[self.runner] = self._substitute_config(self.script[self.runner])
+            installer_runner_config = self._substitute_config(self.script[self.runner])
+            import_runner(self.runner)().adjust_installer_runner_config(installer_runner_config)
+            config[self.runner] = installer_runner_config
+
         launcher, launcher_config = self.get_game_launcher_config(self.interpreter.game_files)
         if launcher:
             config["game"][launcher] = launcher_config

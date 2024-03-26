@@ -3,7 +3,7 @@
 import os
 import shlex
 from gettext import gettext as _
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
@@ -815,6 +815,11 @@ class wine(Runner):
                 version = format_runner_version(default_version_info)
 
         return version
+
+    def adjust_installer_runner_config(self, installer_runner_config: Dict[str, Any]) -> None:
+        version = installer_runner_config.get("version")
+        if version:
+            installer_runner_config["version"] = normalize_version_architecture(version)
 
     @classmethod
     def get_runner_version_and_config(cls) -> Tuple[str, LutrisConfig]:
