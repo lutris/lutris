@@ -10,7 +10,7 @@ from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.dialogs import NoticeDialog
 from lutris.runtime import RuntimeUpdater
 from lutris.services.lutris import sync_media
-from lutris.settings import UPDATE_CHANNEL_STABLE, UPDATE_CHANNEL_UNSUPPORTED
+from lutris.settings import UPDATE_CHANNEL_STABLE, UPDATE_CHANNEL_UMU, UPDATE_CHANNEL_UNSUPPORTED
 from lutris.util import system
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -62,6 +62,18 @@ class UpdatesBox(BaseConfigBox):
         )
 
         markup = _(
+            "<b>Umu</b>:\n"
+            "Umu enables the use of Proton and Pressure Vessel outside of Steam. \n"
+            "It uses its own version of Proton which automatically applies game fixes.\n"
+            "Updates to Proton will be automatically downloaded when a game is launched"
+            "\n"
+            "<b>WARNING: This feature is still under heavy development</b>"
+        )
+        umu_channel_radio_button = self._get_radio_button(
+            markup, active=update_channel == UPDATE_CHANNEL_UMU, group=stable_channel_radio_button
+        )
+
+        markup = _(
             "<b>Self-maintained</b>:\n"
             "Wine updates are no longer delivered automatically and you have full responsibility "
             "of your Wine versions.\n"
@@ -74,8 +86,9 @@ class UpdatesBox(BaseConfigBox):
         )
         # Safer to connect these after the active property has been initialized on all radio buttons
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
+        umu_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UMU)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
-        return (stable_channel_radio_button, unsupported_channel_radio_button)
+        return (stable_channel_radio_button, umu_channel_radio_button, unsupported_channel_radio_button)
 
     def get_wine_update_texts(self):
         wine_version_info = get_default_wine_runner_version_info()
@@ -198,12 +211,12 @@ class UpdatesBox(BaseConfigBox):
         if component_updaters:
 
             def on_complete(_result):
-                if len(component_updaters) == 1:
-                    update_box.show_completion_markup("", _("1 component has been updated."))
+                # the 'icons' updater always shows as updated even when it's not
+                component_names = [updater.name for updater in component_updaters if updater.name != "icons"]
+                if len(component_names) == 1:
+                    update_box.show_completion_markup("", _("%s has been updated.") % component_names[0])
                 else:
-                    update_box.show_completion_markup(
-                        "", _("%d components have been updated.") % len(component_updaters)
-                    )
+                    update_box.show_completion_markup("", _("%s have been updated.") % ", ".join(component_names))
 
             started = window.install_runtime_component_updates(
                 component_updaters, updater, completion_function=on_complete, error_function=update_box.show_error
@@ -221,7 +234,7 @@ class UpdatesBox(BaseConfigBox):
         if not checkbox.get_active():
             return
         last_setting = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
-        if last_setting == UPDATE_CHANNEL_STABLE and value == UPDATE_CHANNEL_UNSUPPORTED:
+        if last_setting != UPDATE_CHANNEL_UNSUPPORTED and value == UPDATE_CHANNEL_UNSUPPORTED:
             NoticeDialog(
                 _("Without the Wine-GE updates enabled, we can no longer provide support on Github and Discord."),
                 parent=self.get_toplevel(),

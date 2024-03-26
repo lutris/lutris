@@ -166,11 +166,6 @@ class RuntimeUpdater:
 
             if not self.update_runtime:
                 logger.warning("Runtime updates are disabled. This configuration is not supported.")
-            if not self.update_runners:
-                logger.warning(
-                    "Wine updates have been disabled. To receive support on Github or Discord, "
-                    "switch back to the stable channel"
-                )
 
             if not check_stale_runtime_versions():
                 self.update_runtime = False

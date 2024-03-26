@@ -297,16 +297,11 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 self.script["game"].update(lutris_config)
 
         configpath = write_game_config(self.slug, self.get_game_config())
-        runner_inst = import_runner(self.runner)()
-        if self.service:
-            service_id = self.service.id
-        else:
-            service_id = None
         self.game_id = add_or_update(
             name=self.game_name,
             runner=self.runner,
             slug=self.game_slug,
-            platform=runner_inst.get_platform(),
+            platform=import_runner(self.runner)().get_platform(),
             directory=self.interpreter.target_path,
             installed=1,
             hidden=0,
@@ -314,7 +309,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             parent_slug=self.requires,
             year=self.year,
             configpath=configpath,
-            service=service_id,
+            service=self.service.id if self.service else None,
             service_id=self.service_appid,
             id=self.game_id,
             discord_id=self.discord_id,

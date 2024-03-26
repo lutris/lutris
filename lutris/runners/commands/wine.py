@@ -178,7 +178,7 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_p
 
     initial_pids = initial_pids or []
     if not env:
-            env = {"WINEARCH": arch, "WINEPREFIX": prefix}
+        env = {"WINEARCH": arch, "WINEPREFIX": prefix}
     if proton.is_proton_path(wine_path):
         command = [proton.get_umu_path(), "runinprefix", "wineboot", "-e"]
         env["GAMEID"] = proton.DEFAULT_GAMEID

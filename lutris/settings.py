@@ -64,6 +64,7 @@ DEFAULT_RESOLUTION_WIDTH = sio.read_setting("default_resolution_width", default=
 DEFAULT_RESOLUTION_HEIGHT = sio.read_setting("default_resolution_height", default="720")
 
 UPDATE_CHANNEL_STABLE = "stable"
+UPDATE_CHANNEL_UMU = "umu"
 UPDATE_CHANNEL_UNSUPPORTED = "self-maintained"
 
 read_setting = sio.read_setting
