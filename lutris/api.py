@@ -195,17 +195,30 @@ def download_runner_versions(runner_name: str) -> list:
 
 
 def format_runner_version(version_info: Dict[str, str]) -> str:
-    version = version_info.get("version")
-    if not version:
-        return ""
+    version = version_info.get("version") or ""
     arch = version_info.get("architecture")
+    return format_version_architecture(version, arch)
+
+
+def normalize_version_architecture(version_name: str) -> str:
+    """Ensures the version name has an architecture on the end ofit;
+    adds the system's architecture if it is missing."""
+    base_version, arch = parse_version_architecture(version_name)
+    return format_version_architecture(base_version, arch) if base_version else ""
+
+
+def format_version_architecture(base_version: str, arch: Optional[str] = None) -> str:
+    """Assembles a version with architecture from the version and architecture."""
+    if not base_version:
+        return ""
+
     if arch:
-        return "{}-{}".format(version, arch)
+        return "{}-{}".format(base_version, arch)
 
-    return version
+    return base_version
 
 
-def parse_version_architecture(version_name: Optional[str]) -> Tuple[Optional[str], str]:
+def parse_version_architecture(version_name: str) -> Tuple[str, str]:
     """Splits a version that ends with an architecture into the plain version and
     architecture, as a tuple. If the version has no architecture, this provides
     the system's architecture instead."""
@@ -216,7 +229,7 @@ def parse_version_architecture(version_name: Optional[str]) -> Tuple[Optional[st
     return version_name, LINUX_SYSTEM.arch
 
 
-def get_default_runner_version_info(runner_name: str, version: str = None) -> Dict[str, str]:
+def get_default_runner_version_info(runner_name: str, version: Optional[str] = None) -> Dict[str, str]:
     """Get the appropriate version for a runner
 
     Params:
@@ -228,7 +241,7 @@ def get_default_runner_version_info(runner_name: str, version: str = None) -> Di
         a dict containing only the version itself.
     """
 
-    version, arch = parse_version_architecture(version)
+    version, arch = parse_version_architecture(version or "")
 
     def get_from_cache():
         # Prefer to provide the info from our local cache if we can; if this can't find

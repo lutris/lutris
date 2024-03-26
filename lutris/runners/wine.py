@@ -6,7 +6,7 @@ from gettext import gettext as _
 from typing import Dict, Optional, Tuple
 
 from lutris import runtime, settings
-from lutris.api import format_runner_version
+from lutris.api import format_runner_version, normalize_version_architecture
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import (
@@ -789,6 +789,7 @@ class wine(Runner):
         version = None
         if installer.script.get(installer.runner):
             version = installer.script[installer.runner].get("version")
+            version = normalize_version_architecture(version)
         # If the installer is an extension, use the wine version from the base game
         elif installer.requires:
             db_game = get_game_by_field(installer.requires, field="installer_slug")
