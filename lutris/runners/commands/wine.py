@@ -408,26 +408,28 @@ def winetricks(
             runner = import_runner("wine")()
         winetricks_wine = runner.get_executable()
     # We only need to perform winetricks if not using umu/proton. umu uses protonfixes
-    if ("Proton" not in wine_path) or ("lutris" in wine_path and "Proton" in wine_path):
-        if arch not in ("win32", "win64"):
-            arch = detect_arch(prefix, winetricks_wine)
-        args = app
-        if str(silent).lower() in ("yes", "on", "true"):
-            args = "--unattended " + args
+    if proton.is_proton_path(wine_path):
+        logger.warning("Winetricks is currently not supported with Proton")
+        return
+    if arch not in ("win32", "win64"):
+        arch = detect_arch(prefix, winetricks_wine)
+    args = app
+    if str(silent).lower() in ("yes", "on", "true"):
+        args = "--unattended " + args
 
-        return wineexec(
-            None,
-            prefix=prefix,
-            winetricks_wine=winetricks_wine,
-            wine_path=winetricks_path,
-            working_dir=working_dir,
-            arch=arch,
-            args=args,
-            config=config,
-            env=env,
-            disable_runtime=disable_runtime,
-            runner=runner,
-        )
+    return wineexec(
+        None,
+        prefix=prefix,
+        winetricks_wine=winetricks_wine,
+        wine_path=winetricks_path,
+        working_dir=working_dir,
+        arch=arch,
+        args=args,
+        config=config,
+        env=env,
+        disable_runtime=disable_runtime,
+        runner=runner,
+    )
 
 
 def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, env=None, runner=None):
