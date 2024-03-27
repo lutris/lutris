@@ -10,7 +10,7 @@ import subprocess
 import zipfile
 from gettext import gettext as _
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
 from gi.repository import Gio, GLib
 
@@ -38,7 +38,14 @@ def get_environment():
     return {key: value for key, value in os.environ.items() if not key.startswith("BASH_FUNC")}
 
 
-def execute(command, env=None, cwd=None, quiet=False, shell=False, timeout=None):
+def execute(
+    command: List[str],
+    env: Dict[str, str] = None,
+    cwd: str = None,
+    quiet: bool = False,
+    shell: bool = False,
+    timeout: float = None,
+) -> str:
     """
     Execute a system command and return its standard output; standard error is discarded.
 
@@ -56,7 +63,14 @@ def execute(command, env=None, cwd=None, quiet=False, shell=False, timeout=None)
     return stdout
 
 
-def execute_with_error(command, env=None, cwd=None, quiet=False, shell=False, timeout=None):
+def execute_with_error(
+    command: List[str],
+    env: Dict[str, str] = None,
+    cwd: str = None,
+    quiet: bool = False,
+    shell: bool = False,
+    timeout: float = None,
+) -> Tuple[str, str]:
     """
     Execute a system command and return its standard output and; standard error in a tuple.
 
@@ -68,19 +82,27 @@ def execute_with_error(command, env=None, cwd=None, quiet=False, shell=False, ti
         timeout (int): Number of seconds the program is allowed to run, disabled by default
 
     Returns:
-        str: stdout output
+        str, str: stdout output and stderr output
     """
     return _execute(command, env=env, cwd=cwd, capture_stderr=True, quiet=quiet, shell=shell, timeout=timeout)
 
 
-def _execute(command, env=None, cwd=None, capture_stderr=False, quiet=False, shell=False, timeout=None):
+def _execute(
+    command: List[str],
+    env: Dict[str, str] = None,
+    cwd: str = None,
+    capture_stderr: bool = False,
+    quiet: bool = False,
+    shell: bool = False,
+    timeout: float = None,
+) -> Tuple[str, str]:
     # Check if the executable exists
     if not command:
         logger.error("No executable provided!")
-        return ""
+        return "", ""
     if os.path.isabs(command[0]) and not path_exists(command[0]):
         logger.error("No executable found in %s", command)
-        return ""
+        return "", ""
 
     if not quiet:
         logger.debug("Executing %s", " ".join([str(i) for i in command]))
@@ -108,10 +130,10 @@ def _execute(command, env=None, cwd=None, capture_stderr=False, quiet=False, she
             stdout, stderr = command_process.communicate(timeout=timeout)
     except (OSError, TypeError) as ex:
         logger.error("Could not run command %s (env: %s): %s", command, env, ex)
-        return ""
+        return "", ""
     except subprocess.TimeoutExpired:
         logger.error("Command %s after %s seconds", command, timeout)
-        return ""
+        return "", ""
 
     return stdout.strip(), (stderr or "").strip()
 
