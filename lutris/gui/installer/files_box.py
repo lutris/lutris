@@ -10,8 +10,8 @@ class InstallerFilesBox(Gtk.ListBox):
     max_downloads = 3
 
     __gsignals__ = {
-        "files-ready": (GObject.SIGNAL_RUN_LAST, None, (bool,)),
-        "files-available": (GObject.SIGNAL_RUN_LAST, None, ()),
+        "files-ready": (GObject.SignalFlags.RUN_LAST, None, (bool,)),
+        "files-available": (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     def __init__(self):

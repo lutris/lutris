@@ -40,7 +40,7 @@ class FileChooserEntry(Gtk.Box):
     max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.
 
     __gsignals__ = {
-        "changed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "changed": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
     def __init__(
@@ -336,7 +336,7 @@ class VBox(Gtk.Box):
 
 
 class EditableGrid(Gtk.Box):
-    __gsignals__ = {"changed": (GObject.SIGNAL_RUN_FIRST, None, ())}
+    __gsignals__ = {"changed": (GObject.SignalFlags.RUN_FIRST, None, ())}
 
     def __init__(self, data, columns):
         self.columns = columns

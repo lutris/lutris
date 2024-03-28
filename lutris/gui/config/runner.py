@@ -11,7 +11,7 @@ class RunnerConfigDialog(GameDialogCommon):
     """Runner config edit dialog."""
 
     __gsignals__ = {
-        "runner-updated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "runner-updated": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
     }
 
     def __init__(self, runner, parent=None):

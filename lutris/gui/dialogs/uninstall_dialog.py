@@ -332,7 +332,7 @@ class UninstallDialog(Gtk.Dialog):
 
 class GameRemovalRow(Gtk.ListBoxRow):
     __gsignals__ = {
-        "row-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "row-updated": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
     def __init__(self, game: Game):

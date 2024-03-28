@@ -27,7 +27,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     """Control the execution of an installer"""
 
     __gsignals__ = {
-        "runners-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "runners-installed": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
     class InterpreterUIDelegate(Delegate):
