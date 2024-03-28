@@ -252,7 +252,7 @@ def get_runner_version_from_cache(runner_name, version):
     return None
 
 
-def iter_get_from_api_candidates(versions: list, version: str, arch: str):
+def iter_get_from_api_candidates(versions: list, version: Optional[str], arch: Optional[str]):
     """A generator yielding possible version infos, or None for those that are available;
     we pick the first non-None value yielded."""
 
@@ -281,7 +281,7 @@ def iter_get_from_api_candidates(versions: list, version: str, arch: str):
     yield select_info(lambda v: v["architecture"] == arch, accept_ambiguous=True)
 
 
-def get_runner_version_from_api(runner_name: str, version: str):
+def get_runner_version_from_api(runner_name: str, version: Optional[str]):
     version, arch = parse_version_architecture(version or "")
     versions = download_runner_versions(runner_name)
     for candidate in iter_get_from_api_candidates(versions, version, arch):
