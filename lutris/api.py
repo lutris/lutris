@@ -190,8 +190,7 @@ def download_runner_versions(runner_name: str) -> list:
         runner_info = None
     if not runner_info:
         return []
-    versions = runner_info.get("versions") or []
-    return versions
+    return runner_info.get("versions") or []
 
 
 def format_runner_version(version_info: Dict[str, str]) -> str:
@@ -235,6 +234,65 @@ def parse_version_architecture(version_name: str) -> Tuple[str, str]:
     return version_name, LINUX_SYSTEM.arch
 
 
+def get_runner_version_from_cache(runner_name, version):
+    # Prefer to provide the info from our local cache if we can; if this can't find
+    # an unambiguous result, we'll fall back on the API which should know what the default is.
+    version, _arch = parse_version_architecture(version or "")
+    runtime_versions = get_runtime_versions()
+    if runtime_versions:
+        try:
+            runner_versions = runtime_versions["runners"][runner_name]
+            runner_versions = [r for r in runner_versions if r["architecture"] in (LINUX_SYSTEM.arch, "all")]
+            if version:
+                runner_versions = [r for r in runner_versions if r["version"] == version]
+            if len(runner_versions) == 1:
+                return runner_versions[0]
+        except KeyError:
+            pass
+    return None
+
+
+def iter_get_from_api_candidates(versions: list, version: str, arch: str):
+    """A generator yielding possible version infos, or None for those that are available;
+    we pick the first non-None value yielded."""
+
+    def select_info(predicate=None, accept_ambiguous=False):
+        candidates = [v for v in versions if predicate(v)]
+
+        if candidates and (accept_ambiguous or len(candidates) == 1):
+            return candidates[0]
+
+        return None
+
+    if version:
+        yield select_info(lambda v: v["architecture"] == arch and v["version"] == version)
+    else:
+        yield select_info(lambda v: v["architecture"] == arch and v["default"])
+
+    # Try various fallbacks to get some version - we prefer the default version
+    # or a version with the right architecture.
+    yield select_info(lambda v: v["architecture"] == arch and v["default"])
+    yield select_info(lambda v: v["architecture"] == arch)
+
+    # 64-bit system can use 32-bit version, if it's the default.
+    if LINUX_SYSTEM.is_64_bit:
+        yield select_info(lambda v: v["default"])
+
+    yield select_info(lambda v: v["architecture"] == arch, accept_ambiguous=True)
+
+
+def get_runner_version_from_api(runner_name: str, version: str):
+    version, arch = parse_version_architecture(version or "")
+    versions = download_runner_versions(runner_name)
+    for candidate in iter_get_from_api_candidates(versions, version, arch):
+        if candidate:
+            if not version:
+                return candidate
+            if version == candidate.get("version") and arch == candidate.get("architecture"):
+                return candidate
+    return None
+
+
 def get_default_runner_version_info(runner_name: str, version: Optional[str] = None) -> Dict[str, str]:
     """Get the appropriate version for a runner
 
@@ -246,70 +304,7 @@ def get_default_runner_version_info(runner_name: str, version: Optional[str] = N
         if the data can't be retrieved. If a pseudo-version is accepted, may be
         a dict containing only the version itself.
     """
-
-    version, arch = parse_version_architecture(version or "")
-
-    def get_from_cache():
-        # Prefer to provide the info from our local cache if we can; if this can't find
-        # an unambiguous result, we'll fall back on the API which should know what the default is.
-        runtime_versions = get_runtime_versions()
-        if runtime_versions:
-            try:
-                runner_versions = runtime_versions["runners"][runner_name]
-                runner_versions = [r for r in runner_versions if r["architecture"] in (LINUX_SYSTEM.arch, "all")]
-                if version:
-                    runner_versions = [r for r in runner_versions if r["version"] == version]
-                if len(runner_versions) == 1:
-                    return runner_versions[0]
-            except KeyError:
-                pass
-        return None
-
-    def iter_get_from_api_candidates():
-        """A generator yielding possible version infos, or None for those that are available;
-        we pick the first non-None value yielded."""
-        versions = download_runner_versions(runner_name)
-
-        def select_info(predicate=None, accept_ambiguous=False):
-            candidates = [v for v in versions if predicate(v)]
-
-            if candidates and (accept_ambiguous or len(candidates) == 1):
-                return candidates[0]
-
-            return None
-
-        if version:
-            yield select_info(lambda v: v["architecture"] == arch and v["version"] == version)
-        else:
-            yield select_info(lambda v: v["architecture"] == arch and v["default"])
-
-        # Try various fallbacks to get some version - we prefer the default version
-        # or a version with the right architecture.
-        yield select_info(lambda v: v["architecture"] == arch and v["default"])
-        yield select_info(lambda v: v["architecture"] == arch)
-
-        # 64-bit system can use 32-bit version, if it's the default.
-        if LINUX_SYSTEM.is_64_bit:
-            yield select_info(lambda v: v["default"])
-
-        yield select_info(lambda v: v["architecture"] == arch, accept_ambiguous=True)
-
-    def get_from_api():
-        logger.info(
-            "Getting runner information for %s%s",
-            runner_name,
-            " (version: %s)" % version if version else "",
-        )
-
-        for candidate in iter_get_from_api_candidates():
-            if candidate:
-                if not version:
-                    return candidate
-                if version == candidate.get("version") and arch == candidate.get("architecture"):
-                    return candidate
-        return None
-
-    return get_from_cache() or get_from_api()
+    return get_runner_version_from_cache(runner_name, version) or get_runner_version_from_api(runner_name, version)
 
 
 @cache_single

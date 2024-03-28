@@ -3,8 +3,6 @@ from unittest import TestCase
 from lutris import runners
 from lutris.gui.application import Application
 from lutris.gui.config.add_game_dialog import AddGameDialog
-
-# from lutris import settings
 from lutris.gui.config.game_common import GameDialogCommon
 from lutris.gui.views.store import sort_func
 from lutris.util.test_config import setup_test_environment
