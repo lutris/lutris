@@ -52,7 +52,6 @@ WINE_RUNNER_VERSIONS = [
 
 
 class TestApi(unittest.TestCase):
-
     @patch("lutris.api.get_runtime_versions")
     @patch("lutris.api.download_runner_versions")
     def test_get_default_runner_version_info(self, mock_download_runner_versions, mock_get_runtime_versions):
@@ -66,3 +65,6 @@ class TestApi(unittest.TestCase):
 
         version_info = api.get_default_runner_version_info("wine", "lutris-7.2-1-x86_64")
         self.assertEqual(version_info["version"], "lutris-7.2-1")
+
+        version_info = api.get_default_runner_version_info("wine", "bogus-version")
+        self.assertIsNone(version_info)
