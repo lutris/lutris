@@ -24,7 +24,13 @@ class cemu(Runner):
                 "The directory in which the game lives. "
                 "If installed into Cemu, this will be in the mlc directory, such as mlc/usr/title/00050000/101c9500."
             ),
-        }
+        },
+        {
+            "option": "wua_rom",
+            "type": "file",
+            "label": _("Compressed ROM"),
+            "help": _("A game compressed into a single file (WUA format), only use if not using game directory"),
+        },
     ]
     runner_options = [
         {
@@ -82,7 +88,7 @@ class cemu(Runner):
         legacy = self.runner_config.get("legacy")
         if legacy:
             arguments.append("--legacy")
-        gamedir = self.game_config.get("main_file") or ""
+        gamedir = self.game_config.get("main_file") or self.game_config.get("wua_rom") or ""
         if not system.path_exists(gamedir):
             raise DirectoryNotFoundError(directory=gamedir)
         arguments += ["-g", gamedir]
