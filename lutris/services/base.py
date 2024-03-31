@@ -88,10 +88,10 @@ class BaseService(GObject.Object):
     is_loading = False
 
     __gsignals__ = {
-        "service-games-load": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "service-login": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "service-logout": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "service-games-load": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "service-games-loaded": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "service-login": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "service-logout": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
     @property

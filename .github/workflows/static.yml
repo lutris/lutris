@@ -45,5 +45,4 @@ jobs:
           ruff --version
           ruff check .
       - name: Check format
-        continue-on-error: true # TODO remove this line when format is applied
         run: ruff format . --check

@@ -12,8 +12,8 @@ from lutris.util.log import logger
 
 class RunnerBox(Gtk.Box):
     __gsignals__ = {
-        "runner-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "runner-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "runner-installed": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "runner-removed": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
     def __init__(self, runner_name):
