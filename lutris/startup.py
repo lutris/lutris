@@ -1,4 +1,5 @@
 """Check to run at program start"""
+
 import os
 import sqlite3
 from gettext import gettext as _

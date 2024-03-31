@@ -1,4 +1,5 @@
 """Install script interpreter package."""
+
 import enum
 
 import yaml

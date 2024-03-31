@@ -1,10 +1,10 @@
 """Timer module"""
+
 # Standard Library
 import time
 
 
 class Timer:
-
     """Simple Timer class to time code"""
 
     def __init__(self):

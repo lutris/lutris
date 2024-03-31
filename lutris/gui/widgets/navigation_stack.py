@@ -1,4 +1,5 @@
 """Window used for game installers"""
+
 # pylint: disable=too-many-lines
 from gi.repository import Gtk
 

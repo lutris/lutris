@@ -1,4 +1,5 @@
 """Dialog used to install versions of a runner"""
+
 # pylint: disable=no-member
 import gettext
 import os

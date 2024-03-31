@@ -1,4 +1,5 @@
 """Common values used for views"""
+
 (
     COL_ID,
     COL_SLUG,

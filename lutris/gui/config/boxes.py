@@ -1,4 +1,5 @@
 """Widget generators and their signal handlers"""
+
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 import os

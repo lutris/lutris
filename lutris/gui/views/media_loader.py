@@ -1,4 +1,5 @@
 """Loads game media in parallel"""
+
 import concurrent.futures
 
 from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED

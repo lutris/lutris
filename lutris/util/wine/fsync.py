@@ -49,6 +49,7 @@ Linux release.
 
 This module's code is based on https://gist.github.com/openglfreak/715d5ab5902497378f1996061dbbf8ec
 """
+
 import ctypes
 import errno
 import os

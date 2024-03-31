@@ -1,4 +1,5 @@
 """Keep track of game executables' presence"""
+
 import json
 import os
 import time

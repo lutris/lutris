@@ -1,4 +1,5 @@
 """Base class and utilities for JSON based runners"""
+
 import json
 import os
 

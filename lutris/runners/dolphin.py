@@ -1,4 +1,5 @@
 """Dolphin runner"""
+
 from gettext import gettext as _
 
 from lutris.exceptions import MissingGameExecutableError

@@ -1,4 +1,5 @@
 """String utilities"""
+
 import math
 import re
 import shlex

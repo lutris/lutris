@@ -1,4 +1,5 @@
 """Utility module to deal with Proton and umu"""
+
 import json
 import os
 from gettext import gettext as _

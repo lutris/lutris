@@ -1,4 +1,5 @@
 """Migrate banners from .local/share/lutris to .cache/lutris"""
+
 import os
 
 from lutris import settings

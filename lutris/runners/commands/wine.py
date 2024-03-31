@@ -1,4 +1,5 @@
 """Wine commands for installers"""
+
 # pylint: disable=too-many-arguments
 import os
 import shlex

@@ -1,4 +1,5 @@
 """Installer specific exceptions"""
+
 import sys
 from gettext import gettext as _
 

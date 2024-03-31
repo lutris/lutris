@@ -1,4 +1,5 @@
 """Commonly used dialogs"""
+
 import os
 import traceback
 from gettext import gettext as _

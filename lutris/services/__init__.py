@@ -1,4 +1,5 @@
 """Service package"""
+
 import os
 
 from lutris import settings

@@ -1,4 +1,5 @@
 """Game representation for views"""
+
 import time
 
 from lutris.database import games

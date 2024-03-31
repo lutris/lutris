@@ -1,4 +1,5 @@
 """Functions to interact with the Lutris REST API"""
+
 import json
 import os
 import re

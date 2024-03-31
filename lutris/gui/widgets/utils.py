@@ -1,4 +1,5 @@
 """Various utilities using the GObject framework"""
+
 import array
 import os
 

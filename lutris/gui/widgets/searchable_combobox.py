@@ -1,4 +1,5 @@
 """Extended combobox with search"""
+
 # pylint: disable=unsubscriptable-object
 from gi.repository import GLib, GObject, Gtk
 

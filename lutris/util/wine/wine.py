@@ -1,4 +1,5 @@
 """Utilities for manipulating Wine"""
+
 import os
 from collections import OrderedDict
 from gettext import gettext as _

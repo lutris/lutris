@@ -1,4 +1,5 @@
 """Steam game library watcher"""
+
 # Third Party Libraries
 # pylint: disable=too-few-public-methods
 from gi.repository import Gio, GLib
@@ -8,7 +9,6 @@ from lutris.util.log import logger
 
 
 class SteamWatcher:
-
     """Watches a Steam library folder and notify changes"""
 
     def __init__(self, steamapps_paths, callback=None):

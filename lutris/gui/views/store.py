@@ -1,4 +1,5 @@
 """Store object for a list of games"""
+
 # pylint: disable=not-an-iterable
 import time
 

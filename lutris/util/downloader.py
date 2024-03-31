@@ -16,7 +16,6 @@ get_time = time.monotonic
 
 
 class Downloader:
-
     """Non-blocking downloader.
 
     Do start() then check_progress() at regular intervals.

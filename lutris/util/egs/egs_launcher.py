@@ -1,4 +1,5 @@
 """Interact with an exiting EGS install"""
+
 import json
 import os
 

@@ -1,1 +1,1 @@
-""" Lutris GUI package """
+"""Lutris GUI package"""

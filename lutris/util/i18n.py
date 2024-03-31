@@ -1,4 +1,5 @@
 """Language and translation utilities"""
+
 import locale
 
 from lutris.util.log import logger

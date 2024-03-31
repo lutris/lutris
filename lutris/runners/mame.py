@@ -1,4 +1,5 @@
 """Runner for MAME"""
+
 import os
 from gettext import gettext as _
 
@@ -60,7 +61,6 @@ def get_system_choices(include_year=True):
 
 
 class mame(Runner):  # pylint: disable=invalid-name
-
     """MAME runner"""
 
     human_name = _("MAME")

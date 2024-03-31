@@ -1,4 +1,5 @@
 """Options list for system config."""
+
 import os
 from collections import OrderedDict
 from gettext import gettext as _

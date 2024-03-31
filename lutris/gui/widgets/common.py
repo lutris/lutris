@@ -1,4 +1,5 @@
 """Misc widgets used in the GUI."""
+
 # Standard Library
 import os
 import shlex

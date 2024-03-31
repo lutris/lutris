@@ -1,4 +1,5 @@
 """Service game module"""
+
 from lutris import settings
 from lutris.database import sql
 from lutris.database.services import ServiceGameCollection

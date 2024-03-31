@@ -1,4 +1,5 @@
 """Manipulate Wine registry files"""
+
 import os
 import re
 from collections import OrderedDict
@@ -30,7 +31,6 @@ DATA_TYPES = {
 
 
 class WindowsFileTime:
-
     """Utility class to deal with Windows FILETIME structures.
 
     See: https://msdn.microsoft.com/en-us/library/ms724284(v=vs.85).aspx

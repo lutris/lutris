@@ -1,4 +1,5 @@
 """Grid view for the main window"""
+
 # pylint: disable=no-member
 from gi.repository import Gtk
 

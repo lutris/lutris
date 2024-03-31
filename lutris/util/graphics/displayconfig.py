@@ -1,4 +1,5 @@
 """DBus backed display management for Mutter"""
+
 from collections import namedtuple
 
 import dbus
@@ -10,7 +11,6 @@ DisplayConfig = namedtuple("DisplayConfig", ("monitors", "name", "position", "tr
 
 
 class Output:
-
     """Representation of a physical display output"""
 
     def __init__(self, output_info):
@@ -89,7 +89,6 @@ class Output:
 
 
 class DisplayMode:
-
     """Representation of a screen mode (resolution, refresh rate)"""
 
     def __init__(self, mode_info):
@@ -133,7 +132,6 @@ class DisplayMode:
 
 
 class CRTC:
-
     """A CRTC (CRT controller) is a logical monitor, ie a portion of the
     compositor coordinate space. It might correspond to multiple monitors, when
     in clone mode, but not that it is possible to implement clone mode also by
@@ -203,7 +201,6 @@ class CRTC:
 
 
 class MonitorMode(DisplayMode):
-
     """Represents a mode given by a Monitor instance
     In addition to DisplayMode objects, this gives acces to the current scaling
     used and some additional properties like is_current.
@@ -246,7 +243,6 @@ class MonitorMode(DisplayMode):
 
 
 class Monitor:
-
     """A physical monitor"""
 
     def __init__(self, monitor):
@@ -308,7 +304,6 @@ class Monitor:
 
 
 class LogicalMonitor:
-
     """A logical monitor. Similar to CRTCs but logical monitors also contain
     scaling information.
     """
@@ -372,7 +367,6 @@ class LogicalMonitor:
 
 
 class DisplayState:
-
     """Snapshot of a display configuration at a given time"""
 
     def __init__(self, interface):
@@ -423,7 +417,6 @@ class DisplayState:
 
 
 class MutterDisplayConfig:
-
     """Class to interact with the Mutter.DisplayConfig service"""
 
     namespace = "org.gnome.Mutter.DisplayConfig"
@@ -620,7 +613,6 @@ class MutterDisplayConfig:
 
 
 class MutterDisplayManager:
-
     """Manage displays using the DBus Mutter interface"""
 
     def __init__(self):

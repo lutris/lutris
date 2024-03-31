@@ -1,4 +1,5 @@
 """Main window for the Lutris interface."""
+
 # pylint: disable=too-many-lines
 # pylint: disable=no-member
 import os

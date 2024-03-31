@@ -9,7 +9,6 @@ from lutris.util.strings import gtk_safe, human_size
 
 
 class DownloadProgressBox(Gtk.Box):
-
     """Progress bar used to monitor a file download."""
 
     __gsignals__ = {

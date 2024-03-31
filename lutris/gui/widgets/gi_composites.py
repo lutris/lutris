@@ -151,7 +151,6 @@ def _init_template(self, cls, base_init_template):
 
 # TODO: Make it easier for IDE to introspect this
 class _Child:
-
     """
     Assign this to an attribute in your class definition and it will
     be replaced with a widget defined in the UI file when init_template
@@ -173,7 +172,6 @@ class _Child:
 
 
 class _GtkTemplate:
-
     """
     Use this class decorator to signify that a class is a composite
     widget which will receive widgets and connect to signals as

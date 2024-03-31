@@ -1,4 +1,5 @@
 """Commands for installer scripts"""
+
 import glob
 import json
 import multiprocessing

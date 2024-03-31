@@ -36,7 +36,7 @@ def rom_read_data(location):
         if mm[0:4] == b"WBFS":  # wii WBFS file
             data["name"] = bytes_to_str(scan_to_00(mm, 0x220))
             data["slug"] = "wii-" + bytes_to_str(scan_to_00(mm, 0x200))
-        elif mm[0x18:0x1C] == b"\x5D\x1C\x9E\xA3":  # wii iso file
+        elif mm[0x18:0x1C] == b"\x5d\x1c\x9e\xa3":  # wii iso file
             data["name"] = bytes_to_str(scan_to_00(mm, 0x20))
             data["slug"] = "wii-" + bytes_to_str(scan_to_00(mm, 0x0))
         else:

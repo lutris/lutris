@@ -1,4 +1,5 @@
 """Base module for runners"""
+
 import os
 import signal
 from gettext import gettext as _
@@ -19,7 +20,6 @@ from lutris.util.log import logger
 
 
 class Runner:  # pylint: disable=too-many-public-methods
-
     """Generic runner (base class for other runners)."""
 
     multiple_versions = False

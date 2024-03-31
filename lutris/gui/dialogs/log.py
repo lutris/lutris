@@ -1,4 +1,5 @@
 """Window to show game logs"""
+
 import os
 from datetime import datetime
 from gettext import gettext as _

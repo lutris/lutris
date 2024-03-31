@@ -1,4 +1,5 @@
 """Transform runner parameters to data usable for runtime execution"""
+
 import os
 import shlex
 import stat

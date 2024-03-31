@@ -1,4 +1,5 @@
 """EA Origin service."""
+
 import json
 import os
 import random

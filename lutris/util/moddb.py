@@ -1,4 +1,5 @@
 """Helper functions to assist downloading files from ModDB"""
+
 import importlib
 import re
 import types

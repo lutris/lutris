@@ -1,4 +1,5 @@
 """isort:skip_file"""
+
 import os
 from gettext import gettext as _
 

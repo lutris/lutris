@@ -6,6 +6,7 @@
 # Vulkan detection by Patryk Obara (@dreamer)
 
 """Query Vulkan capabilities"""
+
 from collections import namedtuple
 
 # Standard Library

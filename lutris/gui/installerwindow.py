@@ -1,4 +1,5 @@
 """Window used for game installers"""
+
 # pylint: disable=too-many-lines
 import os
 from gettext import gettext as _

@@ -1,4 +1,5 @@
 """XDG applications service"""
+
 import json
 import os
 import re
