@@ -420,7 +420,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             get_category,
         )
 
-        add_category("Uncategorized")
+        try:
+            add_category("Uncategorized")
+        except:
+            pass  # "Uncategorized" already exists
         category = get_category("Uncategorized")
         category_id = category["id"]
         add_game_to_category(game_id, category_id)
