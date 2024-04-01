@@ -89,7 +89,7 @@ def guess_extractor(path):
         extractor = "exe"
     elif path.endswith(".deb"):
         extractor = "deb"
-    elif path.endswith(".AppImage"):
+    elif path.casefold().endswith(".appimage"):
         extractor = "AppImage"
     else:
         extractor = None
