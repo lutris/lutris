@@ -14,6 +14,7 @@ class InterfacePreferencesBox(BaseConfigBox):
         "show_tray_icon": _("Show Tray Icon"),
         "dark_theme": _("Use dark theme (requires dark theme variant for Gtk)"),
         "discord_rpc": _("Enable Discord Rich Presence for Available Games"),
+        "disable_uncategorized": _('Disable "Uncategorized" (Requires restart)'),
     }
 
     settings_accelerators = {"hide_badges_on_icons": "<Primary>p"}
@@ -29,7 +30,10 @@ class InterfacePreferencesBox(BaseConfigBox):
         frame.add(listbox)
         self.pack_start(frame, False, False, 0)
         for setting_key, label in self.settings_options.items():
-            available = setting_key not in self.settings_availability or self.settings_availability[setting_key]()
+            available = (
+                setting_key not in self.settings_availability
+                or self.settings_availability[setting_key]()
+            )
 
             if available:
                 list_box_row = Gtk.ListBoxRow(visible=True)

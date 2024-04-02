@@ -374,21 +374,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     def _finish_install(self):
         game_id = self.installer.save()
 
-        """Add "Uncategorized" as a category and add the game to it"""
-        from lutris.database.categories import (
-            add_category,
-            add_game_to_category,
-            get_category,
-        )
-
-        try:
-            add_category("Uncategorized")
-        except:
-            pass  # "Uncategorized" already exists
-        category = get_category("Uncategorized")
-        category_id = category["id"]
-        add_game_to_category(game_id, category_id)
-
         launcher_value = None
         path = None
         _launcher, launcher_value = get_game_launcher(self.installer.script)
