@@ -42,7 +42,9 @@ _SMART_CATEGORIES: list[_SmartCategory] = [_SmartUncategorizedCategory()]
 
 # Convenient method to iterate category with id.
 # Note that ids that are positive integers should not be used, as they can conflict with existing categories.
-_SMART_CATEGORIES_WITH_ID = [(category, f"smart-category-{id}") for id, category in enumerate(_SMART_CATEGORIES)]
+_SMART_CATEGORIES_WITH_ID = [
+    (category, f"smart-category-{id}") for id, category in enumerate(_SMART_CATEGORIES)
+]
 
 
 def strip_category_name(name):
@@ -59,7 +61,7 @@ def is_reserved_category(name):
     return not name or name[0] == "." or name in ["all", "favorite"]
 
 
-def get_categories() -> list[dict[str, int | str]]:
+def get_categories() -> "list[dict[str, int or str]]":  # For Python3.x < 3.10 support
     """Get the list of every category in database."""
     # Categories look like [{"id": 1, "name": "My Category"}, ...]
     categories = sql.db_select(settings.DB_PATH, "categories")
@@ -87,7 +89,9 @@ def get_category(name):
         return categories[0]
 
 
-def get_game_ids_for_categories(included_category_names=None, excluded_category_names=None):
+def get_game_ids_for_categories(
+    included_category_names=None, excluded_category_names=None
+):
     """Get the ids of games in database."""
     filters = []
     parameters = []
@@ -99,7 +103,10 @@ def get_game_ids_for_categories(included_category_names=None, excluded_category_
             "INNER JOIN games_categories ON games.id = games_categories.game_id "
             "INNER JOIN categories ON categories.id = games_categories.category_id"
         )
-        filters.append("categories.name IN (%s)" % ", ".join(repeat("?", len(included_category_names))))
+        filters.append(
+            "categories.name IN (%s)"
+            % ", ".join(repeat("?", len(included_category_names)))
+        )
         parameters.extend(included_category_names)
     else:
         # Or, if you listed none, we fall back to all games
@@ -119,13 +126,21 @@ def get_game_ids_for_categories(included_category_names=None, excluded_category_
     if filters:
         query += " WHERE %s" % " AND ".join(filters)
 
-    result = set(game["id"] for game in sql.db_query(settings.DB_PATH, query, tuple(parameters)))
+    result = set(
+        game["id"] for game in sql.db_query(settings.DB_PATH, query, tuple(parameters))
+    )
     # Check for user setting entry
     if not settings.read_bool_setting("disable_uncategorized"):
         for smart_cat in _SMART_CATEGORIES:
-            if excluded_category_names is not None and smart_cat.get_name() in excluded_category_names:
+            if (
+                excluded_category_names is not None
+                and smart_cat.get_name() in excluded_category_names
+            ):
                 continue
-            if included_category_names is not None and smart_cat.get_name() not in included_category_names:
+            if (
+                included_category_names is not None
+                and smart_cat.get_name() not in included_category_names
+            ):
                 continue
             result |= set(smart_cat.get_games())
 
@@ -140,7 +155,10 @@ def get_categories_in_game(game_id):
         "JOIN games ON games.id = games_categories.game_id "
         "WHERE games.id=?"
     )
-    return [category["name"] for category in sql.db_query(settings.DB_PATH, query, (game_id,))]
+    return [
+        category["name"]
+        for category in sql.db_query(settings.DB_PATH, query, (game_id,))
+    ]
 
 
 def add_category(category_name):
