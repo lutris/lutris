@@ -2,7 +2,7 @@
 import json
 import os
 from gettext import gettext as _
-from typing import Generator, List
+from typing import Generator, List, Optional
 
 from lutris import settings
 from lutris.util import system
@@ -12,11 +12,11 @@ GE_PROTON_LATEST = _("GE-Proton (Latest)")
 DEFAULT_GAMEID = "umu-default"
 
 
-def is_proton_path(wine_path):
+def is_proton_path(wine_path) -> bool:
     return "Proton" in wine_path and "lutris" not in wine_path
 
 
-def get_umu_path():
+def get_umu_path() -> Optional[str]:
     custom_path = settings.read_setting("umu_path")
     if custom_path:
         script_path = os.path.join(custom_path, "umu_run.py")
@@ -35,6 +35,7 @@ def get_umu_path():
         script_path = os.path.join(path_candidate, "umu", "umu_run.py")
         if system.path_exists(script_path):
             return script_path
+    return None
 
 
 def _iter_proton_locations() -> Generator[str, None, None]:
@@ -81,7 +82,7 @@ def list_proton_versions() -> List[str]:
     return versions
 
 
-def get_proton_bin_for_version(version):
+def get_proton_bin_for_version(version) -> str:
     for proton_path in get_proton_paths():
         path = os.path.join(proton_path, version, "dist/bin/wine")
         if os.path.isfile(path):
@@ -89,6 +90,7 @@ def get_proton_bin_for_version(version):
         path = os.path.join(proton_path, version, "files/bin/wine")
         if os.path.isfile(path):
             return path
+    raise ValueError("Unable to find Proton path for %s", version)
 
 
 def get_proton_path_from_bin(wine_path):
