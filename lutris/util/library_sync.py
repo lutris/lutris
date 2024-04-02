@@ -168,7 +168,6 @@ class LibrarySyncer:
                         changed = True
                     if set(remote_game["categories"]) != set(game.get_categories()):
                         self._update_categories(game, remote_game)
-                        changed = True
                     if changed:
                         any_local_changes = True
                         game.save()
