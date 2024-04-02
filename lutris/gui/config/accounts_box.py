@@ -8,7 +8,12 @@ from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.config.updates_box import UpdateButtonBox
 from lutris.gui.dialogs import ClientLoginDialog, QuestionDialog
 from lutris.util.jobs import AsyncCall
-from lutris.util.library_sync import LOCAL_LIBRARY_SYNCED, LOCAL_LIBRARY_SYNCING, LibrarySyncer
+from lutris.util.library_sync import (
+    LOCAL_LIBRARY_SYNCED,
+    LOCAL_LIBRARY_SYNCING,
+    LibrarySyncer,
+    is_local_library_syncing,
+)
 from lutris.util.steam.config import STEAM_ACCOUNT_SETTING, get_steam_users
 from lutris.util.strings import time_ago
 
@@ -55,8 +60,7 @@ class AccountsBox(BaseConfigBox):
     def on_realize(self, _widget):
         self.library_syncing_source_id = LOCAL_LIBRARY_SYNCING.register(self.on_local_library_syncing)
         self.library_synced_source_id = LOCAL_LIBRARY_SYNCED.register(self.on_local_library_synced)
-        library_syncer = LibrarySyncer()
-        if library_syncer.is_syncing:
+        if is_local_library_syncing():
             self.on_local_library_syncing()
 
     def on_unrealize(self, _widget):

@@ -14,11 +14,18 @@ LIBRARY_URL = settings.SITE_URL + "/api/users/library"
 LOCAL_LIBRARY_SYNCING = NotificationSource()
 LOCAL_LIBRARY_SYNCED = NotificationSource()
 LOCAL_LIBRARY_UPDATED = NotificationSource()
+_IS_LOCAL_LIBRARY_SYNCING = False
+
+
+def is_local_library_syncing():
+    """True if the library is syncing now; attempting to sync again will do nothing if so."""
+    # This provides access to the mutable global _IS_LOCAL_LIBRARY_SYNCING in a safer
+    # way; if you just import the global directly you get a copy of its current state at import
+    # time which is not very useful.
+    return _IS_LOCAL_LIBRARY_SYNCING
 
 
 class LibrarySyncer:
-    is_syncing = False
-
     def get_local_library(self, since=None):
         game_library = []
         pga_games = get_games()
@@ -47,9 +54,9 @@ class LibrarySyncer:
         return game_library
 
     def sync_local_library(self, force: bool = False) -> None:
-        global IS_LOCAL_LIBRARY_SYNCING
+        global _IS_LOCAL_LIBRARY_SYNCING
 
-        if self.is_syncing:
+        if _IS_LOCAL_LIBRARY_SYNCING:
             return
 
         if not force and settings.read_setting("last_library_sync_at"):
@@ -69,7 +76,8 @@ class LibrarySyncer:
         LOCAL_LIBRARY_SYNCING.fire()
         any_local_changes = False
         try:
-            self.is_syncing = True
+            _IS_LOCAL_LIBRARY_SYNCING = True
+            time.sleep(15)
             request = http.Request(
                 url,
                 headers={
@@ -151,7 +159,7 @@ class LibrarySyncer:
                     )
             settings.write_setting("last_library_sync_at", int(time.time()))
         finally:
-            self.is_syncing = False
+            _IS_LOCAL_LIBRARY_SYNCING = False
             LOCAL_LIBRARY_SYNCED.fire()
             if any_local_changes:
                 LOCAL_LIBRARY_UPDATED.fire()
