@@ -30,10 +30,7 @@ class InterfacePreferencesBox(BaseConfigBox):
         frame.add(listbox)
         self.pack_start(frame, False, False, 0)
         for setting_key, label in self.settings_options.items():
-            available = (
-                setting_key not in self.settings_availability
-                or self.settings_availability[setting_key]()
-            )
+            available = setting_key not in self.settings_availability or self.settings_availability[setting_key]()
 
             if available:
                 list_box_row = Gtk.ListBoxRow(visible=True)
