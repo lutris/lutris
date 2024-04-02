@@ -1,4 +1,5 @@
 """Collection of installer files"""
+
 import os
 import time
 from gettext import gettext as _

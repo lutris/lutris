@@ -1,4 +1,5 @@
 """Generic service utilities"""
+
 import os
 import shutil
 from gettext import gettext as _

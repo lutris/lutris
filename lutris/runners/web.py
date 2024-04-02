@@ -1,4 +1,5 @@
 """Run web based games"""
+
 import os
 import string
 from gettext import gettext as _

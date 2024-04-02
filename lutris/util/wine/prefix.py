@@ -1,4 +1,5 @@
 """Wine prefix management"""
+
 import os
 
 from lutris.settings import get_lutris_directory_settings, set_lutris_directory_settings

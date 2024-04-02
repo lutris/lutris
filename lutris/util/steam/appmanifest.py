@@ -1,4 +1,5 @@
 """Steam appmanifest file handling"""
+
 import os
 import re
 

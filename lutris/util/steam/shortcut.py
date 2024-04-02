@@ -1,4 +1,5 @@
 """Export lutris games to steam shortcuts"""
+
 import binascii
 import os
 import re

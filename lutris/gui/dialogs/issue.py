@@ -1,4 +1,5 @@
 """GUI dialog for reporting issues"""
+
 import json
 import os
 from gettext import gettext as _

@@ -3,6 +3,7 @@
 
 Everything in this module should rely on /proc or /sys only, no executable calls
 """
+
 import os
 import re
 from typing import Dict, Iterable, List

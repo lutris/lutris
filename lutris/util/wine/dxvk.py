@@ -1,4 +1,5 @@
 """DXVK helper module"""
+
 import os
 
 from lutris.settings import RUNTIME_DIR

@@ -1,4 +1,5 @@
 """TreeView based game list"""
+
 from gettext import gettext as _
 
 # Third Party Libraries

@@ -1,4 +1,5 @@
 """XrandR based display management"""
+
 import re
 import subprocess
 from collections import namedtuple
@@ -152,7 +153,6 @@ def change_resolution(resolution):
 
 
 class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
-
     """Legacy XrandR based display manager.
     Does not work on Wayland.
     """

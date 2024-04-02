@@ -1,4 +1,5 @@
 """libretro runner"""
+
 import os
 from gettext import gettext as _
 from operator import itemgetter

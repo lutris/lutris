@@ -1,4 +1,5 @@
-""" Misc common functions """
+"""Misc common functions"""
+
 from functools import wraps
 
 

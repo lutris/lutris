@@ -1,4 +1,5 @@
 """Wine runner"""
+
 # pylint: disable=too-many-lines
 import os
 import shlex

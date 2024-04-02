@@ -1,4 +1,5 @@
 """Utility functions for MAME"""
+
 # Standard Library
 import json
 import os

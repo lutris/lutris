@@ -1,4 +1,5 @@
 """Steam for Linux runner"""
+
 import os
 from gettext import gettext as _
 

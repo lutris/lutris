@@ -1,4 +1,5 @@
 """Utility module to handle media resources"""
+
 import os
 
 from lutris import settings

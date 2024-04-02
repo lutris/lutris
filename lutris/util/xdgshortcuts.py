@@ -1,4 +1,5 @@
 """XDG shortcuts handling"""
+
 import os
 import shlex
 import shutil

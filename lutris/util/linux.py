@@ -1,4 +1,5 @@
 """Linux specific platform code"""
+
 import json
 import os
 import platform

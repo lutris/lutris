@@ -1,4 +1,5 @@
 """Move hidden games from settings to database"""
+
 from lutris import settings
 from lutris.game import Game
 

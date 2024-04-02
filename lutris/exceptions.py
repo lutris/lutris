@@ -1,4 +1,5 @@
 """Exception handling module"""
+
 from gettext import gettext as _
 
 

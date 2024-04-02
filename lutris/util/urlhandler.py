@@ -1,5 +1,6 @@
 """Unused handler registration but since someone reports problems with URL
 integration once in a while, it could prove itself useful."""
+
 # Standard Library
 import os
 import sys

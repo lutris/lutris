@@ -1,4 +1,5 @@
 """Module for handling the Amazon service"""
+
 import base64
 import hashlib
 import json

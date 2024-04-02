@@ -1,4 +1,5 @@
 """Migrate MESS games to MAME"""
+
 from lutris.database.games import get_games
 from lutris.game import Game
 

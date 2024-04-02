@@ -1,4 +1,5 @@
 """Utility to get the path of Lutris assets"""
+
 # Standard Library
 import os
 import sys

@@ -2,6 +2,7 @@
 Discord Rich Presence Base Objects
 
 """
+
 from abc import ABCMeta
 
 

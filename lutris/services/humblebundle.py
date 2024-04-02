@@ -1,4 +1,5 @@
 """Manage Humble Bundle libraries"""
+
 import concurrent.futures
 import json
 import os

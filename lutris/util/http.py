@@ -1,4 +1,5 @@
 """HTTP utilities"""
+
 import json
 import os
 import socket

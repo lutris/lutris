@@ -1,4 +1,5 @@
 """Epic Games Store service"""
+
 import json
 import os
 from gettext import gettext as _

@@ -1,4 +1,5 @@
 """DOSBox installer commands"""
+
 # Standard Library
 import os
 

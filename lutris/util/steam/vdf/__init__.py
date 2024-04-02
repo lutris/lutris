@@ -287,8 +287,8 @@ BIN_WIDESTRING = b"\x05"
 BIN_COLOR = b"\x06"
 BIN_UINT64 = b"\x07"
 BIN_END = b"\x08"
-BIN_INT64 = b"\x0A"
-BIN_END_ALT = b"\x0B"
+BIN_INT64 = b"\x0a"
+BIN_END_ALT = b"\x0b"
 
 
 def binary_loads(s, mapper=dict, merge_duplicate_keys=True, alt_format=False):

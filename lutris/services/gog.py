@@ -1,4 +1,5 @@
 """Module for handling the GOG service"""
+
 import json
 import os
 import time

@@ -1,4 +1,5 @@
 """Shared config dialog stuff"""
+
 # pylint: disable=not-an-iterable
 import os.path
 import shutil

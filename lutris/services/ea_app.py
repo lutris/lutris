@@ -1,4 +1,5 @@
 """EA App service."""
+
 import json
 import os
 import random

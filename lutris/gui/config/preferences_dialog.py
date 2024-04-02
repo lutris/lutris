@@ -1,4 +1,5 @@
 """Configuration dialog for client and system options"""
+
 # pylint: disable=no-member
 from gettext import gettext as _
 

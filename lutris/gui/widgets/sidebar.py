@@ -1,4 +1,5 @@
 """Sidebar for the main window"""
+
 import locale
 from gettext import gettext as _
 

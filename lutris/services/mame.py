@@ -1,5 +1,6 @@
 """MAME service
 Not ready yet"""
+
 from gettext import gettext as _
 
 from lutris.services.base import BaseService

@@ -1,4 +1,5 @@
 """Reads the Dolphin game database, stored in a binary format"""
+
 import os
 
 from lutris.util.log import logger

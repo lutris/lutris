@@ -5,7 +5,6 @@ This will enable DiscordRichPresenceClient if pypresence is installed.
 Otherwise, it will provide a dummy client that does nothing
 """
 
-
 from lutris.util.discord.base import DiscordRPCNull
 
 try:

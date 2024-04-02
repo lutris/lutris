@@ -1,10 +1,10 @@
 """Manipulate MAME ini files"""
+
 # Lutris Modules
 from lutris.util.system import path_exists
 
 
 class MameIni:
-
     """Looks like an ini file and yet it is not one!"""
 
     def __init__(self, ini_path):

@@ -3,7 +3,6 @@ from http.cookiejar import Cookie, MozillaCookieJar
 
 
 class WebkitCookieJar(MozillaCookieJar):
-
     """Subclass of MozillaCookieJar for compatibility with cookies
     coming from Webkit2.
     This disables the magic_re header which is not present and adds

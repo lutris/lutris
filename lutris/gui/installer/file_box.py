@@ -1,4 +1,5 @@
 """Widgets for the installer window"""
+
 import os
 from gettext import gettext as _
 
