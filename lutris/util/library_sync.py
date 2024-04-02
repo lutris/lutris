@@ -1,9 +1,16 @@
 import json
 import time
+from typing import List, Optional
 
 from lutris import settings
 from lutris.api import read_api_key
-from lutris.database.categories import get_all_games_categories, get_categories, add_game_to_category, add_category
+from lutris.database.categories import (
+    add_category,
+    add_game_to_category,
+    get_all_games_categories,
+    get_categories,
+    remove_category_from_game,
+)
 from lutris.database.games import add_game, get_games, get_games_where
 from lutris.game import Game
 from lutris.gui.widgets import NotificationSource
@@ -28,10 +35,13 @@ def is_local_library_syncing():
 class LibrarySyncer:
     def __init__(self):
         self.categories = self._load_categories()
+        self.category_ids = self._load_categories(reverse=True)
         self.games_categories = get_all_games_categories()
 
-    def _load_categories(self):
-        return {r["id"]: r["name"] for r in get_categories()}
+    def _load_categories(self, reverse=False):
+        key = "name" if reverse else "id"
+        value = "id" if reverse else "name"
+        return {r[key]: r[value] for r in get_categories()}
 
     def _get_request(self, since=None):
         credentials = read_api_key()
@@ -56,7 +66,7 @@ class LibrarySyncer:
             game["service"] or "",
         )
 
-    def _get_game(self, remote_game) -> Game:
+    def _get_game(self, remote_game) -> Optional[Game]:
         conditions = {"slug": remote_game["slug"]}
         for cond_key in ("runner", "platform", "service"):
             if remote_game[cond_key]:
@@ -64,14 +74,15 @@ class LibrarySyncer:
         pga_game = get_games_where(**conditions)
         if len(pga_game) == 0:
             logger.error("No game found for %s", remote_game["slug"])
-            return
+            return None
         if len(pga_game) > 1:
             logger.error("More than one game found for %s", remote_game["slug"])
-            return
+            return None
         pga_game = pga_game[0]
         return Game(pga_game["id"])
 
     def _create_new_game(self, remote_game):
+        logger.info("Create %s", remote_game["slug"])
         game_id = add_game(
             name=remote_game["name"],
             slug=remote_game["slug"],
@@ -87,8 +98,18 @@ class LibrarySyncer:
             if category not in self.categories.values():
                 add_category(category)
                 self.categories = self._load_categories()
-            category_id = [cat_id for cat_id in self.categories if self.categories[cat_id] == category][0]
-            add_game_to_category(game_id, category_id)
+                self.category_ids = self._load_categories(reverse=True)
+            add_game_to_category(game_id, self.category_ids[category])
+
+    def _update_categories(self, game: Game, remote_game: dict):
+        game_categories: List[str] = game.get_categories()
+        remote_categories: List[str] = remote_game["categories"]
+        for category in game_categories:
+            if category not in remote_categories:
+                remove_category_from_game(game.id, self.category_ids[category])
+        for category in remote_categories:
+            if category not in game_categories:
+                add_game_to_category(game.id, self.category_ids[category])
 
     def sync_local_library(self, force: bool = False) -> None:
         global _IS_LOCAL_LIBRARY_SYNCING
@@ -145,6 +166,9 @@ class LibrarySyncer:
                     if remote_game["lastplayed"] > game.lastplayed:
                         game.lastplayed = remote_game["lastplayed"]
                         changed = True
+                    if set(remote_game["categories"]) != set(game.get_categories()):
+                        self._update_categories(game, remote_game)
+                        changed = True
                     if changed:
                         any_local_changes = True
                         game.save()
@@ -153,7 +177,6 @@ class LibrarySyncer:
                         continue
                     self._create_new_game(remote_game)
                     any_local_changes = True
-                    logger.info("Create %s", remote_key)
 
             settings.write_setting("last_library_sync_at", int(time.time()))
         finally:
