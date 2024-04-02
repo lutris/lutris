@@ -3,7 +3,7 @@ import time
 
 from lutris import settings
 from lutris.api import read_api_key
-from lutris.database.categories import get_all_games_categories, get_categories
+from lutris.database.categories import get_all_games_categories, get_categories, add_game_to_category, add_category
 from lutris.database.games import add_game, get_games, get_games_where
 from lutris.game import Game
 from lutris.gui.widgets import NotificationSource
@@ -27,8 +27,11 @@ def is_local_library_syncing():
 
 class LibrarySyncer:
     def __init__(self):
-        self.categories = {r["id"]: r["name"] for r in get_categories()}
+        self.categories = self._load_categories()
         self.games_categories = get_all_games_categories()
+
+    def _load_categories(self):
+        return {r["id"]: r["name"] for r in get_categories()}
 
     def _get_request(self, since=None):
         credentials = read_api_key()
@@ -44,6 +47,48 @@ class LibrarySyncer:
                 "Authorization": "Token " + credentials["token"],
             },
         )
+
+    def _make_game_key(self, game):
+        return (
+            game["slug"],
+            game["runner"] or "",
+            game["platform"] or "",
+            game["service"] or "",
+        )
+
+    def _get_game(self, remote_game) -> Game:
+        conditions = {"slug": remote_game["slug"]}
+        for cond_key in ("runner", "platform", "service"):
+            if remote_game[cond_key]:
+                conditions[cond_key] = remote_game[cond_key]
+        pga_game = get_games_where(**conditions)
+        if len(pga_game) == 0:
+            logger.error("No game found for %s", remote_game["slug"])
+            return
+        if len(pga_game) > 1:
+            logger.error("More than one game found for %s", remote_game["slug"])
+            return
+        pga_game = pga_game[0]
+        return Game(pga_game["id"])
+
+    def _create_new_game(self, remote_game):
+        game_id = add_game(
+            name=remote_game["name"],
+            slug=remote_game["slug"],
+            runner=remote_game["runner"],
+            platform=remote_game["platform"],
+            lastplayed=remote_game["lastplayed"],
+            playtime=remote_game["playtime"],
+            service=remote_game["service"],
+            service_id=remote_game["service_id"],
+            installed=0,
+        )
+        for category in remote_game["categories"]:
+            if category not in self.categories.values():
+                add_category(category)
+                self.categories = self._load_categories()
+            category_id = [cat_id for cat_id in self.categories if self.categories[cat_id] == category][0]
+            add_game_to_category(game_id, category_id)
 
     def sync_local_library(self, force: bool = False) -> None:
         global _IS_LOCAL_LIBRARY_SYNCING
@@ -77,12 +122,7 @@ class LibrarySyncer:
             library_map = {}
             library_slugs = set()
             for game in local_library:
-                library_key = (
-                    game["slug"],
-                    game["runner"] or "",
-                    game["platform"] or "",
-                    game["service"] or "",
-                )
+                library_key = self._make_game_key(game)
                 if library_key in library_keys:
                     duplicate_keys.add(library_key)
                 library_keys.add(library_key)
@@ -90,30 +130,15 @@ class LibrarySyncer:
                 library_slugs.add(game["slug"])
 
             for remote_game in request.json:
-                remote_key = (
-                    remote_game["slug"],
-                    remote_game["runner"] or "",
-                    remote_game["platform"] or "",
-                    remote_game["service"] or "",
-                )
+                remote_key = self._make_game_key(remote_game)
                 if remote_key in duplicate_keys:
                     logger.warning("Duplicate game %s, not syncing.", remote_key)
                     continue
                 if remote_key in library_map:
+                    game = self._get_game(remote_game)
+                    if not game:
+                        continue
                     changed = False
-                    conditions = {"slug": remote_game["slug"]}
-                    for cond_key in ("runner", "platform", "service"):
-                        if remote_game[cond_key]:
-                            conditions[cond_key] = remote_game[cond_key]
-                    pga_game = get_games_where(**conditions)
-                    if len(pga_game) == 0:
-                        logger.error("No game found for %s", remote_key)
-                        continue
-                    if len(pga_game) > 1:
-                        logger.error("More than one game found for %s", remote_key)
-                        continue
-                    pga_game = pga_game[0]
-                    game = Game(pga_game["id"])
                     if remote_game["playtime"] > game.playtime:
                         game.playtime = remote_game["playtime"]
                         changed = True
@@ -126,19 +151,10 @@ class LibrarySyncer:
                 else:
                     if remote_game["slug"] in library_slugs:
                         continue
-                    logger.info("Create %s", remote_key)
+                    self._create_new_game(remote_game)
                     any_local_changes = True
-                    add_game(
-                        name=remote_game["name"],
-                        slug=remote_game["slug"],
-                        runner=remote_game["runner"],
-                        platform=remote_game["platform"],
-                        lastplayed=remote_game["lastplayed"],
-                        playtime=remote_game["playtime"],
-                        service=remote_game["service"],
-                        service_id=remote_game["service_id"],
-                        installed=0,
-                    )
+                    logger.info("Create %s", remote_key)
+
             settings.write_setting("last_library_sync_at", int(time.time()))
         finally:
             _IS_LOCAL_LIBRARY_SYNCING = False
