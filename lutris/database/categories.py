@@ -2,6 +2,7 @@ import abc
 import re
 from collections import defaultdict
 from itertools import repeat
+from typing import List, Dict, Union
 
 from lutris import settings
 from lutris.database import sql
@@ -15,7 +16,7 @@ class _SmartCategory(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_games(self) -> list[int]:
+    def get_games(self) -> List[int]:
         pass
 
 
@@ -25,7 +26,7 @@ class _SmartUncategorizedCategory(_SmartCategory):
     def get_name(self) -> str:
         return "UNCATEGORIZED"
 
-    def get_games(self) -> list[int]:
+    def get_games(self) -> List[int]:
         query = (
             "SELECT games.id FROM games "
             "LEFT JOIN games_categories ON games.id = games_categories.game_id "
@@ -38,7 +39,7 @@ class _SmartUncategorizedCategory(_SmartCategory):
 # All smart categories should be added to this variable.
 # TODO: The Uncategorized category should be added only if it is turned on in settings.
 # TODO: Expose a way for the users to define new smart categories.
-_SMART_CATEGORIES: list[_SmartCategory] = [_SmartUncategorizedCategory()]
+_SMART_CATEGORIES: List[_SmartCategory] = [_SmartUncategorizedCategory()]
 
 # Convenient method to iterate category with id.
 # Note that ids that are positive integers should not be used, as they can conflict with existing categories.
@@ -61,7 +62,7 @@ def is_reserved_category(name):
     return not name or name[0] == "." or name in ["all", "favorite"]
 
 
-def get_categories() -> "list[dict[str, int or str]]":  # For Python3.x < 3.10 support
+def get_categories() -> List[Dict[str, Union[int, str]]]:
     """Get the list of every category in database."""
     # Categories look like [{"id": 1, "name": "My Category"}, ...]
     categories = sql.db_select(settings.DB_PATH, "categories")
