@@ -26,32 +26,24 @@ def is_local_library_syncing():
 
 
 class LibrarySyncer:
-    def get_local_library(self, since=None):
-        game_library = []
-        pga_games = get_games()
-        categories = {r["id"]: r["name"] for r in get_categories()}
-        games_categories = get_all_games_categories()
+    def __init__(self):
+        self.categories = {r["id"]: r["name"] for r in get_categories()}
+        self.games_categories = get_all_games_categories()
 
-        for pga_game in pga_games:
-            lastplayed = pga_game["lastplayed"] or 0
-            installed_at = pga_game["installed_at"] or 0
-            if since and lastplayed < since and installed_at < since:
-                continue
-            game_categories = [categories[cat_id] for cat_id in games_categories.get(pga_game["id"], [])]
-            game_library.append(
-                {
-                    "name": pga_game["name"],
-                    "slug": pga_game["slug"],
-                    "playtime": "%0.5f" % (pga_game["playtime"] or 0),
-                    "lastplayed": pga_game["lastplayed"] or 0,
-                    "platform": pga_game["platform"] or "",
-                    "runner": pga_game["runner"] or "",
-                    "service": pga_game["service"] or "",
-                    "service_id": pga_game["service_id"] or "",
-                    "categories": game_categories,
-                }
-            )
-        return game_library
+    def _get_request(self, since=None):
+        credentials = read_api_key()
+        if not credentials:
+            return
+        url = LIBRARY_URL
+        if since:
+            url += "?since=%s" % since
+        return http.Request(
+            url,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Token " + credentials["token"],
+            },
+        )
 
     def sync_local_library(self, force: bool = False) -> None:
         global _IS_LOCAL_LIBRARY_SYNCING
@@ -63,28 +55,18 @@ class LibrarySyncer:
             since = int(settings.read_setting("last_library_sync_at"))
         else:
             since = None
-        local_library = self.get_local_library()
-        local_library_updates = self.get_local_library(since=since)
-        credentials = read_api_key()
-        if not credentials:
-            return
+        all_games = get_games()
+        local_library = self._db_games_to_api(all_games)
+        local_library_updates = self._db_games_to_api(all_games, since=since)
 
-        url = LIBRARY_URL
-        if since:
-            url += "?since=%s" % since
+        request = self._get_request(since)
+        if not request:
+            return
 
         LOCAL_LIBRARY_SYNCING.fire()
         any_local_changes = False
         try:
             _IS_LOCAL_LIBRARY_SYNCING = True
-            time.sleep(15)
-            request = http.Request(
-                url,
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": "Token " + credentials["token"],
-                },
-            )
             try:
                 request.post(data=json.dumps(local_library_updates).encode())
             except http.HTTPError as ex:
@@ -164,34 +146,37 @@ class LibrarySyncer:
             if any_local_changes:
                 LOCAL_LIBRARY_UPDATED.fire()
 
-    def delete_from_remote_library(self, games):
+    def _db_game_to_api(self, db_game):
+        categories = [self.categories[cat_id] for cat_id in self.games_categories.get(db_game["id"], [])]
+        return {
+            "name": db_game["name"],
+            "slug": db_game["slug"],
+            "runner": db_game["runner"] or "",
+            "platform": db_game["platform"] or "",
+            "playtime": "%0.5f" % (db_game["playtime"] or 0),
+            "lastplayed": db_game["lastplayed"] or 0,
+            "service": db_game["service"] or "",
+            "service_id": db_game["service_id"] or "",
+            "categories": categories,
+        }
+
+    def _db_games_to_api(self, db_games, since=None):
         payload = []
-        for game in games:
-            payload.append(
-                {
-                    "name": game["name"],
-                    "slug": game["slug"],
-                    "runner": game["runner"],
-                    "platform": game["platform"],
-                    "lastplayed": game["lastplayed"],
-                    "playtime": game["playtime"],
-                    "service": game["service"],
-                    "service_id": game["service_id"],
-                }
-            )
-        credentials = read_api_key()
-        url = LIBRARY_URL
-        request = http.Request(
-            url,
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": "Token " + credentials["token"],
-            },
-        )
+        for db_game in db_games:
+            lastplayed = db_game["lastplayed"] or 0
+            installed_at = db_game["installed_at"] or 0
+            if since and lastplayed < since and installed_at < since:
+                continue
+            payload.append(self._db_game_to_api(db_game))
+        return payload
+
+    def delete_from_remote_library(self, games):
+        request = self._get_request()
+        if not request:
+            return
         try:
-            request.delete(data=json.dumps(payload).encode())
+            request.delete(data=json.dumps(self._db_games_to_api(games)).encode())
         except http.HTTPError as ex:
             logger.error(ex)
-            logger.error(request.content)
             return None
         return request.json
