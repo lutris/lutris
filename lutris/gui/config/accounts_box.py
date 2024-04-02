@@ -8,12 +8,7 @@ from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.config.updates_box import UpdateButtonBox
 from lutris.gui.dialogs import ClientLoginDialog, QuestionDialog
 from lutris.util.jobs import AsyncCall
-from lutris.util.library_sync import (
-    LOCAL_LIBRARY_SYNCED,
-    LOCAL_LIBRARY_SYNCING,
-    get_is_local_library_syncing,
-    sync_local_library,
-)
+from lutris.util.library_sync import LOCAL_LIBRARY_SYNCED, LOCAL_LIBRARY_SYNCING, LibrarySyncer
 from lutris.util.steam.config import STEAM_ACCOUNT_SETTING, get_steam_users
 from lutris.util.strings import time_ago
 
@@ -60,8 +55,8 @@ class AccountsBox(BaseConfigBox):
     def on_realize(self, _widget):
         self.library_syncing_source_id = LOCAL_LIBRARY_SYNCING.register(self.on_local_library_syncing)
         self.library_synced_source_id = LOCAL_LIBRARY_SYNCED.register(self.on_local_library_synced)
-
-        if get_is_local_library_syncing():
+        library_syncer = LibrarySyncer()
+        if library_syncer.is_syncing:
             self.on_local_library_syncing()
 
     def on_unrealize(self, _widget):
@@ -173,7 +168,7 @@ class AccountsBox(BaseConfigBox):
         self.rebuild_lutris_options()
 
     def on_sync_again_clicked(self, _button):
-        AsyncCall(sync_local_library, None, force=True)
+        AsyncCall(LibrarySyncer().sync_local_library, None, force=True)
 
     def on_local_library_syncing(self):
         self.sync_box.show_running_markup(_("<i>Syncing library...</i>"))
@@ -201,7 +196,7 @@ class AccountsBox(BaseConfigBox):
                 }
             )
             if sync_warn_dialog.result == Gtk.ResponseType.YES:
-                AsyncCall(sync_local_library, None)
+                AsyncCall(LibrarySyncer().sync_local_library, None)
             else:
                 return
 

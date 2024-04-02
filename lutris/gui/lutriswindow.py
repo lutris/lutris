@@ -37,7 +37,7 @@ from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
-from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, sync_local_library
+from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, LibrarySyncer
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
 from lutris.util.strings import get_natural_sort_key, strip_accents
@@ -241,7 +241,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def sync_library(self, force=False):
         """Tasks that can be run after the UI has been initialized."""
         if settings.read_bool_setting("library_sync_enabled"):
-            AsyncCall(sync_local_library, None, force=force)
+            AsyncCall(LibrarySyncer().sync_local_library, None, force=force)
 
     def update_action_state(self):
         """This invokes the functions to update the enabled states of all the actions
