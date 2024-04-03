@@ -40,5 +40,3 @@ Invalid submissions
 - Mentions of disabling the Lutris runtime: We make Lutris with the intention of having the runtime work. If it doesn't that's an user problem or something that needs to be fixed in the runtime.
 - Submissions for "Apes VS Helium". This games somehow attract kids who have no clue what Lutris installers are.
 - Submissions for "League of Legends". Most submissions should be rejected.
-- Submissions for "Fortnite". The game doesn't run on Linux. Nothing will change that.
-
