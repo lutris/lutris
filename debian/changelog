@@ -1,3 +1,23 @@
+lutris (0.5.17) jammy; urgency=medium
+
+  * Fix critical bug preventing completion of installs if the script specifies a wine version
+  * Support for library sync to lutris.net, this allows to sync games, play
+    time and categories to multiple devices.
+  * Torturous and sadistic options for multi-GPUs that were half broken and understood by no one have been replaced by a simple GPU selector.
+  * EXPERIMENTAL support for umu, which allows running games with Proton and
+    Pressure Vessel. Using Proton in Lutris without umu is not longer possible.
+  * Better and sensible sorting for games (sorting by playtime or last played no longer needs to be reversed)
+  * Improved error dialog.
+  * Add Vita3k runner (thanks @ItsAllAboutTheCode)
+  * WUA files are now supported in Cemu
+  * Images are now downloaded for manually added games.
+  * Deprecate 'exe', 'main_file' or 'iso' placed at the root of the script,
+    all lutris.net installers have been updated accordingly.
+  * Deprecate libstrangle and xgamma support.
+  * Deprecate DXVK state cache feature (it was never used and is no longer relevant to DXVK 2)
+
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Wed, 03 Apr 2024 13:49:49 -0700
+
 lutris (0.5.16) jammy; urgency=medium
 
   * Fix bug that prevented installers to complete
