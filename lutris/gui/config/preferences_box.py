@@ -1,4 +1,5 @@
 ﻿from gettext import gettext as _
+
 from gi.repository import Gtk
 
 from lutris.gui.config.base_config_box import BaseConfigBox
