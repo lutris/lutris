@@ -15,7 +15,12 @@ from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.installer.legacy import get_game_launcher
-from lutris.runners import NonInstallableRunnerError, RunnerInstallationError, steam, wine
+from lutris.runners import (
+    NonInstallableRunnerError,
+    RunnerInstallationError,
+    steam,
+    wine,
+)
 from lutris.services.lutris import download_lutris_media
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
@@ -56,7 +61,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         def begin_input_menu(self, alias, options, preselect, callback):
             """Called to prompt the user to select among a list of options. When the user
-            does so, the callback is invoked. The method returns immediately, however."""
+            does so, the callback is invoked. The method returns immediately, however.
+            """
             raise NotImplementedError()
 
         def report_finished(self, game_id, status):
@@ -88,7 +94,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             self.service = self.installer.service
         script_errors = self.installer.get_errors()
         if script_errors:
-            raise ScriptingError(_("Invalid script: \n{}").format("\n".join(script_errors)), self.installer.script)
+            raise ScriptingError(
+                _("Invalid script: \n{}").format("\n".join(script_errors)),
+                self.installer.script,
+            )
 
         self._check_binary_dependencies()
         self._check_dependency()
@@ -331,7 +340,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 else:
                     AsyncCall(method, self._iter_commands, params)
             else:
-                logger.debug("Commands %d out of %s completed", self.current_command, len(commands))
+                logger.debug(
+                    "Commands %d out of %s completed",
+                    self.current_command,
+                    len(commands),
+                )
                 self._finish_install()
         except Exception as ex:
             # Redirect errors to the delegate, instead of the default ErrorDialog.
@@ -385,6 +398,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             logger.warning("No executable found at specified location %s", path)
         else:
             status = self.installer.script.get("install_complete_text") or _("Installation completed!")
+
         AsyncCall(download_lutris_media, None, self.installer.game_slug)
         self.interpreter_ui_delegate.report_finished(game_id, status)
 
