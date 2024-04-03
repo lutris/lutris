@@ -1,4 +1,4 @@
-from gettext import gettext as _
+﻿from gettext import gettext as _
 
 from gi.repository import Gtk
 
@@ -14,7 +14,6 @@ class InterfacePreferencesBox(BaseConfigBox):
         "show_tray_icon": _("Show Tray Icon"),
         "dark_theme": _("Use dark theme (requires dark theme variant for Gtk)"),
         "discord_rpc": _("Enable Discord Rich Presence for Available Games"),
-        "disable_uncategorized": _('Disable "Uncategorized" (Requires restart)'),
     }
 
     settings_accelerators = {"hide_badges_on_icons": "<Primary>p"}

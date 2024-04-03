@@ -37,7 +37,6 @@ class _SmartUncategorizedCategory(_SmartCategory):
 
 
 # All smart categories should be added to this variable.
-# TODO: The Uncategorized category should be added only if it is turned on in settings.
 # TODO: Expose a way for the users to define new smart categories.
 _SMART_CATEGORIES: List[_SmartCategory] = [_SmartUncategorizedCategory()]
 
@@ -67,10 +66,8 @@ def get_categories() -> List[Dict[str, Union[int, str]]]:
     # Categories look like [{"id": 1, "name": "My Category"}, ...]
     categories = sql.db_select(settings.DB_PATH, "categories")
     # Add smart categories to the existing list of categories.
-    # Check for user setting entry
-    if not settings.read_bool_setting("disable_uncategorized"):
-        for smart_category, smart_id in _SMART_CATEGORIES_WITH_ID:
-            categories.append({"id": smart_id, "name": smart_category.get_name()})
+    for smart_category, smart_id in _SMART_CATEGORIES_WITH_ID:
+        categories.append({"id": smart_id, "name": smart_category.get_name()})
     else:
         remove_unused_categories()  # requires restart
     return categories
@@ -130,20 +127,18 @@ def get_game_ids_for_categories(
     result = set(
         game["id"] for game in sql.db_query(settings.DB_PATH, query, tuple(parameters))
     )
-    # Check for user setting entry
-    if not settings.read_bool_setting("disable_uncategorized"):
-        for smart_cat in _SMART_CATEGORIES:
-            if (
-                excluded_category_names is not None
-                and smart_cat.get_name() in excluded_category_names
-            ):
-                continue
-            if (
-                included_category_names is not None
-                and smart_cat.get_name() not in included_category_names
-            ):
-                continue
-            result |= set(smart_cat.get_games())
+    for smart_cat in _SMART_CATEGORIES:
+        if (
+            excluded_category_names is not None
+            and smart_cat.get_name() in excluded_category_names
+        ):
+            continue
+        if (
+            included_category_names is not None
+            and smart_cat.get_name() not in included_category_names
+        ):
+            continue
+        result |= set(smart_cat.get_games())
 
     return list(sorted(result))
 
