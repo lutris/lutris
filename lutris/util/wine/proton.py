@@ -91,7 +91,7 @@ def get_proton_bin_for_version(version) -> str:
         path = os.path.join(proton_path, version, "files/bin/wine")
         if os.path.isfile(path):
             return path
-    raise ValueError("Unable to find Proton path for %s", version)
+    return ""
 
 
 def get_proton_path_from_bin(wine_path):
