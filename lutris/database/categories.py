@@ -87,9 +87,7 @@ def get_category(name):
         return categories[0]
 
 
-def get_game_ids_for_categories(
-    included_category_names=None, excluded_category_names=None
-):
+def get_game_ids_for_categories(included_category_names=None, excluded_category_names=None):
     """Get the ids of games in database."""
     filters = []
     parameters = []
@@ -102,9 +100,7 @@ def get_game_ids_for_categories(
             "INNER JOIN categories ON categories.id = games_categories.category_id"
         )
         filters.append(
-            "categories.name IN (%s)"
-            % ", ".join(repeat("?", len(included_category_names)))
-        )
+            "categories.name IN (%s)" % ", ".join(repeat("?", len(included_category_names))))
         parameters.extend(included_category_names)
     else:
         # Or, if you listed none, we fall back to all games
@@ -151,10 +147,7 @@ def get_categories_in_game(game_id):
         "JOIN games ON games.id = games_categories.game_id "
         "WHERE games.id=?"
     )
-    return [
-        category["name"]
-        for category in sql.db_query(settings.DB_PATH, query, (game_id,))
-    ]
+    return [category["name"] for category in sql.db_query(settings.DB_PATH, query, (game_id,))]
 
 
 def add_category(category_name):
@@ -164,11 +157,7 @@ def add_category(category_name):
 
 def add_game_to_category(game_id, category_id):
     """Add a category to a game"""
-    return sql.db_insert(
-        settings.DB_PATH,
-        "games_categories",
-        {"game_id": game_id, "category_id": category_id},
-    )
+    return sql.db_insert(settings.DB_PATH, "games_categories", {"game_id": game_id, "category_id": category_id})
 
 
 def remove_category_from_game(game_id, category_id):
