@@ -99,8 +99,7 @@ def get_game_ids_for_categories(included_category_names=None, excluded_category_
             "INNER JOIN games_categories ON games.id = games_categories.game_id "
             "INNER JOIN categories ON categories.id = games_categories.category_id"
         )
-        filters.append(
-            "categories.name IN (%s)" % ", ".join(repeat("?", len(included_category_names))))
+        filters.append("categories.name IN (%s)" % ", ".join(repeat("?", len(included_category_names))))
         parameters.extend(included_category_names)
     else:
         # Or, if you listed none, we fall back to all games
