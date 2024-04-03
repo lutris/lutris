@@ -28,6 +28,7 @@ Non ideal submissions but are most likely to get approved anyway
 
 - Installers that install a launcher like EGS or EA App for a single game, bypassing the Lutris integrations.
 - Scripts that reimplement existing Lutris features with Shell commands.
+- Windows games using a win32 prefix: With modern Wine, all games should work with a 64bit prefix
 
 Invalid submissions
 ===================
@@ -35,7 +36,9 @@ Invalid submissions
 - Unmodified content. While we have code to prevent this, some still manage to get through.
 - Suspicious URL changes. If a file changes to a different domain, make sure the new URL is referenced by the game's authors.
 - Version downgrade: Unless given very good reasons, downgrade in versions are rejected.
-- Submissions for "Apes VS Helium". This game somehow attract kids who have no clue what Lutris installers are.
+- Runner changes: Submissions changing the runner to another one are almost always invalid.
+- Mentions of disabling the Lutris runtime: We make Lutris with the intention of having the runtime work. If it doesn't that's an user problem or something that needs to be fixed in the runtime.
+- Submissions for "Apes VS Helium". This games somehow attract kids who have no clue what Lutris installers are.
 - Submissions for "League of Legends". Most submissions should be rejected.
 - Submissions for "Fortnite". The game doesn't run on Linux. Nothing will change that.
 
