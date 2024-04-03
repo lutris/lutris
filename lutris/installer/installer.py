@@ -1,7 +1,6 @@
 """Lutris installer class"""
 
 import json
-import os
 from gettext import gettext as _
 
 from lutris.config import LutrisConfig, write_game_config
@@ -10,7 +9,6 @@ from lutris.exceptions import UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
-from lutris.installer.legacy import get_game_launcher
 from lutris.runners import import_runner
 from lutris.services import SERVICES
 from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
@@ -252,10 +250,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             import_runner(self.runner)().adjust_installer_runner_config(installer_runner_config)
             config[self.runner] = installer_runner_config
 
-        launcher, launcher_config = self.get_game_launcher_config(self.interpreter.game_files)
-        if launcher:
-            config["game"][launcher] = launcher_config
-
         if "game" in self.script:
             try:
                 config["game"].update(self.script["game"])
@@ -319,26 +313,3 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             discord_id=self.discord_id,
         )
         return self.game_id
-
-    def get_game_launcher_config(self, game_files):
-        """Game options such as exe or main_file can be added at the root of the
-        script as a shortcut, this integrates them into the game config properly
-        This should be deprecated. Game launchers should go in the game section.
-        """
-        launcher, launcher_value = get_game_launcher(self.script)
-        if isinstance(launcher_value, list):
-            launcher_values = []
-            for game_file in launcher_value:
-                if game_file in game_files:
-                    launcher_values.append(game_files[game_file])
-                else:
-                    launcher_values.append(game_file)
-            return launcher, launcher_values
-        if launcher_value:
-            if launcher_value in game_files:
-                launcher_value = game_files[launcher_value]
-            elif self.interpreter.target_path and os.path.exists(
-                os.path.join(self.interpreter.target_path, launcher_value)
-            ):
-                launcher_value = os.path.join(self.interpreter.target_path, launcher_value)
-        return launcher, launcher_value

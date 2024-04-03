@@ -14,7 +14,6 @@ from lutris.installer import AUTO_EXE_PREFIX
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.installer import LutrisInstaller
-from lutris.installer.legacy import get_game_launcher
 from lutris.runners import NonInstallableRunnerError, RunnerInstallationError, steam, wine
 from lutris.services.lutris import download_lutris_media
 from lutris.util import system
@@ -360,21 +359,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def _finish_install(self):
         game_id = self.installer.save()
-
-        launcher_value = None
         path = None
-        _launcher, launcher_value = get_game_launcher(self.installer.script)
-        if launcher_value:
-            path = self._substitute(launcher_value)
-            if not os.path.isabs(path) and self.target_path:
-                path = system.fix_path_case(os.path.join(self.target_path, path))
 
-        if (
-            path
-            and AUTO_EXE_PREFIX not in path
-            and not os.path.isfile(path)
-            and self.installer.runner not in ("web", "browser")
-        ):
+        if path and AUTO_EXE_PREFIX not in path and not os.path.isfile(path) and self.installer.runner != "web":
             status = (
                 _(
                     "The executable at path %s can't be found, please check the destination folder.\n"
