@@ -39,11 +39,13 @@ class LibrarySyncer:
         self.games_categories = get_all_games_categories()
 
     def _load_categories(self, reverse=False):
+        """Create a mapping of category ID to name or name to ID if reverse is used"""
         key = "name" if reverse else "id"
         value = "id" if reverse else "name"
         return {r[key]: r[value] for r in get_categories()}
 
     def _get_request(self, since=None):
+        """Return a request object and ensures authentication to the Lutris API"""
         credentials = read_api_key()
         if not credentials:
             return
@@ -59,6 +61,7 @@ class LibrarySyncer:
         )
 
     def _make_game_key(self, game):
+        """Create a unique-ish key used to discriminate between games"""
         return (
             game["slug"],
             game["runner"] or "",
@@ -67,6 +70,7 @@ class LibrarySyncer:
         )
 
     def _get_game(self, remote_game) -> Optional[Game]:
+        """Return a Game instance from a remote API record"""
         conditions = {"slug": remote_game["slug"]}
         for cond_key in ("runner", "platform", "service"):
             if remote_game[cond_key]:
@@ -82,6 +86,7 @@ class LibrarySyncer:
         return Game(pga_game["id"])
 
     def _create_new_game(self, remote_game):
+        """Create a new local game from a remote record"""
         logger.info("Create %s", remote_game["slug"])
         game_id = add_game(
             name=remote_game["name"],
@@ -95,13 +100,18 @@ class LibrarySyncer:
             installed=0,
         )
         for category in remote_game["categories"]:
-            if category not in self.categories.values():
-                add_category(category)
-                self.categories = self._load_categories()
-                self.category_ids = self._load_categories(reverse=True)
+            self._ensure_category(category)
             add_game_to_category(game_id, self.category_ids[category])
 
+    def _ensure_category(self, category):
+        """Make sure a given category exists in the database, create it if not"""
+        if category not in self.categories.values():
+            add_category(category)
+            self.categories = self._load_categories()
+            self.category_ids = self._load_categories(reverse=True)
+
     def _update_categories(self, game: Game, remote_game: dict):
+        """Update the categories of a local game"""
         game_categories: List[str] = game.get_categories()
         remote_categories: List[str] = remote_game["categories"]
         for category in game_categories:
@@ -109,9 +119,37 @@ class LibrarySyncer:
                 remove_category_from_game(game.id, self.category_ids[category])
         for category in remote_categories:
             if category not in game_categories:
+                self._ensure_category(category)
                 add_game_to_category(game.id, self.category_ids[category])
 
+    def _db_game_to_api(self, db_game):
+        """Serialize DB game entry to a payload compatible with the API"""
+        categories = [self.categories[cat_id] for cat_id in self.games_categories.get(db_game["id"], [])]
+        return {
+            "name": db_game["name"],
+            "slug": db_game["slug"],
+            "runner": db_game["runner"] or "",
+            "platform": db_game["platform"] or "",
+            "playtime": "%0.5f" % (db_game["playtime"] or 0),
+            "lastplayed": db_game["lastplayed"] or 0,
+            "service": db_game["service"] or "",
+            "service_id": db_game["service_id"] or "",
+            "categories": categories,
+        }
+
+    def _db_games_to_api(self, db_games, since=None):
+        """Serialize a collection of games to API format, optionally filtering by date"""
+        payload = []
+        for db_game in db_games:
+            lastplayed = db_game["lastplayed"] or 0
+            installed_at = db_game["installed_at"] or 0
+            if since and lastplayed < since and installed_at < since:
+                continue
+            payload.append(self._db_game_to_api(db_game))
+        return payload
+
     def sync_local_library(self, force: bool = False) -> None:
+        """Sync task to send recent changes to the server and sync back server changes to the local client"""
         global _IS_LOCAL_LIBRARY_SYNCING
 
         if _IS_LOCAL_LIBRARY_SYNCING:
@@ -184,31 +222,8 @@ class LibrarySyncer:
             if any_local_changes:
                 LOCAL_LIBRARY_UPDATED.fire()
 
-    def _db_game_to_api(self, db_game):
-        categories = [self.categories[cat_id] for cat_id in self.games_categories.get(db_game["id"], [])]
-        return {
-            "name": db_game["name"],
-            "slug": db_game["slug"],
-            "runner": db_game["runner"] or "",
-            "platform": db_game["platform"] or "",
-            "playtime": "%0.5f" % (db_game["playtime"] or 0),
-            "lastplayed": db_game["lastplayed"] or 0,
-            "service": db_game["service"] or "",
-            "service_id": db_game["service_id"] or "",
-            "categories": categories,
-        }
-
-    def _db_games_to_api(self, db_games, since=None):
-        payload = []
-        for db_game in db_games:
-            lastplayed = db_game["lastplayed"] or 0
-            installed_at = db_game["installed_at"] or 0
-            if since and lastplayed < since and installed_at < since:
-                continue
-            payload.append(self._db_game_to_api(db_game))
-        return payload
-
     def delete_from_remote_library(self, games):
+        """Task to delete a game entry from the remote library"""
         request = self._get_request()
         if not request:
             return
