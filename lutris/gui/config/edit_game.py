@@ -11,6 +11,7 @@ class EditGameConfigDialog(GameDialogCommon):
         self.game = game
         self.lutris_config = game.config
         self.slug = game.slug
+        self.initial_slug = game.slug
         self.runner_name = game.runner_name
         self.build_notebook()
         self.build_tabs()

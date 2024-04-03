@@ -49,6 +49,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.game = None
         self.saved = None
         self.slug = None
+        self.initial_slug = None
         self.slug_entry = None
         self.directory_entry = None
         self.year_entry = None
@@ -656,7 +657,8 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
         if not self.slug:
             self.slug = slugify(name)
-
+        if self.slug != self.initial_slug:
+            AsyncCall(download_lutris_media, None, self.slug)
         if not self.game:
             self.game = Game()
 
