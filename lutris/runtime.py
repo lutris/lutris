@@ -12,6 +12,7 @@ from lutris.api import (
     check_stale_runtime_versions,
     download_runtime_versions,
     format_runner_version,
+    get_runtime_versions,
     get_time_from_api_date,
 )
 from lutris.gui.widgets.progress_box import ProgressInfo
@@ -154,8 +155,6 @@ class RuntimeUpdater:
     """Class handling the runtime updates"""
 
     def __init__(self, force: bool = False):
-        self.runtime_versions = None
-
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled by environment variable. Re-enable runtime before submitting issues.")
             self.update_runtime = False
@@ -177,6 +176,8 @@ class RuntimeUpdater:
 
         if self.has_updates:
             self.runtime_versions = download_runtime_versions()
+        else:
+            self.runtime_versions = get_runtime_versions()
 
     @property
     def has_updates(self):
