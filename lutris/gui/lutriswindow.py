@@ -63,9 +63,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     viewtype_icon = GtkTemplate.Child()
     download_revealer: Gtk.Revealer = GtkTemplate.Child()
     game_view_spinner: Gtk.Spinner = GtkTemplate.Child()
-    notification_revealer: Gtk.Revealer = GtkTemplate.Child()
+    login_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     lutris_log_in_label: Gtk.Label = GtkTemplate.Child()
     turn_on_library_sync_label: Gtk.Label = GtkTemplate.Child()
+    version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
+    version_ignore_label: Gtk.Label = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         width = int(settings.read_setting("width") or self.default_width)
@@ -847,7 +849,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             else:
                 show_notification = False
 
-        self.notification_revealer.set_reveal_child(show_notification)
+        self.login_notification_revealer.set_reveal_child(show_notification)
 
     @GtkTemplate.Callback
     def on_lutris_log_in_label_activate_link(self, _label, _url):
@@ -858,6 +860,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         settings.write_setting("library_sync_enabled", True)
         self.sync_library(force=True)
         self.update_notification()
+
+    def on_version_ignore_label_activate_link(self, _label, _url):
+        self.version_notification_revealer.set_reveal_child(False)
 
     def on_service_games_updated(self, service):
         """Request a view update when service games are loaded"""
@@ -1194,7 +1199,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             which can easily block."""
             runtime_updater = RuntimeUpdater(force=force_updates)
             component_updaters = runtime_updater.create_component_updaters()
-            return component_updaters, runtime_updater
+            supported_client_version = runtime_updater.check_client_versions()
+            return component_updaters, runtime_updater, supported_client_version
 
         def create_runtime_updater_cb(result, error):
             """Picks up the component updates when we know what they are, and begins the installation.
@@ -1203,7 +1209,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             if error:
                 logger.exception("Failed to obtain updates from Lutris.net: %s", error)
             else:
-                component_updaters, runtime_updater = result
+                component_updaters, runtime_updater, supported_client_version = result
+
+                if supported_client_version:
+                    self.version_notification_revealer.set_reveal_child(True)
+
                 if component_updaters:
                     self.install_runtime_component_updates(component_updaters, runtime_updater)
                 else:

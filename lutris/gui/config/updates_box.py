@@ -204,6 +204,7 @@ class UpdatesBox(BaseConfigBox):
         def get_updater():
             updater = RuntimeUpdater()
             updater.update_runtime = True
+            updater.update_runners = False
             return updater
 
         self._trigger_updates(get_updater, self.update_runtime_box)

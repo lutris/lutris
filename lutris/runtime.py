@@ -5,7 +5,7 @@ import os
 import threading
 import time
 from gettext import gettext as _
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from lutris import settings
 from lutris.api import (
@@ -22,6 +22,7 @@ from lutris.util.extract import extract_archive
 from lutris.util.jobs import AsyncCall
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.strings import parse_version
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import DXVKManager
@@ -153,6 +154,8 @@ class RuntimeUpdater:
     """Class handling the runtime updates"""
 
     def __init__(self, force: bool = False):
+        self.runtime_versions = None
+
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled by environment variable. Re-enable runtime before submitting issues.")
             self.update_runtime = False
@@ -172,6 +175,9 @@ class RuntimeUpdater:
                 self.update_runtime = False
                 self.update_runners = False
 
+        if self.has_updates:
+            self.runtime_versions = download_runtime_versions()
+
     @property
     def has_updates(self):
         return self.update_runtime or self.update_runners
@@ -184,19 +190,27 @@ class RuntimeUpdater:
 
         This method also downloads fresh runner versions on each call, so we call this on a
         worker thread, instead of blocking the UI."""
-        if not self.has_updates:
+        if not self.runtime_versions:
             return []
 
-        runtime_versions = download_runtime_versions()
         updaters: List[ComponentUpdater] = []
 
         if self.update_runtime:
-            updaters += self._get_runtime_updaters(runtime_versions)
+            updaters += self._get_runtime_updaters(self.runtime_versions)
 
         if self.update_runners:
-            updaters += self._get_runner_updaters(runtime_versions)
+            updaters += self._get_runner_updaters(self.runtime_versions)
 
         return [u for u in updaters if u.should_update]
+
+    def check_client_versions(self) -> Optional[str]:
+        if self.runtime_versions and not os.environ.get("LUTRIS_NO_CLIENT_VERSION_CHECK"):
+            client_version = self.runtime_versions.get("client_version")
+            if client_version:
+                if parse_version(client_version) > parse_version(settings.VERSION):
+                    return client_version
+
+        return None
 
     @staticmethod
     def _get_runtime_updaters(runtime_versions: Dict[str, Any]) -> List[ComponentUpdater]:
