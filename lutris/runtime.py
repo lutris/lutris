@@ -466,7 +466,7 @@ class RunnerComponentUpdater(ComponentUpdater):
     def should_update(self):
         # This has the responsibility to update existing runners, not installing new ones
         runner_base_path = os.path.join(settings.RUNNER_DIR, self.name)
-        return not system.path_exists(self.version_path)
+        return system.path_exists(runner_base_path) and not system.path_exists(self.version_path)
 
     def install_update(self, updater: "RuntimeUpdater") -> None:
         url = self.upstream_runner["url"]

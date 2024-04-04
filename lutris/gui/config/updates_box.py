@@ -15,6 +15,7 @@ from lutris.util import system
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
+from lutris.util.wine.wine import WINE_DIR
 
 
 class UpdatesBox(BaseConfigBox):
@@ -171,9 +172,15 @@ class UpdatesBox(BaseConfigBox):
         window = self._get_main_window()
         if not window:
             return
+
+        # Create runner dir if missing, to enable installing runner updates at all.
+        if not system.path_exists(WINE_DIR):
+            os.mkdir(WINE_DIR)
+
         updater = RuntimeUpdater()
+        updater.update_runtime = False
         updater.update_runners = True
-        component_updaters = updater.create_component_updaters()
+        component_updaters = [u for u in updater.create_component_updaters() if u.name == "wine"]
         if component_updaters:
 
             def on_complete(_result):
