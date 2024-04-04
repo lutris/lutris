@@ -72,6 +72,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     lutris_log_in_label: Gtk.Label = GtkTemplate.Child()
     turn_on_library_sync_label: Gtk.Label = GtkTemplate.Child()
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
+    version_notification_label: Gtk.Revealer = GtkTemplate.Child()
     version_ignore_label: Gtk.Label = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
@@ -1221,6 +1222,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 component_updaters, runtime_updater, supported_client_version = result
 
                 if supported_client_version:
+                    markup = self.version_notification_label.get_label()
+                    markup = markup % (settings.VERSION, supported_client_version)
+                    self.version_notification_label.set_label(markup)
                     self.version_notification_revealer.set_reveal_child(True)
 
                 if component_updaters:

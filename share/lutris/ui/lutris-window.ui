@@ -176,7 +176,7 @@
                           <object class="GtkLabel" id="version_notification_label">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
-                            <property name="label" translatable="yes">This is not the currently supported version of Lutris.</property>
+                            <property name="label" translatable="yes">Lutris %s is no longer supported. &lt;a href="https://lutris.net/downloads/"&gt;Download %s here!&lt;/a&gt;</property>
                             <property name="use-markup">True</property>
                           </object>
                           <packing>
