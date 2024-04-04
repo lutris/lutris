@@ -11,7 +11,12 @@ from urllib.parse import unquote, urlparse
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
 from lutris import services, settings
-from lutris.api import LUTRIS_ACCOUNT_CONNECTED, LUTRIS_ACCOUNT_DISCONNECTED, read_user_info
+from lutris.api import (
+    LUTRIS_ACCOUNT_CONNECTED,
+    LUTRIS_ACCOUNT_DISCONNECTED,
+    get_runtime_versions,
+    read_user_info,
+)
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
@@ -863,6 +868,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_version_ignore_label_activate_link(self, _label, _url):
         self.version_notification_revealer.set_reveal_child(False)
+        runtime_versions = get_runtime_versions()
+        if runtime_versions:
+            client_version = runtime_versions.get("client_version")
+            settings.write_setting("ignored_supported_lutris_verison", client_version or "")
 
     def on_service_games_updated(self, service):
         """Request a view update when service games are loaded"""
