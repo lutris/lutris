@@ -10,6 +10,8 @@ lutris (0.5.17) jammy; urgency=medium
   * EXPERIMENTAL support for umu, which allows running games with Proton and
     Pressure Vessel. Using Proton in Lutris without umu is no longer possible.
   * Better and sensible sorting for games (sorting by playtime or last played no longer needs to be reversed)
+  * Support the "Categories" command when you select multiple games
+  * Notification bar when your Lutris is no longer supported
   * Improved error dialog.
   * Add Vita3k runner (thanks @ItsAllAboutTheCode)
   * Add Supermodel runner
