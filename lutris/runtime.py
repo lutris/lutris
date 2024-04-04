@@ -205,6 +205,13 @@ class RuntimeUpdater:
         return [u for u in updaters if u.should_update]
 
     def check_client_versions(self) -> Optional[str]:
+        """Checks if the client is of an old version and no longer supported; this can be blocked
+        with an env-var, and can be temporarily ignored as well, but if we're out of date, then
+        this method returns the version of Lutris that is required. If we're good, or we are ignoring
+        the problem, this returns None.
+
+        I expect that most users will not discover the env-var, so they will be prompted
+        on each new Lutris release."""
         if self.runtime_versions and not os.environ.get("LUTRIS_NO_CLIENT_VERSION_CHECK"):
             client_version = self.runtime_versions.get("client_version")
             if client_version:
