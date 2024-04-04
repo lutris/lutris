@@ -26,7 +26,7 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.preferences_dialog import PreferencesDialog
-from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog
+from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
 from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.download_queue import DownloadQueue
@@ -868,11 +868,23 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.update_notification()
 
     def on_version_ignore_label_activate_link(self, _label, _url):
-        self.version_notification_revealer.set_reveal_child(False)
-        runtime_versions = get_runtime_versions()
-        if runtime_versions:
-            client_version = runtime_versions.get("client_version")
-            settings.write_setting("ignored_supported_lutris_verison", client_version or "")
+        dialog = QuestionDialog(
+            {
+                "title": _("Unsupported Lutris Version"),
+                "question": _(
+                    "This version of Lutris will no longer receive support on Github and Discord, "
+                    "and may not interoperate properly with Lutris.net. Do you want to use it anyway?"
+                ),
+                "parent": self,
+            }
+        )
+
+        if dialog.result == Gtk.ResponseType.YES:
+            self.version_notification_revealer.set_reveal_child(False)
+            runtime_versions = get_runtime_versions()
+            if runtime_versions:
+                client_version = runtime_versions.get("client_version")
+                settings.write_setting("ignored_supported_lutris_verison", client_version or "")
 
     def on_service_games_updated(self, service):
         """Request a view update when service games are loaded"""
