@@ -97,18 +97,17 @@
                 <property name="hexpand">True</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkRevealer" id="notification_revealer">
+                  <object class="GtkRevealer" id="login_notification_revealer">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="transition-type">none</property>
-                    <property name="reveal-child">True</property>
                     <child>
-                      <object class="GtkBox" id="notification_box">
+                      <object class="GtkBox">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="spacing">6</property>
                         <child>
-                          <object class="GtkLabel" id="notification_label">
+                          <object class="GtkLabel">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Login to &lt;a href="https://lutris.net/"&gt;Lutris.net&lt;/a&gt; to view your game library</property>
@@ -164,6 +163,57 @@
                   </packing>
                 </child>
                 <child>
+                  <object class="GtkRevealer" id="version_notification_revealer">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="transition-type">none</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="spacing">6</property>
+                        <child>
+                          <object class="GtkLabel" id="version_notification_label">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="label" translatable="yes">This is not the currently supported version of Lutris.</property>
+                            <property name="use-markup">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="version_ignore_label">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="label" translatable="yes">&lt;a href=""&gt;Ignore&lt;/a&gt;</property>
+                            <property name="use-markup">True</property>
+                            <signal name="activate-link" handler="on_version_ignore_label_activate_link" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="pack-type">end</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                        <style>
+                          <class name="in-app-notification"/>
+                          <class name="app-notification"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
                   <object class="GtkOverlay">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
@@ -210,7 +260,7 @@
                   <packing>
                     <property name="expand">True</property>
                     <property name="fill">True</property>
-                    <property name="position">1</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
                 <child>
@@ -225,7 +275,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">2</property>
+                    <property name="position">3</property>
                   </packing>
                 </child>
               </object>
