@@ -73,7 +73,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     turn_on_library_sync_label: Gtk.Label = GtkTemplate.Child()
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     version_notification_label: Gtk.Revealer = GtkTemplate.Child()
-    version_ignore_label: Gtk.Label = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         width = int(settings.read_setting("width") or self.default_width)
@@ -867,7 +866,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.sync_library(force=True)
         self.update_notification()
 
-    def on_version_ignore_label_activate_link(self, _label, _url):
+    def on_version_notification_close_button_clicked(self, _button):
         dialog = QuestionDialog(
             {
                 "title": _("Unsupported Lutris Version"),

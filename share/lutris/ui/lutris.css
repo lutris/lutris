@@ -48,3 +48,10 @@
 .in-app-notification label link {
     color: unset;
 }
+
+.in-app-notification button {
+	padding: 0px;
+	min-height: 0px;
+	min-width: 0px;
+	border-radius: 0px;
+}
