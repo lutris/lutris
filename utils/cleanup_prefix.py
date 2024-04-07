@@ -14,6 +14,32 @@ PROGRAM_FILES_IGNORES = {
     "GameSpy Arcade": "*",
 }
 
+IGNORED_USER_FILES = {
+    "Desktop": "*",
+    "Videos": "*",
+    "Temp": "*",
+    "Cookies": "*",
+    "AppData": {
+        "LocalLow": "*",
+        "Local": {"Microsoft": "*"},
+        "Roaming": {"Microsoft": "*", "wine_gecko": "*"},
+    },
+    "Local Settings": {
+        "Application Data": {"Microsoft": "*"},
+        "History": "*",
+        "Temporary Internet Files": "*",
+    },
+    "Application Data": {"Microsoft": "*", "wine_gecko": "*"},
+    "Start Menu": "*",
+    "PrintHood": "*",
+    "Favorites": "*",
+    "Recent": "*",
+    "Downloads": "*",
+    "Templates": "*",
+    "NetHood": "*",
+    "My Pictures": "*",
+}
+
 IGNORED_DIRS = {
     "ProgramData": {
         "Microsoft": {"Windows": "*"},
@@ -23,33 +49,12 @@ IGNORED_DIRS = {
     "Program Files": PROGRAM_FILES_IGNORES,
     "Program Files (x86)": PROGRAM_FILES_IGNORES,
     "windows": "*",
+    "vrclient": "*",
+    "openxr": "*",
     "users": {
-        "Public": "*",
-        os.getenv("USER"): {
-            "Desktop": "*",
-            "Videos": "*",
-            "Temp": "*",
-            "Cookies": "*",
-            "AppData": {
-                "LocalLow": "*",
-                "Local": {"Microsoft": "*"},
-                "Roaming": {"Microsoft": "*", "wine_gecko": "*"},
-            },
-            "Local Settings": {
-                "Application Data": {"Microsoft": "*"},
-                "History": "*",
-                "Temporary Internet Files": "*",
-            },
-            "Application Data": {"Microsoft": "*", "wine_gecko": "*"},
-            "Start Menu": "*",
-            "PrintHood": "*",
-            "Favorites": "*",
-            "Recent": "*",
-            "Downloads": "*",
-            "Templates": "*",
-            "NetHood": "*",
-            "My Pictures": "*",
-        },
+        "Public": IGNORED_USER_FILES,
+        os.getenv("USER"): IGNORED_USER_FILES,
+        "steamuser": IGNORED_USER_FILES,
     },
 }
 
@@ -68,6 +73,7 @@ IGNORED_EXES = [
 
 KNOWN_DIRS = [
     "ProgramData/Microsoft/Windows",
+    "ProgramData/Package Cache",
     "Program Files/Common Files/Microsoft Shared",
     "Program Files/Common Files/System",
     "Program Files (x86)/Common Files/System",
@@ -77,7 +83,13 @@ KNOWN_DIRS = [
     "Program Files (x86)/Windows Media Player",
     "Program Files/Windows NT",
     "Program Files (x86)/Windows NT",
+    "Program Files (x86)/Steam",
     "windows",
+    "openxr",
+    "vrclient",
+    "users/steamuser/Temp",
+    "users/steamuser/AppData/Local/Microsoft/Windows/INetCache",
+    "users/steamuser/AppData/Local/Microsoft/Windows/INetCookies",
 ]
 
 
@@ -88,7 +100,18 @@ def delete_known_dirs(prefix_path):
             continue
         print("Deleting %s", full_path)
         shutil.rmtree(full_path)
-
+    devices = os.path.join(prefix_path, "dosdevices")
+    if os.path.exists(devices):
+        shutil.rmtree(devices)
+    regfiles = [
+        os.path.join(prefix_path, "system.reg"),
+        os.path.join(prefix_path, "user.reg"),
+        os.path.join(prefix_path, "userdef.reg"),
+    ]
+    for regfile in regfiles:
+        if not os.path.exists(regfile):
+            continue
+        os.remove(regfile)
 
 def remove_empty_dirs(dirname):
     empty_folders = []
@@ -100,12 +123,26 @@ def remove_empty_dirs(dirname):
     return empty_folders
 
 
+def remove_broken_symlinks(dirname):
+    for root, _dirs, files in os.walk(dirname, topdown=False):
+        for filename in files:
+            path = os.path.join(root, filename)
+            if not os.path.islink(path):
+                continue
+            if not os.path.exists(path):
+                print("Deleting broken link %s" % path)
+                os.unlink(path)
+
+
 def cleanup_prefix(path):
     print("Cleanup prefix", path)
     delete_known_dirs(path)
+    remove_broken_symlinks(path)
     empty_folders = True
     while empty_folders:
         empty_folders = remove_empty_dirs(path)
+    remove_broken_symlinks(path)
+    remove_empty_dirs(path)
 
 
 def is_ignored_path(path_parts):
@@ -164,8 +201,6 @@ def scan_prefix(path):
     folders = get_content_folders(path)
     exes = []
     for folder in folders:
-        if "drive_c/users" in folder:
-            continue
         exes += find_exes_in_path(folder)
     for exe in exes:
         print("EXE", exe)
