@@ -113,6 +113,7 @@ def delete_known_dirs(prefix_path):
             continue
         os.remove(regfile)
 
+
 def remove_empty_dirs(dirname):
     empty_folders = []
     for root, dirs, files in os.walk(dirname, topdown=True):
