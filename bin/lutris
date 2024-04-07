@@ -55,8 +55,8 @@ try:
 except ImportError:
     pass
 
-if "WEBKIT_DISABLE_COMPOSITING_MODE" not in os.environ:
-    os.environ["WEBKIT_DISABLE_COMPOSITING_MODE"] = "11"
+if "WEBKIT_DISABLE_DMABUF_RENDERER" not in os.environ:
+    os.environ["WEBKIT_DISABLE_DMABUF_RENDERER"] = "1"
 
 from lutris.gui.application import Application  # pylint: disable=no-name-in-module
 
