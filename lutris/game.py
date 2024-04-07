@@ -1059,7 +1059,7 @@ class Game(GObject.Object):
 
         if not system.path_exists(old_location):
             logger.warning("Initial location %s does not exist, files may have already been moved.")
-            return
+            return target_directory
 
         try:
             shutil.move(old_location, new_location)
