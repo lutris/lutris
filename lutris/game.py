@@ -1040,15 +1040,6 @@ class Game(GObject.Object):
         old_location = self.directory
         target_directory = self._get_move_target_directory(new_location)
 
-        # Raise errors before actually changing anything!
-        if not old_location:
-            raise InvalidGameMoveError(_("The game has no location currently set, so it can't be moved."))
-
-        if not system.path_exists(old_location):
-            raise InvalidGameMoveError(
-                _("The location '%s' does not exist, perhaps the files have already been moved?") % old_location
-            )
-
         if new_location.startswith(old_location):
             raise InvalidGameMoveError(
                 _("Lutris can't move '%s' to a location inside of itself, '%s'.") % (old_location, new_location)
@@ -1065,6 +1056,10 @@ class Game(GObject.Object):
                     new_config += line.replace(old_location, target_directory)
         with open(self.config.game_config_path, "w", encoding="utf-8") as config_file:
             config_file.write(new_config)
+
+        if not system.path_exists(old_location):
+            logger.warning("Initial location %s does not exist, files may have already been moved.")
+            return
 
         try:
             shutil.move(old_location, new_location)
