@@ -6,7 +6,7 @@ from typing import Callable, Iterable, List
 from gi.repository import GObject, Gtk
 
 from lutris import settings
-from lutris.database.games import get_games
+from lutris.database.games import get_game_by_field, get_games
 from lutris.game import Game
 from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.widgets.gi_composites import GtkTemplate
@@ -283,7 +283,7 @@ class UninstallDialog(Gtk.Dialog):
             library_syncer = LibrarySyncer()
             for row in rows:
                 if row.remove_from_library:
-                    games_removed_from_library.append(row.game.as_library_item)
+                    games_removed_from_library.append(get_game_by_field(row.game._id, "id"))
             if games_removed_from_library:
                 library_syncer.sync_local_library()
 
