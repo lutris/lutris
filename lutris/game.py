@@ -132,20 +132,6 @@ class Game(GObject.Object):
         game.service = service.id if service else None
         return game
 
-    @property
-    def as_library_item(self):
-        """Return a representation of the game suitable for the remote library"""
-        return {
-            "name": self.name,
-            "slug": self.slug,
-            "runner": self.runner_name,
-            "platform": self.platform,
-            "playtime": self.playtime,
-            "lastplayed": self.lastplayed,
-            "service": self.service,
-            "service_id": self.appid,
-        }
-
     def __repr__(self):
         return self.__str__()
 

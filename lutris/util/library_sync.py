@@ -125,11 +125,7 @@ class LibrarySyncer:
 
     def _db_game_to_api(self, db_game):
         """Serialize DB game entry to a payload compatible with the API"""
-        try:
-            categories = [self.categories[cat_id] for cat_id in self.games_categories.get(db_game["id"], [])]
-        except KeyError:
-            self.panic_at_the_key_error(db_game, "id")
-            return
+        categories = [self.categories[cat_id] for cat_id in self.games_categories.get(db_game["id"], [])]
         return {
             "name": db_game["name"],
             "slug": db_game["slug"],
@@ -142,22 +138,12 @@ class LibrarySyncer:
             "categories": categories,
         }
 
-    def panic_at_the_key_error(self, db_game, key):
-        logger.error((("!" * 120) + "\n") * 240)
-        logger.exception("No installed_at key in db_game. CORRUPTED OBJECT!!!!!")
-        logger.exception("OBJECT CONTENT %s", db_game)
-        logger.error((("!" * 120) + "\n") * 24)
-        sys.exit(-999)
-
     def _db_games_to_api(self, db_games, since=None):
         """Serialize a collection of games to API format, optionally filtering by date"""
         payload = []
         for db_game in db_games:
             lastplayed = db_game["lastplayed"] or 0
-            try:
-                installed_at = db_game["installed_at"] or 0
-            except KeyError:
-                self.panic_at_the_key_error(db_game, "installed_at")
+            installed_at = db_game["installed_at"] or 0
 
             if since and lastplayed < since and installed_at < since:
                 continue
