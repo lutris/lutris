@@ -64,11 +64,10 @@ class UpdatesBox(BaseConfigBox):
 
         markup = _(
             "<b>Umu</b>:\n"
-            "Umu enables the use of Proton and Pressure Vessel outside of Steam. \n"
-            "It uses its own version of Proton which automatically applies game fixes.\n"
-            "Updates to Proton will be automatically downloaded when a game is launched"
+            "Enables the use of Valve's Proton outside of Steam and uses a custom version of Proton which will "
+            "automatically apply fixes for games.\n"
             "\n"
-            "<b>WARNING: This feature is still under heavy development</b>"
+            "Please note that this feature is <b>experimental</b>."
         )
         umu_channel_radio_button = self._get_radio_button(
             markup, active=update_channel == UPDATE_CHANNEL_UMU, group=stable_channel_radio_button
