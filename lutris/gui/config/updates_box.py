@@ -17,6 +17,8 @@ from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 from lutris.util.wine.wine import WINE_DIR
 
+LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATURES_ENABLED") == "1"
+
 
 class UpdatesBox(BaseConfigBox):
     def __init__(self):
@@ -88,7 +90,10 @@ class UpdatesBox(BaseConfigBox):
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
         umu_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UMU)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
-        return (stable_channel_radio_button, umu_channel_radio_button, unsupported_channel_radio_button)
+
+        if LUTRIS_EXPERIMENTAL_FEATURES_ENABLED:
+            return (stable_channel_radio_button, umu_channel_radio_button, unsupported_channel_radio_button)
+        return (stable_channel_radio_button, unsupported_channel_radio_button)
 
     def get_wine_update_texts(self):
         wine_version_info = get_default_wine_runner_version_info()
