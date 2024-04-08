@@ -666,15 +666,20 @@ class Game(GObject.Object):
         This method sets the game_runtime_config attribute.
         """
         gameplay_info = self.get_gameplay_info(launch_ui_delegate)
-        if not gameplay_info:  # if user cancelled- not an error
+        if not gameplay_info:  # if user cancelled - not an error
             return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
 
         if env.get("WINEARCH") == "win32" and "umu" in " ".join(command):
             raise RuntimeError("Proton is not compatible with 32bit prefixes")
-        env["game_name"] = self.name  # What is this used for??
         env["GAMEID"] = proton.get_game_id(self)
         env["STORE"] = self.get_store_name()
+
+        # Some environment variables for the use of custom pre-launch and post-exit scripts.
+        env["game_name"] = self.name
+        if self.directory:
+            env["GAME_DIRECTORY"] = self.directory
+
         self.game_runtime_config = {
             "args": command,
             "env": env,
