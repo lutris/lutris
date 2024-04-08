@@ -208,7 +208,7 @@ class UninstallDialog(Gtk.Dialog):
 
                 update(
                     self.remove_all_games_checkbox,
-                    lambda row: row.game.is_installed,
+                    lambda row: True,
                     lambda row: row.remove_from_library,
                 )
             finally:
@@ -229,8 +229,7 @@ class UninstallDialog(Gtk.Dialog):
     @GtkTemplate.Callback
     def on_remove_all_games_checkbox_toggled(self, _widget):
         def update_row(row, active):
-            if row.game.is_installed:
-                row.remove_from_library = active
+            row.remove_from_library = active
 
         self._apply_all_checkbox(self.remove_all_games_checkbox, update_row)
 
@@ -436,8 +435,6 @@ class GameRemovalRow(Gtk.ListBoxRow):
     @property
     def remove_from_library(self) -> bool:
         """True if the game should be removed from the database."""
-        if not self.game.is_installed:
-            return True
         return bool(self.remove_from_library_checkbox.get_active())
 
     @remove_from_library.setter
