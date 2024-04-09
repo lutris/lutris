@@ -676,7 +676,7 @@ class Game(GObject.Object):
         env["STORE"] = self.get_store_name()
 
         # Some environment variables for the use of custom pre-launch and post-exit scripts.
-        env["game_name"] = self.name
+        env["GAME_NAME"] = self.name
         if self.directory:
             env["GAME_DIRECTORY"] = self.directory
 
