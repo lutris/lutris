@@ -27,6 +27,35 @@
   <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
+    <release version="0.5.17" date="2024-04-10" urgency="low">
+      <description>
+        <ul>
+          <li>Fix critical bug preventing completion of installs if the script specifies a wine version</li>
+          <li>Fix critical bug preventing Steam library sync</li>
+          <li>Fix critical bug preventing game or runner uninstall in Flatpak</li>
+          <li>Support for library sync to lutris.net, this allows to sync games, play</li>
+          <li>time and categories to multiple devices.</li>
+          <li>Remove "Lutris" service view; with library sync the "Games" view replaces it.</li>
+          <li>Torturous and sadistic options for multi-GPUs that were half broken and understood by no one have been replaced by a simple GPU selector.</li>
+          <li>EXPERIMENTAL support for umu, which allows running games with Proton and</li>
+          <li>Pressure Vessel. Using Proton in Lutris without umu is no longer possible.</li>
+          <li>Better and sensible sorting for games (sorting by playtime or last played no longer needs to be reversed)</li>
+          <li>Support the "Categories" command when you select multiple games</li>
+          <li>Notification bar when your Lutris is no longer supported</li>
+          <li>Improved error dialog.</li>
+          <li>Add Vita3k runner (thanks @ItsAllAboutTheCode)</li>
+          <li>Add Supermodel runner</li>
+          <li>WUA files are now supported in Cemu</li>
+          <li>"Show Hidden Games" now displays the hidden games in a separate view, and re-hides them as soon as you leave it.</li>
+          <li>Support transparent PNG files for custom banner and cover-art</li>
+          <li>Images are now downloaded for manually added games.</li>
+          <li>Deprecate 'exe', 'main_file' or 'iso' placed at the root of the script,</li>
+          <li>all lutris.net installers have been updated accordingly.</li>
+          <li>Deprecate libstrangle and xgamma support.</li>
+          <li>Deprecate DXVK state cache feature (it was never used and is no longer relevant to DXVK 2)           </li>
+        </ul>
+      </description>
+    </release>
     <release version="0.5.16" date="2024-01-15" urgency="low">
       <description>
         <ul>
