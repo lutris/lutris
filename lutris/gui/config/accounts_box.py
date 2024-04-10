@@ -7,6 +7,7 @@ from lutris.api import disconnect, read_user_info
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.config.updates_box import UpdateButtonBox
 from lutris.gui.dialogs import ClientLoginDialog, QuestionDialog
+from lutris.services.lutris import sync_media
 from lutris.util.jobs import AsyncCall
 from lutris.util.library_sync import (
     LOCAL_LIBRARY_SYNCED,
@@ -179,6 +180,7 @@ class AccountsBox(BaseConfigBox):
 
     def on_local_library_synced(self):
         self.sync_box.show_completion_markup(self.get_sync_box_label(), "")
+        AsyncCall(sync_media, None)
 
     def get_sync_box_label(self):
         synced_at = settings.read_setting("last_library_sync_at")
