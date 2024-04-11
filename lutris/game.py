@@ -9,7 +9,7 @@ import signal
 import subprocess
 import time
 from gettext import gettext as _
-from typing import cast, Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 from gi.repository import Gio, GLib, GObject, Gtk
 
@@ -1174,11 +1174,19 @@ class GameSearch:
     def is_empty(self):
         return not self.stripped and self.installed is None
 
-    def matches(self, db_game: Dict[str, Any], service: 'Service') -> bool:
-        if self.installed is not None and service:
-            not_installed = "appid" in db_game and db_game["appid"] not in games_db.get_service_games(service.id)
-            if self.installed != (not not_installed):
+    def matches(self, db_game: Dict[str, Any], service) -> bool:
+        if self.installed is not None:
+            installed = self._is_installed(db_game, service)
+            if self.installed != installed:
                 return False
 
         name = strip_accents(db_game["name"]).casefold()
         return self.stripped in name
+
+    @staticmethod
+    def _is_installed(db_game: Dict[str, Any], service) -> bool:
+        if service:
+            appid = db_game.get("appid")
+            return bool(appid and appid in games_db.get_service_games(service.id))
+
+        return bool(db_game["installed"])
