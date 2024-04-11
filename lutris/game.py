@@ -9,7 +9,7 @@ import signal
 import subprocess
 import time
 from gettext import gettext as _
-from typing import cast
+from typing import cast, Any, Dict, Optional
 
 from gi.repository import Gio, GLib, GObject, Gtk
 
@@ -34,6 +34,7 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.process import Process
 from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
+from lutris.util.strings import strip_accents
 from lutris.util.system import fix_path_case
 from lutris.util.timer import Timer
 from lutris.util.wine import proton
@@ -1158,3 +1159,26 @@ def import_game(file_path, dest_dir):
         service_id=lutris_config["service_id"],
     )
     print("Added game with ID %s" % game_id)
+
+
+class GameSearch:
+    def __init__(self, text: str, installed: Optional[bool] = None) -> None:
+        self.text = text
+        self.stripped = strip_accents(text).casefold()
+        self.installed = installed
+
+    def __str__(self):
+        return self.text
+
+    @property
+    def is_empty(self):
+        return not self.stripped and self.installed is None
+
+    def matches(self, db_game: Dict[str, Any], service: 'Service') -> bool:
+        if self.installed is not None and service:
+            not_installed = "appid" in db_game and db_game["appid"] not in games_db.get_service_games(service.id)
+            if self.installed != (not not_installed):
+                return False
+
+        name = strip_accents(db_game["name"]).casefold()
+        return self.stripped in name
