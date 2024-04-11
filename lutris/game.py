@@ -9,7 +9,7 @@ import signal
 import subprocess
 import time
 from gettext import gettext as _
-from typing import Any, Dict, Optional, cast
+from typing import Any, Callable, Dict, List, cast
 
 from gi.repository import Gio, GLib, Gtk
 
@@ -1162,26 +1162,47 @@ def import_game(file_path, dest_dir):
 
 
 class GameSearch:
-    def __init__(self, text: str, installed: Optional[bool] = None) -> None:
+    def __init__(self, text: str) -> None:
         self.text = text
-        self.stripped = strip_accents(text).casefold()
-        self.installed = installed
+        self.predicates: List[Callable] = []
+
+        if text:
+            self.add_predicate(GameSearch.get_text_predicate(text))
 
     def __str__(self):
         return self.text
 
+    def add_predicate(self, predicate: Callable) -> None:
+        self.predicates.append(predicate)
+
     @property
     def is_empty(self):
-        return not self.stripped and self.installed is None
+        return not self.predicates
 
     def matches(self, db_game: Dict[str, Any], service) -> bool:
-        if self.installed is not None:
-            installed = self._is_installed(db_game, service)
-            if self.installed != installed:
+        for predicate in self.predicates:
+            if not predicate(db_game, service):
                 return False
 
-        name = strip_accents(db_game["name"]).casefold()
-        return self.stripped in name
+        return True
+
+    @staticmethod
+    def get_text_predicate(text: str) -> Callable:
+        stripped = strip_accents(text).casefold()
+
+        def match_text(db_game, service):
+            name = strip_accents(db_game["name"]).casefold()
+            return stripped in name
+
+        return match_text
+
+    @staticmethod
+    def get_installed_predicate(installed: bool) -> Callable:
+        def match_installed(db_game, service):
+            is_installed = GameSearch._is_installed(db_game, service)
+            return installed == is_installed
+
+        return match_installed
 
     @staticmethod
     def _is_installed(db_game: Dict[str, Any], service) -> bool:
