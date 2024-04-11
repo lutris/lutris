@@ -426,8 +426,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def filter_games(self, games):
         """Filters a list of games according to the 'installed' and 'text' filters, if those are
         set. But if not, can just return games unchanged."""
-        installed = True if self.filters.get("installed") else None
-        search = GameSearch(self.filters.get("text") or "", installed=installed)
+        search = GameSearch(self.filters.get("text") or "")
+
+        if self.filters.get("installed"):
+            search.add_predicate(GameSearch.get_installed_predicate(installed=True))
 
         if search.is_empty:
             return games
