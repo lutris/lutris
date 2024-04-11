@@ -56,8 +56,8 @@ jobs:
           # This will be passed through to the build-specific script for
           # Jammy and causes it to produce additional builds for the Ubuntu
           # codenames listed below.
-          # Ex. "kinetic lunar"
-          JAMMY_BUILDS: "kinetic lunar"
+          # Ex. "lunar mantic"
+          JAMMY_BUILDS: "lunar mantic"
         run: |
           ./.github/scripts/build-ubuntu.sh
 
