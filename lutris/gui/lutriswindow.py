@@ -44,13 +44,12 @@ from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, LibrarySyncer
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
-from lutris.util.strings import get_natural_sort_key, strip_accents
+from lutris.util.strings import get_natural_sort_key
 from lutris.util.system import update_desktop_icons
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
-                   DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -241,6 +240,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
                 action.connect("change-state", value.callback)
             self.actions[name] = action
             if value.enabled:
+
                 def updater(action=action, value=value):
                     action.props.enabled = value.enabled()
 
