@@ -14,6 +14,7 @@ class InterfacePreferencesBox(BaseConfigBox):
         "show_tray_icon": _("Show Tray Icon"),
         "dark_theme": _("Use dark theme (requires dark theme variant for Gtk)"),
         "discord_rpc": _("Enable Discord Rich Presence for Available Games"),
+        "remove_from_library": _("Remove games from library when uninstalling"),
     }
 
     settings_accelerators = {"hide_badges_on_icons": "<Primary>p"}
@@ -35,5 +36,5 @@ class InterfacePreferencesBox(BaseConfigBox):
                 list_box_row = Gtk.ListBoxRow(visible=True)
                 list_box_row.set_selectable(False)
                 list_box_row.set_activatable(False)
-                list_box_row.add(self.get_setting_box(setting_key, label))
+                list_box_row.add(self.get_setting_box(setting_key, label, setting_key=="remove_from_library"))
                 listbox.add(list_box_row)
