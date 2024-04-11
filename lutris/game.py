@@ -1162,12 +1162,22 @@ def import_game(file_path, dest_dir):
 
 
 class GameSearch:
+    flag_texts = {"true": True, "yes": True, "false": False, "no": False}
+
     def __init__(self, text: str) -> None:
         self.text = text
         self.predicates: List[Callable] = []
 
         if text:
-            self.add_predicate(GameSearch.get_text_predicate(text))
+            for part in text.split():
+                if part.casefold().startswith("installed:"):
+                    installed_text = part[10:].casefold()
+                    if installed_text in GameSearch.flag_texts:
+                        installed = GameSearch.flag_texts[installed_text]
+                        self.add_predicate(GameSearch.get_installed_predicate(installed=installed))
+                        continue
+
+                self.add_predicate(GameSearch.get_text_predicate(part))
 
     def __str__(self):
         return self.text
