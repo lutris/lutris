@@ -2,7 +2,7 @@ import abc
 import re
 from collections import defaultdict
 from itertools import repeat
-from typing import List, Dict, Union
+from typing import Dict, List, Union
 
 from lutris import settings
 from lutris.database import sql
@@ -42,9 +42,7 @@ _SMART_CATEGORIES: List[_SmartCategory] = [_SmartUncategorizedCategory()]
 
 # Convenient method to iterate category with id.
 # Note that ids that are positive integers should not be used, as they can conflict with existing categories.
-_SMART_CATEGORIES_WITH_ID = [
-    (category, f"smart-category-{id}") for id, category in enumerate(_SMART_CATEGORIES)
-]
+_SMART_CATEGORIES_WITH_ID = [(category, f"smart-category-{id}") for id, category in enumerate(_SMART_CATEGORIES)]
 
 
 def strip_category_name(name):
@@ -119,19 +117,11 @@ def get_game_ids_for_categories(included_category_names=None, excluded_category_
     if filters:
         query += " WHERE %s" % " AND ".join(filters)
 
-    result = set(
-        game["id"] for game in sql.db_query(settings.DB_PATH, query, tuple(parameters))
-    )
+    result = set(game["id"] for game in sql.db_query(settings.DB_PATH, query, tuple(parameters)))
     for smart_cat in _SMART_CATEGORIES:
-        if (
-            excluded_category_names is not None
-            and smart_cat.get_name() in excluded_category_names
-        ):
+        if excluded_category_names is not None and smart_cat.get_name() in excluded_category_names:
             continue
-        if (
-            included_category_names is not None
-            and smart_cat.get_name() not in included_category_names
-        ):
+        if included_category_names is not None and smart_cat.get_name() not in included_category_names:
             continue
         result |= set(smart_cat.get_games())
 
