@@ -1,6 +1,7 @@
 import abc
 import re
 from collections import defaultdict
+from gettext import gettext as _
 from itertools import repeat
 from typing import Dict, List, Union
 
@@ -24,7 +25,7 @@ class _SmartUncategorizedCategory(_SmartCategory):
     """A SmartCategory that resolves to all uncategorized games."""
 
     def get_name(self) -> str:
-        return "UNCATEGORIZED"
+        return _("Uncategorized")
 
     def get_games(self) -> List[int]:
         query = (
