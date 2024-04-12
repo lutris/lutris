@@ -22,7 +22,7 @@ class BaseSearch:
                         self.add_predicate(predicate)
                         continue
 
-                self.add_predicate(GameSearch.get_text_predicate(part))
+                self.add_predicate(self.get_text_predicate(part))
 
     def __str__(self) -> str:
         return self.text
@@ -37,25 +37,34 @@ class BaseSearch:
     def is_empty(self) -> bool:
         return not self.predicates
 
-    def matches(self, db_game: Dict[str, Any], service) -> bool:
+    def matches(self, candidate: Any) -> bool:
         for predicate in self.predicates:
-            if not predicate(db_game, service):
+            if not predicate(candidate):
                 return False
 
         return True
 
-    @staticmethod
-    def get_text_predicate(text: str) -> Callable:
+    def get_text_predicate(self, text: str) -> Callable:
         stripped = strip_accents(text).casefold()
 
-        def match_text(db_game, service):
-            name = strip_accents(db_game["name"]).casefold()
+        def match_text(candidate):
+            name = strip_accents(self.get_candidate_text(candidate)).casefold()
             return stripped in name
 
         return match_text
 
+    def get_candidate_text(self, candidate: Any) -> str:
+        return str(candidate)
+
 
 class GameSearch(BaseSearch):
+    def __init__(self, text: str, service) -> None:
+        self.service = service
+        super().__init__(text)
+
+    def get_candidate_text(self, candidate: Any) -> str:
+        return candidate["name"]
+
     def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
         if name.casefold() == "installed":
             if value in GameSearch.flag_texts:
@@ -64,18 +73,16 @@ class GameSearch(BaseSearch):
 
         return super().get_part_predicate(name, value)
 
-    @classmethod
-    def get_installed_predicate(cls, installed: bool) -> Callable:
-        def match_installed(db_game, service):
-            is_installed = GameSearch._is_installed(db_game, service)
+    def get_installed_predicate(self, installed: bool) -> Callable:
+        def match_installed(db_game):
+            is_installed = self._is_installed(db_game)
             return installed == is_installed
 
         return match_installed
 
-    @classmethod
-    def _is_installed(cls, db_game: Dict[str, Any], service) -> bool:
-        if service:
+    def _is_installed(self, db_game: Dict[str, Any]) -> bool:
+        if self.service:
             appid = db_game.get("appid")
-            return bool(appid and appid in games.get_service_games(service.id))
+            return bool(appid and appid in games.get_service_games(self.service.id))
 
         return bool(db_game["installed"])
