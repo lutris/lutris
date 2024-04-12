@@ -1,7 +1,6 @@
 import abc
 import re
 from collections import defaultdict
-from gettext import gettext as _
 from itertools import repeat
 from typing import Dict, List, Union
 
@@ -25,7 +24,7 @@ class _SmartUncategorizedCategory(_SmartCategory):
     """A SmartCategory that resolves to all uncategorized games."""
 
     def get_name(self) -> str:
-        return _("Uncategorized")
+        return ".uncategorized"
 
     def get_games(self) -> List[int]:
         query = (
@@ -40,10 +39,6 @@ class _SmartUncategorizedCategory(_SmartCategory):
 # All smart categories should be added to this variable.
 # TODO: Expose a way for the users to define new smart categories.
 _SMART_CATEGORIES: List[_SmartCategory] = [_SmartUncategorizedCategory()]
-
-# Convenient method to iterate category with id.
-# Note that ids that are positive integers should not be used, as they can conflict with existing categories.
-_SMART_CATEGORIES_WITH_ID = [(category, f"smart-category-{_id}") for _id, category in enumerate(_SMART_CATEGORIES)]
 
 
 def strip_category_name(name):
@@ -63,13 +58,7 @@ def is_reserved_category(name):
 def get_categories() -> List[Dict[str, Union[int, str]]]:
     """Get the list of every category in database."""
     # Categories look like [{"id": 1, "name": "My Category"}, ...]
-    categories = sql.db_select(settings.DB_PATH, "categories")
-    # Add smart categories to the existing list of categories.
-    for smart_category, smart_id in _SMART_CATEGORIES_WITH_ID:
-        categories.append({"id": smart_id, "name": smart_category.get_name()})
-    else:
-        remove_unused_categories()  # requires restart
-    return categories
+    return sql.db_select(settings.DB_PATH, "categories")
 
 
 def get_all_games_categories():

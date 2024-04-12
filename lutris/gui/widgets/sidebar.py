@@ -261,8 +261,6 @@ class CategorySidebarRow(SidebarRow):
 
     def get_actions(self):
         """Return the definition of buttons to be added to the row"""
-        if str(self.category["id"]).startswith("smart-category"):
-            return []
         return [("applications-system-symbolic", _("Edit Games"), self.on_category_clicked, "manage-category-games")]
 
     def on_category_clicked(self, button):
@@ -410,6 +408,15 @@ class LutrisSidebar(Gtk.ListBox):
                 "category",
                 _("Favorites"),
                 Gtk.Image.new_from_icon_name("favorite-symbolic", Gtk.IconSize.MENU),
+            )
+        )
+
+        self.add(
+            SidebarRow(
+                ".uncategorized",
+                "category",
+                _("Uncategorized"),
+                Gtk.Image.new_from_icon_name("poi-marker", Gtk.IconSize.MENU),
             )
         )
 
