@@ -672,8 +672,10 @@ class Game(GObject.Object):
 
         if env.get("WINEARCH") == "win32" and "umu" in " ".join(command):
             raise RuntimeError("Proton is not compatible with 32bit prefixes")
+
+        # Allow user to override default umu environment variables to apply fixes
         env["GAMEID"] = proton.get_game_id(self)
-        env["STORE"] = self.get_store_name()
+        env["STORE"] = env.get("STORE") or self.get_store_name()
 
         # Some environment variables for the use of custom pre-launch and post-exit scripts.
         env["GAME_NAME"] = self.name

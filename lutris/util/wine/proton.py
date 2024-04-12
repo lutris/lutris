@@ -99,8 +99,11 @@ def get_proton_path_from_bin(wine_path):
     return os.path.abspath(os.path.join(os.path.dirname(wine_path), "../../"))
 
 
-def get_game_id(game):
+def get_game_id(game) -> str:
     games_path = os.path.join(settings.RUNTIME_DIR, "umu-games/umu-games.json")
+    env = game.runner.get_env()
+    if game and env.get("GAMEID") or env.get("UMU_ID"):
+        return env.get("GAMEID") or env.get("UMU_ID")
     if not os.path.exists(games_path) or not game:
         return DEFAULT_GAMEID
     with open(games_path, "r", encoding="utf-8") as games_file:
