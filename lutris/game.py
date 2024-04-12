@@ -9,7 +9,7 @@ import signal
 import subprocess
 import time
 from gettext import gettext as _
-from typing import Any, Callable, Dict, List, cast
+from typing import Any, Callable, Dict, List, Optional, cast
 
 from gi.repository import Gio, GLib, GObject, Gtk
 
@@ -1161,7 +1161,7 @@ def import_game(file_path, dest_dir):
     print("Added game with ID %s" % game_id)
 
 
-class GameSearch:
+class BaseSearch:
     flag_texts = {"true": True, "yes": True, "false": False, "no": False}
 
     def __init__(self, text: str) -> None:
@@ -1170,23 +1170,28 @@ class GameSearch:
 
         if text:
             for part in text.split():
-                if part.casefold().startswith("installed:"):
-                    installed_text = part[10:].casefold()
-                    if installed_text in GameSearch.flag_texts:
-                        installed = GameSearch.flag_texts[installed_text]
-                        self.add_predicate(GameSearch.get_installed_predicate(installed=installed))
+                if ":" in part:
+                    pos = part.index(":", 1)
+                    name = part[:pos]
+                    value = part[(pos + 1) :]
+                    predicate = self.get_part_predicate(name, value)
+                    if predicate:
+                        self.add_predicate(predicate)
                         continue
 
                 self.add_predicate(GameSearch.get_text_predicate(part))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.text
 
     def add_predicate(self, predicate: Callable) -> None:
         self.predicates.append(predicate)
 
+    def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
+        return None
+
     @property
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return not self.predicates
 
     def matches(self, db_game: Dict[str, Any], service) -> bool:
@@ -1206,16 +1211,26 @@ class GameSearch:
 
         return match_text
 
-    @staticmethod
-    def get_installed_predicate(installed: bool) -> Callable:
+
+class GameSearch(BaseSearch):
+    def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
+        if name.casefold() == "installed":
+            if value in GameSearch.flag_texts:
+                installed = GameSearch.flag_texts[value]
+                return self.get_installed_predicate(installed)
+
+        return super().get_part_predicate(name, value)
+
+    @classmethod
+    def get_installed_predicate(cls, installed: bool) -> Callable:
         def match_installed(db_game, service):
             is_installed = GameSearch._is_installed(db_game, service)
             return installed == is_installed
 
         return match_installed
 
-    @staticmethod
-    def _is_installed(db_game: Dict[str, Any], service) -> bool:
+    @classmethod
+    def _is_installed(cls, db_game: Dict[str, Any], service) -> bool:
         if service:
             appid = db_game.get("appid")
             return bool(appid and appid in games_db.get_service_games(service.id))
