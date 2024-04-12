@@ -261,6 +261,8 @@ class CategorySidebarRow(SidebarRow):
 
     def get_actions(self):
         """Return the definition of buttons to be added to the row"""
+        if str(self.category["id"]).startswith("smart-category"):
+            return []
         return [("applications-system-symbolic", _("Edit Games"), self.on_category_clicked, "manage-category-games")]
 
     def on_category_clicked(self, button):

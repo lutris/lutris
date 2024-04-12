@@ -43,7 +43,7 @@ _SMART_CATEGORIES: List[_SmartCategory] = [_SmartUncategorizedCategory()]
 
 # Convenient method to iterate category with id.
 # Note that ids that are positive integers should not be used, as they can conflict with existing categories.
-_SMART_CATEGORIES_WITH_ID = [(category, f"smart-category-{id}") for id, category in enumerate(_SMART_CATEGORIES)]
+_SMART_CATEGORIES_WITH_ID = [(category, f"smart-category-{_id}") for _id, category in enumerate(_SMART_CATEGORIES)]
 
 
 def strip_category_name(name):
