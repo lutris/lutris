@@ -16,7 +16,7 @@ class _SmartCategory(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_games(self) -> List[int]:
+    def get_games(self) -> List[str]:
         pass
 
 
@@ -26,14 +26,8 @@ class _SmartUncategorizedCategory(_SmartCategory):
     def get_name(self) -> str:
         return ".uncategorized"
 
-    def get_games(self) -> List[int]:
-        query = (
-            "SELECT games.id FROM games "
-            "LEFT JOIN games_categories ON games.id = games_categories.game_id "
-            "WHERE games_categories.game_id IS NULL"
-        )
-        uncategorized = sql.db_query(settings.DB_PATH, query)
-        return [row["id"] for row in uncategorized]
+    def get_games(self) -> List[str]:
+        return get_uncategorized_game_ids()
 
 
 # All smart categories should be added to this variable.
@@ -116,6 +110,21 @@ def get_game_ids_for_categories(included_category_names=None, excluded_category_
         result |= set(smart_cat.get_games())
 
     return list(sorted(result))
+
+
+def get_uncategorized_game_ids() -> List[str]:
+    """Returns the ids of games that are in no categories. We do not count
+    the 'favorites' category, but we do count '.hidden'- hidden games are hidden
+    from this too."""
+    query = (
+        "SELECT games.id FROM games WHERE NOT EXISTS("
+        "SELECT * FROM games_categories "
+        "INNER JOIN categories ON categories.id = games_categories.category_id "
+        "AND categories.name NOT IN ('all', 'favorite') "
+        "WHERE games.id = games_categories.game_id)"
+    )
+    uncategorized = sql.db_query(settings.DB_PATH, query)
+    return [row["id"] for row in uncategorized]
 
 
 def get_categories_in_game(game_id):
