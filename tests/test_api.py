@@ -9,7 +9,7 @@ RUNTIME_VERSIONS = {
         "wine": [
             {
                 "name": "wine",
-                "version": "wine-ge-8-27",
+                "version": "wine-ge-8-26",
                 "url": "https://github.com/GloriousEggroll/wine-ge-custom/releases/download/GE-Proton8-26/wine-lutris-GE-Proton8-26-x86_64.tar.xz",
                 "architecture": "x86_64",
             }
@@ -58,7 +58,7 @@ class TestApi(unittest.TestCase):
         mock_get_runtime_versions.return_value = RUNTIME_VERSIONS
         mock_download_runner_versions.return_value = WINE_RUNNER_VERSIONS
         version_info = api.get_default_runner_version_info("wine")
-        self.assertEqual(version_info["version"], "wine-ge-8-27")
+        self.assertEqual(version_info["version"], "wine-ge-8-26")
 
         version_info = api.get_default_runner_version_info("wine", "lutris-7.2-1")
         self.assertEqual(version_info["version"], "lutris-7.2-1")
