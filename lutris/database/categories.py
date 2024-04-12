@@ -1,9 +1,50 @@
+import abc
 import re
 from collections import defaultdict
 from itertools import repeat
+from typing import List, Dict, Union
 
 from lutris import settings
 from lutris.database import sql
+
+
+class _SmartCategory(abc.ABC):
+    """Abstract class to define smart categories. Smart categories are automatically defined based on a rule."""
+
+    @abc.abstractmethod
+    def get_name(self) -> str:
+        pass
+
+    @abc.abstractmethod
+    def get_games(self) -> List[int]:
+        pass
+
+
+class _SmartUncategorizedCategory(_SmartCategory):
+    """A SmartCategory that resolves to all uncategorized games."""
+
+    def get_name(self) -> str:
+        return "UNCATEGORIZED"
+
+    def get_games(self) -> List[int]:
+        query = (
+            "SELECT games.id FROM games "
+            "LEFT JOIN games_categories ON games.id = games_categories.game_id "
+            "WHERE games_categories.game_id IS NULL"
+        )
+        uncategorized = sql.db_query(settings.DB_PATH, query)
+        return [row["id"] for row in uncategorized]
+
+
+# All smart categories should be added to this variable.
+# TODO: Expose a way for the users to define new smart categories.
+_SMART_CATEGORIES: List[_SmartCategory] = [_SmartUncategorizedCategory()]
+
+# Convenient method to iterate category with id.
+# Note that ids that are positive integers should not be used, as they can conflict with existing categories.
+_SMART_CATEGORIES_WITH_ID = [
+    (category, f"smart-category-{id}") for id, category in enumerate(_SMART_CATEGORIES)
+]
 
 
 def strip_category_name(name):
@@ -20,9 +61,16 @@ def is_reserved_category(name):
     return not name or name[0] == "." or name in ["all", "favorite"]
 
 
-def get_categories():
+def get_categories() -> List[Dict[str, Union[int, str]]]:
     """Get the list of every category in database."""
-    return sql.db_select(settings.DB_PATH, "categories")
+    # Categories look like [{"id": 1, "name": "My Category"}, ...]
+    categories = sql.db_select(settings.DB_PATH, "categories")
+    # Add smart categories to the existing list of categories.
+    for smart_category, smart_id in _SMART_CATEGORIES_WITH_ID:
+        categories.append({"id": smart_id, "name": smart_category.get_name()})
+    else:
+        remove_unused_categories()  # requires restart
+    return categories
 
 
 def get_all_games_categories():
@@ -71,7 +119,23 @@ def get_game_ids_for_categories(included_category_names=None, excluded_category_
     if filters:
         query += " WHERE %s" % " AND ".join(filters)
 
-    return [game["id"] for game in sql.db_query(settings.DB_PATH, query, tuple(parameters))]
+    result = set(
+        game["id"] for game in sql.db_query(settings.DB_PATH, query, tuple(parameters))
+    )
+    for smart_cat in _SMART_CATEGORIES:
+        if (
+            excluded_category_names is not None
+            and smart_cat.get_name() in excluded_category_names
+        ):
+            continue
+        if (
+            included_category_names is not None
+            and smart_cat.get_name() not in included_category_names
+        ):
+            continue
+        result |= set(smart_cat.get_games())
+
+    return list(sorted(result))
 
 
 def get_categories_in_game(game_id):

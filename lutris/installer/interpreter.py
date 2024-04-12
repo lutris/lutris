@@ -1,4 +1,4 @@
-"""Install a game by following its install script."""
+﻿"""Install a game by following its install script."""
 
 import os
 from gettext import gettext as _
