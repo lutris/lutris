@@ -8,6 +8,7 @@ from lutris import runners, settings
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.widgets.utils import open_uri
+from lutris.search import RunnerSearch
 
 
 class RunnersBox(BaseConfigBox):
@@ -15,7 +16,7 @@ class RunnersBox(BaseConfigBox):
 
     def __init__(self):
         super().__init__()
-        self._filter = ""
+        self._runner_search = RunnerSearch("")
         self.search_entry_placeholder_text = ""
 
         self.add(self.get_section_label(_("Add, remove or configure runners")))
@@ -51,21 +52,21 @@ class RunnersBox(BaseConfigBox):
 
     @property
     def filter(self):
-        return self._filter
+        return self._runner_search.text
 
     @filter.setter
     def filter(self, value):
-        self._filter = value
+        self._runner_search = RunnerSearch(value)
         self._update_row_visibility()
 
     def _update_row_visibility(self):
-        text = self.filter.lower()
+        search = self._runner_search
 
         any_matches = False
         for row in self.runner_listbox.get_children():
             runner_box = row.get_child()
             runner = runner_box.runner
-            match = text in runner.name.lower() or text in runner.description.lower()
+            match = search.matches(runner)
             row.set_visible(match)
             if match:
                 any_matches = True

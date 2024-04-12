@@ -1,6 +1,7 @@
 from typing import Any, Callable, Dict, List, Optional
 
 from lutris.database import games
+from lutris.runners.runner import Runner
 from lutris.util.strings import strip_accents
 
 
@@ -67,8 +68,8 @@ class GameSearch(BaseSearch):
 
     def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
         if name.casefold() == "installed":
-            if value in GameSearch.flag_texts:
-                installed = GameSearch.flag_texts[value]
+            if value in self.flag_texts:
+                installed = self.flag_texts[value]
                 return self.get_installed_predicate(installed)
 
         return super().get_part_predicate(name, value)
@@ -86,3 +87,23 @@ class GameSearch(BaseSearch):
             return bool(appid and appid in games.get_service_games(self.service.id))
 
         return bool(db_game["installed"])
+
+
+class RunnerSearch(BaseSearch):
+    def get_candidate_text(self, candidate: Any) -> str:
+        return f"{candidate.name}\n{candidate.description}"
+
+    def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
+        if name.casefold() == "installed":
+            if value in self.flag_texts:
+                installed = self.flag_texts[value]
+                return self.get_installed_predicate(installed)
+
+        return super().get_part_predicate(name, value)
+
+    def get_installed_predicate(self, installed: bool) -> Callable:
+        def match_installed(runner: Runner):
+            is_installed = runner.is_installed()
+            return installed == is_installed
+
+        return match_installed
