@@ -2,6 +2,7 @@
 
 import locale
 from gettext import gettext as _
+from typing import List
 
 from gi.repository import GLib, GObject, Gtk, Pango
 
@@ -248,7 +249,7 @@ class CategorySidebarRow(SidebarRow):
             category["name"],
             "user_category",
             category["name"],
-            Gtk.Image.new_from_icon_name("folder-symbolic", Gtk.IconSize.MENU),
+            LutrisSidebar.get_sidebar_icon("folder-symbolic"),
             application=application,
         )
         self.category = category
@@ -364,9 +365,16 @@ class LutrisSidebar(Gtk.ListBox):
         self.show_all()
 
     @staticmethod
-    def get_sidebar_icon(icon_name):
-        name = icon_name if has_stock_icon(icon_name) else "package-x-generic-symbolic"
-        icon = Gtk.Image.new_from_icon_name(name, Gtk.IconSize.MENU)
+    def get_sidebar_icon(icon_name: str, fallback_icon_names: List[str] = None) -> Gtk.Image:
+        candidate_names = [icon_name] + (fallback_icon_names or [])
+        candidate_names = [name for name in candidate_names if has_stock_icon(name)]
+
+        # Even if this one is not a stock icon, we'll use it as a last resort and
+        # get the 'broken icon' icon if it's not known.
+        if not candidate_names:
+            candidate_names = ["package-x-generic-symbolic"]
+
+        icon = Gtk.Image.new_from_icon_name(candidate_names[0], Gtk.IconSize.MENU)
 
         # We can wind up with an icon of the wrong size, if that's what is
         # available. So we'll fix that.
@@ -389,7 +397,7 @@ class LutrisSidebar(Gtk.ListBox):
             "all",
             "category",
             _("Games"),
-            Gtk.Image.new_from_icon_name("applications-games-symbolic", Gtk.IconSize.MENU),
+            self.get_sidebar_icon("applications-games-symbolic"),
         )
         self.add(self.games_row)
 
@@ -398,7 +406,7 @@ class LutrisSidebar(Gtk.ListBox):
                 "recent",
                 "dynamic_category",
                 _("Recent"),
-                Gtk.Image.new_from_icon_name("document-open-recent-symbolic", Gtk.IconSize.MENU),
+                self.get_sidebar_icon("document-open-recent-symbolic"),
             )
         )
 
@@ -407,7 +415,7 @@ class LutrisSidebar(Gtk.ListBox):
                 "favorite",
                 "category",
                 _("Favorites"),
-                Gtk.Image.new_from_icon_name("favorite-symbolic", Gtk.IconSize.MENU),
+                self.get_sidebar_icon("favorite-symbolic"),
             )
         )
 
@@ -416,7 +424,7 @@ class LutrisSidebar(Gtk.ListBox):
                 ".uncategorized",
                 "category",
                 _("Uncategorized"),
-                Gtk.Image.new_from_icon_name("poi-marker", Gtk.IconSize.MENU),
+                self.get_sidebar_icon("tag-symbolic", ["poi-marker", "favorite-symbolic"]),
             )
         )
 
@@ -424,7 +432,7 @@ class LutrisSidebar(Gtk.ListBox):
             ".hidden",
             "category",
             _("Hidden"),
-            Gtk.Image.new_from_icon_name("action-unavailable-symbolic", Gtk.IconSize.MENU),
+            self.get_sidebar_icon("action-unavailable-symbolic"),
         )
         self.add(self.hidden_row)
 
@@ -432,7 +440,7 @@ class LutrisSidebar(Gtk.ListBox):
             "missing",
             "dynamic_category",
             _("Missing"),
-            Gtk.Image.new_from_icon_name("dialog-warning-symbolic", Gtk.IconSize.MENU),
+            self.get_sidebar_icon("dialog-warning-symbolic"),
         )
         self.add(self.missing_row)
 
@@ -440,7 +448,7 @@ class LutrisSidebar(Gtk.ListBox):
             "running",
             "dynamic_category",
             _("Running"),
-            Gtk.Image.new_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.MENU),
+            self.get_sidebar_icon("media-playback-start-symbolic"),
         )
         # I wanted this to be on top but it really messes with the headers when showing/hiding the row.
         self.add(self.running_row)
