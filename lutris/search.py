@@ -12,7 +12,7 @@ from lutris.util.strings import strip_accents
 
 
 class BaseSearch:
-    flag_texts = {"true": True, "yes": True, "false": False, "no": False}
+    flag_texts = {"true": True, "yes": True, "false": False, "no": False, "maybe": None}
     tags = []
 
     def __init__(self, text: str) -> None:
@@ -103,31 +103,37 @@ class GameSearch(BaseSearch):
         return candidate["name"]
 
     def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
-        if name.casefold() == "installed" and value in self.flag_texts:
-            installed = self.flag_texts[value]
-            return self.get_installed_predicate(installed)
+        folded_value = value.casefold()
+        if folded_value in self.flag_texts:
+            flag = self.flag_texts[folded_value]
 
-        if name.casefold() == "hidden" and value in self.flag_texts:
-            hidden = self.flag_texts[value]
-            return self.get_category_predicate(".hidden", in_category=hidden)
+            if flag is None:
+                # None represents 'maybe' which performs no test, but overrides
+                # the tests performed outside the search. Useful for 'hidden' and
+                # 'installed' components
+                return lambda *args: True
 
-        if name.casefold() == "favorite" and value in self.flag_texts:
-            favorite = self.flag_texts[value]
-            return self.get_category_predicate("favorite", in_category=favorite)
+            if name == "installed":
+                return self.get_installed_predicate(flag)
 
-        if name.casefold() == "categorized" and value in self.flag_texts:
-            categorized = self.flag_texts[value]
-            return self.get_categorized_predicate(categorized)
+            if name == "hidden":
+                return self.get_category_predicate(".hidden", in_category=flag)
 
-        if name.casefold() == "category":
+            if name == "favorite":
+                return self.get_category_predicate("favorite", in_category=flag)
+
+            if name == "categorized":
+                return self.get_categorized_predicate(flag)
+
+        if name == "category":
             category = value.strip()
             return self.get_category_predicate(category)
 
-        if name.casefold() == "runner":
+        if name == "runner":
             runner_name = value.strip()
             return self.get_runner_predicate(runner_name)
 
-        if name.casefold() == "platform":
+        if name == "platform":
             platform = value.strip()
             return self.get_platform_predicate(platform)
 
@@ -199,10 +205,13 @@ class RunnerSearch(BaseSearch):
         return f"{candidate.name}\n{candidate.description}"
 
     def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
-        if name.casefold() == "installed":
-            if value in self.flag_texts:
-                installed = self.flag_texts[value]
-                return self.get_installed_predicate(installed)
+        if value in self.flag_texts:
+            flag = self.flag_texts[value]
+            if name == "installed":
+                if flag is None:
+                    return lambda *args: True
+
+                return self.get_installed_predicate(flag)
 
         return super().get_part_predicate(name, value)
 
