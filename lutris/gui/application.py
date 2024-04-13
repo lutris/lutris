@@ -55,7 +55,7 @@ from lutris.style_manager import StyleManager
 from lutris.util import datapath, log, system
 from lutris.util.http import HTTPError, Request
 from lutris.util.jobs import AsyncCall
-from lutris.util.log import logger
+from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_dirs
@@ -329,6 +329,7 @@ class Application(Gtk.Application):
     def do_startup(self):  # pylint: disable=arguments-differ
         """Sets up the application on first start."""
         Gtk.Application.do_startup(self)
+        file_handler.doRollover()
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         action = Gio.SimpleAction.new("quit")
