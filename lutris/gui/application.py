@@ -39,6 +39,7 @@ from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import init_exception_backstops
 from lutris.game import Game, export_game, import_game
+from lutris.game_launcher import GameLauncher
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog
 from lutris.gui.dialogs.delegates import CommandLineUIDelegate, InstallUIDelegate, LaunchUIDelegate
@@ -66,7 +67,7 @@ LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATU
 
 
 class Application(Gtk.Application):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             application_id="net.lutris.Lutris",
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
@@ -77,23 +78,21 @@ class Application(Gtk.Application):
         # established; this will apply to all connections from this point forward.
         init_exception_backstops()
 
-        GObject.add_emission_hook(Game, "game-start", self.on_game_start)
-        GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
+        GObject.add_emission_hook(GameLauncher, "game-start", self.on_game_start)
+        GObject.add_emission_hook(GameLauncher, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
 
         GLib.set_application_name(_("Lutris"))
         self.force_updates = False
         self.css_provider = Gtk.CssProvider.new()
-        self.window = None
+        self.window: LutrisWindow = None
+        self.style_manager: StyleManager = None
         self.launch_ui_delegate = LaunchUIDelegate()
         self.install_ui_delegate = InstallUIDelegate()
-
-        self._running_games = []
+        self._running_games: List[Game] = []
         self.app_windows = {}
         self.tray = None
-
         self.quit_on_game_exit = False
-        self.style_manager = None
 
         if os.geteuid() == 0:
             NoticeDialog(_("Do not run Lutris as root."))
@@ -758,10 +757,11 @@ class Application(Gtk.Application):
                 return True
 
             game = Game(db_game["id"])
-            game.connect("game-error", on_error)
-            game.launch(self.launch_ui_delegate)
+            game_launcher = game.game_launcher
+            game_launcher.connect("game-error", on_error)
+            game_launcher.launch(self.launch_ui_delegate)
 
-            if game.state == game.STATE_STOPPED and not self.window.is_visible():
+            if game_launcher.state == game_launcher.STATE_STOPPED and not self.window.is_visible():
                 self.quit()
         else:
             # If we're showing the window, it will handle the delegated UI
@@ -774,7 +774,7 @@ class Application(Gtk.Application):
             self.quit_on_game_exit = False
         return 0
 
-    def on_settings_changed(self, dialog, state, setting_key):
+    def on_settings_changed(self, dialog, state, setting_key: str):
         if setting_key == "dark_theme":
             self.style_manager.is_config_dark = state
         elif setting_key == "show_tray_icon" and self.window:
@@ -782,14 +782,15 @@ class Application(Gtk.Application):
                 self.set_tray_icon()
         return True
 
-    def on_game_start(self, game):
-        self._running_games.append(game)
+    def on_game_start(self, game_launcher: GameLauncher):
+        self._running_games.append(game_launcher.game)
         if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.hide()  # Hide launcher window
         return True
 
-    def on_game_stopped(self, game):
+    def on_game_stopped(self, game_launcher: GameLauncher):
         """Callback to quit Lutris is last game stops while the window is hidden."""
+        game = game_launcher.game
         running_game_ids = [g.id for g in self._running_games]
         if game.id in running_game_ids:
             logger.debug("Removing %s from running IDs", game.id)
@@ -816,7 +817,7 @@ class Application(Gtk.Application):
     def get_running_games(self) -> List[Game]:
         # This method reflects games that have stopped even if the 'game-stopped' signal
         # has not been handled yet; that handler will still clean up the list though.
-        return [g for g in self._running_games if g.state != g.STATE_STOPPED]
+        return [g for g in self._running_games if g.game_launcher.state != g.game_launcher.STATE_STOPPED]
 
     @property
     def has_running_games(self):

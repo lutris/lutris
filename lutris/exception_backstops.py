@@ -9,7 +9,7 @@ from lutris.gui.dialogs import ErrorDialog
 from lutris.util.log import logger
 
 
-def watch_game_errors(game_stop_result, game=None):
+def watch_game_errors(game_stop_result, game_launcher=None):
     """Decorator used to catch exceptions and send events instead of propagating them normally.
     If 'game_stop_result' is not None, and the decorated function returns that, this will
     send game-stop and make the game stopped as well. This simplifies handling cancellation.
@@ -19,24 +19,28 @@ def watch_game_errors(game_stop_result, game=None):
     If you do not provide a game object directly, it is assumed to be in the first argument to
     the decorated method (which is 'self', typically).
     """
-    captured_game = game
+    captured_game = game_launcher
 
     def inner_decorator(function):
         @wraps(function)
         def wrapper(*args, **kwargs):
             """Catch all exceptions and emit an event."""
-            game = captured_game if captured_game else args[0]
+            game_launcher = captured_game if captured_game else args[0]
 
             try:
                 result = function(*args, **kwargs)
-                if game_stop_result is not None and result == game_stop_result and game.state != game.STATE_STOPPED:
-                    game.stop_game()
+                if (
+                    game_stop_result is not None
+                    and result == game_stop_result
+                    and game_launcher.state != game_launcher.STATE_STOPPED
+                ):
+                    game_launcher.stop_game()
                 return result
             except Exception as ex:
-                logger.exception("%s has encountered an error: %s", game, ex, exc_info=ex)
-                if game.state != game.STATE_STOPPED:
-                    game.stop_game()
-                game.signal_error(ex)
+                logger.exception("%s has encountered an error: %s", game_launcher, ex, exc_info=ex)
+                if game_launcher.state != game_launcher.STATE_STOPPED:
+                    game_launcher.stop_game()
+                game_launcher.signal_error(ex)
                 return game_stop_result
 
         return wrapper

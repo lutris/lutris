@@ -1,13 +1,18 @@
 """Utility module to deal with Proton and umu"""
 
+from __future__ import annotations
+
 import json
 import os
 from gettext import gettext as _
-from typing import Generator, List, Optional
+from typing import TYPE_CHECKING, Generator, List, Optional
 
 from lutris import settings
 from lutris.util import system
 from lutris.util.steam.config import get_steamapps_dirs
+
+if TYPE_CHECKING:
+    from lutris.game import Game
 
 GE_PROTON_LATEST = _("GE-Proton (Latest)")
 DEFAULT_GAMEID = "umu-default"
@@ -99,7 +104,7 @@ def get_proton_path_from_bin(wine_path):
     return os.path.abspath(os.path.join(os.path.dirname(wine_path), "../../"))
 
 
-def get_game_id(game) -> str:
+def get_game_id(game: Game) -> str:
     games_path = os.path.join(settings.RUNTIME_DIR, "umu-games/umu-games.json")
     env = game.runner.get_env()
     if game and env.get("GAMEID") or env.get("UMU_ID"):

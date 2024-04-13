@@ -1,4 +1,6 @@
-DEFAULT_INSTALLERS = {
+from typing import Dict
+
+DEFAULT_INSTALLERS: Dict[str, dict] = {
     "3do": {
         "runner": "libretro",
         "game": {"core": "opera", "main_file": "rom"},

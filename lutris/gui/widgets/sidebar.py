@@ -11,6 +11,7 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.game import Game
+from lutris.game_launcher import GameLauncher
 from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
@@ -351,8 +352,8 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(RunnerConfigDialog, "runner-updated", self.update_runner_rows)
         GObject.add_emission_hook(ScriptInterpreter, "runners-installed", self.update_rows)
         GObject.add_emission_hook(ServicesBox, "services-changed", self.update_rows)
-        GObject.add_emission_hook(Game, "game-start", self.on_game_start)
-        GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
+        GObject.add_emission_hook(GameLauncher, "game-start", self.on_game_start)
+        GObject.add_emission_hook(GameLauncher, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-updated", self.update_rows)
         GObject.add_emission_hook(BaseService, "service-login", self.on_service_auth_changed)
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_auth_changed)
@@ -615,12 +616,12 @@ class LutrisSidebar(Gtk.ListBox):
         self.invalidate_filter()
         return True
 
-    def on_game_start(self, _game):
+    def on_game_start(self, _game_launcher: GameLauncher):
         """Show the "running" section when a game start"""
         self.running_row.show()
         return True
 
-    def on_game_stopped(self, _game):
+    def on_game_stopped(self, _game_launcher: GameLauncher):
         """Hide the "running" section when no games are running"""
         if not self.application.has_running_games:
             self.running_row.hide()
@@ -630,19 +631,19 @@ class LutrisSidebar(Gtk.ListBox):
 
         return True
 
-    def on_service_auth_changed(self, service):
+    def on_service_auth_changed(self, service: BaseService):
         if service.id in self.service_rows:
             self.service_rows[service.id].create_button_box()
             self.service_rows[service.id].update_buttons()
         return True
 
-    def on_service_games_updating(self, service):
+    def on_service_games_updating(self, service: BaseService):
         if service.id in self.service_rows:
             self.service_rows[service.id].is_updating = True
             self.service_rows[service.id].update_buttons()
         return True
 
-    def on_service_games_updated(self, service):
+    def on_service_games_updated(self, service: BaseService):
         if service.id in self.service_rows:
             self.service_rows[service.id].is_updating = False
             self.service_rows[service.id].update_buttons()

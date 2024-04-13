@@ -1,7 +1,6 @@
 """Main window for the Lutris interface."""
 
 # pylint: disable=too-many-lines
-# pylint: disable=no-member
 import os
 from collections import namedtuple
 from gettext import gettext as _
@@ -23,6 +22,7 @@ from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import get_error_handler, register_error_handler
 from lutris.exceptions import EsyncLimitError
 from lutris.game import Game
+from lutris.game_launcher import GameLauncher
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.preferences_dialog import PreferencesDialog
@@ -152,9 +152,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
-        GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
-        GObject.add_emission_hook(Game, "game-unhandled-error", self.on_game_unhandled_error)
+        GObject.add_emission_hook(GameLauncher, "game-stopped", self.on_game_stopped)
+        GObject.add_emission_hook(GameLauncher, "game-unhandled-error", self.on_game_unhandled_error)
         GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
         MISSING_GAMES.updated.register(self.update_missing_games_sidebar_row)
         LUTRIS_ACCOUNT_CONNECTED.register(self.on_lutris_account_connected)
@@ -1128,7 +1128,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         if row:
             # Stopped games do not get displayed on the running page
-            if row.type == "dynamic_category" and row.id == "running" and game.state == game.STATE_STOPPED:
+            if (
+                row.type == "dynamic_category"
+                and row.id == "running"
+                and game.game_launcher.state == game.game_launcher.STATE_STOPPED
+            ):
                 return False
 
             # If the update took the row out of this view's category, we'll need
@@ -1143,7 +1147,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         return True
 
-    def on_game_updated(self, game):
+    def on_game_updated(self, game: Game):
         """Updates an individual entry in the view when a game is updated"""
         add_to_path_cache(game)
         self.update_action_state()
@@ -1164,16 +1168,16 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         return True
 
-    def on_game_stopped(self, game):
+    def on_game_stopped(self, game_launcher: GameLauncher):
         """Updates the game list when a game stops; this keeps the 'running' page updated."""
         selected_row = self.sidebar.get_selected_row()
         # Only update the running page- we lose the selected row when we do this,
         # but on the running page this is okay.
         if selected_row is not None and selected_row.id == "running":
-            self.game_store.remove_game(game.id)
+            self.game_store.remove_game(game_launcher.game.id)
         return True
 
-    def on_game_installed(self, game):
+    def on_game_installed(self, _game: Game):
         self.sync_library()
         return True
 
@@ -1198,7 +1202,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         if game_id:
             game = Game(game_id)
             if game.is_installed:
-                game.launch(launch_ui_delegate=self)
+                game.game_launcher.launch(launch_ui_delegate=self)
             else:
                 game.install(launch_ui_delegate=self)
 
