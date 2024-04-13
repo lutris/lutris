@@ -1,7 +1,11 @@
 from typing import Any, Callable, Dict, List, Optional
 
 from lutris.database import games
-from lutris.database.categories import get_game_ids_for_categories, get_uncategorized_game_ids
+from lutris.database.categories import (
+    get_game_ids_for_categories,
+    get_uncategorized_game_ids,
+    normalized_category_names,
+)
 from lutris.runners.runner import Runner
 from lutris.util.strings import strip_accents
 
@@ -107,7 +111,8 @@ class GameSearch(BaseSearch):
         return match_categorized
 
     def get_category_predicate(self, category: str) -> Callable:
-        category_game_ids = set(get_game_ids_for_categories([category]))
+        names = normalized_category_names(category)
+        category_game_ids = set(get_game_ids_for_categories(names))
 
         def match_categorized(db_game):
             game_id = db_game["id"]
