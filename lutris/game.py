@@ -454,7 +454,7 @@ class Game(GObject.Object):
 
     def write_script(self, script_path, launch_ui_delegate) -> None:
         """Output the launch argument in a bash script"""
-        gameplay_info = self.get_gameplay_info(launch_ui_delegate)
+        gameplay_info = self.game_launcher.get_gameplay_info(launch_ui_delegate)
         if not gameplay_info:
             # User cancelled; errors are raised as exceptions instead of this
             return
@@ -513,7 +513,7 @@ class Game(GObject.Object):
         return new_location
 
 
-def export_game(slug, dest_dir):
+def export_game(slug, dest_dir) -> None:
     """Export a full game folder along with some lutris metadata"""
     # List of runner where we know for sure that 1 folder = 1 game.
     # For runners that handle ROMs, we have to handle this more finely.
@@ -546,7 +546,7 @@ def export_game(slug, dest_dir):
     logger.info("%s exported to %s", slug, archive_path)
 
 
-def import_game(file_path, dest_dir):
+def import_game(file_path, dest_dir) -> None:
     """Import a game in Lutris"""
     if not os.path.exists(file_path):
         raise RuntimeError("No file %s" % file_path)

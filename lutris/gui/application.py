@@ -437,7 +437,7 @@ class Application(Gtk.Application):
             return True
 
         game = Game(db_game["id"])
-        game.connect("game-error", on_error)
+        game.game_launcher.connect("game-error", on_error)
         game.reload_config()
         game.write_script(script_path, self.launch_ui_delegate)
 
