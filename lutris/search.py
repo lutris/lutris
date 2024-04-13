@@ -1,3 +1,4 @@
+import copy
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from lutris.database import games
@@ -36,12 +37,18 @@ class BaseSearch:
                 pos = raw.index(":", 1)
                 name = raw[:pos].strip().casefold()
                 if name in self.tags:
-                    value = raw[(pos + 1):].strip()
+                    value = raw[(pos + 1) :].strip()
                     components.append((name, value, raw))
                     continue
             components.append(("", raw, raw))
 
         return components
+
+    def has_component(self, component_name: str) -> bool:
+        for name, _value, _raw in self.get_components():
+            if name == component_name:
+                return True
+        return False
 
     def get_predicates(self) -> List[Callable]:
         if self.predicates is None:
@@ -58,8 +65,12 @@ class BaseSearch:
             self.predicates = predicates
         return self.predicates
 
-    def add_predicate(self, predicate: Callable) -> None:
-        self.get_predicates().append(predicate)
+    def with_predicate(self, predicate: Callable):
+        predicates = list(self.get_predicates())  # force generation of predicates & copy
+        predicates.append(predicate)
+        new_search = copy.copy(self)
+        new_search.predicates = predicates
+        return new_search
 
     def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
         return None
@@ -82,7 +93,7 @@ class BaseSearch:
 
 
 class GameSearch(BaseSearch):
-    tags = ["installed", "favorite", "categorized", "category", "runner", "platform"]
+    tags = ["installed", "hidden", "favorite", "categorized", "category", "runner", "platform"]
 
     def __init__(self, text: str, service) -> None:
         self.service = service
@@ -96,9 +107,13 @@ class GameSearch(BaseSearch):
             installed = self.flag_texts[value]
             return self.get_installed_predicate(installed)
 
+        if name.casefold() == "hidden" and value in self.flag_texts:
+            hidden = self.flag_texts[value]
+            return self.get_category_predicate(".hidden", in_category=hidden)
+
         if name.casefold() == "favorite" and value in self.flag_texts:
-            installed = self.flag_texts[value]
-            return self.get_category_predicate("favorite", in_category=installed)
+            favorite = self.flag_texts[value]
+            return self.get_category_predicate("favorite", in_category=favorite)
 
         if name.casefold() == "categorized" and value in self.flag_texts:
             categorized = self.flag_texts[value]

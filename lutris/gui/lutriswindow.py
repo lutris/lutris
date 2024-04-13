@@ -97,6 +97,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.service = None
         self.search_timer_task = COMPLETED_IDLE_TASK
         self.filters = self.load_filters()
+        self.game_search = None
         self.set_service(self.filters.get("service"))
         self.icon_type = self.load_icon_type()
         self.game_store = GameStore(self.service, self.service_media)
@@ -424,13 +425,19 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         games = self.filter_games(games)
         return sorted(games, key=lambda game: max(game["installed_at"] or 0, game["lastplayed"] or 0), reverse=True)
 
+    def get_game_search(self):
+        text = self.filters.get("text") or ""
+        if self.game_search is None or self.game_search.service != self.service or self.game_search.text != text:
+            self.game_search = GameSearch(text, self.service)
+        return self.game_search
+
     def filter_games(self, games):
         """Filters a list of games according to the 'installed' and 'text' filters, if those are
         set. But if not, can just return games unchanged."""
-        search = GameSearch(self.filters.get("text") or "", self.service)
+        search = self.get_game_search()
 
-        if self.filters.get("installed"):
-            search.add_predicate(search.get_installed_predicate(installed=True))
+        if self.filters.get("installed") and not search.has_component("installed"):
+            search = search.with_predicate(search.get_installed_predicate(installed=True))
 
         if search.is_empty:
             return games
@@ -483,9 +490,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
             return self.dynamic_categories_game_factories[self.filters["dynamic_category"]]()
 
+        search = self.get_game_search()
         category = self.filters.get("category") or "all"
         included = [category] if category != "all" else None
-        excluded = [".hidden"] if category != ".hidden" else []
+        excluded = [".hidden"] if category != ".hidden" and not search.has_component("hidden") else []
         category_game_ids = categories_db.get_game_ids_for_categories(included, excluded)
 
         filters = self.get_sql_filters()
@@ -500,7 +508,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             sql_filters["runner"] = self.filters["runner"]
         if self.filters.get("platform"):
             sql_filters["platform"] = self.filters["platform"]
-        if self.filters.get("installed"):
+        if self.filters.get("installed") and not self.get_game_search().has_component("installed"):
             sql_filters["installed"] = "1"
 
         # We omit the "text" search here because SQLite does a fairly literal
