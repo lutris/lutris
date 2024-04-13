@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple
 
 from lutris.database import games
 from lutris.database.categories import (
@@ -9,6 +9,41 @@ from lutris.database.categories import (
 )
 from lutris.runners.runner import Runner
 from lutris.util.strings import strip_accents
+
+
+def tokenize_search(text: str) -> Generator[str, None, None]:
+    pos = 0
+    buffer = ""
+    while pos < len(text):
+        ch = text[pos]
+        if ch.isspace():
+            if buffer:
+                yield buffer
+                buffer = ""
+        elif ch == '"':
+            if buffer:
+                yield buffer
+
+            buffer = ch
+            pos += 1
+            while pos < len(text):
+                ch = text[pos]
+                buffer += ch
+                pos += 1
+
+                if ch == '"':
+                    break
+
+            if buffer:
+                yield buffer
+                buffer = ""
+            continue
+
+        buffer += text[pos]
+        pos += 1
+
+    if buffer:
+        yield buffer
 
 
 class BaseSearch:
@@ -32,15 +67,23 @@ class BaseSearch:
     def get_components(self) -> List[Tuple[str, str, str]]:
         components = []
 
-        for raw in self.text.split():
-            if ":" in raw:
-                pos = raw.index(":", 1)
-                name = raw[:pos].strip().casefold()
-                if name in self.tags:
-                    value = raw[(pos + 1) :].strip()
-                    components.append((name, value, raw))
+        for token in tokenize_search(self.text):
+            if token:
+                if token.startswith('"'):
+                    if token.endswith('"'):
+                        unquoted = token[1:-1]
+                    else:
+                        unquoted = token[1:]
+                    components.append(("", unquoted, unquoted))
                     continue
-            components.append(("", raw, raw))
+                elif ":" in token:
+                    pos = token.index(":", 1)
+                    name = token[:pos].strip().casefold()
+                    if name in self.tags:
+                        value = token[(pos + 1) :].strip()
+                        components.append((name, value, token))
+                        continue
+                components.append(("", token, token))
 
         return components
 
