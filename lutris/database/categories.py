@@ -69,6 +69,15 @@ def get_category(name):
         return categories[0]
 
 
+def normalized_category_names(name: str) -> List[str]:
+    """Searches for a category name case-insensitively and returns all matching names;
+    if none match, it just returns 'name' as is."""
+    query = "SELECT name FROM categories WHERE name=? COLLATE NOCASE"
+    parameters = (name,)
+    names = [cat["name"] for cat in sql.db_query(settings.DB_PATH, query, parameters)]
+    return names or [name]
+
+
 def get_game_ids_for_categories(included_category_names=None, excluded_category_names=None):
     """Get the ids of games in database."""
     filters = []
