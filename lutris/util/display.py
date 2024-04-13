@@ -8,7 +8,6 @@ from typing import Any, Dict
 
 import gi
 
-
 try:
     gi.require_version("GnomeDesktop", "3.0")
     from gi.repository import GnomeDesktop
@@ -236,9 +235,10 @@ def _get_command_output(command):
         logger.error("Unable to run command, %s not found", command[0])
 
 
-def is_compositing_enabled():
+def is_compositing_enabled() -> bool:
     """Checks whether compositing is currently disabled or enabled.
-    Returns True for enabled, False for disabled, and None if unknown.
+    Returns True for enabled, False for disabled or if we didn't recognize
+    the compositor.
     """
 
     desktop_environment = get_desktop_environment()
@@ -250,8 +250,8 @@ def is_compositing_enabled():
         if _check_compositor_active(command_set):
             return True
 
-    # It might be a compositor we don't know about, so return None for unknown.
-    return None
+    # No compositor detected
+    return False
 
 
 def _check_compositor_active(command_set: Dict[str, Any]) -> bool:
@@ -320,8 +320,6 @@ def _run_command(*command, run_in_background=False):
 def disable_compositing():
     """Disable compositing if not already disabled."""
     compositing_enabled = is_compositing_enabled()
-    if compositing_enabled is None:
-        compositing_enabled = True
     if any(_COMPOSITING_DISABLED_STACK):
         compositing_enabled = False
     _COMPOSITING_DISABLED_STACK.append(compositing_enabled)
