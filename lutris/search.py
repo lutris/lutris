@@ -84,6 +84,14 @@ class GameSearch(BaseSearch):
             category = value.strip()
             return self.get_category_predicate(category)
 
+        if name.casefold() == "runner":
+            runner_name = value.strip()
+            return self.get_runner_predicate(runner_name)
+
+        if name.casefold() == "platform":
+            platform = value.strip()
+            return self.get_platform_predicate(platform)
+
         return super().get_part_predicate(name, value)
 
     def get_installed_predicate(self, installed: bool) -> Callable:
@@ -119,6 +127,29 @@ class GameSearch(BaseSearch):
             return game_id in category_game_ids
 
         return match_categorized
+
+    def get_runner_predicate(self, runner_name: str) -> Callable:
+        runner_name = runner_name.casefold()
+
+        def match_runner(db_game):
+            game_runner = db_game.get("runner")
+            return game_runner and game_runner.casefold() == runner_name
+
+        return match_runner
+
+    def get_platform_predicate(self, platform: str) -> Callable:
+        platform = platform.casefold()
+
+        def match_platform(db_game):
+            game_platform = db_game.get("platform")
+            if game_platform:
+                return game_platform.casefold() == platform
+            if self.service:
+                platforms = [p.casefold() for p in self.service.get_game_platforms(db_game)]
+                return platform in platforms
+            return False
+
+        return match_platform
 
 
 class RunnerSearch(BaseSearch):
