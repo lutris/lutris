@@ -37,7 +37,8 @@ class SaveInfo:
         basedir = save_config.get("basedir") or self.game.directory
         if not basedir:
             raise ValueError("No save directory provided")
-        prefix_path = os.path.dirname(self.game.config.game_config.get("exe"))
+        exe_path: str = self.game.config.game_config.get("exe") or ""
+        prefix_path = os.path.dirname(exe_path)
 
         if self.game.runner_name == "wine":
             prefix_path = self.game.config.game_config.get("prefix", "")

@@ -4,6 +4,7 @@ from gi.repository import Gdk, Gtk
 
 from lutris.exceptions import UnavailableRunnerError
 from lutris.game import Game
+from lutris.game_launcher import GameLauncher
 from lutris.gui import dialogs
 from lutris.gui.dialogs.download import DownloadDialog
 from lutris.services import get_enabled_services
@@ -153,7 +154,8 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
 
         return True
 
-    def select_game_launch_config(self, game):
+    def select_game_launch_config(self, game_launcher: GameLauncher):
+        game = game_launcher.game
         game_config = game.config.game_level.get("game", {})
         configs = game_config.get("launch_configs")
 

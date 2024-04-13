@@ -28,7 +28,7 @@ class ImportGameDialog(ModelessDialog):
         self.category_labels = {}
         self.error_labels = {}
         self.launch_buttons = {}
-        self.platform = None
+        self.platform: str = None
         self.search_call = None
         self.set_size_request(500, 560)
 
@@ -172,7 +172,7 @@ class ImportGameDialog(ModelessDialog):
                 if self.import_rom(rom_set, filename):
                     break
 
-    def import_rom(self, rom_set, filename):
+    def import_rom(self, rom_set, filename) -> bool:
         """Tries to install a specific ROM, or reports failure. Returns True if
         successful, False if not."""
         try:
@@ -190,7 +190,7 @@ class ImportGameDialog(ModelessDialog):
             for rom in rom_set["roms"]:
                 self.display_new_game_info(filename, rom_set, rom["md5"])
                 game_id = self.add_game(rom_set, filename)
-                game = Game(game_id)
+                game = Game(str(game_id))
                 game.emit("game-installed")
                 game.emit("game-updated")
                 self.enable_game_launch(filename, game)
@@ -203,19 +203,19 @@ class ImportGameDialog(ModelessDialog):
 
         return False
 
-    def enable_game_launch(self, filename, game):
+    def enable_game_launch(self, filename, game: Game) -> None:
         launch_button = self.launch_buttons[filename]
         launch_button.set_sensitive(True)
         launch_button.connect("clicked", self.on_launch_clicked, game)
 
-    def on_launch_clicked(self, _button, game):
+    def on_launch_clicked(self, _button, game: Game) -> None:
         # We can't use this window as the delegate because we
         # are destroying it.
         application = Gio.Application.get_default()
-        game.launch(application.launch_ui_delegate)
+        game.game_launcher.launch(application.launch_ui_delegate)
         self.destroy()
 
-    def display_existing_game_info(self, filename, game):
+    def display_existing_game_info(self, filename, game: Game) -> None:
         label = self.checksum_labels[filename]
         label.set_markup("<i>%s</i>" % _("Game already installed in Lutris"))
         label.show()
@@ -226,7 +226,7 @@ class ImportGameDialog(ModelessDialog):
         label.set_text(category)
         label.show()
 
-    def display_new_game_info(self, filename, rom_set, checksum):
+    def display_new_game_info(self, filename, rom_set, checksum) -> None:
         label = self.checksum_labels[filename]
         label.set_text(checksum)
         label.show()
@@ -241,12 +241,12 @@ class ImportGameDialog(ModelessDialog):
         if not self.platform:
             raise RuntimeError(_("The platform '%s' is unknown to Lutris.") % category)
 
-    def add_game(self, rom_set, filepath):
+    def add_game(self, rom_set, filepath) -> int:
         name = clean_rom_name(rom_set["name"])
         logger.info("Installing %s", name)
 
         try:
-            installer = deepcopy(DEFAULT_INSTALLERS[self.platform])
+            installer: dict = deepcopy(DEFAULT_INSTALLERS[self.platform])
         except KeyError as error:
             raise RuntimeError(
                 _("Lutris does not have a default installer for the '%s' platform.") % self.platform

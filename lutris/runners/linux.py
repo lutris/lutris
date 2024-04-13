@@ -145,12 +145,12 @@ class linux(Runner):
 
         return command
 
-    def get_command(self):
+    def get_command(self) -> list:
         # There's no command for a Linux game; the game executable
         # is the first thing in the game's command line, not any runner thing.
         return []
 
-    def play(self):
+    def play(self) -> dict:
         """Run native game."""
         launch_info = {}
 

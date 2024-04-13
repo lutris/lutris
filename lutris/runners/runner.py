@@ -3,7 +3,7 @@
 import os
 import signal
 from gettext import gettext as _
-from typing import Any, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, get_default_runner_version_info
@@ -18,10 +18,14 @@ from lutris.util.graphics.gpu import GPUS
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
+if TYPE_CHECKING:
+    from lutris.game_launcher import GameLauncher
+
 
 class Runner:  # pylint: disable=too-many-public-methods
     """Generic runner (base class for other runners)."""
 
+    human_name = ""
     multiple_versions = False
     platforms = []
     runnable_alone = False
@@ -548,12 +552,16 @@ class Runner:  # pylint: disable=too-many-public-methods
                 break
         return output
 
-    def force_stop_game(self, game):
+    def force_stop_game(self, game_launcher: "GameLauncher") -> None:
         """Stop the running game. If this leaves any game processes running,
         the caller will SIGKILL them (after a delay)."""
-        game.kill_processes(signal.SIGTERM)
+        game_launcher.kill_processes(signal.SIGTERM)
 
     def extract_icon(self, game_slug):
         """The config UI calls this to extract the game icon. Most runners do not
         support this and do nothing. This is not called if a custom icon is installed
         for the game."""
+
+    def play(self) -> dict:
+        """Dummy method to be implemented by subclasses"""
+        return {}

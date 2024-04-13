@@ -7,6 +7,7 @@ from lutris import runners, services
 from lutris.database.games import get_game_for_service
 from lutris.game import Game
 from lutris.game_actions import get_game_actions
+from lutris.game_launcher import GameLauncher
 from lutris.gui.widgets.contextual_menu import update_action_widget_visibility
 from lutris.util.strings import gtk_safe
 
@@ -27,9 +28,15 @@ class GameBar(Gtk.Box):
         self.application = application
         self.window = window
 
-        self.game_start_hook_id = GObject.add_emission_hook(Game, "game-start", self.on_game_state_changed)
-        self.game_started_hook_id = GObject.add_emission_hook(Game, "game-started", self.on_game_state_changed)
-        self.game_stopped_hook_id = GObject.add_emission_hook(Game, "game-stopped", self.on_game_state_changed)
+        self.game_start_hook_id = GObject.add_emission_hook(
+            GameLauncher, "game-start", self.on_game_launcher_state_changed
+        )
+        self.game_started_hook_id = GObject.add_emission_hook(
+            GameLauncher, "game-started", self.on_game_launcher_state_changed
+        )
+        self.game_stopped_hook_id = GObject.add_emission_hook(
+            GameLauncher, "game-stopped", self.on_game_launcher_state_changed
+        )
         self.game_updated_hook_id = GObject.add_emission_hook(Game, "game-updated", self.on_game_state_changed)
         self.game_installed_hook_id = GObject.add_emission_hook(Game, "game-installed", self.on_game_state_changed)
         self.connect("destroy", self.on_destroy)
@@ -59,11 +66,11 @@ class GameBar(Gtk.Box):
         self.update_view()
 
     def on_destroy(self, widget):
-        GObject.remove_emission_hook(Game, "game-start", self.game_start_hook_id)
-        GObject.remove_emission_hook(Game, "game-started", self.game_started_hook_id)
-        GObject.remove_emission_hook(Game, "game-stopped", self.game_stopped_hook_id)
-        GObject.remove_emission_hook(Game, "game-updated", self.game_updated_hook_id)
+        GObject.remove_emission_hook(GameLauncher, "game-start", self.game_start_hook_id)
+        GObject.remove_emission_hook(GameLauncher, "game-started", self.game_started_hook_id)
+        GObject.remove_emission_hook(GameLauncher, "game-stopped", self.game_stopped_hook_id)
         GObject.remove_emission_hook(Game, "game-installed", self.game_installed_hook_id)
+        GObject.remove_emission_hook(Game, "game-updated", self.game_updated_hook_id)
         return True
 
     def update_view(self):
@@ -206,11 +213,11 @@ class GameBar(Gtk.Box):
 
         if self.game.is_installed:
             game_buttons = self.get_game_buttons(game_actions)
-            if self.game.state == self.game.STATE_STOPPED:
+            if self.game.game_launcher.state == self.game.game_launcher.STATE_STOPPED:
                 button.set_label(_("Play"))
                 button.connect("clicked", game_actions.on_game_launch)
                 button.set_sensitive(game_actions.is_game_launchable)
-            elif self.game.state == self.game.STATE_LAUNCHING:
+            elif self.game.game_launcher.state == self.game.game_launcher.STATE_LAUNCHING:
                 button.set_label(_("Launching"))
                 button.set_sensitive(False)
             else:
@@ -269,7 +276,10 @@ class GameBar(Gtk.Box):
         """Handler for installing service games"""
         self.service.install(self.db_game)
 
-    def on_game_state_changed(self, game):
+    def on_game_launcher_state_changed(self, game_launcher: GameLauncher):
+        return self.on_game_state_changed(game_launcher.game)
+
+    def on_game_state_changed(self, game: Game):
         """Handler called when the game has changed state"""
         if (self.game.is_db_stored and game.id == self.game.id) or (self.appid and game.appid == self.appid):
             self.game = game

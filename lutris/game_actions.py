@@ -79,7 +79,7 @@ class GameActions:
         """Stops the game"""
         games = self.get_running_games()
         for game in games:
-            game.force_stop()
+            game.game_launcher.force_stop()
 
     def get_running_games(self):
         running_games = []
@@ -300,7 +300,7 @@ class SingleGameActions(GameActions):
         game = self.game
         if game.is_installed and game.is_db_stored:
             if not self.application.is_game_running_by_id(game.id):
-                game.launch(launch_ui_delegate=self.window)
+                game.game_launcher.launch(launch_ui_delegate=self.window)
 
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""
