@@ -982,7 +982,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
         self.search_timer_task.unschedule()
-        self.filters["text"] = entry.get_text().lower().strip()
+        self.filters["text"] = entry.get_text().strip()
         self.search_timer_task = schedule_at_idle(self.update_store, delay_seconds=0.5)
 
     @GtkTemplate.Callback
