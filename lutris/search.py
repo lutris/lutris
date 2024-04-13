@@ -1,6 +1,7 @@
 from typing import Any, Callable, Dict, List, Optional
 
 from lutris.database import games
+from lutris.database.categories import get_game_ids_for_categories, get_uncategorized_game_ids
 from lutris.runners.runner import Runner
 from lutris.util.strings import strip_accents
 
@@ -67,10 +68,17 @@ class GameSearch(BaseSearch):
         return candidate["name"]
 
     def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
-        if name.casefold() == "installed":
-            if value in self.flag_texts:
-                installed = self.flag_texts[value]
-                return self.get_installed_predicate(installed)
+        if name.casefold() == "installed" and value in self.flag_texts:
+            installed = self.flag_texts[value]
+            return self.get_installed_predicate(installed)
+
+        if name.casefold() == "categorized" and value in self.flag_texts:
+            categorized = self.flag_texts[value]
+            return self.get_categorized_predicate(categorized)
+
+        if name.casefold() == "category":
+            category = value.strip()
+            return self.get_category_predicate(category)
 
         return super().get_part_predicate(name, value)
 
@@ -87,6 +95,25 @@ class GameSearch(BaseSearch):
             return bool(appid and appid in games.get_service_games(self.service.id))
 
         return bool(db_game["installed"])
+
+    def get_categorized_predicate(self, categorized: bool) -> Callable:
+        uncategorized_ids = set(get_uncategorized_game_ids())
+
+        def match_categorized(db_game):
+            game_id = db_game["id"]
+            is_categorized = game_id not in uncategorized_ids
+            return is_categorized == categorized
+
+        return match_categorized
+
+    def get_category_predicate(self, category: str) -> Callable:
+        category_game_ids = set(get_game_ids_for_categories([category]))
+
+        def match_categorized(db_game):
+            game_id = db_game["id"]
+            return game_id in category_game_ids
+
+        return match_categorized
 
 
 class RunnerSearch(BaseSearch):
