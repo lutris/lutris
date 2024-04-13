@@ -8,6 +8,7 @@ from lutris.util import cache_single, system
 from lutris.util.graphics.gpu import GPUS
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.wine import proton
 
 
 def get_mangohud_conf(system_config):
@@ -35,7 +36,7 @@ def get_launch_parameters(runner, gameplay_info):
 
     if runner.name == "wine":
         wine_version = runner.runner_config.get("version")
-        if wine_version and "proton" in wine_version.lower():
+        if wine_version and proton.is_proton_path(wine_version):
             env["HOST_LC_ALL"] = system_config["locale"]
 
     # MangoHud
