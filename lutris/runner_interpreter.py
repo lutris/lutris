@@ -33,6 +33,11 @@ def get_launch_parameters(runner, gameplay_info):
     if system_config["locale"] != "":
         env["LC_ALL"] = system_config["locale"]
 
+    if runner.name == "wine":
+        wine_version = runner.runner_config.get("version")
+        if wine_version and "proton" in wine_version.lower():
+            env["HOST_LC_ALL"] = system_config["locale"]
+
     # MangoHud
     if runner.name == "steam":
         logger.info(
