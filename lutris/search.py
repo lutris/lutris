@@ -36,7 +36,7 @@ class BaseSearch:
                 pos = raw.index(":", 1)
                 name = raw[:pos].strip().casefold()
                 if name in self.tags:
-                    value = raw[(pos + 1) :].strip()
+                    value = raw[(pos + 1):].strip()
                     components.append((name, value, raw))
                     continue
             components.append(("", raw, raw))
@@ -82,7 +82,7 @@ class BaseSearch:
 
 
 class GameSearch(BaseSearch):
-    tags = ["installed", "categorized", "category", "runner", "platform"]
+    tags = ["installed", "favorite", "categorized", "category", "runner", "platform"]
 
     def __init__(self, text: str, service) -> None:
         self.service = service
@@ -95,6 +95,10 @@ class GameSearch(BaseSearch):
         if name.casefold() == "installed" and value in self.flag_texts:
             installed = self.flag_texts[value]
             return self.get_installed_predicate(installed)
+
+        if name.casefold() == "favorite" and value in self.flag_texts:
+            installed = self.flag_texts[value]
+            return self.get_category_predicate("favorite", in_category=installed)
 
         if name.casefold() == "categorized" and value in self.flag_texts:
             categorized = self.flag_texts[value]
@@ -138,13 +142,14 @@ class GameSearch(BaseSearch):
 
         return match_categorized
 
-    def get_category_predicate(self, category: str) -> Callable:
+    def get_category_predicate(self, category: str, in_category: bool = True) -> Callable:
         names = normalized_category_names(category)
         category_game_ids = set(get_game_ids_for_categories(names))
 
         def match_categorized(db_game):
             game_id = db_game["id"]
-            return game_id in category_game_ids
+            game_in_category = game_id in category_game_ids
+            return game_in_category == in_category
 
         return match_categorized
 
