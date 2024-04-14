@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional
+from typing import Any, Callable, Dict, Iterable, Iterator, Optional
 
 from lutris.database import games
 from lutris.database.categories import (
@@ -126,13 +126,16 @@ def clean_token(to_clean: str) -> str:
     return to_clean.strip()
 
 
+SearchPredicate = Callable[[Any], bool]
+
+
 class BaseSearch:
     flag_texts = {"true": True, "yes": True, "false": False, "no": False, "maybe": None}
     tags = []
 
     def __init__(self, text: str) -> None:
         self.text = text
-        self.predicates: Optional[List[Callable]] = None
+        self.predicate: Optional[SearchPredicate] = None
 
     def __str__(self) -> str:
         return self.text
@@ -151,100 +154,120 @@ class BaseSearch:
                 return True
         return False
 
-    def get_predicates(self) -> List[Callable]:
-        if self.predicates is None:
+    def get_predicate(self) -> SearchPredicate:
+        if self.predicate is None:
             if self.text:
                 joined_tokens = implicitly_join_tokens(tokenize_search(self.text))
                 tokens = _TokenReader(iter(joined_tokens))
-                self.predicates = self._parse_or(tokens)
+                self.predicate = self._parse_or(tokens) or (lambda *args: True)
             else:
-                self.predicates = []
-        return self.predicates
+                self.predicate = lambda *args: True
+        return self.predicate
 
-    def _parse_or(self, tokens: _TokenReader) -> List[Callable]:
+    def _parse_or(self, tokens: _TokenReader) -> Optional[SearchPredicate]:
         parts = list(self._parse_chain("OR", self._parse_and, tokens))
 
-        def apply_or(*args):
+        if not parts:
+            return None
+
+        if len(parts) == 1:
+            return parts[0]
+
+        def apply_or(*args) -> bool:
             for part in parts:
-                if all(p(*args) for p in part):
+                if part(*args):
                     return True
             return False
 
-        return [apply_or]
+        return apply_or
 
-    def _parse_and(self, tokens: _TokenReader) -> List[Callable]:
+    def _parse_and(self, tokens: _TokenReader) -> Optional[SearchPredicate]:
         parts = list(self._parse_chain("AND", self._parse_items, tokens))
 
-        def apply_and(*args):
+        if not parts:
+            return None
+
+        if len(parts) == 1:
+            return parts[0]
+
+        def apply_and(*args) -> bool:
             for part in parts:
-                if not all(p(*args) for p in part):
+                if not part(*args):
                     return False
             return True
 
-        return [apply_and]
+        return apply_and
 
-    def _parse_chain(self, conjunction: str, next_parser: Callable, tokens: _TokenReader) -> Iterator[List[Callable]]:
-        yield next_parser(tokens)
+    def _parse_chain(self, conjunction: str, next_parser: Callable, tokens: _TokenReader) -> Iterator[SearchPredicate]:
+        parsed = next_parser(tokens)
+        if parsed:
+            yield parsed
 
-        while tokens.consume(conjunction):  # case-sensitive!
-            more = self._parse_and(tokens)
-            if not more:
-                break
+            while tokens.consume(conjunction):  # case-sensitive!
+                more = next_parser(tokens)
+                if not more:
+                    break
 
-            yield more
+                yield more
 
-    def _parse_items(self, tokens: _TokenReader) -> List[Callable]:
+    def _parse_items(self, tokens: _TokenReader) -> Optional[SearchPredicate]:
         buffer = []
         while True:
             parsed = self._parse_item(tokens)
-            buffer.extend(parsed)
-            if not parsed:
+            if parsed:
+                buffer.append(parsed)
+            else:
                 break
-        return buffer
 
-    def _parse_item(self, tokens: _TokenReader) -> List[Callable]:
+        if not buffer:
+            return None
+
+        if len(buffer) == 1:
+            return buffer[0]
+
+        def apply_and(*args) -> bool:
+            for p in buffer:
+                if not p(*args):
+                    return False
+            return True
+
+        return apply_and
+
+    def _parse_item(self, tokens: _TokenReader) -> Optional[SearchPredicate]:
         token = tokens.get_token()
 
         if not token or token == "OR" or token == "AND":
             tokens.putback(token)
-            return []
+            return None
 
         if token == "-":
             inner = self._parse_items(tokens)
-            return [lambda *a, i=i: not i(*a) for i in inner]
+            if inner:
+                return lambda *a: not inner(*a)
 
         if token.startswith('"'):
-            return [self.get_text_predicate(clean_token(token))]
+            return self.get_text_predicate(clean_token(token))
 
         if token.endswith(":"):
             arg_token = tokens.get_token()
             if arg_token:
                 name = token[:-1].casefold()
                 value = clean_token(arg_token)
-                part_predicate = self.get_part_predicate(name, value)
-                if part_predicate:
-                    return [part_predicate]
-                else:
-                    return [self.get_text_predicate(token + arg_token)]
+                return self.get_part_predicate(name, value) or self.get_text_predicate(token + arg_token)
 
-        return [self.get_text_predicate(token)]
+        return self.get_text_predicate(token)
 
     def with_predicate(self, predicate: Callable):
-        predicates = list(self.get_predicates())  # force generation of predicates & copy
-        predicates.append(predicate)
+        old_predicate = self.get_predicate()  # force generation of predicate
         new_search = copy.copy(self)
-        new_search.predicates = predicates
+        new_search.predicate = lambda *a: old_predicate(*a) and predicate(*a)
         return new_search
 
     def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
         return None
 
     def matches(self, candidate: Any) -> bool:
-        for predicate in self.get_predicates():
-            if not predicate(candidate):
-                return False
-
-        return True
+        return self.get_predicate()(candidate)
 
     def get_text_predicate(self, text: str) -> Callable:
         stripped = strip_accents(text).casefold()
