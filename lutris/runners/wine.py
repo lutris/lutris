@@ -1128,6 +1128,12 @@ class wine(Runner):
                     env["PROTONPATH"] = wine_exe[: wine_exe.index("dist/bin")]
                 except ValueError:
                     pass
+
+            locale = env.get("LC_ALL")
+            host_locale = env.get("HOST_LC_ALL")
+            if locale and not host_locale:
+                env["HOST_LC_ALL"] = locale
+
         return env
 
     def get_runtime_env(self):
