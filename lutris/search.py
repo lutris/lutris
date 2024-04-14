@@ -96,6 +96,9 @@ class _TokenReader:
         self.tokens = tokens
         self.index = 0
 
+    def is_end_of_tokens(self):
+        return self.index >= len(self.tokens)
+
     def get_token(self) -> Optional[str]:
         if self.index >= len(self.tokens):
             return None
@@ -118,12 +121,13 @@ class _TokenReader:
         return False
 
 
-def clean_token(to_clean: str) -> str:
+def clean_token(to_clean: Optional[str]) -> str:
+    if to_clean is None:
+        return ""
+
     if to_clean.startswith('"'):
-        if to_clean.endswith('"'):
-            return to_clean[1:-1]
-        else:
-            return to_clean[1:]
+        return to_clean[1:-1] if to_clean.endswith('"') else to_clean[1:]
+
     return to_clean.strip()
 
 
@@ -236,13 +240,14 @@ class BaseSearch:
         if token.startswith('"'):
             return self.get_text_predicate(clean_token(token))
 
-        if token.endswith(":"):
+        if token.endswith(":") and not tokens.is_end_of_tokens():
             name = token[:-1].casefold()
             if name in self.tags:
-                arg_token = tokens.get_token()
-                if arg_token:
-                    value = clean_token(arg_token)
-                    return self.get_part_predicate(name, value) or self.get_text_predicate(token + arg_token)
+                saved_index = token.index
+                predicate = self.get_part_predicate(name, tokens)
+                if predicate:
+                    return predicate
+                tokens.index = saved_index
 
         return self.get_text_predicate(token)
 
@@ -252,7 +257,7 @@ class BaseSearch:
         new_search.predicate = lambda *a: old_predicate(*a) and predicate(*a)
         return new_search
 
-    def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
+    def get_part_predicate(self, name: str, tokens: _TokenReader) -> Optional[Callable]:
         return None
 
     def matches(self, candidate: Any) -> bool:
@@ -270,6 +275,7 @@ class BaseSearch:
 
 class GameSearch(BaseSearch):
     tags = ["installed", "hidden", "favorite", "categorized", "category", "runner", "platform"]
+    flag_tags = ["installed", "hidden", "favorite", "categorized"]
 
     def __init__(self, text: str, service) -> None:
         self.service = service
@@ -278,10 +284,23 @@ class GameSearch(BaseSearch):
     def get_candidate_text(self, candidate: Any) -> str:
         return candidate["name"]
 
-    def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
-        folded_value = value.casefold()
-        if folded_value in self.flag_texts:
-            flag = self.flag_texts[folded_value]
+    def get_part_predicate(self, name: str, tokens: _TokenReader) -> Optional[Callable]:
+        if name == "category":
+            category = clean_token(tokens.get_token())
+            return self.get_category_predicate(category)
+
+        if name == "runner":
+            runner_name = clean_token(tokens.get_token())
+            return self.get_runner_predicate(runner_name)
+
+        if name == "platform":
+            platform = clean_token(tokens.get_token())
+            return self.get_platform_predicate(platform)
+
+        if name in self.flag_tags:
+            folded_value = clean_token(tokens.get_token()).casefold()
+            if folded_value in self.flag_texts:
+                flag = self.flag_texts[folded_value]
 
             if flag is None:
                 # None represents 'maybe' which performs no test, but overrides
@@ -301,19 +320,9 @@ class GameSearch(BaseSearch):
             if name == "categorized":
                 return self.get_categorized_predicate(flag)
 
-        if name == "category":
-            category = value.strip()
-            return self.get_category_predicate(category)
+            return None
 
-        if name == "runner":
-            runner_name = value.strip()
-            return self.get_runner_predicate(runner_name)
-
-        if name == "platform":
-            platform = value.strip()
-            return self.get_platform_predicate(platform)
-
-        return super().get_part_predicate(name, value)
+        return super().get_part_predicate(name, tokens)
 
     def get_installed_predicate(self, installed: bool) -> Callable:
         def match_installed(db_game):
@@ -380,16 +389,19 @@ class RunnerSearch(BaseSearch):
     def get_candidate_text(self, candidate: Any) -> str:
         return f"{candidate.name}\n{candidate.description}"
 
-    def get_part_predicate(self, name: str, value: str) -> Optional[Callable]:
-        if value in self.flag_texts:
+    def get_part_predicate(self, name: str, tokens: _TokenReader) -> Optional[Callable]:
+        if name == "installed":
+            value = clean_token(tokens.get_token())
+            if value not in self.flag_texts:
+                return None
+
             flag = self.flag_texts[value]
-            if name == "installed":
-                if flag is None:
-                    return lambda *args: True
+            if flag is None:
+                return lambda *args: True
 
-                return self.get_installed_predicate(flag)
+            return self.get_installed_predicate(flag)
 
-        return super().get_part_predicate(name, value)
+        return super().get_part_predicate(name, tokens)
 
     def get_installed_predicate(self, installed: bool) -> Callable:
         def match_installed(runner: Runner):
