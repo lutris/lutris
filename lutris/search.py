@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional
 
 from lutris.database import games
 from lutris.database.categories import (
@@ -13,46 +13,58 @@ from lutris.util.strings import strip_accents
 
 def tokenize_search(text: str) -> Iterable[str]:
     def _tokenize():
-        try:
-            buffer = ""
-            it = iter(text)
-            while True:
-                ch = next(it)
-                if ch.isspace() != buffer.isspace():
-                    yield buffer
-                    buffer = ""
-                elif ch == "-":
-                    yield buffer
-                    yield ch
-                    buffer = ""
-                    continue
-                elif ch == ":":
-                    buffer += ch
-                    yield buffer
-                    buffer = ""
-                    continue
-                elif ch == '"':
-                    yield buffer
+        buffer = ""
+        it = iter(text)
+        while True:
+            ch = next(it, None)
+            if ch is None:
+                break
 
-                    buffer = ch
-                    while True:
-                        ch = next(it)
-                        buffer += ch
+            if ch.isspace() != buffer.isspace():
+                yield buffer
+                buffer = ""
 
-                        if ch == '"':
-                            break
-
-                    yield buffer
-                    buffer = ""
-                    continue
-
+            if ch == "-":
+                yield buffer
+                yield ch
+                buffer = ""
+                continue
+            elif ch == ":":
                 buffer += ch
-        except StopIteration:
-            pass
-        finally:
-            yield buffer
+                yield buffer
+                buffer = ""
+                continue
+            elif ch == '"':
+                yield buffer
+
+                buffer = ch
+                while True:
+                    ch = next(it, None)
+                    if ch is None:
+                        break
+
+                    buffer += ch
+
+                    if ch == '"':
+                        break
+
+                yield buffer
+                buffer = ""
+                continue
+
+            buffer += ch
+        yield buffer
 
     return filter(lambda t: len(t) > 0, _tokenize())
+
+
+def clean_token(to_clean: str) -> str:
+    if to_clean.startswith('"'):
+        if to_clean.endswith('"'):
+            return to_clean[1:-1]
+        else:
+            return to_clean[1:]
+    return to_clean.strip()
 
 
 class BaseSearch:
@@ -73,58 +85,10 @@ class BaseSearch:
     def get_candidate_text(self, candidate: Any) -> str:
         return str(candidate)
 
-    def get_components(self) -> List[Tuple[str, str, str, bool]]:
-        def token_pairs():
-            buffer = [""]
-            for t in tokenize_search(self.text):
-                if not t.isspace():
-                    if len(buffer) == 3:
-                        yield tuple(buffer)
-                        del buffer[0]
-                        buffer.append(t)
-                    else:
-                        buffer.append(t)
-
-            while buffer:
-                yield tuple(buffer + [""] * (3 - len(buffer)))
-                del buffer[0]
-
-        def clean_token(to_clean: str) -> str:
-            if to_clean.startswith('"'):
-                if to_clean.endswith('"'):
-                    return to_clean[1:-1]
-                else:
-                    return to_clean[1:]
-            return to_clean.strip()
-
-        components = []
-        skip_token = False
-        for prev_token, token, next_token in token_pairs():
-            if skip_token:
-                skip_token = False
-                continue
-
-            negated = prev_token == "-"
-            if token == "-":
-                continue
-            elif token.startswith('"'):
-                unquoted = clean_token(token)
-                components.append(("", unquoted, unquoted, negated))
-                continue
-            elif token.endswith(":"):
-                name = token[:-1].strip().casefold()
-                if name in self.tags:
-                    value = clean_token(next_token)
-                    components.append((name, value, token, negated))
-                    skip_token = True
-                    continue
-            components.append(("", token, token, negated))
-
-        return components
-
     def has_component(self, component_name: str) -> bool:
-        for name, _value, _raw, _negated in self.get_components():
-            if name == component_name:
+        match_token = component_name + ":"
+        for token in tokenize_search(self.text):
+            if token.casefold() == match_token:
                 return True
         return False
 
@@ -132,18 +96,51 @@ class BaseSearch:
         if self.predicates is None:
             predicates = []
             if self.text:
-                for name, value, raw, negated in self.get_components():
-                    if name:
-                        predicate = self.get_part_predicate(name, value) or self.get_text_predicate(raw)
-                    else:
-                        predicate = self.get_text_predicate(raw)
+                it = iter(filter(lambda t: not t.isspace(), tokenize_search(self.text)))
+                predicates.extend(self._parse_item(it))
 
-                    if negated:
-                        predicates.append(lambda *args, pred=predicate: not pred(*args))
-                    else:
-                        predicates.append(predicate)
             self.predicates = predicates
         return self.predicates
+
+    def _parse_item(self, it: Iterator[str]) -> List[Callable]:
+        text_buffer: List[str] = []
+        non_text_predicates: List[Callable] = []
+
+        while True:
+            token = next(it, None)
+            if token is None:
+                break
+
+            if token == "-":
+                inner = self._parse_item(it)
+                if inner:
+                    non_text_predicates = [lambda *a, i=i: not i(*a) for i in inner]
+                    break
+
+            if token.startswith('"'):
+                unquoted = clean_token(token)
+                non_text_predicates = [self.get_text_predicate(unquoted)]
+                break
+
+            if token.endswith(":"):
+                arg_token = next(it, None)
+                if arg_token:
+                    name = token[:-1].casefold()
+                    value = clean_token(arg_token)
+                    part_predicate = self.get_part_predicate(name, value)
+                    if part_predicate:
+                        non_text_predicates = [part_predicate]
+                        break
+
+                    text_buffer += [token, arg_token]
+                    continue
+
+            text_buffer.append(token)
+
+        if text_buffer:
+            joined_text = " ".join(text_buffer)
+            non_text_predicates.insert(0, self.get_text_predicate(joined_text))
+        return non_text_predicates
 
     def with_predicate(self, predicate: Callable):
         predicates = list(self.get_predicates())  # force generation of predicates & copy
