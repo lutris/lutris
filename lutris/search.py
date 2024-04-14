@@ -26,7 +26,7 @@ def tokenize_search(text: str, tags: Iterable[str]) -> Iterable[str]:
                 yield buffer
                 buffer = ""
 
-            if ch == "-":
+            if ch == "-" or ch == "(" or ch == ")":
                 yield buffer
                 yield ch
                 buffer = ""
@@ -60,8 +60,8 @@ def tokenize_search(text: str, tags: Iterable[str]) -> Iterable[str]:
     return filter(lambda t: len(t) > 0, _tokenize())
 
 
-CONJUNCTION_TOKENS = ["OR", "AND"]
-ISOLATED_TOKENS = CONJUNCTION_TOKENS + ["-"]
+ITEM_STOP_TOKENS = ["OR", "AND", ")"]
+ISOLATED_TOKENS = ITEM_STOP_TOKENS + ["-", "("]
 
 
 def implicitly_join_tokens(tokens: Iterable[str]) -> Iterable[str]:
@@ -225,9 +225,12 @@ class BaseSearch:
     def _parse_item(self, tokens: _TokenReader) -> Optional[SearchPredicate]:
         token = tokens.get_token()
 
-        if not token or token in CONJUNCTION_TOKENS:
+        if not token or token in ITEM_STOP_TOKENS:
             tokens.putback(token)
             return None
+
+        if token == "(":
+            return self._parse_or(tokens)
 
         if token == "-":
             inner = self._parse_items(tokens)
