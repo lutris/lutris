@@ -58,6 +58,33 @@ def tokenize_search(text: str) -> Iterable[str]:
     return filter(lambda t: len(t) > 0, _tokenize())
 
 
+def implicitly_join_tokens(tokens: Iterable[str]) -> Iterable[str]:
+    def is_isolated(t: str):
+        return t.startswith('"') or t == "OR" or t == "-"
+
+    def _join():
+        buffer = ""
+        isolate_next = False
+        for token in tokens:
+            if token.endswith(":"):
+                yield buffer
+                yield token
+                buffer = ""
+                isolate_next = True
+                continue
+
+            if isolate_next or is_isolated(token):
+                yield buffer
+                yield token
+                buffer = ""
+            else:
+                buffer += token
+            isolate_next = False
+        yield buffer
+
+    return filter(lambda t: t and not t.isspace(), _join())
+
+
 def clean_token(to_clean: str) -> str:
     if to_clean.startswith('"'):
         if to_clean.endswith('"'):
@@ -65,6 +92,13 @@ def clean_token(to_clean: str) -> str:
         else:
             return to_clean[1:]
     return to_clean.strip()
+
+
+def _make_or(left: List[Callable], right: List[Callable]) -> Callable:
+    def apply_or(*args):
+        return all(p(*args) for p in left) or all(p(*args) for p in right)
+
+    return apply_or
 
 
 class BaseSearch:
@@ -96,51 +130,56 @@ class BaseSearch:
         if self.predicates is None:
             predicates = []
             if self.text:
-                it = iter(filter(lambda t: not t.isspace(), tokenize_search(self.text)))
-                predicates.extend(self._parse_item(it))
+                joined_tokens = implicitly_join_tokens(tokenize_search(self.text))
+                it = iter(joined_tokens)
+                token = next(it, None)
+                if token:
+                    predicates = self._parse_term(token, it)
 
             self.predicates = predicates
         return self.predicates
 
-    def _parse_item(self, it: Iterator[str]) -> List[Callable]:
-        text_buffer: List[str] = []
-        non_text_predicates: List[Callable] = []
+    def _parse_term(self, token: str, rest: Iterator[str]) -> List[Callable]:
+        buffer = self._parse_item(token, rest)
+
+        if not buffer:
+            return buffer
 
         while True:
-            token = next(it, None)
-            if token is None:
-                break
+            token = next(rest, "")
+            if not token:
+                return buffer
 
-            if token == "-":
-                inner = self._parse_item(it)
-                if inner:
-                    non_text_predicates = [lambda *a, i=i: not i(*a) for i in inner]
-                    break
+            if token == "OR":  # case-sensitive!
+                next_token = next(rest, None)
 
-            if token.startswith('"'):
-                unquoted = clean_token(token)
-                non_text_predicates = [self.get_text_predicate(unquoted)]
-                break
+                if next_token:
+                    buffer[-1] = _make_or(buffer[-1:], self._parse_item(next_token, rest))
+            else:
+                buffer.extend(self._parse_item(token, rest))
 
-            if token.endswith(":"):
-                arg_token = next(it, None)
-                if arg_token:
-                    name = token[:-1].casefold()
-                    value = clean_token(arg_token)
-                    part_predicate = self.get_part_predicate(name, value)
-                    if part_predicate:
-                        non_text_predicates = [part_predicate]
-                        break
+    def _parse_item(self, token: str, rest: Iterator[str]) -> List[Callable]:
+        if token == "-":
+            next_token = next(rest, "")
+            if next_token:
+                inner = self._parse_item(next_token, rest)
+                return [lambda *a, i=i: not i(*a) for i in inner]
 
-                    text_buffer += [token, arg_token]
-                    continue
+        if token.startswith('"'):
+            return [self.get_text_predicate(clean_token(token))]
 
-            text_buffer.append(token)
+        if token.endswith(":"):
+            arg_token = next(rest, "")
+            if arg_token:
+                name = token[:-1].casefold()
+                value = clean_token(arg_token)
+                part_predicate = self.get_part_predicate(name, value)
+                if part_predicate:
+                    return [part_predicate]
+                else:
+                    return [self.get_text_predicate(token + arg_token)]
 
-        if text_buffer:
-            joined_text = " ".join(text_buffer)
-            non_text_predicates.insert(0, self.get_text_predicate(joined_text))
-        return non_text_predicates
+        return [self.get_text_predicate(token)]
 
     def with_predicate(self, predicate: Callable):
         predicates = list(self.get_predicates())  # force generation of predicates & copy
