@@ -11,7 +11,9 @@ from lutris.runners.runner import Runner
 from lutris.util.strings import strip_accents
 
 
-def tokenize_search(text: str) -> Iterable[str]:
+def tokenize_search(text: str, tags: Iterable[str]) -> Iterable[str]:
+    tag_set = set(tags)
+
     def _tokenize():
         buffer = ""
         it = iter(text)
@@ -29,7 +31,7 @@ def tokenize_search(text: str) -> Iterable[str]:
                 yield ch
                 buffer = ""
                 continue
-            elif ch == ":":
+            elif ch == ":" and buffer.casefold() in tag_set:
                 buffer += ch
                 yield buffer
                 buffer = ""
@@ -172,16 +174,17 @@ class BaseSearch:
         return str(candidate)
 
     def has_component(self, component_name: str) -> bool:
-        match_token = component_name + ":"
-        for token in tokenize_search(self.text):
-            if token.casefold() == match_token:
-                return True
+        if component_name in self.tags:
+            match_token = component_name + ":"
+            for token in tokenize_search(self.text, self.tags):
+                if token.casefold() == match_token:
+                    return True
         return False
 
     def get_predicate(self) -> SearchPredicate:
         if self.predicate is None:
             if self.text:
-                joined_tokens = implicitly_join_tokens(tokenize_search(self.text))
+                joined_tokens = implicitly_join_tokens(tokenize_search(self.text, self.tags))
                 tokens = _TokenReader(iter(joined_tokens))
                 self.predicate = self._parse_or(tokens) or TRUE_PREDICATE
             else:
@@ -235,11 +238,12 @@ class BaseSearch:
             return self.get_text_predicate(clean_token(token))
 
         if token.endswith(":"):
-            arg_token = tokens.get_token()
-            if arg_token:
-                name = token[:-1].casefold()
-                value = clean_token(arg_token)
-                return self.get_part_predicate(name, value) or self.get_text_predicate(token + arg_token)
+            name = token[:-1].casefold()
+            if name in self.tags:
+                arg_token = tokens.get_token()
+                if arg_token:
+                    value = clean_token(arg_token)
+                    return self.get_part_predicate(name, value) or self.get_text_predicate(token + arg_token)
 
         return self.get_text_predicate(token)
 
