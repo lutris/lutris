@@ -620,7 +620,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             ErrorDialog(_("Steam AppID not provided"), parent=self)
             return False
         playtime_text = self.playtime_entry.get_text()
-        if playtime_text and playtime_text != self.game.formatted_playtime:
+        if playtime_text and (not self.game or playtime_text != self.game.formatted_playtime):
             try:
                 parse_playtime(playtime_text)
             except ValueError as ex:
