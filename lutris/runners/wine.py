@@ -1120,7 +1120,7 @@ class wine(Runner):
         env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
 
         if proton.is_proton_path(wine_config_version):
-            # In stable versions of proton this can be dist/bin insteasd of files/bin
+            # In stable versions of proton this can be dist/bin instead of files/bin
             if "files/bin" in wine_exe:
                 env["PROTONPATH"] = wine_exe[: wine_exe.index("files/bin")]
             else:
