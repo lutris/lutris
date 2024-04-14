@@ -60,7 +60,7 @@ def tokenize_search(text: str) -> Iterable[str]:
 
 def implicitly_join_tokens(tokens: Iterable[str]) -> Iterable[str]:
     def is_isolated(t: str):
-        return t.startswith('"') or t == "OR" or t == "-"
+        return t.startswith('"') or t == "OR" or t == "AND" or t == "-"
 
     def _join():
         buffer = ""
@@ -149,13 +149,13 @@ class BaseSearch:
             if self.text:
                 joined_tokens = implicitly_join_tokens(tokenize_search(self.text))
                 tokens = _TokenReader(iter(joined_tokens))
-                self.predicates = self._parse_term(tokens)
+                self.predicates = self._parse_or(tokens)
             else:
                 self.predicates = []
         return self.predicates
 
-    def _parse_term(self, tokens: _TokenReader) -> List[Callable]:
-        buffer = self._parse_item(tokens)
+    def _parse_or(self, tokens: _TokenReader) -> List[Callable]:
+        buffer = self._parse_and(tokens)
 
         if not buffer:
             return buffer
@@ -166,11 +166,45 @@ class BaseSearch:
                 return buffer
 
             if token == "OR":  # case-sensitive!
-                right = self._parse_item(tokens)
-                if right:
-                    buffer = [_make_or(buffer, right)] if buffer else right
+                right = self._parse_and(tokens)
+                if not right:
+                    return buffer
+
+                buffer = [_make_or(buffer, right)] if buffer else right
             else:
-                buffer.extend(self._parse_item(tokens))
+                tokens.putback(token)
+                parsed = self._parse_and(tokens)
+                if not parsed:
+                    return buffer
+                buffer.extend(parsed)
+
+    def _parse_and(self, tokens: _TokenReader) -> List[Callable]:
+        buffer = self._parse_items(tokens)
+
+        if not buffer:
+            return buffer
+
+        while True:
+            token = tokens.get_token()
+            if not token:
+                return buffer
+
+            if token != "AND":  # case-sensitive!
+                tokens.putback(token)
+
+            parsed = self._parse_items(tokens)
+            if not parsed:
+                return buffer
+            buffer.extend(parsed)
+
+    def _parse_items(self, tokens: _TokenReader) -> List[Callable]:
+        buffer = []
+        while True:
+            parsed = self._parse_item(tokens)
+            if not parsed:
+                break
+            buffer.extend(parsed)
+        return buffer
 
     def _parse_item(self, tokens: _TokenReader) -> List[Callable]:
         token = tokens.get_token()
@@ -178,7 +212,7 @@ class BaseSearch:
         if token is None:
             return []
 
-        if token == "OR":
+        if token == "OR" or token == "AND":
             tokens.putback(token)
             return []
 
