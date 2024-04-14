@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 from lutris.database import games
 from lutris.database.categories import (
@@ -11,39 +11,43 @@ from lutris.runners.runner import Runner
 from lutris.util.strings import strip_accents
 
 
-def tokenize_search(text: str) -> Generator[str, None, None]:
-    pos = 0
-    buffer = ""
-    while pos < len(text):
-        ch = text[pos]
-        if ch.isspace():
-            if buffer:
-                yield buffer
-                buffer = ""
-        elif ch == '"':
-            if buffer:
-                yield buffer
+def tokenize_search(text: str) -> Iterable[str]:
+    def _tokenize():
+        try:
+            buffer = ""
+            it = iter(text)
+            while True:
+                ch = next(it)
+                if ch.isspace():
+                    yield buffer
+                    buffer = ""
+                elif ch == "-":
+                    yield buffer
+                    yield ch
+                    buffer = ""
+                    continue
+                elif ch == '"':
+                    yield buffer
 
-            buffer = ch
-            pos += 1
-            while pos < len(text):
-                ch = text[pos]
+                    buffer = ch
+                    while True:
+                        ch = next(it)
+                        buffer += ch
+
+                        if ch == '"':
+                            break
+
+                    yield buffer
+                    buffer = ""
+                    continue
+
                 buffer += ch
-                pos += 1
+        except StopIteration:
+            pass
+        finally:
+            yield buffer
 
-                if ch == '"':
-                    break
-
-            if buffer:
-                yield buffer
-                buffer = ""
-            continue
-
-        buffer += text[pos]
-        pos += 1
-
-    if buffer:
-        yield buffer
+    return filter(lambda t: len(t) > 0, _tokenize())
 
 
 class BaseSearch:
@@ -64,31 +68,35 @@ class BaseSearch:
     def get_candidate_text(self, candidate: Any) -> str:
         return str(candidate)
 
-    def get_components(self) -> List[Tuple[str, str, str]]:
+    def get_components(self) -> List[Tuple[str, str, str, bool]]:
         components = []
-
+        prev_token = None
         for token in tokenize_search(self.text):
+            negated = prev_token == "-"
             if token:
+                prev_token = token
+                if token == "-":
+                    continue
                 if token.startswith('"'):
                     if token.endswith('"'):
                         unquoted = token[1:-1]
                     else:
                         unquoted = token[1:]
-                    components.append(("", unquoted, unquoted))
+                    components.append(("", unquoted, unquoted, negated))
                     continue
                 elif ":" in token:
                     pos = token.index(":", 1)
                     name = token[:pos].strip().casefold()
                     if name in self.tags:
                         value = token[(pos + 1) :].strip()
-                        components.append((name, value, token))
+                        components.append((name, value, token, negated))
                         continue
-                components.append(("", token, token))
+                components.append(("", token, token, negated))
 
         return components
 
     def has_component(self, component_name: str) -> bool:
-        for name, _value, _raw in self.get_components():
+        for name, _value, _raw, _negated in self.get_components():
             if name == component_name:
                 return True
         return False
@@ -97,14 +105,16 @@ class BaseSearch:
         if self.predicates is None:
             predicates = []
             if self.text:
-                for name, value, raw in self.get_components():
+                for name, value, raw, negated in self.get_components():
                     if name:
-                        predicate = self.get_part_predicate(name, value)
-                        if predicate:
-                            predicates.append(predicate)
-                            continue
+                        predicate = self.get_part_predicate(name, value) or self.get_text_predicate(raw)
+                    else:
+                        predicate = self.get_text_predicate(raw)
 
-                    predicates.append(self.get_text_predicate(raw))
+                    if negated:
+                        predicates.append(lambda *args, pred=predicate: not pred(*args))
+                    else:
+                        predicates.append(predicate)
             self.predicates = predicates
         return self.predicates
 
