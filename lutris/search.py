@@ -99,8 +99,22 @@ class _TokenReader:
         except StopIteration:
             return None
 
-    def putback(self, token: str):
-        self.putback_buffer.append(token)
+    def peek_token(self) -> Optional[str]:
+        token = self.get_token()
+        self.putback(token)
+        return token
+
+    def consume(self, candidate) -> bool:
+        token = self.get_token()
+        if token == candidate:
+            return True
+        if token is not None:
+            self.putback(token)
+        return False
+
+    def putback(self, token: Optional[str]):
+        if token:
+            self.putback_buffer.append(token)
 
 
 def clean_token(to_clean: str) -> str:
@@ -110,13 +124,6 @@ def clean_token(to_clean: str) -> str:
         else:
             return to_clean[1:]
     return to_clean.strip()
-
-
-def _make_or(left: List[Callable], right: List[Callable]) -> Callable:
-    def apply_or(*args):
-        return all(p(*args) for p in left) or all(p(*args) for p in right)
-
-    return apply_or
 
 
 class BaseSearch:
@@ -155,72 +162,56 @@ class BaseSearch:
         return self.predicates
 
     def _parse_or(self, tokens: _TokenReader) -> List[Callable]:
-        buffer = self._parse_and(tokens)
+        parts = list(self._parse_chain("OR", self._parse_and, tokens))
 
-        if not buffer:
-            return buffer
+        def apply_or(*args):
+            for part in parts:
+                if all(p(*args) for p in part):
+                    return True
+            return False
 
-        while True:
-            token = tokens.get_token()
-            if not token:
-                return buffer
-
-            if token == "OR":  # case-sensitive!
-                right = self._parse_and(tokens)
-                if not right:
-                    return buffer
-
-                buffer = [_make_or(buffer, right)] if buffer else right
-            else:
-                tokens.putback(token)
-                parsed = self._parse_and(tokens)
-                if not parsed:
-                    return buffer
-                buffer.extend(parsed)
+        return [apply_or]
 
     def _parse_and(self, tokens: _TokenReader) -> List[Callable]:
-        buffer = self._parse_items(tokens)
+        parts = list(self._parse_chain("AND", self._parse_items, tokens))
 
-        if not buffer:
-            return buffer
+        def apply_and(*args):
+            for part in parts:
+                if not all(p(*args) for p in part):
+                    return False
+            return True
 
-        while True:
-            token = tokens.get_token()
-            if not token:
-                return buffer
+        return [apply_and]
 
-            if token != "AND":  # case-sensitive!
-                tokens.putback(token)
+    def _parse_chain(self, conjunction: str, next_parser: Callable, tokens: _TokenReader) -> Iterator[List[Callable]]:
+        yield next_parser(tokens)
 
-            parsed = self._parse_items(tokens)
-            if not parsed:
-                return buffer
-            buffer.extend(parsed)
+        while tokens.consume(conjunction):  # case-sensitive!
+            more = self._parse_and(tokens)
+            if not more:
+                break
+
+            yield more
 
     def _parse_items(self, tokens: _TokenReader) -> List[Callable]:
         buffer = []
         while True:
             parsed = self._parse_item(tokens)
+            buffer.extend(parsed)
             if not parsed:
                 break
-            buffer.extend(parsed)
         return buffer
 
     def _parse_item(self, tokens: _TokenReader) -> List[Callable]:
         token = tokens.get_token()
 
-        if token is None:
-            return []
-
-        if token == "OR" or token == "AND":
+        if not token or token == "OR" or token == "AND":
             tokens.putback(token)
             return []
 
         if token == "-":
-            next_token = tokens.get_token()
-            if next_token:
-                inner = self._parse_item(tokens)
-                return [lambda *a, i=i: not i(*a) for i in inner]
+            inner = self._parse_items(tokens)
+            return [lambda *a, i=i: not i(*a) for i in inner]
 
         if token.startswith('"'):
             return [self.get_text_predicate(clean_token(token))]
