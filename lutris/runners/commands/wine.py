@@ -339,6 +339,10 @@ def wineexec(
         game = None
         wineenv["GAMEID"] = proton.get_game_id(game)
         wineenv["PROTONPATH"] = proton.get_proton_path_from_bin(wine_path)
+        locale = env.get("LC_ALL")
+        host_locale = env.get("HOST_LC_ALL")
+        if locale and not host_locale:
+            wineenv["HOST_LC_ALL"] = locale
 
     baseenv = runner.get_env(disable_runtime=disable_runtime)
     baseenv.update(wineenv)
