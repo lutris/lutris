@@ -92,35 +92,30 @@ def implicitly_join_tokens(tokens: Iterable[str]) -> Iterable[str]:
 
 
 class _TokenReader:
-    def __init__(self, tokens: Iterator[str]) -> None:
+    def __init__(self, tokens: List[str]) -> None:
         self.tokens = tokens
-        self.putback_buffer = []
+        self.index = 0
 
     def get_token(self) -> Optional[str]:
-        if self.putback_buffer:
-            return self.putback_buffer.pop()
-
-        try:
-            return next(self.tokens)
-        except StopIteration:
+        if self.index >= len(self.tokens):
             return None
 
-    def peek_token(self) -> Optional[str]:
-        token = self.get_token()
-        self.putback(token)
+        token = self.tokens[self.index]
+        self.index += 1
         return token
 
-    def consume(self, candidate) -> bool:
-        token = self.get_token()
-        if token == candidate:
-            return True
-        if token is not None:
-            self.putback(token)
-        return False
+    def peek_token(self) -> Optional[str]:
+        if self.index >= len(self.tokens):
+            return None
 
-    def putback(self, token: Optional[str]):
-        if token:
-            self.putback_buffer.append(token)
+        return self.tokens[self.index]
+
+    def consume(self, candidate: str) -> bool:
+        token = self.peek_token()
+        if token == candidate:
+            self.index += 1
+            return True
+        return False
 
 
 def clean_token(to_clean: str) -> str:
@@ -185,7 +180,7 @@ class BaseSearch:
         if self.predicate is None:
             if self.text:
                 joined_tokens = implicitly_join_tokens(tokenize_search(self.text, self.tags))
-                tokens = _TokenReader(iter(joined_tokens))
+                tokens = _TokenReader(list(joined_tokens))
                 self.predicate = self._parse_or(tokens) or TRUE_PREDICATE
             else:
                 self.predicate = TRUE_PREDICATE
@@ -223,11 +218,12 @@ class BaseSearch:
         return and_predicates(buffer)
 
     def _parse_item(self, tokens: _TokenReader) -> Optional[SearchPredicate]:
-        token = tokens.get_token()
+        token = tokens.peek_token()
 
         if not token or token in ITEM_STOP_TOKENS:
-            tokens.putback(token)
             return None
+
+        tokens.get_token()  # actually consume it
 
         if token == "(":
             return self._parse_or(tokens)
