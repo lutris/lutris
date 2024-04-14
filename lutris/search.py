@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Callable, Dict, Iterable, Iterator, Optional
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional
 
 from lutris.database import games
 from lutris.database.categories import (
@@ -58,9 +58,13 @@ def tokenize_search(text: str) -> Iterable[str]:
     return filter(lambda t: len(t) > 0, _tokenize())
 
 
+CONJUNCTION_TOKENS = ["OR", "AND"]
+ISOLATED_TOKENS = CONJUNCTION_TOKENS + ["-"]
+
+
 def implicitly_join_tokens(tokens: Iterable[str]) -> Iterable[str]:
     def is_isolated(t: str):
-        return t.startswith('"') or t == "OR" or t == "AND" or t == "-"
+        return t.startswith('"') or t in ISOLATED_TOKENS
 
     def _join():
         buffer = ""
@@ -128,6 +132,26 @@ def clean_token(to_clean: str) -> str:
 
 SearchPredicate = Callable[[Any], bool]
 
+TRUE_PREDICATE: SearchPredicate = lambda *a: True  # noqa: E731
+
+
+def and_predicates(predicates: List[SearchPredicate]) -> Optional[SearchPredicate]:
+    if not predicates:
+        return None
+    if len(predicates) == 1:
+        return predicates[0]
+
+    return lambda *a: all(p(*a) for p in predicates)
+
+
+def or_predicates(predicates: List[SearchPredicate]) -> Optional[SearchPredicate]:
+    if not predicates:
+        return None
+    if len(predicates) == 1:
+        return predicates[0]
+
+    return lambda *a: any(p(*a) for p in predicates)
+
 
 class BaseSearch:
     flag_texts = {"true": True, "yes": True, "false": False, "no": False, "maybe": None}
@@ -159,44 +183,18 @@ class BaseSearch:
             if self.text:
                 joined_tokens = implicitly_join_tokens(tokenize_search(self.text))
                 tokens = _TokenReader(iter(joined_tokens))
-                self.predicate = self._parse_or(tokens) or (lambda *args: True)
+                self.predicate = self._parse_or(tokens) or TRUE_PREDICATE
             else:
-                self.predicate = lambda *args: True
+                self.predicate = TRUE_PREDICATE
         return self.predicate
 
     def _parse_or(self, tokens: _TokenReader) -> Optional[SearchPredicate]:
         parts = list(self._parse_chain("OR", self._parse_and, tokens))
-
-        if not parts:
-            return None
-
-        if len(parts) == 1:
-            return parts[0]
-
-        def apply_or(*args) -> bool:
-            for part in parts:
-                if part(*args):
-                    return True
-            return False
-
-        return apply_or
+        return or_predicates(parts)
 
     def _parse_and(self, tokens: _TokenReader) -> Optional[SearchPredicate]:
         parts = list(self._parse_chain("AND", self._parse_items, tokens))
-
-        if not parts:
-            return None
-
-        if len(parts) == 1:
-            return parts[0]
-
-        def apply_and(*args) -> bool:
-            for part in parts:
-                if not part(*args):
-                    return False
-            return True
-
-        return apply_and
+        return and_predicates(parts)
 
     def _parse_chain(self, conjunction: str, next_parser: Callable, tokens: _TokenReader) -> Iterator[SearchPredicate]:
         parsed = next_parser(tokens)
@@ -219,24 +217,12 @@ class BaseSearch:
             else:
                 break
 
-        if not buffer:
-            return None
-
-        if len(buffer) == 1:
-            return buffer[0]
-
-        def apply_and(*args) -> bool:
-            for p in buffer:
-                if not p(*args):
-                    return False
-            return True
-
-        return apply_and
+        return and_predicates(buffer)
 
     def _parse_item(self, tokens: _TokenReader) -> Optional[SearchPredicate]:
         token = tokens.get_token()
 
-        if not token or token == "OR" or token == "AND":
+        if not token or token in CONJUNCTION_TOKENS:
             tokens.putback(token)
             return None
 
