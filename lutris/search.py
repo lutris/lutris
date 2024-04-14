@@ -18,12 +18,17 @@ def tokenize_search(text: str) -> Iterable[str]:
             it = iter(text)
             while True:
                 ch = next(it)
-                if ch.isspace():
+                if ch.isspace() != buffer.isspace():
                     yield buffer
                     buffer = ""
                 elif ch == "-":
                     yield buffer
                     yield ch
+                    buffer = ""
+                    continue
+                elif ch == ":":
+                    buffer += ch
+                    yield buffer
                     buffer = ""
                     continue
                 elif ch == '"':
@@ -69,29 +74,51 @@ class BaseSearch:
         return str(candidate)
 
     def get_components(self) -> List[Tuple[str, str, str, bool]]:
-        components = []
-        prev_token = None
-        for token in tokenize_search(self.text):
-            negated = prev_token == "-"
-            if token:
-                prev_token = token
-                if token == "-":
-                    continue
-                if token.startswith('"'):
-                    if token.endswith('"'):
-                        unquoted = token[1:-1]
+        def token_pairs():
+            buffer = [""]
+            for t in tokenize_search(self.text):
+                if not t.isspace():
+                    if len(buffer) == 3:
+                        yield tuple(buffer)
+                        del buffer[0]
+                        buffer.append(t)
                     else:
-                        unquoted = token[1:]
-                    components.append(("", unquoted, unquoted, negated))
+                        buffer.append(t)
+
+            while buffer:
+                yield tuple(buffer + [""] * (3 - len(buffer)))
+                del buffer[0]
+
+        def clean_token(to_clean: str) -> str:
+            if to_clean.startswith('"'):
+                if to_clean.endswith('"'):
+                    return to_clean[1:-1]
+                else:
+                    return to_clean[1:]
+            return to_clean.strip()
+
+        components = []
+        skip_token = False
+        for prev_token, token, next_token in token_pairs():
+            if skip_token:
+                skip_token = False
+                continue
+
+            negated = prev_token == "-"
+            if token == "-":
+                continue
+            elif token.startswith('"'):
+                unquoted = clean_token(token)
+                components.append(("", unquoted, unquoted, negated))
+                continue
+            elif token.endswith(":"):
+                name = token[:-1].strip().casefold()
+                if name in self.tags:
+                    value = clean_token(next_token)
+                    components.append((name, value, token, negated))
+                    skip_token = True
                     continue
-                elif ":" in token:
-                    pos = token.index(":", 1)
-                    name = token[:pos].strip().casefold()
-                    if name in self.tags:
-                        value = token[(pos + 1) :].strip()
-                        components.append((name, value, token, negated))
-                        continue
-                components.append(("", token, token, negated))
+            components.append(("", token, token, negated))
 
         return components
 
