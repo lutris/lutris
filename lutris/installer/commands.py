@@ -430,11 +430,10 @@ class CommandsMixin:
 
         task = import_task(runner_name, task_name)
         command = task(**data)
-        if command:
-            command.accepted_return_code = return_code
         if isinstance(command, MonitoredCommand):
             # Monitor thread and continue when task has executed
             self.interpreter_ui_delegate.attach_log(command)
+            command.accepted_return_code = return_code
             self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
             return "STOP"
         return None
