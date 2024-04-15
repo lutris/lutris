@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Callable, Dict, Iterator, List, Optional
+from typing import Any, Callable, Dict, Iterator, List, Optional, Set
 
 from lutris.database import games
 from lutris.database.categories import (
@@ -43,8 +43,8 @@ def or_predicates(predicates: List[SearchPredicate]) -> Optional[SearchPredicate
 
 
 class BaseSearch:
-    flag_texts = {"true": True, "yes": True, "false": False, "no": False, "maybe": None}
-    tags = []
+    flag_texts: Dict[str, Optional[bool]] = {"true": True, "yes": True, "false": False, "no": False, "maybe": None}
+    tags: Set[str] = set()
 
     def __init__(self, text: str) -> None:
         self.text = text
@@ -63,7 +63,7 @@ class BaseSearch:
     def has_component(self, component_name: str) -> bool:
         if component_name in self.tags:
             match_token = component_name + ":"
-            for token in tokenize_search(self.text, self.tags):
+            for token in tokenize_search(self.text, ISOLATED_TOKENS, self.tags):
                 if token.casefold() == match_token:
                     return True
         return False
@@ -71,7 +71,7 @@ class BaseSearch:
     def get_predicate(self) -> SearchPredicate:
         if self.predicate is None:
             if self.text:
-                raw_tokens = tokenize_search(self.text, self.tags)
+                raw_tokens = tokenize_search(self.text, ISOLATED_TOKENS, self.tags)
                 joined_tokens = implicitly_join_tokens(raw_tokens, ISOLATED_TOKENS)
                 tokens = TokenReader(list(joined_tokens))
                 self.predicate = self._parse_or(tokens) or TRUE_PREDICATE
@@ -163,8 +163,8 @@ class BaseSearch:
 
 
 class GameSearch(BaseSearch):
-    tags = ["installed", "hidden", "favorite", "categorized", "category", "runner", "platform"]
-    flag_tags = ["installed", "hidden", "favorite", "categorized"]
+    tags = set(["installed", "hidden", "favorite", "categorized", "category", "runner", "platform"])
+    flag_tags = set(["installed", "hidden", "favorite", "categorized"])
 
     def __init__(self, text: str, service) -> None:
         self.service = service
@@ -273,7 +273,7 @@ class GameSearch(BaseSearch):
 
 
 class RunnerSearch(BaseSearch):
-    tags = ["installed"]
+    tags = set(["installed"])
 
     def get_candidate_text(self, candidate: Any) -> str:
         return f"{candidate.name}\n{candidate.description}"
