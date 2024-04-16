@@ -22,6 +22,21 @@ ISOLATED_TOKENS = ITEM_STOP_TOKENS | set(["-", "("])
 SearchPredicate = Callable[[Any], bool]
 
 TRUE_PREDICATE: SearchPredicate = lambda *a: True  # noqa: E731
+FLAG_TEXTS: Dict[str, Optional[bool]] = {"true": True, "yes": True, "false": False, "no": False, "maybe": None}
+
+
+class InvalidSearchTermError(ValueError):
+    def __init__(self, message: str, *args, **kwargs) -> None:
+        super().__init__(message, *args, **kwargs)
+        self.message = message
+
+
+def read_flag_token(reader: TokenReader) -> Optional[bool]:
+    token = clean_token(reader.get_token())
+    folded = token.casefold()
+    if folded in FLAG_TEXTS:
+        return FLAG_TEXTS[folded]
+    raise InvalidSearchTermError(f"'{token}' was found where a flag was expected.")
 
 
 def and_predicates(predicates: List[SearchPredicate]) -> Optional[SearchPredicate]:
@@ -43,7 +58,6 @@ def or_predicates(predicates: List[SearchPredicate]) -> Optional[SearchPredicate
 
 
 class BaseSearch:
-    flag_texts: Dict[str, Optional[bool]] = {"true": True, "yes": True, "false": False, "no": False, "maybe": None}
     tags: Set[str] = set()
 
     def __init__(self, text: str) -> None:
@@ -56,6 +70,9 @@ class BaseSearch:
     @property
     def is_empty(self) -> bool:
         return not self.text
+
+    def matches(self, candidate: Any) -> bool:
+        return self.get_predicate()(candidate)
 
     def get_candidate_text(self, candidate: Any) -> str:
         return str(candidate)
@@ -132,11 +149,13 @@ class BaseSearch:
         if token.endswith(":") and not tokens.is_end_of_tokens():
             name = token[:-1].casefold()
             if name in self.tags:
-                saved_index = token.index
-                predicate = self.get_part_predicate(name, tokens)
-                if predicate:
-                    return predicate
-                tokens.index = saved_index
+                saved_index = tokens.index
+                try:
+                    return self.get_part_predicate(name, tokens)
+                except InvalidSearchTermError:
+                    # If the tag is no good, we'll rewind and fall back on a
+                    # literal text predicate
+                    tokens.index = saved_index
 
         return self.get_text_predicate(token)
 
@@ -146,11 +165,8 @@ class BaseSearch:
         new_search.predicate = lambda *a: old_predicate(*a) and predicate(*a)
         return new_search
 
-    def get_part_predicate(self, name: str, tokens: TokenReader) -> Optional[Callable]:
-        return None
-
-    def matches(self, candidate: Any) -> bool:
-        return self.get_predicate()(candidate)
+    def get_part_predicate(self, name: str, tokens: TokenReader) -> Callable:
+        raise InvalidSearchTermError(f"'{name}' is not a valid search tag.")
 
     def get_text_predicate(self, text: str) -> Callable:
         stripped = strip_accents(text).casefold()
@@ -164,7 +180,6 @@ class BaseSearch:
 
 class GameSearch(BaseSearch):
     tags = set(["installed", "hidden", "favorite", "categorized", "category", "runner", "platform"])
-    flag_tags = set(["installed", "hidden", "favorite", "categorized"])
 
     def __init__(self, text: str, service) -> None:
         self.service = service
@@ -173,7 +188,7 @@ class GameSearch(BaseSearch):
     def get_candidate_text(self, candidate: Any) -> str:
         return candidate["name"]
 
-    def get_part_predicate(self, name: str, tokens: TokenReader) -> Optional[Callable]:
+    def get_part_predicate(self, name: str, tokens: TokenReader) -> Callable:
         if name == "category":
             category = clean_token(tokens.get_token())
             return self.get_category_predicate(category)
@@ -186,30 +201,27 @@ class GameSearch(BaseSearch):
             platform = clean_token(tokens.get_token())
             return self.get_platform_predicate(platform)
 
-        if name in self.flag_tags:
-            folded_value = clean_token(tokens.get_token()).casefold()
-            if folded_value in self.flag_texts:
-                flag = self.flag_texts[folded_value]
+        # All flags handle the 'maybe' option the same way, so we'll
+        # group them at the end.
+        flag = read_flag_token(tokens)
 
-            if flag is None:
-                # None represents 'maybe' which performs no test, but overrides
-                # the tests performed outside the search. Useful for 'hidden' and
-                # 'installed' components
-                return lambda *args: True
+        if flag is None:
+            # None represents 'maybe' which performs no test, but overrides
+            # the tests performed outside the search. Useful for 'hidden' and
+            # 'installed' components
+            return lambda *args: True
 
-            if name == "installed":
-                return self.get_installed_predicate(flag)
+        if name == "installed":
+            return self.get_installed_predicate(flag)
 
-            if name == "hidden":
-                return self.get_category_predicate(".hidden", in_category=flag)
+        if name == "hidden":
+            return self.get_category_predicate(".hidden", in_category=flag)
 
-            if name == "favorite":
-                return self.get_category_predicate("favorite", in_category=flag)
+        if name == "favorite":
+            return self.get_category_predicate("favorite", in_category=flag)
 
-            if name == "categorized":
-                return self.get_categorized_predicate(flag)
-
-            return None
+        if name == "categorized":
+            return self.get_categorized_predicate(flag)
 
         return super().get_part_predicate(name, tokens)
 
@@ -278,13 +290,10 @@ class RunnerSearch(BaseSearch):
     def get_candidate_text(self, candidate: Any) -> str:
         return f"{candidate.name}\n{candidate.description}"
 
-    def get_part_predicate(self, name: str, tokens: TokenReader) -> Optional[Callable]:
+    def get_part_predicate(self, name: str, tokens: TokenReader) -> Callable:
         if name == "installed":
-            value = clean_token(tokens.get_token())
-            if value not in self.flag_texts:
-                return None
+            flag = read_flag_token(tokens)
 
-            flag = self.flag_texts[value]
             if flag is None:
                 return lambda *args: True
 
