@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Callable, Dict, Iterator, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional, Set
 
 from lutris.database import games
 from lutris.database.categories import (
@@ -15,8 +15,8 @@ from lutris.util.tokenization import (
     tokenize_search,
 )
 
-ITEM_STOP_TOKENS = set(["OR", "AND", ")"])
-ISOLATED_TOKENS = ITEM_STOP_TOKENS | set([":", "-", "(", "<", ">"])
+ISOLATED_TOKENS = set([":", "-", "(", "<", ">", ">=", "<="])
+ITEM_STOP_TOKENS = ISOLATED_TOKENS | set(["OR", "AND", ")"])
 
 SearchPredicate = Callable[[Any], bool]
 
@@ -97,24 +97,26 @@ class BaseSearch:
         return self.predicate
 
     def _parse_or(self, tokens: TokenReader) -> Optional[SearchPredicate]:
-        parts = list(self._parse_chain("OR", self._parse_and, tokens))
+        parts = self._parse_chain("OR", self._parse_and, tokens)
         return or_predicates(parts)
 
     def _parse_and(self, tokens: TokenReader) -> Optional[SearchPredicate]:
-        parts = list(self._parse_chain("AND", self._parse_items, tokens))
+        parts = self._parse_chain("AND", self._parse_items, tokens)
         return and_predicates(parts)
 
-    def _parse_chain(self, conjunction: str, next_parser: Callable, tokens: TokenReader) -> Iterator[SearchPredicate]:
+    def _parse_chain(self, conjunction: str, next_parser: Callable, tokens: TokenReader) -> List[SearchPredicate]:
         parsed = next_parser(tokens)
+        parts = []
         if parsed:
-            yield parsed
+            parts.append(parsed)
 
             while tokens.consume(conjunction):  # case-sensitive!
                 more = next_parser(tokens)
                 if not more:
                     break
 
-                yield more
+                parts.append(more)
+        return parts
 
     def _parse_items(self, tokens: TokenReader) -> Optional[SearchPredicate]:
         buffer = []
@@ -160,7 +162,7 @@ class BaseSearch:
         # literal text predicate for the whole thing
         tokens.index = saved_index
 
-        text_token = tokens.get_cleaned_token_sequence(stop_tokens=ISOLATED_TOKENS)
+        text_token = tokens.get_cleaned_token_sequence(stop_tokens=ITEM_STOP_TOKENS)
         if text_token:
             return self.get_text_predicate(text_token)
 
@@ -238,15 +240,15 @@ class GameSearch(BaseSearch):
     def get_playtime_predicate(self, tokens: TokenReader) -> Callable:
         def match_greater_playtime(db_game):
             game_playtime = db_game.get("playtime")
-            return game_playtime > playtime
+            return game_playtime and game_playtime > playtime
 
         def match_lesser_playtime(db_game):
             game_playtime = db_game.get("playtime")
-            return game_playtime < playtime
+            return game_playtime and game_playtime < playtime
 
         def match_playtime(db_game):
             game_playtime = db_game.get("playtime")
-            return game_playtime == playtime
+            return game_playtime and game_playtime == playtime
 
         operator = tokens.peek_token()
         if operator == ">":
@@ -255,10 +257,17 @@ class GameSearch(BaseSearch):
         elif operator == ">":
             matcher = match_lesser_playtime
             tokens.get_token()
+        elif operator == ">=":
+            matcher = or_predicates([match_greater_playtime, match_playtime])
+            tokens.get_token()
+        elif operator == "<=":
+            matcher = or_predicates([match_lesser_playtime, match_playtime])
+            tokens.get_token()
         else:
             matcher = match_playtime
 
-        playtime_text = tokens.get_cleaned_token_sequence(stop_tokens=ISOLATED_TOKENS)
+        # We'll hope none of our tags are ever part of a legit playtime
+        playtime_text = tokens.get_cleaned_token_sequence(stop_tokens=ITEM_STOP_TOKENS | self.tags)
         if not playtime_text:
             raise InvalidSearchTermError("A blank is not a valid playtime.")
 
