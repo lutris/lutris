@@ -8,7 +8,7 @@ from lutris.database.categories import (
     normalized_category_names,
 )
 from lutris.runners.runner import Runner
-from lutris.util.strings import strip_accents
+from lutris.util.strings import parse_playtime, strip_accents
 from lutris.util.tokenization import (
     TokenReader,
     clean_token,
@@ -17,7 +17,7 @@ from lutris.util.tokenization import (
 )
 
 ITEM_STOP_TOKENS = set(["OR", "AND", ")"])
-ISOLATED_TOKENS = ITEM_STOP_TOKENS | set(["-", "("])
+ISOLATED_TOKENS = ITEM_STOP_TOKENS | set(["-", "(", "<", ">"])
 
 SearchPredicate = Callable[[Any], bool]
 
@@ -179,7 +179,7 @@ class BaseSearch:
 
 
 class GameSearch(BaseSearch):
-    tags = set(["installed", "hidden", "favorite", "categorized", "category", "runner", "platform"])
+    tags = set(["installed", "hidden", "favorite", "categorized", "category", "runner", "platform", "playtime"])
 
     def __init__(self, text: str, service) -> None:
         self.service = service
@@ -200,6 +200,9 @@ class GameSearch(BaseSearch):
         if name == "platform":
             platform = clean_token(tokens.get_token())
             return self.get_platform_predicate(platform)
+
+        if name == "playtime":
+            return self.get_playtime_predicate(tokens)
 
         # All flags handle the 'maybe' option the same way, so we'll
         # group them at the end.
@@ -224,6 +227,37 @@ class GameSearch(BaseSearch):
             return self.get_categorized_predicate(flag)
 
         return super().get_part_predicate(name, tokens)
+
+    def get_playtime_predicate(self, tokens: TokenReader) -> Callable:
+        def match_greater_playtime(db_game):
+            game_playtime = db_game.get("playtime")
+            return game_playtime > playtime
+
+        def match_lesser_playtime(db_game):
+            game_playtime = db_game.get("playtime")
+            return game_playtime < playtime
+
+        def match_playtime(db_game):
+            game_playtime = db_game.get("playtime")
+            return game_playtime == playtime
+
+        operator = tokens.peek_token()
+        if operator == ">":
+            matcher = match_greater_playtime
+            tokens.get_token()
+        elif operator == ">":
+            matcher = match_lesser_playtime
+            tokens.get_token()
+        else:
+            matcher = match_playtime
+
+        token = clean_token(tokens.get_token())
+        try:
+            playtime = parse_playtime(token)
+        except ValueError as ex:
+            raise InvalidSearchTermError(f"'{token}' is not a valid playtime.") from ex
+
+        return matcher
 
     def get_installed_predicate(self, installed: bool) -> Callable:
         def match_installed(db_game):
