@@ -12,12 +12,11 @@ from lutris.util.strings import parse_playtime, strip_accents
 from lutris.util.tokenization import (
     TokenReader,
     clean_token,
-    implicitly_join_tokens,
     tokenize_search,
 )
 
 ITEM_STOP_TOKENS = set(["OR", "AND", ")"])
-ISOLATED_TOKENS = ITEM_STOP_TOKENS | set(["-", "(", "<", ">"])
+ISOLATED_TOKENS = ITEM_STOP_TOKENS | set([":", "-", "(", "<", ">"])
 
 SearchPredicate = Callable[[Any], bool]
 
@@ -31,8 +30,8 @@ class InvalidSearchTermError(ValueError):
         self.message = message
 
 
-def read_flag_token(reader: TokenReader) -> Optional[bool]:
-    token = clean_token(reader.get_token())
+def read_flag_token(tokens: TokenReader) -> Optional[bool]:
+    token = tokens.get_cleaned_token() or ""
     folded = token.casefold()
     if folded in FLAG_TEXTS:
         return FLAG_TEXTS[folded]
@@ -79,18 +78,19 @@ class BaseSearch:
 
     def has_component(self, component_name: str) -> bool:
         if component_name in self.tags:
-            match_token = component_name + ":"
-            for token in tokenize_search(self.text, ISOLATED_TOKENS, self.tags):
-                if token.casefold() == match_token:
-                    return True
+            prev_token = None
+            for token in tokenize_search(self.text, ISOLATED_TOKENS):
+                if not token.isspace():
+                    if token == ":" and prev_token and prev_token.casefold() == component_name:
+                        return True
+                    prev_token = token
         return False
 
     def get_predicate(self) -> SearchPredicate:
         if self.predicate is None:
             if self.text:
-                raw_tokens = tokenize_search(self.text, ISOLATED_TOKENS, self.tags)
-                joined_tokens = implicitly_join_tokens(raw_tokens, ISOLATED_TOKENS)
-                tokens = TokenReader(list(joined_tokens))
+                raw_tokens = tokenize_search(self.text, ISOLATED_TOKENS)
+                tokens = TokenReader(list(raw_tokens))
                 self.predicate = self._parse_or(tokens) or TRUE_PREDICATE
             else:
                 self.predicate = TRUE_PREDICATE
@@ -133,31 +133,38 @@ class BaseSearch:
         if not token or token in ITEM_STOP_TOKENS:
             return None
 
-        tokens.get_token()  # actually consume it
+        if token.startswith('"'):
+            tokens.get_token()  # consume token
+            return self.get_text_predicate(clean_token(token))
 
-        if token == "(":
+        if tokens.consume("("):
             return self._parse_or(tokens)
 
-        if token == "-":
+        if tokens.consume("-"):
             inner = self._parse_items(tokens)
             if inner:
                 return lambda *a: not inner(*a)
 
-        if token.startswith('"'):
-            return self.get_text_predicate(clean_token(token))
+        saved_index = tokens.index
 
-        if token.endswith(":") and not tokens.is_end_of_tokens():
-            name = token[:-1].casefold()
+        tokens.get_token()  # consume tag name
+        if tokens.consume(":"):
+            name = token.casefold()
             if name in self.tags:
-                saved_index = tokens.index
                 try:
                     return self.get_part_predicate(name, tokens)
                 except InvalidSearchTermError:
-                    # If the tag is no good, we'll rewind and fall back on a
-                    # literal text predicate
-                    tokens.index = saved_index
+                    pass
 
-        return self.get_text_predicate(token)
+        # If the tag is no good, we'll rewind and fall back on a
+        # literal text predicate for the whole thing
+        tokens.index = saved_index
+
+        text_token = tokens.get_cleaned_token_sequence(stop_tokens=ISOLATED_TOKENS)
+        if text_token:
+            return self.get_text_predicate(text_token)
+
+        return None
 
     def with_predicate(self, predicate: Callable):
         old_predicate = self.get_predicate()  # force generation of predicate
@@ -190,15 +197,15 @@ class GameSearch(BaseSearch):
 
     def get_part_predicate(self, name: str, tokens: TokenReader) -> Callable:
         if name == "category":
-            category = clean_token(tokens.get_token())
+            category = tokens.get_cleaned_token() or ""
             return self.get_category_predicate(category)
 
         if name == "runner":
-            runner_name = clean_token(tokens.get_token())
+            runner_name = tokens.get_cleaned_token() or ""
             return self.get_runner_predicate(runner_name)
 
         if name == "platform":
-            platform = clean_token(tokens.get_token())
+            platform = tokens.get_cleaned_token() or ""
             return self.get_platform_predicate(platform)
 
         if name == "playtime":
@@ -251,11 +258,14 @@ class GameSearch(BaseSearch):
         else:
             matcher = match_playtime
 
-        token = clean_token(tokens.get_token())
+        playtime_text = tokens.get_cleaned_token_sequence(stop_tokens=ISOLATED_TOKENS)
+        if not playtime_text:
+            raise InvalidSearchTermError("A blank is not a valid playtime.")
+
         try:
-            playtime = parse_playtime(token)
+            playtime = parse_playtime(playtime_text)
         except ValueError as ex:
-            raise InvalidSearchTermError(f"'{token}' is not a valid playtime.") from ex
+            raise InvalidSearchTermError(f"'{playtime_text}' is not a valid playtime.") from ex
 
         return matcher
 
