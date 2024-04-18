@@ -153,7 +153,7 @@ def create_prefix(
         system.execute([wineboot_path], env=wineenv)
     else:
         wineenv["GAMEID"] = proton.DEFAULT_GAMEID
-        wineenv["ULWGL_LOG"] = "debug"
+        wineenv["UMU_LOG"] = "debug"
         wineenv["WINEARCH"] = "win64"
         wineenv["PROTONPATH"] = proton.get_proton_path_from_bin(wine_path)
         command = MonitoredCommand([proton.get_umu_path(), "createprefix"], env=wineenv)
