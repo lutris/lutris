@@ -2,6 +2,7 @@
 
 # pylint: disable=no-member
 from gettext import gettext as _
+from textwrap import dedent
 
 from gi.repository import GObject, Gtk
 
@@ -91,7 +92,15 @@ class PreferencesDialog(GameDialogCommon):
         if stack_id == "system-stack":
             self.set_search_entry_visibility(True)
         elif stack_id == "runners-stack":
-            self.set_search_entry_visibility(True, self.runners_box.search_entry_placeholder_text)
+            tooltip_markup = """
+            Enter the name or description of a runner to search for, or use search terms:
+
+            <b>installed:</b><i>true</i>	    Only installed runners.
+            """
+            tooltip_markup = dedent(tooltip_markup).strip()
+            self.set_search_entry_visibility(
+                True, self.runners_box.search_entry_placeholder_text, tooltip_markup=tooltip_markup
+            )
         else:
             self.set_search_entry_visibility(False)
 
