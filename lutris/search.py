@@ -1,4 +1,5 @@
 import copy
+import time
 from typing import Any, Callable, Dict, List, Optional, Set
 
 from lutris.database import games
@@ -192,7 +193,18 @@ class BaseSearch:
 
 class GameSearch(BaseSearch):
     tags = set(
-        ["installed", "hidden", "favorite", "categorized", "category", "runner", "platform", "playtime", "directory"]
+        [
+            "installed",
+            "hidden",
+            "favorite",
+            "categorized",
+            "category",
+            "runner",
+            "platform",
+            "playtime",
+            "lastplayed",
+            "directory",
+        ]
     )
 
     def __init__(self, text: str, service) -> None:
@@ -217,6 +229,9 @@ class GameSearch(BaseSearch):
 
         if name == "playtime":
             return self.get_playtime_predicate(tokens)
+
+        if name == "lastplayed":
+            return self.get_lastplayed_predicate(tokens)
 
         if name == "directory":
             directory = tokens.get_cleaned_token_sequence(stop_tokens=ITEM_STOP_TOKENS) or ""
@@ -247,23 +262,40 @@ class GameSearch(BaseSearch):
         return super().get_part_predicate(name, tokens)
 
     def get_playtime_predicate(self, tokens: TokenReader) -> Callable:
+        def get_game_playtime(db_game):
+            return db_game.get("playtime")
+
+        return self.get_duration_predicate(get_game_playtime, tokens)
+
+    def get_lastplayed_predicate(self, tokens: TokenReader) -> Callable:
+        now = time.time()
+
+        def get_game_lastplayed_duration_ago(db_game):
+            lastplayed = db_game.get("lastplayed")
+            if lastplayed:
+                return (now - lastplayed) / (60 * 60)
+            return None
+
+        return self.get_duration_predicate(get_game_lastplayed_duration_ago, tokens)
+
+    def get_duration_predicate(self, value_function: Callable, tokens: TokenReader) -> Callable:
         def match_greater_playtime(db_game):
-            game_playtime = db_game.get("playtime")
-            return game_playtime and game_playtime > playtime
+            game_playtime = value_function(db_game)
+            return game_playtime and game_playtime > duration
 
         def match_lesser_playtime(db_game):
-            game_playtime = db_game.get("playtime")
-            return game_playtime and game_playtime < playtime
+            game_playtime = value_function(db_game)
+            return game_playtime and game_playtime < duration
 
         def match_playtime(db_game):
-            game_playtime = db_game.get("playtime")
-            return game_playtime and game_playtime == playtime
+            game_playtime = value_function(db_game)
+            return game_playtime and game_playtime == duration
 
         operator = tokens.peek_token()
         if operator == ">":
             matcher = match_greater_playtime
             tokens.get_token()
-        elif operator == ">":
+        elif operator == "<":
             matcher = match_lesser_playtime
             tokens.get_token()
         elif operator == ">=":
@@ -275,15 +307,15 @@ class GameSearch(BaseSearch):
         else:
             matcher = match_playtime
 
-        # We'll hope none of our tags are ever part of a legit playtime
-        playtime_text = tokens.get_cleaned_token_sequence(stop_tokens=ITEM_STOP_TOKENS | self.tags)
-        if not playtime_text:
-            raise InvalidSearchTermError("A blank is not a valid playtime.")
+        # We'll hope none of our tags are ever part of a legit duration
+        duration_text = tokens.get_cleaned_token_sequence(stop_tokens=ITEM_STOP_TOKENS | self.tags)
+        if not duration_text:
+            raise InvalidSearchTermError("A blank is not a valid duration.")
 
         try:
-            playtime = parse_playtime(playtime_text)
+            duration = parse_playtime(duration_text)
         except ValueError as ex:
-            raise InvalidSearchTermError(f"'{playtime_text}' is not a valid playtime.") from ex
+            raise InvalidSearchTermError(f"'{duration_text}' is not a valid playtime.") from ex
 
         return matcher
 

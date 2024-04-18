@@ -314,6 +314,7 @@
 &lt;b&gt;runner:&lt;/b&gt;&lt;i&gt;wine&lt;/i&gt;			Only Wine games
 &lt;b&gt;platform:&lt;/b&gt;&lt;i&gt;windows&lt;/i&gt;	Only Windows games
 &lt;b&gt;playtime:&lt;/b&gt;&lt;i&gt;&amp;gt;2 hours&lt;/i&gt;	Only games played for more than 2 hours.
+&lt;b&gt;lastplayed:&lt;/b&gt;&lt;i&gt;&amp;lt;2 days&lt;/i&gt;	Only games played in the last 2 days.
 &lt;b&gt;directory:&lt;/b&gt;&lt;i&gt;game/dir&lt;/i&gt;	Only games at the path.</property>
             <property name="halign">center</property>
             <property name="valign">center</property>
