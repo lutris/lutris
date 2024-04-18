@@ -241,10 +241,22 @@ def parse_playtime(text: str) -> float:
         # number of some unit.
         hour_units = ["h", "hr", "hours", "hour", _("hour"), _("hours")]
         minute_units = ["m", "min", "minute", "minutes", _("minute"), _("minutes")]
+        day_units = ["d", _("day"), _("days")]
+        week_units = ["wk", _("week"), _("weeks")]
+        month_units = ["mo", _("month"), _("months")]
+        year_units = ["yr", _("year"), _("years")]
         if unit in hour_units:
             return num
         if unit in minute_units:
             return num / 60
+        if unit in day_units:
+            return num * 24
+        if unit in week_units:
+            return num * 24 * 7
+        if unit in month_units:
+            return num * 24 * 30
+        if unit in year_units:
+            return num * 24 * 365
         raise ValueError(error_message)
 
     # Handle the fancy format made of number unit pairts, like
