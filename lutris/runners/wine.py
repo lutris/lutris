@@ -737,7 +737,7 @@ class wine(Runner):
         """
         if version is None:
             version = self.read_version_from_config()
-        if version == proton.GE_PROTON_LATEST:
+        if version == proton.GE_PROTON_LATEST or version == proton.PROTON_LATEST:
             return version
         wine_path = self.get_path_for_version(version)
         if system.path_exists(wine_path):
