@@ -142,8 +142,10 @@ class TokenReader:
     def consume(self, candidate: str) -> bool:
         """If the next token is 'candidate', advances over it and returns True;
         if not returns False and leaves the token as it was."""
-        token = self.peek_token()
+        saved_index = self.index
+        token = self.get_token()
         if candidate and token == candidate:
-            self.index += 1
             return True
+
+        self.index = saved_index
         return False

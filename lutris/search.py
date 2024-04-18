@@ -15,8 +15,8 @@ from lutris.util.tokenization import (
     tokenize_search,
 )
 
-ISOLATED_TOKENS = set([":", "-", "(", "<", ">", ">=", "<="])
-ITEM_STOP_TOKENS = ISOLATED_TOKENS | set(["OR", "AND", ")"])
+ISOLATED_TOKENS = set([":", "-", "(", ")", "<", ">", ">=", "<="])
+ITEM_STOP_TOKENS = (ISOLATED_TOKENS | set(["OR", "AND"])) - set(["("])
 
 SearchPredicate = Callable[[Any], bool]
 
@@ -97,12 +97,8 @@ class BaseSearch:
         return self.predicate
 
     def _parse_or(self, tokens: TokenReader) -> Optional[SearchPredicate]:
-        parts = self._parse_chain("OR", self._parse_and, tokens)
+        parts = self._parse_chain("OR", self._parse_items, tokens)
         return or_predicates(parts)
-
-    def _parse_and(self, tokens: TokenReader) -> Optional[SearchPredicate]:
-        parts = self._parse_chain("AND", self._parse_items, tokens)
-        return and_predicates(parts)
 
     def _parse_chain(self, conjunction: str, next_parser: Callable, tokens: TokenReader) -> List[SearchPredicate]:
         parsed = next_parser(tokens)
@@ -130,6 +126,11 @@ class BaseSearch:
         return and_predicates(buffer)
 
     def _parse_item(self, tokens: TokenReader) -> Optional[SearchPredicate]:
+        # AND is kinda fake - we and together items by default anyway,
+        # so we'll just ignore this conjunction.
+        while tokens.consume("AND"):
+            pass
+
         token = tokens.peek_token()
 
         if not token or token in ITEM_STOP_TOKENS:
@@ -140,7 +141,9 @@ class BaseSearch:
             return self.get_text_predicate(clean_token(token))
 
         if tokens.consume("("):
-            return self._parse_or(tokens)
+            predicate = self._parse_or(tokens) or TRUE_PREDICATE
+            tokens.consume(")")
+            return predicate
 
         if tokens.consume("-"):
             inner = self._parse_items(tokens)
