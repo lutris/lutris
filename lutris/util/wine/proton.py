@@ -9,8 +9,7 @@ from lutris import settings
 from lutris.util import system
 from lutris.util.steam.config import get_steamapps_dirs
 
-GE_PROTON_LATEST = _("UMU-Proton (Latest)")
-PROTON_LATEST = _("GE-Proton (Latest)")
+GE_PROTON_LATEST = _("GE-Proton (Latest)")
 DEFAULT_GAMEID = "umu-default"
 
 
@@ -72,7 +71,7 @@ def list_proton_versions() -> List[str]:
     umu_path = get_umu_path()
     if not umu_path:
         return []
-    versions = [GE_PROTON_LATEST, PROTON_LATEST]
+    versions = [GE_PROTON_LATEST]
     for proton_path in get_proton_paths():
         for version in [p for p in os.listdir(proton_path) if "Proton" in p]:
             path = os.path.join(proton_path, version, "dist/bin/wine")
