@@ -191,7 +191,9 @@ class BaseSearch:
 
 
 class GameSearch(BaseSearch):
-    tags = set(["installed", "hidden", "favorite", "categorized", "category", "runner", "platform", "playtime"])
+    tags = set(
+        ["installed", "hidden", "favorite", "categorized", "category", "runner", "platform", "playtime", "directory"]
+    )
 
     def __init__(self, text: str, service) -> None:
         self.service = service
@@ -215,6 +217,10 @@ class GameSearch(BaseSearch):
 
         if name == "playtime":
             return self.get_playtime_predicate(tokens)
+
+        if name == "directory":
+            directory = tokens.get_cleaned_token_sequence(stop_tokens=ITEM_STOP_TOKENS) or ""
+            return self.get_directory_predicate(directory)
 
         # All flags handle the 'maybe' option the same way, so we'll
         # group them at the end.
@@ -280,6 +286,13 @@ class GameSearch(BaseSearch):
             raise InvalidSearchTermError(f"'{playtime_text}' is not a valid playtime.") from ex
 
         return matcher
+
+    def get_directory_predicate(self, directory: str) -> Callable:
+        def match_directory(db_game):
+            game_dir = db_game.get("directory")
+            return game_dir and directory in game_dir
+
+        return match_directory
 
     def get_installed_predicate(self, installed: bool) -> Callable:
         def match_installed(db_game):
