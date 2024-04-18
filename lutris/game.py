@@ -655,7 +655,7 @@ class Game(GObject.Object):
     def get_store_name(self) -> str:
         store = self.service
         if not store:
-            return ""
+            return "none"
         if self.service == "humblebundle":
             return "humble"
         return store
