@@ -305,6 +305,15 @@
           <object class="GtkSearchEntry" id="search_entry">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
+            <property name="tooltip-markup" translatable="yes">Enter the name of a game to search for, or use search terms:
+
+&lt;b&gt;installed:&lt;/b&gt;&lt;i&gt;true&lt;/i&gt;			Only installed games.
+&lt;b&gt;hidden:&lt;/b&gt;&lt;i&gt;true&lt;/i&gt;			Only hidden games.
+&lt;b&gt;favorite:&lt;/b&gt;&lt;i&gt;true&lt;/i&gt;			Only favorite games.
+&lt;b&gt;category:&lt;/b&gt;&lt;i&gt;x&lt;/i&gt;			Only games in cateogry &lt;i&gt;x&lt;/i&gt;.
+&lt;b&gt;runner:&lt;/b&gt;&lt;i&gt;wine&lt;/i&gt;			Only Wine games
+&lt;b&gt;platform:&lt;/b&gt;&lt;i&gt;windows&lt;/i&gt;	Only Windows games
+&lt;b&gt;playtime:&lt;/b&gt;&lt;i&gt;&amp;gt;2 hours&lt;/i&gt;	Only games played for more than 2 hours.</property>
             <property name="halign">center</property>
             <property name="valign">center</property>
             <property name="width-chars">30</property>
