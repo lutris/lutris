@@ -426,6 +426,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         return sorted(games, key=lambda game: max(game["installed_at"] or 0, game["lastplayed"] or 0), reverse=True)
 
     def get_game_search(self):
+        """Returns a game-search object for the current view settings and search text; this object
+        is cached so that we need not re-parse the search if it has not changed."""
         text = self.filters.get("text") or ""
         if self.game_search is None or self.game_search.service != self.service or self.game_search.text != text:
             self.game_search = GameSearch(text, self.service)

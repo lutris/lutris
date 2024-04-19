@@ -92,7 +92,8 @@ class TokenReader:
 
     def get_token(self, skip_space: bool = True) -> Optional[str]:
         """Returns the next token, and advances one token in the list. Returns None if
-        the end of tokens has been reached."""
+        the end of tokens has been reached. If 'skip_space' is true, this skips over
+        whitespace tokens first (which means it can consume multiple tokens!)"""
 
         if skip_space:
             while self.index < len(self.tokens) and self.tokens[self.index].isspace():
@@ -106,6 +107,9 @@ class TokenReader:
         return token
 
     def get_cleaned_token(self) -> Optional[str]:
+        """Returns the next token, skipping whitespace tokens. This method cleans the token
+        with clean_token() if it is not None."""
+
         token = self.get_token()
         if token:
             return clean_token(token)
@@ -113,6 +117,18 @@ class TokenReader:
         return None
 
     def get_cleaned_token_sequence(self, stop_tokens: Set[str]) -> Optional[str]:
+        """This reads token until the end of tokens, or until a 'stop_tokens' token is reached;
+        that stop token is not consumed. The tokens are concatenated, including white-space
+        between them, and returns. Whitespace around the tokens is stripped.
+
+        Returns None if we reach the end of tokens before any non-whitespace token.
+
+        If this first non-whitespace token is quoted, then this token is cleaned and returned,
+        and we stop with that.
+
+        Thus, if the token reader starts before quoted text, we return that text unquoted, and if
+        not we return all text up to but not including a 'stop_tokens' token."""
+
         buffer = ""
         while True:
             token = self.get_token(skip_space=False)
@@ -140,8 +156,9 @@ class TokenReader:
         return token
 
     def consume(self, candidate: str) -> bool:
-        """If the next token is 'candidate', advances over it and returns True;
-        if not returns False and leaves the token as it was."""
+        """If the next token is 'candidate', consumes it and returns True;
+        if not returns False and leaves the token reader as it was."""
+
         saved_index = self.index
         token = self.get_token()
         if candidate and token == candidate:
