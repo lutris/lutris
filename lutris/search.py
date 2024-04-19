@@ -9,7 +9,7 @@ from lutris.database.categories import (
     normalized_category_names,
 )
 from lutris.runners.runner import Runner
-from lutris.util.strings import parse_playtime, strip_accents
+from lutris.util.strings import parse_playtime_parts, strip_accents
 from lutris.util.tokenization import (
     TokenReader,
     clean_token,
@@ -289,7 +289,7 @@ class GameSearch(BaseSearch):
 
         def match_playtime(db_game):
             game_playtime = value_function(db_game)
-            return game_playtime and game_playtime == duration
+            return game_playtime and duration_parts.matches(game_playtime)
 
         operator = tokens.peek_token()
         if operator == ">":
@@ -313,7 +313,8 @@ class GameSearch(BaseSearch):
             raise InvalidSearchTermError("A blank is not a valid duration.")
 
         try:
-            duration = parse_playtime(duration_text)
+            duration_parts = parse_playtime_parts(duration_text)
+            duration = duration_parts.get_total_hours()
         except ValueError as ex:
             raise InvalidSearchTermError(f"'{duration_text}' is not a valid playtime.") from ex
 

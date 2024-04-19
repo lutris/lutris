@@ -6,6 +6,7 @@ import shlex
 import time
 import unicodedata
 import uuid
+from dataclasses import dataclass
 from gettext import gettext as _
 from typing import List, Tuple, Union
 
@@ -212,31 +213,54 @@ def get_formatted_playtime(playtime: float) -> str:
 
 def parse_playtime(text: str) -> float:
     """Parses a textual playtime into hours"""
-    text = text.strip().casefold()
+    playtime = parse_playtime_parts(text)
+    return playtime.get_total_hours()
 
-    if _("Less than a minute").casefold() == text:
-        return 0.0
 
-    if NO_PLAYTIME.casefold() == text:
-        return 0.0
+@dataclass
+class PlaytimeParts:
+    years: float = 0.0
+    months: float = 0.0
+    weeks: float = 0.0
+    days: float = 0.0
+    hours: float = 0.0
+    minutes: float = 0.0
 
-    # Handle a single number - assumed to be a count of hours
-    try:
-        return float(text)
-    except ValueError:
-        pass
+    def is_empty(self) -> bool:
+        return not (self.years or self.months or self.weeks or self.days or self.hours or self.minutes)
 
-    # Handle the easy case of "6:23".
-    parts = text.split(":")
-    if len(parts) == 2 and parts[0].strip().isdigit() and parts[1].strip().isdigit():
-        hours = int(parts[0])
-        minutes = int(parts[1])
-        return hours + minutes / 60
+    def get_total_hours(self) -> float:
+        return (
+            self.hours
+            + self.minutes / 60
+            + self.days * 24
+            + self.weeks * 24 * 7
+            + self.months * 24 * 30
+            + self.years * 24 * 365
+        )
 
-    playtime = 0.0
-    error_message = _("'%s' is not a valid playtime.") % text
+    def matches(self, hours: float) -> bool:
+        total_hours = self.get_total_hours()
+        if self.minutes != 0.0:
+            return math.isclose(total_hours * 60, round(hours * 60, 0))
+        if self.hours != 0.0:
+            return math.isclose(total_hours, round(hours, 0))
+        if self.days != 0.0:
+            return math.isclose(total_hours / 24, round(hours / 24, 0))
+        if self.weeks != 0.0:
+            hours_per_week = 24 * 7
+            return math.isclose(total_hours / hours_per_week, round(hours / hours_per_week, 0))
+        if self.months != 0.0:
+            hours_per_month = 24 * 30
+            return math.isclose(total_hours / hours_per_month, round(hours / hours_per_month, 0))
+        if self.years != 0.0:
+            hours_per_year = 24 * 365
+            return math.isclose(total_hours / hours_per_year, round(hours / hours_per_year, 0))
 
-    def find_hours(num: float, unit: str) -> float:
+        # if 0 overall, treat as 0 minutes
+        return math.isclose(total_hours * 60, round(hours * 60, 0))
+
+    def add_part(self, num: float, unit: str) -> bool:
         # This function works out how many hours are meant by some
         # number of some unit.
         hour_units = ["h", "hr", "hours", "hour", _("hour"), _("hours")]
@@ -246,18 +270,52 @@ def parse_playtime(text: str) -> float:
         month_units = ["mo", _("month"), _("months")]
         year_units = ["yr", _("year"), _("years")]
         if unit in hour_units:
-            return num
-        if unit in minute_units:
-            return num / 60
-        if unit in day_units:
-            return num * 24
-        if unit in week_units:
-            return num * 24 * 7
-        if unit in month_units:
-            return num * 24 * 30
-        if unit in year_units:
-            return num * 24 * 365
-        raise ValueError(error_message)
+            self.hours += num
+        elif unit in minute_units:
+            self.minutes += num
+        elif unit in day_units:
+            self.days += num
+        elif unit in week_units:
+            self.weeks += num
+        elif unit in month_units:
+            self.months += num
+        elif unit in year_units:
+            self.years += num
+        else:
+            return False
+
+        return True
+
+
+def parse_playtime_parts(text: str) -> PlaytimeParts:
+    text = text.strip().casefold()
+
+    playtime = PlaytimeParts()
+
+    if _("Less than a minute").casefold() == text:
+        return playtime
+
+    if NO_PLAYTIME.casefold() == text:
+        return playtime
+
+    error_message = _("'%s' is not a valid playtime.") % text
+
+    # Handle a single number - assumed to be a count of hours
+    try:
+        playtime.hours = float(text)
+        return playtime
+    except ValueError:
+        pass
+
+    # Handle the easy case of "6:23".
+    parts = text.split(":")
+    if len(parts) == 2 and parts[0].strip().isdigit() and parts[1].strip().isdigit():
+        try:
+            playtime.hours = int(parts[0])
+            playtime.minutes = int(parts[1])
+            return playtime
+        except ValueError as ex:
+            raise ValueError(error_message) from ex
 
     # Handle the fancy format made of number unit pairts, like
     # "1 hour 23 minutes" or "2h57m"; we split this up into digit
@@ -276,12 +334,13 @@ def parse_playtime(text: str) -> float:
             try:
                 unit = next(parts_iter)
             except StopIteration as ex:
-                if playtime:
+                if not playtime.is_empty():
                     unit = "minutes"
                 else:
                     raise ValueError(error_message) from ex
 
-            playtime += find_hours(num, unit)
+            if not playtime.add_part(num, unit):
+                raise ValueError(error_message)
     except StopIteration:
         pass
 
