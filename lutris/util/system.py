@@ -180,13 +180,16 @@ def spawn(command, env=None, cwd=None, quiet=False, shell=False):
         logger.error("Could not run command %s (env: %s): %s", command, env, ex)
 
 
-def read_process_output(command, timeout=5, env=None):
-    """Return the output of a command as a string"""
+def read_process_output(command, timeout=5, env=None, error_result=""):
+    """Return the output of a command as a string; if 'error_result' is not None,
+    returns that on errors. If it is, raises an exception instead."""
     try:
         return subprocess.check_output(command, timeout=timeout, env=env, encoding="utf-8", errors="ignore").strip()
     except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as ex:
         logger.error("%s command failed: %s", command, ex)
-        return ""
+        if error_result is None:
+            raise
+        return error_result
 
 
 def get_md5_in_zip(filename):
