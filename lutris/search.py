@@ -19,7 +19,7 @@ from lutris.util.tokenization import (
 )
 
 ISOLATED_TOKENS = set([":", "-", "(", ")", "<", ">", ">=", "<="])
-ITEM_STOP_TOKENS = (ISOLATED_TOKENS | set(["OR", "AND"])) - set(["("])
+ITEM_STOP_TOKENS = (ISOLATED_TOKENS | set(["OR", "AND"])) - set(["(", "-"])
 
 SearchPredicate = Callable[[Any], bool]
 
