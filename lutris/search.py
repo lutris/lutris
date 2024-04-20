@@ -9,6 +9,7 @@ from lutris.database.categories import (
     normalized_category_names,
 )
 from lutris.runners.runner import Runner
+from lutris.services import SERVICES
 from lutris.util.strings import parse_playtime_parts, strip_accents
 from lutris.util.tokenization import (
     TokenReader,
@@ -197,6 +198,8 @@ class GameSearch(BaseSearch):
             "favorite",
             "categorized",
             "category",
+            "source",
+            "service",  # an alias for source
             "runner",
             "platform",
             "playtime",
@@ -216,6 +219,10 @@ class GameSearch(BaseSearch):
         if name == "category":
             category = tokens.get_cleaned_token() or ""
             return self.get_category_predicate(category)
+
+        if name in ("source", "service"):
+            service_name = tokens.get_cleaned_token() or ""
+            return self.get_service_predicate(service_name)
 
         if name == "runner":
             runner_name = tokens.get_cleaned_token() or ""
@@ -359,6 +366,20 @@ class GameSearch(BaseSearch):
             return game_in_category == in_category
 
         return match_categorized
+
+    def get_service_predicate(self, service_name: str) -> Callable:
+        service_name = service_name.casefold()
+
+        def match_service(db_game):
+            game_service = db_game.get("service")
+            if game_service:
+                if game_service.casefold() == service_name:
+                    return True
+
+                service = SERVICES.get(game_service)
+                return service and service_name == service.name.casefold()
+
+        return match_service
 
     def get_runner_predicate(self, runner_name: str) -> Callable:
         runner_name = runner_name.casefold()
