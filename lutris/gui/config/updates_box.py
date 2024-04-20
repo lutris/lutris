@@ -1,6 +1,6 @@
 import os
 from gettext import gettext as _
-from typing import Callable
+from typing import Callable, Tuple
 
 from gi.repository import Gio, Gtk
 
@@ -99,13 +99,15 @@ class UpdatesBox(BaseConfigBox):
             return stable_channel_radio_button, umu_channel_radio_button, unsupported_channel_radio_button
         return stable_channel_radio_button, unsupported_channel_radio_button
 
-    def get_wine_update_texts(self):
+    def get_wine_update_texts(self) -> Tuple[str, str]:
         wine_version_info = get_default_wine_runner_version_info()
-        wine_version = format_runner_version(wine_version_info)
         if not wine_version_info:
             update_label_text = _("No default Wine version could be identified. No updates are available.")
             update_button_text = _("Check Again")
-        elif wine_version and system.path_exists(os.path.join(settings.RUNNER_DIR, "wine", wine_version)):
+            return update_label_text, update_button_text
+
+        wine_version = format_runner_version(wine_version_info)
+        if wine_version and system.path_exists(os.path.join(settings.RUNNER_DIR, "wine", wine_version)):
             update_label_text = _("Your Wine version is up to date. Using: <b>%s</b>\n" "<i>Last checked %s.</i>") % (
                 wine_version_info["version"],
                 get_runtime_versions_date_time_ago(),
