@@ -5,7 +5,11 @@ from typing import Callable
 from gi.repository import Gio, Gtk
 
 from lutris import settings
-from lutris.api import get_default_wine_runner_version_info, get_runtime_versions_date_time_ago
+from lutris.api import (
+    format_runner_version,
+    get_default_wine_runner_version_info,
+    get_runtime_versions_date_time_ago,
+)
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.dialogs import NoticeDialog
 from lutris.runtime import RuntimeUpdater
@@ -92,14 +96,17 @@ class UpdatesBox(BaseConfigBox):
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
 
         if LUTRIS_EXPERIMENTAL_FEATURES_ENABLED:
-            return (stable_channel_radio_button, umu_channel_radio_button, unsupported_channel_radio_button)
-        return (stable_channel_radio_button, unsupported_channel_radio_button)
+            return stable_channel_radio_button, umu_channel_radio_button, unsupported_channel_radio_button
+        return stable_channel_radio_button, unsupported_channel_radio_button
 
     def get_wine_update_texts(self):
         wine_version_info = get_default_wine_runner_version_info()
-        wine_version = f"{wine_version_info['version']}-{wine_version_info['architecture']}"
-        if system.path_exists(os.path.join(settings.RUNNER_DIR, "wine", wine_version)):
-            update_label_text = _("Your wine version is up to date. Using: <b>%s</b>\n" "<i>Last checked %s.</i>") % (
+        wine_version = format_runner_version(wine_version_info)
+        if not wine_version_info:
+            update_label_text = _("No default Wine version could be identified. No updates are available.")
+            update_button_text = _("Check Again")
+        elif wine_version and system.path_exists(os.path.join(settings.RUNNER_DIR, "wine", wine_version)):
+            update_label_text = _("Your Wine version is up to date. Using: <b>%s</b>\n" "<i>Last checked %s.</i>") % (
                 wine_version_info["version"],
                 get_runtime_versions_date_time_ago(),
             )

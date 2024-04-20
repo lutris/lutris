@@ -235,7 +235,7 @@ def parse_version_architecture(version_name: str) -> Tuple[str, str]:
     return version_name, LINUX_SYSTEM.arch
 
 
-def get_runner_version_from_cache(runner_name, version):
+def get_runner_version_from_cache(runner_name: str, version: Optional[str]) -> Optional[Dict[str, str]]:
     # Prefer to provide the info from our local cache if we can; if this can't find
     # an unambiguous result, we'll fall back on the API which should know what the default is.
     version, _arch = parse_version_architecture(version or "")
@@ -282,7 +282,7 @@ def iter_get_from_api_candidates(versions: list, version: Optional[str], arch: O
     yield select_info(lambda v: v["architecture"] == arch, accept_ambiguous=True)
 
 
-def get_runner_version_from_api(runner_name: str, version: Optional[str]):
+def get_runner_version_from_api(runner_name: str, version: Optional[str]) -> Optional[Dict[str, str]]:
     version, arch = parse_version_architecture(version or "")
     versions = download_runner_versions(runner_name)
     for candidate in iter_get_from_api_candidates(versions, version, arch):
@@ -294,7 +294,7 @@ def get_runner_version_from_api(runner_name: str, version: Optional[str]):
     return None
 
 
-def get_default_runner_version_info(runner_name: str, version: Optional[str] = None) -> Dict[str, str]:
+def get_default_runner_version_info(runner_name: str, version: Optional[str] = None) -> Optional[Dict[str, str]]:
     """Get the appropriate version for a runner
 
     Params:
@@ -309,7 +309,7 @@ def get_default_runner_version_info(runner_name: str, version: Optional[str] = N
 
 
 @cache_single
-def get_default_wine_runner_version_info():
+def get_default_wine_runner_version_info() -> Optional[Dict[str, str]]:
     """Just returns the runner info for the default Wine, but with
     caching. This is just a little optimization."""
     return get_default_runner_version_info("wine")

@@ -680,7 +680,7 @@ class wine(Runner):
                 arch = WINE_DEFAULT_ARCH
         return arch
 
-    def get_runner_version(self, version: str = None) -> Dict[str, str]:
+    def get_runner_version(self, version: str = None) -> Optional[Dict[str, str]]:
         if not version:
             default_version_info = get_default_wine_runner_version_info()
             default_version = format_runner_version(default_version_info) if default_version_info else None
@@ -811,7 +811,7 @@ class wine(Runner):
         if not version and use_api:
             # Try to obtain the default wine version from the Lutris API.
             default_version_info = self.get_runner_version()
-            if "version" in default_version_info:
+            if default_version_info and "version" in default_version_info:
                 logger.debug("Default wine version is %s", default_version_info["version"])
                 version = format_runner_version(default_version_info)
 
