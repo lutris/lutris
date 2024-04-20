@@ -98,22 +98,18 @@ class BaseSearch:
         return self.predicate
 
     def _parse_or(self, tokens: TokenReader) -> Optional[SearchPredicate]:
-        parts = self._parse_chain("OR", self._parse_items, tokens)
-        return or_predicates(parts)
-
-    def _parse_chain(self, conjunction: str, next_parser: Callable, tokens: TokenReader) -> List[SearchPredicate]:
-        parsed = next_parser(tokens)
+        parsed = self._parse_items(tokens)
         parts = []
         if parsed:
             parts.append(parsed)
 
-            while tokens.consume(conjunction):  # case-sensitive!
-                more = next_parser(tokens)
+            while tokens.consume("OR"):  # case-sensitive!
+                more = self._parse_items(tokens)
                 if not more:
                     break
 
                 parts.append(more)
-        return parts
+        return or_predicates(parts)
 
     def _parse_items(self, tokens: TokenReader) -> Optional[SearchPredicate]:
         buffer = []
@@ -192,6 +188,8 @@ class BaseSearch:
 
 
 class GameSearch(BaseSearch):
+    """A search for games, which applies to the games database dictionaries, not the Game objects."""
+
     tags = set(
         [
             "installed",
@@ -245,7 +243,7 @@ class GameSearch(BaseSearch):
             # None represents 'maybe' which performs no test, but overrides
             # the tests performed outside the search. Useful for 'hidden' and
             # 'installed' components
-            return lambda *args: True
+            return TRUE_PREDICATE
 
         if name == "installed":
             return self.get_installed_predicate(flag)
@@ -387,6 +385,8 @@ class GameSearch(BaseSearch):
 
 
 class RunnerSearch(BaseSearch):
+    """A search for runners, which applies to the runner objects."""
+
     tags = set(["installed"])
 
     def get_candidate_text(self, candidate: Any) -> str:
@@ -397,7 +397,7 @@ class RunnerSearch(BaseSearch):
             flag = read_flag_token(tokens)
 
             if flag is None:
-                return lambda *args: True
+                return TRUE_PREDICATE
 
             return self.get_installed_predicate(flag)
 
