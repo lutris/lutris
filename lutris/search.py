@@ -8,6 +8,7 @@ from lutris.database.categories import (
     get_uncategorized_game_ids,
     normalized_category_names,
 )
+from lutris.runners import get_runner_human_name
 from lutris.runners.runner import Runner
 from lutris.services import SERVICES
 from lutris.util.strings import parse_playtime_parts, strip_accents
@@ -372,12 +373,14 @@ class GameSearch(BaseSearch):
 
         def match_service(db_game):
             game_service = db_game.get("service")
-            if game_service:
-                if game_service.casefold() == service_name:
-                    return True
+            if not game_service:
+                return False
 
-                service = SERVICES.get(game_service)
-                return service and service_name == service.name.casefold()
+            if game_service.casefold() == service_name:
+                return True
+
+            service = SERVICES.get(game_service)
+            return service and service.name.casefold() == service_name
 
         return match_service
 
@@ -386,7 +389,15 @@ class GameSearch(BaseSearch):
 
         def match_runner(db_game):
             game_runner = db_game.get("runner")
-            return game_runner and game_runner.casefold() == runner_name
+
+            if not game_runner:
+                return False
+
+            if game_runner.casefold() == runner_name:
+                return True
+
+            runner_human_name = get_runner_human_name(game_runner)
+            return runner_human_name.casefold() == runner_name
 
         return match_runner
 
