@@ -102,7 +102,7 @@ class UpdatesBox(BaseConfigBox):
     def get_wine_update_texts(self) -> Tuple[str, str]:
         wine_version_info = get_default_wine_runner_version_info()
         if not wine_version_info:
-            update_label_text = _("No default Wine version could be identified. No updates are available.")
+            update_label_text = _("No compatible Wine version could be identified. No updates are available.")
             update_button_text = _("Check Again")
             return update_label_text, update_button_text
 
