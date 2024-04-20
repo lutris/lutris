@@ -190,9 +190,8 @@ class UpdatesBox(BaseConfigBox):
         if not system.path_exists(WINE_DIR):
             os.mkdir(WINE_DIR)
 
-        updater = RuntimeUpdater()
+        updater = RuntimeUpdater(force=True)
         updater.update_runtime = False
-        updater.update_runners = True
         component_updaters = [u for u in updater.create_component_updaters() if u.name == "wine"]
         if component_updaters:
 
@@ -215,8 +214,7 @@ class UpdatesBox(BaseConfigBox):
 
     def on_runtime_update_clicked(self, _widget):
         def get_updater():
-            updater = RuntimeUpdater()
-            updater.update_runtime = True
+            updater = RuntimeUpdater(force=True)
             updater.update_runners = False
             return updater
 

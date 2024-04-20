@@ -246,13 +246,13 @@ class RuntimeUpdater:
         """Update installed runners (only works for Wine at the moment)"""
         updaters: List[ComponentUpdater] = []
         upstream_runners = runtime_versions.get("runners", {})
-        for name, upstream_runners in upstream_runners.items():
+        for name, runner_set in upstream_runners.items():
             if name != "wine":
                 continue
             upstream_runner = None
-            for _runner in upstream_runners:
-                if _runner["architecture"] == LINUX_SYSTEM.arch:
-                    upstream_runner = _runner
+            for runner in runner_set:
+                if runner["architecture"] == LINUX_SYSTEM.arch:
+                    upstream_runner = runner
 
             if upstream_runner:
                 updaters.append(RunnerComponentUpdater(name, upstream_runner))
