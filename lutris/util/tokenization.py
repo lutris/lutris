@@ -1,4 +1,6 @@
-from typing import Iterable, List, Optional, Set
+from __future__ import annotations
+
+from typing import Callable, Iterable, List, Optional
 
 
 def clean_token(to_clean: Optional[str]) -> str:
@@ -116,7 +118,7 @@ class TokenReader:
 
         return None
 
-    def get_cleaned_token_sequence(self, stop_tokens: Set[str]) -> Optional[str]:
+    def get_cleaned_token_sequence(self, stop_function: Callable[[TokenReader], bool]) -> Optional[str]:
         """This reads token until the end of tokens, or until a 'stop_tokens' token is reached;
         that stop token is not consumed. The tokens are concatenated, including white-space
         between them, and returns. Whitespace around the tokens is stripped.
@@ -131,19 +133,21 @@ class TokenReader:
 
         buffer = ""
         while True:
-            token = self.get_token(skip_space=False)
-            if token is None:
+            peeked = self.peek_token()
+            if peeked is None:
                 break
-            if token in stop_tokens:
-                self.index -= 1
-                break
-            if token.startswith('"'):
+
+            if peeked.startswith('"'):
                 if buffer:
                     self.index -= 1
                 else:
-                    buffer = token
+                    buffer = self.get_token()
                 break
-            buffer += token
+
+            if stop_function(self):
+                break
+
+            buffer += self.get_token(skip_space=False) or ""
         return clean_token(buffer) if buffer else None
 
     def peek_token(self) -> Optional[str]:
@@ -154,6 +158,22 @@ class TokenReader:
         token = self.get_token()
         self.index = saved_index
         return token
+
+    def peek_tokens(self, count: int) -> List[str]:
+        """Returns the next 'count' tokens, or as many as are present before
+        the end of tokens has been reached. However, this will not advance - repeated calls
+        return the same tokens."""
+
+        peeked = []
+
+        saved_index = self.index
+        for _i in range(0, count):
+            token = self.get_token()
+            if not token:
+                break
+            peeked.append(token)
+        self.index = saved_index
+        return peeked
 
     def consume(self, candidate: str) -> bool:
         """If the next token is 'candidate', consumes it and returns True;

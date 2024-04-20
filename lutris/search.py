@@ -164,7 +164,7 @@ class BaseSearch:
         # literal text predicate for the whole thing
         tokens.index = saved_index
 
-        text_token = tokens.get_cleaned_token_sequence(stop_tokens=ITEM_STOP_TOKENS)
+        text_token = tokens.get_cleaned_token_sequence(stop_function=self.is_stop_token)
         if text_token:
             return self.get_text_predicate(text_token)
 
@@ -187,6 +187,22 @@ class BaseSearch:
             return stripped in name
 
         return match_text
+
+    def is_stop_token(self, tokens: TokenReader) -> bool:
+        """This function decides when to stop when reading an item;
+        pass this to tokens.get_cleaned_token_sequence().
+
+        It will stop at the end of tokens, any of our stop tokens
+        like AND, or at any tag, which must be a known tag followed by
+        a colon."""
+        peeked = tokens.peek_tokens(2)
+        if not peeked:
+            return True
+        if peeked[0] in ITEM_STOP_TOKENS:
+            return True
+        if len(peeked) > 1 and peeked[1] == ":" and peeked[0].casefold() in self.tags:
+            return True
+        return False
 
 
 class GameSearch(BaseSearch):
@@ -240,7 +256,7 @@ class GameSearch(BaseSearch):
             return self.get_lastplayed_predicate(tokens)
 
         if name == "directory":
-            directory = tokens.get_cleaned_token_sequence(stop_tokens=ITEM_STOP_TOKENS) or ""
+            directory = tokens.get_cleaned_token_sequence(stop_function=self.is_stop_token) or ""
             return self.get_directory_predicate(directory)
 
         # All flags handle the 'maybe' option the same way, so we'll
@@ -314,7 +330,7 @@ class GameSearch(BaseSearch):
             matcher = match_playtime
 
         # We'll hope none of our tags are ever part of a legit duration
-        duration_text = tokens.get_cleaned_token_sequence(stop_tokens=ITEM_STOP_TOKENS | self.tags)
+        duration_text = tokens.get_cleaned_token_sequence(stop_function=self.is_stop_token)
         if not duration_text:
             raise InvalidSearchTermError("A blank is not a valid duration.")
 
