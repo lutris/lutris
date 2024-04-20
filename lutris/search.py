@@ -358,7 +358,7 @@ class GameSearch(BaseSearch):
         return match_categorized
 
     def get_category_predicate(self, category: str, in_category: bool = True) -> Callable:
-        names = normalized_category_names(category)
+        names = normalized_category_names(category, subname_allowed=True)
         category_game_ids = set(get_game_ids_for_categories(names))
 
         def match_categorized(db_game):
@@ -380,7 +380,7 @@ class GameSearch(BaseSearch):
                 return True
 
             service = SERVICES.get(game_service)
-            return service and service.name.casefold() == service_name
+            return service and service_name in service.name.casefold()
 
         return match_service
 
@@ -397,7 +397,7 @@ class GameSearch(BaseSearch):
                 return True
 
             runner_human_name = get_runner_human_name(game_runner)
-            return runner_human_name.casefold() == runner_name
+            return runner_name in runner_human_name.casefold()
 
         return match_runner
 
@@ -407,10 +407,11 @@ class GameSearch(BaseSearch):
         def match_platform(db_game):
             game_platform = db_game.get("platform")
             if game_platform:
-                return game_platform.casefold() == platform
+                return platform in game_platform.casefold()
             if self.service:
                 platforms = [p.casefold() for p in self.service.get_game_platforms(db_game)]
-                return platform in platforms
+                matches = [p for p in platforms if platform in p]
+                return any(matches)
             return False
 
         return match_platform

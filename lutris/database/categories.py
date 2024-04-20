@@ -69,12 +69,22 @@ def get_category(name):
         return categories[0]
 
 
-def normalized_category_names(name: str) -> List[str]:
+def normalized_category_names(name: str, subname_allowed: bool = False) -> List[str]:
     """Searches for a category name case-insensitively and returns all matching names;
-    if none match, it just returns 'name' as is."""
+    if none match, it just returns 'name' as is.
+
+    If subname_allowed is true but name is not a match for any category, we'll look for
+    any category that contains the name as a substring instead before falling back to
+    'name' itself."""
     query = "SELECT name FROM categories WHERE name=? COLLATE NOCASE"
     parameters = (name,)
     names = [cat["name"] for cat in sql.db_query(settings.DB_PATH, query, parameters)]
+
+    if not names and subname_allowed:
+        query = "SELECT name FROM categories WHERE name LIKE ? COLLATE NOCASE"
+        parameters = (f"%{name}%",)
+        names = [cat["name"] for cat in sql.db_query(settings.DB_PATH, query, parameters)]
+
     return names or [name]
 
 
