@@ -18,7 +18,7 @@ MIN_RECOMMENDED_NVIDIA_DRIVER = 515
 
 @cache_single
 def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
-    """Return information about NVidia drivers"""
+    """Return information about Nvidia drivers"""
     version_file_path = "/proc/driver/nvidia/version"
 
     def read_from_proc() -> Dict[str, Dict[str, str]]:
@@ -41,21 +41,25 @@ def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
             )
             return {}
 
-        nvrm_version = content[0].split(": ")[1].strip().split()
-        if "Open" in nvrm_version:
+        try:
+            nvrm_version = content[0].split(": ")[1].strip().split()
+            if "Open" in nvrm_version:
+                return {
+                    "vendor": nvrm_version[0],
+                    "platform": nvrm_version[1],
+                    "arch": nvrm_version[6],
+                    "version": nvrm_version[7],
+                }
             return {
                 "vendor": nvrm_version[0],
                 "platform": nvrm_version[1],
-                "arch": nvrm_version[6],
-                "version": nvrm_version[7],
+                "arch": nvrm_version[2],
+                "version": nvrm_version[5],
+                "date": " ".join(nvrm_version[6:]),
             }
-        return {
-            "vendor": nvrm_version[0],
-            "platform": nvrm_version[1],
-            "arch": nvrm_version[2],
-            "version": nvrm_version[5],
-            "date": " ".join(nvrm_version[6:]),
-        }
+        except IndexError as ex:
+            logger.warning("Unable to parse %s. Falling back to glxinfo: %s", version_file_path, ex)
+            return {}
 
     def invoke_glxinfo() -> Dict[str, Dict[str, str]]:
         glx_info = GlxInfo()
@@ -212,5 +216,9 @@ def is_outdated() -> bool:
     if not driver_version:
         logger.error("Failed to get Nvidia version")
         return True
-    major_version = int(driver_version.split(".")[0])
+    try:
+        major_version = int(driver_version.split(".")[0])
+    except (IndexError, ValueError) as ex:
+        logger.exception("Failed to parse Nvidia version: %s", ex)
+        return True
     return major_version < MIN_RECOMMENDED_NVIDIA_DRIVER
