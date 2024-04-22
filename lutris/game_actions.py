@@ -404,6 +404,8 @@ class SingleGameActions(GameActions):
             new_config_id = duplicate_game_config(game.slug, old_config_id)
         else:
             new_config_id = None
+        categories = game.get_categories()
+
         duplicate_game_dialog.destroy()
         db_game = get_game_by_field(game.id, "id")
         db_game["name"] = new_name
@@ -417,7 +419,14 @@ class SingleGameActions(GameActions):
         db_game.pop("service_id", None)
 
         game_id = add_game(**db_game)
+
         new_game = Game(game_id)
+
+        # add categories before the save, so it can emit the signal. add_game()
+        # means the game is already on the database, so this is legit.
+        for cat in categories:
+            new_game.add_category(cat, no_signal=True)
+
         new_game.save()
 
         # Download in the background; we'll update the LutrisWindow when this
