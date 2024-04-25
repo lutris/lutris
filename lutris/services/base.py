@@ -17,6 +17,7 @@ from lutris.game import Game
 from lutris.gui.dialogs import NoticeDialog
 from lutris.gui.dialogs.webconnect_dialog import DEFAULT_USER_AGENT, WebConnectDialog
 from lutris.gui.views.media_loader import download_media
+from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
@@ -69,6 +70,12 @@ class LutrisCoverartMedium(LutrisCoverart):
     size = (176, 234)
 
 
+SERVICE_GAMES_LOADING = NotificationSource()
+SERVICE_GAMES_LOADED = NotificationSource()
+SERVICE_LOGIN = NotificationSource()
+SERVICE_LOGOUT = NotificationSource()
+
+
 class BaseService(GObject.Object):
     """Base class for local services"""
 
@@ -87,13 +94,6 @@ class BaseService(GObject.Object):
     extra_medias = {}
     default_format = "icon"
     is_loading = False
-
-    __gsignals__ = {
-        "service-games-load": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "service-login": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "service-logout": (GObject.SIGNAL_RUN_FIRST, None, ()),
-    }
 
     @property
     def matcher(self):
@@ -146,10 +146,10 @@ class BaseService(GObject.Object):
                 self.is_loading = False
 
         def reload_cb(_result, error):
-            self.emit("service-games-loaded")
+            SERVICE_GAMES_LOADED.fire(self)
             reloaded_callback(error)
 
-        self.emit("service-games-load")
+        SERVICE_GAMES_LOADING.fire(self)
         AsyncCall(do_reload, reload_cb)
 
     def load(self):
@@ -454,7 +454,7 @@ class OnlineService(BaseService):
             except OSError:
                 logger.warning("Unable to remove %s", auth_file)
         logger.debug("logged out from %s", self.id)
-        self.emit("service-logout")
+        SERVICE_LOGOUT.fire(self)
 
     def load_cookies(self):
         """Load cookies from disk"""

@@ -21,7 +21,7 @@ from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.installer import AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.installer_file_collection import InstallerFileCollection
-from lutris.services.base import OnlineService
+from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
@@ -144,7 +144,7 @@ class AmazonService(OnlineService):
 
             self.save_user_data(user_data)
 
-            self.emit("service-login")
+            SERVICE_LOGIN.fire(self)
 
     def is_connected(self):
         """Return whether the user is authenticated and if the service is available"""

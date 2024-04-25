@@ -14,7 +14,7 @@ from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field, update_existing
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.services.base import OnlineService
+from lutris.services.base import SERVICE_LOGIN, SERVICE_LOGOUT, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -110,7 +110,7 @@ class UbisoftConnectService(OnlineService):
         self.client = UbisoftConnectClient(self)
 
     def auth_lost(self):
-        self.emit("service-logout")
+        SERVICE_LOGOUT.fire(self)
 
     def login_callback(self, credentials):
         """Called after the user has logged in successfully"""
@@ -119,7 +119,7 @@ class UbisoftConnectService(OnlineService):
         storage_jsons = json.loads("[" + unquoted_url + "]")
         user_data = self.client.authorise_with_local_storage(storage_jsons)
         self.client.set_auth_lost_callback(self.auth_lost)
-        self.emit("service-login")
+        SERVICE_LOGIN.fire(self)
         return (user_data["userId"], user_data["username"])
 
     def is_connected(self):

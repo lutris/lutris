@@ -18,7 +18,7 @@ from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.services.base import OnlineService
+from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -167,7 +167,7 @@ class OriginService(OnlineService):
 
     def login_callback(self, url):
         self.fetch_access_token()
-        self.emit("service-login")
+        SERVICE_LOGIN.fire(self)
 
     def fetch_access_token(self):
         token_data = self.get_access_token()

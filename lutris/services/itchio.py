@@ -12,7 +12,7 @@ from lutris.database import games as games_db
 from lutris.exceptions import UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
-from lutris.services.base import OnlineService
+from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import linux
@@ -128,7 +128,7 @@ class ItchIoService(OnlineService):
 
     def login_callback(self, url):
         """Called after the user has logged in successfully"""
-        self.emit("service-login")
+        SERVICE_LOGIN.fire(self)
 
     def is_connected(self):
         """Check if service is connected and can call the API"""

@@ -21,7 +21,13 @@ from lutris.gui.widgets.utils import has_stock_icon
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.runners import InvalidRunnerError
 from lutris.services import SERVICES
-from lutris.services.base import AuthTokenExpiredError, BaseService
+from lutris.services.base import (
+    SERVICE_GAMES_LOADED,
+    SERVICE_GAMES_LOADING,
+    SERVICE_LOGIN,
+    SERVICE_LOGOUT,
+    AuthTokenExpiredError,
+)
 from lutris.util.jobs import schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_SYNCED, LOCAL_LIBRARY_SYNCING
 from lutris.util.strings import get_natural_sort_key
@@ -354,10 +360,10 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-updated", self.update_rows)
-        GObject.add_emission_hook(BaseService, "service-login", self.on_service_auth_changed)
-        GObject.add_emission_hook(BaseService, "service-logout", self.on_service_auth_changed)
-        GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
-        GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
+        SERVICE_LOGIN.register(self.on_service_auth_changed)
+        SERVICE_LOGOUT.register(self.on_service_auth_changed)
+        SERVICE_GAMES_LOADING.register(self.on_service_games_loading)
+        SERVICE_GAMES_LOADED.register(self.on_service_games_loaded)
         LOCAL_LIBRARY_SYNCING.register(self.on_local_library_syncing)
         LOCAL_LIBRARY_SYNCED.register(self.on_local_library_synced)
         self.set_filter_func(self._filter_func)
@@ -636,13 +642,13 @@ class LutrisSidebar(Gtk.ListBox):
             self.service_rows[service.id].update_buttons()
         return True
 
-    def on_service_games_updating(self, service):
+    def on_service_games_loading(self, service):
         if service.id in self.service_rows:
             self.service_rows[service.id].is_updating = True
             self.service_rows[service.id].update_buttons()
         return True
 
-    def on_service_games_updated(self, service):
+    def on_service_games_loaded(self, service):
         if service.id in self.service_rows:
             self.service_rows[service.id].is_updating = False
             self.service_rows[service.id].update_buttons()

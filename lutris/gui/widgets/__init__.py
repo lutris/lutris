@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Dict, List, Tuple
 
 from lutris.util.jobs import schedule_at_idle
 
@@ -7,17 +7,18 @@ class NotificationSource:
     """A class to inform interested code of changes in a global, like a signal but not attached to any
     object."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._generation_number = 0
-        self._callbacks = {}
+        self._callbacks: Dict[int, Callable] = {}
         self._next_callback_id = 1
-        self._scheduled_callbacks = set()
+        self._scheduled_callbacks: List[Tuple[Callable, Tuple, Dict]] = []
 
-    def fire(self) -> None:
+    def fire(self, *args, **kwargs) -> None:
         """Signals that the thing, whatever it is, has happened. This increments the generation number,
         and schedules the callbacks to run (if they are not scheduled already)."""
         self._generation_number += 1
-        self._scheduled_callbacks.update(self._callbacks.values())
+        for callback in self._callbacks.values():
+            self._scheduled_callbacks.append((callback, args, kwargs))
         schedule_at_idle(self._notify)
 
     @property
@@ -26,7 +27,7 @@ class NotificationSource:
         passively, when registering a callback is inappropriate."""
         return self._generation_number
 
-    def register(self, callback: Callable[[], None]) -> int:
+    def register(self, callback: Callable) -> int:
         """Registers a callback to be called after the thing, whatever it is, has happened;
         fire() schedules callbacks to be called at idle time on the main thread.
 
@@ -45,5 +46,5 @@ class NotificationSource:
 
     def _notify(self):
         while self._scheduled_callbacks:
-            callback = self._scheduled_callbacks.pop()
-            callback()
+            callback, args, kwargs = self._scheduled_callbacks.pop(0)
+            callback(*args, **kwargs)

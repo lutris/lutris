@@ -14,7 +14,7 @@ from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.widgets.utils import Image, paste_overlay, thumbnail_image
-from lutris.services.base import AuthTokenExpiredError, OnlineService
+from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -205,7 +205,7 @@ class EpicGamesStoreService(OnlineService):
         session_id = content_json["authorizationCode"]
 
         self.start_session(authorization_code=session_id)
-        self.emit("service-login")
+        SERVICE_LOGIN.fire(self)
 
     def resume_session(self):
         self.session.headers["Authorization"] = "bearer %s" % self.session_data["access_token"]

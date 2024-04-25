@@ -12,7 +12,14 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.views.media_loader import download_media
-from lutris.services.base import LutrisBanner, LutrisCoverart, LutrisCoverartMedium, LutrisIcon, OnlineService
+from lutris.services.base import (
+    SERVICE_LOGIN,
+    LutrisBanner,
+    LutrisCoverart,
+    LutrisCoverartMedium,
+    LutrisIcon,
+    OnlineService,
+)
 from lutris.services.service_game import ServiceGame
 from lutris.util import http
 from lutris.util.jobs import AsyncCall
@@ -77,7 +84,7 @@ class LutrisService(OnlineService):
 
     def on_connect_success(self, _widget, _username):
         """Handles connection success"""
-        self.emit("service-login")
+        SERVICE_LOGIN.fire(self)
 
     def get_library(self):
         """Return the remote library as a list of dicts."""

@@ -37,7 +37,7 @@ from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
-from lutris.services.base import BaseService
+from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGOUT
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
@@ -147,9 +147,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.update_action_state()
         self.update_notification()
 
-        GObject.add_emission_hook(BaseService, "service-login", self.on_service_login)
-        GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
-        GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
+        SERVICE_LOGIN.register(self.on_service_login)
+        SERVICE_LOGOUT.register(self.on_service_logout)
+        SERVICE_GAMES_LOADED.register(self.on_service_games_loaded)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
@@ -881,7 +881,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 client_version = runtime_versions.get("client_version")
                 settings.write_setting("ignored_supported_lutris_verison", client_version or "")
 
-    def on_service_games_updated(self, service):
+    def on_service_games_loaded(self, service):
         """Request a view update when service games are loaded"""
         if self.service and service.id == self.service.id:
             self.update_store()

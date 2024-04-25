@@ -15,7 +15,7 @@ from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.installer_file_collection import InstallerFileCollection
-from lutris.services.base import OnlineService
+from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import i18n, system
@@ -182,7 +182,7 @@ class GOGService(OnlineService):
         with open(self.token_path, "w", encoding="utf-8") as token_file:
             token_file.write(json.dumps(token))
         if not refresh_token:
-            self.emit("service-login")
+            SERVICE_LOGIN.fire(self)
 
     def load_token(self):
         """Load token from disk"""
