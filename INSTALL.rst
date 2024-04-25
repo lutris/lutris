@@ -48,7 +48,7 @@ on Ubuntu based systems, you can run::
 Note :
 If you use OpenSUSE, some dependencies are missing. You need to install python3-gobject-Gdk and typelib-1_0-Gtk-3_0
 
-``sudo apt install python3-gobject-Gdk typelib-1_0-Gtk-3_0``
+``sudo zypper install python3-gobject-Gdk typelib-1_0-Gtk-3_0``
 
 Installation
 ------------
