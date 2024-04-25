@@ -5,7 +5,7 @@ import shutil
 from gettext import gettext as _
 from typing import List
 
-from gi.repository import Gio, GObject
+from gi.repository import Gio
 
 from lutris import api, settings
 from lutris.api import get_game_installers
@@ -76,7 +76,7 @@ SERVICE_LOGIN = NotificationSource()
 SERVICE_LOGOUT = NotificationSource()
 
 
-class BaseService(GObject.Object):
+class BaseService:
     """Base class for local services"""
 
     id = NotImplemented
