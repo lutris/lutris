@@ -4,9 +4,8 @@ import os
 import time
 from gettext import gettext as _
 
-from gi.repository import GObject
-
 from lutris.config import LutrisConfig
+from lutris.gui.widgets import NotificationSource
 from lutris.installer.errors import ScriptingError
 from lutris.runners import steam
 from lutris.util.jobs import AsyncCall, schedule_repeating_at_idle
@@ -14,13 +13,8 @@ from lutris.util.log import logger
 from lutris.util.steam.log import get_app_state_log
 
 
-class SteamInstaller(GObject.Object):
+class SteamInstaller:
     """Handles installation of Steam games"""
-
-    __gsignals__ = {
-        "steam-game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
-        "steam-state-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
-    }
 
     def __init__(self, steam_uri, file_id):
         """
@@ -31,7 +25,8 @@ class SteamInstaller(GObject.Object):
                     - The relative path of files to retrieve
             file_id: The lutris installer internal id for the game files
         """
-        super().__init__()
+        self.game_installed = NotificationSource()
+        self.game_state_changed = NotificationSource()
         self.steam_poll = None
         self.prev_states = []  # Previous states for the Steam installer
         self.state = ""
@@ -72,7 +67,7 @@ class SteamInstaller(GObject.Object):
         """Launch installation of a steam game"""
         if self.runner.get_game_path_from_appid(appid=self.appid):
             logger.info("Steam game %s is already installed", self.appid)
-            self.emit("steam-game-installed", self.appid)
+            self.game_installed.fire(self)
         else:
             logger.debug("Installing steam game %s", self.appid)
             self.runner.config = LutrisConfig(runner_slug=self.runner.name)
@@ -96,13 +91,13 @@ class SteamInstaller(GObject.Object):
         if states and states != self.prev_states:
             self.state = states[-1].split(",")[-1]
             logger.debug("Steam installation status: %s", states)
-            self.emit("steam-state-changed", self.state)  # Broadcast new state to listeners
+            self.game_state_changed.fire(self)  # Broadcast new state to listeners
 
         self.prev_states = states
         logger.debug(self.state)
         logger.debug(states)
         if self.state == "Fully Installed":
             logger.info("Steam game %s has been installed successfully", self.appid)
-            self.emit("steam-game-installed", self.appid)
+            self.game_installed.fire(self)
             return False
         return True

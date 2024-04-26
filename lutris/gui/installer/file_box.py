@@ -73,8 +73,8 @@ class InstallerFileBox(Gtk.VBox):
             if isinstance(self.installer_file, InstallerFileCollection):
                 raise RuntimeError("Installer file is type InstallerFileCollection and do not support 'steam' provider")
             steam_installer = SteamInstaller(self.installer_file.url, self.installer_file.id)
-            steam_installer.connect("steam-game-installed", self.on_download_complete)
-            steam_installer.connect("steam-state-changed", self.on_state_changed)
+            steam_installer.game_installed.register(self.on_steam_game_installed)
+            steam_installer.game_state_changed.register(self.on_steam_game_state_changed)
             self.start_func = steam_installer.install_steam_game
             self.stop_func = steam_installer.stop_func
 
@@ -196,6 +196,10 @@ class InstallerFileBox(Gtk.VBox):
         """Update the state label with a new state"""
         self.state_label.set_text(state)
 
+    def on_steam_game_state_changed(self, installer):
+        """Update the state label with a new state"""
+        self.state_label.set_text(installer.state)
+
     def start(self):
         """Starts the download of the file"""
         self.started = True
@@ -225,4 +229,8 @@ class InstallerFileBox(Gtk.VBox):
             self.installer_file.dest_file = widget.get_steam_data_path()
         else:
             self.cache_file()
+        self.emit("file-available")
+
+    def on_steam_game_installed(self, installer):
+        self.installer_file.dest_file = installer.get_steam_data_path()
         self.emit("file-available")
