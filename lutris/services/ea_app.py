@@ -71,7 +71,7 @@ class EAAppArtSmall(ServiceMedia):
             logger.warning("No field 'i18n' in API game %s", details)
             return None
         i18n = details["i18n"]
-        if "i18n" not in i18n:
+        if self.api_field not in i18n:
             logger.warning("No field 'i18n.%s' in API game %s", self.api_field, details)
             return None
         return details["imageServer"] + i18n[self.api_field]
