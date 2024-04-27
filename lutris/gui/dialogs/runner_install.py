@@ -7,7 +7,7 @@ import re
 from collections import defaultdict
 from gettext import gettext as _
 
-from gi.repository import GLib, Gtk
+from gi.repository import Gtk
 
 from lutris import api, settings
 from lutris.api import format_runner_version, parse_version_architecture
@@ -18,6 +18,7 @@ from lutris.gui.widgets.utils import has_stock_icon
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
+from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 
 
@@ -362,12 +363,12 @@ class RunnerInstallDialog(ModelessDialog):
             ErrorDialog(_("Version %s is not longer available") % version, parent=self)
             return
         downloader = Downloader(url, dest_path, overwrite=True)
-        GLib.timeout_add(100, self.get_progress, downloader, row)
+        schedule_repeating_at_idle(self.get_progress, downloader, row, interval_seconds=0.1)
         self.installing[version] = downloader
         downloader.start()
         self.update_listboxrow(row)
 
-    def get_progress(self, downloader, row):
+    def get_progress(self, downloader, row) -> bool:
         """Update progress bar with download progress"""
         runner = row.runner
         if downloader.state == downloader.CANCELLED:
@@ -392,7 +393,7 @@ class RunnerInstallDialog(ModelessDialog):
             return False
         return True
 
-    def progress_pulse(self, row):
+    def progress_pulse(self, row) -> bool:
         runner = row.runner
         row.install_progress.pulse()
         return not runner["is_installed"]
@@ -405,7 +406,7 @@ class RunnerInstallDialog(ModelessDialog):
         logger.debug("Runner %s for %s has finished downloading", version, architecture)
         src = self.get_dest_path(runner)
         dst = get_runner_path(self.runner_directory, version, architecture)
-        GLib.timeout_add(100, self.progress_pulse, row)
+        schedule_repeating_at_idle(self.progress_pulse, row, interval_seconds=0.1)
         jobs.AsyncCall(self.extract, self.on_extracted, src, dst, row)
 
     @staticmethod

@@ -4,7 +4,7 @@ import locale
 from gettext import gettext as _
 from typing import List
 
-from gi.repository import GLib, GObject, Gtk, Pango
+from gi.repository import GObject, Gtk, Pango
 
 from lutris import runners, services
 from lutris.config import LutrisConfig
@@ -22,6 +22,7 @@ from lutris.installer.interpreter import ScriptInterpreter
 from lutris.runners import InvalidRunnerError
 from lutris.services import SERVICES
 from lutris.services.base import AuthTokenExpiredError, BaseService
+from lutris.util.jobs import schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_SYNCED, LOCAL_LIBRARY_SYNCING
 from lutris.util.strings import get_natural_sort_key
 
@@ -164,11 +165,10 @@ class ServiceSidebarRow(SidebarRow):
                 self.service.login(parent=self.get_toplevel())
             else:
                 ErrorDialog(error, parent=self.get_toplevel())
-        GLib.timeout_add(2000, self.enable_refresh_button)
+        schedule_at_idle(self.enable_refresh_button, delay_seconds=2.0)
 
-    def enable_refresh_button(self):
+    def enable_refresh_button(self) -> None:
         self.buttons["refresh"].set_sensitive(True)
-        return False
 
 
 class OnlineServiceSidebarRow(ServiceSidebarRow):

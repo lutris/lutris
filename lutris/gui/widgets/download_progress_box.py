@@ -1,9 +1,10 @@
 from gettext import gettext as _
 from urllib.parse import urlparse
 
-from gi.repository import GLib, GObject, Gtk, Pango
+from gi.repository import GObject, Gtk, Pango
 
 from lutris.util.downloader import Downloader
+from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, human_size
 
@@ -63,7 +64,7 @@ class DownloadProgressBox(Gtk.Box):
         parsed = urlparse(self.url)
         return "%s%s" % (parsed.netloc, parsed.path)
 
-    def start(self):
+    def start(self) -> None:
         """Start downloading a file."""
         if not self.downloader:
             try:
@@ -75,12 +76,11 @@ class DownloadProgressBox(Gtk.Box):
                 self.emit("cancel")
                 return None
 
-        timer_id = GLib.timeout_add(500, self._progress)
+        schedule_repeating_at_idle(self._progress, interval_seconds=0.5)
         self.cancel_button.show()
         self.cancel_button.set_sensitive(True)
         if not self.downloader.state == self.downloader.DOWNLOADING:
             self.downloader.start()
-        return timer_id
 
     def set_retry_button(self):
         """Transform the cancel button into a retry button"""
@@ -105,7 +105,7 @@ class DownloadProgressBox(Gtk.Box):
         self.cancel_button.set_sensitive(False)
         self.emit("cancel")
 
-    def _progress(self):
+    def _progress(self) -> bool:
         """Show download progress."""
         progress = min(self.downloader.check_progress(), 1)
         if self.downloader.state in [self.downloader.CANCELLED, self.downloader.ERROR]:

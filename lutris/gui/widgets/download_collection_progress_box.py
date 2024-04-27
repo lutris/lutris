@@ -1,9 +1,10 @@
 import time
 from gettext import gettext as _
 
-from gi.repository import GLib, GObject, Gtk, Pango
+from gi.repository import GObject, Gtk, Pango
 
 from lutris.util.downloader import Downloader
+from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, human_size
 
@@ -98,7 +99,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
 
         return self._file_download
 
-    def start(self):
+    def start(self) -> None:
         """Start downloading a file."""
         file = self.get_next_file_from_queue()
         if not file:
@@ -118,7 +119,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
                 self.emit("cancel")
                 return
 
-        GLib.timeout_add(500, self._progress)
+        schedule_repeating_at_idle(self._progress, interval_seconds=0.5)
         self.cancel_button.show()
         self.cancel_button.set_sensitive(True)
         if not self.downloader.state == self.downloader.DOWNLOADING:
@@ -148,7 +149,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
         self.cancel_button.set_sensitive(False)
         self.emit("cancel")
 
-    def _progress(self):
+    def _progress(self) -> bool:
         """Show download progress of current file."""
         if self.downloader.state in [self.downloader.CANCELLED, self.downloader.ERROR]:
             self.progressbar.set_fraction(0)

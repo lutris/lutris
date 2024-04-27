@@ -1,7 +1,7 @@
 import time
 from typing import List
 
-from gi.repository import Gdk, Gio, GLib, GObject, Gtk
+from gi.repository import Gdk, Gio, GObject, Gtk
 
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
@@ -9,6 +9,7 @@ from lutris.game import Game
 from lutris.game_actions import GameActions, get_game_actions
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED
+from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES
 
@@ -165,8 +166,8 @@ class GameView:
         paused = False
 
         def is_modally_blocked():
-            # Is there a modal dialog that is block our top-level parent?
-            # if so we want to pause the animated.
+            # Is there a modal dialog that is blocking our top-level parent?
+            # if so we want to pause the animation.
             for w in Gtk.Window.list_toplevels():
                 if w != toplevel and isinstance(w, Gtk.Dialog):
                     if w.get_modal() and w.get_transient_for() == toplevel:
@@ -207,5 +208,5 @@ class GameView:
             return True  # Return True to call again after another timeout
 
         if self.image_renderer:
-            GLib.timeout_add(25, animate)
+            schedule_repeating_at_idle(animate, interval_seconds=0.025)
         return True  # Return True to continue handling the emission hook
