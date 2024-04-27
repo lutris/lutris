@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 from gettext import gettext as _
+from typing import Any, Dict, Optional
 from urllib.parse import unquote
 
 from gi.repository import Gio
@@ -36,7 +37,7 @@ class UbisoftCover(ServiceMedia):
     api_field = "id"
     url_pattern = "https://ubiservices.cdn.ubi.com/%s/spaceCardAsset/boxArt_mobile.jpg?imwidth=320"
 
-    def get_media_url(self, details):
+    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
         if self.api_field in details:
             return super().get_media_url(details)
         return details["thumbImage"]

@@ -3,6 +3,7 @@
 import json
 import os
 from gettext import gettext as _
+from typing import Any, Dict, Optional
 
 import requests
 from gi.repository import Gio
@@ -64,10 +65,11 @@ class DieselGameMedia(ServiceMedia):
         thumb_image = thumb_image.convert("RGB")
         thumb_image.save(thumb_path)
 
-    def get_media_url(self, details):
+    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
         for image in details.get("keyImages", []):
             if image["type"] == self.api_field:
                 return image["url"] + "?w=%s&resize=1&h=%s" % (self.remote_size[0], self.remote_size[1])
+        return None
 
 
 class DieselGameBoxTall(DieselGameMedia):

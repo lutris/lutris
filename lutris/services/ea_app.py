@@ -5,6 +5,7 @@ import os
 import random
 import ssl
 from gettext import gettext as _
+from typing import Any, Dict, Optional
 from xml.etree import ElementTree
 
 import requests
@@ -62,7 +63,7 @@ class EAAppArtSmall(ServiceMedia):
     dest_path = os.path.join(settings.CACHE_DIR, "ea_app/pack-art-small")
     api_field = "packArtSmall"
 
-    def get_media_url(self, details):
+    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
         return details["imageServer"] + details["i18n"][self.api_field]
 
 

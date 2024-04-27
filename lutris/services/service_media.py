@@ -2,7 +2,7 @@ import json
 import os
 import random
 import time
-from typing import List
+from typing import Any, Dict, List, Optional
 
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
@@ -62,20 +62,20 @@ class ServiceMedia:
         elif completion_function:
             completion_function()
 
-    def get_media_url(self, details):
+    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
         if self.api_field not in details:
             logger.warning("No field '%s' in API game %s", self.api_field, details)
-            return
+            return None
         if not details[self.api_field]:
-            return
+            return None
         return self.url_pattern % details[self.api_field]
 
-    def get_media_urls(self):
+    def get_media_urls(self) -> Dict[str, str]:
         """Return URLs for icons and logos from a service"""
         if self.source == "local":
             return {}
         service_games = ServiceGameCollection.get_for_service(self.service)
-        medias = {}
+        medias: Dict[str, str] = {}
         for game in service_games:
             if not game["details"]:
                 continue

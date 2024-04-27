@@ -4,6 +4,7 @@ import shutil
 import subprocess
 from gettext import gettext as _
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 import requests
 
@@ -26,7 +27,7 @@ class FlathubBanner(ServiceMedia):
     file_patterns = ["%s.png"]
     url_field = "iconDesktopUrl"
 
-    def get_media_url(self, details):
+    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
         return details.get(self.url_field)
 
 

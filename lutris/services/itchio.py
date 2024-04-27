@@ -4,7 +4,7 @@ import datetime
 import json
 import os
 from gettext import gettext as _
-from typing import List
+from typing import Any, Dict, List, Optional
 from urllib.parse import quote_plus, urlencode
 
 from lutris import settings
@@ -30,7 +30,7 @@ class ItchIoCover(ServiceMedia):
     dest_path = os.path.join(settings.CACHE_DIR, "itchio/cover")
     file_patterns = ["%s.png"]
 
-    def get_media_url(self, details):
+    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
         """Extract cover from API"""
         # Animated (gif) covers have an extra field with a png version of the cover
         if "still_cover_url" in details:
@@ -41,7 +41,7 @@ class ItchIoCover(ServiceMedia):
                 return details["cover_url"]
         else:
             logger.warning("No field 'cover_url' in API game %s", details)
-        return
+        return None
 
 
 class ItchIoCoverMedium(ItchIoCover):
