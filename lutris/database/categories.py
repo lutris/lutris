@@ -157,17 +157,27 @@ def remove_category_from_game(game_id, category_id):
 
 def remove_unused_categories():
     """Remove all categories that have no games associated with them"""
-    query = (
+
+    delete_orphaned_games = (
+        "DELETE FROM games_categories "
+        "WHERE NOT EXISTS(SELECT * FROM games WHERE game_id=id) "
+        "OR NOT EXISTS(SELECT * FROM categories WHERE category_id=id)"
+    )
+
+    with sql.db_cursor(settings.DB_PATH) as cursor:
+        sql.cursor_execute(cursor, delete_orphaned_games, ())
+
+    find_orphaned_categories = (
         "SELECT categories.* FROM categories "
         "LEFT JOIN games_categories ON categories.id = games_categories.category_id "
         "WHERE games_categories.category_id IS NULL"
     )
 
-    empty_categories = sql.db_query(settings.DB_PATH, query)
+    empty_categories = sql.db_query(settings.DB_PATH, find_orphaned_categories)
     for category in empty_categories:
         if category["name"] == "favorite":
             continue
 
-        query = "DELETE FROM categories WHERE categories.id=?"
+        delete_orphaned_categories = "DELETE FROM categories WHERE categories.id=?"
         with sql.db_cursor(settings.DB_PATH) as cursor:
-            sql.cursor_execute(cursor, query, (category["id"],))
+            sql.cursor_execute(cursor, delete_orphaned_categories, (category["id"],))

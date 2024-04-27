@@ -9,8 +9,6 @@ import shutil
 from gettext import gettext as _
 from pathlib import Path
 
-from gi.repository import GLib
-
 from lutris import runtime
 from lutris.cache import get_cache_path, has_custom_cache_path
 from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError
