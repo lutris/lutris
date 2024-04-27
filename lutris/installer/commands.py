@@ -21,6 +21,7 @@ from lutris.runners import InvalidRunnerError, import_runner, import_task
 from lutris.runners.wine import wine
 from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
+from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_default_wine_version, get_wine_path_for_version
 
@@ -180,7 +181,7 @@ class CommandsMixin:
         command.accepted_return_code = return_code
         command.start()
         self.interpreter_ui_delegate.attach_log(command)
-        self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
+        schedule_repeating_at_idle(self._monitor_task, command, interval_seconds=1.0)
         return "STOP"
 
     def extract(self, data):
@@ -434,7 +435,7 @@ class CommandsMixin:
             # Monitor thread and continue when task has executed
             self.interpreter_ui_delegate.attach_log(command)
             command.accepted_return_code = return_code
-            self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
+            schedule_repeating_at_idle(self._monitor_task, command, interval_seconds=1.0)
             return "STOP"
         return None
 
