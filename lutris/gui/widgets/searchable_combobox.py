@@ -3,7 +3,7 @@
 # pylint: disable=unsubscriptable-object
 from gi.repository import GLib, GObject, Gtk
 
-from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs import display_error
 
 
 class SearchableCombobox(Gtk.Bin):
@@ -72,7 +72,7 @@ class SearchableCombobox(Gtk.Bin):
             entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, None)
             self.combobox.set_active_id(self.initial)
         except Exception as ex:
-            ErrorDialog(ex, parent=self.get_toplevel())
+            display_error(ex, parent=self.get_toplevel())
 
     @staticmethod
     def _on_combobox_scroll(combobox, _event):

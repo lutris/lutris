@@ -13,7 +13,7 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemConfigBox, UnderslungMessageBox
-from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog, display_error
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
@@ -624,7 +624,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             try:
                 parse_playtime(playtime_text)
             except ValueError as ex:
-                ErrorDialog(ex, parent=self)
+                display_error(ex, parent=self)
                 return False
 
         invalid_fields = []

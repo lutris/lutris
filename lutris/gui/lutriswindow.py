@@ -912,7 +912,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def _service_reloaded_cb(self, error):
         if error:
-            dialogs.ErrorDialog(error, parent=self)
+            dialogs.display_error(error, parent=self)
 
     def on_service_logout(self, service):
         self.update_notification()

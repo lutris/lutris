@@ -9,7 +9,13 @@ from gi.repository import Gio, GLib, Gtk
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.game import Game
-from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, InstallerSourceDialog, ModelessDialog, QuestionDialog
+from lutris.gui.dialogs import (
+    DirectoryDialog,
+    InstallerSourceDialog,
+    ModelessDialog,
+    QuestionDialog,
+    display_error,
+)
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.installer.files_box import InstallerFilesBox
@@ -259,7 +265,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         if self.install_in_progress:
             self.load_error_message_page(str(error))
         else:
-            ErrorDialog(error, parent=self)
+            display_error(error, parent=self)
             self.stack.navigation_reset()
 
     def set_status(self, text):

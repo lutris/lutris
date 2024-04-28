@@ -3,6 +3,7 @@ from gettext import gettext as _
 
 from gi.repository import GObject, Gtk, Pango
 
+from lutris.gui.dialogs import display_error
 from lutris.util.downloader import Downloader
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
@@ -113,9 +114,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
             try:
                 self.downloader = Downloader(file.url, file.dest_file, referer=file.referer, overwrite=True)
             except RuntimeError as ex:
-                from lutris.gui.dialogs import ErrorDialog
-
-                ErrorDialog(ex, parent=self.get_toplevel())
+                display_error(ex, parent=self.get_toplevel())
                 self.emit("cancel")
                 return
 

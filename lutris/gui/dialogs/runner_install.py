@@ -13,7 +13,7 @@ from lutris import api, settings
 from lutris.api import format_runner_version, parse_version_architecture
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
-from lutris.gui.dialogs import ErrorDialog, ModelessDialog
+from lutris.gui.dialogs import ErrorDialog, ModelessDialog, display_error
 from lutris.gui.widgets.utils import has_stock_icon
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
@@ -345,7 +345,7 @@ class RunnerInstallDialog(ModelessDialog):
             self.update_listboxrow(row)
 
         def on_error(error):
-            ErrorDialog(error, parent=self)
+            display_error(error, parent=self)
 
         system.remove_folder(runner_path, completion_function=on_complete, error_function=on_error)
 

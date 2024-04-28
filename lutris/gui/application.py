@@ -40,7 +40,7 @@ from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import init_exception_backstops
 from lutris.game import Game, export_game, import_game
 from lutris.gui.config.preferences_dialog import PreferencesDialog
-from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog
+from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, display_error
 from lutris.gui.dialogs.delegates import CommandLineUIDelegate, InstallUIDelegate, LaunchUIDelegate
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallationKind, InstallerWindow
@@ -404,7 +404,7 @@ class Application(Gtk.Application):
     def show_lutris_installer_window(self, game_slug):
         def on_installers_ready(installers, error):
             if error:
-                ErrorDialog(error, parent=self.window)
+                display_error(error, parent=self.window)
             elif installers:
                 self.show_installer_window(installers)
             else:

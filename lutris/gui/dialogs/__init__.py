@@ -647,7 +647,7 @@ class MoveDialog(ModelessDialog):
 
     def on_game_moved(self, _result, error):
         if error:
-            ErrorDialog(error, parent=self)
+            display_error(error, parent=self)
         self.game.emit("game-updated")  # because we could not fire this on the thread
         self.emit("game-moved")
         self.destroy()
