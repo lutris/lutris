@@ -278,7 +278,7 @@ class UpdateButtonBox(Gtk.Box):
 
         self.spinner = Gtk.Spinner()
         self.pack_end(self.spinner, False, False, 0)
-        self.result_label = Gtk.Label()
+        self.result_label = Gtk.Label(wrap=True)
         self.pack_end(self.result_label, False, False, 0)
 
     def show_running_markup(self, markup: str) -> None:
