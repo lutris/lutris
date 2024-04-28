@@ -46,9 +46,11 @@ class IdleTask:
     These objects are returned by the schedule methods below, which disconnect
     them when appropriate."""
 
-    def __init__(self, source_id: int = None) -> None:
-        self.source_id = source_id
-        self._is_completed = source_id is None
+    def __init__(self) -> None:
+        """Initializes a task with no connection to a source, but also not completed; this can be
+        connected to a source via the connect() method, unless it is completed first."""
+        self.source_id = None
+        self._is_completed = False
 
     def unschedule(self) -> None:
         """Call this to prevent the idle task from running, if it has not already run."""
@@ -64,6 +66,12 @@ class IdleTask:
         """True if the idle task has completed; that is, if mark_completed() was called on it."""
         return self._is_completed
 
+    def connect(self, source_id) -> None:
+        """Connects this task to a source to be unscheduled; but if the task is already
+        completed, this does nothing."""
+        if not self._is_completed:
+            self.source_id = source_id
+
     def disconnect(self) -> None:
         """Break the link to the idle task, so it can't be unscheduled."""
         self.source_id = None
@@ -75,13 +83,16 @@ class IdleTask:
 
 
 # A task that is always completed and disconnected and does nothing.
-COMPLETED_IDLE_TASK = IdleTask(None)
+COMPLETED_IDLE_TASK = IdleTask()
+COMPLETED_IDLE_TASK.mark_completed()
 
 
 def schedule_at_idle(func: Callable[..., None], *args, delay_seconds: float = 0.0) -> IdleTask:
     """Schedules a function to run at idle time, once. You can specify a delay in seconds
     before it runs.
     Returns an object to prevent it running."""
+
+    task = IdleTask()
 
     def wrapper(*a, **kw) -> bool:
         try:
@@ -96,7 +107,7 @@ def schedule_at_idle(func: Callable[..., None], *args, delay_seconds: float = 0.
     else:
         source_id = GLib.idle_add(wrapper, *args)
 
-    task = IdleTask(source_id)
+    task.connect(source_id)
     return task
 
 
@@ -108,6 +119,8 @@ def schedule_repeating_at_idle(
     """Schedules a function to run at idle time, over and over until it returns False.
     It can be repeated at an interval in seconds, which will also delay it's first invocation.
     Returns an object to stop it running."""
+
+    task = IdleTask()
 
     def wrapper(*a, **kw) -> bool:
         repeat = False
@@ -124,5 +137,5 @@ def schedule_repeating_at_idle(
     else:
         source_id = GLib.idle_add(wrapper, *args)
 
-    task = IdleTask(source_id)
+    task.connect(source_id)
     return task

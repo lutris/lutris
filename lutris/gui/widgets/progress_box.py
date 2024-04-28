@@ -1,7 +1,8 @@
 from typing import Callable
 
-from gi.repository import GLib, Gtk, Pango
+from gi.repository import Gtk, Pango
 
+from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 
 
@@ -72,7 +73,7 @@ class ProgressBox(Gtk.Box):
 
         self._destroyed = False
         self._apply_progress(ProgressInfo(0.0, "Please wait..."))
-        self._timer_id = GLib.timeout_add(500, self.on_update_progress)
+        self._timer_task = schedule_repeating_at_idle(self.on_update_progress, interval_seconds=0.5)
         self.connect("destroy", self.on_destroy)
 
     def on_stop_clicked(self, _widget) -> None:
@@ -81,8 +82,7 @@ class ProgressBox(Gtk.Box):
 
     def on_destroy(self, _widget) -> None:
         self._destroyed = True
-        if self._timer_id:
-            GLib.source_remove(self._timer_id)
+        self._timer_task.unschedule()
 
     def on_update_progress(self) -> bool:
         try:
@@ -90,7 +90,6 @@ class ProgressBox(Gtk.Box):
             return True
         except Exception as ex:
             logger.exception("Unable to obtain a progress update: %s", ex)
-            self._timer_id = None
             return False
 
     def update_progress(self) -> None:
