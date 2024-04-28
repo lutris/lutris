@@ -13,7 +13,7 @@ class AsyncCall(threading.Thread):
         """Execute `function` in a new thread then schedule `callback` for
         execution in the main loop.
         """
-        self.callback_unscheduler = None
+        self.callback_task = None
         self.stop_request = threading.Event()
 
         super().__init__(target=self.target, args=args, kwargs=kwargs)
@@ -35,10 +35,10 @@ class AsyncCall(threading.Thread):
             _ex_type, _ex_value, trace = sys.exc_info()
             traceback.print_tb(trace)
 
-        schedule_at_idle(self.callback, result, error)
+        self.callback_task = schedule_at_idle(self.callback, result, error)
 
 
-class Unscheduler:
+class IdleTask:
     """This class provides a safe interface for cancelling idle tasks and timeouts;
     this will simply do nothing after being used once, and once the task completes,
     it will also do nothing.
@@ -69,16 +69,16 @@ class Unscheduler:
         self.source_id = None
 
     def mark_completed(self) -> None:
-        """Marks the unscheduler as completed, and also disconnect it."""
+        """Marks the task as completed, and also disconnect it."""
         self._is_completed = True
         self.disconnect()
 
 
-# An unscheduler that is always completed and disconnected and does nothing.
-COMPLETED_UNSCHEDULER = Unscheduler(None)
+# A task that is always completed and disconnected and does nothing.
+COMPLETED_IDLE_TASK = IdleTask(None)
 
 
-def schedule_at_idle(func: Callable[..., None], *args, delay_seconds: float = 0.0) -> Unscheduler:
+def schedule_at_idle(func: Callable[..., None], *args, delay_seconds: float = 0.0) -> IdleTask:
     """Schedules a function to run at idle time, once. You can specify a delay in seconds
     before it runs.
     Returns an object to prevent it running."""
@@ -88,7 +88,7 @@ def schedule_at_idle(func: Callable[..., None], *args, delay_seconds: float = 0.
             func(*a, **kw)
             return False
         finally:
-            unscheduler.disconnect()
+            task.disconnect()
 
     if delay_seconds >= 0.0:
         milliseconds = int(delay_seconds * 1000)
@@ -96,15 +96,15 @@ def schedule_at_idle(func: Callable[..., None], *args, delay_seconds: float = 0.
     else:
         source_id = GLib.idle_add(wrapper, *args)
 
-    unscheduler = Unscheduler(source_id)
-    return unscheduler
+    task = IdleTask(source_id)
+    return task
 
 
 def schedule_repeating_at_idle(
     func: Callable[..., bool],
     *args,
     interval_seconds: float = 0.0,
-) -> Unscheduler:
+) -> IdleTask:
     """Schedules a function to run at idle time, over and over until it returns False.
     It can be repeated at an interval in seconds, which will also delay it's first invocation.
     Returns an object to stop it running."""
@@ -116,7 +116,7 @@ def schedule_repeating_at_idle(
             return repeat
         finally:
             if not repeat:
-                unscheduler.disconnect()
+                task.disconnect()
 
     if interval_seconds >= 0.0:
         milliseconds = int(interval_seconds * 1000)
@@ -124,5 +124,5 @@ def schedule_repeating_at_idle(
     else:
         source_id = GLib.idle_add(wrapper, *args)
 
-    unscheduler = Unscheduler(source_id)
-    return unscheduler
+    task = IdleTask(source_id)
+    return task

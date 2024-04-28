@@ -11,7 +11,7 @@ from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.installer import AUTO_WIN32_EXE, get_installers
 from lutris.scanners.lutris import scan_directory
-from lutris.util.jobs import COMPLETED_UNSCHEDULER, AsyncCall, schedule_at_idle
+from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
 from lutris.util.strings import gtk_safe, slugify
 
 
@@ -70,7 +70,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.search_frame = None
         self.search_explanation_label = None
         self.search_listbox = None
-        self.search_timer_unscheduler = COMPLETED_UNSCHEDULER
+        self.search_timer_task = COMPLETED_IDLE_TASK
         self.search_spinner = None
         self.text_query = None
         self.search_result_label = None
@@ -237,14 +237,14 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.display_cancel_button()
 
     def _on_search_updated(self, entry):
-        self.search_timer_unscheduler.unschedule()
+        self.search_timer_task.unschedule()
         self.text_query = entry.get_text().strip()
-        self.search_timer_unscheduler = schedule_at_idle(self.update_search_results, delay_seconds=0.75)
+        self.search_timer_task = schedule_at_idle(self.update_search_results, delay_seconds=0.75)
 
     def update_search_results(self) -> None:
         # Don't start a search while another is going; defer it instead.
         if self.search_spinner.get_visible():
-            self.search_timer_unscheduler = schedule_at_idle(self.update_search_results, delay_seconds=0.75)
+            self.search_timer_task = schedule_at_idle(self.update_search_results, delay_seconds=0.75)
             return
 
         if self.text_query:
