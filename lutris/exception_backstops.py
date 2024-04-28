@@ -7,6 +7,7 @@ from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris.gui.dialogs import ErrorDialog
 from lutris.util.log import logger
+from lutris.util.strings import gtk_safe
 
 
 def watch_game_errors(game_stop_result, game=None):
@@ -180,7 +181,7 @@ def init_exception_backstops():
 
     def _handle_keyerror(error: KeyError, parent: Gtk.Window) -> None:
         message = _("The key '%s' could not be found.") % error.args[0]
-        ErrorDialog(message, parent=parent)
+        ErrorDialog(error, message_markup=gtk_safe(message), parent=parent)
 
     _original_connect = Gtk.Widget.connect
     GObject.Object.connect = _error_handling_connect
