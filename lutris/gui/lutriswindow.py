@@ -41,7 +41,7 @@ from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
-from lutris.util.jobs import AsyncCall
+from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, LibrarySyncer
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
@@ -58,14 +58,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     default_height = 600
 
     __gtype_name__ = "LutrisWindow"
-    games_stack = GtkTemplate.Child()
-    sidebar_revealer = GtkTemplate.Child()
-    sidebar_scrolled = GtkTemplate.Child()
-    game_revealer = GtkTemplate.Child()
-    search_entry = GtkTemplate.Child()
-    zoom_adjustment = GtkTemplate.Child()
-    blank_overlay = GtkTemplate.Child()
-    viewtype_icon = GtkTemplate.Child()
+    games_stack: Gtk.Stack = GtkTemplate.Child()
+    sidebar_revealer: Gtk.Revealer = GtkTemplate.Child()
+    sidebar_scrolled: Gtk.ScrolledWindow = GtkTemplate.Child()
+    game_revealer: Gtk.Revealer = GtkTemplate.Child()
+    search_entry: Gtk.SearchEntry = GtkTemplate.Child()
+    zoom_adjustment: Gtk.Adjustment = GtkTemplate.Child()
+    blank_overlay: Gtk.Alignment = GtkTemplate.Child()
+    viewtype_icon: Gtk.Image = GtkTemplate.Child()
     download_revealer: Gtk.Revealer = GtkTemplate.Child()
     game_view_spinner: Gtk.Spinner = GtkTemplate.Child()
     login_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
@@ -74,7 +74,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     version_notification_label: Gtk.Revealer = GtkTemplate.Child()
 
-    def __init__(self, application, **kwargs):
+    def __init__(self, application, **kwargs) -> None:
         width = int(settings.read_setting("width") or self.default_width)
         height = int(settings.read_setting("height") or self.default_height)
         super().__init__(
@@ -95,7 +95,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
         self.service = None
-        self.search_timer_id = None
+        self.search_timer_task = COMPLETED_IDLE_TASK
         self.filters = self.load_filters()
         self.set_service(self.filters.get("service"))
         self.icon_type = self.load_icon_type()
@@ -165,7 +165,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         selected_category = settings.read_setting("selected_category", default="runner:all")
         self.sidebar.selected_category = selected_category.split(":", maxsplit=1) if selected_category else None
 
-        GLib.timeout_add(1000, self.sync_library)
+        schedule_at_idle(self.sync_library, delay_seconds=1.0)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -250,7 +250,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             if value.accel:
                 app.add_accelerator(value.accel, "win." + name)
 
-    def sync_library(self, force=False):
+    def sync_library(self, force: bool = False) -> None:
         """Tasks that can be run after the UI has been initialized."""
         if settings.read_bool_setting("library_sync_enabled"):
             AsyncCall(LibrarySyncer().sync_local_library, None, force=force)
@@ -577,7 +577,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             else:
                 self.show_label(_("No games found"))
 
-    def update_store(self, *_args, **_kwargs):
+    def update_store(self) -> None:
         service_id = self.filters.get("service")
         service = self.service
         service_media = self.service_media
@@ -640,10 +640,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
             self.update_notification()
 
-        self.search_timer_id = None
-
         AsyncCall(self.get_games_from_filters, on_games_ready)
-        return False
 
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
@@ -993,10 +990,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     @GtkTemplate.Callback
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
-        if self.search_timer_id:
-            GLib.source_remove(self.search_timer_id)
+        self.search_timer_task.unschedule()
         self.filters["text"] = entry.get_text().lower().strip()
-        self.search_timer_id = GLib.timeout_add(500, self.update_store)
+        self.search_timer_task = schedule_at_idle(self.update_store, delay_seconds=0.5)
 
     @GtkTemplate.Callback
     def on_search_entry_key_press(self, widget, event):

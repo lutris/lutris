@@ -16,7 +16,7 @@ from lutris import api, settings
 from lutris.exceptions import InvalidGameMoveError
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import datapath
-from lutris.util.jobs import AsyncCall
+from lutris.util.jobs import AsyncCall, schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
@@ -600,7 +600,7 @@ class MoveDialog(ModelessDialog):
         "game-moved": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, game, destination, parent=None):
+    def __init__(self, game, destination: str, parent: Gtk.Window = None) -> None:
         super().__init__(parent=parent, border_width=24)
 
         self.game = game
@@ -616,17 +616,17 @@ class MoveDialog(ModelessDialog):
         self.progress.set_pulse_step(0.1)
         vbox.add(self.progress)
         self.get_content_area().add(vbox)
-        self.progress_source_id = GLib.timeout_add(125, self.show_progress)
+        self.progress_source_task = schedule_repeating_at_idle(self.show_progress, interval_seconds=0.125)
         self.connect("destroy", self.on_destroy)
         self.show_all()
 
     def on_destroy(self, _dialog):
-        GLib.source_remove(self.progress_source_id)
+        self.progress_source_task.unschedule()
 
     def move(self):
         AsyncCall(self._move_game, self._move_game_cb)
 
-    def show_progress(self):
+    def show_progress(self) -> bool:
         self.progress.pulse()
         return True
 
