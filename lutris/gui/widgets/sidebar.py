@@ -15,7 +15,7 @@ from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
-from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs import display_error
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.utils import has_stock_icon
 from lutris.installer.interpreter import ScriptInterpreter
@@ -164,7 +164,7 @@ class ServiceSidebarRow(SidebarRow):
                 self.service.logout()
                 self.service.login(parent=self.get_toplevel())
             else:
-                ErrorDialog(error, parent=self.get_toplevel())
+                display_error(error, parent=self.get_toplevel())
         schedule_at_idle(self.enable_refresh_button, delay_seconds=2.0)
 
     def enable_refresh_button(self) -> None:

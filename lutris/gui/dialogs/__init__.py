@@ -1,9 +1,11 @@
 """Commonly used dialogs"""
 
+import inspect
 import os
 import traceback
+from builtins import BaseException
 from gettext import gettext as _
-from typing import Callable, Union
+from typing import Any, Callable, Dict, Type, TypeVar, Union
 
 import gi
 
@@ -701,3 +703,51 @@ class HumbleBundleCookiesDialog(ModalDialog):
             self.cookies_content = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True)
 
         super().on_response(dialog, response)
+
+
+_error_handlers: Dict[Type[BaseException], Callable[[BaseException, Gtk.Window], Any]] = {}
+TError = TypeVar("TError", bound=BaseException)
+
+
+def display_error(error: BaseException, parent: Gtk.Window) -> None:
+    """Displays an error in a modal dialog. This can be customized via
+    register_error_handler(), but displays an ErrorDialog by default.
+
+    This allows custom error handling to be invoked anywhere that can show an
+    ErrorDialog, instead of having to bounce exceptions off the backstop."""
+    handler = get_error_handler(type(error))
+    handler(error, parent)
+
+
+def register_error_handler(error_class: Type[TError], handler: Callable[[TError, Gtk.Window], Any]) -> None:
+    """Records a function to call to handle errors of a particular class or its subclasses. The
+    function is given the error and a parent window, and can display a modal dialog."""
+    _error_handlers[error_class] = handler
+
+
+def get_error_handler(error_class: Type[TError]) -> Callable[[TError, Gtk.Window], Any]:
+    """Returns the register error handler for an exception class. If none is registered,
+    this returns a default handler that shows an ErrorDialog."""
+    if not isinstance(error_class, type):
+        if isinstance(error_class, BaseException):
+            logger.debug("An error was passed where an error class should be passed.")
+            error_class = type(error_class)
+        else:
+            raise ValueError(f"'{error_class}' was passed to get_error_handler, but an error class is required here.")
+
+    if error_class in _error_handlers:
+        return _error_handlers[error_class]
+
+    for base_class in inspect.getmro(error_class):
+        if base_class in _error_handlers:
+            return _error_handlers[base_class]
+
+    return lambda e, p: ErrorDialog(e, parent=p)
+
+
+def _handle_keyerror(error: KeyError, parent: Gtk.Window) -> None:
+    message = _("The key '%s' could not be found.") % error.args[0]
+    ErrorDialog(error, message_markup=gtk_safe(message), parent=parent)
+
+
+register_error_handler(KeyError, _handle_keyerror)
