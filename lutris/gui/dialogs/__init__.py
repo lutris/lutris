@@ -10,13 +10,13 @@ import gi
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 
-from gi.repository import Gdk, GLib, GObject, Gtk
+from gi.repository import Gdk, GObject, Gtk
 
 from lutris import api, settings
 from lutris.exceptions import InvalidGameMoveError
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import datapath
-from lutris.util.jobs import AsyncCall, schedule_repeating_at_idle
+from lutris.util.jobs import AsyncCall, schedule_at_idle, schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
@@ -64,21 +64,15 @@ class Dialog(Gtk.Dialog):
         ModalDialog after run()."""
 
         def idle_destroy():
-            nonlocal idle_source_id
-            idle_source_id = None
             if not condition or condition():
                 self.destroy()
-            return False
 
         def on_destroy(*_args):
-            nonlocal idle_source_id
             self.disconnect(on_destroy_id)
-            if idle_source_id:
-                GLib.source_remove(idle_source_id)
-            idle_source_id = None
+            idle_destroy_task.unschedule()
 
         self.hide()
-        idle_source_id = GLib.idle_add(idle_destroy)
+        idle_destroy_task = schedule_at_idle(idle_destroy)
         on_destroy_id = self.connect("destroy", on_destroy)
 
     def add_styled_button(self, button_text: str, response_id: Gtk.ResponseType, css_class: str):
@@ -147,14 +141,13 @@ class ModelessDialog(Dialog):
         # and does not share modality with other windows - so it
         # needs its own window group.
         Gtk.WindowGroup().add_window(self)
-        GLib.idle_add(self._clear_transient_for)
+        schedule_at_idle(self._clear_transient_for)
 
-    def _clear_transient_for(self):
+    def _clear_transient_for(self) -> None:
         # we need the parent set to be centered over the parent, but
         # we don't want to be transient really - we want other windows
         # able to come to the front.
         self.set_transient_for(None)
-        return False
 
     def on_response(self, dialog, response: Gtk.ResponseType) -> None:
         super().on_response(dialog, response)

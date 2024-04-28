@@ -6,10 +6,12 @@ from math import floor
 
 import gi
 
+from lutris.util.jobs import schedule_at_idle
+
 gi.require_version("PangoCairo", "1.0")
 
 import cairo
-from gi.repository import Gdk, GLib, GObject, Gtk, Pango, PangoCairo
+from gi.repository import Gdk, GObject, Gtk, Pango, PangoCairo
 
 from lutris.gui.widgets.utils import (
     MEDIA_CACHE_INVALIDATED,
@@ -112,7 +114,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.cached_surfaces_new = {}
         self.cached_surfaces_old = {}
         self.cached_surfaces_loaded = 0
-        self.cycle_cache_idle_id = None
         self.cached_surface_generation = 0
         self.badge_size = 0, 0
         self.badge_alpha = 0.6
@@ -271,8 +272,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
             # Idle time will wait until the widget has drawn whatever it wants to;
             # we can then discard surfaces we aren't using anymore.
-            if not self.cycle_cache_idle_id:
-                self.cycle_cache_idle_id = GLib.idle_add(self.cycle_cache)
+            schedule_at_idle(self.cycle_cache)
 
     def select_badge_metrics(self, surface):
         """Updates fields holding data about the appearance of the badges;
@@ -488,7 +488,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.cached_surfaces_old.clear()
         self.cached_surfaces_new.clear()
 
-    def cycle_cache(self):
+    def cycle_cache(self) -> None:
         """Is the key cache size control trick. When called, the surfaces cached or used
         since the last call are preserved, but those not touched are discarded.
 
@@ -503,7 +503,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             self.cached_surfaces_old = self.cached_surfaces_new
             self.cached_surfaces_new = {}
             self.cached_surfaces_loaded = 0
-        self.cycle_cache_idle_id = None
 
     def _get_cached_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
         """This obtains the scaled surface to rander for a given media path; this is cached
