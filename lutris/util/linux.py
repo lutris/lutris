@@ -9,7 +9,7 @@ import shutil
 import sys
 from collections import Counter, defaultdict
 
-from lutris.util import system
+from lutris.util import flatpak, system
 from lutris.util.graphics import drivers, glxinfo, vkquery
 from lutris.util.log import logger
 
@@ -235,7 +235,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         """Return whether Steam is installed locally"""
         return (
             system.can_find_executable("steam")
-            or system.can_find_executable("com.valvesoftware.Steam")
+            or flatpak.is_app_installed("com.valvesoftware.Steam")
             or os.path.exists(os.path.expanduser("~/.steam/steam/ubuntu12_32/steam"))
         )
 
