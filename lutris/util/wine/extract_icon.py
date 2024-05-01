@@ -28,17 +28,24 @@ class ExtractIcon(object):
         self.pe = pefile.PE(filepath)
 
     def find_resource_base(self, res_type):
-        rt_base_idx = [entry.id for entry in self.pe.DIRECTORY_ENTRY_RESOURCE.entries].index(
-            pefile.RESOURCE_TYPE[res_type]
-        )
+        if hasattr(self.pe, "DIRECTORY_ENTRY_RESOURCE"):
+            try:
+                rt_base_idx = [entry.id for entry in self.pe.DIRECTORY_ENTRY_RESOURCE.entries].index(
+                    pefile.RESOURCE_TYPE[res_type]
+                )
 
-        if rt_base_idx is not None:
-            return self.pe.DIRECTORY_ENTRY_RESOURCE.entries[rt_base_idx]
+                if rt_base_idx is not None:
+                    return self.pe.DIRECTORY_ENTRY_RESOURCE.entries[rt_base_idx]
+            except (ValueError, IndexError):
+                pass  # if the resource is not found or the index is bogus
 
         return None
 
     def find_resource(self, res_type, res_index):
         rt_base_dir = self.find_resource_base(res_type)
+
+        if not rt_base_dir:
+            return None
 
         if res_index < 0:
             try:
@@ -65,6 +72,10 @@ class ExtractIcon(object):
 
     def get_group_icons(self):
         rt_base_dir = self.find_resource_base("RT_GROUP_ICON")
+
+        if not rt_base_dir:
+            return []
+
         groups = []
         for res_index in range(0, len(rt_base_dir.directory.entries)):
             grp_icon_dir_entry = self.find_resource("RT_GROUP_ICON", res_index)

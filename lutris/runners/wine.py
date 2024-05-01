@@ -1249,6 +1249,9 @@ class wine(Runner):
         extractor = ExtractIcon(self.game_exe)
         groups = extractor.get_group_icons()
 
+        if not groups:
+            return False
+
         icons = []
         biggestsize = (0, 0)
         biggesticon = -1
