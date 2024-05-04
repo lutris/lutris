@@ -161,6 +161,7 @@ class ServiceSidebarRow(SidebarRow):
         button.set_sensitive(False)
         if self.service.online and not self.service.is_connected():
             self.service.logout()
+            self.service.login(parent=self.get_toplevel())  # login will trigger reload if successful
             return
         self.service.start_reload(self.service_reloaded_cb)
 
