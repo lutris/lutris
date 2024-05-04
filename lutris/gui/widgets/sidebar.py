@@ -169,7 +169,7 @@ class ServiceSidebarRow(SidebarRow):
         if error:
             if isinstance(error, AuthTokenExpiredError):
                 self.service.logout()
-                self.service.login(parent=self.get_toplevel())
+                self.service.login(parent=self.get_toplevel())  # login will trigger reload if successful
             else:
                 display_error(error, parent=self.get_toplevel())
         schedule_at_idle(self.enable_refresh_button, delay_seconds=2.0)

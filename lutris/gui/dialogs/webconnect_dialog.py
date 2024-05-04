@@ -2,8 +2,12 @@
 
 import os
 from gettext import gettext as _
+from typing import TYPE_CHECKING
 
 import gi
+
+if TYPE_CHECKING:
+    from lutris.services.base import OnlineService
 
 try:
     gi.require_version("WebKit2", "4.1")
@@ -19,8 +23,11 @@ DEFAULT_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 F
 class WebConnectDialog(ModalDialog):
     """Login form for external services"""
 
-    def __init__(self, service, parent=None):
+    def __init__(self, service: "OnlineService", parent=None):
+        service.is_login_in_progress = True
+
         self.context = WebKit2.WebContext.new()
+
         if "http_proxy" in os.environ:
             proxy = WebKit2.NetworkProxySettings.new(os.environ["http_proxy"])
             self.context.set_network_proxy_settings(WebKit2.NetworkProxyMode.CUSTOM, proxy)
@@ -79,12 +86,14 @@ class WebConnectDialog(ModalDialog):
                     resource = widget.get_main_resource()
                     resource.get_data(None, self._get_response_data_finish, None)
                 else:
+                    self.service.is_login_in_progress = False
                     self.service.login_callback(url)
                     self.destroy()
         return True
 
     def _get_response_data_finish(self, resource, result, user_data=None):
         html_response = resource.get_data_finish(result)
+        self.service.is_login_in_progress = False
         self.service.login_callback(html_response)
         self.destroy()
 

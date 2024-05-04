@@ -3,6 +3,7 @@
 import os
 import shutil
 from gettext import gettext as _
+from pathlib import Path
 from typing import List
 
 from gi.repository import Gio
@@ -406,6 +407,7 @@ class OnlineService(BaseService):
     cache_path = NotImplemented
     requires_login_page = False
 
+    login_url = NotImplemented
     login_window_width = 390
     login_window_height = 500
     login_user_agent = DEFAULT_USER_AGENT
@@ -431,9 +433,31 @@ class OnlineService(BaseService):
         dialog = WebConnectDialog(self, parent)
         dialog.run()
 
+    @property
+    def is_login_in_progress(self) -> bool:
+        """Set to true if the login process is underway; the credential files make be created at this
+        time, but that does not count as 'authenticated' until the login process is over. This is used
+        by WebConnectDialog since it creates its cookies before the login is actually complete.
+
+        This is recorded with a file in ~/.cache/lutris so it will persist across Lutris
+        restarted, just as the credentials themselves do. For this reason, we need to allow
+        the user to login again even when a login is in progress."""
+        return self._get_login_in_progress_path().exists()
+
+    @is_login_in_progress.setter
+    def is_login_in_progress(self, in_progress: bool) -> None:
+        path = self._get_login_in_progress_path()
+        if in_progress:
+            path.touch()
+        else:
+            path.unlink(missing_ok=True)
+
+    def _get_login_in_progress_path(self) -> Path:
+        return Path(os.path.join(settings.CACHE_DIR, f"{self.name}-login-in-progress"))
+
     def is_authenticated(self):
         """Return whether the service is authenticated"""
-        return all(system.path_exists(path) for path in self.credential_files)
+        return not self.is_login_in_progress and all(system.path_exists(path) for path in self.credential_files)
 
     def wipe_game_cache(self):
         """Wipe the game cache, allowing it to be reloaded"""
