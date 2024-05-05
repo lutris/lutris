@@ -68,6 +68,7 @@ SYSTEM_COMPONENTS = {
         "kgx",
         "deepin-terminal",
         "wezterm",
+        "foot",
     ],
     "LIBRARIES": {
         "OPENGL": ["libGL.so.1"],
