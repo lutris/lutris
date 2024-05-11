@@ -275,17 +275,15 @@ class UbisoftParser(object):
         return path, third_party_id
 
     def _get_registry_properties_from_yaml(self, game_yaml):
-        game_registry_path = ""
-        exe = ""
-        if "online" not in game_yaml["root"]["start_game"]:
-            return None, None
-        registry_path = game_yaml["root"]["start_game"]["online"]["executables"][0]["working_directory"]["register"]
-        game_registry_path = registry_path
         try:
-            exe = game_yaml["root"]["start_game"]["online"]["executables"][0]["path"]["relative"]
-        except KeyError:
-            exe = game_yaml["root"]["start_game"]["online"]["executables"][0]["path"]["register"]
-        return game_registry_path, exe
+            registry_path = game_yaml["root"]["start_game"]["online"]["executables"][0]["working_directory"]["register"]
+            try:
+                exe = game_yaml["root"]["start_game"]["online"]["executables"][0]["path"]["relative"]
+            except KeyError:
+                exe = game_yaml["root"]["start_game"]["online"]["executables"][0]["path"]["register"]
+            return registry_path, exe
+        except (KeyError, IndexError):
+            return None, None
 
     def _parse_game(self, game_yaml, install_id, launch_id):
         space_id = ""
