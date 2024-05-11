@@ -305,7 +305,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     @property
     def filter_installed(self):
-        return settings.read_bool_setting("filter_installed", True)
+        return settings.read_bool_setting("filter_installed", False)
 
     @property
     def side_panel_visible(self):
