@@ -11,7 +11,7 @@ import time
 from gettext import gettext as _
 from typing import cast
 
-from gi.repository import Gio, GLib, GObject, Gtk
+from gi.repository import Gio, GLib, Gtk
 
 from lutris import settings
 from lutris.config import LutrisConfig
