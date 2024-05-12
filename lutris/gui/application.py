@@ -433,12 +433,11 @@ class Application(Gtk.Application):
         The script is capable of launching a game without the client
         """
 
-        def on_error(game, error):
+        def on_error(error: BaseException) -> None:
             logger.exception("Unable to generate script: %s", error)
-            return True
 
         game = Game(db_game["id"])
-        game.connect("game-error", on_error)
+        game.game_error.register(on_error)
         game.reload_config()
         game.write_script(script_path, self.launch_ui_delegate)
 
@@ -753,12 +752,11 @@ class Application(Gtk.Application):
                     self.quit()
                 return 0
 
-            def on_error(game, error):
+            def on_error(error: BaseException) -> None:
                 logger.exception("Unable to launch game: %s", error)
-                return True
 
             game = Game(db_game["id"])
-            game.connect("game-error", on_error)
+            game.game_error.register(on_error)
             game.launch(self.launch_ui_delegate)
 
             if game.state == game.STATE_STOPPED and not self.window.is_visible():

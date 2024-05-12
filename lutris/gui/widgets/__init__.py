@@ -40,6 +40,11 @@ class NotificationSource:
         self._next_callback_id = 1
         self._scheduled_callbacks: List[Tuple[Callable, Tuple, Dict]] = []
 
+    @property
+    def has_handlers(self) -> bool:
+        """True if any handlers are registered."""
+        return bool(self._callbacks)
+
     def fire(self, *args, **kwargs) -> None:
         """Signals that the thing, whatever it is, has happened. This increments the generation number,
         and schedules the callbacks to run (if they are not scheduled already)."""

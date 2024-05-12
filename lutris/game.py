@@ -62,14 +62,11 @@ class Game(GObject.Object):
 
     PRIMARY_LAUNCH_CONFIG_NAME = "(primary)"
 
-    __gsignals__ = {
-        # SIGNAL_RUN_LAST works around bug https://gitlab.gnome.org/GNOME/glib/-/issues/513
-        # fix merged Dec 2020, but we support older GNOME!
-        "game-error": (GObject.SIGNAL_RUN_LAST, bool, (object,)),
-    }
-
     def __init__(self, game_id: str = None):
         super().__init__()
+
+        self.game_error = NotificationSource()
+
         self._id = str(game_id) if game_id else None  # pylint: disable=invalid-name
 
         # Load attributes from database
@@ -250,14 +247,15 @@ class Game(GObject.Object):
         return strings.get_formatted_playtime(self.playtime)
 
     def signal_error(self, error):
-        """Reports an error by firing game-error. If handled, it returns
-        True to indicate it handled it, and that's it. If not, this fires
-        GAME_UNHANDLED_ERROR.
+        """Reports an error by firing game_error. If there is no handler for this,
+        we fall back to the global GAME_UNHANDLED_ERROR.
 
         This allows special error handling to be set up for a particular Game, but
         there's always some global handling."""
-        handled = self.emit("game-error", error)
-        if not handled:
+
+        if self.game_error.has_handlers:
+            self.game_error.fire(error)
+        else:
             GAME_UNHANDLED_ERROR.fire(self, error)
 
     def get_browse_dir(self):
@@ -359,12 +357,11 @@ class Game(GObject.Object):
 
         if game_id:
 
-            def on_error(_game, error):
+            def on_error(error: BaseException) -> None:
                 logger.exception("Unable to install game: %s", error)
-                return True
 
             game = Game(game_id)
-            game.connect("game-error", on_error)
+            game.game_error.register(on_error)
             game.launch(launch_ui_delegate)
 
     def install_updates(self, install_ui_delegate):
