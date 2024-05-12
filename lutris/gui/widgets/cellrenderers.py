@@ -23,6 +23,8 @@ from lutris.gui.widgets.utils import (
 from lutris.services.service_media import resolve_media_path
 from lutris.util.path_cache import MISSING_GAMES
 
+_MEDIA_CACHE_GENERATION_NUMBER = 0
+
 
 class GridViewCellRendererText(Gtk.CellRendererText):
     """CellRendererText adjusted for grid view display, removes extra padding
@@ -509,8 +511,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         in this render, but we'll clear that cache when the media generation number is changed,
         or certain properties are. We also age surfaces from the cache at idle time after
         rendering."""
-        if self.cached_surface_generation != MEDIA_CACHE_INVALIDATED.generation_number:
-            self.cached_surface_generation = MEDIA_CACHE_INVALIDATED.generation_number
+        if self.cached_surface_generation != _MEDIA_CACHE_GENERATION_NUMBER:
+            self.cached_surface_generation = _MEDIA_CACHE_GENERATION_NUMBER
             self.clear_cache()
 
         key = widget, path, size, preserve_aspect_ratio
@@ -534,3 +536,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         cell_size = size or (self.media_width, self.media_height)
         scale_factor = widget.get_scale_factor() if widget else 1
         return get_scaled_surface_by_path(path, cell_size, scale_factor, preserve_aspect_ratio=preserve_aspect_ratio)
+
+
+def _on_media_cached_invalidated() -> None:
+    # Increment a counter, so we can passively detect when the media cache is invalid
+    # without a per-object handler. We have no way to unregister that handler, but we never
+    # need to unregister this global one.
+    global _MEDIA_CACHE_GENERATION_NUMBER
+    _MEDIA_CACHE_GENERATION_NUMBER += 1
+
+
+MEDIA_CACHE_INVALIDATED.register(_on_media_cached_invalidated)

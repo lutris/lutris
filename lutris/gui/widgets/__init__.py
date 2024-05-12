@@ -31,11 +31,15 @@ EMPTY_NOTIFICATION_REGISTRATION = NotificationRegistration(None, 0)
 
 
 class NotificationSource:
-    """A class to inform interested code of changes in a global, like a signal but not attached to any
-    object."""
+    """A class to inform interested code of changes or of an event; these are often global objects,
+    but occasionally are attached to another object to avoid having to unregister handlers as much.
+
+    The fire() method may be passed arguments, and these are passed on to any handlers; often there's
+    a single argument which is the object (like a Game) that has experienced some event or change. This
+    handler can't return anything, because it is called at idle time, not immediately.
+    """
 
     def __init__(self) -> None:
-        self._generation_number = 0
         self._callbacks: Dict[int, Callable] = {}
         self._next_callback_id = 1
         self._scheduled_callbacks: List[Tuple[Callable, Tuple, Dict]] = []
@@ -46,18 +50,12 @@ class NotificationSource:
         return bool(self._callbacks)
 
     def fire(self, *args, **kwargs) -> None:
-        """Signals that the thing, whatever it is, has happened. This increments the generation number,
-        and schedules the callbacks to run (if they are not scheduled already)."""
-        self._generation_number += 1
+        """Signals that the thing, whatever it is, has happened. This does not invoke the callbacks
+        at once, but schedules the callbacks to run at idle time. This ensures handlers always run
+        on the UI thread, for safety."""
         for callback in self._callbacks.values():
             self._scheduled_callbacks.append((callback, args, kwargs))
         schedule_at_idle(self._notify)
-
-    @property
-    def generation_number(self) -> int:
-        """Returns a number that is incremented on each call to fire(). This can be polled
-        passively, when registering a callback is inappropriate."""
-        return self._generation_number
 
     def register(self, callback: Callable) -> NotificationRegistration:
         """Registers a callback to be called after the thing, whatever it is, has happened;
