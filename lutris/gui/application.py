@@ -38,7 +38,7 @@ from lutris.api import get_runners, parse_installer_url
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import init_exception_backstops
-from lutris.game import Game, export_game, import_game
+from lutris.game import GAME_START, Game, export_game, import_game
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, display_error
 from lutris.gui.dialogs.delegates import CommandLineUIDelegate, InstallUIDelegate, LaunchUIDelegate
@@ -77,7 +77,7 @@ class Application(Gtk.Application):
         # established; this will apply to all connections from this point forward.
         init_exception_backstops()
 
-        GObject.add_emission_hook(Game, "game-start", self.on_game_start)
+        GAME_START.register(self.on_game_start)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
 
@@ -782,11 +782,10 @@ class Application(Gtk.Application):
                 self.set_tray_icon()
         return True
 
-    def on_game_start(self, game):
+    def on_game_start(self, game: Game) -> None:
         self._running_games.append(game)
         if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.hide()  # Hide launcher window
-        return True
 
     def on_game_stopped(self, game):
         """Callback to quit Lutris is last game stops while the window is hidden."""

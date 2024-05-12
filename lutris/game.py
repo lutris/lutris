@@ -20,6 +20,7 @@ from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.exception_backstops import watch_game_errors
 from lutris.exceptions import GameConfigError, InvalidGameMoveError, MissingExecutableError
+from lutris.gui.widgets import NotificationSource
 from lutris.installer import InstallationKind
 from lutris.monitored_command import MonitoredCommand
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
@@ -40,6 +41,9 @@ from lutris.util.yaml import write_yaml_to_file
 
 HEARTBEAT_DELAY = 2000
 
+GAME_START = NotificationSource()
+GAME_STARTED = NotificationSource()
+
 
 class Game(GObject.Object):
     """This class takes cares of loading the configuration for a game
@@ -59,8 +63,6 @@ class Game(GObject.Object):
         # fix merged Dec 2020, but we support older GNOME!
         "game-error": (GObject.SIGNAL_RUN_LAST, bool, (object,)),
         "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
-        "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -757,7 +759,7 @@ class Game(GObject.Object):
             logger.error("No prelaunch PIDs could be obtained. Game stop may be ineffective.")
             self.prelaunch_pids = None
 
-        self.emit("game-start")
+        GAME_START.fire(self)
 
         @watch_game_errors(game_stop_result=False, game=self)
         def configure_game(_ignored, error):
@@ -787,7 +789,7 @@ class Game(GObject.Object):
         self.game_thread.start()
         self.timer.start()
         self.state = self.STATE_RUNNING
-        self.emit("game-started")
+        GAME_STARTED.fire(self)
 
         # Game is running, let's update discord status
         if settings.read_setting("discord_rpc") == "True" and self.discord_id:

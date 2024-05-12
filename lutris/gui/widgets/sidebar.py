@@ -10,7 +10,7 @@ from lutris import runners, services
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
-from lutris.game import Game
+from lutris.game import GAME_START, Game
 from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
@@ -358,7 +358,7 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(RunnerConfigDialog, "runner-updated", self.update_runner_rows)
         GObject.add_emission_hook(ScriptInterpreter, "runners-installed", self.update_rows)
         GObject.add_emission_hook(ServicesBox, "services-changed", self.update_rows)
-        GObject.add_emission_hook(Game, "game-start", self.on_game_start)
+        GAME_START.register(self.on_game_start)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-updated", self.update_rows)
         SERVICE_LOGIN.register(self.on_service_auth_changed)
@@ -622,10 +622,9 @@ class LutrisSidebar(Gtk.ListBox):
         self.invalidate_filter()
         return True
 
-    def on_game_start(self, _game):
+    def on_game_start(self, _game) -> None:
         """Show the "running" section when a game start"""
         self.running_row.show()
-        return True
 
     def on_game_stopped(self, _game):
         """Hide the "running" section when no games are running"""
