@@ -7,6 +7,7 @@ from lutris.api import disconnect, read_user_info
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.config.updates_box import UpdateButtonBox
 from lutris.gui.dialogs import ClientLoginDialog, QuestionDialog
+from lutris.gui.widgets import EMPTY_NOTIFICATION_REGISTRATION
 from lutris.services.lutris import sync_media
 from lutris.util.jobs import AsyncCall
 from lutris.util.library_sync import (
@@ -32,8 +33,8 @@ class AccountsBox(BaseConfigBox):
         self.bullshit_box.add(self.lutris_options)
         frame.add(self.bullshit_box)
 
-        self.library_syncing_source_id = None
-        self.library_synced_source_id = None
+        self.library_syncing_registration = EMPTY_NOTIFICATION_REGISTRATION
+        self.library_synced_registration = EMPTY_NOTIFICATION_REGISTRATION
 
         self.sync_box = UpdateButtonBox(self.get_sync_box_label(), _("Sync Again"), clicked=self.on_sync_again_clicked)
 
@@ -59,16 +60,16 @@ class AccountsBox(BaseConfigBox):
         self.frame.add(self.accounts_box)
 
     def on_realize(self, _widget):
-        self.library_syncing_source_id = LOCAL_LIBRARY_SYNCING.register(self.on_local_library_syncing)
-        self.library_synced_source_id = LOCAL_LIBRARY_SYNCED.register(self.on_local_library_synced)
+        self.library_syncing_registration = LOCAL_LIBRARY_SYNCING.register(self.on_local_library_syncing)
+        self.library_synced_registration = LOCAL_LIBRARY_SYNCED.register(self.on_local_library_synced)
         if is_local_library_syncing():
             self.on_local_library_syncing()
 
-    def on_unrealize(self, _widget):
+    def on_unrealize(self, _widget) -> None:
         # The destroy signal never fires for this sub-widget, so we use
         # realize/unrealize for this instead.
-        LOCAL_LIBRARY_SYNCING.unregister(self.library_syncing_source_id)
-        LOCAL_LIBRARY_SYNCED.unregister(self.library_synced_source_id)
+        self.library_syncing_registration.unregister()
+        self.library_synced_registration.unregister()
 
     def space_widget(self, widget, top=16, bottom=16):
         widget.set_margin_top(top)

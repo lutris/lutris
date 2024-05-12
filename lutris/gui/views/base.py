@@ -7,6 +7,7 @@ from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.game_actions import GameActions, get_game_actions
+from lutris.gui.widgets import EMPTY_NOTIFICATION_REGISTRATION
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED
 from lutris.util.jobs import schedule_repeating_at_idle
@@ -25,15 +26,15 @@ class GameView:
         self.game_store = None
         self.service = None
         self.service_media = None
-        self.cache_notification_id = None
-        self.missing_games_updated_id = None
+        self.cache_notification_registration = EMPTY_NOTIFICATION_REGISTRATION
+        self.missing_games_updated_registration = EMPTY_NOTIFICATION_REGISTRATION
         self.game_start_hook_id = None
         self.image_renderer = None
 
     def connect_signals(self):
         """Signal handlers common to all views"""
-        self.cache_notification_id = MEDIA_CACHE_INVALIDATED.register(self.on_media_cache_invalidated)
-        self.missing_games_updated_id = MISSING_GAMES.updated.register(self.on_missing_games_updated)
+        self.cache_notification_registration = MEDIA_CACHE_INVALIDATED.register(self.on_media_cache_invalidated)
+        self.missing_games_updated_registration = MISSING_GAMES.updated.register(self.on_missing_games_updated)
 
         self.connect("destroy", self.on_destroy)
         self.connect("button-press-event", self.popup_contextual_menu)
@@ -60,12 +61,9 @@ class GameView:
         if self.image_renderer and self.image_renderer.show_badges:
             self.queue_draw()
 
-    def on_destroy(self, _widget):
-        if self.cache_notification_id:
-            MEDIA_CACHE_INVALIDATED.unregister(self.cache_notification_id)
-
-        if self.missing_games_updated_id:
-            MISSING_GAMES.updated.unregister(self.missing_games_updated_id)
+    def on_destroy(self, _widget) -> None:
+        self.cache_notification_registration.unregister()
+        self.missing_games_updated_registration.unregister()
 
         if self.game_start_hook_id:
             GObject.remove_emission_hook(Game, "game-start", self.game_start_hook_id)
