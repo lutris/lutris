@@ -10,11 +10,11 @@ from gi.repository import GdkPixbuf, Gtk, Pango
 from lutris import runners, settings
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris.game import Game
-from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemConfigBox, UnderslungMessageBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog, display_error
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
+from lutris.gui.dialogs.move_game import MoveDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.scaled_image import ScaledImage
@@ -406,7 +406,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         )
         if not new_location.folder or new_location.folder == self.game.directory:
             return
-        move_dialog = dialogs.MoveDialog(self.game, new_location.folder, parent=self)
+        move_dialog = MoveDialog(self.game, new_location.folder, parent=self)
         move_dialog.connect("game-moved", self.on_game_moved)
         move_dialog.move()
 

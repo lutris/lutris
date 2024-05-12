@@ -21,7 +21,7 @@ from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exceptions import EsyncLimitError
-from lutris.game import GAME_STOPPED, Game
+from lutris.game import GAME_STOPPED, GAME_UPDATED, Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.preferences_dialog import PreferencesDialog
@@ -150,7 +150,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         SERVICE_LOGIN.register(self.on_service_login)
         SERVICE_LOGOUT.register(self.on_service_logout)
         SERVICE_GAMES_LOADED.register(self.on_service_games_loaded)
-        GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
+        GAME_UPDATED.register(self.on_game_updated)
         GAME_STOPPED.register(self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
         GObject.add_emission_hook(Game, "game-unhandled-error", self.on_game_unhandled_error)

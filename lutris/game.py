@@ -44,6 +44,7 @@ HEARTBEAT_DELAY = 2000
 GAME_START = NotificationSource()
 GAME_STARTED = NotificationSource()
 GAME_STOPPED = NotificationSource()
+GAME_UPDATED = NotificationSource()
 
 
 class Game(GObject.Object):
@@ -64,7 +65,6 @@ class Game(GObject.Object):
         # fix merged Dec 2020, but we support older GNOME!
         "game-error": (GObject.SIGNAL_RUN_LAST, bool, (object,)),
         "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
-        "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
@@ -171,7 +171,7 @@ class Game(GObject.Object):
         for removed_category_name in removed_category_names:
             self.remove_category(removed_category_name, no_signal=True)
 
-        self.emit("game-updated")
+        GAME_UPDATED.fire(self)
 
     def add_category(self, category_name, no_signal=False):
         """add game to category"""
@@ -186,7 +186,7 @@ class Game(GObject.Object):
         categories_db.add_game_to_category(self.id, category_id)
 
         if not no_signal:
-            self.emit("game-updated")
+            GAME_UPDATED.fire(self)
 
     def remove_category(self, category_name, no_signal=False):
         """remove game from category"""
@@ -200,7 +200,7 @@ class Game(GObject.Object):
         categories_db.remove_category_from_game(self.id, category_id)
 
         if not no_signal:
-            self.emit("game-updated")
+            GAME_UPDATED.fire(self)
 
     @property
     def is_favorite(self) -> bool:
@@ -478,19 +478,19 @@ class Game(GObject.Object):
         }
         self._id = str(games_db.add_or_update(**game_data))
         if not no_signal:
-            self.emit("game-updated")
+            GAME_UPDATED.fire(self)
 
     def save_platform(self):
         """Save only the platform field- do not restore any other values the user may have changed
         in another window."""
         games_db.update_existing(id=self.id, slug=self.slug, platform=self.platform)
-        self.emit("game-updated")
+        GAME_UPDATED.fire(self)
 
     def save_lastplayed(self):
         """Save only the lastplayed field- do not restore any other values the user may have changed
         in another window."""
         games_db.update_existing(id=self.id, slug=self.slug, lastplayed=self.lastplayed, playtime=self.playtime)
-        self.emit("game-updated")
+        GAME_UPDATED.fire(self)
 
     def check_launchable(self):
         """Verify that the current game can be launched, and raises exceptions if not."""

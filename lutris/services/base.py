@@ -14,7 +14,7 @@ from lutris.config import write_game_config
 from lutris.database import sql
 from lutris.database.games import add_game, get_game_by_field, get_game_for_service, get_games
 from lutris.database.services import ServiceGameCollection
-from lutris.game import Game
+from lutris.game import GAME_UPDATED, Game
 from lutris.gui.dialogs import NoticeDialog
 from lutris.gui.dialogs.webconnect_dialog import DEFAULT_USER_AGENT, WebConnectDialog
 from lutris.gui.views.media_loader import download_media
@@ -344,7 +344,7 @@ class BaseService:
         # If an existing game was found, it may have been updated,
         # and it's not safe to fire this until we get here.
         if existing_game:
-            existing_game.emit("game-updated")
+            GAME_UPDATED.fire(existing_game)
 
         if service_installers and db_game:
             application = Gio.Application.get_default()
