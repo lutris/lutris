@@ -49,7 +49,7 @@ GAME_INSTALLED = NotificationSource()
 GAME_UNHANDLED_ERROR = NotificationSource()
 
 
-class Game(GObject.Object):
+class Game:
     """This class takes cares of loading the configuration for a game
     and running it.
     """
