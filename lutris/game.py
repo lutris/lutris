@@ -46,6 +46,7 @@ GAME_STARTED = NotificationSource()
 GAME_STOPPED = NotificationSource()
 GAME_UPDATED = NotificationSource()
 GAME_INSTALLED = NotificationSource()
+GAME_UNHANDLED_ERROR = NotificationSource()
 
 
 class Game(GObject.Object):
@@ -65,7 +66,6 @@ class Game(GObject.Object):
         # SIGNAL_RUN_LAST works around bug https://gitlab.gnome.org/GNOME/glib/-/issues/513
         # fix merged Dec 2020, but we support older GNOME!
         "game-error": (GObject.SIGNAL_RUN_LAST, bool, (object,)),
-        "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
     }
 
     def __init__(self, game_id: str = None):
@@ -252,14 +252,13 @@ class Game(GObject.Object):
     def signal_error(self, error):
         """Reports an error by firing game-error. If handled, it returns
         True to indicate it handled it, and that's it. If not, this fires
-        game-unhandled-error, which is actually handled via an emission hook
-        and should not be connected otherwise.
+        GAME_UNHANDLED_ERROR.
 
         This allows special error handling to be set up for a particular Game, but
-        there's always some handling."""
+        there's always some global handling."""
         handled = self.emit("game-error", error)
         if not handled:
-            self.emit("game-unhandled-error", error)
+            GAME_UNHANDLED_ERROR.fire(self, error)
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""

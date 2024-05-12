@@ -21,7 +21,7 @@ from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exceptions import EsyncLimitError
-from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UPDATED, Game
+from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.preferences_dialog import PreferencesDialog
@@ -153,7 +153,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         GAME_UPDATED.register(self.on_game_updated)
         GAME_STOPPED.register(self.on_game_stopped)
         GAME_INSTALLED.register(self.on_game_installed)
-        GObject.add_emission_hook(Game, "game-unhandled-error", self.on_game_unhandled_error)
+        GAME_UNHANDLED_ERROR.register(self.on_game_unhandled_error)
         GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
         MISSING_GAMES.updated.register(self.update_missing_games_sidebar_row)
         LUTRIS_ACCOUNT_CONNECTED.register(self.on_lutris_account_connected)
@@ -1011,12 +1011,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         """Open the about dialog."""
         dialogs.AboutDialog(parent=self)
 
-    def on_game_unhandled_error(self, _game: Game, error: BaseException) -> bool:
+    def on_game_unhandled_error(self, _game: Game, error: BaseException) -> None:
         """Called when a game has sent the 'game-error' signal"""
 
         error_handler = get_error_handler(type(error))
         error_handler(error, self)
-        return True
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
