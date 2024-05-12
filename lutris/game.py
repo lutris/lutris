@@ -43,6 +43,7 @@ HEARTBEAT_DELAY = 2000
 
 GAME_START = NotificationSource()
 GAME_STARTED = NotificationSource()
+GAME_STOPPED = NotificationSource()
 
 
 class Game(GObject.Object):
@@ -63,7 +64,6 @@ class Game(GObject.Object):
         # fix merged Dec 2020, but we support older GNOME!
         "game-error": (GObject.SIGNAL_RUN_LAST, bool, (object,)),
         "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
-        "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
@@ -900,7 +900,7 @@ class Game(GObject.Object):
             # Inspect why it could have crashed
 
         self.state = self.STATE_STOPPED
-        self.emit("game-stopped")
+        GAME_STOPPED.fire(self)
         if os.path.exists(self.now_playing_path):
             os.unlink(self.now_playing_path)
         if not self.timer.finished:

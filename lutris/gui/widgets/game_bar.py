@@ -5,7 +5,7 @@ from gi.repository import GObject, Gtk, Pango
 
 from lutris import runners, services
 from lutris.database.games import get_game_for_service
-from lutris.game import GAME_START, GAME_STARTED, Game
+from lutris.game import GAME_START, GAME_STARTED, GAME_STOPPED, Game
 from lutris.game_actions import get_game_actions
 from lutris.gui.widgets.contextual_menu import update_action_widget_visibility
 from lutris.util.strings import gtk_safe
@@ -29,7 +29,7 @@ class GameBar(Gtk.Box):
 
         self.game_start_registration = GAME_START.register(self.on_game_state_changed)
         self.game_started_registration = GAME_STARTED.register(self.on_game_state_changed)
-        self.game_stopped_hook_id = GObject.add_emission_hook(Game, "game-stopped", self.on_game_state_changed)
+        self.game_stopped_registration = GAME_STOPPED.register(self.on_game_state_changed)
         self.game_updated_hook_id = GObject.add_emission_hook(Game, "game-updated", self.on_game_state_changed)
         self.game_installed_hook_id = GObject.add_emission_hook(Game, "game-installed", self.on_game_state_changed)
         self.connect("destroy", self.on_destroy)
@@ -61,7 +61,7 @@ class GameBar(Gtk.Box):
     def on_destroy(self, widget):
         self.game_start_registration.unregister()
         self.game_started_registration.unregister()
-        GObject.remove_emission_hook(Game, "game-stopped", self.game_stopped_hook_id)
+        self.game_stopped_registration.unregister()
         GObject.remove_emission_hook(Game, "game-updated", self.game_updated_hook_id)
         GObject.remove_emission_hook(Game, "game-installed", self.game_installed_hook_id)
         return True

@@ -10,7 +10,7 @@ from lutris import runners, services
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
-from lutris.game import GAME_START, Game
+from lutris.game import GAME_START, GAME_STOPPED, Game
 from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
@@ -359,7 +359,7 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(ScriptInterpreter, "runners-installed", self.update_rows)
         GObject.add_emission_hook(ServicesBox, "services-changed", self.update_rows)
         GAME_START.register(self.on_game_start)
-        GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
+        GAME_STOPPED.register(self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-updated", self.update_rows)
         SERVICE_LOGIN.register(self.on_service_auth_changed)
         SERVICE_LOGOUT.register(self.on_service_auth_changed)
@@ -622,19 +622,17 @@ class LutrisSidebar(Gtk.ListBox):
         self.invalidate_filter()
         return True
 
-    def on_game_start(self, _game) -> None:
+    def on_game_start(self, _game: Game) -> None:
         """Show the "running" section when a game start"""
         self.running_row.show()
 
-    def on_game_stopped(self, _game):
+    def on_game_stopped(self, _game: Game) -> None:
         """Hide the "running" section when no games are running"""
         if not self.application.has_running_games:
             self.running_row.hide()
 
             if self.get_selected_row() == self.running_row:
                 self.select_row(self.get_children()[0])
-
-        return True
 
     def on_service_auth_changed(self, service):
         if service.id in self.service_rows:
