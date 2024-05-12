@@ -1,11 +1,11 @@
 from datetime import datetime
 from gettext import gettext as _
 
-from gi.repository import GObject, Gtk, Pango
+from gi.repository import Gtk, Pango
 
 from lutris import runners, services
 from lutris.database.games import get_game_for_service
-from lutris.game import GAME_START, GAME_STARTED, GAME_STOPPED, GAME_UPDATED, Game
+from lutris.game import GAME_INSTALLED, GAME_START, GAME_STARTED, GAME_STOPPED, GAME_UPDATED, Game
 from lutris.game_actions import get_game_actions
 from lutris.gui.widgets.contextual_menu import update_action_widget_visibility
 from lutris.util.strings import gtk_safe
@@ -31,7 +31,7 @@ class GameBar(Gtk.Box):
         self.game_started_registration = GAME_STARTED.register(self.on_game_state_changed)
         self.game_stopped_registration = GAME_STOPPED.register(self.on_game_state_changed)
         self.game_updated_registration = GAME_UPDATED.register(self.on_game_state_changed)
-        self.game_installed_hook_id = GObject.add_emission_hook(Game, "game-installed", self.on_game_state_changed)
+        self.game_installed_registration = GAME_INSTALLED.register(self.on_game_state_changed)
         self.connect("destroy", self.on_destroy)
 
         self.set_margin_bottom(12)
@@ -63,7 +63,7 @@ class GameBar(Gtk.Box):
         self.game_started_registration.unregister()
         self.game_stopped_registration.unregister()
         self.game_updated_registration.unregister()
-        GObject.remove_emission_hook(Game, "game-installed", self.game_installed_hook_id)
+        self.game_installed_registration.unregister()
         return True
 
     def update_view(self):

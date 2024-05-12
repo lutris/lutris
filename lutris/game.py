@@ -45,6 +45,7 @@ GAME_START = NotificationSource()
 GAME_STARTED = NotificationSource()
 GAME_STOPPED = NotificationSource()
 GAME_UPDATED = NotificationSource()
+GAME_INSTALLED = NotificationSource()
 
 
 class Game(GObject.Object):
@@ -65,7 +66,6 @@ class Game(GObject.Object):
         # fix merged Dec 2020, but we support older GNOME!
         "game-error": (GObject.SIGNAL_RUN_LAST, bool, (object,)),
         "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
-        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     def __init__(self, game_id: str = None):

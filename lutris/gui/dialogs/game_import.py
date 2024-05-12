@@ -6,7 +6,7 @@ from gi.repository import Gio, GLib, Gtk
 
 from lutris.config import write_game_config
 from lutris.database.games import add_game
-from lutris.game import GAME_UPDATED, Game
+from lutris.game import GAME_INSTALLED, GAME_UPDATED, Game
 from lutris.gui.dialogs import ModelessDialog
 from lutris.scanners.default_installers import DEFAULT_INSTALLERS
 from lutris.scanners.tosec import clean_rom_name, guess_platform, search_tosec_by_md5
@@ -191,7 +191,7 @@ class ImportGameDialog(ModelessDialog):
                 self.display_new_game_info(filename, rom_set, rom["md5"])
                 game_id = self.add_game(rom_set, filename)
                 game = Game(game_id)
-                game.emit("game-installed")
+                GAME_INSTALLED.fire(game)
                 GAME_UPDATED.fire(game)
                 self.enable_game_launch(filename, game)
                 return True

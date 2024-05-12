@@ -21,7 +21,7 @@ from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exceptions import EsyncLimitError
-from lutris.game import GAME_STOPPED, GAME_UPDATED, Game
+from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UPDATED, Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.preferences_dialog import PreferencesDialog
@@ -152,7 +152,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         SERVICE_GAMES_LOADED.register(self.on_service_games_loaded)
         GAME_UPDATED.register(self.on_game_updated)
         GAME_STOPPED.register(self.on_game_stopped)
-        GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
+        GAME_INSTALLED.register(self.on_game_installed)
         GObject.add_emission_hook(Game, "game-unhandled-error", self.on_game_unhandled_error)
         GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
         MISSING_GAMES.updated.register(self.update_missing_games_sidebar_row)
@@ -1169,7 +1169,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_game_installed(self, game):
         self.sync_library()
-        return True
 
     def on_game_removed(self):
         """Simple method used to refresh the view"""
