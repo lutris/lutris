@@ -348,8 +348,13 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         service_media = self.service_medias[image_format]
         game_slug = self.slug or (self.game.slug if self.game else "")
         media_path = resolve_media_path(service_media.get_possible_media_paths(game_slug))
-        image = ScaledImage.new_from_media_path(media_path, service_media.config_ui_size, scale_factor)
-        image_button.set_image(image)
+        try:
+            image = ScaledImage.new_from_media_path(media_path, service_media.config_ui_size, scale_factor)
+            image_button.set_image(image)
+        except Exception as ex:
+            # We need to survive nasty data in the media files, so the user can replace
+            # them.
+            logger.exception("Unable to load media '%s': %s", image_format, ex)
 
     def _get_runner_dropdown(self):
         runner_liststore = self._get_runner_liststore()

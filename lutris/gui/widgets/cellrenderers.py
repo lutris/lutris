@@ -7,6 +7,7 @@ from math import floor
 import gi
 
 from lutris.util.jobs import schedule_at_idle
+from lutris.util.log import logger
 
 gi.require_version("PangoCairo", "1.0")
 
@@ -535,7 +536,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def _get_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
         cell_size = size or (self.media_width, self.media_height)
         scale_factor = widget.get_scale_factor() if widget else 1
-        return get_scaled_surface_by_path(path, cell_size, scale_factor, preserve_aspect_ratio=preserve_aspect_ratio)
+        try:
+            return get_scaled_surface_by_path(
+                path, cell_size, scale_factor, preserve_aspect_ratio=preserve_aspect_ratio
+            )
+        except Exception as ex:
+            # We need to survive nasty data in the media files, so the user can replace
+            # them.
+            logger.exception("Unable to load media '%s': %s", path, ex)
+            return None
 
 
 def _on_media_cached_invalidated() -> None:
