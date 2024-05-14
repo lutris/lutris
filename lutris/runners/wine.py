@@ -1241,31 +1241,36 @@ class wine(Runner):
         """Extracts the 128*128 icon from EXE and saves it, if not resizes the biggest icon found.
         returns true if an icon is saved, false if not"""
 
-        wantedsize = (128, 128)
-        pathtoicon = settings.ICON_PATH + "/lutris_" + game_slug + ".png"
-        if not self.game_exe or os.path.exists(pathtoicon) or not PEFILE_AVAILABLE:
-            return False
+        try:
+            wantedsize = (128, 128)
+            pathtoicon = settings.ICON_PATH + "/lutris_" + game_slug + ".png"
+            exe = self.game_exe
+            if not exe or os.path.exists(pathtoicon) or not PEFILE_AVAILABLE:
+                return False
 
-        extractor = ExtractIcon(self.game_exe)
-        groups = extractor.get_group_icons()
+            extractor = ExtractIcon(self.game_exe)
+            groups = extractor.get_group_icons()
 
-        if not groups:
-            return False
+            if not groups:
+                return False
 
-        icons = []
-        biggestsize = (0, 0)
-        biggesticon = -1
-        for i in range(len(groups[0])):
-            icons.append(extractor.export(groups[0], i))
-            if icons[i].size > biggestsize:
-                biggesticon = i
-                biggestsize = icons[i].size
-            elif icons[i].size == wantedsize:
-                icons[i].save(pathtoicon)
+            icons = []
+            biggestsize = (0, 0)
+            biggesticon = -1
+            for i in range(len(groups[0])):
+                icons.append(extractor.export(groups[0], i))
+                if icons[i].size > biggestsize:
+                    biggesticon = i
+                    biggestsize = icons[i].size
+                elif icons[i].size == wantedsize:
+                    icons[i].save(pathtoicon)
+                    return True
+
+            if biggesticon >= 0:
+                resized = icons[biggesticon].resize(wantedsize)
+                resized.save(pathtoicon)
                 return True
-
-        if biggesticon >= 0:
-            resized = icons[biggesticon].resize(wantedsize)
-            resized.save(pathtoicon)
-            return True
-        return False
+            return False
+        except Exception as ex:
+            logger.exception("Unable to extract icon from %s: %s", exe, ex)
+            return False
