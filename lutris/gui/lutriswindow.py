@@ -1135,9 +1135,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
             # If the update took the row out of this view's category, we'll need
             # to update the view to reflect that.
-            if row.type in ("category", "user_category"):
+            search = self.get_game_search()
+            enforce_hidden = not search.has_component("hidden")
+            if row.type == "dynamic_category" and row.id == "recent":
+                if enforce_hidden and ".hidden" in game.get_categories():
+                    return False
+            elif row.type in ("category", "user_category"):
                 categories = game.get_categories()
-                if row.id != ".hidden" and ".hidden" in categories:
+                if enforce_hidden and row.id != ".hidden" and ".hidden" in categories:
                     return False
 
                 if row.id != "all" and row.id not in categories:
