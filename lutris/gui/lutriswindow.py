@@ -433,13 +433,19 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.game_search = GameSearch(text, self.service)
         return self.game_search
 
-    def filter_games(self, games):
+    def filter_games(self, games, implicit_filters: bool = True):
         """Filters a list of games according to the 'installed' and 'text' filters, if those are
         set. But if not, can just return games unchanged."""
         search = self.get_game_search()
 
-        if self.filters.get("installed") and not search.has_component("installed"):
-            search = search.with_predicate(search.get_installed_predicate(installed=True))
+        if implicit_filters:
+            if self.filters.get("installed") and not search.has_component("installed"):
+                search = search.with_predicate(search.get_installed_predicate(installed=True))
+
+            category = self.filters.get("category") or "all"
+
+            if category != ".hidden" and not search.has_component("hidden"):
+                search = search.with_predicate(search.get_category_predicate(".hidden", False))
 
         if search.is_empty:
             return games
@@ -500,7 +506,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         filters = self.get_sql_filters()
         games = games_db.get_games(filters=filters)
-        games = self.filter_games([game for game in games if game["id"] in category_game_ids])
+        games = self.filter_games([game for game in games if game["id"] in category_game_ids], implicit_filters=False)
         return self.apply_view_sort(games)
 
     def get_sql_filters(self):

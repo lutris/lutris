@@ -71,7 +71,7 @@ class BaseSearch:
 
     @property
     def is_empty(self) -> bool:
-        return not self.text
+        return not self.text and not self.predicate
 
     def matches(self, candidate: Any) -> bool:
         return self.get_predicate()(candidate)
