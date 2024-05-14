@@ -91,7 +91,12 @@ class Game:
             self.custom_images.add("coverart_big")
         self.service = game_data.get("service")
         self.appid = game_data.get("service_id")
-        self.playtime = float(game_data.get("playtime") or 0.0)
+        try:
+            self.playtime = float(game_data.get("playtime") or 0.0)
+        except ValueError as ex:
+            logger.exception("Unable to parse playtime '%s' for game %s: %s", game_data.get("playtime"), self.slug, ex)
+            self.playtime = 0.0
+
         self.discord_id = game_data.get("discord_id")  # Discord App ID for RPC
 
         self._config = None
