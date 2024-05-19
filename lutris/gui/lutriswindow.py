@@ -163,6 +163,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         LUTRIS_ACCOUNT_DISCONNECTED.register(self.on_lutris_account_disconnected)
         LOCAL_LIBRARY_UPDATED.register(self.on_local_library_updated)
 
+        register_error_handler(EsyncLimitError, self._handle_esynclimiterror)
+        register_error_handler(AuthenticationError, self._handle_authenticationerror)
+
         # Finally trigger the initialization of the view here
         selected_category = settings.read_setting("selected_category", default="runner:all")
         self.sidebar.selected_category = selected_category.split(":", maxsplit=1) if selected_category else None
@@ -1278,26 +1281,22 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             operation_names=operation_names,
         )
 
+    @staticmethod
+    def _handle_esynclimiterror(error: EsyncLimitError, parent: Gtk.Window) -> None:
+        message = _(
+            "Your limits are not set correctly."
+            " Please increase them as described here:"
+            " <a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
+            "How-to:-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
+        )
+        ErrorDialog(error, message_markup=message, parent=parent)
 
-def _handle_esynclimiterror(error: EsyncLimitError, parent: Gtk.Window) -> None:
-    message = _(
-        "Your limits are not set correctly."
-        " Please increase them as described here:"
-        " <a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
-        "How-to:-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
-    )
-    ErrorDialog(error, message_markup=message, parent=parent)
-
-
-def _handle_authenticationerror(error: AuthenticationError, parent: Gtk.Window) -> None:
-    if error.service_id and error.service_id in SERVICES:
-        service = SERVICES.get(error.service_id)()
-        if service.online and not service.is_connected():
-            service.logout()
-            service.login(parent=parent)
-            return
-    ErrorDialog(error, parent=parent)
-
-
-register_error_handler(EsyncLimitError, _handle_esynclimiterror)
-register_error_handler(AuthenticationError, _handle_authenticationerror)
+    @staticmethod
+    def _handle_authenticationerror(error: AuthenticationError, parent: Gtk.Window) -> None:
+        if error.service_id and error.service_id in SERVICES:
+            service = SERVICES.get(error.service_id)()
+            if service.online and not service.is_connected():
+                service.logout()
+                service.login(parent=parent)
+                return
+        ErrorDialog(error, parent=parent)
