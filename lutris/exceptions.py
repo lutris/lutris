@@ -40,7 +40,8 @@ class MissingBiosError(GameConfigError):
 
 
 class AuthenticationError(LutrisError):
-    """Raised when authentication to a service fails"""
+    """Raised when authentication to a service fails, which may be because the user login
+    is not valid or has expired. We should log out and log back in response to this."""
 
 
 class UnavailableGameError(LutrisError):
