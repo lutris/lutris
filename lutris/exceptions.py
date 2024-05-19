@@ -43,6 +43,10 @@ class AuthenticationError(LutrisError):
     """Raised when authentication to a service fails, which may be because the user login
     is not valid or has expired. We should log out and log back in response to this."""
 
+    def __init__(self, message: str, service_id: str, *args, **kwargs) -> None:
+        super().__init__(message, *args, **kwargs)
+        self.service_id = service_id
+
 
 class UnavailableGameError(LutrisError):
     """Raised when a game is unavailable from a service"""
