@@ -8,7 +8,7 @@ from gettext import gettext as _
 from gi.repository import Gtk
 
 from lutris import settings
-from lutris.exceptions import UnavailableGameError
+from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.gui.dialogs import HumbleBundleCookiesDialog, QuestionDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
@@ -115,7 +115,9 @@ class HumbleBundleService(OnlineService):
         try:
             library = self.get_library()
         except ValueError as ex:
-            raise RuntimeError("Failed to get Humble Bundle library. Try logging out and back-in.") from ex
+            raise AuthenticationError(
+                "Failed to get Humble Bundle library. Try logging out and back-in.", self.id
+            ) from ex
         humble_games = []
         seen = set()
         for game in library:

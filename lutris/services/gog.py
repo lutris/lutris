@@ -132,8 +132,8 @@ class GOGService(OnlineService):
     def load(self):
         """Load the user game library from the GOG API"""
         if not self.is_connected():
-            logger.error("User not connected to GOG")
-            return
+            raise AuthenticationError("User not connected to GOG", self.id)
+
         games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
         for game in games:
             game.save()

@@ -156,8 +156,8 @@ class AmazonService(OnlineService):
     def load(self):
         """Load the user game library from the Amazon API"""
         if not self.is_connected():
-            logger.error("User not connected to Amazon")
-            return
+            raise AuthenticationError("User not connected to Amazon", self.id)
+
         games = [AmazonGame.new_from_amazon_game(game) for game in self.get_library()]
         for game in games:
             game.save()

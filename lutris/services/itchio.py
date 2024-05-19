@@ -9,7 +9,7 @@ from urllib.parse import quote_plus, urlencode
 
 from lutris import settings
 from lutris.database import games as games_db
-from lutris.exceptions import UnavailableGameError
+from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import SERVICE_LOGIN, OnlineService
@@ -144,8 +144,7 @@ class ItchIoService(OnlineService):
     def load(self):
         """Load the user's itch.io library"""
         if not self.is_connected():
-            logger.error("User not connected to itch.io")
-            return
+            raise AuthenticationError("User not connected to itch.io", self.id)
 
         library = self.get_games()
         games = []
