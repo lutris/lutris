@@ -173,7 +173,7 @@ class AmazonService(OnlineService):
         user_data = None
 
         if not os.path.exists(self.user_path):
-            raise AuthenticationError(_("No Amazon user data available, please log in again"), self.id)
+            raise AuthenticationError(_("No Amazon user data available, please log in again"))
 
         with open(self.user_path, "r", encoding="utf-8") as user_file:
             user_data = json.load(user_file)
@@ -238,7 +238,7 @@ class AmazonService(OnlineService):
             request.post(json.dumps(data).encode())
         except HTTPError as ex:
             logger.error("Failed http request %s", url)
-            raise AuthenticationError(_("Unable to register device, please log in again"), self.id) from ex
+            raise AuthenticationError(_("Unable to register device, please log in again")) from ex
 
         res_json = request.json
         logger.info("Successfully registered a device")
@@ -253,7 +253,7 @@ class AmazonService(OnlineService):
         expires_in = user_data["tokens"]["bearer"]["expires_in"]
 
         if not token_obtain_time or not expires_in:
-            raise AuthenticationError(_("Invalid token info found, please log in again"), self.id)
+            raise AuthenticationError(_("Invalid token info found, please log in again"))
 
         return time.time() > token_obtain_time + int(expires_in)
 
@@ -287,7 +287,7 @@ class AmazonService(OnlineService):
             request.post(json.dumps(request_data).encode())
         except HTTPError as ex:
             logger.error("Failed http request %s", url)
-            raise AuthenticationError(_("Unable to refresh token, please log in again"), self.id) from ex
+            raise AuthenticationError(_("Unable to refresh token, please log in again")) from ex
 
         res_json = request.json
 

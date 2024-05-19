@@ -296,7 +296,7 @@ class EpicGamesStoreService(OnlineService):
             library = self.get_library()
         except Exception as ex:  # pylint=disable:broad-except
             logger.warning("EGS Token expired")
-            raise AuthenticationError("EGS Token expired", self.id) from ex
+            raise AuthenticationError("EGS Token expired") from ex
         egs_games = []
         for game in library:
             egs_game = EGSGame.new_from_api(game)

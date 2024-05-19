@@ -187,7 +187,7 @@ class GOGService(OnlineService):
     def load_token(self):
         """Load token from disk"""
         if not os.path.exists(self.token_path):
-            raise AuthenticationError("No GOG token available", self.id)
+            raise AuthenticationError("No GOG token available")
         with open(self.token_path, encoding="utf-8") as token_file:
             token_content = json.loads(token_file.read())
         return token_content
@@ -203,7 +203,7 @@ class GOGService(OnlineService):
         request = Request(url, cookies=self.load_cookies())
         request.get()
         if request.content.startswith(b"<"):
-            raise AuthenticationError("Token expired, please log in again", self.id)
+            raise AuthenticationError("Token expired, please log in again")
         return request.json
 
     def make_api_request(self, url):
@@ -260,7 +260,7 @@ class GOGService(OnlineService):
     def get_products_page(self, page=1, search=None):
         """Return a single page of games"""
         if not self.is_authenticated():
-            raise AuthenticationError("User is not logged in", self.id)
+            raise AuthenticationError("User is not logged in")
         params = {"mediaType": "1"}
         if page:
             params["page"] = page
