@@ -20,7 +20,7 @@ from lutris.api import (
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
-from lutris.exceptions import AuthenticationError, EsyncLimitError
+from lutris.exceptions import EsyncLimitError
 from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
@@ -38,7 +38,6 @@ from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
-from lutris.services import SERVICES
 from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGOUT
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
@@ -1289,15 +1288,4 @@ def _handle_esynclimiterror(error: EsyncLimitError, parent: Gtk.Window) -> None:
     ErrorDialog(error, message_markup=message, parent=parent)
 
 
-def _handle_authenticationerror(error: AuthenticationError, parent: Gtk.Window) -> None:
-    if error.service_id and error.service_id in SERVICES:
-        service = SERVICES.get(error.service_id)()
-        if service.online and not service.is_connected():
-            service.logout()
-            service.login(parent=parent)
-            return
-    ErrorDialog(error, parent=parent)
-
-
 register_error_handler(EsyncLimitError, _handle_esynclimiterror)
-register_error_handler(AuthenticationError, _handle_authenticationerror)
