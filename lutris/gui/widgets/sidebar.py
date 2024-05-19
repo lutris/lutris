@@ -10,7 +10,6 @@ from lutris import runners, services
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
-from lutris.exceptions import AuthenticationError
 from lutris.game import GAME_START, GAME_STOPPED, GAME_UPDATED, Game
 from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
 from lutris.gui.config.runner import RunnerConfigDialog
@@ -27,6 +26,7 @@ from lutris.services.base import (
     SERVICE_GAMES_LOADING,
     SERVICE_LOGIN,
     SERVICE_LOGOUT,
+    AuthTokenExpiredError,
 )
 from lutris.util.jobs import schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_SYNCED, LOCAL_LIBRARY_SYNCING
@@ -167,7 +167,7 @@ class ServiceSidebarRow(SidebarRow):
 
     def service_reloaded_cb(self, error):
         if error:
-            if isinstance(error, AuthenticationError):
+            if isinstance(error, AuthTokenExpiredError):
                 self.service.logout()
                 self.service.login(parent=self.get_toplevel())  # login will trigger reload if successful
             else:

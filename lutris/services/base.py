@@ -28,6 +28,11 @@ from lutris.util.log import logger
 from lutris.util.strings import slugify
 
 
+class AuthTokenExpiredError(Exception):
+    """Exception raised when a token is no longer valid; the sidebar will
+    log-out and log-in again in response to this rather than reporting it."""
+
+
 class LutrisBanner(ServiceMedia):
     service = "lutris"
     size = BANNER_SIZE
@@ -465,8 +470,7 @@ class OnlineService(BaseService):
         super().wipe_game_cache()
 
     def logout(self):
-        """Disconnect from the service by removing all credentials; may be called when
-        not actually logged in, in response to an AuthenticationError."""
+        """Disconnect from the service by removing all credentials"""
         self.wipe_game_cache()
         for auth_file in self.credential_files:
             try:
