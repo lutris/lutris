@@ -14,6 +14,20 @@
     ],
     "runner_options": [
         {
+            "option": "fullscreen",
+            "type": "bool",
+            "default": true,
+            "label": "Fullscreen",
+            "argument": "--fullscreen"
+        },
+        {
+            "option": "force_align",
+            "type": "bool",
+            "label": "Force align",
+            "argument": "--force-align",
+            "help": "Prevent movies from changing the stage alignment"
+        },
+        {
             "option": "graphics",
             "type": "choice",
             "label": "Graphics backend",
@@ -43,6 +57,15 @@
             "type": "string",
             "label": "Proxy",
             "argument": "--proxy"
+        },
+        {
+            "option": "no_gui",
+            "type": "bool",
+            "default": true,
+            "label": "No GUI",
+            "advanced": true,
+            "argument": "--no-gui",
+            "help": "Hides the menu bar (the bar at the top of the window)"
         }
     ]
 }
