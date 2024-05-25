@@ -18,7 +18,7 @@ body:
     id: description
     attributes:
       label: "Bug description"
-      description: "A clear and detailed description of what the bug is.
+      description: "A clear and detailed description of what the bug is."
       placeholder: "Tell us about your problem with Lutris in a clear and  detailed way"
     validations:
       required: true
