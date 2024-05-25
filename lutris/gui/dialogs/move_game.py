@@ -6,6 +6,7 @@ from lutris.exceptions import InvalidGameMoveError
 from lutris.game import GAME_UPDATED
 from lutris.gui.dialogs import ModelessDialog, WarningDialog, display_error
 from lutris.util.jobs import AsyncCall, schedule_repeating_at_idle
+from lutris.util.strings import gtk_safe
 
 
 class MoveDialog(ModelessDialog):
@@ -53,7 +54,7 @@ class MoveDialog(ModelessDialog):
                 "Do you want to change the game location anyway? No files can be moved, "
                 "and the game configuration may need to be adjusted."
             )
-            dlg = WarningDialog(message_markup=error, secondary=secondary, parent=self)
+            dlg = WarningDialog(message_markup=gtk_safe(error), secondary=secondary, parent=self)
             if dlg.result == Gtk.ResponseType.OK:
                 self.new_directory = self.game.set_location(self.destination)
                 self.on_game_moved(None, None)
