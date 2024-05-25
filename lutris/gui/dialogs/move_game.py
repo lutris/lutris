@@ -6,6 +6,7 @@ from lutris.exceptions import InvalidGameMoveError
 from lutris.game import GAME_UPDATED
 from lutris.gui.dialogs import ModelessDialog, WarningDialog, display_error
 from lutris.util.jobs import AsyncCall, schedule_repeating_at_idle
+from lutris.util.path_cache import remove_from_path_cache
 from lutris.util.strings import gtk_safe
 
 
@@ -45,6 +46,8 @@ class MoveDialog(ModelessDialog):
         return True
 
     def _move_game(self):
+        # remove the old path from the cache
+        remove_from_path_cache(self.game)
         # not safe fire a signal from a thread- it will surely hit GTK and may crash
         self.new_directory = self.game.move(self.destination, no_signal=True)
 
