@@ -1038,7 +1038,7 @@ class Game:
         old_location = self.directory
         target_directory = self._get_move_target_directory(new_location)
 
-        if new_location.startswith(old_location):
+        if system.path_contains(old_location, new_location):
             raise InvalidGameMoveError(
                 _("Lutris can't move '%s' to a location inside of itself, '%s'.") % (old_location, new_location)
             )
