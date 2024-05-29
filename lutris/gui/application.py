@@ -362,7 +362,7 @@ class Application(Gtk.Application):
             return kwargs["game"].id
         return str(kwargs)
 
-    def show_window(self, window_class, /, update_function=None, **kwargs):
+    def show_window(self, window_class, update_function=None, **kwargs):
         """Instantiate a window keeping 1 instance max
 
         Params:
