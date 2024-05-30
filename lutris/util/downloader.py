@@ -1,3 +1,4 @@
+import bisect
 import os
 import threading
 import time
@@ -189,7 +190,9 @@ class Downloader:
         if elapsed_time > 0:
             chunk_size = self.downloaded_size - self.last_size
             speed = chunk_size / elapsed_time or 1
-            self.last_speeds.append(speed)
+            # insert in sorted order, so we can omit the least and
+            # greatest value later
+            bisect.insort(self.last_speeds, speed)
 
         # Average speed
         if get_time() - self.speed_check_time < 1:  # Minimum delay
@@ -199,7 +202,7 @@ class Downloader:
             self.last_speeds.pop(0)
 
         if len(self.last_speeds) > 7:
-            # Skim extreme values
+            # Skip extreme values
             samples = self.last_speeds[1:-1]
         else:
             samples = self.last_speeds[:]
