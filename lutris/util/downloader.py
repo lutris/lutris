@@ -194,7 +194,10 @@ class Downloader:
             # greatest value later
             bisect.insort(self.last_speeds, speed)
 
-        # Average speed
+        # Until we get the first sample, just return our default
+        if not self.last_speeds:
+            return self.average_speed
+
         if get_time() - self.speed_check_time < 1:  # Minimum delay
             return self.average_speed
 
