@@ -21,7 +21,7 @@ class atari800(Runner):
     human_name = _("Atari800")
     platforms = [_("Atari 8bit computers")]  # FIXME try to determine the actual computer used
     runner_executable = "atari800/bin/atari800"
-    bios_url = "https://netactuate.dl.sourceforge.net/project/atari800/ROM/Original%20XL%20ROM/xf25.zip?viasf=1"
+    bios_url = "http://kent.dl.sourceforge.net/project/atari800/ROM/Original%20XL%20ROM/xf25.zip"
     description = _("Atari 400, 800 and XL emulator")
     bios_checksums = {
         "xlxe_rom": "06daac977823773a3eea3422fd26a703",
