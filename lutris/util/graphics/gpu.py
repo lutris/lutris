@@ -159,12 +159,9 @@ class GPU:
         return None
 
     def get_lspci_name(self):
-        devices = [
-            (pci_id, device_desc.split(": ")[1])
-            for pci_id, device_desc in [
-                line.split(maxsplit=1) for line in system.execute(["lspci"], timeout=3).split("\n")
-            ]
-        ]
+        lspci_results = [line.split(maxsplit=1) for line in system.execute(["lspci"], timeout=3).split("\n")]
+        lspci_results = [parts for parts in lspci_results if len(parts) == 2 and ": " in parts[1]]
+        devices = [(pci_id, device_desc.split(": ")[1]) for pci_id, device_desc in lspci_results]
         for device in devices:
             if f"0000:{device[0]}" == self.pci_slot:
                 return device[1]
