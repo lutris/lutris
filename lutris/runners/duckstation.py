@@ -15,11 +15,7 @@ class duckstation(Runner):
     runner_directory = "duckstation"
     runner_executable = runner_directory + "/DuckStation-x64.AppImage"
     settings_directory = path.expanduser("~/.local/share/" + runner_directory)
-    bios_directory = path.join(settings_directory, "bios")
     download_url = "https://github.com/stenzek/duckstation/releases/download/latest/DuckStation-x64.AppImage"
-    jp_bios_url = "https://github.com/Abdess/retroarch_system/raw/libretro/Sony%20-%20PlayStation/scph1000.bin"
-    us_bios_url = "https://github.com/Abdess/retroarch_system/raw/libretro/Sony%20-%20PlayStation/scph1001.bin"
-    eu_bios_url = "https://github.com/Abdess/retroarch_system/raw/libretro/Sony%20-%20PlayStation/scph1002.bin"
     
     game_options = [
         {
@@ -68,27 +64,6 @@ class duckstation(Runner):
             "default": True,
         },
     ]
-
-    def install(self, install_ui_delegate, version=None, callback=None):
-        def on_runner_installed(*_args):
-            if not path.isdir(self.bios_directory):
-                system.create_folder(self.bios_directory)
-            jp_bios_archive = path.join(self.bios_directory, "scph1000.bin")
-            us_bios_archive = path.join(self.bios_directory, "scph1001.bin")
-            eu_bios_archive = path.join(self.bios_directory, "scph1002.bin")
-            install_ui_delegate.download_install_file(self.jp_bios_url, jp_bios_archive)
-            install_ui_delegate.download_install_file(self.us_bios_url, us_bios_archive)
-            install_ui_delegate.download_install_file(self.eu_bios_url, eu_bios_archive)
-            if not system.path_exists(jp_bios_archive):
-                raise RuntimeError(_("Could not download PlayStation Japanese BIOS archive"))
-            if not system.path_exists(us_bios_archive):
-                raise RuntimeError(_("Could not download PlayStation American BIOS archive"))
-            if not system.path_exists(eu_bios_archive):
-                raise RuntimeError(_("Could not download PlayStation European BIOS archive"))
-            if callback:
-                callback()
-
-        super().install(install_ui_delegate, version, on_runner_installed)
     
     def uninstall(self, uninstall_callback=None):
         if path.isdir(self.settings_directory):
