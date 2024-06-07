@@ -5,7 +5,7 @@
 import os
 from collections import namedtuple
 from gettext import gettext as _
-from typing import List
+from typing import Iterable, List
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
@@ -19,6 +19,7 @@ from lutris.api import (
 )
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
+from lutris.database.categories import get_search_for_category
 from lutris.database.services import ServiceGameCollection
 from lutris.exceptions import EsyncLimitError
 from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
@@ -50,8 +51,7 @@ from lutris.util.system import update_desktop_icons
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
-                   DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -220,10 +220,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
                 enabled=lambda: self.is_show_hidden_sensitive,
                 accel="<Primary>h",
             ),
-            "add-search-category": Action(
-                self.on_add_search_category,
-                enabled=lambda: self.can_add_search_category
-            ),
+            "add-search-category": Action(self.on_add_search_category, enabled=lambda: self.can_add_search_category),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
@@ -247,6 +244,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
                 action.connect("change-state", value.callback)
             self.actions[name] = action
             if value.enabled:
+
                 def updater(action=action, value=value):
                     action.props.enabled = value.enabled()
 
@@ -451,12 +449,13 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
             self.game_search = GameSearch(text, self.service)
         return self.game_search
 
-    def filter_games(self, games, implicit_filters: bool = True):
+    def filter_games(self, games, searches: Iterable[GameSearch] = None):
         """Filters a list of games according to the 'installed' and 'text' filters, if those are
         set. But if not, can just return games unchanged."""
-        search = self.get_game_search()
 
-        if implicit_filters:
+        if searches is None:
+            search = self.get_game_search()
+
             if self.filters.get("installed") and not search.has_component("installed"):
                 search = search.with_predicate(search.get_installed_predicate(installed=True))
 
@@ -465,10 +464,20 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
             if category != ".hidden" and not search.has_component("hidden"):
                 search = search.with_predicate(search.get_category_predicate(".hidden", False))
 
-        if search.is_empty:
+            searches = [search]
+
+        to_apply = [search for search in searches if not search.is_empty]
+
+        if not to_apply:
             return games
 
-        return [game for game in games if search.matches(game)]
+        def matches(game):
+            for search in searches:
+                if not search.matches(game):
+                    return False
+            return True
+
+        return [game for game in games if matches(game)]
 
     def set_service(self, service_name):
         if self.service and self.service.id == service_name:
@@ -518,13 +527,22 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
 
         search = self.get_game_search()
         category = self.filters.get("category") or "all"
+        searches = [search]
+        cat_search = get_search_for_category(category)
+
+        if cat_search:
+            searches.append(GameSearch(cat_search, service=None))
+            category = "all"
+
         included = [category] if category != "all" else None
-        excluded = [".hidden"] if category != ".hidden" and not search.has_component("hidden") else []
+        excluded = (
+            [".hidden"] if category != ".hidden" and not any(s for s in searches if s.has_component("hidden")) else []
+        )
         category_game_ids = categories_db.get_game_ids_for_categories(included, excluded)
 
         filters = self.get_sql_filters()
         games = games_db.get_games(filters=filters)
-        games = self.filter_games([game for game in games if game["id"] in category_game_ids], implicit_filters=False)
+        games = self.filter_games([game for game in games if game["id"] in category_game_ids], searches=searches)
         return self.apply_view_sort(games)
 
     def get_sql_filters(self):
