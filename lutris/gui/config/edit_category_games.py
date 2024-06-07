@@ -73,6 +73,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         if dlg.result == Gtk.ResponseType.YES:
             for game in self.category_games:
                 game.remove_category(self.category)
+            categories_db.remove_category(self.category_id)
             self.destroy()
 
     def on_save(self, _button):
