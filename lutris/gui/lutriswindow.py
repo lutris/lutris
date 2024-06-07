@@ -19,7 +19,7 @@ from lutris.api import (
 )
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
-from lutris.database.categories import get_search_for_category
+from lutris.database.categories import get_search_for_category, add_category
 from lutris.database.services import ServiceGameCollection
 from lutris.exceptions import EsyncLimitError
 from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
@@ -51,7 +51,8 @@ from lutris.util.system import update_desktop_icons
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
+                   DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -244,7 +245,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 action.connect("change-state", value.callback)
             self.actions[name] = action
             if value.enabled:
-
                 def updater(action=action, value=value):
                     action.props.enabled = value.enabled()
 
@@ -309,7 +309,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.sidebar.selected_category = "category", ".hidden"
 
     def on_add_search_category(self, action, value):
-        pass
+        search = self.get_game_search()
+        if not search.is_empty:
+            add_category("Boop", str(search))
 
     @property
     def can_add_search_category(self) -> bool:
