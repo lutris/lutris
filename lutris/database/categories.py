@@ -6,6 +6,9 @@ from typing import Dict, List, Optional, Union
 
 from lutris import settings
 from lutris.database import sql
+from lutris.gui.widgets import NotificationSource
+
+CATEGORIES_UPDATED = NotificationSource()
 
 
 class _SmartCategory(abc.ABC):
@@ -167,9 +170,23 @@ def get_categories_in_game(game_id):
     return [category["name"] for category in sql.db_query(settings.DB_PATH, query, (game_id,))]
 
 
-def add_category(category_name):
+def add_category(category_name, search: str = None):
     """Add a category to the database"""
-    return sql.db_insert(settings.DB_PATH, "categories", {"name": category_name})
+    cat = sql.db_insert(settings.DB_PATH, "categories", {"name": category_name, "search": search})
+    CATEGORIES_UPDATED.fire()
+    return cat
+
+
+def remove_category(category_id: int) -> None:
+    queries = [
+        "DELETE FROM games_categories WHERE category_id=?",
+        "DELETE FROM categories WHERE id=?"
+    ]
+
+    for query in queries:
+        with sql.db_cursor(settings.DB_PATH) as cursor:
+            sql.cursor_execute(cursor, query, (category_id, ))
+    CATEGORIES_UPDATED.fire()
 
 
 def add_game_to_category(game_id, category_id):

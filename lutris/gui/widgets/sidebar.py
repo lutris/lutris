@@ -10,6 +10,7 @@ from lutris import runners, services
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
+from lutris.database.categories import CATEGORIES_UPDATED
 from lutris.game import GAME_START, GAME_STOPPED, GAME_UPDATED, Game
 from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
 from lutris.gui.config.runner import RunnerConfigDialog
@@ -362,6 +363,7 @@ class LutrisSidebar(Gtk.ListBox):
         GAME_START.register(self.on_game_start)
         GAME_STOPPED.register(self.on_game_stopped)
         GAME_UPDATED.register(self.update_rows)
+        CATEGORIES_UPDATED.register(self.update_rows)
         SERVICE_LOGIN.register(self.on_service_auth_changed)
         SERVICE_LOGOUT.register(self.on_service_auth_changed)
         SERVICE_GAMES_LOADING.register(self.on_service_games_loading)
