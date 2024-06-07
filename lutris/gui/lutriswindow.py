@@ -50,7 +50,8 @@ from lutris.util.system import update_desktop_icons
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
+                   DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -219,6 +220,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 enabled=lambda: self.is_show_hidden_sensitive,
                 accel="<Primary>h",
             ),
+            "add-search-category": Action(
+                self.on_add_search_category,
+                enabled=lambda: self.can_add_search_category
+            ),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
@@ -242,7 +247,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 action.connect("change-state", value.callback)
             self.actions[name] = action
             if value.enabled:
-
                 def updater(action=action, value=value):
                     action.props.enabled = value.enabled()
 
@@ -298,13 +302,20 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     @property
     def is_show_hidden_sensitive(self):
-        """True if there are any hiden games to show."""
+        """True if there are any hidden games to show."""
         return bool(categories_db.get_game_ids_for_categories([".hidden"]))
 
     def on_show_hidden_clicked(self, action, value):
         """Hides or shows the hidden games"""
         self.sidebar.hidden_row.show()
         self.sidebar.selected_category = "category", ".hidden"
+
+    def on_add_search_category(self, action, value):
+        pass
+
+    @property
+    def can_add_search_category(self) -> bool:
+        return bool(self.filters.get("text"))
 
     @property
     def current_view_type(self):
@@ -1007,6 +1018,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.search_timer_task.unschedule()
         self.filters["text"] = entry.get_text().strip()
         self.search_timer_task = schedule_at_idle(self.update_store, delay_seconds=0.5)
+        self.update_action_state()
 
     @GtkTemplate.Callback
     def on_search_entry_key_press(self, widget, event):
