@@ -2,7 +2,7 @@ import abc
 import re
 from collections import defaultdict
 from itertools import repeat
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 from lutris import settings
 from lutris.database import sql
@@ -86,6 +86,16 @@ def normalized_category_names(name: str, subname_allowed: bool = False) -> List[
         names = [cat["name"] for cat in sql.db_query(settings.DB_PATH, query, parameters)]
 
     return names or [name]
+
+
+def get_search_for_category(category_name: str) -> Optional[str]:
+    if category_name and category_name != "all":
+        category = get_category(category_name)
+        if category:
+            search = category.get("search")
+            if search:
+                return search
+    return None
 
 
 def get_game_ids_for_categories(included_category_names=None, excluded_category_names=None):
@@ -189,7 +199,7 @@ def remove_unused_categories():
     find_orphaned_categories = (
         "SELECT categories.* FROM categories "
         "LEFT JOIN games_categories ON categories.id = games_categories.category_id "
-        "WHERE games_categories.category_id IS NULL"
+        "WHERE games_categories.category_id IS NULL AND categories.search IS NULL"
     )
 
     empty_categories = sql.db_query(settings.DB_PATH, find_orphaned_categories)
