@@ -138,6 +138,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
                     if game_id not in added_game_ids and game_id not in removed_game_ids:
                         updated_games[game_id] = game
 
+        # Apply category changes and fire GAME_UPDATED as needed after everything
         for game_id in added_game_ids:
             game = self._get_game(game_id)
             game.add_category(new_name, no_signal=True)
