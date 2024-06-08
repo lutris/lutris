@@ -1,5 +1,6 @@
 # pylint: disable=no-member
 from gettext import gettext as _
+from typing import Any, Dict
 
 from gi.repository import Gtk
 
@@ -10,13 +11,13 @@ from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
 class EditSearchCategoryDialog(SavableModelessDialog):
     """Games assigned to category dialog."""
 
-    def __init__(self, parent, category):
-        super().__init__(_("Configure %s") % category["name"], parent=parent, border_width=10)
+    def __init__(self, parent, category: Dict[str, Any]) -> None:
+        self.category = category.get("name") or "New Category"
+        self.category_id = category.get("id")
+        self.search = category.get("search") or ""
+        title = _("Configure %s") % self.category
 
-        self.category = category["name"]
-        self.category_id = category["id"]
-        self.search = category["search"]
-
+        super().__init__(title, parent=parent, border_width=10)
         self.set_default_size(500, 350)
 
         self.vbox.set_homogeneous(False)
@@ -33,6 +34,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
 
         delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
         delete_button.connect("clicked", self.on_delete_clicked)
+        delete_button.set_sensitive(bool(self.category_id))
 
         self.show_all()
 
@@ -55,8 +57,14 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         old_name: str = self.category
         new_name: str = categories_db.strip_category_name(self.name_entry.get_text())
 
-        # Rename the category if required, and if this is not a merge
-        if new_name and old_name != new_name:
+        if categories_db.is_reserved_category(new_name):
+            raise RuntimeError(_("'%s' is a reserved category name.") % new_name)
+
+        if not self.category_id:
+            # Creating new category!
+            categories_db.add_category(category_name=new_name, search=self.search)
+        elif new_name and old_name != new_name:
+            # Rename existing category
             if categories_db.is_reserved_category(new_name):
                 raise RuntimeError(_("'%s' is a reserved category name.") % new_name)
 
