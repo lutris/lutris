@@ -13,6 +13,7 @@ from lutris.database import games as games_db
 from lutris.database.categories import CATEGORIES_UPDATED
 from lutris.game import GAME_START, GAME_STOPPED, GAME_UPDATED, Game
 from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
+from lutris.gui.config.edit_search_category import EditSearchCategoryDialog
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
@@ -274,7 +275,10 @@ class CategorySidebarRow(SidebarRow):
         return [("applications-system-symbolic", _("Edit Games"), self.on_category_clicked, "manage-category-games")]
 
     def on_category_clicked(self, button):
-        self.application.show_window(EditCategoryGamesDialog, category=self.category, parent=self.get_toplevel())
+        if self.category.get("search"):
+            self.application.show_window(EditSearchCategoryDialog, category=self.category, parent=self.get_toplevel())
+        else:
+            self.application.show_window(EditCategoryGamesDialog, category=self.category, parent=self.get_toplevel())
         return True
 
     def __lt__(self, other):
