@@ -19,12 +19,13 @@ from lutris.api import (
 )
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
-from lutris.database.categories import add_category, get_search_for_category
+from lutris.database.categories import get_search_for_category
 from lutris.database.services import ServiceGameCollection
 from lutris.exceptions import EsyncLimitError
 from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
+from lutris.gui.config.edit_search_category import EditSearchCategoryDialog
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog, get_error_handler, register_error_handler
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
@@ -311,7 +312,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def on_add_search_category(self, action, value):
         search = self.get_game_search()
         if not search.is_empty:
-            add_category("Boop", str(search))
+            dlg = EditSearchCategoryDialog(category={"search": str(search)}, parent=self)
+            dlg.show()
 
     @property
     def can_add_search_category(self) -> bool:
