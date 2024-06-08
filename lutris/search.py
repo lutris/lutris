@@ -225,7 +225,7 @@ class GameSearch(BaseSearch):
         ]
     )
 
-    def __init__(self, text: str, service) -> None:
+    def __init__(self, text: str, service=None) -> None:
         self.service = service
         super().__init__(text)
 
