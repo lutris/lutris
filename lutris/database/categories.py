@@ -47,7 +47,7 @@ def strip_category_name(name):
 
 
 def is_reserved_category(name):
-    """True of name is None, blank or is a name Lutris uses internally, or
+    """True if name is None, blank or is a name Lutris uses internally, or
     starts with '.' for future expansion."""
     return not name or name[0] == "." or name in ["all", "favorite"]
 
@@ -65,9 +65,16 @@ def get_all_games_categories():
     return games_categories
 
 
-def get_category(name):
+def get_category_by_name(name):
     """Return a category by name"""
     categories = sql.db_select(settings.DB_PATH, "categories", condition=("name", name))
+    if categories:
+        return categories[0]
+
+
+def get_category_by_id(category_id):
+    """Return a category by name"""
+    categories = sql.db_select(settings.DB_PATH, "categories", condition=("id", category_id))
     if categories:
         return categories[0]
 
@@ -93,7 +100,7 @@ def normalized_category_names(name: str, subname_allowed: bool = False) -> List[
 
 def get_search_for_category(category_name: str) -> Optional[str]:
     if category_name and category_name != "all":
-        category = get_category(category_name)
+        category = get_category_by_name(category_name)
         if category:
             search = category.get("search")
             if search:
@@ -170,28 +177,32 @@ def get_categories_in_game(game_id):
     return [category["name"] for category in sql.db_query(settings.DB_PATH, query, (game_id,))]
 
 
-def add_category(category_name, search: str = None):
+def add_category(category_name, search: str = None, no_signal: bool = False):
     """Add a category to the database"""
     cat = sql.db_insert(settings.DB_PATH, "categories", {"name": category_name, "search": search})
-    CATEGORIES_UPDATED.fire()
+    if not no_signal:
+        CATEGORIES_UPDATED.fire()
     return cat
 
 
-def rename_category(category_id: int, new_name: str) -> None:
-    query = "UPDATE categories SET name=? WHERE id=?"
+def redefine_category(category_id: int, new_name: str, new_search: str = None, no_signal: bool = False) -> None:
+    query = "UPDATE categories SET name=?, search=? WHERE id=?"
 
     with sql.db_cursor(settings.DB_PATH) as cursor:
-        sql.cursor_execute(cursor, query, (new_name, category_id))
-    CATEGORIES_UPDATED.fire()
+        sql.cursor_execute(cursor, query, (new_name, new_search, category_id))
+    if not no_signal:
+        CATEGORIES_UPDATED.fire()
 
 
-def remove_category(category_id: int) -> None:
+def remove_category(category_id: int, no_signal: bool = False) -> None:
     queries = ["DELETE FROM games_categories WHERE category_id=?", "DELETE FROM categories WHERE id=?"]
 
     for query in queries:
         with sql.db_cursor(settings.DB_PATH) as cursor:
             sql.cursor_execute(cursor, query, (category_id,))
-    CATEGORIES_UPDATED.fire()
+
+    if not no_signal:
+        CATEGORIES_UPDATED.fire()
 
 
 def add_game_to_category(game_id, category_id):
