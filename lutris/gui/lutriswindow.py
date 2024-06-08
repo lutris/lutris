@@ -19,7 +19,7 @@ from lutris.api import (
 )
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
-from lutris.database.categories import get_search_for_category
+from lutris.database.categories import CATEGORIES_UPDATED, get_search_for_category
 from lutris.database.services import ServiceGameCollection
 from lutris.exceptions import EsyncLimitError
 from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
@@ -154,6 +154,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         SERVICE_LOGIN.register(self.on_service_login)
         SERVICE_LOGOUT.register(self.on_service_logout)
         SERVICE_GAMES_LOADED.register(self.on_service_games_loaded)
+        CATEGORIES_UPDATED.register(self.on_categories_updated)
         GAME_UPDATED.register(self.on_game_updated)
         GAME_STOPPED.register(self.on_game_stopped)
         GAME_INSTALLED.register(self.on_game_installed)
@@ -221,7 +222,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 enabled=lambda: self.is_show_hidden_sensitive,
                 accel="<Primary>h",
             ),
-            "add-search-category": Action(self.on_add_search_category, enabled=lambda: self.can_add_search_category),
+            "add-search-category": Action(self.on_add_search_category),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
@@ -311,13 +312,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_add_search_category(self, action, value):
         search = self.get_game_search()
-        if not search.is_empty:
-            dlg = EditSearchCategoryDialog(category={"search": str(search)}, parent=self)
-            dlg.show()
-
-    @property
-    def can_add_search_category(self) -> bool:
-        return bool(self.filters.get("text"))
+        dlg = EditSearchCategoryDialog(category={"search": str(search)}, parent=self)
+        dlg.show()
 
     @property
     def current_view_type(self):
@@ -933,7 +929,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         """Request a view update when service games are loaded"""
         if self.service and service.id == self.service.id:
             self.update_store()
-        return True
+
+    def on_categories_updated(self):
+        self.update_store()
 
     def save_window_state(self):
         """Saves the window's size position and state as settings."""
@@ -1040,7 +1038,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.search_timer_task.unschedule()
         self.filters["text"] = entry.get_text().strip()
         self.search_timer_task = schedule_at_idle(self.update_store, delay_seconds=0.5)
-        self.update_action_state()
 
     @GtkTemplate.Callback
     def on_search_entry_key_press(self, widget, event):

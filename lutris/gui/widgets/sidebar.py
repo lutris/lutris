@@ -275,10 +275,11 @@ class CategorySidebarRow(SidebarRow):
         return [("applications-system-symbolic", _("Edit Games"), self.on_category_clicked, "manage-category-games")]
 
     def on_category_clicked(self, button):
+        category = categories_db.get_category_by_id(self.category["id"]) or self.category
         if self.category.get("search"):
-            self.application.show_window(EditSearchCategoryDialog, category=self.category, parent=self.get_toplevel())
+            self.application.show_window(EditSearchCategoryDialog, category=category, parent=self.get_toplevel())
         else:
-            self.application.show_window(EditCategoryGamesDialog, category=self.category, parent=self.get_toplevel())
+            self.application.show_window(EditCategoryGamesDialog, category=category, parent=self.get_toplevel())
         return True
 
     def __lt__(self, other):

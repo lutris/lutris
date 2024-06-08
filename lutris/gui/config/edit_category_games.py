@@ -131,7 +131,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
                 removed_game_ids = category_games_ids
                 added_game_ids = checked_game_ids
             else:
-                categories_db.rename_category(self.category_id, new_name)
+                categories_db.redefine_category(self.category_id, new_name)
                 old_name = new_name
 
                 for game_id, game in self.category_games.items():

@@ -179,7 +179,7 @@ class Game:
         if not self.is_db_stored:
             raise RuntimeError("Games that do not have IDs cannot belong to categories.")
 
-        category = categories_db.get_category(category_name)
+        category = categories_db.get_category_by_name(category_name)
         if category is None:
             category_id = categories_db.add_category(category_name)
         else:
@@ -194,7 +194,7 @@ class Game:
         if not self.is_db_stored:
             return
 
-        category = categories_db.get_category(category_name)
+        category = categories_db.get_category_by_name(category_name)
         if category is None:
             return
         category_id = category["id"]
