@@ -177,15 +177,20 @@ def add_category(category_name, search: str = None):
     return cat
 
 
+def rename_category(category_id: int, new_name: str) -> None:
+    query = "UPDATE categories SET name=? WHERE id=?"
+
+    with sql.db_cursor(settings.DB_PATH) as cursor:
+        sql.cursor_execute(cursor, query, (new_name, category_id))
+    CATEGORIES_UPDATED.fire()
+
+
 def remove_category(category_id: int) -> None:
-    queries = [
-        "DELETE FROM games_categories WHERE category_id=?",
-        "DELETE FROM categories WHERE id=?"
-    ]
+    queries = ["DELETE FROM games_categories WHERE category_id=?", "DELETE FROM categories WHERE id=?"]
 
     for query in queries:
         with sql.db_cursor(settings.DB_PATH) as cursor:
-            sql.cursor_execute(cursor, query, (category_id, ))
+            sql.cursor_execute(cursor, query, (category_id,))
     CATEGORIES_UPDATED.fire()
 
 
