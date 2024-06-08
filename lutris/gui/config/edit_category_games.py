@@ -1,11 +1,12 @@
 # pylint: disable=no-member
 from gettext import gettext as _
+from typing import Dict, Set
 
 from gi.repository import Gtk
 
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
-from lutris.game import Game
+from lutris.game import GAME_UPDATED, Game
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
 from lutris.util.strings import get_natural_sort_key
 
@@ -21,7 +22,9 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         self.available_games = sorted(
             [Game(x["id"]) for x in games_db.get_games()], key=lambda g: (g.is_installed, get_natural_sort_key(g.name))
         )
-        self.category_games = [Game(x) for x in categories_db.get_game_ids_for_categories([self.category])]
+        self.category_games = {
+            game_id: Game(id) for game_id in categories_db.get_game_ids_for_categories([self.category])
+        }
         self.grid = Gtk.Grid()
 
         self.set_default_size(500, 350)
@@ -47,7 +50,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         frame = Gtk.Frame()
         sw = Gtk.ScrolledWindow()
         row = Gtk.VBox()
-        category_games_names = [x.name for x in self.category_games]
+        category_games_names = sorted([x.name for x in self.category_games.values()])
         for game in self.available_games:
             label = game.name
             checkbutton_option = Gtk.CheckButton(label)
@@ -71,44 +74,48 @@ class EditCategoryGamesDialog(SavableModelessDialog):
             }
         )
         if dlg.result == Gtk.ResponseType.YES:
-            for game in self.category_games:
+            for game in self.category_games.values():
                 game.remove_category(self.category)
             categories_db.remove_category(self.category_id)
             self.destroy()
 
-    def on_save(self, _button):
-        """Save game info and destroy widget."""
-        removed_games = []
-        added_games = []
-        new_name = categories_db.strip_category_name(self.name_entry.get_text())
-
-        if not new_name or self.category == new_name:
-            category_games_names = [x.name for x in self.category_games]
-
-            for game_checkbox in self.grid.get_children():
-                label = game_checkbox.get_label()
-                game_id = games_db.get_game_by_field(label, "name")["id"]
-                if label in category_games_names:
-                    if not game_checkbox.get_active():
-                        removed_games.append(game_id)
-                else:
-                    if game_checkbox.get_active():
-                        added_games.append(game_id)
-
-            for game_id in added_games:
-                game = Game(game_id)
-                game.add_category(self.category)
-
-            for game_id in removed_games:
-                game = Game(game_id)
-                game.remove_category(self.category)
-        elif categories_db.is_reserved_category(new_name):
-            raise RuntimeError(_("'%s' is a reserved category name.") % new_name)
+    def _get_game(self, game_id: str) -> Game:
+        if game_id in self.category_games:
+            return self.category_games[game_id]
         else:
+            return Game(game_id)
+
+    def on_save(self, _button: Gtk.Button) -> None:
+        """Save game info and destroy widget."""
+        old_name: str = self.category
+        new_name: str = categories_db.strip_category_name(self.name_entry.get_text())
+        category_games_ids: Set[str] = set(self.category_games.keys())
+
+        # Work out which games hae been added or removed from the category
+        unchecked_game_ids: Set[str] = set()
+        checked_game_ids: Set[str] = set()
+        updated_games: Dict[str, Game] = {}
+
+        for game_checkbox in self.grid.get_children():
+            label = game_checkbox.get_label()
+            game_id = games_db.get_game_by_field(label, "name")["id"]
+            if game_checkbox.get_active():
+                checked_game_ids.add(game_id)
+            else:
+                unchecked_game_ids.add(game_id)
+
+        added_game_ids = checked_game_ids - category_games_ids
+        removed_game_ids = unchecked_game_ids & category_games_ids
+
+        # Rename the category if required, and if this is not a merge
+        if new_name and old_name != new_name:
+            if categories_db.is_reserved_category(new_name):
+                raise RuntimeError(_("'%s' is a reserved category name.") % new_name)
+
             if new_name in (c["name"] for c in categories_db.get_categories()):
                 dlg = QuestionDialog(
                     {
-                        "title": _("Merge the category '%s' into '%s'?") % (self.category, new_name),
+                        "title": _("Merge the category '%s' into '%s'?") % (old_name, new_name),
                         "question": _(
                             "If you rename this category, it will be combined with '%s'. " "Do you want to merge them?"
                         )
@@ -119,17 +126,29 @@ class EditCategoryGamesDialog(SavableModelessDialog):
                 if dlg.result != Gtk.ResponseType.YES:
                     return
 
-            for game in self.category_games:
-                game.remove_category(self.category)
+                # To merge, remove every categry and add them all to the
+                # other one.
+                removed_game_ids = category_games_ids
+                added_game_ids = checked_game_ids
+            else:
+                categories_db.rename_category(self.category_id, new_name)
+                old_name = new_name
 
-            for game_checkbox in self.grid.get_children():
-                if game_checkbox.get_active():
-                    label = game_checkbox.get_label()
-                    game_id = games_db.get_game_by_field(label, "name")["id"]
-                    added_games.append(game_id)
+                for game_id, game in self.category_games.items():
+                    if game_id not in added_game_ids and game_id not in removed_game_ids:
+                        updated_games[game_id] = game
 
-            for game_id in added_games:
-                game = Game(game_id)
-                game.add_category(new_name)
+        for game_id in added_game_ids:
+            game = self._get_game(game_id)
+            game.add_category(new_name, no_signal=True)
+            updated_games[game_id] = game
+
+        for game_id in removed_game_ids:
+            game = self._get_game(game_id)
+            game.remove_category(old_name, no_signal=True)
+            updated_games[game_id] = game
+
+        for game in updated_games.values():
+            GAME_UPDATED.fire(game)
 
         self.destroy()
