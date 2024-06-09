@@ -9,10 +9,10 @@ from lutris.database.categories import (
     normalized_category_names,
 )
 from lutris.runners import get_runner_human_name
-from lutris.runners.runner import Runner
 from lutris.search_predicate import (
     TRUE_PREDICATE,
     AndPredicate,
+    FlagPredicate,
     FunctionPredicate,
     NotPredicate,
     OrPredicate,
@@ -337,39 +337,34 @@ class GameSearch(BaseSearch):
         return TextPredicate(directory, lambda c: c.get("directory"))
 
     def get_installed_predicate(self, installed: bool) -> SearchPredicate:
-        def match_installed(db_game):
-            is_installed = self._is_installed(db_game)
-            return installed == is_installed
-
-        return FunctionPredicate(match_installed)
-
-    def _is_installed(self, db_game: Dict[str, Any]) -> bool:
         if self.service:
-            appid = db_game.get("appid")
-            return bool(appid and appid in games.get_service_games(self.service.id))
 
-        return bool(db_game["installed"])
+            def is_installed(db_game):
+                appid = db_game.get("appid")
+                return bool(appid and appid in games.get_service_games(self.service.id))
+
+            return FlagPredicate(installed, is_installed)
+
+        return FlagPredicate(installed, lambda db_game: bool(db_game["installed"]))
 
     def get_categorized_predicate(self, categorized: bool) -> SearchPredicate:
         uncategorized_ids = set(get_uncategorized_game_ids())
 
-        def match_categorized(db_game):
-            game_id = db_game["id"]
-            is_categorized = game_id not in uncategorized_ids
-            return is_categorized == categorized
+        def is_categorized(db_game):
+            return db_game["id"] not in uncategorized_ids
 
-        return FunctionPredicate(match_categorized)
+        return FlagPredicate(categorized, is_categorized)
 
     def get_category_predicate(self, category: str, in_category: bool = True) -> SearchPredicate:
         names = normalized_category_names(category, subname_allowed=True)
         category_game_ids = set(get_game_ids_for_categories(names))
 
-        def match_categorized(db_game):
+        def match_category(db_game):
             game_id = db_game["id"]
             game_in_category = game_id in category_game_ids
             return game_in_category == in_category
 
-        return FunctionPredicate(match_categorized)
+        return FunctionPredicate(match_category)
 
     def get_service_predicate(self, service_name: str) -> SearchPredicate:
         service_name = service_name.casefold()
@@ -440,8 +435,4 @@ class RunnerSearch(BaseSearch):
         return super().get_part_predicate(name, tokens)
 
     def get_installed_predicate(self, installed: bool) -> SearchPredicate:
-        def match_installed(runner: Runner):
-            is_installed = runner.is_installed()
-            return installed == is_installed
-
-        return FunctionPredicate(match_installed)
+        return FlagPredicate(installed, lambda runner: runner.is_installed())
