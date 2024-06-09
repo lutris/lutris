@@ -21,9 +21,6 @@ from lutris.util.tokenization import (
 ISOLATED_TOKENS = set([":", "-", "(", ")", "<", ">", ">=", "<="])
 ITEM_STOP_TOKENS = (ISOLATED_TOKENS | set(["OR", "AND"])) - set(["(", "-"])
 
-SearchPredicate = Callable[[Any], bool]
-
-TRUE_PREDICATE: SearchPredicate = lambda *a: True  # noqa: E731
 FLAG_TEXTS: Dict[str, Optional[bool]] = {"true": True, "yes": True, "false": False, "no": False, "maybe": None}
 
 
@@ -41,13 +38,28 @@ def read_flag_token(tokens: TokenReader) -> Optional[bool]:
     raise InvalidSearchTermError(f"'{token}' was found where a flag was expected.")
 
 
+class SearchPredicate:
+    def __init__(self, predicate: Callable[[Any], bool]) -> None:
+        self.predicate = predicate
+
+    def accept(self, candidate: Any) -> bool:
+        return self.predicate(candidate)
+
+
+TRUE_PREDICATE: SearchPredicate = SearchPredicate(lambda *a: True)
+
+
+def not_predicate(predicate: SearchPredicate) -> SearchPredicate:
+    return SearchPredicate(lambda *a: not predicate.accept(*a))
+
+
 def and_predicates(predicates: List[SearchPredicate]) -> Optional[SearchPredicate]:
     if not predicates:
         return None
     if len(predicates) == 1:
         return predicates[0]
 
-    return lambda *a: all(p(*a) for p in predicates)
+    return SearchPredicate(lambda *a: all(p.accept(*a) for p in predicates))
 
 
 def or_predicates(predicates: List[SearchPredicate]) -> Optional[SearchPredicate]:
@@ -56,7 +68,7 @@ def or_predicates(predicates: List[SearchPredicate]) -> Optional[SearchPredicate
     if len(predicates) == 1:
         return predicates[0]
 
-    return lambda *a: any(p(*a) for p in predicates)
+    return SearchPredicate(lambda *a: any(p.accept(*a) for p in predicates))
 
 
 class BaseSearch:
@@ -74,7 +86,7 @@ class BaseSearch:
         return not self.text and not self.predicate
 
     def matches(self, candidate: Any) -> bool:
-        return self.get_predicate()(candidate)
+        return self.get_predicate().accept(candidate)
 
     def get_candidate_text(self, candidate: Any) -> str:
         return str(candidate)
@@ -147,7 +159,7 @@ class BaseSearch:
         if tokens.consume("-"):
             inner = self._parse_items(tokens)
             if inner:
-                return lambda *a: not inner(*a)
+                return not_predicate(inner)
 
         saved_index = tokens.index
 
@@ -170,23 +182,23 @@ class BaseSearch:
 
         return None
 
-    def with_predicate(self, predicate: Callable):
+    def with_predicate(self, predicate: SearchPredicate):
         old_predicate = self.get_predicate()  # force generation of predicate
         new_search = copy.copy(self)
-        new_search.predicate = lambda *a: old_predicate(*a) and predicate(*a)
+        new_search.predicate = and_predicates([old_predicate, predicate])
         return new_search
 
-    def get_part_predicate(self, name: str, tokens: TokenReader) -> Callable:
+    def get_part_predicate(self, name: str, tokens: TokenReader) -> SearchPredicate:
         raise InvalidSearchTermError(f"'{name}' is not a valid search tag.")
 
-    def get_text_predicate(self, text: str) -> Callable:
+    def get_text_predicate(self, text: str) -> SearchPredicate:
         stripped = strip_accents(text).casefold()
 
         def match_text(candidate):
             name = strip_accents(self.get_candidate_text(candidate)).casefold()
             return stripped in name
 
-        return match_text
+        return SearchPredicate(match_text)
 
     def is_stop_token(self, tokens: TokenReader) -> bool:
         """This function decides when to stop when reading an item;
@@ -232,7 +244,7 @@ class GameSearch(BaseSearch):
     def get_candidate_text(self, candidate: Any) -> str:
         return candidate["name"]
 
-    def get_part_predicate(self, name: str, tokens: TokenReader) -> Callable:
+    def get_part_predicate(self, name: str, tokens: TokenReader) -> SearchPredicate:
         if name == "category":
             category = tokens.get_cleaned_token() or ""
             return self.get_category_predicate(category)
@@ -283,13 +295,13 @@ class GameSearch(BaseSearch):
 
         return super().get_part_predicate(name, tokens)
 
-    def get_playtime_predicate(self, tokens: TokenReader) -> Callable:
+    def get_playtime_predicate(self, tokens: TokenReader) -> SearchPredicate:
         def get_game_playtime(db_game):
             return db_game.get("playtime")
 
         return self.get_duration_predicate(get_game_playtime, tokens)
 
-    def get_lastplayed_predicate(self, tokens: TokenReader) -> Callable:
+    def get_lastplayed_predicate(self, tokens: TokenReader) -> SearchPredicate:
         now = time.time()
 
         def get_game_lastplayed_duration_ago(db_game):
@@ -300,7 +312,7 @@ class GameSearch(BaseSearch):
 
         return self.get_duration_predicate(get_game_lastplayed_duration_ago, tokens)
 
-    def get_duration_predicate(self, value_function: Callable, tokens: TokenReader) -> Callable:
+    def get_duration_predicate(self, value_function: Callable, tokens: TokenReader) -> SearchPredicate:
         def match_greater_playtime(db_game):
             game_playtime = value_function(db_game)
             return game_playtime and game_playtime > duration
@@ -315,16 +327,16 @@ class GameSearch(BaseSearch):
 
         operator = tokens.peek_token()
         if operator == ">":
-            matcher = match_greater_playtime
+            matcher = SearchPredicate(match_greater_playtime)
             tokens.get_token()
         elif operator == "<":
-            matcher = match_lesser_playtime
+            matcher = SearchPredicate(match_lesser_playtime)
             tokens.get_token()
         elif operator == ">=":
-            matcher = or_predicates([match_greater_playtime, match_playtime])
+            matcher = or_predicates([SearchPredicate(match_greater_playtime), SearchPredicate(match_playtime)])
             tokens.get_token()
         elif operator == "<=":
-            matcher = or_predicates([match_lesser_playtime, match_playtime])
+            matcher = or_predicates([SearchPredicate(match_lesser_playtime), SearchPredicate(match_playtime)])
             tokens.get_token()
         else:
             matcher = match_playtime
@@ -342,19 +354,19 @@ class GameSearch(BaseSearch):
 
         return matcher
 
-    def get_directory_predicate(self, directory: str) -> Callable:
+    def get_directory_predicate(self, directory: str) -> SearchPredicate:
         def match_directory(db_game):
             game_dir = db_game.get("directory")
             return game_dir and directory in game_dir
 
-        return match_directory
+        return SearchPredicate(match_directory)
 
-    def get_installed_predicate(self, installed: bool) -> Callable:
+    def get_installed_predicate(self, installed: bool) -> SearchPredicate:
         def match_installed(db_game):
             is_installed = self._is_installed(db_game)
             return installed == is_installed
 
-        return match_installed
+        return SearchPredicate(match_installed)
 
     def _is_installed(self, db_game: Dict[str, Any]) -> bool:
         if self.service:
@@ -363,7 +375,7 @@ class GameSearch(BaseSearch):
 
         return bool(db_game["installed"])
 
-    def get_categorized_predicate(self, categorized: bool) -> Callable:
+    def get_categorized_predicate(self, categorized: bool) -> SearchPredicate:
         uncategorized_ids = set(get_uncategorized_game_ids())
 
         def match_categorized(db_game):
@@ -371,9 +383,9 @@ class GameSearch(BaseSearch):
             is_categorized = game_id not in uncategorized_ids
             return is_categorized == categorized
 
-        return match_categorized
+        return SearchPredicate(match_categorized)
 
-    def get_category_predicate(self, category: str, in_category: bool = True) -> Callable:
+    def get_category_predicate(self, category: str, in_category: bool = True) -> SearchPredicate:
         names = normalized_category_names(category, subname_allowed=True)
         category_game_ids = set(get_game_ids_for_categories(names))
 
@@ -382,9 +394,9 @@ class GameSearch(BaseSearch):
             game_in_category = game_id in category_game_ids
             return game_in_category == in_category
 
-        return match_categorized
+        return SearchPredicate(match_categorized)
 
-    def get_service_predicate(self, service_name: str) -> Callable:
+    def get_service_predicate(self, service_name: str) -> SearchPredicate:
         service_name = service_name.casefold()
 
         def match_service(db_game):
@@ -398,9 +410,9 @@ class GameSearch(BaseSearch):
             service = SERVICES.get(game_service)
             return service and service_name in service.name.casefold()
 
-        return match_service
+        return SearchPredicate(match_service)
 
-    def get_runner_predicate(self, runner_name: str) -> Callable:
+    def get_runner_predicate(self, runner_name: str) -> SearchPredicate:
         runner_name = runner_name.casefold()
 
         def match_runner(db_game):
@@ -415,9 +427,9 @@ class GameSearch(BaseSearch):
             runner_human_name = get_runner_human_name(game_runner)
             return runner_name in runner_human_name.casefold()
 
-        return match_runner
+        return SearchPredicate(match_runner)
 
-    def get_platform_predicate(self, platform: str) -> Callable:
+    def get_platform_predicate(self, platform: str) -> SearchPredicate:
         platform = platform.casefold()
 
         def match_platform(db_game):
@@ -430,7 +442,7 @@ class GameSearch(BaseSearch):
                 return any(matches)
             return False
 
-        return match_platform
+        return SearchPredicate(match_platform)
 
 
 class RunnerSearch(BaseSearch):
@@ -441,7 +453,7 @@ class RunnerSearch(BaseSearch):
     def get_candidate_text(self, candidate: Any) -> str:
         return f"{candidate.name}\n{candidate.description}"
 
-    def get_part_predicate(self, name: str, tokens: TokenReader) -> Callable:
+    def get_part_predicate(self, name: str, tokens: TokenReader) -> SearchPredicate:
         if name == "installed":
             flag = read_flag_token(tokens)
 
@@ -452,9 +464,9 @@ class RunnerSearch(BaseSearch):
 
         return super().get_part_predicate(name, tokens)
 
-    def get_installed_predicate(self, installed: bool) -> Callable:
+    def get_installed_predicate(self, installed: bool) -> SearchPredicate:
         def match_installed(runner: Runner):
             is_installed = runner.is_installed()
             return installed == is_installed
 
-        return match_installed
+        return SearchPredicate(match_installed)
