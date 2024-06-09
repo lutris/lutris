@@ -195,6 +195,15 @@ class BaseSearch:
             return True
         return False
 
+    def quote_token(self, text: str) -> str:
+        if text:
+            tokens = list(tokenize_search(text, ISOLATED_TOKENS))
+            test_reader = TokenReader(tokens)
+            cleaned = test_reader.get_cleaned_token_sequence(self.is_stop_token)
+            if cleaned == text:
+                return text
+        return f'"{text}"'
+
 
 class GameSearch(BaseSearch):
     """A search for games, which applies to the games database dictionaries, not the Game objects."""
@@ -331,8 +340,10 @@ class GameSearch(BaseSearch):
         except ValueError as ex:
             raise InvalidSearchTermError(f"'{duration_text}' is not a valid playtime.") from ex
 
-        text = f"{tag}:{operator}{get_formatted_playtime(duration)}"
-        return FunctionPredicate(matcher, text)
+        def format_predicate():
+            return f"{tag}:{operator}{get_formatted_playtime(duration)}"
+
+        return FunctionPredicate(matcher, formatter=format_predicate)
 
     def get_directory_predicate(self, directory: str) -> SearchPredicate:
         return TextPredicate(directory, lambda c: c.get("directory"), tag="directory")
@@ -365,8 +376,10 @@ class GameSearch(BaseSearch):
             game_in_category = game_id in category_game_ids
             return game_in_category == in_category
 
-        text = f"category:{category}"
-        return FunctionPredicate(match_category, text=text)
+        def format_predicate():
+            return f"category:{self.quote_token(category)}"
+
+        return FunctionPredicate(match_category, formatter=format_predicate)
 
     def get_service_predicate(self, service_name: str) -> SearchPredicate:
         service_name = service_name.casefold()
@@ -382,11 +395,13 @@ class GameSearch(BaseSearch):
             service = SERVICES.get(game_service)
             return service and service_name in service.name.casefold()
 
-        text = f"source:{service_name}"
-        return FunctionPredicate(match_service, text)
+        def format_predicate():
+            return f"source:{service_name}"
+
+        return FunctionPredicate(match_service, formatter=format_predicate)
 
     def get_runner_predicate(self, runner_name: str) -> SearchPredicate:
-        runner_name = runner_name.casefold()
+        folded_runner_name = runner_name.casefold()
 
         def match_runner(db_game):
             game_runner = db_game.get("runner")
@@ -394,30 +409,34 @@ class GameSearch(BaseSearch):
             if not game_runner:
                 return False
 
-            if game_runner.casefold() == runner_name:
+            if game_runner.casefold() == folded_runner_name:
                 return True
 
             runner_human_name = get_runner_human_name(game_runner)
             return runner_name in runner_human_name.casefold()
 
-        text = f"runner:{runner_name}"
-        return FunctionPredicate(match_runner, text=text)
+        def format_predicate():
+            return f"runner:{self.quote_token(runner_name)}"
+
+        return FunctionPredicate(match_runner, formatter=format_predicate)
 
     def get_platform_predicate(self, platform: str) -> SearchPredicate:
-        platform = platform.casefold()
+        folded_platform = platform.casefold()
 
         def match_platform(db_game):
             game_platform = db_game.get("platform")
             if game_platform:
-                return platform in game_platform.casefold()
+                return folded_platform in game_platform.casefold()
             if self.service:
                 platforms = [p.casefold() for p in self.service.get_game_platforms(db_game)]
-                matches = [p for p in platforms if platform in p]
+                matches = [p for p in platforms if folded_platform in p]
                 return any(matches)
             return False
 
-        text = f"platform:{platform}"
-        return FunctionPredicate(match_platform, text=text)
+        def format_predicate():
+            return f"platform:{self.quote_token(platform)}"
+
+        return FunctionPredicate(match_platform, formatter=format_predicate)
 
 
 class RunnerSearch(BaseSearch):
