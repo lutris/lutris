@@ -32,6 +32,17 @@ class TextPredicate(SearchPredicate):
         return bool(candidate_text and self.stripped_text in candidate_text)
 
 
+class FlagPredicate(SearchPredicate):
+    def __init__(self, flag: Optional[bool], flag_function: Callable[[Any], bool]):
+        self.flag = flag
+        self.flag_function = flag_function
+
+    def accept(self, candidate: Any) -> bool:
+        if self.flag is None:
+            return True
+        return self.flag == self.flag_function(candidate)
+
+
 class NotPredicate(SearchPredicate):
     def __init__(self, to_negate: SearchPredicate) -> None:
         self.to_negate = to_negate
