@@ -61,17 +61,18 @@ def tokenize_search(text: str, isolated_tokens: Iterable[str]) -> Iterable[str]:
 
     def split_isolated_tokens(tokens: Iterable[str]) -> Iterable[str]:
         for token in tokens:
-            i = 0
-            while i < len(token):
-                if token[i] in isolating_chars:
-                    for candidate in isolated_tokens:
-                        if token[i:].startswith(candidate):
-                            yield token[:i]
-                            yield candidate
-                            token = token[(i + len(candidate)) :]
-                            i = -1  # start again with reduced token!
-                            break
-                i += 1
+            if not token.startswith('"'):
+                i = 0
+                while i < len(token):
+                    if token[i] in isolating_chars:
+                        for candidate in isolated_tokens:
+                            if token[i:].startswith(candidate):
+                                yield token[:i]
+                                yield candidate
+                                token = token[(i + len(candidate)) :]
+                                i = -1  # start again with reduced token!
+                                break
+                    i += 1
             yield token
 
     # Since we blindly return empty buffers, we must now filter them out

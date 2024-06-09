@@ -18,15 +18,15 @@ class SearchPredicate(ABC):
 
 
 class FunctionPredicate(SearchPredicate):
-    def __init__(self, predicate: Callable[[Any], bool], text: str) -> None:
+    def __init__(self, predicate: Callable[[Any], bool], formatter: Callable[[], str]) -> None:
         self.predicate = predicate
-        self.text = text
+        self.formatter = formatter
 
     def accept(self, candidate: Any) -> bool:
         return self.predicate(candidate)
 
     def __str__(self):
-        return self.text
+        return self.formatter()
 
 
 class TextPredicate(SearchPredicate):
