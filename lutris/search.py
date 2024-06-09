@@ -20,7 +20,7 @@ from lutris.search_predicate import (
     TextPredicate,
 )
 from lutris.services import SERVICES
-from lutris.util.strings import parse_playtime_parts
+from lutris.util.strings import get_formatted_playtime, parse_playtime_parts
 from lutris.util.tokenization import (
     TokenReader,
     clean_token,
@@ -177,7 +177,7 @@ class BaseSearch:
         raise InvalidSearchTermError(f"'{name}' is not a valid search tag.")
 
     def get_text_predicate(self, text: str) -> SearchPredicate:
-        return TextPredicate(text, self.get_candidate_text)
+        return TextPredicate(text, self.get_candidate_text, tag="")
 
     def is_stop_token(self, tokens: TokenReader) -> bool:
         """This function decides when to stop when reading an item;
@@ -278,7 +278,7 @@ class GameSearch(BaseSearch):
         def get_game_playtime(db_game):
             return db_game.get("playtime")
 
-        return self.get_duration_predicate(get_game_playtime, tokens)
+        return self.get_duration_predicate(get_game_playtime, tokens, tag="playtime")
 
     def get_lastplayed_predicate(self, tokens: TokenReader) -> SearchPredicate:
         now = time.time()
@@ -289,9 +289,9 @@ class GameSearch(BaseSearch):
                 return (now - lastplayed) / (60 * 60)
             return None
 
-        return self.get_duration_predicate(get_game_lastplayed_duration_ago, tokens)
+        return self.get_duration_predicate(get_game_lastplayed_duration_ago, tokens, tag="lastplayed")
 
-    def get_duration_predicate(self, value_function: Callable, tokens: TokenReader) -> SearchPredicate:
+    def get_duration_predicate(self, value_function: Callable, tokens: TokenReader, tag: str) -> SearchPredicate:
         def match_greater_playtime(db_game):
             game_playtime = value_function(db_game)
             return game_playtime and game_playtime > duration
@@ -306,16 +306,16 @@ class GameSearch(BaseSearch):
 
         operator = tokens.peek_token()
         if operator == ">":
-            matcher = FunctionPredicate(match_greater_playtime)
+            matcher = match_greater_playtime
             tokens.get_token()
         elif operator == "<":
-            matcher = FunctionPredicate(match_lesser_playtime)
+            matcher = match_lesser_playtime
             tokens.get_token()
         elif operator == ">=":
-            matcher = OrPredicate([FunctionPredicate(match_greater_playtime), FunctionPredicate(match_playtime)])
+            matcher = lambda *a: match_greater_playtime(*a) or match_playtime(*a)  # noqa: E731
             tokens.get_token()
         elif operator == "<=":
-            matcher = OrPredicate([FunctionPredicate(match_lesser_playtime), FunctionPredicate(match_playtime)])
+            matcher = lambda *a: match_lesser_playtime(*a) or match_playtime(*a)  # noqa: E731
             tokens.get_token()
         else:
             matcher = match_playtime
@@ -331,10 +331,11 @@ class GameSearch(BaseSearch):
         except ValueError as ex:
             raise InvalidSearchTermError(f"'{duration_text}' is not a valid playtime.") from ex
 
-        return matcher
+        text = f"{tag}:{operator}{get_formatted_playtime(duration)}"
+        return FunctionPredicate(matcher, text)
 
     def get_directory_predicate(self, directory: str) -> SearchPredicate:
-        return TextPredicate(directory, lambda c: c.get("directory"))
+        return TextPredicate(directory, lambda c: c.get("directory"), tag="directory")
 
     def get_installed_predicate(self, installed: bool) -> SearchPredicate:
         if self.service:
@@ -343,9 +344,9 @@ class GameSearch(BaseSearch):
                 appid = db_game.get("appid")
                 return bool(appid and appid in games.get_service_games(self.service.id))
 
-            return FlagPredicate(installed, is_installed)
+            return FlagPredicate(installed, is_installed, tag="installed")
 
-        return FlagPredicate(installed, lambda db_game: bool(db_game["installed"]))
+        return FlagPredicate(installed, lambda db_game: bool(db_game["installed"]), tag="installed")
 
     def get_categorized_predicate(self, categorized: bool) -> SearchPredicate:
         uncategorized_ids = set(get_uncategorized_game_ids())
@@ -353,7 +354,7 @@ class GameSearch(BaseSearch):
         def is_categorized(db_game):
             return db_game["id"] not in uncategorized_ids
 
-        return FlagPredicate(categorized, is_categorized)
+        return FlagPredicate(categorized, is_categorized, tag="categorized")
 
     def get_category_predicate(self, category: str, in_category: bool = True) -> SearchPredicate:
         names = normalized_category_names(category, subname_allowed=True)
@@ -364,7 +365,8 @@ class GameSearch(BaseSearch):
             game_in_category = game_id in category_game_ids
             return game_in_category == in_category
 
-        return FunctionPredicate(match_category)
+        text = f"category:{category}"
+        return FunctionPredicate(match_category, text=text)
 
     def get_service_predicate(self, service_name: str) -> SearchPredicate:
         service_name = service_name.casefold()
@@ -380,7 +382,8 @@ class GameSearch(BaseSearch):
             service = SERVICES.get(game_service)
             return service and service_name in service.name.casefold()
 
-        return FunctionPredicate(match_service)
+        text = f"source:{service_name}"
+        return FunctionPredicate(match_service, text)
 
     def get_runner_predicate(self, runner_name: str) -> SearchPredicate:
         runner_name = runner_name.casefold()
@@ -397,7 +400,8 @@ class GameSearch(BaseSearch):
             runner_human_name = get_runner_human_name(game_runner)
             return runner_name in runner_human_name.casefold()
 
-        return FunctionPredicate(match_runner)
+        text = f"runner:{runner_name}"
+        return FunctionPredicate(match_runner, text=text)
 
     def get_platform_predicate(self, platform: str) -> SearchPredicate:
         platform = platform.casefold()
@@ -412,7 +416,8 @@ class GameSearch(BaseSearch):
                 return any(matches)
             return False
 
-        return FunctionPredicate(match_platform)
+        text = f"platform:{platform}"
+        return FunctionPredicate(match_platform, text=text)
 
 
 class RunnerSearch(BaseSearch):
@@ -435,4 +440,4 @@ class RunnerSearch(BaseSearch):
         return super().get_part_predicate(name, tokens)
 
     def get_installed_predicate(self, installed: bool) -> SearchPredicate:
-        return FlagPredicate(installed, lambda runner: runner.is_installed())
+        return FlagPredicate(installed, lambda runner: runner.is_installed(), tag="installed")
