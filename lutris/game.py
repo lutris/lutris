@@ -351,7 +351,9 @@ class Game:
         service = launch_ui_delegate.get_service(self.service)
         db_game = service.get_service_db_game(self)
         if not db_game:
-            logger.error("Can't find %s for %s", self.name, service.name)
+            logger.error("Can't find %s for %s, trying to fall back to Lutris installers", self.name, service.name)
+            application = Gio.Application.get_default()
+            application.show_lutris_installer_window(game_slug=self.slug)
             return
 
         try:
