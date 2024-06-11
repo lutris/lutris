@@ -613,7 +613,9 @@ class ItchIoService(OnlineService):
     def get_patch_files(self, installer, installer_file_id):
         """Similar to get_installer_files but for patches"""
         # No really, it is the same! so we just call get_installer_files
-        return self.get_installer_files(installer, installer_file_id, [])
+        # and strip off the extras files.
+        files, _extra_files = self.get_installer_files(installer, installer_file_id, [])
+        return files
 
     def get_file_weight(self, name, demo):
         if name.endswith(".rpm"):
