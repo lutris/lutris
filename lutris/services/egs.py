@@ -298,7 +298,12 @@ class EpicGamesStoreService(OnlineService):
             raise AuthTokenExpiredError("EGS Token expired") from ex
         egs_games = []
         for game in library:
-            egs_game = EGSGame.new_from_api(game)
+            try:
+                egs_game = EGSGame.new_from_api(game)
+            except Exception as ex:
+                logger.exception("Unable to interpret EGS game: %s", ex)
+                logger.info("EGS game skipped: %s", game)
+                continue
             egs_game.save()
             egs_games.append(egs_game)
         return egs_games
