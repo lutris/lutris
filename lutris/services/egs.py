@@ -299,7 +299,10 @@ class EpicGamesStoreService(OnlineService):
         egs_games = []
         for game in library:
             try:
-                egs_game = EGSGame.new_from_api(game)
+                # Subscriptions turn up as 'games' that have no 'appName'; these
+                # are not really games, so we skip them.
+                if "appName" in game:
+                    egs_game = EGSGame.new_from_api(game)
             except Exception as ex:
                 logger.exception("Unable to interpret EGS game: %s", ex)
                 logger.info("EGS game skipped: %s", game)
