@@ -303,6 +303,8 @@ class EpicGamesStoreService(OnlineService):
                 # are not really games, so we skip them.
                 if "appName" in game:
                     egs_game = EGSGame.new_from_api(game)
+                else:
+                    continue
             except Exception as ex:
                 logger.exception("Unable to interpret EGS game: %s", ex)
                 logger.info("EGS game skipped: %s", game)
