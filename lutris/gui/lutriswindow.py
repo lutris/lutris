@@ -405,7 +405,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         return games_db.get_games_by_ids(self.application.get_running_game_ids())
 
     def get_missing_games(self):
-        return games_db.get_games_by_ids(MISSING_GAMES.missing_game_ids)
+        games = games_db.get_games_by_ids(MISSING_GAMES.missing_game_ids)
+        return self.filter_games(games)
 
     def update_missing_games_sidebar_row(self) -> None:
         missing_games = self.get_missing_games()
@@ -1137,7 +1138,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             # to update the view to reflect that.
             search = self.get_game_search()
             enforce_hidden = not search.has_component("hidden")
-            if row.type == "dynamic_category" and row.id == "recent":
+            if row.type == "dynamic_category" and row.id in ("recent", "missing"):
                 if enforce_hidden and ".hidden" in game.get_categories():
                     return False
             elif row.type in ("category", "user_category"):
