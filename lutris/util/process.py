@@ -29,7 +29,7 @@ class Process:
     def _read_content(self, file_path):
         """Return the contents from a file in /proc"""
         try:
-            with open(file_path, encoding="utf-8") as proc_file:
+            with open(file_path, encoding="utf-8", errors="replace") as proc_file:
                 content = proc_file.read()
         except PermissionError:
             return ""
