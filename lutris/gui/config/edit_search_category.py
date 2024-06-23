@@ -1,12 +1,13 @@
 # pylint: disable=no-member
 from gettext import gettext as _
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from gi.repository import Gtk
 
 from lutris.database import categories as categories_db
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
-from lutris.search import GameSearch
+from lutris.search import FLAG_TEXTS, GameSearch
+from lutris.search_predicate import AndPredicate, format_flag
 
 
 class EditSearchCategoryDialog(SavableModelessDialog):
@@ -53,15 +54,37 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         self._add_flag_widget(0, _("Installed:"), "installed", predicate)
         self._add_flag_widget(1, _("Categorized:"), "categorized", predicate)
 
+    def _change_search_flag(self, tag: str, flag: Optional[bool]):
+        search = GameSearch(self.search)
+        p = search.get_flag_predicate(tag, flag)
+        if p:
+            predicate = search.get_predicate().without_flag(tag)
+            predicate = AndPredicate([predicate, p])
+            self.search = str(predicate)
+            self.search_entry.set_text(self.search)
+
+    def _remove_search_flag(self, tag: str):
+        search = GameSearch(self.search)
+        predicate = search.get_predicate().without_flag(tag)
+        self.search = str(predicate)
+        self.search_entry.set_text(self.search)
+
     def _add_flag_widget(self, row, caption, tag, predicate):
+        def on_combobox_change(_widget):
+            active_id = combobox.get_active_id()
+            if active_id == "omit":
+                self._remove_search_flag(tag)
+            else:
+                self._change_search_flag(tag, FLAG_TEXTS[active_id])
+
         label = Gtk.Label(caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
         self.components_grid.attach(label, 0, row, 1, 1)
 
         liststore = Gtk.ListStore(str, str)
-        liststore.append((_("(omit from search)"), "Omit"))
-        liststore.append((_("Yes"), str(True)))
-        liststore.append((_("No"), str(False)))
-        liststore.append((_("Maybe"), str(None)))
+        liststore.append((_("(omit from search)"), "omit"))
+        liststore.append((_("Yes"), "yes"))
+        liststore.append((_("No"), "no"))
+        liststore.append((_("Maybe"), "maybe"))
 
         combobox = Gtk.ComboBox.new_with_model(liststore)
         combobox.set_entry_text_column(0)
@@ -73,11 +96,12 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         combobox.add_attribute(renderer_text, "text", 0)
 
         if predicate.has_flag(tag):
-            combobox.set_active_id(str(predicate.get_flag(tag)))
+            combobox.set_active_id(format_flag(predicate.get_flag(tag)))
         else:
-            combobox.set_active_id("Omit")
+            combobox.set_active_id("omit")
 
         self.components_grid.attach(combobox, 1, row, 1, 1)
+        combobox.connect("changed", on_combobox_change)
 
     def on_delete_clicked(self, _button):
         dlg = QuestionDialog(

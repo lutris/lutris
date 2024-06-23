@@ -1,13 +1,25 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from lutris.util.strings import strip_accents
+
+FLAG_TEXTS: Dict[str, Optional[bool]] = {"true": True, "yes": True, "false": False, "no": False, "maybe": None}
+
+
+def format_flag(flag: Optional[bool]) -> str:
+    if flag is None:
+        return "maybe"
+    else:
+        return "yes" if flag else "no"
 
 
 class SearchPredicate(ABC):
     @abstractmethod
     def accept(self, candidate: Any) -> bool:
         return True
+
+    def without_flag(self, tag: str) -> "SearchPredicate":
+        return self
 
     def has_flag(self, tag: str) -> bool:
         return False
@@ -67,6 +79,9 @@ class FlagPredicate(SearchPredicate):
             return True
         return self.flag == self.flag_function(candidate)
 
+    def without_flag(self, tag: str) -> "SearchPredicate":
+        return TRUE_PREDICATE if self.tag == tag else self
+
     def has_flag(self, tag: str) -> bool:
         return tag == self.tag
 
@@ -74,11 +89,7 @@ class FlagPredicate(SearchPredicate):
         return self.flag if self.tag == tag else None
 
     def __str__(self):
-        if self.flag is None:
-            flag_text = "maybe"
-        else:
-            flag_text = "yes" if self.flag else "no"
-
+        flag_text = format_flag(self.flag)
         return f"{self.tag}: {flag_text}"
 
 
@@ -106,6 +117,18 @@ class AndPredicate(SearchPredicate):
                 return False
         return True
 
+    def without_flag(self, tag: str) -> "SearchPredicate":
+        new_components = []
+        for c in self.components:
+            r = c.without_flag(tag)
+            if r != TRUE_PREDICATE:
+                new_components.append(r)
+
+        if new_components != self.components:
+            return AndPredicate(new_components)
+
+        return self
+
     def has_flag(self, tag: str) -> bool:
         for c in self.components:
             if c.has_flag(tag):
@@ -119,7 +142,7 @@ class AndPredicate(SearchPredicate):
         return None
 
     def __str__(self):
-        return " ".join(self.components)
+        return " ".join(str(c) for c in self.components)
 
 
 class OrPredicate(SearchPredicate):
