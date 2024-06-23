@@ -115,3 +115,9 @@ class FsyncUnsupportedError(Exception):
             message = _("Your kernel is not patched for fsync." " Please get a patched kernel to use fsync.")
 
         super().__init__(message, *args, **kwarg)
+
+
+class InvalidSearchTermError(ValueError):
+    def __init__(self, message: str, *args, **kwargs) -> None:
+        super().__init__(message, *args, **kwargs)
+        self.message = message
