@@ -1,6 +1,6 @@
 import copy
 import time
-from typing import Any, Callable, Dict, Optional, Set
+from typing import Any, Callable, Optional, Set
 
 from lutris.database import games
 from lutris.database.categories import (
@@ -8,8 +8,10 @@ from lutris.database.categories import (
     get_uncategorized_game_ids,
     normalized_category_names,
 )
+from lutris.exceptions import InvalidSearchTermError
 from lutris.runners import get_runner_human_name
 from lutris.search_predicate import (
+    FLAG_TEXTS,
     TRUE_PREDICATE,
     AndPredicate,
     FlagPredicate,
@@ -29,14 +31,6 @@ from lutris.util.tokenization import (
 
 ISOLATED_TOKENS = set([":", "-", "(", ")", "<", ">", ">=", "<="])
 ITEM_STOP_TOKENS = (ISOLATED_TOKENS | set(["OR", "AND"])) - set(["(", "-"])
-
-FLAG_TEXTS: Dict[str, Optional[bool]] = {"true": True, "yes": True, "false": False, "no": False, "maybe": None}
-
-
-class InvalidSearchTermError(ValueError):
-    def __init__(self, message: str, *args, **kwargs) -> None:
-        super().__init__(message, *args, **kwargs)
-        self.message = message
 
 
 def read_flag_token(tokens: TokenReader) -> Optional[bool]:
@@ -263,6 +257,14 @@ class GameSearch(BaseSearch):
         # group them at the end.
         flag = read_flag_token(tokens)
 
+        flag_predicate = self.get_flag_predicate(name, flag)
+
+        if flag_predicate:
+            return flag_predicate
+
+        return super().get_part_predicate(name, tokens)
+
+    def get_flag_predicate(self, name: str, flag: Optional[bool]) -> Optional[SearchPredicate]:
         if name == "installed":
             return self.get_installed_predicate(flag)
 
@@ -275,7 +277,7 @@ class GameSearch(BaseSearch):
         if name == "categorized":
             return self.get_categorized_predicate(flag)
 
-        return super().get_part_predicate(name, tokens)
+        return None
 
     def get_playtime_predicate(self, tokens: TokenReader) -> SearchPredicate:
         def get_game_playtime(db_game):
