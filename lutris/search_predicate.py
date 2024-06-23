@@ -9,6 +9,12 @@ class SearchPredicate(ABC):
     def accept(self, candidate: Any) -> bool:
         return True
 
+    def has_flag(self, tag: str) -> bool:
+        return False
+
+    def get_flag(self, tag: str) -> Optional[bool]:
+        return None
+
     def to_child_text(self) -> str:
         return str(self)
 
@@ -61,6 +67,12 @@ class FlagPredicate(SearchPredicate):
             return True
         return self.flag == self.flag_function(candidate)
 
+    def has_flag(self, tag: str) -> bool:
+        return tag == self.tag
+
+    def get_flag(self, tag: str) -> Optional[bool]:
+        return self.flag if self.tag == tag else None
+
     def __str__(self):
         if self.flag is None:
             flag_text = "maybe"
@@ -93,6 +105,18 @@ class AndPredicate(SearchPredicate):
             if not c.accept(candidate):
                 return False
         return True
+
+    def has_flag(self, tag: str) -> bool:
+        for c in self.components:
+            if c.has_flag(tag):
+                return True
+        return False
+
+    def get_flag(self, tag: str) -> Optional[bool]:
+        for c in self.components:
+            if c.has_flag(tag):
+                return c.get_flag(tag)
+        return None
 
     def __str__(self):
         return " ".join(self.components)
