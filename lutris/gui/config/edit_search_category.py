@@ -27,7 +27,9 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         self.name_entry = self._add_entry_box(_("Name"), self.category)
         self.search_entry = self._add_entry_box(_("Search"), self.search)
 
-        # self.vbox.pack_start(self._create_games_checkboxes(), True, True, 0)
+        self.components_grid = Gtk.Grid(row_spacing=6, column_spacing=6)
+        self._add_component_widgets()
+        self.vbox.pack_start(self.components_grid, True, True, 0)
 
         delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
         delete_button.connect("clicked", self.on_delete_clicked)
@@ -44,6 +46,38 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         hbox.pack_start(entry, True, True, 0)
         self.vbox.pack_start(hbox, False, False, 0)
         return entry
+
+    def _add_component_widgets(self):
+        search = GameSearch(self.search)
+        predicate = search.get_predicate()
+        self._add_flag_widget(0, _("Installed:"), "installed", predicate)
+        self._add_flag_widget(1, _("Categorized:"), "categorized", predicate)
+
+    def _add_flag_widget(self, row, caption, tag, predicate):
+        label = Gtk.Label(caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
+        self.components_grid.attach(label, 0, row, 1, 1)
+
+        liststore = Gtk.ListStore(str, str)
+        liststore.append((_("(omit from search)"), "Omit"))
+        liststore.append((_("Yes"), str(True)))
+        liststore.append((_("No"), str(False)))
+        liststore.append((_("Maybe"), str(None)))
+
+        combobox = Gtk.ComboBox.new_with_model(liststore)
+        combobox.set_entry_text_column(0)
+        combobox.set_id_column(1)
+        combobox.set_halign(Gtk.Align.START)
+        combobox.set_valign(Gtk.Align.CENTER)
+        renderer_text = Gtk.CellRendererText()
+        combobox.pack_start(renderer_text, True)
+        combobox.add_attribute(renderer_text, "text", 0)
+
+        if predicate.has_flag(tag):
+            combobox.set_active_id(str(predicate.get_flag(tag)))
+        else:
+            combobox.set_active_id("Omit")
+
+        self.components_grid.attach(combobox, 1, row, 1, 1)
 
     def on_delete_clicked(self, _button):
         dlg = QuestionDialog(
