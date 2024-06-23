@@ -263,12 +263,6 @@ class GameSearch(BaseSearch):
         # group them at the end.
         flag = read_flag_token(tokens)
 
-        if flag is None:
-            # None represents 'maybe' which performs no test, but overrides
-            # the tests performed outside the search. Useful for 'hidden' and
-            # 'installed' components
-            return TRUE_PREDICATE
-
         if name == "installed":
             return self.get_installed_predicate(flag)
 
@@ -348,7 +342,7 @@ class GameSearch(BaseSearch):
     def get_directory_predicate(self, directory: str) -> SearchPredicate:
         return TextPredicate(directory, lambda c: c.get("directory"), tag="directory")
 
-    def get_installed_predicate(self, installed: bool) -> SearchPredicate:
+    def get_installed_predicate(self, installed: Optional[bool]) -> SearchPredicate:
         if self.service:
 
             def is_installed(db_game):
@@ -359,7 +353,7 @@ class GameSearch(BaseSearch):
 
         return FlagPredicate(installed, lambda db_game: bool(db_game["installed"]), tag="installed")
 
-    def get_categorized_predicate(self, categorized: bool) -> SearchPredicate:
+    def get_categorized_predicate(self, categorized: Optional[bool]) -> SearchPredicate:
         uncategorized_ids = set(get_uncategorized_game_ids())
 
         def is_categorized(db_game):
@@ -367,7 +361,10 @@ class GameSearch(BaseSearch):
 
         return FlagPredicate(categorized, is_categorized, tag="categorized")
 
-    def get_category_predicate(self, category: str, in_category: bool = True) -> SearchPredicate:
+    def get_category_predicate(self, category: str, in_category: Optional[bool] = True) -> SearchPredicate:
+        if in_category is None:
+            return TRUE_PREDICATE
+
         names = normalized_category_names(category, subname_allowed=True)
         category_game_ids = set(get_game_ids_for_categories(names))
 
