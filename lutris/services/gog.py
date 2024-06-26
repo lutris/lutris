@@ -90,6 +90,8 @@ class GOGService(OnlineService):
     token_path = os.path.join(settings.CACHE_DIR, ".gog.token")
     cache_path = os.path.join(settings.CACHE_DIR, "gog-library.json")
 
+    runner_to_os_dict = {"wine": "windows", "linux": "linux"}
+
     def __init__(self):
         super().__init__()
 
@@ -363,9 +365,7 @@ class GOGService(OnlineService):
     def get_update_versions(self, gog_id: str, runner_name: Optional[str]):
         """Return updates available for a game, keyed by patch version"""
 
-        runner_to_os_dict = {"wine": "windows", "linux": "linux"}
-
-        filter_os = runner_to_os_dict.get(runner_name) if runner_name else None
+        filter_os = self.runner_to_os_dict.get(runner_name) if runner_name else None
 
         games_detail = self.get_game_details(gog_id)
         patches = games_detail["downloads"]["patches"]
@@ -587,6 +587,9 @@ class GOGService(OnlineService):
     def get_dlc_installers(self, db_game):
         """Return all available DLC installers for game"""
         appid = db_game["service_id"]
+        runner_name = db_game.get("runner")
+
+        filter_os = self.runner_to_os_dict.get(runner_name) if runner_name else None
 
         dlcs = self.get_game_dlcs(appid)
 
@@ -601,8 +604,13 @@ class GOGService(OnlineService):
             ]
 
             for file in installfiles:
+                file_os = file["os"].casefold()
+
+                if filter_os and file_os and filter_os != file_os:
+                    continue
+
                 # supports linux
-                if file["os"].casefold() == "linux":
+                if file_os == "linux":
                     runner = "linux"
                     script = [
                         {"extract": {"dst": "$CACHE/GOG", "file": dlc_id, "format": "zip"}},
