@@ -5,7 +5,7 @@ import os
 import time
 from collections import defaultdict
 from gettext import gettext as _
-from typing import List
+from typing import List, Optional
 from urllib.parse import parse_qsl, urlencode, urlparse
 
 from lxml import etree
@@ -360,8 +360,13 @@ class GOGService(OnlineService):
             if installer["language"] == self.determine_language_installer(gog_installers, language)
         ]
 
-    def get_update_versions(self, gog_id):
+    def get_update_versions(self, gog_id: str, runner_name: Optional[str]):
         """Return updates available for a game, keyed by patch version"""
+
+        runner_to_os_dict = {"wine": "windows", "linux": "linux"}
+
+        filter_os = runner_to_os_dict.get(runner_name) if runner_name else None
+
         games_detail = self.get_game_details(gog_id)
         patches = games_detail["downloads"]["patches"]
         if not patches:
@@ -369,6 +374,10 @@ class GOGService(OnlineService):
             return {}
         patch_versions = defaultdict(list)
         for patch in patches:
+            if filter_os:
+                patch_os = patch.get("os")
+                if patch_os and filter_os != patch_os.casefold():
+                    continue
             patch_versions[patch["name"]].append(patch)
         return patch_versions
 
@@ -652,7 +661,8 @@ class GOGService(OnlineService):
 
     def get_update_installers(self, db_game):
         appid = db_game["service_id"]
-        patch_versions = self.get_update_versions(appid)
+        runner = db_game.get("runner")
+        patch_versions = self.get_update_versions(appid, runner)
         patch_installers = []
         for version in patch_versions:
             patch = patch_versions[version]
