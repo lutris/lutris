@@ -4,7 +4,7 @@ import os
 import shutil
 from gettext import gettext as _
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List
 
 from gi.repository import Gio
 
@@ -179,9 +179,16 @@ class BaseService:
     def get_update_installers(self, db_game):
         return []
 
-    def generate_installer(self, db_game):
+    def generate_installer(self, db_game: Dict[str, Any]) -> Dict[str, Any]:
         """Used to generate an installer from the data returned from the services"""
         return {}
+
+    def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
+        """Used to generate a list of installers to choose from, from the data returned from the services
+        By default this is just the installer from generate_installer(), and if overridden to return
+        more than one, then generate_installer must be overridden ti pick a default installer."""
+        installer = self.generate_installer(db_game)
+        return [installer] if installer else []
 
     def install_from_api(self, db_game, appid=None):
         """Install a game, using the API or generate_installer() to obtain the installer."""
@@ -193,7 +200,7 @@ class BaseService:
                 raise error  # bounce any error off the backstop
 
             if not service_installers:
-                service_installers = [self.generate_installer(db_game)]
+                service_installers = self.generate_installers(db_game)
             application = Gio.Application.get_default()
             application.show_installer_window(service_installers, service=self, appid=appid)
 
@@ -298,11 +305,12 @@ class BaseService:
             if existing_game:
                 logger.debug("Found existing game, aborting install")
                 return None, None, existing_game
-        installer = self.generate_installer(db_game) if not update else None
-        if installer:
+        installers = self.generate_installers(db_game) if not update else []
+        if installers:
             if service_installers:
-                installer["version"] = installer["version"] + " (auto-generated)"
-            service_installers.append(installer)
+                for installer in installers:
+                    installer["version"] = installer["version"] + " (auto-generated)"
+            service_installers.extend(installers)
         if not service_installers:
             logger.error("No installer found for %s", db_game)
             return
