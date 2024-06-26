@@ -42,7 +42,7 @@ def get_game_config(task, gog_game_path):
         if os.path.exists(resolved):
             return resolved
 
-        logger.warning("GOG configuratipath '%s' could not be resolved", path)
+        logger.warning("GOG configuration path '%s' could not be resolved", path)
         return path
 
     config = {}
