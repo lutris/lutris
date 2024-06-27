@@ -12,6 +12,7 @@ from lutris.database import games as games_db
 from lutris.exceptions import UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
+from lutris.runners import get_runner_human_name
 from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -340,23 +341,49 @@ class ItchIoService(OnlineService):
     def get_installed_slug(self, db_game):
         return db_game["slug"]
 
-    def generate_installer(self, db_game):
+    def generate_installer(self, db_game: Dict[str, Any]) -> Dict[str, Any]:
         """Auto generate installer for itch.io game"""
         details = json.loads(db_game["details"])
 
         if "p_linux" in details["traits"]:
-            runner = "linux"
+            return self._generate_installer("linux", db_game)
+        elif "p_windows" in details["traits"]:
+            return self._generate_installer("wine", db_game)
+
+        logger.warning("No supported platforms found")
+        return {}
+
+    def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
+        """Auto generate installer for itch.io game"""
+        details = json.loads(db_game["details"])
+
+        installers = []
+
+        if "p_linux" in details["traits"]:
+            installers.append(self._generate_installer("linux", db_game))
+
+        if "p_windows" in details["traits"]:
+            installers.append(self._generate_installer("wine", db_game))
+
+        if len(installers) > 1:
+            for installer in installers:
+                runner_human_name = get_runner_human_name(installer["runner"])
+                installer["version"] += " " + (runner_human_name or installer["runner"])
+
+        return installers
+
+    def _generate_installer(self, runner, db_game: Dict[str, Any]) -> Dict[str, Any]:
+        if runner == "linux":
             game_config = {"exe": AUTO_ELF_EXE}
             script = [
                 {"extract": {"file": "itchupload", "dst": "$CACHE"}},
                 {"merge": {"src": "$CACHE", "dst": "$GAMEDIR"}},
             ]
-        elif "p_windows" in details["traits"]:
-            runner = "wine"
+        elif runner == "wine":
             game_config = {"exe": AUTO_WIN32_EXE}
             script = [{"task": {"name": "create_prefix"}}, {"install_or_extract": "itchupload"}]
         else:
-            logger.warning("No supported platforms found")
+            logger.warning(f"'{runner}' is not a supported runner for itchio")
             return {}
 
         return {
