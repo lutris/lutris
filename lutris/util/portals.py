@@ -1,4 +1,5 @@
 import os
+from gettext import gettext as _
 from typing import Callable, Iterable
 
 from gi.repository import Gio, GLib, GObject
@@ -77,8 +78,16 @@ class TrashPortal(GObject.Object):
         if values:
             result = values[0]
             if result == 0:
-                paths_text = ", ".join(self.file_paths)
-                self.report_error(RuntimeError(f"The item ({paths_text}) could not be moved to the trash."))
+                if len(self.file_paths) == 1:
+                    message = (
+                        _("'%s' could not be moved to the trash. You will need to delete it yourself.")
+                        % self.file_paths[0]
+                    )
+                else:
+                    message = _(
+                        "The items could not be moved to the trash. You will need to delete them yourself:\n%s"
+                    ) % "\n".join(self.file_paths)
+                self.report_error(RuntimeError(message))
                 return
         self.report_completion()
 
