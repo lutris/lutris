@@ -77,7 +77,8 @@ class TrashPortal(GObject.Object):
         if values:
             result = values[0]
             if result == 0:
-                self.report_error(RuntimeError("The item could not be moved to the trash."))
+                paths_text = ", ".join(self.file_paths)
+                self.report_error(RuntimeError(f"The item ({paths_text}) could not be moved to the trash."))
                 return
         self.report_completion()
 

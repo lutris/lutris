@@ -345,6 +345,7 @@ class RunnerInstallDialog(ModelessDialog):
             self.update_listboxrow(row)
 
         def on_error(error):
+            logger.exception("Runner '%s (%s)' uninstall failed: %s", self.runner_name, version, error)
             display_error(error, parent=self)
 
         system.remove_folder(runner_path, completion_function=on_complete, error_function=on_error)
