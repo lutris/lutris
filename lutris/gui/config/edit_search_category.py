@@ -1,13 +1,14 @@
 # pylint: disable=no-member
 from gettext import gettext as _
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from gi.repository import Gtk
 
 from lutris.database import categories as categories_db
+from lutris.exceptions import InvalidSearchTermError
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
 from lutris.search import FLAG_TEXTS, GameSearch
-from lutris.search_predicate import AndPredicate, format_flag
+from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 
 
 class EditSearchCategoryDialog(SavableModelessDialog):
@@ -21,7 +22,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         title = _("Configure %s") % self.category
 
         super().__init__(title, parent=parent, border_width=10)
-        self.set_default_size(500, 350)
+        self.set_default_size(500, -1)
 
         self.vbox.set_homogeneous(False)
         self.vbox.set_spacing(10)
@@ -30,6 +31,8 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         self.search_entry = self._add_entry_box(_("Search"), self.search)
 
         self.components_grid = Gtk.Grid(row_spacing=6, column_spacing=6)
+        self.predicate_widget_functions: Dict[str, Callable[[SearchPredicate], None]] = {}
+        self.updating_predicate_widgets = False
         self._add_component_widgets()
         self.vbox.pack_start(self.components_grid, True, True, 0)
 
@@ -44,18 +47,37 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         entry_label = Gtk.Label(label)
         entry = Gtk.Entry()
         entry.set_text(text)
+        entry.connect("changed", self.on_search_entry_changed)
         hbox.pack_start(entry_label, False, False, 0)
         hbox.pack_start(entry, True, True, 0)
         self.vbox.pack_start(hbox, False, False, 0)
         return entry
 
+    def on_search_entry_changed(self, _widget):
+        if not self.updating_predicate_widgets:
+            try:
+                self.updating_predicate_widgets = True
+                search_text = self.search_entry.get_text()
+                search = GameSearch(search_text)
+                predicate = search.get_predicate()
+
+                for _control, func in self.predicate_widget_functions.items():
+                    func(predicate)
+            except InvalidSearchTermError:
+                pass
+            finally:
+                self.updating_predicate_widgets = False
+
     def _add_component_widgets(self):
         search = GameSearch(self.search)
         predicate = search.get_predicate()
-        self._add_flag_widget(0, _("Installed:"), "installed", predicate)
-        self._add_flag_widget(1, _("Favorite:"), "favorite", predicate)
-        self._add_flag_widget(2, _("Hidden:"), "hidden", predicate)
-        self._add_flag_widget(3, _("Categorized:"), "categorized", predicate)
+        self._add_flag_widget(0, _("Installed:"), "installed")
+        self._add_flag_widget(1, _("Favorite:"), "favorite")
+        self._add_flag_widget(2, _("Hidden:"), "hidden")
+        self._add_flag_widget(3, _("Categorized:"), "categorized")
+
+        for _control, func in self.predicate_widget_functions.items():
+            func(predicate)
 
     def _change_search_flag(self, tag: str, flag: Optional[bool]):
         search = GameSearch(self.search)
@@ -72,13 +94,14 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         self.search = str(predicate)
         self.search_entry.set_text(self.search)
 
-    def _add_flag_widget(self, row, caption, tag, predicate):
+    def _add_flag_widget(self, row, caption, tag):
         def on_combobox_change(_widget):
-            active_id = combobox.get_active_id()
-            if active_id == "omit":
-                self._remove_search_flag(tag)
-            else:
-                self._change_search_flag(tag, FLAG_TEXTS[active_id])
+            if not self.updating_predicate_widgets:
+                active_id = combobox.get_active_id()
+                if active_id == "omit":
+                    self._remove_search_flag(tag)
+                else:
+                    self._change_search_flag(tag, FLAG_TEXTS[active_id])
 
         label = Gtk.Label(caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
         self.components_grid.attach(label, 0, row, 1, 1)
@@ -98,11 +121,13 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         combobox.pack_start(renderer_text, True)
         combobox.add_attribute(renderer_text, "text", 0)
 
-        if predicate.has_flag(tag):
-            combobox.set_active_id(format_flag(predicate.get_flag(tag)))
-        else:
-            combobox.set_active_id("omit")
+        def populate_widget(predicate):
+            if predicate.has_flag(tag):
+                combobox.set_active_id(format_flag(predicate.get_flag(tag)))
+            else:
+                combobox.set_active_id("omit")
 
+        self.predicate_widget_functions[combobox] = populate_widget
         self.components_grid.attach(combobox, 1, row, 1, 1)
         combobox.connect("changed", on_combobox_change)
 
