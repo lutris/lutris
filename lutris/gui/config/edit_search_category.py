@@ -16,7 +16,8 @@ class EditSearchCategoryDialog(SavableModelessDialog):
     def __init__(self, parent, category: Dict[str, Any]) -> None:
         self.category = category.get("name") or "New Category"
         self.category_id = category.get("id")
-        self.search = category.get("search") or ""
+        self.original_search = category.get("search") or ""
+        self.search = self.original_search
         title = _("Configure %s") % self.category
 
         super().__init__(title, parent=parent, border_width=10)
@@ -52,7 +53,9 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         search = GameSearch(self.search)
         predicate = search.get_predicate()
         self._add_flag_widget(0, _("Installed:"), "installed", predicate)
-        self._add_flag_widget(1, _("Categorized:"), "categorized", predicate)
+        self._add_flag_widget(1, _("Favorite:"), "favorite", predicate)
+        self._add_flag_widget(2, _("Hidden:"), "hidden", predicate)
+        self._add_flag_widget(3, _("Categorized:"), "categorized", predicate)
 
     def _change_search_flag(self, tag: str, flag: Optional[bool]):
         search = GameSearch(self.search)
@@ -121,7 +124,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         """Save game info and destroy widget."""
         old_name: str = self.category
         new_name: str = categories_db.strip_category_name(self.name_entry.get_text())
-        old_search: str = self.search
+        old_search: str = self.original_search
         new_search: str = str(GameSearch(self.search_entry.get_text()))
 
         if not new_name:
