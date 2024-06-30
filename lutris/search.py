@@ -269,10 +269,10 @@ class GameSearch(BaseSearch):
             return self.get_installed_predicate(flag)
 
         if name == "hidden":
-            return self.get_category_predicate(".hidden", in_category=flag)
+            return self.get_category_flag_predicate(".hidden", "hidden", in_category=flag)
 
         if name == "favorite":
-            return self.get_category_predicate("favorite", in_category=flag)
+            return self.get_category_flag_predicate("favorite", "favorite", in_category=flag)
 
         if name == "categorized":
             return self.get_categorized_predicate(flag)
@@ -379,6 +379,16 @@ class GameSearch(BaseSearch):
             return f"category:{self.quote_token(category)}"
 
         return FunctionPredicate(match_category, formatter=format_predicate)
+
+    def get_category_flag_predicate(self, category: str, tag: str, in_category: Optional[bool] = True) -> FlagPredicate:
+        names = normalized_category_names(category, subname_allowed=True)
+        category_game_ids = set(get_game_ids_for_categories(names))
+
+        def is_in_category(db_game):
+            game_id = db_game["id"]
+            return game_id in category_game_ids
+
+        return FlagPredicate(in_category, is_in_category, tag=tag)
 
     def get_service_predicate(self, service_name: str) -> SearchPredicate:
         service_name = service_name.casefold()
