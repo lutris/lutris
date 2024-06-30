@@ -25,8 +25,7 @@ LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATU
 
 
 class UpdatesBox(BaseConfigBox):
-    def __init__(self):
-        super().__init__()
+    def populate(self):
         self.add(self.get_section_label(_("Wine update channel")))
 
         update_channel_radio_buttons = self.get_update_channel_radio_buttons()

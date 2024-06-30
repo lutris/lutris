@@ -65,13 +65,17 @@ class PreferencesDialog(GameDialogCommon):
         self.page_generators["accounts-stack"] = accounts_box.populate_steam_accounts
         self.stack.add_named(self.build_scrolled_window(accounts_box), "accounts-stack")
 
-        self.stack.add_named(self.build_scrolled_window(UpdatesBox()), "updates-stack")
+        updates_box = UpdatesBox()
+        self.page_generators["updates-stack"] = updates_box.populate
+        self.stack.add_named(self.build_scrolled_window(updates_box), "updates-stack")
 
         sysinfo_box = SystemBox()
         self.page_generators["sysinfo-stack"] = sysinfo_box.populate
         self.stack.add_named(self.build_scrolled_window(sysinfo_box), "sysinfo-stack")
 
-        self.stack.add_named(self.build_scrolled_window(StorageBox()), "storage-stack")
+        storage_box = StorageBox()
+        self.page_generators["storage-stack"] = storage_box.populate
+        self.stack.add_named(self.build_scrolled_window(storage_box), "storage-stack")
 
         self.system_box = SystemConfigBox(self.config_level, self.lutris_config)
         self.page_generators["system-stack"] = self.system_box.generate_widgets

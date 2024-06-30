@@ -11,8 +11,7 @@ from lutris.runners.runner import Runner
 
 
 class StorageBox(BaseConfigBox):
-    def __init__(self):
-        super().__init__()
+    def populate(self):
         self.add(self.get_section_label(_("Paths")))
         path_widgets = self.get_path_widgets()
         self.pack_start(self._get_framed_options_list_box(path_widgets), False, False, 0)
