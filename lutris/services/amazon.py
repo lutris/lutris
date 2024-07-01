@@ -8,6 +8,7 @@ import os
 import secrets
 import struct
 import time
+import urllib
 import uuid
 from collections import defaultdict
 from gettext import gettext as _
@@ -77,11 +78,12 @@ class AmazonService(OnlineService):
     login_window_height = 710
 
     marketplace_id = "ATVPDKIKX0DER"
-    user_agent = "com.amazon.agslauncher.win/2.1.7437.6"
+    user_agent = "com.amazon.agslauncher.win/3.0.9202.1"
 
     amazon_api = "https://api.amazon.com"
     amazon_sds = "https://sds.amazon.com"
     amazon_gaming_graphql = "https://gaming.amazon.com/graphql"
+    amazon_gaming_distribution = "https://gaming.amazon.com/api/distribution/v2/public"
 
     client_id = None
     serial = None
@@ -347,9 +349,9 @@ class AmazonService(OnlineService):
         serial = user_data["extensions"]["device_info"]["device_serial_number"]
 
         games_by_asin = defaultdict(list)
-        nextToken = None
+        next_token = None
         while True:
-            request_data = self.get_sync_request_data(serial, nextToken)
+            request_data = self.get_sync_request_data(serial, next_token)
 
             json_data = self.request_sds(
                 "com.amazonaws.gearbox."
@@ -372,7 +374,7 @@ class AmazonService(OnlineService):
                 break
 
             logger.info("Got next token in response, making next request")
-            nextToken = json_data["nextToken"]
+            next_token = json_data["nextToken"]
 
         # If Amazon gives is the same game with different ids we'll pick the
         # least ID. Probably we should just use ASIN as the ID, but since we didn't
@@ -385,12 +387,31 @@ class AmazonService(OnlineService):
 
         return games
 
-    def get_sync_request_data(self, serial, nextToken=None):
+    def request_distribution(self, target, token, body):
+        headers = {
+            "X-Amz-Target": target,
+            "x-amzn-token": token,
+            "UserAgent": "com.amazon.agslauncher.win/3.0.9202.1",
+            "Content-Type": "application/json",
+            "Content-Encoding": "amz-1.0",
+        }
+        request = Request(self.amazon_gaming_distribution, headers=headers)
+
+        try:
+            request.post(json.dumps(body).encode())
+        except HTTPError as ex:
+            # Do not raise exception here, should be managed from the caller
+            logger.error("Failed http request %s: %s", url, ex)
+            return
+
+        return request.json
+
+    def get_sync_request_data(self, serial, next_token=None, sync_point=None):
         request_data = {
             "Operation": "GetEntitlementsV2",
             "clientId": "Sonic",
-            "syncPoint": None,
-            "nextToken": nextToken,
+            "syncPoint": sync_point,
+            "nextToken": next_token,
             "maxResults": 50,
             "productIdFilter": None,
             "keyId": "d5dc8b8b-86c8-4fc4-ae93-18c0def5314d",
@@ -425,16 +446,12 @@ class AmazonService(OnlineService):
         access_token = self.get_access_token()
 
         request_data = {
-            "adgGoodId": game_id,
-            "previousVersionId": None,
-            "keyId": "d5dc8b8b-86c8-4fc4-ae93-18c0def5314d",
-            "Operation": "GetDownloadManifestV3",
+            "entitlementId": game_id,
+            "Operation": "GetGameDownload",
         }
 
-        response = self.request_sds(
-            "com.amazonaws.gearbox."
-            "softwaredistribution.service.model."
-            "SoftwareDistributionService.GetDownloadManifestV3",
+        response = self.request_distribution(
+            "com.amazon.animusdistributionservice.external.AnimusDistributionService.GetGameDownload",
             access_token,
             request_data,
         )
@@ -451,7 +468,11 @@ class AmazonService(OnlineService):
             "User-Agent": self.user_agent,
         }
 
-        url = manifest_info["downloadUrls"][0]
+        url = manifest_info["downloadUrl"]
+        url = urllib.parse.urlparse(url)
+        url = url._replace(path=url.path + "/manifest.proto")
+        url = urllib.parse.urlunparse(url)
+
         request = Request(url, headers=headers)
 
         try:
@@ -554,9 +575,12 @@ class AmazonService(OnlineService):
 
         file_dict, directories, hashpairs = self.structure_manifest_data(manifest)
 
-        game_patches = self.get_game_patches(game_id, manifest_info["versionId"], hashpairs)
-        for patch in game_patches:
-            file_dict[patch["patchHash"]["value"]]["url"] = patch["downloadUrls"][0]
+        for hash, file in file_dict.items():
+            url = manifest_info["downloadUrl"]
+            url = urllib.parse.urlparse(url)
+            url = url._replace(path=url.path + "/files/" + hash)
+            url = urllib.parse.urlunparse(url)
+            file["url"] = url
 
         return file_dict, directories
 
@@ -652,15 +676,13 @@ class AmazonService(OnlineService):
         ]
 
         # try to get fuel file that contain the main exe
-        fuel_file = {k: v for k, v in file_dict.items() if "fuel.json" in v["path"]}
-        hashpair = [hashpair for hashpair in hashpairs if hashpair["targetHash"]["value"] == list(fuel_file.keys())[0]]
+        fuel_file = [k for k, v in file_dict.items() if "fuel.json" in v["path"]]
         fuel_url = None
         if fuel_file:
-            version = manifest_info["versionId"]
-            access_token = self.get_access_token()
-            response = self.get_file_patch(access_token, game_id, version, hashpair)
-            patch = response["patches"][0]
-            fuel_url = patch["downloadUrls"][0]
+            fuel_url = manifest_info["downloadUrl"]
+            fuel_url = urllib.parse.urlparse(fuel_url)
+            fuel_url = fuel_url._replace(path=fuel_url.path + "/files/" + list(fuel_file)[0])
+            fuel_url = urllib.parse.urlunparse(fuel_url)
 
         game_cmd, game_args = self.get_game_cmd_line(fuel_url)
         logger.info("game cmd line: %s %s", game_cmd, game_args)
