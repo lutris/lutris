@@ -155,7 +155,8 @@ def create_prefix(
         wineenv["GAMEID"] = proton.DEFAULT_GAMEID
         wineenv["UMU_LOG"] = "debug"
         wineenv["WINEARCH"] = "win64"
-        wineenv["PROTONPATH"] = proton.get_proton_path_from_bin(wine_path)
+        if wine_path != GE_PROTON_LATEST:
+            wineenv["PROTONPATH"] = proton.get_proton_path_from_bin(wine_path)
         command = MonitoredCommand([proton.get_umu_path(), "createprefix"], env=wineenv)
         command.start()
 
@@ -299,13 +300,6 @@ def wineexec(
     if _args:
         args = '{} "{}"'.format(_args[0], _args[1])
 
-    # Create prefix if necessary
-    if arch not in ("win32", "win64"):
-        arch = detect_arch(prefix, wine_path)
-    if not is_prefix_directory(prefix):
-        wine_bin = winetricks_wine if winetricks_wine else wine_path
-        create_prefix(prefix, wine_path=wine_bin, arch=arch, runner=runner)
-
     wineenv = {"WINEARCH": arch}
     if winetricks_wine:
         wineenv["WINE"] = winetricks_wine
@@ -314,6 +308,27 @@ def wineexec(
 
     if prefix:
         wineenv["WINEPREFIX"] = prefix
+
+    # TODO: Move this to somewhere that a reference to the game object
+    if proton.is_proton_path(wine_path):
+        game = None
+        wineenv["GAMEID"] = proton.get_game_id(game)
+
+        if wine_path == GE_PROTON_LATEST:
+            wine_path = proton.get_umu_path()
+        else:
+            wineenv["PROTONPATH"] = proton.get_proton_path_from_bin(wine_path)
+        locale = env.get("LC_ALL")
+        host_locale = env.get("HOST_LC_ALL")
+        if locale and not host_locale:
+            wineenv["HOST_LC_ALL"] = locale
+
+    # Create prefix if necessary
+    if arch not in ("win32", "win64"):
+        arch = detect_arch(prefix, wine_path)
+    if not is_prefix_directory(prefix):
+        wine_bin = winetricks_wine if winetricks_wine else wine_path
+        create_prefix(prefix, wine_path=wine_bin, arch=arch, runner=runner)
 
     wine_system_config = config.system_config if config else runner.system_config
     disable_runtime = disable_runtime or wine_system_config["disable_runtime"]
@@ -333,20 +348,6 @@ def wineexec(
 
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
-
-    # TODO: Move this to somewhere that a reference to the game object
-    if proton.is_proton_path(wine_path):
-        game = None
-        wineenv["GAMEID"] = proton.get_game_id(game)
-
-        if wine_path == GE_PROTON_LATEST:
-            wine_path = proton.get_umu_path()
-        else:
-            wineenv["PROTONPATH"] = proton.get_proton_path_from_bin(wine_path)
-        locale = env.get("LC_ALL")
-        host_locale = env.get("HOST_LC_ALL")
-        if locale and not host_locale:
-            wineenv["HOST_LC_ALL"] = locale
 
     baseenv = runner.get_env(disable_runtime=disable_runtime)
     baseenv.update(wineenv)

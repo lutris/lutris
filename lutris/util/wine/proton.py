@@ -13,7 +13,10 @@ GE_PROTON_LATEST = _("GE-Proton (Latest)")
 DEFAULT_GAMEID = "umu-default"
 
 
-def is_proton_path(wine_path) -> bool:
+def is_proton_path(wine_path: str) -> bool:
+    if wine_path.endswith("/umu_run.py"):
+        return True
+
     return "Proton" in wine_path and "lutris" not in wine_path
 
 
