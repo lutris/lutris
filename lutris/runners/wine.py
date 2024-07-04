@@ -1184,16 +1184,6 @@ class wine(Runner):
         except Exception as ex:
             logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
 
-    def get_command(self):
-        # TODO: Review this
-        # exe = self.get_executable()
-        # if proton.is_proton_path(exe):
-        #    umu_path = proton.get_umu_path()
-        #    if umu_path:
-        #        return [umu_path]
-        #    raise MissingExecutableError("Install umu to use Proton")
-        return super().get_command()
-
     def play(self):  # pylint: disable=too-many-return-statements # noqa: C901
         game_exe = self.game_exe
         arguments = self.game_config.get("args", "")
