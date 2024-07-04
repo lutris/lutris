@@ -3,7 +3,7 @@
 import json
 import os
 from gettext import gettext as _
-from typing import Generator, List, Optional
+from typing import Dict, Generator, List, Optional
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
@@ -131,8 +131,30 @@ def get_proton_bin_for_version(version: str) -> str:
     raise MissingExecutableError("The Proton bin for Wine version '%s' could not be found." % version)
 
 
-def get_proton_path_from_bin(wine_path):
-    """Return a location suitable for PROTONPATH from the wine executable"""
+def update_env_proton_path(wine_path: str, env: Dict[str, str]) -> None:
+    if "PROTONPATH" in env:
+        return
+
+    protonpath = _get_proton_path_from_bin(wine_path)
+    if protonpath:
+        env["PROTONPATH"] = protonpath
+
+
+def _get_proton_path_from_bin(wine_path: str) -> Optional[str]:
+    """Return a location suitable for PROTONPATH from the wine executable; if
+    None, we leave PROTONPATH unset."""
+    if is_umu_path(wine_path):
+        return "GE-Proton"  # Download the latest Glorious Proton build
+
+    # In stable versions of proton this can be dist/bin instead of files/bin
+    if "/files/bin/" in wine_path:
+        return wine_path[: wine_path.index("/files/bin/")]
+    else:
+        try:
+            return wine_path[: wine_path.index("/dist/bin/")]
+        except ValueError:
+            pass
+
     return os.path.abspath(os.path.join(os.path.dirname(wine_path), "../../"))
 
 
