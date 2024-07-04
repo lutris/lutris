@@ -39,13 +39,17 @@ def is_umu_path(wine_path: Optional[str]) -> bool:
     but can be directed to particular Proton implementation by setting the env-var
     PROTONPATH, but if this is omitted it will default to the latest Proton it
     downloads."""
-    return bool(wine_path and wine_path.endswith("/umu_run.py"))
+    if wine_path:
+        return wine_path.endswith("/umu_run.py") or wine_path.endswith("/umu-run")
+    return False
 
 
 def get_umu_path() -> str:
     """Returns the path to the Umu launch script, which can be run to execute
     a Proton version. It can supply a default Proton, but if the env-var PROTONPATH
     is set this will direct it to a specific Proton installation.
+
+    The path that this returns will be considered an Umu path by is_umu_path().
 
     If this script can't be found this will raise MissingExecutableError."""
     custom_path = settings.read_setting("umu_path")
