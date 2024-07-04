@@ -36,7 +36,7 @@ def get_launch_parameters(runner, gameplay_info):
         env["LC_ALL"] = locale
     if runner.name == "wine":
         wine_version = runner.runner_config.get("version")
-        if wine_version and locale and proton.is_proton_path(wine_version):
+        if wine_version and locale and proton.is_proton_version(wine_version):
             env["HOST_LC_ALL"] = locale
 
     # MangoHud

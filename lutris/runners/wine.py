@@ -738,8 +738,14 @@ class wine(Runner):
         if version is None:
             version = self.read_version_from_config()
         if version == proton.GE_PROTON_LATEST:
-            return version
-        wine_path = self.get_path_for_version(version)
+            return proton.get_umu_path()
+
+        try:
+            wine_path = self.get_path_for_version(version)
+        except MissingExecutableError:
+            if not fallback:
+                raise
+
         if system.path_exists(wine_path):
             return wine_path
 
@@ -1119,7 +1125,7 @@ class wine(Runner):
 
         env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
 
-        if proton.is_proton_path(wine_config_version):
+        if proton.is_proton_version(wine_config_version):
             # In stable versions of proton this can be dist/bin instead of files/bin
             if "files/bin" in wine_exe:
                 env["PROTONPATH"] = wine_exe[: wine_exe.index("files/bin")]
@@ -1186,12 +1192,13 @@ class wine(Runner):
             logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
 
     def get_command(self):
-        exe = self.get_executable()
-        if proton.is_proton_path(exe):
-            umu_path = proton.get_umu_path()
-            if umu_path:
-                return [umu_path]
-            raise MissingExecutableError("Install umu to use Proton")
+        # TODO: Review this
+        # exe = self.get_executable()
+        # if proton.is_proton_path(exe):
+        #    umu_path = proton.get_umu_path()
+        #    if umu_path:
+        #        return [umu_path]
+        #    raise MissingExecutableError("Install umu to use Proton")
         return super().get_command()
 
     def play(self):  # pylint: disable=too-many-return-statements # noqa: C901

@@ -681,7 +681,7 @@ class Game:
         env["GAMEID"] = proton.get_game_id(self)
         env["STORE"] = env.get("STORE") or self.get_store_name()
 
-        if env.get("WINE") == proton.GE_PROTON_LATEST:
+        if proton.is_umu_path(env.get("WINE")):
             env["PROTONPATH"] = "GE-Proton"
 
         # Some environment variables for the use of custom pre-launch and post-exit scripts.
