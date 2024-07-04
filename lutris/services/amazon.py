@@ -401,7 +401,7 @@ class AmazonService(OnlineService):
             request.post(json.dumps(body).encode())
         except HTTPError as ex:
             # Do not raise exception here, should be managed from the caller
-            logger.error("Failed http request %s: %s", url, ex)
+            logger.error("Failed http request %s: %s", self.amazon_gaming_distribution, ex)
             return
 
         return request.json
@@ -575,10 +575,10 @@ class AmazonService(OnlineService):
 
         file_dict, directories, hashpairs = self.structure_manifest_data(manifest)
 
-        for hash, file in file_dict.items():
+        for file_hash, file in file_dict.items():
             url = manifest_info["downloadUrl"]
             url = urllib.parse.urlparse(url)
-            url = url._replace(path=url.path + "/files/" + hash)
+            url = url._replace(path=url.path + "/files/" + file_hash)
             url = urllib.parse.urlunparse(url)
             file["url"] = url
 
