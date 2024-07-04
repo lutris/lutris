@@ -215,7 +215,17 @@ class Runner:  # pylint: disable=too-many-public-methods
         if os_env:
             env = system.get_environment()
 
-        # By default we'll set NVidia's shader disk cache to be
+        # Steam compatibility
+        if os.environ.get("SteamAppId"):
+            logger.info("Game launched from steam (AppId: %s)", os.environ["SteamAppId"])
+            env["LC_ALL"] = ""
+
+        # Set correct LC_ALL depending on user settings
+        locale = self.system_config.get("locale")
+        if locale:
+            env["LC_ALL"] = locale
+
+        # By default, we'll set NVidia's shader disk cache to be
         # per-game, so it overflows less readily.
         env["__GL_SHADER_DISK_CACHE"] = "1"
         env["__GL_SHADER_DISK_CACHE_PATH"] = self.nvidia_shader_cache_path
@@ -264,6 +274,11 @@ class Runner:  # pylint: disable=too-many-public-methods
         env.update(self.system_config.get("env") or {})
 
         return env
+
+    def finish_env(self, env: Dict[str, str], game) -> None:
+        """This is called by the Game after setting up the environment to allow the runner
+        to make final adjustments, which may be based on the environment so far."""
+        pass
 
     def get_runtime_env(self):
         """Return runtime environment variables.

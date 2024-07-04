@@ -1125,10 +1125,16 @@ class wine(Runner):
 
         env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
 
-        if proton.is_proton_version(wine_config_version):
-            proton.update_proton_env(wine_exe, env)
-
         return env
+
+    def finish_env(self, env: Dict[str, str], game) -> None:
+        super().finish_env(env, game)
+
+        wine_exe = self.get_executable()
+
+        if proton.is_proton_path(wine_exe):
+            game_id = proton.get_game_id(game, env)
+            proton.update_proton_env(wine_exe, env, game_id=game_id)
 
     def get_runtime_env(self):
         """Return runtime environment variables with path to wine for Lutris builds"""

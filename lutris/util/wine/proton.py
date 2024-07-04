@@ -138,8 +138,10 @@ def get_proton_bin_for_version(version: str) -> str:
 def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = None) -> None:
     """Add various env-vars to an 'env' dict for use by Proton and Umu; this won't replace env-vars, so they can still
     be pre-set before we get here. This sets the PROTONPATH so the Umu launcher will know what Proton to use,
-    sets the GAMEID and UMU_LOG as indicated by the parameters, and the WINEARCH to win64, which is what we expect
-    Proton to be. This also propagates LC_ALL to HOST_LC_ALL, if LC_ALL is set."""
+    and the WINEARCH to win64, which is what we expect Proton to always be. GAMEID is required, but we'll use a default
+    GAMEID if you don't pass one in.
+
+    This also propagates LC_ALL to HOST_LC_ALL, if LC_ALL is set."""
     if "PROTONPATH" not in env:
         protonpath = _get_proton_path_from_bin(wine_path)
         if protonpath:
@@ -178,12 +180,11 @@ def _get_proton_path_from_bin(wine_path: str) -> Optional[str]:
     return os.path.abspath(os.path.join(os.path.dirname(wine_path), "../../"))
 
 
-def get_game_id(game) -> str:
+def get_game_id(game, env) -> str:
     if not game:
         return DEFAULT_GAMEID
 
-    envs = game.runner.get_env()
-    game_id = envs.get("GAMEID") or envs.get("UMU_ID")
+    game_id = env.get("UMU_ID")
     if game_id:
         return game_id
 

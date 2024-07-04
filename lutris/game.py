@@ -36,7 +36,6 @@ from lutris.util.process import Process
 from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
 from lutris.util.system import fix_path_case
 from lutris.util.timer import Timer
-from lutris.util.wine import proton
 from lutris.util.yaml import write_yaml_to_file
 
 HEARTBEAT_DELAY = 2000
@@ -677,8 +676,7 @@ class Game:
 
         if env.get("WINEARCH") == "win32" and "umu" in " ".join(command):
             raise RuntimeError("Proton is not compatible with 32bit prefixes")
-        # Allow user to override default umu environment variables to apply fixes
-        env["GAMEID"] = proton.get_game_id(self)
+
         env["STORE"] = env.get("STORE") or self.get_store_name()
 
         # Some environment variables for the use of custom pre-launch and post-exit scripts.
@@ -722,6 +720,8 @@ class Game:
         xephyr = self.runner.system_config.get("xephyr") or "off"
         if xephyr != "off":
             env["DISPLAY"] = self.start_xephyr()
+
+        self.runner.finish_env(env, self)
 
         antimicro_config = self.runner.system_config.get("antimicro_config")
         if system.path_exists(antimicro_config):

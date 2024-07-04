@@ -24,16 +24,6 @@ def get_launch_parameters(runner, gameplay_info):
     launch_arguments = gameplay_info["command"]
     env = {}
 
-    # Steam compatibility
-    if os.environ.get("SteamAppId"):
-        logger.info("Game launched from steam (AppId: %s)", os.environ["SteamAppId"])
-        env["LC_ALL"] = ""
-
-    # Set correct LC_ALL depending on user settings
-    locale = system_config.get("locale")
-    if locale:
-        env["LC_ALL"] = locale
-
     # MangoHud
     if runner.name == "steam":
         logger.info(

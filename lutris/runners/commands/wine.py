@@ -307,11 +307,8 @@ def wineexec(
     if prefix:
         wineenv["WINEPREFIX"] = prefix
 
-    # TODO: Move this to somewhere that a reference to the game object,
-    # or set GAMEID env-var somewhere else.
     if proton.is_proton_path(wine_path):
-        game = None
-        proton.update_proton_env(wine_path, wineenv, game_id=proton.get_game_id(game))
+        proton.update_proton_env(wine_path, wineenv)
 
     # Create prefix if necessary
     if arch not in ("win32", "win64"):
