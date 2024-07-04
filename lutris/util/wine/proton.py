@@ -131,13 +131,29 @@ def get_proton_bin_for_version(version: str) -> str:
     raise MissingExecutableError("The Proton bin for Wine version '%s' could not be found." % version)
 
 
-def update_env_proton_path(wine_path: str, env: Dict[str, str]) -> None:
-    if "PROTONPATH" in env:
-        return
+def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = None) -> None:
+    """Add various env-vars to an 'env' dict for use by Proton and Umu; this won't replace env-vars, so they can still
+    be pre-set before we get here. This sets the PROTONPATH so the Umu launcher will know what Proton to use,
+    sets the GAMEID and UMU_LOG as indicated by the parameters, and the WINEARCH to win64, which is what we expect
+    Proton to be. This also propagates LC_ALL to HOST_LC_ALL, if LC_ALL is set."""
+    if "PROTONPATH" not in env:
+        protonpath = _get_proton_path_from_bin(wine_path)
+        if protonpath:
+            env["PROTONPATH"] = protonpath
 
-    protonpath = _get_proton_path_from_bin(wine_path)
-    if protonpath:
-        env["PROTONPATH"] = protonpath
+    if "GAMEID" not in env:
+        env["GAMEID"] = game_id
+
+    if "UMU_LOG" not in env and umu_log:
+        env["UMU_LOG"] = umu_log
+
+    if "WINEARCH" not in env:
+        env["WINEARCH"] = "win64"
+
+    locale = env.get("LC_ALL")
+    host_locale = env.get("HOST_LC_ALL")
+    if locale and not host_locale:
+        env["HOST_LC_ALL"] = locale
 
 
 def _get_proton_path_from_bin(wine_path: str) -> Optional[str]:

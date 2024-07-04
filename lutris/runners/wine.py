@@ -1126,12 +1126,7 @@ class wine(Runner):
         env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
 
         if proton.is_proton_version(wine_config_version):
-            proton.update_env_proton_path(wine_exe, env)
-
-            locale = env.get("LC_ALL")
-            host_locale = env.get("HOST_LC_ALL")
-            if locale and not host_locale:
-                env["HOST_LC_ALL"] = locale
+            proton.update_proton_env(wine_exe, env)
 
         return env
 

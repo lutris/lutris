@@ -143,10 +143,7 @@ def create_prefix(
         # All proton path prefixes are created via Umu; if you aren't using
         # the default Umu, we'll use PROTONPATH to indicate what Proton is
         # to be used.
-        wineenv["GAMEID"] = proton.DEFAULT_GAMEID
-        wineenv["UMU_LOG"] = "debug"
-        wineenv["WINEARCH"] = "win64"
-        proton.update_env_proton_path(wine_path, wineenv)
+        proton.update_proton_env(wine_path, wineenv, umu_log="debug")
 
         command = MonitoredCommand([proton.get_umu_path(), "createprefix"], env=wineenv)
         command.start()
@@ -310,16 +307,11 @@ def wineexec(
     if prefix:
         wineenv["WINEPREFIX"] = prefix
 
-    # TODO: Move this to somewhere that a reference to the game object
+    # TODO: Move this to somewhere that a reference to the game object,
+    # or set GAMEID env-var somewhere else.
     if proton.is_proton_path(wine_path):
         game = None
-        wineenv["GAMEID"] = proton.get_game_id(game)
-        proton.update_env_proton_path(wine_path, wineenv)
-
-        locale = env.get("LC_ALL")
-        host_locale = env.get("HOST_LC_ALL")
-        if locale and not host_locale:
-            wineenv["HOST_LC_ALL"] = locale
+        proton.update_proton_env(wine_path, wineenv, game_id=proton.get_game_id(game))
 
     # Create prefix if necessary
     if arch not in ("win32", "win64"):
