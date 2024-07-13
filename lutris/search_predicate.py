@@ -18,6 +18,15 @@ class SearchPredicate(ABC):
     def accept(self, candidate: Any) -> bool:
         return True
 
+    def simplify(self) -> "SearchPredicate":
+        return self
+
+    def without_match(self, tag: str, value: str) -> "SearchPredicate":
+        return self
+
+    def get_matches(self, tag: str) -> List[str]:
+        return []
+
     def without_flag(self, tag: str) -> "SearchPredicate":
         return self
 
@@ -45,6 +54,19 @@ class FunctionPredicate(SearchPredicate):
 
     def __str__(self):
         return self.formatter()
+
+
+class MatchPredicate(FunctionPredicate):
+    def __init__(self, predicate: Callable[[Any], bool], formatter: Callable[[], str], tag: str, value: str) -> None:
+        super().__init__(predicate, formatter)
+        self.tag = tag
+        self.value = value
+
+    def get_matches(self, tag: str) -> List[str]:
+        return [self.value] if self.tag == tag else []
+
+    def without_match(self, tag: str, value: str) -> "SearchPredicate":
+        return TRUE_PREDICATE if self.tag == tag and self.value == value else self
 
 
 class TextPredicate(SearchPredicate):
@@ -117,6 +139,35 @@ class AndPredicate(SearchPredicate):
                 return False
         return True
 
+    def simplify(self) -> "SearchPredicate":
+        simplified = []
+        for c in self.components:
+            c = c.simplify()
+            if c != TRUE_PREDICATE:
+                if isinstance(c, AndPredicate):
+                    simplified += c.components
+                else:
+                    simplified.append(c)
+        return AndPredicate(simplified) if simplified else TRUE_PREDICATE
+
+    def get_matches(self, tag: str) -> List[str]:
+        matches = []
+        for c in self.components:
+            matches += c.get_matches(tag)
+        return matches
+
+    def without_match(self, tag: str, value: str) -> "SearchPredicate":
+        new_components = []
+        for c in self.components:
+            r = c.without_match(tag, value)
+            if r != TRUE_PREDICATE:
+                new_components.append(r)
+
+        if new_components != self.components:
+            return AndPredicate(new_components)
+
+        return self
+
     def without_flag(self, tag: str) -> "SearchPredicate":
         new_components = []
         for c in self.components:
@@ -154,6 +205,10 @@ class OrPredicate(SearchPredicate):
             if c.accept(candidate):
                 return True
         return False
+
+    def simplify(self) -> "SearchPredicate":
+        simplified = [c.simplify() for c in self.components]
+        return OrPredicate(simplified)
 
     def to_child_text(self) -> str:
         return f"({self})"

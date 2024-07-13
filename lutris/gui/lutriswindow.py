@@ -40,6 +40,7 @@ from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
+from lutris.search_predicate import NotPredicate
 from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGOUT
 from lutris.services.lutris import LutrisService, sync_media
 from lutris.util import datapath
@@ -462,7 +463,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             category = self.filters.get("category") or "all"
 
             if category != ".hidden" and not search.has_component("hidden"):
-                search = search.with_predicate(search.get_category_predicate(".hidden", False))
+                search = search.with_predicate(NotPredicate(search.get_category_predicate(".hidden")))
 
             searches = [search]
 
