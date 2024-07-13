@@ -22,7 +22,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         title = _("Configure %s") % self.category
 
         super().__init__(title, parent=parent, border_width=10)
-        self.set_default_size(500, 400)
+        self.set_default_size(600, -1)
 
         self.vbox.set_homogeneous(False)
         self.vbox.set_spacing(10)
@@ -30,18 +30,32 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         self.name_entry = self._add_entry_box(_("Name"), self.category)
         self.search_entry = self._add_entry_box(_("Search"), self.search)
 
-        self.components_grid = Gtk.Grid(row_spacing=6, column_spacing=6, margin=6)
-        scrolled_window = Gtk.ScrolledWindow(visible=True)
-        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        components_frame = Gtk.Frame(visible=True)
-        components_frame.get_style_context().add_class("info-frame")
-        components_frame.add(scrolled_window)
-        scrolled_window.add(self.components_grid)
-
         self.predicate_widget_functions: Dict[str, Callable[[SearchPredicate], None]] = {}
         self.updating_predicate_widgets = False
-        self._add_component_widgets()
-        self.vbox.pack_start(components_frame, True, True, 0)
+
+        predicates_box = Gtk.Box(Gtk.Orientation.HORIZONTAL)
+
+        self.flags_grid = Gtk.Grid(row_spacing=6, column_spacing=6, margin=6)
+        self._add_flag_widgets()
+
+        categories_scrolled_window = Gtk.ScrolledWindow(visible=True)
+        categories_scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        categories_frame = Gtk.Frame(visible=True)
+        categories_frame.get_style_context().add_class("info-frame")
+        categories_frame.add(categories_scrolled_window)
+        self.categories_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        categories_scrolled_window.add(self.categories_box)
+        categories_frame_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        categories_frame_box.pack_start(Gtk.Label(_("Categories"), halign=Gtk.Align.START), False, False, 0)
+        categories_frame_box.pack_start(categories_frame, True, True, 0)
+
+        self._add_category_widgets()
+
+        self.update_predicate_widgets()
+
+        predicates_box.pack_start(self.flags_grid, False, False, 0)
+        predicates_box.pack_start(categories_frame_box, True, True, 0)
+        self.vbox.pack_start(predicates_box, True, True, 0)
 
         delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
         delete_button.connect("clicked", self.on_delete_clicked)
@@ -61,6 +75,9 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         return entry
 
     def on_search_entry_changed(self, _widget):
+        self.update_predicate_widgets()
+
+    def update_predicate_widgets(self):
         if not self.updating_predicate_widgets:
             try:
                 self.updating_predicate_widgets = True
@@ -75,23 +92,11 @@ class EditSearchCategoryDialog(SavableModelessDialog):
             finally:
                 self.updating_predicate_widgets = False
 
-    def _add_component_widgets(self):
-        search = GameSearch(self.search)
-        predicate = search.get_predicate()
+    def _add_flag_widgets(self):
         self._add_flag_widget(0, _("Installed:"), "installed")
         self._add_flag_widget(1, _("Favorite:"), "favorite")
         self._add_flag_widget(2, _("Hidden:"), "hidden")
         self._add_flag_widget(3, _("Categorized:"), "categorized")
-
-        index = 4
-        for category in categories_db.get_categories():
-            category_name = category["name"]
-            if not categories_db.is_reserved_category(category_name) and not category.get("search"):
-                self._add_category_widget(index, category_name, category_name)
-                index += 1
-
-        for _control, func in self.predicate_widget_functions.items():
-            func(predicate)
 
     def _change_search_flag(self, tag: str, flag: Optional[bool]):
         search = GameSearch(self.search)
@@ -118,7 +123,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
                     self._change_search_flag(tag, FLAG_TEXTS[active_id])
 
         label = Gtk.Label(caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
-        self.components_grid.attach(label, 0, row, 1, 1)
+        self.flags_grid.attach(label, 0, row, 1, 1)
 
         liststore = Gtk.ListStore(str, str)
         liststore.append((_("(omit from search)"), "omit"))
@@ -142,10 +147,18 @@ class EditSearchCategoryDialog(SavableModelessDialog):
                 combobox.set_active_id("omit")
 
         self.predicate_widget_functions[combobox] = populate_widget
-        self.components_grid.attach(combobox, 1, row, 1, 1)
+        self.flags_grid.attach(combobox, 1, row, 1, 1)
         combobox.connect("changed", on_combobox_change)
 
-    def _add_category_widget(self, row, caption, category_name):
+    def _add_category_widgets(self):
+        for category in categories_db.get_categories():
+            category_name = category["name"]
+            if not categories_db.is_reserved_category(category_name) and not category.get("search"):
+                self._add_category_widget(category_name, category_name)
+
+    def _add_category_widget(self, caption, category_name):
+        checkbox = Gtk.CheckButton(caption)
+
         def on_checkbox_toggled(_widget):
             if not self.updating_predicate_widgets:
                 search = GameSearch(self.search)
@@ -156,14 +169,12 @@ class EditSearchCategoryDialog(SavableModelessDialog):
                 self.search = str(predicate)
                 self.search_entry.set_text(self.search)
 
-        checkbox = Gtk.CheckButton(caption)
-
         def populate_widget(predicate):
             matched = category_name in predicate.get_matches("category")
             checkbox.set_active(matched)
 
         self.predicate_widget_functions[checkbox] = populate_widget
-        self.components_grid.attach(checkbox, 1, row, 1, 1)
+        self.categories_box.pack_start(checkbox, False, False, 0)
         checkbox.connect("toggled", on_checkbox_toggled)
 
     def on_delete_clicked(self, _button):
