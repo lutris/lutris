@@ -65,18 +65,21 @@ def tokenize_search(text: str, isolated_tokens: Iterable[str]) -> List[str]:
         token_index = 0
         while token_index < len(tokens):
             token = tokens[token_index]
-            char_index = 0
-            while char_index < len(token):
-                if token[char_index] in isolating_chars:
-                    for candidate in isolated_tokens:
-                        if token[char_index:].startswith(candidate):
-                            tokens[token_index] = token[:char_index]
-                            token_index += 1
-                            tokens.insert(token_index, candidate)
-                            token = token[(char_index + len(candidate)):]
-                            char_index = -1  # start again with reduced token!
-                            break
-                char_index += 1
+            if not token.startswith('"'):
+                char_index = 0
+                while char_index < len(token):
+                    if token[char_index] in isolating_chars:
+                        for candidate in isolated_tokens:
+                            if token[char_index:].startswith(candidate):
+                                tokens[token_index] = token[:char_index]
+                                token_index += 1
+                                tokens.insert(token_index, candidate)
+                                token = token[(char_index + len(candidate)) :]
+                                token_index += 1
+                                tokens.insert(token_index, token)
+                                char_index = -1  # start again with reduced token!
+                                break
+                    char_index += 1
             token_index += 1
 
     # Since we blindly return empty buffers, we must now filter them out
@@ -124,7 +127,7 @@ class TokenReader:
         return None
 
     def get_cleaned_token_sequence(self, stop_function: Callable[[TokenReader], bool]) -> Optional[str]:
-        """This reads token until the end of tokens, or until a 'stop_tokens' token is reached;
+        """This reads token until the end of tokens, or until a stop token is reached;
         that stop token is not consumed. The tokens are concatenated, including white-space
         between them, and returns. Whitespace around the tokens is stripped.
 
@@ -143,9 +146,7 @@ class TokenReader:
                 break
 
             if peeked.startswith('"'):
-                if buffer:
-                    self.index -= 1
-                else:
+                if not buffer:
                     buffer = self.get_token()
                 break
 
