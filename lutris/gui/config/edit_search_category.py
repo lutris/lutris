@@ -83,6 +83,13 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         self._add_flag_widget(2, _("Hidden:"), "hidden")
         self._add_flag_widget(3, _("Categorized:"), "categorized")
 
+        index = 4
+        for category in categories_db.get_categories():
+            category_name = category["name"]
+            if not categories_db.is_reserved_category(category_name) and not category.get("search"):
+                self._add_category_widget(index, category_name, category_name)
+                index += 1
+
         for _control, func in self.predicate_widget_functions.items():
             func(predicate)
 
@@ -91,7 +98,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         p = search.get_flag_predicate(tag, flag)
         if p:
             predicate = search.get_predicate().without_flag(tag)
-            predicate = AndPredicate([predicate, p])
+            predicate = AndPredicate([predicate, p]).simplify()
             self.search = str(predicate)
             self.search_entry.set_text(self.search)
 
@@ -137,6 +144,27 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         self.predicate_widget_functions[combobox] = populate_widget
         self.components_grid.attach(combobox, 1, row, 1, 1)
         combobox.connect("changed", on_combobox_change)
+
+    def _add_category_widget(self, row, caption, category_name):
+        def on_checkbox_toggled(_widget):
+            if not self.updating_predicate_widgets:
+                search = GameSearch(self.search)
+                predicate = search.get_predicate().without_match("category", category_name)
+                if checkbox.get_active():
+                    p = search.get_category_predicate(category_name)
+                    predicate = AndPredicate([predicate, p]).simplify()
+                self.search = str(predicate)
+                self.search_entry.set_text(self.search)
+
+        checkbox = Gtk.CheckButton(caption)
+
+        def populate_widget(predicate):
+            matched = category_name in predicate.get_matches("category")
+            checkbox.set_active(matched)
+
+        self.predicate_widget_functions[checkbox] = populate_widget
+        self.components_grid.attach(checkbox, 1, row, 1, 1)
+        checkbox.connect("toggled", on_checkbox_toggled)
 
     def on_delete_clicked(self, _button):
         dlg = QuestionDialog(
