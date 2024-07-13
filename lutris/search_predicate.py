@@ -78,6 +78,10 @@ class FunctionPredicate(SearchPredicate):
 
 
 class MatchPredicate(FunctionPredicate):
+    """MatchPredicate is a predicate that test a property against a value; you still provide
+    a function to do the test, but the object records the tag and value explicitly for editing
+    purposes."""
+
     def __init__(self, predicate: Callable[[Any], bool], text: str, tag: str, value: str) -> None:
         super().__init__(predicate, text)
         self.tag = tag
@@ -90,28 +94,11 @@ class MatchPredicate(FunctionPredicate):
         return TRUE_PREDICATE if self.tag == tag and self.value == value else self
 
 
-class TextPredicate(SearchPredicate):
-    def __init__(self, match_text: str, text_function: Callable[[Any], Optional[str]], tag: str):
-        self.tag = tag
-        self.match_text = match_text
-        self.stripped_text = strip_accents(match_text).casefold()
-        self.text_function = text_function
-
-    def accept(self, candidate: Any) -> bool:
-        candidate_text = self.text_function(candidate)
-        if not candidate_text:
-            return False
-
-        candidate_text = strip_accents(candidate_text).casefold()
-        return bool(candidate_text and self.stripped_text in candidate_text)
-
-    def __str__(self):
-        if self.tag:
-            return f"{self.tag}: {self.match_text}"
-        return self.match_text
-
-
 class FlagPredicate(SearchPredicate):
+    """This is a predicate to match a boolean property, with the special feature that it can
+    match 'maybe' which actually matching anything. This odd setting is useful to override
+    the default filtering Lutris provides, like filtering out hidden games."""
+
     def __init__(self, flag: Optional[bool], flag_function: Callable[[Any], bool], tag: str):
         self.flag = flag
         self.flag_function = flag_function
@@ -136,7 +123,33 @@ class FlagPredicate(SearchPredicate):
         return f"{self.tag}: {flag_text}"
 
 
+class TextPredicate(SearchPredicate):
+    """This is a predicate with no tag used to make text generically."""
+
+    def __init__(self, match_text: str, text_function: Callable[[Any], Optional[str]], tag: str):
+        self.tag = tag
+        self.match_text = match_text
+        self.stripped_text = strip_accents(match_text).casefold()
+        self.text_function = text_function
+
+    def accept(self, candidate: Any) -> bool:
+        candidate_text = self.text_function(candidate)
+        if not candidate_text:
+            return False
+
+        candidate_text = strip_accents(candidate_text).casefold()
+        return bool(candidate_text and self.stripped_text in candidate_text)
+
+    def __str__(self):
+        if self.tag:
+            return f"{self.tag}: {self.match_text}"
+        return self.match_text
+
+
 class NotPredicate(SearchPredicate):
+    """This predicate reverses the effect of another, and also 'hides' it from
+    editing methods."""
+
     def __init__(self, to_negate: SearchPredicate) -> None:
         self.to_negate = to_negate
 
@@ -151,6 +164,9 @@ class NotPredicate(SearchPredicate):
 
 
 class AndPredicate(SearchPredicate):
+    """This predicate combines other predicates so all must accept a candidate
+    before it is accepted."""
+
     def __init__(self, components: List[SearchPredicate]) -> None:
         self.components = components
 
@@ -218,6 +234,9 @@ class AndPredicate(SearchPredicate):
 
 
 class OrPredicate(SearchPredicate):
+    """This predicate combines other predicates so that a candidate is accepted
+    if any component accepts it. This also hides the components from editing."""
+
     def __init__(self, components: List[SearchPredicate]) -> None:
         self.components = components
 
@@ -228,7 +247,15 @@ class OrPredicate(SearchPredicate):
         return False
 
     def simplify(self) -> "SearchPredicate":
-        simplified = [c.simplify() for c in self.components]
+        simplified = []
+        for c in self.components:
+            c = c.simplify()
+            if c == TRUE_PREDICATE:
+                return c
+            if isinstance(c, OrPredicate):
+                simplified += c.components
+            else:
+                simplified.append(c)
         return OrPredicate(simplified)
 
     def to_child_text(self) -> str:
@@ -239,6 +266,8 @@ class OrPredicate(SearchPredicate):
 
 
 class TruePredicate(SearchPredicate):
+    """This predicate matches everything."""
+
     def accept(self, candidate: Any) -> bool:
         return True
 
