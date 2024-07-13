@@ -15,7 +15,7 @@ def clean_token(to_clean: Optional[str]) -> str:
     return to_clean.strip()
 
 
-def tokenize_search(text: str, isolated_tokens: Iterable[str]) -> Iterable[str]:
+def tokenize_search(text: str, isolated_tokens: Iterable[str]) -> List[str]:
     """Iterates through a text and breaks in into tokens. Every character of the text is present
     in exactly one token returned, all in order, so the original text can be reconstructed by concatenating the
     tokens.
@@ -27,6 +27,7 @@ def tokenize_search(text: str, isolated_tokens: Iterable[str]) -> Iterable[str]:
     isolated_tokens = sorted(isolated_tokens, key=lambda tok: -len(tok))
 
     def basic_tokenize():
+        tokens = []
         buffer = ""
         it = iter(text)
         while True:
@@ -35,11 +36,11 @@ def tokenize_search(text: str, isolated_tokens: Iterable[str]) -> Iterable[str]:
                 break
 
             if ch.isspace() != buffer.isspace():
-                yield buffer
+                tokens.append(buffer)
                 buffer = ""
 
             if ch == '"':
-                yield buffer
+                tokens.append(buffer)
 
                 buffer = ch
                 while True:
@@ -52,32 +53,36 @@ def tokenize_search(text: str, isolated_tokens: Iterable[str]) -> Iterable[str]:
                     if ch == '"':
                         break
 
-                yield buffer
+                tokens.append(buffer)
                 buffer = ""
                 continue
 
             buffer += ch
-        yield buffer
+        tokens.append(buffer)
+        return tokens
 
-    def split_isolated_tokens(tokens: Iterable[str]) -> Iterable[str]:
-        for token in tokens:
-            i = 0
-            while i < len(token):
-                if token[i] in isolating_chars:
+    def split_isolated_tokens(tokens: List[str]) -> None:
+        token_index = 0
+        while token_index < len(tokens):
+            token = tokens[token_index]
+            char_index = 0
+            while char_index < len(token):
+                if token[char_index] in isolating_chars:
                     for candidate in isolated_tokens:
-                        if token[i:].startswith(candidate):
-                            yield token[:i]
-                            yield candidate
-                            token = token[(i + len(candidate)) :]
-                            i = -1  # start again with reduced token!
+                        if token[char_index:].startswith(candidate):
+                            tokens[token_index] = token[:char_index]
+                            token_index += 1
+                            tokens.insert(token_index, candidate)
+                            token = token[(char_index + len(candidate)):]
+                            char_index = -1  # start again with reduced token!
                             break
-                i += 1
-            yield token
+                char_index += 1
+            token_index += 1
 
     # Since we blindly return empty buffers, we must now filter them out
     basic = basic_tokenize()
-    isolated = split_isolated_tokens(basic)
-    return filter(lambda t: len(t) > 0, isolated)
+    split_isolated_tokens(basic)
+    return [t for t in basic if len(t)]
 
 
 class TokenReader:

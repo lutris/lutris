@@ -93,7 +93,7 @@ class BaseSearch:
         if self.predicate is None:
             if self.text:
                 raw_tokens = tokenize_search(self.text, ISOLATED_TOKENS)
-                tokens = TokenReader(list(raw_tokens))
+                tokens = TokenReader(raw_tokens)
                 self.predicate = self._parse_or(tokens) or TRUE_PREDICATE
             else:
                 self.predicate = TRUE_PREDICATE
