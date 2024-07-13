@@ -102,7 +102,11 @@ class FileChooserEntry(Gtk.Box):
 
     def set_text(self, text):
         if self.shell_quoting and text:
-            command_array = shlex.split(text)
+            try:
+                command_array = shlex.split(self.get_text())
+            except ValueError:
+                command_array = None  # split can fail due to imbalanced quoted
+
             if command_array:
                 expanded = os.path.expanduser(command_array[0])
                 command_array[0] = expanded
@@ -117,7 +121,11 @@ class FileChooserEntry(Gtk.Box):
 
     def set_path(self, path):
         if self.shell_quoting:
-            command_array = shlex.split(self.get_text())
+            try:
+                command_array = shlex.split(self.get_text())
+            except ValueError:
+                command_array = None  # split can fail due to imbalanced quoted
+
             if command_array:
                 command_array[0] = os.path.expanduser(path) if path else ""
                 rejoined = shlex.join(command_array)
@@ -139,8 +147,11 @@ class FileChooserEntry(Gtk.Box):
         the command from the text and returns only that."""
         text = self.get_text()
         if self.shell_quoting:
-            command_array = shlex.split(text)
-            return command_array[0] if command_array else ""
+            try:
+                command_array = shlex.split(text)
+                return command_array[0] if command_array else ""
+            except ValueError:
+                pass
 
         return text
 
@@ -178,8 +189,11 @@ class FileChooserEntry(Gtk.Box):
             target_path = file_chooser_dialog.get_filename()
 
             if target_path and self.shell_quoting:
-                command_array = shlex.split(self.entry.get_text())
-                text = shlex.join([target_path] + command_array[1:])
+                try:
+                    command_array = shlex.split(self.entry.get_text())
+                    text = shlex.join([target_path] + command_array[1:])
+                except ValueError:
+                    text = target_path
             else:
                 text = target_path
 
@@ -277,7 +291,7 @@ class FileChooserEntry(Gtk.Box):
         path = original_path.strip("\r\n")
 
         if path.startswith("file:///"):
-            path = urllib.parse.unquote(path[len("file://") :])
+            path = urllib.parse.unquote(path[len("file://"):])
 
         path = os.path.expanduser(path)
 
