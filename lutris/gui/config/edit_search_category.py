@@ -22,7 +22,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         title = _("Configure %s") % self.category
 
         super().__init__(title, parent=parent, border_width=10)
-        self.set_default_size(500, -1)
+        self.set_default_size(500, 400)
 
         self.vbox.set_homogeneous(False)
         self.vbox.set_spacing(10)
@@ -30,11 +30,18 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         self.name_entry = self._add_entry_box(_("Name"), self.category)
         self.search_entry = self._add_entry_box(_("Search"), self.search)
 
-        self.components_grid = Gtk.Grid(row_spacing=6, column_spacing=6)
+        self.components_grid = Gtk.Grid(row_spacing=6, column_spacing=6, margin=6)
+        scrolled_window = Gtk.ScrolledWindow(visible=True)
+        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        components_frame = Gtk.Frame(visible=True)
+        components_frame.get_style_context().add_class("info-frame")
+        components_frame.add(scrolled_window)
+        scrolled_window.add(self.components_grid)
+
         self.predicate_widget_functions: Dict[str, Callable[[SearchPredicate], None]] = {}
         self.updating_predicate_widgets = False
         self._add_component_widgets()
-        self.vbox.pack_start(self.components_grid, True, True, 0)
+        self.vbox.pack_start(components_frame, True, True, 0)
 
         delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
         delete_button.connect("clicked", self.on_delete_clicked)
