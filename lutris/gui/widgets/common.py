@@ -193,7 +193,7 @@ class FileChooserEntry(Gtk.Box):
                     command_array = shlex.split(self.entry.get_text())
                     text = shlex.join([target_path] + command_array[1:])
                 except ValueError:
-                    text = target_path
+                    text = shlex.join([target_path])
             else:
                 text = target_path
 
@@ -291,7 +291,7 @@ class FileChooserEntry(Gtk.Box):
         path = original_path.strip("\r\n")
 
         if path.startswith("file:///"):
-            path = urllib.parse.unquote(path[len("file://"):])
+            path = urllib.parse.unquote(path[len("file://") :])
 
         path = os.path.expanduser(path)
 
