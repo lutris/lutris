@@ -16,6 +16,7 @@ from lutris.search_predicate import (
     AndPredicate,
     FlagPredicate,
     FunctionPredicate,
+    MatchPredicate,
     NotPredicate,
     OrPredicate,
     SearchPredicate,
@@ -190,7 +191,7 @@ class BaseSearch:
         return False
 
     def quote_token(self, text: str) -> str:
-        if text:
+        if text and " " not in text:
             tokens = list(tokenize_search(text, ISOLATED_TOKENS))
             test_reader = TokenReader(tokens)
             cleaned = test_reader.get_cleaned_token_sequence(self.is_stop_token)
@@ -363,22 +364,18 @@ class GameSearch(BaseSearch):
 
         return FlagPredicate(categorized, is_categorized, tag="categorized")
 
-    def get_category_predicate(self, category: str, in_category: Optional[bool] = True) -> SearchPredicate:
-        if in_category is None:
-            return TRUE_PREDICATE
-
+    def get_category_predicate(self, category: str) -> SearchPredicate:
         names = normalized_category_names(category, subname_allowed=True)
         category_game_ids = set(get_game_ids_for_categories(names))
 
         def match_category(db_game):
             game_id = db_game["id"]
-            game_in_category = game_id in category_game_ids
-            return game_in_category == in_category
+            return game_id in category_game_ids
 
         def format_predicate():
             return f"category:{self.quote_token(category)}"
 
-        return FunctionPredicate(match_category, formatter=format_predicate)
+        return MatchPredicate(match_category, formatter=format_predicate, tag="category", value=category)
 
     def get_category_flag_predicate(self, category: str, tag: str, in_category: Optional[bool] = True) -> FlagPredicate:
         names = normalized_category_names(category, subname_allowed=True)
