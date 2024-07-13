@@ -28,9 +28,9 @@ class SearchPredicate(ABC):
         the original."""
         return self
 
-    def without_match(self, tag: str, value: str) -> "SearchPredicate":
+    def without_match(self, tag: str, value: Optional[str] = None) -> "SearchPredicate":
         """Returns a predicate without the MatchPredicate that has the tag and value
-        given. Matches that are negated or the like are not removed."""
+        given (or just the tag). Matches that are negated or the like are not removed."""
         return self
 
     def get_matches(self, tag: str) -> List[str]:
@@ -90,7 +90,10 @@ class MatchPredicate(FunctionPredicate):
     def get_matches(self, tag: str) -> List[str]:
         return [self.value] if self.tag == tag else []
 
-    def without_match(self, tag: str, value: str) -> "SearchPredicate":
+    def without_match(self, tag: str, value: Optional[str] = None) -> "SearchPredicate":
+        if value is None:
+            return TRUE_PREDICATE if self.tag == tag else self
+
         return TRUE_PREDICATE if self.tag == tag and self.value == value else self
 
 
@@ -193,7 +196,7 @@ class AndPredicate(SearchPredicate):
             matches += c.get_matches(tag)
         return matches
 
-    def without_match(self, tag: str, value: str) -> "SearchPredicate":
+    def without_match(self, tag: str, value: Optional[str] = None) -> "SearchPredicate":
         new_components = []
         for c in self.components:
             r = c.without_match(tag, value)
