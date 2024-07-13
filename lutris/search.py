@@ -404,7 +404,7 @@ class GameSearch(BaseSearch):
         def format_predicate():
             return f"source:{service_name}"
 
-        return FunctionPredicate(match_service, formatter=format_predicate)
+        return MatchPredicate(match_service, formatter=format_predicate, tag="source", value=service_name)
 
     def get_runner_predicate(self, runner_name: str) -> SearchPredicate:
         folded_runner_name = runner_name.casefold()
@@ -424,7 +424,7 @@ class GameSearch(BaseSearch):
         def format_predicate():
             return f"runner:{self.quote_token(runner_name)}"
 
-        return FunctionPredicate(match_runner, formatter=format_predicate)
+        return MatchPredicate(match_runner, formatter=format_predicate, tag="runner", value=runner_name)
 
     def get_platform_predicate(self, platform: str) -> SearchPredicate:
         folded_platform = platform.casefold()
@@ -442,7 +442,7 @@ class GameSearch(BaseSearch):
         def format_predicate():
             return f"platform:{self.quote_token(platform)}"
 
-        return FunctionPredicate(match_platform, formatter=format_predicate)
+        return MatchPredicate(match_platform, formatter=format_predicate, tag="platform", value=platform)
 
 
 class RunnerSearch(BaseSearch):
