@@ -14,29 +14,48 @@ def format_flag(flag: Optional[bool]) -> str:
 
 
 class SearchPredicate(ABC):
+    """This class is a filter function that also includes formatting and other functionality so
+    it can be edited in the UI."""
+
     @abstractmethod
     def accept(self, candidate: Any) -> bool:
+        """This method tests an object against the predicate."""
         return True
 
     def simplify(self) -> "SearchPredicate":
+        """This method and return a simplified and flattened version of
+        the predicate; the simplified predicate will match the same objects as
+        the original."""
         return self
 
     def without_match(self, tag: str, value: str) -> "SearchPredicate":
+        """Returns a predicate without the MatchPredicate that has the tag and value
+        given. Matches that are negated or the like are not removed."""
         return self
 
     def get_matches(self, tag: str) -> List[str]:
+        """ "Returns all the values for the matches for the tag given; again any
+        negated matches are ignored."""
         return []
 
     def without_flag(self, tag: str) -> "SearchPredicate":
+        """Returns a predicate without the FlagPredicate that has the tag
+        given. Flags that are negated or the like are not removed."""
         return self
 
     def has_flag(self, tag: str) -> bool:
+        """True if the predicate has a FlagPredicate with the tag given;
+        Flags that are negated or the like are ignored."""
         return False
 
     def get_flag(self, tag: str) -> Optional[bool]:
+        """Returns the flag test value for the FlagPredicte with the tag
+        given. None represents 'maybe', not that the flag is missing."""
         return None
 
     def to_child_text(self) -> str:
+        """Returns the text of this predicate as it should be if nested inside a larger
+        predicate; this may be in parentheses where __str__ would not be."""
         return str(self)
 
     @abstractmethod
