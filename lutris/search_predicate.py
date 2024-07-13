@@ -64,20 +64,22 @@ class SearchPredicate(ABC):
 
 
 class FunctionPredicate(SearchPredicate):
-    def __init__(self, predicate: Callable[[Any], bool], formatter: Callable[[], str]) -> None:
+    """This is a generate predicate that wraps a function to perform the test."""
+
+    def __init__(self, predicate: Callable[[Any], bool], text: str) -> None:
         self.predicate = predicate
-        self.formatter = formatter
+        self.text = text
 
     def accept(self, candidate: Any) -> bool:
         return self.predicate(candidate)
 
     def __str__(self):
-        return self.formatter()
+        return self.text
 
 
 class MatchPredicate(FunctionPredicate):
-    def __init__(self, predicate: Callable[[Any], bool], formatter: Callable[[], str], tag: str, value: str) -> None:
-        super().__init__(predicate, formatter)
+    def __init__(self, predicate: Callable[[Any], bool], text: str, tag: str, value: str) -> None:
+        super().__init__(predicate, text)
         self.tag = tag
         self.value = value
 
