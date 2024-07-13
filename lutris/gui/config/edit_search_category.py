@@ -4,7 +4,9 @@ from typing import Any, Callable, Dict, Optional
 
 from gi.repository import Gtk
 
+from lutris import runners, services
 from lutris.database import categories as categories_db
+from lutris.database import games as games_db
 from lutris.exceptions import InvalidSearchTermError
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
 from lutris.search import FLAG_TEXTS, GameSearch
@@ -93,10 +95,13 @@ class EditSearchCategoryDialog(SavableModelessDialog):
                 self.updating_predicate_widgets = False
 
     def _add_flag_widgets(self):
-        self._add_flag_widget(0, _("Installed:"), "installed")
-        self._add_flag_widget(1, _("Favorite:"), "favorite")
-        self._add_flag_widget(2, _("Hidden:"), "hidden")
-        self._add_flag_widget(3, _("Categorized:"), "categorized")
+        self._add_service_widget(0)
+        self._add_runner_widget(1)
+        self._add_platform_widget(2)
+        self._add_flag_widget(3, _("Installed:"), "installed")
+        self._add_flag_widget(4, _("Favorite:"), "favorite")
+        self._add_flag_widget(5, _("Hidden:"), "hidden")
+        self._add_flag_widget(6, _("Categorized:"), "categorized")
 
     def _change_search_flag(self, tag: str, flag: Optional[bool]):
         search = GameSearch(self.search)
@@ -146,6 +151,67 @@ class EditSearchCategoryDialog(SavableModelessDialog):
             else:
                 combobox.set_active_id("omit")
 
+        self.predicate_widget_functions[combobox] = populate_widget
+        self.flags_grid.attach(combobox, 1, row, 1, 1)
+        combobox.connect("changed", on_combobox_change)
+
+    def _add_service_widget(self, row):
+        options = [(s[1]().name, s[0]) for s in services.get_enabled_services().items()]
+
+        self._add_match_widget(
+            row, "Source", "source", options, predicate_factory=lambda s, v: s.get_service_predicate(v)
+        )
+
+    def _add_runner_widget(self, row):
+        options = [(r.human_name, r.name) for r in runners.get_installed()]
+
+        self._add_match_widget(
+            row, "Runner", "runner", options, predicate_factory=lambda s, v: s.get_runner_predicate(v)
+        )
+
+    def _add_platform_widget(self, row):
+        options = [(p, p) for p in games_db.get_used_platforms()]
+
+        self._add_match_widget(
+            row, "Platform", "platform", options, predicate_factory=lambda s, v: s.get_platform_predicate(v)
+        )
+
+    def _add_match_widget(self, row, caption, tag, options, predicate_factory):
+        def on_combobox_change(_widget):
+            if not self.updating_predicate_widgets:
+                search = GameSearch(self.search)
+                predicate = search.get_predicate().without_match(tag)
+                active_id = combobox.get_active_id()
+                if active_id:
+                    p = predicate_factory(search, active_id)
+                    predicate = AndPredicate([predicate, p]).simplify()
+                self.search = str(predicate)
+                self.search_entry.set_text(self.search)
+
+        def populate_widget(predicate):
+            matches = predicate.get_matches(tag)
+            if matches:
+                combobox.set_active_id(matches[0])
+            else:
+                combobox.set_active_id("")
+
+        label = Gtk.Label(caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
+        self.flags_grid.attach(label, 0, row, 1, 1)
+
+        liststore = Gtk.ListStore(str, str)
+        liststore.append((_("(omit from search)"), ""))
+
+        for option in options:
+            liststore.append(option)
+
+        combobox = Gtk.ComboBox.new_with_model(liststore)
+        combobox.set_entry_text_column(0)
+        combobox.set_id_column(1)
+        combobox.set_halign(Gtk.Align.START)
+        combobox.set_valign(Gtk.Align.CENTER)
+        renderer_text = Gtk.CellRendererText()
+        combobox.pack_start(renderer_text, True)
+        combobox.add_attribute(renderer_text, "text", 0)
         self.predicate_widget_functions[combobox] = populate_widget
         self.flags_grid.attach(combobox, 1, row, 1, 1)
         combobox.connect("changed", on_combobox_change)
