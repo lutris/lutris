@@ -337,10 +337,8 @@ class GameSearch(BaseSearch):
         except ValueError as ex:
             raise InvalidSearchTermError(f"'{duration_text}' is not a valid playtime.") from ex
 
-        def format_predicate():
-            return f"{tag}:{operator}{get_formatted_playtime(duration)}"
-
-        return FunctionPredicate(matcher, formatter=format_predicate)
+        text = f"{tag}:{operator}{get_formatted_playtime(duration)}"
+        return FunctionPredicate(matcher, text)
 
     def get_directory_predicate(self, directory: str) -> SearchPredicate:
         return TextPredicate(directory, lambda c: c.get("directory"), tag="directory")
@@ -372,10 +370,8 @@ class GameSearch(BaseSearch):
             game_id = db_game["id"]
             return game_id in category_game_ids
 
-        def format_predicate():
-            return f"category:{self.quote_token(category)}"
-
-        return MatchPredicate(match_category, formatter=format_predicate, tag="category", value=category)
+        text = f"category:{self.quote_token(category)}"
+        return MatchPredicate(match_category, text=text, tag="category", value=category)
 
     def get_category_flag_predicate(self, category: str, tag: str, in_category: Optional[bool] = True) -> FlagPredicate:
         names = normalized_category_names(category, subname_allowed=True)
@@ -401,10 +397,8 @@ class GameSearch(BaseSearch):
             service = SERVICES.get(game_service)
             return service and service_name in service.name.casefold()
 
-        def format_predicate():
-            return f"source:{service_name}"
-
-        return MatchPredicate(match_service, formatter=format_predicate, tag="source", value=service_name)
+        text = f"source:{service_name}"
+        return MatchPredicate(match_service, text=text, tag="source", value=service_name)
 
     def get_runner_predicate(self, runner_name: str) -> SearchPredicate:
         folded_runner_name = runner_name.casefold()
@@ -421,10 +415,8 @@ class GameSearch(BaseSearch):
             runner_human_name = get_runner_human_name(game_runner)
             return runner_name in runner_human_name.casefold()
 
-        def format_predicate():
-            return f"runner:{self.quote_token(runner_name)}"
-
-        return MatchPredicate(match_runner, formatter=format_predicate, tag="runner", value=runner_name)
+        text = f"runner:{self.quote_token(runner_name)}"
+        return MatchPredicate(match_runner, text=text, tag="runner", value=runner_name)
 
     def get_platform_predicate(self, platform: str) -> SearchPredicate:
         folded_platform = platform.casefold()
@@ -439,10 +431,8 @@ class GameSearch(BaseSearch):
                 return any(matches)
             return False
 
-        def format_predicate():
-            return f"platform:{self.quote_token(platform)}"
-
-        return MatchPredicate(match_platform, formatter=format_predicate, tag="platform", value=platform)
+        text = f"platform:{self.quote_token(platform)}"
+        return MatchPredicate(match_platform, text=text, tag="platform", value=platform)
 
 
 class RunnerSearch(BaseSearch):
