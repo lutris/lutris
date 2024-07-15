@@ -3,35 +3,34 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-02-04 23:57+0300\n"
-"PO-Revision-Date: 2020-09-03 19:01+0900\n"
+"PO-Revision-Date: 2024-07-15 11:26+0900\n"
 "Last-Translator: Kevin Kim <root@hamonikr.org>\n"
 "Language-Team: Korean\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.6\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.4.2\n"
 
 #: share/applications/net.lutris.Lutris.desktop:3
 #: share/lutris/ui/lutris-window.ui:25 lutris/gui/application.py:77
 #: lutris/gui/widgets/status_icon.py:128 lutris/services/lutris.py:39
-#, fuzzy
 msgid "Lutris"
-msgstr "Lutris 정보"
+msgstr "Lutris"
 
 #: share/applications/net.lutris.Lutris.desktop:4
 msgid "Video Game Preservation Platform"
-msgstr ""
+msgstr "오픈소스 비디오 게임 플랫폼"
 
 #: share/applications/net.lutris.Lutris.desktop:6
 msgid "gaming;wine;emulator;"
-msgstr ""
+msgstr "gaming;wine;emulator;"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:11
 #: share/lutris/ui/about-dialog.ui:18
 msgid "Video game preservation platform"
-msgstr ""
+msgstr "오픈소스 비디오 게임 플랫폼"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:14
 msgid "Main window"
@@ -44,6 +43,8 @@ msgid ""
 "implementations and compatibility layers, it gives you a central interface "
 "to launch all your games."
 msgstr ""
+"Lutris는 다양한 게이밍 시스템과 모든 시대로부터 온 비디오 게임을 설치하고 즐"
+"길 수 있는 플랫폼입니다."
 
 #: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:575
 msgid "About Lutris"
@@ -80,20 +81,19 @@ msgstr ""
 
 #: share/lutris/ui/dialog-lutris-login.ui:8
 msgid "Connect to lutris.net"
-msgstr "lutris.net 에 연결"
+msgstr "lutris.net 에 연결하기"
 
 #: share/lutris/ui/dialog-lutris-login.ui:26
 msgid "Forgot password?"
 msgstr "비밀번호를 분실했나요?"
 
 #: share/lutris/ui/dialog-lutris-login.ui:43 lutris/gui/dialogs/issue.py:49
-#, fuzzy
 msgid "C_ancel"
-msgstr "취소"
+msgstr "취소(_A)"
 
 #: share/lutris/ui/dialog-lutris-login.ui:57
 msgid "_Connect"
-msgstr ""
+msgstr "연결(_C)"
 
 #: share/lutris/ui/dialog-lutris-login.ui:95
 msgid "Password"
@@ -105,15 +105,15 @@ msgstr "사용자명"
 
 #: share/lutris/ui/log-window.ui:36
 msgid "Search..."
-msgstr ""
+msgstr "검색..."
 
 #: share/lutris/ui/lutris-window.ui:147 lutris/gui/lutriswindow.py:484
 msgid "Search games"
-msgstr ""
+msgstr "게임 찾기"
 
 #: share/lutris/ui/lutris-window.ui:162
 msgid "Add Game"
-msgstr ""
+msgstr "게임 추가"
 
 #: share/lutris/ui/lutris-window.ui:194
 msgid "Toggle View"
@@ -121,7 +121,7 @@ msgstr ""
 
 #: share/lutris/ui/lutris-window.ui:292
 msgid "Zoom "
-msgstr ""
+msgstr "확대"
 
 #: share/lutris/ui/lutris-window.ui:345
 msgid "Sort Ascending"
@@ -130,56 +130,55 @@ msgstr ""
 #: share/lutris/ui/lutris-window.ui:360 lutris/gui/config/common.py:127
 #: lutris/gui/views/list.py:48 lutris/gui/views/list.py:172
 msgid "Name"
-msgstr ""
+msgstr "이름"
 
 #: share/lutris/ui/lutris-window.ui:375 lutris/gui/views/list.py:49
 msgid "Year"
-msgstr ""
+msgstr "연도"
 
 #: share/lutris/ui/lutris-window.ui:390 lutris/gui/views/list.py:52
 msgid "Last Played"
-msgstr ""
+msgstr "최근 플레이"
 
 #: share/lutris/ui/lutris-window.ui:405 lutris/gui/views/list.py:54
-#, fuzzy
 msgid "Installed At"
-msgstr "러너 설치"
+msgstr "설치한 위치"
 
 #: share/lutris/ui/lutris-window.ui:420 lutris/gui/views/list.py:56
 msgid "Play Time"
-msgstr ""
+msgstr "플레이 시간"
 
 #: share/lutris/ui/lutris-window.ui:449
 msgid "_Installed Games Only"
-msgstr ""
+msgstr "설치된 게임만(_I)"
 
 #: share/lutris/ui/lutris-window.ui:464
 msgid "Show _Hidden Games"
-msgstr ""
+msgstr "숨겨진 게임 표시(_H)"
 
 #: share/lutris/ui/lutris-window.ui:479
 msgid "Show Side _Panel"
-msgstr ""
+msgstr "사이드 패널 표시(_P)"
 
 #: share/lutris/ui/lutris-window.ui:494
 msgid "Add games"
-msgstr ""
+msgstr "게임 추가"
 
 #: share/lutris/ui/lutris-window.ui:508
 msgid "Preferences"
-msgstr ""
+msgstr "기본 설정"
 
 #: share/lutris/ui/lutris-window.ui:533
 msgid "Discord"
-msgstr ""
+msgstr "Discord"
 
 #: share/lutris/ui/lutris-window.ui:547
 msgid "Lutris forums"
-msgstr ""
+msgstr "Lutris 포럼"
 
 #: share/lutris/ui/lutris-window.ui:561
 msgid "Make a donation"
-msgstr ""
+msgstr "기부하기"
 
 #: lutris/exceptions.py:26
 #, python-brace-format
@@ -195,7 +194,7 @@ msgstr ""
 
 #: lutris/game.py:250
 msgid "A bios file is required to run this game"
-msgstr ""
+msgstr "게임을 실행하려면 바이오스 파일이 필요합니다"
 
 #: lutris/game.py:254
 msgid "The file {} could not be found"
@@ -223,7 +222,7 @@ msgstr ""
 
 #: lutris/game.py:334
 msgid "Uninstall the game before deleting"
-msgstr ""
+msgstr "지우기 전 게임 삭제"
 
 #: lutris/game.py:406
 msgid "Tried to launch a game that isn't installed."
@@ -236,6 +235,7 @@ msgstr ""
 #: lutris/game.py:440
 msgid "Unable to find Xephyr, install it or disable the Xephyr option"
 msgstr ""
+"Xephyr를 찾을 수 없습니다. Xephyr를 설치하거나 해당 옵션을 비활성화하십시오"
 
 #: lutris/game.py:487
 #, python-format
@@ -265,85 +265,80 @@ msgstr ""
 #: lutris/game_actions.py:61 lutris/gui/widgets/game_bar.py:201
 #: lutris/gui/widgets/game_bar.py:215
 msgid "Play"
-msgstr ""
+msgstr "플레이"
 
 #: lutris/game_actions.py:62 lutris/gui/widgets/game_bar.py:207
 msgid "Stop"
-msgstr ""
+msgstr "중단"
 
 #: lutris/game_actions.py:63 lutris/gui/dialogs/runner_install.py:210
 #: lutris/gui/installer/script_box.py:62 lutris/gui/widgets/game_bar.py:210
-#, fuzzy
 msgid "Install"
-msgstr "러너 설치"
+msgstr "설치"
 
 #: lutris/game_actions.py:64
-#, fuzzy
 msgid "Install updates"
-msgstr "러너 설치"
+msgstr "업데이트 설치"
 
 #: lutris/game_actions.py:66
 msgid "Show logs"
-msgstr ""
+msgstr "로그 표시"
 
 #: lutris/game_actions.py:67
-#, fuzzy
 msgid "Add installed game"
-msgstr "게임 삭제"
+msgstr "설치된 게임 추가"
 
 #: lutris/game_actions.py:68 lutris/gui/widgets/sidebar.py:214
-#, fuzzy
 msgid "Configure"
-msgstr "러너 설정"
+msgstr "설정"
 
 #: lutris/game_actions.py:69
 msgid "Add to favorites"
-msgstr ""
+msgstr "즐겨찾기에 추가"
 
 #: lutris/game_actions.py:70
-#, fuzzy
 msgid "Remove from favorites"
-msgstr "라이브러리에서 제거합니다."
+msgstr "즐겨찾기에서 제거"
 
 #: lutris/game_actions.py:71
 msgid "Execute script"
-msgstr ""
+msgstr "스크립트 실행"
 
 #: lutris/game_actions.py:72
 msgid "Update shader cache"
-msgstr ""
+msgstr "셰이더 캐시 업데이트"
 
 #: lutris/game_actions.py:73
 msgid "Browse files"
-msgstr ""
+msgstr "파일 찾아보기"
 
 #: lutris/game_actions.py:76 lutris/gui/installerwindow.py:346
 msgid "Create desktop shortcut"
-msgstr ""
+msgstr "바탕화면 바로가기 만들기"
 
 #: lutris/game_actions.py:81
 msgid "Delete desktop shortcut"
-msgstr ""
+msgstr "바탕화면 바로가기 삭제"
 
 #: lutris/game_actions.py:86 lutris/gui/installerwindow.py:350
 msgid "Create application menu shortcut"
-msgstr ""
+msgstr "애플리케이션 메뉴 바로가기 만들기"
 
 #: lutris/game_actions.py:91
 msgid "Delete application menu shortcut"
-msgstr ""
+msgstr "애플리케이션 메뉴 바로가기 삭제"
 
 #: lutris/game_actions.py:96 lutris/gui/installerwindow.py:355
 msgid "Create steam shortcut"
-msgstr ""
+msgstr "스팀 바로가기 만들기"
 
 #: lutris/game_actions.py:101
 msgid "Delete steam shortcut"
-msgstr ""
+msgstr "스팀 바로가기 삭제"
 
 #: lutris/game_actions.py:104
 msgid "Install another version"
-msgstr ""
+msgstr "다른 버전 설치"
 
 #: lutris/game_actions.py:105 lutris/gui/dialogs/uninstall_game.py:113
 msgid "Remove"
@@ -351,22 +346,19 @@ msgstr "삭제"
 
 #: lutris/game_actions.py:106
 msgid "Duplicate"
-msgstr ""
+msgstr "복제"
 
 #: lutris/game_actions.py:107
-#, fuzzy
 msgid "View on Lutris.net"
-msgstr "lutris.net 에 연결"
+msgstr "lutris.net에서 보기"
 
 #: lutris/game_actions.py:108
-#, fuzzy
 msgid "Hide game from library"
-msgstr "라이브러리에서 제거합니다."
+msgstr "라이브러리에서 게임 숨기기"
 
 #: lutris/game_actions.py:109
-#, fuzzy
 msgid "Unhide game from library"
-msgstr "라이브러리에서 제거합니다."
+msgstr "라이브러리에서 게임 숨기기 해제"
 
 #: lutris/game_actions.py:228
 #, python-format
@@ -375,10 +367,12 @@ msgid ""
 "The configuration will be duplicated, but the games files will <b>not be "
 "duplicated</b>."
 msgstr ""
+"%s(을)를 복제하시겠습니까?\n"
+"설정은 복제되지만 <b>게임 파일은 복제되지 않습니다</b>."
 
 #: lutris/game_actions.py:231
 msgid "Duplicate game?"
-msgstr ""
+msgstr "게임을 복제하시겠습니까?"
 
 #: lutris/game_actions.py:292
 msgid "This game has no installation directory"
@@ -398,7 +392,7 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:28
 msgid "Search the Lutris website for installers"
-msgstr ""
+msgstr "Lutris 웹 사이트에서 설치기 찾기"
 
 #: lutris/gui/addgameswindow.py:29
 msgid "Query our website for community installers"
@@ -406,7 +400,7 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:35
 msgid "Scan a folder for games"
-msgstr ""
+msgstr "게임이 있는 폴더 스캔"
 
 #: lutris/gui/addgameswindow.py:36
 msgid "Mass-import a folder of games"
@@ -414,19 +408,19 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:42
 msgid "Install a Windows game from an executable"
-msgstr ""
+msgstr "실행 파일로부터 Windows 게임 설치"
 
 #: lutris/gui/addgameswindow.py:43
 msgid "Launch a Windows executable (.exe) installer"
-msgstr ""
+msgstr "Windows 실행 파일 (.exe) 설치기 실행"
 
 #: lutris/gui/addgameswindow.py:49
 msgid "Install from a local install script"
-msgstr ""
+msgstr "로컬 설치 스크립트에서 설치"
 
 #: lutris/gui/addgameswindow.py:50
 msgid "Run a YAML install script"
-msgstr ""
+msgstr "YAML 설치 스크립트 실행"
 
 #: lutris/gui/addgameswindow.py:56
 msgid "Import a ROM"
@@ -437,9 +431,8 @@ msgid "Import a ROM that is known to Lutris"
 msgstr ""
 
 #: lutris/gui/addgameswindow.py:63
-#, fuzzy
 msgid "Add locally installed game"
-msgstr "게임 삭제"
+msgstr "설치된 게임 추가"
 
 #: lutris/gui/addgameswindow.py:64
 msgid "Manually configure a game available locally"
@@ -447,19 +440,19 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:69
 msgid "Add games to Lutris"
-msgstr ""
+msgstr "Lutris에 게임 추가"
 
 #. Action buttons
 #: lutris/gui/addgameswindow.py:88 lutris/gui/installerwindow.py:79
 msgid "Back"
-msgstr ""
+msgstr "뒤로"
 
 #. defer destory so the game dialog can be centered first
 #. Continue Button
 #: lutris/gui/addgameswindow.py:96 lutris/gui/addgameswindow.py:594
 #: lutris/gui/installerwindow.py:87 lutris/gui/installerwindow.py:864
 msgid "_Continue"
-msgstr ""
+msgstr "계속(_C)"
 
 #. Buttons
 #: lutris/gui/addgameswindow.py:100 lutris/gui/addgameswindow.py:609
@@ -472,15 +465,15 @@ msgstr "취소"
 
 #: lutris/gui/addgameswindow.py:114 lutris/gui/config/boxes.py:439
 msgid "Select folder"
-msgstr ""
+msgstr "폴더 선택"
 
 #: lutris/gui/addgameswindow.py:123
 msgid "Select script"
-msgstr ""
+msgstr "스크립트 선택"
 
 #: lutris/gui/addgameswindow.py:127
 msgid "Select ROM file"
-msgstr ""
+msgstr "롬 파일 선택"
 
 #: lutris/gui/addgameswindow.py:213
 msgid ""
@@ -497,7 +490,7 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:271
 msgid "No results"
-msgstr ""
+msgstr "결과 없음"
 
 #: lutris/gui/addgameswindow.py:273
 #, python-brace-format
@@ -531,24 +524,23 @@ msgstr ""
 #: lutris/gui/addgameswindow.py:333
 #, python-format
 msgid "No folder exists at '%s'."
-msgstr ""
+msgstr "'%s' 폴더가 없습니다."
 
 #: lutris/gui/addgameswindow.py:357
 msgid "<b>Games found</b>"
-msgstr ""
+msgstr "<b>게임 찾음</b>"
 
 #: lutris/gui/addgameswindow.py:359
 msgid "<b>No games found</b>"
-msgstr ""
+msgstr "<b>게임을 찾을 수 없음</b>"
 
 #: lutris/gui/addgameswindow.py:363 lutris/gui/installerwindow.py:924
 msgid "_Close"
-msgstr ""
+msgstr "닫기(_C)"
 
 #: lutris/gui/addgameswindow.py:409
-#, fuzzy
 msgid "Game name"
-msgstr "이름"
+msgstr "게임 이름"
 
 #: lutris/gui/addgameswindow.py:425
 msgid ""
@@ -565,17 +557,16 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:436
 msgid "32-bit Wine prefix"
-msgstr ""
+msgstr "32비트 Wine Prefix"
 
 #: lutris/gui/addgameswindow.py:445
 msgid "<b>Select setup file</b>"
-msgstr ""
+msgstr "<b>설치 파일 선택</b>"
 
 #: lutris/gui/addgameswindow.py:447 lutris/gui/addgameswindow.py:528
 #: lutris/gui/addgameswindow.py:570 lutris/gui/installerwindow.py:901
-#, fuzzy
 msgid "_Install"
-msgstr "러너 설치"
+msgstr "설치(_I)"
 
 #: lutris/gui/addgameswindow.py:465
 msgid "You must provide a name for the game you are installing."
@@ -583,15 +574,15 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:481
 msgid "Setup file"
-msgstr ""
+msgstr "설치 파일"
 
 #: lutris/gui/addgameswindow.py:490
 msgid "Select the setup file"
-msgstr ""
+msgstr "설치 파일 선택"
 
 #: lutris/gui/addgameswindow.py:509
 msgid "Script file"
-msgstr ""
+msgstr "스크립트 파일"
 
 #: lutris/gui/addgameswindow.py:515
 msgid ""
@@ -611,7 +602,7 @@ msgstr ""
 #: lutris/gui/addgameswindow.py:536 lutris/gui/addgameswindow.py:578
 #, python-format
 msgid "No file exists at '%s'."
-msgstr ""
+msgstr "파일 '%s'를 찾을 수 없음"
 
 #: lutris/gui/addgameswindow.py:551 lutris/runners/atari800.py:36
 #: lutris/runners/jzintv.py:19 lutris/runners/libretro.py:77
@@ -621,7 +612,7 @@ msgstr ""
 #: lutris/runners/snes9x.py:27 lutris/runners/vice.py:38
 #: lutris/runners/yuzu.py:23
 msgid "ROM file"
-msgstr ""
+msgstr "롬 파일"
 
 #: lutris/gui/addgameswindow.py:557
 msgid ""
@@ -662,11 +653,11 @@ msgstr ""
 
 #: lutris/gui/application.py:128
 msgid "Show debug messages"
-msgstr ""
+msgstr "디버그 메시지 표시"
 
 #: lutris/gui/application.py:136
 msgid "Install a game from a yml file"
-msgstr ""
+msgstr "YML 파일로부터 게임 설치"
 
 #: lutris/gui/application.py:144
 msgid "Force updates"
@@ -685,36 +676,32 @@ msgid "List all games in database"
 msgstr ""
 
 #: lutris/gui/application.py:176
-#, fuzzy
 msgid "Only list installed games"
-msgstr "게임 삭제"
+msgstr "설치된 게임만 표시"
 
 #: lutris/gui/application.py:184
 msgid "List available Steam games"
-msgstr ""
+msgstr "이용 가능한 스팀 라이브러리 폴더 목록"
 
 #: lutris/gui/application.py:192
 msgid "List all known Steam library folders"
-msgstr ""
+msgstr "모든 스팀 라이브러리 폴더 목록"
 
 #: lutris/gui/application.py:200
-#, fuzzy
 msgid "List all known runners"
-msgstr "러너 설치"
+msgstr "알려진 모든 실행기 목록"
 
 #: lutris/gui/application.py:208
 msgid "List all known Wine versions"
-msgstr ""
+msgstr "알려진 모든 Wine 버전 목록"
 
 #: lutris/gui/application.py:216
-#, fuzzy
 msgid "Install a Runner"
-msgstr "러너 설치"
+msgstr "실행기 설치"
 
 #: lutris/gui/application.py:224
-#, fuzzy
 msgid "Uninstall a Runner"
-msgstr "러너 설치"
+msgstr "실행기 삭제"
 
 #: lutris/gui/application.py:232
 msgid "Export a game"
@@ -733,9 +720,8 @@ msgid "Display the list of games in JSON format"
 msgstr ""
 
 #: lutris/gui/application.py:264
-#, fuzzy
 msgid "Reinstall game"
-msgstr "게임 삭제"
+msgstr "게임 재설치"
 
 #: lutris/gui/application.py:267
 msgid "Submit an issue"
@@ -743,17 +729,17 @@ msgstr ""
 
 #: lutris/gui/application.py:273
 msgid "URI to open"
-msgstr ""
+msgstr "URI 열기"
 
 #: lutris/gui/application.py:516
 #, python-format
 msgid "%s is not a valid URI"
-msgstr ""
+msgstr "%s(이)가 올바른 URI가 아님"
 
 #: lutris/gui/application.py:539
 #, python-format
 msgid "Failed to download %s"
-msgstr ""
+msgstr "%s(을)를 다운로드하는 데 실패"
 
 #: lutris/gui/application.py:547
 #, python-brace-format
@@ -768,23 +754,23 @@ msgstr ""
 #: lutris/gui/application.py:726
 #, python-format
 msgid "There is no installer available for %s."
-msgstr ""
+msgstr "이용 가능한 %s의 설치기가 없습니다."
 
 #: lutris/gui/application.py:737
 msgid "No updates found"
-msgstr ""
+msgstr "업데이트 없음"
 
 #: lutris/gui/application.py:748
 msgid "No DLC found"
-msgstr ""
+msgstr "DLC를 찾을 수 없음"
 
 #: lutris/gui/config/add_game_dialog.py:11
 msgid "Add a new game"
-msgstr ""
+msgstr "새 게임 추가"
 
 #: lutris/gui/config/boxes.py:62
 msgid "No options available"
-msgstr ""
+msgstr "사용할 수 있는 옵션 없음"
 
 #: lutris/gui/config/boxes.py:111
 msgid "Reset option to global or default config"
@@ -792,7 +778,7 @@ msgstr ""
 
 #: lutris/gui/config/boxes.py:132
 msgid "<b>Default</b>: "
-msgstr ""
+msgstr "<b>기본</b>: "
 
 #: lutris/gui/config/boxes.py:136
 msgid ""
@@ -803,35 +789,34 @@ msgstr ""
 #: lutris/gui/config/boxes.py:319
 #, python-format
 msgid "%s (default)"
-msgstr ""
+msgstr "%s (기본)"
 
 #: lutris/gui/config/boxes.py:403 lutris/gui/widgets/common.py:50
 msgid "Select file"
-msgstr ""
+msgstr "파일 선택"
 
 #: lutris/gui/config/boxes.py:482
 msgid "Add files"
-msgstr ""
+msgstr "파일 추가"
 
 #: lutris/gui/config/boxes.py:500
 msgid "Files"
-msgstr ""
+msgstr "파일"
 
 #: lutris/gui/config/boxes.py:517
 msgid "Select files"
-msgstr ""
+msgstr "파일 선택"
 
 #: lutris/gui/config/boxes.py:520
 msgid "_Add"
-msgstr ""
+msgstr "추가(_A)"
 
 #: lutris/gui/config/boxes.py:521 lutris/gui/dialogs/issue.py:72
 #: lutris/gui/dialogs/__init__.py:222 lutris/gui/dialogs/__init__.py:249
 #: lutris/gui/widgets/common.py:113
 #: lutris/gui/widgets/download_progress_box.py:47
-#, fuzzy
 msgid "_Cancel"
-msgstr "취소"
+msgstr "취소(_C)"
 
 #: lutris/gui/config/boxes.py:651
 msgid ""
@@ -857,7 +842,7 @@ msgstr ""
 
 #: lutris/gui/config/common.py:123
 msgid "Game info"
-msgstr ""
+msgstr "게임 정보"
 
 #: lutris/gui/config/common.py:139
 msgid "Identifier"
@@ -869,11 +854,11 @@ msgstr ""
 
 #: lutris/gui/config/common.py:157
 msgid "Directory"
-msgstr ""
+msgstr "경로"
 
 #: lutris/gui/config/common.py:163
 msgid "Move"
-msgstr ""
+msgstr "이동"
 
 #: lutris/gui/config/common.py:183
 msgid "The default launch option will be used for this game"
@@ -886,89 +871,88 @@ msgstr ""
 
 #: lutris/gui/config/common.py:192
 msgid "Reset"
-msgstr ""
+msgstr "리셋"
 
 #: lutris/gui/config/common.py:209 lutris/gui/views/list.py:50
-#, fuzzy
 msgid "Runner"
-msgstr "러너 제거"
+msgstr "실행기"
 
 #: lutris/gui/config/common.py:223
 msgid "Set custom cover art"
-msgstr ""
+msgstr "커스텀 커버 아트 설정"
 
 #: lutris/gui/config/common.py:223
 msgid "Remove custom cover art"
-msgstr ""
+msgstr "커스텀 커버 아트 제거"
 
 #: lutris/gui/config/common.py:224
 msgid "Set custom banner"
-msgstr ""
+msgstr "커스텀 배너 설정"
 
 #: lutris/gui/config/common.py:224
-#, fuzzy
 msgid "Remove custom banner"
-msgstr "러너 제거"
+msgstr "커스텀 배너 제거"
 
 #: lutris/gui/config/common.py:225
 msgid "Set custom icon"
-msgstr ""
+msgstr "커스텀 아이콘 설정"
 
 #: lutris/gui/config/common.py:225
 msgid "Remove custom icon"
-msgstr ""
+msgstr "커스텀 아이콘 제거"
 
 #: lutris/gui/config/common.py:258
 msgid "Release year"
-msgstr ""
+msgstr "출시연도"
 
 #: lutris/gui/config/common.py:300
 msgid "Select a runner from the list"
-msgstr ""
+msgstr "목록에서부터 실행기 선택"
 
 #: lutris/gui/config/common.py:308
 msgid "Apply"
-msgstr ""
+msgstr "적용"
 
 #: lutris/gui/config/common.py:355 lutris/gui/config/common.py:360
 #: lutris/gui/config/common.py:363
 msgid "Game options"
-msgstr ""
+msgstr "게임 옵션"
 
 #: lutris/gui/config/common.py:367 lutris/gui/config/common.py:370
 msgid "Runner options"
-msgstr ""
+msgstr "실행기 옵션"
 
 #: lutris/gui/config/common.py:373
 msgid "System options"
-msgstr ""
+msgstr "시스템 옵션"
 
 #: lutris/gui/config/common.py:409
 msgid "Save"
-msgstr ""
+msgstr "저장"
 
 #: lutris/gui/config/common.py:422 lutris/gui/config/common.py:439
 msgid "Show advanced options"
-msgstr ""
+msgstr "고급 옵션 보기"
 
 #: lutris/gui/config/common.py:424
 msgid "Advanced"
-msgstr ""
+msgstr "고급"
 
 #: lutris/gui/config/common.py:475
 msgid ""
 "Are you sure you want to change the runner for this game ? This will reset "
 "the full configuration for this game and is not reversible."
 msgstr ""
+"이 게임의 실행기를 변경하시겠습니까? 그러면 이 게임의 전체 구성이 재설정되고 "
+"되돌릴 수 없습니다."
 
 #: lutris/gui/config/common.py:479
-#, fuzzy
 msgid "Confirm runner change"
-msgstr "러너 설정"
+msgstr "실행기 변경 계속하기"
 
 #: lutris/gui/config/common.py:531
 msgid "Runner not provided"
-msgstr ""
+msgstr "실행기가 제공되지 않음"
 
 #: lutris/gui/config/common.py:534
 msgid "Please fill in the name"
@@ -976,7 +960,7 @@ msgstr ""
 
 #: lutris/gui/config/common.py:537
 msgid "Steam AppID not provided"
-msgstr ""
+msgstr "스팀 AppID가 제공되지 않음"
 
 #: lutris/gui/config/common.py:555
 msgid "The following fields have invalid values: "
@@ -988,20 +972,20 @@ msgstr ""
 
 #: lutris/gui/config/common.py:601
 msgid "Please choose a custom image"
-msgstr ""
+msgstr "커스텀 이미지를 선택하십시오"
 
 #: lutris/gui/config/common.py:609
 msgid "Images"
-msgstr ""
+msgstr "이미지"
 
 #: lutris/gui/config/edit_game.py:10 lutris/gui/config/runner.py:11
-#, fuzzy, python-format
+#, python-format
 msgid "Configure %s"
-msgstr "러너 설정"
+msgstr "%s 설정"
 
 #: lutris/gui/config/preferences_box.py:11 lutris/gui/config/sysinfo_box.py:11
 msgid "Minimize client when a game is launched"
-msgstr ""
+msgstr "게임 실행 시 클라이언트 최소화"
 
 #: lutris/gui/config/preferences_box.py:12
 msgid "Hide text under icons (requires restart)"
@@ -1009,7 +993,7 @@ msgstr ""
 
 #: lutris/gui/config/preferences_box.py:13 lutris/gui/config/sysinfo_box.py:13
 msgid "Show Tray Icon"
-msgstr ""
+msgstr "트레이 아이콘 표시"
 
 #: lutris/gui/config/preferences_box.py:14
 msgid "Use dark theme (requires dark theme variant for Gtk)"
@@ -1021,36 +1005,35 @@ msgstr ""
 
 #: lutris/gui/config/preferences_box.py:30
 msgid "Interface options"
-msgstr ""
+msgstr "인터페이스 옵션"
 
 #: lutris/gui/config/preferences_dialog.py:18
 msgid "Lutris settings"
-msgstr ""
+msgstr "Lutris 설정"
 
 #: lutris/gui/config/preferences_dialog.py:27
 msgid "Interface"
-msgstr ""
+msgstr "인터페이스"
 
 #: lutris/gui/config/preferences_dialog.py:28 lutris/gui/widgets/sidebar.py:292
-#, fuzzy
 msgid "Runners"
-msgstr "러너 관리"
+msgstr "실행기"
 
 #: lutris/gui/config/preferences_dialog.py:29 lutris/gui/widgets/sidebar.py:291
 msgid "Sources"
-msgstr ""
+msgstr "출처"
 
 #: lutris/gui/config/preferences_dialog.py:30
 msgid "Hardware information"
-msgstr ""
+msgstr "하드웨어 정보"
 
 #: lutris/gui/config/preferences_dialog.py:31
 msgid "Global options"
-msgstr ""
+msgstr "전역 옵션"
 
 #: lutris/gui/config/runners_box.py:17
 msgid "Add, remove or configure runners"
-msgstr ""
+msgstr "실행기를 추가하고 제거하거나 설정"
 
 #: lutris/gui/config/runners_box.py:19
 msgid ""
@@ -1060,28 +1043,28 @@ msgstr ""
 
 #: lutris/gui/config/runners_box.py:25
 msgid "No runners matched the search"
-msgstr ""
+msgstr "검색된 실행기 없음"
 
 #. pretty sure there will always be many runners, so assume plural
 #: lutris/gui/config/runners_box.py:43
-#, fuzzy, python-format
+#, python-format
 msgid "Search %s runners"
-msgstr "러너 새로고침"
+msgstr "%s 실행기 찾기"
 
 #: lutris/gui/config/runner_box.py:91 lutris/gui/widgets/sidebar.py:230
-#, fuzzy, python-format
+#, python-format
 msgid "Manage %s versions"
-msgstr "버전 관리"
+msgstr "%s 버전 관리"
 
 #: lutris/gui/config/runner_box.py:121
-#, fuzzy, python-format
+#, python-format
 msgid "Do you want to uninstall %s?"
-msgstr "정말 {game} 을 삭제 하시겠습니까?"
+msgstr "정말 %s(을)를 삭제 하시겠습니까?"
 
 #: lutris/gui/config/runner_box.py:122
-#, fuzzy, python-format
+#, python-format
 msgid "This will remove <b>%s</b> and all associated data."
-msgstr "관련된 모든 데이터를 삭제합니다."
+msgstr "%s와 관련된 모든 데이터를 삭제합니다."
 
 #: lutris/gui/config/services_box.py:18
 msgid "Enable integrations with game sources"
@@ -1099,23 +1082,23 @@ msgstr ""
 
 #: lutris/gui/config/sysinfo_box.py:36
 msgid "Copy to clipboard"
-msgstr ""
+msgstr "클립보드에 복사"
 
 #: lutris/gui/config/sysinfo_box.py:39
 msgid "<b>System information</b>"
-msgstr ""
+msgstr "<b>시스템 정보</b>"
 
 #: lutris/gui/dialogs/cache.py:13
 msgid "Cache configuration"
-msgstr ""
+msgstr "캐시 설정"
 
 #: lutris/gui/dialogs/cache.py:40
 msgid "Cache path"
-msgstr ""
+msgstr "캐시 위치"
 
 #: lutris/gui/dialogs/cache.py:43
 msgid "Set the folder for the cache path"
-msgstr ""
+msgstr "캐시를 저장할 폴더 선택"
 
 #: lutris/gui/dialogs/cache.py:55
 msgid ""
@@ -1135,33 +1118,32 @@ msgstr ""
 
 #: lutris/gui/dialogs/delegates.py:133
 msgid "Select game to launch"
-msgstr ""
+msgstr "실행할 게임 선택"
 
 #: lutris/gui/dialogs/download.py:13
 msgid "Downloading file"
-msgstr ""
+msgstr "파일 다운로드 중"
 
 #: lutris/gui/dialogs/download.py:15
 #, python-format
 msgid "Downloading %s"
-msgstr ""
+msgstr "%s 다운로드 중"
 
 #: lutris/gui/dialogs/game_import.py:40 lutris/gui/dialogs/__init__.py:320
 msgid "Launch game"
-msgstr ""
+msgstr "게임 실행"
 
 #: lutris/gui/dialogs/game_import.py:98
-#, fuzzy
 msgid "Looking for installed game..."
-msgstr "게임 삭제"
+msgstr "설치된 게임 찾는 중..."
 
 #: lutris/gui/dialogs/game_import.py:107
 msgid "Calculating checksum..."
-msgstr ""
+msgstr "체크섬 계산 중..."
 
 #: lutris/gui/dialogs/game_import.py:112
 msgid "Looking up checksum on Lutris.net..."
-msgstr ""
+msgstr "Lutris.net에서 체크섬 찾는 중..."
 
 #: lutris/gui/dialogs/game_import.py:115
 msgid "This ROM could not be identified."
@@ -1195,7 +1177,7 @@ msgstr ""
 
 #: lutris/gui/dialogs/issue.py:52
 msgid "_Save"
-msgstr ""
+msgstr "저장(_S)"
 
 #: lutris/gui/dialogs/issue.py:68
 msgid "Select a location to save the issue"
@@ -1204,7 +1186,7 @@ msgstr ""
 #: lutris/gui/dialogs/issue.py:71 lutris/gui/dialogs/__init__.py:221
 #: lutris/gui/dialogs/__init__.py:248 lutris/gui/widgets/common.py:113
 msgid "_OK"
-msgstr ""
+msgstr "확인"
 
 #: lutris/gui/dialogs/issue.py:88
 #, python-format
@@ -1213,7 +1195,7 @@ msgstr ""
 
 #: lutris/gui/dialogs/log.py:25
 msgid "Log for {}"
-msgstr ""
+msgstr "{} 로그"
 
 #: lutris/gui/dialogs/runner_install.py:28
 #, python-format
@@ -1237,13 +1219,13 @@ msgstr ""
 #: lutris/gui/dialogs/runner_install.py:111
 #, python-format
 msgid "%s version management"
-msgstr ""
+msgstr "%s 버전 관리"
 
 #: lutris/gui/dialogs/runner_install.py:165
 #, python-format
 msgid "View %d game"
 msgid_plural "View %d games"
-msgstr[0] ""
+msgstr[0] "게임 %d 보기"
 
 #: lutris/gui/dialogs/runner_install.py:206
 #: lutris/gui/dialogs/uninstall_game.py:22
@@ -1259,15 +1241,15 @@ msgstr "버전 관리"
 #: lutris/gui/dialogs/runner_install.py:324
 #, python-format
 msgid "Version %s is not longer available"
-msgstr ""
+msgstr "%s 버전을 더 이상 사용할 수 없음"
 
 #: lutris/gui/dialogs/runner_install.py:349
 msgid "Downloading…"
-msgstr ""
+msgstr "다운로드 중…"
 
 #: lutris/gui/dialogs/runner_install.py:352
 msgid "Extracting…"
-msgstr ""
+msgstr "압축 푸는 중…"
 
 #: lutris/gui/dialogs/runner_install.py:394
 msgid "Failed to retrieve the runner archive"
@@ -1276,25 +1258,25 @@ msgstr ""
 #: lutris/gui/dialogs/uninstall_game.py:33
 #, python-format
 msgid "<span font_desc='14'><b>Uninstall %s</b></span>"
-msgstr ""
+msgstr "<span font_desc='14'><b>%s 삭제</b></span>"
 
 #: lutris/gui/dialogs/uninstall_game.py:41
 msgid "No file will be deleted"
-msgstr ""
+msgstr "아무 파일도 삭제되지 않습니다"
 
 #: lutris/gui/dialogs/uninstall_game.py:44
 #, python-format
 msgid "The folder %s is used by other games and will be kept."
-msgstr ""
+msgstr "%s 폴더가 다른 게임에 이미 사용 중이며 그대로 유지됩니다."
 
 #: lutris/gui/dialogs/uninstall_game.py:47
 msgid "<i>Calculating size…</i>"
-msgstr ""
+msgstr "<i>용량 계산 중…</i>"
 
 #: lutris/gui/dialogs/uninstall_game.py:51
 #, python-format
 msgid "%s does not exist."
-msgstr ""
+msgstr "%s(이)가 더 이상 존재하지 않습니다."
 
 #: lutris/gui/dialogs/uninstall_game.py:55
 #, python-format
@@ -1304,7 +1286,7 @@ msgstr ""
 #: lutris/gui/dialogs/uninstall_game.py:72
 #, python-format
 msgid "Delete %s (%s)"
-msgstr ""
+msgstr "%s (%s) 삭제"
 
 #: lutris/gui/dialogs/uninstall_game.py:88
 #, python-format
@@ -1316,16 +1298,15 @@ msgstr ""
 
 #: lutris/gui/dialogs/uninstall_game.py:91
 msgid "Permanently delete files?"
-msgstr ""
+msgstr "영구적으로 파일을 삭제하시겠습니까?"
 
 #: lutris/gui/dialogs/uninstall_game.py:99
 msgid "Uninstalling game and deleting files..."
-msgstr ""
+msgstr "게임과 파일을 삭제하는 중..."
 
 #: lutris/gui/dialogs/uninstall_game.py:101
-#, fuzzy
 msgid "Uninstalling game..."
-msgstr "게임 삭제"
+msgstr "게임을 삭제하는 중..."
 
 #: lutris/gui/dialogs/uninstall_game.py:124
 #, python-format
@@ -1341,11 +1322,11 @@ msgstr ""
 
 #: lutris/gui/dialogs/webconnect_dialog.py:103
 msgid "Loading..."
-msgstr ""
+msgstr "로딩 중..."
 
 #: lutris/gui/dialogs/__init__.py:239
 msgid "Please choose a file"
-msgstr ""
+msgstr "파일 선택"
 
 #: lutris/gui/dialogs/__init__.py:271
 msgid "Checking for runtime updates, please wait…"
@@ -1354,12 +1335,11 @@ msgstr ""
 #: lutris/gui/dialogs/__init__.py:309
 #, python-format
 msgid "%s is already installed"
-msgstr ""
+msgstr "%s (이)가 이미 설치됨"
 
 #: lutris/gui/dialogs/__init__.py:324
-#, fuzzy
 msgid "Install the game again"
-msgstr "게임 삭제"
+msgstr "게임 재설치"
 
 #: lutris/gui/dialogs/__init__.py:367
 msgid "Do not ask again for this game."
@@ -1367,7 +1347,7 @@ msgstr ""
 
 #: lutris/gui/dialogs/__init__.py:426
 msgid "Login failed"
-msgstr ""
+msgstr "로그인 실패"
 
 #: lutris/gui/dialogs/__init__.py:437
 msgid "Install script for {}"
@@ -1379,7 +1359,7 @@ msgstr ""
 
 #: lutris/gui/dialogs/__init__.py:514
 msgid "Wine is not installed on your system."
-msgstr ""
+msgstr "Wine이 시스템에 설치되어 있지 않습니다."
 
 #: lutris/gui/dialogs/__init__.py:516
 msgid ""
@@ -1393,7 +1373,7 @@ msgstr ""
 #: lutris/gui/dialogs/__init__.py:542
 #, python-format
 msgid "Moving %s to %s..."
-msgstr ""
+msgstr "%s를 %s로 이동하는 중..."
 
 #: lutris/gui/dialogs/__init__.py:570
 msgid "Humble Bundle Cookie Authentication"
@@ -1420,7 +1400,7 @@ msgstr ""
 #: lutris/gui/installerwindow.py:71
 #, python-format
 msgid "<b>Install %s</b>"
-msgstr ""
+msgstr "<b>%s 설치</b>"
 
 #: lutris/gui/installerwindow.py:84
 msgid "Cache"
@@ -1432,29 +1412,28 @@ msgstr ""
 
 #: lutris/gui/installerwindow.py:89
 msgid "_View source"
-msgstr ""
+msgstr "소스 보기(_V)"
 
 #: lutris/gui/installerwindow.py:90
 msgid "_Eject"
-msgstr ""
+msgstr "꺼내기(_E)"
 
 #: lutris/gui/installerwindow.py:178
 msgid "Remove game files"
-msgstr ""
+msgstr "게임 파일 삭제"
 
 #: lutris/gui/installerwindow.py:190
-#, fuzzy
 msgid "Are you sure you want to cancel the installation?"
-msgstr "정말 {game} 을 삭제 하시겠습니까?"
+msgstr "정말 {game} 설치를 취소하시겠습니까?"
 
 #: lutris/gui/installerwindow.py:191
 msgid "Cancel installation?"
-msgstr ""
+msgstr "설치를 취소하시겠습니까?"
 
 #: lutris/gui/installerwindow.py:301
 #, python-format
 msgid "This game requires %s. Do you want to install it?"
-msgstr ""
+msgstr "이 게임은 %s (을)를 필요로 합니다. 설치하시겠습니까?"
 
 #: lutris/gui/installerwindow.py:302
 msgid "Missing dependency"
@@ -1466,7 +1445,7 @@ msgstr ""
 
 #: lutris/gui/installerwindow.py:316
 msgid "No installer available"
-msgstr ""
+msgstr "이용 가능한 설치기 없음"
 
 #: lutris/gui/installerwindow.py:323
 #, python-format
@@ -1495,7 +1474,7 @@ msgstr ""
 
 #: lutris/gui/installerwindow.py:570
 msgid "Downloading game data"
-msgstr ""
+msgstr "게임 데이터 다운로드 중"
 
 #: lutris/gui/installerwindow.py:590
 #, python-format
@@ -1503,9 +1482,8 @@ msgid "Unable to get files: %s"
 msgstr ""
 
 #: lutris/gui/installerwindow.py:604
-#, fuzzy
 msgid "Installing game data"
-msgstr "게임 삭제"
+msgstr "게임 데이터 설치 중"
 
 #: lutris/gui/installerwindow.py:748
 msgid "Autodetect"
@@ -1513,7 +1491,7 @@ msgstr ""
 
 #: lutris/gui/installerwindow.py:754
 msgid "Browse…"
-msgstr ""
+msgstr "찾기…"
 
 #: lutris/gui/installerwindow.py:771
 msgid "Select the folder where the disc is mounted"
@@ -1521,7 +1499,7 @@ msgstr ""
 
 #: lutris/gui/installerwindow.py:831
 msgid "_Launch"
-msgstr ""
+msgstr "실행(_L)"
 
 #: lutris/gui/installerwindow.py:920
 msgid "_Abort"
@@ -1547,7 +1525,7 @@ msgstr ""
 #: lutris/gui/installer/file_box.py:112 lutris/runners/steam.py:30
 #: lutris/services/steam.py:76
 msgid "Steam"
-msgstr ""
+msgstr "스팀"
 
 #: lutris/gui/installer/file_box.py:113
 msgid "Select File"
@@ -1605,20 +1583,19 @@ msgstr ""
 
 #: lutris/gui/lutriswindow.py:472
 msgid "No games found"
-msgstr ""
+msgstr "게임을 찾을 수 없음"
 
 #: lutris/gui/lutriswindow.py:480
 #, python-format
 msgid "Search %s games"
-msgstr ""
+msgstr "%s개의 게임을 찾음"
 
 #: lutris/gui/lutriswindow.py:482
 msgid "Search 1 game"
-msgstr ""
+msgstr "1개의 게임을 찾음"
 
 #: lutris/gui/views/list.py:51 lutris/runners/dolphin.py:26
 #: lutris/runners/scummvm.py:178
-#, fuzzy
 msgid "Platform"
 msgstr "플랫폼"
 
@@ -1646,24 +1623,24 @@ msgstr ""
 
 #: lutris/gui/widgets/common.py:302
 msgid "Add"
-msgstr ""
+msgstr "추가"
 
 #: lutris/gui/widgets/common.py:306
 msgid "Delete"
-msgstr ""
+msgstr "삭제"
 
 #: lutris/gui/widgets/download_progress_box.py:88
 msgid "Retry"
-msgstr ""
+msgstr "다시 시도"
 
 #: lutris/gui/widgets/download_progress_box.py:115
 msgid "Download interrupted"
-msgstr ""
+msgstr "다운로드 중단됨"
 
 #: lutris/gui/widgets/download_progress_box.py:123
 #, python-brace-format
 msgid "{downloaded:0.2f} / {size:0.2f}MB ({speed:0.2f}MB/s), {time} remaining"
-msgstr ""
+msgstr "{downloaded:0.2f} / {size:0.2f}MB ({speed:0.2f}MB/s), {time} 남음"
 
 #: lutris/gui/widgets/game_bar.py:150
 #, python-format
@@ -1671,6 +1648,8 @@ msgid ""
 "Platform:\n"
 "<b>%s</b>"
 msgstr ""
+"플랫폼:\n"
+"<b>%s</b>"
 
 #: lutris/gui/widgets/game_bar.py:159
 #, python-format
@@ -1678,6 +1657,8 @@ msgid ""
 "Time played:\n"
 "<b>%s</b>"
 msgstr ""
+"플레이한 시간:\n"
+"<b>%s</b>"
 
 #: lutris/gui/widgets/game_bar.py:168
 #, python-format
@@ -1685,27 +1666,29 @@ msgid ""
 "Last played:\n"
 "<b>%s</b>"
 msgstr ""
+"최근 플레이:\n"
+"<b>%s</b>"
 
 #: lutris/gui/widgets/game_bar.py:204
 msgid "Launching"
-msgstr ""
+msgstr "실행 중"
 
 #: lutris/gui/widgets/sidebar.py:133 lutris/gui/widgets/sidebar.py:169
 #: lutris/gui/widgets/sidebar.py:213
 msgid "Run"
-msgstr ""
+msgstr "실행"
 
 #: lutris/gui/widgets/sidebar.py:136 lutris/gui/widgets/sidebar.py:170
 msgid "Reload"
-msgstr ""
+msgstr "새로고침"
 
 #: lutris/gui/widgets/sidebar.py:171
 msgid "Disconnect"
-msgstr ""
+msgstr "연결 해제"
 
 #: lutris/gui/widgets/sidebar.py:172
 msgid "Connect"
-msgstr ""
+msgstr "연결"
 
 #: lutris/gui/widgets/sidebar.py:208
 msgid "Manage Versions"
@@ -1713,24 +1696,23 @@ msgstr "버전 관리"
 
 #: lutris/gui/widgets/sidebar.py:290
 msgid "Library"
-msgstr ""
+msgstr "라이브러리"
 
 #: lutris/gui/widgets/sidebar.py:293
-#, fuzzy
 msgid "Platforms"
 msgstr "플랫폼"
 
 #: lutris/gui/widgets/sidebar.py:338 lutris/util/system.py:28
 msgid "Games"
-msgstr ""
+msgstr "게임"
 
 #: lutris/gui/widgets/sidebar.py:347
 msgid "Recent"
-msgstr ""
+msgstr "최근"
 
 #: lutris/gui/widgets/sidebar.py:356
 msgid "Favorites"
-msgstr ""
+msgstr "즐겨찾기"
 
 #: lutris/gui/widgets/sidebar.py:363
 msgid "Missing"
@@ -1738,7 +1720,7 @@ msgstr ""
 
 #: lutris/gui/widgets/sidebar.py:371
 msgid "Running"
-msgstr ""
+msgstr "실행 중"
 
 #: lutris/gui/widgets/status_icon.py:67
 #, fuzzy
@@ -1747,7 +1729,7 @@ msgstr "Lutris 정보"
 
 #: lutris/gui/widgets/status_icon.py:72
 msgid "Quit"
-msgstr ""
+msgstr "끝내기"
 
 #: lutris/installer/commands.py:67
 #, python-brace-format
@@ -1964,56 +1946,60 @@ msgstr ""
 
 #: lutris/runners/atari800.py:20
 msgid "Atari800"
-msgstr ""
+msgstr "Atari800"
 
 #: lutris/runners/atari800.py:21
 msgid "Atari 8bit computers"
-msgstr ""
+msgstr "아타리 8비트 컴퓨터"
 
 #: lutris/runners/atari800.py:24
 msgid "Atari 400, 800 and XL emulator"
-msgstr ""
+msgstr "아타리 400, 800, XL 에뮬레이터"
 
 #: lutris/runners/atari800.py:38
 msgid ""
 "The game data, commonly called a ROM image. \n"
 "Supported formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ and PRO."
 msgstr ""
+"게임 데이터는 ROM 이미지로 불립니다.\n"
+"지원 포맷: ATR, XFD, DCM, ATR.GZ, XFD.GZ, PRO"
 
 #: lutris/runners/atari800.py:49
 msgid "BIOS location"
-msgstr ""
+msgstr "바이오스 위치"
 
 #: lutris/runners/atari800.py:51
 msgid ""
 "A folder containing the Atari 800 BIOS files.\n"
 "They are provided by Lutris so you shouldn't have to change this."
 msgstr ""
+"아타리 800의 바이오스 파일이 있는 폴더입니다.\n"
+"Lutris에서 제공되며 변경할 필요가 없습니다."
 
 #: lutris/runners/atari800.py:60
 msgid "Emulate Atari 800"
-msgstr ""
+msgstr "아타리 800 에뮬레이팅"
 
 #: lutris/runners/atari800.py:61
 msgid "Emulate Atari 800 XL"
-msgstr ""
+msgstr "아타리 800 XL 에뮬레이팅"
 
 #: lutris/runners/atari800.py:62
 msgid "Emulate Atari 320 XE (Compy Shop)"
-msgstr ""
+msgstr "아타리 320 XE 에뮬레이팅 (Compy Shop)"
 
 #: lutris/runners/atari800.py:63
 msgid "Emulate Atari 320 XE (Rambo)"
-msgstr ""
+msgstr "아타리 320 XE 에뮬레이팅 (Rambo)"
 
 #: lutris/runners/atari800.py:64
 msgid "Emulate Atari 5200"
-msgstr ""
+msgstr "아타리 5200 에뮬레이팅"
 
 #: lutris/runners/atari800.py:67 lutris/runners/mame.py:83
 #: lutris/runners/vice.py:88
 msgid "Machine"
-msgstr ""
+msgstr "장치"
 
 #: lutris/runners/atari800.py:73 lutris/runners/easyrpg.py:144
 #: lutris/runners/hatari.py:71 lutris/runners/jzintv.py:43
@@ -2026,57 +2012,57 @@ msgstr ""
 #: lutris/runners/vice.py:57 lutris/runners/xemu.py:24
 #: lutris/runners/yuzu.py:40
 msgid "Fullscreen"
-msgstr ""
+msgstr "전체 화면"
 
 #: lutris/runners/atari800.py:80
 msgid "Fullscreen resolution"
-msgstr ""
+msgstr "전체 화면 해상도"
 
 #: lutris/runners/atari800.py:91
 msgid "Could not download Atari 800 BIOS archive"
-msgstr ""
+msgstr "아타리 800의 바이오스를 다운로드할 수 없음"
 
 #: lutris/runners/commands/wine.py:255 lutris/util/wine/wine.py:233
 msgid "Wine is not installed"
-msgstr ""
+msgstr "Wine이 설치되지 않음"
 
 #: lutris/runners/dolphin.py:10
 msgid "GameCube and Wii emulator"
-msgstr ""
+msgstr "게임큐브 및 Wii 에뮬레이터"
 
 #: lutris/runners/dolphin.py:11 lutris/services/dolphin.py:28
 msgid "Dolphin"
-msgstr ""
+msgstr "Dolphin"
 
 #: lutris/runners/dolphin.py:12 lutris/runners/dolphin.py:27
 msgid "Nintendo GameCube"
-msgstr ""
+msgstr "닌텐도 게임큐브"
 
 #: lutris/runners/dolphin.py:12 lutris/runners/dolphin.py:27
 msgid "Nintendo Wii"
-msgstr ""
+msgstr "닌텐도 Wii"
 
 #: lutris/runners/dolphin.py:21 lutris/runners/pcsx2.py:18
 #: lutris/runners/xemu.py:17
 msgid "ISO file"
-msgstr ""
+msgstr "ISO 파일"
 
 #: lutris/runners/dolphin.py:34 lutris/runners/pcsx2.py:38
 #: lutris/runners/rpcs3.py:23
 msgid "No GUI"
-msgstr ""
+msgstr "GUI 없음"
 
 #: lutris/runners/dolphin.py:36
 msgid "Disable the graphical user interface."
-msgstr ""
+msgstr "그래픽 사용자 인터페이스를 끕니다."
 
 #: lutris/runners/dolphin.py:41
 msgid "Batch"
-msgstr ""
+msgstr "배치"
 
 #: lutris/runners/dolphin.py:44
 msgid "Exit Dolphin with emulator."
-msgstr ""
+msgstr "종료할 시 Dolphin 에뮬레이터도 종료합니다."
 
 #: lutris/runners/dolphin.py:50
 msgid "Custom Global User Directory"
@@ -2084,15 +2070,15 @@ msgstr ""
 
 #: lutris/runners/dosbox.py:13
 msgid "DOSBox"
-msgstr ""
+msgstr "DOSBox"
 
 #: lutris/runners/dosbox.py:14
 msgid "MS-DOS emulator"
-msgstr ""
+msgstr "MS-DOS 에뮬레이터"
 
 #: lutris/runners/dosbox.py:15
 msgid "MS-DOS"
-msgstr ""
+msgstr "MS-DOS"
 
 #: lutris/runners/dosbox.py:23
 msgid "Main file"
@@ -2107,7 +2093,7 @@ msgstr ""
 
 #: lutris/runners/dosbox.py:33
 msgid "Configuration file"
-msgstr ""
+msgstr "설정 파일"
 
 #: lutris/runners/dosbox.py:35
 msgid ""
@@ -2138,7 +2124,7 @@ msgstr ""
 
 #: lutris/runners/dosbox.py:61
 msgid "none"
-msgstr ""
+msgstr "없음"
 
 #: lutris/runners/dosbox.py:85 lutris/runners/scummvm.py:101
 msgid "Graphic scaler"
@@ -2160,7 +2146,7 @@ msgstr ""
 
 #: lutris/runners/dosbox.py:105
 msgid "Open game in fullscreen"
-msgstr ""
+msgstr "전체 화면에서 게임 실행"
 
 #: lutris/runners/dosbox.py:108
 msgid "Tells DOSBox to launch the game in fullscreen."
@@ -2168,30 +2154,30 @@ msgstr ""
 
 #: lutris/runners/easyrpg.py:10
 msgid "EasyRPG Player"
-msgstr ""
+msgstr "EasyRPG Player"
 
 #: lutris/runners/easyrpg.py:11
 msgid "Runs RPG Maker 2000/2003 games"
-msgstr ""
+msgstr "RPG Maker 2000/2003 게임을 실행"
 
 #: lutris/runners/easyrpg.py:12 lutris/runners/flatpak.py:18
 #: lutris/runners/linux.py:15 lutris/runners/linux.py:17
 #: lutris/runners/scummvm.py:14 lutris/runners/steam.py:31
 #: lutris/runners/zdoom.py:15
 msgid "Linux"
-msgstr ""
+msgstr "리눅스"
 
 #: lutris/runners/easyrpg.py:22
 msgid "Game directory"
-msgstr ""
+msgstr "게임 경로"
 
 #: lutris/runners/easyrpg.py:23
 msgid "Select the directory of the game. (required)"
-msgstr ""
+msgstr "게임 경로를 선택하십시오. (필수)"
 
 #: lutris/runners/easyrpg.py:28
 msgid "Encoding"
-msgstr ""
+msgstr "인코딩"
 
 #: lutris/runners/easyrpg.py:30
 msgid ""
@@ -2201,7 +2187,7 @@ msgstr ""
 
 #: lutris/runners/easyrpg.py:38
 msgid "Engine"
-msgstr ""
+msgstr "엔진"
 
 #: lutris/runners/easyrpg.py:39
 msgid "Disable auto detection of the simulated engine."
@@ -2215,31 +2201,31 @@ msgstr ""
 
 #: lutris/runners/easyrpg.py:42
 msgid "RPG Maker 2000 engine (v1.00 - v1.10)"
-msgstr ""
+msgstr "RPG Maker 2000 엔진 (v1.00 - v1.10)"
 
 #: lutris/runners/easyrpg.py:43
 msgid "RPG Maker 2000 engine (v1.50 - v1.51)"
-msgstr ""
+msgstr "RPG Maker 2000 엔진 (v1.50 - v1.51)"
 
 #: lutris/runners/easyrpg.py:44
 msgid "RPG Maker 2000 (English release) engine"
-msgstr ""
+msgstr "RPG Maker 2000 (영어판) 엔진"
 
 #: lutris/runners/easyrpg.py:45
 msgid "RPG Maker 2003 engine (v1.00 - v1.04)"
-msgstr ""
+msgstr "RPG Maker 2003 엔진 (v1.00 - v1.04)"
 
 #: lutris/runners/easyrpg.py:46
 msgid "RPG Maker 2003 engine (v1.05 - v1.09a)"
-msgstr ""
+msgstr "RPG Maker 2003 엔진 (v1.05 - v1.09a)"
 
 #: lutris/runners/easyrpg.py:47
 msgid "RPG Maker 2003 (English release) engine"
-msgstr ""
+msgstr "RPG Maker 2003 (영어판) 엔진"
 
 #: lutris/runners/easyrpg.py:54 lutris/runners/zdoom.py:46
 msgid "Save path"
-msgstr ""
+msgstr "저장 경로"
 
 #: lutris/runners/easyrpg.py:56
 msgid ""
@@ -2257,7 +2243,7 @@ msgstr ""
 
 #: lutris/runners/easyrpg.py:70
 msgid "Load game ID"
-msgstr ""
+msgstr "게임 ID 불러오기"
 
 #: lutris/runners/easyrpg.py:72
 msgid "Skip the title scene and load SaveXX.lsd. Set to '0' to disable."
@@ -2386,7 +2372,7 @@ msgstr ""
 
 #: lutris/runners/easyrpg.py:206 lutris/runners/wine.py:444
 msgid "Show FPS"
-msgstr ""
+msgstr "FPS 표시"
 
 #: lutris/runners/easyrpg.py:207
 msgid "Enable frames per second counter."
@@ -2407,7 +2393,7 @@ msgstr ""
 
 #: lutris/runners/easyrpg.py:218
 msgid "RNG seed"
-msgstr ""
+msgstr "RNG 시드"
 
 #: lutris/runners/easyrpg.py:219
 msgid "Seeds the random number generator"
@@ -2415,11 +2401,11 @@ msgstr ""
 
 #: lutris/runners/easyrpg.py:224
 msgid "Test play"
-msgstr ""
+msgstr "Test play"
 
 #: lutris/runners/easyrpg.py:225
 msgid "Enable TestPlay mode."
-msgstr ""
+msgstr "TestPlay 모드를 사용합니다."
 
 #: lutris/runners/easyrpg.py:231
 msgid "Enable RTP"
@@ -2471,11 +2457,11 @@ msgstr ""
 
 #: lutris/runners/flatpak.py:20
 msgid "Flatpak"
-msgstr ""
+msgstr "Flatpak"
 
 #: lutris/runners/flatpak.py:32 lutris/runners/steam.py:37
 msgid "Application ID"
-msgstr ""
+msgstr "애플리케이션 ID"
 
 #: lutris/runners/flatpak.py:33
 msgid "The application's unique three-part identifier (tld.domain.app)."
@@ -2483,7 +2469,7 @@ msgstr ""
 
 #: lutris/runners/flatpak.py:38
 msgid "Architecture"
-msgstr ""
+msgstr "아키텍처"
 
 #: lutris/runners/flatpak.py:39
 msgid ""
@@ -2500,9 +2486,8 @@ msgid "The branch to use."
 msgstr ""
 
 #: lutris/runners/flatpak.py:53
-#, fuzzy
 msgid "Install type"
-msgstr "러너 설치"
+msgstr "설치 유형"
 
 #: lutris/runners/flatpak.py:54
 msgid "Can be system or user."
@@ -2549,172 +2534,172 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:12
 msgid "Amiga 500"
-msgstr ""
+msgstr "아미가 500"
 
 #: lutris/runners/fsuae.py:20
 msgid "Amiga 500+"
-msgstr ""
+msgstr "아미가 500+"
 
 #: lutris/runners/fsuae.py:26
 msgid "Amiga 600"
-msgstr ""
+msgstr "아미가 600"
 
 #: lutris/runners/fsuae.py:32
 msgid "Amiga 1200"
-msgstr ""
+msgstr "아미가 1200"
 
 #: lutris/runners/fsuae.py:38
 msgid "Amiga 3000"
-msgstr ""
+msgstr "아미가 3000"
 
 #: lutris/runners/fsuae.py:44
 msgid "Amiga 4000"
-msgstr ""
+msgstr "아미가 4000"
 
 #: lutris/runners/fsuae.py:51
 msgid "Amiga 1000"
-msgstr ""
+msgstr "아미가 1000"
 
 #: lutris/runners/fsuae.py:57
 msgid "Amiga CD32"
-msgstr ""
+msgstr "아미가 CD32"
 
 #: lutris/runners/fsuae.py:66
 msgid "Commodore CDTV"
-msgstr ""
+msgstr "코모도어 CDTV"
 
 #: lutris/runners/fsuae.py:125
 msgid "FS-UAE"
-msgstr ""
+msgstr "FS-UAE"
 
 #: lutris/runners/fsuae.py:126
 msgid "Amiga emulator"
-msgstr ""
+msgstr "아미가 에뮬레이터"
 
 #: lutris/runners/fsuae.py:142
 msgid "68000"
-msgstr ""
+msgstr "68000"
 
 #: lutris/runners/fsuae.py:143
 msgid "68010"
-msgstr ""
+msgstr "68010"
 
 #: lutris/runners/fsuae.py:144
 msgid "68020 with 24-bit addressing"
-msgstr ""
+msgstr "24비트 주소가 있는 68020"
 
 #: lutris/runners/fsuae.py:145
 msgid "68020"
-msgstr ""
+msgstr "68020"
 
 #: lutris/runners/fsuae.py:146
 msgid "68030 without internal MMU"
-msgstr ""
+msgstr "내부 MMU가 없는 68030"
 
 #: lutris/runners/fsuae.py:147
 msgid "68030"
-msgstr ""
+msgstr "68030"
 
 #: lutris/runners/fsuae.py:148
 msgid "68040 without internal FPU and MMU"
-msgstr ""
+msgstr "내부 FPU와 MMU가 없는 68040"
 
 #: lutris/runners/fsuae.py:149
 msgid "68040 without internal FPU"
-msgstr ""
+msgstr "내부 FPU가 없는 68040"
 
 #: lutris/runners/fsuae.py:150
 msgid "68040 without internal MMU"
-msgstr ""
+msgstr "내부 MMU가 없는 68040"
 
 #: lutris/runners/fsuae.py:151
 msgid "68040"
-msgstr ""
+msgstr "68040"
 
 #: lutris/runners/fsuae.py:152
 msgid "68060 without internal FPU and MMU"
-msgstr ""
+msgstr "내부 FPU와 MMU가 없는 68060"
 
 #: lutris/runners/fsuae.py:153
 msgid "68060 without internal FPU"
-msgstr ""
+msgstr "내부 FPU가 없는 68060"
 
 #: lutris/runners/fsuae.py:154
 msgid "68060 without internal MMU"
-msgstr ""
+msgstr "내부 MMU가 없는 68060"
 
 #: lutris/runners/fsuae.py:155
 msgid "68060"
-msgstr ""
+msgstr "68060"
 
 #: lutris/runners/fsuae.py:159 lutris/runners/fsuae.py:166
 #: lutris/runners/fsuae.py:200
 msgid "0"
-msgstr ""
+msgstr "0"
 
 #: lutris/runners/fsuae.py:160 lutris/runners/fsuae.py:167
 #: lutris/runners/fsuae.py:201
 msgid "1 MB"
-msgstr ""
+msgstr "1 MB"
 
 #: lutris/runners/fsuae.py:161 lutris/runners/fsuae.py:168
 #: lutris/runners/fsuae.py:202
 msgid "2 MB"
-msgstr ""
+msgstr "2 MB"
 
 #: lutris/runners/fsuae.py:162 lutris/runners/fsuae.py:169
 #: lutris/runners/fsuae.py:203
 msgid "4 MB"
-msgstr ""
+msgstr "4 MB"
 
 #: lutris/runners/fsuae.py:163 lutris/runners/fsuae.py:170
 #: lutris/runners/fsuae.py:204
 msgid "8 MB"
-msgstr ""
+msgstr "8 MB"
 
 #: lutris/runners/fsuae.py:171 lutris/runners/fsuae.py:205
 msgid "16 MB"
-msgstr ""
+msgstr "16 MB"
 
 #: lutris/runners/fsuae.py:172 lutris/runners/fsuae.py:206
 msgid "32 MB"
-msgstr ""
+msgstr "32 MB"
 
 #: lutris/runners/fsuae.py:173 lutris/runners/fsuae.py:207
 msgid "64 MB"
-msgstr ""
+msgstr "64 MB"
 
 #: lutris/runners/fsuae.py:174 lutris/runners/fsuae.py:208
 msgid "128 MB"
-msgstr ""
+msgstr "128 MB"
 
 #: lutris/runners/fsuae.py:175 lutris/runners/fsuae.py:209
 msgid "256 MB"
-msgstr ""
+msgstr "256 MB"
 
 #: lutris/runners/fsuae.py:176
 msgid "384 MB"
-msgstr ""
+msgstr "384 MB"
 
 #: lutris/runners/fsuae.py:177
 msgid "512 MB"
-msgstr ""
+msgstr "512 MB"
 
 #: lutris/runners/fsuae.py:178
 msgid "768 MB"
-msgstr ""
+msgstr "768 MB"
 
 #: lutris/runners/fsuae.py:179
 msgid "1 GB"
-msgstr ""
+msgstr "1 GB"
 
 #: lutris/runners/fsuae.py:212
 msgid "Turbo"
-msgstr ""
+msgstr "터보"
 
 #: lutris/runners/fsuae.py:223
 msgid "Boot disk"
-msgstr ""
+msgstr "부트 디스크"
 
 #: lutris/runners/fsuae.py:226
 msgid ""
@@ -2728,7 +2713,7 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:236
 msgid "Additionnal floppies"
-msgstr ""
+msgstr "추가 플로피"
 
 #: lutris/runners/fsuae.py:238
 msgid "The additional floppy disk image(s)."
@@ -2736,7 +2721,7 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:241
 msgid "CD-ROM image"
-msgstr ""
+msgstr "CD-ROM 이미지"
 
 #: lutris/runners/fsuae.py:243
 msgid "CD-ROM image to use on non CD32/CDTV models"
@@ -2744,7 +2729,7 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:250
 msgid "Amiga model"
-msgstr ""
+msgstr "아미가 기종"
 
 #: lutris/runners/fsuae.py:254
 msgid "Specify the Amiga model you want to emulate."
@@ -2771,7 +2756,7 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:277
 msgid "Fullscreen (F12 + S to switch)"
-msgstr ""
+msgstr "전체 화면 (F12 + S로 전환)"
 
 #: lutris/runners/fsuae.py:283 lutris/runners/o2em.py:81
 msgid "Scanlines display style"
@@ -2785,7 +2770,7 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:291
 msgid "CPU"
-msgstr ""
+msgstr "CPU"
 
 #: lutris/runners/fsuae.py:296
 msgid ""
@@ -2804,7 +2789,7 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:311
 msgid "Zorro III RAM"
-msgstr ""
+msgstr "Zorro III RAM"
 
 #: lutris/runners/fsuae.py:316
 msgid ""
@@ -2825,7 +2810,7 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:332
 msgid "Floppy Drive Speed"
-msgstr ""
+msgstr "플로피 드라이브 속도"
 
 #: lutris/runners/fsuae.py:338
 msgid ""
@@ -2837,7 +2822,7 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:346
 msgid "Graphics Card"
-msgstr ""
+msgstr "그래픽 카드"
 
 #: lutris/runners/fsuae.py:352
 msgid ""
@@ -2847,7 +2832,7 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:358
 msgid "Graphics Card RAM"
-msgstr ""
+msgstr "그래픽 카드 RAM"
 
 #: lutris/runners/fsuae.py:364
 msgid ""
@@ -2857,11 +2842,11 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:370
 msgid "JIT Compiler"
-msgstr ""
+msgstr "JIT 컴파일러"
 
 #: lutris/runners/fsuae.py:377
 msgid "Feral GameMode"
-msgstr ""
+msgstr "Feral GameMode"
 
 #: lutris/runners/fsuae.py:381
 msgid ""
@@ -2871,7 +2856,7 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:386
 msgid "CPU governor warning"
-msgstr ""
+msgstr "CPU 가버너 경고"
 
 #: lutris/runners/fsuae.py:391
 msgid ""
@@ -2881,23 +2866,23 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:396
 msgid "UAE bsdsocket.library"
-msgstr ""
+msgstr "UAE bsdsocket.library"
 
 #: lutris/runners/hatari.py:13
 msgid "Hatari"
-msgstr ""
+msgstr "Hatari"
 
 #: lutris/runners/hatari.py:14
 msgid "Atari ST computers emulator"
-msgstr ""
+msgstr "아타리 ST 컴퓨터 에뮬레이터"
 
 #: lutris/runners/hatari.py:15
 msgid "Atari ST"
-msgstr ""
+msgstr "아타리 ST"
 
 #: lutris/runners/hatari.py:27
 msgid "Floppy Disk A"
-msgstr ""
+msgstr "플로피 디스크 A"
 
 #: lutris/runners/hatari.py:29 lutris/runners/hatari.py:43
 msgid ""
@@ -2908,25 +2893,25 @@ msgstr ""
 
 #: lutris/runners/hatari.py:41
 msgid "Floppy Disk B"
-msgstr ""
+msgstr "플로피 디스크 B"
 
 #: lutris/runners/hatari.py:51 lutris/runners/redream.py:73
 #: lutris/runners/zdoom.py:75
 msgid "None"
-msgstr ""
+msgstr "없음"
 
 #: lutris/runners/hatari.py:51
 msgid "Keyboard"
-msgstr ""
+msgstr "키보드"
 
 #: lutris/runners/hatari.py:51 lutris/runners/o2em.py:39
 #: lutris/runners/scummvm.py:186
 msgid "Joystick"
-msgstr ""
+msgstr "조이스틱"
 
 #: lutris/runners/hatari.py:60
 msgid "Bios file (TOS)"
-msgstr ""
+msgstr "바이오스 파일 (TOS)"
 
 #: lutris/runners/hatari.py:62
 msgid ""
@@ -2967,11 +2952,11 @@ msgstr ""
 
 #: lutris/runners/hatari.py:117
 msgid "Joystick 1"
-msgstr ""
+msgstr "조이스틱 1"
 
 #: lutris/runners/hatari.py:124
 msgid "Joystick 2"
-msgstr ""
+msgstr "조이스틱 2"
 
 #: lutris/runners/hatari.py:136
 msgid "Do you want to select an Atari ST BIOS file?"
@@ -2979,15 +2964,15 @@ msgstr ""
 
 #: lutris/runners/hatari.py:137
 msgid "Use BIOS file?"
-msgstr ""
+msgstr "바이오스 파일을 사용하시겠습니까?"
 
 #: lutris/runners/hatari.py:138
 msgid "Select a BIOS file"
-msgstr ""
+msgstr "바이오스 파일 선택"
 
 #: lutris/runners/jzintv.py:11
 msgid "jzIntv"
-msgstr ""
+msgstr "jzIntv"
 
 #: lutris/runners/jzintv.py:12
 msgid "Intellivision Emulator"
@@ -3022,7 +3007,7 @@ msgstr ""
 
 #: lutris/runners/libretro.py:68
 msgid "Libretro"
-msgstr ""
+msgstr "Libretro"
 
 #: lutris/runners/libretro.py:69
 msgid "Multi-system emulator"
@@ -3098,11 +3083,11 @@ msgstr ""
 
 #: lutris/runners/mame.py:65 lutris/services/mame.py:11
 msgid "MAME"
-msgstr ""
+msgstr "MAME"
 
 #: lutris/runners/mame.py:66
 msgid "Arcade game emulator"
-msgstr ""
+msgstr "아케이드 게임 에뮬레이터"
 
 #: lutris/runners/mame.py:85 lutris/runners/mednafen.py:67
 msgid "The emulated machine."
@@ -3110,59 +3095,59 @@ msgstr ""
 
 #: lutris/runners/mame.py:90
 msgid "Storage type"
-msgstr ""
+msgstr "저장장치 유형"
 
 #: lutris/runners/mame.py:92
 msgid "Floppy disk"
-msgstr ""
+msgstr "플로피 디스크"
 
 #: lutris/runners/mame.py:93
 msgid "Floppy drive 1"
-msgstr ""
+msgstr "플로피 드라이브 1"
 
 #: lutris/runners/mame.py:94
 msgid "Floppy drive 2"
-msgstr ""
+msgstr "플로피 드라이브 2"
 
 #: lutris/runners/mame.py:95
 msgid "Floppy drive 3"
-msgstr ""
+msgstr "플로피 드라이브 3"
 
 #: lutris/runners/mame.py:96
 msgid "Floppy drive 4"
-msgstr ""
+msgstr "플로피 드라이브 4"
 
 #: lutris/runners/mame.py:97
 msgid "Cassette (tape)"
-msgstr ""
+msgstr "카세트 테이프"
 
 #: lutris/runners/mame.py:98
 msgid "Cassette 1 (tape)"
-msgstr ""
+msgstr "카세트 테이프 1"
 
 #: lutris/runners/mame.py:99
 msgid "Cassette 2 (tape)"
-msgstr ""
+msgstr "카세트 테이프 2"
 
 #: lutris/runners/mame.py:100
 msgid "Cartridge"
-msgstr ""
+msgstr "카트리지"
 
 #: lutris/runners/mame.py:101
 msgid "Cartridge 1"
-msgstr ""
+msgstr "카트리지 1"
 
 #: lutris/runners/mame.py:102
 msgid "Cartridge 2"
-msgstr ""
+msgstr "카트리지 2"
 
 #: lutris/runners/mame.py:103
 msgid "Cartridge 3"
-msgstr ""
+msgstr "카트리지 3"
 
 #: lutris/runners/mame.py:104
 msgid "Cartridge 4"
-msgstr ""
+msgstr "카트리지 4"
 
 #: lutris/runners/mame.py:105 lutris/runners/mame.py:112
 msgid "Snapshot"
@@ -3182,15 +3167,15 @@ msgstr ""
 
 #: lutris/runners/mame.py:109
 msgid "CD-ROM"
-msgstr ""
+msgstr "CD-ROM"
 
 #: lutris/runners/mame.py:110
 msgid "CD-ROM 1"
-msgstr ""
+msgstr "CD-ROM 1"
 
 #: lutris/runners/mame.py:111
 msgid "CD-ROM 2"
-msgstr ""
+msgstr "CD-ROM 2"
 
 #: lutris/runners/mame.py:113
 msgid "Quickload"
@@ -3251,11 +3236,11 @@ msgstr ""
 
 #: lutris/runners/mame.py:171
 msgid "Video backend"
-msgstr ""
+msgstr "비디오 백엔드"
 
 #: lutris/runners/mame.py:177 lutris/runners/vice.py:82
 msgid "Software"
-msgstr ""
+msgstr "소프트웨어"
 
 #: lutris/runners/mame.py:184
 msgid "Wait for VSync"
@@ -3273,43 +3258,43 @@ msgstr ""
 
 #: lutris/runners/mame.py:196
 msgid "Scroll Lock"
-msgstr ""
+msgstr "Scroll Lock"
 
 #: lutris/runners/mame.py:197
 msgid "Num Lock"
-msgstr ""
+msgstr "Num Lock"
 
 #: lutris/runners/mame.py:198
 msgid "Caps Lock"
-msgstr ""
+msgstr "Caps Lock"
 
 #: lutris/runners/mame.py:199
 msgid "Menu"
-msgstr ""
+msgstr "메뉴"
 
 #: lutris/runners/mame.py:200
 msgid "Right Control"
-msgstr ""
+msgstr "오른쪽 Control"
 
 #: lutris/runners/mame.py:201
 msgid "Left Control"
-msgstr ""
+msgstr "왼쪽 Control"
 
 #: lutris/runners/mame.py:202
 msgid "Right Alt"
-msgstr ""
+msgstr "오른쪽 Alt"
 
 #: lutris/runners/mame.py:203
 msgid "Left Alt"
-msgstr ""
+msgstr "왼쪽 Alt"
 
 #: lutris/runners/mame.py:204
 msgid "Right Super"
-msgstr ""
+msgstr "오른쪽 Super"
 
 #: lutris/runners/mame.py:205
 msgid "Left Super"
-msgstr ""
+msgstr "왼쪽 Super"
 
 #: lutris/runners/mame.py:209
 msgid ""
@@ -3335,123 +3320,125 @@ msgstr ""
 
 #: lutris/runners/mednafen.py:19
 msgid "Nintendo Game Boy (Color)"
-msgstr ""
+msgstr "닌텐도 게임보이 (컬러)"
 
 #: lutris/runners/mednafen.py:20
 msgid "Nintendo Game Boy Advance"
-msgstr ""
+msgstr "닌텐도 게임보이 어드밴스"
 
 #: lutris/runners/mednafen.py:21
 msgid "Sega Game Gear"
-msgstr ""
+msgstr "세가 게임 기어"
 
 #: lutris/runners/mednafen.py:22
 msgid "Sega Genesis/Mega Drive"
-msgstr ""
+msgstr "세가 제네시스/메가드라이브"
 
 #: lutris/runners/mednafen.py:23
 msgid "Atari Lynx"
-msgstr ""
+msgstr "아타리 링스"
 
 #: lutris/runners/mednafen.py:24 lutris/runners/osmose.py:12
 msgid "Sega Master System"
-msgstr ""
+msgstr "세가 마스터 시스템"
 
 #: lutris/runners/mednafen.py:25
 msgid "SNK Neo Geo Pocket (Color)"
-msgstr ""
+msgstr "SNK 네오지오 포켓 (컬러)"
 
+# 일본 측 명칭과 서양 명칭 병기
 #: lutris/runners/mednafen.py:26
 msgid "Nintendo NES"
-msgstr ""
+msgstr "닌텐도 패밀리 컴퓨터/NES"
 
 #: lutris/runners/mednafen.py:27
 msgid "NEC PC Engine TurboGrafx-16"
-msgstr ""
+msgstr "NEC PC 엔진 TurboGrafx-16"
 
 #: lutris/runners/mednafen.py:28
 msgid "NEC PC-FX"
-msgstr ""
+msgstr "NEC PC-FX"
 
 #: lutris/runners/mednafen.py:29
 msgid "Sony PlayStation"
-msgstr ""
+msgstr "소니 플레이스테이션"
 
 #: lutris/runners/mednafen.py:30
 msgid "Sega Saturn"
-msgstr ""
+msgstr "세가 새턴"
 
+# 일본 측 명칭과 서양 명칭 병기
 #: lutris/runners/mednafen.py:31 lutris/runners/snes9x.py:19
 msgid "Nintendo SNES"
-msgstr ""
+msgstr "닌텐도 SNES/슈퍼패미컴"
 
 #: lutris/runners/mednafen.py:32
 msgid "Bandai WonderSwan"
-msgstr ""
+msgstr "반다이 원더스완"
 
 #: lutris/runners/mednafen.py:33
 msgid "Nintendo Virtual Boy"
-msgstr ""
+msgstr "닌텐도 버추얼 보이"
 
 #: lutris/runners/mednafen.py:36
 msgid "Game Boy (Color)"
-msgstr ""
+msgstr "게임보이 (컬러)"
 
 #: lutris/runners/mednafen.py:37
 msgid "Game Boy Advance"
-msgstr ""
+msgstr "게임보이 어드밴스"
 
 #: lutris/runners/mednafen.py:38
 msgid "Game Gear"
-msgstr ""
+msgstr "게임 기어"
 
 #: lutris/runners/mednafen.py:39
 msgid "Genesis/Mega Drive"
-msgstr ""
+msgstr "제네시스/메가드라이브"
 
 #: lutris/runners/mednafen.py:40
 msgid "Lynx"
-msgstr ""
+msgstr "링스"
 
 #: lutris/runners/mednafen.py:41
 msgid "Master System"
-msgstr ""
+msgstr "마스터 시스템"
 
 #: lutris/runners/mednafen.py:42
 msgid "Neo Geo Pocket (Color)"
-msgstr ""
+msgstr "네오지오 포켓 (컬러)"
 
 #: lutris/runners/mednafen.py:43
 msgid "NES"
-msgstr ""
+msgstr "패미컴/NES"
 
 #: lutris/runners/mednafen.py:44
 msgid "PC Engine"
-msgstr ""
+msgstr "PC 엔진"
 
 #: lutris/runners/mednafen.py:45
 msgid "PC-FX"
-msgstr ""
+msgstr "PC-FX"
 
 #: lutris/runners/mednafen.py:46
 msgid "PlayStation"
-msgstr ""
+msgstr "플레이스테이션"
 
 #: lutris/runners/mednafen.py:47
 msgid "Saturn"
-msgstr ""
+msgstr "새턴"
 
 #: lutris/runners/mednafen.py:48
 msgid "SNES"
-msgstr ""
+msgstr "슈퍼 패미컴/SNES"
 
 #: lutris/runners/mednafen.py:49
 msgid "WonderSwan"
-msgstr ""
+msgstr "원더스완"
 
 #: lutris/runners/mednafen.py:50
 msgid "Virtual Boy"
-msgstr ""
+msgstr "버추얼 보이"
 
 #: lutris/runners/mednafen.py:59
 msgid ""
@@ -3505,15 +3492,15 @@ msgstr ""
 
 #: lutris/runners/mupen64plus.py:12
 msgid "Mupen64Plus"
-msgstr ""
+msgstr "Mupen64Plus"
 
 #: lutris/runners/mupen64plus.py:13
 msgid "Nintendo 64 emulator"
-msgstr ""
+msgstr "닌텐도 64 에뮬레이터"
 
 #: lutris/runners/mupen64plus.py:14
 msgid "Nintendo 64"
-msgstr ""
+msgstr "닌텐도 64"
 
 #: lutris/runners/mupen64plus.py:21 lutris/runners/o2em.py:47
 #: lutris/runners/openmsx.py:18 lutris/runners/ryujinx.py:26
@@ -3527,43 +3514,43 @@ msgstr ""
 
 #: lutris/runners/o2em.py:11
 msgid "O2EM"
-msgstr ""
+msgstr "O2EM"
 
 #: lutris/runners/o2em.py:12
 msgid "Magnavox Odyssey² Emulator"
-msgstr ""
+msgstr "Magnavox Odyssey² 에뮬레이터"
 
 #: lutris/runners/o2em.py:14 lutris/runners/o2em.py:30
 msgid "Magnavox Odyssey²"
-msgstr ""
+msgstr "Magnavox Odyssey²"
 
 #: lutris/runners/o2em.py:15 lutris/runners/o2em.py:31
 msgid "Phillips C52"
-msgstr ""
+msgstr "필립스 C52"
 
 #: lutris/runners/o2em.py:16 lutris/runners/o2em.py:32
 msgid "Phillips Videopac+"
-msgstr ""
+msgstr "필립스 Videopac+"
 
 #: lutris/runners/o2em.py:17 lutris/runners/o2em.py:33
 msgid "Brandt Jopac"
-msgstr ""
+msgstr "Brandt Jopac"
 
 #: lutris/runners/o2em.py:36 lutris/runners/wine.py:399
 msgid "Disable"
-msgstr ""
+msgstr "사용 안 함"
 
 #: lutris/runners/o2em.py:37
 msgid "Arrow Keys and Right Shift"
-msgstr ""
+msgstr "방향키와 오른쪽 Shift"
 
 #: lutris/runners/o2em.py:38
 msgid "W,S,A,D,SPACE"
-msgstr ""
+msgstr "W,S,A,D,SPACE"
 
 #: lutris/runners/o2em.py:55
 msgid "BIOS"
-msgstr ""
+msgstr "바이오스"
 
 #: lutris/runners/o2em.py:62
 msgid "First controller"
@@ -3575,23 +3562,23 @@ msgstr ""
 
 #: lutris/runners/openmsx.py:10
 msgid "openMSX"
-msgstr ""
+msgstr "openMSX"
 
 #: lutris/runners/openmsx.py:11
 msgid "MSX computer emulator"
-msgstr ""
+msgstr "MSX 컴퓨터 에뮬레이터"
 
 #: lutris/runners/openmsx.py:12
 msgid "MSX, MSX2, MSX2+, MSX turboR"
-msgstr ""
+msgstr "MSX, MSX2, MSX2+, MSX turboR"
 
 #: lutris/runners/osmose.py:10
 msgid "Osmose"
-msgstr ""
+msgstr "Osmose"
 
 #: lutris/runners/osmose.py:11
 msgid "Sega Master System Emulator"
-msgstr ""
+msgstr "세가 마스터 시스템 에뮬레이터"
 
 #: lutris/runners/osmose.py:25
 msgid ""
@@ -3601,15 +3588,15 @@ msgstr ""
 
 #: lutris/runners/pcsx2.py:8
 msgid "PCSX2"
-msgstr ""
+msgstr "PCSX2"
 
 #: lutris/runners/pcsx2.py:9
 msgid "PlayStation 2 emulator"
-msgstr ""
+msgstr "플레이스테이션 2 에뮬레이터"
 
 #: lutris/runners/pcsx2.py:10
 msgid "Sony PlayStation 2"
-msgstr ""
+msgstr "플레이스테이션 2"
 
 #: lutris/runners/pcsx2.py:32
 msgid "Fullboot"
@@ -3629,7 +3616,7 @@ msgstr ""
 
 #: lutris/runners/pico8.py:23 lutris/runners/pico8.py:24
 msgid "PICO-8"
-msgstr ""
+msgstr "PICO-8"
 
 #: lutris/runners/pico8.py:29
 msgid "Cartridge file/URL/ID"
@@ -3678,15 +3665,15 @@ msgstr ""
 
 #: lutris/runners/redream.py:10
 msgid "Redream"
-msgstr ""
+msgstr "Redream"
 
 #: lutris/runners/redream.py:11 lutris/runners/reicast.py:17
 msgid "Sega Dreamcast emulator"
-msgstr ""
+msgstr "세가 드림캐스트 에뮬레이터"
 
 #: lutris/runners/redream.py:12 lutris/runners/reicast.py:18
 msgid "Sega Dreamcast"
-msgstr ""
+msgstr "세가 드림캐스트"
 
 #: lutris/runners/redream.py:19 lutris/runners/reicast.py:28
 msgid "Disc image file"
@@ -3700,75 +3687,75 @@ msgstr ""
 
 #: lutris/runners/redream.py:28
 msgid "Aspect Ratio"
-msgstr ""
+msgstr "비율 유지"
 
 #: lutris/runners/redream.py:29
 msgid "4:3"
-msgstr ""
+msgstr "4:3"
 
 #: lutris/runners/redream.py:29
 msgid "Stretch"
-msgstr ""
+msgstr "늘이기"
 
 #: lutris/runners/redream.py:35
 msgid "Region"
-msgstr ""
+msgstr "지역"
 
 #: lutris/runners/redream.py:36
 msgid "USA"
-msgstr ""
+msgstr "미국"
 
 #: lutris/runners/redream.py:36
 msgid "Europe"
-msgstr ""
+msgstr "유럽"
 
 #: lutris/runners/redream.py:36
 msgid "Japan"
-msgstr ""
+msgstr "일본"
 
 #: lutris/runners/redream.py:42
 msgid "System Language"
-msgstr ""
+msgstr "시스템 언어"
 
 #: lutris/runners/redream.py:44
 msgid "English"
-msgstr ""
+msgstr "영어"
 
 #: lutris/runners/redream.py:45
 msgid "German"
-msgstr ""
+msgstr "독일어"
 
 #: lutris/runners/redream.py:46
 msgid "French"
-msgstr ""
+msgstr "프랑스어"
 
 #: lutris/runners/redream.py:47
 msgid "Spanish"
-msgstr ""
+msgstr "스페인어"
 
 #: lutris/runners/redream.py:48
 msgid "Italian"
-msgstr ""
+msgstr "이탈리아어"
 
 #: lutris/runners/redream.py:49
 msgid "Japanese"
-msgstr ""
+msgstr "일본어"
 
 #: lutris/runners/redream.py:58
 msgid "NTSC"
-msgstr ""
+msgstr "NTSC"
 
 #: lutris/runners/redream.py:59
 msgid "PAL"
-msgstr ""
+msgstr "PAL"
 
 #: lutris/runners/redream.py:60
 msgid "PAL-M (Brazil)"
-msgstr ""
+msgstr "PAL-M (브라질)"
 
 #: lutris/runners/redream.py:61
 msgid "PAL-N (Argentina, Paraguay, Uruguay)"
-msgstr ""
+msgstr "PAL-N (아르헨티나, 파라과이, 우루과이)"
 
 #: lutris/runners/redream.py:68
 msgid "Time Sync"
@@ -3811,6 +3798,8 @@ msgid ""
 "The game data.\n"
 "Supported formats: ISO, CDI"
 msgstr ""
+"게임 데이터입니다.\n"
+"지원 포맷: ISO, CDI"
 
 #: lutris/runners/reicast.py:47
 msgid "Gamepad 1"
@@ -3834,19 +3823,19 @@ msgstr ""
 
 #: lutris/runners/rpcs3.py:10
 msgid "RPCS3"
-msgstr ""
+msgstr "RPCS3"
 
 #: lutris/runners/rpcs3.py:11
 msgid "PlayStation 3 emulator"
-msgstr ""
+msgstr "플레이스테이션 3 에뮬레이터"
 
 #: lutris/runners/rpcs3.py:12
 msgid "Sony PlayStation 3"
-msgstr ""
+msgstr "소니 플레이스테이션 3"
 
 #: lutris/runners/rpcs3.py:20
 msgid "Path to EBOOT.BIN"
-msgstr ""
+msgstr "EBOOT.BIN 위치"
 
 #: lutris/runners/runner.py:220
 msgid "Custom executable for the runner"
@@ -3881,15 +3870,15 @@ msgstr ""
 
 #: lutris/runners/ryujinx.py:14
 msgid "Ryujinx"
-msgstr ""
+msgstr "Ryujinx"
 
 #: lutris/runners/ryujinx.py:15 lutris/runners/yuzu.py:15
 msgid "Nintendo Switch"
-msgstr ""
+msgstr "닌텐도 스위치"
 
 #: lutris/runners/ryujinx.py:16 lutris/runners/yuzu.py:16
 msgid "Nintendo Switch emulator"
-msgstr ""
+msgstr "닌텐도 스위치 에뮬레이터"
 
 #: lutris/runners/ryujinx.py:25
 msgid "NSP file"
@@ -3917,7 +3906,7 @@ msgstr ""
 
 #: lutris/runners/scummvm.py:13 lutris/services/scummvm.py:10
 msgid "ScummVM"
-msgstr ""
+msgstr "ScummVM"
 
 #: lutris/runners/scummvm.py:21
 msgid "Game identifier"
@@ -4057,7 +4046,7 @@ msgstr ""
 
 #: lutris/runners/scummvm.py:287
 msgid "SFX volume"
-msgstr ""
+msgstr "SFX 볼륨"
 
 #: lutris/runners/scummvm.py:288
 msgid "Sets the sfx volume, 0-255 (default: 192)"
@@ -4157,15 +4146,15 @@ msgstr ""
 
 #: lutris/runners/snes9x.py:17
 msgid "Super Nintendo emulator"
-msgstr ""
+msgstr "슈퍼패미컴/SNES 에뮬레이터"
 
 #: lutris/runners/snes9x.py:18
 msgid "Snes9x"
-msgstr ""
+msgstr "Snes9x"
 
 #: lutris/runners/snes9x.py:45
 msgid "Maintain aspect ratio (4:3)"
-msgstr ""
+msgstr "기존 비율 유지 (4:3)"
 
 #: lutris/runners/snes9x.py:49
 msgid ""
@@ -4176,7 +4165,7 @@ msgstr ""
 
 #: lutris/runners/snes9x.py:59
 msgid "Sound driver"
-msgstr ""
+msgstr "사운드 드라이버"
 
 #: lutris/runners/steam.py:29
 msgid "Runs Steam for Linux games"
@@ -4259,7 +4248,7 @@ msgstr ""
 
 #: lutris/runners/vice.py:14
 msgid "Vice"
-msgstr ""
+msgstr "Vice"
 
 #: lutris/runners/vice.py:16
 msgid "Commodore 64"
@@ -4478,15 +4467,15 @@ msgstr ""
 
 #: lutris/runners/wine.py:41
 msgid "Wine"
-msgstr ""
+msgstr "Wine"
 
 #: lutris/runners/wine.py:42
 msgid "Windows"
-msgstr ""
+msgstr "Windows"
 
 #: lutris/runners/wine.py:51
 msgid "The game's main EXE file"
-msgstr ""
+msgstr "게임의 주 EXE 파일"
 
 #: lutris/runners/wine.py:57
 msgid "Windows command line arguments used when launching the game"
@@ -4494,7 +4483,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:73
 msgid "Wine prefix"
-msgstr ""
+msgstr "Wine prefix"
 
 #: lutris/runners/wine.py:75
 msgid ""
@@ -4509,15 +4498,15 @@ msgstr ""
 
 #: lutris/runners/wine.py:84
 msgid "32-bit"
-msgstr ""
+msgstr "32비트"
 
 #: lutris/runners/wine.py:84
 msgid "64-bit"
-msgstr ""
+msgstr "64비트"
 
 #: lutris/runners/wine.py:86
 msgid "The architecture of the Windows environment"
-msgstr ""
+msgstr "Windows 환경의 아키텍처"
 
 #: lutris/runners/wine.py:114
 msgid "Custom (select executable below)"
@@ -4525,24 +4514,23 @@ msgstr ""
 
 #: lutris/runners/wine.py:116
 msgid "WineHQ Devel ({})"
-msgstr ""
+msgstr "WineHQ Devel ({})"
 
 #: lutris/runners/wine.py:117
 msgid "WineHQ Staging ({})"
-msgstr ""
+msgstr "WineHQ Staging ({})"
 
 #: lutris/runners/wine.py:118
 msgid "Wine Development ({})"
-msgstr ""
+msgstr "Wine Development ({})"
 
 #: lutris/runners/wine.py:119
 msgid "System ({})"
-msgstr ""
+msgstr "시스템 ({})"
 
 #: lutris/runners/wine.py:171
-#, fuzzy
 msgid "Wine version"
-msgstr "버전 관리"
+msgstr "Wine 버전"
 
 #: lutris/runners/wine.py:176
 msgid ""
@@ -4553,7 +4541,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:183
 msgid "Custom Wine executable"
-msgstr ""
+msgstr "커스텀 Wine 실행기"
 
 #: lutris/runners/wine.py:186
 msgid ""
@@ -4563,7 +4551,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:191
 msgid "Use system winetricks"
-msgstr ""
+msgstr "시스템 Winetricks 사용"
 
 #: lutris/runners/wine.py:195
 msgid "Switch on to use /usr/bin/winetricks for winetricks."
@@ -4571,31 +4559,33 @@ msgstr ""
 
 #: lutris/runners/wine.py:199
 msgid "Enable DXVK"
-msgstr ""
+msgstr "DXVK 활성화"
 
 #: lutris/runners/wine.py:206
 msgid ""
 "Use DXVK to increase compatibility and performance in Direct3D 11, 10 and 9 "
 "applications by translating their calls to Vulkan."
 msgstr ""
+"DXVK를 사용하면 Direct3D 11, 10, 9 앱을 Vulkan으로 번역하여 호환성과 성능을 "
+"향상시킵니다."
 
 #: lutris/runners/wine.py:212
 msgid "DXVK version"
-msgstr ""
+msgstr "DXVK 버전"
 
 #: lutris/runners/wine.py:221
 msgid "Enable VKD3D"
-msgstr ""
+msgstr "VKD3D 활성화"
 
 #: lutris/runners/wine.py:228
 msgid ""
 "Use VKD3D to enable support for Direct3D 12 applications by translating "
 "their calls to Vulkan."
-msgstr ""
+msgstr "VKD3D를 사용하면 Direct3D 12 앱을 Vulkan으로 번역해줍니다."
 
 #: lutris/runners/wine.py:233
 msgid "VKD3D version"
-msgstr ""
+msgstr "VKD3D 버전"
 
 #: lutris/runners/wine.py:241
 msgid "Enable D3D Extras"
@@ -4621,7 +4611,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:270
 msgid "DXVK NVAPI version"
-msgstr ""
+msgstr "DXVK NVAPI 버전"
 
 #: lutris/runners/wine.py:278
 msgid "Enable dgvoodoo2"
@@ -4640,7 +4630,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:298
 msgid "Enable Esync"
-msgstr ""
+msgstr "Esync 활성화"
 
 #: lutris/runners/wine.py:305
 msgid ""
@@ -4650,7 +4640,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:312
 msgid "Enable Fsync"
-msgstr ""
+msgstr "Fsync 활성화"
 
 #: lutris/runners/wine.py:319
 msgid ""
@@ -4661,7 +4651,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:327
 msgid "Enable AMD FidelityFX Super Resolution (FSR)"
-msgstr ""
+msgstr "AMD FidelityFX Super Resolution (FSR) 활성화"
 
 #: lutris/runners/wine.py:331
 msgid ""
@@ -4674,7 +4664,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:338
 msgid "Enable BattlEye Anti-Cheat"
-msgstr ""
+msgstr "BattlEye 안티치트 활성화"
 
 #: lutris/runners/wine.py:342
 msgid ""
@@ -4684,7 +4674,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:348
 msgid "Enable Easy Anti-Cheat"
-msgstr ""
+msgstr "Easy 안티치트 활성화"
 
 #: lutris/runners/wine.py:352
 msgid ""
@@ -4724,7 +4714,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:386
 msgid "DPI"
-msgstr ""
+msgstr "DPI"
 
 #: lutris/runners/wine.py:389
 msgid ""
@@ -4755,7 +4745,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:414
 msgid "Audio driver"
-msgstr ""
+msgstr "오디오 드라이버"
 
 #: lutris/runners/wine.py:425
 msgid ""
@@ -4765,11 +4755,11 @@ msgstr ""
 
 #: lutris/runners/wine.py:433
 msgid "DLL overrides"
-msgstr ""
+msgstr "DLL 재정의"
 
 #: lutris/runners/wine.py:434
 msgid "Sets WINEDLLOVERRIDES when launching the game."
-msgstr ""
+msgstr "게임 실행 시 WINEDLLOVERRIDES 를 설정합니다."
 
 #: lutris/runners/wine.py:438
 msgid "Output debugging info"
@@ -4777,7 +4767,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:442
 msgid "Enabled"
-msgstr ""
+msgstr "사용"
 
 #: lutris/runners/wine.py:443
 msgid "Inherit from environment"
@@ -4825,73 +4815,72 @@ msgstr ""
 
 #: lutris/runners/wine.py:493
 msgid "Run EXE inside Wine prefix"
-msgstr ""
+msgstr "Wine Prefix 내에서 EXE 실행"
 
 #: lutris/runners/wine.py:494
 msgid "Wine configuration"
-msgstr ""
+msgstr "Wine 설정"
 
 #: lutris/runners/wine.py:495
 msgid "Open Bash terminal"
-msgstr ""
+msgstr "Bash 터미널 열기"
 
 #: lutris/runners/wine.py:496
-#, fuzzy
 msgid "Open Wine console"
-msgstr "러너 폴더 열기"
+msgstr "Wine 콘솔 열기"
 
 #: lutris/runners/wine.py:497
 msgid "Wine registry"
-msgstr ""
+msgstr "Wine 레지스트리 편집기"
 
 #: lutris/runners/wine.py:498
 msgid "Winetricks"
-msgstr ""
+msgstr "Winetricks"
 
 #: lutris/runners/wine.py:499
 msgid "Wine Control Panel"
-msgstr ""
+msgstr "Wine 제어판"
 
 #: lutris/runners/wine.py:681
 msgid "Select an EXE or MSI file"
-msgstr ""
+msgstr "EXE 또는 MSI 파일 선택"
 
 #: lutris/runners/xemu.py:8
 msgid "xemu"
-msgstr ""
+msgstr "xemu"
 
 #: lutris/runners/xemu.py:9
 msgid "Xbox"
-msgstr ""
+msgstr "Xbox"
 
 #: lutris/runners/xemu.py:10
 msgid "Xbox emulator"
-msgstr ""
+msgstr "Xbox 에뮬레이터"
 
 #: lutris/runners/xemu.py:18
 msgid "DVD image in iso format"
-msgstr ""
+msgstr "iso 포맷 DVD 이미지"
 
 #: lutris/runners/yuzu.py:14
 msgid "Yuzu"
-msgstr ""
+msgstr "Yuzu"
 
 #. http://zdoom.org/wiki/Command_line_parameters
 #: lutris/runners/zdoom.py:13
 msgid "ZDoom DOOM Game Engine"
-msgstr ""
+msgstr "ZDoom DOOM 게임 엔진"
 
 #: lutris/runners/zdoom.py:14
 msgid "ZDoom"
-msgstr ""
+msgstr "ZDoom"
 
 #: lutris/runners/zdoom.py:21
 msgid "WAD file"
-msgstr ""
+msgstr "WAD 파일"
 
 #: lutris/runners/zdoom.py:22
 msgid "The game data, commonly called a WAD file."
-msgstr ""
+msgstr "WAD 파일로 불리는 게임 데이터 파일입니다."
 
 #: lutris/runners/zdoom.py:28
 msgid "Command line arguments used when launching the game."
@@ -4937,23 +4926,23 @@ msgstr ""
 
 #: lutris/runners/zdoom.py:76
 msgid "I'm Too Young To Die (1)"
-msgstr ""
+msgstr "I'm Too Young To Die (1)"
 
 #: lutris/runners/zdoom.py:77
 msgid "Hey, Not Too Rough (2)"
-msgstr ""
+msgstr "Hey, Not Too Rough (2)"
 
 #: lutris/runners/zdoom.py:78
 msgid "Hurt Me Plenty (3)"
-msgstr ""
+msgstr "Hurt Me Plenty (3)"
 
 #: lutris/runners/zdoom.py:79
 msgid "Ultra-Violence (4)"
-msgstr ""
+msgstr "Ultra-Violence (4)"
 
 #: lutris/runners/zdoom.py:80
 msgid "Nightmare! (5)"
-msgstr ""
+msgstr "Nightmare! (5)"
 
 #: lutris/runners/zdoom.py:91
 msgid ""
@@ -4963,7 +4952,7 @@ msgstr ""
 
 #: lutris/services/amazon.py:59 lutris/services/amazon.py:643
 msgid "Amazon Prime Gaming"
-msgstr ""
+msgstr "Amazon Prime Gaming"
 
 #: lutris/services/amazon.py:180
 msgid "No Amazon user data available, please log in again"
@@ -5029,19 +5018,19 @@ msgstr ""
 
 #: lutris/services/battlenet.py:85
 msgid "Battle.net"
-msgstr ""
+msgstr "배틀넷"
 
 #: lutris/services/egs.py:136
 msgid "Epic Games Store"
-msgstr ""
+msgstr "에픽 게임즈 스토어"
 
 #: lutris/services/flathub.py:57
 msgid "Flathub"
-msgstr ""
+msgstr "Flathub"
 
 #: lutris/services/gog.py:69
 msgid "GOG"
-msgstr ""
+msgstr "GOG"
 
 #: lutris/services/gog.py:304 lutris/services/gog.py:306
 #, python-format
@@ -5062,7 +5051,7 @@ msgstr ""
 
 #: lutris/services/humblebundle.py:61
 msgid "Humble Bundle"
-msgstr ""
+msgstr "험블 번들"
 
 #: lutris/services/humblebundle.py:85
 msgid "Workaround for Humble Bundle authentication"
@@ -5088,7 +5077,7 @@ msgstr ""
 #. According to their branding, "itch.io" is supposed to be all lowercase
 #: lutris/services/itchio.py:78
 msgid "itch.io"
-msgstr ""
+msgstr "itch.io"
 
 #: lutris/services/lutris.py:123
 #, python-format
@@ -5097,11 +5086,11 @@ msgstr ""
 
 #: lutris/services/origin.py:129
 msgid "Origin"
-msgstr ""
+msgstr "오리진"
 
 #: lutris/services/steamwindows.py:25
 msgid "Steam for Windows"
-msgstr ""
+msgstr "Windows용 스팀"
 
 #: lutris/services/steam.py:105
 msgid ""
@@ -5111,7 +5100,7 @@ msgstr ""
 
 #: lutris/services/ubisoft.py:82
 msgid "Ubisoft Connect"
-msgstr ""
+msgstr "Ubisoft Connect"
 
 #: lutris/services/xdg.py:44
 msgid "Local"
@@ -5119,15 +5108,15 @@ msgstr ""
 
 #: lutris/settings.py:13
 msgid "(c) 2009 Lutris Team"
-msgstr ""
+msgstr "(c) 2009 Lutris Team"
 
 #: lutris/settings.py:14
 msgid "The Lutris team"
-msgstr ""
+msgstr "Lutris 팀"
 
 #: lutris/startup.py:93
 msgid "Your NVIDIA driver is outdated."
-msgstr ""
+msgstr "NVIDIA 드라이버의 버전이 오래되었습니다."
 
 #: lutris/startup.py:95
 #, python-format
@@ -5168,11 +5157,11 @@ msgstr ""
 
 #: lutris/sysoptions.py:43
 msgid "(recommended)"
-msgstr ""
+msgstr "(권장됨)"
 
 #: lutris/sysoptions.py:46
 msgid "System"
-msgstr ""
+msgstr "시스템"
 
 #: lutris/sysoptions.py:55 lutris/sysoptions.py:64 lutris/sysoptions.py:75
 #: lutris/sysoptions.py:562
@@ -5186,7 +5175,7 @@ msgstr ""
 #. Start the 'choices' with an 'auto' choice. But which one?
 #: lutris/sysoptions.py:127
 msgid "Auto: Intel Open Source (MESA: ANV)"
-msgstr ""
+msgstr "자동: 인텔 오픈소스 (MESA: ANV)"
 
 #: lutris/sysoptions.py:128
 msgid "Auto: AMD RADV Open Source (MESA: RADV)"
@@ -5322,7 +5311,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:306
 msgid "Reset PulseAudio"
-msgstr ""
+msgstr "PulseAudio 초기화"
 
 #: lutris/sysoptions.py:310
 msgid "Restart PulseAudio before launching the game."
@@ -5361,7 +5350,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:349
 msgid "Vulkan ICD loader"
-msgstr ""
+msgstr "Vulkan ICD loader"
 
 #: lutris/sysoptions.py:351
 msgid ""
@@ -5372,13 +5361,13 @@ msgstr ""
 
 #: lutris/sysoptions.py:359
 msgid "FPS counter (MangoHud)"
-msgstr ""
+msgstr "FPS 표시기 (MangoHud)"
 
 #: lutris/sysoptions.py:362
 msgid ""
 "Display the game's FPS + other information. Requires MangoHud to be "
 "installed."
-msgstr ""
+msgstr "게임의 FPS와 그 외 정보를 표시하며, MangoHud를 설치해야 합니다."
 
 #: lutris/sysoptions.py:371
 msgid "Limit the game's FPS to desired number"
@@ -5447,7 +5436,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:440
 msgid "CLI mode"
-msgstr ""
+msgstr "CLI 모드"
 
 #: lutris/sysoptions.py:444
 msgid ""
@@ -5467,7 +5456,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:461
 msgid "Locale"
-msgstr ""
+msgstr "언어"
 
 #: lutris/sysoptions.py:467
 msgid ""
@@ -5481,7 +5470,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:478
 msgid "AntiMicroX Profile"
-msgstr ""
+msgstr "AntiMicroX 프로필"
 
 #: lutris/sysoptions.py:480
 msgid "Path to an AntiMicroX profile file"
@@ -5498,7 +5487,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:493
 msgid "Manual script"
-msgstr ""
+msgstr "수동 스크립트"
 
 #: lutris/sysoptions.py:495
 msgid "Script to execute from the game's contextual menu"
@@ -5506,7 +5495,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:500
 msgid "Pre-launch script"
-msgstr ""
+msgstr "사전 실행 스크립트"
 
 #: lutris/sysoptions.py:502
 msgid "Script to execute before the game starts"
@@ -5578,15 +5567,15 @@ msgstr ""
 
 #: lutris/sysoptions.py:563
 msgid "8BPP (256 colors)"
-msgstr ""
+msgstr "8비트 (256색)"
 
 #: lutris/sysoptions.py:564
 msgid "16BPP (65536 colors)"
-msgstr ""
+msgstr "16비트 (65536색)"
 
 #: lutris/sysoptions.py:565
 msgid "24BPP (16M colors)"
-msgstr ""
+msgstr "24비트 (1600만 색)"
 
 #: lutris/sysoptions.py:569
 msgid "Run program in Xephyr to support 8BPP and 16BPP color modes"
@@ -5594,7 +5583,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:574
 msgid "Xephyr resolution"
-msgstr ""
+msgstr "Xephyr 해상도"
 
 #: lutris/sysoptions.py:576
 msgid "Screen resolution of the Xephyr server"
@@ -5610,21 +5599,21 @@ msgstr ""
 
 #: lutris/util/strings.py:133
 msgid "1 hour"
-msgstr ""
+msgstr "1시간"
 
 #: lutris/util/strings.py:135
 #, python-format
 msgid "%d hours"
-msgstr ""
+msgstr "%d시간"
 
 #: lutris/util/strings.py:141
 msgid "1 minute"
-msgstr ""
+msgstr "1분"
 
 #: lutris/util/strings.py:143
 #, python-format
 msgid "%d minutes"
-msgstr ""
+msgstr "%d분"
 
 #: lutris/util/system.py:21
 msgid "Documents"
@@ -5653,7 +5642,7 @@ msgstr ""
 #: lutris/util/ubisoft/client.py:102
 #, python-format
 msgid "Ubisoft authentication has been lost: %s"
-msgstr ""
+msgstr "유비소프트 인증이 사라졌습니다: %s"
 
 #: lutris/util/wine/dll_manager.py:63
 msgid "Manual"
@@ -5696,7 +5685,7 @@ msgstr ""
 
 #: lutris/util/wine/wine.py:404 lutris/util/wine/wine.py:424
 msgid "Incompatible Wine version detected"
-msgstr ""
+msgstr "호환되지 않는 Wine 버전이 감지됨"
 
 #: lutris/util/wine/wine.py:406
 msgid ""
