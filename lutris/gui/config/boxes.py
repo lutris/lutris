@@ -379,8 +379,8 @@ class ConfigBox(VBox):
     def on_searchable_entry_changed(self, combobox, value, key):
         self.option_changed(combobox, key, value)
 
-    def _populate_combobox_choices(self, liststore, choices, default):
-        expanded, tooltip_default = self._expand_combobox_choices(choices, default)
+    def _populate_combobox_choices(self, liststore, choices, value, default):
+        expanded, tooltip_default = self._expand_combobox_choices(choices, value, default)
         for choice in expanded:
             liststore.append(choice)
 
@@ -388,23 +388,28 @@ class ConfigBox(VBox):
             self.tooltip_default = tooltip_default
 
     @staticmethod
-    def _expand_combobox_choices(choices, default):
+    def _expand_combobox_choices(choices, value, default):
         expanded = []
         tooltip_default = None
+        has_value = False
         for choice in choices:
             if isinstance(choice, str):
                 choice = (choice, choice)
+            if choice[1] == value:
+                has_value = True
             if choice[1] == default:
                 tooltip_default = choice[0]
                 choice = (_("%s (default)") % choice[0], choice[1])
             expanded.append(choice)
+        if not has_value:
+            expanded.insert(0, (value + " (invalid)", value))
         return expanded, tooltip_default
 
     # ComboBox
     def generate_combobox(self, option_name, choices, label, value=None, default=None, has_entry=False):
         """Generate a combobox (drop-down menu)."""
         liststore = Gtk.ListStore(str, str)
-        self._populate_combobox_choices(liststore, choices, default)
+        self._populate_combobox_choices(liststore, choices, value, default)
         # With entry ("choice_with_entry" type)
         if has_entry:
             combobox = Gtk.ComboBox.new_with_model_and_entry(liststore)
@@ -418,7 +423,7 @@ class ConfigBox(VBox):
 
         combobox.set_id_column(1)
 
-        expanded, _tooltip_default = self._expand_combobox_choices(choices, default)
+        expanded, _tooltip_default = self._expand_combobox_choices(choices, value, default)
         if value in [v for _k, v in expanded]:
             combobox.set_active_id(value)
         elif has_entry:
