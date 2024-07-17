@@ -1,11 +1,48 @@
 import re
-from typing import Dict, List, Optional, Union
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 from lutris import settings
 from lutris.database import sql
 from lutris.gui.widgets import NotificationSource
 
 SAVED_SEARCHES_UPDATED = NotificationSource()
+
+
+@dataclass
+class SavedSearch:
+    saved_search_id: int
+    name: str
+    search: str
+
+    def add(self, no_signal: bool = False) -> None:
+        """Add a category to the database"""
+        self.saved_search_id = sql.db_insert(
+            settings.DB_PATH, "saved_searches", {"name": self.name, "search": self.search}
+        )
+        if not no_signal:
+            SAVED_SEARCHES_UPDATED.fire()
+
+    def update(self, no_signal: bool = False) -> None:
+        query = "UPDATE saved_searches SET name=?, search=? WHERE id=?"
+
+        with sql.db_cursor(settings.DB_PATH) as cursor:
+            sql.cursor_execute(cursor, query, (self.name, self.search, self.saved_search_id))
+        if not no_signal:
+            SAVED_SEARCHES_UPDATED.fire()
+
+    def remove(self, no_signal: bool = False) -> None:
+        query = "DELETE FROM saved_searches WHERE id=?"
+
+        with sql.db_cursor(settings.DB_PATH) as cursor:
+            sql.cursor_execute(cursor, query, (self.saved_search_id,))
+
+        if not no_signal:
+            SAVED_SEARCHES_UPDATED.fire()
+
+
+def _create_search(row: Dict[str, Any]) -> "SavedSearch":
+    return SavedSearch(row["id"], row["name"], row["search"])
 
 
 def strip_saved_search_name(name):
@@ -15,58 +52,25 @@ def strip_saved_search_name(name):
     return name
 
 
-def get_saved_searches() -> List[Dict[str, Union[int, str]]]:
-    """Get the list of every category in database."""
-    # Categories look like [{"id": 1, "name": "My Category"}, ...]
-    return sql.db_select(settings.DB_PATH, "saved_searches")
+def get_saved_searches() -> List[SavedSearch]:
+    """Get the list of every search in database."""
+    rows = sql.db_select(settings.DB_PATH, "saved_searches")
+    return [_create_search(row) for row in rows]
 
 
-def get_saved_search_by_name(name: str):
+def get_saved_search_by_name(name: str) -> Optional[SavedSearch]:
     """Return a category by name"""
     categories = sql.db_select(settings.DB_PATH, "saved_searches", condition=("name", name))
     if categories:
-        return categories[0]
+        return _create_search(categories[0])
 
-
-def get_saved_search_by_id(saved_search_id: int):
-    """Return a category by name"""
-    categories = sql.db_select(settings.DB_PATH, "saved_searches", condition=("id", saved_search_id))
-    if categories:
-        return categories[0]
-
-
-def get_search_for_saved_search(name: str) -> Optional[str]:
-    if name:
-        category = get_saved_search_by_name(name)
-        if category:
-            search = category.get("search")
-            if search:
-                return search
     return None
 
 
-def add_saved_search(name: str, search: str, no_signal: bool = False):
-    """Add a category to the database"""
-    cat = sql.db_insert(settings.DB_PATH, "saved_searches", {"name": name, "search": search})
-    if not no_signal:
-        SAVED_SEARCHES_UPDATED.fire()
-    return cat
+def get_saved_search_by_id(saved_search_id: int) -> Optional[SavedSearch]:
+    """Return a category by name"""
+    categories = sql.db_select(settings.DB_PATH, "saved_searches", condition=("id", saved_search_id))
+    if categories:
+        return _create_search(categories[0])
 
-
-def redefine_saved_search(saved_search_id: int, new_name: str, new_search: str = None, no_signal: bool = False) -> None:
-    query = "UPDATE saved_searches SET name=?, search=? WHERE id=?"
-
-    with sql.db_cursor(settings.DB_PATH) as cursor:
-        sql.cursor_execute(cursor, query, (new_name, new_search, saved_search_id))
-    if not no_signal:
-        SAVED_SEARCHES_UPDATED.fire()
-
-
-def remove_saved_search(category_id: int, no_signal: bool = False) -> None:
-    query = "DELETE FROM saved_searches WHERE id=?"
-
-    with sql.db_cursor(settings.DB_PATH) as cursor:
-        sql.cursor_execute(cursor, query, (category_id,))
-
-    if not no_signal:
-        SAVED_SEARCHES_UPDATED.fire()
+    return None

@@ -1,6 +1,7 @@
 # pylint: disable=no-member
+from copy import copy
 from gettext import gettext as _
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 from gi.repository import Gtk
 
@@ -8,6 +9,7 @@ from lutris import runners, services
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import saved_searches
+from lutris.database.saved_searches import SavedSearch
 from lutris.exceptions import InvalidSearchTermError
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
 from lutris.search import FLAG_TEXTS, GameSearch
@@ -17,12 +19,15 @@ from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 class EditSearchCategoryDialog(SavableModelessDialog):
     """Games assigned to category dialog."""
 
-    def __init__(self, parent, saved_search: Dict[str, Any]) -> None:
-        self.original_name = saved_search.get("name") or "New Saved Search"
-        self.saved_search_id = saved_search.get("id")
-        self.original_search = saved_search.get("search") or ""
-        self.search = self.original_search
-        title = _("Configure %s") % self.original_name
+    def __init__(self, parent, saved_search: SavedSearch) -> None:
+        self.saved_search = copy(saved_search)
+        self.original_search = copy(saved_search)
+
+        if not self.saved_search.name:
+            self.saved_search.name = "New Saved Search"
+
+        self.search = self.saved_search.search
+        title = _("Configure %s") % self.saved_search.name
 
         super().__init__(title, parent=parent, border_width=10)
         self.set_default_size(600, -1)
@@ -30,7 +35,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         self.vbox.set_homogeneous(False)
         self.vbox.set_spacing(10)
 
-        self.name_entry = self._add_entry_box(_("Name"), self.original_name)
+        self.name_entry = self._add_entry_box(_("Name"), self.saved_search.name)
         self.search_entry = self._add_entry_box(_("Search"), self.search)
         self.search_entry.connect("changed", self.on_search_entry_changed)
 
@@ -63,7 +68,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
 
         delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
         delete_button.connect("clicked", self.on_delete_clicked)
-        delete_button.set_sensitive(bool(self.saved_search_id))
+        delete_button.set_sensitive(bool(self.saved_search.saved_search_id))
 
         self.show_all()
 
@@ -226,7 +231,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
     def on_delete_clicked(self, _button):
         dlg = QuestionDialog(
             {
-                "title": _("Do you want to delete the saved search '%s'?") % self.original_name,
+                "title": _("Do you want to delete the saved search '%s'?") % self.original_search.name,
                 "question": _(
                     "This will permanently destroy the saved search, but the games themselves will not be deleted."
                 ),
@@ -234,7 +239,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
             }
         )
         if dlg.result == Gtk.ResponseType.YES:
-            saved_searches.remove_saved_search(self.saved_search_id)
+            self.saved_search.remove()
             self.destroy()
 
     def _create_combobox(self, options):
@@ -255,23 +260,20 @@ class EditSearchCategoryDialog(SavableModelessDialog):
 
     def on_save(self, _button: Gtk.Button) -> None:
         """Save game info and destroy widget."""
-        old_name: str = self.original_name
-        new_name: str = saved_searches.strip_saved_search_name(self.name_entry.get_text())
-        old_search: str = self.original_search
-        new_search: str = str(GameSearch(self.search_entry.get_text()))
+        self.saved_search.name = saved_searches.strip_saved_search_name(
+            self.name_entry.get_text() or self.original_search.name
+        )
+        self.saved_search.search = str(GameSearch(self.search_entry.get_text()))
 
-        if not new_name:
-            new_name = old_name
+        if self.original_search.name != self.saved_search.name:
+            if saved_searches.get_saved_search_by_name(self.saved_search.name):
+                raise RuntimeError(_("'%s' is already a saved search.") % self.saved_search.name)
 
-        if old_name != new_name:
-            if new_name in (c["name"] for c in saved_searches.get_saved_searches()):
-                raise RuntimeError(_("'%s' is already a saved search."))
-
-        if not self.saved_search_id:
+        if not self.saved_search.saved_search_id:
             # Creating new search!
-            saved_searches.add_saved_search(name=new_name, search=new_search)
-        elif old_name != new_name or old_search != new_search:
+            self.saved_search.add()
+        elif self.original_search != self.saved_search:
             # Changing an existing search.
-            saved_searches.redefine_saved_search(self.saved_search_id, new_name, new_search)
+            self.saved_search.update()
 
         self.destroy()
