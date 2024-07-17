@@ -7,6 +7,7 @@ from gi.repository import Gtk
 from lutris import runners, services
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
+from lutris.database import saved_searches
 from lutris.exceptions import InvalidSearchTermError
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
 from lutris.search import FLAG_TEXTS, GameSearch
@@ -16,12 +17,12 @@ from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 class EditSearchCategoryDialog(SavableModelessDialog):
     """Games assigned to category dialog."""
 
-    def __init__(self, parent, category: Dict[str, Any]) -> None:
-        self.category = category.get("name") or "New Category"
-        self.category_id = category.get("id")
-        self.original_search = category.get("search") or ""
+    def __init__(self, parent, saved_search: Dict[str, Any]) -> None:
+        self.original_name = saved_search.get("name") or "New Saved Search"
+        self.saved_search_id = saved_search.get("id")
+        self.original_search = saved_search.get("search") or ""
         self.search = self.original_search
-        title = _("Configure %s") % self.category
+        title = _("Configure %s") % self.original_name
 
         super().__init__(title, parent=parent, border_width=10)
         self.set_default_size(600, -1)
@@ -29,7 +30,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         self.vbox.set_homogeneous(False)
         self.vbox.set_spacing(10)
 
-        self.name_entry = self._add_entry_box(_("Name"), self.category)
+        self.name_entry = self._add_entry_box(_("Name"), self.original_name)
         self.search_entry = self._add_entry_box(_("Search"), self.search)
         self.search_entry.connect("changed", self.on_search_entry_changed)
 
@@ -62,7 +63,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
 
         delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
         delete_button.connect("clicked", self.on_delete_clicked)
-        delete_button.set_sensitive(bool(self.category_id))
+        delete_button.set_sensitive(bool(self.saved_search_id))
 
         self.show_all()
 
@@ -198,7 +199,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
     def _add_category_widgets(self):
         for category in categories_db.get_categories():
             category_name = category["name"]
-            if not categories_db.is_reserved_category(category_name) and not category.get("search"):
+            if not categories_db.is_reserved_category(category_name):
                 self._add_category_widget(category_name, category_name)
 
     def _add_category_widget(self, caption, category_name):
@@ -225,15 +226,15 @@ class EditSearchCategoryDialog(SavableModelessDialog):
     def on_delete_clicked(self, _button):
         dlg = QuestionDialog(
             {
-                "title": _("Do you want to delete the category '%s'?") % self.category,
+                "title": _("Do you want to delete the saved search '%s'?") % self.original_name,
                 "question": _(
-                    "This will permanently destroy the category, but the games themselves will not be deleted."
+                    "This will permanently destroy the saved search, but the games themselves will not be deleted."
                 ),
                 "parent": self,
             }
         )
         if dlg.result == Gtk.ResponseType.YES:
-            categories_db.remove_category(self.category_id)
+            saved_searches.remove_saved_search(self.saved_search_id)
             self.destroy()
 
     def _create_combobox(self, options):
@@ -254,26 +255,23 @@ class EditSearchCategoryDialog(SavableModelessDialog):
 
     def on_save(self, _button: Gtk.Button) -> None:
         """Save game info and destroy widget."""
-        old_name: str = self.category
-        new_name: str = categories_db.strip_category_name(self.name_entry.get_text())
+        old_name: str = self.original_name
+        new_name: str = saved_searches.strip_saved_search_name(self.name_entry.get_text())
         old_search: str = self.original_search
         new_search: str = str(GameSearch(self.search_entry.get_text()))
 
         if not new_name:
             new_name = old_name
 
-        if categories_db.is_reserved_category(new_name):
-            raise RuntimeError(_("'%s' is a reserved category name.") % new_name)
-
         if old_name != new_name:
-            if new_name in (c["name"] for c in categories_db.get_categories()):
-                raise RuntimeError(_("'%s' is already a category, and search-based categories can't be merged."))
+            if new_name in (c["name"] for c in saved_searches.get_saved_searches()):
+                raise RuntimeError(_("'%s' is already a saved search."))
 
-        if not self.category_id:
-            # Creating new category!
-            categories_db.add_category(category_name=new_name, search=new_search)
+        if not self.saved_search_id:
+            # Creating new search!
+            saved_searches.add_saved_search(name=new_name, search=new_search)
         elif old_name != new_name or old_search != new_search:
-            # Changing an existing category.
-            categories_db.redefine_category(self.category_id, new_name, new_search)
+            # Changing an existing search.
+            saved_searches.redefine_saved_search(self.saved_search_id, new_name, new_search)
 
         self.destroy()
