@@ -31,6 +31,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
 
         self.name_entry = self._add_entry_box(_("Name"), self.category)
         self.search_entry = self._add_entry_box(_("Search"), self.search)
+        self.search_entry.connect("changed", self.on_search_entry_changed)
 
         self.predicate_widget_functions: Dict[str, Callable[[SearchPredicate], None]] = {}
         self.updating_predicate_widgets = False
@@ -70,7 +71,6 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         entry_label = Gtk.Label(label)
         entry = Gtk.Entry()
         entry.set_text(text)
-        entry.connect("changed", self.on_search_entry_changed)
         hbox.pack_start(entry_label, False, False, 0)
         hbox.pack_start(entry, True, True, 0)
         self.vbox.pack_start(hbox, False, False, 0)
@@ -83,9 +83,8 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         if not self.updating_predicate_widgets:
             try:
                 self.updating_predicate_widgets = True
-                search_text = self.search_entry.get_text()
-                search = GameSearch(search_text)
-                predicate = search.get_predicate()
+                self.search = self.search_entry.get_text()
+                predicate = GameSearch(self.search).get_predicate()
 
                 for _control, func in self.predicate_widget_functions.items():
                     func(predicate)
@@ -104,17 +103,16 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         self._add_flag_widget(6, _("Categorized"), "categorized")
 
     def _change_search_flag(self, tag: str, flag: Optional[bool]):
-        search = GameSearch(self.search)
-        p = search.get_flag_predicate(tag, flag)
-        if p:
-            predicate = search.get_predicate().without_flag(tag)
-            predicate = AndPredicate([predicate, p]).simplify()
+        game_search = GameSearch(self.search)
+        flag_predicate = game_search.get_flag_predicate(tag, flag)
+        if flag_predicate:
+            predicate = game_search.get_predicate().without_flag(tag)
+            predicate = AndPredicate([predicate, flag_predicate]).simplify()
             self.search = str(predicate)
             self.search_entry.set_text(self.search)
 
     def _remove_search_flag(self, tag: str):
-        search = GameSearch(self.search)
-        predicate = search.get_predicate().without_flag(tag)
+        predicate = GameSearch(self.search).get_predicate().without_flag(tag)
         self.search = str(predicate)
         self.search_entry.set_text(self.search)
 
@@ -172,11 +170,11 @@ class EditSearchCategoryDialog(SavableModelessDialog):
     def _add_match_widget(self, row: int, caption: str, tag: str, options: List[Tuple[str, str]], predicate_factory):
         def on_combobox_change(_widget):
             if not self.updating_predicate_widgets:
-                search = GameSearch(self.search)
-                predicate = search.get_predicate().without_match(tag)
+                game_search = GameSearch(self.search)
+                predicate = game_search.get_predicate().without_match(tag)
                 active_id = combobox.get_active_id()
                 if active_id:
-                    p = predicate_factory(search, active_id)
+                    p = predicate_factory(game_search, active_id)
                     predicate = AndPredicate([predicate, p]).simplify()
                 self.search = str(predicate)
                 self.search_entry.set_text(self.search)
@@ -208,11 +206,11 @@ class EditSearchCategoryDialog(SavableModelessDialog):
 
         def on_checkbox_toggled(_widget):
             if not self.updating_predicate_widgets:
-                search = GameSearch(self.search)
-                predicate = search.get_predicate().without_match("category", category_name)
+                game_search = GameSearch(self.search)
+                predicate = game_search.get_predicate().without_match("category", category_name)
                 if checkbox.get_active():
-                    p = search.get_category_predicate(category_name)
-                    predicate = AndPredicate([predicate, p]).simplify()
+                    category_predicate = game_search.get_category_predicate(category_name)
+                    predicate = AndPredicate([predicate, category_predicate]).simplify()
                 self.search = str(predicate)
                 self.search_entry.set_text(self.search)
 
