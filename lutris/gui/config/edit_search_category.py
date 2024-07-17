@@ -98,10 +98,10 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         self._add_service_widget(0)
         self._add_runner_widget(1)
         self._add_platform_widget(2)
-        self._add_flag_widget(3, _("Installed:"), "installed")
-        self._add_flag_widget(4, _("Favorite:"), "favorite")
-        self._add_flag_widget(5, _("Hidden:"), "hidden")
-        self._add_flag_widget(6, _("Categorized:"), "categorized")
+        self._add_flag_widget(3, _("Installed"), "installed")
+        self._add_flag_widget(4, _("Favorite"), "favorite")
+        self._add_flag_widget(5, _("Hidden"), "hidden")
+        self._add_flag_widget(6, _("Categorized"), "categorized")
 
     def _change_search_flag(self, tag: str, flag: Optional[bool]):
         search = GameSearch(self.search)
