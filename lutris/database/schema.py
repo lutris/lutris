@@ -53,11 +53,15 @@ DATABASE = {
     "categories": [
         {"name": "id", "type": "INTEGER", "indexed": True},
         {"name": "name", "type": "TEXT", "unique": True},
-        {"name": "search", "type": "TEXT", "unique": False},
     ],
     "games_categories": [
         {"name": "game_id", "type": "INTEGER", "indexed": False},
         {"name": "category_id", "type": "INTEGER", "indexed": False},
+    ],
+    "saved_searches": [
+        {"name": "id", "type": "INTEGER", "indexed": True},
+        {"name": "name", "type": "TEXT", "unique": True},
+        {"name": "search", "type": "TEXT", "unique": False},
     ],
 }
 
