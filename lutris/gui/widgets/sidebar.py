@@ -295,17 +295,17 @@ class CategorySidebarRow(SidebarRow):
 
 
 class SavedSearchSidebarRow(SidebarRow):
-    def __init__(self, saved_search, application):
+    def __init__(self, saved_search: saved_search_db.SavedSearch, application):
         super().__init__(
-            saved_search["name"],
+            saved_search.name,
             "saved_search",
-            saved_search["name"],
+            saved_search.name,
             LutrisSidebar.get_sidebar_icon("folder-saved-search-symbolic"),
             application=application,
         )
-        self.category = saved_search
+        self.saved_search = saved_search
 
-        self._sort_name = locale.strxfrm(saved_search["name"])
+        self._sort_name = locale.strxfrm(saved_search.name)
 
     @property
     def sort_key(self):
@@ -318,7 +318,7 @@ class SavedSearchSidebarRow(SidebarRow):
         ]
 
     def on_saved_search_clicked(self, button):
-        saved_search = saved_search_db.get_saved_search_by_id(self.category["id"]) or self.category
+        saved_search = saved_search_db.get_saved_search_by_id(self.saved_search.saved_search_id) or self.saved_search
         self.application.show_window(EditSearchCategoryDialog, saved_search=saved_search, parent=self.get_toplevel())
         return True
 
@@ -635,7 +635,7 @@ class LutrisSidebar(Gtk.ListBox):
         saved_searches = saved_search_db.get_saved_searches()
 
         self.used_categories = {c["name"] for c in categories}
-        self.saved_searches = {s["name"] for s in saved_searches}
+        self.saved_searches = {s.name for s in saved_searches}
         self.active_services = services.get_enabled_services()
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = games_db.get_used_platforms()
@@ -678,9 +678,9 @@ class LutrisSidebar(Gtk.ListBox):
                 insert_row(new_category_row)
 
         for saved_search in saved_searches:
-            if saved_search["name"] not in self.saved_search_rows:
+            if saved_search.name not in self.saved_search_rows:
                 new_saved_search_row = SavedSearchSidebarRow(saved_search, application=self.application)
-                self.saved_search_rows[saved_search["name"]] = new_saved_search_row
+                self.saved_search_rows[saved_search.name] = new_saved_search_row
                 insert_row(new_saved_search_row)
 
         self.invalidate_filter()

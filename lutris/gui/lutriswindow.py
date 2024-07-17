@@ -23,7 +23,7 @@ from lutris.database import saved_searches as saved_searches_db
 from lutris.database.categories import CATEGORIES_UPDATED
 from lutris.database.saved_searches import SAVED_SEARCHES_UPDATED
 from lutris.database.services import ServiceGameCollection
-from lutris.exceptions import EsyncLimitError
+from lutris.exceptions import EsyncLimitError, InvalidSearchTermError
 from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
@@ -316,7 +316,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_add_search_category(self, action, value):
         search = self.get_game_search()
-        dlg = EditSearchCategoryDialog(saved_search={"search": str(search)}, parent=self)
+        new_search = saved_searches_db.SavedSearch(0, "", str(search))
+        dlg = EditSearchCategoryDialog(saved_search=new_search, parent=self)
         dlg.show()
 
     @property
@@ -538,8 +539,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             saved_search_found = saved_searches_db.get_saved_search_by_name(saved_search)
 
             if saved_search_found:
-                searches.append(GameSearch(saved_search_found.get("search"), service=None))
-                category = "all"
+                try:
+                    searches.append(GameSearch(saved_search_found.search, service=None))
+                    category = "all"
+                except InvalidSearchTermError:
+                    pass
 
         included = [category] if category != "all" else None
         excluded = (
