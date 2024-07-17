@@ -16,8 +16,8 @@ from lutris.search import FLAG_TEXTS, GameSearch
 from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 
 
-class EditSearchCategoryDialog(SavableModelessDialog):
-    """Games assigned to category dialog."""
+class EditSavedSearchDialog(SavableModelessDialog):
+    """A dialog to edit saved searches."""
 
     def __init__(self, parent, saved_search: SavedSearch) -> None:
         self.saved_search = copy(saved_search)
