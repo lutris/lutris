@@ -27,7 +27,7 @@ from lutris.exceptions import EsyncLimitError, InvalidSearchTermError
 from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
-from lutris.gui.config.edit_search_category import EditSearchCategoryDialog
+from lutris.gui.config.edit_saved_search import EditSavedSearchDialog
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog, get_error_handler, register_error_handler
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
@@ -317,7 +317,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def on_add_search_category(self, action, value):
         search = self.get_game_search()
         new_search = saved_searches_db.SavedSearch(0, "", str(search))
-        dlg = EditSearchCategoryDialog(saved_search=new_search, parent=self)
+        dlg = EditSavedSearchDialog(saved_search=new_search, parent=self)
         dlg.show()
 
     @property
