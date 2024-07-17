@@ -1,6 +1,6 @@
 # pylint: disable=no-member
 from gettext import gettext as _
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from gi.repository import Gtk
 
@@ -127,30 +127,23 @@ class EditSearchCategoryDialog(SavableModelessDialog):
                 else:
                     self._change_search_flag(tag, FLAG_TEXTS[active_id])
 
-        label = Gtk.Label(caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
-        self.flags_grid.attach(label, 0, row, 1, 1)
-
-        liststore = Gtk.ListStore(str, str)
-        liststore.append((_("(omit from search)"), "omit"))
-        liststore.append((_("Yes"), "yes"))
-        liststore.append((_("No"), "no"))
-        liststore.append((_("Maybe"), "maybe"))
-
-        combobox = Gtk.ComboBox.new_with_model(liststore)
-        combobox.set_entry_text_column(0)
-        combobox.set_id_column(1)
-        combobox.set_halign(Gtk.Align.START)
-        combobox.set_valign(Gtk.Align.CENTER)
-        renderer_text = Gtk.CellRendererText()
-        combobox.pack_start(renderer_text, True)
-        combobox.add_attribute(renderer_text, "text", 0)
-
         def populate_widget(predicate):
             if predicate.has_flag(tag):
                 combobox.set_active_id(format_flag(predicate.get_flag(tag)))
             else:
                 combobox.set_active_id("omit")
 
+        label = Gtk.Label(caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
+        self.flags_grid.attach(label, 0, row, 1, 1)
+
+        options = [
+            (_("(omit from search)"), "omit"),
+            (_("Yes"), "yes"),
+            (_("No"), "no"),
+            (_("Maybe"), "maybe"),
+        ]
+
+        combobox = self._create_combobox(options)
         self.predicate_widget_functions[combobox] = populate_widget
         self.flags_grid.attach(combobox, 1, row, 1, 1)
         combobox.connect("changed", on_combobox_change)
@@ -176,7 +169,7 @@ class EditSearchCategoryDialog(SavableModelessDialog):
             row, "Platform", "platform", options, predicate_factory=lambda s, v: s.get_platform_predicate(v)
         )
 
-    def _add_match_widget(self, row, caption, tag, options, predicate_factory):
+    def _add_match_widget(self, row: int, caption: str, tag: str, options: List[Tuple[str, str]], predicate_factory):
         def on_combobox_change(_widget):
             if not self.updating_predicate_widgets:
                 search = GameSearch(self.search)
@@ -198,20 +191,8 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         label = Gtk.Label(caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
         self.flags_grid.attach(label, 0, row, 1, 1)
 
-        liststore = Gtk.ListStore(str, str)
-        liststore.append((_("(omit from search)"), ""))
-
-        for option in options:
-            liststore.append(option)
-
-        combobox = Gtk.ComboBox.new_with_model(liststore)
-        combobox.set_entry_text_column(0)
-        combobox.set_id_column(1)
-        combobox.set_halign(Gtk.Align.START)
-        combobox.set_valign(Gtk.Align.CENTER)
-        renderer_text = Gtk.CellRendererText()
-        combobox.pack_start(renderer_text, True)
-        combobox.add_attribute(renderer_text, "text", 0)
+        options = [(_("(omit from search)"), "")] + options
+        combobox = self._create_combobox(options)
         self.predicate_widget_functions[combobox] = populate_widget
         self.flags_grid.attach(combobox, 1, row, 1, 1)
         combobox.connect("changed", on_combobox_change)
@@ -256,6 +237,22 @@ class EditSearchCategoryDialog(SavableModelessDialog):
         if dlg.result == Gtk.ResponseType.YES:
             categories_db.remove_category(self.category_id)
             self.destroy()
+
+    def _create_combobox(self, options):
+        liststore = Gtk.ListStore(str, str)
+
+        for option in options:
+            liststore.append(option)
+
+        combobox = Gtk.ComboBox.new_with_model(liststore)
+        combobox.set_entry_text_column(0)
+        combobox.set_id_column(1)
+        combobox.set_halign(Gtk.Align.START)
+        combobox.set_valign(Gtk.Align.CENTER)
+        renderer_text = Gtk.CellRendererText()
+        combobox.pack_start(renderer_text, True)
+        combobox.add_attribute(renderer_text, "text", 0)
+        return combobox
 
     def on_save(self, _button: Gtk.Button) -> None:
         """Save game info and destroy widget."""
