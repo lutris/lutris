@@ -2,7 +2,7 @@ import abc
 import re
 from collections import defaultdict
 from itertools import repeat
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
 from lutris import settings
 from lutris.database import sql
@@ -98,16 +98,6 @@ def normalized_category_names(name: str, subname_allowed: bool = False) -> List[
     return names or [name]
 
 
-def get_search_for_category(category_name: str) -> Optional[str]:
-    if category_name and category_name != "all":
-        category = get_category_by_name(category_name)
-        if category:
-            search = category.get("search")
-            if search:
-                return search
-    return None
-
-
 def get_game_ids_for_categories(included_category_names=None, excluded_category_names=None):
     """Get the ids of games in database."""
     filters = []
@@ -177,19 +167,19 @@ def get_categories_in_game(game_id):
     return [category["name"] for category in sql.db_query(settings.DB_PATH, query, (game_id,))]
 
 
-def add_category(category_name, search: str = None, no_signal: bool = False):
+def add_category(category_name, no_signal: bool = False):
     """Add a category to the database"""
-    cat = sql.db_insert(settings.DB_PATH, "categories", {"name": category_name, "search": search})
+    cat = sql.db_insert(settings.DB_PATH, "categories", {"name": category_name})
     if not no_signal:
         CATEGORIES_UPDATED.fire()
     return cat
 
 
-def redefine_category(category_id: int, new_name: str, new_search: str = None, no_signal: bool = False) -> None:
-    query = "UPDATE categories SET name=?, search=? WHERE id=?"
+def redefine_category(category_id: int, new_name: str, no_signal: bool = False) -> None:
+    query = "UPDATE categories SET name=? WHERE id=?"
 
     with sql.db_cursor(settings.DB_PATH) as cursor:
-        sql.cursor_execute(cursor, query, (new_name, new_search, category_id))
+        sql.cursor_execute(cursor, query, (new_name, category_id))
     if not no_signal:
         CATEGORIES_UPDATED.fire()
 
@@ -232,7 +222,7 @@ def remove_unused_categories():
     find_orphaned_categories = (
         "SELECT categories.* FROM categories "
         "LEFT JOIN games_categories ON categories.id = games_categories.category_id "
-        "WHERE games_categories.category_id IS NULL AND categories.search IS NULL"
+        "WHERE games_categories.category_id IS NULL"
     )
 
     empty_categories = sql.db_query(settings.DB_PATH, find_orphaned_categories)

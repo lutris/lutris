@@ -19,7 +19,9 @@ from lutris.api import (
 )
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
-from lutris.database.categories import CATEGORIES_UPDATED, get_search_for_category
+from lutris.database import saved_searches as saved_searches_db
+from lutris.database.categories import CATEGORIES_UPDATED
+from lutris.database.saved_searches import SAVED_SEARCHES_UPDATED
 from lutris.database.services import ServiceGameCollection
 from lutris.exceptions import EsyncLimitError
 from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
@@ -156,6 +158,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         SERVICE_LOGOUT.register(self.on_service_logout)
         SERVICE_GAMES_LOADED.register(self.on_service_games_loaded)
         CATEGORIES_UPDATED.register(self.on_categories_updated)
+        SAVED_SEARCHES_UPDATED.register(self.on_categories_updated)
         GAME_UPDATED.register(self.on_game_updated)
         GAME_STOPPED.register(self.on_game_stopped)
         GAME_INSTALLED.register(self.on_game_installed)
@@ -313,7 +316,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_add_search_category(self, action, value):
         search = self.get_game_search()
-        dlg = EditSearchCategoryDialog(category={"search": str(search)}, parent=self)
+        dlg = EditSearchCategoryDialog(saved_search={"search": str(search)}, parent=self)
         dlg.show()
 
     @property
@@ -529,11 +532,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         search = self.get_game_search()
         category = self.filters.get("category") or "all"
         searches = [search]
-        cat_search = get_search_for_category(category)
 
-        if cat_search:
-            searches.append(GameSearch(cat_search, service=None))
-            category = "all"
+        saved_search = self.filters.get("saved_search")
+        if saved_search:
+            saved_search_found = saved_searches_db.get_saved_search_by_name(saved_search)
+
+            if saved_search_found:
+                searches.append(GameSearch(saved_search_found.get("search"), service=None))
+                category = "all"
 
         included = [category] if category != "all" else None
         excluded = (
@@ -1107,7 +1113,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_sidebar_changed(self, widget):
         """Handler called when the selected element of the sidebar changes"""
-        for filter_type in ("category", "dynamic_category", "service", "runner", "platform"):
+        for filter_type in ("category", "dynamic_category", "saved_search", "service", "runner", "platform"):
             if filter_type in self.filters:
                 self.filters.pop(filter_type)
 
@@ -1175,7 +1181,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             if row.type == "dynamic_category" and row.id in ("recent", "missing"):
                 if enforce_hidden and ".hidden" in game.get_categories():
                     return False
-            elif row.type in ("category", "user_category"):
+            elif row.type in ("category", "user_category", "saved_search"):
                 categories = game.get_categories()
                 if enforce_hidden and row.id != ".hidden" and ".hidden" in categories:
                     return False
