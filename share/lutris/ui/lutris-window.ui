@@ -682,7 +682,7 @@
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>
             <property name="action-name">win.add-search-category</property>
-            <property name="text" translatable="yes">Add Category</property>
+            <property name="text" translatable="yes">Add Saved Search</property>
           </object>
           <packing>
             <property name="expand">False</property>
