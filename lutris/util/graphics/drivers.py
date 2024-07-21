@@ -174,12 +174,14 @@ def get_gpu_cards() -> Iterable[str]:
     """Return GPUs connected to the system"""
     if not os.path.exists("/sys/class/drm"):
         logger.error("No GPU available on this system!")
-        return []
+        return
+
     try:
         cardlist = os.listdir("/sys/class/drm/")
     except PermissionError:
         logger.error("Your system does not allow reading from /sys/class/drm, no GPU detected.")
-        return []
+        return
+
     for cardname in cardlist:
         if re.match(r"^card\d$", cardname):
             yield cardname
