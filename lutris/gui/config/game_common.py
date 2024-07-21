@@ -720,7 +720,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     def on_custom_image_reset_clicked(self, _widget, image_type):
         self.refresh_image(image_type)
 
-    def save_custom_media(self, image_type, image_path):
+    def save_custom_media(self, image_type: str, image_path: str) -> None:
         slug = self.slug or self.game.slug
         service_media = self.service_medias[image_type]
         self.game.custom_images.add(image_type)
@@ -737,7 +737,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
             self._save_transcoded_media_to(dest_paths[0], image_type, image_path)
 
-    def _save_copied_media_to(self, dest_path, image_type, image_path):
+    def _save_copied_media_to(self, dest_path: str, image_type: str, image_path: str) -> None:
         """Copies a media file to the dest_path, but trashes the existing media
         for the game first. When complete, this updates the button indicated by
         image_type as well."""
@@ -754,14 +754,15 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
         service_media.trash_media(slug, completion_function=on_trashed)
 
-    def _save_transcoded_media_to(self, dest_path, image_type, image_path):
+    def _save_transcoded_media_to(self, dest_path: str, image_type: str, image_path: str) -> None:
         """Transcode an image, copying it to a new path and selecting the file type
         based on the file extension of dest_path. Trashes all media for the current
         game too. Runs in the background, and when complete updates the button indicated
         by image_type."""
         slug = self.slug or self.game.slug
         service_media = self.service_medias[image_type]
-        file_format = {".jpg": "jpeg", ".png": "png"}[get_image_file_extension(dest_path)]
+        ext = get_image_file_extension(dest_path) or ".png"
+        file_format = {".jpg": "jpeg", ".png": "png"}[ext]
 
         # If we must transcode the image, we'll scale the image up based on
         # the UI scale factor, to try to avoid blurriness. Of course this won't
