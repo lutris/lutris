@@ -46,6 +46,7 @@ class WebConnectDialog(ModalDialog):
         self.webview.load_uri(service.login_url)
         self.webview.connect("load-changed", self.on_navigation)
         self.webview.connect("create", self.on_webview_popup)
+        self.webview.connect("decide-policy", self.on_decide_policy)
         self.vbox.set_border_width(0)  # pylint: disable=no-member
         self.vbox.pack_start(self.webview, True, True, 0)  # pylint: disable=no-member
 
@@ -73,6 +74,11 @@ class WebConnectDialog(ModalDialog):
         # All inputs are blocked by the the webkit dialog.
         inspector = self.webview.get_inspector()
         inspector.show()
+    
+    def on_decide_policy(self, webview, decision, decision_type):
+        if decision_type == WebKit2.PolicyDecisionType.NAVIGATION_ACTION:
+            decision.use()
+        return True
 
     def on_navigation(self, widget, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
