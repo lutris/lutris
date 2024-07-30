@@ -16,6 +16,8 @@ pga.db
 tests/coverage/*
 /dist
 /lutris.egg-info
+/flake.nix
+/flake.lock
 
 # meson builddirs
 builddir
