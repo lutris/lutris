@@ -401,7 +401,7 @@ class ConfigBox(VBox):
                 tooltip_default = choice[0]
                 choice = (_("%s (default)") % choice[0], choice[1])
             expanded.append(choice)
-        if not has_value:
+        if not has_value and value:
             expanded.insert(0, (value + " (invalid)", value))
         return expanded, tooltip_default
 
