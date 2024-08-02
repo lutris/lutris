@@ -74,7 +74,7 @@ class WebConnectDialog(ModalDialog):
         # All inputs are blocked by the the webkit dialog.
         inspector = self.webview.get_inspector()
         inspector.show()
-    
+
     def on_decide_policy(self, webview, decision, decision_type):
         if decision_type == WebKit2.PolicyDecisionType.NAVIGATION_ACTION:
             decision.use()
