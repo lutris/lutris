@@ -60,15 +60,16 @@ def get_umu_path() -> str:
     if system.can_find_executable("umu-run"):
         return system.find_required_executable("umu-run")
     path_candidates = (
-        "/app/share",  # prioritize flatpak due to non-rolling release distros
-        "/usr/local/share",
-        "/usr/share",
-        "/opt",
+        "/app/bin",  # prioritize flatpak due to non-rolling release distros
+        "/usr/bin",
+        "/usr/local/bin",
         settings.RUNTIME_DIR,
     )
     for path_candidate in path_candidates:
-        script_path = os.path.join(path_candidate, "umu", "umu_run.py")
-        if system.path_exists(script_path):
+        script_path = os.path.join(path_candidate)
+        if system.path_exists(f"{script_path}/umu-run"):
+            return script_path
+        if system.path_exists(f"{script_path}/umu_run.py"):
             return script_path
     raise MissingExecutableError("Install umu to use Proton")
 
