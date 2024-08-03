@@ -211,7 +211,7 @@ class SteamService(BaseService):
         for db_game in db_games:
             db_appids[db_game["service_id"]].append(db_game["id"])
 
-        for appid, game_ids in db_appids.items():
+        for _appid, game_ids in db_appids.items():
             if len(game_ids) == 1:
                 continue
             for game_id in game_ids:
