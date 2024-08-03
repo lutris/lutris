@@ -201,8 +201,8 @@ class SteamService(BaseService):
                 try:
                     steam_game.uninstall()
                     stats["removed"] += 1
-                except Exception as e:
-                    logger.error("Failed to uninstall game %s: %s", appid, str(e))
+                except Exception as ex:
+                    logger.error("Failed to uninstall game %s: %s", appid, ex)
 
         logger.debug("%s Steam games removed", stats["removed"])
 
