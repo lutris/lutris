@@ -151,8 +151,8 @@ class SteamService(BaseService):
                 service_id=appid,
             )
             return slug
-        except Exception as e:
-            logger.error("Failed to install from Steam: %s", str(e))
+        except Exception as ex:
+            logger.error("Failed to install from Steam: %s", ex)
             return None
 
     @property
@@ -177,8 +177,8 @@ class SteamService(BaseService):
                     if slug:
                         installed_slugs.append(slug)
                     stats["installed"] += 1
-                except Exception as e:
-                    logger.error("Failed to process app manifest %s: %s", app_manifest_path, str(e))
+                except Exception as ex:
+                    logger.error("Failed to process app manifest %s: %s", app_manifest_path, ex)
 
         if stats["paths"]:
             logger.debug("%s Steam games detected and installed", stats["installed"])
@@ -225,8 +225,8 @@ class SteamService(BaseService):
                         steam_game.uninstall()
                         steam_game.delete()
                         stats["deduped"] += 1
-                    except Exception as e:
-                        logger.error("Failed to deduplicate game %s: %s", game_id, str(e))
+                    except Exception as ex:
+                        logger.error("Failed to deduplicate game %s: %s", game_id, ex)
 
         sync_media(installed_slugs)
         logger.debug("%s Steam games deduplicated", stats["deduped"])
