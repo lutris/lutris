@@ -20,7 +20,6 @@ class AsyncCall(threading.Thread):
         self.function = func
         self.callback = callback if callback else lambda r, e: None
         self.daemon = kwargs.pop("daemon", True)
-
         self.start()
 
     def target(self, *a, **kw):

@@ -127,29 +127,33 @@ class SteamService(BaseService):
         appid = manifest.steamid
         if appid in self.excluded_appids:
             return
-        service_game = ServiceGameCollection.get_game(self.id, appid)
-        if not service_game:
-            return
-        lutris_game_id = "%s-%s" % (self.id, appid)
-        existing_game = get_game_by_field(lutris_game_id, "installer_slug")
-        if existing_game:
-            return
-        game_config = LutrisConfig().game_level
-        game_config["game"]["appid"] = appid
-        configpath = write_game_config(lutris_game_id, game_config)
-        slug = self.get_installed_slug(service_game)
-        add_game(
-            name=service_game["name"],
-            runner="steam",
-            slug=slug,
-            installed=1,
-            installer_slug=lutris_game_id,
-            configpath=configpath,
-            platform="Linux",
-            service=self.id,
-            service_id=appid,
-        )
-        return slug
+        try:
+            service_game = ServiceGameCollection.get_game(self.id, appid)
+            if not service_game:
+                return
+            lutris_game_id = "%s-%s" % (self.id, appid)
+            existing_game = get_game_by_field(lutris_game_id, "installer_slug")
+            if existing_game:
+                return
+            game_config = LutrisConfig().game_level
+            game_config["game"]["appid"] = appid
+            configpath = write_game_config(lutris_game_id, game_config)
+            slug = self.get_installed_slug(service_game)
+            add_game(
+                name=service_game["name"],
+                runner="steam",
+                slug=slug,
+                installed=1,
+                installer_slug=lutris_game_id,
+                configpath=configpath,
+                platform="Linux",
+                service=self.id,
+                service_id=appid,
+            )
+            return slug
+        except Exception as ex:
+            logger.error("Failed to install from Steam: %s", ex)
+            return None
 
     @property
     def steamapps_paths(self):
@@ -160,33 +164,46 @@ class SteamService(BaseService):
         stats = {"installed": 0, "removed": 0, "deduped": 0, "paths": []}
         installed_slugs = []
         installed_appids = []
+
         for steamapps_path in self.steamapps_paths:
             for appmanifest_file in get_appmanifests(steamapps_path):
                 if steamapps_path not in stats["paths"]:
                     stats["paths"].append(steamapps_path)
                 app_manifest_path = os.path.join(steamapps_path, appmanifest_file)
-                app_manifest = AppManifest(app_manifest_path)
-                installed_appids.append(app_manifest.steamid)
-                slug = self.install_from_steam(app_manifest)
-                if slug:
-                    installed_slugs.append(slug)
-                stats["installed"] += 1
+                try:
+                    app_manifest = AppManifest(app_manifest_path)
+                    installed_appids.append(app_manifest.steamid)
+                    slug = self.install_from_steam(app_manifest)
+                    if slug:
+                        installed_slugs.append(slug)
+                    stats["installed"] += 1
+                except Exception as ex:
+                    logger.error("Failed to process app manifest %s: %s", app_manifest_path, ex)
+
         if stats["paths"]:
             logger.debug("%s Steam games detected and installed", stats["installed"])
             logger.debug("Games found in: %s", ", ".join(stats["paths"]))
         else:
             logger.debug("No Steam folder found with games")
+
         db_games = get_games(filters={"runner": "steam"})
         for db_game in db_games:
             steam_game = Game(db_game["id"])
+            if steam_game.config is None:
+                logger.warning("Steam game %s has no config", db_game["id"])
+                continue
             try:
                 appid = steam_game.config.game_level["game"]["appid"]
             except KeyError:
-                logger.warning("Steam game %s has no AppID")
+                logger.warning("Steam game %s has no AppID", db_game["id"])
                 continue
             if appid not in installed_appids:
-                steam_game.uninstall()
-                stats["removed"] += 1
+                try:
+                    steam_game.uninstall()
+                    stats["removed"] += 1
+                except Exception as ex:
+                    logger.error("Failed to uninstall game %s: %s", appid, ex)
+
         logger.debug("%s Steam games removed", stats["removed"])
 
         db_appids = defaultdict(list)
@@ -194,17 +211,23 @@ class SteamService(BaseService):
         for db_game in db_games:
             db_appids[db_game["service_id"]].append(db_game["id"])
 
-        for appid in db_appids:
-            game_ids = db_appids[appid]
+        for appid, game_ids in db_appids.items():
             if len(game_ids) == 1:
                 continue
             for game_id in game_ids:
                 steam_game = Game(game_id)
+                if steam_game.config is None:
+                    logger.warning("Steam game %s has no config for deduplication", game_id)
+                    continue
                 if not steam_game.playtime:
-                    # Unsafe to emit a signal from a worker thread!
-                    steam_game.uninstall()
-                    steam_game.delete()
-                    stats["deduped"] += 1
+                    try:
+                        # Unsafe to emit a signal from a worker thread!
+                        steam_game.uninstall()
+                        steam_game.delete()
+                        stats["deduped"] += 1
+                    except Exception as ex:
+                        logger.error("Failed to deduplicate game %s: %s", game_id, ex)
+
         sync_media(installed_slugs)
         logger.debug("%s Steam games deduplicated", stats["deduped"])
 

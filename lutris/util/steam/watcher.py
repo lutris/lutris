@@ -22,10 +22,11 @@ class SteamWatcher:
                 monitor.connect("changed", self._on_directory_changed)
                 self.monitors.append(monitor)
             except GLib.Error as ex:
-                logger.exception(ex)
+                logger.exception("Failed to monitor Steam folder %s: %s", steam_path, ex)
 
     def _on_directory_changed(self, _monitor, _file, _other_file, event_type):
         path = _file.get_path()
-        if not path.endswith(".acf"):
+        if path is None or not path.endswith(".acf"):
             return
-        self.callback(event_type, path)
+        if self.callback:
+            self.callback(event_type, path)
