@@ -5,7 +5,7 @@
 import os
 from collections import namedtuple
 from gettext import gettext as _
-from typing import List
+from typing import Iterable, List
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
@@ -19,11 +19,15 @@ from lutris.api import (
 )
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
+from lutris.database import saved_searches as saved_searches_db
+from lutris.database.categories import CATEGORIES_UPDATED
+from lutris.database.saved_searches import SAVED_SEARCHES_UPDATED
 from lutris.database.services import ServiceGameCollection
-from lutris.exceptions import EsyncLimitError
+from lutris.exceptions import EsyncLimitError, InvalidSearchTermError
 from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
+from lutris.gui.config.edit_saved_search import EditSavedSearchDialog
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog, get_error_handler, register_error_handler
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
@@ -38,6 +42,7 @@ from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
+from lutris.search_predicate import NotPredicate
 from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGOUT
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
@@ -152,6 +157,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         SERVICE_LOGIN.register(self.on_service_login)
         SERVICE_LOGOUT.register(self.on_service_logout)
         SERVICE_GAMES_LOADED.register(self.on_service_games_loaded)
+        CATEGORIES_UPDATED.register(self.on_categories_updated)
+        SAVED_SEARCHES_UPDATED.register(self.on_categories_updated)
         GAME_UPDATED.register(self.on_game_updated)
         GAME_STOPPED.register(self.on_game_stopped)
         GAME_INSTALLED.register(self.on_game_installed)
@@ -219,6 +226,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 enabled=lambda: self.is_show_hidden_sensitive,
                 accel="<Primary>h",
             ),
+            "add-search-category": Action(self.on_add_search_category),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
@@ -292,13 +300,19 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     @property
     def is_show_hidden_sensitive(self):
-        """True if there are any hiden games to show."""
+        """True if there are any hidden games to show."""
         return bool(categories_db.get_game_ids_for_categories([".hidden"]))
 
     def on_show_hidden_clicked(self, action, value):
         """Hides or shows the hidden games"""
         self.sidebar.hidden_row.show()
         self.sidebar.selected_category = "category", ".hidden"
+
+    def on_add_search_category(self, action, value):
+        search = self.get_game_search()
+        new_search = saved_searches_db.SavedSearch(0, "", str(search))
+        dlg = EditSavedSearchDialog(saved_search=new_search, parent=self)
+        dlg.show()
 
     @property
     def current_view_type(self):
@@ -434,24 +448,35 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.game_search = GameSearch(text, self.service)
         return self.game_search
 
-    def filter_games(self, games, implicit_filters: bool = True):
+    def filter_games(self, games, searches: Iterable[GameSearch] = None):
         """Filters a list of games according to the 'installed' and 'text' filters, if those are
         set. But if not, can just return games unchanged."""
-        search = self.get_game_search()
 
-        if implicit_filters:
+        if searches is None:
+            search = self.get_game_search()
+
             if self.filters.get("installed") and not search.has_component("installed"):
                 search = search.with_predicate(search.get_installed_predicate(installed=True))
 
             category = self.filters.get("category") or "all"
 
             if category != ".hidden" and not search.has_component("hidden"):
-                search = search.with_predicate(search.get_category_predicate(".hidden", False))
+                search = search.with_predicate(NotPredicate(search.get_category_predicate(".hidden")))
 
-        if search.is_empty:
+            searches = [search]
+
+        to_apply = [search for search in searches if not search.is_empty]
+
+        if not to_apply:
             return games
 
-        return [game for game in games if search.matches(game)]
+        def matches(game):
+            for search in searches:
+                if not search.matches(game):
+                    return False
+            return True
+
+        return [game for game in games if matches(game)]
 
     def set_service(self, service_name):
         if self.service and self.service.id == service_name:
@@ -501,13 +526,28 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         search = self.get_game_search()
         category = self.filters.get("category") or "all"
+        searches = [search]
+
+        saved_search = self.filters.get("saved_search")
+        if saved_search:
+            saved_search_found = saved_searches_db.get_saved_search_by_name(saved_search)
+
+            if saved_search_found:
+                try:
+                    searches.append(GameSearch(saved_search_found.search, service=None))
+                    category = "all"
+                except InvalidSearchTermError:
+                    pass
+
         included = [category] if category != "all" else None
-        excluded = [".hidden"] if category != ".hidden" and not search.has_component("hidden") else []
+        excluded = (
+            [".hidden"] if category != ".hidden" and not any(s for s in searches if s.has_component("hidden")) else []
+        )
         category_game_ids = categories_db.get_game_ids_for_categories(included, excluded)
 
         filters = self.get_sql_filters()
         games = games_db.get_games(filters=filters)
-        games = self.filter_games([game for game in games if game["id"] in category_game_ids], implicit_filters=False)
+        games = self.filter_games([game for game in games if game["id"] in category_game_ids], searches=searches)
         return self.apply_view_sort(games)
 
     def get_sql_filters(self):
@@ -894,7 +934,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         """Request a view update when service games are loaded"""
         if self.service and service.id == self.service.id:
             self.update_store()
-        return True
+
+    def on_categories_updated(self):
+        self.update_store()
 
     def save_window_state(self):
         """Saves the window's size position and state as settings."""
@@ -1069,7 +1111,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_sidebar_changed(self, widget):
         """Handler called when the selected element of the sidebar changes"""
-        for filter_type in ("category", "dynamic_category", "service", "runner", "platform"):
+        for filter_type in ("category", "dynamic_category", "saved_search", "service", "runner", "platform"):
             if filter_type in self.filters:
                 self.filters.pop(filter_type)
 
@@ -1141,7 +1183,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             if row.type == "dynamic_category" and row.id in ("recent", "missing"):
                 if enforce_hidden and ".hidden" in game.get_categories():
                     return False
-            elif row.type in ("category", "user_category"):
+            elif row.type in ("category", "user_category", "saved_search"):
                 categories = game.get_categories()
                 if enforce_hidden and row.id != ".hidden" and ".hidden" in categories:
                     return False
