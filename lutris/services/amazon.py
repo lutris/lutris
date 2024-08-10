@@ -367,7 +367,12 @@ class AmazonService(OnlineService):
             for game_json in json_data["entitlements"]:
                 product = game_json["product"]
 
-                asin = product["asin"]
+                if "id" not in product:
+                    logger.error("Amazon game encountered with no ID; skipping: %s", game_json)
+                    continue
+
+                # Some games have no ASIN; we'll have to skip dedupping these by ASIN.
+                asin = product.get("asin") or ""
                 games_by_asin[asin].append(game_json)
 
             if "nextToken" not in json_data:
@@ -376,11 +381,13 @@ class AmazonService(OnlineService):
             logger.info("Got next token in response, making next request")
             next_token = json_data["nextToken"]
 
-        # If Amazon gives is the same game with different ids we'll pick the
-        # least ID. Probably we should just use ASIN as the ID, but since we didn't
-        # do this in the first release of the Amazon integration, we'll maintain compatibility
-        # by using the top level ID whenever we can.
-        games = [sorted(gl, key=lambda g: g["id"])[0] for gl in games_by_asin.values()]
+        # We need to use the ID for compatibility with earlier Lutris releases, but also
+        # some games do not have ASINs. We still deduplicate by ASIN when we can, since the same
+        # game can have two different IDs.
+
+        asinless = games_by_asin.pop("", [])
+        dedupped = [sorted(gl, key=lambda g: g["id"])[0] for gl in games_by_asin.values()]
+        games = asinless + dedupped
 
         with open(self.cache_path, "w", encoding="utf-8") as amazon_cache:
             json.dump(games, amazon_cache)
