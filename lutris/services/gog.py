@@ -3,9 +3,10 @@
 import json
 import os
 import time
+import typing
 from collections import defaultdict
 from gettext import gettext as _
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import parse_qsl, urlencode, urlparse
 
 from lxml import etree
@@ -23,6 +24,9 @@ from lutris.util import i18n, system
 from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
 from lutris.util.log import logger
 from lutris.util.strings import human_size, slugify
+
+if typing.TYPE_CHECKING:
+    from lutris.installer.installer import LutrisInstaller
 
 
 class GogSmallBanner(ServiceMedia):
@@ -118,35 +122,40 @@ class GOGService(OnlineService):
         return "https://auth.gog.com/auth?" + urlencode(params)
 
     @property
-    def credential_files(self):
+    def credential_files(self) -> List[str]:
         return [self.cookies_path, self.token_path]
 
-    def is_connected(self):
+    def is_connected(self) -> bool:
         """Return whether the user is authenticated and if the service is available"""
         if not self.is_authenticated():
             return False
         try:
             user_data = self.get_user_data()
+        except AuthenticationError:
+            return False
         except UnauthorizedAccessError:
             logger.warning("GOG token is invalid")
             return False
-        return user_data and "username" in user_data
+        except HTTPError as ex:
+            logger.exception("Failed to query user data: %s", ex)
+            return False
+        return bool(user_data and "username" in user_data)
 
-    def load(self):
+    def load(self) -> List[GOGGame]:
         """Load the user game library from the GOG API"""
         if not self.is_connected():
             logger.error("User not connected to GOG")
-            return
+            return []
         games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
         for game in games:
             game.save()
         self.match_games()
         return games
 
-    def login_callback(self, url):
+    def login_callback(self, url) -> None:
         return self.request_token(url)
 
-    def request_token(self, url="", refresh_token=""):
+    def request_token(self, url: str = "", refresh_token: str = "") -> None:
         """Get authentication token from GOG"""
         if refresh_token:
             grant_type = "refresh_token"
@@ -187,21 +196,26 @@ class GOGService(OnlineService):
         if not refresh_token:
             SERVICE_LOGIN.fire(self)
 
-    def load_token(self):
+    def load_token(self) -> dict:
         """Load token from disk"""
         if not os.path.exists(self.token_path):
             raise AuthenticationError("No GOG token available")
+
         with open(self.token_path, encoding="utf-8") as token_file:
             token_content = json.loads(token_file.read())
+
+        if not token_content:
+            raise AuthenticationError("No GOG token available")
+
         return token_content
 
-    def get_token_age(self):
+    def get_token_age(self) -> float:
         """Return age of token"""
         token_stat = os.stat(self.token_path)
         token_modified = token_stat.st_mtime
         return time.time() - token_modified
 
-    def make_request(self, url):
+    def make_request(self, url: str) -> Any:
         """Send a cookie authenticated HTTP request to GOG"""
         request = Request(url, cookies=self.load_cookies())
         request.get()
@@ -209,36 +223,24 @@ class GOGService(OnlineService):
             raise AuthenticationError("Token expired, please log in again")
         return request.json
 
-    def make_api_request(self, url):
+    def make_api_request(self, url: str) -> Any:
         """Send a token authenticated request to GOG"""
-        try:
-            token = self.load_token()
-        except AuthenticationError:
-            return
+        token = self.load_token()
+
         if self.get_token_age() > 2600:
             self.request_token(refresh_token=token["refresh_token"])
             token = self.load_token()
-            if not token:
-                logger.warning(
-                    "Request to %s cancelled because the GOG token could not be acquired",
-                    url,
-                )
-                return
         headers = {"Authorization": "Bearer " + token["access_token"]}
         request = Request(url, headers=headers, cookies=self.load_cookies())
-        try:
-            request.get()
-        except HTTPError:
-            logger.error("Failed to request %s", url)
-            return
+        request.get()
         return request.json
 
-    def get_user_data(self):
+    def get_user_data(self) -> dict:
         """Return GOG profile information"""
         url = "https://embed.gog.com/userData.json"
         return self.make_api_request(url)
 
-    def get_library(self):
+    def get_library(self) -> List[dict]:
         """Return the user's library of GOG games"""
         if system.path_exists(self.cache_path):
             logger.debug("Returning cached GOG library")
@@ -257,10 +259,10 @@ class GOGService(OnlineService):
             json.dump(games, gog_cache)
         return games
 
-    def get_service_game(self, gog_game):
+    def get_service_game(self, gog_game: dict) -> GOGGame:
         return GOGGame.new_from_gog_game(gog_game)
 
-    def get_products_page(self, page=1, search=None):
+    def get_products_page(self, page: int = 1, search: str = None) -> Any:
         """Return a single page of games"""
         if not self.is_authenticated():
             raise AuthenticationError("User is not logged in")
@@ -272,7 +274,7 @@ class GOGService(OnlineService):
         url = self.embed_url + "/account/getFilteredProducts?" + urlencode(params)
         return self.make_request(url)
 
-    def get_game_dlcs(self, product_id):
+    def get_game_dlcs(self, product_id: str) -> List[dict]:
         """Return the list of DLC products for a game"""
         game_details = self.get_game_details(product_id)
         if not game_details["dlcs"]:
@@ -280,7 +282,7 @@ class GOGService(OnlineService):
         all_products_url = game_details["dlcs"]["expanded_all_products_url"]
         return self.make_api_request(all_products_url)
 
-    def get_game_details(self, product_id):
+    def get_game_details(self, product_id: str) -> dict:
         """Return game information for a given game"""
         if not product_id:
             raise ValueError("Missing product ID")
@@ -288,7 +290,7 @@ class GOGService(OnlineService):
         url = "{}/products/{}?expand=downloads&locale={}".format(self.api_url, product_id, self.locale)
         return self.make_api_request(url)
 
-    def get_download_info(self, downlink):
+    def get_download_info(self, downlink: str) -> List[dict]:
         """Return file download information, a list of dict containing the 'url' and
         'filename' for each file."""
         logger.info("Getting download info for %s", downlink)
@@ -310,7 +312,7 @@ class GOGService(OnlineService):
             expanded.append({"url": response[field], "filename": filename})
         return expanded
 
-    def get_downloads(self, gogid):
+    def get_downloads(self, gogid: str) -> dict:
         """Return all available downloads for a GOG ID"""
         if not gogid:
             logger.warning("Unable to get GOG data because no GOG ID is available")
@@ -321,14 +323,24 @@ class GOGService(OnlineService):
             return {}
         return gog_data["downloads"]
 
-    def get_extras(self, gogid):
+    def get_extras(self, gogid: str) -> Dict[str, List[dict]]:
         """Return a list of bonus content available for a GOG ID and its DLCs"""
         logger.debug("Download extras for GOG ID %s and its DLCs", gogid)
         game = self.get_game_details(gogid)
         if not game:
             logger.warning("Unable to get GOG data for game %s", gogid)
-            return []
-        dlcs = self.get_game_dlcs(gogid)
+            return {}
+
+        try:
+            dlcs = self.get_game_dlcs(gogid)
+        except Exception as ex:
+            # I would rather just propagate this, but I'm fixing code from
+            # commit f7842ec6 which says "don't crash when user isn't logged
+            # in to GOG" so I guess we'll try to provide what extras we can,
+            # without DLCs.
+            logger.exception("Unable to retrieve DLC: %s", ex)
+            dlcs = {}
+
         products = [game, *dlcs] if dlcs else [game]
         all_extras = {}
         for product in products:
@@ -348,7 +360,7 @@ class GOGService(OnlineService):
                     all_extras[product.get("title", "").strip()] = extras
         return all_extras
 
-    def get_installers(self, downloads, runner, language="en"):
+    def get_installers(self, downloads: Dict[str, List[dict]], runner: str, language: str = "en") -> List[dict]:
         """Return available installers for a GOG game"""
         # Filter out Mac installers
         gog_installers = [installer for installer in downloads.get("installers", []) if installer["os"] != "mac"]
@@ -362,7 +374,7 @@ class GOGService(OnlineService):
             if installer["language"] == self.determine_language_installer(gog_installers, language)
         ]
 
-    def get_update_versions(self, gog_id: str, runner_name: Optional[str]):
+    def get_update_versions(self, gog_id: str, runner_name: Optional[str]) -> Dict[str, list]:
         """Return updates available for a game, keyed by patch version"""
 
         filter_os = self.runner_to_os_dict.get(runner_name) if runner_name else None
@@ -381,7 +393,7 @@ class GOGService(OnlineService):
             patch_versions[patch["name"]].append(patch)
         return patch_versions
 
-    def determine_language_installer(self, gog_installers, default_language="en"):
+    def determine_language_installer(self, gog_installers: List[dict], default_language: str = "en") -> str:
         """Return locale language string if available in gog_installers"""
         language = i18n.get_lang()
         gog_installers = [installer for installer in gog_installers if installer["language"] == language]
@@ -389,7 +401,7 @@ class GOGService(OnlineService):
             language = default_language
         return language
 
-    def query_download_links(self, download):
+    def query_download_links(self, download: Dict[str, List[dict]]) -> List[dict]:
         """Convert files from the GOG API to a format compatible with lutris installers"""
         download_links = []
         for game_file in download.get("files", []):
@@ -411,11 +423,12 @@ class GOGService(OnlineService):
                 )
         return download_links
 
-    def get_extra_files(self, installer, selected_extras):
+    def get_extra_files(self, installer: "LutrisInstaller", selected_extras: List[dict]) -> List[InstallerFile]:
         extra_files = []
         for extra in selected_extras:
-            if extra.get("downlinks"):
-                links = [info for link in extra.get("downlinks") for info in self.get_download_info(link)]
+            downlinks = extra.get("downlinks")
+            if downlinks:
+                links = [info for link in downlinks for info in self.get_download_info(link)]
             elif str(extra["id"]) in selected_extras:
                 links = self.query_download_links(extra)
             else:
@@ -441,7 +454,7 @@ class GOGService(OnlineService):
                 )
         return extra_files
 
-    def _get_installer_links(self, installer, downloads):
+    def _get_installer_links(self, installer: "LutrisInstaller", downloads: dict) -> List[dict]:
         """Return links to downloadable files from a list of downloads"""
         try:
             gog_installers = self.get_installers(downloads, installer.runner)
@@ -454,7 +467,7 @@ class GOGService(OnlineService):
         except HTTPError as err:
             raise UnavailableGameError(_("Couldn't load the download links for this game")) from err
 
-    def get_patch_files(self, installer, installer_file_id):
+    def get_patch_files(self, installer: "LutrisInstaller", installer_file_id: str) -> List[InstallerFile]:
         logger.debug("Getting patches for %s", installer.version)
         downloads = self.get_downloads(installer.service_appid)
         links = []
@@ -463,7 +476,9 @@ class GOGService(OnlineService):
                 links += self.query_download_links(patch_file)
         return self._format_links(installer, installer_file_id, links)
 
-    def _format_links(self, installer, installer_file_id, links):
+    def _format_links(
+        self, installer: "LutrisInstaller", installer_file_id: str, links: List[dict]
+    ) -> List[InstallerFile]:
         _installer_files = defaultdict(dict)  # keyed by filename
         for link in links:
             try:
@@ -509,7 +524,9 @@ class GOGService(OnlineService):
             raise UnavailableGameError(_("Unable to determine correct file to launch installer"))
         return files
 
-    def get_installer_files(self, installer, installer_file_id, selected_extras):
+    def get_installer_files(
+        self, installer: "LutrisInstaller", installer_file_id: str, selected_extras: List[dict]
+    ) -> Tuple[List[InstallerFileCollection], List[InstallerFile]]:
         try:
             downloads = self.get_downloads(installer.service_appid)
         except HTTPError as err:
@@ -531,7 +548,7 @@ class GOGService(OnlineService):
 
         return files, extra_files
 
-    def read_file_checksum(self, file_path):
+    def read_file_checksum(self, file_path: str) -> Tuple[str, str]:
         """Return the MD5 checksum for a GOG file
         Requires a GOG XML file as input
         This has yet to be used.
@@ -600,16 +617,16 @@ class GOGService(OnlineService):
             },
         }
 
-    def get_installed_runner_name(self, db_game):
+    def get_installed_runner_name(self, db_game: dict) -> str:
         platforms = [platform.casefold() for platform in self.get_game_platforms(db_game)]
         return "linux" if "linux" in platforms else "wine"
 
-    def get_games_owned(self):
+    def get_games_owned(self) -> dict:
         """Return IDs of games owned by user"""
         url = "{}/user/data/games".format(self.embed_url)
         return self.make_api_request(url)
 
-    def get_dlc_installers(self, db_game):
+    def get_dlc_installers(self, db_game: dict) -> List[dict]:
         """Return all available DLC installers for game"""
         appid = db_game["service_id"]
         runner_name = db_game.get("runner")
@@ -666,7 +683,7 @@ class GOGService(OnlineService):
 
         return installers
 
-    def get_dlc_installers_owned(self, db_game):
+    def get_dlc_installers_owned(self, db_game: dict) -> List[dict]:
         """Return DLC installers for owned DLC"""
 
         owned = self.get_games_owned()
@@ -676,7 +693,7 @@ class GOGService(OnlineService):
 
         return installers
 
-    def get_dlc_installers_runner(self, db_game, runner, only_owned=True):
+    def get_dlc_installers_runner(self, db_game: dict, runner: str, only_owned: bool = True) -> List[dict]:
         """Return DLC installers for requested runner
         only_owned=True only return installers for owned DLC (default)"""
         if only_owned:
@@ -692,7 +709,7 @@ class GOGService(OnlineService):
 
         return installers
 
-    def get_update_installers(self, db_game):
+    def get_update_installers(self, db_game: dict) -> List[dict]:
         appid = db_game["service_id"]
         runner = db_game.get("runner")
         patch_versions = self.get_update_versions(appid, runner)
