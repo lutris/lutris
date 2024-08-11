@@ -16,7 +16,7 @@ from lutris.database.games import add_game, get_game_by_field, get_game_for_serv
 from lutris.database.services import ServiceGameCollection
 from lutris.game import GAME_UPDATED, Game
 from lutris.gui.dialogs import NoticeDialog
-from lutris.gui.dialogs.webconnect_dialog import DEFAULT_USER_AGENT, WebConnectDialog
+from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.gui.views.media_loader import download_media
 from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
@@ -418,7 +418,7 @@ class OnlineService(BaseService):
     login_url = NotImplemented
     login_window_width = 390
     login_window_height = 500
-    login_user_agent = DEFAULT_USER_AGENT
+    login_user_agent = settings.DEFAULT_USER_AGENT
 
     @property
     def credential_files(self):

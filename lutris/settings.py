@@ -64,6 +64,8 @@ SHOW_MEDIA = os.environ.get("LUTRIS_HIDE_MEDIA") != "1" and sio.read_setting("hi
 DEFAULT_RESOLUTION_WIDTH = sio.read_setting("default_resolution_width", default="1280")
 DEFAULT_RESOLUTION_HEIGHT = sio.read_setting("default_resolution_height", default="720")
 
+DEFAULT_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
+
 UPDATE_CHANNEL_STABLE = "stable"
 UPDATE_CHANNEL_UMU = "umu"
 UPDATE_CHANNEL_UNSUPPORTED = "self-maintained"

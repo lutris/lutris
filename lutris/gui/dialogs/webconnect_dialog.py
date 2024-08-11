@@ -17,8 +17,6 @@ from gi.repository import WebKit2
 
 from lutris.gui.dialogs import ModalDialog
 
-DEFAULT_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0"
-
 
 class WebConnectDialog(ModalDialog):
     """Login form for external services"""
