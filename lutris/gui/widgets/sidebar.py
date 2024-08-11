@@ -30,6 +30,7 @@ from lutris.services.base import (
 )
 from lutris.util.jobs import schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_SYNCED, LOCAL_LIBRARY_SYNCING
+from lutris.util.log import logger
 from lutris.util.strings import get_natural_sort_key
 
 TYPE = 0
@@ -635,21 +636,30 @@ class LutrisSidebar(Gtk.ListBox):
                 self.select_row(self.get_children()[0])
 
     def on_service_auth_changed(self, service):
+        logger.debug("Service %s auth changed", service.id)
         if service.id in self.service_rows:
             self.service_rows[service.id].create_button_box()
             self.service_rows[service.id].update_buttons()
+        else:
+            logger.warning("Service %s is not found", service.id)
         return True
 
     def on_service_games_loading(self, service):
+        logger.debug("Service %s games loading", service.id)
         if service.id in self.service_rows:
             self.service_rows[service.id].is_updating = True
             self.service_rows[service.id].update_buttons()
+        else:
+            logger.warning("Service %s is not found", service.id)
         return True
 
     def on_service_games_loaded(self, service):
+        logger.debug("Service %s games loaded", service.id)
         if service.id in self.service_rows:
             self.service_rows[service.id].is_updating = False
             self.service_rows[service.id].update_buttons()
+        else:
+            logger.warning("Service %s is not found", service.id)
         return True
 
     def on_local_library_syncing(self):

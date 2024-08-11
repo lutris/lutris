@@ -53,7 +53,6 @@ class UbisoftConnectClient:
 
     def _do_request(self, method, *args, **kwargs):
         if not kwargs or "headers" not in kwargs:
-            logger.info("No headers in kwargs, using session headers")
             kwargs["headers"] = self._session.headers
         if "add_to_headers" in kwargs:
             for header in kwargs["add_to_headers"]:
@@ -61,7 +60,6 @@ class UbisoftConnectClient:
             kwargs.pop("add_to_headers")
 
         response = self.request(method, *args, **kwargs)
-        logger.info("Response status: %s", response)
         result = response.json()
         if "errorCode" in result and "message" in result:
             raise RuntimeError(result["message"])
@@ -72,7 +70,6 @@ class UbisoftConnectClient:
         try:
             refresh_needed = False
             if self.refresh_token:
-                logger.debug("rememberMeTicket expiration time: %s", self.refresh_time)
                 refresh_needed = self.refresh_time is None or datetime.now() > datetime.fromtimestamp(
                     int(self.refresh_time)
                 )
@@ -111,7 +108,6 @@ class UbisoftConnectClient:
 
     def _refresh_auth(self):
         if self.__refresh_in_progress:
-            logger.info("Refreshing already in progress.")
             while self.__refresh_in_progress:
                 time.sleep(0.2)
         else:
@@ -127,7 +123,6 @@ class UbisoftConnectClient:
                 self.__refresh_in_progress = False
 
     def _refresh_remember_me(self):
-        logger.debug("Refreshing rememberMeTicket")
         self._do_options_request()
         j = self._do_request(
             "post",
@@ -149,7 +144,6 @@ class UbisoftConnectClient:
         self._handle_authorization_response(j)
 
     def _refresh_ticket(self):
-        logger.debug("Refreshing ticket")
         self._do_options_request()
         j = self._do_request(
             "put",

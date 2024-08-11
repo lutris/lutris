@@ -115,16 +115,20 @@ class UbisoftConnectService(OnlineService):
 
     def login_callback(self, credentials):
         """Called after the user has logged in successfully"""
+        logger.info("Login to Ubisoft Connect sucessful")
         url = credentials[len("https://connect.ubisoft.com/change_domain/") :]
         unquoted_url = unquote(url)
         storage_jsons = json.loads("[" + unquoted_url + "]")
         user_data = self.client.authorise_with_local_storage(storage_jsons)
+        logger.debug("Ubisoft user data: %s", user_data)
         self.client.set_auth_lost_callback(self.auth_lost)
         SERVICE_LOGIN.fire(self)
         return (user_data["userId"], user_data["username"])
 
     def is_connected(self):
-        return self.is_authenticated()
+        res = self.is_authenticated()
+        logger.debug("Ubisoft Connect is connected: %s", res)
+        return res
 
     def get_configurations(self):
         ubi_game = get_game_by_field("ubisoft-connect", "slug")
@@ -170,13 +174,22 @@ class UbisoftConnectService(OnlineService):
             ubi_games.append(ubi_game)
         return ubi_games
 
+    @property
+    def credential_files(self):
+        """Return a list of all files used for authentication"""
+        return [self.token_path]
+
     def store_credentials(self, credentials):
         if not os.path.exists(os.path.dirname(self.token_path)):
+            logger.debug("Creating Ubisoft credentials path: %s", self.token_path)
             os.mkdir(os.path.dirname(self.token_path))
+
+        logger.debug("Writing Ubisoft credentials to %s", self.token_path)
         with open(self.token_path, "w", encoding="utf-8") as auth_file:
             auth_file.write(json.dumps(credentials, indent=2))
 
     def load_credentials(self):
+        logger.debug("Loading credentials from %s", self.token_path)
         with open(self.token_path, encoding="utf-8") as auth_file:
             credentials = json.load(auth_file)
         return credentials
@@ -187,7 +200,7 @@ class UbisoftConnectService(OnlineService):
         lutris_game_id = slugify(game["name"]) + "-" + self.id
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game and existing_game["installed"] == 1:
-            logger.debug("Ubisoft Connect game %s is already installed", app_name)
+            logger.debug("Ubisoft Connect game %s installed in Lutris", app_name)
             return
         logger.debug("Installing Ubisoft Connect game %s", app_name)
         game_config = LutrisConfig(game_config_id=ubisoft_connect["configpath"]).game_level
@@ -239,6 +252,7 @@ class UbisoftConnectService(OnlineService):
                 slug = self.install_from_ubisoft(ubisoft_connect, game)
                 if slug:
                     installed_slugs.append(slug)
+        logger.debug("Syncing media for %s games", len(installed_slugs))
         sync_media(installed_slugs)
 
     def generate_installer(self, db_game, ubi_db_game):

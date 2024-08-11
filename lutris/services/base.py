@@ -143,10 +143,12 @@ class BaseService:
                 self.load()
                 self.load_icons()
                 self.add_installed_games()
+                logger.debug("'%s' games reloaded", self.name)
             finally:
                 self.is_loading = False
 
         def reload_cb(_result, error):
+            logger.debug("Reload callback")
             SERVICE_GAMES_LOADED.fire(self)
             reloaded_callback(error)
 
@@ -158,6 +160,7 @@ class BaseService:
 
     def load_icons(self):
         """Download all game media from the service"""
+        logger.debug("Loading icons...")
         all_medias = self.medias.copy()
         all_medias.update(self.extra_medias)
 
@@ -465,7 +468,10 @@ class OnlineService(BaseService):
 
     def is_authenticated(self):
         """Return whether the service is authenticated"""
-        return not self.is_login_in_progress and all(system.path_exists(path) for path in self.credential_files)
+        if self.is_login_in_progress:
+            logger.warning("Tried to get auth status while login in progress")
+            return False
+        return all(system.path_exists(path) for path in self.credential_files)
 
     def wipe_game_cache(self):
         """Wipe the game cache, allowing it to be reloaded"""
