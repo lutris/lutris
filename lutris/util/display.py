@@ -46,6 +46,13 @@ def get_default_dpi():
     return 96
 
 
+@cache_single
+def is_display_x11():
+    """True if"""
+    display = Gdk.Display.get_default()
+    return "x11" in type(display).__name__.casefold()
+
+
 class DisplayManager:
     """Get display and resolution using GnomeDesktop"""
 
