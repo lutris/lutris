@@ -3,11 +3,11 @@
 from gettext import gettext as _
 
 import gi
-from gi.repository import Gdk, Gtk
+from gi.repository import Gtk
 
 from lutris.database.games import get_games
 from lutris.game import Game
-from lutris.util import cache_single
+from lutris.util.display import is_display_x11
 
 try:
     gi.require_version("AppIndicator3", "0.1")
@@ -18,13 +18,8 @@ except (ImportError, ValueError):
     APP_INDICATOR_SUPPORTED = False
 
 
-@cache_single
-def supports_status_icon():
-    if APP_INDICATOR_SUPPORTED:
-        return True
-
-    display = Gdk.Display.get_default()
-    return "x11" in type(display).__name__.casefold()
+def supports_status_icon() -> bool:
+    return bool(APP_INDICATOR_SUPPORTED or is_display_x11())
 
 
 class LutrisStatusIcon:

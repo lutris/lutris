@@ -149,6 +149,13 @@ class ConfigBox(VBox):
                 option_key = option["option"]
                 value = self.config.get(option_key)
 
+                if "visible" in option:
+                    if callable(option["visible"]):
+                        option["visible"] = option["visible"]()
+
+                    if not option["visible"]:
+                        continue
+
                 if callable(option.get("choices")) and option["type"] != "choice_with_search":
                     option["choices"] = option["choices"]()
                 if callable(option.get("condition")):

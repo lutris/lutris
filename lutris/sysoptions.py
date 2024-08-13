@@ -6,7 +6,7 @@ from gettext import gettext as _
 
 from lutris import runners
 from lutris.util import linux, system
-from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, is_compositing_enabled
+from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, is_compositing_enabled, is_display_x11
 from lutris.util.graphics.gpu import GPUS
 
 
@@ -131,6 +131,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "label": _("Restore resolution on game exit"),
         "default": False,
+        "visible": is_display_x11,
         "advanced": True,
         "help": _(
             "Some games don't restore your screen resolution when \n"
@@ -145,7 +146,8 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "default": False,
         "advanced": True,
-        "condition": is_compositing_enabled(),
+        "visible": is_display_x11,
+        "condition": is_compositing_enabled,
         "help": _("Disable desktop effects while game is running, " "reducing stuttering and increasing performance"),
     },
     {
@@ -169,6 +171,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("SDL 1.2 Fullscreen Monitor"),
         "choices": get_output_list,
         "default": "off",
+        "visible": is_display_x11,
         "advanced": True,
         "help": _(
             "Hint SDL 1.2 games to use a specific monitor when going "
@@ -183,6 +186,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Turn off monitors except"),
         "choices": get_output_choices,
         "default": "off",
+        "visible": is_display_x11,
         "advanced": True,
         "help": _(
             "Only keep the selected screen active while the game is "
@@ -197,6 +201,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "choice",
         "label": _("Switch resolution to"),
         "advanced": True,
+        "visible": is_display_x11,
         "choices": get_resolution_choices,
         "default": "off",
         "help": _("Switch to this screen resolution while the game is running."),
@@ -501,6 +506,7 @@ system_options = [  # pylint: disable=invalid-name
             (_("24BPP (16M colors)"), "24bpp"),
         ),
         "default": "off",
+        "visible": is_display_x11,
         "advanced": True,
         "help": _("Run program in Xephyr to support 8BPP and 16BPP color modes"),
     },
@@ -509,6 +515,7 @@ system_options = [  # pylint: disable=invalid-name
         "option": "xephyr_resolution",
         "type": "string",
         "label": _("Xephyr resolution"),
+        "visible": is_display_x11,
         "advanced": True,
         "help": _("Screen resolution of the Xephyr server"),
     },
@@ -518,6 +525,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "label": _("Xephyr Fullscreen"),
         "default": True,
+        "visible": is_display_x11,
         "advanced": True,
         "help": _("Open Xephyr in fullscreen (at the desktop resolution)"),
     },
