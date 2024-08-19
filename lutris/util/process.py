@@ -41,7 +41,7 @@ class Process:
     def get_stat(self, parsed=True):
         stat_filename = "/proc/{}/stat".format(self.pid)
         try:
-            with open(stat_filename, encoding="utf-8") as stat_file:
+            with open(stat_filename, encoding="utf-8", errors="replace") as stat_file:
                 _stat = stat_file.readline()
         except (ProcessLookupError, FileNotFoundError):
             return None
@@ -64,7 +64,7 @@ class Process:
         """Return pids of child processes opened by thread `tid` of process."""
         children_path = "/proc/{}/task/{}/children".format(self.pid, tid)
         try:
-            with open(children_path, encoding="utf-8") as children_file:
+            with open(children_path, encoding="utf-8", errors="replace") as children_file:
                 children_content = children_file.read()
         except (FileNotFoundError, ProcessLookupError, PermissionError):
             children_content = ""
