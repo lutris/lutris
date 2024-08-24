@@ -494,6 +494,14 @@ class Runner:  # pylint: disable=too-many-public-methods
         if not runner_version_info:
             raise RunnerInstallationError(_("Failed to retrieve {} ({}) information").format(self.name, version))
 
+        if "url" not in runner_version_info:
+            if version:
+                raise RunnerInstallationError(
+                    _("The '%s' version of the '%s' runner can't be downloaded." % (version, self.name))
+                )
+            else:
+                raise RunnerInstallationError(_("The the '%s' runner can't be downloaded." % self.name))
+
         if "wine" in self.name:
             opts["merge_single"] = True
             opts["dest"] = os.path.join(self.directory, format_runner_version(runner_version_info))
@@ -501,6 +509,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.name == "libretro" and version:
             opts["merge_single"] = False
             opts["dest"] = os.path.join(settings.RUNNER_DIR, "retroarch/cores")
+
         self.download_and_extract(runner_version_info["url"], **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
