@@ -252,7 +252,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         for runner in required_runners:
             if not runner.is_installed_for(self):
-                logger.info("Runner %s needs to be installed", runner)
+                logger.info("Runner %s needs to be installed", runner.name)
                 runners_to_install.append(runner)
 
         return runners_to_install
