@@ -5,7 +5,7 @@ import os
 import traceback
 from gettext import gettext as _
 
-from gi.repository import Gio, GLib, Gtk
+from gi.repository import Gdk, Gio, GLib, Gtk
 
 from lutris import settings
 from lutris.config import LutrisConfig
@@ -274,6 +274,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         """Display a short status text."""
         self.status_label.set_text(text)
         self.status_label.set_visible(bool(text))
+
+    def get_status(self):
+        return self.status_label.get_text() if self.status_label.get_visible() else ""
 
     def register_page_creators(self):
         self.stack.add_named_factory("choose_installer", self.create_choose_installer_page)
@@ -864,6 +867,15 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.display_cancel_button()
 
     def create_error_page(self) -> Gtk.Widget:
+        def on_copy_clicked(_button):
+            status = self.get_status()
+            details = self.error_details_buffer.get_text(
+                self.error_details_buffer.get_start_iter(), self.error_details_buffer.get_end_iter(), True
+            )
+            text = f"{status}\n\n{details}"
+            clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+            clipboard.set_text(text, -1)
+
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         label = Gtk.Label(_("Error details"), halign=Gtk.Align.START)
         box.pack_start(label, False, False, 0)
@@ -875,6 +887,11 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         scrolledwindow.add(details_textview)
         frame.add(scrolledwindow)
         box.pack_start(frame, True, True, 0)
+
+        copy_button = Gtk.Button(_("Copy to Clipboard"), halign=Gtk.Align.START)
+        box.pack_end(copy_button, False, True, 0)
+        copy_button.connect("clicked", on_copy_clicked)
+
         return box
 
     # Finished Page
