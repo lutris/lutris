@@ -8,7 +8,7 @@ from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import linux, system
 from lutris.util.linux import gather_system_info_dict
-from lutris.util.log import LOG_FILENAME
+from lutris.util.log import get_log_contents
 from lutris.util.strings import gtk_safe
 from lutris.util.wine.wine import is_esync_limit_set, is_fsync_supported, is_installed_systemwide
 
@@ -77,13 +77,6 @@ class SystemBox(BaseConfigBox):
         log_buffer = Gtk.TextBuffer()
         log_buffer.set_text(self.get_log_contents())
         return LogTextView(log_buffer)
-
-    def get_log_contents(self):
-        if not os.path.exists(LOG_FILENAME):
-            return ""
-        with open(LOG_FILENAME, encoding="utf-8") as log_file:
-            content = log_file.read()
-        return content
 
     def get_items(self) -> list:
         """Assembles a list of items to display; most items are name-value tuples
@@ -159,6 +152,6 @@ class SystemBox(BaseConfigBox):
         clipboard.set_text(text.strip(), -1)
 
     def on_copy_log_clicked(self, _widget) -> None:
-        text = self.get_log_contents()
+        text = get_log_contents()
         clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         clipboard.set_text(text.strip(), -1)
