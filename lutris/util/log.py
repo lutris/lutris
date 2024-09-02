@@ -35,3 +35,12 @@ console_handler.setFormatter(SIMPLE_FORMATTER)
 logger = logging.getLogger(__name__)
 logger.addHandler(console_handler)
 logger.setLevel(logging.INFO)
+
+
+def get_log_contents():
+    """Returns the entire text of the log file for this run."""
+    if not os.path.exists(LOG_FILENAME):
+        return ""
+    with open(LOG_FILENAME, encoding="utf-8") as log_file:
+        content = log_file.read()
+    return content
