@@ -18,7 +18,7 @@ from lutris import api, settings
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import datapath
 from lutris.util.jobs import schedule_at_idle
-from lutris.util.log import logger
+from lutris.util.log import get_log_contents, logger
 from lutris.util.strings import gtk_safe
 
 
@@ -352,7 +352,13 @@ class ErrorDialog(Gtk.MessageDialog):
         formatted = traceback.format_exception(type(error), error, error.__traceback__)
         if include_message:
             formatted = [str(error), ""] + formatted
-        return "\n".join(formatted).strip()
+        text = "\n".join(formatted).strip()
+        log = get_log_contents()
+
+        if log:
+            text = f"{text}\n\nLutris log:\n{log}".strip()
+
+        return text
 
 
 class QuestionDialog(Gtk.MessageDialog):

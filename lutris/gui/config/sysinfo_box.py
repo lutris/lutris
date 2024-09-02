@@ -1,4 +1,3 @@
-import os
 from gettext import gettext as _
 from typing import Dict, Iterable, List
 
