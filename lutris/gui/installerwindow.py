@@ -901,7 +901,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         frame.add(scrolledwindow)
         box.pack_start(frame, True, True, 0)
 
-        copy_button = Gtk.Button(_("Copy to Clipboard"), halign=Gtk.Align.START)
+        copy_button = Gtk.Button(_("Copy Details to Clipboard"), halign=Gtk.Align.START)
         box.pack_end(copy_button, False, True, 0)
         copy_button.connect("clicked", on_copy_clicked)
 
