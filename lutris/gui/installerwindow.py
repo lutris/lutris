@@ -30,7 +30,7 @@ from lutris.installer.interpreter import ScriptInterpreter
 from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall
 from lutris.util.linux import LINUX_SYSTEM
-from lutris.util.log import logger, get_log_contents
+from lutris.util.log import get_log_contents, logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import human_size
 from lutris.util.system import is_removeable
@@ -44,8 +44,7 @@ class MarkupLabel(Gtk.Label):
         self.set_alignment(0.5, 0)
 
 
-class InstallerWindow(ModelessDialog, DialogInstallUIDelegate,
-                      ScriptInterpreter.InterpreterUIDelegate):  # pylint: disable=too-many-public-methods
+class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter.InterpreterUIDelegate):  # pylint: disable=too-many-public-methods
     """GUI for the install process.
 
     This window is divided into pages; as you go through the install each page
@@ -865,7 +864,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate,
 
         log = get_log_contents()
         if log:
-            formatted = (formatted + "\n\nLutris log:\n" + log).strip()
+            formatted = f"{formatted}\n\nLutris log:\n{log}".strip()
 
         self.error_details_buffer.set_text(formatted)
 
