@@ -63,7 +63,7 @@ class FlathubService(BaseService):
 
     branch = "stable"
     arch = "x86_64"
-    install_type = "system"  # can be either system (default) or user
+    install_type = "user"  # Should default to user. Lutris has no business installing system packages
     install_locations = {"system": "var/lib/flatpak/app/", "user": f"{Path.home()}/.local/share/flatpak/app/"}
     runner = "flatpak"
     game_class = FlathubGame
