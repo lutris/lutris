@@ -877,7 +877,15 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             clipboard.set_text(text, -1)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        label = Gtk.Label(_("Error details"), halign=Gtk.Align.START)
+        label = Gtk.Label(xalign=0.0, wrap=True)
+        label.set_markup(
+            _(
+                "An unexpected error has occurred while installing this game. "
+                "Please share the details below with the Lutris team on "
+                "<a href='https://github.com/lutris/lutris'>GitHub</a> or "
+                "<a href='https://discordapp.com/invite/Pnt5CuY'>Discord</a>."
+            )
+        )
         box.pack_start(label, False, False, 0)
         frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
 
