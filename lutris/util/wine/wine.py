@@ -24,11 +24,12 @@ WINE_PATHS: Dict[str, str] = {
 
 # Insert additional system-wide Wine installations.
 try:
-    for _candidate in os.listdir("/usr/lib/"):
-        if _candidate.startswith("wine-"):
-            _wine_path = os.path.join("/usr/lib/", _candidate, "bin/wine")
-            if os.path.isfile(_wine_path):
-                WINE_PATHS["System " + _candidate] = _wine_path
+    if system.path_exists("/usr/lib"):
+        for _candidate in os.listdir("/usr/lib/"):
+            if _candidate.startswith("wine-"):
+                _wine_path = os.path.join("/usr/lib/", _candidate, "bin/wine")
+                if os.path.isfile(_wine_path):
+                    WINE_PATHS["System " + _candidate] = _wine_path
     _candidate = None
     _wine_path = None
 except Exception as ex:
