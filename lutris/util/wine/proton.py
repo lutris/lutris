@@ -52,11 +52,21 @@ def get_umu_path() -> str:
     The path that this returns will be considered an Umu path by is_umu_path().
 
     If this script can't be found this will raise MissingExecutableError."""
+
+    # We can access Umu via it's main .py file, or via the public name which is just
+    # symbolic link to the same file. We'll check both for compatibility, just in case
+    # Umu gets translated into Perl or something.
+    entry_points = ["umu_run.py", "umu-run"]
+
     custom_path = settings.read_setting("umu_path")
     if custom_path:
-        script_path = os.path.join(custom_path, "umu_run.py")
-        if system.path_exists(script_path):
-            return script_path
+        for entry_point in entry_points:
+            entry_path = os.path.join(custom_path, entry_point)
+            if system.path_exists(entry_path):
+                return entry_path
+
+    # We only use 'umu-run' when searching the path since that's the command
+    # line entry point.
     if system.can_find_executable("umu-run"):
         return system.find_required_executable("umu-run")
     path_candidates = (
@@ -67,9 +77,10 @@ def get_umu_path() -> str:
         settings.RUNTIME_DIR,
     )
     for path_candidate in path_candidates:
-        script_path = os.path.join(path_candidate, "umu", "umu_run.py")
-        if system.path_exists(script_path):
-            return script_path
+        for entry_point in entry_points:
+            entry_path = os.path.join(path_candidate, "umu", entry_point)
+            if system.path_exists(entry_path):
+                return entry_path
     raise MissingExecutableError("Install umu to use Proton")
 
 
