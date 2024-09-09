@@ -17,6 +17,7 @@ from lutris.api import (
     get_runtime_versions,
     read_user_info,
 )
+from lutris.services.lutris import sync_media
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
@@ -253,8 +254,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def sync_library(self, force: bool = False) -> None:
         """Tasks that can be run after the UI has been initialized."""
+
+        def on_library_synced(_result, error):
+            """Sync media after the library is loaded"""
+            if not error:
+                sync_media()
+
         if settings.read_bool_setting("library_sync_enabled"):
-            AsyncCall(LibrarySyncer().sync_local_library, None, force=force)
+            AsyncCall(LibrarySyncer().sync_local_library, on_library_synced, force=force)
 
     def update_action_state(self):
         """This invokes the functions to update the enabled states of all the actions
