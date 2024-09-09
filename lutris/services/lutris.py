@@ -55,7 +55,7 @@ class LutrisService(OnlineService):
         "coverart_med": LutrisCoverartMedium,
         "coverart_big": LutrisCoverart,
     }
-    default_format = "banner"
+    default_format = "coverart_med"
 
     api_url = settings.SITE_URL + "/api"
     login_url = settings.SITE_URL + "/api/accounts/token"
