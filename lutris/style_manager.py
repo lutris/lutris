@@ -34,7 +34,7 @@ class StyleManager(GObject.Object):
         super().__init__()
 
         self.gtksettings = Gtk.Settings.get_default()
-        self.is_config_dark = settings.read_setting("dark_theme", default="false").lower() == "true"
+        self.is_config_dark = settings.read_setting("dark_theme", default="true").lower() == "true"
 
         Gio.DBusProxy.new_for_bus(
             Gio.BusType.SESSION,
@@ -102,7 +102,7 @@ class StyleManager(GObject.Object):
         if value == 2:
             return ColorScheme.PREFER_LIGHT
 
-        return ColorScheme.NO_PREFERENCE
+        return ColorScheme.PREFER_DARK
 
     @property
     def is_system_dark(self) -> bool:
