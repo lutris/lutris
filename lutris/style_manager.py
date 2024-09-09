@@ -11,7 +11,7 @@ PORTAL_SETTINGS_INTERFACE = "org.freedesktop.portal.Settings"
 
 
 class ColorScheme(enum.Enum):
-    NO_PREFERENCE = 0  # Default
+    NO_PREFERENCE = 0  # The DE does not care, so we'll pick our own appearance
     PREFER_DARK = 1
     PREFER_LIGHT = 2
 
@@ -24,17 +24,18 @@ class StyleManager(GObject.Object):
     preferences panel or in the a system is set to prefer dark mode.
     """
 
-    _color_scheme = ColorScheme.NO_PREFERENCE
+    _color_scheme = None
     _dbus_proxy = None
     _is_config_dark = False
+    _is_config_light = False
     _is_dark = False
-    _is_system_dark = False
 
     def __init__(self):
         super().__init__()
 
         self.gtksettings = Gtk.Settings.get_default()
-        self.is_config_dark = not settings.read_bool_setting("light_theme")
+        self.is_config_dark = settings.read_bool_setting("dark_theme")
+        self.is_config_light = settings.read_bool_setting("light_theme")
 
         Gio.DBusProxy.new_for_bus(
             Gio.BusType.SESSION,
@@ -105,19 +106,9 @@ class StyleManager(GObject.Object):
         return ColorScheme.NO_PREFERENCE
 
     @property
-    def is_system_dark(self) -> bool:
-        return self._is_system_dark
-
-    @is_system_dark.setter  # type: ignore
-    def is_system_dark(self, is_system_dark: bool) -> None:
-        if self._is_system_dark == is_system_dark:
-            return
-
-        self._is_system_dark = is_system_dark
-        self._set_is_dark(self._is_config_dark or is_system_dark)
-
-    @property
     def is_config_dark(self) -> bool:
+        """True if we override light mode to be dark; if we're
+        defaulting to dark, this does nothing."""
         return self._is_config_dark
 
     @is_config_dark.setter  # type: ignore
@@ -126,13 +117,32 @@ class StyleManager(GObject.Object):
             return
 
         self._is_config_dark = is_config_dark
-        self._set_is_dark(is_config_dark or self._is_system_dark)
+        self._update_is_dark()
+
+    @property
+    def is_config_light(self) -> bool:
+        """True if we override dark mode to be light; if we're
+        defaulting to light, this does nothing."""
+        return self._is_config_light
+
+    @is_config_light.setter  # type: ignore
+    def is_config_light(self, is_config_light: bool) -> None:
+        if self._is_config_light == is_config_light:
+            return
+
+        self._is_config_light = is_config_light
+        self._update_is_dark()
 
     @GObject.Property(type=bool, default=False, flags=GObject.ParamFlags.READABLE)
     def is_dark(self) -> bool:
         return self._is_dark
 
-    def _set_is_dark(self, is_dark: bool) -> None:
+    def _update_is_dark(self) -> None:
+        if self.is_dark_by_default:
+            is_dark = not self.is_config_light
+        else:
+            is_dark = self.is_config_dark
+
         if self._is_dark == is_dark:
             return
 
@@ -143,7 +153,7 @@ class StyleManager(GObject.Object):
 
     @property
     def color_scheme(self) -> ColorScheme:
-        return self._color_scheme
+        return self._color_scheme or ColorScheme.NO_PREFERENCE
 
     @color_scheme.setter  # type: ignore
     def color_scheme(self, color_scheme: ColorScheme) -> None:
@@ -151,5 +161,8 @@ class StyleManager(GObject.Object):
             return
 
         self._color_scheme = color_scheme
+        self._update_is_dark()
 
-        self.is_system_dark = self.color_scheme == ColorScheme.PREFER_DARK
+    @property
+    def is_dark_by_default(self):
+        return self.color_scheme != ColorScheme.PREFER_LIGHT
