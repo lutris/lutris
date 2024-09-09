@@ -539,7 +539,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         return medias[service.default_format]()
 
     def update_revealer(self, games=None):
-        if games:
+        if games is not None:  # games can be an empty list!
             if self.game_bar:
                 self.game_bar.destroy()
             if len(games) == 1 and games[0]:
@@ -1097,10 +1097,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_game_selection_changed(self, view, selection):
         game_ids = [view.get_game_id_for_path(path) for path in selection]
-
-        if not game_ids:
-            GLib.idle_add(self.update_revealer)
-            return False
 
         games = []
         for game_id in game_ids:
