@@ -17,7 +17,6 @@ from lutris.api import (
     get_runtime_versions,
     read_user_info,
 )
-from lutris.services.lutris import sync_media
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
@@ -40,7 +39,7 @@ from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
 from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGOUT
-from lutris.services.lutris import LutrisService
+from lutris.services.lutris import LutrisService, sync_media
 from lutris.util import datapath
 from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, LibrarySyncer

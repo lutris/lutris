@@ -12,7 +12,7 @@ class InterfacePreferencesBox(BaseConfigBox):
         "hide_text_under_icons": _("Hide text under icons"),
         "hide_badges_on_icons": _("Hide badges on icons (Ctrl+p to toggle)"),
         "show_tray_icon": _("Show Tray Icon"),
-        "dark_theme": _("Use dark theme (requires dark theme variant for Gtk)"),
+        "light_theme": _("Use light theme"),
         "discord_rpc": _("Enable Discord Rich Presence for Available Games"),
     }
 
