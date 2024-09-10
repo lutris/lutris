@@ -1037,13 +1037,19 @@ class Game:
         old_location = self.directory
         target_directory = self._get_move_target_directory(new_location)
 
-        if system.path_contains(old_location, new_location):
+        if old_location and system.path_contains(old_location, new_location):
             raise InvalidGameMoveError(
                 _("Lutris can't move '%s' to a location inside of itself, '%s'.") % (old_location, new_location)
             )
 
         self.directory = target_directory
         self.save(no_signal=no_signal)
+
+        if not old_location:
+            # We can't move or update the config without an initial
+            # location, but no-one expects us to. We've just updated
+            # the game directory, and that will do.
+            return target_directory
 
         with open(self.config.game_config_path, encoding="utf-8") as config_file:
             for line in config_file.readlines():

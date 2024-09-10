@@ -48,7 +48,7 @@ class MoveDialog(ModelessDialog):
     def _move_game(self):
         # remove the old path from the cache
         remove_from_path_cache(self.game)
-        # not safe fire a signal from a thread- it will surely hit GTK and may crash
+        # not safe to fire a signal from a thread- it will surely hit GTK and may crash
         self.new_directory = self.game.move(self.destination, no_signal=True)
 
     def _move_game_cb(self, _result, error):
