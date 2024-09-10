@@ -239,7 +239,7 @@ class AmazonService(OnlineService):
         try:
             request.post(json.dumps(data).encode())
         except HTTPError as ex:
-            logger.error("Failed http request %s", url)
+            logger.exception("Failed http request %s: %s", url, ex)
             raise AuthenticationError(_("Unable to register device, please log in again")) from ex
 
         res_json = request.json
@@ -288,7 +288,7 @@ class AmazonService(OnlineService):
         try:
             request.post(json.dumps(request_data).encode())
         except HTTPError as ex:
-            logger.error("Failed http request %s", url)
+            logger.exception("Failed http request %s: %s", url, ex)
             raise AuthenticationError(_("Unable to refresh token, please log in again")) from ex
 
         res_json = request.json
@@ -329,9 +329,9 @@ class AmazonService(OnlineService):
 
         try:
             request.get()
-        except HTTPError:
+        except HTTPError as ex:
             # Do not raise exception here, should be managed from the caller
-            logger.error("Failed http request %s", url)
+            logger.exception("Failed http request %s: %s", url, ex)
             return False
 
         return True
@@ -360,9 +360,6 @@ class AmazonService(OnlineService):
                 access_token,
                 request_data,
             )
-
-            if not json_data:
-                return
 
             for game_json in json_data["entitlements"]:
                 product = game_json["product"]
@@ -403,14 +400,7 @@ class AmazonService(OnlineService):
             "Content-Encoding": "amz-1.0",
         }
         request = Request(self.amazon_gaming_distribution, headers=headers)
-
-        try:
-            request.post(json.dumps(body).encode())
-        except HTTPError as ex:
-            # Do not raise exception here, should be managed from the caller
-            logger.error("Failed http request %s: %s", self.amazon_gaming_distribution, ex)
-            return
-
+        request.post(json.dumps(body).encode())
         return request.json
 
     def get_sync_request_data(self, serial, next_token=None, sync_point=None):
@@ -438,14 +428,7 @@ class AmazonService(OnlineService):
 
         url = f"{self.amazon_sds}/amazon/"
         request = Request(url, headers=headers)
-
-        try:
-            request.post(json.dumps(body).encode())
-        except HTTPError as ex:
-            # Do not raise exception here, should be managed from the caller
-            logger.error("Failed http request %s: %s", url, ex)
-            return
-
+        request.post(json.dumps(body).encode())
         return request.json
 
     def get_game_manifest_info(self, game_id):
@@ -457,15 +440,16 @@ class AmazonService(OnlineService):
             "Operation": "GetGameDownload",
         }
 
-        response = self.request_distribution(
-            "com.amazon.animusdistributionservice.external.AnimusDistributionService.GetGameDownload",
-            access_token,
-            request_data,
-        )
-
-        if not response:
-            logger.error("There was an error getting game manifest: %s", game_id)
-            raise UnavailableGameError(_("Unable to get game manifest info"))
+        try:
+            response = self.request_distribution(
+                "com.amazon.animusdistributionservice.external.AnimusDistributionService.GetGameDownload",
+                access_token,
+                request_data,
+            )
+        except HTTPError as ex:
+            # Do not raise exception here, should be managed from the caller
+            logger.exception("There was an error getting game '%s' manifest: %s", game_id, ex)
+            raise UnavailableGameError(_("Unable to get game manifest info")) from ex
 
         return response
 
@@ -485,7 +469,7 @@ class AmazonService(OnlineService):
         try:
             request.get()
         except HTTPError as ex:
-            logger.error("Failed http request %s", url)
+            logger.exception("Failed http request %s: %s", url, ex)
             raise UnavailableGameError(_("Unable to get game manifest")) from ex
 
         content = request.content
@@ -517,16 +501,16 @@ class AmazonService(OnlineService):
             "adgGoodId": game_id,
         }
 
-        response = self.request_sds(
-            "com.amazonaws.gearbox." "softwaredistribution.service.model." "SoftwareDistributionService.GetPatches",
-            access_token,
-            request_data,
-        )
-
-        if not response:
-            logger.error("There was an error getting patches: %s", game_id)
-            raise UnavailableGameError(_("Unable to get the patches of game"), game_id)
-        return response
+        try:
+            return self.request_sds(
+                "com.amazonaws.gearbox." "softwaredistribution.service.model." "SoftwareDistributionService.GetPatches",
+                access_token,
+                request_data,
+            )
+        except HTTPError as ex:
+            # Do not raise exception here, should be managed from the caller
+            logger.exception("There was an error getting '%s' patches: %s", game_id, ex)
+            raise UnavailableGameError(_("Unable to get the patches of game '%s'") % game_id) from ex
 
     def get_game_patches(self, game_id, version, file_list):
         """Get game files"""
@@ -602,7 +586,7 @@ class AmazonService(OnlineService):
         try:
             request.get()
         except HTTPError as ex:
-            logger.error("Failed http request %s", fuel_url)
+            logger.error("Failed http request %s: %s", fuel_url, ex)
             raise UnavailableGameError(_("Unable to get fuel.json file.")) from ex
 
         try:
@@ -611,7 +595,7 @@ class AmazonService(OnlineService):
         except Exception as ex:
             # Maybe it can be parsed as plain JSON. May as well try it.
             try:
-                logger.exception("Unparesable yaml response from %s:\n%s", fuel_url, res_yaml_text)
+                logger.exception("Unparseable yaml response from %s: %s\n%s", fuel_url, ex, res_yaml_text)
                 res_json = json.loads(res_yaml_text)
             except Exception:
                 raise UnavailableGameError(_("Invalid response from Amazon APIs")) from ex
