@@ -188,9 +188,6 @@ def download_lutris_media(slug):
     if coverart_url:
         download_media({slug: coverart_url}, LutrisCoverart())
 
-    if coverart_url and not banner_url:
-        download_media({slug: coverart_url}, LutrisBanner())
-
 
 def sync_media(slugs: Iterable[str] = None) -> Dict[str, int]:
     """Download missing media for Lutris games; if a set of slugs

@@ -40,6 +40,11 @@ class LutrisBanner(ServiceMedia):
     file_patterns = ["%s.jpg", "%s.png"]
     api_field = "banner"
 
+    def get_possible_media_paths(self, slug: str) -> List[str]:
+        paths = super().get_possible_media_paths(slug)
+        cover_paths = [os.path.join(settings.COVERART_PATH, pattern % slug) for pattern in self.file_patterns]
+        return paths + cover_paths
+
 
 class LutrisIcon(LutrisBanner):
     size = ICON_SIZE
