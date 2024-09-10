@@ -42,7 +42,9 @@ class LutrisBanner(ServiceMedia):
 
     def get_possible_media_paths(self, slug: str) -> List[str]:
         paths = super().get_possible_media_paths(slug)
-        cover_paths = [os.path.join(settings.COVERART_PATH, pattern % slug) for pattern in self.file_patterns]
+        cover_paths = [
+            os.path.join(LutrisCoverart.dest_path, pattern % slug) for pattern in LutrisCoverart.file_patterns
+        ]
         return paths + cover_paths
 
 
