@@ -260,7 +260,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 sync_media()
 
         if settings.read_bool_setting("library_sync_enabled"):
-            AsyncCall(LibrarySyncer().sync_local_library, on_library_synced, force=force)
+            AsyncCall(LibrarySyncer().sync_local_library, on_library_synced if force else None, force=force)
 
     def update_action_state(self):
         """This invokes the functions to update the enabled states of all the actions
