@@ -114,6 +114,7 @@ class DownloadProgressBox(Gtk.Box):
                 self.emit("cancel")
             else:
                 self._set_text(str(self.downloader.error)[:80])
+                self.emit("error", self.downloader.error1)
             return False
         self.progressbar.set_fraction(progress)
         megabytes = 1024 * 1024
