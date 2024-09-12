@@ -84,6 +84,7 @@ class AmazonService(OnlineService):
     amazon_sds = "https://sds.amazon.com"
     amazon_gaming_graphql = "https://gaming.amazon.com/graphql"
     amazon_gaming_distribution = "https://gaming.amazon.com/api/distribution/v2/public"
+    amazon_gaming_entitlements = "https://gaming.amazon.com/api/distribution/entitlements"
 
     client_id = None
     serial = None
@@ -353,10 +354,8 @@ class AmazonService(OnlineService):
         while True:
             request_data = self.get_sync_request_data(serial, next_token)
 
-            json_data = self.request_sds(
-                "com.amazonaws.gearbox."
-                "softwaredistribution.service.model."
-                "SoftwareDistributionService.GetEntitlementsV2",
+            json_data = self.request_entitlements(
+                "com.amazon.animusdistributionservice.entitlement.AnimusEntitlementsService.GetEntitlements",
                 access_token,
                 request_data,
             )
@@ -405,7 +404,7 @@ class AmazonService(OnlineService):
 
     def get_sync_request_data(self, serial, next_token=None, sync_point=None):
         request_data = {
-            "Operation": "GetEntitlementsV2",
+            "Operation": "GetEntitlements",
             "clientId": "Sonic",
             "syncPoint": sync_point,
             "nextToken": next_token,
@@ -427,6 +426,20 @@ class AmazonService(OnlineService):
         }
 
         url = f"{self.amazon_sds}/amazon/"
+        request = Request(url, headers=headers)
+        request.post(json.dumps(body).encode())
+        return request.json
+
+    def request_entitlements(self, target, token, body):
+        headers = {
+            "X-Amz-Target": target,
+            "x-amzn-token": token,
+            "User-Agent": self.user_agent,
+            "Content-Type": "application/json",
+            "Content-Encoding": "amz-1.0",
+        }
+
+        url = f"{self.amazon_gaming_entitlements}"
         request = Request(url, headers=headers)
         request.post(json.dumps(body).encode())
         return request.json
