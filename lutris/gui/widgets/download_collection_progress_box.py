@@ -158,7 +158,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
             else:
                 if self.num_retries > self.max_retries:
                     self._set_text(str(self.downloader.error)[:80])
-                    self.emit("error")
+                    self.emit("error", self.downloader.error)
                     return False
                 self.num_retries += 1
                 if self.downloader:
