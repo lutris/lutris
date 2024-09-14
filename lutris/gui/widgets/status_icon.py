@@ -1,4 +1,4 @@
-"""AppIndicator based tray icon"""
+"""AppIndicator/AyatanaAppIndicator based tray icon"""
 
 from gettext import gettext as _
 
@@ -15,7 +15,13 @@ try:
 
     APP_INDICATOR_SUPPORTED = True
 except (ImportError, ValueError):
-    APP_INDICATOR_SUPPORTED = False
+    try:
+        gi.require_version("AyatanaAppIndicator3", "0.1")
+        from gi.repository import AyatanaAppIndicator3 as AppIndicator
+
+        APP_INDICATOR_SUPPORTED = True
+    except (ImportError, ValueError):
+        APP_INDICATOR_SUPPORTED = False
 
 
 def supports_status_icon() -> bool:
