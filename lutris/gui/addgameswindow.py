@@ -27,13 +27,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             "search_installers",
         ),
         (
-            "folder-new-symbolic",
-            "go-next-symbolic",
-            _("Import previously installed Lutris games"),
-            _("Scan a folder for games installed from a previous Lutris installation"),
-            "scan_folder",
-        ),
-        (
             "application-x-executable-symbolic",
             "go-next-symbolic",
             _("Install a Windows game from an executable"),
@@ -136,8 +129,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         self.stack.add_named_factory("initial", self.create_initial_page)
         self.stack.add_named_factory("search_installers", self.create_search_installers_page)
-        self.stack.add_named_factory("scan_folder", self.create_scan_folder_page)
-        self.stack.add_named_factory("scanning_folder", self.create_scanning_folder_page)
         self.stack.add_named_factory("installed_games", self.create_installed_games_page)
         self.stack.add_named_factory("install_from_setup", self.create_install_from_setup_page)
         self.stack.add_named_factory("install_from_script", self.create_install_from_script_page)
@@ -287,107 +278,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         application = Gio.Application.get_default()
         application.show_lutris_installer_window(game_slug=game_slug)
         self.destroy()
-
-    # Scan Folder Page
-
-    def scan_folder(self):
-        """Scan a folder of already installed games"""
-        self.stack.navigate_to_page(self.present_scan_folder_page)
-
-    def create_scan_folder_page(self):
-        grid = Gtk.Grid(row_spacing=6, column_spacing=6)
-        label = self._get_label(_("Folder to scan"))
-        grid.attach(label, 0, 0, 1, 1)
-        grid.attach(self.scan_directory_chooser, 1, 0, 1, 1)
-        self.scan_directory_chooser.set_hexpand(True)
-
-        explanation = _(
-            "This folder will be scanned for games previously installed with Lutris.\n\n"
-            "Folder names have to match their corresponding Lutris ID, each matching ID"
-            "will be queried for existing install script to provide for exe locations.\n\n"
-            "Click 'Continue' to start scanning and import games"
-        )
-
-        grid.attach(self._get_explanation_label(explanation), 0, 1, 2, 1)
-        return grid
-
-    def present_scan_folder_page(self):
-        self.set_page_title_markup("<b>Select folder to scan for games</b>")
-        self.stack.present_page("scan_folder")
-        self.display_continue_button(self.on_continue_scan_folder_clicked)
-
-    def on_continue_scan_folder_clicked(self, _widget):
-        path = self.scan_directory_chooser.get_text()
-        if not path:
-            ErrorDialog(_("You must select a folder to scan for games."), parent=self)
-        elif not os.path.isdir(path):
-            ErrorDialog(_("No folder exists at '%s'.") % path, parent=self)
-        else:
-            self.load_scanning_folder_page(path)
-
-    # Scanning Folder Page
-
-    def load_scanning_folder_page(self, path):
-        def present_scanning_folder_page():
-            self.set_page_title_markup("<b>Importing games from a folder</b>")
-            self.stack.present_page("scanning_folder")
-            self.display_no_continue_button()
-            AsyncCall(scan_directory, self._on_folder_scanned, path)
-
-        self.stack.jump_to_page(present_scanning_folder_page)
-
-    def create_scanning_folder_page(self):
-        spinner = Gtk.Spinner()
-        spinner.start()
-        return spinner
-
-    def _on_folder_scanned(self, result, error):
-        def present_installed_games_page():
-            if installed or missing:
-                self.set_page_title_markup(_("<b>Games found</b>"))
-            else:
-                self.set_page_title_markup(_("<b>No games found</b>"))
-
-            page = self.create_installed_games_page(installed, missing)
-            self.stack.present_replacement_page("installed_games", page)
-            self.display_cancel_button(label=_("_Close"))
-
-        if error:
-            display_error(error, parent=self)
-            self.stack.navigation_reset()
-            return
-
-        installed, missing = result
-        self.stack.navigate_to_page(present_installed_games_page)
-
-    def create_installed_games_page(self, installed, missing):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-
-        if installed:
-            installed_label = self._get_label("Installed games")
-            vbox.pack_start(installed_label, False, False, 0)
-
-            installed_listbox = Gtk.ListBox()
-            installed_scroll = Gtk.ScrolledWindow(shadow_type=Gtk.ShadowType.ETCHED_IN)
-            installed_scroll.set_vexpand(True)
-            installed_scroll.add(installed_listbox)
-            vbox.pack_start(installed_scroll, True, True, 0)
-            for folder in installed:
-                installed_listbox.add(self._get_listbox_row("", gtk_safe(folder), ""))
-
-        if missing:
-            missing_listbox = Gtk.ListBox()
-            missing_scroll = Gtk.ScrolledWindow(shadow_type=Gtk.ShadowType.ETCHED_IN)
-            missing_scroll.set_vexpand(True)
-            missing_scroll.add(missing_listbox)
-            vbox.pack_end(missing_scroll, True, True, 0)
-            for folder in missing:
-                missing_listbox.add(self._get_listbox_row("", gtk_safe(folder), ""))
-
-            missing_label = self._get_label("No match found")
-            vbox.pack_end(missing_label, False, False, 0)
-
-        return vbox
 
     # Install from Setup Page
 
