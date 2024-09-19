@@ -129,7 +129,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         self.stack.add_named_factory("initial", self.create_initial_page)
         self.stack.add_named_factory("search_installers", self.create_search_installers_page)
-        self.stack.add_named_factory("installed_games", self.create_installed_games_page)
         self.stack.add_named_factory("install_from_setup", self.create_install_from_setup_page)
         self.stack.add_named_factory("install_from_script", self.create_install_from_script_page)
         self.stack.add_named_factory("import_rom", self.create_import_rom_page)
