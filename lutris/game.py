@@ -127,6 +127,10 @@ class Game:
         game.slug = service.get_installed_slug(db_game)
         game.runner_name = service.get_installed_runner_name(db_game)
 
+        platforms = service.get_game_platforms(db_game)
+        if len(platforms) == 1:
+            game.platform = platforms[0]
+
         if "service_id" in db_game:
             game.appid = db_game["service_id"]
         elif service:
