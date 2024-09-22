@@ -450,8 +450,8 @@ class SingleGameActions(GameActions):
 
 
 class ServiceGameActions(GameActions):
-    """This actions class supports a single service game, which has an idiosyncratic set of
-    actions."""
+    """This actions class supports service games, which has an idiosyncratic set of
+    actions. There can be ordinary games selected as well."""
 
     def __init__(self, games: List[Game], window: Gtk.Window, application=None):
         super().__init__(window, application)
@@ -475,8 +475,12 @@ class ServiceGameActions(GameActions):
             "install": self.is_installable,
             "add": self.is_installable,
             "view": len(self.games) == 1,
-            "show-in-games": True,
+            "show-in-games": self.is_game_unstored,
         }
+
+    @property
+    def is_game_unstored(self):
+        return any(not g.is_db_stored for g in self.get_games())
 
     def on_edit_game_categories(self, *args):
         def on_games_shown(_result, error):
@@ -560,7 +564,7 @@ def get_game_actions(games: List[Game], window: Gtk.Window, application=None) ->
                 return ServiceGameActions([game], window, application)
         elif all(g.is_db_stored for g in games):
             return MultiGameActions(games, window)
-        elif all(not g.is_db_stored for g in games):
+        elif any(not g.is_db_stored for g in games):
             return ServiceGameActions(games, window, application)
 
     # If given no games, or the games are not of a kind we can handle,
