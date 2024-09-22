@@ -16,7 +16,7 @@ from lutris.gui import dialogs
 from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.config.edit_game_categories import EditGameCategoriesDialog
-from lutris.gui.dialogs import InputDialog, display_error
+from lutris.gui.dialogs import InputDialog, QuestionDialog, display_error
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_dialog import UninstallDialog
 from lutris.gui.widgets.utils import open_uri
@@ -158,7 +158,9 @@ class GameActions:
 
     def on_edit_game_categories(self, _widget):
         """Edit game categories"""
-        games = self.get_games()
+        self.edit_game_categories(self.get_games())
+
+    def edit_game_categories(self, games):
         if len(games) == 1:
             # Individual games get individual separate windows
             self.application.show_window(EditGameCategoriesDialog, game=games[0], parent=self.window)
@@ -460,6 +462,7 @@ class ServiceGameActions(GameActions):
 
     def get_game_actions(self):
         return [
+            ("category", _("Categories"), self.on_edit_game_categories),
             ("install", _("Install"), self.on_install_clicked),
             ("add", _("Locate installed game"), self.on_locate_installed_game),
             ("view", _("View on Lutris.net"), self.on_view_game),
@@ -475,44 +478,72 @@ class ServiceGameActions(GameActions):
             "show-in-games": True,
         }
 
+    def on_edit_game_categories(self, *args):
+        def on_games_shown(_result, error):
+            if error:
+                display_error(error, parent=self.window)
+            else:
+                updated_games = [Game(g.id) for g in games]
+                self.edit_game_categories(updated_games)
+
+        games = self.get_games()
+
+        question = _("Games that are not shown in the 'Games' view do not have categories.")
+
+        if len(games) == 1:
+            question += " " + _("Do you want to show '%s' there so you can categorize it?") % games[0].name
+        else:
+            question += " " + _("Do you want to show these %d games there so you can categorize them?") % len(games)
+
+        dlg = QuestionDialog(
+            {
+                "parent": self.window,
+                "question": question,
+                "title": _("Categorize Games from Sources"),
+            }
+        )
+
+        if dlg.result == Gtk.ResponseType.YES:
+            AsyncCall(self.show_in_games, on_games_shown, games)
+
     def on_show_in_games(self, *_args):
-        def link_games(games: List[Game]) -> None:
-            to_link: List[Tuple[Game, str]] = []
-            to_create: List[Game] = []
-
-            for game in games:
-                if not game.is_db_stored:
-                    existing = get_game_by_field(game.slug, field="slug")
-                    if existing:
-                        if existing.get("service") and existing.get("service_id"):
-                            if existing["service"] == game.service and existing["service_id"] == game.appid:
-                                continue  # already linked!
-                            service_name = SERVICES[existing["service"]].name
-                            raise RuntimeError(
-                                _("The game '%s' is already linked to the %s service.") % (game.name, service_name)
-                            )
-
-                        to_link.append((game, existing["id"]))
-                    else:
-                        to_create.append(game)
-
-            for game, existing_id in to_link:
-                # Link existing game if present, don't overwrite the configuration ot
-                # already has!
-                ServiceGameCollection.link_lutris_game(game.service, game.appid, existing_id)
-                ServiceGameCollection.link_service_game(game.service, game.id, game.slug)
-                GAME_UPDATED.fire(game)
-                download_lutris_media(game.slug)
-
-            for game in to_create:
-                game.save()
-                download_lutris_media(game.slug)
-
-        def on_linked_games(_result, error):
+        def on_games_shown(_result, error):
             if error:
                 display_error(error, parent=self.window)
 
-        AsyncCall(link_games, on_linked_games, self.get_games())
+        AsyncCall(self.show_in_games, on_games_shown, self.get_games())
+
+    def show_in_games(self, games: List[Game]) -> None:
+        to_link: List[Tuple[Game, str]] = []
+        to_create: List[Game] = []
+
+        for game in games:
+            if not game.is_db_stored:
+                existing = get_game_by_field(game.slug, field="slug")
+                if existing:
+                    if existing.get("service") and existing.get("service_id"):
+                        if existing["service"] == game.service and existing["service_id"] == game.appid:
+                            continue  # already linked!
+                        service_name = SERVICES[existing["service"]].name
+                        raise RuntimeError(
+                            _("The game '%s' is already linked to the %s service.") % (game.name, service_name)
+                        )
+
+                    to_link.append((game, existing["id"]))
+                else:
+                    to_create.append(game)
+
+        for game, existing_id in to_link:
+            # Link existing game if present, don't overwrite the configuration ot
+            # already has!
+            ServiceGameCollection.link_lutris_game(game.service, game.appid, existing_id)
+            ServiceGameCollection.link_service_game(game.service, game.id, game.slug)
+            GAME_UPDATED.fire(game)
+            download_lutris_media(game.slug)
+
+        for game in to_create:
+            game.save()
+            download_lutris_media(game.slug)
 
 
 def get_game_actions(games: List[Game], window: Gtk.Window, application=None) -> GameActions:
