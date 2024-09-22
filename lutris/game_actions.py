@@ -4,7 +4,7 @@
 # pylint: disable=too-many-public-methods
 import os
 from gettext import gettext as _
-from typing import List
+from typing import List, Tuple
 
 from gi.repository import Gio, Gtk
 
@@ -21,6 +21,7 @@ from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_dialog import UninstallDialog
 from lutris.gui.widgets.utils import open_uri
 from lutris.monitored_command import MonitoredCommand
+from lutris.services import SERVICES
 from lutris.services.lutris import download_lutris_media
 from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall
@@ -476,19 +477,36 @@ class ServiceGameActions(GameActions):
 
     def on_show_in_games(self, *_args):
         def link_games(games: List[Game]) -> None:
+            to_link: List[Tuple[Game, str]] = []
+            to_create: List[Game] = []
+
             for game in games:
                 if not game.is_db_stored:
                     existing = get_game_by_field(game.slug, field="slug")
-
                     if existing:
-                        # Link existing game if present, don't overwrite the configuration ot
-                        # already has!
-                        ServiceGameCollection.link_lutris_game(game.service, game.appid, existing[id])
-                        ServiceGameCollection.link_service_game(game.service, game.id, game.slug)
-                        GAME_UPDATED.fire(existing)
+                        if existing.get("service") and existing.get("service_id"):
+                            if existing["service"] == game.service and existing["service_id"] == game.appid:
+                                continue  # already linked!
+                            service_name = SERVICES[existing["service"]].name
+                            raise RuntimeError(
+                                _("The game '%s' is already linked to the %s service.") % (game.name, service_name)
+                            )
+
+                        to_link.append((game, existing["id"]))
                     else:
-                        game.save()
-                    download_lutris_media(game.slug)
+                        to_create.append(game)
+
+            for game, existing_id in to_link:
+                # Link existing game if present, don't overwrite the configuration ot
+                # already has!
+                ServiceGameCollection.link_lutris_game(game.service, game.appid, existing_id)
+                ServiceGameCollection.link_service_game(game.service, game.id, game.slug)
+                GAME_UPDATED.fire(game)
+                download_lutris_media(game.slug)
+
+            for game in to_create:
+                game.save()
+                download_lutris_media(game.slug)
 
         def on_linked_games(_result, error):
             if error:
