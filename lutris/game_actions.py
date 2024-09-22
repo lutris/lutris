@@ -10,12 +10,13 @@ from gi.repository import Gio, Gtk
 
 from lutris.config import duplicate_game_config
 from lutris.database.games import add_game, get_game_by_field
-from lutris.game import Game
+from lutris.database.services import ServiceGameCollection
+from lutris.game import GAME_UPDATED, Game
 from lutris.gui import dialogs
 from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.config.edit_game_categories import EditGameCategoriesDialog
-from lutris.gui.dialogs import InputDialog
+from lutris.gui.dialogs import InputDialog, display_error
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_dialog import UninstallDialog
 from lutris.gui.widgets.utils import open_uri
@@ -93,11 +94,8 @@ class GameActions:
 
     @property
     def is_installable(self):
-        for game in self.get_games():
-            if not game.is_installed:
-                return True
-
-        return False
+        games = self.get_games()
+        return len(games) == 1 and not games[0].is_installed
 
     def on_install_clicked(self, *_args):
         """Install a game"""
@@ -452,23 +450,51 @@ class ServiceGameActions(GameActions):
     """This actions class supports a single service game, which has an idiosyncratic set of
     actions."""
 
-    def __init__(self, game: Game, window: Gtk.Window, application=None):
+    def __init__(self, games: List[Game], window: Gtk.Window, application=None):
         super().__init__(window, application)
-        self.game = game
+        self.games = games
 
     def get_games(self):
-        return [self.game]
+        return self.games
 
     def get_game_actions(self):
         return [
             ("install", _("Install"), self.on_install_clicked),
             ("add", _("Locate installed game"), self.on_locate_installed_game),
             ("view", _("View on Lutris.net"), self.on_view_game),
+            ("show-in-games", _("Show in games"), self.on_show_in_games),
         ]
 
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
-        return {"install": self.is_installable, "add": self.is_installable, "view": True}
+        return {
+            "install": self.is_installable,
+            "add": self.is_installable,
+            "view": len(self.games) == 1,
+            "show-in-games": True,
+        }
+
+    def on_show_in_games(self, *_args):
+        def link_games(games: List[Game]) -> None:
+            for game in games:
+                if not game.is_db_stored:
+                    existing = get_game_by_field(game.slug, field="slug")
+
+                    if existing:
+                        # Link existing game if present, don't overwrite the configuration ot
+                        # already has!
+                        ServiceGameCollection.link_lutris_game(game.service, game.appid, existing[id])
+                        ServiceGameCollection.link_service_game(game.service, game.id, game.slug)
+                        GAME_UPDATED.fire(existing)
+                    else:
+                        game.save()
+                    download_lutris_media(game.slug)
+
+        def on_linked_games(_result, error):
+            if error:
+                display_error(error, parent=self.window)
+
+        AsyncCall(link_games, on_linked_games, self.get_games())
 
 
 def get_game_actions(games: List[Game], window: Gtk.Window, application=None) -> GameActions:
@@ -482,9 +508,11 @@ def get_game_actions(games: List[Game], window: Gtk.Window, application=None) ->
                 return SingleGameActions(game, window, application)
 
             if game.service:
-                return ServiceGameActions(game, window, application)
+                return ServiceGameActions([game], window, application)
         elif all(g.is_db_stored for g in games):
             return MultiGameActions(games, window)
+        elif all(not g.is_db_stored for g in games):
+            return ServiceGameActions(games, window, application)
 
     # If given no games, or the games are not of a kind we can handle,
     # the base class acts as an empty set of actions.

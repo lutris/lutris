@@ -221,12 +221,10 @@ class BaseService:
         """Match a service game to a lutris game referenced by its slug"""
         if not service_game:
             return
-        sql.db_update(
-            settings.DB_PATH,
-            "service_games",
-            {"lutris_slug": lutris_game["slug"]},
-            conditions={"appid": service_game["appid"], "service": self.id},
-        )
+
+        appid = service_game["appid"]
+        ServiceGameCollection.link_service_game(self.id, appid, lutris_game["slug"])
+
         unmatched_lutris_games = get_games(
             searches={"installer_slug": self.matcher},
             filters={"slug": lutris_game["slug"]},
@@ -234,12 +232,7 @@ class BaseService:
         )
         for game in unmatched_lutris_games:
             logger.debug("Updating unmatched game %s", game)
-            sql.db_update(
-                settings.DB_PATH,
-                "games",
-                {"service": self.id, "service_id": service_game["appid"]},
-                conditions={"id": game["id"]},
-            )
+            ServiceGameCollection.link_lutris_game(self.id, appid, game["id"])
 
     def match_games(self):
         """Matching of service games to lutris games"""
