@@ -27,7 +27,7 @@ from lutris.exceptions import EsyncLimitError, InvalidSearchTermError
 from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
-from lutris.gui.config.edit_saved_search import EditSavedSearchDialog
+from lutris.gui.config.edit_saved_search import SearchFiltersBox
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog, get_error_handler, register_error_handler
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
@@ -79,6 +79,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     turn_on_library_sync_label: Gtk.Label = GtkTemplate.Child()
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     version_notification_label: Gtk.Revealer = GtkTemplate.Child()
+    search_filters_button: Gtk.MenuButton = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs) -> None:
         width = int(settings.read_setting("width") or self.default_width)
@@ -236,7 +237,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 enabled=lambda: self.is_show_hidden_sensitive,
                 accel="<Primary>h",
             ),
-            "add-search-category": Action(self.on_add_search_category),
+            "open-search-filters": Action(self.on_open_search_filters),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
@@ -324,11 +325,13 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.sidebar.hidden_row.show()
         self.sidebar.selected_category = "category", ".hidden"
 
-    def on_add_search_category(self, action, value):
+    def on_open_search_filters(self, action, value):
         search = self.get_game_search()
         new_search = saved_searches_db.SavedSearch(0, "", str(search))
-        dlg = EditSavedSearchDialog(saved_search=new_search, parent=self)
-        dlg.show()
+        filter_box = SearchFiltersBox(saved_search=new_search)
+        popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_filters_button)
+        self.search_filters_button.set_popover(popover)
+        popover.popdown()
 
     @property
     def current_view_type(self):
