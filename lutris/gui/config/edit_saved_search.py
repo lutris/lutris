@@ -20,7 +20,7 @@ class SearchFiltersBox(Gtk.Box):
     """A widget to edit dynamic categories"""
 
     def __init__(self, saved_search: SavedSearch) -> None:
-        super().__init__()
+        super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.saved_search = copy(saved_search)
         self.original_search = copy(saved_search)
 
@@ -64,10 +64,6 @@ class SearchFiltersBox(Gtk.Box):
         self.pack_start(predicates_box, True, True, 0)
 
         self.show_all()
-
-        # delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
-        # delete_button.connect("clicked", self.on_delete_clicked)
-        # delete_button.show() if self.saved_search.saved_search_id else delete_button.hide()
 
     def _add_entry_box(self, label: str, text: str) -> Gtk.Entry:
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -228,20 +224,6 @@ class SearchFiltersBox(Gtk.Box):
         self.categories_box.pack_start(checkbox, False, False, 0)
         checkbox.connect("toggled", on_checkbox_toggled)
 
-    def on_delete_clicked(self, _button):
-        dlg = QuestionDialog(
-            {
-                "title": _("Do you want to delete the saved search '%s'?") % self.original_search.name,
-                "question": _(
-                    "This will permanently destroy the saved search, but the games themselves will not be deleted."
-                ),
-                "parent": self,
-            }
-        )
-        if dlg.result == Gtk.ResponseType.YES:
-            self.saved_search.remove()
-            self.destroy()
-
     def _create_combobox(self, options):
         liststore = Gtk.ListStore(str, str)
 
@@ -259,12 +241,35 @@ class SearchFiltersBox(Gtk.Box):
         combobox.add_attribute(renderer_text, "text", 0)
         return combobox
 
+
+class EditSavedSearchDialog(SavableModelessDialog):
+    """A dialog to edit saved searches."""
+
+    def __init__(self, parent, saved_search: SavedSearch) -> None:
+        self.filter_box = SearchFiltersBox(saved_search)
+        self.saved_search = copy(saved_search)
+        self.original_search = copy(saved_search)
+
+        if not self.saved_search.name:
+            self.saved_search.name = "New Dynamic Category"
+        title = _("Configure %s") % self.saved_search.name
+        super().__init__(title, parent=parent, border_width=10)
+        self.set_default_size(600, -1)
+
+        self.vbox.set_homogeneous(False)
+        self.vbox.set_spacing(10)
+        self.vbox.pack_start(self.filter_box, True, True, 0)
+
+        delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
+        delete_button.connect("clicked", self.on_delete_clicked)
+        delete_button.show() if self.saved_search.saved_search_id else delete_button.hide()
+
     def on_save(self, _button: Gtk.Button) -> None:
         """Save game info and destroy widget."""
         self.saved_search.name = saved_searches.strip_saved_search_name(
-            self.name_entry.get_text() or self.original_search.name
+            self.filter_box.name_entry.get_text() or self.original_search.name
         )
-        self.saved_search.search = str(GameSearch(self.search_entry.get_text()))
+        self.saved_search.search = str(GameSearch(self.filter_box.search_entry.get_text()))
 
         if self.original_search.name != self.saved_search.name:
             if saved_searches.get_saved_search_by_name(self.saved_search.name):
@@ -279,19 +284,16 @@ class SearchFiltersBox(Gtk.Box):
 
         self.destroy()
 
-
-class EditSavedSearchDialog(SavableModelessDialog):
-    """A dialog to edit saved searches."""
-
-    def __init__(self, parent, saved_search: SavedSearch) -> None:
-        filter_box = SearchFiltersBox(saved_search)
-        self.saved_search = saved_search
-        if not self.saved_search.name:
-            self.saved_search.name = "New Dynamic Category"
-        title = _("Configure %s") % self.saved_search.name
-        super().__init__(title, parent=parent, border_width=10)
-        self.set_default_size(600, -1)
-
-        self.vbox.set_homogeneous(False)
-        self.vbox.set_spacing(10)
-        self.vbox.pack_start(filter_box, True, True, 0)
+    def on_delete_clicked(self, _button):
+        dlg = QuestionDialog(
+            {
+                "title": _("Do you want to delete the saved search '%s'?") % self.original_search.name,
+                "question": _(
+                    "This will permanently destroy the saved search, but the games themselves will not be deleted."
+                ),
+                "parent": self,
+            }
+        )
+        if dlg.result == Gtk.ResponseType.YES:
+            self.saved_search.remove()
+            self.destroy()
