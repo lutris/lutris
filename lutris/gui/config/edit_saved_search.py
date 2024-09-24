@@ -11,7 +11,7 @@ from lutris.database import games as games_db
 from lutris.database import saved_searches
 from lutris.database.saved_searches import SavedSearch
 from lutris.exceptions import InvalidSearchTermError
-from lutris.gui.dialogs import QuestionDialog
+from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
 from lutris.search import FLAG_TEXTS, GameSearch
 from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 
@@ -278,3 +278,20 @@ class SearchFiltersBox(Gtk.Box):
             self.saved_search.update()
 
         self.destroy()
+
+
+class EditSavedSearchDialog(SavableModelessDialog):
+    """A dialog to edit saved searches."""
+
+    def __init__(self, parent, saved_search: SavedSearch) -> None:
+        filter_box = SearchFiltersBox(saved_search)
+        self.saved_search = saved_search
+        if not self.saved_search.name:
+            self.saved_search.name = "New Dynamic Category"
+        title = _("Configure %s") % self.saved_search.name
+        super().__init__(title, parent=parent, border_width=10)
+        self.set_default_size(600, -1)
+
+        self.vbox.set_homogeneous(False)
+        self.vbox.set_spacing(10)
+        self.vbox.pack_start(filter_box, True, True, 0)
