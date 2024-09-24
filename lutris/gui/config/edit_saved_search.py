@@ -11,15 +11,16 @@ from lutris.database import games as games_db
 from lutris.database import saved_searches
 from lutris.database.saved_searches import SavedSearch
 from lutris.exceptions import InvalidSearchTermError
-from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
+from lutris.gui.dialogs import QuestionDialog
 from lutris.search import FLAG_TEXTS, GameSearch
 from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 
 
-class EditSavedSearchDialog(SavableModelessDialog):
-    """A dialog to edit dynamic categories"""
+class SearchFiltersBox(Gtk.Box):
+    """A widget to edit dynamic categories"""
 
-    def __init__(self, parent, saved_search: SavedSearch) -> None:
+    def __init__(self, saved_search: SavedSearch) -> None:
+        super().__init__()
         self.saved_search = copy(saved_search)
         self.original_search = copy(saved_search)
 
@@ -27,13 +28,9 @@ class EditSavedSearchDialog(SavableModelessDialog):
             self.saved_search.name = "New Dynamic Category"
 
         self.search = self.saved_search.search
-        title = _("Advanced search")
 
-        super().__init__(title, parent=parent, border_width=10)
-        self.set_default_size(600, -1)
-
-        self.vbox.set_homogeneous(False)
-        self.vbox.set_spacing(10)
+        self.set_homogeneous(False)
+        self.set_spacing(10)
 
         self.name_entry = self._add_entry_box(_("Name"), self.saved_search.name)
         self.search_entry = self._add_entry_box(_("Search"), self.search)
@@ -64,13 +61,13 @@ class EditSavedSearchDialog(SavableModelessDialog):
 
         predicates_box.pack_start(self.flags_grid, False, False, 0)
         predicates_box.pack_start(categories_frame_box, True, True, 0)
-        self.vbox.pack_start(predicates_box, True, True, 0)
+        self.pack_start(predicates_box, True, True, 0)
 
         self.show_all()
 
-        delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
-        delete_button.connect("clicked", self.on_delete_clicked)
-        delete_button.show() if self.saved_search.saved_search_id else delete_button.hide()
+        # delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
+        # delete_button.connect("clicked", self.on_delete_clicked)
+        # delete_button.show() if self.saved_search.saved_search_id else delete_button.hide()
 
     def _add_entry_box(self, label: str, text: str) -> Gtk.Entry:
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -81,7 +78,7 @@ class EditSavedSearchDialog(SavableModelessDialog):
         entry.set_text(text)
         hbox.pack_start(entry_label, False, False, 0)
         hbox.pack_start(entry, True, True, 0)
-        self.vbox.pack_start(hbox, False, False, 0)
+        self.pack_start(hbox, False, False, 0)
         return entry
 
     def on_search_entry_changed(self, _widget):
