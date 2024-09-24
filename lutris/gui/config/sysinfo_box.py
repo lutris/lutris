@@ -74,7 +74,7 @@ class SystemBox(BaseConfigBox):
 
     def get_log_view(self):
         log_buffer = Gtk.TextBuffer()
-        log_buffer.set_text(self.get_log_contents())
+        log_buffer.set_text(get_log_contents())
         return LogTextView(log_buffer)
 
     def get_items(self) -> list:
