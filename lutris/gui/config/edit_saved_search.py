@@ -30,6 +30,10 @@ class SearchFiltersBox(Gtk.Box):
         self.search = self.saved_search.search
 
         self.set_homogeneous(False)
+        self.set_margin_top(20)
+        self.set_margin_bottom(20)
+        self.set_margin_start(20)
+        self.set_margin_end(20)
         self.set_spacing(10)
 
         self.name_entry = self._add_entry_box(_("Name"), self.saved_search.name)
@@ -235,7 +239,7 @@ class SearchFiltersBox(Gtk.Box):
         combobox.set_id_column(1)
         combobox.set_halign(Gtk.Align.START)
         combobox.set_valign(Gtk.Align.CENTER)
-        combobox.set_size_request(300, -1)
+        combobox.set_size_request(240, -1)
         renderer_text = Gtk.CellRendererText()
         combobox.pack_start(renderer_text, True)
         combobox.add_attribute(renderer_text, "text", 0)
