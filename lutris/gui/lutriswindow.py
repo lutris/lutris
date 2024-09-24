@@ -153,6 +153,13 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
 
+        search = self.get_game_search()
+        new_search = saved_searches_db.SavedSearch(0, "", str(search))
+        filter_box = SearchFiltersBox(saved_search=new_search)
+        filter_box.show()
+        self.filter_popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_filters_button)
+        self.search_filters_button.set_popover(self.filter_popover)
+
         self.update_action_state()
         self.update_notification()
 
@@ -326,12 +333,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.sidebar.selected_category = "category", ".hidden"
 
     def on_open_search_filters(self, action, value):
-        search = self.get_game_search()
-        new_search = saved_searches_db.SavedSearch(0, "", str(search))
-        filter_box = SearchFiltersBox(saved_search=new_search)
-        popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_filters_button)
-        self.search_filters_button.set_popover(popover)
-        popover.popdown()
+        self.filter_popover.popdown()
 
     @property
     def current_view_type(self):
