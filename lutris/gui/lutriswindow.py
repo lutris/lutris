@@ -323,7 +323,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.sidebar.selected_category = "category", ".hidden"
 
     def on_open_search_filters(self, action, value):
-        self.filter_popover.popdown()
+        self.filter_popover.popup()
 
     @property
     def current_view_type(self):
