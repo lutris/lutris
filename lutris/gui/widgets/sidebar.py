@@ -15,8 +15,7 @@ from lutris.database.categories import CATEGORIES_UPDATED
 from lutris.database.saved_searches import SAVED_SEARCHES_UPDATED
 from lutris.game import GAME_START, GAME_STOPPED, GAME_UPDATED, Game
 from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
-
-# from lutris.gui.config.edit_saved_search import EditSavedSearchDialog
+from lutris.gui.config.edit_saved_search import EditSavedSearchDialog
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
@@ -319,8 +318,8 @@ class SavedSearchSidebarRow(SidebarRow):
         ]
 
     def on_saved_search_clicked(self, button):
-        # saved_search = saved_search_db.get_saved_search_by_id(self.saved_search.saved_search_id) or self.saved_search
-        # self.application.show_window(EditSavedSearchDialog, saved_search=saved_search, parent=self.get_toplevel())
+        saved_search = saved_search_db.get_saved_search_by_id(self.saved_search.saved_search_id) or self.saved_search
+        self.application.show_window(EditSavedSearchDialog, saved_search=saved_search, parent=self.get_toplevel())
         return True
 
     def __lt__(self, other):
