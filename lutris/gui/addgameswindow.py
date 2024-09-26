@@ -5,12 +5,11 @@ from gi.repository import Gio, Gtk
 
 from lutris import api, sysoptions
 from lutris.gui.config.add_game_dialog import AddGameDialog
-from lutris.gui.dialogs import ErrorDialog, ModelessDialog, display_error
+from lutris.gui.dialogs import ErrorDialog, ModelessDialog
 from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.installer import AUTO_WIN32_EXE, get_installers
-from lutris.scanners.lutris import scan_directory
 from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
 from lutris.util.strings import gtk_safe, slugify
 
