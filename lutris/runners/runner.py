@@ -244,7 +244,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if sdl_video_fullscreen and sdl_video_fullscreen != "off":
             env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = sdl_video_fullscreen
 
-        if self.system_config.get("gpu") and len(GPUS) > 1 and self.system_config["gpu"] in GPUS:
+        if len(GPUS) > 1 and self.system_config.get("gpu") in GPUS:
             gpu = GPUS[self.system_config["gpu"]]
             if gpu.driver == "nvidia":
                 env["DRI_PRIME"] = "1"
