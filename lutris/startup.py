@@ -117,7 +117,7 @@ def run_all_checks() -> None:
     for card in get_gpu_cards():
         gpu = GPU(card)
         driver_info = gpu.get_driver_info()
-        logger.info("%s Driver %s", gpu, driver_info.get("version"))
+        logger.info('"%s" is %s Driver %s', card, gpu, driver_info.get("version"))
         GPUS[card] = gpu
 
     check_libs()
