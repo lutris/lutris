@@ -742,12 +742,11 @@ class wine(Runner):
 
         try:
             wine_path = self.get_path_for_version(version)
+            if system.path_exists(wine_path):
+                return wine_path
         except MissingExecutableError:
             if not fallback:
                 raise
-
-        if system.path_exists(wine_path):
-            return wine_path
 
         if not fallback:
             raise MissingExecutableError(_("The Wine executable at '%s' is missing.") % wine_path)
