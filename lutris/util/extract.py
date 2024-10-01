@@ -266,4 +266,3 @@ def get_innoextract_list(file_path: str) -> List[str]:
     """Return the list of files contained in a GOG archive"""
     output = system.read_process_output([_get_innoextract_path(), "-lmq", file_path])
     return [line[3:] for line in output.split("\n") if line]
-
