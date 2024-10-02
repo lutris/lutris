@@ -28,6 +28,8 @@ from typing import List
 
 import gi
 
+from ..util.busy import BusyAsyncCall
+
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 
@@ -54,7 +56,6 @@ from lutris.startup import init_lutris, run_all_checks
 from lutris.style_manager import StyleManager
 from lutris.util import datapath, log, system
 from lutris.util.http import HTTPError, Request
-from lutris.util.jobs import AsyncCall
 from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
@@ -410,7 +411,7 @@ class Application(Gtk.Application):
             else:
                 ErrorDialog(_("No installer available."), parent=self.window)
 
-        AsyncCall(get_installers, on_installers_ready, game_slug=game_slug)
+        BusyAsyncCall(get_installers, on_installers_ready, game_slug=game_slug)
 
     def on_app_window_destroyed(self, app_window, window_key):
         """Remove the reference to the window when it has been destroyed"""

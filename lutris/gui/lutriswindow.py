@@ -46,6 +46,7 @@ from lutris.search_predicate import NotPredicate
 from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGOUT
 from lutris.services.lutris import LutrisService, sync_media
 from lutris.util import datapath
+from lutris.util.busy import BUSY_STARTED, BUSY_STOPPED
 from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, LibrarySyncer
 from lutris.util.log import logger
@@ -154,6 +155,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.update_action_state()
         self.update_notification()
 
+        BUSY_STARTED.register(self.on_busy_started)
+        BUSY_STOPPED.register(self.on_busy_stopped)
         SERVICE_LOGIN.register(self.on_service_login)
         SERVICE_LOGOUT.register(self.on_service_logout)
         SERVICE_GAMES_LOADED.register(self.on_service_games_loaded)
@@ -174,6 +177,13 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.sidebar.selected_category = selected_category.split(":", maxsplit=1) if selected_category else None
 
         schedule_at_idle(self.sync_library, delay_seconds=1.0)
+
+    def on_busy_started(self):
+        display = Gdk.Display.get_default()
+        self.get_window().set_cursor(Gdk.Cursor.new_from_name(display, "progress"))
+
+    def on_busy_stopped(self):
+        self.get_window().set_cursor(None)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))

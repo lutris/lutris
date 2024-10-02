@@ -26,7 +26,7 @@ from lutris.monitored_command import MonitoredCommand
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import import_runner, is_valid_runner_name
 from lutris.runners.runner import Runner
-from lutris.util import discord, extract, jobs, linux, strings, system, xdgshortcuts
+from lutris.util import busy, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing
 from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
@@ -386,7 +386,7 @@ class Game:
                 installers, service, self.appid, installation_kind=InstallationKind.UPDATE
             )
 
-        jobs.AsyncCall(service.get_update_installers, on_installers_ready, db_game)
+        busy.BusyAsyncCall(service.get_update_installers, on_installers_ready, db_game)
         return True
 
     def install_dlc(self, install_ui_delegate):
@@ -403,7 +403,7 @@ class Game:
             application = Gio.Application.get_default()
             application.show_installer_window(installers, service, self.appid, installation_kind=InstallationKind.DLC)
 
-        jobs.AsyncCall(service.get_dlc_installers_runner, on_installers_ready, db_game, db_game["runner"])
+        busy.BusyAsyncCall(service.get_dlc_installers_runner, on_installers_ready, db_game, db_game["runner"])
         return True
 
     def uninstall(self, delete_files: bool = False) -> None:
