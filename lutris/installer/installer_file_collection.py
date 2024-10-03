@@ -165,6 +165,6 @@ class InstallerFileCollection:
             installer_file.save_to_cache()
 
     def remove_previous(self):
-        """Remove file at already at destination, prior to starting the download."""
+        """Remove file already at destination, prior to starting the download."""
         for installer_file in self.files_list:
             installer_file.remove_previous()

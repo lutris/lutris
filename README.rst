@@ -20,12 +20,12 @@ If you have not installed Lutris through your package manager and are using the
 source package, it is recommended that you install lutris at least once, even an
 older version to have all dependencies available.
 Once all dependencies are satisfied, you can run lutris directly from the source
-directory with `./bin/lutris`
+directory with ``./bin/lutris``
 
 If you need to run lutris through gdb to troubleshoot segmentation faults, you
 can use the following command:
 
-`gdb -ex r --args "/usr/bin/python3" "./bin/lutris"`
+``gdb -ex r --args "/usr/bin/python3" "./bin/lutris"``
 
 Installer scripts
 =================
@@ -74,7 +74,7 @@ Runners and the game database
 
 * ``pga.db``: An SQLite database tracking the game library, game installation status, various file locations, and some additional metadata
 
-* ``runners/*``: Runners downloaded from `lutris.net <https://lutris.net>`
+* ``runners/*``: Runners downloaded from `lutris.net <https://lutris.net>`_
 
 * ``banners/*.jpg``: Game banners
 
