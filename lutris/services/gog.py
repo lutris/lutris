@@ -7,7 +7,7 @@ import typing
 from collections import defaultdict
 from gettext import gettext as _
 from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import parse_qsl, urlencode, urlparse
+from urllib.parse import parse_qsl, unquote, urlencode, urlparse
 
 from lxml import etree
 
@@ -308,7 +308,10 @@ class GOGService(OnlineService):
             field_url = response[field]
             parsed = urlparse(field_url)
             query = dict(parse_qsl(parsed.query))
-            filename = os.path.basename(query.get("path") or parsed.path)
+            if "path" in query:
+                filename = os.path.basename(query["path"])
+            else:
+                filename = unquote(os.path.basename(parsed.path))
             expanded.append({"url": response[field], "filename": filename})
         return expanded
 
