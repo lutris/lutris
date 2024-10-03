@@ -129,6 +129,8 @@ Come with us!
 Want to make Lutris better? Help implement features, fix bugs, test
 pre-releases, or simply chat with the developers?
 
+Improve the code by just cloning the repository, editing the scripts and then starting Lutris with the ``./bin/lutris -d`` command. 
+
 You can always reach us on:
 
 * Discord: https://discordapp.com/invite/Pnt5CuY
