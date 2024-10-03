@@ -2,6 +2,7 @@
 
 import os
 from gettext import gettext as _
+from typing import Optional
 from urllib.parse import urlparse
 
 from lutris.cache import get_cache_path, has_custom_cache_path, save_to_cache
@@ -224,16 +225,26 @@ class InstallerFile:
             raise ScriptingError(hash_type.capitalize() + _(" checksum mismatch "), self.checksum)
 
     @property
-    def size(self):
-        if isinstance(self._file_meta, dict) and "size" in self._file_meta and isinstance(self._file_meta["size"], int):
-            return self._file_meta["size"]
-        return 0
+    def size(self) -> Optional[int]:
+        if isinstance(self._file_meta, dict) and "size" in self._file_meta:
+            try:
+                size = int(self._file_meta["size"])
+                if size >= 0:
+                    return size
+            except (ValueError, TypeError):
+                return None
+        return None
 
     @property
-    def total_size(self):
+    def total_size(self) -> Optional[int]:
         if isinstance(self._file_meta, dict) and "total_size" in self._file_meta:
-            return self._file_meta["total_size"]
-        return 0
+            try:
+                total_size = int(self._file_meta["total_size"])
+                if total_size >= 0:
+                    return total_size
+            except (ValueError, TypeError):
+                return None
+        return None
 
     def is_ready(self, provider):
         """Is the file already present at the destination (if applicable)?"""

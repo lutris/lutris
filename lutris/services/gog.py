@@ -516,7 +516,6 @@ class GOGService(OnlineService):
                         "filename": installer_file["filename"],
                         "checksum_url": installer_file.get("checksum_url"),
                         "total_size": installer_file["total_size"],
-                        "size": -1,
                     },
                 )
             )

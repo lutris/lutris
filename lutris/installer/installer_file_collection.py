@@ -31,7 +31,7 @@ class InstallerFileCollection:
             if self.files_list[0].total_size:
                 self.full_size = self.files_list[0].total_size
             else:
-                self.full_size = sum(f.size for f in self.files_list)
+                self.full_size = sum(f.size or 0 for f in self.files_list)
 
     def _get_service(self):
         """Try to get the service using the url of an InstallerFile"""
