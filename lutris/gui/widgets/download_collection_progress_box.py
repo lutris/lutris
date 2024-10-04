@@ -119,10 +119,16 @@ class DownloadCollectionProgressBox(Gtk.Box):
             self.start()
             return
 
+        # Use a temporary file to avoid problems with partially downloaded files
+        tmp_path = file.dest_file + ".tmp"
+        file.tmp_file = tmp_path
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
         self.update_download_file_label(file.filename)
         if not self.downloader:
             try:
-                self.downloader = Downloader(file.url, file.dest_file, referer=file.referer, overwrite=True)
+                self.downloader = Downloader(file.url, file.tmp_file, referer=file.referer, overwrite=True)
             except RuntimeError as ex:
                 display_error(ex, parent=self.get_toplevel())
                 self.emit("cancel")
@@ -192,6 +198,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
         if self.downloader.state == self.downloader.COMPLETED:
             self.num_files_downloaded += 1
             self.current_size += self.downloader.downloaded_size
+            os.rename(self._file_download.tmp_file, self._file_download.dest_file)
             # set file to None to get next one
             self._file_download = None
             self.downloader = None
