@@ -817,7 +817,7 @@ class Game:
             else:
                 self.force_kill_delayed()
 
-        jobs.AsyncCall(force_stop_game, force_stop_game_cb)
+        busy.BusyAsyncCall(force_stop_game, force_stop_game_cb)
 
     def force_kill_delayed(self, death_watch_seconds=5, death_watch_interval_seconds=0.5):
         """Forces termination of a running game, but only after a set time has elapsed;
@@ -841,7 +841,7 @@ class Game:
             # If we still can't kill everything, we'll still say we stopped it.
             self.stop_game()
 
-        jobs.AsyncCall(death_watch, death_watch_cb)
+        busy.BusyAsyncCall(death_watch, death_watch_cb)
 
     def kill_processes(self, sig):
         """Sends a signal to a process list, logging errors."""
