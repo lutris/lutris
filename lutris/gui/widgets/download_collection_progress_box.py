@@ -1,3 +1,4 @@
+import os
 import time
 from gettext import gettext as _
 
@@ -107,6 +108,15 @@ class DownloadCollectionProgressBox(Gtk.Box):
             self.cancel_button.set_sensitive(False)
             self.is_complete = True
             self.emit("complete", {})
+            return
+
+        # Check if the file already exists in the cache and skip this download then
+        if os.path.exists(file.dest_file):
+            logger.info("File exists, skipping download: '%s'", file.dest_file)
+            self.num_files_downloaded += 1
+            self.current_size += os.path.getsize(file.dest_file)
+            self._file_download = None
+            self.start()
             return
 
         self.update_download_file_label(file.filename)
