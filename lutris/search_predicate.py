@@ -78,7 +78,7 @@ class FunctionPredicate(SearchPredicate):
 
 
 class MatchPredicate(FunctionPredicate):
-    """MatchPredicate is a predicate that test a property against a value; you still provide
+    """MatchPredicate is a predicate that tests a property against a value; you still provide
     a function to do the test, but the object records the tag and value explicitly for editing
     purposes."""
 
@@ -123,7 +123,7 @@ class FlagPredicate(SearchPredicate):
 
     def __str__(self):
         flag_text = format_flag(self.flag)
-        return f"{self.tag}: {flag_text}"
+        return f"{self.tag}:{flag_text}"
 
 
 class TextPredicate(SearchPredicate):
@@ -145,7 +145,7 @@ class TextPredicate(SearchPredicate):
 
     def __str__(self):
         if self.tag:
-            return f"{self.tag}: {self.match_text}"
+            return f"{self.tag}:{self.match_text}"
         return self.match_text
 
 
