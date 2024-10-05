@@ -213,9 +213,7 @@ class InstallerFile:
             os.makedirs(self.cache_path)
 
     def create_download_progress_box(self):
-        return DownloadProgressBox(
-            {"url": self.url, "dest": self.dest_file, "referer": self.referer}, downloader=self.downloader
-        )
+        return DownloadProgressBox(url=self.url, dest=self.dest_file, referer=self.referer, downloader=self.downloader)
 
     def check_hash(self):
         """Checks the checksum of `file` and compare it to `value`

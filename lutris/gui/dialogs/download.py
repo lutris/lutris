@@ -4,6 +4,7 @@ from gi.repository import Gtk
 
 from lutris.gui.dialogs import ModalDialog
 from lutris.gui.widgets.download_progress_box import DownloadProgressBox
+from lutris.util.downloader import Downloader
 
 
 class DownloadDialog(ModalDialog):
@@ -12,8 +13,9 @@ class DownloadDialog(ModalDialog):
     def __init__(self, url=None, dest=None, title=None, label=None, downloader=None, parent=None):
         super().__init__(title=title or _("Downloading file"), parent=parent, border_width=10)
         self.set_size_request(485, 104)
-        params = {"url": url, "dest": dest, "title": label or _("Downloading %s") % url}
-        self.dialog_progress_box = DownloadProgressBox(params, downloader=downloader)
+        self.dialog_progress_box = DownloadProgressBox(
+            url=url, dest=dest, title=label or _("Downloading %s") % url, downloader=downloader
+        )
 
         self.dialog_progress_box.connect("complete", self.download_complete)
         self.dialog_progress_box.connect("cancel", self.download_cancelled)
@@ -23,7 +25,7 @@ class DownloadDialog(ModalDialog):
         self.dialog_progress_box.start()
 
     @property
-    def downloader(self):
+    def downloader(self) -> Downloader:
         return self.dialog_progress_box.downloader
 
     def download_complete(self, _widget, _data):
@@ -34,5 +36,5 @@ class DownloadDialog(ModalDialog):
 
     def on_response(self, dialog, response):
         if response in (Gtk.ResponseType.DELETE_EVENT, Gtk.ResponseType.CANCEL):
-            self.dialog_progress_box.downloader.cancel()
+            self.dialog_progress_box.cancel_download()
         super().on_response(dialog, response)
