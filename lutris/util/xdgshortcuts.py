@@ -86,7 +86,7 @@ def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desk
         tmp_launcher.close()
     os.chmod(
         tmp_launcher_path,
-        stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP,
+        stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP,
     )
 
     if desktop:
