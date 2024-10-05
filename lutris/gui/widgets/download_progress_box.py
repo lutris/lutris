@@ -39,10 +39,11 @@ class DownloadProgressBox(Gtk.Box):
         self.temp = dest + ".tmp"
         self.referer = referer
 
-        if os.path.exists(self.temp):
-            os.remove(self.temp)
+        if not title:
+            parsed_url = urlparse(url)
+            title = "%s%s" % (parsed_url.netloc, parsed_url.path)
 
-        self.main_label = Gtk.Label(self.get_title())
+        self.main_label = Gtk.Label(title)
         self.main_label.set_alignment(0, 0)
         self.main_label.set_property("wrap", True)
         self.main_label.set_margin_bottom(10)
@@ -74,10 +75,8 @@ class DownloadProgressBox(Gtk.Box):
         self.show_all()
         self.cancel_button.hide()
 
-    def get_title(self):
-        """Return the main label text for the widget"""
-        parsed = urlparse(self.url)
-        return "%s%s" % (parsed.netloc, parsed.path)
+        if os.path.exists(self.temp):
+            os.remove(self.temp)
 
     @property
     def downloader(self) -> Downloader:
