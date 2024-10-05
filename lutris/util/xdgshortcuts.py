@@ -65,6 +65,8 @@ def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desk
     # field code in the Exec key.
     command = f"{lutris_executable} {shlex.quote(url)}".replace("%", "%%")
 
+    try_exec = "" if LINUX_SYSTEM.is_flatpak() else "lutris"
+
     launcher_content = dedent(
         """
         [Desktop Entry]
@@ -73,7 +75,8 @@ def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desk
         Icon={}
         Exec=env LUTRIS_SKIP_INIT=1 {}
         Categories=Game
-        """.format(game_name, f"lutris_{game_slug}", command)
+        TryExec={}
+        """.format(game_name, f"lutris_{game_slug}", command, try_exec)
     )
 
     launcher_filename = get_xdg_basename(game_slug, game_id)
