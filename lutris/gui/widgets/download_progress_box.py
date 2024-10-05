@@ -1,3 +1,4 @@
+import os
 from gettext import gettext as _
 from typing import Optional
 from urllib.parse import urlparse
@@ -35,7 +36,11 @@ class DownloadProgressBox(Gtk.Box):
         self.is_complete = False
         self.url = url
         self.dest = dest
+        self.temp = dest + ".tmp"
         self.referer = referer
+
+        if os.path.exists(self.temp):
+            os.remove(self.temp)
 
         self.main_label = Gtk.Label(self.get_title())
         self.main_label.set_alignment(0, 0)
@@ -77,7 +82,7 @@ class DownloadProgressBox(Gtk.Box):
     @property
     def downloader(self) -> Downloader:
         if not self._downloader:
-            self._downloader = Downloader(self.url, self.dest, referer=self.referer, overwrite=True)
+            self._downloader = Downloader(self.url, self.temp, referer=self.referer, overwrite=True)
         return self._downloader
 
     def cancel_download(self):
@@ -144,6 +149,7 @@ class DownloadProgressBox(Gtk.Box):
         )
         self._set_text(progress_text)
         if downloader.state == downloader.COMPLETED:
+            os.rename(self.temp, self.dest)
             self.cancel_button.set_sensitive(False)
             self.is_complete = True
             self.emit("complete", {})
