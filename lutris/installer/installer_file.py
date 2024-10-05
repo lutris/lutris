@@ -63,6 +63,11 @@ class InstallerFile:
             return self.url
         return os.path.basename(self._file_meta)
 
+    def get_alternate_filenames(self):
+        if isinstance(self._file_meta, dict):
+            return self._file_meta.get("alternate_filenames") or []
+        return []
+
     @property
     def referer(self):
         if isinstance(self._file_meta, dict):
@@ -85,6 +90,12 @@ class InstallerFile:
     def dest_file(self):
         if self._dest_file:
             return self._dest_file
+
+        for alt_name in self.get_alternate_filenames():
+            alt_path = os.path.join(self.cache_path, alt_name)
+            if os.path.isfile(alt_path):
+                return alt_path
+
         return os.path.join(self.cache_path, self.filename)
 
     @dest_file.setter

@@ -308,11 +308,20 @@ class GOGService(OnlineService):
             field_url = response[field]
             parsed = urlparse(field_url)
             query = dict(parse_qsl(parsed.query))
+            exp = {"url": response[field]}
+
             if "path" in query:
-                filename = os.path.basename(query["path"])
+                exp["filename"] = os.path.basename(query["path"])
             else:
-                filename = unquote(os.path.basename(parsed.path))
-            expanded.append({"url": response[field], "filename": filename})
+                quoted_name = os.path.basename(parsed.path)
+                filename = unquote(quoted_name)
+                exp["filename"] = filename
+                # Prior releases of Lutris did not unquote the name, so we'll provide the unquoted
+                # name as an alternate so we can use download files that have that name, and
+                # not re-download them.
+                exp["alternate_filenames"] = [quoted_name] if quoted_name != filename else []
+
+            expanded.append(exp)
         return expanded
 
     def get_downloads(self, gogid: str) -> dict:
@@ -422,6 +431,7 @@ class GOGService(OnlineService):
                         "id": str(game_file["id"]),
                         "url": info["url"],
                         "filename": info["filename"],
+                        "alternate_filenames": info["alternate_filenames"],
                     }
                 )
         return download_links
@@ -452,6 +462,7 @@ class GOGService(OnlineService):
                         {
                             "url": link["url"],
                             "filename": link["filename"],
+                            "alternate_filenames": link["alternate_filenames"],
                         },
                     )
                 )
@@ -497,6 +508,7 @@ class GOGService(OnlineService):
             _installer_files[filename]["id"] = link["id"]
             _installer_files[filename]["url"] = link["url"]
             _installer_files[filename]["filename"] = filename
+            _installer_files[filename]["alternate_filenames"] = link["alternate_filenames"]
             _installer_files[filename]["total_size"] = link["total_size"]
         files = []
         file_id_provided = False  # Only assign installer_file_id once
@@ -517,6 +529,7 @@ class GOGService(OnlineService):
                     {
                         "url": installer_file["url"],
                         "filename": installer_file["filename"],
+                        "alternate_filenames": installer_file["alternate_filenames"],
                         "checksum_url": installer_file.get("checksum_url"),
                         "total_size": installer_file["total_size"],
                     },
