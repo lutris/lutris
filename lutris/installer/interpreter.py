@@ -452,5 +452,5 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def eject_wine_disc(self):
         """Use Wine to eject a CD, otherwise Wine can have problems detecting disc changes"""
-        wine_path = self.get_wine_path()
-        wine.eject_disc(wine_path, self.target_path)
+        wine_path, version = self.get_wine_path_and_version()
+        wine.eject_disc(wine_path, self.target_path, wine_version=version)

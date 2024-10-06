@@ -8,6 +8,7 @@ import shlex
 import shutil
 from gettext import gettext as _
 from pathlib import Path
+from typing import Tuple
 
 from lutris import runtime
 from lutris.cache import get_cache_path, has_custom_cache_path
@@ -32,16 +33,21 @@ class CommandsMixin:
     installer: LutrisInstaller = NotImplemented
 
     def get_wine_path(self) -> str:
-        """Return absolute path of wine version used during the installation, but
-        None if the wine exe can't be located."""
+        """Return absolute path of wine version used during the installation."""
+        return self.get_wine_path_and_version()[0]
+
+    def get_wine_path_and_version(self) -> Tuple[str, str]:
+        """Return absolute path of wine binary used during the installation, and the
+        version that it represents."""
+
         runner = self.get_runner_class(self.installer.runner)()
         version = runner.get_installer_runner_version(self.installer, use_runner_config=False)
         if version:
             wine_path = get_wine_path_for_version(version)
-            if proton.is_proton_path(wine_path):
-                return proton.get_umu_path()
+            if proton.is_proton_version(version):
+                return proton.get_umu_path(), version
             else:
-                return wine_path
+                return wine_path, version
 
         # Special case that lets the Wine configuration explicit specify the path
         # to the Wine executable, not just a version number.
@@ -50,19 +56,19 @@ class CommandsMixin:
                 config_version, runner_config = wine.get_runner_version_and_config()
                 wine_path = get_wine_path_for_version(config_version, config=runner_config.runner_level["wine"])
 
-                if proton.is_proton_path(wine_path):
-                    return proton.get_umu_path()
+                if proton.is_proton_version(wine_path):
+                    return proton.get_umu_path(), config_version
                 else:
-                    return wine_path
+                    return wine_path, config_version
             except UnspecifiedVersionError:
                 pass
 
         version = get_default_wine_version()
         wine_path = get_wine_path_for_version(version)
-        if proton.is_proton_path(wine_path):
-            return proton.get_umu_path()
+        if proton.is_proton_version(wine_path):
+            return proton.get_umu_path(), version
         else:
-            return wine_path
+            return wine_path, version
 
     def get_runner_class(self, runner_name):
         """Runner the runner class from its name"""
@@ -423,7 +429,9 @@ class CommandsMixin:
             return_code = "0"
 
         if runner_name.startswith("wine"):
-            data["wine_path"] = self.get_wine_path()
+            wine_path, wine_version = self.get_wine_path_and_version()
+            data["wine_path"] = wine_path
+            data["wine_version"] = wine_version
             data["prefix"] = data.get("prefix") or self.installer.script.get("game", {}).get("prefix") or "$GAMEDIR"
             data["arch"] = data.get("arch") or self.installer.script.get("game", {}).get("arch") or WINE_DEFAULT_ARCH
             if task_name == "wineexec":
