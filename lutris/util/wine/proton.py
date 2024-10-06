@@ -40,7 +40,7 @@ def is_umu_path(wine_path: Optional[str]) -> bool:
     PROTONPATH, but if this is omitted it will default to the latest Proton it
     downloads."""
     if wine_path:
-        return wine_path.endswith("/umu_run.py") or wine_path.endswith("/umu-run")
+        return wine_path.endswith("/umu-run")
     return False
 
 
@@ -52,35 +52,18 @@ def get_umu_path() -> str:
     The path that this returns will be considered an Umu path by is_umu_path().
 
     If this script can't be found this will raise MissingExecutableError."""
-
-    # We can access Umu via it's main .py file, or via the public name which is just
-    # symbolic link to the same file. We'll check both for compatibility, just in case
-    # Umu gets translated into Perl or something.
-    entry_points = ["umu_run.py", "umu-run"]
-
+    entry_point = "umu-run"
     custom_path = settings.read_setting("umu_path")
-    if custom_path:
-        for entry_point in entry_points:
-            entry_path = os.path.join(custom_path, entry_point)
-            if system.path_exists(entry_path):
-                return entry_path
 
-    # We only use 'umu-run' when searching the path since that's the command
-    # line entry point.
-    if system.can_find_executable("umu-run"):
-        return system.find_required_executable("umu-run")
-    path_candidates = (
-        "/app/share",  # prioritize flatpak due to non-rolling release distros
-        "/usr/local/share",
-        "/usr/share",
-        "/opt",
-        settings.RUNTIME_DIR,
-    )
-    for path_candidate in path_candidates:
-        for entry_point in entry_points:
-            entry_path = os.path.join(path_candidate, "umu", entry_point)
-            if system.path_exists(entry_path):
-                return entry_path
+    if custom_path and system.path_exists(umu_path := f"{custom_path}/{entry_point}"):
+        return umu_path
+
+    if system.can_find_executable(entry_point):
+        return system.find_required_executable(entry_point)
+
+    if system.path_exists(umu_path := f"{settings.RUNTIME_DIR}/umu/{entry_point}"):
+        return umu_path
+
     raise MissingExecutableError("Install umu to use Proton")
 
 
