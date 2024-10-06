@@ -22,24 +22,6 @@ def is_proton_version(version: str) -> bool:
     return "Proton" in version and "lutris" not in version
 
 
-def is_proton_path(wine_path: Optional[str]) -> bool:
-    """True if the wine-path refers to a Proton Wine installation; these require
-    special handling. The Umu path is considered a Proton-path too."""
-    if not wine_path:
-        return False
-
-    if is_umu_path(wine_path):
-        return True
-
-    # This is janky, but we can at least not trigger Umu because the user's
-    # username contains "Proton" or whatnot.
-    #
-    # This will still activate Umu for paths like
-    #   ~/.local/share/Steam/steamapps/common/Proton - Experimental/
-    relative = system.reverse_expanduser(wine_path)
-    return "Proton" in relative and "lutris" not in relative
-
-
 def is_umu_path(wine_path: Optional[str]) -> bool:
     """True if the path given actually runs Umu; this will run Proton-Wine in turn,
     but can be directed to particular Proton implementation by setting the env-var

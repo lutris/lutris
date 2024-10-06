@@ -104,7 +104,6 @@ def create_prefix(
     install_gecko=None,
     install_mono=None,
     runner=None,
-    env=None,
     proton_verb=None,
 ):
     """Create a new Wine prefix."""
@@ -128,9 +127,10 @@ def create_prefix(
         except OSError:
             logger.error("Failed to delete %s, you may lack permissions on this folder.", prefix)
 
+    if not runner:
+        runner = import_runner("wine")()
+
     if not wine_path:
-        if not runner:
-            runner = import_runner("wine")()
         wine_path = runner.get_executable()
 
     logger.info("Winepath: %s", wine_path)
@@ -150,11 +150,12 @@ def create_prefix(
         wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
         overrides["mscoree"] = "disabled"
 
-    if proton.is_umu_path(wine_path):
+    if runner.is_proton():
         # All proton path prefixes are created via Umu; if you aren't using
         # the default Umu, we'll use PROTONPATH to indicate what Proton is
         # to be used.
-        wineenv["PROTON_VERB"] = "run"
+        if proton.is_umu_path(wine_path):
+            wineenv["PROTON_VERB"] = "run"
 
         proton.update_proton_env(wine_path, wineenv, umu_log="debug")
 
@@ -323,6 +324,11 @@ def wineexec(
     if prefix:
         wineenv["WINEPREFIX"] = prefix
 
+    if runner.is_proton():
+        if proton_verb:
+            wineenv["PROTON_VERB"] = proton_verb
+        proton.update_proton_env(wine_path, wineenv, umu_log="debug")
+
     # Create prefix if necessary
     if arch not in ("win32", "win64"):
         arch = detect_arch(prefix, wine_path)
@@ -355,7 +361,7 @@ def wineexec(
     baseenv = runner.get_env(disable_runtime=disable_runtime)
     baseenv.update(wineenv)
     baseenv.update(env)
-    if proton.is_umu_path(wine_path):
+    if runner.is_proton():
         proton.update_proton_env(wine_path, baseenv, umu_log="debug")
 
     command_parameters = [wine_path]
@@ -430,7 +436,6 @@ def winetricks(
     if proton.is_umu_path(wine_path):
         proton_verb = "run"
 
-    # We only need to perform winetricks if not using umu/proton. umu uses protonfixes
     if arch not in ("win32", "win64"):
         arch = detect_arch(prefix, winetricks_wine)
     args = app
