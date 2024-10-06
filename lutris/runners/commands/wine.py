@@ -88,14 +88,7 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH
 
 
 def create_prefix(
-    prefix,
-    wine_path=None,
-    arch=WINE_DEFAULT_ARCH,
-    overrides=None,
-    install_gecko=None,
-    install_mono=None,
-    runner=None,
-    env=None,
+    prefix, wine_path=None, arch=WINE_DEFAULT_ARCH, overrides=None, install_gecko=None, install_mono=None, runner=None
 ):
     """Create a new Wine prefix."""
     # pylint: disable=too-many-locals
@@ -118,10 +111,12 @@ def create_prefix(
         except OSError:
             logger.error("Failed to delete %s, you may lack permissions on this folder.", prefix)
 
+    if not runner:
+        runner = import_runner("wine")()
+
     if not wine_path:
-        if not runner:
-            runner = import_runner("wine")()
         wine_path = runner.get_executable()
+
     logger.info("Winepath: %s", wine_path)
 
     wineenv = {
@@ -139,7 +134,7 @@ def create_prefix(
         wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
         overrides["mscoree"] = "disabled"
 
-    if proton.is_proton_path(wine_path):
+    if runner.is_proton():
         # All proton path prefixes are created via Umu; if you aren't using
         # the default Umu, we'll use PROTONPATH to indicate what Proton is
         # to be used.
@@ -309,7 +304,7 @@ def wineexec(
     if prefix:
         wineenv["WINEPREFIX"] = prefix
 
-    if proton.is_proton_path(wine_path):
+    if runner.is_proton():
         proton.update_proton_env(wine_path, wineenv)
 
     # Create prefix if necessary
@@ -410,7 +405,7 @@ def winetricks(
             runner = import_runner("wine")()
         winetricks_wine = runner.get_executable()
     # We only need to perform winetricks if not using umu/proton. umu uses protonfixes
-    if proton.is_proton_path(wine_path):
+    if runner.is_proton():
         logger.warning("Winetricks is currently not supported with Proton")
         return
     if arch not in ("win32", "win64"):
