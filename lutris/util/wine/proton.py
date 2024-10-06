@@ -31,7 +31,13 @@ def is_proton_path(wine_path: Optional[str]) -> bool:
     if is_umu_path(wine_path):
         return True
 
-    return "Proton" in wine_path and "lutris" not in wine_path
+    # This is janky, but we can at least not trigger Umu because the user's
+    # username contains "Proton" or whatnot.
+    #
+    # This will still activate Umu for paths like
+    #   ~/.local/share/Steam/steamapps/common/Proton - Experimental/
+    relative = system.reverse_expanduser(wine_path)
+    return "Proton" in relative and "lutris" not in relative
 
 
 def is_umu_path(wine_path: Optional[str]) -> bool:
