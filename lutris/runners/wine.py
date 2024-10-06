@@ -692,9 +692,8 @@ class wine(Runner):
         return super().get_runner_version(version)
 
     def read_version_from_config(self, default: str = None) -> str:
-        """Return the Wine version to use. use_default can be set to false to
-        force the installation of a specific wine version. If no version is configured,
-        we return the default supplied, or the4 global Wine default if none is."""
+        """Return the Wine version to use. If no version is configured,
+        we return the default supplied, or the global Wine default if none is."""
 
         # We must use the config levels to avoid getting a default if the setting
         # is not set; we'll fall back to get_default_version()
@@ -730,6 +729,14 @@ class wine(Runner):
             return fixed_resolved
 
         return resolved
+
+    def is_proton(self, version: str = None):
+        """True if the Wine version is a Proton version, requiring special handling. If no
+        version is supplied, this uses the selected configration in the runner, and falls
+        back ultimately to our get_default_version() logic."""
+        if version is None:
+            version = self.read_version_from_config()
+        return proton.is_proton_version(version)
 
     def get_executable(self, version: str = None, fallback: bool = True) -> str:
         """Return the path to the Wine executable.
@@ -1087,8 +1094,8 @@ class wine(Runner):
         env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "mono")
         env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "gecko")
 
-        # We don't want to override gstreamer for proton, it has it's own version
-        if not proton.is_proton_path(WINE_DIR) and is_gstreamer_build(wine_exe):
+        # We don't want to override gstreamer for proton, it has its own version
+        if not self.is_proton() and is_gstreamer_build(wine_exe):
             path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
             path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
             if os.path.exists(path_64) or os.path.exists(path_32):
@@ -1130,9 +1137,8 @@ class wine(Runner):
     def finish_env(self, env: Dict[str, str], game) -> None:
         super().finish_env(env, game)
 
-        wine_exe = self.get_executable()
-
-        if proton.is_proton_path(wine_exe):
+        if self.is_proton():
+            wine_exe = self.get_executable()
             game_id = proton.get_game_id(game, env)
             proton.update_proton_env(wine_exe, env, game_id=game_id)
 
@@ -1161,7 +1167,7 @@ class wine(Runner):
             exe = wine_path or self.get_executable()
         except MisconfigurationError:
             return set()
-        if proton.is_proton_path(exe):
+        if self.is_proton():
             logger.debug("Tracking PIDs of Proton games is not possible at the moment")
             return set()
         if not exe.startswith("/"):
