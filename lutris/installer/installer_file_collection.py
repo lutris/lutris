@@ -16,12 +16,12 @@ class InstallerFileCollection:
     """Representation of a collection of files in the `files` sections of an installer.
     Store files in a folder"""
 
-    def __init__(self, game_slug, file_id, files_list, dest_file=None):
+    def __init__(self, game_slug, file_id, files_list):
         self.game_slug = game_slug
         self.id = file_id.replace("-", "_")  # pylint: disable=invalid-name
         self.num_files = len(files_list)
         self.files_list = files_list
-        self._dest_file = dest_file  # Used to override the destination
+        self._dest_file_override = None  # Used to override the destination
         self.full_size = 0
         self._get_files_size()
         self._get_service()
@@ -49,13 +49,15 @@ class InstallerFileCollection:
         new_file_list = []
         for file in self.files_list:
             new_file_list.append(file.copy())
-        return InstallerFileCollection(self.game_slug, self.id, new_file_list, self._dest_file)
+        collection = InstallerFileCollection(self.game_slug, self.id, new_file_list)
+        collection._dest_file_override = self._dest_file_override
+        return collection
 
     def override_dest_file(self, new_dest_file):
         """Called by the UI when the user selects a file path; this causes
         the collection to be ready if this one file is there, and
         we'll special case GOG here too."""
-        self._dest_file = new_dest_file
+        self._dest_file_override = new_dest_file
 
         if len(self.files_list) == 1:
             self.files_list[0].override_dest_file(new_dest_file)
@@ -64,6 +66,10 @@ class InstallerFileCollection:
             for installer_file in self.files_list:
                 if installer_file.id == "goginstaller":
                     installer_file.dest_file = new_dest_file
+
+    @property
+    def is_dest_file_overridden(self):
+        return bool(self._dest_file_override)
 
     def get_dest_files_by_id(self):
         files = {}
@@ -127,7 +133,7 @@ class InstallerFileCollection:
 
     def prepare(self):
         """Prepare the file for download, if we've not been redirected to an existing file."""
-        if not self._dest_file or len(self.files_list) == 1:
+        if not self.is_dest_file_overridden or len(self.files_list) == 1:
             for installer_file in self.files_list:
                 installer_file.prepare()
 
@@ -139,8 +145,8 @@ class InstallerFileCollection:
         if provider not in ("user", "pga"):
             return True
 
-        if self._dest_file:
-            return system.path_exists(self._dest_file)
+        if self._dest_file_override:
+            return system.path_exists(self._dest_file_override)
 
         for installer_file in self.files_list:
             if not installer_file.is_ready(provider):

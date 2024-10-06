@@ -548,11 +548,8 @@ class GOGService(OnlineService):
             raise UnavailableGameError(_("Couldn't load the downloads for this game")) from err
         links = self._get_installer_links(installer, downloads)
         if links:
-            files = [
-                InstallerFileCollection(
-                    installer.game_slug, installer_file_id, self._format_links(installer, installer_file_id, links)
-                )
-            ]
+            formatted = self._format_links(installer, installer_file_id, links)
+            files = [InstallerFileCollection(installer.game_slug, installer_file_id, formatted)]
         else:
             files = []
 
