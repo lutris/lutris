@@ -22,12 +22,7 @@ from lutris.game import Game
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix,
-    delete_registry_key,
-    eject_disc,
-    install_cab_component,
     open_wine_terminal,
-    set_regedit,
-    set_regedit_file,
     winecfg,
     wineexec,
     winekill,
@@ -229,11 +224,12 @@ class wine(Runner):
         "wineboot.exe",
     )
 
-    def __init__(self, config=None, prefix=None, working_dir=None, wine_arch=None):  # noqa: C901
+    def __init__(self, config=None, prefix=None, working_dir=None, wine_arch=None, wine_version=None):  # noqa: C901
         super().__init__(config)
         self._prefix = prefix
         self._working_dir = working_dir
         self._wine_arch = wine_arch
+        self._default_wine_version = wine_version
         self.dll_overrides = DEFAULT_DLL_OVERRIDES.copy()  # we'll modify this, so we better copy it
 
         def get_wine_version_choices():
@@ -682,6 +678,9 @@ class wine(Runner):
 
     def get_runner_version(self, version: str = None) -> Optional[Dict[str, str]]:
         if not version:
+            if self._default_wine_version:
+                return {"version": self._default_wine_version}
+
             default_version_info = get_default_wine_runner_version_info()
             default_version = format_runner_version(default_version_info) if default_version_info else None
             version = self.read_version_from_config(default=default_version)
@@ -735,7 +734,7 @@ class wine(Runner):
         version is supplied, this uses the selected configration in the runner, and falls
         back ultimately to our get_default_version() logic."""
         if version is None:
-            version = self.read_version_from_config()
+            version = self._default_wine_version or self.read_version_from_config()
         return proton.is_proton_version(version)
 
     def get_executable(self, version: str = None, fallback: bool = True) -> str:
@@ -743,7 +742,8 @@ class wine(Runner):
         A specific version can be specified if needed.
         """
         if version is None:
-            version = self.read_version_from_config()
+            version = self._default_wine_version or self.read_version_from_config()
+
         if version == proton.GE_PROTON_LATEST:
             return proton.get_umu_path()
 
@@ -851,6 +851,7 @@ class wine(Runner):
         quiet=False,
         prefix=None,
         wine_path=None,
+        wine_version=None,
         working_dir=None,
         blocking=False,
     ):
@@ -862,6 +863,7 @@ class wine(Runner):
             args=msi_args,
             prefix=prefix,
             wine_path=wine_path,
+            wine_version=wine_version,
             working_dir=working_dir,
             blocking=blocking,
         )
@@ -959,6 +961,7 @@ class wine(Runner):
             wine_path=self.get_executable(),
             env=self.get_env(),
             initial_pids=self.get_pids(),
+            runner=self,
         )
         return True
 
