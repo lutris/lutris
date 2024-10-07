@@ -87,6 +87,7 @@ class FlathubService(BaseService):
     def load(self):
         """Load the available games from Flathub"""
         response = requests.get(self.api_url, timeout=5)
+        response.raise_for_status()
         entries = response.json()
         flathub_games = []
         for game in entries:
