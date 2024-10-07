@@ -139,7 +139,7 @@ def get_wine_path_for_version(version: str, config: dict = None) -> str:
 
     if version in WINE_PATHS:
         return system.find_required_executable(WINE_PATHS[version])
-    if proton.is_proton_path(version):
+    if proton.is_proton_version(version):
         return proton.get_proton_bin_for_version(version)
     if version == "custom":
         if config is None:

@@ -16,18 +16,23 @@ from lutris.util.strings import gtk_safe_urls
 class InstallerFile:
     """Representation of a file in the `files` sections of an installer"""
 
-    def __init__(self, game_slug, file_id, file_meta, dest_file=None):
+    def __init__(self, game_slug, file_id, file_meta):
         self.game_slug = game_slug
         self.id = file_id.replace("-", "_")  # pylint: disable=invalid-name
         self._file_meta = file_meta
-        self._dest_file = dest_file  # Used to override the destination
+        self._dest_file_override = None  # Used to override the destination
+        self._dest_file_found = None  # Lazy storage for the resolved destination file
 
     def copy(self):
         """Copies this file object, so the copy can be modified safely."""
-        if isinstance(self._file_meta, dict):
-            return InstallerFile(self.game_slug, self.id, self._file_meta.copy(), self._dest_file)
+        _file_meta = self._file_meta
+        if isinstance(_file_meta, dict):
+            _file_meta = _file_meta.copy()
 
-        return InstallerFile(self.game_slug, self.id, self._file_meta, self._dest_file)
+        file = InstallerFile(self.game_slug, self.id, _file_meta)
+        file._dest_file_override = self._dest_file_override
+        file._dest_file_found = self._dest_file_found
+        return file
 
     @property
     def url(self):
@@ -63,6 +68,11 @@ class InstallerFile:
             return self.url
         return os.path.basename(self._file_meta)
 
+    def get_alternate_filenames(self):
+        if isinstance(self._file_meta, dict):
+            return self._file_meta.get("alternate_filenames") or []
+        return []
+
     @property
     def referer(self):
         if isinstance(self._file_meta, dict):
@@ -83,17 +93,33 @@ class InstallerFile:
 
     @property
     def dest_file(self):
-        if self._dest_file:
-            return self._dest_file
-        return os.path.join(self.cache_path, self.filename)
+        def find_dest_file():
+            for alt_name in self.get_alternate_filenames():
+                alt_path = os.path.join(self.cache_path, alt_name)
+                if os.path.isfile(alt_path):
+                    return alt_path
+
+            return os.path.join(self.cache_path, self.filename)
+
+        if self._dest_file_override:
+            return self._dest_file_override
+
+        if not self._dest_file_found:
+            self._dest_file_found = find_dest_file()
+
+        return self._dest_file_found
 
     @dest_file.setter
     def dest_file(self, value):
-        self._dest_file = value
+        self._dest_file_override = value
 
     def override_dest_file(self, new_dest_file):
         """Called by the UI when the user selects a file path."""
         self.dest_file = new_dest_file
+
+    @property
+    def is_dest_file_overridden(self):
+        return bool(self._dest_file_override)
 
     def get_dest_files_by_id(self):
         return {self.id: self.dest_file}
@@ -198,13 +224,11 @@ class InstallerFile:
     def prepare(self):
         """Prepare the file for download. If we've not been redirected to an existing file,
         and if we're using our own installer cache, we need to unsure that directory exists."""
-        if not self._dest_file and not system.path_exists(self.cache_path):
+        if not self.is_dest_file_overridden and not system.path_exists(self.cache_path):
             os.makedirs(self.cache_path)
 
     def create_download_progress_box(self):
-        return DownloadProgressBox(
-            {"url": self.url, "dest": self.dest_file, "referer": self.referer}, downloader=self.downloader
-        )
+        return DownloadProgressBox(url=self.url, dest=self.dest_file, referer=self.referer, downloader=self.downloader)
 
     def check_hash(self):
         """Checks the checksum of `file` and compare it to `value`
