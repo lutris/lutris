@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-06 12:34+0200\n"
+"POT-Creation-Date: 2024-10-07 12:37+0200\n"
 "PO-Revision-Date: 2024-10-07 12:29+0200\n"
 "Last-Translator: Miguel Barrio Orsikowsky <megamik79@protonmail.com>\n"
 "Language-Team: \n"
@@ -647,8 +647,8 @@ msgstr "Eliminar juegos"
 #: lutris/gui/addgameswindow.py:535 lutris/gui/addgameswindow.py:538
 #: lutris/gui/dialogs/__init__.py:168 lutris/gui/dialogs/runner_install.py:274
 #: lutris/gui/installerwindow.py:97 lutris/gui/installerwindow.py:1029
-#: lutris/gui/widgets/download_collection_progress_box.py:137
-#: lutris/gui/widgets/download_progress_box.py:93
+#: lutris/gui/widgets/download_collection_progress_box.py:153
+#: lutris/gui/widgets/download_progress_box.py:115
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -1422,8 +1422,8 @@ msgstr "_Añadir"
 #: lutris/gui/config/boxes.py:637 lutris/gui/dialogs/__init__.py:434
 #: lutris/gui/dialogs/__init__.py:460 lutris/gui/dialogs/issue.py:74
 #: lutris/gui/widgets/common.py:167
-#: lutris/gui/widgets/download_collection_progress_box.py:55
-#: lutris/gui/widgets/download_progress_box.py:48
+#: lutris/gui/widgets/download_collection_progress_box.py:56
+#: lutris/gui/widgets/download_progress_box.py:63
 msgid "_Cancel"
 msgstr "_Cancelar"
 
@@ -2171,11 +2171,11 @@ msgstr "El ejecutor '%s' es necesario y no está instalado."
 msgid "Select game to launch"
 msgstr "Escoger el juego a iniciar"
 
-#: lutris/gui/dialogs/download.py:13
+#: lutris/gui/dialogs/download.py:14
 msgid "Downloading file"
 msgstr "Descargando archivo"
 
-#: lutris/gui/dialogs/download.py:15 lutris/runtime.py:125
+#: lutris/gui/dialogs/download.py:17 lutris/runtime.py:125
 #, python-format
 msgid "Downloading %s"
 msgstr "Descargando %s"
@@ -2822,18 +2822,18 @@ msgstr "Añadir"
 msgid "Delete"
 msgstr "Eliminar"
 
-#: lutris/gui/widgets/download_collection_progress_box.py:129
-#: lutris/gui/widgets/download_progress_box.py:86
+#: lutris/gui/widgets/download_collection_progress_box.py:145
+#: lutris/gui/widgets/download_progress_box.py:108
 msgid "Retry"
 msgstr "Reintentar"
 
-#: lutris/gui/widgets/download_collection_progress_box.py:156
-#: lutris/gui/widgets/download_progress_box.py:113
+#: lutris/gui/widgets/download_collection_progress_box.py:172
+#: lutris/gui/widgets/download_progress_box.py:135
 msgid "Download interrupted"
 msgstr "Descarga interrumpida"
 
-#: lutris/gui/widgets/download_collection_progress_box.py:175
-#: lutris/gui/widgets/download_progress_box.py:121
+#: lutris/gui/widgets/download_collection_progress_box.py:191
+#: lutris/gui/widgets/download_progress_box.py:143
 #, python-brace-format
 msgid "{downloaded} / {size} ({speed:0.2f}MB/s), {time} remaining"
 msgstr "{downloaded} / {size} ({speed:0.2f}MB/s), queda {time}"
@@ -3078,26 +3078,26 @@ msgstr "install_or_extract solo funciona con wine"
 msgid "This game requires %s."
 msgstr "Este juego requiere %s."
 
-#: lutris/installer/installer_file.py:37
+#: lutris/installer/installer_file.py:42
 #, python-format
 msgid "missing field `url` for file `%s`"
 msgstr "falta el campo `url` en el archivo `%s`"
 
-#: lutris/installer/installer_file.py:56
+#: lutris/installer/installer_file.py:61
 #, python-format
 msgid "missing field `filename` in file `%s`"
 msgstr "falta el campo `filename` en el archivo `%s`"
 
-#: lutris/installer/installer_file.py:125
+#: lutris/installer/installer_file.py:151
 #, python-brace-format
 msgid "{file} on {host}"
 msgstr "{file} en {host}"
 
-#: lutris/installer/installer_file.py:222
+#: lutris/installer/installer_file.py:246
 msgid "Invalid checksum, expected format (type:hash) "
 msgstr "Suma de comprobación no válida, se espera formato (tipo:hash) "
 
-#: lutris/installer/installer_file.py:225
+#: lutris/installer/installer_file.py:249
 msgid " checksum mismatch "
 msgstr " suma de comprobación discordante "
 
@@ -7192,7 +7192,7 @@ msgstr "No se puede obtener el archivo fuel.json."
 msgid "Invalid response from Amazon APIs"
 msgstr "Respuesta incorrecta de las APIs Amazon"
 
-#: lutris/services/amazon.py:648 lutris/services/gog.py:532
+#: lutris/services/amazon.py:648 lutris/services/gog.py:548
 msgid "Couldn't load the downloads for this game"
 msgstr "No se pueden cargar los archivos descargados de este juego"
 
@@ -7238,11 +7238,11 @@ msgstr ""
 msgid "GOG"
 msgstr "GOG"
 
-#: lutris/services/gog.py:468
+#: lutris/services/gog.py:482
 msgid "Couldn't load the download links for this game"
 msgstr "No se pueden cargar los enlaces de descarga de este juego"
 
-#: lutris/services/gog.py:523
+#: lutris/services/gog.py:539
 msgid "Unable to determine correct file to launch installer"
 msgstr "No se puede determinar el archivo adecuado para ejecutar el instalador"
 
