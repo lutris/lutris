@@ -8,5 +8,6 @@ Exec=lutris %U
 Icon=lutris
 Terminal=false
 Type=Application
+StartupNotify=true
 MimeType=x-scheme-handler/lutris;
 X-GNOME-UsesNotifications=true
