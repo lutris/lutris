@@ -3,14 +3,11 @@ from typing import Any, Callable, Dict, List, Optional
 
 from lutris.util.strings import strip_accents
 
-FLAG_TEXTS: Dict[str, Optional[bool]] = {"true": True, "yes": True, "false": False, "no": False, "maybe": None}
+FLAG_TEXTS: Dict[str, Optional[bool]] = {"true": True, "yes": True, "false": False, "no": False}
 
 
 def format_flag(flag: Optional[bool]) -> str:
-    if flag is None:
-        return "maybe"
-    else:
-        return "yes" if flag else "no"
+    return "yes" if flag else "no"
 
 
 class SearchPredicate(ABC):
@@ -50,7 +47,7 @@ class SearchPredicate(ABC):
 
     def get_flag(self, tag: str) -> Optional[bool]:
         """Returns the flag test value for the FlagPredicte with the tag
-        given. None represents 'maybe', not that the flag is missing."""
+        given."""
         return None
 
     def to_child_text(self) -> str:
@@ -98,8 +95,7 @@ class MatchPredicate(FunctionPredicate):
 
 
 class FlagPredicate(SearchPredicate):
-    """This is a predicate to match a boolean property, with the special feature that it can
-    match 'maybe' which actually matching anything. This odd setting is useful to override
+    """This is a predicate to match a boolean property. This odd setting is useful to override
     the default filtering Lutris provides, like filtering out hidden games."""
 
     def __init__(self, flag: Optional[bool], flag_function: Callable[[Any], bool], tag: str):

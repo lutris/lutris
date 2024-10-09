@@ -16,24 +16,25 @@ from lutris.search import FLAG_TEXTS, GameSearch
 from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 
 
-class EditSavedSearchDialog(SavableModelessDialog):
-    """A dialog to edit saved searches."""
+class SearchFiltersBox(Gtk.Box):
+    """A widget to edit dynamic categories"""
 
-    def __init__(self, parent, saved_search: SavedSearch) -> None:
+    def __init__(self, saved_search: SavedSearch) -> None:
+        super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.saved_search = copy(saved_search)
         self.original_search = copy(saved_search)
 
         if not self.saved_search.name:
-            self.saved_search.name = "New Saved Search"
+            self.saved_search.name = "New Dynamic Category"
 
         self.search = self.saved_search.search
-        title = _("Configure %s") % self.saved_search.name
 
-        super().__init__(title, parent=parent, border_width=10)
-        self.set_default_size(600, -1)
-
-        self.vbox.set_homogeneous(False)
-        self.vbox.set_spacing(10)
+        self.set_homogeneous(False)
+        self.set_margin_top(20)
+        self.set_margin_bottom(20)
+        self.set_margin_start(20)
+        self.set_margin_end(20)
+        self.set_spacing(10)
 
         self.name_entry = self._add_entry_box(_("Name"), self.saved_search.name)
         self.search_entry = self._add_entry_box(_("Search"), self.search)
@@ -64,22 +65,20 @@ class EditSavedSearchDialog(SavableModelessDialog):
 
         predicates_box.pack_start(self.flags_grid, False, False, 0)
         predicates_box.pack_start(categories_frame_box, True, True, 0)
-        self.vbox.pack_start(predicates_box, True, True, 0)
-
-        delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
-        delete_button.connect("clicked", self.on_delete_clicked)
-        delete_button.set_sensitive(bool(self.saved_search.saved_search_id))
+        self.pack_start(predicates_box, True, True, 0)
 
         self.show_all()
 
     def _add_entry_box(self, label: str, text: str) -> Gtk.Entry:
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         entry_label = Gtk.Label(label)
+        entry_label.set_alignment(0, 0.5)
+        entry_label.set_size_request(120, -1)
         entry = Gtk.Entry()
         entry.set_text(text)
         hbox.pack_start(entry_label, False, False, 0)
         hbox.pack_start(entry, True, True, 0)
-        self.vbox.pack_start(hbox, False, False, 0)
+        self.pack_start(hbox, False, False, 0)
         return entry
 
     def on_search_entry_changed(self, _widget):
@@ -126,7 +125,7 @@ class EditSavedSearchDialog(SavableModelessDialog):
         def on_combobox_change(_widget):
             if not self.updating_predicate_widgets:
                 active_id = combobox.get_active_id()
-                if active_id == "omit":
+                if active_id == "":
                     self._remove_search_flag(tag)
                 else:
                     self._change_search_flag(tag, FLAG_TEXTS[active_id])
@@ -135,16 +134,17 @@ class EditSavedSearchDialog(SavableModelessDialog):
             if predicate.has_flag(tag):
                 combobox.set_active_id(format_flag(predicate.get_flag(tag)))
             else:
-                combobox.set_active_id("omit")
+                combobox.set_active_id("")
 
         label = Gtk.Label(caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
+        label.set_alignment(0, 0.5)
+        label.set_size_request(120, -1)
         self.flags_grid.attach(label, 0, row, 1, 1)
 
         options = [
-            (_("(omit from search)"), "omit"),
+            (_("-"), ""),
             (_("Yes"), "yes"),
             (_("No"), "no"),
-            (_("Maybe"), "maybe"),
         ]
 
         combobox = self._create_combobox(options)
@@ -195,7 +195,7 @@ class EditSavedSearchDialog(SavableModelessDialog):
         label = Gtk.Label(caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
         self.flags_grid.attach(label, 0, row, 1, 1)
 
-        options = [(_("(omit from search)"), "")] + options
+        options = [(_("-"), "")] + options
         combobox = self._create_combobox(options)
         self.predicate_widget_functions[combobox] = populate_widget
         self.flags_grid.attach(combobox, 1, row, 1, 1)
@@ -228,20 +228,6 @@ class EditSavedSearchDialog(SavableModelessDialog):
         self.categories_box.pack_start(checkbox, False, False, 0)
         checkbox.connect("toggled", on_checkbox_toggled)
 
-    def on_delete_clicked(self, _button):
-        dlg = QuestionDialog(
-            {
-                "title": _("Do you want to delete the saved search '%s'?") % self.original_search.name,
-                "question": _(
-                    "This will permanently destroy the saved search, but the games themselves will not be deleted."
-                ),
-                "parent": self,
-            }
-        )
-        if dlg.result == Gtk.ResponseType.YES:
-            self.saved_search.remove()
-            self.destroy()
-
     def _create_combobox(self, options):
         liststore = Gtk.ListStore(str, str)
 
@@ -253,17 +239,41 @@ class EditSavedSearchDialog(SavableModelessDialog):
         combobox.set_id_column(1)
         combobox.set_halign(Gtk.Align.START)
         combobox.set_valign(Gtk.Align.CENTER)
+        combobox.set_size_request(240, -1)
         renderer_text = Gtk.CellRendererText()
         combobox.pack_start(renderer_text, True)
         combobox.add_attribute(renderer_text, "text", 0)
         return combobox
 
+
+class EditSavedSearchDialog(SavableModelessDialog):
+    """A dialog to edit saved searches."""
+
+    def __init__(self, parent, saved_search: SavedSearch) -> None:
+        self.filter_box = SearchFiltersBox(saved_search)
+        self.saved_search = copy(saved_search)
+        self.original_search = copy(saved_search)
+
+        if not self.saved_search.name:
+            self.saved_search.name = "New Dynamic Category"
+        title = _("Configure %s") % self.saved_search.name
+        super().__init__(title, parent=parent, border_width=10)
+        self.set_default_size(600, -1)
+
+        self.vbox.set_homogeneous(False)
+        self.vbox.set_spacing(10)
+        self.vbox.pack_start(self.filter_box, True, True, 0)
+
+        delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
+        delete_button.connect("clicked", self.on_delete_clicked)
+        delete_button.show() if self.saved_search.saved_search_id else delete_button.hide()
+
     def on_save(self, _button: Gtk.Button) -> None:
         """Save game info and destroy widget."""
         self.saved_search.name = saved_searches.strip_saved_search_name(
-            self.name_entry.get_text() or self.original_search.name
+            self.filter_box.name_entry.get_text() or self.original_search.name
         )
-        self.saved_search.search = str(GameSearch(self.search_entry.get_text()))
+        self.saved_search.search = str(GameSearch(self.filter_box.search_entry.get_text()))
 
         if self.original_search.name != self.saved_search.name:
             if saved_searches.get_saved_search_by_name(self.saved_search.name):
@@ -277,3 +287,17 @@ class EditSavedSearchDialog(SavableModelessDialog):
             self.saved_search.update()
 
         self.destroy()
+
+    def on_delete_clicked(self, _button):
+        dlg = QuestionDialog(
+            {
+                "title": _("Do you want to delete the saved search '%s'?") % self.original_search.name,
+                "question": _(
+                    "This will permanently destroy the saved search, but the games themselves will not be deleted."
+                ),
+                "parent": self,
+            }
+        )
+        if dlg.result == Gtk.ResponseType.YES:
+            self.saved_search.remove()
+            self.destroy()
