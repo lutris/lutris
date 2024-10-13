@@ -1004,7 +1004,11 @@ class Game:
 
         # Clear Discord Client Status
         if settings.read_setting("discord_rpc") == "True" and self.discord_id:
-            discord.client.clear()
+            try:
+                discord.client.clear()
+            except:
+                # Shut up no one cares about you or your errors
+                pass
 
         self.process_return_codes()
 
