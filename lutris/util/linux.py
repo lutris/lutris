@@ -32,9 +32,9 @@ SYSTEM_COMPONENTS = {
         "lspci",
         "ldconfig",
         "wine",
-        "fluidsynth",
     ],
     "OPTIONAL_COMMANDS": [
+        "fluidsynth",
         "lsi-steam",
         "nvidia-smi",
     ],
