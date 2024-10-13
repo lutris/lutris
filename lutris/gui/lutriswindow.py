@@ -79,7 +79,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     turn_on_library_sync_label: Gtk.Label = GtkTemplate.Child()
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     version_notification_label: Gtk.Revealer = GtkTemplate.Child()
-    search_filters_button: Gtk.MenuButton = GtkTemplate.Child()
+    # search_filters_button: Gtk.MenuButton = GtkTemplate.Child()
+    search_box: Gtk.Box = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs) -> None:
         width = int(settings.read_setting("width") or self.default_width)
@@ -157,8 +158,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         new_search = saved_searches_db.SavedSearch(0, "", str(search))
         filter_box = SearchFiltersBox(saved_search=new_search)
         filter_box.show()
-        self.filter_popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_filters_button)
-        self.search_filters_button.set_popover(self.filter_popover)
+        # self.filter_popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_box)
+        # self.search_filters_button.set_popover(self.filter_popover)
 
         self.update_action_state()
         self.update_notification()
