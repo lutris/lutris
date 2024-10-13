@@ -1,3 +1,9 @@
+lutris (0.5.18) jammy; urgency=medium
+
+  * TODO
+
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Sun, 13 Oct 2024 16:22:49 -0700
+
 lutris (0.5.17) jammy; urgency=medium
 
   * Fix critical bug preventing completion of installs if the script specifies a wine version
