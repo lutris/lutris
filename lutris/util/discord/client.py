@@ -1,3 +1,5 @@
+"""THIS MODULE IS UNMAINTAINTED AND WILL BE MARKED FOR DEPRECATION UNLESS SOMEONE VOLUNTEERS TO PROPERLY MAINTAIN IT."""
+
 from pypresence import DiscordNotFound, Presence
 
 from lutris.util.discord.base import DiscordRichPresenceBase
