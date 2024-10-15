@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-08 01:38-0300\n"
-"PO-Revision-Date: 2024-10-09 08:17-0300\n"
+"POT-Creation-Date: 2024-10-15 09:57-0300\n"
+"PO-Revision-Date: 2024-10-15 09:51-0300\n"
 "Last-Translator: João Victor Leal <victorsouzaleal@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <victorsouzaleal@gmail.com>\n"
 "Language: pt_BR\n"
@@ -415,7 +415,7 @@ msgstr "Jogos ausentes mostram um emblema adicional"
 msgid "Add missing dependency on python3-gi-cairo for Debian packages"
 msgstr "Adicionado dependência ausente em python3-gi-cairo para pacotes Debian"
 
-#: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:780
+#: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:783
 msgid "About Lutris"
 msgstr "Sobre o Lutris"
 
@@ -500,7 +500,7 @@ msgstr ""
 "Lutris %s não é mais compatível. <a href=\"https://lutris.net/downloads/"
 "\">Baixe %s aqui!</a>"
 
-#: share/lutris/ui/lutris-window.ui:308
+#: share/lutris/ui/lutris-window.ui:312
 msgid ""
 "Enter the name of a game to search for, or use search terms:\n"
 "\n"
@@ -519,101 +519,97 @@ msgid ""
 msgstr ""
 "Digite o nome de um jogo para pesquisar ou use os termos de pesquisa:\n"
 "\n"
-"<b>instalado:</b><i>verdadeiro</i> \t\t\tApenas jogos instalados.\n"
-"<b>oculto:</b><i>verdadeiro</i>\t\t\tApenas jogos ocultos.\n"
-"<b>favorito:</b><i>verdadeiro</i>\t\t\tSomente jogos favoritos.\n"
-"<b>categorizado:</b><i>verdadeiro</i>\t\t\tSomente jogos em uma categoria.\n"
-"<b>categoria:</b><i>x</i>\t\t\tSomente jogos na categoria <i>x</i>.\n"
-"<b>fonte:</b><i>steam</i>\t\t\tApenas jogos Steam\n"
-"<b>runner:</b><i>wine</i>\t\t\tApenas jogos de Wine\n"
-"<b>plataforma:</b><i>windows</i>\tSomente jogos para Windows\n"
-"<b>tempo de jogo:</b><i>&gt;2 horas</i> \tSomente jogos jogados por mais de "
-"2 horas.\n"
-"<b>últimos jogos:</b><i>&lt;2 dias</i> \tSomente jogos disputados nos "
-"últimos 2 dias.\n"
-"<b>diretório:</b><i>game/dir</i>\tSomente jogos no caminho."
+"<b>installed:</b><i>true</i> \t - Apenas jogos instalados.\n"
+"<b>hidden:</b><i>true</i>\t -Apenas jogos ocultos.\n"
+"<b>favorite:</b><i>true</i>\t -Somente jogos favoritos.\n"
+"<b>categorized:</b><i>true</i>\t - Somente jogos em uma categoria.\n"
+"<b>category:</b><i>x</i>\t - Somente jogos na categoria <i>x</i>.\n"
+"<b>source:</b><i>steam</i>\t - Apenas jogos Steam\n"
+"<b>runner:</b><i>wine</i>\t - Apenas jogos de Wine\n"
+"<b>platform:</b><i>windows</i>\t - Somente jogos para Windows\n"
+"<b>playtime:</b><i>&gt;2 hours</i> \t - Somente jogos jogados por mais de 2 "
+"horas.\n"
+"<b>lastplayed:</b><i>&lt;2 days</i> \t - Somente jogos jogados nos últimos 2 "
+"dias.\n"
+"<b>directory:</b><i>game/dir</i>\t - Somente jogos no caminho especificado."
 
-#: share/lutris/ui/lutris-window.ui:324 lutris/gui/lutriswindow.py:686
+#: share/lutris/ui/lutris-window.ui:328 lutris/gui/lutriswindow.py:692
 msgid "Search games"
 msgstr "Pesquisar por jogos"
 
-#: share/lutris/ui/lutris-window.ui:339
+#: share/lutris/ui/lutris-window.ui:353
 msgid "Add Game"
 msgstr "Adicionar jogo"
 
-#: share/lutris/ui/lutris-window.ui:371
+#: share/lutris/ui/lutris-window.ui:385
 msgid "Toggle View"
 msgstr "Alternar visualização"
 
-#: share/lutris/ui/lutris-window.ui:469
+#: share/lutris/ui/lutris-window.ui:483
 msgid "Zoom "
-msgstr "Ampliar "
+msgstr "Zoom "
 
-#: share/lutris/ui/lutris-window.ui:511
+#: share/lutris/ui/lutris-window.ui:525
 msgid "Sort Installed First"
 msgstr "Ordenar instalados primeiro"
 
-#: share/lutris/ui/lutris-window.ui:525
+#: share/lutris/ui/lutris-window.ui:539
 msgid "Reverse order"
 msgstr "Ordem inversa"
 
-#: share/lutris/ui/lutris-window.ui:551
+#: share/lutris/ui/lutris-window.ui:565
 #: lutris/gui/config/edit_category_games.py:35
-#: lutris/gui/config/edit_saved_search.py:38
+#: lutris/gui/config/edit_saved_search.py:39
 #: lutris/gui/config/game_common.py:175 lutris/gui/views/list.py:65
 #: lutris/gui/views/list.py:198
 msgid "Name"
 msgstr "Nome"
 
-#: share/lutris/ui/lutris-window.ui:566 lutris/gui/views/list.py:67
+#: share/lutris/ui/lutris-window.ui:580 lutris/gui/views/list.py:67
 msgid "Year"
 msgstr "Ano"
 
-#: share/lutris/ui/lutris-window.ui:581 lutris/gui/views/list.py:70
+#: share/lutris/ui/lutris-window.ui:595 lutris/gui/views/list.py:70
 msgid "Last Played"
 msgstr "Ultima vez jogado"
 
-#: share/lutris/ui/lutris-window.ui:596 lutris/gui/views/list.py:72
+#: share/lutris/ui/lutris-window.ui:610 lutris/gui/views/list.py:72
 msgid "Installed At"
 msgstr "Instalado em"
 
-#: share/lutris/ui/lutris-window.ui:611 lutris/gui/views/list.py:71
+#: share/lutris/ui/lutris-window.ui:625 lutris/gui/views/list.py:71
 msgid "Play Time"
 msgstr "Tempo de jogo"
 
-#: share/lutris/ui/lutris-window.ui:640
+#: share/lutris/ui/lutris-window.ui:654
 msgid "_Installed Games Only"
 msgstr "_Somente jogos instalados"
 
-#: share/lutris/ui/lutris-window.ui:655
+#: share/lutris/ui/lutris-window.ui:669
 msgid "Show Side _Panel"
 msgstr "Mostrar painel _lateral"
 
-#: share/lutris/ui/lutris-window.ui:670
+#: share/lutris/ui/lutris-window.ui:684
 msgid "Show _Hidden Games"
 msgstr "Mostrar _jogos escondidos"
 
-#: share/lutris/ui/lutris-window.ui:685
-msgid "Add Saved Search"
-msgstr "Adicionar pesquisa salva"
-
-#: share/lutris/ui/lutris-window.ui:699
+#: share/lutris/ui/lutris-window.ui:702
 msgid "Add Games"
 msgstr "Adicionar jogos"
 
-#: share/lutris/ui/lutris-window.ui:713
+#: share/lutris/ui/lutris-window.ui:716
 msgid "Preferences"
 msgstr "Preferências"
 
-#: share/lutris/ui/lutris-window.ui:738
+#: share/lutris/ui/lutris-window.ui:741
 msgid "Discord"
 msgstr "Discord"
 
-#: share/lutris/ui/lutris-window.ui:752
+#: share/lutris/ui/lutris-window.ui:755
 msgid "Lutris forums"
 msgstr "Forums do Lutris"
 
-#: share/lutris/ui/lutris-window.ui:766
+#: share/lutris/ui/lutris-window.ui:769
 msgid "Make a donation"
 msgstr "Faça uma doação"
 
@@ -700,7 +696,7 @@ msgstr "Parar"
 
 #: lutris/game_actions.py:192 lutris/game_actions.py:233
 #: lutris/gui/config/edit_game_categories.py:18
-#: lutris/gui/config/edit_saved_search.py:58 lutris/gui/widgets/sidebar.py:400
+#: lutris/gui/config/edit_saved_search.py:59 lutris/gui/widgets/sidebar.py:400
 msgid "Categories"
 msgstr "Categorias"
 
@@ -872,7 +868,7 @@ msgstr ""
 msgid "<b>Error lauching the game:</b>\n"
 msgstr "<b>Erro ao iniciar o jogo:</b>\n"
 
-#: lutris/game.py:1018
+#: lutris/game.py:1022
 #, python-format
 msgid ""
 "<b>Error: Missing shared library.</b>\n"
@@ -883,13 +879,13 @@ msgstr ""
 "\n"
 "%s"
 
-#: lutris/game.py:1024
+#: lutris/game.py:1028
 msgid ""
 "<b>Error: A different Wine version is already using the same Wine prefix.</b>"
 msgstr ""
 "<b>Erro: Uma versão diferente do Wine já está usando o mesmo prefixo.</b>"
 
-#: lutris/game.py:1042
+#: lutris/game.py:1046
 #, python-format
 msgid "Lutris can't move '%s' to a location inside of itself, '%s'."
 msgstr "Lutris não pode mover '%s' para um local dentro dele, '%s'."
@@ -1441,7 +1437,7 @@ msgstr ""
 "Se modificadas, essas opções substituem as mesmas opções das preferências."
 
 #: lutris/gui/config/edit_category_games.py:18
-#: lutris/gui/config/edit_game.py:10 lutris/gui/config/edit_saved_search.py:30
+#: lutris/gui/config/edit_game.py:10 lutris/gui/config/edit_saved_search.py:259
 #: lutris/gui/config/runner.py:18
 #, python-format
 msgid "Configure %s"
@@ -1513,60 +1509,56 @@ msgstr ""
 msgid "Changing Categories"
 msgstr "Alterando categorias"
 
-#: lutris/gui/config/edit_saved_search.py:39
+#: lutris/gui/config/edit_saved_search.py:40
 msgid "Search"
 msgstr "Pesquisar"
 
-#: lutris/gui/config/edit_saved_search.py:106
+#: lutris/gui/config/edit_saved_search.py:105
 msgid "Installed"
 msgstr "Instalado"
 
-#: lutris/gui/config/edit_saved_search.py:107
+#: lutris/gui/config/edit_saved_search.py:106
 msgid "Favorite"
 msgstr "Favorito"
 
-#: lutris/gui/config/edit_saved_search.py:108 lutris/gui/widgets/sidebar.py:493
+#: lutris/gui/config/edit_saved_search.py:107 lutris/gui/widgets/sidebar.py:493
 msgid "Hidden"
 msgstr "Oculto"
 
-#: lutris/gui/config/edit_saved_search.py:109
+#: lutris/gui/config/edit_saved_search.py:108
 msgid "Categorized"
 msgstr "Categorizado"
 
-#: lutris/gui/config/edit_saved_search.py:144
-#: lutris/gui/config/edit_saved_search.py:198
-msgid "(omit from search)"
-msgstr "(omitir da pesquisa)"
-
 #: lutris/gui/config/edit_saved_search.py:145
+#: lutris/gui/config/edit_saved_search.py:198
+msgid "-"
+msgstr ""
+
+#: lutris/gui/config/edit_saved_search.py:146
 msgid "Yes"
 msgstr "Sim"
 
-#: lutris/gui/config/edit_saved_search.py:146
+#: lutris/gui/config/edit_saved_search.py:147
 msgid "No"
 msgstr "Não"
 
-#: lutris/gui/config/edit_saved_search.py:147
-msgid "Maybe"
-msgstr "Talvez"
+#: lutris/gui/config/edit_saved_search.py:280
+#, python-format
+msgid "'%s' is already a saved search."
+msgstr "'%s' já é uma pesquisa avançada existente."
 
-#: lutris/gui/config/edit_saved_search.py:234
+#: lutris/gui/config/edit_saved_search.py:294
 #, python-format
 msgid "Do you want to delete the saved search '%s'?"
-msgstr "Você deseja deletar a pesquisa salva '%s'?"
+msgstr "Você deseja deletar a pesquisa avançada '%s'?"
 
-#: lutris/gui/config/edit_saved_search.py:236
+#: lutris/gui/config/edit_saved_search.py:296
 msgid ""
 "This will permanently destroy the saved search, but the games themselves "
 "will not be deleted."
 msgstr ""
-"Isso destruirá permanentemente a pesquisa salva, mas os jogos em si não "
-"serão excluídos."
-
-#: lutris/gui/config/edit_saved_search.py:270
-#, python-format
-msgid "'%s' is already a saved search."
-msgstr "'%s' já é uma pesquisa salva."
+"Isso destruirá permanentemente a pesquisa avançada salva, mas os jogos em si "
+"não serão excluídos."
 
 #: lutris/gui/config/game_common.py:34
 msgid "Select a runner in the Game Info tab"
@@ -2674,23 +2666,23 @@ msgstr "Abortar e reverter a instalação"
 msgid "_Close"
 msgstr "_Fechar"
 
-#: lutris/gui/lutriswindow.py:537
+#: lutris/gui/lutriswindow.py:543
 #, python-format
 msgid "Connect your %s account to access your games"
 msgstr "Conecte sua conta %s para acessar seus jogos"
 
-#: lutris/gui/lutriswindow.py:618
+#: lutris/gui/lutriswindow.py:624
 #, python-format
 msgid "Add a game matching '%s' to your favorites to see it here."
 msgstr ""
 "Adicione um jogo que corresponda %s aos seus favoritos para vê-lo aqui."
 
-#: lutris/gui/lutriswindow.py:620
+#: lutris/gui/lutriswindow.py:626
 #, python-format
 msgid "No hidden games matching '%s' found."
 msgstr "Nenhum jogo oculto correspondente a '%s' foi encontrado."
 
-#: lutris/gui/lutriswindow.py:623
+#: lutris/gui/lutriswindow.py:629
 #, python-format
 msgid ""
 "No installed games matching '%s' found. Press Ctrl+I to show uninstalled "
@@ -2699,43 +2691,43 @@ msgstr ""
 "Nenhum jogo instalado correspondente a '%s' foi encontrado. Pressione Ctrl+I "
 "para mostrar os jogos desinstalados."
 
-#: lutris/gui/lutriswindow.py:626
+#: lutris/gui/lutriswindow.py:632
 #, python-format
 msgid "No games matching '%s' found "
 msgstr "Nenhum jogo correspondente a '%s' foi encontrado "
 
-#: lutris/gui/lutriswindow.py:629
+#: lutris/gui/lutriswindow.py:635
 msgid "Add games to your favorites to see them here."
 msgstr "Adicione jogos aos seus favoritos para vê-los aqui."
 
-#: lutris/gui/lutriswindow.py:631
+#: lutris/gui/lutriswindow.py:637
 msgid "No games are hidden."
 msgstr "Não há jogos ocultados."
 
-#: lutris/gui/lutriswindow.py:633
+#: lutris/gui/lutriswindow.py:639
 msgid "No installed games found. Press Ctrl+I to show uninstalled games."
 msgstr ""
 "Nenhum jogo instalado encontrado. Pressiona Ctrl+I para exibir os jogos "
 "desinstalados."
 
-#: lutris/gui/lutriswindow.py:642
+#: lutris/gui/lutriswindow.py:648
 msgid "No games found"
 msgstr "Nenhum jogo encontrado"
 
-#: lutris/gui/lutriswindow.py:682
+#: lutris/gui/lutriswindow.py:688
 #, python-format
 msgid "Search %s games"
 msgstr "Pesquisar %s jogos"
 
-#: lutris/gui/lutriswindow.py:684
+#: lutris/gui/lutriswindow.py:690
 msgid "Search 1 game"
 msgstr "Pesquisar por um jogo"
 
-#: lutris/gui/lutriswindow.py:933
+#: lutris/gui/lutriswindow.py:939
 msgid "Unsupported Lutris Version"
 msgstr "Versão do Lutris não suportada"
 
-#: lutris/gui/lutriswindow.py:935
+#: lutris/gui/lutriswindow.py:941
 msgid ""
 "This version of Lutris will no longer receive support on Github and Discord, "
 "and may not interoperate properly with Lutris.net. Do you want to use it "
@@ -2744,7 +2736,7 @@ msgstr ""
 "Esta versão do Lutris não irá mais receber suporte no Github e Discord, e "
 "pode não funcionar corretamente com o Lutris.net. Você ainda deseja usa-lá?"
 
-#: lutris/gui/lutriswindow.py:1338
+#: lutris/gui/lutriswindow.py:1344
 msgid ""
 "Your limits are not set correctly. Please increase them as described here: "
 "<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>How-to:-"
@@ -2886,7 +2878,7 @@ msgstr "Biblioteca"
 
 #: lutris/gui/widgets/sidebar.py:401
 msgid "Saved Searches"
-msgstr "Pesquisas salvas"
+msgstr "Pesquisas avançadas"
 
 #: lutris/gui/widgets/sidebar.py:404
 msgid "Platforms"
@@ -7178,15 +7170,15 @@ msgstr ""
 msgid "Epic Games Store"
 msgstr ""
 
-#: lutris/services/flathub.py:57
+#: lutris/services/flathub.py:56
 msgid "Flathub"
 msgstr ""
 
-#: lutris/services/flathub.py:85
+#: lutris/services/flathub.py:84
 msgid "No flatpak or flatpak-spawn found"
 msgstr "Nenhum flatpak ou flatpak-spawn encontrado"
 
-#: lutris/services/flathub.py:105
+#: lutris/services/flathub.py:106
 msgid ""
 "Flathub is not configured on the system. Visit https://flatpak.org/setup/ "
 "for instructions."
@@ -8016,6 +8008,15 @@ msgstr "A versão do Wine precisa ser especificada."
 #: lutris/util/wine/wine.py:195
 msgid "No versions of Wine are installed."
 msgstr "Nenhuma versão do Wine está instalada."
+
+#~ msgid "Add Saved Search"
+#~ msgstr "Adicionar pesquisa salva"
+
+#~ msgid "(omit from search)"
+#~ msgstr "(omitir da pesquisa)"
+
+#~ msgid "Maybe"
+#~ msgstr "Talvez"
 
 #~ msgid "Zoom"
 #~ msgstr "Ampliar"
