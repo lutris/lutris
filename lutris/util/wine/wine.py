@@ -134,6 +134,22 @@ def get_wine_path_for_version(version: str, config: dict = None) -> str:
     if not version and config:
         version = config["version"]
 
+    return _get_wine_path_for_version(version)
+
+
+def get_wine_or_umu_path_for_version(version: str, config: dict = None) -> str:
+    """Returns the wine path for a version, but if the version is an Umu version then the
+    Umu path is returned instead of finding the Wine path."""
+    if not version and config:
+        version = config["version"]
+
+    if proton.is_proton_version(version):
+        return proton.get_umu_path()
+    else:
+        return _get_wine_path_for_version(version, config)
+
+
+def _get_wine_path_for_version(version: str, config: dict = None) -> str:
     if not version:
         raise UnspecifiedVersionError(_("The Wine version must be specified."))
 
