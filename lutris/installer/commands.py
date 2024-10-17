@@ -22,6 +22,7 @@ from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_default_wine_version, get_wine_path_for_version
+from lutris.util.wine import proton
 
 
 class CommandsMixin:
@@ -41,7 +42,6 @@ class CommandsMixin:
                 return proton.get_umu_path()
             else:
                 return wine_path
-
 
         # Special case that lets the Wine configuration explicit specify the path
         # to the Wine executable, not just a version number.
