@@ -225,6 +225,8 @@ def use_lutris_runtime(wine_path, force_disable=False):
     The runtime can be forced to be disabled, otherwise
     it's disabled automatically if Wine is installed system wide.
     """
+    if proton.is_proton_path(wine_path):
+        return False
     if force_disable or runtime.RUNTIME_DISABLED:
         return False
     if WINE_DIR in wine_path:
