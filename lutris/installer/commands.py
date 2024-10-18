@@ -21,8 +21,8 @@ from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
-from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_default_wine_version, get_wine_path_for_version
 from lutris.util.wine import proton
+from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_default_wine_version, get_wine_path_for_version
 
 
 class CommandsMixin:
