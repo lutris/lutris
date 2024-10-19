@@ -1078,7 +1078,8 @@ class wine(Runner):
         if show_debug != "inherit":
             env["WINEDEBUG"] = show_debug
         if show_debug == "-all":
-            env["DXVK_LOG_LEVEL"] = "none"
+            env["DXVK_LOG_LEVEL"] = "debug"
+            env["UMU_LOG"] = "debug"
         env["WINEARCH"] = self.wine_arch
         wine_exe = self.get_executable()
         wine_config_version = self.read_version_from_config()
