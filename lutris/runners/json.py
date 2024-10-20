@@ -2,6 +2,7 @@
 
 import json
 import os
+import shlex
 
 from lutris import settings
 from lutris.exceptions import MissingGameExecutableError
@@ -52,6 +53,11 @@ class JsonRunner(Runner):
             elif option["type"] == "string":
                 arguments.append(option["argument"])
                 arguments.append(self.runner_config.get(option["option"]))
+            elif option["type"] == "command_line":
+                arg = option.get("argument")
+                if arg:
+                    arguments.append(arg)
+                arguments += shlex.split(self.runner_config.get(option["option"]))
             else:
                 raise RuntimeError("Unhandled type %s" % option["type"])
         main_file = self.game_config.get(self.entry_point_option)
