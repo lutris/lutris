@@ -71,6 +71,19 @@
             "advanced": true,
             "argument": "--no-gui",
             "help": "Hides the menu bar (the bar at the top of the window)"
+        },
+        {
+            "option": "open_url_mode",
+            "type": "choice",
+            "label": "Open URLs",
+            "choices": [
+                ["Automatic", "off"],
+                ["Allow", "allow"],
+                ["Confirm", "confirm"],
+                ["Deny", "deny"]
+            ],
+            "default": "off",
+            "argument": "--open-url-mode"
         }
     ]
 }
