@@ -1,6 +1,21 @@
 lutris (0.5.18) jammy; urgency=medium
 
   * TODO
+  * Use dark theme by default
+  * Display cover-art rather than banners by default
+  * Add 'Uncategorized' view to sidebar
+  * Preference options that do not work on Wayland will be hidden on Wayland
+  * Game searches can now use fancy tags like 'installed:true' or 'source:gog', with explanatory tool-tip
+  * Updated the FlatHub and Amazon source to new APIs, restoring integration
+  * Itch.io source integration will load a collection named 'Lutris' if present
+  * GOG and Itch.io sources can now offer Linux and Windows installers for the same game
+  * Added support for the 'foot' terminal
+  * Support for DirectX 8 in DXVK v2.4
+  * Support for Ayatana Application Indicators
+  * Updated download links for the Atari800 and MicroM8 runners
+  * Improved Umu implementation
+  * Lutris log is included in the 'System' tab of the Preferences window
+  * Improved error reporting, with the Lutris log included in the error details
 
  -- Mathieu Comandon <mathieucomandon@gmail.com>  Sun, 13 Oct 2024 16:22:49 -0700
 
