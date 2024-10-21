@@ -57,13 +57,16 @@ def set_regedit(
     os.remove(reg_path)
 
 
-def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH):
+def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None):
     """Apply a regedit file to the Windows registry."""
     if arch == "win64" and wine_path and system.path_exists(wine_path + "64"):
         # Use wine64 by default if set to a 64bit prefix. Using regular wine
         # will prevent some registry keys from being created. Most likely to be
         # a bug in Wine. see: https://github.com/lutris/lutris/issues/804
         wine_path = wine_path + "64"
+
+    if proton.is_umu_path(wine_path):
+        proton_verb = "run"
 
     wineexec(
         "regedit",
@@ -72,11 +75,16 @@ def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_AR
         prefix=prefix,
         arch=arch,
         blocking=True,
+        proton_verb=proton_verb,
     )
 
 
-def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH):
+def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None):
     """Deletes a registry key from a Wine prefix"""
+
+    if proton.is_umu_path(wine_path):
+        proton_verb = "run"
+
     wineexec(
         "regedit",
         args='/S /D "%s"' % key,
@@ -84,6 +92,7 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH
         prefix=prefix,
         arch=arch,
         blocking=True,
+        proton_verb=proton_verb,
     )
 
 
@@ -96,6 +105,7 @@ def create_prefix(
     install_mono=None,
     runner=None,
     env=None,
+    proton_verb=None,
 ):
     """Create a new Wine prefix."""
     # pylint: disable=too-many-locals
@@ -122,6 +132,7 @@ def create_prefix(
         if not runner:
             runner = import_runner("wine")()
         wine_path = runner.get_executable()
+
     logger.info("Winepath: %s", wine_path)
 
     wineenv = {
@@ -139,10 +150,12 @@ def create_prefix(
         wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
         overrides["mscoree"] = "disabled"
 
-    if proton.is_proton_path(wine_path):
+    if proton.is_umu_path(wine_path):
         # All proton path prefixes are created via Umu; if you aren't using
         # the default Umu, we'll use PROTONPATH to indicate what Proton is
         # to be used.
+        wineenv["PROTON_VERB"] = "run"
+
         proton.update_proton_env(wine_path, wineenv, umu_log="debug")
 
         command = MonitoredCommand([proton.get_umu_path(), "createprefix"], env=wineenv)
@@ -225,7 +238,7 @@ def use_lutris_runtime(wine_path, force_disable=False):
     The runtime can be forced to be disabled, otherwise
     it's disabled automatically if Wine is installed system wide.
     """
-    if proton.is_proton_path(wine_path):
+    if proton.is_umu_path(wine_path):
         return False
     if force_disable or runtime.RUNTIME_DISABLED:
         return False
@@ -253,6 +266,7 @@ def wineexec(
     env=None,
     overrides=None,
     runner=None,
+    proton_verb=None,
 ):
     """
     Execute a Wine command.
@@ -309,8 +323,10 @@ def wineexec(
     if prefix:
         wineenv["WINEPREFIX"] = prefix
 
-    if proton.is_proton_path(wine_path):
-        proton.update_proton_env(wine_path, wineenv)
+    if proton.is_umu_path(wine_path):
+        if proton_verb:
+            wineenv["PROTON_VERB"] = proton_verb
+        proton.update_proton_env(wine_path, wineenv, umu_log="debug")
 
     # Create prefix if necessary
     if arch not in ("win32", "win64"):
@@ -399,6 +415,7 @@ def winetricks(
     disable_runtime=False,
     system_winetricks=False,
     runner=None,
+    proton_verb=None,
 ):
     """Execute winetricks."""
     winetricks_path, working_dir, env = find_winetricks(env, system_winetricks)
@@ -409,16 +426,27 @@ def winetricks(
         if not runner:
             runner = import_runner("wine")()
         winetricks_wine = runner.get_executable()
+
+    if proton.is_umu_path(wine_path):
+        proton_verb = "run"
+
     # We only need to perform winetricks if not using umu/proton. umu uses protonfixes
-    if proton.is_proton_path(wine_path):
-        logger.warning("Winetricks is currently not supported with Proton")
-        return
     if arch not in ("win32", "win64"):
         arch = detect_arch(prefix, winetricks_wine)
     args = app
+    # We only want to deny access to winetricks in proton
+    # if they are running silent mode (no gui)
     if str(silent).lower() in ("yes", "on", "true"):
+        if proton.is_umu_path(wine_path):
+            logger.warning("Proton uses UMU, no winetricks required.")
+            return
         args = "--unattended " + args
+    else:
+        # In case winetricks GUI is called
+        if proton.is_umu_path(wine_path):
+            proton_verb = "waitforexitandrun"
 
+    # Execute wineexec
     return wineexec(
         None,
         prefix=prefix,
@@ -431,15 +459,20 @@ def winetricks(
         env=env,
         disable_runtime=disable_runtime,
         runner=runner,
+        proton_verb=proton_verb,
     )
 
 
-def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, env=None, runner=None):
+def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, env=None, runner=None, proton_verb=None):
     """Execute winecfg."""
+
     if not wine_path:
         logger.debug("winecfg: Reverting to default wine")
         wine = import_runner("wine")
         wine_path = wine().get_executable()
+
+    if proton.is_umu_path(wine_path):
+        proton_verb = "waitforexitandrun"
 
     return wineexec(
         "winecfg.exe",
@@ -451,26 +484,38 @@ def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, en
         env=env,
         include_processes=["winecfg.exe"],
         runner=runner,
+        proton_verb=proton_verb,
     )
 
 
-def eject_disc(wine_path, prefix):
+def eject_disc(wine_path, prefix, proton_verb=None):
     """Use Wine to eject a drive"""
-    wineexec("eject", prefix=prefix, wine_path=wine_path, args="-a")
+
+    if proton.is_umu_path(wine_path):
+        proton_verb = "run"
+    wineexec(eject, prefix=prefix, wine_path=wine_path, args="-a", proton_verb=proton_verb)
 
 
-def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=None):
+def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=None, proton_verb=None):
     """Install a component from a cabfile in a prefix"""
+
+    if proton.is_umu_path(wine_path):
+        proton_verb = "run"
     cab_installer = CabInstaller(prefix, wine_path=wine_path, arch=arch)
     files = cab_installer.extract_from_cab(cabfile, component)
     registry_files = cab_installer.get_registry_files(files)
     for registry_file, _arch in registry_files:
-        set_regedit_file(registry_file, wine_path=wine_path, prefix=prefix, arch=_arch)
+        set_regedit_file(registry_file, wine_path=wine_path, prefix=prefix, arch=_arch, proton_verb=proton_verb)
     cab_installer.cleanup()
 
 
 def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
     winetricks_path, _working_dir, env = find_winetricks(env, system_winetricks)
+    if proton.is_umu_path(wine_path):
+        wine_path = wine_path + " wine"
+        env["PROTON_VERB"] = "waitforexitandrun"
+        proton.update_proton_env(wine_path, wineenv, umu_log="debug")
+
     aliases = {
         "wine": wine_path,
         "winecfg": wine_path + "cfg",
@@ -488,3 +533,4 @@ def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
     shell_command = get_shell_command(prefix, env, aliases)
     terminal = terminal or linux.get_default_terminal()
     system.spawn([terminal, "-e", shell_command])
+
