@@ -7,7 +7,7 @@ lutris (0.5.18) jammy; urgency=medium
   * Preference options that do not work on Wayland will be hidden when on Wayland
   * Game searches can now use fancy tags like 'installed:true' or 'source:gog', with explanatory tool-tip
   * Runner searches can use 'installed:true' as well, but no other fancy searches.
-  * Updated the FlatHub and Amazon source to new APIs, restoring integration
+  * Updated the Flathub and Amazon source to new APIs, restoring integration
   * Itch.io source integration will load a collection named 'Lutris' if present
   * GOG and Itch.io sources can now offer Linux and Windows installers for the same game
   * Added support for the 'foot' terminal
