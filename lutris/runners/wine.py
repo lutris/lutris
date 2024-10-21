@@ -22,12 +22,7 @@ from lutris.game import Game
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix,
-    delete_registry_key,
-    eject_disc,
-    install_cab_component,
     open_wine_terminal,
-    set_regedit,
-    set_regedit_file,
     winecfg,
     wineexec,
     winekill,
@@ -229,11 +224,12 @@ class wine(Runner):
         "wineboot.exe",
     )
 
-    def __init__(self, config=None, prefix=None, working_dir=None, wine_arch=None):  # noqa: C901
+    def __init__(self, config=None, prefix=None, working_dir=None, wine_arch=None, wine_version=None):  # noqa: C901
         super().__init__(config)
         self._prefix = prefix
         self._working_dir = working_dir
         self._wine_arch = wine_arch
+        self._default_wine_version = wine_version
         self.dll_overrides = DEFAULT_DLL_OVERRIDES.copy()  # we'll modify this, so we better copy it
 
         def get_wine_version_choices():
@@ -682,6 +678,9 @@ class wine(Runner):
 
     def get_runner_version(self, version: str = None) -> Optional[Dict[str, str]]:
         if not version:
+            if self._default_wine_version:
+                return {"version": self._default_wine_version}
+
             default_version_info = get_default_wine_runner_version_info()
             default_version = format_runner_version(default_version_info) if default_version_info else None
             version = self.read_version_from_config(default=default_version)
@@ -692,9 +691,8 @@ class wine(Runner):
         return super().get_runner_version(version)
 
     def read_version_from_config(self, default: str = None) -> str:
-        """Return the Wine version to use. use_default can be set to false to
-        force the installation of a specific wine version. If no version is configured,
-        we return the default supplied, or the4 global Wine default if none is."""
+        """Return the Wine version to use. If no version is configured,
+        we return the default supplied, or the global Wine default if none is."""
 
         # We must use the config levels to avoid getting a default if the setting
         # is not set; we'll fall back to get_default_version()
@@ -731,12 +729,21 @@ class wine(Runner):
 
         return resolved
 
+    def is_proton(self, version: str = None):
+        """True if the Wine version is a Proton version, requiring special handling. If no
+        version is supplied, this uses the selected configration in the runner, and falls
+        back ultimately to our get_default_version() logic."""
+        if version is None:
+            version = self._default_wine_version or self.read_version_from_config()
+        return proton.is_proton_version(version)
+
     def get_executable(self, version: str = None, fallback: bool = True) -> str:
         """Return the path to the Wine executable.
         A specific version can be specified if needed.
         """
         if version is None:
-            version = self.read_version_from_config()
+            version = self._default_wine_version or self.read_version_from_config()
+
         if version == proton.GE_PROTON_LATEST:
             return proton.get_umu_path()
 
@@ -844,6 +851,7 @@ class wine(Runner):
         quiet=False,
         prefix=None,
         wine_path=None,
+        wine_version=None,
         working_dir=None,
         blocking=False,
     ):
@@ -855,6 +863,7 @@ class wine(Runner):
             args=msi_args,
             prefix=prefix,
             wine_path=wine_path,
+            wine_version=wine_version,
             working_dir=working_dir,
             blocking=blocking,
         )
@@ -952,6 +961,7 @@ class wine(Runner):
             wine_path=self.get_executable(),
             env=self.get_env(),
             initial_pids=self.get_pids(),
+            runner=self,
         )
         return True
 
@@ -1087,8 +1097,8 @@ class wine(Runner):
         env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "mono")
         env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "gecko")
 
-        # We don't want to override gstreamer for proton, it has it's own version
-        if not proton.is_proton_path(WINE_DIR) and is_gstreamer_build(wine_exe):
+        # We don't want to override gstreamer for proton, it has its own version
+        if not self.is_proton() and is_gstreamer_build(wine_exe):
             path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
             path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
             if os.path.exists(path_64) or os.path.exists(path_32):
@@ -1130,9 +1140,8 @@ class wine(Runner):
     def finish_env(self, env: Dict[str, str], game) -> None:
         super().finish_env(env, game)
 
-        wine_exe = self.get_executable()
-
-        if proton.is_proton_path(wine_exe):
+        if self.is_proton():
+            wine_exe = self.get_executable()
             game_id = proton.get_game_id(game, env)
             proton.update_proton_env(wine_exe, env, game_id=game_id)
 
@@ -1161,7 +1170,7 @@ class wine(Runner):
             exe = wine_path or self.get_executable()
         except MisconfigurationError:
             return set()
-        if proton.is_proton_path(exe):
+        if self.is_proton():
             logger.debug("Tracking PIDs of Proton games is not possible at the moment")
             return set()
         if not exe.startswith("/"):
