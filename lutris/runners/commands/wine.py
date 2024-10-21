@@ -493,7 +493,7 @@ def eject_disc(wine_path, prefix, proton_verb=None):
 
     if proton.is_umu_path(wine_path):
         proton_verb = "run"
-    wineexec(eject, prefix=prefix, wine_path=wine_path, args="-a", proton_verb=proton_verb)
+    wineexec("eject", prefix=prefix, wine_path=wine_path, args="-a", proton_verb=proton_verb)
 
 
 def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=None, proton_verb=None):
@@ -514,7 +514,7 @@ def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
     if proton.is_umu_path(wine_path):
         wine_path = wine_path + " wine"
         env["PROTON_VERB"] = "waitforexitandrun"
-        proton.update_proton_env(wine_path, wineenv, umu_log="debug")
+        proton.update_proton_env(wine_path, env, umu_log="debug")
 
     aliases = {
         "wine": wine_path,
@@ -533,4 +533,3 @@ def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
     shell_command = get_shell_command(prefix, env, aliases)
     terminal = terminal or linux.get_default_terminal()
     system.spawn([terminal, "-e", shell_command])
-
