@@ -323,11 +323,6 @@ def wineexec(
     if prefix:
         wineenv["WINEPREFIX"] = prefix
 
-    if proton.is_umu_path(wine_path):
-        if proton_verb:
-            wineenv["PROTON_VERB"] = proton_verb
-        proton.update_proton_env(wine_path, wineenv, umu_log="debug")
-
     # Create prefix if necessary
     if arch not in ("win32", "win64"):
         arch = detect_arch(prefix, wine_path)
@@ -354,9 +349,14 @@ def wineexec(
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
+    if proton_verb:
+        wineenv["PROTON_VERB"] = proton_verb
+
     baseenv = runner.get_env(disable_runtime=disable_runtime)
     baseenv.update(wineenv)
     baseenv.update(env)
+    if proton.is_umu_path(wine_path):
+        proton.update_proton_env(wine_path, baseenv, umu_log="debug")
 
     command_parameters = [wine_path]
     if executable:
