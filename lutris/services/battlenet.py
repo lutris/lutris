@@ -23,6 +23,9 @@ try:
 
     BNET_ENABLED = True
 except Exception as ex:
+    # We do get strange Google-defined exceptions from problems with protobuf, so
+    # let's just catch (almost) everything. We do not want Lutris is crash, rather
+    # we just want to suppress Battle.net and nothing else.
     logger.warning("The Battle.net source is unavailable because Google protobuf could not be loaded: %s", ex)
     BNET_ENABLED = False
 
