@@ -59,7 +59,9 @@ def set_regedit(
     os.remove(reg_path)
 
 
-def set_regedit_file(filename, wine_path=None, wine_version=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None):
+def set_regedit_file(
+    filename, wine_path=None, wine_version=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None
+):
     """Apply a regedit file to the Windows registry."""
     if arch == "win64" and wine_path and system.path_exists(wine_path + "64"):
         # Use wine64 by default if set to a 64bit prefix. Using regular wine
@@ -482,7 +484,16 @@ def winetricks(
     )
 
 
-def winecfg(wine_path=None, wine_version=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, env=None, runner=None, proton_verb=None):
+def winecfg(
+    wine_path=None,
+    wine_version=None,
+    prefix=None,
+    arch=WINE_DEFAULT_ARCH,
+    config=None,
+    env=None,
+    runner=None,
+    proton_verb=None,
+):
     """Execute winecfg."""
 
     if not wine_path:
@@ -515,7 +526,9 @@ def eject_disc(wine_path, prefix, wine_version=None, proton_verb=None):
     wineexec("eject", prefix=prefix, wine_path=wine_path, wine_version=wine_version, args="-a", proton_verb=proton_verb)
 
 
-def install_cab_component(cabfile, component, wine_version=None, wine_path=None, prefix=None, arch=None, proton_verb=None):
+def install_cab_component(
+    cabfile, component, wine_version=None, wine_path=None, prefix=None, arch=None, proton_verb=None
+):
     """Install a component from a cabfile in a prefix"""
 
     if proton.is_umu_path(wine_path):
@@ -524,7 +537,14 @@ def install_cab_component(cabfile, component, wine_version=None, wine_path=None,
     files = cab_installer.extract_from_cab(cabfile, component)
     registry_files = cab_installer.get_registry_files(files)
     for registry_file, _arch in registry_files:
-        set_regedit_file(registry_file, wine_path=wine_path, wine_version=wine_version, prefix=prefix, arch=_arch, proton_verb=proton_verb)
+        set_regedit_file(
+            registry_file,
+            wine_path=wine_path,
+            wine_version=wine_version,
+            prefix=prefix,
+            arch=_arch,
+            proton_verb=proton_verb,
+        )
     cab_installer.cleanup()
 
 
