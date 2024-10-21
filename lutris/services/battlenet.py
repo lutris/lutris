@@ -22,7 +22,7 @@ try:
     from lutris.util.battlenet.product_db_pb2 import ProductDb
 
     BNET_ENABLED = True
-except (ImportError, TypeError) as ex:
+except Exception as ex:
     logger.warning("The Battle.net source is unavailable because Google protobuf could not be loaded: %s", ex)
     BNET_ENABLED = False
 
