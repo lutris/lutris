@@ -150,7 +150,7 @@ def create_prefix(
         wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
         overrides["mscoree"] = "disabled"
 
-    if proton.is_umu_path(wine_path):
+    if proton.is_proton_path(wine_path):
         # All proton path prefixes are created via Umu; if you aren't using
         # the default Umu, we'll use PROTONPATH to indicate what Proton is
         # to be used.
@@ -356,8 +356,9 @@ def wineexec(
     baseenv = runner.get_env(disable_runtime=disable_runtime)
     baseenv.update(wineenv)
     baseenv.update(env)
-    if proton.is_umu_path(wine_path):
+    if proton.is_proton_path(wine_path):
         proton.update_proton_env(wine_path, baseenv, umu_log="debug")
+        wine_path = proton.get_umu_path()
 
     command_parameters = [wine_path]
     if executable:
