@@ -25,8 +25,6 @@ from lutris.util.wine.wine import (
     is_prefix_directory,
 )
 
-GE_PROTON_LATEST = proton.GE_PROTON_LATEST
-
 
 def set_regedit(
     path,
@@ -65,7 +63,7 @@ def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_AR
         # a bug in Wine. see: https://github.com/lutris/lutris/issues/804
         wine_path = wine_path + "64"
 
-    if proton.is_umu_path(wine_path):
+    if proton.is_proton_path(wine_path):
         proton_verb = "run"
 
     wineexec(
@@ -82,7 +80,7 @@ def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_AR
 def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None):
     """Deletes a registry key from a Wine prefix"""
 
-    if proton.is_umu_path(wine_path):
+    if proton.is_proton_path(wine_path):
         proton_verb = "run"
 
     wineexec(
@@ -156,7 +154,7 @@ def create_prefix(
         # to be used.
         wineenv["PROTON_VERB"] = "run"
 
-        proton.update_proton_env(wine_path, wineenv, umu_log="debug")
+        proton.update_proton_env(wine_path, wineenv)
 
         command = MonitoredCommand([proton.get_umu_path(), "createprefix"], env=wineenv)
         command.start()
@@ -196,12 +194,12 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_p
     steam_data_dir = os.path.expanduser("~/.local/share/Steam/compatibilitytools.d")
     if not env:
         env = {"WINEARCH": arch, "WINEPREFIX": prefix}
-    if proton.is_umu_path(wine_path) and os.path.exists(f"{steam_data_dir}/UMU-Latest"):
+    if proton.is_proton_path(wine_path):
         command = [proton.get_umu_path(), "wineboot", "-k"]
         env["GAMEID"] = proton.DEFAULT_GAMEID
         env["WINEPREFIX"] = prefix
         env["PROTON_VERB"] = "runinprefix"
-        env["PROTONPATH"] = os.path.realpath(f"{steam_data_dir}/UMU-Latest")
+        env["PROTONPATH"] = proton.get_proton_path_by_path(wine_path)
     else:
         if not wine_path:
             if not runner:
@@ -239,7 +237,7 @@ def use_lutris_runtime(wine_path, force_disable=False):
     The runtime can be forced to be disabled, otherwise
     it's disabled automatically if Wine is installed system wide.
     """
-    if proton.is_umu_path(wine_path):
+    if proton.is_proton_path(wine_path):
         return False
     if force_disable or runtime.RUNTIME_DISABLED:
         return False
@@ -316,7 +314,7 @@ def wineexec(
         args = '{} "{}"'.format(_args[0], _args[1])
 
     wineenv = {"WINEARCH": arch}
-    if winetricks_wine:
+    if winetricks_wine is not wine_path and not proton.is_proton_path(wine_path):
         wineenv["WINE"] = winetricks_wine
     else:
         wineenv["WINE"] = wine_path
@@ -328,12 +326,14 @@ def wineexec(
     if arch not in ("win32", "win64"):
         arch = detect_arch(prefix, wine_path)
     if not is_prefix_directory(prefix):
-        wine_bin = winetricks_wine if winetricks_wine else wine_path
+        wine_bin = winetricks_wine if winetricks_wine and not proton.is_proton_path(wine_path) else wine_path
         create_prefix(prefix, wine_path=wine_bin, arch=arch, runner=runner)
 
     wine_system_config = config.system_config if config else runner.system_config
     disable_runtime = disable_runtime or wine_system_config["disable_runtime"]
-    if use_lutris_runtime(wine_path=wineenv["WINE"], force_disable=disable_runtime):
+    if use_lutris_runtime(wine_path=wineenv["WINE"], force_disable=disable_runtime) and not proton.is_proton_path(
+        wine_path
+    ):
         if WINE_DIR in wine_path:
             wine_root_path = os.path.dirname(os.path.dirname(wine_path))
         elif WINE_DIR in winetricks_wine:
@@ -356,11 +356,18 @@ def wineexec(
     baseenv = runner.get_env(disable_runtime=disable_runtime)
     baseenv.update(wineenv)
     baseenv.update(env)
-    if proton.is_proton_path(wine_path):
-        proton.update_proton_env(wine_path, baseenv, umu_log="debug")
-        wine_path = proton.get_umu_path()
 
-    command_parameters = [wine_path]
+    if proton.is_proton_path(wine_path):
+        proton.update_proton_env(wine_path, baseenv)
+
+    command_parameters = []
+    if proton.is_proton_path(wine_path):
+        command_parameters.append(proton.get_umu_path())
+        if winetricks_wine != "" and wine_path not in winetricks_wine:
+            command_parameters.append("winetricks")
+    else:
+        command_parameters.append(wine_path)
+
     if executable:
         command_parameters.append(executable)
     command_parameters += split_arguments(args)
@@ -424,28 +431,33 @@ def winetricks(
 
     if wine_path:
         winetricks_wine = wine_path
+        if proton.is_proton_path(wine_path):
+            protonfixes_path = os.path.join(proton.get_proton_path_by_path(wine_path), "protonfixes")
+            if os.path.exists(protonfixes_path):
+                winetricks_wine = os.path.join(protonfixes_path, "winetricks")
+                winetricks_path = wine_path
+                if not app:
+                    silent = False
+                    app = "--gui"
+            else:
+                logger.info("winetricks: Valve official Proton builds do not support winetricks.")
+                return
     else:
         if not runner:
             runner = import_runner("wine")()
         winetricks_wine = runner.get_executable()
 
-    if proton.is_umu_path(wine_path):
-        proton_verb = "run"
-
-    # We only need to perform winetricks if not using umu/proton. umu uses protonfixes
     if arch not in ("win32", "win64"):
         arch = detect_arch(prefix, winetricks_wine)
     args = app
     # We only want to deny access to winetricks in proton
     # if they are running silent mode (no gui)
     if str(silent).lower() in ("yes", "on", "true"):
-        if proton.is_umu_path(wine_path):
-            logger.warning("Proton uses UMU, no winetricks required.")
-            return
-        args = "--unattended " + args
+        if proton.is_proton_path(wine_path):
+            proton_verb = "run"
+        args = "-q " + args
     else:
-        # In case winetricks GUI is called
-        if proton.is_umu_path(wine_path):
+        if proton.is_proton_path(wine_path):
             proton_verb = "waitforexitandrun"
 
     # Execute wineexec
@@ -473,7 +485,7 @@ def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, en
         wine = import_runner("wine")
         wine_path = wine().get_executable()
 
-    if proton.is_umu_path(wine_path):
+    if proton.is_proton_path(wine_path):
         proton_verb = "waitforexitandrun"
 
     return wineexec(
@@ -493,7 +505,7 @@ def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, en
 def eject_disc(wine_path, prefix, proton_verb=None):
     """Use Wine to eject a drive"""
 
-    if proton.is_umu_path(wine_path):
+    if proton.is_proton_path(wine_path):
         proton_verb = "run"
     wineexec("eject", prefix=prefix, wine_path=wine_path, args="-a", proton_verb=proton_verb)
 
@@ -501,7 +513,7 @@ def eject_disc(wine_path, prefix, proton_verb=None):
 def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=None, proton_verb=None):
     """Install a component from a cabfile in a prefix"""
 
-    if proton.is_umu_path(wine_path):
+    if proton.is_proton_path(wine_path):
         proton_verb = "run"
     cab_installer = CabInstaller(prefix, wine_path=wine_path, arch=arch)
     files = cab_installer.extract_from_cab(cabfile, component)
@@ -513,10 +525,10 @@ def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=
 
 def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
     winetricks_path, _working_dir, env = find_winetricks(env, system_winetricks)
-    if proton.is_umu_path(wine_path):
-        wine_path = wine_path + " wine"
+    if proton.is_proton_path(wine_path):
+        wine_path = proton.get_umu_path() + " wine"
         env["PROTON_VERB"] = "waitforexitandrun"
-        proton.update_proton_env(wine_path, env, umu_log="debug")
+        proton.update_proton_env(wine_path, env)
 
     aliases = {
         "wine": wine_path,
