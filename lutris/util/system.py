@@ -578,13 +578,18 @@ def update_desktop_icons():
         execute(["gtk-update-icon-cache", "-tf", os.path.join(settings.RUNTIME_DIR, "icons/hicolor")], quiet=True)
 
 
-def get_disk_size(path):
-    """Return the disk size in bytes of a folder"""
+def get_disk_size(path: str) -> int:
+    """Return the disk size in bytes of a file or folder"""
+
+    def get_file_size(file_path):
+        return os.stat(file_path).st_size
+
+    if os.path.isfile(path):
+        return get_file_size(path)
+
     total_size = 0
     for base, _dirs, files in os.walk(path):
-        total_size += sum(
-            os.stat(os.path.join(base, f)).st_size for f in files if os.path.isfile(os.path.join(base, f))
-        )
+        total_size += sum(get_file_size(os.path.join(base, f)) for f in files if os.path.isfile(os.path.join(base, f)))
     return total_size
 
 
