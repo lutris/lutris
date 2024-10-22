@@ -4,7 +4,7 @@
 import os
 import shlex
 from gettext import gettext as _
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, List
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
@@ -766,6 +766,16 @@ class wine(Runner):
             # config or the runner specific config. We need to know
             # which one to get the correct LutrisConfig object.
         return wine_path
+
+    def get_command(self) -> List[str]:
+        command = super().get_command()
+        if command:
+            exe = command[0]
+
+            if proton.is_proton_path(exe) and not proton.is_umu_path(exe):
+                command[0] = proton.get_umu_path()
+
+        return command
 
     def is_installed(self, flatpak_allowed: bool = True, version: str = None, fallback: bool = True) -> bool:
         """Check if Wine is installed.
