@@ -38,10 +38,11 @@ except Exception as ex:
 
 def detect_arch(prefix_path: str = None, wine_path: str = None) -> str:
     """Given a Wine prefix path, return its architecture"""
+    if wine_path:
+        if proton.is_proton_path(wine_path) or system.path_exists(wine_path + "64"):
+            return "win64"
     if prefix_path and is_prefix_directory(prefix_path):
         return detect_prefix_arch(prefix_path)
-    if wine_path and system.path_exists(wine_path + "64"):
-        return "win64"
     return "win32"
 
 
@@ -140,7 +141,7 @@ def get_wine_path_for_version(version: str, config: dict = None) -> str:
     if version in WINE_PATHS:
         return system.find_required_executable(WINE_PATHS[version])
     if proton.is_proton_version(version):
-        return proton.get_proton_bin_for_version(version)
+        return proton.get_proton_wine_path(version)
     if version == "custom":
         if config is None:
             raise RuntimeError("Custom wine paths are only supported when a configuration is available.")

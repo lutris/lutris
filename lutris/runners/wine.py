@@ -737,9 +737,9 @@ class wine(Runner):
         """
         if version is None:
             version = self.read_version_from_config()
-        if version == proton.GE_PROTON_LATEST:
-            return proton.get_umu_path()
 
+        if proton.is_proton_version(version):
+            return proton.get_proton_wine_path(version)
         try:
             wine_path = self.get_path_for_version(version)
             if system.path_exists(wine_path):
@@ -987,7 +987,7 @@ class wine(Runner):
                     if (
                         value
                         and key in ("Desktop", "WineDesktop")
-                        and ("wine-ge" in self.get_executable().lower() or "proton" in self.get_executable().lower())
+                        and ("wine-ge" in self.get_executable().lower() or "umu" in self.get_executable().lower())
                     ):
                         logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
                         value = None
@@ -1153,9 +1153,8 @@ class wine(Runner):
             exe = self.get_executable()
             if WINE_DIR:
                 wine_path = os.path.dirname(os.path.dirname(exe))
-            for proton_path in proton.get_proton_paths():
-                if proton_path in exe:
-                    wine_path = os.path.dirname(os.path.dirname(exe))
+            if "umu" in exe:
+                wine_path = proton.get_umu_path()
         except MisconfigurationError:
             wine_path = None
 
