@@ -59,10 +59,9 @@ def get_umu_path() -> str:
 
     If this script can't be found this will raise MissingExecutableError."""
 
-    # We can access Umu via it's main .py file, or via the public name which is just
-    # symbolic link to the same file. We'll check both for compatibility, just in case
-    # Umu gets translated into Perl or something.
-    entry_points = ["umu_run.py", "umu-run"]
+    # 'umu-run' is normally the entry point, and is a zipapp full of Python code. But
+    # We used to ship a directory of loose files, and the entry point then is 'umu_run.py'
+    entry_points = ["umu-run", "umu_run.py"]
 
     custom_path = settings.read_setting("umu_path")
     if custom_path:
