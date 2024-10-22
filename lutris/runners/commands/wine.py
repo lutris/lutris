@@ -197,10 +197,11 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_p
     if not env:
         env = {"WINEARCH": arch, "WINEPREFIX": prefix}
     if proton.is_umu_path(wine_path) and os.path.exists(f"{steam_data_dir}/UMU-Latest"):
-        proton_version = os.path.realpath(f"{steam_data_dir}/UMU-Latest")
-        command = [os.path.join(proton_version, "files", "bin", "wineserver"), "-k"]
+        command = [proton.get_umu_path(), "wineboot", "-k"]
         env["GAMEID"] = proton.DEFAULT_GAMEID
         env["WINEPREFIX"] = prefix
+        env["PROTON_VERB"] = "runinprefix"
+        env["PROTONPATH"] = os.path.realpath(f"{steam_data_dir}/UMU-Latest")
     else:
         if not wine_path:
             if not runner:
