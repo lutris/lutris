@@ -172,6 +172,9 @@ class RunnerInstallDialog(ModelessDialog):
 
     def runner_fetch_cb(self, result, error):
         """Clear the box and display versions from runner_info"""
+        if self.vbox is None:
+            return  # if the dialog has closed before the runner fetch completed
+
         if error:
             logger.error(error)
             ErrorDialog(_("Unable to get runner versions: %s") % error, parent=self)
