@@ -82,7 +82,7 @@ def get_launch_parameters(runner, gameplay_info):
     if has_gamescope:
         launch_arguments = get_gamescope_args(launch_arguments, system_config)
         if system_config.get("gamescope_hdr"):
-            env["ENABLE_HDR_WSI"] = "1"
+            env["DXVK_HDR"] = "1"
 
     return launch_arguments, env
 
