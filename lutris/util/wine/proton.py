@@ -2,8 +2,7 @@
 
 import json
 import os
-from gettext import gettext as _
-from typing import Dict, Generator, List, Optional
+from typing import Dict, Generator, List
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError

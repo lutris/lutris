@@ -191,7 +191,6 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_p
     """Kill processes in Wine prefix."""
 
     initial_pids = initial_pids or []
-    steam_data_dir = os.path.expanduser("~/.local/share/Steam/compatibilitytools.d")
     if not env:
         env = {"WINEARCH": arch, "WINEPREFIX": prefix}
     if proton.is_proton_path(wine_path):
