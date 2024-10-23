@@ -987,7 +987,7 @@ class wine(Runner):
                     if (
                         value
                         and key in ("Desktop", "WineDesktop")
-                        and ("wine-ge" in self.get_executable().lower() or "umu" in self.get_executable().lower())
+                        and ("wine-ge" in self.get_executable().lower() or proton.is_proton_path(self.get_executable().lower()))
                     ):
                         logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
                         value = None
@@ -1153,8 +1153,6 @@ class wine(Runner):
             exe = self.get_executable()
             if WINE_DIR:
                 wine_path = os.path.dirname(os.path.dirname(exe))
-            if "umu" in exe:
-                wine_path = proton.get_umu_path()
         except MisconfigurationError:
             wine_path = None
 
@@ -1218,7 +1216,6 @@ class wine(Runner):
 
             if not fsync_supported:
                 raise FsyncUnsupportedError()
-
         command = self.get_command()
 
         game_exe, args, _working_dir = get_real_executable(game_exe, self.working_dir)
