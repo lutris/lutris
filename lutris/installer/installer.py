@@ -250,21 +250,38 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             import_runner(self.runner)().adjust_installer_runner_config(installer_runner_config)
             config[self.runner] = installer_runner_config
 
+        game_config = config["game"]
+
+        entry_point_keys = ("iso", "rom", "main_file", "exe")
+
         if "game" in self.script:
             try:
-                config["game"].update(self.script["game"])
+                game_config.update(self.script["game"])
             except ValueError as err:
                 raise ScriptingError(_("Invalid 'game' section"), self.script["game"]) from err
-            config["game"] = self._substitute_config(config["game"])
-            if AUTO_ELF_EXE in config["game"].get("exe", ""):
-                config["game"]["exe"] = find_linux_game_executable(self.interpreter.target_path, make_executable=True)
-            elif AUTO_WIN32_EXE in config["game"].get("exe", ""):
-                config["game"]["exe"] = find_windows_game_executable(self.interpreter.target_path)
 
-            # Fix possible case differences
-            for key in ("iso", "rom", "main_file", "exe"):
-                if config["game"].get(key):
-                    config["game"][key] = fix_path_case(config["game"][key])
+        # Obsolete install scripts may have the entry point key at root level;
+        # we'll move them into the game-config if so, and if they are not already
+        # there. Add a warning because I'm sure this compatibility ship will get lost,
+        # and the scripts would be better updated.
+        for entry_point_key in entry_point_keys:
+            if entry_point_key in self.script and entry_point_key not in game_config:
+                logger.warning("Moving entry point '%s' from script root level to the game config", entry_point_key)
+                game_config[entry_point_key] = self.script[entry_point_key]
+
+        game_config = self._substitute_config(game_config)
+        if AUTO_ELF_EXE in game_config.get("exe", ""):
+            game_config["exe"] = find_linux_game_executable(self.interpreter.target_path, make_executable=True)
+        elif AUTO_WIN32_EXE in game_config.get("exe", ""):
+            game_config["exe"] = find_windows_game_executable(self.interpreter.target_path)
+
+        # Fix possible case differences
+        for key in entry_point_keys:
+            entry_point = game_config.get(key)
+            if entry_point:
+                game_config[key] = fix_path_case(entry_point)
+
+        config["game"] = game_config
         config["name"] = self.game_name
         config["script"] = self.script
         config["variables"] = self.variables
