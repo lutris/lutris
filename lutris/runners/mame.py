@@ -240,7 +240,8 @@ class mame(Runner):  # pylint: disable=invalid-name
         def on_runner_installed(*args):
             def on_mame_ready(result, error):
                 notify_mame_xml(result, error)
-                callback(*args)
+                if callback:
+                    callback(*args)
 
             AsyncCall(write_mame_xml, on_mame_ready)
 
