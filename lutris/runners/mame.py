@@ -111,7 +111,7 @@ class mame(Runner):  # pylint: disable=invalid-name
                 (_("CD-ROM"), "cdrm"),
                 (_("CD-ROM 1"), "cdrm1"),
                 (_("CD-ROM 2"), "cdrm2"),
-                (_("Snapshot"), "dump"),
+                (_("Snapshot (dump)"), "dump"),
                 (_("Quickload"), "quickload"),
                 (_("Memory Card"), "memc"),
                 (_("Cylinder"), "cyln"),
