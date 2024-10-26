@@ -30,7 +30,10 @@ def is_proton_path(wine_path: str) -> bool:
     """True if the path given actually runs Umu; this will run Proton-Wine in turn,
     but can be directed to particular Proton implementation by setting the env-var
     PROTONPATH, but if this is omitted it will default to the latest Proton it
-    downloads."""
+    downloads.
+
+    This function may be given the wine root directory or a file within such as
+    the wine executable and will return true for either."""
     for proton_path in _iter_proton_locations():
         for p in os.listdir(proton_path):
             if "proton" in p.lower():

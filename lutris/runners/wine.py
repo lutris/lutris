@@ -987,7 +987,10 @@ class wine(Runner):
                     if (
                         value
                         and key in ("Desktop", "WineDesktop")
-                        and ("wine-ge" in self.get_executable().lower() or "umu" in self.get_executable().lower())
+                        and (
+                            "wine-ge" in self.get_executable().casefold()
+                            or proton.is_proton_path(self.get_executable())
+                        )
                     ):
                         logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
                         value = None
@@ -1148,13 +1151,8 @@ class wine(Runner):
 
     def get_runtime_env(self):
         """Return runtime environment variables with path to wine for Lutris builds"""
-        wine_path = None
         try:
-            exe = self.get_executable()
-            if WINE_DIR:
-                wine_path = os.path.dirname(os.path.dirname(exe))
-            if "umu" in exe:
-                wine_path = proton.get_umu_path()
+            wine_path = os.path.dirname(os.path.dirname(self.get_executable()))
         except MisconfigurationError:
             wine_path = None
 
