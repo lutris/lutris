@@ -8,6 +8,7 @@ from lutris import settings
 from lutris.exceptions import MissingExecutableError
 from lutris.util import system
 from lutris.util.steam.config import get_steamapps_dirs
+from lutris.util.strings import get_natural_sort_key
 
 DEFAULT_GAMEID = "umu-default"
 
@@ -120,16 +121,6 @@ def get_proton_path_by_path(wine_path: str) -> str:
     return version_directory
 
 
-def get_proton_paths() -> List[str]:
-    """Get the Folder that contains all the Proton versions. Can probably be improved"""
-    paths = set()
-    for proton_path in _iter_proton_locations():
-        for version in [p for p in os.listdir(proton_path) if "proton" in p.lower()]:
-            if system.path_exists(os.path.join(proton_path, version, "proton")):
-                paths.add(proton_path)
-    return list(paths)
-
-
 def list_proton_versions() -> List[str]:
     """Return the list of Proton versions installed in Steam"""
     try:
@@ -138,13 +129,13 @@ def list_proton_versions() -> List[str]:
     except MissingExecutableError:
         return []
 
-    versions = []
-    for proton_path in get_proton_paths():
-        for version in [p for p in os.listdir(proton_path) if "proton" in p.lower()]:
+    versions = set()
+    for proton_path in _iter_proton_locations():
+        for version in os.listdir(proton_path):
             path = os.path.join(proton_path, version, "proton")
             if os.path.isfile(path):
-                versions.append(version)
-    return versions
+                versions.add(version)
+    return sorted(versions, key=get_natural_sort_key, reverse=True)
 
 
 def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = None) -> None:
