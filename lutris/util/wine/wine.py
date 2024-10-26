@@ -10,7 +10,7 @@ from lutris.api import get_default_wine_runner_version_info
 from lutris.exceptions import MisconfigurationError, UnavailableRunnerError, UnspecifiedVersionError
 from lutris.util import cache_single, linux, system
 from lutris.util.log import logger
-from lutris.util.strings import parse_version
+from lutris.util.strings import get_natural_sort_key, parse_version
 from lutris.util.wine import fsync, proton
 
 WINE_DIR: str = os.path.join(settings.RUNNER_DIR, "wine")
@@ -105,7 +105,8 @@ def is_installed_systemwide() -> bool:
 
 def list_system_wine_versions() -> List[str]:
     """Return the list of wine versions installed on the system"""
-    return [name for name, path in WINE_PATHS.items() if get_system_wine_version(path)]
+    versions = [name for name, path in WINE_PATHS.items() if get_system_wine_version(path)]
+    return sorted(versions, key=get_natural_sort_key, reverse=True)
 
 
 def list_lutris_wine_versions() -> List[str]:
@@ -120,7 +121,7 @@ def list_lutris_wine_versions() -> List[str]:
                 versions.append(dirname)
         except MisconfigurationError:
             pass  # if it's not properly installed, skip it
-    return versions
+    return sorted(versions, key=get_natural_sort_key, reverse=True)
 
 
 @cache_single
