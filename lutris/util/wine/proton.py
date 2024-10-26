@@ -2,11 +2,12 @@
 
 import json
 import os
+from gettext import gettext as _
 from typing import Dict, Generator, List
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
-from lutris.util import system
+from lutris.util import cache_single, system
 from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import get_natural_sort_key
 
@@ -35,14 +36,13 @@ def is_proton_path(wine_path: str) -> bool:
 
     This function may be given the wine root directory or a file within such as
     the wine executable and will return true for either."""
-    for proton_path in _iter_proton_locations():
-        for p in os.listdir(proton_path):
-            if "proton" in p.lower():
-                if p in wine_path:
-                    return True
+    for candidate_wine_path in get_proton_versions().values():
+        if system.path_contains(candidate_wine_path, wine_path):
+            return True
     return False
 
 
+@cache_single
 def get_umu_path() -> str:
     """Returns the path to the Umu launch script, which can be run to execute
     a Proton version. It can supply a default Proton, but if the env-var PROTONPATH
@@ -82,33 +82,19 @@ def get_umu_path() -> str:
     raise MissingExecutableError("Install umu to use Proton")
 
 
-def _iter_proton_locations() -> Generator[str, None, None]:
-    """Iterate through all existing Proton locations"""
-    try:
-        steamapp_dirs = get_steamapps_dirs()
-    except:
-        return  # in case of corrupt or unreadable Steam configuration files!
-
-    for path in [os.path.join(p, "common") for p in steamapp_dirs]:
-        if os.path.isdir(path):
-            yield path
-    for path in [os.path.join(p, "") for p in steamapp_dirs]:
-        if os.path.isdir(path):
-            yield path
-
-
 def get_proton_wine_path(version: str) -> str:
     """Get the wine path for the specified proton version"""
-    for proton_path in _iter_proton_locations():
-        for dir_name in os.listdir(proton_path):
-            if "proton" in dir_name.lower() and version.lower() in dir_name.lower():
-                wine_path_dist = os.path.join(proton_path, dir_name, "dist/bin/wine")
-                wine_path_files = os.path.join(proton_path, dir_name, "files/bin/wine")
-                if os.path.exists(wine_path_dist):
-                    return wine_path_dist
-                if os.path.exists(wine_path_files):
-                    return wine_path_files
-    raise MissingExecutableError("Selected Proton version is missing wine executable. Unable to use.")
+    wine_path = get_proton_versions().get(version)
+    if wine_path:
+        wine_path_dist = os.path.join(wine_path, "dist/bin/wine")
+        if os.path.exists(wine_path_dist):
+            return wine_path_dist
+
+        wine_path_files = os.path.join(wine_path, "files/bin/wine")
+        if os.path.exists(wine_path_files):
+            return wine_path_files
+
+    raise MissingExecutableError(_("Proton version '%s' is missing its wine executable and can't be used.") % version)
 
 
 def get_proton_path_by_path(wine_path: str) -> str:
@@ -122,20 +108,43 @@ def get_proton_path_by_path(wine_path: str) -> str:
 
 
 def list_proton_versions() -> List[str]:
-    """Return the list of Proton versions installed in Steam"""
+    """Return the list of Proton versions installed in Steam, in sorted order."""
+    return sorted(get_proton_versions().keys(), key=get_natural_sort_key, reverse=True)
+
+
+@cache_single
+def get_proton_versions() -> Dict[str, str]:
+    """Return the dict of Proton versions installed in Steam, which is cached.
+    The keys are the versions, and the values are the paths to those versions,
+    which are their wine-paths."""
     try:
         # We can only use a Proton install via the Umu launcher script.
         _ = get_umu_path()
     except MissingExecutableError:
-        return []
+        return {}
 
-    versions = set()
+    versions = dict()
     for proton_path in _iter_proton_locations():
         for version in os.listdir(proton_path):
-            path = os.path.join(proton_path, version, "proton")
-            if os.path.isfile(path):
-                versions.add(version)
-    return sorted(versions, key=get_natural_sort_key, reverse=True)
+            wine_path = os.path.join(proton_path, version)
+            if os.path.isfile(os.path.join(wine_path, "proton")):
+                versions[version] = wine_path
+    return versions
+
+
+def _iter_proton_locations() -> Generator[str, None, None]:
+    """Iterate through all existing Proton locations"""
+    try:
+        steamapp_dirs = get_steamapps_dirs()
+    except:
+        return  # in case of corrupt or unreadable Steam configuration files!
+
+    for path in [os.path.join(p, "common") for p in steamapp_dirs]:
+        if os.path.isdir(path):
+            yield path
+    for path in [os.path.join(p, "") for p in steamapp_dirs]:
+        if os.path.isdir(path):
+            yield path
 
 
 def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = None) -> None:
