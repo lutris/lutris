@@ -449,8 +449,7 @@ def winetricks(
     if arch not in ("win32", "win64"):
         arch = detect_arch(prefix, winetricks_wine)
     args = app
-    # We only want to deny access to winetricks in proton
-    # if they are running silent mode (no gui)
+
     if str(silent).lower() in ("yes", "on", "true"):
         if proton.is_proton_path(wine_path):
             proton_verb = "run"
