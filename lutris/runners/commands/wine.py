@@ -313,7 +313,7 @@ def wineexec(
         args = '{} "{}"'.format(_args[0], _args[1])
 
     wineenv = {"WINEARCH": arch}
-    if winetricks_wine is not wine_path and not proton.is_proton_path(wine_path):
+    if winetricks_wine and winetricks_wine is not wine_path and not proton.is_proton_path(wine_path):
         wineenv["WINE"] = winetricks_wine
     else:
         wineenv["WINE"] = wine_path
@@ -335,7 +335,7 @@ def wineexec(
     ):
         if WINE_DIR in wine_path:
             wine_root_path = os.path.dirname(os.path.dirname(wine_path))
-        elif WINE_DIR in winetricks_wine:
+        elif winetricks_wine and WINE_DIR in winetricks_wine:
             wine_root_path = os.path.dirname(os.path.dirname(winetricks_wine))
         else:
             wine_root_path = None
@@ -362,7 +362,7 @@ def wineexec(
     command_parameters = []
     if proton.is_proton_path(wine_path):
         command_parameters.append(proton.get_umu_path())
-        if winetricks_wine != "" and wine_path not in winetricks_wine:
+        if winetricks_wine and wine_path not in winetricks_wine:
             command_parameters.append("winetricks")
     else:
         command_parameters.append(wine_path)

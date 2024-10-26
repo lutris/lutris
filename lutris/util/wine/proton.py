@@ -23,7 +23,7 @@ def is_umu_path(path: str) -> bool:
     but can be directed to particular Proton implementation by setting the env-var
     PROTONPATH, but if this is omitted it will default to the latest Proton it
     downloads."""
-    return path.endswith("/umu_run.py") or path.endswith("/umu-run")
+    return bool(path and (path.endswith("/umu_run.py") or path.endswith("/umu-run")))
 
 
 def is_proton_path(wine_path: str) -> bool:
