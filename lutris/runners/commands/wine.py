@@ -523,25 +523,30 @@ def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=
 
 def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
     winetricks_path, _working_dir, env = find_winetricks(env, system_winetricks)
+    path_paths = [os.path.dirname(wine_path)]
     if proton.is_proton_path(wine_path):
-        wine_path = proton.get_umu_path() + " wine"
-        env["PROTON_VERB"] = "waitforexitandrun"
         proton.update_proton_env(wine_path, env)
+        umu_path = proton.get_umu_path()
+        path_paths.insert(0, os.path.dirname(umu_path))
+        wine_command = umu_path + " wine"
+    else:
+        wine_command = wine_path
 
     aliases = {
-        "wine": wine_path,
-        "winecfg": wine_path + "cfg",
-        "wineserver": wine_path + "server",
-        "wineboot": wine_path + "boot",
-        "winetricks": winetricks_path,
+        "wine": wine_command,
+        "winecfg": wine_command + "cfg",
+        "wineserver": wine_command + "server",
+        "wineboot": wine_command + "boot",
+        "winetricks": wine_command,
     }
     env["WINEPREFIX"] = prefix
     # Ensure scripts you run see the desired version of WINE too
     # by putting it on the PATH.
-    wine_directory = os.path.split(wine_path)[0]
-    if wine_directory:
-        path = env.get("PATH", os.environ["PATH"])
-        env["PATH"] = "%s:%s" % (wine_directory, path)
+
+    path_paths.append(env.get("PATH", os.environ["PATH"]))
+    path_paths = [p for p in path_paths if p]
+    if path_paths:
+        env["PATH"] = ":".join(path_paths)
     shell_command = get_shell_command(prefix, env, aliases)
     terminal = terminal or linux.get_default_terminal()
     system.spawn([terminal, "-e", shell_command])
