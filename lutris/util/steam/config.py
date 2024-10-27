@@ -121,7 +121,7 @@ def get_active_steamid64() -> str:
 
 
 def convert_steamid64_to_steamid32(steamid64: str) -> str:
-    """Return the 32bit variant of SteamIDs, used for folder names in userdata"""
+    """Return the 32-bit variant of SteamIDs, used for folder names in userdata"""
     if not steamid64.isnumeric():
         return ""
     steam_id = SteamID.from_steamid64(int(steamid64))

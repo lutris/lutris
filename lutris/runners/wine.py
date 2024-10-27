@@ -70,7 +70,7 @@ def _get_version_warning(config: LutrisConfig, _option_key: str) -> Optional[str
     arch = config.game_config.get("arch")
     version = config.runner_config.get("version")
     if arch == "win32" and proton.is_proton_version(version):
-        return _("Proton is not compatible with 32bit prefixes.")
+        return _("Proton is not compatible with 32-bit prefixes.")
 
     return None
 
@@ -1212,7 +1212,7 @@ class wine(Runner):
         using_dxvk = self.runner_config.get("dxvk")
 
         if using_dxvk:
-            # Set this to 1 to enable access to more RAM for 32bit applications
+            # Set this to 1 to enable access to more RAM for 32-bit applications
             launch_info["env"]["WINE_LARGE_ADDRESS_AWARE"] = "1"
 
         if not game_exe or not system.path_exists(game_exe):

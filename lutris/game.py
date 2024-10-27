@@ -676,7 +676,7 @@ class Game:
         command, env = get_launch_parameters(self.runner, gameplay_info)
 
         if self.runner.wine_arch == "win32" and proton.is_umu_command(command):
-            raise RuntimeError(_("Proton is not compatible with 32bit prefixes."))
+            raise RuntimeError(_("Proton is not compatible with 32-bit prefixes."))
 
         env["STORE"] = env.get("STORE") or self.get_store_name()
 
