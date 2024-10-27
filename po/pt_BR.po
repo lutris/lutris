@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-27 13:53-0300\n"
-"PO-Revision-Date: 2024-10-27 14:09-0300\n"
+"POT-Creation-Date: 2024-10-27 14:41-0300\n"
+"PO-Revision-Date: 2024-10-27 14:55-0300\n"
 "Last-Translator: João Victor Leal <victorsouzaleal@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <victorsouzaleal@gmail.com>\n"
 "Language: pt_BR\n"
@@ -954,6 +954,10 @@ msgstr "_Continuar"
 msgid "Select folder"
 msgstr "Selecionar pasta"
 
+#: lutris/gui/addgameswindow.py:115
+msgid "Identifier"
+msgstr "Identificador"
+
 #: lutris/gui/addgameswindow.py:125
 msgid "Select script"
 msgstr "Executar script"
@@ -1096,6 +1100,10 @@ msgstr ""
 "\n"
 "Quando você clicar em 'Instalar' uma janela de instalaçao irá aparecer e "
 "carregar o script, guiando você pelo processo de instalação."
+
+#: lutris/gui/addgameswindow.py:438
+msgid "<b>Select a Lutris installer</b>"
+msgstr "<b>Selecione um instalador Lutris</b>"
 
 #: lutris/gui/addgameswindow.py:445
 msgid "You must select a script file to install."
@@ -1857,6 +1865,10 @@ msgstr "Biblioteca de jogos"
 msgid "The default folder where you install your games."
 msgstr "A pasta padrão onde você instala seus jogos."
 
+#: lutris/gui/config/storage_box.py:31
+msgid "Installer cache"
+msgstr "Cache do instalador"
+
 #: lutris/gui/config/storage_box.py:36
 msgid ""
 "If provided, files downloaded during game installs will be kept there\n"
@@ -2373,7 +2385,7 @@ msgstr "Incapaz de obter versões do runner de lutris.net"
 #: lutris/gui/dialogs/runner_install.py:193
 #, python-format
 msgid "%s version management"
-msgstr "%s gestão de versão"
+msgstr "%s - gerenciamento de versão"
 
 #: lutris/gui/dialogs/runner_install.py:243
 #, python-format
@@ -8075,9 +8087,6 @@ msgstr "Nenhuma versão do Wine está instalada."
 #~ msgid "There is no installer available for %s."
 #~ msgstr "Não há instalador disponível para %s."
 
-#~ msgid "Identifier"
-#~ msgstr "Identificador"
-
 #~ msgid "Hide text under icons (requires restart)"
 #~ msgstr "Ocultar texto sob ícones (requer reinicialização)"
 
@@ -8354,9 +8363,6 @@ msgstr "Nenhuma versão do Wine está instalada."
 
 #~ msgid "Continue"
 #~ msgstr "Continuar"
-
-#~ msgid "Select a Lutris installer"
-#~ msgstr "Selecione um instalador Lutris"
 
 #~ msgid "Show Tray Icon (requires restart)"
 #~ msgstr "Mostrar ícone da bandeja (requer reinicialização)"
