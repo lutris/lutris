@@ -17,7 +17,7 @@ DEFAULT_GAMEID = "umu-default"
 def is_proton_version(version: str) -> bool:
     """True if the version indicated specifies a Proton version of Wine; these
     require special handling."""
-    return "proton" in version.lower() and "lutris" not in version and version in list_proton_versions()
+    return version in get_proton_versions()
 
 
 def is_umu_path(path: str) -> bool:
