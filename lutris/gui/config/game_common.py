@@ -68,6 +68,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.lutris_config = None
         self.service_medias = {"icon": LutrisIcon(), "banner": LutrisBanner(), "coverart_big": LutrisCoverart()}
         self.notebook_page_generators = {}
+        self.notebook_page_updater = {}
 
         self.build_header_bar()
 
@@ -90,6 +91,10 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if generator:
             generator()
             del self.notebook_page_generators[index]
+        else:
+            updater = self.notebook_page_updater.get(index)
+            if updater:
+                updater()
 
         self.update_advanced_switch_visibility(index)
         self.update_search_entry_visibility(index)
@@ -477,6 +482,8 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             raise RuntimeError("Lutris config not loaded yet")
         config_box = box_factory()
         page_index = self._add_notebook_tab(self.build_scrolled_window(config_box), notebook_label)
+
+        self.notebook_page_updater[page_index] = config_box.update_warnings
 
         if page_index == 0:
             config_box.generate_widgets()

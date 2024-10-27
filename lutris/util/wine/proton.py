@@ -3,7 +3,7 @@
 import json
 import os
 from gettext import gettext as _
-from typing import Dict, Generator, List
+from typing import Dict, Generator, List, Optional
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
@@ -14,7 +14,7 @@ from lutris.util.strings import get_natural_sort_key
 DEFAULT_GAMEID = "umu-default"
 
 
-def is_proton_version(version: str) -> bool:
+def is_proton_version(version: Optional[str]) -> bool:
     """True if the version indicated specifies a Proton version of Wine; these
     require special handling."""
     return version in get_proton_versions()
