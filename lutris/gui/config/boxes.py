@@ -13,7 +13,7 @@ from lutris import settings, sysoptions
 from lutris.config import LutrisConfig
 from lutris.game import Game
 from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label, VBox
-from lutris.gui.widgets.searchable_combobox import SearchableCombobox
+from lutris.gui.widgets.searchable_entrybox import SearchableEntrybox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
@@ -300,7 +300,7 @@ class ConfigBox(VBox):
                 has_entry=True,
             )
         elif option_type == "choice_with_search":
-            self.generate_searchable_combobox(
+            self.generate_searchable_entrybox(
                 option_key,
                 option["choices"],
                 option["label"],
@@ -379,16 +379,16 @@ class ConfigBox(VBox):
         """Action triggered for entry 'changed' signal."""
         self.option_changed(entry, option_name, entry.get_text())
 
-    def generate_searchable_combobox(self, option_name, choice_func, label, value, default):
-        """Generate a searchable combo box"""
-        combobox = SearchableCombobox(choice_func, value or default)
-        combobox.connect("changed", self.on_searchable_entry_changed, option_name)
+    def generate_searchable_entrybox(self, option_name, choice_func, label, value, default):
+        """Generate a searchable entry box"""
+        entrybox = SearchableEntrybox(choice_func, value or default)
+        entrybox.connect("changed", self.on_searchable_entry_changed, option_name)
         self.wrapper.pack_start(Label(label), False, False, 0)
-        self.wrapper.pack_start(combobox, True, True, 0)
-        self.option_widget = combobox
+        self.wrapper.pack_start(entrybox, True, True, 0)
+        self.option_widget = entrybox
 
-    def on_searchable_entry_changed(self, combobox, value, key):
-        self.option_changed(combobox, key, value)
+    def on_searchable_entry_changed(self, entrybox, value, key):
+        self.option_changed(entrybox, key, value)
 
     def _populate_combobox_choices(self, liststore, choices, value, default):
         expanded, tooltip_default = self._expand_combobox_choices(choices, value, default)
