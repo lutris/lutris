@@ -66,18 +66,19 @@ from lutris.util.wine.wine import (
 )
 
 
-def _get_prefix_warning(config, _option_key):
-    if config.get("prefix"):
+def _get_prefix_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+    game_config = config.game_config
+    if game_config.get("prefix"):
         return None
 
-    exe = config.get("exe")
+    exe = game_config.get("exe")
     if exe and find_prefix(exe):
         return None
 
     return _("<b>Warning</b> Some Wine configuration options cannot be applied, if no prefix can be found.")
 
 
-def _get_dxvk_warning(config, option_key):
+def _get_dxvk_warning(_config: LutrisConfig, _option_key: str) -> Optional[str]:
     if drivers.is_outdated():
         driver_info = drivers.get_nvidia_driver_info()
         return _(
@@ -89,10 +90,10 @@ def _get_dxvk_warning(config, option_key):
     return None
 
 
-def _get_simple_vulkan_support_error(config, option_key, feature):
+def _get_simple_vulkan_support_error(config: LutrisConfig, option_key: str, feature: str) -> Optional[str]:
     if os.environ.get("LUTRIS_NO_VKQUERY"):
         return None
-    if config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
+    if config.runner_config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
         return (
             _("<b>Error</b> Vulkan is not installed or is not supported by your system, " "%s is not available.")
             % feature
@@ -100,11 +101,12 @@ def _get_simple_vulkan_support_error(config, option_key, feature):
     return None
 
 
-def _get_dxvk_version_warning(config, _option_key):
+def _get_dxvk_version_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
     if os.environ.get("LUTRIS_NO_VKQUERY"):
         return None
-    if config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported():
-        version = config.get("dxvk_version")
+    runner_config = config.runner_config
+    if runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported():
+        version = runner_config.get("dxvk_version")
         if version and not version.startswith("v1."):
             library_api_version = vkquery.get_vulkan_api_version()
             if library_api_version and library_api_version < REQUIRED_VULKAN_API_VERSION:
@@ -128,8 +130,8 @@ def _get_dxvk_version_warning(config, _option_key):
     return None
 
 
-def _get_esync_warning(config, _option_key):
-    if config.get("esync"):
+def _get_esync_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+    if config.runner_config.get("esync"):
         limits_set = is_esync_limit_set()
         if not limits_set:
             return _(
@@ -140,18 +142,19 @@ def _get_esync_warning(config, _option_key):
     return ""
 
 
-def _get_fsync_warning(config, _option_key):
-    if config.get("fsync"):
+def _get_fsync_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+    if config.runner_config.get("fsync"):
         fsync_supported = is_fsync_supported()
         if not fsync_supported:
             return _("<b>Warning</b> Your kernel is not patched for fsync.")
-        return ""
+    return None
 
 
-def _get_virtual_desktop_warning(config, _option_key):
+def _get_virtual_desktop_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
     message = _("Wine virtual desktop is no longer supported")
-    if config.get("Desktop"):
-        version = str(config.get("version")).casefold()
+    runner_config = config.runner_config
+    if runner_config.get("Desktop"):
+        version = str(runner_config.get("version")).casefold()
         if "-ge-" in version or "proton" in version:
             message += "\n"
             message += _("Virtual desktops cannot be enabled in Proton or GE Wine versions.")
