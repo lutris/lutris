@@ -10,7 +10,7 @@ from gi.repository import Gdk, Gtk
 from lutris.config import LutrisConfig
 from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label
-from lutris.gui.widgets.searchable_combobox import SearchableCombobox
+from lutris.gui.widgets.searchable_entrybox import SearchableEntrybox
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
@@ -497,7 +497,7 @@ class WidgetGenerator(ABC):
     def _generate_choice_with_entry(self, option, value, default):
         return self._generate_choice(option, value, default, has_entry=True)
 
-    # ComboBox
+    # Sesarchable Entry
     def _generate_choice_with_search(self, option, value, default):
         """Generate a searchable combo box"""
 
@@ -506,9 +506,9 @@ class WidgetGenerator(ABC):
 
         option_key = option["option"]
         choices = option["choices"]
-        combobox = SearchableCombobox(choices, value or default)
-        combobox.connect("changed", on_changed)
-        return self.build_option_widget(option, combobox)
+        entrybox = SearchableEntrybox(choices, value or default)
+        entrybox.connect("changed", on_changed)
+        return self.build_option_widget(option, entrybox)
 
     # FileChooserEntry
     def _generate_file(self, option, value, default, shell_quoting=False):
