@@ -66,6 +66,15 @@ from lutris.util.wine.wine import (
 )
 
 
+def _get_version_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+    arch = config.game_config.get("arch")
+    version = config.runner_config.get("version")
+    if arch == "win32" and proton.is_proton_version(version):
+        return _("Proton is not compatible with 32bit prefixes.")
+
+    return None
+
+
 def _get_prefix_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
     game_config = config.game_config
     if game_config.get("prefix"):
@@ -264,6 +273,7 @@ class wine(Runner):
                 "type": "choice",
                 "choices": get_wine_version_choices,
                 "default": get_default_wine_version,
+                "warning": _get_version_warning,
                 "help": _(
                     "The version of Wine used to launch the game.\n"
                     "Using the last version is generally recommended, "
