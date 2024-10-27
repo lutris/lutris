@@ -28,6 +28,13 @@ def is_umu_path(path: str) -> bool:
     return bool(path and (path.endswith("/umu_run.py") or path.endswith("/umu-run")))
 
 
+def is_umu_command(command: List[str]) -> bool:
+    """Tests if a command is an invocation of Umu; it scans the command until it finds
+    the Umu path. Because Lutris will prefix the command with complex gamescope argument chains,
+    we can't assume the Umu path is first."""
+    return any(is_umu_path(p) for p in command)
+
+
 def is_proton_path(wine_path: str) -> bool:
     """True if the path given actually runs Umu; this will run Proton-Wine in turn,
     but can be directed to particular Proton implementation by setting the env-var
