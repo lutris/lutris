@@ -783,10 +783,11 @@ class wine(Runner):
     def get_command(self) -> List[str]:
         command = super().get_command()
         if command:
-            exe = command[0]
-
-            if proton.is_proton_path(exe) and not proton.is_umu_path(exe):
+            if proton.is_proton_path(command[0]) and not proton.is_umu_path(command[0]):
                 command[0] = proton.get_umu_path()
+
+            if proton.is_umu_path(command[0]) and self.wine_arch == "win32":
+                raise RuntimeError(_("Proton is not compatible with 32-bit prefixes."))
 
         return command
 

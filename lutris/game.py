@@ -36,7 +36,6 @@ from lutris.util.process import Process
 from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
 from lutris.util.system import fix_path_case
 from lutris.util.timer import Timer
-from lutris.util.wine import proton
 from lutris.util.yaml import write_yaml_to_file
 
 HEARTBEAT_DELAY = 2000
@@ -674,9 +673,6 @@ class Game:
         if not gameplay_info:  # if user cancelled - not an error
             return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
-
-        if self.runner.wine_arch == "win32" and proton.is_umu_command(command):
-            raise RuntimeError(_("Proton is not compatible with 32-bit prefixes."))
 
         env["STORE"] = env.get("STORE") or self.get_store_name()
 
