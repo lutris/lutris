@@ -125,26 +125,28 @@ def get_proton_versions() -> Dict[str, str]:
 
     versions = dict()
     for proton_path in _iter_proton_locations():
-        for version in os.listdir(proton_path):
-            wine_path = os.path.join(proton_path, version)
-            if os.path.isfile(os.path.join(wine_path, "proton")):
-                versions[version] = wine_path
+        if os.path.isdir(proton_path):
+            for version in os.listdir(proton_path):
+                wine_path = os.path.join(proton_path, version)
+                if os.path.isfile(os.path.join(wine_path, "proton")):
+                    versions[version] = wine_path
     return versions
 
 
 def _iter_proton_locations() -> Generator[str, None, None]:
-    """Iterate through all existing Proton locations"""
+    """Iterate through all potential Proton locations"""
+    yield os.path.join(settings.RUNNER_DIR, "wine")
+
     try:
         steamapp_dirs = get_steamapps_dirs()
     except:
         return  # in case of corrupt or unreadable Steam configuration files!
 
     for path in [os.path.join(p, "common") for p in steamapp_dirs]:
-        if os.path.isdir(path):
-            yield path
+        yield path
+
     for path in [os.path.join(p, "") for p in steamapp_dirs]:
-        if os.path.isdir(path):
-            yield path
+        yield path
 
 
 def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = None) -> None:
