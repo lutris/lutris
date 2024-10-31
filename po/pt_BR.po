@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-27 14:41-0300\n"
-"PO-Revision-Date: 2024-10-27 14:55-0300\n"
+"POT-Creation-Date: 2024-10-31 18:00-0300\n"
+"PO-Revision-Date: 2024-10-31 18:04-0300\n"
 "Last-Translator: João Victor Leal <victorsouzaleal@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <victorsouzaleal@gmail.com>\n"
 "Language: pt_BR\n"
@@ -533,7 +533,7 @@ msgstr ""
 "dias.\n"
 "<b>directory:</b><i>game/dir</i>\t - Somente jogos no caminho especificado."
 
-#: share/lutris/ui/lutris-window.ui:328 lutris/gui/lutriswindow.py:692
+#: share/lutris/ui/lutris-window.ui:328 lutris/gui/lutriswindow.py:698
 msgid "Search games"
 msgstr "Pesquisar por jogos"
 
@@ -591,7 +591,7 @@ msgstr "Mostrar painel _lateral"
 
 #: share/lutris/ui/lutris-window.ui:684
 msgid "Show _Hidden Games"
-msgstr "Mostrar _jogos escondidos"
+msgstr "Mostrar _jogos ocultos"
 
 #: share/lutris/ui/lutris-window.ui:702
 msgid "Add Games"
@@ -824,38 +824,38 @@ msgstr "Duplicar jogo?"
 msgid "Select shortcut target"
 msgstr "Selecione o destino do atalho"
 
-#: lutris/game.py:317 lutris/game.py:504
+#: lutris/game.py:316 lutris/game.py:503
 msgid "Invalid game configuration: Missing runner"
 msgstr "Configuração de jogo inválida: runner ausente"
 
-#: lutris/game.py:383
+#: lutris/game.py:382
 msgid "No updates found"
 msgstr "Nenhuma atualização encontrada"
 
-#: lutris/game.py:402
+#: lutris/game.py:401
 msgid "No DLC found"
 msgstr "Nenhuma DLC encontrada"
 
-#: lutris/game.py:436
+#: lutris/game.py:435
 msgid "Uninstall the game before deleting"
 msgstr "Desinstale o jogo antes de deletar"
 
-#: lutris/game.py:502
+#: lutris/game.py:501
 msgid "Tried to launch a game that isn't installed."
 msgstr "Tentei iniciar um jogo que não está instalado."
 
-#: lutris/game.py:536
+#: lutris/game.py:535
 msgid "Unable to find Xephyr, install it or disable the Xephyr option"
 msgstr ""
 "Não foi possível encontrar o Xephyr, instale-o ou desative a opção Xephyr"
 
-#: lutris/game.py:552
+#: lutris/game.py:551
 msgid "Unable to find Antimicrox, install it or disable the Antimicrox option"
 msgstr ""
 "Não foi possível encontrar o Antimicrox, instale-o ou desative a opção "
 "Antimicrox"
 
-#: lutris/game.py:589
+#: lutris/game.py:588
 #, python-format
 msgid ""
 "The selected terminal application could not be launched:\n"
@@ -864,15 +864,11 @@ msgstr ""
 "O aplicativo de terminal selecionado não pôde ser iniciado:\n"
 "%s"
 
-#: lutris/game.py:679 lutris/runners/wine.py:73
-msgid "Proton is not compatible with 32-bit prefixes."
-msgstr "O Proton não é compatível com prefixos de 32-bit."
-
-#: lutris/game.py:917
+#: lutris/game.py:913
 msgid "<b>Error lauching the game:</b>\n"
 msgstr "<b>Erro ao iniciar o jogo:</b>\n"
 
-#: lutris/game.py:1023
+#: lutris/game.py:1019
 #, python-format
 msgid ""
 "<b>Error: Missing shared library.</b>\n"
@@ -883,13 +879,13 @@ msgstr ""
 "\n"
 "%s"
 
-#: lutris/game.py:1029
+#: lutris/game.py:1025
 msgid ""
 "<b>Error: A different Wine version is already using the same Wine prefix.</b>"
 msgstr ""
 "<b>Erro: Uma versão diferente do Wine já está usando o mesmo prefixo.</b>"
 
-#: lutris/game.py:1047
+#: lutris/game.py:1043
 #, python-format
 msgid "Lutris can't move '%s' to a location inside of itself, '%s'."
 msgstr "Lutris não pode mover '%s' para um local dentro dele, '%s'."
@@ -1141,6 +1137,10 @@ msgstr ""
 "\n"
 "Quando você clicar em 'Instalar' o processo de instalação do jogo irá "
 "começar."
+
+#: lutris/gui/addgameswindow.py:479
+msgid "<b>Select a ROM file</b>"
+msgstr "<b>Selecione o arquivo ROM</b>"
 
 #: lutris/gui/addgameswindow.py:486
 msgid "You must select a ROM file to install."
@@ -2682,23 +2682,23 @@ msgstr "Abortar e reverter a instalação"
 msgid "_Close"
 msgstr "_Fechar"
 
-#: lutris/gui/lutriswindow.py:543
+#: lutris/gui/lutriswindow.py:549
 #, python-format
 msgid "Connect your %s account to access your games"
 msgstr "Conecte sua conta %s para acessar seus jogos"
 
-#: lutris/gui/lutriswindow.py:624
+#: lutris/gui/lutriswindow.py:630
 #, python-format
 msgid "Add a game matching '%s' to your favorites to see it here."
 msgstr ""
 "Adicione um jogo que corresponda %s aos seus favoritos para vê-lo aqui."
 
-#: lutris/gui/lutriswindow.py:626
+#: lutris/gui/lutriswindow.py:632
 #, python-format
 msgid "No hidden games matching '%s' found."
 msgstr "Nenhum jogo oculto correspondente a '%s' foi encontrado."
 
-#: lutris/gui/lutriswindow.py:629
+#: lutris/gui/lutriswindow.py:635
 #, python-format
 msgid ""
 "No installed games matching '%s' found. Press Ctrl+I to show uninstalled "
@@ -2707,43 +2707,43 @@ msgstr ""
 "Nenhum jogo instalado correspondente a '%s' foi encontrado. Pressione Ctrl+I "
 "para mostrar os jogos desinstalados."
 
-#: lutris/gui/lutriswindow.py:632
+#: lutris/gui/lutriswindow.py:638
 #, python-format
 msgid "No games matching '%s' found "
 msgstr "Nenhum jogo correspondente a '%s' foi encontrado "
 
-#: lutris/gui/lutriswindow.py:635
+#: lutris/gui/lutriswindow.py:641
 msgid "Add games to your favorites to see them here."
 msgstr "Adicione jogos aos seus favoritos para vê-los aqui."
 
-#: lutris/gui/lutriswindow.py:637
+#: lutris/gui/lutriswindow.py:643
 msgid "No games are hidden."
 msgstr "Não há jogos ocultados."
 
-#: lutris/gui/lutriswindow.py:639
+#: lutris/gui/lutriswindow.py:645
 msgid "No installed games found. Press Ctrl+I to show uninstalled games."
 msgstr ""
 "Nenhum jogo instalado encontrado. Pressiona Ctrl+I para exibir os jogos "
 "desinstalados."
 
-#: lutris/gui/lutriswindow.py:648
+#: lutris/gui/lutriswindow.py:654
 msgid "No games found"
 msgstr "Nenhum jogo encontrado"
 
-#: lutris/gui/lutriswindow.py:688
+#: lutris/gui/lutriswindow.py:694
 #, python-format
 msgid "Search %s games"
 msgstr "Pesquisar %s jogos"
 
-#: lutris/gui/lutriswindow.py:690
+#: lutris/gui/lutriswindow.py:696
 msgid "Search 1 game"
 msgstr "Pesquisar por um jogo"
 
-#: lutris/gui/lutriswindow.py:939
+#: lutris/gui/lutriswindow.py:945
 msgid "Unsupported Lutris Version"
 msgstr "Versão do Lutris não suportada"
 
-#: lutris/gui/lutriswindow.py:941
+#: lutris/gui/lutriswindow.py:947
 msgid ""
 "This version of Lutris will no longer receive support on Github and Discord, "
 "and may not interoperate properly with Lutris.net. Do you want to use it "
@@ -2752,7 +2752,15 @@ msgstr ""
 "Esta versão do Lutris não irá mais receber suporte no Github e Discord, e "
 "pode não funcionar corretamente com o Lutris.net. Você ainda deseja usa-lá?"
 
-#: lutris/gui/lutriswindow.py:1344
+#: lutris/gui/lutriswindow.py:1158
+msgid "Show Hidden Games"
+msgstr "Mostrar jogos ocultos"
+
+#: lutris/gui/lutriswindow.py:1160
+msgid "Rehide Hidden Games"
+msgstr "Reocultar jogos ocultos"
+
+#: lutris/gui/lutriswindow.py:1356
 msgid ""
 "Your limits are not set correctly. Please increase them as described here: "
 "<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>How-to:-"
@@ -6433,6 +6441,10 @@ msgstr ""
 "O arquivo %s não existe, \n"
 "verificar a configuração do jogo."
 
+#: lutris/runners/wine.py:73 lutris/runners/wine.py:790
+msgid "Proton is not compatible with 32-bit prefixes."
+msgstr "O Proton não é compatível com prefixos de 32-bit."
+
 #: lutris/runners/wine.py:87
 msgid ""
 "<b>Warning</b> Some Wine configuration options cannot be applied, if no "
@@ -6987,16 +6999,16 @@ msgstr "Winetricks"
 msgid "The Wine executable at '%s' is missing."
 msgstr "O executável do Wine em '%s' está faltando."
 
-#: lutris/runners/wine.py:828
+#: lutris/runners/wine.py:829
 #, python-format
 msgid "The required game '%s' could not be found."
 msgstr "O jogo requerido '%s' não pôde ser encontrado."
 
-#: lutris/runners/wine.py:861
+#: lutris/runners/wine.py:862
 msgid "The runner configuration does not specify a Wine version."
 msgstr "A configuração do runner não especifica uma versão do Wine."
 
-#: lutris/runners/wine.py:899
+#: lutris/runners/wine.py:900
 msgid "Select an EXE or MSI file"
 msgstr "Selecione um arquivo EXE ou MSI"
 
@@ -7121,9 +7133,9 @@ msgstr "Atualizando %s"
 msgid "Updated %s"
 msgstr "Atualizado %s"
 
-#: lutris/services/amazon.py:69 lutris/services/amazon.py:696
-msgid "Amazon Prime Gaming"
-msgstr "Amazon Prime Gaming"
+#: lutris/services/amazon.py:69
+msgid "Amazon"
+msgstr "Amazon"
 
 #: lutris/services/amazon.py:179
 msgid "No Amazon user data available, please log in again"
@@ -7170,6 +7182,10 @@ msgstr "Resposta inválida das APIs da Amazon"
 msgid "Couldn't load the downloads for this game"
 msgstr "Não foi possível carregar os downloads deste jogo"
 
+#: lutris/services/amazon.py:696
+msgid "Amazon Prime Gaming"
+msgstr "Amazon Prime Gaming"
+
 #: lutris/services/base.py:436
 #, python-format
 msgid ""
@@ -7180,7 +7196,7 @@ msgstr ""
 "instalá-lo.\n"
 "Assim que o cliente estiver instalado, você pode se conectar em %s."
 
-#: lutris/services/battlenet.py:103
+#: lutris/services/battlenet.py:105
 msgid "Battle.net"
 msgstr "Battle.net"
 
@@ -8019,7 +8035,7 @@ msgstr "A autenticação com a Ubisoft foi perdida: %s"
 msgid "Manual"
 msgstr "Manual"
 
-#: lutris/util/wine/proton.py:104
+#: lutris/util/wine/proton.py:97
 #, python-format
 msgid "Proton version '%s' is missing its wine executable and can't be used."
 msgstr ""
