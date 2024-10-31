@@ -476,7 +476,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         return grid
 
     def present_import_rom_page(self):
-        self.set_page_title_markup("<b>Select a ROM file</b>")
+        self.set_page_title_markup(_("<b>Select a ROM file</b>"))
         self.stack.present_page("import_rom")
         self.display_continue_button(self.on_continue_import_rom_clicked, label=_("_Install"))
 
