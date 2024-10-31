@@ -35,6 +35,7 @@ GAME_IDS = {
     "wow": ("wow", "World of Warcraft", "WoW", "world-of-warcraft"),
     "wow_classic": ("wow_classic", "World of Warcraft Classic", "WoW_wow_classic", "world-of-warcraft-classic"),
     "pro": ("pro", "Overwatch 2", "Pro", "overwatch-2"),
+    "w2": ("w2", "Warcraft II: Battle.net Edition", "W2", "warcraft-ii-battle-net-edition"),
     "w3": ("w3", "Warcraft III", "W3", "warcraft-iii-reforged"),
     "hsb": ("hsb", "Hearthstone", "WTCG", "hearthstone"),
     "hero": ("hero", "Heroes of the Storm", "Hero", "heroes-of-the-storm"),
@@ -59,6 +60,7 @@ GAME_IDS = {
     "w3ROC": ("w3ROC", "Warcraft® III: Reign of Chaos", "Warcraft III", "warcraft-iii-reign-of-chaos"),
     "w3tft": ("w3tft", "Warcraft® III: The Frozen Throne®", "Warcraft III", "warcraft-iii-the-frozen-throne"),
     "sca": ("sca", "StarCraft® Anthology", "Starcraft", "starcraft"),
+    "anbs": ("anbs", "Diablo Immortal", "ANBS", "diablo-immortal"),
 }
 
 
