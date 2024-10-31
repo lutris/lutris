@@ -330,8 +330,13 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_show_hidden_clicked(self, action, value):
         """Hides or shows the hidden games"""
-        self.sidebar.hidden_row.show()
-        self.sidebar.selected_category = "category", ".hidden"
+        hidden_category = "category", ".hidden"
+        if self.sidebar.selected_category == hidden_category:
+            if self.sidebar.previous_category:
+                self.sidebar.selected_category = self.sidebar.previous_category
+        else:
+            self.sidebar.hidden_row.show()
+            self.sidebar.selected_category = hidden_category
 
     def on_open_search_filters(self, action, value):
         self.filter_popover.popup()

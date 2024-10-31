@@ -374,6 +374,7 @@ class LutrisSidebar(Gtk.ListBox):
         super().__init__()
         self.set_size_request(200, -1)
         self.application = application
+        self.previous_category = None
         self.get_style_context().add_class("lutrissidebar")
 
         # Empty values until LutrisWindow explicitly initializes the rows
@@ -530,6 +531,7 @@ class LutrisSidebar(Gtk.ListBox):
     def selected_category(self, value):
         """Selects the row for the category indicated by a category tuple,
         like ('service', 'lutris')"""
+        self.previous_category = self.selected_category
         selected_row_type, selected_row_id = value or ("category", "all")
         children = list(self.get_children())
         for row in children:
