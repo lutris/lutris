@@ -81,6 +81,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     version_notification_label: Gtk.Revealer = GtkTemplate.Child()
     # search_filters_button: Gtk.MenuButton = GtkTemplate.Child()
     search_box: Gtk.Box = GtkTemplate.Child()
+    show_hidden_games_button: Gtk.ModelButton = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs) -> None:
         width = int(settings.read_setting("width") or self.default_width)
@@ -1154,6 +1155,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         if row_type != "category" or row_id != ".hidden":
             self.sidebar.hidden_row.hide()
+            self.show_hidden_games_button.set_label(_("Show Hidden Games"))
+        else:
+            self.show_hidden_games_button.set_label(_("Rehide Hidden Games"))
+        # We just _replaced_ the label, need to align it. That is weird and
+        # contrary to the docs, but here we are.
+        self.show_hidden_games_button.get_child().set_halign(Gtk.Align.START)
 
         if not MISSING_GAMES.is_initialized or (row_type == "dynamic_category" and row_id == "missing"):
             MISSING_GAMES.update_all_missing()

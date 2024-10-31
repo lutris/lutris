@@ -676,7 +676,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkModelButton" id="show_hidden_games">
+          <object class="GtkModelButton" id="show_hidden_games_button">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="receives-default">False</property>
