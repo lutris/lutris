@@ -1,5 +1,3 @@
-import enum
-
 from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
@@ -10,12 +8,6 @@ PORTAL_OBJECT_PATH = "/org/freedesktop/portal/desktop"
 PORTAL_SETTINGS_INTERFACE = "org.freedesktop.portal.Settings"
 
 
-class ColorScheme(enum.Enum):
-    NO_PREFERENCE = 0  # The DE does not care, so we'll pick our own appearance
-    PREFER_DARK = 1
-    PREFER_LIGHT = 2
-
-
 class StyleManager(GObject.Object):
     """Manages the color scheme of the app.
 
@@ -24,9 +16,9 @@ class StyleManager(GObject.Object):
     preferences panel or in the a system is set to prefer dark mode.
     """
 
-    _color_scheme = None
     _dbus_proxy = None
     _preferred_theme = "default"
+    _system_theme = None
     _is_dark = False
 
     def __init__(self):
@@ -79,7 +71,7 @@ class StyleManager(GObject.Object):
             values = obj.call_finish(result)
             if values:
                 value = values[0]
-                self.color_scheme = self._read_value(value)
+                self.system_theme = self._read_value(value)
             else:
                 raise RuntimeError("Could not read color-scheme")
         except Exception as ex:
@@ -92,16 +84,16 @@ class StyleManager(GObject.Object):
         namespace, name, value = params
 
         if namespace == "org.freedesktop.appearance" and name == "color-scheme":
-            self.color_scheme = self._read_value(value)
+            self.system_theme = self._read_value(value)
 
-    def _read_value(self, value: int) -> ColorScheme:
+    def _read_value(self, value: int) -> str:
         if value == 1:
-            return ColorScheme.PREFER_DARK
+            return "dark"
 
         if value == 2:
-            return ColorScheme.PREFER_LIGHT
+            return "light"
 
-        return ColorScheme.NO_PREFERENCE
+        return "default"
 
     @property
     def is_config_dark(self) -> bool:
@@ -131,6 +123,18 @@ class StyleManager(GObject.Object):
         self._preferred_theme = preferred_theme
         self._update_is_dark()
 
+    @property
+    def system_theme(self) -> str:
+        return self._system_theme or "default"
+
+    @system_theme.setter  # type: ignore
+    def system_theme(self, system_theme: str) -> None:
+        if self._system_theme == system_theme:
+            return
+
+        self._system_theme = system_theme
+        self._update_is_dark()
+
     @GObject.Property(type=bool, default=False, flags=GObject.ParamFlags.READABLE)
     def is_dark(self) -> bool:
         return self._is_dark
@@ -150,17 +154,5 @@ class StyleManager(GObject.Object):
         self.gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
 
     @property
-    def color_scheme(self) -> ColorScheme:
-        return self._color_scheme or ColorScheme.NO_PREFERENCE
-
-    @color_scheme.setter  # type: ignore
-    def color_scheme(self, color_scheme: ColorScheme) -> None:
-        if self._color_scheme == color_scheme:
-            return
-
-        self._color_scheme = color_scheme
-        self._update_is_dark()
-
-    @property
     def is_dark_by_default(self):
-        return self.color_scheme != ColorScheme.PREFER_LIGHT
+        return self.system_theme != "light"
