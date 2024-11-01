@@ -67,7 +67,6 @@ DEFAULT_RESOLUTION_HEIGHT = sio.read_setting("default_resolution_height", defaul
 DEFAULT_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
 
 UPDATE_CHANNEL_STABLE = "stable"
-UPDATE_CHANNEL_UMU = "umu"
 UPDATE_CHANNEL_UNSUPPORTED = "self-maintained"
 
 read_setting = sio.read_setting
