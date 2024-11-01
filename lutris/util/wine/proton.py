@@ -132,10 +132,9 @@ def get_proton_versions() -> Dict[str, str]:
                     versions[version] = wine_path
     return versions
 
-
 def _iter_proton_locations() -> Generator[str, None, None]:
     """Iterate through all potential Proton locations"""
-    yield os.path.join(settings.RUNNER_DIR, "wine")
+    yield os.path.join(settings.RUNNER_DIR, "proton")
 
     try:
         steamapp_dirs = get_steamapps_dirs()
