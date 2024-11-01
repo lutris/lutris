@@ -35,7 +35,7 @@ GAME_IDS = {
     "wow": ("wow", "World of Warcraft", "WoW", "world-of-warcraft"),
     "wow_classic": ("wow_classic", "World of Warcraft Classic", "WoW_wow_classic", "world-of-warcraft-classic"),
     "pro": ("pro", "Overwatch 2", "Pro", "overwatch-2"),
-    "w2": ("w2", "Warcraft II: Battle.net Edition", "W2", "warcraft-ii-battle-net-edition"),
+    "w2bn": ("w2bn", "Warcraft II: Battle.net Edition", "W2BN", "warcraft-ii-battle-net-edition"),
     "w3": ("w3", "Warcraft III", "W3", "warcraft-iii-reforged"),
     "hsb": ("hsb", "Hearthstone", "WTCG", "hearthstone"),
     "hero": ("hero", "Heroes of the Storm", "Hero", "heroes-of-the-storm"),
@@ -83,15 +83,15 @@ class BattleNetGame(ServiceGame):
     def create(cls, blizzard_game):
         """Create a service game from an entry from the Dolphin cache"""
         service_game = cls()
-        service_game.name = blizzard_game[1]
         service_game.appid = blizzard_game[0]
+        service_game.name = blizzard_game[1]
         service_game.slug = blizzard_game[3]
         service_game.details = json.dumps(
             {
                 "id": blizzard_game[0],
                 "name": blizzard_game[1],
-                "slug": blizzard_game[3],
                 "product_code": blizzard_game[2],
+                "slug": blizzard_game[3],
                 "coverart": "https://lutris.net/games/cover/%s.jpg" % blizzard_game[3],
             }
         )
