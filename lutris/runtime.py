@@ -356,7 +356,11 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
         self.state = ComponentUpdater.DOWNLOADING
         self.complete_event.clear()
 
-        archive_path = os.path.join(settings.RUNTIME_DIR, os.path.basename(self.url))
+        print(os.path.basename(self.url).lower())
+        if "ge-proton" in os.path.basename(self.url).lower():
+            archive_path = os.path.join(settings.RUNNER_DIR, "proton", os.path.basename(self.url))
+        else:
+            archive_path = os.path.join(settings.RUNTIME_DIR, os.path.basename(self.url))
         self.downloader = Downloader(self.url, archive_path, overwrite=True)
         self.downloader.start()
         self.downloader.join()
@@ -405,7 +409,12 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
             return
         directory, _filename = os.path.split(path)
 
-        dest_path = os.path.join(directory, self.name)
+        # Determine the destination path
+        if "ge-proton" in os.path.basename(path).lower():
+            dest_path = os.path.join(directory, "GE-Proton (Latest)")
+        else:
+            dest_path = os.path.join(directory, self.name)
+
         if self.versioned:
             dest_path = os.path.join(dest_path, self.version)
         else:
