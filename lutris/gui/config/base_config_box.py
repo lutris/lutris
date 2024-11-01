@@ -121,6 +121,5 @@ class BaseConfigBox(VBox):
     ) -> None:
         """Save a setting when an option is toggled"""
         settings.write_setting(setting_key, state)
-        self.get_toplevel().emit("settings-changed", state, setting_key)
         if when_setting_changed:
             when_setting_changed(state)

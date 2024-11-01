@@ -73,6 +73,7 @@ UPDATE_CHANNEL_UNSUPPORTED = "self-maintained"
 read_setting = sio.read_setting
 read_bool_setting = sio.read_bool_setting
 write_setting = sio.write_setting
+SETTINGS_CHANGED = sio.SETTINGS_CHANGED
 
 
 def get_lutris_directory_settings(directory):

@@ -8,7 +8,7 @@ from gettext import gettext as _
 from typing import Iterable, List
 from urllib.parse import unquote, urlparse
 
-from gi.repository import Gdk, Gio, GLib, GObject, Gtk
+from gi.repository import Gdk, Gio, GLib, Gtk
 
 from lutris import services, settings
 from lutris.api import (
@@ -176,7 +176,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         GAME_STOPPED.register(self.on_game_stopped)
         GAME_INSTALLED.register(self.on_game_installed)
         GAME_UNHANDLED_ERROR.register(self.on_game_unhandled_error)
-        GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
+        settings.SETTINGS_CHANGED.register(self.on_settings_changed)
         MISSING_GAMES.updated.register(self.update_missing_games_sidebar_row)
         LUTRIS_ACCOUNT_CONNECTED.register(self.on_lutris_account_connected)
         LUTRIS_ACCOUNT_DISCONNECTED.register(self.on_lutris_account_disconnected)
@@ -1189,7 +1189,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         settings.write_setting("hide_badges_on_icons", not state)
         self.on_settings_changed(None, not state, "hide_badges_on_icons")
 
-    def on_settings_changed(self, dialog, state, setting_key):
+    def on_settings_changed(self, setting_key, new_value):
         if setting_key == "hide_text_under_icons":
             self.rebuild_view("grid")
         else:
