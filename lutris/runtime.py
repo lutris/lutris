@@ -358,7 +358,11 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
 
         print(os.path.basename(self.url).lower())
         if "ge-proton" in os.path.basename(self.url).lower():
-            archive_path = os.path.join(settings.RUNNER_DIR, "proton", os.path.basename(self.url))
+            # THis is a bit of a hack,  but until Proton is a real runner we never really isntall it, so
+            # it's directory may not exist. So, we create it.
+            proton_dir = os.path.join(settings.RUNNER_DIR, "proton")
+            os.makedirs(proton_dir, exist_ok=True)
+            archive_path = os.path.join(proton_dir, os.path.basename(self.url))
         else:
             archive_path = os.path.join(settings.RUNTIME_DIR, os.path.basename(self.url))
         self.downloader = Downloader(self.url, archive_path, overwrite=True)
