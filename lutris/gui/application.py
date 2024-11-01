@@ -773,10 +773,8 @@ class Application(Gtk.Application):
         return 0
 
     def on_settings_changed(self, setting_key, new_value):
-        if setting_key == "light_theme":
-            self.style_manager.is_config_light = new_value
-        elif setting_key == "dark_theme":
-            self.style_manager.is_config_dark = new_value
+        if setting_key == "preferred_theme":
+            self.style_manager.preferred_theme = new_value
         elif setting_key == "show_tray_icon" and self.window:
             if self.window.get_visible():
                 self.set_tray_icon()

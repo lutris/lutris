@@ -26,16 +26,14 @@ class StyleManager(GObject.Object):
 
     _color_scheme = None
     _dbus_proxy = None
-    _is_config_dark = False
-    _is_config_light = False
+    _preferred_theme = "default"
     _is_dark = False
 
     def __init__(self):
         super().__init__()
 
         self.gtksettings = Gtk.Settings.get_default()
-        self.is_config_dark = settings.read_bool_setting("dark_theme")
-        self.is_config_light = settings.read_bool_setting("light_theme")
+        self.preferred_theme = settings.read_setting("preferred_theme") or "default"
 
         Gio.DBusProxy.new_for_bus(
             Gio.BusType.SESSION,
@@ -120,17 +118,17 @@ class StyleManager(GObject.Object):
         self._update_is_dark()
 
     @property
-    def is_config_light(self) -> bool:
-        """True if we override dark mode to be light; if we're
-        defaulting to light, this does nothing."""
-        return self._is_config_light
+    def preferred_theme(self) -> str:
+        """Can be 'light' or 'dark' to override the theme, or 'default' to go with
+        the system's default theme."""
+        return self._preferred_theme
 
-    @is_config_light.setter  # type: ignore
-    def is_config_light(self, is_config_light: bool) -> None:
-        if self._is_config_light == is_config_light:
+    @preferred_theme.setter  # type: ignore
+    def preferred_theme(self, preferred_theme: str) -> None:
+        if self._preferred_theme == preferred_theme:
             return
 
-        self._is_config_light = is_config_light
+        self._preferred_theme = preferred_theme
         self._update_is_dark()
 
     @GObject.Property(type=bool, default=False, flags=GObject.ParamFlags.READABLE)
@@ -139,9 +137,9 @@ class StyleManager(GObject.Object):
 
     def _update_is_dark(self) -> None:
         if self.is_dark_by_default:
-            is_dark = not self.is_config_light
+            is_dark = self.preferred_theme != "light"
         else:
-            is_dark = self.is_config_dark
+            is_dark = self.preferred_theme == "dark"
 
         if self._is_dark == is_dark:
             return
