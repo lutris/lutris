@@ -132,8 +132,8 @@ def get_installed_wine_versions() -> List[str]:
 
 def clear_wine_version_cache() -> None:
     get_installed_wine_versions.cache_clear()
-    proton.get_proton_versions.clear_cache()
-    proton.get_umu_path.clear_cache()
+    proton.get_proton_versions.cache_clear()
+    proton.get_umu_path.cache_clear()
 
 
 def get_wine_path_for_version(version: str, config: dict = None) -> str:
