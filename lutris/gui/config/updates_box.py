@@ -191,7 +191,7 @@ class UpdatesBox(BaseConfigBox):
 
         updater = RuntimeUpdater(force=True)
         updater.update_runtime = False
-        component_updaters = [u for u in updater.create_component_updaters() if u.name == "wine"]
+        component_updaters = updater.create_component_updaters()
         if component_updaters:
 
             def on_complete(_result):

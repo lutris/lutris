@@ -31,7 +31,7 @@ from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import clear_wine_version_cache
 
-RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
+RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").casefold() in ("0", "off")
 DEFAULT_RUNTIME = "Ubuntu-18.04"
 
 DLL_MANAGERS = {
@@ -232,8 +232,10 @@ class RuntimeUpdater:
                 continue
 
             try:
-                if remote_runtime.get("url"):
-                    updaters.append(RuntimeExtractedComponentUpdater(remote_runtime))
+                url = remote_runtime.get("url")
+                if url:
+                    if "ge-proton" not in os.path.basename(url).casefold():
+                        updaters.append(RuntimeExtractedComponentUpdater(remote_runtime))
                 else:
                     updaters.append(RuntimeFilesComponentUpdater(remote_runtime))
             except Exception as ex:
@@ -256,6 +258,18 @@ class RuntimeUpdater:
 
             if upstream_runner:
                 updaters.append(RunnerComponentUpdater(name, upstream_runner))
+
+        for name, remote_runtime in runtime_versions.get("runtimes", {}).items():
+            if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
+                continue
+
+            try:
+                # This one runtime is really a runner!
+                url = remote_runtime.get("url")
+                if url and "ge-proton" in os.path.basename(url).casefold():
+                    updaters.append(RuntimeExtractedComponentUpdater(remote_runtime))
+            except Exception as ex:
+                logger.exception("Unable to download %s: %s", name, ex)
 
         return updaters
 
@@ -356,8 +370,7 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
         self.state = ComponentUpdater.DOWNLOADING
         self.complete_event.clear()
 
-        print(os.path.basename(self.url).lower())
-        if "ge-proton" in os.path.basename(self.url).lower():
+        if "ge-proton" in os.path.basename(self.url).casefold():
             # THis is a bit of a hack,  but until Proton is a real runner we never really isntall it, so
             # it's directory may not exist. So, we create it.
             proton_dir = os.path.join(settings.RUNNER_DIR, "proton")
@@ -414,7 +427,7 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
         directory, _filename = os.path.split(path)
 
         # Determine the destination path
-        if "ge-proton" in os.path.basename(path).lower():
+        if "ge-proton" in os.path.basename(path).casefold():
             dest_path = os.path.join(directory, "GE-Proton")
         else:
             dest_path = os.path.join(directory, self.name)
