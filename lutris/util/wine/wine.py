@@ -130,6 +130,12 @@ def get_installed_wine_versions() -> List[str]:
     return list_system_wine_versions() + proton.list_proton_versions() + list_lutris_wine_versions()
 
 
+def clear_wine_version_cache() -> None:
+    get_installed_wine_versions.cache_clear()
+    proton.get_proton_versions.clear_cache()
+    proton.get_umu_path.clear_cache()
+
+
 def get_wine_path_for_version(version: str, config: dict = None) -> str:
     """Return the absolute path of a wine executable for a given version,
     or the configured version if you don't ask for a version."""

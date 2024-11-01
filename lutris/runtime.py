@@ -29,7 +29,7 @@ from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.vkd3d import VKD3DManager
-from lutris.util.wine.wine import get_installed_wine_versions
+from lutris.util.wine.wine import clear_wine_version_cache
 
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
 DEFAULT_RUNTIME = "Ubuntu-18.04"
@@ -512,7 +512,7 @@ class RunnerComponentUpdater(ComponentUpdater):
             self.downloader = None
             self.state = ComponentUpdater.EXTRACTING
             extract_archive(archive_download_path, self.version_path)
-            get_installed_wine_versions.cache_clear()
+            clear_wine_version_cache()
 
         os.remove(archive_download_path)
         self.state = ComponentUpdater.COMPLETED

@@ -536,9 +536,9 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         if self.name == "wine":
             logger.debug("Clearing wine version cache")
-            from lutris.util.wine.wine import get_installed_wine_versions
+            from lutris.util.wine.wine import clear_wine_version_cache
 
-            get_installed_wine_versions.cache_clear()
+            clear_wine_version_cache()
 
         if self.runner_executable:
             runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable)

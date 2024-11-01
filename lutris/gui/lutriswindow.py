@@ -54,10 +54,12 @@ from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
 from lutris.util.strings import get_natural_sort_key
 from lutris.util.system import update_desktop_icons
+from lutris.util.wine.wine import clear_wine_version_cache
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
+                   DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -271,7 +273,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 action.connect("change-state", value.callback)
             self.actions[name] = action
             if value.enabled:
-
                 def updater(action=action, value=value):
                     action.props.enabled = value.enabled()
 
@@ -1343,8 +1344,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             for updater in updaters:
                 updater.join()
 
-            python = sys.executable
-            os.execl(python, python, *sys.argv)
+            # better safe than sorry - there are Proton builds outside our control
+            clear_wine_version_cache()
 
         return queue.start_multiple(
             install_updates,
