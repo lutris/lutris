@@ -411,7 +411,7 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
 
         # Determine the destination path
         if "ge-proton" in os.path.basename(path).lower():
-            dest_path = os.path.join(directory, "GE-Proton (Latest)")
+            dest_path = os.path.join(directory, "GE-Proton")
         else:
             dest_path = os.path.join(directory, self.name)
 
