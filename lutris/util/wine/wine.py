@@ -127,7 +127,7 @@ def list_lutris_wine_versions() -> List[str]:
 @cache_single
 def get_installed_wine_versions() -> List[str]:
     """Return the list of Wine versions installed"""
-    return list_system_wine_versions() + list_lutris_wine_versions() + proton.list_proton_versions()
+    return list_system_wine_versions() + proton.list_proton_versions() + list_lutris_wine_versions()
 
 
 def get_wine_path_for_version(version: str, config: dict = None) -> str:
