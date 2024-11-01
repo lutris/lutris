@@ -12,23 +12,34 @@ def _is_system_dark_by_default():
 
 
 class InterfacePreferencesBox(BaseConfigBox):
-    settings_options = {
-        "hide_client_on_game_start": _("Minimize client when a game is launched"),
-        "hide_text_under_icons": _("Hide text under icons"),
-        "hide_badges_on_icons": _("Hide badges on icons (Ctrl+p to toggle)"),
-        "show_tray_icon": _("Show Tray Icon"),
-        "light_theme": _("Use Light Theme"),
-        "dark_theme": _("Use Dark Theme"),
-        "discord_rpc": _("Enable Discord Rich Presence for Available Games"),
-    }
-
-    settings_accelerators = {"hide_badges_on_icons": "<Primary>p"}
-
-    settings_availability = {
-        "show_tray_icon": supports_status_icon,
-        "light_theme": lambda: _is_system_dark_by_default(),
-        "dark_theme": lambda: not _is_system_dark_by_default(),
-    }
+    settings_options = [
+        {"option": "hide_client_on_game_start", "label": _("Minimize client when a game is launched"), "type": "bool"},
+        {"option": "hide_text_under_icons", "label": _("Hide text under icons"), "type": "bool"},
+        {
+            "option": "hide_badges_on_icons",
+            "label": _("Hide badges on icons (Ctrl+p to toggle)"),
+            "type": "bool",
+            "accelerator": "<Primary>p",
+        },
+        {"option": "show_tray_icon", "label": _("Show Tray Icon"), "type": "bool", "visible": supports_status_icon},
+        {
+            "option": "light_theme",
+            "label": _("Use Light Theme"),
+            "type": "bool",
+            "visible": lambda: _is_system_dark_by_default(),
+        },
+        {
+            "option": "dark_theme",
+            "label": _("Use Dark Theme"),
+            "type": "bool",
+            "visible": lambda: not _is_system_dark_by_default(),
+        },
+        {
+            "option": "discord_rpc",
+            "label": _("Enable Discord Rich Presence for Available Games"),
+            "type": "bool",
+        },
+    ]
 
     def __init__(self, accelerators):
         super().__init__()
@@ -38,12 +49,20 @@ class InterfacePreferencesBox(BaseConfigBox):
         listbox = Gtk.ListBox(visible=True)
         frame.add(listbox)
         self.pack_start(frame, False, False, 0)
-        for setting_key, label in self.settings_options.items():
-            available = setting_key not in self.settings_availability or self.settings_availability[setting_key]()
+        for option_dict in self.settings_options:
+            visible = option_dict.get("visible")
+            if visible is None:
+                visible = True
+            elif callable(visible):
+                visible = visible()
 
-            if available:
+            if visible:
+                option = option_dict["option"]
+                label = option_dict["label"]
+                accelerator = option_dict.get("accelerator")
+
                 list_box_row = Gtk.ListBoxRow(visible=True)
                 list_box_row.set_selectable(False)
                 list_box_row.set_activatable(False)
-                list_box_row.add(self.get_setting_box(setting_key, label))
+                list_box_row.add(self.get_setting_box(option, label, accelerator=accelerator))
                 listbox.add(list_box_row)
