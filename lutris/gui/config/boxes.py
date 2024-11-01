@@ -17,6 +17,7 @@ from lutris.gui.widgets.searchable_combobox import SearchableCombobox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
+from lutris.util.wine.wine import clear_wine_version_cache
 
 
 class ConfigBox(VBox):
@@ -779,6 +780,12 @@ class RunnerBox(ConfigBox):
             self.generate_top_info_box(
                 _("If modified, these options supersede the same options from " "the base runner configuration.")
             )
+
+    def generate_widgets(self):
+        # Better safe than sorry - we search of Wine versions in directories
+        # we do not control, so let's keep up to date more aggresively.
+        clear_wine_version_cache()
+        return super().generate_widgets()
 
 
 class SystemConfigBox(ConfigBox):
