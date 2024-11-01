@@ -3,6 +3,7 @@
 # pylint: disable=too-many-lines
 # pylint: disable=no-member
 import os
+import sys
 from collections import namedtuple
 from gettext import gettext as _
 from typing import Iterable, List
@@ -1341,6 +1342,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 updater.install_update(runtime_updater)
             for updater in updaters:
                 updater.join()
+
+            python = sys.executable
+            os.execl(python, python, *sys.argv)
 
         return queue.start_multiple(
             install_updates,
