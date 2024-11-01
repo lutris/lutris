@@ -54,10 +54,13 @@ def _get_error_parent(error_objects: Iterable) -> Gtk.Window:
         if not error_object:
             continue
 
-        if error_object and hasattr(error_object, "get_toplevel"):
-            toplevel = error_object.get_toplevel()
-            if toplevel:
-                return toplevel
+        try:
+            if error_object and hasattr(error_object, "get_toplevel"):
+                toplevel = error_object.get_toplevel()
+                if toplevel:
+                    return toplevel
+        except GLib.GError:
+            pass  # hasattr() is always true for (some) GObjects, but the method fails when used
 
     application = Gio.Application.get_default()
     return application.window if application else None
