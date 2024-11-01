@@ -3,7 +3,6 @@
 # pylint: disable=too-many-lines
 # pylint: disable=no-member
 import os
-import sys
 from collections import namedtuple
 from gettext import gettext as _
 from typing import Iterable, List
@@ -58,8 +57,7 @@ from lutris.util.wine.wine import clear_wine_version_cache
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
-                   DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -273,6 +271,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate,
                 action.connect("change-state", value.callback)
             self.actions[name] = action
             if value.enabled:
+
                 def updater(action=action, value=value):
                     action.props.enabled = value.enabled()
 

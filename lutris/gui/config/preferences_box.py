@@ -24,18 +24,6 @@ class InterfacePreferencesBox(BaseConfigBox):
         },
         {"option": "show_tray_icon", "label": _("Show Tray Icon"), "type": "bool", "visible": supports_status_icon},
         {
-            "option": "light_theme",
-            "label": _("Use Light Theme"),
-            "type": "bool",
-            "visible": lambda: _is_system_dark_by_default(),
-        },
-        {
-            "option": "dark_theme",
-            "label": _("Use Dark Theme"),
-            "type": "bool",
-            "visible": lambda: not _is_system_dark_by_default(),
-        },
-        {
             "option": "discord_rpc",
             "label": _("Enable Discord Rich Presence for Available Games"),
             "type": "bool",
