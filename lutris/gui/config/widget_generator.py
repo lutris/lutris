@@ -10,11 +10,9 @@ from typing import Optional
 from gi.repository import Gdk, Gtk
 
 from lutris.config import LutrisConfig
-from lutris.game import Game
 from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label
 from lutris.gui.widgets.searchable_combobox import SearchableCombobox
-from lutris.runners.runner import Runner
 from lutris.util.log import logger
 
 
@@ -24,9 +22,8 @@ class WidgetGenerator:
     dict, and there's a NotificationSource for whenever the widget changes a value (you can supply this
     explicitly to avoid having one per widget, too)."""
 
-    def __init__(self, runner: Runner = None, game: Game = None, changed: NotificationSource = None) -> None:
-        self.runner = runner
-        self.game = game
+    def __init__(self, directory: str = None, changed: NotificationSource = None) -> None:
+        self.directory = directory
         self.changed = changed or NotificationSource()  # takes option_key, new_value
         self.wrapper: Optional[Gtk.Widget] = None
         self.tooltip_default: Optional[str] = None
@@ -256,11 +253,16 @@ class WidgetGenerator:
         """Generate a file chooser button to select a file."""
         option_name = option["option"]
         label = Label(option["label"])
-        chooser_default_path = option.get("default_path") or (self.runner.default_path if self.runner else "")
         warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
 
         if not path:
             path = default_path
+
+        if "default_path" in option:
+            lutris_config = LutrisConfig()
+            chooser_default_path = lutris_config.system_config.get(option["default_path"])
+        else:
+            chooser_default_path = self.directory
 
         file_chooser = FileChooserEntry(
             title=_("Select file"),
@@ -271,19 +273,13 @@ class WidgetGenerator:
             shell_quoting=shell_quoting,
         )
 
-        if "default_path" in option:
-            lutris_config = LutrisConfig()
-            chooser_default_path = lutris_config.system_config.get(option["default_path"])
-            if chooser_default_path and os.path.exists(chooser_default_path):
-                file_chooser.entry.set_text(chooser_default_path)
-
         if path:
             # If path is relative, complete with game dir
             if not os.path.isabs(path):
                 path = os.path.expanduser(path)
                 if not os.path.isabs(path):
-                    if self.game and self.game.directory:
-                        path = os.path.join(self.game.directory, path)
+                    if self.directory:
+                        path = os.path.join(self.directory, path)
             file_chooser.entry.set_text(path)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
@@ -304,8 +300,8 @@ class WidgetGenerator:
             path = default_path
 
         chooser_default_path = None
-        if not path and self.game and self.game.has_runner:
-            chooser_default_path = self.game.runner.working_dir
+        if not path and self.directory:
+            chooser_default_path = self.directory
         directory_chooser = FileChooserEntry(
             title=_("Select folder"),
             action=Gtk.FileChooserAction.SELECT_FOLDER,
@@ -365,10 +361,7 @@ class WidgetGenerator:
 
             files = [row[0] for row in files_list_store]
             first_file_dir = os.path.dirname(files[0]) if files else None
-            dialog.set_current_folder(
-                # first_file_dir or self.game.directory or (self.config or {}).get("game_path") or os.path.expanduser("~")
-                first_file_dir or self.game.directory or os.path.expanduser("~")
-            )
+            dialog.set_current_folder(first_file_dir or self.directory or os.path.expanduser("~"))
             response = dialog.run()
             if response == Gtk.ResponseType.ACCEPT:
                 for filename in dialog.get_filenames():

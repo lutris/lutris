@@ -1,5 +1,7 @@
 """Widget generators and their signal handlers"""
 
+import os
+
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 from gettext import gettext as _
@@ -27,7 +29,6 @@ class ConfigBox(VBox):
 
     def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game = None) -> None:
         super().__init__()
-        self.changed = NotificationSource()
         self.options = []
         self.config_level = config_level
         self.lutris_config = lutris_config
@@ -44,6 +45,7 @@ class ConfigBox(VBox):
         self._advanced_visibility = False
         self._filter = ""
 
+        self.changed = NotificationSource()
         self.changed.register(self.on_option_changed)
 
     @property
@@ -119,6 +121,18 @@ class ConfigBox(VBox):
 
         help_box.show_all()
 
+    def get_widget_generator(self):
+        if self.game and self.game.directory:
+            directory = self.game.directory
+        elif self.game and self.game.has_runner:
+            directory = self.game.runner.working_dir
+        elif self.lutris_config:
+            directory = self.lutris_config.system_config.get("game_path") or os.path.expanduser("~")
+        else:
+            directory = os.path.expanduser("~")
+
+        return WidgetGenerator(directory, self.changed)
+
     def generate_widgets(self):  # noqa: C901 # pylint: disable=too-many-branches,too-many-statements
         """Parse the config dict and generates widget accordingly."""
         if not self.options:
@@ -142,7 +156,7 @@ class ConfigBox(VBox):
 
         current_section = None
         current_vbox = self
-        gen = WidgetGenerator(self.runner, self.game, self.changed)
+        gen = self.get_widget_generator()
 
         # Go thru all options.
         for option in self.options:
@@ -333,7 +347,7 @@ class ConfigBox(VBox):
         for child in children:
             child.destroy()
 
-        gen = WidgetGenerator(self.runner, self.game, self.changed)
+        gen = self.get_widget_generator()
         gen.generate_widget(wrapper, option, option_key, reset_value, default)
         wrapper.show_all()
         self.update_warnings()
