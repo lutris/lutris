@@ -450,9 +450,7 @@ def winetricks(
         arch = detect_arch(prefix, winetricks_wine)
     args = app
 
-    if str(silent).lower() in ("yes", "on", "true"):
-        if proton.is_proton_path(wine_path):
-            proton_verb = "run"
+    if str(silent).lower() in ("yes", "on", "true") and not proton.is_proton_path(wine_path):
         args = "-q " + args
     else:
         if proton.is_proton_path(wine_path):
