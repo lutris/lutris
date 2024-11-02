@@ -25,6 +25,7 @@ class DownloadProgressBox(Gtk.Box):
         self,
         url: str,
         dest: str,
+        temp: str,
         referer: Optional[str] = None,
         title: Optional[str] = None,
         cancelable: bool = True,
@@ -36,7 +37,7 @@ class DownloadProgressBox(Gtk.Box):
         self.is_complete = False
         self.url = url
         self.dest = dest
-        self.temp = dest + ".tmp"
+        self.temp = temp
         self.referer = referer
 
         if not title:

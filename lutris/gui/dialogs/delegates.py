@@ -1,4 +1,5 @@
 from gettext import gettext as _
+from typing import Optional
 
 from gi.repository import Gdk, Gtk
 
@@ -59,13 +60,13 @@ class InstallUIDelegate(Delegate):
     ask the user questions. Windows then inherit from DialogLaunchUIDelegate.
     """
 
-    def show_install_yesno_inquiry(self, question, title):
+    def show_install_yesno_inquiry(self, question: str, title: str) -> bool:
         """Called to ask the user a yes/no question.
 
         The default is 'yes'."""
         return True
 
-    def show_install_file_inquiry(self, question, title, message):
+    def show_install_file_inquiry(self, question: str, title: str, message: str) -> Optional[str]:
         """Called to ask the user for a file.
 
         Lutris first asks the user the question given (showing the title);
@@ -78,7 +79,7 @@ class InstallUIDelegate(Delegate):
         """
         return None
 
-    def download_install_file(self, url, destination):
+    def download_install_file(self, url: str, destination: str) -> Downloader:
         """Downloads a file from a URL to a destination, overwriting any
         file at that path.
 

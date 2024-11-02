@@ -9,6 +9,7 @@ from lutris.cache import get_cache_path, has_custom_cache_path, save_to_cache
 from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.errors import ScriptingError
 from lutris.util import system
+from lutris.util.downloader import Downloader
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe_urls
 
@@ -22,6 +23,10 @@ class InstallerFile:
         self._file_meta = file_meta
         self._dest_file_override = None  # Used to override the destination
         self._dest_file_found = None  # Lazy storage for the resolved destination file
+        if isinstance(self._file_meta, dict):
+            self._downloader = self._file_meta.get("downloader")
+        else:
+            self._downloader = None
 
     def copy(self):
         """Copies this file object, so the copy can be modified safely."""
@@ -32,6 +37,7 @@ class InstallerFile:
         file = InstallerFile(self.game_slug, self.id, _file_meta)
         file._dest_file_override = self._dest_file_override
         file._dest_file_found = self._dest_file_found
+        file._downloader = self._downloader
         return file
 
     @property
@@ -79,12 +85,11 @@ class InstallerFile:
             return self._file_meta.get("referer")
 
     @property
-    def downloader(self):
-        if isinstance(self._file_meta, dict):
-            dl = self._file_meta.get("downloader")
-            if dl and not dl.dest:
-                dl.dest = self.dest_file
-            return dl
+    def downloader(self) -> Optional[Downloader]:
+        if callable(self._downloader):
+            self._downloader = self._downloader(self)
+
+        return self._downloader
 
     @property
     def checksum(self):
@@ -112,6 +117,12 @@ class InstallerFile:
     @dest_file.setter
     def dest_file(self, value):
         self._dest_file_override = value
+
+    @property
+    def download_file(self):
+        """This is the actual path to download to; this file is renamed to the
+        dest_file when complete."""
+        return self.dest_file + ".tmp"
 
     def override_dest_file(self, new_dest_file):
         """Called by the UI when the user selects a file path."""
@@ -228,7 +239,9 @@ class InstallerFile:
             os.makedirs(self.cache_path)
 
     def create_download_progress_box(self):
-        return DownloadProgressBox(url=self.url, dest=self.dest_file, referer=self.referer, downloader=self.downloader)
+        return DownloadProgressBox(
+            url=self.url, dest=self.dest_file, temp=self.download_file, referer=self.referer, downloader=self.downloader
+        )
 
     def check_hash(self):
         """Checks the checksum of `file` and compare it to `value`

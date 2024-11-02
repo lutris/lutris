@@ -2,6 +2,7 @@ import bisect
 import os
 import threading
 import time
+from typing import Any
 
 import requests
 
@@ -26,7 +27,7 @@ class Downloader:
 
     (INIT, DOWNLOADING, CANCELLED, ERROR, COMPLETED) = list(range(5))
 
-    def __init__(self, url: str, dest: str, overwrite: bool = False, referer=None, cookies=None) -> None:
+    def __init__(self, url: str, dest: str, overwrite: bool = False, referer: str = None, cookies: Any = None) -> None:
         self.url: str = url
         self.dest: str = dest
         self.cookies = cookies

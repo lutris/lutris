@@ -633,7 +633,9 @@ class ItchIoService(OnlineService):
                         "itchupload": {
                             "url": patch_url,
                             "filename": "update.zip",
-                            "downloader": Downloader(patch_url, None, overwrite=True, cookies=self.load_cookies()),
+                            "downloader": lambda f, url=patch_url: Downloader(
+                                url, f.download_file, overwrite=True, cookies=self.load_cookies()
+                            ),
                         }
                     }
                 ]
@@ -737,7 +739,9 @@ class ItchIoService(OnlineService):
                     {
                         "url": link,
                         "filename": filename or file.filename or "setup.zip",
-                        "downloader": Downloader(link, None, overwrite=True, cookies=self.load_cookies()),
+                        "downloader": lambda f, url=link: Downloader(
+                            url, f.download_file, overwrite=True, cookies=self.load_cookies()
+                        ),
                     },
                 )
             )
@@ -753,7 +757,9 @@ class ItchIoService(OnlineService):
                     {
                         "url": link,
                         "filename": extra["filename"],
-                        "downloader": Downloader(link, None, overwrite=True, cookies=self.load_cookies()),
+                        "downloader": lambda f, url=link: Downloader(
+                            url, f.download_file, overwrite=True, cookies=self.load_cookies()
+                        ),
                     },
                 )
             )
