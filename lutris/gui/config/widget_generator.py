@@ -24,13 +24,10 @@ class WidgetGenerator:
     dict, and there's a NotificationSource for whenever the widget changes a value (you can supply this
     explicitly to avoid having one per widget, too)."""
 
-    def __init__(
-        self, runner: Runner = None, game: Game = None, config: dict = None, changed: NotificationSource = None
-    ) -> None:
+    def __init__(self, runner: Runner = None, game: Game = None, changed: NotificationSource = None) -> None:
         self.runner = runner
         self.game = game
-        self.config = config
-        self.changed = changed or NotificationSource()
+        self.changed = changed or NotificationSource()  # takes option_key, new_value
         self.wrapper: Optional[Gtk.Widget] = None
         self.tooltip_default: Optional[str] = None
         self.option_widget: Optional[Gtk.Widget] = None
@@ -120,7 +117,7 @@ class WidgetGenerator:
 
     def checkbox_toggle(self, widget, _gparam, option_name):
         """Action for the checkbox's toggled signal."""
-        self.changed.fire(widget, option_name, widget.get_active())
+        self.changed.fire(option_name, widget.get_active())
 
     # Entry
     def generate_entry(self, option_name, label, value=None, default=None, option_size=None):
@@ -137,7 +134,7 @@ class WidgetGenerator:
 
     def entry_changed(self, entry, option_name):
         """Action triggered for entry 'changed' signal."""
-        self.changed.fire(entry, option_name, entry.get_text())
+        self.changed.fire(option_name, entry.get_text())
 
     def generate_searchable_combobox(self, option_name, choice_func, label, value, default):
         """Generate a searchable combo box"""
@@ -148,7 +145,7 @@ class WidgetGenerator:
         return combobox
 
     def on_searchable_entry_changed(self, combobox, value, key):
-        self.changed.fire(combobox, key, value)
+        self.changed.fire(key, value)
 
     def _populate_combobox_choices(self, liststore, choices, value, default):
         expanded, tooltip_default = self._expand_combobox_choices(choices, value, default)
@@ -231,7 +228,7 @@ class WidgetGenerator:
                 option_value = combobox.get_child().get_text()
         else:
             option_value = list_store[active][1]
-        self.changed.fire(combobox, option, option_value)
+        self.changed.fire(option, option_value)
 
     # Range
     def generate_range(self, option_name, min_val, max_val, label, value=None, default=None):
@@ -252,7 +249,7 @@ class WidgetGenerator:
     def on_spin_button_changed(self, spin_button, option):
         """Action triggered on spin button 'changed' signal."""
         value = spin_button.get_value_as_int()
-        self.changed.fire(spin_button, option, value)
+        self.changed.fire(option, value)
 
     # File chooser
     def generate_file_chooser(self, option, path=None, default_path=None, shell_quoting=False):
@@ -327,7 +324,7 @@ class WidgetGenerator:
         text = entry.get_text()
         if text != entry.get_text():
             entry.set_text(text)
-        self.changed.fire(entry, option, text)
+        self.changed.fire(option, text)
 
     # Editable grid
     def generate_editable_grid(self, option_name, label, value=None, default=None):
@@ -348,17 +345,57 @@ class WidgetGenerator:
 
     def _on_grid_changed(self, grid, option):
         values = dict(grid.get_data())
-        self.changed.fire(grid, option, values)
+        self.changed.fire(option, values)
 
     # Multiple file selector
     def generate_multiple_file_chooser(self, option_name, label, value=None, default=None):
         """Generate a multiple file selector."""
+
+        def on_add_files_clicked(_widget):
+            """Create and run multi-file chooser dialog."""
+
+            dialog = Gtk.FileChooserNative.new(
+                _("Select files"),
+                None,
+                Gtk.FileChooserAction.OPEN,
+                _("_Add"),
+                _("_Cancel"),
+            )
+            dialog.set_select_multiple(True)
+
+            files = [row[0] for row in files_list_store]
+            first_file_dir = os.path.dirname(files[0]) if files else None
+            dialog.set_current_folder(
+                # first_file_dir or self.game.directory or (self.config or {}).get("game_path") or os.path.expanduser("~")
+                first_file_dir or self.game.directory or os.path.expanduser("~")
+            )
+            response = dialog.run()
+            if response == Gtk.ResponseType.ACCEPT:
+                for filename in dialog.get_filenames():
+                    if filename not in files:
+                        files_list_store.append([filename])
+                        files.append(filename)
+                self.changed.fire(option_name, files)
+            dialog.destroy()
+
+        def on_files_treeview_keypress(treeview, event):
+            """Action triggered when a row is deleted from the filechooser."""
+            if event.keyval == Gdk.KEY_Delete:
+                selection = treeview.get_selection()
+                (model, treepaths) = selection.get_selected_rows()
+                for treepath in treepaths:
+                    treeiter = model.get_iter(treepath)
+                    model.remove(treeiter)
+
+                    files = [row[0] for row in files_list_store]
+                    self.changed.fire(option_name, files)
+
         files_list_store = Gtk.ListStore(str)
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         label = Label(label + ":")
         label.set_halign(Gtk.Align.START)
         button = Gtk.Button(_("Add Files"))
-        button.connect("clicked", self.on_add_files_clicked, option_name, value, files_list_store)
+        button.connect("clicked", on_add_files_clicked)
         button.set_margin_left(10)
         vbox.pack_start(label, False, False, 5)
         vbox.pack_end(button, False, False, 0)
@@ -368,18 +405,18 @@ class WidgetGenerator:
 
         if value:
             if isinstance(value, str):
-                self.files = [value]
+                files = [value]
             else:
-                self.files = value
+                files = value
         else:
-            self.files = []
-        for filename in self.files:
+            files = []
+        for filename in files:
             files_list_store.append([filename])
         cell_renderer = Gtk.CellRendererText()
         files_treeview = Gtk.TreeView(files_list_store)
         files_column = Gtk.TreeViewColumn(_("Files"), cell_renderer, text=0)
         files_treeview.append_column(files_column)
-        files_treeview.connect("key-press-event", self.on_files_treeview_keypress, option_name)
+        files_treeview.connect("key-press-event", on_files_treeview_keypress)
         treeview_scroll = Gtk.ScrolledWindow()
         treeview_scroll.set_min_content_height(130)
         treeview_scroll.set_margin_left(10)
@@ -390,45 +427,3 @@ class WidgetGenerator:
         vbox.pack_start(treeview_scroll, True, True, 0)
         self.wrapper.pack_start(vbox, True, True, 0)
         return vbox
-
-    def on_add_files_clicked(self, _widget, option_name, value, files_list_store):
-        """Create and run multi-file chooser dialog."""
-        dialog = Gtk.FileChooserNative.new(
-            _("Select files"),
-            None,
-            Gtk.FileChooserAction.OPEN,
-            _("_Add"),
-            _("_Cancel"),
-        )
-        dialog.set_select_multiple(True)
-
-        first_file_dir = os.path.dirname(value[0]) if value else None
-        dialog.set_current_folder(
-            first_file_dir or self.game.directory or (self.config or {}).get("game_path") or os.path.expanduser("~")
-        )
-        response = dialog.run()
-        if response == Gtk.ResponseType.ACCEPT:
-            self.add_files_to_treeview(dialog, option_name, self.wrapper, files_list_store)
-        dialog.destroy()
-
-    def add_files_to_treeview(self, dialog, option, wrapper, files_list_store):
-        """Add several files to the configuration"""
-        filenames = dialog.get_filenames()
-        files = self.config.get(option, []) if self.config else []
-        for filename in filenames:
-            files_list_store.append([filename])
-            if filename not in files:
-                files.append(filename)
-        self.changed.fire(wrapper, option, files)
-
-    def on_files_treeview_keypress(self, treeview, event, option):
-        """Action triggered when a row is deleted from the filechooser."""
-        key = event.keyval
-        if key == Gdk.KEY_Delete:
-            selection = treeview.get_selection()
-            (model, treepaths) = selection.get_selected_rows()
-            for treepath in treepaths:
-                row_index = int(str(treepath))
-                treeiter = model.get_iter(treepath)
-                model.remove(treeiter)
-                self.raw_config[option].pop(row_index)

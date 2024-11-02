@@ -142,7 +142,7 @@ class ConfigBox(VBox):
 
         current_section = None
         current_vbox = self
-        gen = WidgetGenerator(self.runner, self.game, self.config, self.changed)
+        gen = WidgetGenerator(self.runner, self.game, self.changed)
 
         # Go thru all options.
         for option in self.options:
@@ -283,7 +283,7 @@ class ConfigBox(VBox):
         for box in self.error_boxes.values():
             box.update_warning(self.lutris_config)
 
-    def on_option_changed(self, widget, option_name, value):
+    def on_option_changed(self, option_name, value):
         """Common actions when value changed on a widget"""
         self.raw_config[option_name] = value
         self.config[option_name] = value
@@ -333,7 +333,7 @@ class ConfigBox(VBox):
         for child in children:
             child.destroy()
 
-        gen = WidgetGenerator(self.runner, self.game, self.config, self.changed)
+        gen = WidgetGenerator(self.runner, self.game, self.changed)
         gen.generate_widget(wrapper, option, option_key, reset_value, default)
         wrapper.show_all()
         self.update_warnings()
