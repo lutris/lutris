@@ -55,6 +55,12 @@ class WidgetGenerator:
         # pylint: disable=too-many-branches
         option_type = option["type"]
 
+        visible = option.get("visible")
+        if visible is None:
+            visible = True
+        elif callable(visible):
+            visible = visible()
+
         default = option.get("default")
         if callable(default):
             default = default()
@@ -62,6 +68,10 @@ class WidgetGenerator:
         self.default_value = default
         self.tooltip_default = None
         self.option_widget = None
+
+        if not visible:
+            # If invisible, there's no wrapper, and no widget!
+            return None
 
         if wrapper:
             # Destroy and recreate option widget

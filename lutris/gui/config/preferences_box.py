@@ -56,22 +56,15 @@ class InterfacePreferencesBox(BaseConfigBox):
         gen.changed.register(self.on_setting_changed)
 
         for option_dict in self.settings_options:
-            visible = option_dict.get("visible")
-            if visible is None:
-                visible = True
-            elif callable(visible):
-                visible = visible()
+            value = settings.read_setting(option_dict["option"], default=None)
+            gen.generate_widget(option_dict, value)
 
-            if visible:
-                value = settings.read_setting(option_dict["option"], default=None)
-                gen.generate_widget(option_dict, value)
-
-                if gen.wrapper:
-                    list_box_row = Gtk.ListBoxRow(visible=True)
-                    list_box_row.set_selectable(False)
-                    list_box_row.set_activatable(False)
-                    list_box_row.add(gen.wrapper)
-                    listbox.add(list_box_row)
+            if gen.wrapper:
+                list_box_row = Gtk.ListBoxRow(visible=True)
+                list_box_row.set_selectable(False)
+                list_box_row.set_activatable(False)
+                list_box_row.add(gen.wrapper)
+                listbox.add(list_box_row)
 
     @staticmethod
     def on_setting_changed(option_key, new_value):
