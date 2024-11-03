@@ -1143,6 +1143,9 @@ class wine(Runner):
         if self.runner_config.get("eac"):
             env["PROTON_EAC_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "eac_runtime")
 
+        if not self.runner_config.get("dxvk"):
+            env["PROTON_USE_WINED3D"] = "1"
+
         for dll_manager in self.get_dll_managers(enabled_only=True):
             self.dll_overrides.update(dll_manager.get_enabling_dll_overrides())
 
