@@ -31,18 +31,21 @@ class WidgetGenerator:
         self.option_widget: Optional[Gtk.Widget] = None
 
         self._generators = {
-            "label": self.generate_label,
-            "string": self.generate_entry,
-            "bool": self.generate_checkbox,
+            "label": self._generate_label,
+            "string": self._generate_string,
+            "bool": self._generate_bool,
             "range": self.generate_range,
-            "choice": self.generate_combobox,
-            "choice_with_entry": self.generate_entry_combobox,
-            "choice_with_search": self.generate_searchable_combobox,
-            "file": self.generate_file_chooser,
-            "multiple": self.generate_multiple_file_chooser,
+            "choice": self._generate_choice,
+            "choice_with_entry": self._generate_choice_with_entry,
+            "choice_with_search": self._generate_choice_with_search,
+            "file": self._generate_file,
+            "multiple_file": self._generate_multiple_file,
             "command_line": self.generate_command_line,
-            "directory_chooser": self.generate_directory_chooser,
-            "mapping": self.generate_editable_grid,
+            "directory": self._generate_directory,
+            "mapping": self._generae_mapping,
+            # Backwards compatibility names (we're still using these though)
+            "multiple": self._generate_multiple_file,
+            "directory_chooser": self._generate_directory,
         }
 
     def generate_widget(self, wrapper, option, value):  # noqa: C901
@@ -70,7 +73,7 @@ class WidgetGenerator:
         return option_widget
 
     # Label
-    def generate_label(self, option, value, default):
+    def _generate_label(self, option, value, default):
         """Generate a simple label."""
         text = option["label"]
         label = Label(text)
@@ -81,7 +84,7 @@ class WidgetGenerator:
         return None
 
     # Checkbox
-    def generate_checkbox(self, option, value, default):
+    def _generate_bool(self, option, value, default):
         """Generate a checkbox."""
 
         label = Label(option["label"])
@@ -104,7 +107,7 @@ class WidgetGenerator:
         self.changed.fire(option_name, widget.get_active())
 
     # Entry
-    def generate_entry(self, option, value, default):
+    def _generate_string(self, option, value, default):
         """Generate an entry box."""
         option_name = option["option"]
         label = option["label"]
@@ -123,7 +126,7 @@ class WidgetGenerator:
         """Action triggered for entry 'changed' signal."""
         self.changed.fire(option_name, entry.get_text())
 
-    def generate_searchable_combobox(self, option, value, default):
+    def _generate_choice_with_search(self, option, value, default):
         """Generate a searchable combo box"""
         option_name = option["option"]
         choice_func = option["choices"]
@@ -164,11 +167,11 @@ class WidgetGenerator:
         return expanded, tooltip_default
 
     # ComboBox
-    def generate_entry_combobox(self, option, value, default):
-        return self.generate_combobox(option, value, default, has_entry=True)
+    def _generate_choice_with_entry(self, option, value, default):
+        return self._generate_choice(option, value, default, has_entry=True)
 
     # ComboBox
-    def generate_combobox(self, option, value, default, has_entry=False):
+    def _generate_choice(self, option, value, default, has_entry=False):
         """Generate a combobox (drop-down menu)."""
         option_name = option["option"]
         choices = option["choices"]
@@ -255,10 +258,10 @@ class WidgetGenerator:
         self.changed.fire(option, value)
 
     def generate_command_line(self, option, path=None, default_path=None):
-        return self.generate_file_chooser(option, path, default_path, shell_quoting=True)
+        return self._generate_file(option, path, default_path, shell_quoting=True)
 
     # File chooser
-    def generate_file_chooser(self, option, path=None, default_path=None, shell_quoting=False):
+    def _generate_file(self, option, path=None, default_path=None, shell_quoting=False):
         """Generate a file chooser button to select a file."""
         option_name = option["option"]
         label = Label(option["label"])
@@ -299,7 +302,7 @@ class WidgetGenerator:
         return file_chooser
 
     # Directory chooser
-    def generate_directory_chooser(self, option, path=None, default_path=None):
+    def _generate_directory(self, option, path=None, default_path=None):
         """Generate a file chooser button to select a directory."""
         label = Label(option["label"])
         option_name = option["option"]
@@ -332,7 +335,7 @@ class WidgetGenerator:
         self.changed.fire(option, text)
 
     # Editable grid
-    def generate_editable_grid(self, option, value, default):
+    def _generae_mapping(self, option, value, default):
         """Adds an editable grid widget"""
 
         option_name = option["option"]
@@ -356,7 +359,7 @@ class WidgetGenerator:
         self.changed.fire(option, values)
 
     # Multiple file selector
-    def generate_multiple_file_chooser(self, option, value, default):
+    def _generate_multiple_file(self, option, value, default):
         """Generate a multiple file selector."""
 
         def on_add_files_clicked(_widget):
