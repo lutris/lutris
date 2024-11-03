@@ -30,6 +30,21 @@ class WidgetGenerator:
         self.tooltip_default: Optional[str] = None
         self.option_widget: Optional[Gtk.Widget] = None
 
+        self._generators = {
+            "label": self.generate_label,
+            "string": self.generate_entry,
+            "bool": self.generate_checkbox,
+            "range": self.generate_range,
+            "choice": self.generate_combobox,
+            "choice_with_entry": self.generate_entry_combobox,
+            "choice_with_search": self.generate_searchable_combobox,
+            "file": self.generate_file_chooser,
+            "multiple": self.generate_multiple_file_chooser,
+            "command_line": self.generate_command_line,
+            "directory_chooser": self.generate_directory_chooser,
+            "mapping": self.generate_editable_grid,
+        }
+
     def generate_widget(self, wrapper, option, value):  # noqa: C901
         """Call the right generation method depending on option type."""
         # pylint: disable=too-many-branches
@@ -43,30 +58,10 @@ class WidgetGenerator:
             default = default()
         self.default_value = default
 
-        if option_type == "choice":
-            option_widget = self.generate_combobox(option, value, default)
-        elif option_type == "choice_with_entry":
-            option_widget = self.generate_entry_combobox(option, value, default)
-        elif option_type == "choice_with_search":
-            option_widget = self.generate_searchable_combobox(option, value, default)
-        elif option_type == "bool":
-            option_widget = self.generate_checkbox(option, value, default)
-        elif option_type == "range":
-            option_widget = self.generate_range(option, value, default)
-        elif option_type == "string":
-            option_widget = self.generate_entry(option, value, default)
-        elif option_type == "directory_chooser":
-            option_widget = self.generate_directory_chooser(option, value, default)
-        elif option_type == "file":
-            option_widget = self.generate_file_chooser(option, value, default)
-        elif option_type == "command_line":
-            option_widget = self.generate_command_line(option, value, default)
-        elif option_type == "multiple":
-            option_widget = self.generate_multiple_file_chooser(option, value, default)
-        elif option_type == "label":
-            option_widget = self.generate_label(option, value, default)
-        elif option_type == "mapping":
-            option_widget = self.generate_editable_grid(option, value, default)
+        func = self._generators.get(option_type)
+
+        if func:
+            option_widget = func(option, value, default)
         else:
             raise ValueError("Unknown widget type %s" % option_type)
         self.option_widget = option_widget
