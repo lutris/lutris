@@ -72,8 +72,14 @@ class InterfacePreferencesBox(BaseConfigBox):
 
 
 class PreferencesWidgetGenerator(WidgetGenerator):
-    def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Gtk.Box:
-        return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin=12, visible=True)
+    def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
+        box = super().create_wrapper_box(option, value, default)
+        if box:
+            box.set_margin_top(12)
+            box.set_margin_bottom(12)
+            box.set_margin_right(12)
+            box.set_margin_left(12)
+        return box
 
     def build_option_widget(
         self, option: Dict[str, Any], widget: Optional[Gtk.Widget], no_label: bool = False, expand: bool = False

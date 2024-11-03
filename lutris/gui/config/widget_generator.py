@@ -27,6 +27,8 @@ class WidgetGenerator:
     def __init__(self) -> None:
         self._default_directory: Optional[str] = None
         self.changed = NotificationSource()  # takes option_key, new_value
+
+        # These are outputs sets by generate_widget()
         self.wrapper: Optional[Gtk.Widget] = None
         self.default_value = None
         self.tooltip_default: Optional[str] = None
@@ -52,6 +54,7 @@ class WidgetGenerator:
 
     @property
     def default_directory(self) -> str:
+        """This is the directory selected by default by file and directory choosers."""
         if not self._default_directory:
             lutris_config = LutrisConfig()
             self._default_directory = lutris_config.system_config.get("game_path") or os.path.expanduser("~")
@@ -61,16 +64,12 @@ class WidgetGenerator:
     def default_directory(self, new_dir: str) -> None:
         self._default_directory = new_dir
 
-    def generate_widget(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None):
-        """Call the right generation method depending on option type."""
-        # pylint: disable=too-many-branches
+    def generate_widget(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
+        """This creates a wrapper box and a label and widget within it according to the options dict
+        given. The option widget itself, is returned, but this method also sets attributes on the
+        generator. You get 'wrapper', 'default_value', 'tooltip_default' and 'option_widget' which restates
+        the return value. This returns None if the entire option should be omitted."""
         option_type = option["type"]
-
-        visible = option.get("visible")
-        if visible is None:
-            visible = True
-        elif callable(visible):
-            visible = visible()
 
         default = option.get("default")
         if callable(default):
@@ -79,10 +78,6 @@ class WidgetGenerator:
         self.default_value = default
         self.tooltip_default = None
         self.option_widget = None
-
-        if not visible:
-            # If invisible, there's no wrapper, and no widget!
-            return None
 
         if wrapper:
             # Destroy and recreate option widget
@@ -93,20 +88,38 @@ class WidgetGenerator:
         else:
             self.wrapper = self.create_wrapper_box(option, value, default)
 
+            if not self.wrapper:
+                return None
+
         func = self._generators.get(option_type)
 
         if func:
             option_widget = func(option, value, default)
         else:
             raise ValueError("Unknown widget type %s" % option_type)
+
         self.option_widget = option_widget
         self.tooltip_default = self.tooltip_default or (default if isinstance(default, str) else None)
 
-        self.wrapper.show_all()
+        if option_widget:
+            option_widget.show_all()
         return option_widget
 
-    def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Gtk.Box:
-        return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin_bottom=6)
+    def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
+        """This creates the wrapper, which becomes the 'wrapper' attribute and which build_option_widget()
+        populates. Returns None if the option is not visible; in that case no widget is generated either."""
+
+        visible = option.get("visible")
+        if visible is None:
+            visible = True
+        elif callable(visible):
+            visible = visible()
+
+        if not visible:
+            # If invisible, there's no wrapper, and no widget!
+            return None
+
+        return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin_bottom=6, visible=True)
 
     def build_option_widget(
         self, option: Dict[str, Any], widget: Optional[Gtk.Widget], no_label: bool = False, expand: bool = True
