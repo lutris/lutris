@@ -261,7 +261,7 @@ class WidgetGenerator:
         return combobox
 
     # FileChooserEntry
-    def _generate_file(self, option, path=None, default_path=None, shell_quoting=False):
+    def _generate_file(self, option, value, default, shell_quoting=False):
         """Generate a file chooser button to select a file."""
 
         def on_changed(entry):
@@ -273,8 +273,8 @@ class WidgetGenerator:
         label = Label(option["label"])
         warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
 
-        if not path:
-            path = default_path
+        if not value:
+            value = default
 
         if "default_path" in option:
             lutris_config = LutrisConfig()
@@ -286,19 +286,19 @@ class WidgetGenerator:
             title=_("Select file"),
             action=Gtk.FileChooserAction.OPEN,
             warn_if_non_writable_parent=warn_if_non_writable_parent,
-            text=path,
+            text=value,
             default_path=chooser_default_path,
             shell_quoting=shell_quoting,
         )
 
-        if path:
+        if value:
             # If path is relative, complete with game dir
-            if not os.path.isabs(path):
-                path = os.path.expanduser(path)
-                if not os.path.isabs(path):
+            if not os.path.isabs(value):
+                value = os.path.expanduser(value)
+                if not os.path.isabs(value):
                     if self.directory:
-                        path = os.path.join(self.directory, path)
-            file_chooser.entry.set_text(path)
+                        value = os.path.join(self.directory, value)
+            file_chooser.entry.set_text(value)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
@@ -308,8 +308,8 @@ class WidgetGenerator:
         return file_chooser
 
     # FileChooserEntry
-    def _generate_command_line(self, option, path=None, default_path=None):
-        return self._generate_file(option, path, default_path, shell_quoting=True)
+    def _generate_command_line(self, option, value, default):
+        return self._generate_file(option, value, default, shell_quoting=True)
 
     # TreeView
     def _generate_multiple_file(self, option, value, default):
@@ -393,7 +393,7 @@ class WidgetGenerator:
         return vbox
 
     # FileChooserEntry
-    def _generate_directory(self, option, path=None, default_path=None):
+    def _generate_directory(self, option, value, default):
         """Generate a file chooser button to select a directory."""
 
         def on_changed(entry):
@@ -405,17 +405,17 @@ class WidgetGenerator:
         option_name = option["option"]
         warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
 
-        if not path:
-            path = default_path
+        if not value:
+            value = default
 
         chooser_default_path = None
-        if not path and self.directory:
+        if not value and self.directory:
             chooser_default_path = self.directory
         directory_chooser = FileChooserEntry(
             title=_("Select folder"),
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             warn_if_non_writable_parent=warn_if_non_writable_parent,
-            text=path,
+            text=value,
             default_path=chooser_default_path,
         )
         directory_chooser.connect("changed", on_changed)
