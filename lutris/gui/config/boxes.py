@@ -35,7 +35,6 @@ class ConfigBox(VBox):
         self.game = game
         self.config = None
         self.raw_config = None
-        self.option_widget = None
         self.files = []
         self.files_list_store = None
         self.reset_buttons = {}
@@ -195,20 +194,15 @@ class ConfigBox(VBox):
                 wrapper.set_margin_bottom(6)
                 self.wrappers[option_key] = wrapper
 
-                # Set tooltip's "Default" part
-                default = option.get("default")
-                if callable(default):
-                    default = default()
-
                 # Generate option widget
+                option_widget = gen.generate_widget(wrapper, option, value)
+                default = gen.default_value
+                tooltip_default = gen.tooltip_default
 
                 if option_key in self.raw_config:
                     self.set_style_property("font-weight", "bold", wrapper)
                 elif value != default:
                     self.set_style_property("font-style", "italic", wrapper)
-
-                self.option_widget = gen.generate_widget(wrapper, option, option_key, value, default)
-                tooltip_default = gen.tooltip_default or (default if isinstance(default, str) else None)
 
                 # Reset button
                 reset_btn = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
@@ -220,7 +214,7 @@ class ConfigBox(VBox):
                     "clicked",
                     self.on_reset_button_clicked,
                     option,
-                    self.option_widget,
+                    option_widget,
                     wrapper,
                 )
                 self.reset_buttons[option_key] = reset_btn
@@ -241,7 +235,7 @@ class ConfigBox(VBox):
                 if value != default and option_key not in self.raw_config:
                     helptext = helptext + "\n\n" if helptext else ""
                     helptext += _(
-                        "<i>(Italic indicates that this option is " "modified in a lower configuration level.)</i>"
+                        "<i>(Italic indicates that this option is modified in a lower configuration level.)</i>"
                     )
                 if helptext:
                     wrapper.props.has_tooltip = True
@@ -338,17 +332,13 @@ class ConfigBox(VBox):
         if current_value == reset_value:
             return
 
-        default = option.get("default")
-        if callable(default):
-            default = default()
-
         # Destroy and recreate option widget
         children = wrapper.get_children()
         for child in children:
             child.destroy()
 
         gen = self.get_widget_generator()
-        gen.generate_widget(wrapper, option, option_key, reset_value, default)
+        gen.generate_widget(wrapper, option, reset_value)
         wrapper.show_all()
         self.update_warnings()
 

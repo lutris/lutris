@@ -26,17 +26,24 @@ class WidgetGenerator:
         self.directory = directory
         self.changed = changed or NotificationSource()  # takes option_key, new_value
         self.wrapper: Optional[Gtk.Widget] = None
+        self.default_value = None
         self.tooltip_default: Optional[str] = None
         self.option_widget: Optional[Gtk.Widget] = None
 
-    def generate_widget(self, wrapper, option, option_key, value, default):  # noqa: C901
+    def generate_widget(self, wrapper, option, value):  # noqa: C901
         """Call the right generation method depending on option type."""
         # pylint: disable=too-many-branches
         self.wrapper = wrapper
         self.tooltip_default = None
         self.option_widget = None
+        option_key = option["option"]
         option_type = option["type"]
         option_size = option.get("size", None)
+
+        default = option.get("default")
+        if callable(default):
+            default = default()
+        self.default_value = default
 
         if option_type == "choice":
             option_widget = self.generate_combobox(option_key, option["choices"], option["label"], value, default)
@@ -83,6 +90,8 @@ class WidgetGenerator:
         else:
             raise ValueError("Unknown widget type %s" % option_type)
         self.option_widget = option_widget
+        self.tooltip_default = self.tooltip_default or (default if isinstance(default, str) else None)
+
         return option_widget
 
     # Label
