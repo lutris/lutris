@@ -66,11 +66,11 @@ class InterfacePreferencesBox(BaseConfigBox):
                 else:
                     raise ValueError("Unsupported widget type %s" % option_type)
 
-            list_box_row = Gtk.ListBoxRow(visible=True)
-            list_box_row.set_selectable(False)
-            list_box_row.set_activatable(False)
-            list_box_row.add(widget)
-            listbox.add(list_box_row)
+                list_box_row = Gtk.ListBoxRow(visible=True)
+                list_box_row.set_selectable(False)
+                list_box_row.set_activatable(False)
+                list_box_row.add(widget)
+                listbox.add(list_box_row)
 
     def _create_bool_setting(self, option, label, accelerator=None, **kwargs):
         return self.get_setting_box(option, label, accelerator=accelerator)
