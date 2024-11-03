@@ -4,7 +4,7 @@
 # pylint: disable=no-member,too-many-public-methods
 import os
 from gettext import gettext as _
-from typing import Optional
+from typing import Any, Dict, Optional
 
 # Third Party Libraries
 from gi.repository import Gdk, Gtk
@@ -72,6 +72,23 @@ class WidgetGenerator:
 
         return option_widget
 
+    def build_option_widget(
+        self, option: Dict[str, Any], widget: Optional[Gtk.Widget], no_label: bool = False, expand: bool = True
+    ) -> Optional[Gtk.Widget]:
+        if self.wrapper:
+            if not no_label:
+                label = option["label"]
+                label = Label(label)
+                self.wrapper.pack_start(label, False, False, 0)
+
+            if widget:
+                option_size = option.get("size", None)
+                if option_size:
+                    expand = option_size != "small"
+
+                self.wrapper.pack_start(widget, expand, expand, 0)
+        return widget
+
     # Label
     def _generate_label(self, option, value, default):
         """Generate a simple label."""
@@ -80,8 +97,7 @@ class WidgetGenerator:
         label.set_use_markup(True)
         label.set_halign(Gtk.Align.START)
         label.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(label, True, True, 0)
-        return None
+        return self.build_option_widget(option, label, no_label=True)
 
     # Entry
     def _generate_string(self, option, value, default):
@@ -92,17 +108,11 @@ class WidgetGenerator:
             self.changed.fire(option_name, entry.get_text())
 
         option_name = option["option"]
-        label = option["label"]
-        option_size = option.get("size", None)
-        label = Label(label)
-        self.wrapper.pack_start(label, False, False, 0)
 
         entry = Gtk.Entry()
         entry.set_text(value or default or "")
         entry.connect("changed", on_changed)
-        expand = option_size != "small"
-        self.wrapper.pack_start(entry, expand, expand, 0)
-        return entry
+        return self.build_option_widget(option, entry)
 
     # Switch
     def _generate_bool(self, option, value, default):
@@ -113,20 +123,13 @@ class WidgetGenerator:
             self.changed.fire(option_name, widget.get_active())
 
         option_name = option["option"]
-        label = Label(option["label"])
-        self.wrapper.pack_start(label, False, False, 0)
 
-        switch = Gtk.Switch()
-        if value is None:
-            switch.set_active(default)
-        else:
-            switch.set_active(value)
+        active = value if value is not None else default
+        switch = Gtk.Switch(active=active, valign=Gtk.Align.CENTER)
         switch.connect("notify::active", on_notify_active)
-        switch.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(switch, False, False, 0)
 
         self.tooltip_default = "Enabled" if default else "Disabled"
-        return switch
+        return self.build_option_widget(option, switch, expand=False)
 
     # SpinButton
     def _generate_range(self, option, value, default):
@@ -140,20 +143,13 @@ class WidgetGenerator:
         option_name = option["option"]
         min_val = option["min"]
         max_val = option["max"]
-        label = option["label"]
 
         adjustment = Gtk.Adjustment(float(min_val), float(min_val), float(max_val), 1, 0, 0)
         spin_button = Gtk.SpinButton()
         spin_button.set_adjustment(adjustment)
-        if value:
-            spin_button.set_value(value)
-        elif default:
-            spin_button.set_value(default)
+        spin_button.set_value(value or default or 0)
         spin_button.connect("changed", on_changed)
-        label = Label(label)
-        self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(spin_button, True, True, 0)
-        return spin_button
+        return self.build_option_widget(option, spin_button)
 
     # ComboBox
     def _generate_choice(self, option, value, default, has_entry=False):
@@ -205,7 +201,6 @@ class WidgetGenerator:
 
         option_name = option["option"]
         choices = option["choices"]
-        label = option["label"]
         liststore = Gtk.ListStore(str, str)
         populate_combobox_choices()
         # With entry ("choice_with_entry" type)
@@ -234,11 +229,8 @@ class WidgetGenerator:
 
         combobox.connect("changed", on_combobox_change)
         combobox.connect("scroll-event", on_combobox_scroll)
-        label = Label(label)
         combobox.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(combobox, True, True, 0)
-        return combobox
+        return self.build_option_widget(option, combobox)
 
     # ComboBox
     def _generate_choice_with_entry(self, option, value, default):
@@ -253,12 +245,9 @@ class WidgetGenerator:
 
         option_name = option["option"]
         choice_func = option["choices"]
-        label = option["label"]
         combobox = SearchableCombobox(choice_func, value or default)
         combobox.connect("changed", on_changed)
-        self.wrapper.pack_start(Label(label), False, False, 0)
-        self.wrapper.pack_start(combobox, True, True, 0)
-        return combobox
+        return self.build_option_widget(option, combobox)
 
     # FileChooserEntry
     def _generate_file(self, option, value, default, shell_quoting=False):
@@ -270,7 +259,6 @@ class WidgetGenerator:
             self.changed.fire(option_name, text)
 
         option_name = option["option"]
-        label = Label(option["label"])
         warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
 
         if not value:
@@ -301,11 +289,9 @@ class WidgetGenerator:
             file_chooser.entry.set_text(value)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(file_chooser, True, True, 0)
-
         file_chooser.connect("changed", on_changed)
-        return file_chooser
+
+        return self.build_option_widget(option, file_chooser)
 
     # FileChooserEntry
     def _generate_command_line(self, option, value, default):
@@ -389,8 +375,7 @@ class WidgetGenerator:
         treeview_scroll.add(files_treeview)
 
         vbox.pack_start(treeview_scroll, True, True, 0)
-        self.wrapper.pack_start(vbox, True, True, 0)
-        return vbox
+        return self.build_option_widget(option, vbox, no_label=True)
 
     # FileChooserEntry
     def _generate_directory(self, option, value, default):
@@ -401,7 +386,6 @@ class WidgetGenerator:
             text = entry.get_text()
             self.changed.fire(option_name, text)
 
-        label = Label(option["label"])
         option_name = option["option"]
         warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
 
@@ -420,9 +404,7 @@ class WidgetGenerator:
         )
         directory_chooser.connect("changed", on_changed)
         directory_chooser.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(directory_chooser, True, True, 0)
-        return directory_chooser
+        return self.build_option_widget(option, directory_chooser)
 
     # EditableGrid
     def _generate_mapping(self, option, value, default):
@@ -433,17 +415,13 @@ class WidgetGenerator:
             self.changed.fire(option_name, values)
 
         option_name = option["option"]
-        label = option["label"]
         value = value or default or {}
         try:
             value = list(value.items())
         except AttributeError:
             logger.error("Invalid value of type %s passed to grid widget: %s", type(value), value)
             value = {}
-        label = Label(label)
 
         grid = EditableGrid(value, columns=["Key", "Value"])
         grid.connect("changed", on_changed, option_name)
-        self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(grid, True, True, 0)
-        return grid
+        return self.build_option_widget(option, grid)
