@@ -36,9 +36,7 @@ class WidgetGenerator:
         self.wrapper = wrapper
         self.tooltip_default = None
         self.option_widget = None
-        option_key = option["option"]
         option_type = option["type"]
-        option_size = option.get("size", None)
 
         default = option.get("default")
         if callable(default):
@@ -46,47 +44,29 @@ class WidgetGenerator:
         self.default_value = default
 
         if option_type == "choice":
-            option_widget = self.generate_combobox(option_key, option["choices"], option["label"], value, default)
+            option_widget = self.generate_combobox(option, value, default)
         elif option_type == "choice_with_entry":
-            option_widget = self.generate_combobox(
-                option_key,
-                option["choices"],
-                option["label"],
-                value,
-                default,
-                has_entry=True,
-            )
+            option_widget = self.generate_entry_combobox(option, value, default)
         elif option_type == "choice_with_search":
-            option_widget = self.generate_searchable_combobox(
-                option_key,
-                option["choices"],
-                option["label"],
-                value,
-                default,
-            )
+            option_widget = self.generate_searchable_combobox(option, value, default)
         elif option_type == "bool":
             option_widget = self.generate_checkbox(option, value, default)
-            self.tooltip_default = "Enabled" if default else "Disabled"
         elif option_type == "range":
-            option_widget = self.generate_range(
-                option_key, option["min"], option["max"], option["label"], value, default
-            )
+            option_widget = self.generate_range(option, value, default)
         elif option_type == "string":
-            if "label" not in option:
-                raise ValueError("Option %s has no label" % option)
-            option_widget = self.generate_entry(option_key, option["label"], value, default, option_size)
+            option_widget = self.generate_entry(option, value, default)
         elif option_type == "directory_chooser":
             option_widget = self.generate_directory_chooser(option, value, default)
         elif option_type == "file":
             option_widget = self.generate_file_chooser(option, value, default)
         elif option_type == "command_line":
-            option_widget = self.generate_file_chooser(option, value, default, shell_quoting=True)
+            option_widget = self.generate_command_line(option, value, default)
         elif option_type == "multiple":
-            option_widget = self.generate_multiple_file_chooser(option_key, option["label"], value, default)
+            option_widget = self.generate_multiple_file_chooser(option, value, default)
         elif option_type == "label":
-            option_widget = self.generate_label(option["label"])
+            option_widget = self.generate_label(option, value, default)
         elif option_type == "mapping":
-            option_widget = self.generate_editable_grid(option_key, label=option["label"], value=value, default=default)
+            option_widget = self.generate_editable_grid(option, value, default)
         else:
             raise ValueError("Unknown widget type %s" % option_type)
         self.option_widget = option_widget
@@ -95,8 +75,9 @@ class WidgetGenerator:
         return option_widget
 
     # Label
-    def generate_label(self, text):
+    def generate_label(self, option, value, default):
         """Generate a simple label."""
+        text = option["label"]
         label = Label(text)
         label.set_use_markup(True)
         label.set_halign(Gtk.Align.START)
@@ -105,7 +86,7 @@ class WidgetGenerator:
         return None
 
     # Checkbox
-    def generate_checkbox(self, option, value=None, default=None):
+    def generate_checkbox(self, option, value, default):
         """Generate a checkbox."""
 
         label = Label(option["label"])
@@ -119,6 +100,8 @@ class WidgetGenerator:
         switch.connect("notify::active", self.checkbox_toggle, option["option"])
         switch.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(switch, False, False, 0)
+
+        self.tooltip_default = "Enabled" if default else "Disabled"
         return switch
 
     def checkbox_toggle(self, widget, _gparam, option_name):
@@ -126,8 +109,11 @@ class WidgetGenerator:
         self.changed.fire(option_name, widget.get_active())
 
     # Entry
-    def generate_entry(self, option_name, label, value=None, default=None, option_size=None):
+    def generate_entry(self, option, value, default):
         """Generate an entry box."""
+        option_name = option["option"]
+        label = option["label"]
+        option_size = option.get("size", None)
         label = Label(label)
         self.wrapper.pack_start(label, False, False, 0)
 
@@ -142,8 +128,11 @@ class WidgetGenerator:
         """Action triggered for entry 'changed' signal."""
         self.changed.fire(option_name, entry.get_text())
 
-    def generate_searchable_combobox(self, option_name, choice_func, label, value, default):
+    def generate_searchable_combobox(self, option, value, default):
         """Generate a searchable combo box"""
+        option_name = option["option"]
+        choice_func = option["choices"]
+        label = option["label"]
         combobox = SearchableCombobox(choice_func, value or default)
         combobox.connect("changed", self.on_searchable_entry_changed, option_name)
         self.wrapper.pack_start(Label(label), False, False, 0)
@@ -180,8 +169,15 @@ class WidgetGenerator:
         return expanded, tooltip_default
 
     # ComboBox
-    def generate_combobox(self, option_name, choices, label, value=None, default=None, has_entry=False):
+    def generate_entry_combobox(self, option, value, default):
+        return self.generate_combobox(option, value, default, has_entry=True)
+
+    # ComboBox
+    def generate_combobox(self, option, value, default, has_entry=False):
         """Generate a combobox (drop-down menu)."""
+        option_name = option["option"]
+        choices = option["choices"]
+        label = option["label"]
         liststore = Gtk.ListStore(str, str)
         self._populate_combobox_choices(liststore, choices, value, default)
         # With entry ("choice_with_entry" type)
@@ -237,8 +233,14 @@ class WidgetGenerator:
         self.changed.fire(option, option_value)
 
     # Range
-    def generate_range(self, option_name, min_val, max_val, label, value=None, default=None):
+    def generate_range(self, option, value, default):
         """Generate a ranged spin button."""
+
+        option_name = option["option"]
+        min_val = option["min"]
+        max_val = option["max"]
+        label = option["label"]
+
         adjustment = Gtk.Adjustment(float(min_val), float(min_val), float(max_val), 1, 0, 0)
         spin_button = Gtk.SpinButton()
         spin_button.set_adjustment(adjustment)
@@ -256,6 +258,9 @@ class WidgetGenerator:
         """Action triggered on spin button 'changed' signal."""
         value = spin_button.get_value_as_int()
         self.changed.fire(option, value)
+
+    def generate_command_line(self, option, path=None, default_path=None):
+        return self.generate_file_chooser(option, path, default_path, shell_quoting=True)
 
     # File chooser
     def generate_file_chooser(self, option, path=None, default_path=None, shell_quoting=False):
@@ -332,8 +337,11 @@ class WidgetGenerator:
         self.changed.fire(option, text)
 
     # Editable grid
-    def generate_editable_grid(self, option_name, label, value=None, default=None):
+    def generate_editable_grid(self, option, value, default):
         """Adds an editable grid widget"""
+
+        option_name = option["option"]
+        label = option["label"]
         value = value or default or {}
         try:
             value = list(value.items())
@@ -353,7 +361,7 @@ class WidgetGenerator:
         self.changed.fire(option, values)
 
     # Multiple file selector
-    def generate_multiple_file_chooser(self, option_name, label, value=None, default=None):
+    def generate_multiple_file_chooser(self, option, value, default):
         """Generate a multiple file selector."""
 
         def on_add_files_clicked(_widget):
@@ -391,6 +399,9 @@ class WidgetGenerator:
 
                     files = [row[0] for row in files_list_store]
                     self.changed.fire(option_name, files)
+
+        option_name = option["option"]
+        label = option["label"]
 
         files_list_store = Gtk.ListStore(str)
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
