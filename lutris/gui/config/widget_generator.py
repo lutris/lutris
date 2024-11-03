@@ -131,15 +131,31 @@ class WidgetGenerator:
 
     # Switch
     def _generate_bool(self, option, value, default):
-        """Generate a checkbox."""
+        """Generate a switch."""
 
         def on_notify_active(widget, _gparam):
-            """Action for the checkbox's toggled signal."""
+            """Action for the switch's toggled signal."""
             self.changed.fire(option_name, widget.get_active())
+
+        def to_bool(to_convert):
+            """Convert values to booleans in a way that won't decide that
+            the string 'False' is True!"""
+            if to_convert is None:
+                return None
+            elif isinstance(to_convert, str):
+                text = to_convert.casefold().strip()
+                if text == "true":
+                    return True
+                elif text == "false":
+                    return False
+                else:
+                    return None
+            else:
+                return bool(to_convert)
 
         option_name = option["option"]
 
-        active = value if value is not None else default
+        active = to_bool(value) or to_bool(default) or False
         switch = Gtk.Switch(active=active, valign=Gtk.Align.CENTER)
         switch.connect("notify::active", on_notify_active)
 
@@ -231,8 +247,8 @@ class WidgetGenerator:
 
         combobox.set_id_column(1)
 
-        expanded, _tooltip_default = expand_combobox_choices()
-        if value in [v for _k, v in expanded]:
+        expanded_choices, _tooltip_default = expand_combobox_choices()
+        if value in [v for _k, v in expanded_choices]:
             combobox.set_active_id(value)
         elif has_entry:
             for ch in combobox.get_children():
@@ -255,8 +271,8 @@ class WidgetGenerator:
     def _generate_choice_with_search(self, option, value, default):
         """Generate a searchable combo box"""
 
-        def on_changed(_widget, value):
-            self.changed.fire(option_name, value)
+        def on_changed(_widget, new_value):
+            self.changed.fire(option_name, new_value)
 
         option_name = option["option"]
         choice_func = option["choices"]
