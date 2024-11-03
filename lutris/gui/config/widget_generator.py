@@ -34,15 +34,15 @@ class WidgetGenerator:
             "label": self._generate_label,
             "string": self._generate_string,
             "bool": self._generate_bool,
-            "range": self.generate_range,
+            "range": self._generate_range,
             "choice": self._generate_choice,
             "choice_with_entry": self._generate_choice_with_entry,
             "choice_with_search": self._generate_choice_with_search,
             "file": self._generate_file,
+            "command_line": self._generate_command_line,
             "multiple_file": self._generate_multiple_file,
-            "command_line": self.generate_command_line,
             "directory": self._generate_directory,
-            "mapping": self._generae_mapping,
+            "mapping": self._generate_mapping,
             # Backwards compatibility names (we're still using these though)
             "multiple": self._generate_multiple_file,
             "directory_chooser": self._generate_directory,
@@ -83,32 +83,14 @@ class WidgetGenerator:
         self.wrapper.pack_start(label, True, True, 0)
         return None
 
-    # Checkbox
-    def _generate_bool(self, option, value, default):
-        """Generate a checkbox."""
-
-        label = Label(option["label"])
-        self.wrapper.pack_start(label, False, False, 0)
-
-        switch = Gtk.Switch()
-        if value is None:
-            switch.set_active(default)
-        else:
-            switch.set_active(value)
-        switch.connect("notify::active", self.checkbox_toggle, option["option"])
-        switch.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(switch, False, False, 0)
-
-        self.tooltip_default = "Enabled" if default else "Disabled"
-        return switch
-
-    def checkbox_toggle(self, widget, _gparam, option_name):
-        """Action for the checkbox's toggled signal."""
-        self.changed.fire(option_name, widget.get_active())
-
     # Entry
     def _generate_string(self, option, value, default):
         """Generate an entry box."""
+
+        def on_changed(entry):
+            """Action triggered for entry 'changed' signal."""
+            self.changed.fire(option_name, entry.get_text())
+
         option_name = option["option"]
         label = option["label"]
         option_size = option.get("size", None)
@@ -117,122 +99,43 @@ class WidgetGenerator:
 
         entry = Gtk.Entry()
         entry.set_text(value or default or "")
-        entry.connect("changed", self.entry_changed, option_name)
+        entry.connect("changed", on_changed)
         expand = option_size != "small"
         self.wrapper.pack_start(entry, expand, expand, 0)
         return entry
 
-    def entry_changed(self, entry, option_name):
-        """Action triggered for entry 'changed' signal."""
-        self.changed.fire(option_name, entry.get_text())
+    # Switch
+    def _generate_bool(self, option, value, default):
+        """Generate a checkbox."""
 
-    def _generate_choice_with_search(self, option, value, default):
-        """Generate a searchable combo box"""
+        def on_notify_active(widget, _gparam):
+            """Action for the checkbox's toggled signal."""
+            self.changed.fire(option_name, widget.get_active())
+
         option_name = option["option"]
-        choice_func = option["choices"]
-        label = option["label"]
-        combobox = SearchableCombobox(choice_func, value or default)
-        combobox.connect("changed", self.on_searchable_entry_changed, option_name)
-        self.wrapper.pack_start(Label(label), False, False, 0)
-        self.wrapper.pack_start(combobox, True, True, 0)
-        return combobox
-
-    def on_searchable_entry_changed(self, combobox, value, key):
-        self.changed.fire(key, value)
-
-    def _populate_combobox_choices(self, liststore, choices, value, default):
-        expanded, tooltip_default = self._expand_combobox_choices(choices, value, default)
-        for choice in expanded:
-            liststore.append(choice)
-
-        if tooltip_default:
-            self.tooltip_default = tooltip_default
-
-    @staticmethod
-    def _expand_combobox_choices(choices, value, default):
-        expanded = []
-        tooltip_default = None
-        has_value = False
-        for choice in choices:
-            if isinstance(choice, str):
-                choice = (choice, choice)
-            if choice[1] == value:
-                has_value = True
-            if choice[1] == default:
-                tooltip_default = choice[0]
-                choice = (_("%s (default)") % choice[0], choice[1])
-            expanded.append(choice)
-        if not has_value and value:
-            expanded.insert(0, (value + " (invalid)", value))
-        return expanded, tooltip_default
-
-    # ComboBox
-    def _generate_choice_with_entry(self, option, value, default):
-        return self._generate_choice(option, value, default, has_entry=True)
-
-    # ComboBox
-    def _generate_choice(self, option, value, default, has_entry=False):
-        """Generate a combobox (drop-down menu)."""
-        option_name = option["option"]
-        choices = option["choices"]
-        label = option["label"]
-        liststore = Gtk.ListStore(str, str)
-        self._populate_combobox_choices(liststore, choices, value, default)
-        # With entry ("choice_with_entry" type)
-        if has_entry:
-            combobox = Gtk.ComboBox.new_with_model_and_entry(liststore)
-            combobox.set_entry_text_column(0)
-        # No entry ("choice" type)
-        else:
-            combobox = Gtk.ComboBox.new_with_model(liststore)
-            cell = Gtk.CellRendererText()
-            combobox.pack_start(cell, True)
-            combobox.add_attribute(cell, "text", 0)
-
-        combobox.set_id_column(1)
-
-        expanded, _tooltip_default = self._expand_combobox_choices(choices, value, default)
-        if value in [v for _k, v in expanded]:
-            combobox.set_active_id(value)
-        elif has_entry:
-            for ch in combobox.get_children():
-                if isinstance(ch, Gtk.Entry):
-                    ch.set_text(value or "")
-                    break
-        else:
-            combobox.set_active_id(default)
-
-        combobox.connect("changed", self.on_combobox_change, option_name)
-        combobox.connect("scroll-event", self._on_combobox_scroll)
-        label = Label(label)
-        combobox.set_valign(Gtk.Align.CENTER)
+        label = Label(option["label"])
         self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(combobox, True, True, 0)
-        return combobox
 
-    @staticmethod
-    def _on_combobox_scroll(combobox, _event):
-        """Prevents users from accidentally changing configuration values
-        while scrolling down dialogs.
-        """
-        combobox.stop_emission_by_name("scroll-event")
-        return False
-
-    def on_combobox_change(self, combobox, option):
-        """Action triggered on combobox 'changed' signal."""
-        list_store = combobox.get_model()
-        active = combobox.get_active()
-        option_value = None
-        if active < 0:
-            if combobox.get_has_entry():
-                option_value = combobox.get_child().get_text()
+        switch = Gtk.Switch()
+        if value is None:
+            switch.set_active(default)
         else:
-            option_value = list_store[active][1]
-        self.changed.fire(option, option_value)
+            switch.set_active(value)
+        switch.connect("notify::active", on_notify_active)
+        switch.set_valign(Gtk.Align.CENTER)
+        self.wrapper.pack_start(switch, False, False, 0)
 
-    # Range
-    def generate_range(self, option, value, default):
+        self.tooltip_default = "Enabled" if default else "Disabled"
+        return switch
+
+    # SpinButton
+    def _generate_range(self, option, value, default):
         """Generate a ranged spin button."""
+
+        def on_changed(widget):
+            """Action triggered on spin button 'changed' signal."""
+            new_value = widget.get_value_as_int()
+            self.changed.fire(option_name, new_value)
 
         option_name = option["option"]
         min_val = option["min"]
@@ -246,23 +149,126 @@ class WidgetGenerator:
             spin_button.set_value(value)
         elif default:
             spin_button.set_value(default)
-        spin_button.connect("changed", self.on_spin_button_changed, option_name)
+        spin_button.connect("changed", on_changed)
         label = Label(label)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(spin_button, True, True, 0)
         return spin_button
 
-    def on_spin_button_changed(self, spin_button, option):
-        """Action triggered on spin button 'changed' signal."""
-        value = spin_button.get_value_as_int()
-        self.changed.fire(option, value)
+    # ComboBox
+    def _generate_choice(self, option, value, default, has_entry=False):
+        """Generate a combobox (drop-down menu)."""
 
-    def generate_command_line(self, option, path=None, default_path=None):
-        return self._generate_file(option, path, default_path, shell_quoting=True)
+        def populate_combobox_choices():
+            expanded, tooltip_default = expand_combobox_choices()
+            for choice in expanded:
+                liststore.append(choice)
 
-    # File chooser
+            if tooltip_default:
+                self.tooltip_default = tooltip_default
+
+        def expand_combobox_choices():
+            expanded = []
+            tooltip_default = None
+            has_value = False
+            for choice in choices:
+                if isinstance(choice, str):
+                    choice = (choice, choice)
+                if choice[1] == value:
+                    has_value = True
+                if choice[1] == default:
+                    tooltip_default = choice[0]
+                    choice = (_("%s (default)") % choice[0], choice[1])
+                expanded.append(choice)
+            if not has_value and value:
+                expanded.insert(0, (value + " (invalid)", value))
+            return expanded, tooltip_default
+
+        def on_combobox_scroll(widget, _event):
+            """Prevents users from accidentally changing configuration values
+            while scrolling down dialogs.
+            """
+            widget.stop_emission_by_name("scroll-event")
+            return False
+
+        def on_combobox_change(widget):
+            """Action triggered on combobox 'changed' signal."""
+            list_store = widget.get_model()
+            active = widget.get_active()
+            option_value = None
+            if active < 0:
+                if widget.get_has_entry():
+                    option_value = widget.get_child().get_text()
+            else:
+                option_value = list_store[active][1]
+            self.changed.fire(option_name, option_value)
+
+        option_name = option["option"]
+        choices = option["choices"]
+        label = option["label"]
+        liststore = Gtk.ListStore(str, str)
+        populate_combobox_choices()
+        # With entry ("choice_with_entry" type)
+        if has_entry:
+            combobox = Gtk.ComboBox.new_with_model_and_entry(liststore)
+            combobox.set_entry_text_column(0)
+        # No entry ("choice" type)
+        else:
+            combobox = Gtk.ComboBox.new_with_model(liststore)
+            cell = Gtk.CellRendererText()
+            combobox.pack_start(cell, True)
+            combobox.add_attribute(cell, "text", 0)
+
+        combobox.set_id_column(1)
+
+        expanded, _tooltip_default = expand_combobox_choices()
+        if value in [v for _k, v in expanded]:
+            combobox.set_active_id(value)
+        elif has_entry:
+            for ch in combobox.get_children():
+                if isinstance(ch, Gtk.Entry):
+                    ch.set_text(value or "")
+                    break
+        else:
+            combobox.set_active_id(default)
+
+        combobox.connect("changed", on_combobox_change)
+        combobox.connect("scroll-event", on_combobox_scroll)
+        label = Label(label)
+        combobox.set_valign(Gtk.Align.CENTER)
+        self.wrapper.pack_start(label, False, False, 0)
+        self.wrapper.pack_start(combobox, True, True, 0)
+        return combobox
+
+    # ComboBox
+    def _generate_choice_with_entry(self, option, value, default):
+        return self._generate_choice(option, value, default, has_entry=True)
+
+    # ComboBox
+    def _generate_choice_with_search(self, option, value, default):
+        """Generate a searchable combo box"""
+
+        def on_changed(_widget, value):
+            self.changed.fire(option_name, value)
+
+        option_name = option["option"]
+        choice_func = option["choices"]
+        label = option["label"]
+        combobox = SearchableCombobox(choice_func, value or default)
+        combobox.connect("changed", on_changed)
+        self.wrapper.pack_start(Label(label), False, False, 0)
+        self.wrapper.pack_start(combobox, True, True, 0)
+        return combobox
+
+    # FileChooserEntry
     def _generate_file(self, option, path=None, default_path=None, shell_quoting=False):
         """Generate a file chooser button to select a file."""
+
+        def on_changed(entry):
+            """Action triggered when the field's content changes."""
+            text = entry.get_text()
+            self.changed.fire(option_name, text)
+
         option_name = option["option"]
         label = Label(option["label"])
         warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
@@ -298,67 +304,14 @@ class WidgetGenerator:
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(file_chooser, True, True, 0)
 
-        file_chooser.connect("changed", self._on_chooser_file_set, option_name)
+        file_chooser.connect("changed", on_changed)
         return file_chooser
 
-    # Directory chooser
-    def _generate_directory(self, option, path=None, default_path=None):
-        """Generate a file chooser button to select a directory."""
-        label = Label(option["label"])
-        option_name = option["option"]
-        warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
+    # FileChooserEntry
+    def _generate_command_line(self, option, path=None, default_path=None):
+        return self._generate_file(option, path, default_path, shell_quoting=True)
 
-        if not path:
-            path = default_path
-
-        chooser_default_path = None
-        if not path and self.directory:
-            chooser_default_path = self.directory
-        directory_chooser = FileChooserEntry(
-            title=_("Select folder"),
-            action=Gtk.FileChooserAction.SELECT_FOLDER,
-            warn_if_non_writable_parent=warn_if_non_writable_parent,
-            text=path,
-            default_path=chooser_default_path,
-        )
-        directory_chooser.connect("changed", self._on_chooser_file_set, option_name)
-        directory_chooser.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(directory_chooser, True, True, 0)
-        return directory_chooser
-
-    def _on_chooser_file_set(self, entry, option):
-        """Action triggered when the field's content changes."""
-        text = entry.get_text()
-        if text != entry.get_text():
-            entry.set_text(text)
-        self.changed.fire(option, text)
-
-    # Editable grid
-    def _generae_mapping(self, option, value, default):
-        """Adds an editable grid widget"""
-
-        option_name = option["option"]
-        label = option["label"]
-        value = value or default or {}
-        try:
-            value = list(value.items())
-        except AttributeError:
-            logger.error("Invalid value of type %s passed to grid widget: %s", type(value), value)
-            value = {}
-        label = Label(label)
-
-        grid = EditableGrid(value, columns=["Key", "Value"])
-        grid.connect("changed", self._on_grid_changed, option_name)
-        self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(grid, True, True, 0)
-        return grid
-
-    def _on_grid_changed(self, grid, option):
-        values = dict(grid.get_data())
-        self.changed.fire(option, values)
-
-    # Multiple file selector
+    # TreeView
     def _generate_multiple_file(self, option, value, default):
         """Generate a multiple file selector."""
 
@@ -438,3 +391,59 @@ class WidgetGenerator:
         vbox.pack_start(treeview_scroll, True, True, 0)
         self.wrapper.pack_start(vbox, True, True, 0)
         return vbox
+
+    # FileChooserEntry
+    def _generate_directory(self, option, path=None, default_path=None):
+        """Generate a file chooser button to select a directory."""
+
+        def on_changed(entry):
+            """Action triggered when the field's content changes."""
+            text = entry.get_text()
+            self.changed.fire(option_name, text)
+
+        label = Label(option["label"])
+        option_name = option["option"]
+        warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
+
+        if not path:
+            path = default_path
+
+        chooser_default_path = None
+        if not path and self.directory:
+            chooser_default_path = self.directory
+        directory_chooser = FileChooserEntry(
+            title=_("Select folder"),
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+            warn_if_non_writable_parent=warn_if_non_writable_parent,
+            text=path,
+            default_path=chooser_default_path,
+        )
+        directory_chooser.connect("changed", on_changed)
+        directory_chooser.set_valign(Gtk.Align.CENTER)
+        self.wrapper.pack_start(label, False, False, 0)
+        self.wrapper.pack_start(directory_chooser, True, True, 0)
+        return directory_chooser
+
+    # EditableGrid
+    def _generate_mapping(self, option, value, default):
+        """Adds an editable grid widget"""
+
+        def on_changed(widget):
+            values = dict(widget.get_data())
+            self.changed.fire(option_name, values)
+
+        option_name = option["option"]
+        label = option["label"]
+        value = value or default or {}
+        try:
+            value = list(value.items())
+        except AttributeError:
+            logger.error("Invalid value of type %s passed to grid widget: %s", type(value), value)
+            value = {}
+        label = Label(label)
+
+        grid = EditableGrid(value, columns=["Key", "Value"])
+        grid.connect("changed", on_changed, option_name)
+        self.wrapper.pack_start(label, False, False, 0)
+        self.wrapper.pack_start(grid, True, True, 0)
+        return grid
