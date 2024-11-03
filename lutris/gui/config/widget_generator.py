@@ -4,7 +4,7 @@
 # pylint: disable=no-member,too-many-public-methods
 import os
 from gettext import gettext as _
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 # Third Party Libraries
 from gi.repository import Gdk, Gtk
@@ -22,6 +22,8 @@ class WidgetGenerator:
     dict, and there's a NotificationSource for whenever the widget changes a value (you can supply this
     explicitly to avoid having one per widget, too)."""
 
+    GeneratorFunction = Callable[[Dict[str, Any], Any, Any], Optional[Gtk.Widget]]
+
     def __init__(self, directory: str = None, changed: NotificationSource = None) -> None:
         self.directory = directory
         self.changed = changed or NotificationSource()  # takes option_key, new_value
@@ -30,7 +32,7 @@ class WidgetGenerator:
         self.tooltip_default: Optional[str] = None
         self.option_widget: Optional[Gtk.Widget] = None
 
-        self._generators = {
+        self._generators: Dict[str, WidgetGenerator.GeneratorFunction] = {
             "label": self._generate_label,
             "string": self._generate_string,
             "bool": self._generate_bool,
@@ -48,18 +50,27 @@ class WidgetGenerator:
             "directory_chooser": self._generate_directory,
         }
 
-    def generate_widget(self, wrapper, option, value):  # noqa: C901
+    def generate_widget(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None):
         """Call the right generation method depending on option type."""
         # pylint: disable=too-many-branches
-        self.wrapper = wrapper
-        self.tooltip_default = None
-        self.option_widget = None
         option_type = option["type"]
 
         default = option.get("default")
         if callable(default):
             default = default()
+
         self.default_value = default
+        self.tooltip_default = None
+        self.option_widget = None
+
+        if wrapper:
+            # Destroy and recreate option widget
+            children = wrapper.get_children()
+            for child in children:
+                child.destroy()
+            self.wrapper = wrapper
+        else:
+            self.wrapper = self.create_wrapper_box(option, value, default)
 
         func = self._generators.get(option_type)
 
@@ -70,7 +81,11 @@ class WidgetGenerator:
         self.option_widget = option_widget
         self.tooltip_default = self.tooltip_default or (default if isinstance(default, str) else None)
 
+        self.wrapper.show_all()
         return option_widget
+
+    def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Gtk.Box:
+        return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin_bottom=6)
 
     def build_option_widget(
         self, option: Dict[str, Any], widget: Optional[Gtk.Widget], no_label: bool = False, expand: bool = True

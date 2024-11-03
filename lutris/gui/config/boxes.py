@@ -189,15 +189,12 @@ class ConfigBox(VBox):
                     else:
                         current_vbox = self
 
-                wrapper = Gtk.Box()
-                wrapper.set_spacing(12)
-                wrapper.set_margin_bottom(6)
-                self.wrappers[option_key] = wrapper
-
                 # Generate option widget
-                option_widget = gen.generate_widget(wrapper, option, value)
+                option_widget = gen.generate_widget(option, value)
+                wrapper = gen.wrapper
                 default = gen.default_value
                 tooltip_default = gen.tooltip_default
+                self.wrappers[option_key] = wrapper
 
                 if option_key in self.raw_config:
                     self.set_style_property("font-weight", "bold", wrapper)
@@ -332,14 +329,8 @@ class ConfigBox(VBox):
         if current_value == reset_value:
             return
 
-        # Destroy and recreate option widget
-        children = wrapper.get_children()
-        for child in children:
-            child.destroy()
-
         gen = self.get_widget_generator()
-        gen.generate_widget(wrapper, option, reset_value)
-        wrapper.show_all()
+        gen.generate_widget(option, reset_value, wrapper=wrapper)
         self.update_warnings()
 
     @staticmethod
