@@ -124,8 +124,18 @@ class WidgetGenerator:
     def build_option_widget(
         self, option: Dict[str, Any], widget: Optional[Gtk.Widget], no_label: bool = False, expand: bool = True
     ) -> Optional[Gtk.Widget]:
+        """This is called by the generator methods to place their widget into the wrapper, usually with
+        a label taken from 'option'.
+
+        The default labeling and placement is suitable for our ConfigBoxes, but we override this to
+        get a different layout for PreferencesBox.
+
+        Some generators do their own labelling, and pass True for no_label; this method will
+        pack the widget with no label in that case.
+
+        This method returns the widget."""
         if self.wrapper:
-            if not no_label:
+            if not no_label and "label" in option:
                 label = option["label"]
                 label = Label(label)
                 self.wrapper.pack_start(label, False, False, 0)
