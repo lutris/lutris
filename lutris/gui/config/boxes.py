@@ -14,7 +14,6 @@ from lutris import settings, sysoptions
 from lutris.config import LutrisConfig
 from lutris.game import Game
 from lutris.gui.config.widget_generator import WidgetGenerator
-from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.common import Label, VBox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
@@ -43,9 +42,6 @@ class ConfigBox(VBox):
         self.error_boxes = {}
         self._advanced_visibility = False
         self._filter = ""
-
-        self.changed = NotificationSource()
-        self.changed.register(self.on_option_changed)
 
     @property
     def advanced_visibility(self):
@@ -121,16 +117,19 @@ class ConfigBox(VBox):
         help_box.show_all()
 
     def get_widget_generator(self):
-        if self.game and self.game.directory:
-            directory = self.game.directory
-        elif self.game and self.game.has_runner:
-            directory = self.game.runner.working_dir
-        elif self.lutris_config:
-            directory = self.lutris_config.system_config.get("game_path") or os.path.expanduser("~")
-        else:
-            directory = os.path.expanduser("~")
+        gen = WidgetGenerator()
+        gen.changed.register(self.on_option_changed)
 
-        return WidgetGenerator(directory, self.changed)
+        if self.game and self.game.directory:
+            gen.default_directory = self.game.directory
+        elif self.game and self.game.has_runner:
+            gen.default_directory = self.game.runner.working_dir
+        elif self.lutris_config:
+            gen.default_directory = self.lutris_config.system_config.get("game_path") or os.path.expanduser("~")
+        else:
+            gen.default_directory = os.path.expanduser("~")
+
+        return gen
 
     def generate_widgets(self):  # noqa: C901 # pylint: disable=too-many-branches,too-many-statements
         """Parse the config dict and generates widget accordingly."""

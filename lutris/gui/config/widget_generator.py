@@ -24,9 +24,9 @@ class WidgetGenerator:
 
     GeneratorFunction = Callable[[Dict[str, Any], Any, Any], Optional[Gtk.Widget]]
 
-    def __init__(self, directory: str = None, changed: NotificationSource = None) -> None:
-        self.directory = directory
-        self.changed = changed or NotificationSource()  # takes option_key, new_value
+    def __init__(self) -> None:
+        self._default_directory: Optional[str] = None
+        self.changed = NotificationSource()  # takes option_key, new_value
         self.wrapper: Optional[Gtk.Widget] = None
         self.default_value = None
         self.tooltip_default: Optional[str] = None
@@ -49,6 +49,17 @@ class WidgetGenerator:
             "multiple": self._generate_multiple_file,
             "directory_chooser": self._generate_directory,
         }
+
+    @property
+    def default_directory(self) -> str:
+        if not self._default_directory:
+            lutris_config = LutrisConfig()
+            self._default_directory = lutris_config.system_config.get("game_path") or os.path.expanduser("~")
+        return self._default_directory
+
+    @default_directory.setter
+    def default_directory(self, new_dir: str) -> None:
+        self._default_directory = new_dir
 
     def generate_widget(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None):
         """Call the right generation method depending on option type."""
@@ -309,7 +320,7 @@ class WidgetGenerator:
             lutris_config = LutrisConfig()
             chooser_default_path = lutris_config.system_config.get(option["default_path"])
         else:
-            chooser_default_path = self.directory
+            chooser_default_path = self.default_directory
 
         file_chooser = FileChooserEntry(
             title=_("Select file"),
@@ -321,12 +332,11 @@ class WidgetGenerator:
         )
 
         if value:
-            # If path is relative, complete with game dir
+            # If path is relative, complete with default directory
             if not os.path.isabs(value):
                 value = os.path.expanduser(value)
                 if not os.path.isabs(value):
-                    if self.directory:
-                        value = os.path.join(self.directory, value)
+                    value = os.path.join(self.default_directory, value)
             file_chooser.entry.set_text(value)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
@@ -356,7 +366,7 @@ class WidgetGenerator:
 
             files = [row[0] for row in files_list_store]
             first_file_dir = os.path.dirname(files[0]) if files else None
-            dialog.set_current_folder(first_file_dir or self.directory or os.path.expanduser("~"))
+            dialog.set_current_folder(first_file_dir or self.default_directory)
             response = dialog.run()
             if response == Gtk.ResponseType.ACCEPT:
                 for filename in dialog.get_filenames():
@@ -433,15 +443,12 @@ class WidgetGenerator:
         if not value:
             value = default
 
-        chooser_default_path = None
-        if not value and self.directory:
-            chooser_default_path = self.directory
         directory_chooser = FileChooserEntry(
             title=_("Select folder"),
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             warn_if_non_writable_parent=warn_if_non_writable_parent,
             text=value,
-            default_path=chooser_default_path,
+            default_path=self.default_directory if not value else None,
         )
         directory_chooser.connect("changed", on_changed)
         directory_chooser.set_valign(Gtk.Align.CENTER)
