@@ -679,10 +679,10 @@ class ConfigBox(VBox):
         label = Label(text)
         label.set_use_markup(True)
         label.set_max_width_chars(60)
-        hbox = Gtk.Box()
-        hbox.pack_start(label, False, False, 0)
-        hbox.show_all()
-        tooltip.set_custom(hbox)
+        event_box = Gtk.EventBox()
+        event_box.add(label)
+        event_box.show_all()
+        tooltip.set_custom(event_box)
         return True
 
     def option_changed(self, widget, option_name, value):
