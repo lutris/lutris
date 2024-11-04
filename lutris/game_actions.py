@@ -239,7 +239,7 @@ class SingleGameActions(GameActions):
             (None, "-", None),
             ("install", _("Install"), self.on_install_clicked),
             ("install_more", _("Install another version"), self.on_install_clicked),
-            ("install_dlcs", "Install DLCs", self.on_install_dlc_clicked),
+            ("install_dlcs", _("Install DLCs"), self.on_install_dlc_clicked),
             ("update", _("Install updates"), self.on_update_clicked),
             ("add", _("Locate installed game"), self.on_locate_installed_game),
             ("desktop-shortcut", _("Create desktop shortcut"), self.on_create_desktop_shortcut),

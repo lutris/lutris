@@ -223,7 +223,7 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": False,
         "default": False,
         "condition": bool(system.can_find_executable("gamescope")),
-        "help": _("Enable HDR for games that support it.\bn" "Requires Plasma 6 and VK_hdr_layer."),
+        "help": _("Enable HDR for games that support it.\n" "Requires Plasma 6 and VK_hdr_layer."),
     },
     {
         "section": _("Gamescope"),
