@@ -31,7 +31,7 @@ class InterfacePreferencesBox(BaseConfigBox):
         {
             "option": "preferred_theme",
             "type": "choice",
-            "label": "Theme",
+            "label": _("Theme"),
             "choices": [
                 (_("System Default"), "default"),
                 (_("Light"), "light"),
