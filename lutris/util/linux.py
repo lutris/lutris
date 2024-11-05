@@ -192,8 +192,6 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
             return "x86_64"
         if machine in ("i386", "i686"):
             return "i386"
-        if "armv7" in machine:
-            return "armv7"
         logger.warning("Unsupported architecture %s", machine)
 
     @staticmethod
