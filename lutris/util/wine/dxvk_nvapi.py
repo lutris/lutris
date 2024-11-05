@@ -11,7 +11,9 @@ class DXVKNVAPIManager(DLLManager):
     component = "DXVK-NVAPI"
     base_dir = os.path.join(RUNTIME_DIR, "dxvk-nvapi")
     versions_path = os.path.join(base_dir, "dxvk-nvapi_versions.json")
-    managed_dlls = ("nvapi", "nvapi64", "nvml")
+    # apparently, nvofapi.dll (the 32 bit version) is not being included here -
+    # see https://github.com/jp7677/dxvk-nvapi/pull/213
+    managed_dlls = ("nvapi", "nvapi64", "nvml", "nvofapi64")
     releases_url = "https://api.github.com/repos/lutris/dxvk-nvapi/releases"
     dlss_dlls = ("nvngx", "_nvngx")
 
