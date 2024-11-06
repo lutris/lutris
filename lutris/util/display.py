@@ -148,10 +148,10 @@ class DesktopEnvironment(enum.Enum):
 # command, and which provide a definite answer; the DE can be asked to start and stop it..
 _compositor_commands_by_de = {
     DesktopEnvironment.MATE: {
-        "check": ["gsettings", "get org.mate.Marco.general", "compositing-manager"],
+        "check": ["gsettings", "get", "org.mate.Marco.general", "compositing-manager"],
         "active_result": b"true\n",
-        "stop_compositor": ["gsettings", "set org.mate.Marco.general", "compositing-manager", "false"],
-        "start_compositor": ["gsettings", "set org.mate.Marco.general", "compositing-manager", "true"],
+        "stop_compositor": ["gsettings", "set", "org.mate.Marco.general", "compositing-manager", "false"],
+        "start_compositor": ["gsettings", "set", "org.mate.Marco.general", "compositing-manager", "true"],
     },
     DesktopEnvironment.XFCE: {
         "check": ["xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing"],
