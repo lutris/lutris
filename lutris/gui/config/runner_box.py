@@ -96,8 +96,6 @@ class RunnerBox(Gtk.Box):
 
         if self.runner.is_installed():
             self.emit("runner-installed")
-        else:
-            raise RuntimeError("Runner failed to install")
 
     def on_configure_clicked(self, widget):
         window = self.get_toplevel()

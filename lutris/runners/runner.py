@@ -521,8 +521,11 @@ class Runner:  # pylint: disable=too-many-public-methods
         if not dest:
             dest = settings.RUNNER_DIR
 
-        install_ui_delegate.download_install_file(url, runner_archive)
-        self.extract(archive=runner_archive, dest=dest, merge_single=merge_single, callback=callback)
+        download_successful = install_ui_delegate.download_install_file(url, runner_archive)
+        if download_successful:
+            self.extract(archive=runner_archive, dest=dest, merge_single=merge_single, callback=callback)
+        else:
+            logger.info("Download canceled by the user.")
 
     def extract(self, archive=None, dest=None, merge_single=None, callback=None):
         if not system.path_exists(archive, exclude_empty=True):
