@@ -45,6 +45,7 @@ from lutris.search import GameSearch
 from lutris.search_predicate import NotPredicate
 from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGOUT
 from lutris.services.lutris import LutrisService, sync_media
+from lutris.style_manager import THEME_CHANGED
 from lutris.util import datapath
 from lutris.util.busy import BUSY_STARTED, BUSY_STOPPED
 from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
@@ -182,6 +183,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         LUTRIS_ACCOUNT_CONNECTED.register(self.on_lutris_account_connected)
         LUTRIS_ACCOUNT_DISCONNECTED.register(self.on_lutris_account_disconnected)
         LOCAL_LIBRARY_UPDATED.register(self.on_local_library_updated)
+        THEME_CHANGED.register(self.on_theme_changed)
 
         # Finally trigger the initialization of the view here
         selected_category = settings.read_setting("selected_category", default="runner:all")
@@ -771,6 +773,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 if hasattr(ch, "is_splash"):
                     return True
         return False
+
+    def on_theme_changed(self):
+        if self.is_showing_splash():
+            self.show_splash()
 
     def show_spinner(self):
         # This is inconsistent, but we can't use the blank overlay for the spinner- it

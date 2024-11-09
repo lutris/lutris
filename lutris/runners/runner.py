@@ -470,7 +470,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     def adjust_installer_runner_config(self, installer_runner_config: Dict[str, Any]) -> None:
         """This is called during installation to let to run fix up in the runner's section of
-        the configuration before it is saved. This method should modify the dict given."""
+        the confliguration before it is saved. This method should modify the dict given."""
         pass
 
     def get_runner_version(self, version: str = None) -> Optional[Dict[str, str]]:

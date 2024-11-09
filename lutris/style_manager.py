@@ -1,11 +1,14 @@
 from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
+from lutris.gui.widgets import NotificationSource
 from lutris.util.log import logger
 
 PORTAL_BUS_NAME = "org.freedesktop.portal.Desktop"
 PORTAL_OBJECT_PATH = "/org/freedesktop/portal/desktop"
 PORTAL_SETTINGS_INTERFACE = "org.freedesktop.portal.Settings"
+
+THEME_CHANGED = NotificationSource()
 
 
 class StyleManager(GObject.Object):
@@ -13,7 +16,7 @@ class StyleManager(GObject.Object):
 
     Has a single readable GObject property `is_dark` telling whether the app is
     in dark mode, it is set to True, when either the user preference on the
-    preferences panel or in the a system is set to prefer dark mode.
+    preferences panel or in the system is set to prefer dark mode.
     """
 
     _dbus_proxy = None
@@ -152,6 +155,7 @@ class StyleManager(GObject.Object):
         self.notify("is-dark")
 
         self.gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
+        THEME_CHANGED.fire()
 
     @property
     def is_dark_by_default(self):
