@@ -234,7 +234,7 @@ class RuntimeUpdater:
             try:
                 url = remote_runtime.get("url")
                 if url:
-                    if "ge-proton" not in os.path.basename(url).casefold():
+                    if "-proton" not in os.path.basename(url).casefold():
                         updaters.append(RuntimeExtractedComponentUpdater(remote_runtime))
                 else:
                     updaters.append(RuntimeFilesComponentUpdater(remote_runtime))
@@ -266,7 +266,7 @@ class RuntimeUpdater:
             try:
                 # This one runtime is really a runner!
                 url = remote_runtime.get("url")
-                if url and "ge-proton" in os.path.basename(url).casefold():
+                if url and "-proton" in os.path.basename(url).casefold():
                     updaters.append(ProtonComponentUpdater(remote_runtime))
             except Exception as ex:
                 logger.exception("Unable to download %s: %s", name, ex)
