@@ -311,6 +311,9 @@ class RuntimeComponentUpdater(ComponentUpdater):
     @property
     def local_runtime_path(self) -> str:
         """Return the local path for the runtime folder"""
+        if self.name == "ge-proton":
+            proton_dir = "proton/GE-Proton/"
+            return os.path.join(settings.RUNNER_DIR, proton_dir)
         return os.path.join(settings.RUNTIME_DIR, self.name)
 
     def get_updated_at(self) -> time.struct_time:
