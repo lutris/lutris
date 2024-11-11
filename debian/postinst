@@ -1,0 +1,18 @@
+#!/bin/sh
+
+set -e
+
+# Remove apparmor profile if abi < 4.0
+if [ ! -e /etc/apparmor.d/abi/4.0 ]; then
+    rm -f /etc/apparmor.d/lutris-bwrap-userns-restrict
+    rm -f /etc/apparmor.d/local/lutris-bwrap-userns-restrict
+else
+    if [ -e /etc/apparmor.d/bwrap-userns-restrict ]; then
+        # Ubuntu profile found, remove our custom profile
+        rm -f /etc/apparmor.d/lutris-bwrap-userns-restrict
+        rm -f /etc/apparmor.d/local/lutris-bwrap-userns-restrict
+    else
+        # Restart apparmor and load bwrap profile if abi = 4.0
+        systemctl restart apparmor.service || true
+    fi
+fi

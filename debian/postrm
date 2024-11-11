@@ -1,0 +1,24 @@
+#!/bin/sh
+
+set -e
+
+if [ -e /etc/apparmor.d/abi/4.0 ]; then
+    if [ ! -e /etc/apparmor.d/bwrap-userns-restrict ]; then
+        # By default only apt purge remove AppArmor profiles, remove
+        # it even with an apt remove and notify user that a reboot is
+        # required.
+        rm -f /etc/apparmor.d/lutris-bwrap-userns-restrict
+        rm -f /etc/apparmor.d/local/lutris-bwrap-userns-restrict
+
+        # Used by unattended-upgrades etc.
+        touch /var/run/reboot-required || true
+
+        if ! grep -Fqsx lutris /run/reboot-required.pkgs; then
+            echo lutris >> /run/reboot-required.pkgs || true
+        fi
+
+        # same thing for the older update-notifier interface
+        [ -x /usr/share/update-notifier/notify-reboot-required ] && \
+            /usr/share/update-notifier/notify-reboot-required || true
+    fi
+fi
