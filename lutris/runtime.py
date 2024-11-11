@@ -267,7 +267,7 @@ class RuntimeUpdater:
                 # This one runtime is really a runner!
                 url = remote_runtime.get("url")
                 if url and "ge-proton" in os.path.basename(url).casefold():
-                    updaters.append(RuntimeExtractedComponentUpdater(remote_runtime))
+                    updaters.append(ProtonComponentUpdater(remote_runtime))
             except Exception as ex:
                 logger.exception("Unable to download %s: %s", name, ex)
 
@@ -294,6 +294,19 @@ class RuntimeComponentUpdater(ComponentUpdater):
     def name(self) -> str:
         return self.remote_runtime_info["name"]
 
+    @property
+    def component_dir_name(self) -> str:
+        """The name of the directory where this component is extracted, which
+        should normally just be the component's name. But you know there's one
+        that just has to be special."""
+        return self.name
+
+    @property
+    def local_runtime_path(self) -> str:
+        """Return the local path for the runtime directory where the component
+        is kept."""
+        return os.path.join(settings.RUNTIME_DIR, self.component_dir_name)
+
     def install_update(self, updater: "RuntimeUpdater") -> None:
         raise NotImplementedError
 
@@ -307,14 +320,6 @@ class RuntimeComponentUpdater(ComponentUpdater):
             return ProgressInfo(0.0, status_text)
 
         return ProgressInfo(None, status_text)
-
-    @property
-    def local_runtime_path(self) -> str:
-        """Return the local path for the runtime folder"""
-        if self.name == "ge-proton":
-            proton_dir = "proton/GE-Proton/"
-            return os.path.join(settings.RUNNER_DIR, proton_dir)
-        return os.path.join(settings.RUNTIME_DIR, self.name)
 
     def get_updated_at(self) -> time.struct_time:
         """Return the modification date of the runtime folder"""
@@ -331,7 +336,7 @@ class RuntimeComponentUpdater(ComponentUpdater):
     def should_update(self) -> bool:
         """Determine if the current runtime should be updated"""
         if self.versioned:
-            return not system.path_exists(os.path.join(settings.RUNTIME_DIR, self.name, self.version))
+            return not system.path_exists(os.path.join(self.local_runtime_path, self.version))
 
         try:
             local_updated_at = self.get_updated_at()
@@ -369,18 +374,16 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
 
         return progress_info
 
+    @property
+    def archive_path(self):
+        """This is the path where the archive is downloaded, before being extracted."""
+        return os.path.join(settings.RUNTIME_DIR, os.path.basename(self.url))
+
     def install_update(self, updater: RuntimeUpdater) -> None:
         self.state = ComponentUpdater.DOWNLOADING
         self.complete_event.clear()
 
-        if "ge-proton" in os.path.basename(self.url).casefold():
-            # THis is a bit of a hack,  but until Proton is a real runner we never really isntall it, so
-            # it's directory may not exist. So, we create it.
-            proton_dir = os.path.join(settings.RUNNER_DIR, "proton")
-            os.makedirs(proton_dir, exist_ok=True)
-            archive_path = os.path.join(proton_dir, os.path.basename(self.url))
-        else:
-            archive_path = os.path.join(settings.RUNTIME_DIR, os.path.basename(self.url))
+        archive_path = self.archive_path
         self.downloader = Downloader(self.url, archive_path, overwrite=True)
         self.downloader.start()
         self.downloader.join()
@@ -430,10 +433,7 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
         directory, _filename = os.path.split(path)
 
         # Determine the destination path
-        if "ge-proton" in os.path.basename(path).casefold():
-            dest_path = os.path.join(directory, "GE-Proton")
-        else:
-            dest_path = os.path.join(directory, self.name)
+        dest_path = os.path.join(directory, self.component_dir_name)
 
         if self.versioned:
             dest_path = os.path.join(dest_path, self.version)
@@ -444,6 +444,35 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
         self.state = ComponentUpdater.EXTRACTING
         archive_path, _destination_path = extract_archive(path, dest_path, merge_single=True)
         os.unlink(archive_path)
+
+
+class ProtonComponentUpdater(RuntimeExtractedComponentUpdater):
+    """This is a special case updater for a runtime that is secretly a runner;
+    it's placed in subdirectory under ~/.local/share/lutris/runners/proton,
+    and with a custom directory name for some reason."""
+
+    def __init__(self, remote_runtime_info: Dict[str, Any]) -> None:
+        super().__init__(remote_runtime_info)
+        self.proton_dir = os.path.join(settings.RUNNER_DIR, "proton")
+
+    @property
+    def component_dir_name(self) -> str:
+        return "GE-Proton"
+
+    @property
+    def local_runtime_path(self) -> str:
+        """Return the local path for the runtime folder"""
+        return os.path.join(self.proton_dir, self.component_dir_name)
+
+    @property
+    def archive_path(self):
+        return os.path.join(self.proton_dir, os.path.basename(self.url))
+
+    def install_update(self, updater: RuntimeUpdater) -> None:
+        # This is a bit of a hack, but until Proton is a real runner we never really isntall it, so
+        # it's directory may not exist. So, we create it.
+        os.makedirs(self.proton_dir, exist_ok=True)
+        return super().install_update(updater)
 
 
 class RuntimeFilesComponentUpdater(RuntimeComponentUpdater):
@@ -473,7 +502,7 @@ class RuntimeFilesComponentUpdater(RuntimeComponentUpdater):
 
     def _should_update_component(self, filename: str, remote_modified_at: time.struct_time) -> bool:
         """Should an individual component be updated?"""
-        file_path = os.path.join(settings.RUNTIME_DIR, self.name, filename)
+        file_path = os.path.join(self.local_runtime_path, filename)
         if not system.path_exists(file_path):
             return True
         locally_modified_at = time.gmtime(os.path.getmtime(file_path))
@@ -495,7 +524,7 @@ class RuntimeFilesComponentUpdater(RuntimeComponentUpdater):
 
     def _download_component(self, component: Dict[str, Any]) -> None:
         """Download an individual file from a runtime item"""
-        file_path = os.path.join(settings.RUNTIME_DIR, self.name, component["filename"])
+        file_path = os.path.join(self.local_runtime_path, component["filename"])
         http.download_file(component["url"], file_path)
 
 
