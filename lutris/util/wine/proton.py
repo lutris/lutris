@@ -170,7 +170,7 @@ def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAUL
         env["WINEARCH"] = "win64"
 
     if "PROTON_VERB" not in env:
-        env["PROTON_VERB"] = "waitforexitandrun"
+        env["PROTON_VERB"] = "runinprefix"
 
     locale = env.get("LC_ALL")
     host_locale = env.get("HOST_LC_ALL")
