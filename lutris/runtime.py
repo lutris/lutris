@@ -295,17 +295,10 @@ class RuntimeComponentUpdater(ComponentUpdater):
         return self.remote_runtime_info["name"]
 
     @property
-    def component_dir_name(self) -> str:
-        """The name of the directory where this component is extracted, which
-        should normally just be the component's name. But you know there's one
-        that just has to be special."""
-        return self.name
-
-    @property
     def local_runtime_path(self) -> str:
         """Return the local path for the runtime directory where the component
         is kept."""
-        return os.path.join(settings.RUNTIME_DIR, self.component_dir_name)
+        return os.path.join(settings.RUNTIME_DIR, self.name)
 
     def install_update(self, updater: "RuntimeUpdater") -> None:
         raise NotImplementedError
@@ -433,7 +426,7 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
         directory, _filename = os.path.split(path)
 
         # Determine the destination path
-        dest_path = os.path.join(directory, self.component_dir_name)
+        dest_path = os.path.join(directory, self.name)
 
         if self.versioned:
             dest_path = os.path.join(dest_path, self.version)
@@ -456,13 +449,9 @@ class ProtonComponentUpdater(RuntimeExtractedComponentUpdater):
         self.proton_dir = os.path.join(settings.RUNNER_DIR, "proton")
 
     @property
-    def component_dir_name(self) -> str:
-        return "GE-Proton"
-
-    @property
     def local_runtime_path(self) -> str:
         """Return the local path for the runtime folder"""
-        return os.path.join(self.proton_dir, self.component_dir_name)
+        return os.path.join(self.proton_dir, self.name)
 
     @property
     def archive_path(self):
