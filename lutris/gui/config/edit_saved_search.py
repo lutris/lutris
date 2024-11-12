@@ -19,7 +19,7 @@ from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 class SearchFiltersBox(Gtk.Box):
     """A widget to edit dynamic categories"""
 
-    def __init__(self, saved_search: SavedSearch) -> None:
+    def __init__(self, saved_search: SavedSearch, search_entry: Gtk.SearchEntry = None) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.saved_search = copy(saved_search)
         self.original_search = copy(saved_search)
@@ -37,7 +37,7 @@ class SearchFiltersBox(Gtk.Box):
         self.set_spacing(10)
 
         self.name_entry = self._add_entry_box(_("Name"), self.saved_search.name)
-        self.search_entry = self._add_entry_box(_("Search"), self.search)
+        self.search_entry = search_entry or self._add_entry_box(_("Search"), self.search)
         self.search_entry.connect("changed", self.on_search_entry_changed)
 
         self.predicate_widget_functions: Dict[str, Callable[[SearchPredicate], None]] = {}

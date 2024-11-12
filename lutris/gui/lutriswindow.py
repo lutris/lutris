@@ -71,6 +71,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     sidebar_scrolled: Gtk.ScrolledWindow = GtkTemplate.Child()
     game_revealer: Gtk.Revealer = GtkTemplate.Child()
     search_entry: Gtk.SearchEntry = GtkTemplate.Child()
+    search_filters_button: Gtk.MenuButton = GtkTemplate.Child()
+    search_box: Gtk.Box = GtkTemplate.Child()
     zoom_adjustment: Gtk.Adjustment = GtkTemplate.Child()
     blank_overlay: Gtk.Alignment = GtkTemplate.Child()
     viewtype_icon: Gtk.Image = GtkTemplate.Child()
@@ -81,8 +83,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     turn_on_library_sync_label: Gtk.Label = GtkTemplate.Child()
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     version_notification_label: Gtk.Revealer = GtkTemplate.Child()
-    search_filters_button: Gtk.MenuButton = GtkTemplate.Child()
-    search_box: Gtk.Box = GtkTemplate.Child()
     show_hidden_games_button: Gtk.ModelButton = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs) -> None:
@@ -159,7 +159,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         search = self.get_game_search()
         new_search = saved_searches_db.SavedSearch(0, "", str(search))
-        filter_box = SearchFiltersBox(saved_search=new_search)
+        filter_box = SearchFiltersBox(saved_search=new_search, search_entry=self.search_entry)
         filter_box.show()
         self.filter_popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_box)
         self.search_filters_button.set_popover(self.filter_popover)
