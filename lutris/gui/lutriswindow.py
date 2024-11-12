@@ -160,6 +160,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         search = self.get_game_search()
         new_search = saved_searches_db.SavedSearch(0, "", str(search))
         filter_box = SearchFiltersBox(saved_search=new_search, search_entry=self.search_entry)
+        filter_box.set_size_request(600, -1)
         filter_box.show()
         self.filter_popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_box)
         self.search_filters_button.set_popover(self.filter_popover)
