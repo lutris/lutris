@@ -305,7 +305,6 @@
           <object class="GtkBox" id="search_box">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="spacing">6</property>
             <child>
               <object class="GtkSearchEntry" id="search_entry">
                 <property name="visible">True</property>
@@ -357,6 +356,9 @@
                 <property name="position">1</property>
               </packing>
             </child>
+            <style>
+              <class name="linked"/>
+            </style>
           </object>
           <packing>
             <property name="position">1</property>
