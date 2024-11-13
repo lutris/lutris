@@ -3,7 +3,7 @@ from copy import copy
 from gettext import gettext as _
 from typing import Callable, Dict, List, Optional, Tuple
 
-from gi.repository import Gtk
+from gi.repository import GObject, Gtk
 
 from lutris import runners, services
 from lutris.database import categories as categories_db
@@ -12,6 +12,7 @@ from lutris.database import saved_searches
 from lutris.database.saved_searches import SavedSearch
 from lutris.exceptions import InvalidSearchTermError
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
+from lutris.gui.widgets.utils import has_stock_icon
 from lutris.search import FLAG_TEXTS, GameSearch
 from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 
@@ -19,7 +20,11 @@ from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 class SearchFiltersBox(Gtk.Box):
     """A widget to edit dynamic categories"""
 
-    def __init__(self, saved_search: SavedSearch, search_entry: Gtk.SearchEntry = None) -> None:
+    __gsignals__ = {
+        "saved": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+    }
+
+    def __init__(self, saved_search: SavedSearch, search_entry: Gtk.SearchEntry = None, can_save: bool = True) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.saved_search = copy(saved_search)
         self.original_search = copy(saved_search)
@@ -36,7 +41,13 @@ class SearchFiltersBox(Gtk.Box):
         self.set_margin_end(20)
         self.set_spacing(10)
 
-        # self.name_entry = self._add_entry_box(_("Name"), self.saved_search.name)
+        self.name_entry = self._add_entry_box(
+            _("Name"),
+            self.saved_search.name,
+            ["tag-symbolic", "poi-marker", "favorite-symbolic"] if can_save else None,
+            self.on_save,
+        )
+
         self.search_entry = search_entry or self._add_entry_box(_("Search"), self.search)
         self.search_entry.connect("changed", self.on_search_entry_changed)
 
@@ -69,7 +80,9 @@ class SearchFiltersBox(Gtk.Box):
 
         self.show_all()
 
-    def _add_entry_box(self, label: str, text: str) -> Gtk.Entry:
+    def _add_entry_box(
+        self, label: str, text: str, button_icon_names: List[str] = None, clicked: Callable = None
+    ) -> Gtk.Entry:
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         entry_label = Gtk.Label(label)
         entry_label.set_alignment(0, 0.5)
@@ -78,6 +91,16 @@ class SearchFiltersBox(Gtk.Box):
         entry.set_text(text)
         hbox.pack_start(entry_label, False, False, 0)
         hbox.pack_start(entry, True, True, 0)
+
+        if button_icon_names:
+            button_icon_names = [name for name in button_icon_names if has_stock_icon(name)]
+            if button_icon_names:
+                button = Gtk.Button.new_from_icon_name(button_icon_names[0], Gtk.IconSize.BUTTON)
+                button.get_style_context().add_class("circular")
+                if clicked:
+                    button.connect("clicked", clicked)
+                hbox.pack_end(button, False, False, 0)
+
         self.pack_start(hbox, False, False, 0)
         return entry
 
@@ -245,12 +268,43 @@ class SearchFiltersBox(Gtk.Box):
         combobox.add_attribute(renderer_text, "text", 0)
         return combobox
 
+    @property
+    def search_name(self):
+        name = self.name_entry.get_text() or self.original_search.name
+        return saved_searches.strip_saved_search_name(name)
+
+    @search_name.setter
+    def search_name(self, value):
+        value = saved_searches.strip_saved_search_name(value)
+        self.name_entry.set_text(value)
+        self.saved_search.name = value
+
+    def on_save(self, _button: Gtk.Button) -> None:
+        """Save game info and destroy widget."""
+        search_name = self.search_name
+        self.saved_search.name = search_name
+        self.saved_search.search = str(GameSearch(self.search_entry.get_text()))
+
+        if self.original_search.name != self.saved_search.name:
+            if saved_searches.get_saved_search_by_name(self.saved_search.name):
+                raise RuntimeError(_("'%s' is already a saved search.") % self.saved_search.name)
+
+        if not self.saved_search.saved_search_id:
+            # Creating new search!
+            self.saved_search.add()
+        elif self.original_search != self.saved_search:
+            # Changing an existing search.
+            self.saved_search.update()
+
+        self.search_name = "New Dynamic Category"
+        self.emit("saved", search_name)
+
 
 class EditSavedSearchDialog(SavableModelessDialog):
     """A dialog to edit saved searches."""
 
     def __init__(self, parent, saved_search: SavedSearch) -> None:
-        self.filter_box = SearchFiltersBox(saved_search)
+        self.filter_box = SearchFiltersBox(saved_search, can_save=False)
         self.saved_search = copy(saved_search)
         self.original_search = copy(saved_search)
 
@@ -268,24 +322,9 @@ class EditSavedSearchDialog(SavableModelessDialog):
         delete_button.connect("clicked", self.on_delete_clicked)
         delete_button.show() if self.saved_search.saved_search_id else delete_button.hide()
 
-    def on_save(self, _button: Gtk.Button) -> None:
+    def on_save(self, button: Gtk.Button) -> None:
         """Save game info and destroy widget."""
-        self.saved_search.name = saved_searches.strip_saved_search_name(
-            self.filter_box.name_entry.get_text() or self.original_search.name
-        )
-        self.saved_search.search = str(GameSearch(self.filter_box.search_entry.get_text()))
-
-        if self.original_search.name != self.saved_search.name:
-            if saved_searches.get_saved_search_by_name(self.saved_search.name):
-                raise RuntimeError(_("'%s' is already a saved search.") % self.saved_search.name)
-
-        if not self.saved_search.saved_search_id:
-            # Creating new search!
-            self.saved_search.add()
-        elif self.original_search != self.saved_search:
-            # Changing an existing search.
-            self.saved_search.update()
-
+        self.filter_box.on_save(button)
         self.destroy()
 
     def on_delete_clicked(self, _button):

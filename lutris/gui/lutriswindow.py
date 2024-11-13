@@ -140,6 +140,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             if has_stock_icon(n):
                 filter_button_image.set_from_icon_name(n, Gtk.IconSize.BUTTON)
                 break
+        self.filter_box_search_name = ""
 
         # Setup Drag and drop
         self.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY)
@@ -346,13 +347,25 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_open_search_filters(self, _action, _value):
         def on_filter_popover_closed(_popover):
+            self.filter_box_search_name = filter_box.search_name
             self.search_filters_button.set_active(False)
+
+        def on_saved(_box, search_name):
+            def switch_to_saved_search():
+                self.sidebar.selected_category = "saved_search", search_name
+                self.search_entry.set_text("")
+
+            filter_popover.popdown()
+            schedule_at_idle(switch_to_saved_search)
 
         if self.search_filters_button.get_active():
             search = self.get_game_search()
             new_search = saved_searches_db.SavedSearch(0, "", str(search))
             filter_box = SearchFiltersBox(saved_search=new_search, search_entry=self.search_entry)
             filter_box.set_size_request(600, -1)
+            if self.filter_box_search_name:
+                filter_box.search_name = self.filter_box_search_name
+            filter_box.connect("saved", on_saved)
             filter_box.show()
             filter_popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_filters_button)
             filter_popover.connect("closed", on_filter_popover_closed)
