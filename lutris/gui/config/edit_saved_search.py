@@ -36,16 +36,16 @@ class SearchFiltersBox(Gtk.Box):
         self.set_margin_end(20)
         self.set_spacing(10)
 
-        self.name_entry = self._add_entry_box(_("Name"), self.saved_search.name)
+        # self.name_entry = self._add_entry_box(_("Name"), self.saved_search.name)
         self.search_entry = search_entry or self._add_entry_box(_("Search"), self.search)
         self.search_entry.connect("changed", self.on_search_entry_changed)
 
         self.predicate_widget_functions: Dict[str, Callable[[SearchPredicate], None]] = {}
         self.updating_predicate_widgets = False
 
-        predicates_box = Gtk.Box(Gtk.Orientation.HORIZONTAL)
+        predicates_box = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
 
-        self.flags_grid = Gtk.Grid(row_spacing=6, column_spacing=6, margin=6)
+        self.flags_grid = Gtk.Grid(row_spacing=6, column_spacing=6)
         self._add_flag_widgets()
 
         categories_scrolled_window = Gtk.ScrolledWindow(visible=True)
