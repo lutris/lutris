@@ -157,14 +157,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
 
-        search = self.get_game_search()
-        new_search = saved_searches_db.SavedSearch(0, "", str(search))
-        filter_box = SearchFiltersBox(saved_search=new_search, search_entry=self.search_entry)
-        filter_box.set_size_request(600, -1)
-        filter_box.show()
-        self.filter_popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_box)
-        self.search_filters_button.set_popover(self.filter_popover)
-
         self.update_action_state()
         self.update_notification()
 
@@ -343,8 +335,19 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.sidebar.hidden_row.show()
             self.sidebar.selected_category = hidden_category
 
-    def on_open_search_filters(self, action, value):
-        self.filter_popover.popup()
+    def on_open_search_filters(self, _action, _value):
+        def on_filter_popover_closed(_popover):
+            self.search_filters_button.set_active(False)
+
+        if self.search_filters_button.get_active():
+            search = self.get_game_search()
+            new_search = saved_searches_db.SavedSearch(0, "", str(search))
+            filter_box = SearchFiltersBox(saved_search=new_search, search_entry=self.search_entry)
+            filter_box.set_size_request(600, -1)
+            filter_box.show()
+            filter_popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_filters_button)
+            filter_popover.connect("closed", on_filter_popover_closed)
+            filter_popover.popup()
 
     @property
     def current_view_type(self):
