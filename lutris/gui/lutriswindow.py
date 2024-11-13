@@ -39,7 +39,7 @@ from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
-from lutris.gui.widgets.utils import load_icon_theme, open_uri
+from lutris.gui.widgets.utils import has_stock_icon, load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
 from lutris.search_predicate import NotPredicate
@@ -131,6 +131,15 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.maximize()
         self.init_template()
         self._init_actions()
+
+        # Since system-search-symbolic is already *right there* we'll try to pick some
+        # other icon for the button that shows the search popover.
+        fallback_filter_icons_names = ["filter-symbolic", "edit-find-replace-symbolic", "system-search-symbolic"]
+        filter_button_image = self.search_filters_button.get_child()
+        for n in fallback_filter_icons_names:
+            if has_stock_icon(n):
+                filter_button_image.set_from_icon_name(n, Gtk.IconSize.BUTTON)
+                break
 
         # Setup Drag and drop
         self.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY)

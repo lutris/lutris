@@ -345,7 +345,6 @@
                   <object class="GtkImage">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="icon-name">system-search-symbolic</property>
                     <property name="use-fallback">True</property>
                   </object>
                 </child>
