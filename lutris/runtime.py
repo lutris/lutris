@@ -449,6 +449,11 @@ class ProtonComponentUpdater(RuntimeExtractedComponentUpdater):
         self.proton_dir = os.path.join(settings.RUNNER_DIR, "proton")
 
     @property
+    def should_update(self) -> bool:
+        wine_dir = os.path.join(settings.RUNNER_DIR, "wine")
+        return os.path.isdir(wine_dir) and super().should_update
+
+    @property
     def local_runtime_path(self) -> str:
         """Return the local path for the runtime folder"""
         return os.path.join(self.proton_dir, self.name)
