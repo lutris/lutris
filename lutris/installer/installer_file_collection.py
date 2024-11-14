@@ -152,6 +152,11 @@ class InstallerFileCollection:
             if not installer_file.is_ready(provider):
                 return False
         return True
+    
+    def check_hash(self):
+        """Check the hash of all the files (if available)"""
+        for installer_file in self.files_list:
+            installer_file.check_hash()
 
     @property
     def is_cached(self):
