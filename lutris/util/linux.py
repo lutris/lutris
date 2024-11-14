@@ -38,6 +38,7 @@ SYSTEM_COMPONENTS = {
         "fluidsynth",
         "lsi-steam",
         "nvidia-smi",
+        "fluidsynth",
     ],
     "TERMINALS": [
         "xterm",
