@@ -230,6 +230,7 @@ class InstallerFileBox(Gtk.VBox):
     def on_download_complete(self, widget, _data=None):
         """Action called on a completed download."""
         logger.info("Download completed")
+        self.installer_file.check_hash()
         if isinstance(widget, SteamInstaller):
             self.installer_file.dest_file = widget.get_steam_data_path()
         else:
