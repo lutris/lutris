@@ -1,6 +1,6 @@
 lutris (0.5.18) jammy; urgency=medium
 
-  * TODO
+  * Lutris downloads the latest GE-Proton build for Wine if any Wine version is installed
   * Use dark theme by default
   * Display cover-art rather than banners by default
   * Add 'Uncategorized' view to sidebar
@@ -16,7 +16,6 @@ lutris (0.5.18) jammy; urgency=medium
   * Additional options for Ruffle runner
   * Updated download links for the Atari800 and MicroM8 runners
   * No longer re-download cached installation files even when some are missing
-  * Improved Umu implementation
   * Lutris log is included in the 'System' tab of the Preferences window
   * Improved error reporting, with the Lutris log included in the error details
 
