@@ -79,7 +79,6 @@ class InterfacePreferencesBox(BaseConfigBox):
     def _create_choice_setting(self, option, choices, label, default=None, **kwargs):
         """Generate a combobox (drop-down menu)."""
 
-        @staticmethod
         def _on_combobox_scroll(_event):
             """Prevents users from accidentally changing configuration values
             while scrolling down dialogs.
@@ -99,7 +98,6 @@ class InterfacePreferencesBox(BaseConfigBox):
                 option_value = list_store[active][1]
             settings.write_setting(option, option_value)
 
-        @staticmethod
         def _expand_combobox_choices():
             expanded = []
             has_value = False
