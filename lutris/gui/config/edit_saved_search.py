@@ -16,7 +16,7 @@ from lutris.gui.widgets.utils import has_stock_icon
 from lutris.search import FLAG_TEXTS, GameSearch
 from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 
-DEFAULT_NEW_SEARCH_NAME = "New Dynamic Category"
+DEFAULT_NEW_SEARCH_NAME = _("New Dynamic Category")
 
 
 class SearchFiltersBox(Gtk.Box):
@@ -181,21 +181,21 @@ class SearchFiltersBox(Gtk.Box):
         options = [(s[1]().name, s[0]) for s in services.get_enabled_services().items()]
 
         self._add_match_widget(
-            row, "Source", "source", options, predicate_factory=lambda s, v: s.get_service_predicate(v)
+            row, _("Source"), "source", options, predicate_factory=lambda s, v: s.get_service_predicate(v)
         )
 
     def _add_runner_widget(self, row):
         options = [(r.human_name, r.name) for r in runners.get_installed()]
 
         self._add_match_widget(
-            row, "Runner", "runner", options, predicate_factory=lambda s, v: s.get_runner_predicate(v)
+            row, _("Runner"), "runner", options, predicate_factory=lambda s, v: s.get_runner_predicate(v)
         )
 
     def _add_platform_widget(self, row):
         options = [(p, p) for p in games_db.get_used_platforms()]
 
         self._add_match_widget(
-            row, "Platform", "platform", options, predicate_factory=lambda s, v: s.get_platform_predicate(v)
+            row, _("Platform"), "platform", options, predicate_factory=lambda s, v: s.get_platform_predicate(v)
         )
 
     def _add_match_widget(self, row: int, caption: str, tag: str, options: List[Tuple[str, str]], predicate_factory):
