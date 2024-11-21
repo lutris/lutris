@@ -18,6 +18,8 @@ lutris (0.5.18) jammy; urgency=medium
   * No longer re-download cached installation files even when some are missing
   * Lutris log is included in the 'System' tab of the Preferences window
   * Improved error reporting, with the Lutris log included in the error details
+  * Add AppArmor profile for Ubuntu versions >= 23.10
+  * Add Duckstation runner
 
  -- Mathieu Comandon <mathieucomandon@gmail.com>  Sun, 13 Oct 2024 16:22:49 -0700
 
