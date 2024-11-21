@@ -82,6 +82,7 @@ class Application(Gtk.Application):
         settings.SETTINGS_CHANGED.register(self.on_settings_changed)
 
         GLib.set_application_name(_("Lutris"))
+        GLib.set_prgname("net.lutris.Lutris")
         self.force_updates = False
         self.css_provider = Gtk.CssProvider.new()
         self.window = None
