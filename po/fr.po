@@ -6228,10 +6228,6 @@ msgstr ""
 "Lutris n'a pas d'installateurs pour %s. Essayez plutôt d'utiliser un autre "
 "service."
 
-#: lutris/services/origin.py:129
-msgid "Origin"
-msgstr ""
-
 #: lutris/services/steam.py:100
 msgid ""
 "Failed to load games. Check that your profile is set to public during the "

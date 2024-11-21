@@ -6050,14 +6050,6 @@ msgstr "itch.io"
 msgid "Lutris has no installers for %s. Try using a different service instead."
 msgstr ""
 
-#: lutris/services/origin.py:129
-msgid "Origin"
-msgstr "Origin"
-
-#: lutris/services/origin.py:130
-msgid "Deprecated, use EA App"
-msgstr ""
-
 #: lutris/services/steam.py:100
 msgid ""
 "Failed to load games. Check that your profile is set to public during the "

@@ -5751,10 +5751,6 @@ msgid "Lutris has no installers for %s. Try using a different service instead."
 msgstr ""
 "Lutris heeft geen installatiewizards van %s. Probeer een andere dienst."
 
-#: lutris/services/origin.py:129
-msgid "Origin"
-msgstr "Origin"
-
 #: lutris/services/steam.py:100
 msgid ""
 "Failed to load games. Check that your profile is set to public during the "
@@ -6820,13 +6816,13 @@ msgstr ""
 #~ msgid ""
 #~ "Lutris is an Open Source gaming platform. It installs and launches games "
 #~ "so you can start playing without the hassle of setting up your games. Get "
-#~ "your games from GOG, Steam, Battle.net, Origin, Uplay and many other "
+#~ "your games from GOG, Steam, Battle.net, Uplay and many other "
 #~ "sources running on any Linux powered gaming machine."
 #~ msgstr ""
 #~ "Lutris is een open source gameplatform. Je kunt er spellen mee "
 #~ "installeren en starten zodat je kunt spelen zonder alles in te hoeven "
 #~ "stellen. De spellen kunnen afkomstig zijn van GOG, Steam, Battle.net, "
-#~ "Origin, Uplay of één van de vele andere bronnen, op elke door Linux "
+#~ "Uplay of één van de vele andere bronnen, op elke door Linux "
 #~ "aangedreven gamecomputer."
 
 #~ msgid "Open Source Gaming Platform"

@@ -14,7 +14,6 @@ from lutris.services.humblebundle import HumbleBundleService
 from lutris.services.itchio import ItchIoService
 from lutris.services.lutris import LutrisService
 from lutris.services.mame import MAMEService
-from lutris.services.origin import OriginService
 from lutris.services.scummvm import SCUMMVM_CONFIG_FILE, ScummvmService
 from lutris.services.steam import SteamService
 from lutris.services.steamwindows import SteamWindowsService
@@ -34,7 +33,6 @@ def get_services():
         "humblebundle": HumbleBundleService,
         "egs": EpicGamesStoreService,
         "itchio": ItchIoService,
-        "origin": OriginService,
         "ea_app": EAAppService,
         "ubisoft": UbisoftConnectService,
         "amazon": AmazonService,

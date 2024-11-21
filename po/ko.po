@@ -5084,10 +5084,6 @@ msgstr "itch.io"
 msgid "Lutris has no installers for %s. Try using a different service instead."
 msgstr ""
 
-#: lutris/services/origin.py:129
-msgid "Origin"
-msgstr "오리진"
-
 #: lutris/services/steamwindows.py:25
 msgid "Steam for Windows"
 msgstr "Windows용 스팀"

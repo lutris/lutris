@@ -5433,10 +5433,6 @@ msgstr ""
 msgid "Lutris has no installers for %s. Try using a different service instead."
 msgstr ""
 
-#: lutris/services/origin.py:129
-msgid "Origin"
-msgstr ""
-
 #: lutris/services/steamwindows.py:25
 #, fuzzy
 msgid "Steam for Windows"
@@ -6221,14 +6217,14 @@ msgstr ""
 #~ msgid ""
 #~ "Lutris is an Open Source gaming platform. It installs and launches games "
 #~ "so you can start playing without the hassle of setting up your games. Get "
-#~ "your games from GOG, Steam, Battle.net, Origin, Uplay and many other "
+#~ "your games from GOG, Steam, Battle.net, Uplay and many other "
 #~ "sources running on any Linux powered gaming machine."
 #~ msgstr ""
 #~ "Lutris - это игровая платформа с открытым исходным кодом. Он сам "
 #~ "устанавливает и запускает игры, благодаря чему вы можете сразу же начать "
 #~ "играть без необходимости проходить через скучную процедуру по настройке и "
 #~ "установке ваших игр. Вы можете играть в игры из GOG, Steam, Battle.net, "
-#~ "Origin, Uplay и множества других источников которые работают на любых "
+#~ "Uplay и множества других источников которые работают на любых "
 #~ "игровых машинах под управлением Linux."
 
 #~ msgid "Open Source Gaming Platform"

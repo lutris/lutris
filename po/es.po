@@ -7318,14 +7318,6 @@ msgstr ""
 "Lutris no dispone de instaladores para %s, intente utilizar algún servicio "
 "alternativo."
 
-#: lutris/services/origin.py:130
-msgid "Origin"
-msgstr "Origin"
-
-#: lutris/services/origin.py:131
-msgid "Deprecated, use EA App"
-msgstr "Obsoleto, use EA App"
-
 #: lutris/services/steam.py:98
 msgid ""
 "Failed to load games. Check that your profile is set to public during the "
@@ -8700,12 +8692,12 @@ msgstr "No se ha instalado ninguna versión de Wine."
 #~ msgid ""
 #~ "Lutris is an Open Source gaming platform. It installs and launches games "
 #~ "so you can start playing without the hassle of setting up your games. Get "
-#~ "your games from GOG, Steam, Battle.net, Origin, Uplay and many other "
+#~ "your games from GOG, Steam, Battle.net, Uplay and many other "
 #~ "sources running on any Linux powered gaming machine."
 #~ msgstr ""
 #~ "Lutris es una plataforma de juegos de código abierto. Instala y lanza "
 #~ "juegos para que pueda empezar a jugar sin la molestia de configurar sus "
-#~ "juegos. Consiga que sus juegos de GOG, Steam, Battle.net, Origin, Uplay y "
+#~ "juegos. Consiga que sus juegos de GOG, Steam, Battle.net, Uplay y "
 #~ "muchas otras fuentes se ejecuten en cualquier máquina de juegos con Linux."
 
 #~ msgid "Open Source Gaming Platform"

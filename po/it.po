@@ -7309,14 +7309,6 @@ msgstr ""
 "Lutris non ha programmi d'installazione per %s. Prova a utilizzare un altro "
 "servizio."
 
-#: lutris/services/origin.py:130
-msgid "Origin"
-msgstr "Origin"
-
-#: lutris/services/origin.py:131
-msgid "Deprecated, use EA App"
-msgstr "Deprecato, utilizzare EA App"
-
 #: lutris/services/steam.py:98
 msgid ""
 "Failed to load games. Check that your profile is set to public during the "

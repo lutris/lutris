@@ -7278,14 +7278,6 @@ msgstr "itch.io"
 msgid "Lutris has no installers for %s. Try using a different service instead."
 msgstr "Lutris não tem instaladores para %s. Tente usar um serviço diferente."
 
-#: lutris/services/origin.py:130
-msgid "Origin"
-msgstr "Origin"
-
-#: lutris/services/origin.py:131
-msgid "Deprecated, use EA App"
-msgstr "Obsoleto, use o EA App"
-
 #: lutris/services/steam.py:98
 msgid ""
 "Failed to load games. Check that your profile is set to public during the "

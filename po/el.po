@@ -6846,14 +6846,6 @@ msgstr ""
 "Το Lutris δεν έχει προγράμματα εγκατάστασης για το %s. Δοκιμάστε να "
 "χρησιμοποιήσετε μια διαφορετική υπηρεσία."
 
-#: lutris/services/origin.py:128
-msgid "Origin"
-msgstr "Origin"
-
-#: lutris/services/origin.py:129
-msgid "Deprecated, use EA App"
-msgstr "Καταργημένο, χρησιμοποιήστε την εφαρμογή EA App"
-
 #: lutris/services/steam.py:97
 msgid ""
 "Failed to load games. Check that your profile is set to public during the "
