@@ -16,6 +16,8 @@ from lutris.gui.widgets.utils import has_stock_icon
 from lutris.search import FLAG_TEXTS, GameSearch
 from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 
+DEFAULT_NEW_SEARCH_NAME = "New Dynamic Category"
+
 
 class SearchFiltersBox(Gtk.Box):
     """A widget to edit dynamic categories"""
@@ -30,7 +32,7 @@ class SearchFiltersBox(Gtk.Box):
         self.original_search = copy(saved_search)
 
         if not self.saved_search.name:
-            self.saved_search.name = "New Dynamic Category"
+            self.saved_search.name = DEFAULT_NEW_SEARCH_NAME
 
         self.search = self.saved_search.search
 
@@ -296,7 +298,7 @@ class SearchFiltersBox(Gtk.Box):
             # Changing an existing search.
             self.saved_search.update()
 
-        self.search_name = "New Dynamic Category"
+        self.search_name = DEFAULT_NEW_SEARCH_NAME
         self.emit("saved", search_name)
 
 
@@ -309,7 +311,7 @@ class EditSavedSearchDialog(SavableModelessDialog):
         self.original_search = copy(saved_search)
 
         if not self.saved_search.name:
-            self.saved_search.name = "New Dynamic Category"
+            self.saved_search.name = DEFAULT_NEW_SEARCH_NAME
         title = _("Configure %s") % self.saved_search.name
         super().__init__(title, parent=parent, border_width=10)
         self.set_default_size(600, -1)
