@@ -164,7 +164,6 @@ lutris/services/__init__.py
 lutris/services/itchio.py
 lutris/services/lutris.py
 lutris/services/mame.py
-lutris/services/origin.py
 lutris/services/scummvm.py
 lutris/services/service_game.py
 lutris/services/service_media.py
