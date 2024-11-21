@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-21 09:09-0300\n"
-"PO-Revision-Date: 2024-11-21 09:10-0300\n"
+"POT-Creation-Date: 2024-11-21 09:17-0300\n"
+"PO-Revision-Date: 2024-11-21 09:17-0300\n"
 "Last-Translator: João Victor Leal <victorsouzaleal@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <victorsouzaleal@gmail.com>\n"
 "Language: pt_BR\n"
@@ -1528,6 +1528,10 @@ msgstr ""
 #: lutris/gui/config/edit_game_categories.py:163
 msgid "Changing Categories"
 msgstr "Alterando categorias"
+
+#: lutris/gui/config/edit_saved_search.py:19
+msgid "New Dynamic Category"
+msgstr "Nova categoria dinâmica"
 
 #: lutris/gui/config/edit_saved_search.py:53
 msgid "Search"
