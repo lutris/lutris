@@ -1,4 +1,6 @@
+import os
 from gettext import gettext as _
+from typing import Optional
 from urllib.parse import urlparse
 
 from gi.repository import GObject, Gtk, Pango
@@ -19,16 +21,30 @@ class DownloadProgressBox(Gtk.Box):
         "error": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
     }
 
-    def __init__(self, params, cancelable=True, downloader=None):
+    def __init__(
+        self,
+        url: str,
+        dest: str,
+        temp: str = None,
+        referer: Optional[str] = None,
+        title: Optional[str] = None,
+        cancelable: bool = True,
+        downloader: Optional[Downloader] = None,
+    ) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
 
-        self.downloader = downloader
+        self._downloader = downloader
         self.is_complete = False
-        self.url = params.get("url")
-        self.dest = params.get("dest")
-        self.referer = params.get("referer")
+        self.url = url
+        self.dest = dest
+        self.temp = temp or (dest + ".tmp")
+        self.referer = referer
 
-        self.main_label = Gtk.Label(self.get_title())
+        if not title:
+            parsed_url = urlparse(url)
+            title = "%s%s" % (parsed_url.netloc, parsed_url.path)
+
+        self.main_label = Gtk.Label(title)
         self.main_label.set_alignment(0, 0)
         self.main_label.set_property("wrap", True)
         self.main_label.set_margin_bottom(10)
@@ -60,26 +76,33 @@ class DownloadProgressBox(Gtk.Box):
         self.show_all()
         self.cancel_button.hide()
 
-    def get_title(self):
-        """Return the main label text for the widget"""
-        parsed = urlparse(self.url)
-        return "%s%s" % (parsed.netloc, parsed.path)
+        if os.path.exists(self.temp):
+            os.remove(self.temp)
+
+    @property
+    def downloader(self) -> Downloader:
+        if not self._downloader:
+            self._downloader = Downloader(self.url, self.temp, referer=self.referer, overwrite=True)
+        return self._downloader
+
+    def cancel_download(self):
+        if self._downloader:
+            self._downloader.cancel()
 
     def start(self) -> None:
         """Start downloading a file."""
-        if not self.downloader:
-            try:
-                self.downloader = Downloader(self.url, self.dest, referer=self.referer, overwrite=True)
-            except RuntimeError as ex:
-                display_error(ex, parent=self.get_toplevel())
-                self.emit("cancel")
-                return None
+        try:
+            downloader = self.downloader
+        except RuntimeError as ex:
+            display_error(ex, parent=self.get_toplevel())
+            self.emit("cancel")
+            return None
 
         schedule_repeating_at_idle(self._progress, interval_seconds=0.5)
         self.cancel_button.show()
         self.cancel_button.set_sensitive(True)
-        if not self.downloader.state == self.downloader.DOWNLOADING:
-            self.downloader.start()
+        if not downloader.state == downloader.DOWNLOADING:
+            downloader.start()
 
     def set_retry_button(self):
         """Transform the cancel button into a retry button"""
@@ -99,33 +122,34 @@ class DownloadProgressBox(Gtk.Box):
     def on_cancel_clicked(self, _widget=None):
         """Cancel the current download."""
         logger.debug("Download cancel requested")
-        if self.downloader:
-            self.downloader.cancel()
+        self.cancel_download()
         self.cancel_button.set_sensitive(False)
         self.emit("cancel")
 
     def _progress(self) -> bool:
         """Show download progress."""
-        progress = min(self.downloader.check_progress(), 1)
-        if self.downloader.state in [self.downloader.CANCELLED, self.downloader.ERROR]:
+        downloader = self.downloader
+        progress = min(downloader.check_progress(), 1)
+        if downloader.state in [downloader.CANCELLED, downloader.ERROR]:
             self.progressbar.set_fraction(0)
-            if self.downloader.state == self.downloader.CANCELLED:
+            if downloader.state == downloader.CANCELLED:
                 self._set_text(_("Download interrupted"))
                 self.emit("cancel")
             else:
-                self._set_text(str(self.downloader.error)[:80])
-                self.emit("error", self.downloader.error1)
+                self._set_text(str(downloader.error)[:80])
+                self.emit("error", downloader.error)
             return False
         self.progressbar.set_fraction(progress)
         megabytes = 1024 * 1024
         progress_text = _("{downloaded} / {size} ({speed:0.2f}MB/s), {time} remaining").format(
-            downloaded=human_size(self.downloader.downloaded_size),
-            size=human_size(self.downloader.full_size),
-            speed=float(self.downloader.average_speed) / megabytes,
-            time=self.downloader.time_left,
+            downloaded=human_size(downloader.downloaded_size),
+            size=human_size(downloader.full_size),
+            speed=float(downloader.average_speed) / megabytes,
+            time=downloader.time_left,
         )
         self._set_text(progress_text)
-        if self.downloader.state == self.downloader.COMPLETED:
+        if downloader.state == downloader.COMPLETED:
+            os.rename(self.temp, self.dest)
             self.cancel_button.set_sensitive(False)
             self.is_complete = True
             self.emit("complete", {})

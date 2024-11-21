@@ -3,6 +3,9 @@ Discord Rich Presence Loader
 
 This will enable DiscordRichPresenceClient if pypresence is installed.
 Otherwise, it will provide a dummy client that does nothing
+
+
+THIS MODULE IS UNMAINTAINTED AND WILL BE MARKED FOR DEPRECATION UNLESS SOMEONE VOLUNTEERS TO PROPERLY MAINTAIN IT.
 """
 
 from lutris.util.discord.base import DiscordRPCNull

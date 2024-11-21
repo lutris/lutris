@@ -3,7 +3,7 @@
     "description": "Emulates Flash games",
     "platforms": ["Flash"],
     "runner_executable": "ruffle/ruffle",
-    "download_url": "https://github.com/ruffle-rs/ruffle/releases/download/nightly-2023-10-14/ruffle-nightly-2023_10_14-linux-x86_64.tar.gz",
+    "download_url": "https://github.com/ruffle-rs/ruffle/releases/download/nightly-2024-05-22/ruffle-nightly-2024_05_22-linux-x86_64.tar.gz",
     "game_options": [
         {
             "option": "main_file",
@@ -13,6 +13,25 @@
         }
     ],
     "runner_options": [
+        {
+            "option": "args",
+            "type": "command_line",
+            "label": "Arguments"
+        },
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "default": true,
+            "label": "Fullscreen",
+            "argument": "--fullscreen"
+        },
+        {
+            "option": "force_align",
+            "type": "bool",
+            "label": "Force align",
+            "argument": "--force-align",
+            "help": "Prevent movies from changing the stage alignment"
+        },
         {
             "option": "graphics",
             "type": "choice",
@@ -43,6 +62,28 @@
             "type": "string",
             "label": "Proxy",
             "argument": "--proxy"
+        },
+        {
+            "option": "no_gui",
+            "type": "bool",
+            "default": true,
+            "label": "No GUI",
+            "advanced": true,
+            "argument": "--no-gui",
+            "help": "Hides the menu bar (the bar at the top of the window)"
+        },
+        {
+            "option": "open_url_mode",
+            "type": "choice",
+            "label": "Open URLs",
+            "choices": [
+                ["Automatic", "off"],
+                ["Allow", "allow"],
+                ["Confirm", "confirm"],
+                ["Deny", "deny"]
+            ],
+            "default": "off",
+            "argument": "--open-url-mode"
         }
     ]
 }

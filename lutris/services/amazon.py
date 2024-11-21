@@ -66,7 +66,7 @@ class AmazonService(OnlineService):
     """Service class for Amazon"""
 
     id = "amazon"
-    name = _("Amazon Prime Gaming")
+    name = _("Amazon")
     icon = "amazon"
     runner = "wine"
     has_extras = False

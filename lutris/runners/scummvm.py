@@ -1,9 +1,10 @@
 import os
 import subprocess
 from gettext import gettext as _
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from lutris import settings
+from lutris.config import LutrisConfig
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.strings import split_arguments
@@ -20,23 +21,25 @@ _supported_scale_factors = {
 }
 
 
-def _get_opengl_warning(config, _option_key):
-    if "scaler" in config and "renderer" in config:
-        renderer = config["renderer"]
+def _get_opengl_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+    runner_config = config.runner_config
+    if "scaler" in runner_config and "renderer" in runner_config:
+        renderer = runner_config["renderer"]
         if renderer and renderer != "software":
-            scaler = config["scaler"]
+            scaler = runner_config["scaler"]
             if scaler and scaler != "normal":
                 return _("<b>Warning</b> Scalers may not work with OpenGL rendering.")
 
     return None
 
 
-def _get_scale_factor_warning(config, _option_key):
+def _get_scale_factor_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
     """Generate a warning message for when the scaler and scale-factor can't be used together."""
-    if "scaler" in config and "scale-factor" in config:
-        scaler = config["scaler"]
+    runner_config = config.runner_config
+    if "scaler" in runner_config and "scale-factor" in runner_config:
+        scaler = runner_config["scaler"]
         if scaler in _supported_scale_factors:
-            scale_factor = config["scale-factor"]
+            scale_factor = runner_config["scale-factor"]
             if scale_factor not in _supported_scale_factors[scaler]:
                 return _("<b>Warning</b> The '%s' scaler does not work with a scale factor of %s.") % (
                     scaler,

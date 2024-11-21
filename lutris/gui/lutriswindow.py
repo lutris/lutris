@@ -8,7 +8,7 @@ from gettext import gettext as _
 from typing import Iterable, List
 from urllib.parse import unquote, urlparse
 
-from gi.repository import Gdk, Gio, GLib, GObject, Gtk
+from gi.repository import Gdk, Gio, GLib, Gtk
 
 from lutris import services, settings
 from lutris.api import (
@@ -27,7 +27,7 @@ from lutris.exceptions import EsyncLimitError, InvalidSearchTermError
 from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
-from lutris.gui.config.edit_saved_search import EditSavedSearchDialog
+from lutris.gui.config.edit_saved_search import SearchFiltersBox
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog, get_error_handler, register_error_handler
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
@@ -39,19 +39,22 @@ from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
-from lutris.gui.widgets.utils import load_icon_theme, open_uri
+from lutris.gui.widgets.utils import has_stock_icon, load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
 from lutris.search_predicate import NotPredicate
 from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGOUT
 from lutris.services.lutris import LutrisService, sync_media
+from lutris.style_manager import THEME_CHANGED
 from lutris.util import datapath
+from lutris.util.busy import BUSY_STARTED, BUSY_STOPPED
 from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, LibrarySyncer
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
 from lutris.util.strings import get_natural_sort_key
 from lutris.util.system import update_desktop_icons
+from lutris.util.wine.wine import clear_wine_version_cache
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
@@ -68,6 +71,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     sidebar_scrolled: Gtk.ScrolledWindow = GtkTemplate.Child()
     game_revealer: Gtk.Revealer = GtkTemplate.Child()
     search_entry: Gtk.SearchEntry = GtkTemplate.Child()
+    search_filters_button: Gtk.MenuButton = GtkTemplate.Child()
+    search_box: Gtk.Box = GtkTemplate.Child()
     zoom_adjustment: Gtk.Adjustment = GtkTemplate.Child()
     blank_overlay: Gtk.Alignment = GtkTemplate.Child()
     viewtype_icon: Gtk.Image = GtkTemplate.Child()
@@ -78,6 +83,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     turn_on_library_sync_label: Gtk.Label = GtkTemplate.Child()
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     version_notification_label: Gtk.Revealer = GtkTemplate.Child()
+    show_hidden_games_button: Gtk.ModelButton = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs) -> None:
         width = int(settings.read_setting("width") or self.default_width)
@@ -126,6 +132,16 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.init_template()
         self._init_actions()
 
+        # Since system-search-symbolic is already *right there* we'll try to pick some
+        # other icon for the button that shows the search popover.
+        fallback_filter_icons_names = ["filter-symbolic", "edit-find-replace-symbolic", "system-search-symbolic"]
+        filter_button_image = self.search_filters_button.get_child()
+        for n in fallback_filter_icons_names:
+            if has_stock_icon(n):
+                filter_button_image.set_from_icon_name(n, Gtk.IconSize.BUTTON)
+                break
+        self.filter_box_search_name = ""
+
         # Setup Drag and drop
         self.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY)
         self.drag_dest_add_uri_targets()
@@ -154,6 +170,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.update_action_state()
         self.update_notification()
 
+        BUSY_STARTED.register(self.on_busy_started)
+        BUSY_STOPPED.register(self.on_busy_stopped)
         SERVICE_LOGIN.register(self.on_service_login)
         SERVICE_LOGOUT.register(self.on_service_logout)
         SERVICE_GAMES_LOADED.register(self.on_service_games_loaded)
@@ -163,17 +181,25 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         GAME_STOPPED.register(self.on_game_stopped)
         GAME_INSTALLED.register(self.on_game_installed)
         GAME_UNHANDLED_ERROR.register(self.on_game_unhandled_error)
-        GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
+        settings.SETTINGS_CHANGED.register(self.on_settings_changed)
         MISSING_GAMES.updated.register(self.update_missing_games_sidebar_row)
         LUTRIS_ACCOUNT_CONNECTED.register(self.on_lutris_account_connected)
         LUTRIS_ACCOUNT_DISCONNECTED.register(self.on_lutris_account_disconnected)
         LOCAL_LIBRARY_UPDATED.register(self.on_local_library_updated)
+        THEME_CHANGED.register(self.on_theme_changed)
 
         # Finally trigger the initialization of the view here
         selected_category = settings.read_setting("selected_category", default="runner:all")
         self.sidebar.selected_category = selected_category.split(":", maxsplit=1) if selected_category else None
 
         schedule_at_idle(self.sync_library, delay_seconds=1.0)
+
+    def on_busy_started(self):
+        display = Gdk.Display.get_default()
+        self.get_window().set_cursor(Gdk.Cursor.new_from_name(display, "progress"))
+
+    def on_busy_stopped(self):
+        self.get_window().set_cursor(None)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -226,7 +252,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 enabled=lambda: self.is_show_hidden_sensitive,
                 accel="<Primary>h",
             ),
-            "add-search-category": Action(self.on_add_search_category),
+            "open-search-filters": Action(self.on_open_search_filters),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
@@ -311,14 +337,39 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_show_hidden_clicked(self, action, value):
         """Hides or shows the hidden games"""
-        self.sidebar.hidden_row.show()
-        self.sidebar.selected_category = "category", ".hidden"
+        hidden_category = "category", ".hidden"
+        if self.sidebar.selected_category == hidden_category:
+            if self.sidebar.previous_category:
+                self.sidebar.selected_category = self.sidebar.previous_category
+        else:
+            self.sidebar.hidden_row.show()
+            self.sidebar.selected_category = hidden_category
 
-    def on_add_search_category(self, action, value):
-        search = self.get_game_search()
-        new_search = saved_searches_db.SavedSearch(0, "", str(search))
-        dlg = EditSavedSearchDialog(saved_search=new_search, parent=self)
-        dlg.show()
+    def on_open_search_filters(self, _action, _value):
+        def on_filter_popover_closed(_popover):
+            self.filter_box_search_name = filter_box.search_name
+            self.search_filters_button.set_active(False)
+
+        def on_saved(_box, search_name):
+            def switch_to_saved_search():
+                self.sidebar.selected_category = "saved_search", search_name
+                self.search_entry.set_text("")
+
+            filter_popover.popdown()
+            schedule_at_idle(switch_to_saved_search)
+
+        if self.search_filters_button.get_active():
+            search = self.get_game_search()
+            new_search = saved_searches_db.SavedSearch(0, "", str(search))
+            filter_box = SearchFiltersBox(saved_search=new_search, search_entry=self.search_entry)
+            filter_box.set_size_request(600, -1)
+            if self.filter_box_search_name:
+                filter_box.search_name = self.filter_box_search_name
+            filter_box.connect("saved", on_saved)
+            filter_box.show()
+            filter_popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_filters_button)
+            filter_popover.connect("closed", on_filter_popover_closed)
+            filter_popover.popup()
 
     @property
     def current_view_type(self):
@@ -749,6 +800,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                     return True
         return False
 
+    def on_theme_changed(self):
+        if self.is_showing_splash():
+            self.show_splash()
+
     def show_spinner(self):
         # This is inconsistent, but we can't use the blank overlay for the spinner- it
         # won't reliably start as a child of blank_overlay. It seems like it fails if
@@ -1133,6 +1188,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         if row_type != "category" or row_id != ".hidden":
             self.sidebar.hidden_row.hide()
+            self.show_hidden_games_button.set_label(_("Show Hidden Games"))
+        else:
+            self.show_hidden_games_button.set_label(_("Rehide Hidden Games"))
+        # We just _replaced_ the label, need to align it. That is weird and
+        # contrary to the docs, but here we are.
+        self.show_hidden_games_button.get_child().set_halign(Gtk.Align.START)
 
         if not MISSING_GAMES.is_initialized or (row_type == "dynamic_category" and row_id == "missing"):
             MISSING_GAMES.update_all_missing()
@@ -1161,7 +1222,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         settings.write_setting("hide_badges_on_icons", not state)
         self.on_settings_changed(None, not state, "hide_badges_on_icons")
 
-    def on_settings_changed(self, dialog, state, setting_key):
+    def on_settings_changed(self, setting_key, new_value):
         if setting_key == "hide_text_under_icons":
             self.rebuild_view("grid")
         else:
@@ -1313,6 +1374,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 updater.install_update(runtime_updater)
             for updater in updaters:
                 updater.join()
+
+            # better safe than sorry - there are Proton builds outside our control
+            clear_wine_version_cache()
 
         return queue.start_multiple(
             install_updates,

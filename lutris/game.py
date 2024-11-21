@@ -26,7 +26,7 @@ from lutris.monitored_command import MonitoredCommand
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import import_runner, is_valid_runner_name
 from lutris.runners.runner import Runner
-from lutris.util import discord, extract, jobs, linux, strings, system, xdgshortcuts
+from lutris.util import busy, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing
 from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
@@ -386,7 +386,7 @@ class Game:
                 installers, service, self.appid, installation_kind=InstallationKind.UPDATE
             )
 
-        jobs.AsyncCall(service.get_update_installers, on_installers_ready, db_game)
+        busy.BusyAsyncCall(service.get_update_installers, on_installers_ready, db_game)
         return True
 
     def install_dlc(self, install_ui_delegate):
@@ -403,7 +403,7 @@ class Game:
             application = Gio.Application.get_default()
             application.show_installer_window(installers, service, self.appid, installation_kind=InstallationKind.DLC)
 
-        jobs.AsyncCall(service.get_dlc_installers_runner, on_installers_ready, db_game, db_game["runner"])
+        busy.BusyAsyncCall(service.get_dlc_installers_runner, on_installers_ready, db_game, db_game["runner"])
         return True
 
     def uninstall(self, delete_files: bool = False) -> None:
@@ -674,9 +674,6 @@ class Game:
             return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
 
-        if env.get("WINEARCH") == "win32" and "umu" in " ".join(command):
-            raise RuntimeError("Proton is not compatible with 32bit prefixes")
-
         env["STORE"] = env.get("STORE") or self.get_store_name()
 
         # Some environment variables for the use of custom pre-launch and post-exit scripts.
@@ -817,7 +814,7 @@ class Game:
             else:
                 self.force_kill_delayed()
 
-        jobs.AsyncCall(force_stop_game, force_stop_game_cb)
+        busy.BusyAsyncCall(force_stop_game, force_stop_game_cb)
 
     def force_kill_delayed(self, death_watch_seconds=5, death_watch_interval_seconds=0.5):
         """Forces termination of a running game, but only after a set time has elapsed;
@@ -841,7 +838,7 @@ class Game:
             # If we still can't kill everything, we'll still say we stopped it.
             self.stop_game()
 
-        jobs.AsyncCall(death_watch, death_watch_cb)
+        busy.BusyAsyncCall(death_watch, death_watch_cb)
 
     def kill_processes(self, sig):
         """Sends a signal to a process list, logging errors."""
@@ -1004,7 +1001,11 @@ class Game:
 
         # Clear Discord Client Status
         if settings.read_setting("discord_rpc") == "True" and self.discord_id:
-            discord.client.clear()
+            try:
+                discord.client.clear()
+            except:
+                # Shut up no one cares about you or your errors
+                pass
 
         self.process_return_codes()
 

@@ -4,7 +4,7 @@
 import os
 import shlex
 from gettext import gettext as _
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
@@ -66,18 +66,28 @@ from lutris.util.wine.wine import (
 )
 
 
-def _get_prefix_warning(config, _option_key):
-    if config.get("prefix"):
+def _get_version_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+    arch = config.game_config.get("arch")
+    version = config.runner_config.get("version")
+    if arch == "win32" and proton.is_proton_version(version):
+        return _("Proton is not compatible with 32-bit prefixes.")
+
+    return None
+
+
+def _get_prefix_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+    game_config = config.game_config
+    if game_config.get("prefix"):
         return None
 
-    exe = config.get("exe")
+    exe = game_config.get("exe")
     if exe and find_prefix(exe):
         return None
 
     return _("<b>Warning</b> Some Wine configuration options cannot be applied, if no prefix can be found.")
 
 
-def _get_dxvk_warning(config, option_key):
+def _get_dxvk_warning(_config: LutrisConfig, _option_key: str) -> Optional[str]:
     if drivers.is_outdated():
         driver_info = drivers.get_nvidia_driver_info()
         return _(
@@ -89,10 +99,10 @@ def _get_dxvk_warning(config, option_key):
     return None
 
 
-def _get_simple_vulkan_support_error(config, option_key, feature):
+def _get_simple_vulkan_support_error(config: LutrisConfig, option_key: str, feature: str) -> Optional[str]:
     if os.environ.get("LUTRIS_NO_VKQUERY"):
         return None
-    if config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
+    if config.runner_config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
         return (
             _("<b>Error</b> Vulkan is not installed or is not supported by your system, " "%s is not available.")
             % feature
@@ -100,11 +110,12 @@ def _get_simple_vulkan_support_error(config, option_key, feature):
     return None
 
 
-def _get_dxvk_version_warning(config, _option_key):
+def _get_dxvk_version_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
     if os.environ.get("LUTRIS_NO_VKQUERY"):
         return None
-    if config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported():
-        version = config.get("dxvk_version")
+    runner_config = config.runner_config
+    if runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported():
+        version = runner_config.get("dxvk_version")
         if version and not version.startswith("v1."):
             library_api_version = vkquery.get_vulkan_api_version()
             if library_api_version and library_api_version < REQUIRED_VULKAN_API_VERSION:
@@ -128,8 +139,8 @@ def _get_dxvk_version_warning(config, _option_key):
     return None
 
 
-def _get_esync_warning(config, _option_key):
-    if config.get("esync"):
+def _get_esync_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+    if config.runner_config.get("esync"):
         limits_set = is_esync_limit_set()
         if not limits_set:
             return _(
@@ -140,18 +151,19 @@ def _get_esync_warning(config, _option_key):
     return ""
 
 
-def _get_fsync_warning(config, _option_key):
-    if config.get("fsync"):
+def _get_fsync_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+    if config.runner_config.get("fsync"):
         fsync_supported = is_fsync_supported()
         if not fsync_supported:
             return _("<b>Warning</b> Your kernel is not patched for fsync.")
-        return ""
+    return None
 
 
-def _get_virtual_desktop_warning(config, _option_key):
+def _get_virtual_desktop_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
     message = _("Wine virtual desktop is no longer supported")
-    if config.get("Desktop"):
-        version = str(config.get("version")).casefold()
+    runner_config = config.runner_config
+    if runner_config.get("Desktop"):
+        version = str(runner_config.get("version")).casefold()
         if "-ge-" in version or "proton" in version:
             message += "\n"
             message += _("Virtual desktops cannot be enabled in Proton or GE Wine versions.")
@@ -261,6 +273,7 @@ class wine(Runner):
                 "type": "choice",
                 "choices": get_wine_version_choices,
                 "default": get_default_wine_version,
+                "warning": _get_version_warning,
                 "help": _(
                     "The version of Wine used to launch the game.\n"
                     "Using the last version is generally recommended, "
@@ -737,9 +750,9 @@ class wine(Runner):
         """
         if version is None:
             version = self.read_version_from_config()
-        if version == proton.GE_PROTON_LATEST:
-            return proton.get_umu_path()
 
+        if proton.is_proton_version(version):
+            return proton.get_proton_wine_path(version)
         try:
             wine_path = self.get_path_for_version(version)
             if system.path_exists(wine_path):
@@ -766,6 +779,17 @@ class wine(Runner):
             # config or the runner specific config. We need to know
             # which one to get the correct LutrisConfig object.
         return wine_path
+
+    def get_command(self) -> List[str]:
+        command = super().get_command()
+        if command:
+            if proton.is_proton_path(command[0]) and not proton.is_umu_path(command[0]):
+                command[0] = proton.get_umu_path()
+
+            if proton.is_umu_path(command[0]) and self.wine_arch == "win32":
+                raise RuntimeError(_("Proton is not compatible with 32-bit prefixes."))
+
+        return command
 
     def is_installed(self, flatpak_allowed: bool = True, version: str = None, fallback: bool = True) -> bool:
         """Check if Wine is installed.
@@ -977,7 +1001,10 @@ class wine(Runner):
                     if (
                         value
                         and key in ("Desktop", "WineDesktop")
-                        and ("wine-ge" in self.get_executable().lower() or "proton" in self.get_executable().lower())
+                        and (
+                            "wine-ge" in self.get_executable().casefold()
+                            or proton.is_proton_path(self.get_executable())
+                        )
                     ):
                         logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
                         value = None
@@ -1078,7 +1105,8 @@ class wine(Runner):
         if show_debug != "inherit":
             env["WINEDEBUG"] = show_debug
         if show_debug == "-all":
-            env["DXVK_LOG_LEVEL"] = "none"
+            env["DXVK_LOG_LEVEL"] = "debug"
+            env["UMU_LOG"] = "debug"
         env["WINEARCH"] = self.wine_arch
         wine_exe = self.get_executable()
         wine_config_version = self.read_version_from_config()
@@ -1087,7 +1115,7 @@ class wine(Runner):
         env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, wine_config_version, "gecko")
 
         # We don't want to override gstreamer for proton, it has it's own version
-        if not proton.is_proton_path(WINE_DIR) and is_gstreamer_build(wine_exe):
+        if not proton.is_proton_path(wine_exe) and is_gstreamer_build(wine_exe):
             path_64 = os.path.join(WINE_DIR, wine_config_version, "lib64/gstreamer-1.0/")
             path_32 = os.path.join(WINE_DIR, wine_config_version, "lib/gstreamer-1.0/")
             if os.path.exists(path_64) or os.path.exists(path_32):
@@ -1115,6 +1143,9 @@ class wine(Runner):
         if self.runner_config.get("eac"):
             env["PROTON_EAC_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "eac_runtime")
 
+        if not self.runner_config.get("dxvk") or not LINUX_SYSTEM.is_vulkan_supported():
+            env["PROTON_USE_WINED3D"] = "1"
+
         for dll_manager in self.get_dll_managers(enabled_only=True):
             self.dll_overrides.update(dll_manager.get_enabling_dll_overrides())
 
@@ -1137,14 +1168,8 @@ class wine(Runner):
 
     def get_runtime_env(self):
         """Return runtime environment variables with path to wine for Lutris builds"""
-        wine_path = None
         try:
-            exe = self.get_executable()
-            if WINE_DIR:
-                wine_path = os.path.dirname(os.path.dirname(exe))
-            for proton_path in proton.get_proton_paths():
-                if proton_path in exe:
-                    wine_path = os.path.dirname(os.path.dirname(exe))
+            wine_path = os.path.dirname(os.path.dirname(self.get_executable()))
         except MisconfigurationError:
             wine_path = None
 
@@ -1188,10 +1213,10 @@ class wine(Runner):
         game_exe = self.game_exe
         arguments = self.game_config.get("args", "")
         launch_info = {"env": self.get_env(os_env=False)}
-        using_dxvk = self.runner_config.get("dxvk")
+        using_dxvk = self.runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported
 
         if using_dxvk:
-            # Set this to 1 to enable access to more RAM for 32bit applications
+            # Set this to 1 to enable access to more RAM for 32-bit applications
             launch_info["env"]["WINE_LARGE_ADDRESS_AWARE"] = "1"
 
         if not game_exe or not system.path_exists(game_exe):

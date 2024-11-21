@@ -9,6 +9,7 @@ import shutil
 import sys
 from collections import Counter, defaultdict
 
+from lutris import settings
 from lutris.util import flatpak, system
 from lutris.util.graphics import drivers, glxinfo, vkquery
 from lutris.util.log import logger
@@ -32,11 +33,12 @@ SYSTEM_COMPONENTS = {
         "lspci",
         "ldconfig",
         "wine",
-        "fluidsynth",
     ],
     "OPTIONAL_COMMANDS": [
+        "fluidsynth",
         "lsi-steam",
         "nvidia-smi",
+        "fluidsynth",
     ],
     "TERMINALS": [
         "xterm",
@@ -480,6 +482,7 @@ def gather_system_info_dict():
     system_dict["OS"] = " ".join(system_info["dist"])
     system_dict["Arch"] = system_info["arch"]
     system_dict["Kernel"] = system_info["kernel"]
+    system_dict["Lutris Version"] = settings.VERSION
     system_dict["Desktop"] = system_info["env"].get("XDG_CURRENT_DESKTOP", "Not found")
     system_dict["Display Server"] = system_info["env"].get("XDG_SESSION_TYPE", "Not found")
     system_info_readable["System"] = system_dict

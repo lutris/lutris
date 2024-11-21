@@ -590,7 +590,7 @@ class InstallerSourceDialog(ModelessDialog):
 
     def __init__(self, code, name, parent):
         super().__init__(title=_("Install script for {}").format(name), parent=parent, border_width=0)
-        self.set_size_request(500, 350)
+        self.set_default_size(800, 750)
 
         ok_button = self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         ok_button.set_border_width(10)

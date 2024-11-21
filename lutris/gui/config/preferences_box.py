@@ -2,6 +2,7 @@ from gettext import gettext as _
 
 from gi.repository import Gio, Gtk
 
+from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.status_icon import supports_status_icon
 
@@ -12,23 +13,33 @@ def _is_system_dark_by_default():
 
 
 class InterfacePreferencesBox(BaseConfigBox):
-    settings_options = {
-        "hide_client_on_game_start": _("Minimize client when a game is launched"),
-        "hide_text_under_icons": _("Hide text under icons"),
-        "hide_badges_on_icons": _("Hide badges on icons (Ctrl+p to toggle)"),
-        "show_tray_icon": _("Show Tray Icon"),
-        "light_theme": _("Use Light Theme"),
-        "dark_theme": _("Use Dark Theme"),
-        "discord_rpc": _("Enable Discord Rich Presence for Available Games"),
-    }
-
-    settings_accelerators = {"hide_badges_on_icons": "<Primary>p"}
-
-    settings_availability = {
-        "show_tray_icon": supports_status_icon,
-        "light_theme": lambda: _is_system_dark_by_default(),
-        "dark_theme": lambda: not _is_system_dark_by_default(),
-    }
+    settings_options = [
+        {"option": "hide_client_on_game_start", "label": _("Minimize client when a game is launched"), "type": "bool"},
+        {"option": "hide_text_under_icons", "label": _("Hide text under icons"), "type": "bool"},
+        {
+            "option": "hide_badges_on_icons",
+            "label": _("Hide badges on icons (Ctrl+p to toggle)"),
+            "type": "bool",
+            "accelerator": "<Primary>p",
+        },
+        {"option": "show_tray_icon", "label": _("Show Tray Icon"), "type": "bool", "visible": supports_status_icon},
+        {
+            "option": "discord_rpc",
+            "label": _("Enable Discord Rich Presence for Available Games"),
+            "type": "bool",
+        },
+        {
+            "option": "preferred_theme",
+            "type": "choice",
+            "label": _("Theme"),
+            "choices": [
+                (_("System Default"), "default"),
+                (_("Light"), "light"),
+                (_("Dark"), "dark"),
+            ],
+            "default": "default",
+        },
+    ]
 
     def __init__(self, accelerators):
         super().__init__()
@@ -38,12 +49,84 @@ class InterfacePreferencesBox(BaseConfigBox):
         listbox = Gtk.ListBox(visible=True)
         frame.add(listbox)
         self.pack_start(frame, False, False, 0)
-        for setting_key, label in self.settings_options.items():
-            available = setting_key not in self.settings_availability or self.settings_availability[setting_key]()
+        for option_dict in self.settings_options:
+            visible = option_dict.get("visible")
+            if visible is None:
+                visible = True
+            elif callable(visible):
+                visible = visible()
 
-            if available:
+            if visible:
+                option_type = option_dict["type"]
+
+                if option_type == "bool":
+                    widget = self._create_bool_setting(**option_dict)
+                elif option_type == "choice":
+                    widget = self._create_choice_setting(**option_dict)
+                else:
+                    raise ValueError("Unsupported widget type %s" % option_type)
+
                 list_box_row = Gtk.ListBoxRow(visible=True)
                 list_box_row.set_selectable(False)
                 list_box_row.set_activatable(False)
-                list_box_row.add(self.get_setting_box(setting_key, label))
+                list_box_row.add(widget)
                 listbox.add(list_box_row)
+
+    def _create_bool_setting(self, option, label, accelerator=None, **kwargs):
+        return self.get_setting_box(option, label, accelerator=accelerator)
+
+    # ComboBox
+    def _create_choice_setting(self, option, choices, label, default=None, **kwargs):
+        """Generate a combobox (drop-down menu)."""
+
+        def _on_combobox_scroll(_event):
+            """Prevents users from accidentally changing configuration values
+            while scrolling down dialogs.
+            """
+            combobox.stop_emission_by_name("scroll-event")
+            return False
+
+        def on_combobox_change(_widget):
+            """Action triggered on combobox 'changed' signal."""
+            list_store = combobox.get_model()
+            active = combobox.get_active()
+            option_value = None
+            if active < 0:
+                if combobox.get_has_entry():
+                    option_value = combobox.get_child().get_text()
+            else:
+                option_value = list_store[active][1]
+            settings.write_setting(option, option_value)
+
+        def _expand_combobox_choices():
+            expanded = []
+            has_value = False
+            for ch in choices:
+                if isinstance(ch, str):
+                    ch = (ch, ch)
+                if ch[1] == value:
+                    has_value = True
+                expanded.append(ch)
+            if not has_value and value:
+                expanded.insert(0, (value + " (invalid)", value))
+            return expanded
+
+        value = settings.read_setting(option, default=default)
+
+        expanded = _expand_combobox_choices()
+        liststore = Gtk.ListStore(str, str)
+        for choice in expanded:
+            liststore.append(choice)
+
+        combobox = Gtk.ComboBox.new_with_model(liststore)
+        cell = Gtk.CellRendererText()
+        combobox.pack_start(cell, True)
+        combobox.add_attribute(cell, "text", 0)
+        combobox.set_id_column(1)
+        combobox.set_active_id(value)
+
+        combobox.connect("changed", on_combobox_change)
+        combobox.connect("scroll-event", _on_combobox_scroll)
+        combobox.set_valign(Gtk.Align.CENTER)
+        combobox.show()
+        return self.get_listed_widget_box(label, combobox)

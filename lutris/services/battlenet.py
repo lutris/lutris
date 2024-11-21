@@ -22,7 +22,10 @@ try:
     from lutris.util.battlenet.product_db_pb2 import ProductDb
 
     BNET_ENABLED = True
-except (ImportError, TypeError) as ex:
+except Exception as ex:
+    # We do get strange Google-defined exceptions from problems with protobuf, so
+    # let's just catch (almost) everything. We do not want Lutris is crash, rather
+    # we just want to suppress Battle.net and nothing else.
     logger.warning("The Battle.net source is unavailable because Google protobuf could not be loaded: %s", ex)
     BNET_ENABLED = False
 
@@ -32,6 +35,7 @@ GAME_IDS = {
     "wow": ("wow", "World of Warcraft", "WoW", "world-of-warcraft"),
     "wow_classic": ("wow_classic", "World of Warcraft Classic", "WoW_wow_classic", "world-of-warcraft-classic"),
     "pro": ("pro", "Overwatch 2", "Pro", "overwatch-2"),
+    "w2bn": ("w2bn", "Warcraft II: Battle.net Edition", "W2BN", "warcraft-ii-battle-net-edition"),
     "w3": ("w3", "Warcraft III", "W3", "warcraft-iii-reforged"),
     "hsb": ("hsb", "Hearthstone", "WTCG", "hearthstone"),
     "hero": ("hero", "Heroes of the Storm", "Hero", "heroes-of-the-storm"),
@@ -56,6 +60,7 @@ GAME_IDS = {
     "w3ROC": ("w3ROC", "Warcraft® III: Reign of Chaos", "Warcraft III", "warcraft-iii-reign-of-chaos"),
     "w3tft": ("w3tft", "Warcraft® III: The Frozen Throne®", "Warcraft III", "warcraft-iii-the-frozen-throne"),
     "sca": ("sca", "StarCraft® Anthology", "Starcraft", "starcraft"),
+    "anbs": ("anbs", "Diablo Immortal", "ANBS", "diablo-immortal"),
 }
 
 
@@ -78,15 +83,15 @@ class BattleNetGame(ServiceGame):
     def create(cls, blizzard_game):
         """Create a service game from an entry from the Dolphin cache"""
         service_game = cls()
-        service_game.name = blizzard_game[1]
         service_game.appid = blizzard_game[0]
+        service_game.name = blizzard_game[1]
         service_game.slug = blizzard_game[3]
         service_game.details = json.dumps(
             {
                 "id": blizzard_game[0],
                 "name": blizzard_game[1],
-                "slug": blizzard_game[3],
                 "product_code": blizzard_game[2],
+                "slug": blizzard_game[3],
                 "coverart": "https://lutris.net/games/cover/%s.jpg" % blizzard_game[3],
             }
         )

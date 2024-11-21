@@ -22,6 +22,7 @@ from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
+from lutris.util.busy import BusyAsyncCall
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -207,7 +208,7 @@ class BaseService:
             application = Gio.Application.get_default()
             application.show_installer_window(service_installers, service=self, appid=appid)
 
-        AsyncCall(self.get_installers_from_api, on_installers_ready, appid)
+        BusyAsyncCall(self.get_installers_from_api, on_installers_ready, appid)
 
     def get_installer_files(self, installer, installer_file_id, selected_extras):
         """Used to obtains the content files from the service, when an 'N/A' file is left in
@@ -336,7 +337,7 @@ class BaseService:
         # be added without going through an install dialog.
         if self.local:
             return self.simple_install(db_game)
-        AsyncCall(self.get_service_installers, self.on_service_installers_loaded, db_game, update)
+        BusyAsyncCall(self.get_service_installers, self.on_service_installers_loaded, db_game, update)
 
     def install_by_id(self, appid):
         """Installs a game given the appid for the game on this service."""

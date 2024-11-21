@@ -112,7 +112,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         )
 
         self.install_from_setup_game_name_entry = Gtk.Entry()
-        self.install_from_setup_game_slug_checkbox = Gtk.CheckButton(label="Identifier")
+        self.install_from_setup_game_slug_checkbox = Gtk.CheckButton(label=_("Identifier"))
         self.install_from_setup_game_slug_entry = Gtk.Entry(sensitive=False)
         self.install_from_setup_game_slug_entry.connect(
             "focus-out-event", self.on_install_from_setup_game_slug_entry_focus_out
@@ -435,7 +435,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         return grid
 
     def present_install_from_script_page(self):
-        self.set_page_title_markup("<b>Select a Lutris installer</b>")
+        self.set_page_title_markup(_("<b>Select a Lutris installer</b>"))
         self.stack.present_page("install_from_script")
         self.display_continue_button(self.on_continue_install_from_script_clicked, label=_("_Install"))
 
@@ -476,7 +476,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         return grid
 
     def present_import_rom_page(self):
-        self.set_page_title_markup("<b>Select a ROM file</b>")
+        self.set_page_title_markup(_("<b>Select a ROM file</b>"))
         self.stack.present_page("import_rom")
         self.display_continue_button(self.on_continue_import_rom_clicked, label=_("_Install"))
 

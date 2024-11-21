@@ -28,10 +28,12 @@ from typing import List
 
 import gi
 
+from ..util.busy import BusyAsyncCall
+
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 
-from gi.repository import Gio, GLib, GObject, Gtk
+from gi.repository import Gio, GLib, Gtk
 
 from lutris import settings
 from lutris.api import get_runners, parse_installer_url
@@ -39,7 +41,6 @@ from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import init_exception_backstops
 from lutris.game import GAME_START, GAME_STOPPED, Game, export_game, import_game
-from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, display_error
 from lutris.gui.dialogs.delegates import CommandLineUIDelegate, InstallUIDelegate, LaunchUIDelegate
 from lutris.gui.dialogs.issue import IssueReportWindow
@@ -54,7 +55,6 @@ from lutris.startup import init_lutris, run_all_checks
 from lutris.style_manager import StyleManager
 from lutris.util import datapath, log, system
 from lutris.util.http import HTTPError, Request
-from lutris.util.jobs import AsyncCall
 from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
@@ -79,7 +79,7 @@ class Application(Gtk.Application):
 
         GAME_START.register(self.on_game_start)
         GAME_STOPPED.register(self.on_game_stopped)
-        GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
+        settings.SETTINGS_CHANGED.register(self.on_settings_changed)
 
         GLib.set_application_name(_("Lutris"))
         self.force_updates = False
@@ -410,7 +410,7 @@ class Application(Gtk.Application):
             else:
                 ErrorDialog(_("No installer available."), parent=self.window)
 
-        AsyncCall(get_installers, on_installers_ready, game_slug=game_slug)
+        BusyAsyncCall(get_installers, on_installers_ready, game_slug=game_slug)
 
     def on_app_window_destroyed(self, app_window, window_key):
         """Remove the reference to the window when it has been destroyed"""
@@ -772,11 +772,9 @@ class Application(Gtk.Application):
             self.quit_on_game_exit = False
         return 0
 
-    def on_settings_changed(self, dialog, state, setting_key):
-        if setting_key == "light_theme":
-            self.style_manager.is_config_light = state
-        elif setting_key == "dark_theme":
-            self.style_manager.is_config_dark = state
+    def on_settings_changed(self, setting_key, new_value):
+        if setting_key == "preferred_theme":
+            self.style_manager.preferred_theme = new_value
         elif setting_key == "show_tray_icon" and self.window:
             if self.window.get_visible():
                 self.set_tray_icon()

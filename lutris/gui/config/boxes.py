@@ -10,11 +10,14 @@ from gi.repository import Gdk, Gtk
 
 # Lutris Modules
 from lutris import settings, sysoptions
+from lutris.config import LutrisConfig
+from lutris.game import Game
 from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label, VBox
 from lutris.gui.widgets.searchable_combobox import SearchableCombobox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
+from lutris.util.wine.wine import clear_wine_version_cache
 
 
 class ConfigBox(VBox):
@@ -22,10 +25,11 @@ class ConfigBox(VBox):
 
     config_section = NotImplemented
 
-    def __init__(self, config_level, game=None):
+    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game = None) -> None:
         super().__init__()
         self.options = []
         self.config_level = config_level
+        self.lutris_config = lutris_config
         self.game = game
         self.config = None
         self.raw_config = None
@@ -237,7 +241,7 @@ class ConfigBox(VBox):
                     option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
                     option_container.pack_start(option_body, False, False, 0)
                     warning = ConfigWarningBox(option["warning"], option_key)
-                    warning.update_warning(self.config)
+                    warning.update_warning(self.lutris_config)
                     self.warning_boxes[option_key] = warning
                     option_container.pack_start(warning, False, False, 0)
 
@@ -246,7 +250,7 @@ class ConfigBox(VBox):
                     option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
                     option_container.pack_start(option_body, False, False, 0)
                     error = ConfigErrorBox(option["error"], option_key, self.wrapper)
-                    error.update_warning(self.config)
+                    error.update_warning(self.lutris_config)
                     self.error_boxes[option_key] = error
                     option_container.pack_start(error, False, False, 0)
 
@@ -265,12 +269,12 @@ class ConfigBox(VBox):
         show_advanced = settings.read_setting("show_advanced_options") == "True"
         self.advanced_visibility = show_advanced
 
-    def update_warnings(self):
+    def update_warnings(self) -> None:
         for box in self.warning_boxes.values():
-            box.update_warning(self.config)
+            box.update_warning(self.lutris_config)
 
         for box in self.error_boxes.values():
-            box.update_warning(self.config)
+            box.update_warning(self.lutris_config)
 
     def call_widget_generator(self, option, option_key, value, default):  # noqa: C901
         """Call the right generation method depending on option type."""
@@ -675,10 +679,10 @@ class ConfigBox(VBox):
         label = Label(text)
         label.set_use_markup(True)
         label.set_max_width_chars(60)
-        hbox = Gtk.Box()
-        hbox.pack_start(label, False, False, 0)
-        hbox.show_all()
-        tooltip.set_custom(hbox)
+        event_box = Gtk.EventBox()
+        event_box.add(label)
+        event_box.show_all()
+        tooltip.set_custom(event_box)
         return True
 
     def option_changed(self, widget, option_name, value):
@@ -748,9 +752,8 @@ class ConfigBox(VBox):
 class GameBox(ConfigBox):
     config_section = "game"
 
-    def __init__(self, config_level, lutris_config, game):
-        ConfigBox.__init__(self, config_level, game)
-        self.lutris_config = lutris_config
+    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game):
+        ConfigBox.__init__(self, config_level, lutris_config, game)
         self.runner = game.runner
         if self.runner:
             self.options = self.runner.game_options
@@ -763,9 +766,9 @@ class RunnerBox(ConfigBox):
 
     config_section = "runner"
 
-    def __init__(self, config_level, lutris_config, game=None):
-        ConfigBox.__init__(self, config_level, game)
-        self.lutris_config = lutris_config
+    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game = None):
+        ConfigBox.__init__(self, config_level, lutris_config, game)
+
         try:
             self.runner = import_runner(self.lutris_config.runner_slug)()
         except InvalidRunnerError:
@@ -778,13 +781,18 @@ class RunnerBox(ConfigBox):
                 _("If modified, these options supersede the same options from " "the base runner configuration.")
             )
 
+    def generate_widgets(self):
+        # Better safe than sorry - we search of Wine versions in directories
+        # we do not control, so let's keep up to date more aggresively.
+        clear_wine_version_cache()
+        return super().generate_widgets()
+
 
 class SystemConfigBox(ConfigBox):
     config_section = "system"
 
-    def __init__(self, config_level, lutris_config):
-        ConfigBox.__init__(self, config_level)
-        self.lutris_config = lutris_config
+    def __init__(self, config_level: str, lutris_config: LutrisConfig) -> None:
+        ConfigBox.__init__(self, config_level, lutris_config)
         self.runner = None
         runner_slug = self.lutris_config.runner_slug
 
@@ -851,7 +859,7 @@ class ConfigMessageBox(UnderslungMessageBox):
             if text:
                 self.label.set_markup(str(text))
 
-    def update_warning(self, config):
+    def update_warning(self, config: LutrisConfig) -> None:
         try:
             if callable(self.warning):
                 text = self.warning(config, self.option_key)
@@ -859,7 +867,7 @@ class ConfigMessageBox(UnderslungMessageBox):
                 text = self.warning
         except Exception as err:
             logger.exception("Unable to generate configuration warning: %s", err)
-            text = gtk_safe(err)
+            text = gtk_safe(str(err))
 
         return self.show_markup(text)
 
@@ -874,7 +882,7 @@ class ConfigErrorBox(ConfigMessageBox):
         super().__init__(error, option_key, icon_name="dialog-error")
         self.wrapper = wrapper
 
-    def update_warning(self, config):
+    def update_warning(self, config: LutrisConfig) -> None:
         visible = super().update_warning(config)
         self.wrapper.set_sensitive(not visible)
         return visible

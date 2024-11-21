@@ -111,7 +111,7 @@ class mame(Runner):  # pylint: disable=invalid-name
                 (_("CD-ROM"), "cdrm"),
                 (_("CD-ROM 1"), "cdrm1"),
                 (_("CD-ROM 2"), "cdrm2"),
-                (_("Snapshot"), "dump"),
+                (_("Snapshot (dump)"), "dump"),
                 (_("Quickload"), "quickload"),
                 (_("Memory Card"), "memc"),
                 (_("Cylinder"), "cyln"),
@@ -238,7 +238,12 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     def install(self, install_ui_delegate, version=None, callback=None):
         def on_runner_installed(*args):
-            AsyncCall(write_mame_xml, notify_mame_xml)
+            def on_mame_ready(result, error):
+                notify_mame_xml(result, error)
+                if callback:
+                    callback(*args)
+
+            AsyncCall(write_mame_xml, on_mame_ready)
 
         super().install(install_ui_delegate, version=version, callback=on_runner_installed)
 

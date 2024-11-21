@@ -3,14 +3,11 @@ from typing import Any, Callable, Dict, List, Optional
 
 from lutris.util.strings import strip_accents
 
-FLAG_TEXTS: Dict[str, Optional[bool]] = {"true": True, "yes": True, "false": False, "no": False, "maybe": None}
+FLAG_TEXTS: Dict[str, Optional[bool]] = {"true": True, "yes": True, "false": False, "no": False}
 
 
 def format_flag(flag: Optional[bool]) -> str:
-    if flag is None:
-        return "maybe"
-    else:
-        return "yes" if flag else "no"
+    return "yes" if flag else "no"
 
 
 class SearchPredicate(ABC):
@@ -50,7 +47,7 @@ class SearchPredicate(ABC):
 
     def get_flag(self, tag: str) -> Optional[bool]:
         """Returns the flag test value for the FlagPredicte with the tag
-        given. None represents 'maybe', not that the flag is missing."""
+        given."""
         return None
 
     def to_child_text(self) -> str:
@@ -78,7 +75,7 @@ class FunctionPredicate(SearchPredicate):
 
 
 class MatchPredicate(FunctionPredicate):
-    """MatchPredicate is a predicate that test a property against a value; you still provide
+    """MatchPredicate is a predicate that tests a property against a value; you still provide
     a function to do the test, but the object records the tag and value explicitly for editing
     purposes."""
 
@@ -98,8 +95,7 @@ class MatchPredicate(FunctionPredicate):
 
 
 class FlagPredicate(SearchPredicate):
-    """This is a predicate to match a boolean property, with the special feature that it can
-    match 'maybe' which actually matching anything. This odd setting is useful to override
+    """This is a predicate to match a boolean property. This odd setting is useful to override
     the default filtering Lutris provides, like filtering out hidden games."""
 
     def __init__(self, flag: Optional[bool], flag_function: Callable[[Any], bool], tag: str):
@@ -123,7 +119,7 @@ class FlagPredicate(SearchPredicate):
 
     def __str__(self):
         flag_text = format_flag(self.flag)
-        return f"{self.tag}: {flag_text}"
+        return f"{self.tag}:{flag_text}"
 
 
 class TextPredicate(SearchPredicate):
@@ -145,7 +141,7 @@ class TextPredicate(SearchPredicate):
 
     def __str__(self):
         if self.tag:
-            return f"{self.tag}: {self.match_text}"
+            return f"{self.tag}:{self.match_text}"
         return self.match_text
 
 

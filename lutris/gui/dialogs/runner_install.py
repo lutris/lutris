@@ -100,10 +100,6 @@ class RunnerInstallDialog(ModelessDialog):
     COL_PROGRESS = 4
     COL_USAGE = 5
 
-    INSTALLED_ICON_NAME = (
-        "software-installed-symbolic" if has_stock_icon("software-installed-symbolic") else "wine-symbolic"
-    )
-
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, 0, border_width=10)
         self.ok_button = self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
@@ -172,6 +168,9 @@ class RunnerInstallDialog(ModelessDialog):
 
     def runner_fetch_cb(self, result, error):
         """Clear the box and display versions from runner_info"""
+        if self.vbox is None:
+            return  # if the dialog has closed before the runner fetch completed
+
         if error:
             logger.error(error)
             ErrorDialog(_("Unable to get runner versions: %s") % error, parent=self)
@@ -202,13 +201,15 @@ class RunnerInstallDialog(ModelessDialog):
         self.populate_listboxrows()
 
     def populate_listboxrows(self):
+        icon_name = "software-installed-symbolic" if has_stock_icon("software-installed-symbolic") else "wine-symbolic"
+
         for runner in self.runner_store:
             row = Gtk.ListBoxRow()
             row.runner = runner
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
             row.hbox = hbox
 
-            icon = Gtk.Image.new_from_icon_name(self.INSTALLED_ICON_NAME, Gtk.IconSize.MENU)
+            icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
             icon.set_visible(runner["is_installed"])
             icon_container = Gtk.Box()
             icon_container.set_size_request(16, 16)
@@ -339,9 +340,9 @@ class RunnerInstallDialog(ModelessDialog):
             runner["is_installed"] = False
             if self.runner_name == "wine":
                 logger.debug("Clearing wine version cache")
-                from lutris.util.wine.wine import get_installed_wine_versions
+                from lutris.util.wine.wine import clear_wine_version_cache
 
-                get_installed_wine_versions.cache_clear()
+                clear_wine_version_cache()
             self.update_listboxrow(row)
 
         def on_error(error):
@@ -433,9 +434,9 @@ class RunnerInstallDialog(ModelessDialog):
         self.update_listboxrow(row)
         if self.runner_name == "wine":
             logger.debug("Clearing wine version cache")
-            from lutris.util.wine.wine import get_installed_wine_versions
+            from lutris.util.wine.wine import clear_wine_version_cache
 
-            get_installed_wine_versions.cache_clear()
+            clear_wine_version_cache()
 
     def on_response(self, dialog, response: Gtk.ResponseType) -> None:
         if self.installing:

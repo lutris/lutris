@@ -273,6 +273,13 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                     cr.paint_with_alpha(alpha)
                 cr.restore()
 
+                if inset_fraction > 0:
+                    # Since we are restoring a scale change _again_ we need
+                    # to update the layout with that change too, or the other text
+                    # in the view will be broken. So lame.
+                    layout = widget.create_pango_layout("")
+                    PangoCairo.update_layout(cr, layout)
+
             # Idle time will wait until the widget has drawn whatever it wants to;
             # we can then discard surfaces we aren't using anymore.
             schedule_at_idle(self.cycle_cache)

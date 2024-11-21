@@ -342,14 +342,13 @@ class SidebarHeader(Gtk.Box):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.header_index = header_index
         self.first_row = None
-        self.get_style_context().add_class("sidebar-header")
+
         label = Gtk.Label(
             halign=Gtk.Align.START,
             hexpand=True,
             use_markup=True,
             label="<b>{}</b>".format(name),
         )
-        label.get_style_context().add_class("dim-label")
         box = Gtk.Box(margin_start=9, margin_top=6, margin_bottom=6, margin_right=9)
         box.add(label)
         self.add(box)
@@ -374,7 +373,8 @@ class LutrisSidebar(Gtk.ListBox):
         super().__init__()
         self.set_size_request(200, -1)
         self.application = application
-        self.get_style_context().add_class("lutrissidebar")
+        self.previous_category = None
+        self.get_style_context().add_class("lutris-sidebar")
 
         # Empty values until LutrisWindow explicitly initializes the rows
         # at the right time.
@@ -530,6 +530,7 @@ class LutrisSidebar(Gtk.ListBox):
     def selected_category(self, value):
         """Selects the row for the category indicated by a category tuple,
         like ('service', 'lutris')"""
+        self.previous_category = self.selected_category
         selected_row_type, selected_row_id = value or ("category", "all")
         children = list(self.get_children())
         for row in children:

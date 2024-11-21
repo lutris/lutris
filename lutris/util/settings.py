@@ -1,6 +1,7 @@
 import configparser
 import os
 
+from lutris.gui.widgets import NotificationSource
 from lutris.util.log import logger
 
 
@@ -10,6 +11,10 @@ class SettingsIO:
     def __init__(self, config_file):
         self.config_file = config_file
         self.config = configparser.ConfigParser()
+
+        # A notification that fires on each settings change
+        self.SETTINGS_CHANGED = NotificationSource()  # called with (setting-key, new-value)
+
         if os.path.exists(self.config_file):
             try:
                 self.config.read([self.config_file])
@@ -47,3 +52,5 @@ class SettingsIO:
 
         with open(self.config_file, "w", encoding="utf-8") as config_file:
             self.config.write(config_file)
+
+        self.SETTINGS_CHANGED.fire(key, value)

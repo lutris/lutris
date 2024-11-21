@@ -28,7 +28,7 @@ class StorageBox(BaseConfigBox):
                 "help": _("The default folder where you install your games."),
             },
             {
-                "name": "Installer cache",
+                "name": _("Installer cache"),
                 "setting": "pga_cache_path",
                 "default": "",
                 "value": get_cache_path() if has_custom_cache_path() else "",

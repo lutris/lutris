@@ -4,7 +4,7 @@ import shutil
 import subprocess
 from gettext import gettext as _
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -25,7 +25,7 @@ class FlathubBanner(ServiceMedia):
     size = (128, 128)
     dest_path = os.path.join(settings.CACHE_DIR, "flathub/banners")
     file_patterns = ["%s.png"]
-    url_field = "iconDesktopUrl"
+    url_field = "icon"
 
     def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
         return details.get(self.url_field)
@@ -40,11 +40,10 @@ class FlathubGame(ServiceGame):
     def new_from_flathub_game(cls, flathub_game):
         """Return a Flathub game instance from the API info"""
         service_game = FlathubGame()
-        service_game.appid = flathub_game["flatpakAppId"]
+        service_game.appid = flathub_game["app_id"]
         service_game.slug = slugify(flathub_game["name"])
         service_game.lutris_slug = slugify(flathub_game["name"])
         service_game.name = flathub_game["name"]
-        service_game.details = {"summary": flathub_game["summary"], "version": flathub_game["currentReleaseVersion"]}
         service_game.runner = "flatpak"
         service_game.details = json.dumps(flathub_game)
         return service_game
@@ -58,7 +57,7 @@ class FlathubService(BaseService):
     icon = "flathub"
     medias = {"banner": FlathubBanner}
     default_format = "banner"
-    api_url = "https://flathub.org/api/v1/apps/category/Game"
+    api_url = "https://flathub.org/api/v2/category/game"
     cache_path = os.path.join(settings.CACHE_DIR, "flathub-library.json")
 
     branch = "stable"
@@ -87,7 +86,9 @@ class FlathubService(BaseService):
     def load(self):
         """Load the available games from Flathub"""
         response = requests.get(self.api_url, timeout=5)
-        entries = response.json()
+        response.raise_for_status()
+        json = response.json()
+        entries = json.get("hits") or []
         flathub_games = []
         for game in entries:
             flathub_games.append(FlathubGame.new_from_flathub_game(game))
@@ -197,6 +198,9 @@ class FlathubService(BaseService):
             _installer["script"]["game"][key] for key in ("install_type", "application", "arch", "branch")
         )
         return os.path.join(self.install_locations[install_type], application, arch, branch)
+
+    def get_game_platforms(self, db_game: dict) -> List[str]:
+        return ["Linux"]
 
     # def add_installed_games(self):
     #     process = subprocess.run(["flatpak", "list", "--app", "--columns=application,arch,branch,installation,name"],

@@ -14,7 +14,7 @@ from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.dialogs import NoticeDialog
 from lutris.runtime import RuntimeUpdater
 from lutris.services.lutris import sync_media
-from lutris.settings import UPDATE_CHANNEL_STABLE, UPDATE_CHANNEL_UMU, UPDATE_CHANNEL_UNSUPPORTED
+from lutris.settings import UPDATE_CHANNEL_STABLE, UPDATE_CHANNEL_UNSUPPORTED
 from lutris.util import system
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -68,17 +68,6 @@ class UpdatesBox(BaseConfigBox):
         )
 
         markup = _(
-            "<b>Umu</b>:\n"
-            "Enables the use of Valve's Proton outside of Steam and uses a custom version of Proton which will "
-            "automatically apply fixes for games.\n"
-            "\n"
-            "Please note that this feature is <b>experimental</b>."
-        )
-        umu_channel_radio_button = self._get_radio_button(
-            markup, active=update_channel == UPDATE_CHANNEL_UMU, group=stable_channel_radio_button
-        )
-
-        markup = _(
             "<b>Self-maintained</b>:\n"
             "Wine updates are no longer delivered automatically and you have full responsibility "
             "of your Wine versions.\n"
@@ -91,11 +80,8 @@ class UpdatesBox(BaseConfigBox):
         )
         # Safer to connect these after the active property has been initialized on all radio buttons
         stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
-        umu_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UMU)
         unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
 
-        if LUTRIS_EXPERIMENTAL_FEATURES_ENABLED:
-            return stable_channel_radio_button, umu_channel_radio_button, unsupported_channel_radio_button
         return stable_channel_radio_button, unsupported_channel_radio_button
 
     def get_wine_update_texts(self) -> Tuple[str, str]:
@@ -191,7 +177,7 @@ class UpdatesBox(BaseConfigBox):
 
         updater = RuntimeUpdater(force=True)
         updater.update_runtime = False
-        component_updaters = [u for u in updater.create_component_updaters() if u.name == "wine"]
+        component_updaters = updater.create_component_updaters()
         if component_updaters:
 
             def on_complete(_result):

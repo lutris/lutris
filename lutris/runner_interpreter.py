@@ -13,9 +13,10 @@ from lutris.util.log import logger
 def get_mangohud_conf(system_config):
     """Return correct launch arguments and environment variables for Mangohud."""
     # The environment variable should be set to 0 on gamescope, otherwise the game will crash
-    mangohud_val = "0" if system_config.get("gamescope") else "1"
+    if system_config.get("gamescope"):
+        return None, None
     if system_config.get("mangohud") and system.can_find_executable("mangohud"):
-        return ["mangohud"], {"MANGOHUD": mangohud_val, "MANGOHUD_DLSYM": "1"}
+        return ["mangohud"], {"MANGOHUD": "1", "MANGOHUD_DLSYM": "1"}
     return None, None
 
 
@@ -81,18 +82,13 @@ def get_launch_parameters(runner, gameplay_info):
     if has_gamescope:
         launch_arguments = get_gamescope_args(launch_arguments, system_config)
         if system_config.get("gamescope_hdr"):
-            env["ENABLE_HDR_WSI"] = "1"
+            env["DXVK_HDR"] = "1"
 
     return launch_arguments, env
 
 
 def get_gamescope_args(launch_arguments, system_config):
     """Insert gamescope at the start of the launch arguments"""
-    if system_config.get("gamescope_hdr"):
-        launch_arguments.insert(0, "DISABLE_HDR_WSI=1")
-        launch_arguments.insert(0, "DXVK_HDR=1")
-        launch_arguments.insert(0, "ENABLE_GAMESCOPE_WSI=1")
-        launch_arguments.insert(0, "env")
     launch_arguments.insert(0, "--")
     if system_config.get("gamescope_force_grab_cursor"):
         launch_arguments.insert(0, "--force-grab-cursor")
@@ -127,8 +123,9 @@ def get_gamescope_args(launch_arguments, system_config):
         launch_arguments.insert(0, gpu.pci_id)
         launch_arguments.insert(0, "--prefer-vk-device")
     if system_config.get("gamescope_hdr"):
-        launch_arguments.insert(0, "--hdr-debug-force-output")
         launch_arguments.insert(0, "--hdr-enabled")
+    if system_config.get("mangohud"):
+        launch_arguments.insert(0, "--mangoapp")
     launch_arguments.insert(0, "gamescope")
     return launch_arguments
 

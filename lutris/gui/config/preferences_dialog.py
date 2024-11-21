@@ -4,7 +4,7 @@
 from gettext import gettext as _
 from textwrap import dedent
 
-from gi.repository import GObject, Gtk
+from gi.repository import Gtk
 
 from lutris.config import LutrisConfig
 from lutris.gui.config.accounts_box import AccountsBox
@@ -19,10 +19,6 @@ from lutris.gui.config.updates_box import UpdatesBox
 
 
 class PreferencesDialog(GameDialogCommon):
-    __gsignals__ = {
-        "settings-changed": (GObject.SIGNAL_RUN_LAST, None, (bool, str)),
-    }
-
     def __init__(self, parent=None):
         super().__init__(_("Lutris settings"), config_level="system", parent=parent)
         self.set_border_width(0)

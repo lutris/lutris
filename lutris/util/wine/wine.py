@@ -10,7 +10,7 @@ from lutris.api import get_default_wine_runner_version_info
 from lutris.exceptions import MisconfigurationError, UnavailableRunnerError, UnspecifiedVersionError
 from lutris.util import cache_single, linux, system
 from lutris.util.log import logger
-from lutris.util.strings import parse_version
+from lutris.util.strings import get_natural_sort_key, parse_version
 from lutris.util.wine import fsync, proton
 
 WINE_DIR: str = os.path.join(settings.RUNNER_DIR, "wine")
@@ -38,10 +38,11 @@ except Exception as ex:
 
 def detect_arch(prefix_path: str = None, wine_path: str = None) -> str:
     """Given a Wine prefix path, return its architecture"""
+    if wine_path:
+        if proton.is_proton_path(wine_path) or system.path_exists(wine_path + "64"):
+            return "win64"
     if prefix_path and is_prefix_directory(prefix_path):
         return detect_prefix_arch(prefix_path)
-    if wine_path and system.path_exists(wine_path + "64"):
-        return "win64"
     return "win32"
 
 
@@ -104,7 +105,8 @@ def is_installed_systemwide() -> bool:
 
 def list_system_wine_versions() -> List[str]:
     """Return the list of wine versions installed on the system"""
-    return [name for name, path in WINE_PATHS.items() if get_system_wine_version(path)]
+    versions = [name for name, path in WINE_PATHS.items() if get_system_wine_version(path)]
+    return sorted(versions, key=get_natural_sort_key, reverse=True)
 
 
 def list_lutris_wine_versions() -> List[str]:
@@ -119,13 +121,19 @@ def list_lutris_wine_versions() -> List[str]:
                 versions.append(dirname)
         except MisconfigurationError:
             pass  # if it's not properly installed, skip it
-    return versions
+    return sorted(versions, key=get_natural_sort_key, reverse=True)
 
 
 @cache_single
 def get_installed_wine_versions() -> List[str]:
     """Return the list of Wine versions installed"""
-    return list_system_wine_versions() + list_lutris_wine_versions() + proton.list_proton_versions()
+    return list_system_wine_versions() + proton.list_proton_versions() + list_lutris_wine_versions()
+
+
+def clear_wine_version_cache() -> None:
+    get_installed_wine_versions.cache_clear()
+    proton.get_proton_versions.cache_clear()
+    proton.get_umu_path.cache_clear()
 
 
 def get_wine_path_for_version(version: str, config: dict = None) -> str:
@@ -139,8 +147,8 @@ def get_wine_path_for_version(version: str, config: dict = None) -> str:
 
     if version in WINE_PATHS:
         return system.find_required_executable(WINE_PATHS[version])
-    if proton.is_proton_path(version):
-        return proton.get_proton_bin_for_version(version)
+    if proton.is_proton_version(version):
+        return proton.get_proton_wine_path(version)
     if version == "custom":
         if config is None:
             raise RuntimeError("Custom wine paths are only supported when a configuration is available.")

@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Mathieu Comandon <mathieucomandon@gmail.com>
 Build-Depends: debhelper-compat (= 12),
                appstream,
+               dh-apparmor,
                dh-sequence-python3,
                meson,
 Rules-Requires-Root: no

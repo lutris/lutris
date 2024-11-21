@@ -22,7 +22,7 @@ from lutris.services.base import (
 )
 from lutris.services.service_game import ServiceGame
 from lutris.util import http
-from lutris.util.jobs import AsyncCall
+from lutris.util.busy import BusyAsyncCall
 from lutris.util.log import logger
 
 
@@ -133,7 +133,7 @@ class LutrisService(OnlineService):
             application = Gio.Application.get_default()
             application.show_installer_window(installers)
 
-        AsyncCall(get_game_installers, on_installers_ready, appid)  # appid is the slug for Lutris games
+        BusyAsyncCall(get_game_installers, on_installers_ready, appid)  # appid is the slug for Lutris games
 
     def get_installed_runner_name(self, db_game):
         platforms = self.get_game_platforms(db_game)
