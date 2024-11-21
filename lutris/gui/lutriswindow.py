@@ -39,7 +39,7 @@ from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
-from lutris.gui.widgets.utils import load_icon_theme, open_uri
+from lutris.gui.widgets.utils import has_stock_icon, load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
 from lutris.search_predicate import NotPredicate
@@ -71,6 +71,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     sidebar_scrolled: Gtk.ScrolledWindow = GtkTemplate.Child()
     game_revealer: Gtk.Revealer = GtkTemplate.Child()
     search_entry: Gtk.SearchEntry = GtkTemplate.Child()
+    search_filters_button: Gtk.MenuButton = GtkTemplate.Child()
+    search_box: Gtk.Box = GtkTemplate.Child()
     zoom_adjustment: Gtk.Adjustment = GtkTemplate.Child()
     blank_overlay: Gtk.Alignment = GtkTemplate.Child()
     viewtype_icon: Gtk.Image = GtkTemplate.Child()
@@ -81,8 +83,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     turn_on_library_sync_label: Gtk.Label = GtkTemplate.Child()
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     version_notification_label: Gtk.Revealer = GtkTemplate.Child()
-    # search_filters_button: Gtk.MenuButton = GtkTemplate.Child()
-    search_box: Gtk.Box = GtkTemplate.Child()
     show_hidden_games_button: Gtk.ModelButton = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs) -> None:
@@ -132,6 +132,16 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.init_template()
         self._init_actions()
 
+        # Since system-search-symbolic is already *right there* we'll try to pick some
+        # other icon for the button that shows the search popover.
+        fallback_filter_icons_names = ["filter-symbolic", "edit-find-replace-symbolic", "system-search-symbolic"]
+        filter_button_image = self.search_filters_button.get_child()
+        for n in fallback_filter_icons_names:
+            if has_stock_icon(n):
+                filter_button_image.set_from_icon_name(n, Gtk.IconSize.BUTTON)
+                break
+        self.filter_box_search_name = ""
+
         # Setup Drag and drop
         self.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY)
         self.drag_dest_add_uri_targets()
@@ -156,13 +166,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.game_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
-
-        search = self.get_game_search()
-        new_search = saved_searches_db.SavedSearch(0, "", str(search))
-        filter_box = SearchFiltersBox(saved_search=new_search)
-        filter_box.show()
-        # self.filter_popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_box)
-        # self.search_filters_button.set_popover(self.filter_popover)
 
         self.update_action_state()
         self.update_notification()
@@ -342,8 +345,31 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.sidebar.hidden_row.show()
             self.sidebar.selected_category = hidden_category
 
-    def on_open_search_filters(self, action, value):
-        self.filter_popover.popup()
+    def on_open_search_filters(self, _action, _value):
+        def on_filter_popover_closed(_popover):
+            self.filter_box_search_name = filter_box.search_name
+            self.search_filters_button.set_active(False)
+
+        def on_saved(_box, search_name):
+            def switch_to_saved_search():
+                self.sidebar.selected_category = "saved_search", search_name
+                self.search_entry.set_text("")
+
+            filter_popover.popdown()
+            schedule_at_idle(switch_to_saved_search)
+
+        if self.search_filters_button.get_active():
+            search = self.get_game_search()
+            new_search = saved_searches_db.SavedSearch(0, "", str(search))
+            filter_box = SearchFiltersBox(saved_search=new_search, search_entry=self.search_entry)
+            filter_box.set_size_request(600, -1)
+            if self.filter_box_search_name:
+                filter_box.search_name = self.filter_box_search_name
+            filter_box.connect("saved", on_saved)
+            filter_box.show()
+            filter_popover = Gtk.Popover(child=filter_box, can_focus=False, relative_to=self.search_filters_button)
+            filter_popover.connect("closed", on_filter_popover_closed)
+            filter_popover.popup()
 
     @property
     def current_view_type(self):
