@@ -16,7 +16,7 @@ from lutris.gui.widgets.utils import has_stock_icon
 from lutris.search import FLAG_TEXTS, GameSearch
 from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 
-DEFAULT_NEW_SEARCH_NAME = "New Dynamic Category"
+DEFAULT_NEW_SEARCH_NAME = _("New Dynamic Category")
 
 
 class SearchFiltersBox(Gtk.Box):
