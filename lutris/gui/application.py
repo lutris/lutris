@@ -762,7 +762,7 @@ class Application(Gtk.Application):
 
             if game.state == game.STATE_STOPPED and not self.window.is_visible():
                 self.quit()
-        else:
+        elif self.window:
             # If we're showing the window, it will handle the delegated UI
             # from here on out, no matter what command line we got.
             self.launch_ui_delegate = self.window
