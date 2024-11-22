@@ -182,11 +182,13 @@ class EpicGamesStoreService(OnlineService):
         super().__init__()
         self.session = requests.session()
         self.session.headers["User-Agent"] = self.user_agent
+        self.session_data = {}
         if os.path.exists(self.token_path):
-            with open(self.token_path, encoding="utf-8") as token_file:
-                self.session_data = json.loads(token_file.read())
-        else:
-            self.session_data = {}
+            try:
+                with open(self.token_path, encoding="utf-8") as token_file:
+                    self.session_data = json.loads(token_file.read())
+            except Exception as ex:
+                logger.exception("Unable to load token file '%s': %s", token_file, ex)
 
     @property
     def http_basic_auth(self):
