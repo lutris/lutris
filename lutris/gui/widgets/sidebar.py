@@ -643,25 +643,31 @@ class LutrisSidebar(Gtk.ListBox):
 
         for service_name, service_class in self.active_services.items():
             if service_name not in self.service_rows:
-                service = service_class()
-                row_class = OnlineServiceSidebarRow if service.online else ServiceSidebarRow
-                service_row = row_class(service)
-                self.service_rows[service_name] = service_row
-                insert_row(service_row)
+                try:
+                    service = service_class()
+                    row_class = OnlineServiceSidebarRow if service.online else ServiceSidebarRow
+                    service_row = row_class(service)
+                    insert_row(service_row)
+                    self.service_rows[service_name] = service_row
+                except Exception as ex:
+                    logger.exception("Sidebar row for '%s' could not be loaded: %s", service_name, ex)
 
         for runner_name in self.installed_runners:
             if runner_name not in self.runner_rows:
-                icon_name = runner_name.lower().replace(" ", "") + "-symbolic"
-                runner = runners.import_runner(runner_name)()
-                runner_row = RunnerSidebarRow(
-                    runner_name,
-                    "runner",
-                    runner.human_name,
-                    self.get_sidebar_icon(icon_name),
-                    application=self.application,
-                )
-                self.runner_rows[runner_name] = runner_row
-                insert_row(runner_row)
+                try:
+                    icon_name = runner_name.lower().replace(" ", "") + "-symbolic"
+                    runner = runners.import_runner(runner_name)()
+                    runner_row = RunnerSidebarRow(
+                        runner_name,
+                        "runner",
+                        runner.human_name,
+                        self.get_sidebar_icon(icon_name),
+                        application=self.application,
+                    )
+                    insert_row(runner_row)
+                    self.runner_rows[runner_name] = runner_row
+                except Exception as ex:
+                    logger.exception("Sidebar row for '%s' could not be loaded: %s", service_name, ex)
 
         for platform in self.active_platforms:
             if platform not in self.platform_rows:
