@@ -60,12 +60,13 @@ install_man(
   install_dir: join_paths(mandir, 'man1'),
 )
 
-desktop_file = configure_file(
+desktop_file = i18n.merge_file(
   input: files('share/applications/net.lutris.Lutris.desktop'),
   output: 'net.lutris.Lutris.desktop',
+  type: 'desktop',
+  po_dir: podir,
   install: true,
   install_dir: join_paths(datadir, 'applications'),
-  command: [find_program('msgfmt'), '--desktop', '--template', '@INPUT@', '-o', '@OUTPUT@', '-d', podir],
 )
 
 # Validate the desktop file
