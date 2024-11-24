@@ -423,7 +423,18 @@ def is_removeable(path, system_config):
         return False
 
     parts = path.strip("/").split("/")
-    if parts[0] in ("usr", "var", "lib", "etc", "boot", "sbin", "bin"):
+
+    if not parts:
+        return False
+
+    if parts[0] == "var":
+        # Fedora Silverblue puts mount points under /var since they are mutable
+        # so we'll special case /var/mnt/<drive>/*.
+        if len(parts) > 3 and parts[1] in ("mnt", "media"):
+            return True
+        return False
+
+    if parts[0] in ("usr", "lib", "etc", "boot", "sbin", "bin"):
         # Path is part of the system folders
         return False
 
