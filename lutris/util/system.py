@@ -600,7 +600,8 @@ def get_disk_size(path: str) -> int:
 
     total_size = 0
     for base, _dirs, files in os.walk(path):
-        total_size += sum(get_file_size(os.path.join(base, f)) for f in files if os.path.isfile(os.path.join(base, f)))
+        paths = [os.path.join(base, f) for f in files]
+        total_size += sum(get_file_size(p) for p in paths if os.path.isfile(p) and not os.path.islink(p))
     return total_size
 
 
