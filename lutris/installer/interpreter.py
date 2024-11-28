@@ -360,9 +360,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def _finish_install(self):
         game_id = self.installer.save()
-        path = None
+        path = self.installer.script.get("game", {}).get("exe")
 
-        if path and AUTO_EXE_PREFIX not in path and not os.path.isfile(path) and self.installer.runner != "web":
+        if path and not os.path.isfile(os.path.join(self.target_path, path)):
             status = (
                 _(
                     "The executable at path %s can't be found, please check the destination folder.\n"
@@ -371,6 +371,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 % path
             )
             logger.warning("No executable found at specified location %s", path)
+            self.interpreter_ui_delegate.report_error(status)
+            self.interpreter_ui_delegate.report_status(_("Installation failed! Please try again."))
         else:
             status = self.installer.script.get("install_complete_text") or _("Installation completed!")
         AsyncCall(download_lutris_media, None, self.installer.game_slug)
