@@ -588,3 +588,12 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             box.pack_start(next_icon, False, False, 0)
         row.add(box)
         return row
+
+    def on_retry_installation(self, _widget):
+        # Logic to retry the installation
+        self.stack.navigate_home()
+        self.install_from_script()
+
+    def on_installation_failed(self):
+        self.display_continue_button(self.on_retry_installation, label=_("_Retry"))
+        self.display_cancel_button(label=_("Cancel"))
