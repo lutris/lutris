@@ -331,9 +331,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         return {"installed": self.filter_installed}
 
     @property
-    def is_show_hidden_sensitive(self):
+    def is_show_hidden_sensitive(self) -> bool:
         """True if there are any hidden games to show."""
-        return bool(categories_db.get_game_ids_for_categories([".hidden"]))
+        return bool(
+            self.sidebar.selected_category == ("category", ".hidden")
+            or categories_db.get_game_ids_for_categories([".hidden"])
+        )
 
     def on_show_hidden_clicked(self, action, value):
         """Hides or shows the hidden games"""
