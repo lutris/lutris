@@ -1121,7 +1121,12 @@ class wine(Runner):
         show_debug = self.runner_config.get("show_debug", "-all")
         if show_debug != "inherit":
             env["WINEDEBUG"] = show_debug
-            if show_debug == "-all":
+            env["DXVK_LOG_LEVEL"] = "error"
+            env["UMU_LOG"] = "1"
+            if show_debug == "":
+                env["DXVK_LOG_LEVEL"] = "info"
+                env["UMU_LOG"] = "warning"
+            elif show_debug == "+all":
                 env["DXVK_LOG_LEVEL"] = "debug"
                 env["UMU_LOG"] = "debug"
         env["WINEARCH"] = self.wine_arch
