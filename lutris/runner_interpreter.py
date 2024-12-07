@@ -58,9 +58,15 @@ def get_launch_parameters(runner, gameplay_info):
     # Gamescope
     has_gamescope = system_config.get("gamescope") and system.can_find_executable("gamescope")
     if has_gamescope:
-        launch_arguments = get_gamescope_args(launch_arguments, system_config)
-        if system_config.get("gamescope_hdr"):
-            env["DXVK_HDR"] = "1"
+        if runner.name == "steam":
+            logger.info(
+                "Do not enable Gamescope for Steam games in Lutris. "
+                "Edit the launch options in Steam and set them to 'gamescope %%command%%'"
+            )
+        else:
+            launch_arguments = get_gamescope_args(launch_arguments, system_config)
+            if system_config.get("gamescope_hdr"):
+                env["DXVK_HDR"] = "1"
 
     # MangoHud
     if system_config.get("mangohud") and system.can_find_executable("mangohud"):
