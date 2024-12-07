@@ -41,7 +41,6 @@ Game library
 Optional accounts can be created at `lutris.net
 <https://lutris.net>`_ and linked with Lutris clients.
 This enables your client to automatically sync fetch library from the website.
-**It is currently not possible to sync from the client to the cloud.**
 Via the website, it is also possible to sync your Steam library to your Lutris
 library.
 
