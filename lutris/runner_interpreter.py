@@ -92,6 +92,8 @@ def get_gamescope_args(launch_arguments, system_config):
     launch_arguments.insert(0, "--")
     if system_config.get("gamescope_force_grab_cursor"):
         launch_arguments.insert(0, "--force-grab-cursor")
+    if system_config.get("gamescope_realtime_scheduling"):
+        launch_arguments.insert(0, "--rt")
     if system_config.get("gamescope_fsr_sharpness"):
         launch_arguments.insert(0, system_config["gamescope_fsr_sharpness"])
         launch_arguments.insert(0, "--fsr-sharpness")
