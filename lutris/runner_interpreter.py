@@ -10,32 +10,10 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 
-def get_mangohud_conf(system_config):
-    """Return correct launch arguments and environment variables for Mangohud."""
-    # The environment variable should be set to 0 on gamescope, otherwise the game will crash
-    if system_config.get("gamescope"):
-        return None, None
-    if system_config.get("mangohud") and system.can_find_executable("mangohud"):
-        return ["mangohud"], {"MANGOHUD": "1", "MANGOHUD_DLSYM": "1"}
-    return None, None
-
-
 def get_launch_parameters(runner, gameplay_info):
     system_config = runner.system_config
     launch_arguments = gameplay_info["command"]
     env = {}
-
-    # MangoHud
-    if runner.name == "steam":
-        logger.info(
-            "Do not enable Mangodhud for Steam games in Lutris. "
-            "Edit the launch options in Steam and set them to mangohud %%command%%"
-        )
-    else:
-        mango_args, mango_env = get_mangohud_conf(system_config)
-        if mango_args:
-            launch_arguments = mango_args + launch_arguments
-            env.update(mango_env)
 
     prefix_command = system_config.get("prefix_command") or ""
     if prefix_command:
@@ -84,6 +62,17 @@ def get_launch_parameters(runner, gameplay_info):
         if system_config.get("gamescope_hdr"):
             env["DXVK_HDR"] = "1"
 
+    # MangoHud
+    if system_config.get("mangohud") and system.can_find_executable("mangohud"):
+        if runner.name == "steam":
+            _msg = " gamescope" if has_gamescope else ""
+            logger.info(
+                "Do not enable MangodHud for Steam games in Lutris. "
+                f"Edit the launch options in Steam and set them to 'mangohud{_msg} %%command%%'"
+            )
+        else:
+            launch_arguments.insert(0, "mangohud")
+
     return launch_arguments, env
 
 
@@ -124,8 +113,6 @@ def get_gamescope_args(launch_arguments, system_config):
         launch_arguments.insert(0, "--prefer-vk-device")
     if system_config.get("gamescope_hdr"):
         launch_arguments.insert(0, "--hdr-enabled")
-    if system_config.get("mangohud"):
-        launch_arguments.insert(0, "--mangoapp")
     launch_arguments.insert(0, "gamescope")
     return launch_arguments
 
