@@ -458,6 +458,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             # we must tolerate them. We treat them all as blank.
             value = value or sort_defaults.get(self.view_sorting, "")
             if self.view_sorting == "year":
+                if self.service:
+                    service_value = self.service.get_game_release_date(item)
+                    if service_value:
+                        value = service_value
                 contains_year = bool(value)
                 if self.view_reverse_order:
                     contains_year = not contains_year
@@ -556,13 +560,17 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def combine_games(service_game, lutris_game):
         """Inject lutris game information into a service game"""
         if lutris_game and service_game["appid"] == lutris_game["service_id"]:
-            for field in ("platform", "runner", "year", "installed_at", "lastplayed", "playtime", "installed"):
+            for field in ("platform", "runner", "installed_at", "lastplayed", "playtime", "installed"):
                 service_game[field] = lutris_game[field]
+            service_game["year"] = service_game["year"] if "year" in service_game else lutris_game["year"]
         return service_game
 
     def get_service_games(self, service_id):
         """Return games for the service indicated."""
         service_games = ServiceGameCollection.get_for_service(service_id)
+        for game in service_games:
+            game["year"] = self.service.get_game_release_year(game)
+
         if service_id == "lutris":
             lutris_games = {g["slug"]: g for g in games_db.get_games()}
         else:
