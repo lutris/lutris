@@ -395,7 +395,7 @@ class WidgetGenerator(ABC):
         """Generate a combobox (drop-down menu)."""
 
         def populate_combobox_choices():
-            expanded, tooltip_default = expand_combobox_choices()
+            expanded, tooltip_default, _valid_choices = expand_combobox_choices()
             for choice in expanded:
                 liststore.append(choice)
 
@@ -405,6 +405,7 @@ class WidgetGenerator(ABC):
         def expand_combobox_choices():
             expanded = []
             tooltip_default = None
+            valid = []
             has_value = False
             for choice in choices:
                 if isinstance(choice, str):
@@ -414,10 +415,11 @@ class WidgetGenerator(ABC):
                 if choice[1] == default:
                     tooltip_default = choice[0]
                     choice = (_("%s (default)") % choice[0], choice[1])
+                valid.append(choice[1])
                 expanded.append(choice)
             if not has_value and value:
-                expanded.insert(0, (value + " (invalid)", value))
-            return expanded, tooltip_default
+                expanded.insert(0, (value, value))
+            return expanded, tooltip_default, valid
 
         def on_combobox_scroll(widget, _event):
             """Prevents users from accidentally changing configuration values
@@ -459,7 +461,7 @@ class WidgetGenerator(ABC):
 
         combobox.set_id_column(1)
 
-        expanded_choices, _tooltip_default = expand_combobox_choices()
+        expanded_choices, _tooltip_default, valid_choices = expand_combobox_choices()
         if value in [v for _k, v in expanded_choices]:
             combobox.set_active_id(value)
         elif has_entry:
@@ -473,6 +475,17 @@ class WidgetGenerator(ABC):
         combobox.connect("changed", on_combobox_change)
         combobox.connect("scroll-event", on_combobox_scroll)
         combobox.set_valign(Gtk.Align.CENTER)
+
+        def get_invalidity_error(option_key: str, _config: LutrisConfig):
+            v = self.get_setting(option_key)
+            if v in valid_choices:
+                return None
+
+            return _("The setting '%s' is no longer available. You should select another choice.") % v
+
+        if not has_entry and value not in valid_choices:
+            self.underslung_widgets.append(ConfigWarningBox(get_invalidity_error))
+
         return self.build_option_widget(option, combobox)
 
     # ComboBox
