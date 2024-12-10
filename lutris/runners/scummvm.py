@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from lutris import settings
 from lutris.config import LutrisConfig
+from lutris.exceptions import MissingExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.strings import split_arguments
@@ -483,11 +484,14 @@ class scummvm(Runner):
 
     def get_extra_libs(self) -> List[str]:
         """Scummvm runner ships additional libraries, they may be removed in a future version."""
-        base_runner_path = os.path.join(settings.RUNNER_DIR, "scummvm")
-        if self.get_executable().startswith(base_runner_path):
-            path = os.path.join(settings.RUNNER_DIR, "scummvm/lib")
-            if system.path_exists(path):
-                return [path]
+        try:
+            base_runner_path = os.path.join(settings.RUNNER_DIR, "scummvm")
+            if self.get_executable().startswith(base_runner_path):
+                path = os.path.join(settings.RUNNER_DIR, "scummvm/lib")
+                if system.path_exists(path):
+                    return [path]
+        except MissingExecutableError:
+            pass
 
         return []
 
@@ -517,7 +521,8 @@ class scummvm(Runner):
     def get_run_data(self) -> Dict[str, Any]:
         env = self.get_env()
         lib_paths = filter(None, self.get_extra_libs() + [env.get("LD_LIBRARY_PATH")])
-        env["LD_LIBRARY_PATH"] = os.pathsep.join(lib_paths)
+        if lib_paths:
+            env["LD_LIBRARY_PATH"] = os.pathsep.join(lib_paths)
 
         return {"env": env, "command": self.get_command()}
 
