@@ -7,6 +7,7 @@ from typing import Dict, Generator, List, Optional
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
+from lutris.monitored_command import RUNNING_COMMANDS
 from lutris.util import cache_single, system
 from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import get_natural_sort_key
@@ -170,7 +171,14 @@ def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAUL
         env["WINEARCH"] = "win64"
 
     if "PROTON_VERB" not in env:
-        env["PROTON_VERB"] = "run"
+        # Proton fixes are only applied with waitforexitandrun, so we want to use that
+        # but only if we're the first process start - the next concurrent process should
+        # use run so it does not wait.
+        prefix = env.get("WINEPREFIX")
+        if prefix and prefix in (c.env.get("WINEPREFIX") for c in RUNNING_COMMANDS):
+            env["PROTON_VERB"] = "run"
+        else:
+            env["PROTON_VERB"] = "waitforexitandrun"
 
     locale = env.get("LC_ALL")
     host_locale = env.get("HOST_LC_ALL")
