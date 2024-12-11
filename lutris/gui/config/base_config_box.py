@@ -3,7 +3,7 @@ from typing import Callable
 from gi.repository import Gtk
 
 from lutris import settings
-from lutris.gui.config.boxes import UnderslungMessageBox
+from lutris.gui.config.widget_generator import UnderslungMessageBox
 from lutris.gui.widgets.common import VBox
 
 
