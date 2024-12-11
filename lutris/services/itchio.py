@@ -789,6 +789,20 @@ class ItchIoService(OnlineService):
             weight |= 0x40
         return weight
 
+    def get_game_release_date(self, db_game: dict):
+        details = db_game.get("details")
+        if details:
+            details = json.loads(details)
+            # Game Release
+            release_date = details.get("created_at")
+            if release_date is None:
+                # Last Update Release
+                release_date = details.get("published_at")
+            if release_date is not None and isinstance(release_date, str):
+                # Return as YYYY-MM-DD
+                return release_date[:10]
+        return ""
+
     def _rfc3999_to_timestamp(self, _s):
         # Python does ootb not fully comply with RFC3999; Cut after seconds
         return datetime.datetime.fromisoformat(_s[: _s.rfind(".")]).timestamp()

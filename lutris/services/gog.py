@@ -753,3 +753,15 @@ class GOGService(OnlineService):
             if worksOn is not None:
                 return [name for name, works in worksOn.items() if works]
         return []
+
+    def get_game_release_date(self, db_game: dict):
+        details = db_game.get("details")
+        if details:
+            release_date = json.loads(details).get("releaseDate")
+            if release_date is not None:
+                date = release_date.get("date")
+                # GoG stores unknown release dates as a negative date
+                if date is not None and isinstance(date, str) and date[0] != "-":
+                    # Return as YYYY-MM-DD
+                    return date[:10]
+        return ""

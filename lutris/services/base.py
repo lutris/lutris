@@ -410,6 +410,17 @@ class BaseService:
             return ServiceGameCollection.get_game(self.id, game.appid)
         return None
 
+    def get_game_release_date(self, db_game: dict):
+        """Services can implement this method so games that are not in the
+        database can be sorted by release date (Year) based on service data."""
+
+    def get_game_release_year(self, db_game: dict):
+        """Returns game release year
+        Does not have to be rewritten if get_game_release_date returns
+        rfc/iso compatible date (YYYY-MM-DD)"""
+        date = self.get_game_release_date(db_game)
+        return date[:4] if date else ""
+
 
 class OnlineService(BaseService):
     """Base class for online gaming services"""
