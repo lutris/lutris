@@ -9,6 +9,7 @@ from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.common import FileChooserEntry, Label
 from lutris.runners.runner import Runner
 
+
 class StorageBox(BaseConfigBox):
     def populate(self):
         self.add(self.get_section_label(_("Paths")))
@@ -18,7 +19,6 @@ class StorageBox(BaseConfigBox):
     def get_path_widgets(self):
         widgets = []
         base_runner = Runner()
-        bios_path = base_runner.config.system_config.get("bios_path")
         path_settings = [
             {
                 "name": _("Game library"),
@@ -37,15 +37,6 @@ class StorageBox(BaseConfigBox):
                     "\nOtherwise, all downloaded files are discarded."
                 ),
             },
-            {
-                "name": _("Emulator BIOS files location"),
-                "setting": "bios_path",
-                "default": "",
-                "value": bios_path if bios_path else "",
-                "help": _(
-                    "The folder Lutris will search in for emulator BIOS files if needed"
-                ),
-            }
         ]
         for path_setting in path_settings:
             widgets.append(self.get_directory_chooser(path_setting))
@@ -88,8 +79,4 @@ class StorageBox(BaseConfigBox):
         elif setting["setting"] == "game_path":
             lutris_config = LutrisConfig()
             lutris_config.raw_system_config["game_path"] = text
-            lutris_config.save()
-        elif setting["setting"] == "bios_path":
-            lutris_config = LutrisConfig()
-            lutris_config.raw_system_config["bios_path"] = text
             lutris_config.save()
