@@ -1,4 +1,5 @@
 import hashlib
+import json
 import os
 from gettext import gettext as _
 
@@ -163,4 +164,10 @@ class StorageBox(BaseConfigBox):
 
                             bios_files.append(bios_file)
 
+                # create a JSON object out of the bios_files array
+                bios_files_cache_data = json.dumps(bios_files)
+                # save the JSON object to ~/.cache/lutris/bios-files.json (overwrite)
+                bios_files_cache_path = os.path.expanduser("~/.cache/lutris/bios-files.json")
+                with open(bios_files_cache_path, "w+") as bios_files_cache:
+                    bios_files_cache.write(bios_files_cache_data)
 
