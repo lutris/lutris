@@ -7,6 +7,7 @@ from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.config.widget_generator import WidgetGenerator
 from lutris.gui.widgets.status_icon import supports_status_icon
+from lutris.settings import read_setting
 
 
 def _is_system_dark_by_default():
@@ -74,6 +75,9 @@ class InterfacePreferencesBox(BaseConfigBox):
 class PreferencesWidgetGenerator(WidgetGenerator):
     """This generator adjusts the spacing of the wrappers and packs widgets on the
     right to get the interface preferences layout instead of tje configuration one."""
+
+    def __init__(self):
+        super().__init__(read_setting)
 
     def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
         box = super().create_wrapper_box(option, value, default)
