@@ -24,6 +24,7 @@ class DLLManager:
     versions_path = NotImplemented
     releases_url = NotImplemented
     archs = {32: "x32", 64: "x64"}
+    proton_compatible = False  # Proton manages its own DLLs
 
     def __init__(self, prefix=None, arch="win64", version=None):
         self.prefix = prefix
