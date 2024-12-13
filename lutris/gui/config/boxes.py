@@ -14,7 +14,7 @@ from gi.repository import Gtk
 from lutris import settings, sysoptions
 from lutris.config import LutrisConfig
 from lutris.game import Game
-from lutris.gui.config.widget_generator import ConfigErrorBox, ConfigWarningBox, WidgetGenerator
+from lutris.gui.config.widget_generator import WidgetGenerator
 from lutris.gui.widgets.common import Label, VBox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
@@ -247,21 +247,10 @@ class ConfigBox(VBox):
                 if "condition" in option and not option["condition"]:
                     wrapper.set_sensitive(False)
 
-                if "warning" in option:
+                if gen.error_widgets or gen.warning_widgets:
                     option_body = option_container
                     option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
                     option_container.pack_start(option_body, False, False, 0)
-                    warning = ConfigWarningBox(option["warning"], option_key)
-                    warning.update_warning(self.lutris_config)
-                    gen.warning_widgets.append(warning)
-
-                if "error" in option:
-                    option_body = option_container
-                    option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
-                    option_container.pack_start(option_body, False, False, 0)
-                    error = ConfigErrorBox(option["error"], option_key, wrapper)
-                    error.update_warning(self.lutris_config)
-                    gen.error_widgets.append(error)
 
                 for error_widget in gen.error_widgets:
                     self.error_boxes[option_key].append(error_widget)
@@ -270,6 +259,8 @@ class ConfigBox(VBox):
                 for warning_widget in gen.warning_widgets:
                     self.warning_boxes[option_key].append(warning_widget)
                     option_container.pack_start(warning_widget, False, False, 0)
+
+                self.update_warnings()
 
                 # Hide if advanced
                 if option.get("advanced"):

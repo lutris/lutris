@@ -74,7 +74,7 @@ class WidgetGenerator:
         generator. You get 'wrapper', 'default_value', 'tooltip_default' and 'option_widget' which restates
         the return value. This returns None if the entire option should be omitted."""
         option_type = option["type"]
-
+        option_key = option["option"]
         default = option.get("default")
         if callable(default):
             default = default()
@@ -106,6 +106,14 @@ class WidgetGenerator:
 
         self.option_widget = option_widget
         self.tooltip_default = self.tooltip_default or (default if isinstance(default, str) else None)
+
+        if "warning" in option:
+            warning = ConfigWarningBox(option["warning"], option_key)
+            self.warning_widgets.append(warning)
+
+        if "error" in option:
+            error = ConfigErrorBox(option["error"], option_key, self.wrapper)
+            self.error_widgets.append(error)
 
         if option_widget:
             option_widget.show_all()
@@ -173,9 +181,9 @@ class WidgetGenerator:
 
         def on_changed(entry):
             """Action triggered for entry 'changed' signal."""
-            self.changed.fire(option_name, entry.get_text())
+            self.changed.fire(option_key, entry.get_text())
 
-        option_name = option["option"]
+        option_key = option["option"]
 
         entry = Gtk.Entry()
         entry.set_text(value or default or "")
@@ -188,7 +196,7 @@ class WidgetGenerator:
 
         def on_notify_active(widget, _gparam):
             """Action for the switch's toggled signal."""
-            self.changed.fire(option_name, widget.get_active())
+            self.changed.fire(option_key, widget.get_active())
 
         def to_bool(to_convert):
             """Convert values to booleans in a way that won't decide that
@@ -206,7 +214,7 @@ class WidgetGenerator:
             else:
                 return bool(to_convert)
 
-        option_name = option["option"]
+        option_key = option["option"]
 
         active = to_bool(value) or to_bool(default) or False
         switch = Gtk.Switch(active=active, valign=Gtk.Align.CENTER)
@@ -222,9 +230,9 @@ class WidgetGenerator:
         def on_changed(widget):
             """Action triggered on spin button 'changed' signal."""
             new_value = widget.get_value_as_int()
-            self.changed.fire(option_name, new_value)
+            self.changed.fire(option_key, new_value)
 
-        option_name = option["option"]
+        option_key = option["option"]
         min_val = option["min"]
         max_val = option["max"]
 
@@ -281,9 +289,9 @@ class WidgetGenerator:
                     option_value = widget.get_child().get_text()
             else:
                 option_value = list_store[active][1]
-            self.changed.fire(option_name, option_value)
+            self.changed.fire(option_key, option_value)
 
-        option_name = option["option"]
+        option_key = option["option"]
         choices = option["choices"]
         liststore = Gtk.ListStore(str, str)
         populate_combobox_choices()
@@ -325,9 +333,9 @@ class WidgetGenerator:
         """Generate a searchable combo box"""
 
         def on_changed(_widget, new_value):
-            self.changed.fire(option_name, new_value)
+            self.changed.fire(option_key, new_value)
 
-        option_name = option["option"]
+        option_key = option["option"]
         choice_func = option["choices"]
         combobox = SearchableCombobox(choice_func, value or default)
         combobox.connect("changed", on_changed)
@@ -340,9 +348,9 @@ class WidgetGenerator:
         def on_changed(entry):
             """Action triggered when the field's content changes."""
             text = entry.get_text()
-            self.changed.fire(option_name, text)
+            self.changed.fire(option_key, text)
 
-        option_name = option["option"]
+        option_key = option["option"]
         warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
 
         if not value:
@@ -405,7 +413,7 @@ class WidgetGenerator:
                     if filename not in files:
                         files_list_store.append([filename])
                         files.append(filename)
-                self.changed.fire(option_name, files)
+                self.changed.fire(option_key, files)
             dialog.destroy()
 
         def on_files_treeview_keypress(treeview, event):
@@ -418,9 +426,9 @@ class WidgetGenerator:
                     model.remove(treeiter)
 
                     files = [row[0] for row in files_list_store]
-                    self.changed.fire(option_name, files)
+                    self.changed.fire(option_key, files)
 
-        option_name = option["option"]
+        option_key = option["option"]
         label = option["label"]
 
         files_list_store = Gtk.ListStore(str)
@@ -467,9 +475,9 @@ class WidgetGenerator:
         def on_changed(entry):
             """Action triggered when the field's content changes."""
             text = entry.get_text()
-            self.changed.fire(option_name, text)
+            self.changed.fire(option_key, text)
 
-        option_name = option["option"]
+        option_key = option["option"]
         warn_if_non_writable_parent = bool(option.get("warn_if_non_writable_parent"))
 
         if not value:
@@ -492,9 +500,9 @@ class WidgetGenerator:
 
         def on_changed(widget):
             values = dict(widget.get_data())
-            self.changed.fire(option_name, values)
+            self.changed.fire(option_key, values)
 
-        option_name = option["option"]
+        option_key = option["option"]
         value = value or default or {}
         try:
             value = list(value.items())
@@ -503,7 +511,7 @@ class WidgetGenerator:
             value = {}
 
         grid = EditableGrid(value, columns=["Key", "Value"])
-        grid.connect("changed", on_changed, option_name)
+        grid.connect("changed", on_changed, option_key)
         return self.build_option_widget(option, grid)
 
 
