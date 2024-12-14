@@ -74,6 +74,9 @@ class WidgetGenerator(ABC):
         if self.wrapper:
             self.option_container = self.create_option_container(self.wrapper)
 
+            # Mark advanced option containers, to be hidden by checking for this
+            self.option_container.lutris_advanced = bool(option.get("advanced"))
+
         return option_widget
 
     def generate_widget(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:

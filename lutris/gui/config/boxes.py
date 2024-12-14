@@ -78,7 +78,9 @@ class ConfigBox(VBox):
                     visible_count += frame_visible_count
                     widget.set_visible(frame_visible_count > 0)
                 else:
-                    widget_visible = self.advanced_visibility or not widget.get_style_context().has_class("advanced")
+                    widget_visible = (
+                        self.advanced_visibility or not hasattr(widget, "lutris_advanced") or not widget.lutris_advanced
+                    )
                     if widget_visible and filter_text and hasattr(widget, "lutris_option_label"):
                         label = widget.lutris_option_label.lower()
                         helptext = widget.lutris_option_helptext.lower()
@@ -211,18 +213,14 @@ class ConfigBox(VBox):
 
                 self.message_updaters += gen.message_updaters
 
-                self.update_warnings()
-
-                # Hide if advanced
-                if option.get("advanced"):
-                    option_container.get_style_context().add_class("advanced")
-
                 option_container.lutris_option_key = option_key
                 option_container.lutris_option_label = option["label"]
                 option_container.lutris_option_helptext = option.get("help") or ""
                 current_vbox.pack_start(option_container, False, False, 0)
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
+
+        self.update_warnings()
         self.show_all()
 
         show_advanced = settings.read_setting("show_advanced_options") == "True"
