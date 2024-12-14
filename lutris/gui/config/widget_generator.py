@@ -72,24 +72,29 @@ class WidgetGenerator(ABC):
     def generate_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         option_widget = self.generate_widget(option, value, wrapper)
         if self.wrapper:
-            self.option_container = self.create_option_container(self.wrapper)
+            option_key = option["option"]
+            option_container = self.create_option_container(option, self.wrapper)
+
+            option_container.lutris_option_key = option_key
+            option_container.lutris_option_label = option["label"]
+            option_container.lutris_option_helptext = option.get("help") or ""
 
             # Mark advanced option containers, to be hidden by checking for this
-            self.option_container.lutris_advanced = bool(option.get("advanced"))
-            self.option_container.lutris_option = option
+            option_container.lutris_advanced = bool(option.get("advanced"))
+            option_container.lutris_option = option
 
             if "visible" in option:
                 visible = option["visible"]
                 if callable(visible):
-                    option_key = option["option"]
-                    option_container = self.option_container
 
                     def update_visible(arg):
                         option_container.lutris_visible = bool(visible(arg, option_key))
 
                     self.message_updaters.append(update_visible)
                 else:
-                    self.option_container.lutris_visible = bool(visible)
+                    option_container.lutris_visible = bool(visible)
+
+            self.option_container = option_container
 
         return option_widget
 
@@ -176,7 +181,7 @@ class WidgetGenerator(ABC):
 
         return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin_bottom=6, visible=True)
 
-    def create_option_container(self, wrapper: Gtk.Widget) -> Gtk.Widget:
+    def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Widget:
         """This creates a wrapper box around the widget wrapper, to support additional controls. The
         base implementation wraps 'wrapper' in a Box with the error and warning widgets; if
         there are none it just returns 'wrapper'."""

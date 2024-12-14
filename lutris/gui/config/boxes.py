@@ -180,7 +180,6 @@ class ConfigBox(VBox):
                 wrapper = gen.wrapper
                 option_container = gen.option_container
                 reset_btn = gen.reset_btn
-                default = gen.default_value
                 self.wrappers[option_key] = wrapper
 
                 # Switch to new section if required
@@ -193,12 +192,6 @@ class ConfigBox(VBox):
                     else:
                         current_vbox = self
 
-                # Reset button
-                if option_key in self.raw_config:
-                    self.set_style_property("font-weight", "bold", wrapper)
-                elif value != default:
-                    self.set_style_property("font-style", "italic", wrapper)
-
                 self.reset_buttons[option_key] = reset_btn
                 reset_btn.connect(
                     "clicked",
@@ -208,15 +201,7 @@ class ConfigBox(VBox):
                     wrapper,
                 )
 
-                if option_key not in self.raw_config:
-                    reset_btn.set_visible(False)
-                    reset_btn.set_no_show_all(True)
-
                 self.message_updaters += gen.message_updaters
-
-                option_container.lutris_option_key = option_key
-                option_container.lutris_option_label = option["label"]
-                option_container.lutris_option_helptext = option.get("help") or ""
                 current_vbox.pack_start(option_container, False, False, 0)
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
@@ -264,14 +249,6 @@ class ConfigBox(VBox):
         gen = self.get_widget_generator()
         gen.generate_widget(option, reset_value, wrapper=wrapper)
         self.update_warnings()
-
-    @staticmethod
-    def set_style_property(property_, value, wrapper):
-        """Add custom style."""
-        style_provider = Gtk.CssProvider()
-        style_provider.load_from_data("GtkHBox {{{}: {};}}".format(property_, value).encode())
-        style_context = wrapper.get_style_context()
-        style_context.add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
     class SectionFrame(Gtk.Frame):
         """A frame that is styled to have particular margins, and can have its frame hidden.
@@ -362,7 +339,28 @@ class ConfigWidgetGenerator(WidgetGenerator):
     def get_setting(self, option_key: str) -> Any:
         return self.config.get(option_key)
 
-    def create_option_container(self, wrapper: Gtk.Widget) -> Gtk.Widget:
+    def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
+        option_key = option["option"]
+        wrapper = super().create_wrapper_box(option, value, default)
+
+        if wrapper:
+            if option_key in self.raw_config:
+                self.set_style_property("font-weight", "bold", wrapper)
+            elif value != default:
+                self.set_style_property("font-style", "italic", wrapper)
+
+        return wrapper
+
+    @staticmethod
+    def set_style_property(property_, value, wrapper):
+        """Add custom style."""
+        style_provider = Gtk.CssProvider()
+        style_provider.load_from_data("GtkHBox {{{}: {};}}".format(property_, value).encode())
+        style_context = wrapper.get_style_context()
+        style_context.add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+    def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Widget:
+        option_key = option["option"]
         reset_container = Gtk.Box(visible=True)
         reset_container.set_margin_left(18)
         reset_container.pack_start(wrapper, True, True, 0)
@@ -373,12 +371,16 @@ class ConfigWidgetGenerator(WidgetGenerator):
         self.reset_btn.set_relief(Gtk.ReliefStyle.NONE)
         self.reset_btn.set_tooltip_text(_("Reset option to global or default config"))
 
+        if option_key not in self.raw_config:
+            self.reset_btn.set_visible(False)
+            self.reset_btn.set_no_show_all(True)
+
         placeholder = Gtk.Box()
         placeholder.set_size_request(32, 32)
 
         placeholder.pack_start(self.reset_btn, False, False, 0)
         reset_container.pack_end(placeholder, False, False, 5)
-        return super().create_option_container(reset_container)
+        return super().create_option_container(option, reset_container)
 
     def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
         tooltip = super().get_tooltip(option, value, default)
