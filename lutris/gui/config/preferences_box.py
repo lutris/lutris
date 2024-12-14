@@ -17,15 +17,35 @@ def _is_system_dark_by_default():
 
 class InterfacePreferencesBox(BaseConfigBox):
     settings_options = [
-        {"option": "hide_client_on_game_start", "label": _("Minimize client when a game is launched"), "type": "bool"},
-        {"option": "hide_text_under_icons", "label": _("Hide text under icons"), "type": "bool"},
+        {
+            "option": "hide_client_on_game_start",
+            "label": _("Minimize client when a game is launched"),
+            "type": "bool",
+            "help": _("Minimize the Lutris window while playing a game; it will return when the game exits."),
+        },
+        {
+            "option": "hide_text_under_icons",
+            "label": _("Hide text under icons"),
+            "type": "bool",
+            "help": _("Removes the names from the Lutris window when in grid view, but not list view."),
+        },
         {
             "option": "hide_badges_on_icons",
             "label": _("Hide badges on icons (Ctrl+p to toggle)"),
             "type": "bool",
             "accelerator": "<Primary>p",
+            "help": _("Removes the platform and missing-game badges from icons in the Lutris window."),
         },
-        {"option": "show_tray_icon", "label": _("Show Tray Icon"), "type": "bool", "visible": supports_status_icon},
+        {
+            "option": "show_tray_icon",
+            "label": _("Show Tray Icon"),
+            "type": "bool",
+            "visible": supports_status_icon,
+            "help": _(
+                "Adds a Lutris icon to the tray, and prevents Lutris from exiting when the Lutris window is closed. "
+                "You can still exit using the menu of the tray icon."
+            ),
+        },
         {
             "option": "discord_rpc",
             "label": _("Enable Discord Rich Presence for Available Games"),
@@ -41,6 +61,7 @@ class InterfacePreferencesBox(BaseConfigBox):
                 (_("Dark"), "dark"),
             ],
             "default": "default",
+            "help": _("Overrides Lutris's appearance to be light or dark."),
         },
     ]
 
