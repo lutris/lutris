@@ -72,11 +72,9 @@ class WidgetGenerator:
     def generate_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         option_widget = self.generate_widget(option, value, wrapper)
         if self.wrapper:
-            self.option_container = self.create_wrapper_container(self.wrapper)
-        return option_widget
+            self.option_container = self.create_option_container(self.wrapper)
 
-    def create_wrapper_container(self, wrapper: Gtk.Widget) -> Gtk.Widget:
-        return wrapper
+        return option_widget
 
     def generate_widget(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         """This creates a wrapper box and a label and widget within it according to the options dict
@@ -145,6 +143,25 @@ class WidgetGenerator:
             return None
 
         return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin_bottom=6, visible=True)
+
+    def create_option_container(self, wrapper: Gtk.Widget) -> Gtk.Widget:
+        """This creates a wrapper box around the widget wrapper, to support additional controls. The
+        base implementation wraps 'wrapper' in a Box with the error and warning widgets; if
+        there are none it just returns 'wrapper'."""
+
+        if self.error_widgets or self.warning_widgets:
+            option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+            option_container.pack_start(wrapper, False, False, 0)
+
+            for error_widget in self.error_widgets:
+                option_container.pack_start(error_widget, False, False, 0)
+
+            for warning_widget in self.warning_widgets:
+                option_container.pack_start(warning_widget, False, False, 0)
+
+            return option_container
+        else:
+            return wrapper
 
     def build_option_widget(
         self, option: Dict[str, Any], widget: Optional[Gtk.Widget], no_label: bool = False, expand: bool = True

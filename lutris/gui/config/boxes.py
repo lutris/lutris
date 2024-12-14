@@ -238,18 +238,11 @@ class ConfigBox(VBox):
                 if "condition" in option and not option["condition"]:
                     wrapper.set_sensitive(False)
 
-                if gen.error_widgets or gen.warning_widgets:
-                    option_body = option_container
-                    option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
-                    option_container.pack_start(option_body, False, False, 0)
-
                 for error_widget in gen.error_widgets:
                     self.error_boxes[option_key].append(error_widget)
-                    option_container.pack_start(error_widget, False, False, 0)
 
                 for warning_widget in gen.warning_widgets:
                     self.warning_boxes[option_key].append(warning_widget)
-                    option_container.pack_start(warning_widget, False, False, 0)
 
                 self.update_warnings()
 
@@ -414,10 +407,10 @@ class ConfigWidgetGenerator(WidgetGenerator):
         super().__init__(setting_provider)
         self.reset_btn: Optional[Gtk.Button] = None
 
-    def create_wrapper_container(self, wrapper: Gtk.Widget) -> Gtk.Widget:
-        option_container = Gtk.Box(visible=True)
-        option_container.set_margin_left(18)
-        option_container.pack_start(wrapper, True, True, 0)
+    def create_option_container(self, wrapper: Gtk.Widget) -> Gtk.Widget:
+        reset_container = Gtk.Box(visible=True)
+        reset_container.set_margin_left(18)
+        reset_container.pack_start(wrapper, True, True, 0)
 
         self.reset_btn = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
         self.reset_btn.set_valign(Gtk.Align.CENTER)
@@ -429,5 +422,5 @@ class ConfigWidgetGenerator(WidgetGenerator):
         placeholder.set_size_request(32, 32)
 
         placeholder.pack_start(self.reset_btn, False, False, 0)
-        option_container.pack_end(placeholder, False, False, 5)
-        return option_container
+        reset_container.pack_end(placeholder, False, False, 5)
+        return super().create_option_container(reset_container)
