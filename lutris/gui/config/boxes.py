@@ -1,7 +1,6 @@
 """Widget generators and their signal handlers"""
 
 import os
-from collections import defaultdict
 
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
@@ -39,7 +38,7 @@ class ConfigBox(VBox):
         self.files_list_store = None
         self.reset_buttons = {}
         self.wrappers = {}
-        self.message_widgets = defaultdict(list)
+        self.message_updaters = []
         self._advanced_visibility = False
         self._filter = ""
 
@@ -219,8 +218,7 @@ class ConfigBox(VBox):
                 if "condition" in option and not option["condition"]:
                     wrapper.set_sensitive(False)
 
-                if gen.message_widgets:
-                    self.message_widgets[option_key] += gen.message_widgets
+                self.message_updaters += gen.message_updaters
 
                 self.update_warnings()
 
@@ -240,9 +238,8 @@ class ConfigBox(VBox):
         self.advanced_visibility = show_advanced
 
     def update_warnings(self) -> None:
-        for box_list in self.message_widgets.values():
-            for box in box_list:
-                box.update_warning(self.lutris_config)
+        for updater in self.message_updaters:
+            updater(self.lutris_config)
 
     def on_option_changed(self, option_name, value):
         """Common actions when value changed on a widget"""

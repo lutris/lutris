@@ -36,7 +36,8 @@ class WidgetGenerator(ABC):
         self.tooltip_default: Optional[str] = None
         self.option_widget: Optional[Gtk.Widget] = None
         self.option_container: Optional[Gtk.Widget] = None
-        self.message_widgets: List[ConfigMessageBox] = []
+        self.message_widgets: List[Gtk.Widget] = []
+        self.message_updaters: List[Callable[[Any], bool]] = []
 
         self._generators: Dict[str, WidgetGenerator.GeneratorFunction] = {
             "label": self._generate_label,
@@ -91,6 +92,7 @@ class WidgetGenerator(ABC):
         self.option_widget = None
         self.option_container = None
         self.message_widgets.clear()
+        self.message_updaters.clear()
 
         if wrapper:
             # Destroy and recreate option widget
@@ -123,10 +125,12 @@ class WidgetGenerator(ABC):
         if "error" in option:
             error = ConfigErrorBox(option["error"], option_key, self.wrapper)
             self.message_widgets.append(error)
+            self.message_updaters.append(error.update_warning)
 
         if "warning" in option:
             warning = ConfigWarningBox(option["warning"], option_key)
             self.message_widgets.append(warning)
+            self.message_updaters.append(warning.update_warning)
 
         if option_widget:
             option_widget.show_all()
