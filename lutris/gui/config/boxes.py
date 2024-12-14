@@ -6,7 +6,7 @@ from collections import defaultdict
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 from gettext import gettext as _
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Dict, Optional
 
 # Third Party Libraries
 from gi.repository import Gtk
@@ -118,10 +118,10 @@ class ConfigBox(VBox):
         help_box.show_all()
 
     def get_widget_generator(self) -> "ConfigWidgetGenerator":
-        if not self.config:
+        if self.config is None or self.raw_config is None:
             raise RuntimeError("Widgets can't be generated before the config is initialized.")
 
-        gen = ConfigWidgetGenerator(self.config.get)
+        gen = ConfigWidgetGenerator(self.config.get, self.raw_config)
         gen.changed.register(self.on_option_changed)
 
         if self.game and self.game.directory:
@@ -185,7 +185,6 @@ class ConfigBox(VBox):
                 option_container = gen.option_container
                 reset_btn = gen.reset_btn
                 default = gen.default_value
-                tooltip_default = gen.tooltip_default
                 self.wrappers[option_key] = wrapper
 
                 # Switch to new section if required
@@ -198,12 +197,12 @@ class ConfigBox(VBox):
                     else:
                         current_vbox = self
 
+                # Reset button
                 if option_key in self.raw_config:
                     self.set_style_property("font-weight", "bold", wrapper)
                 elif value != default:
                     self.set_style_property("font-style", "italic", wrapper)
 
-                # Reset button
                 self.reset_buttons[option_key] = reset_btn
                 reset_btn.connect(
                     "clicked",
@@ -216,20 +215,6 @@ class ConfigBox(VBox):
                 if option_key not in self.raw_config:
                     reset_btn.set_visible(False)
                     reset_btn.set_no_show_all(True)
-
-                # Tooltip
-                helptext = option.get("help")
-                if isinstance(tooltip_default, str):
-                    helptext = helptext + "\n\n" if helptext else ""
-                    helptext += _("<b>Default</b>: ") + _(tooltip_default)
-                if value != default and option_key not in self.raw_config:
-                    helptext = helptext + "\n\n" if helptext else ""
-                    helptext += _(
-                        "<i>(Italic indicates that this option is modified in a lower configuration level.)</i>"
-                    )
-                if helptext:
-                    wrapper.props.has_tooltip = True
-                    wrapper.connect("query-tooltip", self.on_query_tooltip, helptext)
 
                 # Grey out option if condition unmet
                 if "condition" in option and not option["condition"]:
@@ -281,18 +266,6 @@ class ConfigBox(VBox):
             self.set_style_property("font-weight", "bold", wrapper)
 
         self.update_warnings()
-
-    @staticmethod
-    def on_query_tooltip(_widget, x, y, keybmode, tooltip, text):  # pylint: disable=unused-argument
-        """Prepare a custom tooltip with a fixed width"""
-        label = Label(text)
-        label.set_use_markup(True)
-        label.set_max_width_chars(60)
-        event_box = Gtk.EventBox()
-        event_box.add(label)
-        event_box.show_all()
-        tooltip.set_custom(event_box)
-        return True
 
     def on_reset_button_clicked(self, btn, option, _widget, wrapper):
         """Clear option (remove from config, reset option widget)."""
@@ -400,8 +373,9 @@ class SystemConfigBox(ConfigBox):
 
 
 class ConfigWidgetGenerator(WidgetGenerator):
-    def __init__(self, setting_provider: Callable[[str], Any]) -> None:
+    def __init__(self, setting_provider: Callable[[str], Any], raw_config) -> None:
         super().__init__(setting_provider)
+        self.raw_config = raw_config
         self.reset_btn: Optional[Gtk.Button] = None
 
     def create_option_container(self, wrapper: Gtk.Widget) -> Gtk.Widget:
@@ -421,3 +395,11 @@ class ConfigWidgetGenerator(WidgetGenerator):
         placeholder.pack_start(self.reset_btn, False, False, 0)
         reset_container.pack_end(placeholder, False, False, 5)
         return super().create_option_container(reset_container)
+
+    def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
+        tooltip = super().get_tooltip(option, value, default)
+        option_key = option["option"]
+        if value != default and option_key not in self.raw_config:
+            tooltip = tooltip + "\n\n" if tooltip else ""
+            tooltip += _("<i>(Italic indicates that this option is modified in a lower configuration level.)</i>")
+        return tooltip

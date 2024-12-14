@@ -116,6 +116,12 @@ class WidgetGenerator:
         self.option_widget = option_widget
         self.tooltip_default = self.tooltip_default or (default if isinstance(default, str) else None)
 
+        # Tooltip
+        tooltip = self.get_tooltip(option, value, default)
+        if tooltip:
+            self.wrapper.props.has_tooltip = True
+            self.wrapper.connect("query-tooltip", self.on_query_tooltip, tooltip)
+
         if "warning" in option:
             warning = ConfigWarningBox(option["warning"], option_key)
             self.warning_widgets.append(warning)
@@ -162,6 +168,13 @@ class WidgetGenerator:
             return option_container
         else:
             return wrapper
+
+    def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
+        tooltip = option.get("help")
+        if isinstance(self.tooltip_default, str):
+            tooltip = tooltip + "\n\n" if tooltip else ""
+            tooltip += _("<b>Default</b>: ") + self.tooltip_default
+        return tooltip
 
     def build_option_widget(
         self, option: Dict[str, Any], widget: Optional[Gtk.Widget], no_label: bool = False, expand: bool = True
@@ -248,7 +261,7 @@ class WidgetGenerator:
         switch = Gtk.Switch(active=active, valign=Gtk.Align.CENTER)
         switch.connect("notify::active", on_notify_active)
 
-        self.tooltip_default = "Enabled" if default else "Disabled"
+        self.tooltip_default = _("Enabled") if default else _("Disabled")
         return self.build_option_widget(option, switch, expand=False)
 
     # SpinButton
@@ -541,6 +554,18 @@ class WidgetGenerator:
         grid = EditableGrid(value, columns=["Key", "Value"])
         grid.connect("changed", on_changed, option_key)
         return self.build_option_widget(option, grid)
+
+    @staticmethod
+    def on_query_tooltip(_widget, _x, _y, _keybmode, tooltip, text):  # pylint: disable=unused-argument
+        """Prepare a custom tooltip with a fixed width"""
+        label = Label(text)
+        label.set_use_markup(True)
+        label.set_max_width_chars(60)
+        event_box = Gtk.EventBox()
+        event_box.add(label)
+        event_box.show_all()
+        tooltip.set_custom(event_box)
+        return True
 
 
 class UnderslungMessageBox(Gtk.Box):
