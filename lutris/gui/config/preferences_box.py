@@ -76,18 +76,18 @@ class InterfacePreferencesBox(BaseConfigBox):
         frame.add(listbox)
         self.pack_start(frame, False, False, 0)
 
-        gen = PreferencesWidgetGenerator()
+        gen = PreferencesWidgetGenerator(listbox)
         gen.changed.register(self.on_setting_changed)
 
         for option_dict in self.settings_options:
             value = settings.read_setting(option_dict["option"], default=None)
-            gen.generate_widget(option_dict, value)
+            gen.generate_container(option_dict, value)
 
-            if gen.wrapper:
+            if gen.option_container:
                 list_box_row = Gtk.ListBoxRow(visible=True)
                 list_box_row.set_selectable(False)
                 list_box_row.set_activatable(False)
-                list_box_row.add(gen.wrapper)
+                list_box_row.add(gen.option_container)
                 listbox.add(list_box_row)
                 self.message_updaters += gen.message_updaters
 

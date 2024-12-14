@@ -26,9 +26,12 @@ class WidgetGenerator(ABC):
 
     GeneratorFunction = Callable[[Dict[str, Any], Any, Any], Optional[Gtk.Widget]]
 
-    def __init__(self) -> None:
+    def __init__(self, parent: Gtk.Box) -> None:
         self._default_directory: Optional[str] = None
         self.changed = NotificationSource()  # takes option_key, new_value
+        self.parent = parent
+        self._current_parent: Optional[Gtk.Box] = None
+        self._current_section: Optional[str] = None
 
         # These are outputs sets by generate_widget()
         self.wrapper: Optional[Gtk.Widget] = None
@@ -69,7 +72,32 @@ class WidgetGenerator(ABC):
     def default_directory(self, new_dir: str) -> None:
         self._default_directory = new_dir
 
+    def add_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
+        """Generates the option's widget, wrapper and contain, and adds the container to the parent;
+        if the option uses 'section', then the container is actually placed inside a SectionFrame,
+        or with the previous frame if it is for the same section."""
+        option_widget = self.generate_container(option, value, wrapper)
+
+        if option_widget and self.option_container and self.parent:
+            # Switch to new section if required
+            if not self._current_parent:
+                self._current_parent = self.parent
+
+            if option.get("section") != self._current_section:
+                self._current_section = option.get("section")
+                if self._current_section:
+                    frame = SectionFrame(self._current_section)
+                    self._current_parent = frame.vbox
+                    self.parent.pack_start(frame, False, False, 0)
+                else:
+                    self._current_parent = self.parent
+
+            self._current_parent.pack_start(self.option_container, False, False, 0)
+        return option_widget
+
     def generate_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
+        """Creates the widget, wrapper, and container; this returns the widget, but self.option_container will receive
+        the container (or the wrapper if there's no container)."""
         option_widget = self.generate_widget(option, value, wrapper)
         if self.wrapper:
             option_key = option["option"]
@@ -599,6 +627,19 @@ class WidgetGenerator(ABC):
         event_box.show_all()
         tooltip.set_custom(event_box)
         return True
+
+
+class SectionFrame(Gtk.Frame):
+    """A frame that is styled to have particular margins, and can have its frame hidden.
+    This leaves the content but removes the margins and borders and all that, so it looks
+    like the frame was never there."""
+
+    def __init__(self, section):
+        super().__init__(label=section)
+        self.section = section
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.add(self.vbox)
+        self.get_style_context().add_class("section-frame")
 
 
 class UnderslungMessageBox(Gtk.Box):

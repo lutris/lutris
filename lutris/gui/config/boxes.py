@@ -14,7 +14,7 @@ from gi.repository import Gtk
 from lutris import settings, sysoptions
 from lutris.config import LutrisConfig
 from lutris.game import Game
-from lutris.gui.config.widget_generator import WidgetGenerator
+from lutris.gui.config.widget_generator import SectionFrame, WidgetGenerator
 from lutris.gui.widgets.common import Label, VBox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
@@ -73,7 +73,7 @@ class ConfigBox(VBox):
 
             visible_count = 0
             for widget in widgets:
-                if isinstance(widget, ConfigBox.SectionFrame):
+                if isinstance(widget, SectionFrame):
                     frame_visible_count = update_widgets(widget.vbox.get_children())
                     visible_count += frame_visible_count
                     widget.set_visible(frame_visible_count > 0)
@@ -122,7 +122,7 @@ class ConfigBox(VBox):
         if self.config is None or self.raw_config is None:
             raise RuntimeError("Widgets can't be generated before the config is initialized.")
 
-        gen = ConfigWidgetGenerator(self.config, self.raw_config)
+        gen = ConfigWidgetGenerator(self, self.config, self.raw_config)
         gen.changed.register(self.on_option_changed)
 
         if self.game and self.game.directory:
@@ -157,8 +157,6 @@ class ConfigBox(VBox):
             self.config = self.lutris_config.system_config
             self.raw_config = self.lutris_config.raw_system_config
 
-        current_section = None
-        current_vbox = self
         gen = self.get_widget_generator()
 
         # Go thru all options.
@@ -173,36 +171,12 @@ class ConfigBox(VBox):
                 value = self.config.get(option_key)
 
                 # Generate option widget
-                option_widget = gen.generate_container(option, value)
-                if not option_widget:
-                    continue
-
-                wrapper = gen.wrapper
-                option_container = gen.option_container
-                reset_btn = gen.reset_btn
-                self.wrappers[option_key] = wrapper
-
-                # Switch to new section if required
-                if option.get("section") != current_section:
-                    current_section = option.get("section")
-                    if current_section:
-                        frame = ConfigBox.SectionFrame(current_section)
-                        current_vbox = frame.vbox
-                        self.pack_start(frame, False, False, 0)
-                    else:
-                        current_vbox = self
-
-                self.reset_buttons[option_key] = reset_btn
-                reset_btn.connect(
-                    "clicked",
-                    self.on_reset_button_clicked,
-                    option,
-                    option_widget,
-                    wrapper,
-                )
-
-                self.message_updaters += gen.message_updaters
-                current_vbox.pack_start(option_container, False, False, 0)
+                option_container = gen.add_container(option, value)
+                if option_container:
+                    self.wrappers[option_key] = gen.wrapper
+                    self.reset_buttons[option_key] = gen.reset_btn
+                    self.message_updaters += gen.message_updaters
+                    gen.reset_btn.connect("clicked", self.on_reset_button_clicked, option, gen.wrapper)
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
 
@@ -232,7 +206,7 @@ class ConfigBox(VBox):
 
         self.update_warnings()
 
-    def on_reset_button_clicked(self, btn, option, _widget, wrapper):
+    def on_reset_button_clicked(self, btn, option, wrapper):
         """Clear option (remove from config, reset option widget)."""
         option_key = option["option"]
         current_value = self.config[option_key]
@@ -249,18 +223,6 @@ class ConfigBox(VBox):
         gen = self.get_widget_generator()
         gen.generate_widget(option, reset_value, wrapper=wrapper)
         self.update_warnings()
-
-    class SectionFrame(Gtk.Frame):
-        """A frame that is styled to have particular margins, and can have its frame hidden.
-        This leaves the content but removes the margins and borders and all that, so it looks
-        like the frame was never there."""
-
-        def __init__(self, section):
-            super().__init__(label=section)
-            self.section = section
-            self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            self.add(self.vbox)
-            self.get_style_context().add_class("section-frame")
 
 
 class GameBox(ConfigBox):
@@ -330,8 +292,8 @@ class SystemConfigBox(ConfigBox):
 
 
 class ConfigWidgetGenerator(WidgetGenerator):
-    def __init__(self, config, raw_config) -> None:
-        super().__init__()
+    def __init__(self, parent, config, raw_config) -> None:
+        super().__init__(parent)
         self.config = config
         self.raw_config = raw_config
         self.reset_btn: Optional[Gtk.Button] = None
