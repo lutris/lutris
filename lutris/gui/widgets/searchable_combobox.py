@@ -15,7 +15,7 @@ class SearchableCombobox(Gtk.Bin):
         "changed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
     }
 
-    def __init__(self, choice_func, initial=None):
+    def __init__(self, choices, initial=None):
         super().__init__()
         self.initial = initial
         self.liststore = Gtk.ListStore(str, str)
@@ -36,7 +36,7 @@ class SearchableCombobox(Gtk.Bin):
         self.combobox.connect("changed", self.on_combobox_change)
         self.combobox.connect("scroll-event", self._on_combobox_scroll)
         self.add(self.combobox)
-        GLib.idle_add(self._populate_combobox_choices, choice_func)
+        GLib.idle_add(self._populate_combobox_choices, choices)
 
     def get_model(self):
         """Proxy to the liststore"""
@@ -64,9 +64,12 @@ class SearchableCombobox(Gtk.Bin):
         """
         self.combobox.set_active_id(model[_iter][1])
 
-    def _populate_combobox_choices(self, choice_func):
+    def _populate_combobox_choices(self, choices):
         try:
-            for choice in choice_func():
+            if callable(choices):
+                choices = choices()
+
+            for choice in choices:
                 self.liststore.append(choice)
             entry = self.combobox.get_child()
             entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, None)
