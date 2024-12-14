@@ -36,8 +36,7 @@ class WidgetGenerator(ABC):
         self.tooltip_default: Optional[str] = None
         self.option_widget: Optional[Gtk.Widget] = None
         self.option_container: Optional[Gtk.Widget] = None
-        self.warning_widgets: List[ConfigMessageBox] = []
-        self.error_widgets: List[ConfigMessageBox] = []
+        self.message_widgets: List[ConfigMessageBox] = []
 
         self._generators: Dict[str, WidgetGenerator.GeneratorFunction] = {
             "label": self._generate_label,
@@ -91,8 +90,7 @@ class WidgetGenerator(ABC):
         self.tooltip_default = None
         self.option_widget = None
         self.option_container = None
-        self.warning_widgets.clear()
-        self.error_widgets.clear()
+        self.message_widgets.clear()
 
         if wrapper:
             # Destroy and recreate option widget
@@ -122,13 +120,13 @@ class WidgetGenerator(ABC):
             self.wrapper.props.has_tooltip = True
             self.wrapper.connect("query-tooltip", self.on_query_tooltip, tooltip)
 
-        if "warning" in option:
-            warning = ConfigWarningBox(option["warning"], option_key)
-            self.warning_widgets.append(warning)
-
         if "error" in option:
             error = ConfigErrorBox(option["error"], option_key, self.wrapper)
-            self.error_widgets.append(error)
+            self.message_widgets.append(error)
+
+        if "warning" in option:
+            warning = ConfigWarningBox(option["warning"], option_key)
+            self.message_widgets.append(warning)
 
         if option_widget:
             option_widget.show_all()
@@ -155,15 +153,12 @@ class WidgetGenerator(ABC):
         base implementation wraps 'wrapper' in a Box with the error and warning widgets; if
         there are none it just returns 'wrapper'."""
 
-        if self.error_widgets or self.warning_widgets:
+        if self.message_widgets:
             option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
             option_container.pack_start(wrapper, False, False, 0)
 
-            for error_widget in self.error_widgets:
+            for error_widget in self.message_widgets:
                 option_container.pack_start(error_widget, False, False, 0)
-
-            for warning_widget in self.warning_widgets:
-                option_container.pack_start(warning_widget, False, False, 0)
 
             return option_container
         else:

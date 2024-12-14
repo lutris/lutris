@@ -39,8 +39,7 @@ class ConfigBox(VBox):
         self.files_list_store = None
         self.reset_buttons = {}
         self.wrappers = {}
-        self.warning_boxes = defaultdict(list)
-        self.error_boxes = defaultdict(list)
+        self.message_widgets = defaultdict(list)
         self._advanced_visibility = False
         self._filter = ""
 
@@ -220,11 +219,8 @@ class ConfigBox(VBox):
                 if "condition" in option and not option["condition"]:
                     wrapper.set_sensitive(False)
 
-                for error_widget in gen.error_widgets:
-                    self.error_boxes[option_key].append(error_widget)
-
-                for warning_widget in gen.warning_widgets:
-                    self.warning_boxes[option_key].append(warning_widget)
+                if gen.message_widgets:
+                    self.message_widgets[option_key] += gen.message_widgets
 
                 self.update_warnings()
 
@@ -244,11 +240,7 @@ class ConfigBox(VBox):
         self.advanced_visibility = show_advanced
 
     def update_warnings(self) -> None:
-        for box_list in self.warning_boxes.values():
-            for box in box_list:
-                box.update_warning(self.lutris_config)
-
-        for box_list in self.error_boxes.values():
+        for box_list in self.message_widgets.values():
             for box in box_list:
                 box.update_warning(self.lutris_config)
 
