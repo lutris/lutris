@@ -1141,11 +1141,19 @@ class wine(Runner):
         if self.prefix_path:
             env["WINEPREFIX"] = self.prefix_path
 
-        if not ("WINEESYNC" in env and env["WINEESYNC"] == "1"):
+        if "WINEESYNC" not in env:
             env["WINEESYNC"] = "1" if self.runner_config.get("esync") else "0"
 
-        if not ("WINEFSYNC" in env and env["WINEFSYNC"] == "1"):
+        # Proton uses an env-var with the opposite sense!
+        if "PROTON_NO_ESYNC" not in env and not self.runner_config.get("esync"):
+            env["PROTON_NO_ESYNC"] = "1"
+
+        if "WINEFSYNC" not in env:
             env["WINEFSYNC"] = "1" if self.runner_config.get("fsync") else "0"
+
+        # Proton uses an env-var with the opposite sense!
+        if "PROTON_NO_FSYNC" not in env and not self.runner_config.get("fsync"):
+            env["PROTON_NO_FSYNC"] = "1"
 
         if self.runner_config.get("fsr"):
             env["WINE_FULLSCREEN_FSR"] = "1"
