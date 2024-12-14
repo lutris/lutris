@@ -18,6 +18,14 @@ from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 
+def set_style_property(property_name, value, wrapper):
+    """Add custom style."""
+    style_provider = Gtk.CssProvider()
+    style_provider.load_from_data("GtkHBox {{{}: {};}}".format(property_name, value).encode())
+    style_context = wrapper.get_style_context()
+    style_context.add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+
 class WidgetGenerator(ABC):
     """This class generates widgets for an options screen. It even adds the widgets
     to a 'wrapper' you supply. The specific widgets and generated according to an options
@@ -96,7 +104,8 @@ class WidgetGenerator(ABC):
         return option_container
 
     def generate_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
-        """Creates the widget, wrapper, and container; this returns the container (or the wrapper if there's no container)."""
+        """Creates the widget, wrapper, and container; this returns the container
+        (or the wrapper if there's no container)."""
         option_widget = self.generate_widget(option, value, wrapper)
         if option_widget and self.wrapper:
             option_key = option["option"]

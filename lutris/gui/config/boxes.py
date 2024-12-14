@@ -14,7 +14,7 @@ from gi.repository import Gtk
 from lutris import settings, sysoptions
 from lutris.config import LutrisConfig
 from lutris.game import Game
-from lutris.gui.config.widget_generator import SectionFrame, WidgetGenerator
+from lutris.gui.config.widget_generator import SectionFrame, WidgetGenerator, set_style_property
 from lutris.gui.widgets.common import Label, VBox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
@@ -202,7 +202,7 @@ class ConfigBox(VBox):
             reset_btn.set_visible(True)
 
         if wrapper:
-            self.set_style_property("font-weight", "bold", wrapper)
+            set_style_property("font-weight", "bold", wrapper)
 
         self.update_warnings()
 
@@ -212,7 +212,7 @@ class ConfigBox(VBox):
         current_value = self.config[option_key]
 
         btn.set_visible(False)
-        self.set_style_property("font-weight", "normal", wrapper)
+        set_style_property("font-weight", "normal", wrapper)
         self.raw_config.pop(option_key, None)
         self.lutris_config.update_cascaded_config()
 
@@ -307,19 +307,11 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
         if wrapper:
             if option_key in self.raw_config:
-                self.set_style_property("font-weight", "bold", wrapper)
+                set_style_property("font-weight", "bold", wrapper)
             elif value != default:
-                self.set_style_property("font-style", "italic", wrapper)
+                set_style_property("font-style", "italic", wrapper)
 
         return wrapper
-
-    @staticmethod
-    def set_style_property(property_, value, wrapper):
-        """Add custom style."""
-        style_provider = Gtk.CssProvider()
-        style_provider.load_from_data("GtkHBox {{{}: {};}}".format(property_, value).encode())
-        style_context = wrapper.get_style_context()
-        style_context.add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
     def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Widget:
         option_key = option["option"]
