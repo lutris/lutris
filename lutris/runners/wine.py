@@ -66,6 +66,11 @@ from lutris.util.wine.wine import (
 )
 
 
+def _is_pre_proton(config: LutrisConfig, _option_key: str) -> bool:
+    version = config.runner_config.get("version")
+    return not proton.is_proton_version(version)
+
+
 def _get_version_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
     arch = config.game_config.get("arch")
     version = config.runner_config.get("version")
@@ -301,6 +306,7 @@ class wine(Runner):
                 "label": _("Enable DXVK"),
                 "type": "bool",
                 "default": True,
+                "visible": _is_pre_proton,
                 "warning": _get_dxvk_warning,
                 "error": lambda c, k: _get_simple_vulkan_support_error(c, k, _("DXVK")),
                 "active": True,
@@ -316,6 +322,7 @@ class wine(Runner):
                 "label": _("DXVK version"),
                 "advanced": True,
                 "type": "choice_with_entry",
+                "visible": _is_pre_proton,
                 "condition": LINUX_SYSTEM.is_vulkan_supported(),
                 "choices": DXVKManager().version_choices,
                 "default": DXVKManager().version,
@@ -326,6 +333,7 @@ class wine(Runner):
                 "section": _("Graphics"),
                 "label": _("Enable VKD3D"),
                 "type": "bool",
+                "visible": _is_pre_proton,
                 "error": lambda c, k: _get_simple_vulkan_support_error(c, k, _("VKD3D")),
                 "default": True,
                 "active": True,
@@ -339,6 +347,7 @@ class wine(Runner):
                 "label": _("VKD3D version"),
                 "advanced": True,
                 "type": "choice_with_entry",
+                "visible": _is_pre_proton,
                 "condition": LINUX_SYSTEM.is_vulkan_supported(),
                 "choices": VKD3DManager().version_choices,
                 "default": VKD3DManager().version,
@@ -350,6 +359,7 @@ class wine(Runner):
                 "type": "bool",
                 "default": True,
                 "advanced": True,
+                "visible": _is_pre_proton,
                 "help": _(
                     "Replace Wine's D3DX and D3DCOMPILER libraries with alternative ones. "
                     "Needed for proper functionality of DXVK with some games."
@@ -360,6 +370,7 @@ class wine(Runner):
                 "section": _("Graphics"),
                 "label": _("D3D Extras version"),
                 "advanced": True,
+                "visible": _is_pre_proton,
                 "type": "choice_with_entry",
                 "choices": D3DExtrasManager().version_choices,
                 "default": D3DExtrasManager().version,
@@ -372,6 +383,7 @@ class wine(Runner):
                 "error": lambda c, k: _get_simple_vulkan_support_error(c, k, _("DXVK-NVAPI / DLSS")),
                 "default": True,
                 "advanced": True,
+                "visible": _is_pre_proton,
                 "help": _("Enable emulation of Nvidia's NVAPI and add DLSS support, if available."),
             },
             {
@@ -379,6 +391,7 @@ class wine(Runner):
                 "section": _("Graphics"),
                 "label": _("DXVK NVAPI version"),
                 "advanced": True,
+                "visible": _is_pre_proton,
                 "type": "choice_with_entry",
                 "choices": DXVKNVAPIManager().version_choices,
                 "default": DXVKNVAPIManager().version,
