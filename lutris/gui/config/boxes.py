@@ -6,7 +6,7 @@ from collections import defaultdict
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 from gettext import gettext as _
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
 # Third Party Libraries
 from gi.repository import Gtk
@@ -121,7 +121,7 @@ class ConfigBox(VBox):
         if self.config is None or self.raw_config is None:
             raise RuntimeError("Widgets can't be generated before the config is initialized.")
 
-        gen = ConfigWidgetGenerator(self.config.get, self.raw_config)
+        gen = ConfigWidgetGenerator(self.config, self.raw_config)
         gen.changed.register(self.on_option_changed)
 
         if self.game and self.game.directory:
@@ -373,10 +373,14 @@ class SystemConfigBox(ConfigBox):
 
 
 class ConfigWidgetGenerator(WidgetGenerator):
-    def __init__(self, setting_provider: Callable[[str], Any], raw_config) -> None:
-        super().__init__(setting_provider)
+    def __init__(self, config, raw_config) -> None:
+        super().__init__()
+        self.config = config
         self.raw_config = raw_config
         self.reset_btn: Optional[Gtk.Button] = None
+
+    def get_setting(self, option_key: str) -> Any:
+        return self.config.get(option_key)
 
     def create_option_container(self, wrapper: Gtk.Widget) -> Gtk.Widget:
         reset_container = Gtk.Box(visible=True)

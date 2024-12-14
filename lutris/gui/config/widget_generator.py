@@ -3,6 +3,7 @@
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 import os
+from abc import ABC, abstractmethod
 from gettext import gettext as _
 from typing import Any, Callable, Dict, List, Optional
 
@@ -17,7 +18,7 @@ from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 
-class WidgetGenerator:
+class WidgetGenerator(ABC):
     """This class generates widgets for an options screen. It even adds the widgets
     to a 'wrapper' you supply. The specific widgets and generated according to an options
     dict, and there's a NotificationSource for whenever the widget changes a value (you can supply this
@@ -25,8 +26,7 @@ class WidgetGenerator:
 
     GeneratorFunction = Callable[[Dict[str, Any], Any, Any], Optional[Gtk.Widget]]
 
-    def __init__(self, setting_provider: Callable[[str], Any]) -> None:
-        self._setting_provider = setting_provider
+    def __init__(self) -> None:
         self._default_directory: Optional[str] = None
         self.changed = NotificationSource()  # takes option_key, new_value
 
@@ -203,8 +203,9 @@ class WidgetGenerator:
                 self.wrapper.pack_start(widget, expand, expand, 0)
         return widget
 
-    def get_setting(self, option_name: str) -> Any:
-        return self._setting_provider(option_name)
+    @abstractmethod
+    def get_setting(self, option_key: str) -> Any:
+        raise NotImplementedError()
 
     # Label
     def _generate_label(self, option, value, default):

@@ -97,8 +97,8 @@ class PreferencesWidgetGenerator(WidgetGenerator):
     """This generator adjusts the spacing of the wrappers and packs widgets on the
     right to get the interface preferences layout instead of tje configuration one."""
 
-    def __init__(self):
-        super().__init__(read_setting)
+    def get_setting(self, option_key: str) -> Any:
+        return read_setting(option_key)
 
     def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
         box = super().create_wrapper_box(option, value, default)
