@@ -171,18 +171,24 @@ class ConfigBox(VBox):
                 option_key = option["option"]
                 value = self.config.get(option_key)
 
-                if "visible" in option:
-                    if callable(option["visible"]):
-                        option["visible"] = option["visible"]()
-
-                    if not option["visible"]:
-                        continue
-
                 if callable(option.get("choices")) and option["type"] != "choice_with_search":
                     option["choices"] = option["choices"]()
                 if callable(option.get("condition")):
                     option["condition"] = option["condition"]()
 
+                # Generate option widget
+                option_widget = gen.generate_container(option, value)
+                if not option_widget:
+                    continue
+
+                wrapper = gen.wrapper
+                option_container = gen.option_container
+                reset_btn = gen.reset_btn
+                default = gen.default_value
+                tooltip_default = gen.tooltip_default
+                self.wrappers[option_key] = wrapper
+
+                # Switch to new section if required
                 if option.get("section") != current_section:
                     current_section = option.get("section")
                     if current_section:
@@ -191,15 +197,6 @@ class ConfigBox(VBox):
                         self.pack_start(frame, False, False, 0)
                     else:
                         current_vbox = self
-
-                # Generate option widget
-                option_widget = gen.generate_container(option, value)
-                wrapper = gen.wrapper
-                option_container = gen.option_container
-                reset_btn = gen.reset_btn
-                default = gen.default_value
-                tooltip_default = gen.tooltip_default
-                self.wrappers[option_key] = wrapper
 
                 if option_key in self.raw_config:
                     self.set_style_property("font-weight", "bold", wrapper)
