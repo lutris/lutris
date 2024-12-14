@@ -106,13 +106,6 @@ class WidgetGenerator:
             if not self.wrapper:
                 return None
 
-        if "visible" in option:
-            if callable(option["visible"]):
-                option["visible"] = option["visible"]()
-
-            if not option["visible"]:
-                return None
-
         func = self._generators.get(option_type)
 
         if func:
