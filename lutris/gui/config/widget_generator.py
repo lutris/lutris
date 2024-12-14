@@ -35,6 +35,7 @@ class WidgetGenerator:
         self.default_value = None
         self.tooltip_default: Optional[str] = None
         self.option_widget: Optional[Gtk.Widget] = None
+        self.option_container: Optional[Gtk.Widget] = None
         self.warning_widgets: List[ConfigMessageBox] = []
         self.error_widgets: List[ConfigMessageBox] = []
 
@@ -68,6 +69,15 @@ class WidgetGenerator:
     def default_directory(self, new_dir: str) -> None:
         self._default_directory = new_dir
 
+    def generate_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
+        option_widget = self.generate_widget(option, value, wrapper)
+        if self.wrapper:
+            self.option_container = self.create_wrapper_container(self.wrapper)
+        return option_widget
+
+    def create_wrapper_container(self, wrapper: Gtk.Widget) -> Gtk.Widget:
+        return wrapper
+
     def generate_widget(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         """This creates a wrapper box and a label and widget within it according to the options dict
         given. The option widget itself, is returned, but this method also sets attributes on the
@@ -82,6 +92,7 @@ class WidgetGenerator:
         self.default_value = default
         self.tooltip_default = None
         self.option_widget = None
+        self.option_container = None
         self.warning_widgets.clear()
         self.error_widgets.clear()
 

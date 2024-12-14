@@ -6,6 +6,7 @@ from collections import defaultdict
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 from gettext import gettext as _
+from typing import Any, Callable, Optional
 
 # Third Party Libraries
 from gi.repository import Gtk
@@ -116,8 +117,11 @@ class ConfigBox(VBox):
 
         help_box.show_all()
 
-    def get_widget_generator(self):
-        gen = WidgetGenerator(self.config.get)
+    def get_widget_generator(self) -> "ConfigWidgetGenerator":
+        if not self.config:
+            raise RuntimeError("Widgets can't be generated before the config is initialized.")
+
+        gen = ConfigWidgetGenerator(self.config.get)
         gen.changed.register(self.on_option_changed)
 
         if self.game and self.game.directory:
@@ -189,8 +193,10 @@ class ConfigBox(VBox):
                         current_vbox = self
 
                 # Generate option widget
-                option_widget = gen.generate_widget(option, value)
+                option_widget = gen.generate_container(option, value)
                 wrapper = gen.wrapper
+                option_container = gen.option_container
+                reset_btn = gen.reset_btn
                 default = gen.default_value
                 tooltip_default = gen.tooltip_default
                 self.wrappers[option_key] = wrapper
@@ -201,11 +207,7 @@ class ConfigBox(VBox):
                     self.set_style_property("font-style", "italic", wrapper)
 
                 # Reset button
-                reset_btn = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
-                reset_btn.set_valign(Gtk.Align.CENTER)
-                reset_btn.set_margin_bottom(6)
-                reset_btn.set_relief(Gtk.ReliefStyle.NONE)
-                reset_btn.set_tooltip_text(_("Reset option to global or default config"))
+                self.reset_buttons[option_key] = reset_btn
                 reset_btn.connect(
                     "clicked",
                     self.on_reset_button_clicked,
@@ -213,15 +215,10 @@ class ConfigBox(VBox):
                     option_widget,
                     wrapper,
                 )
-                self.reset_buttons[option_key] = reset_btn
-
-                placeholder = Gtk.Box()
-                placeholder.set_size_request(32, 32)
 
                 if option_key not in self.raw_config:
                     reset_btn.set_visible(False)
                     reset_btn.set_no_show_all(True)
-                placeholder.pack_start(reset_btn, False, False, 0)
 
                 # Tooltip
                 helptext = option.get("help")
@@ -236,12 +233,6 @@ class ConfigBox(VBox):
                 if helptext:
                     wrapper.props.has_tooltip = True
                     wrapper.connect("query-tooltip", self.on_query_tooltip, helptext)
-
-                hbox = Gtk.Box(visible=True)
-                option_container = hbox
-                hbox.set_margin_left(18)
-                hbox.pack_end(placeholder, False, False, 5)
-                hbox.pack_start(wrapper, True, True, 0)
 
                 # Grey out option if condition unmet
                 if "condition" in option and not option["condition"]:
@@ -416,3 +407,27 @@ class SystemConfigBox(ConfigBox):
             self.generate_top_info_box(
                 _("If modified, these options supersede the same options from " "the global preferences.")
             )
+
+
+class ConfigWidgetGenerator(WidgetGenerator):
+    def __init__(self, setting_provider: Callable[[str], Any]) -> None:
+        super().__init__(setting_provider)
+        self.reset_btn: Optional[Gtk.Button] = None
+
+    def create_wrapper_container(self, wrapper: Gtk.Widget) -> Gtk.Widget:
+        option_container = Gtk.Box(visible=True)
+        option_container.set_margin_left(18)
+        option_container.pack_start(wrapper, True, True, 0)
+
+        self.reset_btn = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
+        self.reset_btn.set_valign(Gtk.Align.CENTER)
+        self.reset_btn.set_margin_bottom(6)
+        self.reset_btn.set_relief(Gtk.ReliefStyle.NONE)
+        self.reset_btn.set_tooltip_text(_("Reset option to global or default config"))
+
+        placeholder = Gtk.Box()
+        placeholder.set_size_request(32, 32)
+
+        placeholder.pack_start(self.reset_btn, False, False, 0)
+        option_container.pack_end(placeholder, False, False, 5)
+        return option_container
