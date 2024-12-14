@@ -341,6 +341,10 @@ class WidgetGenerator(ABC):
 
         option_key = option["option"]
         choices = option["choices"]
+
+        if callable(choices):
+            choices = choices()
+
         liststore = Gtk.ListStore(str, str)
         populate_combobox_choices()
         # With entry ("choice_with_entry" type)
@@ -384,8 +388,8 @@ class WidgetGenerator(ABC):
             self.changed.fire(option_key, new_value)
 
         option_key = option["option"]
-        choice_func = option["choices"]
-        combobox = SearchableCombobox(choice_func, value or default)
+        choices = option["choices"]
+        combobox = SearchableCombobox(choices, value or default)
         combobox.connect("changed", on_changed)
         return self.build_option_widget(option, combobox)
 

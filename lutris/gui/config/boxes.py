@@ -169,9 +169,6 @@ class ConfigBox(VBox):
                 option_key = option["option"]
                 value = self.config.get(option_key)
 
-                if callable(option.get("choices")) and option["type"] != "choice_with_search":
-                    option["choices"] = option["choices"]()
-
                 # Generate option widget
                 option_widget = gen.generate_container(option, value)
                 if not option_widget:
