@@ -40,7 +40,7 @@ class InterfacePreferencesBox(BaseConfigBox):
             "option": "show_tray_icon",
             "label": _("Show Tray Icon"),
             "type": "bool",
-            "visible": supports_status_icon,
+            "available": supports_status_icon,
             "help": _(
                 "Adds a Lutris icon to the tray, and prevents Lutris from exiting when the Lutris window is closed. "
                 "You can still exit using the menu of the tray icon."

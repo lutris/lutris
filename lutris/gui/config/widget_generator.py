@@ -76,6 +76,20 @@ class WidgetGenerator(ABC):
 
             # Mark advanced option containers, to be hidden by checking for this
             self.option_container.lutris_advanced = bool(option.get("advanced"))
+            self.option_container.lutris_option = option
+
+            if "visible" in option:
+                visible = option["visible"]
+                if callable(visible):
+                    option_key = option["option"]
+                    option_container = self.option_container
+
+                    def update_visible(arg):
+                        option_container.lutris_visible = bool(visible(arg, option_key))
+
+                    self.message_updaters.append(update_visible)
+                else:
+                    self.option_container.lutris_visible = bool(visible)
 
         return option_widget
 
@@ -150,14 +164,14 @@ class WidgetGenerator(ABC):
         """This creates the wrapper, which becomes the 'wrapper' attribute and which build_option_widget()
         populates. Returns None if the option is not visible; in that case no widget is generated either."""
 
-        visible = option.get("visible")
-        if visible is None:
-            visible = True
-        elif callable(visible):
-            visible = visible()
+        available = option.get("available")
+        if available is None:
+            available = True
+        elif callable(available):
+            available = available()
 
-        if not visible:
-            # If invisible, there's no wrapper, and no widget!
+        if not available:
+            # If not available, there's no wrapper, and no widget!
             return None
 
         return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin_bottom=6, visible=True)

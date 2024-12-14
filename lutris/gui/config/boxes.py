@@ -78,7 +78,8 @@ class ConfigBox(VBox):
                     visible_count += frame_visible_count
                     widget.set_visible(frame_visible_count > 0)
                 else:
-                    widget_visible = (
+                    widget_visible = not hasattr(widget, "lutris_visible") or widget.lutris_visible
+                    widget_visible = widget_visible and (
                         self.advanced_visibility or not hasattr(widget, "lutris_advanced") or not widget.lutris_advanced
                     )
                     if widget_visible and filter_text and hasattr(widget, "lutris_option_label"):
@@ -229,6 +230,7 @@ class ConfigBox(VBox):
     def update_warnings(self) -> None:
         for updater in self.message_updaters:
             updater(self.lutris_config)
+        self.update_option_visibility()
 
     def on_option_changed(self, option_name, value):
         """Common actions when value changed on a widget"""
