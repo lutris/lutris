@@ -73,12 +73,12 @@ class WidgetGenerator(ABC):
         self._default_directory = new_dir
 
     def add_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
-        """Generates the option's widget, wrapper and contain, and adds the container to the parent;
+        """Generates the option's widget, wrapper and container, and adds the container to the parent;
         if the option uses 'section', then the container is actually placed inside a SectionFrame,
         or with the previous frame if it is for the same section."""
-        option_widget = self.generate_container(option, value, wrapper)
+        option_container = self.generate_container(option, value, wrapper)
 
-        if option_widget and self.option_container and self.parent:
+        if option_container and self.parent:
             # Switch to new section if required
             if not self._current_parent:
                 self._current_parent = self.parent
@@ -92,14 +92,13 @@ class WidgetGenerator(ABC):
                 else:
                     self._current_parent = self.parent
 
-            self._current_parent.pack_start(self.option_container, False, False, 0)
-        return option_widget
+            self._current_parent.pack_start(option_container, False, False, 0)
+        return option_container
 
     def generate_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
-        """Creates the widget, wrapper, and container; this returns the widget, but self.option_container will receive
-        the container (or the wrapper if there's no container)."""
+        """Creates the widget, wrapper, and container; this returns the container (or the wrapper if there's no container)."""
         option_widget = self.generate_widget(option, value, wrapper)
-        if self.wrapper:
+        if option_widget and self.wrapper:
             option_key = option["option"]
             option_container = self.create_option_container(option, self.wrapper)
 
@@ -123,8 +122,9 @@ class WidgetGenerator(ABC):
                     option_container.lutris_visible = bool(visible)
 
             self.option_container = option_container
-
-        return option_widget
+            return option_container
+        else:
+            return None
 
     def generate_widget(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         """This creates a wrapper box and a label and widget within it according to the options dict
