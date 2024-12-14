@@ -176,9 +176,9 @@ def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAUL
         # use run so it does not wait.
         prefix = env.get("WINEPREFIX")
         if prefix and prefix in (c.env.get("WINEPREFIX") for c in RUNNING_COMMANDS):
-            env["PROTON_VERB"] = "run"
+            env["PROTON_VERB"] = "runinprefix"  # do *not* re-initialize a running prefix!
         else:
-            env["PROTON_VERB"] = "waitforexitandrun"
+            env["PROTON_VERB"] = "waitforexitandrun"  # does full initialization with proton-fixes
 
     locale = env.get("LC_ALL")
     host_locale = env.get("HOST_LC_ALL")
