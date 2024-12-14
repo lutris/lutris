@@ -323,7 +323,10 @@ class WidgetGenerator(ABC):
 
         option_key = option["option"]
 
-        active = to_bool(value) or to_bool(default) or False
+        active = to_bool(value)
+        if active is None:
+            active = bool(to_bool(default))
+
         switch = Gtk.Switch(active=active, valign=Gtk.Align.CENTER)
         switch.connect("notify::active", on_notify_active)
 
