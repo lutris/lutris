@@ -171,8 +171,6 @@ class ConfigBox(VBox):
 
                 if callable(option.get("choices")) and option["type"] != "choice_with_search":
                     option["choices"] = option["choices"]()
-                if callable(option.get("condition")):
-                    option["condition"] = option["condition"]()
 
                 # Generate option widget
                 option_widget = gen.generate_container(option, value)
@@ -213,10 +211,6 @@ class ConfigBox(VBox):
                 if option_key not in self.raw_config:
                     reset_btn.set_visible(False)
                     reset_btn.set_no_show_all(True)
-
-                # Grey out option if condition unmet
-                if "condition" in option and not option["condition"]:
-                    wrapper.set_sensitive(False)
 
                 self.message_updaters += gen.message_updaters
 

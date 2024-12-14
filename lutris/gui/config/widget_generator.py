@@ -116,6 +116,13 @@ class WidgetGenerator(ABC):
         self.option_widget = option_widget
         self.tooltip_default = self.tooltip_default or (default if isinstance(default, str) else None)
 
+        # Grey out option if condition unmet
+        if "condition" in option:
+            condition = option.get("condition")
+            if callable(condition):
+                condition = condition()
+            self.wrapper.set_sensitive(condition)
+
         # Tooltip
         tooltip = self.get_tooltip(option, value, default)
         if tooltip:
