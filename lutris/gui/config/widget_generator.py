@@ -141,7 +141,6 @@ class WidgetGenerator(ABC):
         generator. You get 'wrapper', 'default_value', 'tooltip_default' and 'option_widget' which restates
         the return value. This returns None if the entire option should be omitted."""
         option_type = option["type"]
-        option_key = option["option"]
         default = option.get("default")
         if callable(default):
             default = default()
@@ -175,18 +174,35 @@ class WidgetGenerator(ABC):
         self.option_widget = option_widget
         self.tooltip_default = self.tooltip_default or (default if isinstance(default, str) else None)
 
+        if option_widget:
+            option_widget.show_all()
+
+        self.configure_wrapper_box(self.wrapper, option, value, default)
+        return option_widget
+
+    def configure_wrapper_box(self, wrapper: Gtk.Widget, option: Dict[str, Any], value: Any, default: Any) -> None:
+        """Configures the wrapper box after it is created; this sets its tooltip, sensitivity, and
+        creates underslung message boxes."""
+        option_key = option["option"]
+
         # Grey out option if condition unmet
         if "condition" in option:
             condition = option.get("condition")
             if callable(condition):
-                condition = condition()
-            self.wrapper.set_sensitive(condition)
+
+                def update_condition(arg):
+                    sensitive = condition(arg, option_key)
+                    wrapper.set_sensitive(sensitive)
+
+                self.message_updaters.append(update_condition)
+            else:
+                wrapper.set_sensitive(condition)
 
         # Tooltip
         tooltip = self.get_tooltip(option, value, default)
         if tooltip:
-            self.wrapper.props.has_tooltip = True
-            self.wrapper.connect("query-tooltip", self.on_query_tooltip, tooltip)
+            wrapper.props.has_tooltip = True
+            wrapper.connect("query-tooltip", self.on_query_tooltip, tooltip)
 
         if "error" in option:
             error = ConfigErrorBox(option["error"], option_key, self.wrapper)
@@ -197,10 +213,6 @@ class WidgetGenerator(ABC):
             warning = ConfigWarningBox(option["warning"], option_key)
             self.message_widgets.append(warning)
             self.message_updaters.append(warning.update_warning)
-
-        if option_widget:
-            option_widget.show_all()
-        return option_widget
 
     def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
         """This creates the wrapper, which becomes the 'wrapper' attribute and which build_option_widget()
@@ -723,5 +735,6 @@ class ConfigErrorBox(ConfigMessageBox):
 
     def update_warning(self, config: LutrisConfig) -> bool:
         visible = super().update_warning(config)
-        self.wrapper.set_sensitive(not visible)
+        if visible:
+            self.wrapper.set_sensitive(False)
         return visible

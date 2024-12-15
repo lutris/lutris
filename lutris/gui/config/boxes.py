@@ -301,17 +301,14 @@ class ConfigWidgetGenerator(WidgetGenerator):
     def get_setting(self, option_key: str) -> Any:
         return self.config.get(option_key)
 
-    def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
+    def configure_wrapper_box(self, wrapper: Gtk.Widget, option: Dict[str, Any], value: Any, default: Any) -> None:
+        super().configure_wrapper_box(wrapper, option, value, default)
         option_key = option["option"]
-        wrapper = super().create_wrapper_box(option, value, default)
 
-        if wrapper:
-            if option_key in self.raw_config:
-                set_style_property("font-weight", "bold", wrapper)
-            elif value != default:
-                set_style_property("font-style", "italic", wrapper)
-
-        return wrapper
+        if option_key in self.raw_config:
+            set_style_property("font-weight", "bold", wrapper)
+        elif value != default:
+            set_style_property("font-style", "italic", wrapper)
 
     def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Widget:
         option_key = option["option"]

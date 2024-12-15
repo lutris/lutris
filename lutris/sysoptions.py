@@ -113,7 +113,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("GPU"),
         "choices": get_gpu_list,
         "default": "",
-        "condition": lambda: len(GPUS) > 1,
+        "condition": lambda *x: len(GPUS) > 1,
         "help": _("GPU to use to run games"),
     },
     {
@@ -147,7 +147,7 @@ system_options = [  # pylint: disable=invalid-name
         "default": False,
         "advanced": True,
         "available": is_display_x11,
-        "condition": is_compositing_enabled,
+        "condition": is_compositing_enabled(),
         "help": _("Disable desktop effects while game is running, " "reducing stuttering and increasing performance"),
     },
     {
