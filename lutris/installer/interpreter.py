@@ -8,7 +8,7 @@ from gi.repository import GObject
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import MisconfigurationError, AuthenticationError
+from lutris.exceptions import AuthenticationError, MisconfigurationError, UnavailableGameError
 from lutris.gui.dialogs.delegates import Delegate
 from lutris.installer import AUTO_EXE_PREFIX
 from lutris.installer.commands import CommandsMixin
@@ -203,7 +203,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             return []
         try:
             return self.service.get_extras(self.installer.service_appid)
-        except AuthenticationError:
+        except (AuthenticationError, UnavailableGameError) as ex:
+            logger.exception("Unable to download list of extras: %s", ex)
             return []
 
     def launch_install(self, ui_delegate):

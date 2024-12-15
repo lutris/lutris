@@ -5,7 +5,7 @@ from gettext import gettext as _
 
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
-from lutris.exceptions import UnavailableGameError, AuthenticationError
+from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
@@ -175,7 +175,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                     extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
                     installer_files = content_files + extra_files
             except (AuthenticationError, UnavailableGameError) as ex:
-                logger.error("Game not available: %s", ex)
+                logger.exception("Game not available: %s", ex)
                 installer_files = None
 
             if installer_files:
