@@ -535,7 +535,7 @@ def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
         "winecfg": wine_command + "cfg",
         "wineserver": wine_command + "server",
         "wineboot": wine_command + "boot",
-        "winetricks": wine_command,
+        "winetricks": winetricks_path,
     }
     env["WINEPREFIX"] = prefix
     # Ensure scripts you run see the desired version of WINE too
