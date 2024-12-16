@@ -209,7 +209,7 @@ class ConfigBox(VBox):
     def on_reset_button_clicked(self, btn, option, wrapper):
         """Clear option (remove from config, reset option widget)."""
         option_key = option["option"]
-        current_value = self.config[option_key]
+        current_value = self.config.get(option_key)
 
         btn.set_visible(False)
         set_style_property("font-weight", "normal", wrapper)
