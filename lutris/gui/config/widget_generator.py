@@ -637,7 +637,7 @@ class WidgetGenerator(ABC):
             value = {}
 
         grid = EditableGrid(value, columns=["Key", "Value"])
-        grid.connect("changed", on_changed, option_key)
+        grid.connect("changed", on_changed)
         return self.build_option_widget(option, grid)
 
     @staticmethod
