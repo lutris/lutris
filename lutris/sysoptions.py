@@ -227,6 +227,21 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "section": _("Gamescope"),
+        "option": "gamescope_realtime_scheduling",
+        "type": "bool",
+        "label": _("Realtime Scheduling"),
+        "advanced": True,
+        "default": False,
+        "condition": bool(system.can_find_executable("gamescope")),
+        "help": _(
+            "Use realtime scheduling.\n"
+            "Requires 'CAP_SYS_NICE=eip' capability set on gamescope:\n"
+            "\n"
+            "    <b>sudo setcap 'CAP_SYS_NICE=eip' $(which gamescope)</b>"
+        ),
+    },
+    {
+        "section": _("Gamescope"),
         "option": "gamescope_force_grab_cursor",
         "type": "bool",
         "label": _("Relative Mouse Mode"),
