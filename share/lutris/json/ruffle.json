@@ -41,7 +41,8 @@
                 ["Vulkan", "vulkan"],
                 ["Metal", "metal"],
                 ["DirectX 12", "dx12"],
-                ["DirectX 11", "dx11"]
+                ["DirectX 11", "dx11"],
+                ["OpenGL", "gl"]
             ],
             "default": "default",
             "argument": "--graphics"
