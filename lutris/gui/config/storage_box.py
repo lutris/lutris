@@ -42,7 +42,7 @@ class StorageBox(BaseConfigBox):
                 "default": os.path.expanduser("~/Games"),
                 "value": base_runner.default_path,
                 "help": _("The default folder where you install your games."),
-                "has_warning": False
+                "has_warning": False,
             },
             {
                 "name": _("Installer cache"),
@@ -53,18 +53,16 @@ class StorageBox(BaseConfigBox):
                     "If provided, files downloaded during game installs will be kept there\n"
                     "\nOtherwise, all downloaded files are discarded."
                 ),
-                "has_warning": False
+                "has_warning": False,
             },
             {
                 "name": _("Emulator BIOS files location"),
                 "setting": "bios_path",
                 "default": "",
                 "value": bios_path if bios_path else "",
-                "help": _(
-                    "The folder Lutris will search in for emulator BIOS files if needed"
-                ),
-                "has_warning": True
-            }
+                "help": _("The folder Lutris will search in for emulator BIOS files if needed"),
+                "has_warning": True,
+            },
         ]
         for path_setting in path_settings:
             widgets.append(self.get_directory_chooser(path_setting))
@@ -120,7 +118,7 @@ class StorageBox(BaseConfigBox):
                 if os.access(file_path, os.R_OK):
                     bios_path_size += os.path.getsize(file_path)
                     bios_path_file_count += 1
-                    bios_path_depth = path[len(bios_path):].count(os.sep)
+                    bios_path_depth = path[len(bios_path) :].count(os.sep)
 
         if bios_path_size > MAX_BIOS_PATH_SIZE:
             result = True
@@ -164,10 +162,7 @@ class StorageBox(BaseConfigBox):
 
                             bios_files.append(bios_file)
 
-                # create a JSON object out of the bios_files array
                 bios_files_cache_data = json.dumps(bios_files)
-                # save the JSON object to ~/.cache/lutris/bios-files.json (overwrite)
                 bios_files_cache_path = os.path.expanduser("~/.cache/lutris/bios-files.json")
                 with open(bios_files_cache_path, "w+") as bios_files_cache:
                     bios_files_cache.write(bios_files_cache_data)
-
