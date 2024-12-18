@@ -10,6 +10,7 @@ from lutris.config import LutrisConfig
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.common import FileChooserEntry, Label
 from lutris.runners.runner import Runner
+from lutris.util.system import get_md5_hash
 
 
 def get_md5_from_file(filepath):
@@ -120,11 +121,11 @@ class StorageBox(BaseConfigBox):
                     bios_path_file_count += 1
                     bios_path_depth = path[len(bios_path) :].count(os.sep)
 
-        if bios_path_size > MAX_BIOS_PATH_SIZE:
-            result = True
-        elif bios_path_file_count > MAX_BIOS_PATH_FILE_COUNT:
-            result = True
-        elif bios_path_depth > MAX_BIOS_PATH_DEPTH:
+        if (
+            bios_path_size > MAX_BIOS_PATH_SIZE or
+            bios_path_file_count > MAX_BIOS_PATH_FILE_COUNT or
+            bios_path_depth > MAX_BIOS_PATH_DEPTH
+        ):
             result = True
 
         self.bios_path_invalid_warning.set_visible(result)
@@ -158,7 +159,7 @@ class StorageBox(BaseConfigBox):
                             bios_file["size"] = os.path.getsize(file_path)
                             bios_file["date_created"] = os.path.getctime(file_path)
                             bios_file["date_modified"] = os.path.getmtime(file_path)
-                            bios_file["md5_hash"] = get_md5_from_file(file_path)
+                            bios_file["md5_hash"] = get_md5_hash(file_path)
 
                             bios_files.append(bios_file)
 
