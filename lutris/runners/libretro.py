@@ -1,6 +1,8 @@
 """libretro runner"""
 
+import json
 import os
+import shutil
 from gettext import gettext as _
 from operator import itemgetter
 from zipfile import ZipFile
@@ -8,6 +10,7 @@ from zipfile import ZipFile
 import requests
 
 from lutris import settings
+from lutris.config import LutrisConfig
 from lutris.exceptions import GameConfigError, MissingGameExecutableError, UnspecifiedVersionError
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -209,6 +212,7 @@ class libretro(Runner):
             retro_config["rgui_config_directory"] = get_default_config_path("config")
             retro_config["overlay_directory"] = get_default_config_path("overlay")
             retro_config["assets_directory"] = get_default_config_path("assets")
+            retro_config["system_directory"] = get_default_config_path("system")
             retro_config.save()
         else:
             retro_config = RetroConfig(config_file)
@@ -224,14 +228,16 @@ class libretro(Runner):
             system_path = self.get_system_directory(retro_config)
             notes = str(retro_config["notes"] or "")
             checksums = {}
-            if notes.startswith("Suggested md5sums:"):
+            if notes.startswith("(!)"):
                 parts = notes.split("|")
-                for part in parts[1:]:
-                    checksum, filename = part.split(" = ")
+                for part in parts:
+                    filename, checksum = part.split(" (md5): ")
+                    filename = filename.replace("(!) ", "")
                     checksums[filename] = checksum
             for index in range(firmware_count):
                 firmware_filename = retro_config["firmware%d_path" % index]
                 firmware_path = os.path.join(system_path, firmware_filename)
+                firmware_name = firmware_filename.split("/")[-1]
                 if system.path_exists(firmware_path):
                     if firmware_filename in checksums:
                         checksum = system.get_md5_hash(firmware_path)
@@ -243,6 +249,22 @@ class libretro(Runner):
                         checksum_status = "No checksum info"
                     logger.info("Firmware '%s' found (%s)", firmware_filename, checksum_status)
                 else:
+                    bios_cache_path = os.path.expanduser("~/.cache/lutris/bios-files.json")
+                    if system.path_exists(bios_cache_path):
+                        with open(bios_cache_path) as bios_cache_data:
+                            bios_cache = json.load(bios_cache_data)
+                            for cached_firmware_record in bios_cache:
+                                target_checksum = checksums[firmware_filename]
+                                if cached_firmware_record["md5_hash"] == target_checksum:
+                                    lutris_config = LutrisConfig()
+                                    bios_path = lutris_config.raw_system_config["bios_path"]
+                                    #               if firmware is available according to bios file cache
+                                    system.create_folder(system_path)
+                                    shutil.copyfile(
+                                        f"{bios_path}/{cached_firmware_record["name"]}",
+                                        f"{system_path}/{firmware_name}",
+                                    )
+                    #                   copy firmware from bios folder to system_path
                     logger.warning("Firmware '%s' not found!", firmware_filename)
 
                 # Before closing issue #431
