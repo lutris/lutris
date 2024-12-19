@@ -122,9 +122,9 @@ class StorageBox(BaseConfigBox):
                     bios_path_depth = path[len(bios_path) :].count(os.sep)
 
         if (
-            bios_path_size > MAX_BIOS_PATH_SIZE or
-            bios_path_file_count > MAX_BIOS_PATH_FILE_COUNT or
-            bios_path_depth > MAX_BIOS_PATH_DEPTH
+            bios_path_size > MAX_BIOS_PATH_SIZE
+            or bios_path_file_count > MAX_BIOS_PATH_FILE_COUNT
+            or bios_path_depth > MAX_BIOS_PATH_DEPTH
         ):
             result = True
 
