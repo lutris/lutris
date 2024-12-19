@@ -258,20 +258,12 @@ class libretro(Runner):
                                 if cached_firmware_record["md5_hash"] == target_checksum:
                                     lutris_config = LutrisConfig()
                                     bios_path = lutris_config.raw_system_config["bios_path"]
-                                    #               if firmware is available according to bios file cache
                                     system.create_folder(system_path)
                                     shutil.copyfile(
                                         f"{bios_path}/{cached_firmware_record['name']}",
                                         f"{system_path}/{firmware_name}",
                                     )
-                    #                   copy firmware from bios folder to system_path
                     logger.warning("Firmware '%s' not found!", firmware_filename)
-
-                # Before closing issue #431
-                # TODO check for firmware*_opt and display an error message if
-                # firmware is missing
-                # TODO Add dialog for copying the firmware in the correct
-                # location
 
     def get_runner_parameters(self):
         parameters = []
