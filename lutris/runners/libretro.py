@@ -261,7 +261,7 @@ class libretro(Runner):
                                     #               if firmware is available according to bios file cache
                                     system.create_folder(system_path)
                                     shutil.copyfile(
-                                        f"{bios_path}/{cached_firmware_record["name"]}",
+                                        f"{bios_path}/{cached_firmware_record['name']}",
                                         f"{system_path}/{firmware_name}",
                                     )
                     #                   copy firmware from bios folder to system_path
