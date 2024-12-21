@@ -219,44 +219,52 @@ class WidgetGenerator(ABC):
         creates underslung message boxes."""
         option_key = option["option"]
 
-        # Grey out option if condition unmet, or second setting is False
-        if "condition" in option or "conditional_on" in option:
-            condition = option.get("condition")
-            conditional_on = option.get("conditional_on")
-            if callable(condition):
+        def configure_conditon():
+            # Grey out option if condition unmet, or if a second setting is False
+            if "condition" in option or "conditional_on" in option:
+                condition = option.get("condition")
+                conditional_on = option.get("conditional_on")
+                if callable(condition):  # also handle both options at once
 
-                def update_condition(*args, **kwargs):
-                    if conditional_on and not self.get_setting(conditional_on):
-                        sensitive = False
-                    else:
-                        sensitive = condition(*args, option_key, **kwargs)
-                    wrapper.set_sensitive(sensitive)
+                    def update_condition(*args, **kwargs):
+                        if conditional_on and not self.get_setting(conditional_on):
+                            sensitive = False
+                        else:
+                            sensitive = condition(*args, option_key, **kwargs)
+                        wrapper.set_sensitive(sensitive)
 
-                self.add_widget_updater(option, update_condition)
-            elif conditional_on:
+                    self.add_widget_updater(option, update_condition)
+                elif conditional_on:
 
-                def update_conditional_on(*args, **kwargs):
-                    wrapper.set_sensitive(self.get_setting(conditional_on))
+                    def update_conditional_on(*args, **kwargs):
+                        wrapper.set_sensitive(self.get_setting(conditional_on))
 
-                self.add_widget_updater(option, update_conditional_on)
-            elif "condition" in option:
-                wrapper.set_sensitive(condition)
+                    self.add_widget_updater(option, update_conditional_on)
+                elif "condition" in option:
+                    wrapper.set_sensitive(condition)
 
-        # Tooltip
-        tooltip = self.get_tooltip(option, value, default)
-        if tooltip:
-            wrapper.props.has_tooltip = True
-            wrapper.connect("query-tooltip", self.on_query_tooltip, tooltip)
+        def configure_tooltip():
+            # Attach a tooltip to the wrapper
+            tooltip = self.get_tooltip(option, value, default)
+            if tooltip:
+                wrapper.props.has_tooltip = True
+                wrapper.connect("query-tooltip", self.on_query_tooltip, tooltip)
 
-        if "error" in option:
-            error = ConfigErrorBox(option["error"], self.wrapper)
-            self.message_widgets.append(error)
-            self.add_widget_updater(option, lambda *a, **kw: error.update_warning(*a, option_key, **kw))
+        def configure_messages():
+            # Add underslung message boxes under the widget"
+            if "error" in option:
+                error = ConfigErrorBox(option["error"], self.wrapper)
+                self.message_widgets.append(error)
+                self.add_widget_updater(option, lambda *a, **kw: error.update_warning(*a, option_key, **kw))
 
-        if "warning" in option:
-            warning = ConfigWarningBox(option["warning"])
-            self.message_widgets.append(warning)
-            self.add_widget_updater(option, lambda *a, **kw: warning.update_warning(*a, option_key, **kw))
+            if "warning" in option:
+                warning = ConfigWarningBox(option["warning"])
+                self.message_widgets.append(warning)
+                self.add_widget_updater(option, lambda *a, **kw: warning.update_warning(*a, option_key, **kw))
+
+        configure_conditon()
+        configure_tooltip()
+        configure_messages()
 
     def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
         """This creates the wrapper, which becomes the 'wrapper' attribute and which build_option_widget()
