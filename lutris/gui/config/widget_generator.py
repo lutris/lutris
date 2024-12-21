@@ -59,13 +59,10 @@ class WidgetGenerator(ABC):
             "choice_with_entry": self._generate_choice_with_entry,
             "choice_with_search": self._generate_choice_with_search,
             "file": self._generate_file,
-            "command_line": self._generate_command_line,
             "multiple_file": self._generate_multiple_file,
             "directory": self._generate_directory,
             "mapping": self._generate_mapping,
-            # Backwards compatibility names (we're still using these though)
-            "multiple": self._generate_multiple_file,
-            "directory_chooser": self._generate_directory,
+            "command_line": self._generate_command_line,
         }
 
     @property
