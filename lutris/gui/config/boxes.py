@@ -162,14 +162,14 @@ class ConfigBox(VBox):
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
 
-        gen.update_widgets(self.lutris_config)
+        gen.update_widgets()
 
         show_advanced = settings.read_setting("show_advanced_options") == "True"
         self.advanced_visibility = show_advanced
 
     def update_widgets(self):
         if self._widget_generator:
-            self._widget_generator.update_widgets(self.lutris_config)
+            self._widget_generator.update_widgets()
 
     def update_option_visibility(self):
         if self._widget_generator:
@@ -189,7 +189,7 @@ class ConfigBox(VBox):
         if wrapper:
             set_style_property("font-weight", "bold", wrapper)
 
-        gen.update_widgets(self.lutris_config)
+        gen.update_widgets()
 
 
 class GameBox(ConfigBox):
@@ -260,7 +260,7 @@ class SystemConfigBox(ConfigBox):
 
 class ConfigWidgetGenerator(WidgetGenerator):
     def __init__(self, parent: ConfigBox) -> None:
-        super().__init__(parent)
+        super().__init__(parent, parent.lutris_config)
 
         if parent.config is None or parent.raw_config is None:
             raise RuntimeError("Widgets can't be generated before the config is initialized.")
@@ -307,8 +307,8 @@ class ConfigWidgetGenerator(WidgetGenerator):
         reset_container.pack_end(placeholder, False, False, 5)
         return super().create_option_container(option, reset_container)
 
-    def update_widgets(self, arg: Any) -> None:
-        super().update_widgets(arg)
+    def update_widgets(self) -> None:
+        super().update_widgets()
         self.update_option_visibility()
 
     def update_option_visibility(self) -> None:
@@ -357,4 +357,4 @@ class ConfigWidgetGenerator(WidgetGenerator):
             return
 
         self.generate_widget(option, reset_value, wrapper=wrapper)
-        self.update_widgets(self.lutris_config)
+        self.update_widgets()

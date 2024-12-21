@@ -27,9 +27,6 @@ def set_style_property(property_name, value, wrapper):
     style_context.add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 
-WidgetUpdaterFunction = Callable[[Any], Any]
-
-
 class WidgetGenerator(ABC):
     """This class generates widgets for an options screen. It even adds the widgets
     to a 'wrapper' you can supply. The specific widgets are generated according to an options
@@ -38,16 +35,22 @@ class WidgetGenerator(ABC):
     'changed' is a NotificationSource for whenever the generated widget changes a value;
     the same 'changed' NotificationSource is shared by all the widgets this generator generates.
 
+    The 'option' dict can contain callbacks; many of these are called by update_widgets() and
+    given whatever arguments are passed to __init__(), but with 'parent' left out and with the
+    option key added on. Others are called during generation take no arguments.
+
     The generator holds onto the widgets it generates so it can update their state when
     you call update_widgets(), but does so in dicts keyed on the option key, so you can
     regenerate a widget when desired by calling generate_widget() again."""
 
     GeneratorFunction = Callable[[Dict[str, Any], Any, Any], Optional[Gtk.Widget]]
 
-    def __init__(self, parent: Gtk.Box) -> None:
-        self._default_directory: Optional[str] = None
-        self.changed = NotificationSource()  # takes option_key, new_value
+    def __init__(self, parent: Gtk.Box, *callback_args, **callback_kwargs) -> None:
         self.parent = parent
+        self.callback_args = callback_args
+        self.callback_kwargs = callback_kwargs
+        self.changed = NotificationSource()  # takes option_key, new_value
+        self._default_directory: Optional[str] = None
         self._current_parent: Optional[Gtk.Box] = None
         self._current_section: Optional[str] = None
 
@@ -61,7 +64,7 @@ class WidgetGenerator(ABC):
 
         # These accumulate results across all widgets
         self.wrappers: Dict[str, Gtk.Widget] = {}
-        self.widget_updaters: DefaultDict[str, List[WidgetUpdaterFunction]] = defaultdict(list)
+        self.widget_updaters: DefaultDict[str, List[Callable]] = defaultdict(list)
 
         self._generators: Dict[str, WidgetGenerator.GeneratorFunction] = {
             "label": self._generate_label,
@@ -90,12 +93,12 @@ class WidgetGenerator(ABC):
     def default_directory(self, new_dir: str) -> None:
         self._default_directory = new_dir
 
-    def update_widgets(self, arg: Any) -> None:
+    def update_widgets(self) -> None:
         """Call this to update the visibility, sensitivity and other properties of
         the widgets, wrappers and containers already generated."""
         for updaters in self.widget_updaters.values():
             for updater in updaters:
-                updater(arg)
+                updater(*self.callback_args, **self.callback_kwargs)
 
     def add_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         """Generates the option's widget, wrapper and container, and adds the container to the parent;
@@ -141,8 +144,8 @@ class WidgetGenerator(ABC):
                 visible = option["visible"]
                 if callable(visible):
 
-                    def update_visible(arg):
-                        vis = bool(visible(arg, option_key))
+                    def update_visible(*args, **kwargs):
+                        vis = bool(visible(*args, option_key, **kwargs))
                         option_container.lutris_visible = vis
                         option_container.set_visible(vis)
 
@@ -214,8 +217,8 @@ class WidgetGenerator(ABC):
             condition = option.get("condition")
             if callable(condition):
 
-                def update_condition(arg):
-                    sensitive = condition(arg, option_key)
+                def update_condition(*args, **kwargs):
+                    sensitive = condition(*args, option_key, **kwargs)
                     wrapper.set_sensitive(sensitive)
 
                 self.add_widget_updater(option, update_condition)
@@ -229,14 +232,14 @@ class WidgetGenerator(ABC):
             wrapper.connect("query-tooltip", self.on_query_tooltip, tooltip)
 
         if "error" in option:
-            error = ConfigErrorBox(option["error"], option_key, self.wrapper)
+            error = ConfigErrorBox(option["error"], self.wrapper)
             self.message_widgets.append(error)
-            self.add_widget_updater(option, error.update_warning)
+            self.add_widget_updater(option, lambda *a, **kw: error.update_warning(*a, option_key, **kw))
 
         if "warning" in option:
-            warning = ConfigWarningBox(option["warning"], option_key)
+            warning = ConfigWarningBox(option["warning"])
             self.message_widgets.append(warning)
-            self.add_widget_updater(option, warning.update_warning)
+            self.add_widget_updater(option, lambda *a, **kw: warning.update_warning(*a, option_key, **kw))
 
     def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
         """This creates the wrapper, which becomes the 'wrapper' attribute and which build_option_widget()
@@ -270,7 +273,7 @@ class WidgetGenerator(ABC):
         else:
             return wrapper
 
-    def add_widget_updater(self, option: Dict[str, Any], updater: WidgetUpdaterFunction) -> None:
+    def add_widget_updater(self, option: Dict[str, Any], updater: Callable) -> None:
         self.widget_updaters[option["option"]].append(updater)
 
     def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
@@ -726,9 +729,8 @@ class UnderslungMessageBox(Gtk.Box):
 
 
 class ConfigMessageBox(UnderslungMessageBox):
-    def __init__(self, message, option_key, icon_name, **kwargs):
+    def __init__(self, message, icon_name, **kwargs):
         self.message = message
-        self.option_key = option_key
         super().__init__(icon_name, **kwargs)
 
         if not callable(message):
@@ -737,12 +739,12 @@ class ConfigMessageBox(UnderslungMessageBox):
             if text:
                 self.label.set_markup(str(text))
 
-    def update_warning(self, config: LutrisConfig) -> bool:
+    def update_warning(self, *args, **kwargs) -> bool:
         try:
             if callable(self.message):
-                text = self.message(config, self.option_key)
+                text = self.message(*args, **kwargs)
             else:
-                text = self.message
+                text = str(self.message)
         except Exception as err:
             logger.exception("Unable to generate configuration warning: %s", err)
             text = gtk_safe(str(err))
@@ -751,17 +753,17 @@ class ConfigMessageBox(UnderslungMessageBox):
 
 
 class ConfigWarningBox(ConfigMessageBox):
-    def __init__(self, warning, option_key):
-        super().__init__(warning, option_key, icon_name="dialog-warning")
+    def __init__(self, warning):
+        super().__init__(warning, icon_name="dialog-warning")
 
 
 class ConfigErrorBox(ConfigMessageBox):
-    def __init__(self, error, option_key, wrapper):
-        super().__init__(error, option_key, icon_name="dialog-error")
+    def __init__(self, error, wrapper):
+        super().__init__(error, icon_name="dialog-error")
         self.wrapper = wrapper
 
-    def update_warning(self, config: LutrisConfig) -> bool:
-        visible = super().update_warning(config)
+    def update_warning(self, *args, **kwargs) -> bool:
+        visible = super().update_warning(*args, **kwargs)
         if visible:
             self.wrapper.set_sensitive(False)
         return visible
