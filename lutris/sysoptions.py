@@ -79,7 +79,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "section": _("Lutris"),
         "option": "game_path",
-        "type": "directory_chooser",
+        "type": "directory",
         "label": _("Default installation folder"),
         "warn_if_non_writable_parent": True,
         "default": os.path.expanduser("~/Games"),

@@ -59,7 +59,7 @@ class scummvm(Runner):
     flatpak_id = "org.scummvm.ScummVM"
     game_options = [
         {"option": "game_id", "type": "string", "label": _("Game identifier")},
-        {"option": "path", "type": "directory_chooser", "label": _("Game files location")},
+        {"option": "path", "type": "directory", "label": _("Game files location")},
         {
             "option": "args",
             "type": "string",
@@ -249,7 +249,7 @@ class scummvm(Runner):
         {
             "option": "datadir",
             "label": _("Data directory"),
-            "type": "directory_chooser",
+            "type": "directory",
             "help": _("Defaults to share/scummvm if unspecified."),
             "advanced": True,
         },

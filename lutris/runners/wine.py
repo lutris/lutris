@@ -198,7 +198,7 @@ class wine(Runner):
         },
         {
             "option": "working_dir",
-            "type": "directory_chooser",
+            "type": "directory",
             "label": _("Working directory"),
             "help": _(
                 "The location where the game is run from.\n"
@@ -208,7 +208,7 @@ class wine(Runner):
         },
         {
             "option": "prefix",
-            "type": "directory_chooser",
+            "type": "directory",
             "label": _("Wine prefix"),
             "warning": _get_prefix_warning,
             "help": _(
@@ -611,7 +611,7 @@ class wine(Runner):
             },
             {
                 "option": "sandbox_dir",
-                "type": "directory_chooser",
+                "type": "directory",
                 "section": _("Sandbox"),
                 "label": _("Sandbox directory"),
                 "warn_if_non_writable_parent": True,

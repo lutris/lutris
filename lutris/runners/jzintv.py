@@ -30,7 +30,7 @@ class jzintv(Runner):
     runner_options = [
         {
             "option": "bios_path",
-            "type": "directory_chooser",
+            "type": "directory",
             "label": _("Bios location"),
             "help": _(
                 "Choose the folder containing the Intellivision BIOS "
