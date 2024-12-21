@@ -68,7 +68,6 @@ class InterfacePreferencesBox(BaseConfigBox):
     def __init__(self, accelerators):
         super().__init__()
         self.accelerators = accelerators
-        self.widget_updaters = []
 
         self.add(self.get_section_label(_("Interface options")))
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
@@ -78,6 +77,7 @@ class InterfacePreferencesBox(BaseConfigBox):
 
         gen = PreferencesWidgetGenerator(listbox)
         gen.changed.register(self.on_setting_changed)
+        self.widget_generator = gen
 
         for option_dict in self.settings_options:
             value = settings.read_setting(option_dict["option"], default=None)
@@ -89,15 +89,12 @@ class InterfacePreferencesBox(BaseConfigBox):
                 list_box_row.set_activatable(False)
                 list_box_row.add(gen.option_container)
                 listbox.add(list_box_row)
-                self.widget_updaters += gen.widget_updaters
 
-        for updater in self.widget_updaters:
-            updater(None)
+        self.widget_generator.update_widgets(None)
 
     def on_setting_changed(self, option_key, new_value):
         settings.write_setting(option_key, new_value)
-        for updater in self.widget_updaters:
-            updater(None)
+        self.widget_generator.update_widgets(None)
 
 
 class PreferencesWidgetGenerator(WidgetGenerator):

@@ -484,7 +484,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         config_box = box_factory()
         page_index = self._add_notebook_tab(self.build_scrolled_window(config_box), notebook_label)
 
-        self.notebook_page_updater[page_index] = config_box.update_warnings
+        self.notebook_page_updater[page_index] = config_box.update_widgets
 
         if page_index == 0:
             config_box.generate_widgets()

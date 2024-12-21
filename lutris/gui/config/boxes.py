@@ -37,8 +37,7 @@ class ConfigBox(VBox):
         self.files = []
         self.files_list_store = None
         self.reset_buttons = {}
-        self.wrappers = {}
-        self.widget_updaters = []
+        self._widget_generator = None
         self._advanced_visibility = False
         self._filter = ""
 
@@ -119,10 +118,10 @@ class ConfigBox(VBox):
         help_box.show_all()
 
     def get_widget_generator(self) -> "ConfigWidgetGenerator":
-        if self.config is None or self.raw_config is None:
-            raise RuntimeError("Widgets can't be generated before the config is initialized.")
+        if self._widget_generator:
+            return self._widget_generator
 
-        gen = ConfigWidgetGenerator(self, self.config, self.raw_config)
+        gen = ConfigWidgetGenerator(self)
         gen.changed.register(self.on_option_changed)
 
         if self.game and self.game.directory:
@@ -134,6 +133,7 @@ class ConfigBox(VBox):
         else:
             gen.default_directory = os.path.expanduser("~")
 
+        self._widget_generator = gen
         return gen
 
     def generate_widgets(self):  # noqa: C901 # pylint: disable=too-many-branches,too-many-statements
@@ -173,30 +173,28 @@ class ConfigBox(VBox):
                 # Generate option widget
                 option_container = gen.add_container(option, value)
                 if option_container:
-                    self.wrappers[option_key] = gen.wrapper
                     self.reset_buttons[option_key] = gen.reset_btn
-                    self.widget_updaters += gen.widget_updaters
                     gen.reset_btn.connect("clicked", self.on_reset_button_clicked, option, gen.wrapper)
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
 
-        self.update_warnings()
+        gen.update_widgets(self.lutris_config)
         self.show_all()
 
         show_advanced = settings.read_setting("show_advanced_options") == "True"
         self.advanced_visibility = show_advanced
 
-    def update_warnings(self) -> None:
-        for updater in self.widget_updaters:
-            updater(self.lutris_config)
-        self.update_option_visibility()
+    def update_widgets(self):
+        if self._widget_generator:
+            self._widget_generator.update_widgets(self.lutris_config)
 
     def on_option_changed(self, option_name, value):
         """Common actions when value changed on a widget"""
         self.raw_config[option_name] = value
         self.config[option_name] = value
+        gen = self.get_widget_generator()
         reset_btn = self.reset_buttons.get(option_name)
-        wrapper = self.wrappers.get(option_name)
+        wrapper = gen.wrappers.get(option_name)
 
         if reset_btn:
             reset_btn.set_visible(True)
@@ -204,7 +202,7 @@ class ConfigBox(VBox):
         if wrapper:
             set_style_property("font-weight", "bold", wrapper)
 
-        self.update_warnings()
+        gen.update_widgets(self.lutris_config)
 
     def on_reset_button_clicked(self, btn, option, wrapper):
         """Clear option (remove from config, reset option widget)."""
@@ -222,7 +220,7 @@ class ConfigBox(VBox):
 
         gen = self.get_widget_generator()
         gen.generate_widget(option, reset_value, wrapper=wrapper)
-        self.update_warnings()
+        gen.update_widgets(self.lutris_config)
 
 
 class GameBox(ConfigBox):
@@ -292,10 +290,14 @@ class SystemConfigBox(ConfigBox):
 
 
 class ConfigWidgetGenerator(WidgetGenerator):
-    def __init__(self, parent, config, raw_config) -> None:
+    def __init__(self, parent: ConfigBox) -> None:
         super().__init__(parent)
-        self.config = config
-        self.raw_config = raw_config
+
+        if parent.config is None or parent.raw_config is None:
+            raise RuntimeError("Widgets can't be generated before the config is initialized.")
+
+        self.config = parent.config
+        self.raw_config = parent.raw_config
         self.reset_btn: Optional[Gtk.Button] = None
 
     def get_setting(self, option_key: str) -> Any:
@@ -332,6 +334,10 @@ class ConfigWidgetGenerator(WidgetGenerator):
         placeholder.pack_start(self.reset_btn, False, False, 0)
         reset_container.pack_end(placeholder, False, False, 5)
         return super().create_option_container(option, reset_container)
+
+    def update_widgets(self, arg: Any) -> None:
+        super().update_widgets(arg)
+        self.parent.update_option_visibility()
 
     def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
         tooltip = super().get_tooltip(option, value, default)

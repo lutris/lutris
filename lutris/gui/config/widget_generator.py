@@ -4,8 +4,9 @@
 # pylint: disable=no-member,too-many-public-methods
 import os
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from gettext import gettext as _
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, DefaultDict, Dict, List, Optional
 
 # Third Party Libraries
 from gi.repository import Gdk, Gtk
@@ -26,6 +27,9 @@ def set_style_property(property_name, value, wrapper):
     style_context.add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 
+WidgetUpdaterFunction = Callable[[Any], Any]
+
+
 class WidgetGenerator(ABC):
     """This class generates widgets for an options screen. It even adds the widgets
     to a 'wrapper' you can supply. The specific widgets are generated according to an options
@@ -34,12 +38,11 @@ class WidgetGenerator(ABC):
     'changed' is a NotificationSource for whenever the generated widget changes a value;
     the same 'changed' NotificationSource is shared by all the widgets this generator generates.
 
-    'widget_updaters' is a list of callables that takes an argument that is ultimately passed to
-    functions in the options dicts. These should be called when the state of the options may have
-    changed to hide and show boxes, enable or disable widgets, and so forth."""
+    The generator holds onto the widgets it generates so it can update their state when
+    you call update_widgets(), but does so in dicts keyed on the option key, so you can
+    regenerate a widget when desired by calling generate_widget() again."""
 
     GeneratorFunction = Callable[[Dict[str, Any], Any, Any], Optional[Gtk.Widget]]
-    UpdaterFunction = Callable[[Any], Any]
 
     def __init__(self, parent: Gtk.Box) -> None:
         self._default_directory: Optional[str] = None
@@ -55,7 +58,10 @@ class WidgetGenerator(ABC):
         self.option_widget: Optional[Gtk.Widget] = None
         self.option_container: Optional[Gtk.Widget] = None
         self.message_widgets: List[Gtk.Widget] = []
-        self.widget_updaters: List[WidgetGenerator.UpdaterFunction] = []
+
+        # These accumulate results across all widgets
+        self.wrappers: Dict[str, Gtk.Widget] = {}
+        self.widget_updaters: DefaultDict[str, List[WidgetUpdaterFunction]] = defaultdict(list)
 
         self._generators: Dict[str, WidgetGenerator.GeneratorFunction] = {
             "label": self._generate_label,
@@ -83,6 +89,13 @@ class WidgetGenerator(ABC):
     @default_directory.setter
     def default_directory(self, new_dir: str) -> None:
         self._default_directory = new_dir
+
+    def update_widgets(self, arg: Any) -> None:
+        """Call this to update the visibility, sensitivity and other properties of
+        the widgets, wrappers and containers already generated."""
+        for updaters in self.widget_updaters.values():
+            for updater in updaters:
+                updater(arg)
 
     def add_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         """Generates the option's widget, wrapper and container, and adds the container to the parent;
@@ -130,7 +143,7 @@ class WidgetGenerator(ABC):
                     def update_visible(arg):
                         option_container.lutris_visible = bool(visible(arg, option_key))
 
-                    self.widget_updaters.append(update_visible)
+                    self.add_widget_updater(option, update_visible)
                 else:
                     option_container.lutris_visible = bool(visible)
 
@@ -144,6 +157,7 @@ class WidgetGenerator(ABC):
         given. The option widget itself, is returned, but this method also sets attributes on the
         generator. You get 'wrapper', 'default_value', 'tooltip_default' and 'option_widget' which restates
         the return value. This returns None if the entire option should be omitted."""
+        option_key = option["option"]
         option_type = option["type"]
         default = option.get("default")
         if callable(default):
@@ -154,7 +168,8 @@ class WidgetGenerator(ABC):
         self.option_widget = None
         self.option_container = None
         self.message_widgets.clear()
-        self.widget_updaters.clear()
+        self.wrappers.pop(option_key, None)
+        self.widget_updaters.pop(option_key, None)
 
         if wrapper:
             # Destroy and recreate option widget
@@ -175,6 +190,7 @@ class WidgetGenerator(ABC):
         else:
             raise ValueError("Unknown widget type %s" % option_type)
 
+        self.wrappers[option_key] = self.wrapper
         self.option_widget = option_widget
         self.tooltip_default = self.tooltip_default or (default if isinstance(default, str) else None)
 
@@ -198,7 +214,7 @@ class WidgetGenerator(ABC):
                     sensitive = condition(arg, option_key)
                     wrapper.set_sensitive(sensitive)
 
-                self.widget_updaters.append(update_condition)
+                self.add_widget_updater(option, update_condition)
             else:
                 wrapper.set_sensitive(condition)
 
@@ -211,12 +227,12 @@ class WidgetGenerator(ABC):
         if "error" in option:
             error = ConfigErrorBox(option["error"], option_key, self.wrapper)
             self.message_widgets.append(error)
-            self.widget_updaters.append(error.update_warning)
+            self.add_widget_updater(option, error.update_warning)
 
         if "warning" in option:
             warning = ConfigWarningBox(option["warning"], option_key)
             self.message_widgets.append(warning)
-            self.widget_updaters.append(warning.update_warning)
+            self.add_widget_updater(option, warning.update_warning)
 
     def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
         """This creates the wrapper, which becomes the 'wrapper' attribute and which build_option_widget()
@@ -249,6 +265,9 @@ class WidgetGenerator(ABC):
             return option_container
         else:
             return wrapper
+
+    def add_widget_updater(self, option: Dict[str, Any], updater: WidgetUpdaterFunction) -> None:
+        self.widget_updaters[option["option"]].append(updater)
 
     def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
         tooltip = option.get("help")
