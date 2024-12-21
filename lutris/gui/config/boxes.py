@@ -5,7 +5,7 @@ import os
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 from gettext import gettext as _
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 # Third Party Libraries
 from gi.repository import Gtk
@@ -36,7 +36,6 @@ class ConfigBox(VBox):
         self.raw_config = None
         self.files = []
         self.files_list_store = None
-        self.reset_buttons = {}
         self._widget_generator = None
         self._advanced_visibility = False
         self._filter = ""
@@ -171,10 +170,7 @@ class ConfigBox(VBox):
                 value = self.config.get(option_key)
 
                 # Generate option widget
-                option_container = gen.add_container(option, value)
-                if option_container:
-                    self.reset_buttons[option_key] = gen.reset_btn
-                    gen.reset_btn.connect("clicked", self.on_reset_button_clicked, option, gen.wrapper)
+                gen.add_container(option, value)
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
 
@@ -193,7 +189,7 @@ class ConfigBox(VBox):
         self.raw_config[option_name] = value
         self.config[option_name] = value
         gen = self.get_widget_generator()
-        reset_btn = self.reset_buttons.get(option_name)
+        reset_btn = gen.reset_buttons.get(option_name)
         wrapper = gen.wrappers.get(option_name)
 
         if reset_btn:
@@ -202,24 +198,6 @@ class ConfigBox(VBox):
         if wrapper:
             set_style_property("font-weight", "bold", wrapper)
 
-        gen.update_widgets(self.lutris_config)
-
-    def on_reset_button_clicked(self, btn, option, wrapper):
-        """Clear option (remove from config, reset option widget)."""
-        option_key = option["option"]
-        current_value = self.config.get(option_key)
-
-        btn.set_visible(False)
-        set_style_property("font-weight", "normal", wrapper)
-        self.raw_config.pop(option_key, None)
-        self.lutris_config.update_cascaded_config()
-
-        reset_value = self.config.get(option_key)
-        if current_value == reset_value:
-            return
-
-        gen = self.get_widget_generator()
-        gen.generate_widget(option, reset_value, wrapper=wrapper)
         gen.update_widgets(self.lutris_config)
 
 
@@ -298,7 +276,8 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
         self.config = parent.config
         self.raw_config = parent.raw_config
-        self.reset_btn: Optional[Gtk.Button] = None
+        self.lutris_config = parent.lutris_config
+        self.reset_buttons: Dict[str, Gtk.Button] = {}
 
     def get_setting(self, option_key: str) -> Any:
         return self.config.get(option_key)
@@ -318,20 +297,22 @@ class ConfigWidgetGenerator(WidgetGenerator):
         reset_container.set_margin_left(18)
         reset_container.pack_start(wrapper, True, True, 0)
 
-        self.reset_btn = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
-        self.reset_btn.set_valign(Gtk.Align.CENTER)
-        self.reset_btn.set_margin_bottom(6)
-        self.reset_btn.set_relief(Gtk.ReliefStyle.NONE)
-        self.reset_btn.set_tooltip_text(_("Reset option to global or default config"))
+        reset_button = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
+        reset_button.set_valign(Gtk.Align.CENTER)
+        reset_button.set_margin_bottom(6)
+        reset_button.set_relief(Gtk.ReliefStyle.NONE)
+        reset_button.set_tooltip_text(_("Reset option to global or default config"))
+        reset_button.connect("clicked", self.on_reset_button_clicked, option, self.wrapper)
+        self.reset_buttons[option_key] = reset_button
 
         if option_key not in self.raw_config:
-            self.reset_btn.set_visible(False)
-            self.reset_btn.set_no_show_all(True)
+            reset_button.set_visible(False)
+            reset_button.set_no_show_all(True)
 
         placeholder = Gtk.Box()
         placeholder.set_size_request(32, 32)
 
-        placeholder.pack_start(self.reset_btn, False, False, 0)
+        placeholder.pack_start(reset_button, False, False, 0)
         reset_container.pack_end(placeholder, False, False, 5)
         return super().create_option_container(option, reset_container)
 
@@ -346,3 +327,20 @@ class ConfigWidgetGenerator(WidgetGenerator):
             tooltip = tooltip + "\n\n" if tooltip else ""
             tooltip += _("<i>(Italic indicates that this option is modified in a lower configuration level.)</i>")
         return tooltip
+
+    def on_reset_button_clicked(self, btn, option, wrapper):
+        """Clear option (remove from config, reset option widget)."""
+        option_key = option["option"]
+        current_value = self.config.get(option_key)
+
+        btn.set_visible(False)
+        set_style_property("font-weight", "normal", wrapper)
+        self.raw_config.pop(option_key, None)
+        self.lutris_config.update_cascaded_config()
+
+        reset_value = self.config.get(option_key)
+        if current_value == reset_value:
+            return
+
+        self.generate_widget(option, reset_value, wrapper=wrapper)
+        self.update_widgets(self.lutris_config)
