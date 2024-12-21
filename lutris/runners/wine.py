@@ -71,6 +71,11 @@ def _is_pre_proton(config: LutrisConfig, _option_key: str) -> bool:
     return not proton.is_proton_version(version)
 
 
+def _is_sandboxed(config: LutrisConfig, _option_key: str) -> bool:
+    sandbox = config.runner_config.get("sandbox")
+    return bool(sandbox)
+
+
 def _get_version_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
     arch = config.game_config.get("arch")
     version = config.runner_config.get("version")
@@ -604,10 +609,10 @@ class wine(Runner):
                 "default": True,
                 "advanced": True,
                 "help": _(
-                    "Do not use $HOME for desktop integration folders.\n"
-                    "By default, it will use the directories in the confined "
-                    "Windows environment."
-                ),
+                    "Explicitly specify the location for desktop integration folders.\n"
+                    "If turned off, these are placed in '%s'"
+                )
+                % os.path.expanduser("~"),
             },
             {
                 "option": "sandbox_dir",
@@ -615,7 +620,11 @@ class wine(Runner):
                 "section": _("Sandbox"),
                 "label": _("Sandbox directory"),
                 "warn_if_non_writable_parent": True,
-                "help": _("Custom directory for desktop integration folders."),
+                "condition": _is_sandboxed,
+                "help": _(
+                    "Custom directory for desktop integration folders.\n"
+                    "If left blank, these folders are left in the prefix."
+                ),
                 "advanced": True,
             },
         ]
