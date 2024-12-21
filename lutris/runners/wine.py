@@ -329,6 +329,7 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "visible": _is_pre_proton,
                 "condition": LINUX_SYSTEM.is_vulkan_supported(),
+                "conditional_on": "dxvk",
                 "choices": DXVKManager().version_choices,
                 "default": DXVKManager().version,
                 "warning": _get_dxvk_version_warning,
@@ -354,6 +355,7 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "visible": _is_pre_proton,
                 "condition": LINUX_SYSTEM.is_vulkan_supported(),
+                "conditional_on": "vkd3d",
                 "choices": VKD3DManager().version_choices,
                 "default": VKD3DManager().version,
             },
@@ -376,6 +378,7 @@ class wine(Runner):
                 "label": _("D3D Extras version"),
                 "advanced": True,
                 "visible": _is_pre_proton,
+                "conditional_on": "d3d_extras",
                 "type": "choice_with_entry",
                 "choices": D3DExtrasManager().version_choices,
                 "default": D3DExtrasManager().version,
@@ -396,6 +399,7 @@ class wine(Runner):
                 "section": _("Graphics"),
                 "label": _("DXVK NVAPI version"),
                 "advanced": True,
+                "conditional_on": "dxvk_nvapi",
                 "visible": _is_pre_proton,
                 "type": "choice_with_entry",
                 "choices": DXVKNVAPIManager().version_choices,
@@ -422,6 +426,7 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "choices": dgvoodoo2Manager().version_choices,
                 "default": dgvoodoo2Manager().version,
+                "conditional_on": "dgvoodoo2",
             },
             {
                 "option": "esync",
@@ -500,6 +505,7 @@ class wine(Runner):
                 "section": _("Virtual Desktop"),
                 "label": _("Virtual desktop resolution"),
                 "type": "choice_with_entry",
+                "conditional_on": "Desktop",
                 "advanced": True,
                 "choices": DISPLAY_MANAGER.get_resolutions,
                 "help": _("The size of the virtual desktop in pixels."),
@@ -521,6 +527,7 @@ class wine(Runner):
                 "section": _("DPI"),
                 "label": _("DPI"),
                 "type": "string",
+                "conditional_on": "Dpi",
                 "advanced": True,
                 "help": _(
                     "The DPI to be used if 'Enable DPI Scaling' is turned on.\n"
@@ -620,7 +627,7 @@ class wine(Runner):
                 "section": _("Sandbox"),
                 "label": _("Sandbox directory"),
                 "warn_if_non_writable_parent": True,
-                "condition": _is_sandboxed,
+                "conditional_on": "sandbox",
                 "help": _(
                     "Custom directory for desktop integration folders.\n"
                     "If left blank, these folders are left in the prefix."

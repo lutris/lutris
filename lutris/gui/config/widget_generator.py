@@ -219,17 +219,27 @@ class WidgetGenerator(ABC):
         creates underslung message boxes."""
         option_key = option["option"]
 
-        # Grey out option if condition unmet
-        if "condition" in option:
+        # Grey out option if condition unmet, or second setting is False
+        if "condition" in option or "conditional_on" in option:
             condition = option.get("condition")
+            conditional_on = option.get("conditional_on")
             if callable(condition):
 
                 def update_condition(*args, **kwargs):
-                    sensitive = condition(*args, option_key, **kwargs)
+                    if conditional_on and not self.get_setting(conditional_on):
+                        sensitive = False
+                    else:
+                        sensitive = condition(*args, option_key, **kwargs)
                     wrapper.set_sensitive(sensitive)
 
                 self.add_widget_updater(option, update_condition)
-            else:
+            elif conditional_on:
+
+                def update_conditional_on(*args, **kwargs):
+                    wrapper.set_sensitive(self.get_setting(conditional_on))
+
+                self.add_widget_updater(option, update_conditional_on)
+            elif "condition" in option:
                 wrapper.set_sensitive(condition)
 
         # Tooltip
