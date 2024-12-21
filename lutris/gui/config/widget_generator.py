@@ -111,7 +111,7 @@ class WidgetGenerator(ABC):
             if option.get("section") != self._current_section:
                 self._current_section = option.get("section")
                 if self._current_section:
-                    frame = SectionFrame(self._current_section)
+                    frame = SectionFrame(self._current_section, visible=True)
                     self._current_parent = frame.vbox
                     self.parent.pack_start(frame, False, False, 0)
                 else:
@@ -127,6 +127,7 @@ class WidgetGenerator(ABC):
         if option_widget and self.wrapper:
             option_key = option["option"]
             option_container = self.create_option_container(option, self.wrapper)
+            option_container.show_all()
 
             option_container.lutris_option_key = option_key
             option_container.lutris_option_label = option["label"]
@@ -141,11 +142,14 @@ class WidgetGenerator(ABC):
                 if callable(visible):
 
                     def update_visible(arg):
-                        option_container.lutris_visible = bool(visible(arg, option_key))
+                        vis = bool(visible(arg, option_key))
+                        option_container.lutris_visible = vis
+                        option_container.set_visible(vis)
 
                     self.add_widget_updater(option, update_visible)
                 else:
                     option_container.lutris_visible = bool(visible)
+                    option_container.set_visible(visible)
 
             self.option_container = option_container
             return option_container
@@ -681,10 +685,10 @@ class SectionFrame(Gtk.Frame):
     This leaves the content but removes the margins and borders and all that, so it looks
     like the frame was never there."""
 
-    def __init__(self, section):
-        super().__init__(label=section)
+    def __init__(self, section, **kwargs):
+        super().__init__(label=section, **kwargs)
         self.section = section
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
         self.add(self.vbox)
         self.get_style_context().add_class("section-frame")
 

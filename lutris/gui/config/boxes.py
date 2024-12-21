@@ -5,7 +5,7 @@ import os
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 from gettext import gettext as _
-from typing import Any, Dict
+from typing import Any, Dict, Iterable
 
 # Third Party Libraries
 from gi.repository import Gtk
@@ -39,6 +39,7 @@ class ConfigBox(VBox):
         self._widget_generator = None
         self._advanced_visibility = False
         self._filter = ""
+        self._filter_text = ""
 
     @property
     def advanced_visibility(self):
@@ -60,40 +61,8 @@ class ConfigBox(VBox):
         """Sets the visibility of the options that have some text in the label or
         help-text."""
         self._filter = value
+        self._filter_text = value.casefold()
         self.update_option_visibility()
-
-    def update_option_visibility(self):
-        """Recursively searches out all the options and shows or hides them according to
-        the filter and advanced-visibility settings."""
-
-        def update_widgets(widgets):
-            filter_text = self.filter.lower()
-
-            visible_count = 0
-            for widget in widgets:
-                if isinstance(widget, SectionFrame):
-                    frame_visible_count = update_widgets(widget.vbox.get_children())
-                    visible_count += frame_visible_count
-                    widget.set_visible(frame_visible_count > 0)
-                else:
-                    widget_visible = not hasattr(widget, "lutris_visible") or widget.lutris_visible
-                    widget_visible = widget_visible and (
-                        self.advanced_visibility or not hasattr(widget, "lutris_advanced") or not widget.lutris_advanced
-                    )
-                    if widget_visible and filter_text and hasattr(widget, "lutris_option_label"):
-                        label = widget.lutris_option_label.lower()
-                        helptext = widget.lutris_option_helptext.lower()
-                        if filter_text not in label and filter_text not in helptext:
-                            widget_visible = False
-                    widget.set_visible(widget_visible)
-                    widget.set_no_show_all(not widget_visible)
-                    if widget_visible:
-                        visible_count += 1
-                        widget.show_all()
-
-            return visible_count
-
-        update_widgets(self.get_children())
 
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
@@ -117,6 +86,8 @@ class ConfigBox(VBox):
         help_box.show_all()
 
     def get_widget_generator(self) -> "ConfigWidgetGenerator":
+        """Returns an object that creates option widgets and tracks them; this is
+        lazy-initialized, but repeated calls return the same generator."""
         if self._widget_generator:
             return self._widget_generator
 
@@ -135,7 +106,24 @@ class ConfigBox(VBox):
         self._widget_generator = gen
         return gen
 
-    def generate_widgets(self):  # noqa: C901 # pylint: disable=too-many-branches,too-many-statements
+    def filter_widget(self, option_container: Gtk.Widget) -> bool:
+        """Called by the widget generate to filter option containers; return true for
+        those that should be visible."""
+        if not self.advanced_visibility:
+            is_advanced = hasattr(option_container, "lutris_advanced") and option_container.lutris_advanced
+            if is_advanced:
+                return False
+
+        filter_text = self._filter_text
+        if filter_text and hasattr(option_container, "lutris_option_label"):
+            label = option_container.lutris_option_label.casefold()
+            helptext = option_container.lutris_option_helptext.casefold()
+            if filter_text not in label and filter_text not in helptext:
+                return False
+
+        return True
+
+    def generate_widgets(self):
         """Parse the config dict and generates widget accordingly."""
         if not self.options:
             no_options_label = Label(_("No options available"), width_request=-1)
@@ -175,7 +163,6 @@ class ConfigBox(VBox):
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
 
         gen.update_widgets(self.lutris_config)
-        self.show_all()
 
         show_advanced = settings.read_setting("show_advanced_options") == "True"
         self.advanced_visibility = show_advanced
@@ -183,6 +170,10 @@ class ConfigBox(VBox):
     def update_widgets(self):
         if self._widget_generator:
             self._widget_generator.update_widgets(self.lutris_config)
+
+    def update_option_visibility(self):
+        if self._widget_generator:
+            self._widget_generator.update_option_visibility()
 
     def on_option_changed(self, option_name, value):
         """Common actions when value changed on a widget"""
@@ -318,7 +309,30 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
     def update_widgets(self, arg: Any) -> None:
         super().update_widgets(arg)
-        self.parent.update_option_visibility()
+        self.update_option_visibility()
+
+    def update_option_visibility(self) -> None:
+        """Recursively searches out all the options and shows or hides them according to
+        the filter and advanced-visibility settings."""
+
+        def update_widgets(widgets: Iterable[Gtk.Widget]) -> int:
+            visible_count = 0
+            for widget in widgets:
+                if isinstance(widget, SectionFrame):
+                    frame_visible_count = update_widgets(widget.vbox.get_children())
+                    visible_count += frame_visible_count
+                    widget.set_visible(frame_visible_count > 0)
+                else:
+                    widget_visible = not hasattr(widget, "lutris_visible") or widget.lutris_visible
+                    widget_visible = widget_visible and self.parent.filter_widget(widget)
+
+                    widget.set_visible(widget_visible)
+                    if widget_visible:
+                        visible_count += 1
+
+            return visible_count
+
+        update_widgets(self.parent.get_children())
 
     def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
         tooltip = super().get_tooltip(option, value, default)
