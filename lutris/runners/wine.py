@@ -604,21 +604,22 @@ class wine(Runner):
             {
                 "option": "sandbox",
                 "type": "bool",
-                "section": _("Sandbox"),
-                "label": _("Create a sandbox for Wine folders"),
+                "section": _("Desktop Integration Folder Isolation"),
+                "label": _("Place desktop folders specifically"),
                 "default": True,
                 "advanced": True,
                 "help": _(
                     "Explicitly specify the location for desktop integration folders.\n"
-                    "If turned off, these are placed in '%s'"
+                    "If turned off, these are placed in '%s'.\n"
+                    "These folders include 'Documents', 'Pictures' and others."
                 )
                 % os.path.expanduser("~"),
             },
             {
                 "option": "sandbox_dir",
                 "type": "directory",
-                "section": _("Sandbox"),
-                "label": _("Sandbox directory"),
+                "section": _("Desktop Integration Folder Isolation"),
+                "label": _("Integration folder location"),
                 "warn_if_non_writable_parent": True,
                 "condition": _is_sandboxed,
                 "help": _(
