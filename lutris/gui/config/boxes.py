@@ -38,7 +38,7 @@ class ConfigBox(VBox):
         self.files_list_store = None
         self.reset_buttons = {}
         self.wrappers = {}
-        self.message_updaters = []
+        self.widget_updaters = []
         self._advanced_visibility = False
         self._filter = ""
 
@@ -175,7 +175,7 @@ class ConfigBox(VBox):
                 if option_container:
                     self.wrappers[option_key] = gen.wrapper
                     self.reset_buttons[option_key] = gen.reset_btn
-                    self.message_updaters += gen.message_updaters
+                    self.widget_updaters += gen.widget_updaters
                     gen.reset_btn.connect("clicked", self.on_reset_button_clicked, option, gen.wrapper)
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
@@ -187,7 +187,7 @@ class ConfigBox(VBox):
         self.advanced_visibility = show_advanced
 
     def update_warnings(self) -> None:
-        for updater in self.message_updaters:
+        for updater in self.widget_updaters:
             updater(self.lutris_config)
         self.update_option_visibility()
 
