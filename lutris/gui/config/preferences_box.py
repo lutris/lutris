@@ -90,11 +90,10 @@ class InterfacePreferencesBox(BaseConfigBox):
                 list_box_row.add(gen.option_container)
                 listbox.add(list_box_row)
 
-        self.widget_generator.update_widgets(None)
+        gen.update_widgets()
 
     def on_setting_changed(self, option_key, new_value):
         settings.write_setting(option_key, new_value)
-        self.widget_generator.update_widgets(None)
 
 
 class PreferencesWidgetGenerator(WidgetGenerator):

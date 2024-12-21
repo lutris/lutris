@@ -92,7 +92,6 @@ class ConfigBox(VBox):
             return self._widget_generator
 
         gen = ConfigWidgetGenerator(self)
-        gen.changed.register(self.on_option_changed)
 
         if self.game and self.game.directory:
             gen.default_directory = self.game.directory
@@ -174,22 +173,6 @@ class ConfigBox(VBox):
     def update_option_visibility(self):
         if self._widget_generator:
             self._widget_generator.update_option_visibility()
-
-    def on_option_changed(self, option_name, value):
-        """Common actions when value changed on a widget"""
-        self.raw_config[option_name] = value
-        self.config[option_name] = value
-        gen = self.get_widget_generator()
-        reset_btn = gen.reset_buttons.get(option_name)
-        wrapper = gen.wrappers.get(option_name)
-
-        if reset_btn:
-            reset_btn.set_visible(True)
-
-        if wrapper:
-            set_style_property("font-weight", "bold", wrapper)
-
-        gen.update_widgets()
 
 
 class GameBox(ConfigBox):
@@ -358,3 +341,18 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
         self.generate_widget(option, reset_value, wrapper=wrapper)
         self.update_widgets()
+
+    def on_changed(self, option_key, new_value):
+        """Common actions when value changed on a widget"""
+        self.raw_config[option_key] = new_value
+        self.config[option_key] = new_value
+        reset_btn = self.reset_buttons.get(option_key)
+        wrapper = self.wrappers.get(option_key)
+
+        if reset_btn:
+            reset_btn.set_visible(True)
+
+        if wrapper:
+            set_style_property("font-weight", "bold", wrapper)
+
+        super().on_changed(option_key, new_value)

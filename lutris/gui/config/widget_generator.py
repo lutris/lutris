@@ -50,6 +50,7 @@ class WidgetGenerator(ABC):
         self.callback_args = callback_args
         self.callback_kwargs = callback_kwargs
         self.changed = NotificationSource()  # takes option_key, new_value
+        self.changed.register(self.on_changed, priority=1000)
         self._default_directory: Optional[str] = None
         self._current_parent: Optional[Gtk.Box] = None
         self._current_section: Optional[str] = None
@@ -80,6 +81,12 @@ class WidgetGenerator(ABC):
             "mapping": self._generate_mapping,
             "command_line": self._generate_command_line,
         }
+
+    def on_changed(self, option_key: str, new_value: Any) -> None:
+        """Called when any value is changed; this is called later than ordinary
+        handlers for the 'changed' notification, and by default just updates the
+        widgets."""
+        self.update_widgets()
 
     @property
     def default_directory(self) -> str:
