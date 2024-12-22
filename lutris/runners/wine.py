@@ -66,17 +66,17 @@ from lutris.util.wine.wine import (
 )
 
 
-def _is_pre_proton(config: LutrisConfig, _option_key: str) -> bool:
+def _is_pre_proton(_option_key: str, config: LutrisConfig) -> bool:
     version = config.runner_config.get("version")
     return not proton.is_proton_version(version)
 
 
-def _is_sandboxed(config: LutrisConfig, _option_key: str) -> bool:
+def _is_sandboxed(_option_key: str, config: LutrisConfig) -> bool:
     sandbox = config.runner_config.get("sandbox")
     return bool(sandbox)
 
 
-def _get_version_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+def _get_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     arch = config.game_config.get("arch")
     version = config.runner_config.get("version")
     if arch == "win32" and proton.is_proton_version(version):
@@ -85,7 +85,7 @@ def _get_version_warning(config: LutrisConfig, _option_key: str) -> Optional[str
     return None
 
 
-def _get_prefix_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     game_config = config.game_config
     if game_config.get("prefix"):
         return None
@@ -109,7 +109,7 @@ def _get_dxvk_warning(_config: LutrisConfig, _option_key: str) -> Optional[str]:
     return None
 
 
-def _get_simple_vulkan_support_error(config: LutrisConfig, option_key: str, feature: str) -> Optional[str]:
+def _get_simple_vulkan_support_error(option_key: str, config: LutrisConfig, feature: str) -> Optional[str]:
     if os.environ.get("LUTRIS_NO_VKQUERY"):
         return None
     if config.runner_config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
@@ -120,7 +120,7 @@ def _get_simple_vulkan_support_error(config: LutrisConfig, option_key: str, feat
     return None
 
 
-def _get_dxvk_version_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+def _get_dxvk_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     if os.environ.get("LUTRIS_NO_VKQUERY"):
         return None
     runner_config = config.runner_config
@@ -149,7 +149,7 @@ def _get_dxvk_version_warning(config: LutrisConfig, _option_key: str) -> Optiona
     return None
 
 
-def _get_esync_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+def _get_esync_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     if config.runner_config.get("esync"):
         limits_set = is_esync_limit_set()
         if not limits_set:
@@ -161,7 +161,7 @@ def _get_esync_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
     return ""
 
 
-def _get_fsync_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+def _get_fsync_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     if config.runner_config.get("fsync"):
         fsync_supported = is_fsync_supported()
         if not fsync_supported:
@@ -169,7 +169,7 @@ def _get_fsync_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
     return None
 
 
-def _get_virtual_desktop_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+def _get_virtual_desktop_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     message = _("Wine virtual desktop is no longer supported")
     runner_config = config.runner_config
     if runner_config.get("Desktop"):
@@ -313,7 +313,7 @@ class wine(Runner):
                 "default": True,
                 "visible": _is_pre_proton,
                 "warning": _get_dxvk_warning,
-                "error": lambda c, k: _get_simple_vulkan_support_error(c, k, _("DXVK")),
+                "error": lambda k, c: _get_simple_vulkan_support_error(k, c, _("DXVK")),
                 "active": True,
                 "help": _(
                     "Use DXVK to "
@@ -340,7 +340,7 @@ class wine(Runner):
                 "label": _("Enable VKD3D"),
                 "type": "bool",
                 "visible": _is_pre_proton,
-                "error": lambda c, k: _get_simple_vulkan_support_error(c, k, _("VKD3D")),
+                "error": lambda k, c: _get_simple_vulkan_support_error(k, c, _("VKD3D")),
                 "default": True,
                 "active": True,
                 "help": _(
@@ -388,7 +388,7 @@ class wine(Runner):
                 "section": _("Graphics"),
                 "label": _("Enable DXVK-NVAPI / DLSS"),
                 "type": "bool",
-                "error": lambda c, k: _get_simple_vulkan_support_error(c, k, _("DXVK-NVAPI / DLSS")),
+                "error": lambda k, c: _get_simple_vulkan_support_error(k, c, _("DXVK-NVAPI / DLSS")),
                 "default": True,
                 "advanced": True,
                 "visible": _is_pre_proton,

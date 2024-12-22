@@ -22,7 +22,7 @@ _supported_scale_factors = {
 }
 
 
-def _get_opengl_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+def _get_opengl_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     runner_config = config.runner_config
     if "scaler" in runner_config and "renderer" in runner_config:
         renderer = runner_config["renderer"]
@@ -34,7 +34,7 @@ def _get_opengl_warning(config: LutrisConfig, _option_key: str) -> Optional[str]
     return None
 
 
-def _get_scale_factor_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+def _get_scale_factor_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     """Generate a warning message for when the scaler and scale-factor can't be used together."""
     runner_config = config.runner_config
     if "scaler" in runner_config and "scale-factor" in runner_config:

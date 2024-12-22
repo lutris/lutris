@@ -37,7 +37,7 @@ class WidgetGenerator(ABC):
 
     The 'option' dict can contain callbacks; many of these are called by update_widgets() and
     given whatever arguments are passed to __init__(), but with 'parent' left out and with the
-    option key added on. Others are called during generation take no arguments.
+    option key prepended instead. Others are called during generation take no arguments.
 
     The generator holds onto the widgets it generates so it can update their state when
     you call update_widgets(), but does so in dicts keyed on the option key, so you can
@@ -152,7 +152,7 @@ class WidgetGenerator(ABC):
                 if callable(visible):
 
                     def update_visible(*args, **kwargs):
-                        vis = bool(visible(*args, option_key, **kwargs))
+                        vis = bool(visible(option_key, *args, **kwargs))
                         option_container.lutris_visible = vis
                         option_container.set_visible(vis)
 
@@ -230,7 +230,7 @@ class WidgetGenerator(ABC):
                         if conditional_on and not self.get_setting(conditional_on):
                             sensitive = False
                         else:
-                            sensitive = condition(*args, option_key, **kwargs)
+                            sensitive = condition(option_key, *args, **kwargs)
                         wrapper.set_sensitive(sensitive)
 
                     self.add_widget_updater(option, update_condition)
@@ -255,12 +255,12 @@ class WidgetGenerator(ABC):
             if "error" in option:
                 error = ConfigErrorBox(option["error"], self.wrapper)
                 self.message_widgets.append(error)
-                self.add_widget_updater(option, lambda *a, **kw: error.update_warning(*a, option_key, **kw))
+                self.add_widget_updater(option, lambda *a, **kw: error.update_warning(option_key, *a, **kw))
 
             if "warning" in option:
                 warning = ConfigWarningBox(option["warning"])
                 self.message_widgets.append(warning)
-                self.add_widget_updater(option, lambda *a, **kw: warning.update_warning(*a, option_key, **kw))
+                self.add_widget_updater(option, lambda *a, **kw: warning.update_warning(option_key, *a, **kw))
 
         configure_conditon()
         configure_tooltip()
