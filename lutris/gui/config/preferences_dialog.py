@@ -73,9 +73,9 @@ class PreferencesDialog(GameDialogCommon):
         self.page_generators["storage-stack"] = storage_box.populate
         self.stack.add_named(self.build_scrolled_window(storage_box), "storage-stack")
 
-        system_box = SystemConfigBox(self.config_level, self.lutris_config, visible=True)
-        self.page_generators["system-stack"] = system_box.generate_widgets
-        self.stack.add_named(self.build_scrolled_window(system_box), "system-stack")
+        self.system_box = SystemConfigBox(self.config_level, self.lutris_config, visible=True)
+        self.page_generators["system-stack"] = self.system_box.generate_widgets
+        self.stack.add_named(self.build_scrolled_window(self.system_box), "system-stack")
 
     def on_sidebar_activated(self, _listbox, row):
         stack_id = row.get_children()[0].stack_id
