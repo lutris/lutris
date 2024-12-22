@@ -26,8 +26,8 @@ class ConfigBox(VBox):
 
     config_section = NotImplemented
 
-    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game = None) -> None:
-        super().__init__()
+    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game = None, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.options = []
         self.config_level = config_level
         self.lutris_config = lutris_config
@@ -170,8 +170,8 @@ class ConfigBox(VBox):
 class GameBox(ConfigBox):
     config_section = "game"
 
-    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game):
-        ConfigBox.__init__(self, config_level, lutris_config, game)
+    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game, **kwargs):
+        ConfigBox.__init__(self, config_level, lutris_config, game, **kwargs)
         self.runner = game.runner
         if self.runner:
             self.options = self.runner.game_options
@@ -184,8 +184,8 @@ class RunnerBox(ConfigBox):
 
     config_section = "runner"
 
-    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game = None):
-        ConfigBox.__init__(self, config_level, lutris_config, game)
+    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game = None, **kwargs):
+        ConfigBox.__init__(self, config_level, lutris_config, game, **kwargs)
 
         try:
             self.runner = import_runner(self.lutris_config.runner_slug)()
@@ -209,8 +209,8 @@ class RunnerBox(ConfigBox):
 class SystemConfigBox(ConfigBox):
     config_section = "system"
 
-    def __init__(self, config_level: str, lutris_config: LutrisConfig) -> None:
-        ConfigBox.__init__(self, config_level, lutris_config)
+    def __init__(self, config_level: str, lutris_config: LutrisConfig, **kwargs) -> None:
+        ConfigBox.__init__(self, config_level, lutris_config, **kwargs)
         self.runner = None
         runner_slug = self.lutris_config.runner_slug
 
