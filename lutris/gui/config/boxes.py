@@ -5,7 +5,7 @@ import os
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 from gettext import gettext as _
-from typing import Any, Callable, Dict, Iterable, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union
 
 # Third Party Libraries
 from gi.repository import Gtk
@@ -14,7 +14,7 @@ from gi.repository import Gtk
 from lutris import settings, sysoptions
 from lutris.config import LutrisConfig
 from lutris.game import Game
-from lutris.gui.config.widget_generator import SectionFrame, WidgetGenerator, merge_flag_callables, set_style_property
+from lutris.gui.config.widget_generator import WidgetGenerator, merge_flag_callables, set_style_property
 from lutris.gui.widgets.common import Label, VBox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
@@ -50,7 +50,7 @@ class ConfigBox(VBox):
         """Sets the visibility of every 'advanced' option and every section that
         contains only 'advanced' options."""
         self._advanced_visibility = value
-        self.update_option_visibility()
+        self.update_widgets()
 
     @property
     def filter(self):
@@ -62,7 +62,7 @@ class ConfigBox(VBox):
         help-text."""
         self._filter = value
         self._filter_text = value.casefold()
-        self.update_option_visibility()
+        self.update_widgets()
 
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
@@ -169,11 +169,6 @@ class ConfigBox(VBox):
     def update_widgets(self):
         if self._widget_generator:
             self._widget_generator.update_widgets()
-
-    def update_option_visibility(self):
-        if self._widget_generator:
-            self._widget_generator.update_widgets()
-            self._widget_generator.update_option_visibility()
 
 
 class GameBox(ConfigBox):
@@ -291,10 +286,6 @@ class ConfigWidgetGenerator(WidgetGenerator):
         reset_container.pack_end(placeholder, False, False, 5)
         return super().create_option_container(option, reset_container)
 
-    def update_widgets(self) -> None:
-        super().update_widgets()
-        self.update_option_visibility()
-
     def get_visibility(self, option: Dict[str, Any]) -> Union[None, bool, Optional[Callable]]:
         option_visibility = super().get_visibility(option)
 
@@ -303,24 +294,6 @@ class ConfigWidgetGenerator(WidgetGenerator):
             return self.parent.filter_widget(option_container)
 
         return merge_flag_callables([option_visibility, check_visibility])
-
-    def update_option_visibility(self) -> None:
-        """Recursively searches out all the options and shows or hides them according to
-        the filter and advanced-visibility settings."""
-
-        def update_widgets(widgets: Iterable[Gtk.Widget]) -> int:
-            visible_count = 0
-            for widget in widgets:
-                if isinstance(widget, SectionFrame):
-                    frame_visible_count = update_widgets(widget.vbox.get_children())
-                    visible_count += frame_visible_count
-                    widget.set_visible(frame_visible_count > 0)
-                elif widget.get_visible():
-                    visible_count += 1
-
-            return visible_count
-
-        update_widgets(self.parent.get_children())
 
     def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
         tooltip = super().get_tooltip(option, value, default)

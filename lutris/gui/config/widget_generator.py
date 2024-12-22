@@ -89,6 +89,7 @@ class WidgetGenerator(ABC):
 
         # These accumulate results across all widgets
         self.wrappers: Dict[str, Gtk.Widget] = {}
+        self.section_frames: List[SectionFrame] = []
         self.option_containers: Dict[str, Gtk.Widget] = {}
         self.widget_updaters: DefaultDict[str, List[Callable]] = defaultdict(list)
 
@@ -132,6 +133,9 @@ class WidgetGenerator(ABC):
             for updater in updaters:
                 updater(*self.callback_args, **self.callback_kwargs)
 
+        for frame in self.section_frames:
+            frame.set_visible(frame.has_visible_children())
+
     def add_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         """Generates the option's widget, wrapper and container, and adds the container to the parent;
         if the option uses 'section', then the container is actually placed inside a SectionFrame,
@@ -147,6 +151,7 @@ class WidgetGenerator(ABC):
                 self._current_section = option.get("section")
                 if self._current_section:
                     frame = SectionFrame(self._current_section, visible=True)
+                    self.section_frames.append(frame)
                     self._current_parent = frame.vbox
                     self.parent.pack_start(frame, False, False, 0)
                 else:
@@ -754,6 +759,9 @@ class SectionFrame(Gtk.Frame):
         self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
         self.add(self.vbox)
         self.get_style_context().add_class("section-frame")
+
+    def has_visible_children(self):
+        return any(w for w in self.vbox.get_children() if w.get_visible())
 
 
 class UnderslungMessageBox(Gtk.Box):
