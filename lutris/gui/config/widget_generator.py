@@ -136,11 +136,11 @@ class WidgetGenerator(ABC):
         for frame in self.section_frames:
             frame.set_visible(frame.has_visible_children())
 
-    def add_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
+    def add_container(self, option: Dict[str, Any], wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         """Generates the option's widget, wrapper and container, and adds the container to the parent;
         if the option uses 'section', then the container is actually placed inside a SectionFrame,
         or in the previous frame if it is for the same section."""
-        option_container = self.generate_container(option, value, wrapper)
+        option_container = self.generate_container(option, wrapper)
 
         if option_container and self.parent:
             # Switch to new section if required
@@ -160,10 +160,10 @@ class WidgetGenerator(ABC):
             self._current_parent.pack_start(option_container, False, False, 0)
         return option_container
 
-    def generate_container(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
+    def generate_container(self, option: Dict[str, Any], wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         """Creates the widget, wrapper, and container; this returns the container
         (or the wrapper if there's no container)."""
-        option_widget = self.generate_widget(option, value, wrapper)
+        option_widget = self.generate_widget(option, wrapper)
         if option_widget and self.wrapper:
             option_key = option["option"]
             option_container = self.create_option_container(option, self.wrapper)
@@ -194,13 +194,14 @@ class WidgetGenerator(ABC):
         else:
             return None
 
-    def generate_widget(self, option: Dict[str, Any], value: Any, wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
+    def generate_widget(self, option: Dict[str, Any], wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         """This creates a wrapper box and a label and widget within it according to the options dict
         given. The option widget itself, is returned, but this method also sets attributes on the
         generator. You get 'wrapper', 'default_value', 'tooltip_default' and 'option_widget' which restates
         the return value. This returns None if the entire option should be omitted."""
         option_key = option["option"]
         option_type = option["type"]
+        value = self.get_setting(option_key)
         default = option.get("default")
         if callable(default):
             default = default()

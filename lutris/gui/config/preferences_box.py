@@ -79,9 +79,8 @@ class InterfacePreferencesBox(BaseConfigBox):
         gen.changed.register(self.on_setting_changed)
         self.widget_generator = gen
 
-        for option_dict in self.settings_options:
-            value = settings.read_setting(option_dict["option"], default=None)
-            gen.generate_container(option_dict, value)
+        for option in self.settings_options:
+            gen.generate_container(option)
 
             if gen.option_container:
                 list_box_row = Gtk.ListBoxRow(visible=True)
@@ -101,7 +100,7 @@ class PreferencesWidgetGenerator(WidgetGenerator):
     right to get the interface preferences layout instead of tje configuration one."""
 
     def get_setting(self, option_key: str) -> Any:
-        return read_setting(option_key)
+        return read_setting(option_key, default=None)
 
     def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
         box = super().create_wrapper_box(option, value, default)

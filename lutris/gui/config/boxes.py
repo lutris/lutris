@@ -147,17 +147,13 @@ class ConfigBox(VBox):
 
         # Go thru all options.
         for option in self.options:
-            option = option.copy()  # we will mutate this, so let's not alter the original
-
             try:
                 if "scope" in option:
                     if self.config_level not in option["scope"]:
                         continue
-                option_key = option["option"]
-                value = self.config.get(option_key)
 
                 # Generate option widget
-                gen.add_container(option, value)
+                gen.add_container(option)
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
 
@@ -272,7 +268,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
         reset_button.set_margin_bottom(6)
         reset_button.set_relief(Gtk.ReliefStyle.NONE)
         reset_button.set_tooltip_text(_("Reset option to global or default config"))
-        reset_button.connect("clicked", self.on_reset_button_clicked, option, self.wrapper)
+        reset_button.connect("clicked", self.on_reset_button_clicked, option)
         self.reset_buttons[option_key] = reset_button
 
         if option_key not in self.raw_config:
@@ -303,21 +299,18 @@ class ConfigWidgetGenerator(WidgetGenerator):
             tooltip += _("<i>(Italic indicates that this option is modified in a lower configuration level.)</i>")
         return tooltip
 
-    def on_reset_button_clicked(self, btn, option, wrapper):
+    def on_reset_button_clicked(self, btn, option):
         """Clear option (remove from config, reset option widget)."""
         option_key = option["option"]
-        current_value = self.config.get(option_key)
+        wrapper = self.wrappers[option_key]
 
         btn.set_visible(False)
         set_style_property("font-weight", "normal", wrapper)
+
         self.raw_config.pop(option_key, None)
         self.lutris_config.update_cascaded_config()
 
-        reset_value = self.config.get(option_key)
-        if current_value == reset_value:
-            return
-
-        self.generate_widget(option, reset_value, wrapper=wrapper)
+        self.generate_widget(option, wrapper=wrapper)
         self.update_widgets()
 
     def on_changed(self, option_key, new_value):
