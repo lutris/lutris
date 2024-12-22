@@ -5,7 +5,7 @@ import os
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 from gettext import gettext as _
-from typing import Any, Dict, Iterable
+from typing import Any, Callable, Dict, Iterable, Optional, Union
 
 # Third Party Libraries
 from gi.repository import Gtk
@@ -14,7 +14,7 @@ from gi.repository import Gtk
 from lutris import settings, sysoptions
 from lutris.config import LutrisConfig
 from lutris.game import Game
-from lutris.gui.config.widget_generator import SectionFrame, WidgetGenerator, set_style_property
+from lutris.gui.config.widget_generator import SectionFrame, WidgetGenerator, merge_flag_callables, set_style_property
 from lutris.gui.widgets.common import Label, VBox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
@@ -172,6 +172,7 @@ class ConfigBox(VBox):
 
     def update_option_visibility(self):
         if self._widget_generator:
+            self._widget_generator.update_widgets()
             self._widget_generator.update_option_visibility()
 
 
@@ -294,6 +295,15 @@ class ConfigWidgetGenerator(WidgetGenerator):
         super().update_widgets()
         self.update_option_visibility()
 
+    def get_visibility(self, option: Dict[str, Any]) -> Union[None, bool, Optional[Callable]]:
+        option_visibility = super().get_visibility(option)
+
+        def check_visibility(option_key, *args, **kwargs):
+            option_container = self.option_containers[option_key]
+            return self.parent.filter_widget(option_container)
+
+        return merge_flag_callables([option_visibility, check_visibility])
+
     def update_option_visibility(self) -> None:
         """Recursively searches out all the options and shows or hides them according to
         the filter and advanced-visibility settings."""
@@ -305,13 +315,8 @@ class ConfigWidgetGenerator(WidgetGenerator):
                     frame_visible_count = update_widgets(widget.vbox.get_children())
                     visible_count += frame_visible_count
                     widget.set_visible(frame_visible_count > 0)
-                else:
-                    widget_visible = not hasattr(widget, "lutris_visible") or widget.lutris_visible
-                    widget_visible = widget_visible and self.parent.filter_widget(widget)
-
-                    widget.set_visible(widget_visible)
-                    if widget_visible:
-                        visible_count += 1
+                elif widget.get_visible():
+                    visible_count += 1
 
             return visible_count
 

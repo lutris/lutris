@@ -6,7 +6,7 @@ import os
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from gettext import gettext as _
-from typing import Any, Callable, DefaultDict, Dict, List, Optional
+from typing import Any, Callable, DefaultDict, Dict, Iterable, List, Optional, Union, cast
 
 # Third Party Libraries
 from gi.repository import Gdk, Gtk
@@ -25,6 +25,30 @@ def set_style_property(property_name, value, wrapper):
     style_provider.load_from_data("GtkHBox {{{}: {};}}".format(property_name, value).encode())
     style_context = wrapper.get_style_context()
     style_context.add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+
+def merge_flag_callables(flags: Iterable[Union[None, bool, Callable]]) -> Union[None, bool, Callable]:
+    """Merges a collection of items that can be None, boolean or a callable to get a boolean. This
+    deduplicates the set, removing None and True, but returns None if nothing remains, False if
+    False is in the set, and otherwise a callable that evaluates the remaining callables
+    and returns False if any do."""
+    simplified = set(f if callable(f) else bool(f) for f in flags if f is not None)
+    simplified.discard(True)
+
+    if not simplified:
+        return None
+    elif False in simplified:
+        return False
+    elif len(simplified) == 1:
+        return cast(Callable, next(iter(simplified)))
+
+    def get_flag(*args, **kwargs):
+        for c in simplified:
+            if not c(*args, **kwargs):
+                return False
+        return True
+
+    return get_flag
 
 
 class WidgetGenerator(ABC):
@@ -65,6 +89,7 @@ class WidgetGenerator(ABC):
 
         # These accumulate results across all widgets
         self.wrappers: Dict[str, Gtk.Widget] = {}
+        self.option_containers: Dict[str, Gtk.Widget] = {}
         self.widget_updaters: DefaultDict[str, List[Callable]] = defaultdict(list)
 
         self._generators: Dict[str, WidgetGenerator.GeneratorFunction] = {
@@ -137,6 +162,7 @@ class WidgetGenerator(ABC):
         if option_widget and self.wrapper:
             option_key = option["option"]
             option_container = self.create_option_container(option, self.wrapper)
+            self.option_containers[option_key] = option_container
             option_container.show_all()
 
             option_container.lutris_option_key = option_key
@@ -147,18 +173,15 @@ class WidgetGenerator(ABC):
             option_container.lutris_advanced = bool(option.get("advanced"))
             option_container.lutris_option = option
 
-            if "visible" in option:
-                visible = option["visible"]
+            visible = self.get_visibility(option)
+            if visible is not None:
                 if callable(visible):
 
                     def update_visible(*args, **kwargs):
-                        vis = bool(visible(option_key, *args, **kwargs))
-                        option_container.lutris_visible = vis
-                        option_container.set_visible(vis)
+                        option_container.set_visible(visible(option_key, *args, **kwargs))
 
                     self.add_widget_updater(option, update_visible)
                 else:
-                    option_container.lutris_visible = bool(visible)
                     option_container.set_visible(visible)
 
             self.option_container = option_container
@@ -219,28 +242,17 @@ class WidgetGenerator(ABC):
         creates underslung message boxes."""
         option_key = option["option"]
 
-        def configure_conditon():
+        def configure_condition():
             # Grey out option if condition unmet, or if a second setting is False
-            if "condition" in option or "conditional_on" in option:
-                condition = option.get("condition")
-                conditional_on = option.get("conditional_on")
+            condition = self.get_condition(option)
+            if condition is not None:
                 if callable(condition):  # also handle both options at once
 
                     def update_condition(*args, **kwargs):
-                        if conditional_on and not self.get_setting(conditional_on):
-                            sensitive = False
-                        else:
-                            sensitive = condition(option_key, *args, **kwargs)
-                        wrapper.set_sensitive(sensitive)
+                        wrapper.set_sensitive(condition(option_key, *args, **kwargs))
 
                     self.add_widget_updater(option, update_condition)
-                elif conditional_on:
-
-                    def update_conditional_on(*args, **kwargs):
-                        wrapper.set_sensitive(self.get_setting(conditional_on))
-
-                    self.add_widget_updater(option, update_conditional_on)
-                elif "condition" in option:
+                else:
                     wrapper.set_sensitive(condition)
 
         def configure_tooltip():
@@ -262,7 +274,7 @@ class WidgetGenerator(ABC):
                 self.message_widgets.append(warning)
                 self.add_widget_updater(option, lambda *a, **kw: warning.update_warning(option_key, *a, **kw))
 
-        configure_conditon()
+        configure_condition()
         configure_tooltip()
         configure_messages()
 
@@ -706,6 +718,29 @@ class WidgetGenerator(ABC):
         event_box.show_all()
         tooltip.set_custom(event_box)
         return True
+
+    # Option access overrides
+
+    def get_visibility(self, option: Dict[str, Any]) -> Union[None, bool, Callable]:
+        """Extracts the 'visible' option; if present this can be a bool, or a callable that
+        returns the flag instead. This can be overridden in subclasses to provide additional
+        visibility control."""
+        return option.get("visible")
+
+    def get_condition(self, option: Dict[str, Any]) -> Union[None, bool, Callable]:
+        """Extracts the 'condition' option; but also the 'conditional_on' option, and if both
+        are present it combines them into a single callable."""
+        condition = option.get("condition")
+        conditional_on = option.get("conditional_on")
+
+        if conditional_on:
+
+            def get_conditional_on(*_args, **_kwargs):
+                return bool(self.get_setting(conditional_on))
+
+            return merge_flag_callables([get_conditional_on, condition])
+
+        return condition
 
 
 class SectionFrame(Gtk.Frame):
