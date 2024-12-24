@@ -4,9 +4,8 @@
 # pylint: disable=no-member,too-many-public-methods
 import os
 from abc import ABC, abstractmethod
-from collections import defaultdict
 from gettext import gettext as _
-from typing import Any, Callable, DefaultDict, Dict, Iterable, List, Optional, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Union
 
 # Third Party Libraries
 from gi.repository import Gdk, Gtk
@@ -25,30 +24,6 @@ def set_style_property(property_name, value, wrapper):
     style_provider.load_from_data("GtkHBox {{{}: {};}}".format(property_name, value).encode())
     style_context = wrapper.get_style_context()
     style_context.add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-
-
-def merge_flag_callables(flags: Iterable[Union[None, bool, Callable]]) -> Union[None, bool, Callable]:
-    """Merges a collection of items that can be None, boolean or a callable to get a boolean. This
-    deduplicates the set, removing None and True, but returns None if nothing remains, False if
-    False is in the set, and otherwise a callable that evaluates the remaining callables
-    and returns False if any do."""
-    simplified = set(f if callable(f) else bool(f) for f in flags if f is not None)
-    simplified.discard(True)
-
-    if not simplified:
-        return None
-    elif False in simplified:
-        return False
-    elif len(simplified) == 1:
-        return cast(Callable, next(iter(simplified)))
-
-    def get_flag(*args, **kwargs):
-        for c in simplified:
-            if not c(*args, **kwargs):
-                return False
-        return True
-
-    return get_flag
 
 
 class WidgetGenerator(ABC):
@@ -91,7 +66,6 @@ class WidgetGenerator(ABC):
         self.wrappers: Dict[str, Gtk.Widget] = {}
         self.section_frames: List[SectionFrame] = []
         self.option_containers: Dict[str, Gtk.Widget] = {}
-        self.widget_updaters: DefaultDict[str, List[Callable]] = defaultdict(list)
 
         self._generators: Dict[str, WidgetGenerator.GeneratorFunction] = {
             "label": self._generate_label,
@@ -129,12 +103,37 @@ class WidgetGenerator(ABC):
     def update_widgets(self) -> None:
         """Call this to update the visibility, sensitivity and other properties of
         the widgets, wrappers and containers already generated."""
-        for updaters in self.widget_updaters.values():
-            for updater in updaters:
-                updater(*self.callback_args, **self.callback_kwargs)
+
+        for option_key, container in self.option_containers.items():
+            if hasattr(container, "lutris_option"):
+                option = container.lutris_option
+                wrapper = self.wrappers[option_key]
+                self.update_option_container(option, container, wrapper)
 
         for frame in self.section_frames:
             frame.set_visible(frame.has_visible_children())
+
+    def update_option_container(self, option, container: Gtk.Box, wrapper: Gtk.Box):
+        """This method updates an option container and its wrapper; this re-evaluates the
+        relevant options in case they contain callables and those callables return different
+        results."""
+        args = self.callback_args
+        kwargs = self.callback_kwargs
+        option_key = option["option"]
+
+        # Hide entire container if the option is not visible
+        visible = self.get_visibility(option, *args, **kwargs)
+        container.set_visible(visible)
+
+        # Grey out option if condition unmet, or if a second setting is False
+        condition = self.get_condition(option, *args, **kwargs)
+        wrapper.set_sensitive(condition)
+
+        # Update messages in underslung message boxes that support doing
+        # this.
+        for ch in container.get_children():
+            if hasattr(ch, "update_message"):
+                ch.update_message(option_key, *args, **kwargs)
 
     def add_container(self, option: Dict[str, Any], wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         """Generates the option's widget, wrapper and container, and adds the container to the parent;
@@ -178,17 +177,6 @@ class WidgetGenerator(ABC):
             option_container.lutris_advanced = bool(option.get("advanced"))
             option_container.lutris_option = option
 
-            visible = self.get_visibility(option)
-            if visible is not None:
-                if callable(visible):
-
-                    def update_visible(*args, **kwargs):
-                        option_container.set_visible(visible(option_key, *args, **kwargs))
-
-                    self.add_widget_updater(option, update_visible)
-                else:
-                    option_container.set_visible(visible)
-
             self.option_container = option_container
             return option_container
         else:
@@ -212,7 +200,6 @@ class WidgetGenerator(ABC):
         self.option_container = None
         self.message_widgets.clear()
         self.wrappers.pop(option_key, None)
-        self.widget_updaters.pop(option_key, None)
 
         if wrapper:
             # Destroy and recreate option widget
@@ -246,20 +233,6 @@ class WidgetGenerator(ABC):
     def configure_wrapper_box(self, wrapper: Gtk.Widget, option: Dict[str, Any], value: Any, default: Any) -> None:
         """Configures the wrapper box after it is created; this sets its tooltip, sensitivity, and
         creates underslung message boxes."""
-        option_key = option["option"]
-
-        def configure_condition():
-            # Grey out option if condition unmet, or if a second setting is False
-            condition = self.get_condition(option)
-            if condition is not None:
-                if callable(condition):  # also handle both options at once
-
-                    def update_condition(*args, **kwargs):
-                        wrapper.set_sensitive(condition(option_key, *args, **kwargs))
-
-                    self.add_widget_updater(option, update_condition)
-                else:
-                    wrapper.set_sensitive(condition)
 
         def configure_tooltip():
             # Attach a tooltip to the wrapper
@@ -273,14 +246,11 @@ class WidgetGenerator(ABC):
             if "error" in option:
                 error = ConfigErrorBox(option["error"], self.wrapper)
                 self.message_widgets.append(error)
-                self.add_widget_updater(option, lambda *a, **kw: error.update_warning(option_key, *a, **kw))
 
             if "warning" in option:
                 warning = ConfigWarningBox(option["warning"])
                 self.message_widgets.append(warning)
-                self.add_widget_updater(option, lambda *a, **kw: warning.update_warning(option_key, *a, **kw))
 
-        configure_condition()
         configure_tooltip()
         configure_messages()
 
@@ -315,9 +285,6 @@ class WidgetGenerator(ABC):
             return option_container
         else:
             return wrapper
-
-    def add_widget_updater(self, option: Dict[str, Any], updater: Callable) -> None:
-        self.widget_updaters[option["option"]].append(updater)
 
     def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
         tooltip = option.get("help")
@@ -727,26 +694,32 @@ class WidgetGenerator(ABC):
 
     # Option access overrides
 
-    def get_visibility(self, option: Dict[str, Any]) -> Union[None, bool, Callable]:
-        """Extracts the 'visible' option; if present this can be a bool, or a callable that
-        returns the flag instead. This can be overridden in subclasses to provide additional
-        visibility control."""
-        return option.get("visible")
+    def get_visibility(self, option: Dict[str, Any], *args, **kwargs) -> bool:
+        """Extracts the 'visible' option; if the option is missing this returns
+        True, and if it is callable this calls it. Subclasses can add further conditions."""
+        return self._evaluate_flag_option(option.get("visible"), option, *args, **kwargs)
 
-    def get_condition(self, option: Dict[str, Any]) -> Union[None, bool, Callable]:
+    def get_condition(self, option: Dict[str, Any], *args, **kwargs) -> Union[None, bool, Callable]:
         """Extracts the 'condition' option; but also the 'conditional_on' option, and if both
-        are present it combines them into a single callable."""
-        condition = option.get("condition")
+        are present, then if either indicates the control should be disabled this will be false.."""
+        condition = self._evaluate_flag_option(option.get("condition"), option, *args, **kwargs)
         conditional_on = option.get("conditional_on")
 
-        if conditional_on:
-
-            def get_conditional_on(*_args, **_kwargs):
-                return bool(self.get_setting(conditional_on))
-
-            return merge_flag_callables([get_conditional_on, condition])
+        if conditional_on and not self.get_setting(conditional_on):
+            return False
 
         return condition
+
+    @staticmethod
+    def _evaluate_flag_option(flag: Any, option: Dict[str, Any], *args, **kwargs) -> bool:
+        """Evaluates a flag option; if is None this returns True, and if it is callable
+        this calls it, passing the option key, then the *args and **kwargs."""
+        if flag is None:
+            return True
+        elif callable(flag):
+            return bool(flag(option["option"], *args, **kwargs))
+        else:
+            return bool(flag)
 
 
 class SectionFrame(Gtk.Frame):
@@ -808,7 +781,7 @@ class ConfigMessageBox(UnderslungMessageBox):
             if text:
                 self.label.set_markup(str(text))
 
-    def update_warning(self, *args, **kwargs) -> bool:
+    def update_message(self, *args, **kwargs) -> bool:
         try:
             if callable(self.message):
                 text = self.message(*args, **kwargs)
@@ -831,8 +804,8 @@ class ConfigErrorBox(ConfigMessageBox):
         super().__init__(error, icon_name="dialog-error")
         self.wrapper = wrapper
 
-    def update_warning(self, *args, **kwargs) -> bool:
-        visible = super().update_warning(*args, **kwargs)
+    def update_message(self, *args, **kwargs) -> bool:
+        visible = super().update_message(*args, **kwargs)
         if visible:
             self.wrapper.set_sensitive(False)
         return visible

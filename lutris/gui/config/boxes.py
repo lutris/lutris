@@ -14,7 +14,7 @@ from gi.repository import Gtk
 from lutris import settings, sysoptions
 from lutris.config import LutrisConfig
 from lutris.game import Game
-from lutris.gui.config.widget_generator import WidgetGenerator, merge_flag_callables, set_style_property
+from lutris.gui.config.widget_generator import WidgetGenerator, set_style_property
 from lutris.gui.widgets.common import Label, VBox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
@@ -282,14 +282,14 @@ class ConfigWidgetGenerator(WidgetGenerator):
         reset_container.pack_end(placeholder, False, False, 5)
         return super().create_option_container(option, reset_container)
 
-    def get_visibility(self, option: Dict[str, Any]) -> Union[None, bool, Optional[Callable]]:
-        option_visibility = super().get_visibility(option)
+    def get_visibility(self, option: Dict[str, Any], *args, **kwargs) -> bool:
+        option_visibility = super().get_visibility(option, *args, **kwargs)
 
-        def check_visibility(option_key, *args, **kwargs):
-            option_container = self.option_containers[option_key]
-            return self.parent.filter_widget(option_container)
+        if not option_visibility:
+            return False
 
-        return merge_flag_callables([option_visibility, check_visibility])
+        option_container = self.option_containers[option["option"]]
+        return self.parent.filter_widget(option_container)
 
     def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
         tooltip = super().get_tooltip(option, value, default)

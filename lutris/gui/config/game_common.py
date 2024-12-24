@@ -602,7 +602,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.runner_name = runner_name
             self.lutris_config = LutrisConfig(runner_slug=self.runner_name, level="game")
         self._rebuild_tabs()
-        self.runner_warning_box.update_warning(self.runner_name)
+        self.runner_warning_box.update_message(self.runner_name)
         self.notebook.set_current_page(current_page)
 
     def _rebuild_tabs(self):
