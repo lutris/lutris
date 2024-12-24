@@ -121,6 +121,12 @@ class WidgetGenerator(ABC):
         kwargs = self.callback_kwargs
         option_key = option["option"]
 
+        # Update messages in underslung message boxes that support doing
+        # this.
+        for ch in container.get_children():
+            if hasattr(ch, "update_message"):
+                ch.update_message(option_key, *args, **kwargs)
+
         # Hide entire container if the option is not visible
         visible = self.get_visibility(option)
         container.set_visible(visible)
@@ -128,12 +134,6 @@ class WidgetGenerator(ABC):
         # Grey out option if condition unmet, or if a second setting is False
         condition = self.get_condition(option)
         wrapper.set_sensitive(condition)
-
-        # Update messages in underslung message boxes that support doing
-        # this.
-        for ch in container.get_children():
-            if hasattr(ch, "update_message"):
-                ch.update_message(option_key, *args, **kwargs)
 
     def add_container(self, option: Dict[str, Any], wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         """Generates the option's widget, wrapper and container, and adds the container to the parent;
@@ -242,9 +242,9 @@ class WidgetGenerator(ABC):
                 wrapper.connect("query-tooltip", self.on_query_tooltip, tooltip)
 
         def configure_messages():
-            # Add underslung message boxes under the widget"
+            # Add underslung message boxes under the widget
             if "error" in option:
-                self.message_widgets.append(ConfigErrorBox(option["error"], self.wrapper))
+                self.message_widgets.append(ConfigErrorBox(option["error"]))
 
             if "warning" in option:
                 self.message_widgets.append(ConfigWarningBox(option["warning"]))
@@ -702,6 +702,12 @@ class WidgetGenerator(ABC):
         if conditional_on and not self.get_setting(conditional_on):
             return False
 
+        container = self.option_containers[option["option"]]
+
+        for ch in container.get_children():
+            if hasattr(ch, "blocks_sensitivity") and ch.blocks_sensitivity:
+                return False
+
         return condition
 
     def _evaluate_flag_option(self, key: str, option: Dict[str, Any]) -> bool:
@@ -809,12 +815,11 @@ class ConfigWarningBox(ConfigMessageBox):
 
 
 class ConfigErrorBox(ConfigMessageBox):
-    def __init__(self, error, wrapper):
+    def __init__(self, error):
         super().__init__(error, icon_name="dialog-error")
-        self.wrapper = wrapper
 
-    def update_message(self, *args, **kwargs) -> bool:
-        visible = super().update_message(*args, **kwargs)
-        if visible:
-            self.wrapper.set_sensitive(False)
-        return visible
+    @property
+    def blocks_sensitivity(self):
+        """Called to check if the wrapper should be made insensitive
+        because of this error box."""
+        return self.get_visible()
