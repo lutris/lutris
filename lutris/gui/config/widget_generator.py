@@ -55,12 +55,13 @@ class WidgetGenerator(ABC):
         self._current_section: Optional[str] = None
 
         # These are outputs set by generate_widget() or generate_container()
+        # and they are reset on each call.
         self.wrapper: Optional[Gtk.Widget] = None
         self.default_value = None
         self.tooltip_default: Optional[str] = None
         self.option_widget: Optional[Gtk.Widget] = None
         self.option_container: Optional[Gtk.Widget] = None
-        self.message_widgets: List[Gtk.Widget] = []
+        self.underslung_widgets: List[Gtk.Widget] = []
 
         # These accumulate results across all widgets
         self.wrappers: Dict[str, Gtk.Widget] = {}
@@ -198,7 +199,7 @@ class WidgetGenerator(ABC):
         self.tooltip_default = None
         self.option_widget = None
         self.option_container = None
-        self.message_widgets.clear()
+        self.underslung_widgets.clear()
         self.wrappers.pop(option_key, None)
 
         if wrapper:
@@ -228,29 +229,33 @@ class WidgetGenerator(ABC):
             option_widget.show_all()
 
         self.configure_wrapper_box(self.wrapper, option, value, default)
+        self.configure_underslung_messages(option)
         return option_widget
 
     def configure_wrapper_box(self, wrapper: Gtk.Widget, option: Dict[str, Any], value: Any, default: Any) -> None:
         """Configures the wrapper box after it is created; this sets its tooltip, sensitivity, and
         creates underslung message boxes."""
 
-        def configure_tooltip():
-            # Attach a tooltip to the wrapper
-            tooltip = self.get_tooltip(option, value, default)
-            if tooltip:
-                wrapper.props.has_tooltip = True
-                wrapper.connect("query-tooltip", self.on_query_tooltip, tooltip)
+        # Attach a tooltip to the wrapper
+        tooltip = self.get_tooltip(option, value, default)
+        if tooltip:
+            wrapper.props.has_tooltip = True
+            wrapper.connect("query-tooltip", self.on_query_tooltip, tooltip)
 
-        def configure_messages():
-            # Add underslung message boxes under the widget
-            if "error" in option:
-                self.message_widgets.append(ConfigErrorBox(option["error"]))
+    def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
+        tooltip = option.get("help")
+        if isinstance(self.tooltip_default, str):
+            tooltip = tooltip + "\n\n" if tooltip else ""
+            tooltip += _("<b>Default</b>: ") + self.tooltip_default
+        return tooltip
 
-            if "warning" in option:
-                self.message_widgets.append(ConfigWarningBox(option["warning"]))
+    def configure_underslung_messages(self, option: Dict[str, Any]):
+        # Add underslung message boxes under the widget
+        if "error" in option:
+            self.underslung_widgets.append(ConfigErrorBox(option["error"]))
 
-        configure_tooltip()
-        configure_messages()
+        if "warning" in option:
+            self.underslung_widgets.append(ConfigWarningBox(option["warning"]))
 
     def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
         """This creates the wrapper, which becomes the 'wrapper' attribute and which build_option_widget()
@@ -269,23 +274,16 @@ class WidgetGenerator(ABC):
         base implementation wraps 'wrapper' in a Box with the error and warning widgets; if
         there are none it just returns 'wrapper'."""
 
-        if self.message_widgets:
+        if self.underslung_widgets:
             option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
             option_container.pack_start(wrapper, False, False, 0)
 
-            for error_widget in self.message_widgets:
+            for error_widget in self.underslung_widgets:
                 option_container.pack_start(error_widget, False, False, 0)
 
             return option_container
         else:
             return wrapper
-
-    def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
-        tooltip = option.get("help")
-        if isinstance(self.tooltip_default, str):
-            tooltip = tooltip + "\n\n" if tooltip else ""
-            tooltip += _("<b>Default</b>: ") + self.tooltip_default
-        return tooltip
 
     def build_option_widget(
         self, option: Dict[str, Any], widget: Optional[Gtk.Widget], no_label: bool = False, expand: bool = True
