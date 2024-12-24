@@ -5,7 +5,7 @@ import os
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 from gettext import gettext as _
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Dict
 
 # Third Party Libraries
 from gi.repository import Gtk

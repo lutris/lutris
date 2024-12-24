@@ -244,12 +244,10 @@ class WidgetGenerator(ABC):
         def configure_messages():
             # Add underslung message boxes under the widget"
             if "error" in option:
-                error = ConfigErrorBox(option["error"], self.wrapper)
-                self.message_widgets.append(error)
+                self.message_widgets.append(ConfigErrorBox(option["error"], self.wrapper))
 
             if "warning" in option:
-                warning = ConfigWarningBox(option["warning"])
-                self.message_widgets.append(warning)
+                self.message_widgets.append(ConfigWarningBox(option["warning"]))
 
         configure_tooltip()
         configure_messages()
