@@ -122,11 +122,11 @@ class WidgetGenerator(ABC):
         option_key = option["option"]
 
         # Hide entire container if the option is not visible
-        visible = self.get_visibility(option, *args, **kwargs)
+        visible = self.get_visibility(option)
         container.set_visible(visible)
 
         # Grey out option if condition unmet, or if a second setting is False
-        condition = self.get_condition(option, *args, **kwargs)
+        condition = self.get_condition(option)
         wrapper.set_sensitive(condition)
 
         # Update messages in underslung message boxes that support doing
@@ -256,11 +256,7 @@ class WidgetGenerator(ABC):
         """This creates the wrapper, which becomes the 'wrapper' attribute and which build_option_widget()
         populates. Returns None if the option is not visible; in that case no widget is generated either."""
 
-        available = option.get("available")
-        if available is None:
-            available = True
-        elif callable(available):
-            available = available()
+        available = self._evaluate_static_flag_option("available", option)
 
         if not available:
             # If not available, there's no wrapper, and no widget!
@@ -690,17 +686,17 @@ class WidgetGenerator(ABC):
         tooltip.set_custom(event_box)
         return True
 
-    # Option access overrides
+    # Option access
 
-    def get_visibility(self, option: Dict[str, Any], *args, **kwargs) -> bool:
+    def get_visibility(self, option: Dict[str, Any]) -> bool:
         """Extracts the 'visible' option; if the option is missing this returns
         True, and if it is callable this calls it. Subclasses can add further conditions."""
-        return self._evaluate_flag_option(option.get("visible"), option, *args, **kwargs)
+        return self._evaluate_flag_option("visible", option)
 
-    def get_condition(self, option: Dict[str, Any], *args, **kwargs) -> Union[None, bool, Callable]:
+    def get_condition(self, option: Dict[str, Any]) -> Union[None, bool, Callable]:
         """Extracts the 'condition' option; but also the 'conditional_on' option, and if both
         are present, then if either indicates the control should be disabled this will be false.."""
-        condition = self._evaluate_flag_option(option.get("condition"), option, *args, **kwargs)
+        condition = self._evaluate_flag_option("condition", option)
         conditional_on = option.get("conditional_on")
 
         if conditional_on and not self.get_setting(conditional_on):
@@ -708,16 +704,31 @@ class WidgetGenerator(ABC):
 
         return condition
 
-    @staticmethod
-    def _evaluate_flag_option(flag: Any, option: Dict[str, Any], *args, **kwargs) -> bool:
+    def _evaluate_flag_option(self, key: str, option: Dict[str, Any]) -> bool:
         """Evaluates a flag option; if is None this returns True, and if it is callable
-        this calls it, passing the option key, then the *args and **kwargs."""
-        if flag is None:
+        this calls it, passing the option key, generator's args and kwargs."""
+        if key not in option:
             return True
-        elif callable(flag):
-            return bool(flag(option["option"], *args, **kwargs))
-        else:
-            return bool(flag)
+
+        flag = option[key]
+
+        if callable(flag):
+            return bool(flag(option["option"], *self.callback_args, *self.callback_kwargs))
+
+        return bool(flag)
+
+    def _evaluate_static_flag_option(self, key: str, option: Dict[str, Any]) -> bool:
+        """Evaluates a flag option; if is None this returns True, and if it is callable
+        this calls it, passing no arguments."""
+        if key not in option:
+            return True
+
+        flag = option[key]
+
+        if callable(flag):
+            return bool(flag())
+
+        return bool(flag)
 
 
 class SectionFrame(Gtk.Frame):

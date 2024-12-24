@@ -282,8 +282,8 @@ class ConfigWidgetGenerator(WidgetGenerator):
         reset_container.pack_end(placeholder, False, False, 5)
         return super().create_option_container(option, reset_container)
 
-    def get_visibility(self, option: Dict[str, Any], *args, **kwargs) -> bool:
-        option_visibility = super().get_visibility(option, *args, **kwargs)
+    def get_visibility(self, option: Dict[str, Any]) -> bool:
+        option_visibility = super().get_visibility(option)
 
         if not option_visibility:
             return False
