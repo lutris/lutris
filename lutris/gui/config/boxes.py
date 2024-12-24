@@ -14,7 +14,7 @@ from gi.repository import Gtk
 from lutris import settings, sysoptions
 from lutris.config import LutrisConfig
 from lutris.game import Game
-from lutris.gui.config.widget_generator import WidgetGenerator, set_style_property
+from lutris.gui.config.widget_generator import WidgetGenerator, set_option_wrapper_style_class
 from lutris.gui.widgets.common import Label, VBox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
@@ -248,14 +248,19 @@ class ConfigWidgetGenerator(WidgetGenerator):
     def get_setting(self, option_key: str) -> Any:
         return self.config.get(option_key)
 
-    def configure_wrapper_box(self, wrapper: Gtk.Widget, option: Dict[str, Any], value: Any, default: Any) -> None:
-        super().configure_wrapper_box(wrapper, option, value, default)
+    def update_option_container(self, option, container: Gtk.Box, wrapper: Gtk.Box):
         option_key = option["option"]
 
         if option_key in self.raw_config:
-            set_style_property("font-weight", "bold", wrapper)
-        elif value != default:
-            set_style_property("font-style", "italic", wrapper)
+            set_option_wrapper_style_class(wrapper, "option-wrapper-assigned-here")
+        else:
+            value = self.get_setting(option_key)
+            default = self.get_default(option)
+
+            if value != default:
+                set_option_wrapper_style_class(wrapper, "option-wrapper-non-default")
+            else:
+                set_option_wrapper_style_class(wrapper, None)
 
     def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Widget:
         option_key = option["option"]
@@ -305,7 +310,6 @@ class ConfigWidgetGenerator(WidgetGenerator):
         wrapper = self.wrappers[option_key]
 
         btn.set_visible(False)
-        set_style_property("font-weight", "normal", wrapper)
 
         self.raw_config.pop(option_key, None)
         self.lutris_config.update_cascaded_config()
@@ -318,12 +322,8 @@ class ConfigWidgetGenerator(WidgetGenerator):
         self.raw_config[option_key] = new_value
         self.config[option_key] = new_value
         reset_btn = self.reset_buttons.get(option_key)
-        wrapper = self.wrappers.get(option_key)
 
         if reset_btn:
             reset_btn.set_visible(True)
-
-        if wrapper:
-            set_style_property("font-weight", "bold", wrapper)
 
         super().on_changed(option_key, new_value)

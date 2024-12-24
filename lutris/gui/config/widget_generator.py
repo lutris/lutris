@@ -18,12 +18,16 @@ from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 
-def set_style_property(property_name, value, wrapper):
+def set_option_wrapper_style_class(wrapper: Gtk.Widget, class_name: Optional[str]):
     """Add custom style."""
-    style_provider = Gtk.CssProvider()
-    style_provider.load_from_data("GtkHBox {{{}: {};}}".format(property_name, value).encode())
     style_context = wrapper.get_style_context()
-    style_context.add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+    for cls in style_context.list_classes():
+        if cls.startswith("option-wrapper-") and cls != class_name:
+            style_context.remove_class(cls)
+
+    if class_name:
+        style_context.add_class(class_name)
 
 
 class WidgetGenerator(ABC):
@@ -191,9 +195,7 @@ class WidgetGenerator(ABC):
         option_key = option["option"]
         option_type = option["type"]
         value = self.get_setting(option_key)
-        default = option.get("default")
-        if callable(default):
-            default = default()
+        default = self.get_default(option)
 
         self.default_value = default
         self.tooltip_default = None
@@ -685,6 +687,10 @@ class WidgetGenerator(ABC):
         return True
 
     # Option access
+
+    def get_default(self, option: Dict[str, Any]) -> Any:
+        default = option.get("default")
+        return default() if callable(default) else default
 
     def get_visibility(self, option: Dict[str, Any]) -> bool:
         """Extracts the 'visible' option; if the option is missing this returns

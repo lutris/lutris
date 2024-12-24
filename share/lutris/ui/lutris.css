@@ -24,6 +24,14 @@
   padding: 3px 6px;
 }
 
+.option-wrapper-assigned-here > label {
+    font-weight: bold;
+}
+
+.option-wrapper-non-default > label {
+    font-style: italic;
+}
+
 .section-frame {
 	margin-top: 12px;
 	margin-bottom: 12px;
