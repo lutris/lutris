@@ -249,6 +249,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
         return self.config.get(option_key)
 
     def update_option_container(self, option, container: Gtk.Box, wrapper: Gtk.Box):
+        super().update_option_container(option, container, wrapper)
         option_key = option["option"]
 
         if option_key in self.raw_config:
