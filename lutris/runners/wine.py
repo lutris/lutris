@@ -230,6 +230,17 @@ class wine(Runner):
             "default": "auto",
             "help": _("The architecture of the Windows environment"),
         },
+        {
+            "option": "desktop_integration",
+            "type": "bool",
+            "label": _("Integrate system files in the prefix"),
+            "default": False,
+            "advanced": True,
+            "help": _(
+                "Place 'Documents', 'Pictures', and similar files in your home folder, instead of "
+                "keeping them in the game's prefix. This includes some saved games."
+            ),
+        },
     ]
 
     reg_prefix = "HKEY_CURRENT_USER/Software/Wine"
@@ -607,32 +618,6 @@ class wine(Runner):
                 "help": _(
                     "Automatically disables one of Wine's detected joypad " "to avoid having 2 controllers detected"
                 ),
-            },
-            {
-                "option": "sandbox",
-                "type": "bool",
-                "section": _("Sandbox"),
-                "label": _("Create a sandbox for Wine folders"),
-                "default": True,
-                "advanced": True,
-                "help": _(
-                    "Explicitly specify the location for desktop integration folders.\n"
-                    "If turned off, these are placed in '%s'"
-                )
-                % os.path.expanduser("~"),
-            },
-            {
-                "option": "sandbox_dir",
-                "type": "directory",
-                "section": _("Sandbox"),
-                "label": _("Sandbox directory"),
-                "warn_if_non_writable_parent": True,
-                "conditional_on": "sandbox",
-                "help": _(
-                    "Custom directory for desktop integration folders.\n"
-                    "If left blank, these folders are left in the prefix."
-                ),
-                "advanced": True,
             },
         ]
 
@@ -1079,7 +1064,7 @@ class wine(Runner):
             if self.runner_config.get("autoconf_joypad", False):
                 prefix_manager.configure_joypads()
             prefix_manager.create_user_symlinks()
-            self.sandbox(prefix_manager)
+            self.configure_desktop_integration(prefix_manager)
             self.set_regedit_keys()
 
             for manager, enabled in self.get_dll_managers().items():
@@ -1244,12 +1229,12 @@ class wine(Runner):
         pids = pids | system.get_pids_using_file(os.path.join(os.path.dirname(exe), "wineserver"))
         return pids
 
-    def sandbox(self, wine_prefix):
+    def configure_desktop_integration(self, wine_prefix):
         try:
-            if self.runner_config.get("sandbox", True):
-                wine_prefix.enable_desktop_integration_sandbox(desktop_dir=self.runner_config.get("sandbox_dir"))
+            if self.game_config.get("desktop_integration", True):
+                wine_prefix.install_desktop_integration()
             else:
-                wine_prefix.restore_desktop_integration()
+                wine_prefix.remove_desktop_integration()
         except Exception as ex:
             logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
 
