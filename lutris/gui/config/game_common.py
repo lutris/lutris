@@ -162,7 +162,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
         self.runner_warning_box = RunnerMessageBox()
         info_box.pack_start(self.runner_warning_box, False, False, 6)  # Runner
-        self.runner_warning_box.update_warning(self.runner_name)
+        self.runner_warning_box.update_message(self.runner_name)
 
         info_box.pack_start(self._get_year_box(), False, False, 6)  # Year
 
@@ -827,7 +827,7 @@ class RunnerMessageBox(UnderslungMessageBox):
     def __init__(self):
         super().__init__(margin_left=12, margin_right=12, icon_name="dialog-warning")
 
-    def update_warning(self, runner_name):
+    def update_message(self, runner_name):
         try:
             if runner_name:
                 runner_class = import_runner(runner_name)
