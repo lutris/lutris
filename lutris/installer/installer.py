@@ -25,13 +25,18 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.interpreter = interpreter
         self.installer = installer
         self.is_update = False
-        self.version = installer["version"]
-        self.slug = installer["slug"]
-        self.year = installer.get("year")
-        self.runner = installer["runner"]
-        self.script = installer.get("script")
-        self.game_name = installer["name"]
-        self.game_slug = installer["game_slug"]
+
+        try:
+            self.version = installer["version"]
+            self.slug = installer["slug"]
+            self.year = installer.get("year")
+            self.runner = installer["runner"]
+            self.script = installer.get("script")
+            self.game_name = installer["name"]
+            self.game_slug = installer["game_slug"]
+        except KeyError as ex:
+            raise ScriptingError(_("The script was missing the '%s' key, which is required.") % ex.args[0]) from ex
+
         self.service = self.get_service(initial=service)
         self.service_appid = self.get_appid(installer, initial=appid)
         self.variables = self.script.get("variables", {})
