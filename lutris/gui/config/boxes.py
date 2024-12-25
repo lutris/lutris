@@ -5,7 +5,7 @@ import os
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 from gettext import gettext as _
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 # Third Party Libraries
 from gi.repository import Gtk
@@ -14,11 +14,24 @@ from gi.repository import Gtk
 from lutris import settings, sysoptions
 from lutris.config import LutrisConfig
 from lutris.game import Game
-from lutris.gui.config.widget_generator import WidgetGenerator, set_option_wrapper_style_class
+from lutris.gui.config.widget_generator import WidgetGenerator
 from lutris.gui.widgets.common import Label, VBox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
 from lutris.util.wine.wine import clear_wine_version_cache
+
+
+def set_option_wrapper_style_class(wrapper: Gtk.Widget, class_name: Optional[str]):
+    """Sets a particular CSS class on a wrapper, and removes any other classes that start
+    with 'option-wrapper-' so there's only one o these classes."""
+    style_context = wrapper.get_style_context()
+
+    for cls in style_context.list_classes():
+        if cls.startswith("option-wrapper-") and cls != class_name:
+            style_context.remove_class(cls)
+
+    if class_name:
+        style_context.add_class(class_name)
 
 
 class ConfigBox(VBox):

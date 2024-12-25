@@ -18,33 +18,25 @@ from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 
-def set_option_wrapper_style_class(wrapper: Gtk.Widget, class_name: Optional[str]):
-    """Add custom style."""
-    style_context = wrapper.get_style_context()
-
-    for cls in style_context.list_classes():
-        if cls.startswith("option-wrapper-") and cls != class_name:
-            style_context.remove_class(cls)
-
-    if class_name:
-        style_context.add_class(class_name)
-
-
 class WidgetGenerator(ABC):
-    """This class generates widgets for an options screen. It even adds the widgets
-    to a 'wrapper' you can supply. The specific widgets are generated according to an options
-    dict.
+    """This class generates widgets for an options page. It even adds the widgets
+    to a 'wrapper' you can supply and, if required, that wrapper goes into a container
+    which also contains underslung message boxes.
+
+    The specific inner widgets are generated according to an option dict.
+
+    The generator also accumulates and tracks the wrappers and containers for future use,
+    and can update their state via a call to update_widgets(). When doing this, various callables
+    in the option dicts can be re-evaluated; you provide a set of 'callback_args' and 'callback_kwargs'
+    that are passed along to these callbacks. These collbacks also take the identifier of the
+    option, from the 'option' key of the option dict.
 
     'changed' is a NotificationSource for whenever the generated widget changes a value;
     the same 'changed' NotificationSource is shared by all the widgets this generator generates.
 
-    The 'option' dict can contain callbacks; many of these are called by update_widgets() and
-    given whatever arguments are passed to __init__(), but with 'parent' left out and with the
-    option key prepended instead. Others are called during generation take no arguments.
-
-    The generator holds onto the widgets it generates so it can update their state when
-    you call update_widgets(), but does so in dicts keyed on the option key, so you can
-    regenerate a widget when desired by calling generate_widget() again."""
+    You can only create new containers, not discard old ones, but you *can* regenerate the widget
+    inside the wrapper as a way to force it to update.
+    """
 
     GeneratorFunction = Callable[[Dict[str, Any], Any, Any], Optional[Gtk.Widget]]
 
@@ -105,40 +97,7 @@ class WidgetGenerator(ABC):
     def default_directory(self, new_dir: str) -> None:
         self._default_directory = new_dir
 
-    def update_widgets(self) -> None:
-        """Call this to update the visibility, sensitivity and other properties of
-        the widgets, wrappers and containers already generated."""
-
-        for option_key, container in self.option_containers.items():
-            if hasattr(container, "lutris_option"):
-                option = container.lutris_option
-                wrapper = self.wrappers[option_key]
-                self.update_option_container(option, container, wrapper)
-
-        for frame in self.section_frames:
-            frame.set_visible(frame.has_visible_children())
-
-    def update_option_container(self, option, container: Gtk.Box, wrapper: Gtk.Box):
-        """This method updates an option container and its wrapper; this re-evaluates the
-        relevant options in case they contain callables and those callables return different
-        results."""
-        args = self.callback_args
-        kwargs = self.callback_kwargs
-        option_key = option["option"]
-
-        # Update messages in underslung message boxes that support doing
-        # this.
-        for ch in container.get_children():
-            if hasattr(ch, "update_message"):
-                ch.update_message(option_key, *args, **kwargs)
-
-        # Hide entire container if the option is not visible
-        visible = self.get_visibility(option)
-        container.set_visible(visible)
-
-        # Grey out option if condition unmet, or if a second setting is False
-        condition = self.get_condition(option)
-        wrapper.set_sensitive(condition)
+    # Widget Construction
 
     def add_container(self, option: Dict[str, Any], wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
         """Generates the option's widget, wrapper and container, and adds the container to the parent;
@@ -280,8 +239,8 @@ class WidgetGenerator(ABC):
             option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
             option_container.pack_start(wrapper, False, False, 0)
 
-            for error_widget in self.underslung_widgets:
-                option_container.pack_start(error_widget, False, False, 0)
+            for widget in self.underslung_widgets:
+                option_container.pack_start(widget, False, False, 0)
 
             return option_container
         else:
@@ -314,9 +273,44 @@ class WidgetGenerator(ABC):
                 self.wrapper.pack_start(widget, expand, expand, 0)
         return widget
 
-    @abstractmethod
-    def get_setting(self, option_key: str) -> Any:
-        raise NotImplementedError()
+    # Dynamic Widget Updates
+
+    def update_widgets(self) -> None:
+        """Call this to update the visibility, sensitivity and other properties of
+        the widgets, wrappers and containers already generated."""
+
+        for option_key, container in self.option_containers.items():
+            if hasattr(container, "lutris_option"):
+                option = container.lutris_option
+                wrapper = self.wrappers[option_key]
+                self.update_option_container(option, container, wrapper)
+
+        for frame in self.section_frames:
+            frame.set_visible(frame.has_visible_children())
+
+    def update_option_container(self, option, container: Gtk.Box, wrapper: Gtk.Box):
+        """This method updates an option container and its wrapper; this re-evaluates the
+        relevant options in case they contain callables and those callables return different
+        results."""
+        args = self.callback_args
+        kwargs = self.callback_kwargs
+        option_key = option["option"]
+
+        # Update messages in underslung message boxes that support doing
+        # this.
+        for ch in container.get_children():
+            if hasattr(ch, "update_message"):
+                ch.update_message(option_key, *args, **kwargs)
+
+        # Hide entire container if the option is not visible
+        visible = self.get_visibility(option)
+        container.set_visible(visible)
+
+        # Grey out option if condition unmet, or if a second setting is False
+        condition = self.get_condition(option)
+        wrapper.set_sensitive(condition)
+
+    # Widget factories
 
     # Label
     def _generate_label(self, option, value, default):
@@ -688,7 +682,15 @@ class WidgetGenerator(ABC):
 
     # Option access
 
+    @abstractmethod
+    def get_setting(self, option_key: str) -> Any:
+        """Reads the current value for a specific setting; this method must be
+        implemented by a subclass."""
+        raise NotImplementedError()
+
     def get_default(self, option: Dict[str, Any]) -> Any:
+        """Returns the default value from the option; if it is callable, this calls
+        it with no arguments to get the actual default."""
         default = option.get("default")
         return default() if callable(default) else default
 
@@ -727,7 +729,10 @@ class WidgetGenerator(ABC):
 
         return bool(flag)
 
-    def _evaluate_static_flag_option(self, key: str, option: Dict[str, Any]) -> bool:
+    # Implementation
+
+    @staticmethod
+    def _evaluate_static_flag_option(key: str, option: Dict[str, Any]) -> bool:
         """Evaluates a flag option; if is None this returns True, and if it is callable
         this calls it, passing no arguments."""
         if key not in option:
