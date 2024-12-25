@@ -1231,7 +1231,7 @@ class wine(Runner):
 
     def configure_desktop_integration(self, wine_prefix):
         try:
-            if self.game_config.get("desktop_integration", True):
+            if self.game_config.get("desktop_integration", False):
                 wine_prefix.install_desktop_integration()
             else:
                 wine_prefix.remove_desktop_integration()
