@@ -95,15 +95,7 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH
 
 
 def create_prefix(
-    prefix,
-    wine_path=None,
-    arch=WINE_DEFAULT_ARCH,
-    overrides=None,
-    install_gecko=None,
-    install_mono=None,
-    runner=None,
-    env=None,
-    proton_verb=None,
+    prefix, wine_path=None, arch=WINE_DEFAULT_ARCH, overrides=None, install_gecko=None, install_mono=None, runner=None
 ):
     """Create a new Wine prefix."""
     # pylint: disable=too-many-locals
