@@ -259,7 +259,7 @@ class libretro(Runner):
                         checksum_status = "No checksum info"
                     logger.info("Firmware '%s' found (%s)", required_firmware_filename, checksum_status)
                 else:
-                    get_firmware(required_firmware_name, required_firmware_checksum, system_path),
+                    (get_firmware(required_firmware_name, required_firmware_checksum, system_path),)
                     logger.warning("Firmware '%s' not found!", required_firmware_filename)
 
     def get_runner_parameters(self):
