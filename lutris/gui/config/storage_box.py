@@ -1,5 +1,4 @@
 import hashlib
-import json
 import os
 from gettext import gettext as _
 
@@ -10,7 +9,7 @@ from lutris.config import LutrisConfig
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.common import FileChooserEntry, Label
 from lutris.runners.runner import Runner
-from lutris.util.system import get_md5_hash
+from lutris.util.firmware import scan_firmware_directory
 
 
 def get_md5_from_file(filepath):
@@ -147,23 +146,4 @@ class StorageBox(BaseConfigBox):
                 lutris_config.raw_system_config["bios_path"] = text
                 lutris_config.save()
 
-                bios_files = []
-
-                for path, _dir_names, file_names in os.walk(text):
-                    for file_name in file_names:
-                        file_path = f"{path}/{file_name}"
-
-                        if os.access(file_path, os.R_OK):
-                            bios_file = {}
-                            bios_file["name"] = file_name
-                            bios_file["size"] = os.path.getsize(file_path)
-                            bios_file["date_created"] = os.path.getctime(file_path)
-                            bios_file["date_modified"] = os.path.getmtime(file_path)
-                            bios_file["md5_hash"] = get_md5_hash(file_path)
-
-                            bios_files.append(bios_file)
-
-                bios_files_cache_data = json.dumps(bios_files)
-                bios_files_cache_path = os.path.expanduser("~/.cache/lutris/bios-files.json")
-                with open(bios_files_cache_path, "w+") as bios_files_cache:
-                    bios_files_cache.write(bios_files_cache_data)
+                scan_firmware_directory(text)
