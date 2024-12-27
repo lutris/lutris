@@ -50,7 +50,7 @@ class dosbox(Runner):
         },
         {
             "option": "working_dir",
-            "type": "directory_chooser",
+            "type": "directory",
             "label": _("Working directory"),
             "warn_if_non_writable_parent": True,
             "help": _(

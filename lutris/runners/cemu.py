@@ -18,7 +18,7 @@ class cemu(Runner):
     game_options = [
         {
             "option": "main_file",
-            "type": "directory_chooser",
+            "type": "directory",
             "label": _("Game directory"),
             "help": _(
                 "The directory in which the game lives. "
@@ -42,7 +42,7 @@ class cemu(Runner):
         {
             "option": "mlc",
             "label": _("Custom mlc folder location"),
-            "type": "directory_chooser",
+            "type": "directory",
         },
         {
             "option": "ud",

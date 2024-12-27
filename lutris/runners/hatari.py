@@ -184,7 +184,8 @@ class hatari(Runner):
         params.append(diska)
 
         diskb = self.game_config.get("disk-b")
-        params.append("--disk-b")
-        params.append(diskb)
+        if diskb:
+            params.append("--disk-b")
+            params.append(diskb)
 
         return {"command": params}

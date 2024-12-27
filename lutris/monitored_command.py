@@ -12,7 +12,7 @@ from copy import copy
 
 from gi.repository import GLib
 
-from lutris import runtime, settings
+from lutris import settings
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.shell import get_terminal_script
@@ -35,6 +35,7 @@ def get_wrapper_script_location():
 
 
 WRAPPER_SCRIPT = get_wrapper_script_location()
+RUNNING_COMMANDS = set()
 
 
 class MonitoredCommand:
@@ -159,6 +160,7 @@ class MonitoredCommand:
         wrapper_command = self.get_wrapper_command()
         env = self.get_child_environment()
         self.game_process = self.execute_process(wrapper_command, env)
+        RUNNING_COMMANDS.add(self)
 
         if not self.game_process:
             logger.error("No game process available")
@@ -292,6 +294,7 @@ class MonitoredCommand:
 
         self.is_running = False
         self.ready_state = False
+        RUNNING_COMMANDS.discard(self)
         return True
 
 
@@ -300,6 +303,6 @@ def exec_command(command):
 
     Used by the --exec command line flag.
     """
-    command = MonitoredCommand(shlex.split(command), env=runtime.get_env())
+    command = MonitoredCommand(shlex.split(command), env={})  # runtime.get_env())
     command.start()
     return command

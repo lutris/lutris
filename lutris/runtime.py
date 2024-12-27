@@ -28,6 +28,7 @@ from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
+from lutris.util.wine.proton import PROTON_DIR
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import clear_wine_version_cache
 
@@ -446,7 +447,6 @@ class ProtonComponentUpdater(RuntimeExtractedComponentUpdater):
 
     def __init__(self, remote_runtime_info: Dict[str, Any]) -> None:
         super().__init__(remote_runtime_info)
-        self.proton_dir = os.path.join(settings.RUNNER_DIR, "proton")
 
     @property
     def should_update(self) -> bool:
@@ -456,16 +456,16 @@ class ProtonComponentUpdater(RuntimeExtractedComponentUpdater):
     @property
     def local_runtime_path(self) -> str:
         """Return the local path for the runtime folder"""
-        return os.path.join(self.proton_dir, self.name)
+        return os.path.join(PROTON_DIR, self.name)
 
     @property
     def archive_path(self):
-        return os.path.join(self.proton_dir, os.path.basename(self.url))
+        return os.path.join(PROTON_DIR, os.path.basename(self.url))
 
     def install_update(self, updater: RuntimeUpdater) -> None:
         # This is a bit of a hack, but until Proton is a real runner we never really isntall it, so
         # it's directory may not exist. So, we create it.
-        os.makedirs(self.proton_dir, exist_ok=True)
+        os.makedirs(PROTON_DIR, exist_ok=True)
         return super().install_update(updater)
 
 

@@ -27,6 +27,33 @@
   <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
+    <release version="0.5.18" date="2024-12-02" urgency="low">
+      <description>
+        <ul>
+          <li>Lutris downloads the latest GE-Proton build for Wine if any Wine version is installed</li>
+          <li>Use dark theme by default</li>
+          <li>Display cover-art rather than banners by default</li>
+          <li>Add 'Uncategorized' view to sidebar</li>
+          <li>Preference options that do not work on Wayland will be hidden when on Wayland</li>
+          <li>Game searches can now use fancy tags like 'installed:yes' or 'source:gog', with explanatory tool-tip</li>
+          <li>A new filter button on the search box can build many of these fancy tags for you</li>
+          <li>Runner searches can use 'installed:yes' as well, but no other fancy searches or anything</li>
+          <li>Updated the Flathub and Amazon source to new APIs, restoring integration</li>
+          <li>Itch.io source integration will load a collection named 'Lutris' if present</li>
+          <li>GOG and Itch.io sources can now offer Linux and Windows installers for the same game</li>
+          <li>Added support for the 'foot' terminal</li>
+          <li>Support for DirectX 8 in DXVK v2.4</li>
+          <li>Support for Ayatana Application Indicators</li>
+          <li>Additional options for Ruffle runner</li>
+          <li>Updated download links for the Atari800 and MicroM8 runners</li>
+          <li>No longer re-download cached installation files even when some are missing</li>
+          <li>Lutris log is included in the 'System' tab of the Preferences window</li>
+          <li>Improved error reporting, with the Lutris log included in the error details</li>
+          <li>Add AppArmor profile for Ubuntu versions >= 23.10</li>
+          <li>Add Duckstation runner</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.5.17" date="2024-04-10" urgency="low">
       <description>
         <ul>
@@ -52,7 +79,7 @@
           <li>Deprecate 'exe', 'main_file' or 'iso' placed at the root of the script,</li>
           <li>all lutris.net installers have been updated accordingly.</li>
           <li>Deprecate libstrangle and xgamma support.</li>
-          <li>Deprecate DXVK state cache feature (it was never used and is no longer relevant to DXVK 2)           </li>
+          <li>Deprecate DXVK state cache feature (it was never used and is no longer relevant to DXVK 2)</li>
         </ul>
       </description>
     </release>

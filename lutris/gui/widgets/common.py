@@ -406,8 +406,9 @@ class EditableGrid(Gtk.Box):
     def on_delete(self, widget):  # pylint: disable=unused-argument
         selection = self.treeview.get_selection()
         _, iteration = selection.get_selected()
-        self.liststore.remove(iteration)
-        self.emit("changed")
+        if iteration:
+            self.liststore.remove(iteration)
+            self.emit("changed")
 
     def on_text_edited(self, widget, path, text, field):  # pylint: disable=unused-argument
         self.liststore[path][field] = text.strip()  # pylint: disable=unsubscriptable-object

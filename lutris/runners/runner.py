@@ -192,7 +192,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         exe = os.path.join(settings.RUNNER_DIR, self.runner_executable)
         if not os.path.isfile(exe):
-            raise MissingExecutableError(_("The executable '%s' could not be found.") % self.runner_executable)
+            raise MissingExecutableError(_("The executable '%s' could not be found.") % exe)
         return exe
 
     def get_command(self):

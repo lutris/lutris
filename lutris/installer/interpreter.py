@@ -8,7 +8,7 @@ from gi.repository import GObject
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import MisconfigurationError
+from lutris.exceptions import AuthenticationError, MisconfigurationError, UnavailableGameError
 from lutris.gui.dialogs.delegates import Delegate
 from lutris.installer import AUTO_EXE_PREFIX
 from lutris.installer.commands import CommandsMixin
@@ -201,7 +201,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         """Get extras and store them to move them at the end of the install"""
         if not self.service or not self.service.has_extras or not self.installer.service_appid:
             return []
-        return self.service.get_extras(self.installer.service_appid)
+        try:
+            return self.service.get_extras(self.installer.service_appid)
+        except (AuthenticationError, UnavailableGameError) as ex:
+            logger.exception("Unable to download list of extras: %s", ex)
+            return []
 
     def launch_install(self, ui_delegate):
         """Launch the install process; returns False if cancelled by the user."""

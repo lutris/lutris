@@ -17,3 +17,4 @@ class dgvoodoo2Manager(DLLManager):
     )
     managed_appdata_files = ["dgVoodoo/dgVoodoo.conf"]
     releases_url = "https://api.github.com/repos/lutris/dgvoodoo2/releases"
+    proton_compatible = True

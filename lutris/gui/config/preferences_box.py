@@ -1,10 +1,13 @@
 from gettext import gettext as _
+from typing import Any, Dict, Optional
 
 from gi.repository import Gio, Gtk
 
 from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
+from lutris.gui.config.widget_generator import WidgetGenerator
 from lutris.gui.widgets.status_icon import supports_status_icon
+from lutris.settings import read_setting
 
 
 def _is_system_dark_by_default():
@@ -14,15 +17,35 @@ def _is_system_dark_by_default():
 
 class InterfacePreferencesBox(BaseConfigBox):
     settings_options = [
-        {"option": "hide_client_on_game_start", "label": _("Minimize client when a game is launched"), "type": "bool"},
-        {"option": "hide_text_under_icons", "label": _("Hide text under icons"), "type": "bool"},
+        {
+            "option": "hide_client_on_game_start",
+            "label": _("Minimize client when a game is launched"),
+            "type": "bool",
+            "help": _("Minimize the Lutris window while playing a game; it will return when the game exits."),
+        },
+        {
+            "option": "hide_text_under_icons",
+            "label": _("Hide text under icons"),
+            "type": "bool",
+            "help": _("Removes the names from the Lutris window when in grid view, but not list view."),
+        },
         {
             "option": "hide_badges_on_icons",
             "label": _("Hide badges on icons (Ctrl+p to toggle)"),
             "type": "bool",
             "accelerator": "<Primary>p",
+            "help": _("Removes the platform and missing-game badges from icons in the Lutris window."),
         },
-        {"option": "show_tray_icon", "label": _("Show Tray Icon"), "type": "bool", "visible": supports_status_icon},
+        {
+            "option": "show_tray_icon",
+            "label": _("Show Tray Icon"),
+            "type": "bool",
+            "available": supports_status_icon,
+            "help": _(
+                "Adds a Lutris icon to the tray, and prevents Lutris from exiting when the Lutris window is closed. "
+                "You can still exit using the menu of the tray icon."
+            ),
+        },
         {
             "option": "discord_rpc",
             "label": _("Enable Discord Rich Presence for Available Games"),
@@ -38,95 +61,65 @@ class InterfacePreferencesBox(BaseConfigBox):
                 (_("Dark"), "dark"),
             ],
             "default": "default",
+            "help": _("Overrides Lutris's appearance to be light or dark."),
         },
     ]
 
     def __init__(self, accelerators):
         super().__init__()
         self.accelerators = accelerators
+
         self.add(self.get_section_label(_("Interface options")))
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         listbox = Gtk.ListBox(visible=True)
         frame.add(listbox)
         self.pack_start(frame, False, False, 0)
-        for option_dict in self.settings_options:
-            visible = option_dict.get("visible")
-            if visible is None:
-                visible = True
-            elif callable(visible):
-                visible = visible()
 
-            if visible:
-                option_type = option_dict["type"]
+        gen = PreferencesWidgetGenerator(listbox)
+        gen.changed.register(self.on_setting_changed)
+        self.widget_generator = gen
 
-                if option_type == "bool":
-                    widget = self._create_bool_setting(**option_dict)
-                elif option_type == "choice":
-                    widget = self._create_choice_setting(**option_dict)
-                else:
-                    raise ValueError("Unsupported widget type %s" % option_type)
+        for option in self.settings_options:
+            gen.generate_container(option)
 
+            if gen.option_container:
                 list_box_row = Gtk.ListBoxRow(visible=True)
                 list_box_row.set_selectable(False)
                 list_box_row.set_activatable(False)
-                list_box_row.add(widget)
+                list_box_row.add(gen.option_container)
                 listbox.add(list_box_row)
 
-    def _create_bool_setting(self, option, label, accelerator=None, **kwargs):
-        return self.get_setting_box(option, label, accelerator=accelerator)
+        gen.update_widgets()
 
-    # ComboBox
-    def _create_choice_setting(self, option, choices, label, default=None, **kwargs):
-        """Generate a combobox (drop-down menu)."""
+    def on_setting_changed(self, option_key, new_value):
+        settings.write_setting(option_key, new_value)
 
-        def _on_combobox_scroll(_event):
-            """Prevents users from accidentally changing configuration values
-            while scrolling down dialogs.
-            """
-            combobox.stop_emission_by_name("scroll-event")
-            return False
 
-        def on_combobox_change(_widget):
-            """Action triggered on combobox 'changed' signal."""
-            list_store = combobox.get_model()
-            active = combobox.get_active()
-            option_value = None
-            if active < 0:
-                if combobox.get_has_entry():
-                    option_value = combobox.get_child().get_text()
-            else:
-                option_value = list_store[active][1]
-            settings.write_setting(option, option_value)
+class PreferencesWidgetGenerator(WidgetGenerator):
+    """This generator adjusts the spacing of the wrappers and packs widgets on the
+    right to get the interface preferences layout instead of tje configuration one."""
 
-        def _expand_combobox_choices():
-            expanded = []
-            has_value = False
-            for ch in choices:
-                if isinstance(ch, str):
-                    ch = (ch, ch)
-                if ch[1] == value:
-                    has_value = True
-                expanded.append(ch)
-            if not has_value and value:
-                expanded.insert(0, (value + " (invalid)", value))
-            return expanded
+    def get_setting(self, option_key: str) -> Any:
+        return read_setting(option_key, default=None)
 
-        value = settings.read_setting(option, default=default)
+    def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
+        box = super().create_wrapper_box(option, value, default)
+        if box:
+            box.set_margin_top(12)
+            box.set_margin_bottom(12)
+            box.set_margin_right(12)
+            box.set_margin_left(12)
+        return box
 
-        expanded = _expand_combobox_choices()
-        liststore = Gtk.ListStore(str, str)
-        for choice in expanded:
-            liststore.append(choice)
+    def build_option_widget(
+        self, option: Dict[str, Any], widget: Optional[Gtk.Widget], no_label: bool = False, expand: bool = False
+    ) -> Optional[Gtk.Widget]:
+        if no_label:
+            return super().build_option_widget(option, widget, no_label=no_label, expand=expand)
 
-        combobox = Gtk.ComboBox.new_with_model(liststore)
-        cell = Gtk.CellRendererText()
-        combobox.pack_start(cell, True)
-        combobox.add_attribute(cell, "text", 0)
-        combobox.set_id_column(1)
-        combobox.set_active_id(value)
-
-        combobox.connect("changed", on_combobox_change)
-        combobox.connect("scroll-event", _on_combobox_scroll)
-        combobox.set_valign(Gtk.Align.CENTER)
-        combobox.show()
-        return self.get_listed_widget_box(label, combobox)
+        label = Gtk.Label(option["label"], visible=True, wrap=True)
+        label.set_alignment(0, 0.5)
+        if self.wrapper and widget:
+            self.wrapper.pack_start(label, True, True, 0)
+            self.wrapper.pack_end(widget, expand, expand, 0)
+        return widget

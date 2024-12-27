@@ -22,7 +22,7 @@ lutris (0.5.18) jammy; urgency=medium
   * Add AppArmor profile for Ubuntu versions >= 23.10
   * Add Duckstation runner
 
- -- Mathieu Comandon <mathieucomandon@gmail.com>  Sun, 13 Oct 2024 16:22:49 -0700
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Sun, 1 Dec 2024 12:00:00 -0700
 
 lutris (0.5.17) jammy; urgency=medium
 

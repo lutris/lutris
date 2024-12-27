@@ -154,7 +154,7 @@ class mame(Runner):  # pylint: disable=invalid-name
     runner_options = [
         {
             "option": "rompath",
-            "type": "directory_chooser",
+            "type": "directory",
             "label": _("ROM/BIOS path"),
             "help": _(
                 "Choose the folder containing ROMs and BIOS files.\n"

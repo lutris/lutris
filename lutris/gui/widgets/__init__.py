@@ -40,7 +40,7 @@ class NotificationSource:
     """
 
     def __init__(self) -> None:
-        self._callbacks: Dict[int, Callable] = {}
+        self._callbacks: Dict[int, Tuple[Callable, int]] = {}
         self._next_callback_id = 1
         self._scheduled_callbacks: List[Tuple[Callable, Tuple, Dict]] = []
 
@@ -53,13 +53,15 @@ class NotificationSource:
         """Signals that the thing, whatever it is, has happened. This does not invoke the callbacks
         at once, but schedules the callbacks to run at idle time. This ensures handlers always run
         on the UI thread, for safety."""
-        for callback in self._callbacks.values():
+        ordered = sorted(self._callbacks.values(), key=lambda t: t[1])
+        for callback, _priority in ordered:
             self._scheduled_callbacks.append((callback, args, kwargs))
         schedule_at_idle(self._notify)
 
-    def register(self, callback: Callable) -> NotificationRegistration:
+    def register(self, callback: Callable, priority: int = 0) -> NotificationRegistration:
         """Registers a callback to be called after the thing, whatever it is, has happened;
-        fire() schedules callbacks to be called at idle time on the main thread.
+        fire() schedules callbacks to be called at idle time on the main thread. The
+        callbacks are called in priority order.
 
         Note that a callback will be kept alive until unregistered, and this can keep
         large objects alive until then.
@@ -68,7 +70,7 @@ class NotificationSource:
 
         # We still use callback ID numbers to avoid creating a circular reference.
         callback_id = self._next_callback_id
-        self._callbacks[callback_id] = callback
+        self._callbacks[callback_id] = (callback, priority)
         self._next_callback_id += 1
         return NotificationRegistration(self, callback_id)
 

@@ -5,7 +5,7 @@ from gettext import gettext as _
 
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
-from lutris.exceptions import UnavailableGameError
+from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
@@ -25,13 +25,18 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.interpreter = interpreter
         self.installer = installer
         self.is_update = False
-        self.version = installer["version"]
-        self.slug = installer["slug"]
-        self.year = installer.get("year")
-        self.runner = installer["runner"]
-        self.script = installer.get("script")
-        self.game_name = installer["name"]
-        self.game_slug = installer["game_slug"]
+
+        try:
+            self.version = installer["version"]
+            self.slug = installer["slug"]
+            self.year = installer.get("year")
+            self.runner = installer["runner"]
+            self.script = installer.get("script")
+            self.game_name = installer["name"]
+            self.game_slug = installer["game_slug"]
+        except KeyError as ex:
+            raise ScriptingError(_("The script was missing the '%s' key, which is required.") % ex.args[0]) from ex
+
         self.service = self.get_service(initial=service)
         self.service_appid = self.get_appid(installer, initial=appid)
         self.variables = self.script.get("variables", {})
@@ -174,8 +179,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                     content_files, extra_files = self.service.get_installer_files(self, installer_file_id, extras)
                     extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
                     installer_files = content_files + extra_files
-            except UnavailableGameError as ex:
-                logger.error("Game not available: %s", ex)
+            except (AuthenticationError, UnavailableGameError) as ex:
+                logger.exception("Game not available: %s", ex)
                 installer_files = None
 
             if installer_files:

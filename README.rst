@@ -41,7 +41,6 @@ Game library
 Optional accounts can be created at `lutris.net
 <https://lutris.net>`_ and linked with Lutris clients.
 This enables your client to automatically sync fetch library from the website.
-**It is currently not possible to sync from the client to the cloud.**
 Via the website, it is also possible to sync your Steam library to your Lutris
 library.
 
@@ -95,7 +94,7 @@ The following command line arguments are available::
 -s, --list-steam-games           List available Steam games
 --list-steam-folders             List all known Steam library folders
 --list-runners                   List all known runners
---list-wine-versions              List all known Wine runners
+--list-wine-versions             List all known Wine runners
 -a, --list-all-service-games     List all games for all services in database
 --list-service-games             List all games for provided service in database
 -r, --install-runner             Install a Runner
@@ -129,7 +128,7 @@ Come with us!
 Want to make Lutris better? Help implement features, fix bugs, test
 pre-releases, or simply chat with the developers?
 
-Improve the code by just cloning the repository, editing the scripts and then starting Lutris with the ``./bin/lutris -d`` command. 
+Improve the code by just cloning the repository, editing the scripts and then starting Lutris with the ``./bin/lutris -d`` command.
 
 You can always reach us on:
 
