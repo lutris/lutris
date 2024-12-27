@@ -9,6 +9,7 @@ from lutris.util.system import get_md5_hash
 
 FIRMWARE_CACHE_PATH = os.path.expanduser("~/.cache/lutris/bios-files.json")
 
+
 def scan_firmware_directory(target_directory: str):
     """Scans a target directory for firmwares and generates/updates the JSON 'firmware cache'
     file with relevant details and hashes for each file within the directory"""
@@ -31,6 +32,7 @@ def scan_firmware_directory(target_directory: str):
     firmwares_cache_data = json.dumps(firmwares)
     with open(FIRMWARE_CACHE_PATH, "w+") as firmwares_cache:
         firmwares_cache.write(firmwares_cache_data)
+
 
 def get_firmware(target_firmware_name: str, target_firmware_checksum: str, runner_system_path: str):
     """Given a target firmware's name and checksum and the target runner's system directory, searches the
