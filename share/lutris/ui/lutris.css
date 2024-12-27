@@ -43,6 +43,10 @@
 	margin-bottom: 6px;
 }
 
+.reset-button {
+    padding: 0px;
+}
+
 .info-frame {
   color: @theme_text_color;
   background-color: @theme_base_color;

@@ -283,7 +283,9 @@ class ConfigWidgetGenerator(WidgetGenerator):
         reset_container.pack_start(wrapper, True, True, 0)
 
         reset_button = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
+        reset_button.get_style_context().add_class("reset-button")
         reset_button.set_valign(Gtk.Align.CENTER)
+        reset_button.set_halign(Gtk.Align.CENTER)
         reset_button.set_margin_bottom(6)
         reset_button.set_relief(Gtk.ReliefStyle.NONE)
         reset_button.set_tooltip_text(_("Reset option to global or default config"))
@@ -295,7 +297,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
             reset_button.set_no_show_all(True)
 
         placeholder = Gtk.Box()
-        placeholder.set_size_request(32, 32)
+        placeholder.set_size_request(28, -1)
 
         placeholder.pack_start(reset_button, False, False, 0)
         reset_container.pack_end(placeholder, False, False, 5)
