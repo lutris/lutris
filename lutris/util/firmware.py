@@ -22,7 +22,7 @@ def scan_firmware_directory(target_directory: str):
 
             if os.access(file_path, os.R_OK):
                 bios_file = {}
-                bios_file["name"] = file_name
+                bios_file["name"] = file_path
                 bios_file["size"] = os.path.getsize(file_path)
                 bios_file["date_created"] = os.path.getctime(file_path)
                 bios_file["date_modified"] = os.path.getmtime(file_path)
