@@ -14,14 +14,6 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.strings import human_size
 
 
-def get_md5_from_file(filepath):
-    with open(filepath, "rb") as file:
-        file_data = file.read()
-        result = hashlib.md5(file_data).hexdigest()
-
-    return result
-
-
 class StorageBox(BaseConfigBox):
     bios_path_invalid_warning = Gtk.Label(label="WARNING: Invalid BIOS path")
 
@@ -130,8 +122,6 @@ class StorageBox(BaseConfigBox):
         return bios_path, ""
 
     def bios_path_validated_cb(self, result, error):
-        print("RESULT", result)
-        print("ERROR", error)
         if error:
             self.bios_path_invalid_warning.set_visible(True)
             return

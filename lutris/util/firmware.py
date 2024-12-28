@@ -3,11 +3,12 @@ import os
 import shutil
 
 from lutris.config import LutrisConfig
+from lutris.settings import CACHE_DIR
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.system import get_md5_hash
 
-FIRMWARE_CACHE_PATH = os.path.expanduser("~/.cache/lutris/bios-files.json")
+FIRMWARE_CACHE_PATH = os.path.join(CACHE_DIR, "bios-files.json")
 
 
 def scan_firmware_directory(target_directory: str):
