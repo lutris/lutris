@@ -71,11 +71,6 @@ def _is_pre_proton(_option_key: str, config: LutrisConfig) -> bool:
     return not proton.is_proton_version(version)
 
 
-def _is_sandboxed(_option_key: str, config: LutrisConfig) -> bool:
-    sandbox = config.runner_config.get("sandbox")
-    return bool(sandbox)
-
-
 def _get_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     arch = config.game_config.get("arch")
     version = config.runner_config.get("version")
@@ -282,6 +277,8 @@ class wine(Runner):
                 if version in labels:
                     version_number = get_system_wine_version(WINE_PATHS[version])
                     label = labels[version].format(version_number)
+                elif version == "ge-proton":
+                    label = _("GE-Proton (Latest)")
                 else:
                     label = version
                 version_choices.append((label, version))
