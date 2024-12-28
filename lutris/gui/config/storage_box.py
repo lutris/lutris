@@ -97,6 +97,7 @@ class StorageBox(BaseConfigBox):
             wrapper.add(self.bios_path_invalid_warning)
 
         wrapper.set_margin_end(16)
+        wrapper.set_margin_left(16)
         wrapper.set_margin_bottom(16)
 
         return wrapper

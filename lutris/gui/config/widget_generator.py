@@ -1,13 +1,10 @@
 """Widget generators and their signal handlers"""
 
-# Standard Library
-# pylint: disable=no-member,too-many-public-methods
 import os
 from abc import ABC, abstractmethod
 from gettext import gettext as _
 from typing import Any, Callable, Dict, List, Optional, Union
 
-# Third Party Libraries
 from gi.repository import Gdk, Gtk
 
 from lutris.config import LutrisConfig
@@ -297,6 +294,7 @@ class WidgetGenerator(ABC):
         option_key = option["option"]
 
         # Update messages in message boxes that support it
+
         for ch in container.get_children():
             if hasattr(ch, "update_message"):
                 ch.update_message(option_key, *args, **kwargs)
