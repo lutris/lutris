@@ -123,6 +123,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "running": self.get_running_games,
         }
 
+        self.accelerators = Gtk.AccelGroup()
+        self.add_accel_group(self.accelerators)
+
+        key, mod = Gtk.accelerator_parse("F5")
+        self.accelerators.connect(key, mod, Gtk.AccelFlags.VISIBLE, self.on_refresh)
+
         self.connect("delete-event", self.on_window_delete)
         self.connect("configure-event", self.on_window_configure)
         self.connect("realize", self.on_load)
@@ -1182,6 +1188,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         settings.write_setting("side_panel_visible", bool(side_panel_visible))
         self.sidebar_revealer.set_reveal_child(side_panel_visible)
 
+    def on_refresh(self, _accel_group, _window, _keyval, _modifier):
+        """Handle F5 key, which updates the view explicitly."""
+        self.sidebar.update_rows()
+        self.update_missing_games_sidebar_row()
+        self.update_store()
+
     def on_sidebar_changed(self, widget):
         """Handler called when the selected element of the sidebar changes"""
         for filter_type in ("category", "dynamic_category", "saved_search", "service", "runner", "platform"):
@@ -1306,6 +1318,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.update_missing_games_sidebar_row()
         self.update_store()
         return True
+
+    def on_navigate_home(self, _accel_group, _window, _keyval, _modifier):
+        self.sidebar.update_rows()
+        self.update_missing_games_sidebar_row()
+        self.update_store()
 
     def on_game_activated(self, _view, game_id):
         """Handles view activations (double click, enter press)"""
