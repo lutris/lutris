@@ -1,7 +1,6 @@
 """Entry box with popup list and search"""
 
-import os
-from gi.repository import GLib, GObject, Gtk, Gdk
+from gi.repository import Gdk, GLib, GObject, Gtk
 
 from lutris.gui.dialogs import display_error
 

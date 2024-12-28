@@ -1,4 +1,3 @@
-import hashlib
 import os
 from gettext import gettext as _
 
