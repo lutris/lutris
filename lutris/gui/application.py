@@ -393,7 +393,6 @@ class Application(Gtk.Application):
         if update_function:
             update_function(window_inst)
         self.app_windows[window_key] = window_inst
-        logger.debug("Showing window %s", window_key)
         window_inst.show()
         return window_inst
 
@@ -418,7 +417,6 @@ class Application(Gtk.Application):
         window_key = str(app_window.__class__.__name__) + window_key
         try:
             del self.app_windows[window_key]
-            logger.debug("Removed window %s", window_key)
         except KeyError:
             logger.warning("Failed to remove window %s", window_key)
             logger.info("Available windows: %s", ", ".join(self.app_windows.keys()))
