@@ -30,7 +30,7 @@ def scan_firmware_directory(target_directory: str):
 
                 firmwares.append(bios_file)
 
-    firmwares_cache_data = json.dumps(firmwares)
+    firmwares_cache_data = json.dumps(firmwares, indent=2)
     with open(FIRMWARE_CACHE_PATH, "w+") as firmwares_cache:
         firmwares_cache.write(firmwares_cache_data)
 
