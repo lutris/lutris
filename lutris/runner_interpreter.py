@@ -28,7 +28,7 @@ def get_launch_parameters(runner, gameplay_info):
     # MangoHud
     if runner.name == "steam":
         logger.info(
-            "Do not enable Mangodhud for Steam games in Lutris. "
+            "Do not enable Mangodhud for Steam games in Lutris."
             "Edit the launch options in Steam and set them to mangohud %%command%%"
         )
     else:
