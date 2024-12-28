@@ -484,7 +484,7 @@ class WidgetGenerator(ABC):
             return _("The setting '%s' is no longer available. You should select another choice.") % v
 
         if not has_entry and value not in valid_choices:
-            self.underslung_widgets.append(ConfigWarningBox(get_invalidity_error))
+            self.warning_messages.append(ConfigWarningBox(get_invalidity_error))
 
         return self.build_option_widget(option, combobox)
 
