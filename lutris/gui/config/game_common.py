@@ -12,7 +12,7 @@ from lutris.config import LutrisConfig, make_game_config_id
 from lutris.game import Game
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemConfigBox
-from lutris.gui.config.widget_generator import UnderslungMessageBox
+from lutris.gui.config.widget_generator import WidgetWarningMessageBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog, display_error
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.dialogs.move_game import MoveDialog
@@ -823,7 +823,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             service_media.run_system_update_desktop_icons()
 
 
-class RunnerMessageBox(UnderslungMessageBox):
+class RunnerMessageBox(WidgetWarningMessageBox):
     def __init__(self):
         super().__init__(margin_left=12, margin_right=12, icon_name="dialog-warning")
 

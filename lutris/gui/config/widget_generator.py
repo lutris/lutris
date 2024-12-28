@@ -21,7 +21,7 @@ from lutris.util.strings import gtk_safe
 class WidgetGenerator(ABC):
     """This class generates widgets for an options page. It even adds the widgets
     to a 'wrapper' you can supply and, if required, that wrapper goes into a container
-    which also contains underslung message boxes.
+    which also contains message boxes for errors and warnings.
 
     The specific inner widgets are generated according to an option dict.
 
@@ -57,7 +57,7 @@ class WidgetGenerator(ABC):
         self.tooltip_default: Optional[str] = None
         self.option_widget: Optional[Gtk.Widget] = None
         self.option_container: Optional[Gtk.Widget] = None
-        self.underslung_widgets: List[Gtk.Widget] = []
+        self.warning_messages: List[Gtk.Widget] = []
 
         # These accumulate results across all widgets
         self.wrappers: Dict[str, Gtk.Widget] = {}
@@ -160,7 +160,7 @@ class WidgetGenerator(ABC):
         self.tooltip_default = None
         self.option_widget = None
         self.option_container = None
-        self.underslung_widgets.clear()
+        self.warning_messages.clear()
         self.wrappers.pop(option_key, None)
 
         if wrapper:
@@ -190,12 +190,12 @@ class WidgetGenerator(ABC):
             option_widget.show_all()
 
         self.configure_wrapper_box(self.wrapper, option, value, default)
-        self.configure_underslung_messages(option)
+        self.configure_warning_messages(option)
         return option_widget
 
     def configure_wrapper_box(self, wrapper: Gtk.Widget, option: Dict[str, Any], value: Any, default: Any) -> None:
         """Configures the wrapper box after it is created; this sets its tooltip, sensitivity, and
-        creates underslung message boxes."""
+        creates warning message boxes."""
 
         # Attach a tooltip to the wrapper
         tooltip = self.get_tooltip(option, value, default)
@@ -210,13 +210,13 @@ class WidgetGenerator(ABC):
             tooltip += _("<b>Default</b>: ") + self.tooltip_default
         return tooltip
 
-    def configure_underslung_messages(self, option: Dict[str, Any]):
-        # Add underslung message boxes under the widget
+    def configure_warning_messages(self, option: Dict[str, Any]):
+        # Add message boxes under the widget
         if "error" in option:
-            self.underslung_widgets.append(ConfigErrorBox(option["error"]))
+            self.warning_messages.append(ConfigErrorBox(option["error"]))
 
         if "warning" in option:
-            self.underslung_widgets.append(ConfigWarningBox(option["warning"]))
+            self.warning_messages.append(ConfigWarningBox(option["warning"]))
 
     def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
         """This creates the wrapper, which becomes the 'wrapper' attribute and which build_option_widget()
@@ -235,11 +235,11 @@ class WidgetGenerator(ABC):
         base implementation wraps 'wrapper' in a Box with the error and warning widgets; if
         there are none it just returns 'wrapper'."""
 
-        if self.underslung_widgets:
+        if self.warning_messages:
             option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
             option_container.pack_start(wrapper, False, False, 0)
 
-            for widget in self.underslung_widgets:
+            for widget in self.warning_messages:
                 option_container.pack_start(widget, False, False, 0)
 
             return option_container
@@ -296,8 +296,7 @@ class WidgetGenerator(ABC):
         kwargs = self.callback_kwargs
         option_key = option["option"]
 
-        # Update messages in underslung message boxes that support doing
-        # this.
+        # Update messages in message boxes that support it
         for ch in container.get_children():
             if hasattr(ch, "update_message"):
                 ch.update_message(option_key, *args, **kwargs)
@@ -762,7 +761,7 @@ class SectionFrame(Gtk.Frame):
         return any(w for w in self.vbox.get_children() if w.get_visible())
 
 
-class UnderslungMessageBox(Gtk.Box):
+class WidgetWarningMessageBox(Gtk.Box):
     """A box to display a message with an icon inside the configuration dialog."""
 
     def __init__(self, icon_name, margin_left=18, margin_right=18, margin_bottom=6):
@@ -794,7 +793,7 @@ class UnderslungMessageBox(Gtk.Box):
         return visible
 
 
-class ConfigMessageBox(UnderslungMessageBox):
+class ConfigMessageBox(WidgetWarningMessageBox):
     def __init__(self, message, icon_name, **kwargs):
         self.message = message
         super().__init__(icon_name, **kwargs)

@@ -3,7 +3,7 @@ from typing import Callable
 from gi.repository import Gtk
 
 from lutris import settings
-from lutris.gui.config.widget_generator import UnderslungMessageBox
+from lutris.gui.config.widget_generator import WidgetWarningMessageBox
 from lutris.gui.widgets.common import VBox
 
 
@@ -62,7 +62,7 @@ class BaseConfigBox(VBox):
                     visible = warning_condition(active) if bool(warning_condition) else active
                     warning_box.show_markup(warning_markup if visible else None)
 
-                warning_box = UnderslungMessageBox("dialog-warning", margin_left=0, margin_right=0, margin_bottom=0)
+                warning_box = WidgetWarningMessageBox("dialog-warning", margin_left=0, margin_right=0, margin_bottom=0)
                 update_warning(setting_value)
                 inner_box = self._get_inner_settings_box(
                     setting_key, setting_value, label, accelerator, margin=0, when_setting_changed=update_warning
