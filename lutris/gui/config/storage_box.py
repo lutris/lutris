@@ -102,6 +102,8 @@ class StorageBox(BaseConfigBox):
         return wrapper
 
     def get_is_bios_path_invalid(self, bios_path):
+        if not bios_path:
+            return False
         MAX_BIOS_PATH_SIZE = 5e9
         MAX_BIOS_PATH_FILE_COUNT = 5000
         MAX_BIOS_PATH_DEPTH = 3

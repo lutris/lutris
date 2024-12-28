@@ -33,6 +33,7 @@ class BaseConfigBox(VBox):
 
     def _get_framed_options_list_box(self, items):
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
+
         list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
         frame.add(list_box)
 
