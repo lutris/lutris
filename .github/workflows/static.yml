@@ -12,11 +12,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: Install Ubuntu dependencies
         run: |
           sudo apt update
-          sudo apt-get install libdbus-1-dev pkg-config libgirepository1.0-dev
+          sudo apt-get install libdbus-1-dev pkg-config libgirepository1.0-dev python3-gi-cairo
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
@@ -35,14 +35,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           make dev
       - name: Check code style
-        run:
-          ruff --version
+        run: ruff --version
           ruff check .
       - name: Check format
         run: ruff format . --check
