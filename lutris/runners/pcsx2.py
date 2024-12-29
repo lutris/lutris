@@ -10,7 +10,7 @@ from lutris.exceptions import MissingGameExecutableError
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.firmware import get_firmware, scan_firmware_directory
+from lutris.util.retroarch.firmware import get_firmware, scan_firmware_directory
 
 
 class pcsx2(Runner):

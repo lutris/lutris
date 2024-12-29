@@ -52,6 +52,7 @@ class WidgetGenerator(ABC):
         self.wrapper: Optional[Gtk.Widget] = None
         self.default_value = None
         self.tooltip_default: Optional[str] = None
+        self.options: Dict[str, Dict[str, Any]] = {}
         self.option_widget: Optional[Gtk.Widget] = None
         self.option_container: Optional[Gtk.Widget] = None
         self.warning_messages: List[Gtk.Widget] = []
@@ -150,8 +151,8 @@ class WidgetGenerator(ABC):
         the return value. This returns None if the entire option should be omitted."""
         option_key = option["option"]
         option_type = option["type"]
-        value = self.get_setting(option_key)
         default = self.get_default(option)
+        value = self.get_setting(option_key, default)
 
         self.default_value = default
         self.tooltip_default = None
@@ -159,6 +160,9 @@ class WidgetGenerator(ABC):
         self.option_container = None
         self.warning_messages.clear()
         self.wrappers.pop(option_key, None)
+
+        # Record the options themselves before anything is generated
+        self.options[option_key] = option
 
         if wrapper:
             # Destroy and recreate option widget
@@ -394,7 +398,7 @@ class WidgetGenerator(ABC):
     def _generate_choice(self, option, value, default, has_entry=False):
         """Generate a combobox (drop-down menu)."""
 
-        # Provise seamless transition from old naming scheme to current one.
+        # Provide seamless transition from old naming scheme to current one.
         # Not the best place to put this code, I know...
         if value == "GE-Proton (Latest)":
             value = "ge-proton"
@@ -481,8 +485,8 @@ class WidgetGenerator(ABC):
         combobox.connect("scroll-event", on_combobox_scroll)
         combobox.set_valign(Gtk.Align.CENTER)
 
-        def get_invalidity_error(option_key: str, _config: LutrisConfig):
-            v = self.get_setting(option_key)
+        def get_invalidity_error(key: str, *_args):
+            v = self.get_setting(key, self.get_default(option))
             if v in valid_choices:
                 return None
 
@@ -497,7 +501,7 @@ class WidgetGenerator(ABC):
     def _generate_choice_with_entry(self, option, value, default):
         return self._generate_choice(option, value, default, has_entry=True)
 
-    # Sesarchable Entry
+    # Searchable Entry
     def _generate_choice_with_search(self, option, value, default):
         """Generate a searchable combo box"""
 
@@ -698,7 +702,7 @@ class WidgetGenerator(ABC):
     # Option access
 
     @abstractmethod
-    def get_setting(self, option_key: str) -> Any:
+    def get_setting(self, option_key: str, default: Any) -> Any:
         """Reads the current value for a specific setting; this method must be
         implemented by a subclass."""
         raise NotImplementedError()
@@ -720,8 +724,10 @@ class WidgetGenerator(ABC):
         condition = self._evaluate_flag_option("condition", option)
         conditional_on = option.get("conditional_on")
 
-        if conditional_on and not self.get_setting(conditional_on):
-            return False
+        if conditional_on:
+            conditional_on_default = self.get_default(self.options[conditional_on])
+            if not self.get_setting(conditional_on, conditional_on_default):
+                return False
 
         container = self.option_containers[option["option"]]
 
