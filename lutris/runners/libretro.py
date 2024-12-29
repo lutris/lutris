@@ -16,25 +16,26 @@ from lutris.util.firmware import get_firmware, scan_firmware_directory
 from lutris.util.libretro import RetroConfig
 from lutris.util.log import logger
 
+RETROARCH_DIR = os.path.join(settings.RUNNER_DIR, "retroarch")
 
-def get_default_config_path(path=""):
-    return os.path.join(settings.RUNNER_DIR, "retroarch", path)
+
+def get_default_config_path(path):
+    return os.path.join(RETROARCH_DIR, path)
 
 
 def get_libretro_cores():
     cores = []
-    runner_path = get_default_config_path()
-    if not os.path.exists(runner_path):
+    if not os.path.exists(RETROARCH_DIR):
         return []
 
     # Get core identifiers from info dir
-    info_path = get_default_config_path("info")
+    info_path = os.path.join(RETROARCH_DIR, "info")
     if not os.path.exists(info_path):
         req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True, timeout=5)
         if req.status_code == requests.codes.ok:  # pylint: disable=no-member
-            with open(get_default_config_path("info.zip"), "wb") as info_zip:
+            with open(os.path.join(RETROARCH_DIR, "info.zip"), "wb") as info_zip:
                 info_zip.write(req.content)
-            with ZipFile(get_default_config_path("info.zip"), "r") as info_zip:
+            with ZipFile(os.path.join(RETROARCH_DIR, "info.zip"), "r") as info_zip:
                 info_zip.extractall(info_path)
         else:
             logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code, req.reason)
@@ -86,7 +87,7 @@ class libretro(Runner):
             "option": "config_file",
             "type": "file",
             "label": _("Config file"),
-            "default": get_default_config_path("retroarch.cfg"),
+            "default": os.path.join(RETROARCH_DIR, "retroarch.cfg"),
         },
         {
             "option": "fullscreen",
@@ -174,7 +175,7 @@ class libretro(Runner):
         }
 
     def get_config_file(self):
-        return self.runner_config.get("config_file") or get_default_config_path("retroarch.cfg")
+        return self.runner_config.get("config_file") or os.path.join(RETROARCH_DIR, "retroarch.cfg")
 
     @staticmethod
     def get_system_directory(retro_config):
@@ -217,7 +218,7 @@ class libretro(Runner):
             retro_config = RetroConfig(config_file)
 
         core = self.game_config.get("core")
-        info_file = os.path.join(get_default_config_path("info"), "{}_libretro.info".format(core))
+        info_file = os.path.join(RETROARCH_DIR, f"info/{core}_libretro.info")
         if system.path_exists(info_file):
             retro_config = RetroConfig(info_file)
             try:
@@ -225,8 +226,6 @@ class libretro(Runner):
             except (ValueError, TypeError):
                 firmware_count = 0
             system_path = self.get_system_directory(retro_config)
-            print("retroconfig['system_directory']: ", retro_config["system_directory"])
-            print("SYSTEM_PATH: ", system_path)
             notes = str(retro_config["notes"] or "")
             checksums = {}
             if notes.startswith("(!)"):
@@ -259,7 +258,7 @@ class libretro(Runner):
                         checksum_status = "No checksum info"
                     logger.info("Firmware '%s' found (%s)", required_firmware_filename, checksum_status)
                 else:
-                    (get_firmware(required_firmware_name, required_firmware_checksum, system_path),)
+                    get_firmware(required_firmware_name, required_firmware_checksum, system_path)
                     logger.warning("Firmware '%s' not found!", required_firmware_filename)
 
     def get_runner_parameters(self):
