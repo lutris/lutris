@@ -394,7 +394,7 @@ class WidgetGenerator(ABC):
     def _generate_choice(self, option, value, default, has_entry=False):
         """Generate a combobox (drop-down menu)."""
 
-        # Provise seamless transition from old naming scheme to current one.
+        # Provide seamless transition from old naming scheme to current one.
         # Not the best place to put this code, I know...
         if value == "GE-Proton (Latest)":
             value = "ge-proton"
@@ -481,7 +481,7 @@ class WidgetGenerator(ABC):
         combobox.connect("scroll-event", on_combobox_scroll)
         combobox.set_valign(Gtk.Align.CENTER)
 
-        def get_invalidity_error(option_key: str, _config: LutrisConfig):
+        def get_invalidity_error(option_key: str):
             v = self.get_setting(option_key)
             if v in valid_choices:
                 return None
