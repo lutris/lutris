@@ -12,9 +12,9 @@ from lutris.config import LutrisConfig
 from lutris.exceptions import GameConfigError, MissingGameExecutableError, UnspecifiedVersionError
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.firmware import get_firmware, scan_firmware_directory
 from lutris.util.libretro import RetroConfig
 from lutris.util.log import logger
+from lutris.util.retroarch.firmware import get_firmware, scan_firmware_directory
 
 RETROARCH_DIR = os.path.join(settings.RUNNER_DIR, "retroarch")
 

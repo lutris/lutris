@@ -497,7 +497,7 @@ class WidgetGenerator(ABC):
     def _generate_choice_with_entry(self, option, value, default):
         return self._generate_choice(option, value, default, has_entry=True)
 
-    # Sesarchable Entry
+    # Searchable Entry
     def _generate_choice_with_search(self, option, value, default):
         """Generate a searchable combo box"""
 
