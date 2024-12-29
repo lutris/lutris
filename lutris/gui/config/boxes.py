@@ -258,8 +258,11 @@ class ConfigWidgetGenerator(WidgetGenerator):
         self.lutris_config = parent.lutris_config
         self.reset_buttons: Dict[str, Gtk.Button] = {}
 
-    def get_setting(self, option_key: str) -> Any:
-        return self.config.get(option_key)
+    def get_setting(self, option_key: str, default: Any) -> Any:
+        if option_key in self.config:
+            return self.config.get(option_key)
+        else:
+            return default
 
     def update_option_container(self, option, container: Gtk.Box, wrapper: Gtk.Box):
         super().update_option_container(option, container, wrapper)
@@ -268,8 +271,8 @@ class ConfigWidgetGenerator(WidgetGenerator):
         if option_key in self.raw_config:
             set_option_wrapper_style_class(wrapper, "option-wrapper-assigned-here")
         else:
-            value = self.get_setting(option_key)
             default = self.get_default(option)
+            value = self.get_setting(option_key, default)
 
             if value != default:
                 set_option_wrapper_style_class(wrapper, "option-wrapper-non-default")
