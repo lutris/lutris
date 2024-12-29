@@ -727,8 +727,6 @@ class wine(Runner):
             if "wine" in level:
                 runner_version = level["wine"].get("version")
                 if runner_version:
-                    if runner_version == "GE-Proton (Latest)":
-                        return "ge-proton"
                     return runner_version
 
         if default:

@@ -398,11 +398,6 @@ class WidgetGenerator(ABC):
     def _generate_choice(self, option, value, default, has_entry=False):
         """Generate a combobox (drop-down menu)."""
 
-        # Provide seamless transition from old naming scheme to current one.
-        # Not the best place to put this code, I know...
-        if value == "GE-Proton (Latest)":
-            value = "ge-proton"
-
         def populate_combobox_choices():
             expanded, tooltip_default, _valid_choices = expand_combobox_choices()
             for choice in expanded:
