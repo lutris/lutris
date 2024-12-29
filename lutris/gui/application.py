@@ -781,7 +781,7 @@ class Application(Gtk.Application):
 
     def on_game_start(self, game: Game) -> None:
         self._running_games.append(game)
-        if settings.read_setting("hide_client_on_game_start") == "True":
+        if self.window and settings.read_bool_setting("hide_client_on_game_start"):
             self.window.hide()  # Hide launcher window
 
     def on_game_stopped(self, game: Game) -> None:
@@ -798,9 +798,9 @@ class Application(Gtk.Application):
         else:
             logger.debug("Game has already been removed from running IDs?")
 
-        if settings.read_bool_setting("hide_client_on_game_start") and not self.quit_on_game_exit:
+        if self.window and settings.read_bool_setting("hide_client_on_game_start") and not self.quit_on_game_exit:
             self.window.show()  # Show launcher window
-        elif not self.window.is_visible():
+        elif not self.window or not self.window.is_visible():
             if not self.has_running_games:
                 if self.quit_on_game_exit or not self.has_tray_icon():
                     self.quit()
