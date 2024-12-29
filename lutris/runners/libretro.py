@@ -225,8 +225,6 @@ class libretro(Runner):
             except (ValueError, TypeError):
                 firmware_count = 0
             system_path = self.get_system_directory(retro_config)
-            print("retroconfig['system_directory']: ", retro_config["system_directory"])
-            print("SYSTEM_PATH: ", system_path)
             notes = str(retro_config["notes"] or "")
             checksums = {}
             if notes.startswith("(!)"):
