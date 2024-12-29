@@ -4,51 +4,18 @@ import shutil
 
 from lutris.settings import CACHE_DIR
 from lutris.util import system
+from lutris.util.files import get_folder_contents
 from lutris.util.log import logger
-from lutris.util.system import get_md5_hash
 
 FIRMWARE_CACHE_PATH = os.path.join(CACHE_DIR, "bios-files.json")
-
-
-def get_folder_contents(target_directory: str, with_hash: bool = True) -> list:
-    """Recursively iterate over a folder content and return its details"""
-    folder_content = []
-    for path, dir_names, file_names in os.walk(target_directory):
-        for dir_name in dir_names:
-            dir_path = os.path.join(path, dir_name)
-            folder_content.append(
-                {
-                    "name": dir_path,
-                    "date_created": os.path.getctime(dir_path),
-                    "date_modified": os.path.getmtime(dir_path),
-                    "date_accessed": os.path.getatime(dir_path),
-                    "type": "folder",
-                }
-            )
-        for file_name in file_names:
-            file_path = os.path.join(path, file_name)
-            file_stats = os.stat(file_path)
-            file_desc = {
-                "name": file_path,
-                "size": file_stats.st_size,
-                "date_created": file_stats.st_ctime,
-                "date_modified": file_stats.st_mtime,
-                "date_accessed": file_stats.st_atime,
-                "type": "file",
-            }
-            if with_hash:
-                file_desc["md5_hash"] = get_md5_hash(file_path)
-            folder_content.append(file_desc)
-    return folder_content
 
 
 def scan_firmware_directory(target_directory: str):
     """Scans a target directory for firmwares and generates/updates the JSON 'firmware cache'
     file with relevant details and hashes for each file within the directory"""
 
-    firmwares_cache_data = json.dumps(get_folder_contents(target_directory, with_hash=True), indent=2)
     with open(FIRMWARE_CACHE_PATH, "w+") as firmwares_cache:
-        firmwares_cache.write(firmwares_cache_data)
+        json.dump(get_folder_contents(target_directory, with_hash=True), firmwares_cache, indent=2)
 
 
 def get_firmware(target_firmware_name: str, target_firmware_checksum: str, runner_system_path: str):

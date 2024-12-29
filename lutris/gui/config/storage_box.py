@@ -8,8 +8,8 @@ from lutris.config import LutrisConfig
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.common import FileChooserEntry, Label
 from lutris.runners.runner import Runner
-from lutris.util.firmware import scan_firmware_directory
 from lutris.util.jobs import AsyncCall
+from lutris.util.retroarch.firmware import scan_firmware_directory
 from lutris.util.strings import human_size
 
 
