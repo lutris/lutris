@@ -700,6 +700,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             else:
                 self.show_label(_("No games found"))
 
+    def refresh_view(self):
+        self.sidebar.update_rows()
+        self.update_missing_games_sidebar_row()
+        self.update_store()
+
     def update_store(self) -> None:
         service_id = self.filters.get("service")
         service = self.service
@@ -1190,9 +1195,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_refresh(self, _accel_group, _window, _keyval, _modifier):
         """Handle F5 key, which updates the view explicitly."""
-        self.sidebar.update_rows()
-        self.update_missing_games_sidebar_row()
-        self.update_store()
+        self.refresh_view()
 
     def on_sidebar_changed(self, widget):
         """Handler called when the selected element of the sidebar changes"""
@@ -1314,15 +1317,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_game_removed(self):
         """Simple method used to refresh the view"""
-        self.sidebar.update_rows()
-        self.update_missing_games_sidebar_row()
-        self.update_store()
+        self.refresh_view()
         return True
-
-    def on_navigate_home(self, _accel_group, _window, _keyval, _modifier):
-        self.sidebar.update_rows()
-        self.update_missing_games_sidebar_row()
-        self.update_store()
 
     def on_game_activated(self, _view, game_id):
         """Handles view activations (double click, enter press)"""
