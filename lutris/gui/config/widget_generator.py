@@ -481,8 +481,8 @@ class WidgetGenerator(ABC):
         combobox.connect("scroll-event", on_combobox_scroll)
         combobox.set_valign(Gtk.Align.CENTER)
 
-        def get_invalidity_error(option_key: str):
-            v = self.get_setting(option_key)
+        def get_invalidity_error(key: str, *_args):
+            v = self.get_setting(key)
             if v in valid_choices:
                 return None
 
