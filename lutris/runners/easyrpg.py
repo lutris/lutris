@@ -20,7 +20,7 @@ class easyrpg(Runner):
     game_options = [
         {
             "option": "project_path",
-            "type": "directory_chooser",
+            "type": "directory",
             "label": _("Game directory"),
             "help": _("Select the directory of the game. <b>(required)</b>"),
         },
@@ -95,7 +95,7 @@ class easyrpg(Runner):
         },
         {
             "option": "save_path",
-            "type": "directory_chooser",
+            "type": "directory",
             "label": _("Save path"),
             "warn_if_non_writable_parent": True,
             "help": _(
@@ -385,21 +385,21 @@ class easyrpg(Runner):
         },
         {
             "option": "rpg2k_rtp_path",
-            "type": "directory_chooser",
+            "type": "directory",
             "section": _("Runtime Package"),
             "label": _("RPG2000 RTP location"),
             "help": _("Full path to a directory containing an extracted " "RPG Maker 2000 Run-Time-Package (RTP)."),
         },
         {
             "option": "rpg2k3_rtp_path",
-            "type": "directory_chooser",
+            "type": "directory",
             "section": _("Runtime Package"),
             "label": _("RPG2003 RTP location"),
             "help": _("Full path to a directory containing an extracted " "RPG Maker 2003 Run-Time-Package (RTP)."),
         },
         {
             "option": "rpg_rtp_path",
-            "type": "directory_chooser",
+            "type": "directory",
             "section": _("Runtime Package"),
             "label": _("Fallback RTP location"),
             "help": _("Full path to a directory containing a combined RTP."),

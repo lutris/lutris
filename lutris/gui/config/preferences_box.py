@@ -68,7 +68,6 @@ class InterfacePreferencesBox(BaseConfigBox):
     def __init__(self, accelerators):
         super().__init__()
         self.accelerators = accelerators
-        self.message_updaters = []
 
         self.add(self.get_section_label(_("Interface options")))
         frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
@@ -78,10 +77,10 @@ class InterfacePreferencesBox(BaseConfigBox):
 
         gen = PreferencesWidgetGenerator(listbox)
         gen.changed.register(self.on_setting_changed)
+        self.widget_generator = gen
 
-        for option_dict in self.settings_options:
-            value = settings.read_setting(option_dict["option"], default=None)
-            gen.generate_container(option_dict, value)
+        for option in self.settings_options:
+            gen.generate_container(option)
 
             if gen.option_container:
                 list_box_row = Gtk.ListBoxRow(visible=True)
@@ -89,15 +88,11 @@ class InterfacePreferencesBox(BaseConfigBox):
                 list_box_row.set_activatable(False)
                 list_box_row.add(gen.option_container)
                 listbox.add(list_box_row)
-                self.message_updaters += gen.message_updaters
 
-        for updater in self.message_updaters:
-            updater(None)
+        gen.update_widgets()
 
     def on_setting_changed(self, option_key, new_value):
         settings.write_setting(option_key, new_value)
-        for updater in self.message_updaters:
-            updater(None)
 
 
 class PreferencesWidgetGenerator(WidgetGenerator):
@@ -105,7 +100,7 @@ class PreferencesWidgetGenerator(WidgetGenerator):
     right to get the interface preferences layout instead of tje configuration one."""
 
     def get_setting(self, option_key: str) -> Any:
-        return read_setting(option_key)
+        return read_setting(option_key, default=None)
 
     def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
         box = super().create_wrapper_box(option, value, default)

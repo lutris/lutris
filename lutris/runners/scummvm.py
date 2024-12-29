@@ -22,7 +22,7 @@ _supported_scale_factors = {
 }
 
 
-def _get_opengl_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+def _get_opengl_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     runner_config = config.runner_config
     if "scaler" in runner_config and "renderer" in runner_config:
         renderer = runner_config["renderer"]
@@ -34,7 +34,7 @@ def _get_opengl_warning(config: LutrisConfig, _option_key: str) -> Optional[str]
     return None
 
 
-def _get_scale_factor_warning(config: LutrisConfig, _option_key: str) -> Optional[str]:
+def _get_scale_factor_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     """Generate a warning message for when the scaler and scale-factor can't be used together."""
     runner_config = config.runner_config
     if "scaler" in runner_config and "scale-factor" in runner_config:
@@ -59,7 +59,7 @@ class scummvm(Runner):
     flatpak_id = "org.scummvm.ScummVM"
     game_options = [
         {"option": "game_id", "type": "string", "label": _("Game identifier")},
-        {"option": "path", "type": "directory_chooser", "label": _("Game files location")},
+        {"option": "path", "type": "directory", "label": _("Game files location")},
         {
             "option": "args",
             "type": "string",
@@ -249,7 +249,7 @@ class scummvm(Runner):
         {
             "option": "datadir",
             "label": _("Data directory"),
-            "type": "directory_chooser",
+            "type": "directory",
             "help": _("Defaults to share/scummvm if unspecified."),
             "advanced": True,
         },

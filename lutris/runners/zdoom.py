@@ -30,7 +30,7 @@ class zdoom(Runner):
         },
         {
             "option": "files",
-            "type": "multiple",
+            "type": "multiple_file",
             "label": _("PWAD files"),
             "help": _("Used to load one or more PWAD files which generally contain " "user-created levels."),
         },
@@ -42,7 +42,7 @@ class zdoom(Runner):
         },
         {
             "option": "savedir",
-            "type": "directory_chooser",
+            "type": "directory",
             "label": _("Save path"),
             "warn_if_non_writable_parent": True,
             "help": _("User-specified path where save files should be located."),

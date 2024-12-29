@@ -123,6 +123,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "running": self.get_running_games,
         }
 
+        self.accelerators = Gtk.AccelGroup()
+        self.add_accel_group(self.accelerators)
+
+        key, mod = Gtk.accelerator_parse("F5")
+        self.accelerators.connect(key, mod, Gtk.AccelFlags.VISIBLE, self.on_refresh)
+
         self.connect("delete-event", self.on_window_delete)
         self.connect("configure-event", self.on_window_configure)
         self.connect("realize", self.on_load)
@@ -458,6 +464,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             # we must tolerate them. We treat them all as blank.
             value = value or sort_defaults.get(self.view_sorting, "")
             if self.view_sorting == "year":
+                if self.service:
+                    service_value = self.service.get_game_release_date(item)
+                    if service_value:
+                        value = service_value
                 contains_year = bool(value)
                 if self.view_reverse_order:
                     contains_year = not contains_year
@@ -556,13 +566,17 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def combine_games(service_game, lutris_game):
         """Inject lutris game information into a service game"""
         if lutris_game and service_game["appid"] == lutris_game["service_id"]:
-            for field in ("platform", "runner", "year", "installed_at", "lastplayed", "playtime", "installed"):
+            for field in ("platform", "runner", "installed_at", "lastplayed", "playtime", "installed"):
                 service_game[field] = lutris_game[field]
+            service_game["year"] = service_game["year"] if "year" in service_game else lutris_game["year"]
         return service_game
 
     def get_service_games(self, service_id):
         """Return games for the service indicated."""
         service_games = ServiceGameCollection.get_for_service(service_id)
+        for game in service_games:
+            game["year"] = self.service.get_game_release_year(game)
+
         if service_id == "lutris":
             lutris_games = {g["slug"]: g for g in games_db.get_games()}
         else:
@@ -1174,6 +1188,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         settings.write_setting("side_panel_visible", bool(side_panel_visible))
         self.sidebar_revealer.set_reveal_child(side_panel_visible)
 
+    def on_refresh(self, _accel_group, _window, _keyval, _modifier):
+        """Handle F5 key, which updates the view explicitly."""
+        self.sidebar.update_rows()
+        self.update_missing_games_sidebar_row()
+        self.update_store()
+
     def on_sidebar_changed(self, widget):
         """Handler called when the selected element of the sidebar changes"""
         for filter_type in ("category", "dynamic_category", "saved_search", "service", "runner", "platform"):
@@ -1298,6 +1318,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.update_missing_games_sidebar_row()
         self.update_store()
         return True
+
+    def on_navigate_home(self, _accel_group, _window, _keyval, _modifier):
+        self.sidebar.update_rows()
+        self.update_missing_games_sidebar_row()
+        self.update_store()
 
     def on_game_activated(self, _view, game_id):
         """Handles view activations (double click, enter press)"""

@@ -1,5 +1,4 @@
 import hashlib
-import json
 import os
 from gettext import gettext as _
 
@@ -10,6 +9,9 @@ from lutris.config import LutrisConfig
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.common import FileChooserEntry, Label
 from lutris.runners.runner import Runner
+from lutris.util.firmware import scan_firmware_directory
+from lutris.util.jobs import AsyncCall
+from lutris.util.strings import human_size
 
 
 def get_md5_from_file(filepath):
@@ -21,7 +23,6 @@ def get_md5_from_file(filepath):
 
 
 class StorageBox(BaseConfigBox):
-    is_bios_path_invalid = False
     bios_path_invalid_warning = Gtk.Label(label="WARNING: Invalid BIOS path")
 
     def populate(self):
@@ -33,7 +34,6 @@ class StorageBox(BaseConfigBox):
         widgets = []
         base_runner = Runner()
         bios_path = base_runner.config.system_config.get("bios_path")
-        self.is_bios_path_invalid = self.get_is_bios_path_invalid(bios_path)
 
         path_settings = [
             {
@@ -97,20 +97,21 @@ class StorageBox(BaseConfigBox):
             wrapper.add(self.bios_path_invalid_warning)
 
         wrapper.set_margin_end(16)
+        wrapper.set_margin_left(16)
         wrapper.set_margin_bottom(16)
 
         return wrapper
 
-    def get_is_bios_path_invalid(self, bios_path):
-        MAX_BIOS_PATH_SIZE = 5e9
-        MAX_BIOS_PATH_FILE_COUNT = 5000
-        MAX_BIOS_PATH_DEPTH = 3
+    def is_bios_path_invalid(self, bios_path):
+        if not bios_path:
+            return bios_path, "No path provided"
+        MAX_BIOS_FOLDER_SIZE = 5e9
+        MAX_BIOS_FILES_IN_FOLDER = 5000
+        MAX_BIOS_FOLDER_DEPTH = 3
 
         bios_path_size = 0
         bios_path_file_count = 0
         bios_path_depth = 0
-
-        result = False
 
         for path, _dir_names, file_names in os.walk(bios_path):
             for file_name in file_names:
@@ -120,49 +121,37 @@ class StorageBox(BaseConfigBox):
                     bios_path_file_count += 1
                     bios_path_depth = path[len(bios_path) :].count(os.sep)
 
-        if bios_path_size > MAX_BIOS_PATH_SIZE:
-            result = True
-        elif bios_path_file_count > MAX_BIOS_PATH_FILE_COUNT:
-            result = True
-        elif bios_path_depth > MAX_BIOS_PATH_DEPTH:
-            result = True
+        if bios_path_size > MAX_BIOS_FOLDER_SIZE:
+            return bios_path, "Folder is too large (%s)" % human_size(bios_path_size)
+        if bios_path_file_count > MAX_BIOS_FILES_IN_FOLDER:
+            return bios_path, "Too many files in folder"
+        if bios_path_depth > MAX_BIOS_FOLDER_DEPTH:
+            return bios_path, "Folder is too deep"
+        return bios_path, ""
 
-        self.bios_path_invalid_warning.set_visible(result)
-        return result
+    def bios_path_validated_cb(self, result, error):
+        if error:
+            self.bios_path_invalid_warning.set_visible(True)
+            return
+
+        bios_path, error_message = result
+
+        self.bios_path_invalid_warning.set_visible(bool(error_message))
+        self.bios_path_invalid_warning.set_text(error_message)
+
+        if not error_message:
+            lutris_config = LutrisConfig()
+            lutris_config.raw_system_config["bios_path"] = bios_path
+            lutris_config.save()
+            AsyncCall(scan_firmware_directory, None, bios_path)
 
     def on_file_chooser_changed(self, entry, setting):
-        text = entry.get_text()
+        folder_path = entry.get_text()
         if setting["setting"] == "pga_cache_path":
-            save_custom_cache_path(text)
+            save_custom_cache_path(folder_path)
         elif setting["setting"] == "game_path":
             lutris_config = LutrisConfig()
-            lutris_config.raw_system_config["game_path"] = text
+            lutris_config.raw_system_config["game_path"] = folder_path
             lutris_config.save()
         elif setting["setting"] == "bios_path":
-            self.is_bios_path_invalid = self.get_is_bios_path_invalid(text)
-
-            if not self.is_bios_path_invalid:
-                lutris_config = LutrisConfig()
-                lutris_config.raw_system_config["bios_path"] = text
-                lutris_config.save()
-
-                bios_files = []
-
-                for path, _dir_names, file_names in os.walk(text):
-                    for file_name in file_names:
-                        file_path = f"{path}/{file_name}"
-
-                        if os.access(file_path, os.R_OK):
-                            bios_file = {}
-                            bios_file["name"] = file_name
-                            bios_file["size"] = os.path.getsize(file_path)
-                            bios_file["date_created"] = os.path.getctime(file_path)
-                            bios_file["date_modified"] = os.path.getmtime(file_path)
-                            bios_file["md5_hash"] = get_md5_from_file(file_path)
-
-                            bios_files.append(bios_file)
-
-                bios_files_cache_data = json.dumps(bios_files)
-                bios_files_cache_path = os.path.expanduser("~/.cache/lutris/bios-files.json")
-                with open(bios_files_cache_path, "w+") as bios_files_cache:
-                    bios_files_cache.write(bios_files_cache_data)
+            AsyncCall(self.is_bios_path_invalid, self.bios_path_validated_cb, folder_path)

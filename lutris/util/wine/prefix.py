@@ -82,10 +82,6 @@ class WinePrefixManager:
         """Sets the defaults for newly created prefixes"""
         for dll, value in DEFAULT_DLL_OVERRIDES.items():
             self.override_dll(dll, value)
-        try:
-            self.enable_desktop_disintegration()
-        except Exception as ex:
-            logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
 
     def create_user_symlinks(self):
         """Link together user profiles created by Wine and Proton"""
@@ -155,41 +151,38 @@ class WinePrefixManager:
             desktop_folders.append(folder[folder.rfind("\\") + 1 :])
         return desktop_folders or DEFAULT_DESKTOP_FOLDERS
 
-    def enable_desktop_integration_sandbox(self, desktop_dir):
-        """Replace WINE desktop folders with links to a sandbox directory."""
+    def install_desktop_integration(self):
+        """Replace WINE's desktop folders with links to the corresponding
+        folders in your home directory."""
         user_dir = self.user_dir
-        desktop_dir = os.path.expanduser(desktop_dir) if desktop_dir else user_dir
+        home_dir = os.path.expanduser("~")
+        current_dir = self._get_desktop_integration_assignment() or user_dir
 
-        if desktop_dir == user_dir:
-            self.enable_desktop_disintegration()
-            return
-
-        if system.path_exists(user_dir) and self._get_desktop_integration_assignment() != desktop_dir:
+        if system.path_exists(user_dir, check_symlinks=True) and current_dir != home_dir:
             desktop_folders = self.get_desktop_folders()
-            for item in desktop_folders:
+            for i, item in enumerate(desktop_folders):
                 path = os.path.join(user_dir, item)
                 safe_path = path + ".winecfg"
 
                 self._remove_desktop_folder(path, safe_path)
 
-                try:
-                    src_path = os.path.join(desktop_dir, item)
-                except TypeError as ex:
-                    # There is supposedly a None value in there
-                    # The current code shouldn't allow that
-                    # Just raise a exception with the values
-                    raise RuntimeError("Missing value desktop_dir=%s or item=%s" % (desktop_dir, item)) from ex
+                # if we want to create a symlink and one is already there, just
+                # skip to the next item.  this also makes sure we don't
+                # find a dir (isdir only looks at the target of the symlink).
+                src_path = get_xdg_entry(DESKTOP_XDG[i])
+                if not src_path:
+                    logger.error("No XDG entry found for %s, launcher not created", DESKTOP_XDG[i])
+                else:
+                    system.create_symlink(src_path, path)
 
-                os.makedirs(src_path, exist_ok=True)
-                system.create_symlink(src_path, path)
+            self._set_desktop_integration_assignment(home_dir)
 
-            self._set_desktop_integration_assignment(desktop_dir)
-
-    def enable_desktop_disintegration(self):
+    def remove_desktop_integration(self):
         """Replace the desktop integration links with proper folders."""
         user_dir = self.user_dir
+        current_dir = self._get_desktop_integration_assignment() or user_dir
 
-        if system.path_exists(user_dir) and self._get_desktop_integration_assignment() != user_dir:
+        if system.path_exists(user_dir) and current_dir != user_dir:
             desktop_folders = self.get_desktop_folders()
             for item in desktop_folders:
                 path = os.path.join(user_dir, item)
@@ -209,31 +202,6 @@ class WinePrefixManager:
                     os.makedirs(path, exist_ok=True)
 
             self._set_desktop_integration_assignment(user_dir)
-
-    def restore_desktop_integration(self):
-        """Replace WINE's desktop folders with links to the corresponding
-        folders in your home directory."""
-        user_dir = self.user_dir
-        home_dir = os.path.expanduser("~")
-
-        if system.path_exists(user_dir, check_symlinks=True) and self._get_desktop_integration_assignment() != home_dir:
-            desktop_folders = self.get_desktop_folders()
-            for i, item in enumerate(desktop_folders):
-                path = os.path.join(user_dir, item)
-                safe_path = path + ".winecfg"
-
-                self._remove_desktop_folder(path, safe_path)
-
-                # if we want to create a symlink and one is already there, just
-                # skip to the next item.  this also makes sure the elif doesn't
-                # find a dir (isdir only looks at the target of the symlink).
-                src_path = get_xdg_entry(DESKTOP_XDG[i])
-                if not src_path:
-                    logger.error("No XDG entry found for %s, launcher not created", DESKTOP_XDG[i])
-                else:
-                    system.create_symlink(src_path, path)
-
-            self._set_desktop_integration_assignment(home_dir)
 
     def _remove_desktop_folder(self, path, safe_path):
         """Removes the link or directory at 'path'; if it is a non-empty directory

@@ -201,8 +201,8 @@ class fsuae(Runner):
         {
             "option": "disks",
             "section": _("Media"),
-            "type": "multiple",
-            "label": _("Additionnal floppies"),
+            "type": "multiple_file",
+            "label": _("Additional floppies"),
             "default_path": "game_path",
             "help": _("The additional floppy disk image(s)."),
         },

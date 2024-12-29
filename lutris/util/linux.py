@@ -95,6 +95,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         ("/usr/lib32", "/usr/lib64"),
         ("/lib/i386-linux-gnu", "/lib/x86_64-linux-gnu"),
         ("/usr/lib/i386-linux-gnu", "/usr/lib/x86_64-linux-gnu"),
+        ("/usr/lib", "/opt/32/lib"),
     ]
 
     soundfont_folders = [

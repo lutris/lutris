@@ -79,7 +79,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "section": _("Lutris"),
         "option": "game_path",
-        "type": "directory_chooser",
+        "type": "directory",
         "label": _("Default installation folder"),
         "warn_if_non_writable_parent": True,
         "default": os.path.expanduser("~/Games"),
@@ -222,6 +222,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Enable HDR (Experimental)"),
         "advanced": False,
         "default": False,
+        "conditional_on": "gamescope",
         "condition": bool(system.can_find_executable("gamescope")),
         "help": _("Enable HDR for games that support it.\n" "Requires Plasma 6 and VK_hdr_layer."),
     },
@@ -232,6 +233,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Relative Mouse Mode"),
         "advanced": True,
         "default": False,
+        "conditional_on": "gamescope",
         "condition": bool(system.can_find_executable("gamescope")),
         "help": _(
             "Always use relative mouse mode instead of flipping\n"
@@ -246,6 +248,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Output Resolution"),
         "choices": DISPLAY_MANAGER.get_resolutions,
         "advanced": True,
+        "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
         "help": _(
             "Set the resolution used by gamescope.\n"
@@ -260,6 +263,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "choice_with_entry",
         "label": _("Game Resolution"),
         "choices": DISPLAY_MANAGER.get_resolutions,
+        "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
         "help": _("Set the maximum resolution used by the game.\n" "\n" "<b>Custom Resolutions:</b> (width)x(height)"),
     },
@@ -274,6 +278,7 @@ system_options = [  # pylint: disable=invalid-name
             (_("Borderless"), "-b"),
         ),
         "default": "-f",
+        "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
         "help": _("Run gamescope in fullscreen, windowed or borderless mode\n" "Toggle fullscreen : Super + F"),
     },
@@ -283,6 +288,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("FSR Level"),
         "advanced": True,
         "type": "string",
+        "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
         "help": _(
             "Use AMD FidelityFX™ Super Resolution 1.0 for upscaling.\n" "Upscaler sharpness from 0 (max) to 20 (min)."
@@ -294,6 +300,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Framerate Limiter"),
         "advanced": False,
         "type": "string",
+        "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
         "help": _("Set a frame-rate limit for gamescope specified in frames per second."),
     },
@@ -303,6 +310,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Custom Settings"),
         "advanced": True,
         "type": "string",
+        "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
         "help": _(
             "Set additional flags for gamescope (if available).\n" "See 'gamescope --help' for a full list of options."
@@ -322,6 +330,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "string",
         "label": _("Restrict number of cores to"),
         "default": "1",
+        "conditional_on": "single_cpu",
         "help": _("Maximum number of CPU cores to be used, if 'Restrict number of cores used' is turned on."),
     },
     {
@@ -445,6 +454,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Wait for pre-launch script completion"),
         "advanced": True,
         "default": False,
+        "conditional_on": "prelaunch_command",
         "help": _("Run the game only once the pre-launch script has exited"),
     },
     {

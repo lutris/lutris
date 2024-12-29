@@ -46,7 +46,7 @@ class atari800(Runner):
     runner_options = [
         {
             "option": "bios_path",
-            "type": "directory_chooser",
+            "type": "directory",
             "label": _("BIOS location"),
             "help": _(
                 "A folder containing the Atari 800 BIOS files.\n"

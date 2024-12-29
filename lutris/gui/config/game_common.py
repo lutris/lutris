@@ -12,7 +12,7 @@ from lutris.config import LutrisConfig, make_game_config_id
 from lutris.game import Game
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemConfigBox
-from lutris.gui.config.widget_generator import UnderslungMessageBox
+from lutris.gui.config.widget_generator import WidgetWarningMessageBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog, display_error
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.dialogs.move_game import MoveDialog
@@ -162,7 +162,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
         self.runner_warning_box = RunnerMessageBox()
         info_box.pack_start(self.runner_warning_box, False, False, 6)  # Runner
-        self.runner_warning_box.update_warning(self.runner_name)
+        self.runner_warning_box.update_message(self.runner_name)
 
         info_box.pack_start(self._get_year_box(), False, False, 6)  # Year
 
@@ -484,7 +484,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         config_box = box_factory()
         page_index = self._add_notebook_tab(self.build_scrolled_window(config_box), notebook_label)
 
-        self.notebook_page_updater[page_index] = config_box.update_warnings
+        self.notebook_page_updater[page_index] = config_box.update_widgets
 
         if page_index == 0:
             config_box.generate_widgets()
@@ -602,7 +602,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.runner_name = runner_name
             self.lutris_config = LutrisConfig(runner_slug=self.runner_name, level="game")
         self._rebuild_tabs()
-        self.runner_warning_box.update_warning(self.runner_name)
+        self.runner_warning_box.update_message(self.runner_name)
         self.notebook.set_current_page(current_page)
 
     def _rebuild_tabs(self):
@@ -823,11 +823,11 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             service_media.run_system_update_desktop_icons()
 
 
-class RunnerMessageBox(UnderslungMessageBox):
+class RunnerMessageBox(WidgetWarningMessageBox):
     def __init__(self):
         super().__init__(margin_left=12, margin_right=12, icon_name="dialog-warning")
 
-    def update_warning(self, runner_name):
+    def update_message(self, runner_name):
         try:
             if runner_name:
                 runner_class = import_runner(runner_name)
