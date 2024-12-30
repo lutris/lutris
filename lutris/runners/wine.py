@@ -549,9 +549,7 @@ class wine(Runner):
             ],
             "default": "auto",
             "help": _(
-                "Which audio backend to use.\n"
-                "By default, Wine automatically picks the right one "
-                "for your system."
+                "Which audio backend to use.\n" "By default, Wine automatically picks the right one " "for your system."
             ),
         },
         {
@@ -587,9 +585,7 @@ class wine(Runner):
             "label": _("Autoconfigure joypads"),
             "advanced": True,
             "default": False,
-            "help": _(
-                "Automatically disables one of Wine's detected joypad " "to avoid having 2 controllers detected"
-            ),
+            "help": _("Automatically disables one of Wine's detected joypad " "to avoid having 2 controllers detected"),
         },
     ]
 
@@ -1014,9 +1010,9 @@ class wine(Runner):
                         value
                         and key in ("Desktop", "WineDesktop")
                         and (
-                        "wine-ge" in self.get_executable().casefold()
-                        or proton.is_proton_path(self.get_executable())
-                    )
+                            "wine-ge" in self.get_executable().casefold()
+                            or proton.is_proton_path(self.get_executable())
+                        )
                     ):
                         logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
                         value = None
