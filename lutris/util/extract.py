@@ -208,8 +208,12 @@ def _check_inno_exe(path) -> bool:
 def _decompress_gog(file_path: str, destination_path: str) -> None:
     innoextract_path = _get_innoextract_path()
     system.create_folder(destination_path)  # innoextract cannot do mkdir -p
-    return_code = subprocess.call([innoextract_path, "-m", "-g", "-d", destination_path, "-e", file_path])
-    if return_code != 0:
+    process = subprocess.run(
+        [innoextract_path, "-m", "-g", "-d", destination_path, "-e", file_path], capture_output=True
+    )
+    if process.returncode != 0:
+        stderr = process.stderr.decode().strip()
+        logger.error("Innoextract failed to extract GOG setup file: %s", stderr)
         raise RuntimeError("innoextract failed to extract GOG setup file")
 
 
