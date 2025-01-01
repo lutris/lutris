@@ -258,7 +258,8 @@ class SingleGameActions(GameActions):
         """Return a dictionary of actions that should be shown for a game"""
 
         game = self.game
-        if steam_shortcut.vdf_file_exists():
+        has_steam = steam_shortcut.vdf_file_exists()
+        if has_steam:
             has_steam_shortcut = steam_shortcut.shortcut_exists(game)
             is_steam_game = steam_shortcut.is_steam_game(game)
         else:
@@ -283,9 +284,11 @@ class SingleGameActions(GameActions):
             "execute-script": bool(
                 game.is_installed and game.has_runner and game.runner.system_config.get("manual_command")
             ),
-            "desktop-shortcut": (game.is_installed and not xdgshortcuts.desktop_launcher_exists(game.slug, game.id)),
-            "menu-shortcut": (game.is_installed and not xdgshortcuts.menu_launcher_exists(game.slug, game.id)),
-            "steam-shortcut": (game.is_installed and not has_steam_shortcut and not is_steam_game),
+            "desktop-shortcut": bool(
+                game.is_installed and not xdgshortcuts.desktop_launcher_exists(game.slug, game.id)
+            ),
+            "menu-shortcut": bool(game.is_installed and not xdgshortcuts.menu_launcher_exists(game.slug, game.id)),
+            "steam-shortcut": bool(has_steam and game.is_installed and not has_steam_shortcut and not is_steam_game),
             "rm-desktop-shortcut": bool(game.is_installed and xdgshortcuts.desktop_launcher_exists(game.slug, game.id)),
             "rm-menu-shortcut": bool(game.is_installed and xdgshortcuts.menu_launcher_exists(game.slug, game.id)),
             "rm-steam-shortcut": bool(game.is_installed and has_steam_shortcut and not is_steam_game),
