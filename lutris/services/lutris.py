@@ -47,7 +47,7 @@ class LutrisService(OnlineService):
 
     id = "lutris"
     name = _("Lutris")
-    icon = "lutris"
+    icon = "net.lutris.Lutris"
     online = True
     medias = {
         "icon": LutrisIcon,
