@@ -7,7 +7,7 @@
     <property name="default-width">640</property>
     <property name="default-height">480</property>
     <property name="destroy-with-parent">True</property>
-    <property name="icon-name">lutris</property>
+    <property name="icon-name">net.lutris.Lutris</property>
     <property name="show-menubar">False</property>
     <child>
       <object class="GtkScrolledWindow" id="scrolled_window">

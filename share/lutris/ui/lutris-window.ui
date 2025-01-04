@@ -23,7 +23,7 @@
   <template class="LutrisWindow" parent="GtkApplicationWindow">
     <property name="can-focus">False</property>
     <property name="title" translatable="yes">Lutris</property>
-    <property name="icon-name">lutris</property>
+    <property name="icon-name">net.lutris.Lutris</property>
     <signal name="destroy" handler="on_destroy" swapped="no"/>
     <signal name="hide" handler="on_hide" swapped="no"/>
     <signal name="show" handler="on_show" swapped="no"/>
