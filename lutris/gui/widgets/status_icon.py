@@ -44,7 +44,7 @@ class LutrisStatusIcon:
             self.menu = self._get_menu()
             if APP_INDICATOR_SUPPORTED:
                 self.indicator = AppIndicator.Indicator.new(
-                    "net.lutris.Lutris", "lutris", AppIndicator.IndicatorCategory.APPLICATION_STATUS
+                    "net.lutris.Lutris", "net.lutris.Lutris", AppIndicator.IndicatorCategory.APPLICATION_STATUS
                 )
                 self.indicator.set_menu(self.menu)
             else:
