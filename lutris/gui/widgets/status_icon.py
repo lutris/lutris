@@ -101,7 +101,7 @@ class LutrisStatusIcon:
         tray_icon = Gtk.StatusIcon()
         tray_icon.set_tooltip_text(_("Lutris"))
         tray_icon.set_visible(True)
-        tray_icon.set_from_icon_name("lutris")
+        tray_icon.set_from_icon_name("net.lutris.Lutris")
         return tray_icon
 
     def update_present_menu(self):
