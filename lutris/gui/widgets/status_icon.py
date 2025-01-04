@@ -85,7 +85,7 @@ class LutrisStatusIcon:
         menu.append(Gtk.SeparatorMenuItem())
 
         self.present_menu = Gtk.ImageMenuItem()
-        self.present_menu.set_image(Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU))
+        self.present_menu.set_image(Gtk.Image.new_from_icon_name("net.lutris.Lutris", Gtk.IconSize.MENU))
         self.present_menu.set_label(_("Show Lutris"))
         self.present_menu.connect("activate", self.on_activate)
         menu.append(self.present_menu)
