@@ -3,7 +3,7 @@
 import os
 import signal
 from gettext import gettext as _
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Iterable, Optional
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, get_default_runner_version_info
@@ -17,6 +17,17 @@ from lutris.util.extract import ExtractError, extract_archive
 from lutris.util.graphics.gpu import GPUS
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+
+
+def kill_processes(sig: int, pids: Iterable[int]) -> None:
+    """Sends a signal to a process list, logging errors without stopping."""
+    for pid in pids:
+        try:
+            os.kill(int(pid), sig)
+        except ProcessLookupError as ex:
+            logger.debug("Failed to kill game process: %s", ex)
+        except PermissionError:
+            logger.debug("Permission to kill process %s denied", pid)
 
 
 class Runner:  # pylint: disable=too-many-public-methods
@@ -575,10 +586,10 @@ class Runner:  # pylint: disable=too-many-public-methods
                 break
         return output
 
-    def force_stop_game(self, game):
+    def force_stop_game(self, game_pids: Iterable[int]) -> None:
         """Stop the running game. If this leaves any game processes running,
         the caller will SIGKILL them (after a delay)."""
-        game.kill_processes(signal.SIGTERM)
+        kill_processes(signal.SIGTERM, game_pids)
 
     def extract_icon(self, game_slug):
         """The config UI calls this to extract the game icon. Most runners do not

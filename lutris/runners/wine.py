@@ -4,7 +4,7 @@
 import os
 import shlex
 from gettext import gettext as _
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
@@ -1278,7 +1278,7 @@ class wine(Runner):
         launch_info["command"] = command
         return launch_info
 
-    def force_stop_game(self, game):
+    def force_stop_game(self, game_pids: Iterable[int]) -> None:
         """Kill WINE with kindness, or at least with -k. This seems to leave a process
         alive for some reason, but the caller will detect this and SIGKILL it."""
         self.run_winekill()
