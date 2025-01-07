@@ -3,7 +3,7 @@
 import os
 import signal
 from gettext import gettext as _
-from typing import Any, Callable, Dict, Iterable, Optional
+from typing import Any, Callable, Dict, Iterable, Optional, Set
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, get_default_runner_version_info
@@ -17,6 +17,7 @@ from lutris.util.extract import ExtractError, extract_archive
 from lutris.util.graphics.gpu import GPUS
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.process import Process
 
 
 def kill_processes(sig: int, pids: Iterable[int]) -> None:
@@ -439,6 +440,20 @@ class Runner:  # pylint: disable=too-many-public-methods
             logger.info("Runtime disabled by system configuration")
             return False
         return True
+
+    def filter_game_pids(self, candidate_pids: Iterable[int], game_uuid: str, game_folder: str) -> Set[int]:
+        """Checks the pids given and returns a set containing only those that are part of the running game,
+        identified by its UUID and directory."""
+        folder_pids = set()
+        for pid in candidate_pids:
+            cmdline = Process(pid).cmdline or ""
+            # pressure-vessel: This could potentially pick up PIDs not started by lutris?
+            if game_folder in cmdline:
+                folder_pids.add(pid)
+
+        uuid_pids = set(pid for pid in candidate_pids if Process(pid).environ.get("LUTRIS_GAME_UUID") == game_uuid)
+
+        return folder_pids & uuid_pids
 
     def install_dialog(self, ui_delegate):
         """Ask the user if they want to install the runner.

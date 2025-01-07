@@ -4,7 +4,7 @@
 import os
 import shlex
 from gettext import gettext as _
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
@@ -39,6 +39,7 @@ from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.process import Process
 from lutris.util.strings import split_arguments
 from lutris.util.wine import proton
 from lutris.util.wine.d3d_extras import D3DExtrasManager
@@ -1277,6 +1278,24 @@ class wine(Runner):
                 command.append(arg)
         launch_info["command"] = command
         return launch_info
+
+    def filter_game_pids(self, candidate_pids: Iterable[int], game_uuid: str, game_folder: str) -> Set[int]:
+        """Checks the pids given and returns a set containing only those that are part of the running game,
+        identified by its UUID and directory."""
+
+        if proton.is_proton_path(self.get_executable()):
+            folder_pids = set()
+            for pid in candidate_pids:
+                cmdline = Process(pid).cmdline or ""
+                # pressure-vessel: This could potentially pick up PIDs not started by lutris?
+                if game_folder in cmdline or "pressure-vessel" in cmdline:
+                    folder_pids.add(pid)
+
+            uuid_pids = set(pid for pid in candidate_pids if Process(pid).environ.get("LUTRIS_GAME_UUID") == game_uuid)
+
+            return folder_pids & uuid_pids
+        else:
+            return super().filter_game_pids(candidate_pids, game_uuid, game_folder)
 
     def force_stop_game(self, game_pids: Iterable[int]) -> None:
         """Kill WINE with kindness, or at least with -k. This seems to leave a process

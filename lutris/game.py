@@ -32,7 +32,6 @@ from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
-from lutris.util.process import Process
 from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
 from lutris.util.system import fix_path_case
 from lutris.util.timer import Timer
@@ -855,18 +854,8 @@ class Game:
             return set()
 
         new_pids = self.get_new_pids()
-
         game_folder = self.resolve_game_path()
-        folder_pids = set()
-        for pid in new_pids:
-            cmdline = Process(pid).cmdline or ""
-            # pressure-vessel: This could potentially pick up PIDs not started by lutris?
-            if game_folder in cmdline or "pressure-vessel" in cmdline:
-                folder_pids.add(pid)
-
-        uuid_pids = set(pid for pid in new_pids if Process(pid).environ.get("LUTRIS_GAME_UUID") == self.game_uuid)
-
-        return folder_pids & uuid_pids
+        return self.runner.filter_game_pids(new_pids, self.game_uuid, game_folder)
 
     def get_new_pids(self):
         """Return list of PIDs started since the game was launched"""
