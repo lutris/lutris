@@ -984,7 +984,7 @@ class wine(Runner):
             arch=self.wine_arch,
             wine_path=self.get_executable(),
             env=self.get_env(),
-            initial_pids=self.get_pids(),
+            initial_pids=self.get_wine_executable_pids(),
         )
         return True
 
@@ -1211,20 +1211,20 @@ class wine(Runner):
             wine_path=wine_path,
         )
 
-    def get_pids(self, wine_path=None):
+    def get_wine_executable_pids(self):
         """Return a list of pids of processes using the current wine exe."""
         try:
-            exe = wine_path or self.get_executable()
+            exe = self.get_executable()
+            if proton.is_proton_path(exe):
+                logger.debug("Tracking PIDs of Proton games is not possible at the moment")
+                return set()
+            if not exe.startswith("/"):
+                exe = system.find_required_executable(exe)
+            pids = system.get_pids_using_file(exe)
+            if self.wine_arch == "win64" and os.path.basename(exe) == "wine":
+                pids = pids | system.get_pids_using_file(exe + "64")
         except MisconfigurationError:
             return set()
-        if proton.is_proton_path(exe):
-            logger.debug("Tracking PIDs of Proton games is not possible at the moment")
-            return set()
-        if not exe.startswith("/"):
-            exe = system.find_required_executable(exe)
-        pids = system.get_pids_using_file(exe)
-        if self.wine_arch == "win64" and os.path.basename(exe) == "wine":
-            pids = pids | system.get_pids_using_file(exe + "64")
 
         # Add wineserver PIDs to the mix (at least one occurence of fuser not
         # picking the games's PID from wine/wine64 but from wineserver for some
@@ -1300,7 +1300,14 @@ class wine(Runner):
     def force_stop_game(self, game_pids: Iterable[int]) -> None:
         """Kill WINE with kindness, or at least with -k. This seems to leave a process
         alive for some reason, but the caller will detect this and SIGKILL it."""
-        self.run_winekill()
+
+        winekill(
+            self.prefix_path,
+            arch=self.wine_arch,
+            wine_path=self.get_executable(),
+            env=self.get_env(),
+            initial_pids=game_pids,
+        )
 
     def extract_icon(self, game_slug):
         """Extracts the 128*128 icon from EXE and saves it, if not resizes the biggest icon found.
