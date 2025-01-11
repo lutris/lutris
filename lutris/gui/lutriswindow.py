@@ -94,7 +94,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             default_height=height,
             window_position=Gtk.WindowPosition.NONE,
             name="lutris",
-            icon_name="lutris",
+            icon_name="net.lutris.Lutris",
             application=application,
             **kwargs,
         )
@@ -155,7 +155,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         self.set_viewtype_icon(self.current_view_type)
 
-        lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
+        lutris_icon = Gtk.Image.new_from_icon_name("net.lutris.Lutris", Gtk.IconSize.MENU)
         lutris_icon.set_margin_right(3)
 
         self.sidebar = LutrisSidebar(self.application)

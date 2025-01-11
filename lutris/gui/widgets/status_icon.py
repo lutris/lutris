@@ -44,7 +44,7 @@ class LutrisStatusIcon:
             self.menu = self._get_menu()
             if APP_INDICATOR_SUPPORTED:
                 self.indicator = AppIndicator.Indicator.new(
-                    "net.lutris.Lutris", "lutris", AppIndicator.IndicatorCategory.APPLICATION_STATUS
+                    "net.lutris.Lutris", "net.lutris.Lutris", AppIndicator.IndicatorCategory.APPLICATION_STATUS
                 )
                 self.indicator.set_menu(self.menu)
             else:
@@ -85,7 +85,7 @@ class LutrisStatusIcon:
         menu.append(Gtk.SeparatorMenuItem())
 
         self.present_menu = Gtk.ImageMenuItem()
-        self.present_menu.set_image(Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU))
+        self.present_menu.set_image(Gtk.Image.new_from_icon_name("net.lutris.Lutris", Gtk.IconSize.MENU))
         self.present_menu.set_label(_("Show Lutris"))
         self.present_menu.connect("activate", self.on_activate)
         menu.append(self.present_menu)
@@ -101,7 +101,7 @@ class LutrisStatusIcon:
         tray_icon = Gtk.StatusIcon()
         tray_icon.set_tooltip_text(_("Lutris"))
         tray_icon.set_visible(True)
-        tray_icon.set_from_icon_name("lutris")
+        tray_icon.set_from_icon_name("net.lutris.Lutris")
         return tray_icon
 
     def update_present_menu(self):
