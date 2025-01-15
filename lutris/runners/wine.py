@@ -7,7 +7,7 @@ from gettext import gettext as _
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 from lutris import runtime, settings
-from lutris.api import format_runner_version, normalize_version_architecture
+from lutris.api import format_runner_version, get_runtime_versions, normalize_version_architecture
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import (
@@ -178,23 +178,47 @@ def _get_virtual_desktop_warning(_option_key: str, config: LutrisConfig) -> Opti
 
 def _get_wine_version_choices():
     version_choices = [(_("Custom (select executable below)"), "custom")]
-    labels = {
+    system_labels = {
         "winehq-devel": _("WineHQ Devel ({})"),
         "winehq-staging": _("WineHQ Staging ({})"),
         "wine-development": _("Wine Development ({})"),
         "system": _("System ({})"),
     }
+    labels = _get_version_labels()
     versions = get_installed_wine_versions()
     for version in versions:
-        if version in labels:
+        if version in system_labels:
             version_number = get_system_wine_version(WINE_PATHS[version])
-            label = labels[version].format(version_number)
-        elif version == "ge-proton":
-            label = _("GE-Proton (Latest)")
+            label = system_labels[version].format(version_number)
         else:
-            label = version
+            label = labels.get(version) or version
         version_choices.append((label, version))
     return version_choices
+
+
+def _get_version_labels() -> Dict[str, str]:
+    """Returns a dict of Wine versions to their human-readable labels for
+    versions with special labels, read from the version.json file.
+
+    This does not handle system Wine; these use dynamically generated
+    labels, not labels from the versions.json file."""
+    labels = {}
+    versions = get_runtime_versions()
+    try:
+        runners = versions["runners"].get("wine")
+
+        for runner in runners or []:
+            if "label" in runner:
+                labels[runner["version"]] = runner["label"]
+
+        ge_proton = versions["runtimes"].get("ge-proton")
+
+        if ge_proton and "label" in ge_proton:
+            labels[ge_proton["name"]] = ge_proton["label"]
+    except KeyError as ex:
+        logger.exception(f"Unable to read from versions.json because the '{ex.args[0]}' key is missing.")
+
+    return labels
 
 
 class wine(Runner):
