@@ -3,6 +3,7 @@
 import os
 from abc import ABC, abstractmethod
 from gettext import gettext as _
+from inspect import Parameter, signature
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from gi.repository import Gdk, Gtk
@@ -223,7 +224,7 @@ class WidgetGenerator(ABC):
         """This creates the wrapper, which becomes the 'wrapper' attribute and which build_option_widget()
         populates. Returns None if the option is not visible; in that case no widget is generated either."""
 
-        available = self._evaluate_static_flag_option("available", option)
+        available = self._evaluate_flag_option("available", option)
 
         if not available:
             # If not available, there's no wrapper, and no widget!
@@ -445,10 +446,7 @@ class WidgetGenerator(ABC):
             self.changed.fire(option_key, option_value)
 
         option_key = option["option"]
-        choices = option["choices"]
-
-        if callable(choices):
-            choices = choices()
+        choices = self._evaluate_option("choices", None, option)
 
         liststore = Gtk.ListStore(str, str)
         populate_combobox_choices()
@@ -704,9 +702,8 @@ class WidgetGenerator(ABC):
 
     def get_default(self, option: Dict[str, Any]) -> Any:
         """Returns the default value from the option; if it is callable, this calls
-        it with no arguments to get the actual default."""
-        default = option.get("default")
-        return default() if callable(default) else default
+        it to get the actual default."""
+        return self._evaluate_option("default", default=None, option=option)
 
     def get_visibility(self, option: Dict[str, Any]) -> bool:
         """Extracts the 'visible' option; if the option is missing this returns
@@ -733,33 +730,44 @@ class WidgetGenerator(ABC):
         return condition
 
     def _evaluate_flag_option(self, key: str, option: Dict[str, Any]) -> bool:
-        """Evaluates a flag option; if is None this returns True, and if it is callable
-        this calls it, passing the option key, generator's args and kwargs."""
+        """Evaluates a flag option; if is None or missing this returns True, and if
+        it is callable this calls it (as with _evaluate_option) and converts
+        the result to a bool."""
+        flag = self._evaluate_option(key, default=True, option=option)
+        return bool(flag) if flag is not None else True
+
+    def _evaluate_option(self, key: str, default: Any, option: Dict[str, Any]) -> Any:
+        """Evaluates an option; if is missing, then function returns 'default', and
+        if it is callable this calls it, passing the option key, generator's args and kwargs.
+
+        The callable may take fewer arguments; if so, this will pass as many argments
+        as it will take, even if that is none at all."""
+
         if key not in option:
-            return True
+            return default
 
-        flag = option[key]
+        value = option[key]
 
-        if callable(flag):
-            return bool(flag(option["option"], *self.callback_args, *self.callback_kwargs))
+        if callable(value):
+            sig = signature(value)
+            argcount = len(sig.parameters)
 
-        return bool(flag)
+            option_key = option["option"]
+            argsneeded = 1 + len(self.callback_args)
 
-    # Implementation
+            if argcount >= argsneeded:  # enough declared args?
+                return value(option_key, *self.callback_args, **self.callback_kwargs)
+            elif any(p.kind == Parameter.VAR_POSITIONAL for p in sig.parameters.values()):  # unlimited args via *args?
+                return value(option_key, *self.callback_args, **self.callback_kwargs)
+            elif argcount == 0:  # no args?
+                return value(**self.callback_kwargs)
+            else:  # any other number of args
+                args = list(self.callback_args)
+                args.insert(0, option_key)
+                args = args[:argcount]
+                return value(*args, **self.callback_kwargs)
 
-    @staticmethod
-    def _evaluate_static_flag_option(key: str, option: Dict[str, Any]) -> bool:
-        """Evaluates a flag option; if is None this returns True, and if it is callable
-        this calls it, passing no arguments."""
-        if key not in option:
-            return True
-
-        flag = option[key]
-
-        if callable(flag):
-            return bool(flag())
-
-        return bool(flag)
+        return value
 
 
 class SectionFrame(Gtk.Frame):

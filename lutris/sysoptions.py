@@ -113,7 +113,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("GPU"),
         "choices": get_gpu_list,
         "default": "",
-        "condition": lambda *x: len(GPUS) > 1,
+        "condition": lambda: len(GPUS) > 1,
         "help": _("GPU to use to run games"),
     },
     {
