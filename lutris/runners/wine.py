@@ -93,7 +93,7 @@ def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> Optional[str]
     return _("<b>Warning</b> Some Wine configuration options cannot be applied, if no prefix can be found.")
 
 
-def _get_dxvk_warning(_config: LutrisConfig, _option_key: str) -> Optional[str]:
+def _get_dxvk_warning() -> Optional[str]:
     if drivers.is_outdated():
         driver_info = drivers.get_nvidia_driver_info()
         return _(

@@ -294,15 +294,11 @@ class WidgetGenerator(ABC):
         """This method updates an option container and its wrapper; this re-evaluates the
         relevant options in case they contain callables and those callables return different
         results."""
-        args = self.callback_args
-        kwargs = self.callback_kwargs
-        option_key = option["option"]
 
         # Update messages in message boxes that support it
-
         for ch in container.get_children():
             if hasattr(ch, "update_message"):
-                ch.update_message(option_key, *args, **kwargs)
+                ch.update_message(option, self)
 
         # Hide entire container if the option is not visible
         visible = self.get_visibility(option)
@@ -478,7 +474,7 @@ class WidgetGenerator(ABC):
         combobox.connect("scroll-event", on_combobox_scroll)
         combobox.set_valign(Gtk.Align.CENTER)
 
-        def get_invalidity_error(key: str, *_args):
+        def get_invalidity_error(key: str):
             v = self.get_setting(key, self.get_default(option))
             if v in valid_choices:
                 return None
@@ -747,7 +743,15 @@ class WidgetGenerator(ABC):
             return default
 
         value = option[key]
+        return self.evaluate_option_value(value, option=option)
 
+    def evaluate_option_value(self, value: Any, option: Dict[str, Any]) -> Any:
+        """Evaluates the 'value' given, if it is callable. If not, this method just
+        returns the 'value'.
+
+        The 'value' is called with the option-key and then all the callback arguments
+        given to this generator's __init__. If the 'value' takes fewer arguments than
+        this, trailing arguments are omitted."""
         if callable(value):
             sig = signature(value)
             argcount = len(sig.parameters)
@@ -829,12 +833,9 @@ class ConfigMessageBox(WidgetWarningMessageBox):
             if text:
                 self.label.set_markup(str(text))
 
-    def update_message(self, *args, **kwargs) -> bool:
+    def update_message(self, option: Dict[str, Any], generator: WidgetGenerator) -> bool:
         try:
-            if callable(self.message):
-                text = self.message(*args, **kwargs)
-            else:
-                text = str(self.message)
+            text = generator.evaluate_option_value(self.message, option)
         except Exception as err:
             logger.exception("Unable to generate configuration warning: %s", err)
             text = gtk_safe(str(err))
