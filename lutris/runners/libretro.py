@@ -231,7 +231,11 @@ class libretro(Runner):
             if notes.startswith("(!)"):
                 parts = notes.split("|")
                 for part in parts:
-                    filename, checksum = part.split(" (md5): ")
+                    try:
+                        filename, checksum = part.split(" (md5): ")
+                    except ValueError:
+                        logger.warning("Unable to parse firmware info: %s", notes)
+                        continue
                     filename = filename.replace("(!) ", "")
                     checksums[filename] = checksum
 
