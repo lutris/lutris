@@ -8,14 +8,14 @@ from gettext import gettext as _
 from typing import Any, Dict, Optional
 
 # Third Party Libraries
-from gi.repository import Gtk
+from gi.repository import Gtk, Pango
 
 # Lutris Modules
 from lutris import settings, sysoptions
 from lutris.config import LutrisConfig
 from lutris.game import Game
 from lutris.gui.config.widget_generator import WidgetGenerator
-from lutris.gui.widgets.common import Label, VBox
+from lutris.gui.widgets.common import VBox
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
 from lutris.util.wine.wine import clear_wine_version_cache
@@ -54,6 +54,11 @@ class ConfigBox(VBox):
         self._filter = ""
         self._filter_text = ""
 
+        self.no_options_label = Gtk.Label(halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
+        self.no_options_label.set_line_wrap(True)
+        self.no_options_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        self.pack_end(self.no_options_label, True, True, 0)
+
     @property
     def advanced_visibility(self):
         return self._advanced_visibility
@@ -66,11 +71,11 @@ class ConfigBox(VBox):
         self.update_widgets()
 
     @property
-    def filter(self):
+    def filter(self) -> str:
         return self._filter
 
     @filter.setter
-    def filter(self, value):
+    def filter(self, value: str) -> None:
         """Sets the visibility of the options that have some text in the label or
         help-text."""
         self._filter = value
@@ -124,6 +129,9 @@ class ConfigBox(VBox):
         if not self.advanced_visibility:
             is_advanced = hasattr(option_container, "lutris_advanced") and option_container.lutris_advanced
             if is_advanced:
+                # Record that we hid this because it was advanced, not because of ordinary
+                # visibility
+                option_container.lutris_advanced_hidden = True
                 return False
 
         filter_text = self._filter_text
@@ -137,14 +145,6 @@ class ConfigBox(VBox):
 
     def generate_widgets(self):
         """Parse the config dict and generates widget accordingly."""
-        if not self.options:
-            no_options_label = Label(_("No options available"), width_request=-1)
-            no_options_label.set_halign(Gtk.Align.CENTER)
-            no_options_label.set_valign(Gtk.Align.CENTER)
-            self.pack_start(no_options_label, True, True, 0)
-            self.show_all()
-            return
-
         # Select config section.
         if self.config_section == "game":
             self.config = self.lutris_config.game_config
@@ -306,12 +306,13 @@ class ConfigWidgetGenerator(WidgetGenerator):
         return super().create_option_container(option, reset_container)
 
     def get_visibility(self, option: Dict[str, Any]) -> bool:
+        option_container = self.option_containers[option["option"]]
+        option_container.lutris_advanced_hidden = False
         option_visibility = super().get_visibility(option)
 
         if not option_visibility:
             return False
 
-        option_container = self.option_containers[option["option"]]
         return self.parent.filter_widget(option_container)
 
     def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
@@ -321,6 +322,29 @@ class ConfigWidgetGenerator(WidgetGenerator):
             tooltip = tooltip + "\n\n" if tooltip else ""
             tooltip += _("<i>(Italic indicates that this option is modified in a lower configuration level.)</i>")
         return tooltip
+
+    def update_widgets(self):
+        super().update_widgets()
+
+        def get_no_options_message() -> Optional[str]:
+            if self.option_containers:
+                for container in self.option_containers.values():
+                    if container.get_visible():
+                        return None
+
+                if self.parent.filter:
+                    return _("No options match '%s'") % self.parent.filter
+                elif any(c.lutris_advanced_hidden for c in self.option_containers.values()):
+                    return _("Only advanced options available")
+
+            return _("No options available")
+
+        message = get_no_options_message()
+        if message:
+            self.parent.no_options_label.set_text(message)
+            self.parent.no_options_label.show()
+        else:
+            self.parent.no_options_label.hide()
 
     def on_reset_button_clicked(self, btn, option):
         """Clear option (remove from config, reset option widget)."""
