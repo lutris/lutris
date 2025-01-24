@@ -288,7 +288,9 @@ class WidgetGenerator(ABC):
                 self.update_option_container(option, container, wrapper)
 
         for frame in self.section_frames:
-            frame.set_visible(frame.has_visible_children())
+            visible = frame.has_visible_children()
+            frame.set_visible(visible)
+            frame.set_no_show_all(not visible)
 
     def update_option_container(self, option, container: Gtk.Box, wrapper: Gtk.Box):
         """This method updates an option container and its wrapper; this re-evaluates the
@@ -303,6 +305,7 @@ class WidgetGenerator(ABC):
         # Hide entire container if the option is not visible
         visible = self.get_visibility(option)
         container.set_visible(visible)
+        container.set_no_show_all(not visible)
 
         # Grey out option if condition unmet, or if a second setting is False
         condition = self.get_condition(option)

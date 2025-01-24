@@ -170,10 +170,9 @@ class ConfigBox(VBox):
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
 
-        gen.update_widgets()
-
         show_advanced = settings.read_setting("show_advanced_options") == "True"
-        self.advanced_visibility = show_advanced
+        self._advanced_visibility = show_advanced
+        gen.update_widgets()
 
     def update_widgets(self):
         if self._widget_generator:
