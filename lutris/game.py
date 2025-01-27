@@ -27,7 +27,13 @@ from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import import_runner, is_valid_runner_name
 from lutris.runners.runner import Runner, kill_processes
 from lutris.util import busy, discord, extract, jobs, linux, strings, system, xdgshortcuts
-from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing
+from lutris.util.display import (
+    DISPLAY_MANAGER,
+    SCREEN_SAVER_INHIBITOR,
+    disable_compositing,
+    enable_compositing,
+    is_display_x11,
+)
 from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
@@ -692,7 +698,7 @@ class Game:
             self.game_runtime_config["working_dir"] = gameplay_info["working_dir"]
 
         # Input control
-        if self.runner.system_config.get("use_us_layout"):
+        if self.runner.system_config.get("use_us_layout") and is_display_x11():
             system.set_keyboard_layout("us")
 
         # Display control
