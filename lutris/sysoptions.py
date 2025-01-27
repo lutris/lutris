@@ -358,6 +358,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "label": _("Switch to US keyboard layout"),
         "default": False,
+        "available": is_display_x11,
         "advanced": True,
         "help": _("Switch to US keyboard QWERTY layout while game is running"),
     },
