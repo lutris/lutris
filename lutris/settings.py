@@ -34,12 +34,8 @@ RUNNERS_CONFIG_DIR = os.path.join(CONFIG_DIR, "runners")
 
 SHADER_CACHE_DIR = os.path.join(CACHE_DIR, "shaders")
 INSTALLER_CACHE_DIR = os.path.join(CACHE_DIR, "installer")
-BANNER_PATH = os.path.join(CACHE_DIR, "banners")
-if not os.path.exists(BANNER_PATH):
-    BANNER_PATH = os.path.join(DATA_DIR, "banners")
-COVERART_PATH = os.path.join(CACHE_DIR, "coverart")
-if not os.path.exists(COVERART_PATH):
-    COVERART_PATH = os.path.join(DATA_DIR, "coverart")
+BANNER_PATH = os.path.join(DATA_DIR, "banners")
+COVERART_PATH = os.path.join(DATA_DIR, "coverart")
 
 RUNTIME_VERSIONS_PATH = os.path.join(CACHE_DIR, "versions.json")
 ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128", "apps")
