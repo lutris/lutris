@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-01-29 12:15-0300\n"
-"PO-Revision-Date: 2025-01-29 12:30-0300\n"
+"PO-Revision-Date: 2025-01-29 12:33-0300\n"
 "Last-Translator: João Victor Leal <victorsouzaleal@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <victorsouzaleal@gmail.com>\n"
 "Language: pt_BR\n"
@@ -1536,7 +1536,7 @@ msgstr ""
 #: lutris/gui/config/boxes.py:336
 #, python-format
 msgid "No options match '%s'"
-msgstr "Nenhum jogo correspondente a '%s' foi encontrado"
+msgstr "Nenhuma opção corresponde a '%s' "
 
 #: lutris/gui/config/boxes.py:338
 msgid "Only advanced options available"
@@ -1551,7 +1551,7 @@ msgstr "Sem opções disponíveis"
 #: lutris/gui/config/runner.py:18
 #, python-format
 msgid "Configure %s"
-msgstr "Configure %s"
+msgstr "Configurar %s"
 
 #: lutris/gui/config/edit_category_games.py:69
 #, python-format
