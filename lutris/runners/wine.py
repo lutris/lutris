@@ -1175,8 +1175,8 @@ class wine(Runner):
         if not self.runner_config.get("dxvk") or not LINUX_SYSTEM.is_vulkan_supported():
             env["PROTON_USE_WINED3D"] = "1"
 
-        if self.runner_config.get("dxvk"):
-            env["PROTON_DXVK_D3D8"] = "1"
+        # We always use DXVK D3D8; so should Proton.
+        env["PROTON_DXVK_D3D8"] = "1"
 
         for dll_manager in self.get_dll_managers(enabled_only=True):
             self.dll_overrides.update(dll_manager.get_enabling_dll_overrides())
