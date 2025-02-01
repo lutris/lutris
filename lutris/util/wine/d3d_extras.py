@@ -5,6 +5,7 @@ from lutris.util.wine.dll_manager import DLLManager
 
 
 class D3DExtrasManager(DLLManager):
+    name = "d3d_extras"
     component = "D3D Extras"
     base_dir = os.path.join(RUNTIME_DIR, "d3d_extras")
     versions_path = os.path.join(base_dir, "d3d_extras_versions.json")

@@ -8,6 +8,7 @@ from lutris.util.wine.dll_manager import DLLManager
 
 
 class DXVKNVAPIManager(DLLManager):
+    name = "dxvk-nvapi"
     component = "DXVK-NVAPI"
     base_dir = os.path.join(RUNTIME_DIR, "dxvk-nvapi")
     versions_path = os.path.join(base_dir, "dxvk-nvapi_versions.json")

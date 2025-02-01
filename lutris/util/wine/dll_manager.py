@@ -6,6 +6,7 @@ import shutil
 from gettext import gettext as _
 
 from lutris import settings
+from lutris.api import get_runtime_versions
 from lutris.util import system
 from lutris.util.extract import extract_archive
 from lutris.util.http import download_file
@@ -17,6 +18,7 @@ from lutris.util.wine.prefix import WinePrefixManager
 class DLLManager:
     """Utility class to install dlls to a Wine prefix"""
 
+    name = NotImplemented
     component = NotImplemented
     base_dir = NotImplemented
     managed_dlls = NotImplemented
@@ -105,16 +107,31 @@ class DLLManager:
     def load_versions(self) -> list:
         if not system.path_exists(self.versions_path):
             return []
-        with open(self.versions_path, "r", encoding="utf-8") as version_file:
+
+        with open(self.versions_path, "r", encoding="utf-8") as dll_version_file:
             try:
-                versions = [v["tag_name"] for v in json.load(version_file)]
+                dll_versions = [v["tag_name"] for v in json.load(dll_version_file)]
             except (KeyError, json.decoder.JSONDecodeError):
                 logger.warning(
                     "Invalid versions file %s, deleting so it is downloaded on next start.", self.versions_path
                 )
                 os.remove(self.versions_path)
                 return []
-        return versions
+
+        # Ensure the versions.json specified version is present and
+        # is the default by moving it to the top.
+        versions = get_runtime_versions()
+        runtimes = versions.get("runtimes")
+        if runtimes:
+            runtime = runtimes.get(self.name)
+            if runtime and runtime.get("versioned"):
+                default_version = runtime.get("version")
+                if default_version:
+                    if default_version in dll_versions:
+                        dll_versions.remove(default_version)
+                    dll_versions.insert(0, default_version)
+
+        return dll_versions
 
     @staticmethod
     def is_managed_dll(dll_path):

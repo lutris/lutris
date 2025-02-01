@@ -11,6 +11,7 @@ REQUIRED_VULKAN_API_VERSION = vkquery.vk_make_version(1, 3, 0)
 
 
 class DXVKManager(DLLManager):
+    name = "dxvk"
     component = "DXVK"
     base_dir = os.path.join(RUNTIME_DIR, "dxvk")
     versions_path = os.path.join(base_dir, "dxvk_versions.json")
@@ -23,7 +24,7 @@ class DXVKManager(DLLManager):
         return LINUX_SYSTEM.is_vulkan_supported()
 
     def is_recommended_version(self, version):
-        # DXVK 2.x and later require Vulkan 1.3, so if that iss lacking
+        # DXVK 2.x and later require Vulkan 1.3, so if that is lacking
         # we default to 1.x.
         if os.environ.get("LUTRIS_NO_VKQUERY"):
             return True

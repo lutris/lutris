@@ -6,6 +6,7 @@ from lutris.util.wine.dll_manager import DLLManager
 
 
 class VKD3DManager(DLLManager):
+    name = "vkd3d"
     component = "VKD3D"
     base_dir = os.path.join(RUNTIME_DIR, "vkd3d")
     versions_path = os.path.join(base_dir, "vkd3d_versions.json")
