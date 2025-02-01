@@ -2,7 +2,6 @@
 
 import os
 
-from lutris.settings import RUNTIME_DIR
 from lutris.util.graphics import vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.wine.dll_manager import DLLManager
@@ -12,9 +11,7 @@ REQUIRED_VULKAN_API_VERSION = vkquery.vk_make_version(1, 3, 0)
 
 class DXVKManager(DLLManager):
     name = "dxvk"
-    component = "DXVK"
-    base_dir = os.path.join(RUNTIME_DIR, "dxvk")
-    versions_path = os.path.join(base_dir, "dxvk_versions.json")
+    human_name = "DXVK"
     managed_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9", "d3d8")
     releases_url = "https://api.github.com/repos/lutris/dxvk/releases"
 
