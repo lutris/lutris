@@ -476,6 +476,7 @@ class wine(Runner):
             "label": _("Windowed (virtual desktop)"),
             "type": "bool",
             "advanced": True,
+            "visible": _is_pre_proton,
             "warning": _get_virtual_desktop_warning,
             "default": False,
             "help": _(
@@ -489,6 +490,7 @@ class wine(Runner):
             "section": _("Virtual Desktop"),
             "label": _("Virtual desktop resolution"),
             "type": "choice_with_entry",
+            "visible": _is_pre_proton,
             "conditional_on": "Desktop",
             "advanced": True,
             "choices": DISPLAY_MANAGER.get_resolutions,

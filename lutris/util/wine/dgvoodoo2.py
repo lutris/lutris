@@ -1,6 +1,3 @@
-import os
-
-from lutris.settings import RUNTIME_DIR
 from lutris.util.wine.dll_manager import DLLManager
 
 
