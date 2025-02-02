@@ -295,7 +295,6 @@ class wine(Runner):
             "label": _("Enable DXVK"),
             "type": "bool",
             "default": True,
-            "visible": _is_pre_proton,
             "warning": _get_dxvk_warning,
             "error": lambda k, c: _get_simple_vulkan_support_error(k, c, _("DXVK")),
             "active": True,
@@ -1129,6 +1128,8 @@ class wine(Runner):
                 env["UMU_LOG"] = "debug"
         env["WINEARCH"] = self.wine_arch
         wine_exe = self.get_executable()
+        is_proton = proton.is_proton_path(wine_exe)
+
         wine_config_version = self.read_version_from_config()
         env["WINE"] = wine_exe
 
@@ -1138,7 +1139,7 @@ class wine(Runner):
             env["WINE_GECKO_CACHE_DIR"] = os.path.join(files_dir, "gecko")
 
         # We don't want to override gstreamer for proton, it has it's own version
-        if files_dir and not proton.is_proton_path(wine_exe) and is_gstreamer_build(wine_exe):
+        if files_dir and not is_proton and is_gstreamer_build(wine_exe):
             path_64 = os.path.join(files_dir, "lib64/gstreamer-1.0/")
             path_32 = os.path.join(files_dir, "lib/gstreamer-1.0/")
             if os.path.exists(path_64) or os.path.exists(path_32):
