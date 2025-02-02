@@ -1178,7 +1178,8 @@ class wine(Runner):
             env["PROTON_USE_WINED3D"] = "1"
 
         # We always use DXVK D3D8; so should Proton.
-        env["PROTON_DXVK_D3D8"] = "1"
+        if "PROTON_DXVK_D3D8" not in env:
+            env["PROTON_DXVK_D3D8"] = "1"
 
         for dll_manager in self.get_dll_managers(enabled_only=True):
             self.dll_overrides.update(dll_manager.get_enabling_dll_overrides())
