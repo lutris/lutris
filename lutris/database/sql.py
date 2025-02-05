@@ -23,7 +23,7 @@ class db_cursor(object):
 def cursor_execute(cursor, query, params=None):
     """Execute a SQL query, run it in a lock block"""
     params = params or ()
-    lock = DB_LOCK.acquire(timeout=1)  # pylint: disable=consider-using-with
+    lock = DB_LOCK.acquire(timeout=5)  # pylint: disable=consider-using-with
     if not lock:
         raise RuntimeError(f"Database is busy. Not executing {query}")
 
