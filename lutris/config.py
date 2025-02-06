@@ -215,6 +215,10 @@ class LutrisConfig:
 
     def save(self):
         """Save configuration file according to its type"""
+
+        if self.options_supported is not None:
+            raise RuntimeError("LutrisConfig instances that are restricted to only some options can't be saved.")
+
         if self.level == "system":
             config = self.system_level
             config_path = self.system_config_path
