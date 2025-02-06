@@ -3,6 +3,7 @@
 import os
 import time
 from shutil import copyfile
+from typing import Set
 
 from lutris import settings, sysoptions
 from lutris.runners import InvalidRunnerError, import_runner
@@ -76,13 +77,16 @@ class LutrisConfig:
 
     """
 
-    def __init__(self, runner_slug: str = None, game_config_id: str = None, level: str = None):
+    def __init__(
+        self, runner_slug: str = None, game_config_id: str = None, level: str = None, options_supported: Set[str] = None
+    ):
         self.game_config_id = game_config_id
         if runner_slug:
             self.runner_slug = str(runner_slug)
         else:
             self.runner_slug = runner_slug
 
+        self.options_supported = options_supported
         # Cascaded config sections (for reading)
         self.game_config = {}
         self.runner_config = {}
@@ -236,11 +240,16 @@ class LutrisConfig:
             if "default" in params:
                 default = params["default"]
                 if callable(default):
-                    try:
-                        default = default()
-                    except Exception as ex:
-                        logger.exception("Unable to generate a default for '%s': %s", option, ex)
-                        continue
+                    if self.options_supported is None or option in self.options_supported:
+                        try:
+                            default = default()
+                        except Exception as ex:
+                            logger.exception("Unable to generate a default for '%s': %s", option, ex)
+                            continue
+                    else:
+                        # Do not evaluate options we aren't supposed to use, in case
+                        # this is expensive or unsafe.
+                        default = None
                 defaults[option] = default
         return defaults
 
