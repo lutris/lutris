@@ -10,7 +10,7 @@ from gettext import gettext as _
 from pathlib import Path
 
 from lutris import runtime
-from lutris.cache import get_cache_path, has_valid_custom_cache_path
+from lutris.cache import is_file_in_custom_cache
 from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
@@ -87,14 +87,6 @@ class CommandsMixin:
                         ),
                         command_data,
                     )
-
-    @staticmethod
-    def _is_cached_file(file_path):
-        """Return whether a file referenced by file_id is stored in the cache"""
-        if not has_valid_custom_cache_path():
-            return False
-        pga_cache_path = get_cache_path()
-        return file_path.startswith(pga_cache_path)
 
     def chmodx(self, filename):
         """Make filename executable"""
@@ -326,7 +318,7 @@ class CommandsMixin:
                 logger.info("Destination file exists, skipping")
                 return
         try:
-            if self._is_cached_file(src):
+            if is_file_in_custom_cache(src):
                 action = shutil.copy
             else:
                 action = shutil.move

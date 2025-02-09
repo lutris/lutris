@@ -3,10 +3,11 @@
 import os
 import shutil
 from typing import Optional
+from urllib.parse import urlparse
 
 from lutris import settings
 from lutris.util.log import logger
-from lutris.util.system import merge_folders
+from lutris.util.system import merge_folders, path_contains
 
 
 def get_cache_path(create: bool = False) -> str:
@@ -19,6 +20,23 @@ def get_cache_path(create: bool = False) -> str:
             return cache_path
 
     return settings.INSTALLER_CACHE_DIR
+
+
+def get_url_cache_path(url: str, file_id: str, game_slug: str) -> str:
+    """Return the directory used as a cache a file that will be downloaded from
+    a URL. You also provide the file id from the file list and the slug for
+    the game.
+
+    The files will be cached in a directory named after the slug, but
+    in a further subdirectory for the file-id; since GOG file-ids are
+    inconvenient for this, we special case URLs pointed to 'gog.com' here."""
+    cache_path = get_cache_path()
+    url_parts = urlparse(url)
+    if url_parts.netloc.endswith("gog.com"):
+        folder = "gog"
+    else:
+        folder = file_id
+    return os.path.join(cache_path, game_slug, folder)
 
 
 def get_custom_cache_path() -> Optional[str]:
@@ -47,6 +65,15 @@ def has_valid_custom_cache_path() -> bool:
 def save_custom_cache_path(path: str) -> None:
     """Saves the PGA cache path to the settings"""
     settings.write_setting("pga_cache_path", path)
+
+
+def is_file_in_custom_cache(path: str) -> bool:
+    """True if the 'path' is inside the custom cache (so we should
+    not causally delete it). False for files in INSTALLER_CACHE_DIR -
+    that is a cache, but not the custom cache, and we do delete those
+    files freely."""
+    cache_path = get_custom_cache_path()
+    return bool(cache_path and path_contains(cache_path, path))
 
 
 def save_to_cache(source: str, destination: str) -> None:
