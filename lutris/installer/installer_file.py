@@ -228,9 +228,9 @@ class InstallerFile:
 
     def prepare(self):
         """Prepare the file for download. If we've not been redirected to an existing file,
-        and if we're using our own installer cache, we need to ensure that directory exists."""
-        if not self.is_dest_file_overridden and not system.path_exists(self._cache_path):
-            os.makedirs(self._cache_path)
+        anwe will create directories to contain the cached file."""
+        if not self.is_dest_file_overridden:
+            get_url_cache_path(self.url, self.id, self.game_slug, prepare=True)
 
     def create_download_progress_box(self):
         return DownloadProgressBox(

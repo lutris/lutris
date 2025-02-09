@@ -16,27 +16,35 @@ def get_cache_path(create: bool = False) -> str:
     cache_path = get_custom_cache_path()
     if cache_path:
         cache_path = os.path.expanduser(cache_path)
-        if os.path.isdir(cache_path):
+        if os.path.isdir(cache_path) or os.path.isdir(os.path.dirname(cache_path)):
             return cache_path
 
     return settings.INSTALLER_CACHE_DIR
 
 
-def get_url_cache_path(url: str, file_id: str, game_slug: str) -> str:
+def get_url_cache_path(url: str, file_id: str, game_slug: str, prepare: bool = False) -> str:
     """Return the directory used as a cache a file that will be downloaded from
     a URL. You also provide the file id from the file list and the slug for
     the game.
 
     The files will be cached in a directory named after the slug, but
     in a further subdirectory for the file-id; since GOG file-ids are
-    inconvenient for this, we special case URLs pointed to 'gog.com' here."""
+    inconvenient for this, we special case URLs pointed to 'gog.com' here.
+
+    If 'prepare' is true, this will also create the directory."""
     cache_path = get_cache_path()
     url_parts = urlparse(url)
     if url_parts.netloc.endswith("gog.com"):
         folder = "gog"
     else:
         folder = file_id
-    return os.path.join(cache_path, game_slug, folder)
+    path = os.path.join(cache_path, game_slug, folder)
+
+    if prepare:
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+    return path
 
 
 def get_custom_cache_path() -> Optional[str]:
@@ -49,15 +57,21 @@ def get_custom_cache_path() -> Optional[str]:
 
 def has_valid_custom_cache_path() -> bool:
     """True if the custom cache path is set and refers to a usable
-    directory."""
+    directory, so that get_cache_path() will return it. The directory
+    does not have to exist for this, but at least its *parent* directory
+    does."""
     cache_path = get_custom_cache_path()
     if not cache_path:
         return False
 
     cache_path = os.path.expanduser(cache_path)
     if not os.path.isdir(cache_path):
-        logger.warning("Cache path %s does not exist", cache_path)
-        return False
+        parent = os.path.dirname(cache_path)
+        if os.path.isdir(parent):
+            logger.warning("Cache path %s does not exist, but its parent does so it can be created.", cache_path)
+        else:
+            logger.warning("Cache path %s does not exist", cache_path)
+            return False
 
     return True
 
