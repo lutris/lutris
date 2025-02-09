@@ -6,6 +6,7 @@ from gi.repository import Gtk
 from lutris.cache import get_custom_cache_path, save_custom_cache_path, validate_custom_cache_path
 from lutris.config import LutrisConfig
 from lutris.gui.config.base_config_box import BaseConfigBox
+from lutris.gui.config.widget_generator import WidgetWarningMessageBox
 from lutris.gui.widgets.common import FileChooserEntry, Label
 from lutris.runners.runner import Runner
 from lutris.util.jobs import AsyncCall
@@ -15,9 +16,9 @@ from lutris.util.strings import human_size
 
 class StorageBox(BaseConfigBox):
     def populate(self):
-        self.warning_labels = {
-            "bios_path": Gtk.Label(label="WARNING: Invalid BIOS path", wrap=True),
-            "pga_cache_path": Gtk.Label(label="WARNING: Invalid cache path", wrap=True),
+        self.error_boxes = {
+            "bios_path": StoragePathMessageBox(),
+            "pga_cache_path": StoragePathMessageBox(),
         }
 
         self.add(self.get_section_label(_("Paths")))
@@ -85,8 +86,8 @@ class StorageBox(BaseConfigBox):
             help_wrapper.add(help_label)
             wrapper = help_wrapper
 
-        if path_setting["setting"] in self.warning_labels:
-            warning = self.warning_labels[path_setting["setting"]]
+        if path_setting["setting"] in self.error_boxes:
+            warning = self.error_boxes[path_setting["setting"]]
             wrapper.add(warning)
 
         wrapper.set_margin_end(16)
@@ -123,16 +124,15 @@ class StorageBox(BaseConfigBox):
         return bios_path, ""
 
     def bios_path_validated_cb(self, result, error):
-        warning_label = self.warning_labels["bios_path"]
+        error_box = self.error_boxes["bios_path"]
 
         if error:
-            warning_label.set_visible(True)
+            error_box.show_markup(None)
             return
 
         bios_path, error_message = result
 
-        warning_label.set_visible(bool(error_message))
-        warning_label.set_text(error_message)
+        error_box.show_markup(error_message)
 
         if not error_message:
             lutris_config = LutrisConfig()
@@ -155,12 +155,14 @@ class StorageBox(BaseConfigBox):
     def update_pga_cache_path_warning(self):
         cache_path = get_custom_cache_path()
         if cache_path:
-            valid, msg = validate_custom_cache_path(cache_path)
+            valid, markup = validate_custom_cache_path(cache_path)
         else:
-            valid, msg = True, None
+            valid, markup = True, None
 
-        warning_label = self.warning_labels["pga_cache_path"]
-        if msg and not valid:
-            warning_label.set_text(msg)
+        error_box = self.error_boxes["pga_cache_path"]
+        error_box.show_markup(markup if markup and not valid else None)
 
-        warning_label.set_visible(msg and not valid)
+
+class StoragePathMessageBox(WidgetWarningMessageBox):
+    def __init__(self, icon_name="dialog-error"):
+        super().__init__(icon_name=icon_name)
