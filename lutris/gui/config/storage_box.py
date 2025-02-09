@@ -3,7 +3,7 @@ from gettext import gettext as _
 
 from gi.repository import Gtk
 
-from lutris.cache import get_custom_cache_path, save_custom_cache_path
+from lutris.cache import get_custom_cache_path, save_custom_cache_path, validate_custom_cache_path
 from lutris.config import LutrisConfig
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.common import FileChooserEntry, Label
@@ -15,11 +15,15 @@ from lutris.util.strings import human_size
 
 class StorageBox(BaseConfigBox):
     def populate(self):
-        self.warnings_labels = {"bios_path": Gtk.Label(label="WARNING: Invalid BIOS path")}
+        self.warning_labels = {
+            "bios_path": Gtk.Label(label="WARNING: Invalid BIOS path", wrap=True),
+            "pga_cache_path": Gtk.Label(label="WARNING: Invalid cache path", wrap=True),
+        }
 
         self.add(self.get_section_label(_("Paths")))
         path_widgets = self.get_path_widgets()
         self.pack_start(self._get_framed_options_list_box(path_widgets), False, False, 0)
+        self.update_pga_cache_path_warning()
 
     def get_path_widgets(self):
         widgets = []
@@ -33,7 +37,6 @@ class StorageBox(BaseConfigBox):
                 "default": os.path.expanduser("~/Games"),
                 "value": base_runner.default_path,
                 "help": _("The default folder where you install your games."),
-                "has_warning": False,
             },
             {
                 "name": _("Installer cache"),
@@ -44,7 +47,6 @@ class StorageBox(BaseConfigBox):
                     "If provided, files downloaded during game installs will be kept there\n"
                     "\nOtherwise, all downloaded files are discarded."
                 ),
-                "has_warning": False,
             },
             {
                 "name": _("Emulator BIOS files location"),
@@ -52,7 +54,6 @@ class StorageBox(BaseConfigBox):
                 "default": "",
                 "value": bios_path if bios_path else "",
                 "help": _("The folder Lutris will search in for emulator BIOS files if needed"),
-                "has_warning": True,
             },
         ]
         for path_setting in path_settings:
@@ -84,8 +85,8 @@ class StorageBox(BaseConfigBox):
             help_wrapper.add(help_label)
             wrapper = help_wrapper
 
-        if path_setting["setting"] in self.warnings_labels:
-            warning = self.warnings_labels[path_setting["setting"]]
+        if path_setting["setting"] in self.warning_labels:
+            warning = self.warning_labels[path_setting["setting"]]
             wrapper.add(warning)
 
         wrapper.set_margin_end(16)
@@ -122,7 +123,7 @@ class StorageBox(BaseConfigBox):
         return bios_path, ""
 
     def bios_path_validated_cb(self, result, error):
-        warning_label = self.warnings_labels["bios_path"]
+        warning_label = self.warning_labels["bios_path"]
 
         if error:
             warning_label.set_visible(True)
@@ -143,9 +144,23 @@ class StorageBox(BaseConfigBox):
         folder_path = entry.get_text()
         if setting["setting"] == "pga_cache_path":
             save_custom_cache_path(folder_path)
+            self.update_pga_cache_path_warning()
         elif setting["setting"] == "game_path":
             lutris_config = LutrisConfig()
             lutris_config.raw_system_config["game_path"] = folder_path
             lutris_config.save()
         elif setting["setting"] == "bios_path":
             AsyncCall(self.is_bios_path_invalid, self.bios_path_validated_cb, folder_path)
+
+    def update_pga_cache_path_warning(self):
+        cache_path = get_custom_cache_path()
+        if cache_path:
+            valid, msg = validate_custom_cache_path(cache_path)
+        else:
+            valid, msg = True, None
+
+        warning_label = self.warning_labels["pga_cache_path"]
+        if msg and not valid:
+            warning_label.set_text(msg)
+
+        warning_label.set_visible(msg and not valid)

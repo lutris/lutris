@@ -2,7 +2,8 @@
 
 import os
 import shutil
-from typing import Optional
+from gettext import gettext as _
+from typing import Optional, Tuple
 from urllib.parse import urlparse
 
 from lutris import settings
@@ -64,16 +65,30 @@ def has_valid_custom_cache_path() -> bool:
     if not cache_path:
         return False
 
+    valid, msg = validate_custom_cache_path(cache_path)
+    if msg:
+        logger.warning(msg)
+
+    return valid
+
+
+def validate_custom_cache_path(cache_path: str) -> Tuple[bool, Optional[str]]:
+    """Checks the validity of a given path; returns a flag for whether
+    it can be used, and an optional message for what's wrong with it,
+    if anything is."""
     cache_path = os.path.expanduser(cache_path)
     if not os.path.isdir(cache_path):
         parent = os.path.dirname(cache_path)
         if os.path.isdir(parent):
-            logger.warning("Cache path %s does not exist, but its parent does so it can be created.", cache_path)
+            return True, _(
+                "The cache path '%s' does not exist, but its parent does so it will be created when needed."
+            ) % cache_path
         else:
-            logger.warning("Cache path %s does not exist", cache_path)
-            return False
+            return False, _(
+                "The cache path %s does not exist, nor does its parent, so it won't be created."
+            ) % cache_path
 
-    return True
+    return True, None
 
 
 def save_custom_cache_path(path: str) -> None:
