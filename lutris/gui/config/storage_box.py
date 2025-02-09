@@ -14,9 +14,9 @@ from lutris.util.strings import human_size
 
 
 class StorageBox(BaseConfigBox):
-    bios_path_invalid_warning = Gtk.Label(label="WARNING: Invalid BIOS path")
-
     def populate(self):
+        self.warnings_labels = {"bios_path": Gtk.Label(label="WARNING: Invalid BIOS path")}
+
         self.add(self.get_section_label(_("Paths")))
         path_widgets = self.get_path_widgets()
         self.pack_start(self._get_framed_options_list_box(path_widgets), False, False, 0)
@@ -84,8 +84,9 @@ class StorageBox(BaseConfigBox):
             help_wrapper.add(help_label)
             wrapper = help_wrapper
 
-        if path_setting["has_warning"]:
-            wrapper.add(self.bios_path_invalid_warning)
+        if path_setting["setting"] in self.warnings_labels:
+            warning = self.warnings_labels[path_setting["setting"]]
+            wrapper.add(warning)
 
         wrapper.set_margin_end(16)
         wrapper.set_margin_left(16)
@@ -95,7 +96,7 @@ class StorageBox(BaseConfigBox):
 
     def is_bios_path_invalid(self, bios_path):
         if not bios_path:
-            return bios_path, "No path provided"
+            return bios_path, ""  # it's fine to not have a BIOS path
         MAX_BIOS_FOLDER_SIZE = 5e9
         MAX_BIOS_FILES_IN_FOLDER = 5000
         MAX_BIOS_FOLDER_DEPTH = 3
@@ -113,22 +114,24 @@ class StorageBox(BaseConfigBox):
                     bios_path_depth = path[len(bios_path) :].count(os.sep)
 
         if bios_path_size > MAX_BIOS_FOLDER_SIZE:
-            return bios_path, "Folder is too large (%s)" % human_size(bios_path_size)
+            return bios_path, _("Folder is too large (%s)") % human_size(bios_path_size)
         if bios_path_file_count > MAX_BIOS_FILES_IN_FOLDER:
-            return bios_path, "Too many files in folder"
+            return bios_path, _("Too many files in folder")
         if bios_path_depth > MAX_BIOS_FOLDER_DEPTH:
-            return bios_path, "Folder is too deep"
+            return bios_path, _("Folder is too deep")
         return bios_path, ""
 
     def bios_path_validated_cb(self, result, error):
+        warning_label = self.warnings_labels["bios_path"]
+
         if error:
-            self.bios_path_invalid_warning.set_visible(True)
+            warning_label.set_visible(True)
             return
 
         bios_path, error_message = result
 
-        self.bios_path_invalid_warning.set_visible(bool(error_message))
-        self.bios_path_invalid_warning.set_text(error_message)
+        warning_label.set_visible(bool(error_message))
+        warning_label.set_text(error_message)
 
         if not error_message:
             lutris_config = LutrisConfig()
