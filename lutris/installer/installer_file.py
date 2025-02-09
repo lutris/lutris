@@ -5,7 +5,7 @@ from gettext import gettext as _
 from typing import Optional
 from urllib.parse import urlparse
 
-from lutris.cache import get_cache_path, has_custom_cache_path, save_to_cache
+from lutris.cache import get_cache_path, has_valid_custom_cache_path, save_to_cache
 from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.errors import ScriptingError
 from lutris.util import system
@@ -213,7 +213,7 @@ class InstallerFile:
         """
         if self.url.startswith("N/A"):
             return False
-        return has_custom_cache_path()
+        return has_valid_custom_cache_path()
 
     @property
     def is_user_pga_caching_allowed(self):
@@ -234,7 +234,7 @@ class InstallerFile:
 
     def prepare(self):
         """Prepare the file for download. If we've not been redirected to an existing file,
-        and if we're using our own installer cache, we need to unsure that directory exists."""
+        and if we're using our own installer cache, we need to ensure that directory exists."""
         if not self.is_dest_file_overridden and not system.path_exists(self.cache_path):
             os.makedirs(self.cache_path)
 

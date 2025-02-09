@@ -10,7 +10,7 @@ from gettext import gettext as _
 from pathlib import Path
 
 from lutris import runtime
-from lutris.cache import get_cache_path, has_custom_cache_path
+from lutris.cache import get_cache_path, has_valid_custom_cache_path
 from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
@@ -91,7 +91,7 @@ class CommandsMixin:
     @staticmethod
     def _is_cached_file(file_path):
         """Return whether a file referenced by file_id is stored in the cache"""
-        if not has_custom_cache_path():
+        if not has_valid_custom_cache_path():
             return False
         pga_cache_path = get_cache_path()
         return file_path.startswith(pga_cache_path)

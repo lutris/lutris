@@ -4,7 +4,7 @@ import os
 from gettext import gettext as _
 from urllib.parse import urlparse
 
-from lutris.cache import get_cache_path, has_custom_cache_path
+from lutris.cache import get_cache_path, has_valid_custom_cache_path
 from lutris.gui.widgets.download_collection_progress_box import DownloadCollectionProgressBox
 from lutris.util import system
 from lutris.util.strings import gtk_safe_urls
@@ -119,7 +119,7 @@ class InstallerFileCollection:
         Returns:
             bool
         """
-        return has_custom_cache_path()
+        return has_valid_custom_cache_path()
 
     @property
     def is_user_pga_caching_allowed(self):
