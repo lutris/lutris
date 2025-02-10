@@ -100,6 +100,10 @@ def schedule_at_idle(func: Callable[..., None], *args, delay_seconds: float = 0.
         finally:
             task.disconnect()
 
+    handler_object = func.__self__ if hasattr(func, "__self__") else None
+    if handler_object:
+        wrapper.__self__ = handler_object  # type: ignore[attr-defined]
+
     if delay_seconds >= 0.0:
         milliseconds = int(delay_seconds * 1000)
         source_id = GLib.timeout_add(milliseconds, wrapper, *args)
@@ -129,6 +133,10 @@ def schedule_repeating_at_idle(
         finally:
             if not repeat:
                 task.disconnect()
+
+    handler_object = func.__self__ if hasattr(func, "__self__") else None
+    if handler_object:
+        wrapper.__self__ = handler_object  # type: ignore[attr-defined]
 
     if interval_seconds >= 0.0:
         milliseconds = int(interval_seconds * 1000)
