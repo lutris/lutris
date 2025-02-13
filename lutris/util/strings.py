@@ -196,10 +196,16 @@ def get_formatted_playtime(playtime: float) -> str:
         return NO_PLAYTIME
 
     hours = math.floor(playtime)
+    minutes = int(round((playtime - hours) * 60, 0))
+
+    # If we're close enough to the next hour, we might wind up
+    # with "x hours 60 minutes" and that looks dumb.
+    if minutes >= 60:
+        minutes -= 60
+        hours += 1
+
     hours_unit = _("hour") if hours == 1 else _("hours")
     hours_text = f"{hours} {hours_unit}" if hours > 0 else ""
-
-    minutes = int(round((playtime - hours) * 60, 0))
     minutes_unit = _("minute") if minutes == 1 else _("minutes")
     minutes_text = f"{minutes} {minutes_unit}" if minutes > 0 else ""
 
