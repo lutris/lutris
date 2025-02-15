@@ -9,7 +9,7 @@ import requests
 
 from lutris import settings
 from lutris.config import LutrisConfig
-from lutris.exceptions import GameConfigError, MissingGameExecutableError, UnspecifiedVersionError
+from lutris.exceptions import GameConfigError, MissingBiosError, MissingGameExecutableError, UnspecifiedVersionError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.libretro import RetroConfig
@@ -243,7 +243,11 @@ class libretro(Runner):
             # then rescan it in case the user added anything since the last time they changed it
             if firmware_count > 0:
                 lutris_config = LutrisConfig()
-                firmware_directory = lutris_config.raw_system_config["bios_path"]
+                firmware_directory = lutris_config.raw_system_config.get("bios_path")
+                if not firmware_directory:
+                    raise MissingBiosError(
+                        _("The emulator files BIOS location must be configured in the Preferences dialog.")
+                    )
                 scan_firmware_directory(firmware_directory)
 
             for index in range(firmware_count):
