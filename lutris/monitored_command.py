@@ -266,8 +266,11 @@ class MonitoredCommand:
                 logger.warning("Wrapper command contains a non-string: %s", command)
                 command[i] = str(item) if item else ""
 
+        if "" in env:
+            del env[""]
+
         for key, value in env.items():
-            if not isinstance(key, str):
+            if not isinstance(key, str) or key.isspace():
                 logger.warning("Environment contains a non-string as a key %s=%s: %s", key, value, env)
                 env = copy(env)  # can't del while iterating
                 del env[key]
