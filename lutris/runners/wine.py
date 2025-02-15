@@ -1168,6 +1168,12 @@ class wine(Runner):
         if self.runner_config.get("dxvk_nvapi"):
             env["DXVK_NVAPIHACK"] = "0"
             env["DXVK_ENABLE_NVAPI"] = "1"
+            # Add Vulkan implicit layer path for DXVK-NVAPI
+            nvapi_version = self.runner_config.get("dxvk_nvapi_version")
+            if nvapi_version and not os.environ.get("VK_ADD_LAYER_PATH"):
+                layer_dir = os.path.join(settings.RUNTIME_DIR, "dxvk-nvapi", nvapi_version, "layer")
+                if os.path.exists(layer_dir):
+                    env["VK_ADD_LAYER_PATH"] = layer_dir
 
         if self.runner_config.get("battleye"):
             env["PROTON_BATTLEYE_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "battleye_runtime")
