@@ -270,7 +270,7 @@ class MonitoredCommand:
             del env[""]
 
         for key, value in env.items():
-            if not isinstance(key, str):
+            if not isinstance(key, str) or key.isspace():
                 logger.warning("Environment contains a non-string as a key %s=%s: %s", key, value, env)
                 env = copy(env)  # can't del while iterating
                 del env[key]
