@@ -64,17 +64,19 @@ class EAAppArtSmall(ServiceMedia):
     api_field = "packArtSmall"
 
     def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
-        if "imageServer" not in details:
+        image_server = details.get("imageServer")
+        if not image_server:
             logger.warning("No field 'imageServer' in API game %s", details)
             return None
-        if "i18n" not in details:
+        i18n = details.get("i18n")
+        if not i18n:
             logger.warning("No field 'i18n' in API game %s", details)
             return None
-        i18n = details["i18n"]
-        if self.api_field not in i18n:
+        field = i18n.get(self.api_field)
+        if not field:
             logger.warning("No field 'i18n.%s' in API game %s", self.api_field, details)
             return None
-        return details["imageServer"] + i18n[self.api_field]
+        return image_server + field
 
 
 class EAAppArtMedium(EAAppArtSmall):

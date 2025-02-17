@@ -773,14 +773,18 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
         service = self.service if self.service else LutrisService
-        media_services = list(service.medias.keys())
-        self.load_icon_type()
+        icon_type = self.load_icon_type()
         self.zoom_adjustment.set_lower(0)
-        self.zoom_adjustment.set_upper(len(media_services) - 1)
-        if self.icon_type in media_services:
-            value = media_services.index(self.icon_type)
-        else:
+        self.zoom_adjustment.set_upper(len(service.medias) - 1)
+
+        if icon_type not in service.medias:
+            icon_type = service.default_format
+
+        try:
+            value = list(service.medias.keys()).index(icon_type)
+        except ValueError:
             value = 0
+
         self.zoom_adjustment.props.value = value
         self.zoom_adjustment.connect("value-changed", self.on_zoom_changed)
 

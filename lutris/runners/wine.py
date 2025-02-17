@@ -4,7 +4,7 @@
 import os
 import shlex
 from gettext import gettext as _
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
@@ -39,6 +39,7 @@ from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.process import Process
 from lutris.util.strings import split_arguments
 from lutris.util.wine import proton
 from lutris.util.wine.d3d_extras import D3DExtrasManager
@@ -92,7 +93,7 @@ def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> Optional[str]
     return _("<b>Warning</b> Some Wine configuration options cannot be applied, if no prefix can be found.")
 
 
-def _get_dxvk_warning(_config: LutrisConfig, _option_key: str) -> Optional[str]:
+def _get_dxvk_warning() -> Optional[str]:
     if drivers.is_outdated():
         driver_info = drivers.get_nvidia_driver_info()
         return _(
@@ -294,7 +295,6 @@ class wine(Runner):
             "label": _("Enable DXVK"),
             "type": "bool",
             "default": True,
-            "visible": _is_pre_proton,
             "warning": _get_dxvk_warning,
             "error": lambda k, c: _get_simple_vulkan_support_error(k, c, _("DXVK")),
             "active": True,
@@ -313,8 +313,8 @@ class wine(Runner):
             "visible": _is_pre_proton,
             "condition": LINUX_SYSTEM.is_vulkan_supported(),
             "conditional_on": "dxvk",
-            "choices": lambda *x: DXVKManager().version_choices,
-            "default": lambda *x: DXVKManager().version,
+            "choices": lambda: DXVKManager().version_choices,
+            "default": lambda: DXVKManager().version,
             "warning": _get_dxvk_version_warning,
         },
         {
@@ -339,8 +339,8 @@ class wine(Runner):
             "visible": _is_pre_proton,
             "condition": LINUX_SYSTEM.is_vulkan_supported(),
             "conditional_on": "vkd3d",
-            "choices": lambda *x: VKD3DManager().version_choices,
-            "default": lambda *x: VKD3DManager().version,
+            "choices": lambda: VKD3DManager().version_choices,
+            "default": lambda: VKD3DManager().version,
         },
         {
             "option": "d3d_extras",
@@ -363,8 +363,8 @@ class wine(Runner):
             "visible": _is_pre_proton,
             "conditional_on": "d3d_extras",
             "type": "choice_with_entry",
-            "choices": lambda *x: D3DExtrasManager().version_choices,
-            "default": lambda *x: D3DExtrasManager().version,
+            "choices": lambda: D3DExtrasManager().version_choices,
+            "default": lambda: D3DExtrasManager().version,
         },
         {
             "option": "dxvk_nvapi",
@@ -385,8 +385,8 @@ class wine(Runner):
             "conditional_on": "dxvk_nvapi",
             "visible": _is_pre_proton,
             "type": "choice_with_entry",
-            "choices": lambda *x: DXVKNVAPIManager().version_choices,
-            "default": lambda *x: DXVKNVAPIManager().version,
+            "choices": lambda: DXVKNVAPIManager().version_choices,
+            "default": lambda: DXVKNVAPIManager().version,
         },
         {
             "option": "dgvoodoo2",
@@ -407,8 +407,8 @@ class wine(Runner):
             "label": _("dgvoodoo2 version"),
             "advanced": True,
             "type": "choice_with_entry",
-            "choices": lambda *x: dgvoodoo2Manager().version_choices,
-            "default": lambda *x: dgvoodoo2Manager().version,
+            "choices": lambda: dgvoodoo2Manager().version_choices,
+            "default": lambda: dgvoodoo2Manager().version,
             "conditional_on": "dgvoodoo2",
         },
         {
@@ -475,6 +475,7 @@ class wine(Runner):
             "label": _("Windowed (virtual desktop)"),
             "type": "bool",
             "advanced": True,
+            "visible": _is_pre_proton,
             "warning": _get_virtual_desktop_warning,
             "default": False,
             "help": _(
@@ -488,6 +489,7 @@ class wine(Runner):
             "section": _("Virtual Desktop"),
             "label": _("Virtual desktop resolution"),
             "type": "choice_with_entry",
+            "visible": _is_pre_proton,
             "conditional_on": "Desktop",
             "advanced": True,
             "choices": DISPLAY_MANAGER.get_resolutions,
@@ -983,7 +985,7 @@ class wine(Runner):
             arch=self.wine_arch,
             wine_path=self.get_executable(),
             env=self.get_env(),
-            initial_pids=self.get_pids(),
+            initial_pids=self.get_wine_executable_pids(),
         )
         return True
 
@@ -1126,6 +1128,8 @@ class wine(Runner):
                 env["UMU_LOG"] = "debug"
         env["WINEARCH"] = self.wine_arch
         wine_exe = self.get_executable()
+        is_proton = proton.is_proton_path(wine_exe)
+
         wine_config_version = self.read_version_from_config()
         env["WINE"] = wine_exe
 
@@ -1135,7 +1139,7 @@ class wine(Runner):
             env["WINE_GECKO_CACHE_DIR"] = os.path.join(files_dir, "gecko")
 
         # We don't want to override gstreamer for proton, it has it's own version
-        if files_dir and not proton.is_proton_path(wine_exe) and is_gstreamer_build(wine_exe):
+        if files_dir and not is_proton and is_gstreamer_build(wine_exe):
             path_64 = os.path.join(files_dir, "lib64/gstreamer-1.0/")
             path_32 = os.path.join(files_dir, "lib/gstreamer-1.0/")
             if os.path.exists(path_64) or os.path.exists(path_32):
@@ -1174,7 +1178,8 @@ class wine(Runner):
         if not self.runner_config.get("dxvk") or not LINUX_SYSTEM.is_vulkan_supported():
             env["PROTON_USE_WINED3D"] = "1"
 
-        if self.runner_config.get("dxvk"):
+        # We always use DXVK D3D8; so should Proton.
+        if "PROTON_DXVK_D3D8" not in env:
             env["PROTON_DXVK_D3D8"] = "1"
 
         for dll_manager in self.get_dll_managers(enabled_only=True):
@@ -1210,20 +1215,20 @@ class wine(Runner):
             wine_path=wine_path,
         )
 
-    def get_pids(self, wine_path=None):
+    def get_wine_executable_pids(self):
         """Return a list of pids of processes using the current wine exe."""
         try:
-            exe = wine_path or self.get_executable()
+            exe = self.get_executable()
+            if proton.is_proton_path(exe):
+                logger.debug("Tracking PIDs of Proton games is not possible at the moment")
+                return set()
+            if not exe.startswith("/"):
+                exe = system.find_required_executable(exe)
+            pids = system.get_pids_using_file(exe)
+            if self.wine_arch == "win64" and os.path.basename(exe) == "wine":
+                pids = pids | system.get_pids_using_file(exe + "64")
         except MisconfigurationError:
             return set()
-        if proton.is_proton_path(exe):
-            logger.debug("Tracking PIDs of Proton games is not possible at the moment")
-            return set()
-        if not exe.startswith("/"):
-            exe = system.find_required_executable(exe)
-        pids = system.get_pids_using_file(exe)
-        if self.wine_arch == "win64" and os.path.basename(exe) == "wine":
-            pids = pids | system.get_pids_using_file(exe + "64")
 
         # Add wineserver PIDs to the mix (at least one occurence of fuser not
         # picking the games's PID from wine/wine64 but from wineserver for some
@@ -1278,10 +1283,35 @@ class wine(Runner):
         launch_info["command"] = command
         return launch_info
 
-    def force_stop_game(self, game):
+    def filter_game_pids(self, candidate_pids: Iterable[int], game_uuid: str, game_folder: str) -> Set[int]:
+        """Checks the pids given and returns a set containing only those that are part of the running game,
+        identified by its UUID and directory."""
+
+        if proton.is_proton_path(self.get_executable()):
+            folder_pids = set()
+            for pid in candidate_pids:
+                cmdline = Process(pid).cmdline or ""
+                # pressure-vessel: This could potentially pick up PIDs not started by lutris?
+                if game_folder in cmdline or "pressure-vessel" in cmdline:
+                    folder_pids.add(pid)
+
+            uuid_pids = set(pid for pid in candidate_pids if Process(pid).environ.get("LUTRIS_GAME_UUID") == game_uuid)
+
+            return folder_pids & uuid_pids
+        else:
+            return super().filter_game_pids(candidate_pids, game_uuid, game_folder)
+
+    def force_stop_game(self, game_pids: Iterable[int]) -> None:
         """Kill WINE with kindness, or at least with -k. This seems to leave a process
         alive for some reason, but the caller will detect this and SIGKILL it."""
-        self.run_winekill()
+
+        winekill(
+            self.prefix_path,
+            arch=self.wine_arch,
+            wine_path=self.get_executable(),
+            env=self.get_env(),
+            initial_pids=game_pids,
+        )
 
     def extract_icon(self, game_slug):
         """Extracts the 128*128 icon from EXE and saves it, if not resizes the biggest icon found.

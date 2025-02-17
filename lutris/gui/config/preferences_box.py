@@ -97,7 +97,7 @@ class InterfacePreferencesBox(BaseConfigBox):
 
 class PreferencesWidgetGenerator(WidgetGenerator):
     """This generator adjusts the spacing of the wrappers and packs widgets on the
-    right to get the interface preferences layout instead of tje configuration one."""
+    right to get the interface preferences layout instead of the configuration one."""
 
     def get_setting(self, option_key: str, default: Any) -> Any:
         return read_setting(option_key, default=default)

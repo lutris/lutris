@@ -113,7 +113,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("GPU"),
         "choices": get_gpu_list,
         "default": "",
-        "condition": lambda *x: len(GPUS) > 1,
+        "condition": lambda: len(GPUS) > 1,
         "help": _("GPU to use to run games"),
     },
     {
@@ -358,6 +358,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "label": _("Switch to US keyboard layout"),
         "default": False,
+        "available": is_display_x11,
         "advanced": True,
         "help": _("Switch to US keyboard QWERTY layout while game is running"),
     },

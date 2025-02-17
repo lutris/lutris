@@ -3,6 +3,7 @@
 import os
 from abc import ABC, abstractmethod
 from gettext import gettext as _
+from inspect import Parameter, signature
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from gi.repository import Gdk, Gtk
@@ -223,7 +224,7 @@ class WidgetGenerator(ABC):
         """This creates the wrapper, which becomes the 'wrapper' attribute and which build_option_widget()
         populates. Returns None if the option is not visible; in that case no widget is generated either."""
 
-        available = self._evaluate_static_flag_option("available", option)
+        available = self._evaluate_flag_option("available", option)
 
         if not available:
             # If not available, there's no wrapper, and no widget!
@@ -287,25 +288,24 @@ class WidgetGenerator(ABC):
                 self.update_option_container(option, container, wrapper)
 
         for frame in self.section_frames:
-            frame.set_visible(frame.has_visible_children())
+            visible = frame.has_visible_children()
+            frame.set_visible(visible)
+            frame.set_no_show_all(not visible)
 
     def update_option_container(self, option, container: Gtk.Box, wrapper: Gtk.Box):
         """This method updates an option container and its wrapper; this re-evaluates the
         relevant options in case they contain callables and those callables return different
         results."""
-        args = self.callback_args
-        kwargs = self.callback_kwargs
-        option_key = option["option"]
 
         # Update messages in message boxes that support it
-
         for ch in container.get_children():
             if hasattr(ch, "update_message"):
-                ch.update_message(option_key, *args, **kwargs)
+                ch.update_message(option, self)
 
         # Hide entire container if the option is not visible
         visible = self.get_visibility(option)
         container.set_visible(visible)
+        container.set_no_show_all(not visible)
 
         # Grey out option if condition unmet, or if a second setting is False
         condition = self.get_condition(option)
@@ -445,10 +445,7 @@ class WidgetGenerator(ABC):
             self.changed.fire(option_key, option_value)
 
         option_key = option["option"]
-        choices = option["choices"]
-
-        if callable(choices):
-            choices = choices()
+        choices = self._evaluate_option("choices", None, option)
 
         liststore = Gtk.ListStore(str, str)
         populate_combobox_choices()
@@ -480,7 +477,7 @@ class WidgetGenerator(ABC):
         combobox.connect("scroll-event", on_combobox_scroll)
         combobox.set_valign(Gtk.Align.CENTER)
 
-        def get_invalidity_error(key: str, *_args):
+        def get_invalidity_error(key: str):
             v = self.get_setting(key, self.get_default(option))
             if v in valid_choices:
                 return None
@@ -704,9 +701,8 @@ class WidgetGenerator(ABC):
 
     def get_default(self, option: Dict[str, Any]) -> Any:
         """Returns the default value from the option; if it is callable, this calls
-        it with no arguments to get the actual default."""
-        default = option.get("default")
-        return default() if callable(default) else default
+        it to get the actual default."""
+        return self._evaluate_option("default", default=None, option=option)
 
     def get_visibility(self, option: Dict[str, Any]) -> bool:
         """Extracts the 'visible' option; if the option is missing this returns
@@ -733,33 +729,52 @@ class WidgetGenerator(ABC):
         return condition
 
     def _evaluate_flag_option(self, key: str, option: Dict[str, Any]) -> bool:
-        """Evaluates a flag option; if is None this returns True, and if it is callable
-        this calls it, passing the option key, generator's args and kwargs."""
+        """Evaluates a flag option; if is None or missing this returns True, and if
+        it is callable this calls it (as with _evaluate_option) and converts
+        the result to a bool."""
+        flag = self._evaluate_option(key, default=True, option=option)
+        return bool(flag) if flag is not None else True
+
+    def _evaluate_option(self, key: str, default: Any, option: Dict[str, Any]) -> Any:
+        """Evaluates an option; if is missing, then function returns 'default', and
+        if it is callable this calls it, passing the option key, generator's args and kwargs.
+
+        The callable may take fewer arguments; if so, this will pass as many argments
+        as it will take, even if that is none at all."""
+
         if key not in option:
-            return True
+            return default
 
-        flag = option[key]
+        value = option[key]
+        return self.evaluate_option_value(value, option=option)
 
-        if callable(flag):
-            return bool(flag(option["option"], *self.callback_args, *self.callback_kwargs))
+    def evaluate_option_value(self, value: Any, option: Dict[str, Any]) -> Any:
+        """Evaluates the 'value' given, if it is callable. If not, this method just
+        returns the 'value'.
 
-        return bool(flag)
+        The 'value' is called with the option-key and then all the callback arguments
+        given to this generator's __init__. If the 'value' takes fewer arguments than
+        this, trailing arguments are omitted."""
+        if callable(value):
+            sig = signature(value)
+            argcount = len(sig.parameters)
 
-    # Implementation
+            option_key = option["option"]
+            argsneeded = 1 + len(self.callback_args)
 
-    @staticmethod
-    def _evaluate_static_flag_option(key: str, option: Dict[str, Any]) -> bool:
-        """Evaluates a flag option; if is None this returns True, and if it is callable
-        this calls it, passing no arguments."""
-        if key not in option:
-            return True
+            if argcount >= argsneeded:  # enough declared args?
+                return value(option_key, *self.callback_args, **self.callback_kwargs)
+            elif any(p.kind == Parameter.VAR_POSITIONAL for p in sig.parameters.values()):  # unlimited args via *args?
+                return value(option_key, *self.callback_args, **self.callback_kwargs)
+            elif argcount == 0:  # no args?
+                return value(**self.callback_kwargs)
+            else:  # any other number of args
+                args = list(self.callback_args)
+                args.insert(0, option_key)
+                args = args[:argcount]
+                return value(*args, **self.callback_kwargs)
 
-        flag = option[key]
-
-        if callable(flag):
-            return bool(flag())
-
-        return bool(flag)
+        return value
 
 
 class SectionFrame(Gtk.Frame):
@@ -821,12 +836,9 @@ class ConfigMessageBox(WidgetWarningMessageBox):
             if text:
                 self.label.set_markup(str(text))
 
-    def update_message(self, *args, **kwargs) -> bool:
+    def update_message(self, option: Dict[str, Any], generator: WidgetGenerator) -> bool:
         try:
-            if callable(self.message):
-                text = self.message(*args, **kwargs)
-            else:
-                text = str(self.message)
+            text = generator.evaluate_option_value(self.message, option)
         except Exception as err:
             logger.exception("Unable to generate configuration warning: %s", err)
             text = gtk_safe(str(err))

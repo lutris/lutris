@@ -1,3 +1,16 @@
+lutris (0.5.19) jammy; urgency=medium
+
+  * Fix Proton integration bugs so Proton-fixes are applied
+  * Do not offer DXVK, VKD3D, D3D Extras or DDXVK-NVAPI on Proton versions;
+    Proton will handle these.
+  * The "Enable Esync" and "Enable Fsync" settings are now passed on to Proton
+  * DXVK's integrated D8VK will be enabled in Proton
+  * Emulator BIOS file location (used by libretro) may be set in Preferences
+  * Obtain the release year from GOG and Itch.io.
+  * MAME Machine setting uses a searchable entry for its enourmous list
+  * Support for importing Commodore 64 ROMs
+  * F5 will refresh the main Lutris window
+
 lutris (0.5.18) jammy; urgency=medium
 
   * Lutris downloads the latest GE-Proton build for Wine if any Wine version is installed

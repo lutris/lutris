@@ -9,6 +9,7 @@ import subprocess
 import sys
 import uuid
 from copy import copy
+from typing import List
 
 from gi.repository import GLib
 
@@ -88,7 +89,7 @@ class MonitoredCommand:
     def stdout(self):
         return self._stdout.getvalue()
 
-    def get_wrapper_command(self):
+    def get_wrapper_command(self) -> List[str]:
         """Return launch arguments for the wrapper script"""
         wrapper_command = (
             [
@@ -159,6 +160,7 @@ class MonitoredCommand:
                 logger.debug('%s="%s"', key, value)
         wrapper_command = self.get_wrapper_command()
         env = self.get_child_environment()
+
         self.game_process = self.execute_process(wrapper_command, env)
         RUNNING_COMMANDS.add(self)
 
@@ -254,6 +256,30 @@ class MonitoredCommand:
 
     def execute_process(self, command, env=None):
         """Execute and return a subprocess"""
+
+        # If a None gets into execute_process, we get annoying errors
+        # that are hard to race. We'll try to repair the bad command or environment
+        # instead, while emitting warnings.abs
+
+        for i, item in enumerate(command):
+            if not isinstance(item, str):
+                logger.warning("Wrapper command contains a non-string: %s", command)
+                command[i] = str(item) if item else ""
+
+        if "" in env:
+            del env[""]
+
+        for key, value in env.items():
+            if not isinstance(key, str) or key.isspace():
+                logger.warning("Environment contains a non-string as a key %s=%s: %s", key, value, env)
+                env = copy(env)  # can't del while iterating
+                del env[key]
+                continue
+
+            if not isinstance(value, str):
+                logger.warning("Environment contains a non-string as the value for the key: %s=%s: %s", key, value, env)
+                env[key] = str(value) if value else ""
+
         if self.cwd and not system.path_exists(self.cwd):
             try:
                 os.makedirs(self.cwd)

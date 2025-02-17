@@ -6,6 +6,7 @@ import shutil
 from gettext import gettext as _
 
 from lutris import settings
+from lutris.api import get_runtime_versions
 from lutris.util import system
 from lutris.util.extract import extract_archive
 from lutris.util.http import download_file
@@ -17,11 +18,10 @@ from lutris.util.wine.prefix import WinePrefixManager
 class DLLManager:
     """Utility class to install dlls to a Wine prefix"""
 
-    component = NotImplemented
-    base_dir = NotImplemented
+    name = NotImplemented
+    human_name = NotImplemented
     managed_dlls = NotImplemented
     managed_appdata_files = []  # most managers have none
-    versions_path = NotImplemented
     releases_url = NotImplemented
     archs = {32: "x32", 64: "x64"}
     proton_compatible = False  # Proton manages its own DLLs
@@ -31,6 +31,14 @@ class DLLManager:
         self._versions = []
         self._version = version
         self.wine_arch = arch
+
+    @property
+    def base_dir(self):
+        return os.path.join(settings.RUNTIME_DIR, self.name)
+
+    @property
+    def versions_path(self):
+        return os.path.join(self.base_dir, f"{self.name}_versions.json")
 
     @property
     def versions(self):
@@ -89,7 +97,7 @@ class DLLManager:
         version = self.version
         if not version:
             raise RuntimeError(
-                "No path can be generated for %s because no version information is available." % self.component
+                "No path can be generated for %s because no version information is available." % self.human_name
             )
         return os.path.join(self.base_dir, version)
 
@@ -105,16 +113,31 @@ class DLLManager:
     def load_versions(self) -> list:
         if not system.path_exists(self.versions_path):
             return []
-        with open(self.versions_path, "r", encoding="utf-8") as version_file:
+
+        with open(self.versions_path, "r", encoding="utf-8") as dll_version_file:
             try:
-                versions = [v["tag_name"] for v in json.load(version_file)]
+                dll_versions = [v["tag_name"] for v in json.load(dll_version_file)]
             except (KeyError, json.decoder.JSONDecodeError):
                 logger.warning(
                     "Invalid versions file %s, deleting so it is downloaded on next start.", self.versions_path
                 )
                 os.remove(self.versions_path)
                 return []
-        return versions
+
+        # Ensure the versions.json specified version is present and
+        # is the default by moving it to the top.
+        versions = get_runtime_versions()
+        runtimes = versions.get("runtimes")
+        if runtimes:
+            runtime = runtimes.get(self.name)
+            if runtime and runtime.get("versioned"):
+                default_version = runtime.get("version")
+                if default_version:
+                    if default_version in dll_versions:
+                        dll_versions.remove(default_version)
+                    dll_versions.insert(0, default_version)
+
+        return dll_versions
 
     @staticmethod
     def is_managed_dll(dll_path):
@@ -145,20 +168,20 @@ class DLLManager:
         """Download component to the local cache; returns True if successful but False
         if the component could not be downloaded."""
         if self.is_available():
-            logger.warning("%s already available at %s", self.component, self.path)
+            logger.warning("%s already available at %s", self.human_name, self.path)
 
         if not system.path_exists(self.versions_path):
             self.fetch_versions()
 
         url = self.get_download_url()
         if not url:
-            logger.warning("Could not find a release for %s %s", self.component, self.version)
+            logger.warning("Could not find a release for %s %s", self.human_name, self.version)
             return False
         archive_path = os.path.join(self.base_dir, os.path.basename(url))
         logger.info("Downloading %s to %s", url, archive_path)
         download_file(url, archive_path, overwrite=True)
         if not system.path_exists(archive_path) or not os.stat(archive_path).st_size:
-            logger.error("Failed to download %s %s", self.component, self.version)
+            logger.error("Failed to download %s %s", self.human_name, self.version)
             return False
         logger.info("Extracting %s to %s", archive_path, self.path)
         extract_archive(archive_path, self.path, merge_single=True)
@@ -266,7 +289,7 @@ class DLLManager:
         if not self.is_available():
             if not self.download():
                 logger.error(
-                    "%s %s could not be enabled because it is not available locally", self.component, self.version
+                    "%s %s could not be enabled because it is not available locally", self.human_name, self.version
                 )
                 return
         for system_dir, arch, dll in self._iter_dlls():
@@ -294,20 +317,20 @@ class DLLManager:
             versions = self.load_versions()
 
             if not versions:
-                logger.warning("Unable to download %s because version information was not available.", self.component)
+                logger.warning("Unable to download %s because version information was not available.", self.human_name)
 
             # We prefer recommended versions, so download those first.
             versions.sort(key=self.is_recommended_version, reverse=True)
 
             for version in versions:
-                logger.info("Downloading %s %s...", self.component, version)
+                logger.info("Downloading %s %s...", self.human_name, version)
                 self.download()
 
                 if self.is_compatible_version(version):
                     return  # got a compatible version, that'll do.
 
                 logger.warning(
-                    "Version %s of %s is not compatible with this version of Lutris.", version, self.component
+                    "Version %s of %s is not compatible with this version of Lutris.", version, self.human_name
                 )
 
             # We found nothing compatible, and downloaded everything, we just give up.

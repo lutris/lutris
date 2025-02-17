@@ -1,8 +1,6 @@
 import sqlite3
 import threading
 
-from lutris.util.log import logger
-
 # Prevent multiple access to the database (SQLite limitation)
 DB_LOCK = threading.RLock()
 
@@ -25,10 +23,9 @@ class db_cursor(object):
 def cursor_execute(cursor, query, params=None):
     """Execute a SQL query, run it in a lock block"""
     params = params or ()
-    lock = DB_LOCK.acquire(timeout=1)  # pylint: disable=consider-using-with
+    lock = DB_LOCK.acquire(timeout=5)  # pylint: disable=consider-using-with
     if not lock:
-        logger.error("Database is busy. Not executing %s", query)
-        return
+        raise RuntimeError(f"Database is busy. Not executing {query}")
 
     try:
         return cursor.execute(query, params)

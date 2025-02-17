@@ -5,7 +5,7 @@ from gettext import gettext as _
 from typing import Optional
 from urllib.parse import urlparse
 
-from lutris.cache import get_cache_path, has_custom_cache_path, save_to_cache
+from lutris.cache import get_url_cache_path, has_valid_custom_cache_path, save_to_cache
 from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.errors import ScriptingError
 from lutris.util import system
@@ -67,7 +67,7 @@ class InstallerFile:
                 raise ScriptingError(_("missing field `filename` in file `%s`") % self.id)
             return self._file_meta["filename"]
         if self._file_meta.startswith("N/A"):
-            if self.uses_pga_cache() and os.path.isdir(self.cache_path):
+            if self.uses_pga_cache() and os.path.isdir(self._cache_path):
                 return self.cached_filename
             return ""
         if self.url.startswith("$STEAM"):
@@ -100,11 +100,11 @@ class InstallerFile:
     def dest_file(self):
         def find_dest_file():
             for alt_name in self.get_alternate_filenames():
-                alt_path = os.path.join(self.cache_path, alt_name)
+                alt_path = os.path.join(self._cache_path, alt_name)
                 if os.path.isfile(alt_path):
                     return alt_path
 
-            return os.path.join(self.cache_path, self.filename)
+            return os.path.join(self._cache_path, self.filename)
 
         if self._dest_file_override:
             return self._dest_file_override
@@ -169,7 +169,7 @@ class InstallerFile:
     @property
     def cached_filename(self):
         """Return the filename of the first file in the cache path"""
-        cache_files = os.listdir(self.cache_path)
+        cache_files = os.listdir(self._cache_path)
         if cache_files:
             return cache_files[0]
         return ""
@@ -213,7 +213,7 @@ class InstallerFile:
         """
         if self.url.startswith("N/A"):
             return False
-        return has_custom_cache_path()
+        return has_valid_custom_cache_path()
 
     @property
     def is_user_pga_caching_allowed(self):
@@ -222,21 +222,15 @@ class InstallerFile:
         return self.uses_pga_cache()
 
     @property
-    def cache_path(self):
+    def _cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
-        _cache_path = get_cache_path()
-        url_parts = urlparse(self.url)
-        if url_parts.netloc.endswith("gog.com"):
-            folder = "gog"
-        else:
-            folder = self.id
-        return os.path.join(_cache_path, self.game_slug, folder)
+        return get_url_cache_path(self.url, self.id, self.game_slug)
 
     def prepare(self):
         """Prepare the file for download. If we've not been redirected to an existing file,
-        and if we're using our own installer cache, we need to unsure that directory exists."""
-        if not self.is_dest_file_overridden and not system.path_exists(self.cache_path):
-            os.makedirs(self.cache_path)
+        anwe will create directories to contain the cached file."""
+        if not self.is_dest_file_overridden:
+            get_url_cache_path(self.url, self.id, self.game_slug, prepare=True)
 
     def create_download_progress_box(self):
         return DownloadProgressBox(
@@ -299,10 +293,10 @@ class InstallerFile:
     def save_to_cache(self):
         """Copy the file into the PGA cache."""
 
-        cache_path = self.cache_path
+        cache_path = self._cache_path
         try:
             if not os.path.isdir(cache_path):
-                logger.debug("Creating cache path %s", self.cache_path)
+                logger.debug("Creating cache path %s", self._cache_path)
                 os.makedirs(cache_path)
         except (OSError, PermissionError) as ex:
             logger.error("Failed to created cache path: %s", ex)

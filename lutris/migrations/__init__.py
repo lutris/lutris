@@ -17,7 +17,7 @@ MIGRATIONS = [
     ["mess_to_mame"],
     ["migrate_hidden_ids"],
     ["migrate_steam_appids"],
-    ["migrate_banners"],
+    [],
     ["retrieve_discord_appids"],
     ["migrate_sortname"],
     ["migrate_hidden_category"],

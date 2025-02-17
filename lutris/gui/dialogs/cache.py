@@ -2,7 +2,7 @@ from gettext import gettext as _
 
 from gi.repository import Gtk
 
-from lutris.cache import get_cache_path, has_custom_cache_path, save_custom_cache_path
+from lutris.cache import get_custom_cache_path, save_custom_cache_path
 from lutris.gui.dialogs import ModalDialog
 from lutris.gui.widgets.common import FileChooserEntry
 
@@ -13,7 +13,7 @@ class CacheConfigurationDialog(ModalDialog):
         self.timer_id = None
         self.set_size_request(480, 150)
 
-        self.cache_path = get_cache_path() if has_custom_cache_path() else ""
+        self.cache_path = get_custom_cache_path() or ""
         self.get_content_area().add(self.get_cache_config())
 
         self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)

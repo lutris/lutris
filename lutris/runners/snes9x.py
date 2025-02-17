@@ -67,10 +67,11 @@ class snes9x(Runner):
             return
         tree = etree.parse(config_file)
         node = tree.find("./preferences/option[@name='%s']" % option)
-        if value.__class__.__name__ == "bool":
-            value = "1" if value else "0"
-        node.attrib["value"] = value
-        tree.write(config_file)
+        if node is not None:  # some settings are just for Lutris, they won't be in the file
+            if isinstance(value, bool):
+                value = "1" if value else "0"
+            node.attrib["value"] = value
+            tree.write(config_file)
 
     def play(self):
         for option_name in self.config.runner_config:

@@ -25,14 +25,19 @@ from lutris.installer import InstallationKind
 from lutris.monitored_command import MonitoredCommand
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import import_runner, is_valid_runner_name
-from lutris.runners.runner import Runner
+from lutris.runners.runner import Runner, kill_processes
 from lutris.util import busy, discord, extract, jobs, linux, strings, system, xdgshortcuts
-from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing
+from lutris.util.display import (
+    DISPLAY_MANAGER,
+    SCREEN_SAVER_INHIBITOR,
+    disable_compositing,
+    enable_compositing,
+    is_display_x11,
+)
 from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
-from lutris.util.process import Process
 from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
 from lutris.util.system import fix_path_case
 from lutris.util.timer import Timer
@@ -693,7 +698,7 @@ class Game:
             self.game_runtime_config["working_dir"] = gameplay_info["working_dir"]
 
         # Input control
-        if self.runner.system_config.get("use_us_layout"):
+        if self.runner.system_config.get("use_us_layout") and is_display_x11():
             system.set_keyboard_layout("us")
 
         # Display control
@@ -803,7 +808,7 @@ class Game:
         # If force_stop_game fails, wait a few seconds and try SIGKILL on any survivors
 
         def force_stop_game():
-            self.runner.force_stop_game(self)
+            self.runner.force_stop_game(self.get_stop_pids())
             return not self.get_stop_pids()
 
         def force_stop_game_cb(all_dead, error):
@@ -828,7 +833,7 @@ class Game:
                     return
 
             # Once we get past the time limit, starting killing!
-            self.kill_processes(signal.SIGKILL)
+            kill_processes(signal.SIGKILL, self.get_stop_pids())
 
         def death_watch_cb(_result, error):
             """Called after the death watch to more firmly kill any survivors."""
@@ -839,18 +844,6 @@ class Game:
             self.stop_game()
 
         busy.BusyAsyncCall(death_watch, death_watch_cb)
-
-    def kill_processes(self, sig):
-        """Sends a signal to a process list, logging errors."""
-        pids = self.get_stop_pids()
-
-        for pid in pids:
-            try:
-                os.kill(int(pid), sig)
-            except ProcessLookupError as ex:
-                logger.debug("Failed to kill game process: %s", ex)
-            except PermissionError:
-                logger.debug("Permission to kill process %s denied", pid)
 
     def get_stop_pids(self):
         """Finds the PIDs of processes that need killin'!"""
@@ -867,18 +860,8 @@ class Game:
             return set()
 
         new_pids = self.get_new_pids()
-
         game_folder = self.resolve_game_path()
-        folder_pids = set()
-        for pid in new_pids:
-            cmdline = Process(pid).cmdline or ""
-            # pressure-vessel: This could potentially pick up PIDs not started by lutris?
-            if game_folder in cmdline or "pressure-vessel" in cmdline:
-                folder_pids.add(pid)
-
-        uuid_pids = set(pid for pid in new_pids if Process(pid).environ.get("LUTRIS_GAME_UUID") == self.game_uuid)
-
-        return folder_pids & uuid_pids
+        return self.runner.filter_game_pids(new_pids, self.game_uuid, game_folder)
 
     def get_new_pids(self):
         """Return list of PIDs started since the game was launched"""

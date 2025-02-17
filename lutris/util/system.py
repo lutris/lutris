@@ -506,7 +506,7 @@ def reverse_expanduser(path):
     return path
 
 
-def path_contains(parent, child, resolve_symlinks=False):
+def path_contains(parent, child, resolve_symlinks=False) -> bool:
     """Tests if a child path is actually within a parent directory
     or a subdirectory of it. Resolves relative paths, and ~, and
     optionally symlinks."""
