@@ -32,7 +32,7 @@ def get_devices():
 
 def get_joypads():
     """Return a list of tuples with the device and the joypad name"""
-    return [(dev.fn, dev.name) for dev in get_devices()]
+    return [(dev.path, dev.name) for dev in get_devices()]
 
 
 def read_button(device):
