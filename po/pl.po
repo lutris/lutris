@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-01-28 01:07+0100\n"
-"PO-Revision-Date: 2025-01-28 01:53+0100\n"
+"PO-Revision-Date: 2025-02-17 00:44+0100\n"
 "Last-Translator: Łukasz Zając <contact@rbtv.pl>\n"
 "Language-Team: \n"
 "Language: pl\n"
@@ -1200,7 +1200,7 @@ msgstr "Wybierz uruchamiacz w zakładce 'O grze'"
 #: lutris/gui/config/game_common.py:144 lutris/gui/config/runner.py:27
 #, python-format
 msgid "Search %s options"
-msgstr "Wyszukaj %s opcje"
+msgstr "Wyszukaj w %s"
 
 #: lutris/gui/config/game_common.py:146 lutris/gui/config/game_common.py:509
 msgid "Search options"
@@ -3061,7 +3061,7 @@ msgstr "Plik ISO"
 
 #: lutris/runners/dolphin.py:42
 msgid "Batch"
-msgstr "Zbiorczo"
+msgstr "Tryb zbiorczy"
 
 #: lutris/runners/dolphin.py:45
 msgid "Exit Dolphin with emulator."
@@ -7641,19 +7641,19 @@ msgstr "nigdy"
 #. number of some unit.
 #: lutris/util/strings.py:199 lutris/util/strings.py:266
 msgid "hour"
-msgstr "godz."
+msgstr "godz"
 
 #: lutris/util/strings.py:199 lutris/util/strings.py:266
 msgid "hours"
-msgstr "godz."
+msgstr "godz"
 
 #: lutris/util/strings.py:203 lutris/util/strings.py:267
 msgid "minute"
-msgstr "min."
+msgstr "min"
 
 #: lutris/util/strings.py:203 lutris/util/strings.py:267
 msgid "minutes"
-msgstr "min."
+msgstr "min"
 
 #: lutris/util/strings.py:210 lutris/util/strings.py:295
 msgid "Less than a minute"
@@ -7673,15 +7673,15 @@ msgstr "tydzień"
 
 #: lutris/util/strings.py:269
 msgid "weeks"
-msgstr "tyg."
+msgstr "tyg"
 
 #: lutris/util/strings.py:270
 msgid "month"
-msgstr "mies."
+msgstr "mies"
 
 #: lutris/util/strings.py:270
 msgid "months"
-msgstr "mies."
+msgstr "mies"
 
 #: lutris/util/strings.py:271
 msgid "year"
@@ -7698,39 +7698,39 @@ msgstr "'%s' nie jest prawidłowym czasem rozgrywki."
 
 #: lutris/util/strings.py:386
 msgid "in the future"
-msgstr "W przyszłości"
+msgstr "w przyszłości"
 
 #: lutris/util/strings.py:388
 msgid "just now"
-msgstr "Teraz"
+msgstr "teraz"
 
 #: lutris/util/strings.py:397
 #, python-format
 msgid "%d days"
-msgstr "%d dni "
+msgstr "%d dni"
 
 #: lutris/util/strings.py:401
 #, python-format
 msgid "%d hours"
-msgstr "%d godz."
+msgstr "%d godz"
 
 #: lutris/util/strings.py:406
 #, python-format
 msgid "%d minutes"
-msgstr "%d min."
+msgstr "%d min"
 
 #: lutris/util/strings.py:408
 msgid "1 minute"
-msgstr "1 min."
+msgstr "1 min"
 
 #: lutris/util/strings.py:412
 #, python-format
 msgid "%d seconds"
-msgstr "%d sek."
+msgstr "%d sek"
 
 #: lutris/util/strings.py:414
 msgid "1 second"
-msgstr "1 sek."
+msgstr "1 sek"
 
 #: lutris/util/strings.py:416
 msgid "ago"
