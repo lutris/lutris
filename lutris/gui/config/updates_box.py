@@ -215,8 +215,7 @@ class UpdatesBox(BaseConfigBox):
         if component_updaters:
 
             def on_complete(_result):
-                # the 'icons' updater always shows as updated even when it's not
-                component_names = [updater.name for updater in component_updaters if updater.name != "icons"]
+                component_names = [updater.name for updater in component_updaters]
                 if len(component_names) == 1:
                     update_box.show_completion_markup("", _("%s has been updated.") % component_names[0])
                 else:
