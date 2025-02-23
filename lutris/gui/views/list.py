@@ -131,11 +131,14 @@ class GameListView(Gtk.TreeView, GameView):
         path, _col, _cx, _cy = path_at
         return path
 
-    def set_selected(self, paths):
+    def set_selected(self, paths, scroll_into_view=False):
         selection = self.get_selection()
         selection.unselect_all()
-        for path in paths:
+
+        for idx, path in enumerate(paths):
             selection.select_path(path)
+            if scroll_into_view and idx == 0:
+                self.scroll_to_cell(path, None, False, 0.0, 0.0)
 
     def get_selected(self):
         """Return list of all selected items"""

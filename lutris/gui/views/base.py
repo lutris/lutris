@@ -144,6 +144,9 @@ class GameView:
     def get_selected(self):
         return []
 
+    def set_selected(self, paths, scroll_into_view=False):
+        raise NotImplementedError()
+
     def get_game_id_for_path(self, path):
         raise NotImplementedError()
 

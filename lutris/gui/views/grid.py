@@ -78,10 +78,13 @@ class GameGridView(Gtk.IconView, GameView):
     def get_path_at(self, x, y):
         return self.get_path_at_pos(x, y)
 
-    def set_selected(self, paths):
+    def set_selected(self, paths, scroll_into_view=False):
         self.unselect_all()
-        for path in paths:
+
+        for idx, path in enumerate(paths):
             self.select_path(path)
+            if scroll_into_view and idx == 0:
+                self.scroll_to_path(path, False, 0.0, 0.0)
 
     def get_selected(self):
         """Return list of all selected items"""
