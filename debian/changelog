@@ -1,1361 +1,1364 @@
 lutris (0.5.19) jammy; urgency=medium
 
-  * Fix Proton integration bugs so Proton-fixes are applied
-  * Do not offer DXVK, VKD3D, D3D Extras or DDXVK-NVAPI on Proton versions;
+-   Fix Proton integration bugs so Proton-fixes are applied
+-   Do not offer DXVK, VKD3D, D3D Extras or DDXVK-NVAPI on Proton versions;
     Proton will handle these.
-  * The "Enable Esync" and "Enable Fsync" settings are now passed on to Proton
-  * DXVK's integrated D8VK will be enabled in Proton
-  * Emulator BIOS file location (used by libretro) may be set in Preferences
-  * Obtain the release year from GOG and Itch.io.
-  * MAME Machine setting uses a searchable entry for its enourmous list
-  * Support for importing Commodore 64 ROMs
-  * F5 will refresh the main Lutris window
+-   The "Enable Esync" and "Enable Fsync" settings are now passed on to Proton
+-   DXVK's integrated D8VK will be enabled in Proton
+-   Emulator BIOS file location (used by libretro) may be set in Preferences
+-   Obtain the release year from GOG and Itch.io.
+-   MAME Machine setting uses a searchable entry for its enourmous list
+-   Support for importing Commodore 64 ROMs
+-   F5 will refresh the main Lutris window
+
+-- Mathieu Comandon <mathieucomandon@gmail.com> Sun, 23 Feb 2025 10:55:10 -0800
 
 lutris (0.5.18) jammy; urgency=medium
 
-  * Lutris downloads the latest GE-Proton build for Wine if any Wine version is installed
-  * Use dark theme by default
-  * Display cover-art rather than banners by default
-  * Add 'Uncategorized' view to sidebar
-  * Preference options that do not work on Wayland will be hidden when on Wayland
-  * Game searches can now use fancy tags like 'installed:yes' or 'source:gog', with explanatory tool-tip
-  * A new filter button on the search box can build many of these fancy tags for you
-  * Runner searches can use 'installed:yes' as well, but no other fancy searches or anything
-  * Updated the Flathub and Amazon source to new APIs, restoring integration
-  * Itch.io source integration will load a collection named 'Lutris' if present
-  * GOG and Itch.io sources can now offer Linux and Windows installers for the same game
-  * Added support for the 'foot' terminal
-  * Support for DirectX 8 in DXVK v2.4
-  * Support for Ayatana Application Indicators
-  * Additional options for Ruffle runner
-  * Updated download links for the Atari800 and MicroM8 runners
-  * No longer re-download cached installation files even when some are missing
-  * Lutris log is included in the 'System' tab of the Preferences window
-  * Improved error reporting, with the Lutris log included in the error details
-  * Add AppArmor profile for Ubuntu versions >= 23.10
-  * Add Duckstation runner
+-   Lutris downloads the latest GE-Proton build for Wine if any Wine version is installed
+-   Use dark theme by default
+-   Display cover-art rather than banners by default
+-   Add 'Uncategorized' view to sidebar
+-   Preference options that do not work on Wayland will be hidden when on Wayland
+-   Game searches can now use fancy tags like 'installed:yes' or 'source:gog', with explanatory tool-tip
+-   A new filter button on the search box can build many of these fancy tags for you
+-   Runner searches can use 'installed:yes' as well, but no other fancy searches or anything
+-   Updated the Flathub and Amazon source to new APIs, restoring integration
+-   Itch.io source integration will load a collection named 'Lutris' if present
+-   GOG and Itch.io sources can now offer Linux and Windows installers for the same game
+-   Added support for the 'foot' terminal
+-   Support for DirectX 8 in DXVK v2.4
+-   Support for Ayatana Application Indicators
+-   Additional options for Ruffle runner
+-   Updated download links for the Atari800 and MicroM8 runners
+-   No longer re-download cached installation files even when some are missing
+-   Lutris log is included in the 'System' tab of the Preferences window
+-   Improved error reporting, with the Lutris log included in the error details
+-   Add AppArmor profile for Ubuntu versions >= 23.10
+-   Add Duckstation runner
 
- -- Mathieu Comandon <mathieucomandon@gmail.com>  Sun, 1 Dec 2024 12:00:00 -0700
+-- Mathieu Comandon <mathieucomandon@gmail.com> Sun, 1 Dec 2024 12:00:00 -0700
 
 lutris (0.5.17) jammy; urgency=medium
 
-  * Fix critical bug preventing completion of installs if the script specifies a wine version
-  * Fix critical bug preventing Steam library sync
-  * Fix critical bug preventing game or runner uninstall in Flatpak
-  * Support for library sync to lutris.net, this allows to sync games, play
+-   Fix critical bug preventing completion of installs if the script specifies a wine version
+-   Fix critical bug preventing Steam library sync
+-   Fix critical bug preventing game or runner uninstall in Flatpak
+-   Support for library sync to lutris.net, this allows to sync games, play
     time and categories to multiple devices.
-  * Remove "Lutris" service view; with library sync the "Games" view replaces it.
-  * Torturous and sadistic options for multi-GPUs that were half broken and understood by no one have been replaced by a simple GPU selector.
-  * EXPERIMENTAL support for umu, which allows running games with Proton and
+-   Remove "Lutris" service view; with library sync the "Games" view replaces it.
+-   Torturous and sadistic options for multi-GPUs that were half broken and understood by no one have been replaced by a simple GPU selector.
+-   EXPERIMENTAL support for umu, which allows running games with Proton and
     Pressure Vessel. Using Proton in Lutris without umu is no longer possible.
-  * Better and sensible sorting for games (sorting by playtime or last played no longer needs to be reversed)
-  * Support the "Categories" command when you select multiple games
-  * Notification bar when your Lutris is no longer supported
-  * Improved error dialog.
-  * Add Vita3k runner (thanks @ItsAllAboutTheCode)
-  * Add Supermodel runner
-  * WUA files are now supported in Cemu
-  * "Show Hidden Games" now displays the hidden games in a separate view, and re-hides them as soon as you leave it.
-  * Support transparent PNG files for custom banner and cover-art
-  * Images are now downloaded for manually added games.
-  * Deprecate 'exe', 'main_file' or 'iso' placed at the root of the script,
+-   Better and sensible sorting for games (sorting by playtime or last played no longer needs to be reversed)
+-   Support the "Categories" command when you select multiple games
+-   Notification bar when your Lutris is no longer supported
+-   Improved error dialog.
+-   Add Vita3k runner (thanks @ItsAllAboutTheCode)
+-   Add Supermodel runner
+-   WUA files are now supported in Cemu
+-   "Show Hidden Games" now displays the hidden games in a separate view, and re-hides them as soon as you leave it.
+-   Support transparent PNG files for custom banner and cover-art
+-   Images are now downloaded for manually added games.
+-   Deprecate 'exe', 'main_file' or 'iso' placed at the root of the script,
     all lutris.net installers have been updated accordingly.
-  * Deprecate libstrangle and xgamma support.
-  * Deprecate DXVK state cache feature (it was never used and is no longer relevant to DXVK 2)
+-   Deprecate libstrangle and xgamma support.
+-   Deprecate DXVK state cache feature (it was never used and is no longer relevant to DXVK 2)
 
- -- Mathieu Comandon <mathieucomandon@gmail.com>  Wed, 03 Apr 2024 13:49:49 -0700
+-- Mathieu Comandon <mathieucomandon@gmail.com> Wed, 03 Apr 2024 13:49:49 -0700
 
 lutris (0.5.16) jammy; urgency=medium
 
-  * Fix bug that prevented installers to complete
-  * Better handling of Steam configurations for the Steam account picker
-  * Load game library in a background thread
+-   Fix bug that prevented installers to complete
+-   Better handling of Steam configurations for the Steam account picker
+-   Load game library in a background thread
 
- -- Mathieu Comandon <mathieucomandon@gmail.com>  Mon, 15 Jan 2024 16:10:35 -0800
+-- Mathieu Comandon <mathieucomandon@gmail.com> Mon, 15 Jan 2024 16:10:35 -0800
 
 lutris (0.5.15) jammy; urgency=medium
 
-  * Fix some crashes happening when using Wayland and a high DPI gaming mouse
-  * Fix crash when opening the system preferences tab for a game
-  * Reduced the locales list to a predefined one (let us know if you need yours added)
-  * Fix Lutris not expanding "~" in paths
-  * Download runtime components from the main window,
+-   Fix some crashes happening when using Wayland and a high DPI gaming mouse
+-   Fix crash when opening the system preferences tab for a game
+-   Reduced the locales list to a predefined one (let us know if you need yours added)
+-   Fix Lutris not expanding "~" in paths
+-   Download runtime components from the main window,
     the "updating runtime" dialog appearing before Lutris opens has been removed
-  * Add the ability to open a location in your file browser from file picker widgets
-  * Add the ability to select, remove, or stop multiple games in the Lutris window
-  * Redesigned 'Uninstall Game' dialog now completely removes games by default
-  * Fix the export / import feature
-  * Show an animation when a game is launched
-  * Add the ability to disable Wine auto-updates at the expense of losing support
-  * Add playtime editing in the game preferences
-  * Move game files, runners to the trash instead of deleting them they are uninstalled
-  * Add "Updates" tab in Preferences control and check for updates and correct missing media
+-   Add the ability to open a location in your file browser from file picker widgets
+-   Add the ability to select, remove, or stop multiple games in the Lutris window
+-   Redesigned 'Uninstall Game' dialog now completely removes games by default
+-   Fix the export / import feature
+-   Show an animation when a game is launched
+-   Add the ability to disable Wine auto-updates at the expense of losing support
+-   Add playtime editing in the game preferences
+-   Move game files, runners to the trash instead of deleting them they are uninstalled
+-   Add "Updates" tab in Preferences control and check for updates and correct missing media
     in the 'Games' view.
-  * Add "Storage" tab in Preferences to control game and installer cache location
-  * Expand "System" tab in Preferences with more system information but less brown.
-  * Add "Run Task Manager" command for Wine games
-  * Add two new, smaller banner sizes for itch.io games.
-  * Ignore Wine virtual desktop setting when using Wine-GE/Proton to avoid crash
-  * Ignore MangoHUD setting when launching Steam to avoid crash
-  * Sync Steam playtimes with the Lutris library
+-   Add "Storage" tab in Preferences to control game and installer cache location
+-   Expand "System" tab in Preferences with more system information but less brown.
+-   Add "Run Task Manager" command for Wine games
+-   Add two new, smaller banner sizes for itch.io games.
+-   Ignore Wine virtual desktop setting when using Wine-GE/Proton to avoid crash
+-   Ignore MangoHUD setting when launching Steam to avoid crash
+-   Sync Steam playtimes with the Lutris library
 
-
- -- Mathieu Comandon <mathieucomandon@gmail.com>  Sun, 07 Jan 2024 17:29:46 -0800
+-- Mathieu Comandon <mathieucomandon@gmail.com> Sun, 07 Jan 2024 17:29:46 -0800
 
 lutris (0.5.14) jammy; urgency=medium
 
-  * Add Steam account switcher to handle multiple Steam accounts
+-   Add Steam account switcher to handle multiple Steam accounts
     on the same device.
-  * Add user defined tags / categories
-  * Group every API calls for runtime updates in a single one
-  * Download appropriate DXVK and VKD3D versions based on
+-   Add user defined tags / categories
+-   Group every API calls for runtime updates in a single one
+-   Download appropriate DXVK and VKD3D versions based on
     the available GPU PCI IDs
-  * EA App integration. Your Origin games and saves can be manually imported
+-   EA App integration. Your Origin games and saves can be manually imported
     from your Origin prefix.
-  * Add integration with ScummVM local library
-  * Download Wine-GE updates when Lutris starts
-  * Group GOG and Amazon download in a single progress bar
-  * Fix blank login window on online services such as GOG or EGS
-  * Add a sort name field
-  * Yuzu and xemu now use an AppImage
-  * Experimental support for Flatpak provided runners
-  * Header-bar search for configuration options
-  * Support for Gamescope 3.12
-  * Missing games show an additional badge
-  * Add missing dependency on python3-gi-cairo for Debian packages
+-   Add integration with ScummVM local library
+-   Download Wine-GE updates when Lutris starts
+-   Group GOG and Amazon download in a single progress bar
+-   Fix blank login window on online services such as GOG or EGS
+-   Add a sort name field
+-   Yuzu and xemu now use an AppImage
+-   Experimental support for Flatpak provided runners
+-   Header-bar search for configuration options
+-   Support for Gamescope 3.12
+-   Missing games show an additional badge
+-   Add missing dependency on python3-gi-cairo for Debian packages
 
- -- Mathieu Comandon <mathieucomandon@gmail.com>  Mon, 16 Oct 2023 01:40:33 -0700
+-- Mathieu Comandon <mathieucomandon@gmail.com> Mon, 16 Oct 2023 01:40:33 -0700
 
 lutris (0.5.13) jammy; urgency=medium
 
-  * Add support for Proton
-  * Add drag and drop on the main window. Dropped files will be matched
+-   Add support for Proton
+-   Add drag and drop on the main window. Dropped files will be matched
     No-Intro, Redump and TOSEC checksums.
-  * Add support for ModDB links in installers (moddb python module required)
-  * Added "Missing" sidebar option for games whose directory is missing
-  * Re-style the configuration, preferences, installer and add-games windows
-  * Group configuration options into sections
-  * Added checkbox to stop asking for the launch config for a game
-  * Added checkbox to sort installed games first
-  * Support for launch-configs in shortcuts and the command line
-  * Show platform badges on banners and cover-art
-  * Installing games from setup files can now use different presets (Win98, 3DFX, ...)
-  * Add filter field to runner list
-  * Show game count in search bar
-  * Workaround Humble Bundle authentication issues by allowing importing
+-   Add support for ModDB links in installers (moddb python module required)
+-   Added "Missing" sidebar option for games whose directory is missing
+-   Re-style the configuration, preferences, installer and add-games windows
+-   Group configuration options into sections
+-   Added checkbox to stop asking for the launch config for a game
+-   Added checkbox to sort installed games first
+-   Support for launch-configs in shortcuts and the command line
+-   Show platform badges on banners and cover-art
+-   Installing games from setup files can now use different presets (Win98, 3DFX, ...)
+-   Add filter field to runner list
+-   Show game count in search bar
+-   Workaround Humble Bundle authentication issues by allowing importing
     cookies from Firefox
-  * Add Itch.io integration
-  * Add Battle.net integration (protobuf dependency required)
-  * Improve detection of DOSBox games on GOG
-  * Added "Unspecified" Vulkan ICD option
-  * Removed ResidualVM (now merged into ScummVM)
-  * Detect obsolete Vulkan drivers and default to DXVK 1.x for them
-  * Improved High-DPI support for custom media
-  * Performance improvements
+-   Add Itch.io integration
+-   Add Battle.net integration (protobuf dependency required)
+-   Improve detection of DOSBox games on GOG
+-   Added "Unspecified" Vulkan ICD option
+-   Removed ResidualVM (now merged into ScummVM)
+-   Detect obsolete Vulkan drivers and default to DXVK 1.x for them
+-   Improved High-DPI support for custom media
+-   Performance improvements
 
- -- Mathieu Comandon <mathieucomandon@gmail.com>  Fri, 16 May 2023 13:15:40 -0800
+-- Mathieu Comandon <mathieucomandon@gmail.com> Fri, 16 May 2023 13:15:40 -0800
 
 lutris (0.5.12) jammy; urgency=medium
 
-  * Add support for Xbox games with the xemu runner
-  * Fix authentication issue with Origin
-  * Fix authentication issue with EGS
-  * Fix authentication issue with Ubisoft Connect when 2FA is enabled
-  * Fix integration issue with GOG
-  * Add Discord Rich Presence integration
-  * Add ability to extract icons from Windows executables
-  * Allow setting custom cover art
-  * Re-style configuration dialogs
+-   Add support for Xbox games with the xemu runner
+-   Fix authentication issue with Origin
+-   Fix authentication issue with EGS
+-   Fix authentication issue with Ubisoft Connect when 2FA is enabled
+-   Fix integration issue with GOG
+-   Add Discord Rich Presence integration
+-   Add ability to extract icons from Windows executables
+-   Allow setting custom cover art
+-   Re-style configuration dialogs
 
- -- Mathieu Comandon <strider@strycore.com>  Tue, 18 Oct 2022 16:18:45 -0700
+-- Mathieu Comandon <strider@strycore.com> Tue, 18 Oct 2022 16:18:45 -0700
 
 lutris (0.5.11) jammy; urgency=medium
 
-  * Fix for some installers commands exiting with return code 256
-  * Change shortcut for show/hide installed games to Ctrl + i
-  * Show/hide hidden games is assigned to Ctrl + h
-  * Install game launcher before login for services that use one.
-  * Add Amazon Games integration
-  * Added SheepShaver, BasiliskII and Mini vMac runners
-  * Don't perform runtime updates when a game is launched via a shortcut
-  * Support variables in script URLs
-  * Fix crash when Lutris is unable to read the screen resolution
-  * Enable Gamescope on Nvidia >= 515
-  * Fixes for Steam shortcuts
-  * Add Gnome Console and Deepin Terminal to supported terminal emulators
-  * Fix crash when Mangohud is used alongside Gamescope
-  * Translation updates
+-   Fix for some installers commands exiting with return code 256
+-   Change shortcut for show/hide installed games to Ctrl + i
+-   Show/hide hidden games is assigned to Ctrl + h
+-   Install game launcher before login for services that use one.
+-   Add Amazon Games integration
+-   Added SheepShaver, BasiliskII and Mini vMac runners
+-   Don't perform runtime updates when a game is launched via a shortcut
+-   Support variables in script URLs
+-   Fix crash when Lutris is unable to read the screen resolution
+-   Enable Gamescope on Nvidia >= 515
+-   Fixes for Steam shortcuts
+-   Add Gnome Console and Deepin Terminal to supported terminal emulators
+-   Fix crash when Mangohud is used alongside Gamescope
+-   Translation updates
 
- -- Mathieu Comandon <strider@strycore.com>  Thu, 04 Aug 2022 15:29:12 -0700
+-- Mathieu Comandon <strider@strycore.com> Thu, 04 Aug 2022 15:29:12 -0700
 
 lutris (0.5.10.1) impish; urgency=medium
 
-  * Check for Steam executable in home folder for Flatpak
-  * Adjust the Steam, application and desktop shortcuts to launch with
+-   Check for Steam executable in home folder for Flatpak
+-   Adjust the Steam, application and desktop shortcuts to launch with
     Flatpak when necessary
-  * Disable local (XDG) service in Flatpak
-  * Simplify MangoHUD option (now an On/Off toggle)
-  * Remove ability for Lutris to quit Steam
-  * Don't default to fsync on older kernels
-  * Default to a base resolution when Lutris is unable to read the current
+-   Disable local (XDG) service in Flatpak
+-   Simplify MangoHUD option (now an On/Off toggle)
+-   Remove ability for Lutris to quit Steam
+-   Don't default to fsync on older kernels
+-   Default to a base resolution when Lutris is unable to read the current
     configuration
-  * Fix issue with .NET 4.8 installation which affects the FF XIV launcher
+-   Fix issue with .NET 4.8 installation which affects the FF XIV launcher
 
- -- Mathieu Comandon <strider@strycore.com>  Mon, 18 Apr 2022 19:07:08 -0700
+-- Mathieu Comandon <strider@strycore.com> Mon, 18 Apr 2022 19:07:08 -0700
 
 lutris (0.5.10) impish; urgency=medium
 
-  * Add new window to add games to Lutris, with searches from the website,
+-   Add new window to add games to Lutris, with searches from the website,
     scanning a folder for previously installed games, installing a Windows
     game from a setup file, installing from a YAML script or configuring a
     single game manually.
-  * Move the search for Lutris installers from a tab in the Lutris service
+-   Move the search for Lutris installers from a tab in the Lutris service
     to the window for adding games.
-  * Add option to add a Lutris game to Steam
-  * Add a coverart format
-  * Add integration with EA Origin
-  * Add integration with Ubisoft Connect
-  * Download missing media on startup
-  * Remove Winesteam runner (install Steam for Windows in Lutris instead)
-  * PC (Linux and Windows) games have their own dedicated Nvidia shader cache
-  * Add dgvoodoo2 option
-  * Add option to enable BattleEye anti-cheat support
-  * Default to Retroarch cores in ~/.config/retroarch/cores if available
-  * Add support for downloading patches and DLC for GOG games
-  * Add --export and --import command line flags to export a game a lutris
+-   Add option to add a Lutris game to Steam
+-   Add a coverart format
+-   Add integration with EA Origin
+-   Add integration with Ubisoft Connect
+-   Download missing media on startup
+-   Remove Winesteam runner (install Steam for Windows in Lutris instead)
+-   PC (Linux and Windows) games have their own dedicated Nvidia shader cache
+-   Add dgvoodoo2 option
+-   Add option to enable BattleEye anti-cheat support
+-   Default to Retroarch cores in ~/.config/retroarch/cores if available
+-   Add support for downloading patches and DLC for GOG games
+-   Add --export and --import command line flags to export a game a lutris
     game and re-import it (requires --dest for the destination path, feature still experimental)
-  * Add command line flags to manage runners: --install-runner, --uninstall-runners,
+-   Add command line flags to manage runners: --install-runner, --uninstall-runners,
     --list-runners, --list-wine-versions
-  * Change behavior of the "Stop" button, remove "Kill all Wine processes" action
-  * Gamescope option is now disabled on Nvidia GPUs
-  * Enable F-Sync by default
+-   Change behavior of the "Stop" button, remove "Kill all Wine processes" action
+-   Gamescope option is now disabled on Nvidia GPUs
+-   Enable F-Sync by default
 
- -- Mathieu Comandon <strider@strycore.com>  Fri, 04 Feb 2022 19:14:41 -0800
+-- Mathieu Comandon <strider@strycore.com> Fri, 04 Feb 2022 19:14:41 -0800
 
 lutris (0.5.9.1) hirsute; urgency=medium
 
-  * Fix possible escaping error for gamescope option
-  * Remove walrus operator to restore compatibility with Python 3.7 / Ubuntu 18.04
-  * Remove log file being written in the home folder
-  * Fix install button for community installer
-  * Fix markup error on gamescope option
-  * Update URL for Ryujinx build
-  * Fix Steam sync creating duplicate games
+-   Fix possible escaping error for gamescope option
+-   Remove walrus operator to restore compatibility with Python 3.7 / Ubuntu 18.04
+-   Remove log file being written in the home folder
+-   Fix install button for community installer
+-   Fix markup error on gamescope option
+-   Update URL for Ryujinx build
+-   Fix Steam sync creating duplicate games
 
- -- Mathieu Comandon <strider@strycore.com>  Sat, 16 Oct 2021 18:08:26 -0700
+-- Mathieu Comandon <strider@strycore.com> Sat, 16 Oct 2021 18:08:26 -0700
 
 lutris (0.5.9) hirsute; urgency=medium
 
-  * Add initial support for Epic Games Store
-  * Add support for Steam for Windows as a game source
-  * Add support for DXVK-NVAPI and DLSS
-  * Add FidelityFX Super Resolution (FSR) option for compatible Wine versions
-  * Add workaround for locale issues when Lutris is launched from Steam
-  * Add gamescope option
-  * Lutris games can now be launched from Steam
-  * 3rd party services can be enabled or disabled in the preferences
-  * The main preferences window has now tabs on the left side
-  * Runner configuration is now available from the main preferences window
-  * VKD3D is a separate option from DXVK
-  * Esync is enabled by default
-  * Dolphin is available as a game source (reads games from the emulator's
+-   Add initial support for Epic Games Store
+-   Add support for Steam for Windows as a game source
+-   Add support for DXVK-NVAPI and DLSS
+-   Add FidelityFX Super Resolution (FSR) option for compatible Wine versions
+-   Add workaround for locale issues when Lutris is launched from Steam
+-   Add gamescope option
+-   Lutris games can now be launched from Steam
+-   3rd party services can be enabled or disabled in the preferences
+-   The main preferences window has now tabs on the left side
+-   Runner configuration is now available from the main preferences window
+-   VKD3D is a separate option from DXVK
+-   Esync is enabled by default
+-   Dolphin is available as a game source (reads games from the emulator's
     local database of games)
-  * Scan for installed games when using Steam source
-  * Improved automatic installers for GOG, detection of DOSBOX and ScummVM
+-   Scan for installed games when using Steam source
+-   Improved automatic installers for GOG, detection of DOSBOX and ScummVM
     games.
-  * DRM free services (Humble, GOG) can locate existing installations of games
-  * Use 7zip as the default extractor when not given an archive type
-  * Improve process monitoring, allowing for monitoring of Steam games
-  * Disable AMD switchable graphics layer by default (breaks games)
-  * Removed support for Gallium 9
-  * Removed support for X360CE
-  * Removed legacy WineD3D options
+-   DRM free services (Humble, GOG) can locate existing installations of games
+-   Use 7zip as the default extractor when not given an archive type
+-   Improve process monitoring, allowing for monitoring of Steam games
+-   Disable AMD switchable graphics layer by default (breaks games)
+-   Removed support for Gallium 9
+-   Removed support for X360CE
+-   Removed legacy WineD3D options
 
- -- Mathieu Comandon <strider@strycore.com>  Mon, 11 Oct 2021 12:33:39 -0700
+-- Mathieu Comandon <strider@strycore.com> Mon, 11 Oct 2021 12:33:39 -0700
 
 lutris (0.5.8.3) groovy; urgency=medium
 
-  * Really fix popovers not showing on Wayland without making them non-modal
-  * Prevent GStreamer based configuration from being applied in incompatible
+-   Really fix popovers not showing on Wayland without making them non-modal
+-   Prevent GStreamer based configuration from being applied in incompatible
     wine builds.
-  * Fix crash when wine runner accesses DXVK versions before they are
+-   Fix crash when wine runner accesses DXVK versions before they are
     uploaded.
-  * Prevent init dialog from being closed while it downloads the runtime.
+-   Prevent init dialog from being closed while it downloads the runtime.
 
-
- -- Mathieu Comandon <strider@strycore.com>  Fri, 22 Jan 2021 16:24:51 -0800
+-- Mathieu Comandon <strider@strycore.com> Fri, 22 Jan 2021 16:24:51 -0800
 
 lutris (0.5.8.2) groovy; urgency=medium
 
-  * Fix popover menus not appearing on Wayland
-  * Fix game bar getting unselected on Wayland (Forces the last game to stay
+-   Fix popover menus not appearing on Wayland
+-   Fix game bar getting unselected on Wayland (Forces the last game to stay
     selected)
-  * Update Chinese, Dutch, German and Russian translations
-  * Download DXVK when Lutris starts
-  * Add fsync2 feature detection
-  * Limit simultaneous downloads to 3
-  * Add support for deb file extraction
-  * Add support for Adobe Air games from Humble Bundle (Installation only,
+-   Update Chinese, Dutch, German and Russian translations
+-   Download DXVK when Lutris starts
+-   Add fsync2 feature detection
+-   Limit simultaneous downloads to 3
+-   Add support for deb file extraction
+-   Add support for Adobe Air games from Humble Bundle (Installation only,
     Air runtime will come at a later stage)
-  * Add support for GStreamer enabled Wine builds. This will provide better
+-   Add support for GStreamer enabled Wine builds. This will provide better
     compatibility for games using Media Foundation
 
- -- Mathieu Comandon <strider@strycore.com>  Mon, 04 Jan 2021 23:54:29 -0800
+-- Mathieu Comandon <strider@strycore.com> Mon, 04 Jan 2021 23:54:29 -0800
 
 lutris (0.5.8.1) groovy; urgency=medium
 
-  * Remove Proton from available Wine versions
-  * Display a dialog until Lutris finishes initializing
-  * Allow to keep game files when uninstalling a game
-  * Remove custom sidebar CSS
-  * Fix popup menu not showing in list view
-  * Fix script loading for local files
-  * Fix installed at column setting name for list view
-  * Fix lutris not launching games with rungameid
-  * Fix installed Steam game for fresh lutris installs
+-   Remove Proton from available Wine versions
+-   Display a dialog until Lutris finishes initializing
+-   Allow to keep game files when uninstalling a game
+-   Remove custom sidebar CSS
+-   Fix popup menu not showing in list view
+-   Fix script loading for local files
+-   Fix installed at column setting name for list view
+-   Fix lutris not launching games with rungameid
+-   Fix installed Steam game for fresh lutris installs
 
- -- Mathieu Comandon <strider@strycore.com>  Fri, 27 Nov 2020 14:23:48 -0800
+-- Mathieu Comandon <strider@strycore.com> Fri, 27 Nov 2020 14:23:48 -0800
 
 lutris (0.5.8) groovy; urgency=medium
 
-  * 3rd party services are now available from the main window
-  * The "Import games" window has been removed. The concept of
+-   3rd party services are now available from the main window
+-   The "Import games" window has been removed. The concept of
     importing games from other services into Lutris has been removed.
     Syncing games from other services on start has been removed.
-  * Integration with the lutris website such as login and showing your
+-   Integration with the lutris website such as login and showing your
     library has been delegated to the 'lutris' service in the sidebar.
-  * The lutris service gives the option of searching your library or the whole
+-   The lutris service gives the option of searching your library or the whole
     lutris.net library.
-  * Games from 3rd party services no longer depend on an install script to be
+-   Games from 3rd party services no longer depend on an install script to be
     present on the website. Lutris will automatically install games with an
     auto-generated script. Scripts from the website take precedence if available.
-  * Steam games are directly loaded from the Steam API and it is no longer needed
+-   Steam games are directly loaded from the Steam API and it is no longer needed
     to sync your Steam library on the lutris website to see all your Steam games.
-  * Game banners and icons are downloaded from the services themselves. This
+-   Game banners and icons are downloaded from the services themselves. This
     allows for customized media size in the UI based on what's available from the
     service.
-  * Added option to hide the text under the icons
-  * The installer game cache configuration has been moved to the installer
+-   Added option to hide the text under the icons
+-   The installer game cache configuration has been moved to the installer
     window.
-  * Installers now offer the choice between downloaded files, custom user
+-   Installers now offer the choice between downloaded files, custom user
     provided files or cached files (when available).
-  * Bonus content for GOG games such as manuals or soundtracks can now be
+-   Bonus content for GOG games such as manuals or soundtracks can now be
     downloaded as part of the install process. Selected content are downloaded
     in a 'extras' folder in the game folder. Those files will likely be in
     compressed format.
-  * The right side bar has been moved to the bottom of the window to optimize
+-   The right side bar has been moved to the bottom of the window to optimize
     space and to declutter the overall design. Game actions are now shown in a
     popover menu displayed next to the play button. Runner actions, if available
     (for example, wine), will show up in a popover menu next to the runner icon.
-  * Running games have been moved from the right side bar to a row on the left
+-   Running games have been moved from the right side bar to a row on the left
     side bar.
-  * Added favorites section and allow to add/remove games from favorites
-  * When removing a game, Lutris now displays the size of the folder to be
+-   Added favorites section and allow to add/remove games from favorites
+-   When removing a game, Lutris now displays the size of the folder to be
     deleted.
-  * Game logs are no longer erased when switching to another game in the
+-   Game logs are no longer erased when switching to another game in the
     window.
-  * Game logs can be saved to a file
-  * Lutris runners can now be written in JSON instead of Python code. This
+-   Game logs can be saved to a file
+-   Lutris runners can now be written in JSON instead of Python code. This
     handles only simple cases but it's enough to handle a vast number of
     emulators or game engines. Some existing runners have been migrated to JSON
     such as dgen, ppsspp, citra, ags, virtualjaguar... as well as new ones like
     melonds, tic80, pcem... Check out the `share/lutris/json` folder for those
     runners. If you plan to submit new JSON based runner be sure to provide a valid
     'download_url' otherwise the lutris client won't have a runner to download.
-  * Lutris will not delete any game folder that is used by another game or any
+-   Lutris will not delete any game folder that is used by another game or any
     folder that is in some predefined locations. Note that protection of folders
     such as 'Documents' or 'Downloads' only works on English locales for the moment.
-  * Added a Mangohud option with special modes for OpenGL and 32bit games.
-  * Added a wine menu entry to launch a bash shell in the game's environment
+-   Added a Mangohud option with special modes for OpenGL and 32bit games.
+-   Added a wine menu entry to launch a bash shell in the game's environment
     with WINEPREFIX set and the correct Wine build aliased to `wine`.
-  * Added a command line option to generate a bash script that will run a
+-   Added a command line option to generate a bash script that will run a
     lutris game without the client. ex: `lutris quake --output-script quake.sh`.
     This will create a 'quake.sh' script to launch the game.
-  * Removed all platform and runner icons from the code base to eliminate any
+-   Removed all platform and runner icons from the code base to eliminate any
     issue regarding their licenses (This is done to help get the lutris
     package into debian).
-  * DOSBox and PCSX2 display an error if needed libraries are missing.
-  * The old versions of gamemode are no longer supported. Make sure you have
+-   DOSBox and PCSX2 display an error if needed libraries are missing.
+-   The old versions of gamemode are no longer supported. Make sure you have
     the one that ships with a `gamemoderun` executable.
-  * The runtime now supports downloading individual files. New icons can be
+-   The runtime now supports downloading individual files. New icons can be
     submitted by sending a PR to github.com/lutris/lutris-runtime.
-  * Refactor of several core components. New python packages
+-   Refactor of several core components. New python packages
     `lutris.database` and `lutris.gui.installer`
 
- -- Mathieu Comandon <strider@strycore.com>  Sat, 14 Nov 2020 15:03:28 -0700
+-- Mathieu Comandon <strider@strycore.com> Sat, 14 Nov 2020 15:03:28 -0700
 
 lutris (0.5.7.1) focal; urgency=medium
 
-  * Provide D3D12.DLL, based on vkd3d-proton project
+-   Provide D3D12.DLL, based on vkd3d-proton project
     (https://github.com/HansKristian-Work/vkd3d-proton),
     as part of our DXVK runtime. This will help push updates faster and provide better compatibility for
     Direct3D 12 titles such as World of Warcraft.
 
- -- Mathieu Comandon <strider@strycore.com>  Sat, 18 Jul 2020 14:35:23 -0700
+-- Mathieu Comandon <strider@strycore.com> Sat, 18 Jul 2020 14:35:23 -0700
 
 lutris (0.5.7) focal; urgency=medium
 
-  * Use Meson and Ninja to build translation files
-  * Improve Debian package compliance with standards
-  * Add translation strings for the code base
-  * Set a default directory to manually added games, allowing to remove them
-  * Deprecate MESS runner
-  * Migrate all MESS games to MAME
-  * Get full supported system list from the XML given by MAME
-  * Allow to run MAME games by ID if the ROM path is set
-  * Add a no-GUI option to RPCS3
-  * Fix GalliumNine conflicts with DXVK
-  * Improve performance of DirectX 12 games running on AMD GPU by setting RADV_DEBUG=zerovram
-  * Code style fixes. Pylint is now used in the Travis checks.
+-   Use Meson and Ninja to build translation files
+-   Improve Debian package compliance with standards
+-   Add translation strings for the code base
+-   Set a default directory to manually added games, allowing to remove them
+-   Deprecate MESS runner
+-   Migrate all MESS games to MAME
+-   Get full supported system list from the XML given by MAME
+-   Allow to run MAME games by ID if the ROM path is set
+-   Add a no-GUI option to RPCS3
+-   Fix GalliumNine conflicts with DXVK
+-   Improve performance of DirectX 12 games running on AMD GPU by setting RADV_DEBUG=zerovram
+-   Code style fixes. Pylint is now used in the Travis checks.
 
- -- Mathieu Comandon <strider@strycore.com>  Fri, 26 Jun 2020 18:06:18 -0700
+-- Mathieu Comandon <strider@strycore.com> Fri, 26 Jun 2020 18:06:18 -0700
 
 lutris (0.5.6) eoan; urgency=medium
 
-  * Add some wine core processes to be excluded from monitor (Fixes Battle.net
+-   Add some wine core processes to be excluded from monitor (Fixes Battle.net
     and Origin installation issues)
-  * Convert play time from string to float in the database. Do not downgrade
+-   Convert play time from string to float in the database. Do not downgrade
     back to older versions or you'll experience issues.
-  * Fix for the wine sandbox on non English systems
-  * Allow Citra and MAME to be launched as standalone programs
-  * Avoid a crash if ldconfig -p returns corrupt data
-  * Allow custom messages to be displayed at the end of install scripts
-  * Add option to provide alternate config file for PCSX2 games
-  * Fix issue with usernames containing accented characters
-  * Fix "Restrict to display" option on Wayland/Mutter
-  * Fix blurry icons on KDE
-  * Remove broken translation files (until internationalization is done properly)
-  * Switch source of DXVK builds to Lutris' own (allows Lutris to delay broken
+-   Fix for the wine sandbox on non English systems
+-   Allow Citra and MAME to be launched as standalone programs
+-   Avoid a crash if ldconfig -p returns corrupt data
+-   Allow custom messages to be displayed at the end of install scripts
+-   Add option to provide alternate config file for PCSX2 games
+-   Fix issue with usernames containing accented characters
+-   Fix "Restrict to display" option on Wayland/Mutter
+-   Fix blurry icons on KDE
+-   Remove broken translation files (until internationalization is done properly)
+-   Switch source of DXVK builds to Lutris' own (allows Lutris to delay broken
     DXVK releases and ship custom ones)
 
- -- Mathieu Comandon <strycore@gmail.com>  Sun, 12 Apr 2020 19:04:15 -0700
+-- Mathieu Comandon <strycore@gmail.com> Sun, 12 Apr 2020 19:04:15 -0700
 
 lutris (0.5.5) eoan; urgency=medium
 
-  * Initial support for Humble Bundle
-  * Add resolution switching support for Wayland (Mutter only)
-  * Add option to enable ACO shader compiler on Mesa >= 19.3
-  * DXVK is enabled by default
-  * Add initial support for VKD3D
-  * Migrate D9VK configs to use DXVK
-  * Remove d3d10 and d3d10_1 from dlls handled by DXVK
-  * Fix an API breakage occuring with a Gtk update
-  * Add a System info tab in Preferences
-  * Better handle authentication failure for GOG
-  * Fix case issue with key lookup in Steam VDF files
-  * Add Yuzu runner
-  * Add bsnes-hd beta and smsplus libretro cores
-  * Add sound device option for Mednafen
-  * Remove bundled winetricks
-  * Remove xboxdrv integration
+-   Initial support for Humble Bundle
+-   Add resolution switching support for Wayland (Mutter only)
+-   Add option to enable ACO shader compiler on Mesa >= 19.3
+-   DXVK is enabled by default
+-   Add initial support for VKD3D
+-   Migrate D9VK configs to use DXVK
+-   Remove d3d10 and d3d10_1 from dlls handled by DXVK
+-   Fix an API breakage occuring with a Gtk update
+-   Add a System info tab in Preferences
+-   Better handle authentication failure for GOG
+-   Fix case issue with key lookup in Steam VDF files
+-   Add Yuzu runner
+-   Add bsnes-hd beta and smsplus libretro cores
+-   Add sound device option for Mednafen
+-   Remove bundled winetricks
+-   Remove xboxdrv integration
 
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 26 Mar 2020 22:21:28 -0700
+-- Mathieu Comandon <strycore@gmail.com> Thu, 26 Mar 2020 22:21:28 -0700
 
 lutris (0.5.4) eoan; urgency=medium
 
-  * Added support for Python 3.8.
-  * Added config validation.
-  * Added support for Nvidia PRIME off-load.
-  * Added a popup after a successful game import.
-  * Added alacritty as a terminal option.
-  * Newly installed games that don't specify wine version will now default to the version used during installation.
-  * Provide a fallback for when Lutris can't create a working directory.
-  * Update libretro runners list.
-  * Removed runners that have no binary builds.
-  * Esync can now be enabled for Wine Staging >= 4.6.
-  * Default scaling option for Mednafen is now nn4x.
-  * steamwebhelper.exe is no longer disabled to avoid issues with the new Steam UI.
-  * Ignore special symbols when generating identifiers for games.
-  * Wine processes are now killed if installation is cancelled.
-  * Fixed installation issues for users whose username begin with "x".
-  * Fixed a bug with side panels hidden by default on first start.
-  * Fixed an issue that would not allow user to unselect a game in right panel by clicking on an empty space in the library if that game was no longer installed.
-  * Fixed an issue that allowed user to change the configuration of a game that was already removed.
-  * Fixed an issue that made games imported from native Steam to appear as uninstalled.
-  * Fixed a bug that opened Wine Console instead of Wine Registry.
-  * Fixed warnings that occurred when Gamemode was enabled.
-  * Fixed various locale issues.
-  * Fixed a bug preventing Lutris to find Gallium Nine libraries.
-  * Fixed issues with positioning of the Lutris window.
-  * Fixed game panel updates on game quit.
-  * Fixed game loading error in cases when libstrangle is missing but was previously enabled.
-  * Fixed a bug that made Lutris download Linux version of a GOG game even when the runner was set to Wine.
-  * Fixed installation of the local install scripts.
-  * Fixed installation issues for wine installers that don't have a "files" section.
-  * Further fixed issues with wine sandboxing on non-english systems.
+-   Added support for Python 3.8.
+-   Added config validation.
+-   Added support for Nvidia PRIME off-load.
+-   Added a popup after a successful game import.
+-   Added alacritty as a terminal option.
+-   Newly installed games that don't specify wine version will now default to the version used during installation.
+-   Provide a fallback for when Lutris can't create a working directory.
+-   Update libretro runners list.
+-   Removed runners that have no binary builds.
+-   Esync can now be enabled for Wine Staging >= 4.6.
+-   Default scaling option for Mednafen is now nn4x.
+-   steamwebhelper.exe is no longer disabled to avoid issues with the new Steam UI.
+-   Ignore special symbols when generating identifiers for games.
+-   Wine processes are now killed if installation is cancelled.
+-   Fixed installation issues for users whose username begin with "x".
+-   Fixed a bug with side panels hidden by default on first start.
+-   Fixed an issue that would not allow user to unselect a game in right panel by clicking on an empty space in the library if that game was no longer installed.
+-   Fixed an issue that allowed user to change the configuration of a game that was already removed.
+-   Fixed an issue that made games imported from native Steam to appear as uninstalled.
+-   Fixed a bug that opened Wine Console instead of Wine Registry.
+-   Fixed warnings that occurred when Gamemode was enabled.
+-   Fixed various locale issues.
+-   Fixed a bug preventing Lutris to find Gallium Nine libraries.
+-   Fixed issues with positioning of the Lutris window.
+-   Fixed game panel updates on game quit.
+-   Fixed game loading error in cases when libstrangle is missing but was previously enabled.
+-   Fixed a bug that made Lutris download Linux version of a GOG game even when the runner was set to Wine.
+-   Fixed installation of the local install scripts.
+-   Fixed installation issues for wine installers that don't have a "files" section.
+-   Further fixed issues with wine sandboxing on non-english systems.
 
- -- Mathieu Comandon <strycore@gmail.com>  Wed, 20 Nov 2019 17:51:16 -0800
+-- Mathieu Comandon <strycore@gmail.com> Wed, 20 Nov 2019 17:51:16 -0800
 
 lutris (0.5.3) disco; urgency=medium
 
-  * Added D9VK option.
-  * Added options to hide right and left panels.
-  * Added support for Discord Rich Presence (option is only available if you
+-   Added D9VK option.
+-   Added options to hide right and left panels.
+-   Added support for Discord Rich Presence (option is only available if you
     have python-pypresence installed).
-  * Added option to launch Wine console.
-  * Added option to hide Lutris on game launch.
-  * Added lazy loading for some UI components that fetch data from Lutris.
-  * WINE_LARGE_ADDRESS_AWARE is now set to 1 when DXVK or D9VK is enabled
+-   Added option to launch Wine console.
+-   Added option to hide Lutris on game launch.
+-   Added lazy loading for some UI components that fetch data from Lutris.
+-   WINE_LARGE_ADDRESS_AWARE is now set to 1 when DXVK or D9VK is enabled
     (only works with lutris-provided builds) to workaround crashes in 32-bit games.
-  * Lutris should now be minimized when launching games from shortcuts.
-  * An error is now displayed when Lutris fails to install a runner.
-  * Added Ubuntu's AMDVLK path to Vulkan ICD loader search.
-  * State of right panel is now refreshed after adding/removing shortcuts.
-  * Working directory no longer defaults to /tmp
-  * Switched PC-Engine module from pce to pce_fast.
-  * Fixed crash due to invalid GOG credentials.
-  * Fixed UI bug that would sometimes result in “No File Provided” error messages.
-  * Fixed bug that would lead to path warnings when prompted to select files.
-  * Fixed crashes due to unexpected data from xrandr.
-  * Fixed bug that could make antialiasing not function in some games.
-  * Fixed sorting for games that start with a lowercase letter.
-  * Fixed bug that would cause user session to end when launching games on Linux Mint.
-  * Fixed bug with process monitor that could cause games to not launch.
-  * Fixed bug that would not let user execute some options and launch external
+-   Lutris should now be minimized when launching games from shortcuts.
+-   An error is now displayed when Lutris fails to install a runner.
+-   Added Ubuntu's AMDVLK path to Vulkan ICD loader search.
+-   State of right panel is now refreshed after adding/removing shortcuts.
+-   Working directory no longer defaults to /tmp
+-   Switched PC-Engine module from pce to pce_fast.
+-   Fixed crash due to invalid GOG credentials.
+-   Fixed UI bug that would sometimes result in “No File Provided” error messages.
+-   Fixed bug that would lead to path warnings when prompted to select files.
+-   Fixed crashes due to unexpected data from xrandr.
+-   Fixed bug that could make antialiasing not function in some games.
+-   Fixed sorting for games that start with a lowercase letter.
+-   Fixed bug that would cause user session to end when launching games on Linux Mint.
+-   Fixed bug with process monitor that could cause games to not launch.
+-   Fixed bug that would not let user execute some options and launch external
     executables when a game is still running and ESYNC is enabled.
-  * Fixed issues with restoration of original .dll files when disabling DXVK/D9VK.
-  * Fixed crashes due to inability to read GPU driver information.
-  * Fixed crash when working directory isn’t defined.
-  * Fixed stuck game importing due to failure to load icons.
-  * Fixed library loading issues on Gentoo.
-  * Fixed wine sandboxing on non-english systems.
-  * Fixed various issues with locales.
-  * Made various changes and improvements for libretro runner.
-  * Made various changes and improvements for future Flatpak support.
-  * Made minor changes to wording in UI.
-  * Updated Zdoom icon
-  * Updated Lutris logo (improvements by @Scout339)
+-   Fixed issues with restoration of original .dll files when disabling DXVK/D9VK.
+-   Fixed crashes due to inability to read GPU driver information.
+-   Fixed crash when working directory isn’t defined.
+-   Fixed stuck game importing due to failure to load icons.
+-   Fixed library loading issues on Gentoo.
+-   Fixed wine sandboxing on non-english systems.
+-   Fixed various issues with locales.
+-   Made various changes and improvements for libretro runner.
+-   Made various changes and improvements for future Flatpak support.
+-   Made minor changes to wording in UI.
+-   Updated Zdoom icon
+-   Updated Lutris logo (improvements by @Scout339)
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 02 Sep 2019 20:50:01 -0700
+-- Mathieu Comandon <strycore@gmail.com> Mon, 02 Sep 2019 20:50:01 -0700
 
 lutris (0.5.2.1) cosmic; urgency=high
 
-  * Handle distributions where ldconfig is not in $PATH, like Debian
-  * Fix a crash when GOG credential have changed
-  * Leave "Show logs" button always enabled
-  * Add BlastEm to libretro cores
+-   Handle distributions where ldconfig is not in $PATH, like Debian
+-   Fix a crash when GOG credential have changed
+-   Leave "Show logs" button always enabled
+-   Add BlastEm to libretro cores
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 09 Apr 2019 19:46:02 -0700
+-- Mathieu Comandon <strycore@gmail.com> Tue, 09 Apr 2019 19:46:02 -0700
 
 lutris (0.5.2) cosmic; urgency=medium
 
-  * Avoid a crash if the lutris config file is corrupted
-  * Install Asian fonts by default on Wine prefix creation
-  * Add Vulkan ICD loaders in system options
-  * Add SampleCount option to Wine (allows enabling antialiasing in old games)
-  * Replace joystick panel with Wine config panel (which contains the joypad panel)
-  * Display warning when installing games on NTFS drives
-  * Display warning if Vulkan is not fully installed
-  * Use ldconfig to determine library paths
-  * Disable steamwebhelper in Wine Steam to prevent spamming logs with errors
-  * Various bug fixes
+-   Avoid a crash if the lutris config file is corrupted
+-   Install Asian fonts by default on Wine prefix creation
+-   Add Vulkan ICD loaders in system options
+-   Add SampleCount option to Wine (allows enabling antialiasing in old games)
+-   Replace joystick panel with Wine config panel (which contains the joypad panel)
+-   Display warning when installing games on NTFS drives
+-   Display warning if Vulkan is not fully installed
+-   Use ldconfig to determine library paths
+-   Disable steamwebhelper in Wine Steam to prevent spamming logs with errors
+-   Various bug fixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 04 Apr 2019 02:47:30 -0700
+-- Mathieu Comandon <strycore@gmail.com> Thu, 04 Apr 2019 02:47:30 -0700
 
 lutris (0.5.1.3) cosmic; urgency=critical
 
-  * Fake release to work around Launchpad / OBS publishing issues.
+-   Fake release to work around Launchpad / OBS publishing issues.
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 25 Mar 2019 17:38:55 -0700
+-- Mathieu Comandon <strycore@gmail.com> Mon, 25 Mar 2019 17:38:55 -0700
 
 lutris (0.5.1.2) cosmic; urgency=high
 
-  * Fix issue with custom Proton detection preventing Wine game from running
+-   Fix issue with custom Proton detection preventing Wine game from running
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 25 Mar 2019 14:24:38 -0700
+-- Mathieu Comandon <strycore@gmail.com> Mon, 25 Mar 2019 14:24:38 -0700
 
 lutris (0.5.1.1) cosmic; urgency=medium
 
-  * Fixed a crash when trying to open webpages on system without GVFS
+-   Fixed a crash when trying to open webpages on system without GVFS
     installed
-  * Fixed GOG login dialog being displayed multiple times during the install
-  * Add mesa-utils as dependency for glxinfo
-  * Add gvfs-backends as dependency to fix the open_uri issue
-  * Add detection of custom proton builds in compatibilitytools.d folder, as
+-   Fixed GOG login dialog being displayed multiple times during the install
+-   Add mesa-utils as dependency for glxinfo
+-   Add gvfs-backends as dependency to fix the open_uri issue
+-   Add detection of custom proton builds in compatibilitytools.d folder, as
     documented here: https://github.com/valvesoftware/proton#install-proton-locally
-   (by @GloriousEggroll)
+    (by @GloriousEggroll)
 
- -- Mathieu Comandon <strycore@gmail.com>  Sun, 24 Mar 2019 23:39:18 -0700
+-- Mathieu Comandon <strycore@gmail.com> Sun, 24 Mar 2019 23:39:18 -0700
 
 lutris (0.5.1) cosmic; urgency=medium
 
-  * Download the default Lutris Wine version when not available
-  * Prevent duplicates when importing games from 3rd party services
-  * Fix some sorting issues in the view
-  * Add issue reporting feature with the --submit-issue flag. The issue can
+-   Download the default Lutris Wine version when not available
+-   Prevent duplicates when importing games from 3rd party services
+-   Fix some sorting issues in the view
+-   Add issue reporting feature with the --submit-issue flag. The issue can
     only be saved locally, API integration will be implemented at a later stage.
-  * Add support for CD-ROM images for non CD32/CDTV Amiga models
-  * Remove website search from sidebar and merge it with the main search entry
-  * Display a warning message if the installed Nvidia driver is too old
-  * Fix GOG games not being installable without being connected to GOG
-  * Improve performance of log handling
-  * Remove winecfg if Proton is used
-  * Use discrete graphics by default with compatible systems
-  * Increase game icon size from 32x32 to 128x128
-  * Various fixes
+-   Add support for CD-ROM images for non CD32/CDTV Amiga models
+-   Remove website search from sidebar and merge it with the main search entry
+-   Display a warning message if the installed Nvidia driver is too old
+-   Fix GOG games not being installable without being connected to GOG
+-   Improve performance of log handling
+-   Remove winecfg if Proton is used
+-   Use discrete graphics by default with compatible systems
+-   Increase game icon size from 32x32 to 128x128
+-   Various fixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Wed, 20 Mar 2019 00:24:27 -0700
+-- Mathieu Comandon <strycore@gmail.com> Wed, 20 Mar 2019 00:24:27 -0700
 
 lutris (0.5.0.1ubuntu1) cosmic; urgency=medium
 
-  * Bullshit my way out of Gtk+ fuckery (Closes #1697)
-  * Initialize playtime attribute when invalid playtime found (Closes #1698)
-  * Strip equal signs from envvars (Closes #1699)
-  * If the Fedora shit breaks the SUSE shit, I just delete it, OK? (Closes #1700)
-  * Add application attribute on GenericPanel (Closes #1702)
-  * Avoid crashing on weird GPU configs (Closes #1706)
-  * Remove get_config_id (Closes #1708)
+-   Bullshit my way out of Gtk+ fuckery (Closes #1697)
+-   Initialize playtime attribute when invalid playtime found (Closes #1698)
+-   Strip equal signs from envvars (Closes #1699)
+-   If the Fedora shit breaks the SUSE shit, I just delete it, OK? (Closes #1700)
+-   Add application attribute on GenericPanel (Closes #1702)
+-   Avoid crashing on weird GPU configs (Closes #1706)
+-   Remove get_config_id (Closes #1708)
 
- -- Mathieu Comandon <strycore@gmail.com>  Sun, 03 Feb 2019 00:21:32 -0800
+-- Mathieu Comandon <strycore@gmail.com> Sun, 03 Feb 2019 00:21:32 -0800
 
 lutris (0.5.0) cosmic; urgency=medium
 
-  * Modernize the Gtk UI, thanks to the improvements made by @TingPing
-  * Add GOG support, allowing users to sign-in their account, import games and
+-   Modernize the Gtk UI, thanks to the improvements made by @TingPing
+-   Add GOG support, allowing users to sign-in their account, import games and
     download game files automatically during install.
-  * Add finer game import options, allowing imports from different 3rd party
+-   Add finer game import options, allowing imports from different 3rd party
     such as Steam, GOG and locally installed games.
-  * Re-architecture the process monitor. This fixes issues with games exiting
+-   Re-architecture the process monitor. This fixes issues with games exiting
     prematurely. Many thanks to @AaronOpfer for his patches!
-  * Multiple games can now be launched at the same time without losing control
+-   Multiple games can now be launched at the same time without losing control
     over the first game.
-  * Game information and actions are now displayed in a panel on the right side.
+-   Game information and actions are now displayed in a panel on the right side.
     Coverart fetching for the panel will be added in a future release, until then
     cover art files can be placed in ~/.local/share/lutris/coverart/[game-identifier].jpg
-  * Games from lutris.net can be searched and installed from the client itself.
-  * New install_cab_component installer command for Media Foundation based games.
-  * Add a download cache to re-use files between installations.
-  * Print graphics drivers and GPU on startup
-  * Re-design installer selection picker.
-  * Add a button to show installer scripts before installing.
-  * Add a FPS limiter option when libstrangle is available (https://gitlab.com/torkel104/libstrangle)
-  * Re-architecturing of several parts of the application (views, linux
+-   Games from lutris.net can be searched and installed from the client itself.
+-   New install_cab_component installer command for Media Foundation based games.
+-   Add a download cache to re-use files between installations.
+-   Print graphics drivers and GPU on startup
+-   Re-design installer selection picker.
+-   Add a button to show installer scripts before installing.
+-   Add a FPS limiter option when libstrangle is available (https://gitlab.com/torkel104/libstrangle)
+-   Re-architecturing of several parts of the application (views, linux
     feature detection, main game class, ...)
 
- -- Mathieu Comandon <strycore@gmail.com>  Fri, 01 Feb 2019 07:26:25 -0800
+-- Mathieu Comandon <strycore@gmail.com> Fri, 01 Feb 2019 07:26:25 -0800
 
 lutris (0.4.23) bionic; urgency=medium
 
-  * Prevent monitor from quitting games that open a 2nd process
-  * Run on-demand scripts from game directory
-  * Tell the user what executable is expected after a failed install
-  * Fix a circular import causing issues on some distributions
-  * Add missing dependency for openSUSE Tumbleweed
+-   Prevent monitor from quitting games that open a 2nd process
+-   Run on-demand scripts from game directory
+-   Tell the user what executable is expected after a failed install
+-   Fix a circular import causing issues on some distributions
+-   Add missing dependency for openSUSE Tumbleweed
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 06 Nov 2018 19:10:19 -0800
+-- Mathieu Comandon <strycore@gmail.com> Tue, 06 Nov 2018 19:10:19 -0800
 
 lutris (0.4.22) bionic; urgency=medium
 
-  * Use lspci instead of xrandr to detect video cards
-  * Detect if Vulkan is supported by the system for DXVK games
-  * Add experimental playtime support
-  * Detect Proton and add it to Wine versions
-  * Fix runtime being downloaded when not needed
-  * Add experimental tray icon with last games played
-  * Add support for Feral Gamemode
-  * Prevent process monitor to quit games prematurely
-  * Code cleanup
+-   Use lspci instead of xrandr to detect video cards
+-   Detect if Vulkan is supported by the system for DXVK games
+-   Add experimental playtime support
+-   Detect Proton and add it to Wine versions
+-   Fix runtime being downloaded when not needed
+-   Add experimental tray icon with last games played
+-   Add support for Feral Gamemode
+-   Prevent process monitor to quit games prematurely
+-   Code cleanup
 
- -- Mathieu Comandon <strycore@gmail.com>  Sat, 03 Nov 2018 00:01:19 -0700
+-- Mathieu Comandon <strycore@gmail.com> Sat, 03 Nov 2018 00:01:19 -0700
 
 lutris (0.4.21.1) bionic; urgency=medium
 
-  * Fix detection of libvulkan
+-   Fix detection of libvulkan
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 23 Oct 2018 19:31:14 -0700
+-- Mathieu Comandon <strycore@gmail.com> Tue, 23 Oct 2018 19:31:14 -0700
 
 lutris (0.4.21) bionic; urgency=medium
 
-  * Added an Esync toggle for wine builds with esync patches and a check for limits if the toggle was activated.
-  * Added a warning for wine games if wine is not installed on the system (to avoid issues with dependencies).
-  * Added a check for Vulkan loaders when using DXVK (forbids from launching the game if it can't detect them)
-  * Added check for the presence of executable after the installation finished.
-  * Added an option to sort installed games first
-  * Added a discouraging warning if Lutris was launched as root.
-  * Added a "--version" command line option.
-  * Added an error message if requested DXVK version does not exist.
-  * Improved behavior of Lutris' background process.
-  * Improved UI when changing game's identifier.
-  * Wine's own Virtual Desktop configuration is now respected.
-  * Merge command now has a 'copy' alias.
-  * Executable selection how has a text field.
-  * Blacklisted Proton and SteamWorks from showing up as games.
-  * Sidebar now shows number of installed games per runner and platform.
-  * Visual improvements to wine download dialog
-  * Fixed an issue when DXVK versions didn't get updated if dxvk directory wasn't present.
-  * Fixed an issue when the watcher would sync Steam games even if the feature was disabled.
-  * Fixed missing warning for existing prefix during installation process if the path contained "~".
-  * Prevent Steam games from being synced from the AppManifest watcher if Steam sync if off
-  * Games load properly when launching Lutris for the first time
-  * Minor improvements to wording in some menus.
+-   Added an Esync toggle for wine builds with esync patches and a check for limits if the toggle was activated.
+-   Added a warning for wine games if wine is not installed on the system (to avoid issues with dependencies).
+-   Added a check for Vulkan loaders when using DXVK (forbids from launching the game if it can't detect them)
+-   Added check for the presence of executable after the installation finished.
+-   Added an option to sort installed games first
+-   Added a discouraging warning if Lutris was launched as root.
+-   Added a "--version" command line option.
+-   Added an error message if requested DXVK version does not exist.
+-   Improved behavior of Lutris' background process.
+-   Improved UI when changing game's identifier.
+-   Wine's own Virtual Desktop configuration is now respected.
+-   Merge command now has a 'copy' alias.
+-   Executable selection how has a text field.
+-   Blacklisted Proton and SteamWorks from showing up as games.
+-   Sidebar now shows number of installed games per runner and platform.
+-   Visual improvements to wine download dialog
+-   Fixed an issue when DXVK versions didn't get updated if dxvk directory wasn't present.
+-   Fixed an issue when the watcher would sync Steam games even if the feature was disabled.
+-   Fixed missing warning for existing prefix during installation process if the path contained "~".
+-   Prevent Steam games from being synced from the AppManifest watcher if Steam sync if off
+-   Games load properly when launching Lutris for the first time
+-   Minor improvements to wording in some menus.
 
- -- Mathieu Comandon <strycore@gmail.com>  Sat, 20 Oct 2018 17:39:31 -0700
+-- Mathieu Comandon <strycore@gmail.com> Sat, 20 Oct 2018 17:39:31 -0700
 
 lutris (0.4.20) bionic; urgency=medium
 
-  * Fix detection of winetricks path
-  * Improve visual feedback on wine download dialog
-  * Add skill and command-line arguments for Zdoom
-  * Add option to disable joypad auto-configuration
-  * Restore refresh rate on monitor reset
+-   Fix detection of winetricks path
+-   Improve visual feedback on wine download dialog
+-   Add skill and command-line arguments for Zdoom
+-   Add option to disable joypad auto-configuration
+-   Restore refresh rate on monitor reset
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 24 Sep 2018 20:46:46 -0700
+-- Mathieu Comandon <strycore@gmail.com> Mon, 24 Sep 2018 20:46:46 -0700
 
 lutris (0.4.19) bionic; urgency=medium
 
-  * Prioritize winetricks from the runtime
-  * Populate DXVK versions with github releases
-  * Add support for DirectX 10 with DXVK
-  * Fix detection of xgamma
-  * Add 24BPP option for Xephyr
-  * Restore Alsa option for Wine
-  * Prepend additional system paths to runtime
+-   Prioritize winetricks from the runtime
+-   Populate DXVK versions with github releases
+-   Add support for DirectX 10 with DXVK
+-   Fix detection of xgamma
+-   Add 24BPP option for Xephyr
+-   Restore Alsa option for Wine
+-   Prepend additional system paths to runtime
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 04 Sep 2018 18:48:52 -0700
+-- Mathieu Comandon <strycore@gmail.com> Tue, 04 Sep 2018 18:48:52 -0700
 
 lutris (0.4.18) bionic; urgency=medium
 
-  * Fix 'execute' command arguments
-  * Fix 'write_json' command when no file exists
-  * Avoid crash when wine prefix has broken symlinks
-  * Update DXVK latest version to 0.52
-  * Update winetricks
+-   Fix 'execute' command arguments
+-   Fix 'write_json' command when no file exists
+-   Avoid crash when wine prefix has broken symlinks
+-   Update DXVK latest version to 0.52
+-   Update winetricks
 
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 24 May 2018 14:06:45 -0700
+-- Mathieu Comandon <strycore@gmail.com> Thu, 24 May 2018 14:06:45 -0700
 
 lutris (0.4.17) bionic; urgency=medium
 
-  * Add DVXK version option
-  * Fixes in Wine registry handling
-  * Prioritize /usr/lib32 over Lutris runtime
-  * Re-enable Lutris runtime if using a Lutris Wine build
-  * Fix xrandr parsing when DisplayPort are available
-  * Get pids used by wineserver (experimental, likely to be removed)
+-   Add DVXK version option
+-   Fixes in Wine registry handling
+-   Prioritize /usr/lib32 over Lutris runtime
+-   Re-enable Lutris runtime if using a Lutris Wine build
+-   Fix xrandr parsing when DisplayPort are available
+-   Get pids used by wineserver (experimental, likely to be removed)
 
- -- Mathieu Comandon <strycore@gmail.com>  Sun, 20 May 2018 14:51:49 -0700
+-- Mathieu Comandon <strycore@gmail.com> Sun, 20 May 2018 14:51:49 -0700
 
 lutris (0.4.16) bionic; urgency=high
 
-  * Fix crash preventing running or configuring wine games
-  * Fix Steam being shut down regardless of the associated option's setting
-  * Fix some external library folders not being detected
-  * Fix crash on InstallerWindow for GTK < 3.22
-  * Remove Ctrl+Q shortcut
+-   Fix crash preventing running or configuring wine games
+-   Fix Steam being shut down regardless of the associated option's setting
+-   Fix some external library folders not being detected
+-   Fix crash on InstallerWindow for GTK < 3.22
+-   Remove Ctrl+Q shortcut
 
- -- Mathieu Comandon <strycore@gmail.com>  Fri, 11 May 2018 22:59:26 -0700
+-- Mathieu Comandon <strycore@gmail.com> Fri, 11 May 2018 22:59:26 -0700
 
 lutris (0.4.15) bionic; urgency=medium
 
-  * Add RPCS3 runner
-  * Prevent Lutris from killing Steam if it's downloading a game
-  * Add option to run DRM free Steam games without opening Steam
-  * Add `custom-name` directive for install scripts
-  * Set default Wine architecture to 64bit
-  * Add support for DXVK in Wine games
-  * Prioritize libraries in /usr/lib over the Lutris runtime
-  * Disable Lutris runtime on Wine games if Wine is installed globally
-  * Download recent wine version if the system installed one is too old
-  * Record installation date of games
-  * Add option for menu mode key in MESS
-  * Support hard disk images for FS-UAE
-  * Various UI fixes
+-   Add RPCS3 runner
+-   Prevent Lutris from killing Steam if it's downloading a game
+-   Add option to run DRM free Steam games without opening Steam
+-   Add `custom-name` directive for install scripts
+-   Set default Wine architecture to 64bit
+-   Add support for DXVK in Wine games
+-   Prioritize libraries in /usr/lib over the Lutris runtime
+-   Disable Lutris runtime on Wine games if Wine is installed globally
+-   Download recent wine version if the system installed one is too old
+-   Record installation date of games
+-   Add option for menu mode key in MESS
+-   Support hard disk images for FS-UAE
+-   Various UI fixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Fri, 11 May 2018 14:05:48 -0700
+-- Mathieu Comandon <strycore@gmail.com> Fri, 11 May 2018 14:05:48 -0700
 
 lutris (0.4.14) artful; urgency=medium
 
-  * Add option to include and exclude processes from monitoring in installers
+-   Add option to include and exclude processes from monitoring in installers
     and during gameplay.
-  * Add winekill installer task
-  * Fix lutris eating 100% CPU after game quits
-  * Fix the way wine games quit
-  * Fix Wine Steam being killed on game exit even if the option is disabled
-  * Add support for 64bit dinput8.dll for x360ce
-  * Add support for dumbxinputemu as a x360ce alternative
-  * Add option to enable xinput9_1_0.dll in x360ce
-  * Deprecate koku-xinput option
-  * Add system option to enable DRI_PRIME
-  * Add more platforms to Mednafen
-  * Better controller support for Mednafen
+-   Add winekill installer task
+-   Fix lutris eating 100% CPU after game quits
+-   Fix the way wine games quit
+-   Fix Wine Steam being killed on game exit even if the option is disabled
+-   Add support for 64bit dinput8.dll for x360ce
+-   Add support for dumbxinputemu as a x360ce alternative
+-   Add option to enable xinput9_1_0.dll in x360ce
+-   Deprecate koku-xinput option
+-   Add system option to enable DRI_PRIME
+-   Add more platforms to Mednafen
+-   Better controller support for Mednafen
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 21 Nov 2017 20:48:38 -0800
+-- Mathieu Comandon <strycore@gmail.com> Tue, 21 Nov 2017 20:48:38 -0800
 
 lutris (0.4.13) zesty; urgency=medium
 
-  * Add new libretro cores
-  * Stop process monitoring as soon as process stops
-  * Default 'reset_desktop' option to False
-  * Make calling executables more robust
-  * Fix xboxdrv not being monitored properly
+-   Add new libretro cores
+-   Stop process monitoring as soon as process stops
+-   Default 'reset_desktop' option to False
+-   Make calling executables more robust
+-   Fix xboxdrv not being monitored properly
 
- -- Mathieu Comandon <strycore@gmail.com>  Wed, 26 Jul 2017 19:12:21 -0700
+-- Mathieu Comandon <strycore@gmail.com> Wed, 26 Jul 2017 19:12:21 -0700
 
 lutris (0.4.12) zesty; urgency=medium
 
-  * Increase process monitor delay
-  * Increase HTTP requests timeouts
-  * Disable stdout logger for unmonitored processes
-  * Display error when downloaded file doesn't resolve to a filename
-  * Add support for symlinks in tar archives
-  * Fix sqlite query error when syncing games
-  * Fix installation of local scripts
-  * Catch errors while reading Steam VDF files
+-   Increase process monitor delay
+-   Increase HTTP requests timeouts
+-   Disable stdout logger for unmonitored processes
+-   Display error when downloaded file doesn't resolve to a filename
+-   Add support for symlinks in tar archives
+-   Fix sqlite query error when syncing games
+-   Fix installation of local scripts
+-   Catch errors while reading Steam VDF files
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 13 Jun 2017 20:46:18 -0700
+-- Mathieu Comandon <strycore@gmail.com> Tue, 13 Jun 2017 20:46:18 -0700
 
 lutris (0.4.11.1) zesty; urgency=medium
 
-  * Fix typo in wineboot check
+-   Fix typo in wineboot check
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 30 May 2017 15:43:07 -0700
+-- Mathieu Comandon <strycore@gmail.com> Tue, 30 May 2017 15:43:07 -0700
 
 lutris (0.4.11) zesty; urgency=medium
 
-  * Add system option to disable process monitoring
-  * Finish ScummVM game importing
-  * Fix path resolution for local installer scripts
-  * Fix 'execute' installer command not being monitored
-  * Fix I/O watch hogging a CPU core after game quits
-  * Code cleanup
+-   Add system option to disable process monitoring
+-   Finish ScummVM game importing
+-   Fix path resolution for local installer scripts
+-   Fix 'execute' installer command not being monitored
+-   Fix I/O watch hogging a CPU core after game quits
+-   Code cleanup
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 30 May 2017 13:36:41 -0700
+-- Mathieu Comandon <strycore@gmail.com> Tue, 30 May 2017 13:36:41 -0700
 
 lutris (0.4.10) zesty; urgency=medium
 
-  * Remove PCSX-R runner
-  * Migrate PCSX-R games to use PCSX Rearmed on RetroArch
-  * Fix game config being overidden if edited while the game is running
-  * Fix Y Axis mapping for the Dual Shock 3 in X360CE
-  * Add dinput8 option for X360CE for games requiring it (Dead Space 2,
+-   Remove PCSX-R runner
+-   Migrate PCSX-R games to use PCSX Rearmed on RetroArch
+-   Fix game config being overidden if edited while the game is running
+-   Fix Y Axis mapping for the Dual Shock 3 in X360CE
+-   Add dinput8 option for X360CE for games requiring it (Dead Space 2,
     Darksiders, ...)
-  * Add dialog to optionally sync Steam and XDG desktop shortcuts at startup
-  * (Re)add ScummVM import
-  * Reenable Lutris runtime by default for Dolphin
-  * Update Winetricks (Fixes .NET 3.5 installation)
-  * Avoid a crash if Wine prefix is not created
-  * Update Wine and Steam icons
-  * Add support for lutris:rungame/... and lutris:install/... urls
-  * Always instanciate the client's window even when installing or launching
+-   Add dialog to optionally sync Steam and XDG desktop shortcuts at startup
+-   (Re)add ScummVM import
+-   Reenable Lutris runtime by default for Dolphin
+-   Update Winetricks (Fixes .NET 3.5 installation)
+-   Avoid a crash if Wine prefix is not created
+-   Update Wine and Steam icons
+-   Add support for lutris:rungame/... and lutris:install/... urls
+-   Always instanciate the client's window even when installing or launching
     a game
-  * Stop Lutris process monitor instantly when all child processes have quit,
+-   Stop Lutris process monitor instantly when all child processes have quit,
     speeds up game installs and prevents zombie processes.
-  * Display real time console output in the game log dialog
-  * Display real time console output during game installations
-  * Add option to launch the Steam client instead of the game in Wine Steam
+-   Display real time console output in the game log dialog
+-   Display real time console output during game installations
+-   Add option to launch the Steam client instead of the game in Wine Steam
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 15 May 2017 22:08:13 -0700
+-- Mathieu Comandon <strycore@gmail.com> Mon, 15 May 2017 22:08:13 -0700
 
 lutris (0.4.9) zesty; urgency=medium
 
-  * Add option to auto-configure x360ce in Wine games based on plugged in
+-   Add option to auto-configure x360ce in Wine games based on plugged in
     controllers
-  * Add support for batch files in Wine
-  * Fix FS-UAE path handling
-  * Fix regedit commands on newer Wine versions
-  * Fix local offline script installation
+-   Add support for batch files in Wine
+-   Fix FS-UAE path handling
+-   Fix regedit commands on newer Wine versions
+-   Fix local offline script installation
 
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 04 May 2017 00:06:56 -0700
+-- Mathieu Comandon <strycore@gmail.com> Thu, 04 May 2017 00:06:56 -0700
 
 lutris (0.4.8) zesty; urgency=medium
 
-  * Switch installer scripts to the REST API
-  * Allow users to test installer drafts
-  * Add cabextract as a dependency
-  * Fix for processes crashing when the working directory doesn't exist
-  * Add $VERSION as a variable usable in scripts
+-   Switch installer scripts to the REST API
+-   Allow users to test installer drafts
+-   Add cabextract as a dependency
+-   Fix for processes crashing when the working directory doesn't exist
+-   Add $VERSION as a variable usable in scripts
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 18 Apr 2017 16:06:38 -0700
+-- Mathieu Comandon <strycore@gmail.com> Tue, 18 Apr 2017 16:06:38 -0700
 
 lutris (0.4.7.1) yakkety; urgency=medium
 
-  * Fix a bug with the platforms accessing the database before it's created
+-   Fix a bug with the platforms accessing the database before it's created
 
- -- Mathieu Comandon <strycore@gmail.com>  Sun, 09 Apr 2017 16:38:39 -0700
+-- Mathieu Comandon <strycore@gmail.com> Sun, 09 Apr 2017 16:38:39 -0700
 
 lutris (0.4.7) yakkety; urgency=medium
 
-  * Add support for more libretro cores
-  * Revert main view to IconView instead of Flowbox, improving performance
-  * Persist game platforms to the database, improving performance
-  * Fix argument parsing for msi installers
-  * Use gzdoom instead of zdoom
-  * Misc bugfixes
+-   Add support for more libretro cores
+-   Revert main view to IconView instead of Flowbox, improving performance
+-   Persist game platforms to the database, improving performance
+-   Fix argument parsing for msi installers
+-   Use gzdoom instead of zdoom
+-   Misc bugfixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Sun, 09 Apr 2017 13:40:50 -0700
+-- Mathieu Comandon <strycore@gmail.com> Sun, 09 Apr 2017 13:40:50 -0700
 
 lutris (0.4.6) yakkety; urgency=medium
 
-  * Various UI fixes
-  * Add option for SDL2 controller mappings
-  * Fix Wine install in game installers
-  * Disable Lutris Runtime in XDG imported games
-  * Fix Wine Registry parsing for keys ending in a backslash
-  * Prevent games from stopping twice
+-   Various UI fixes
+-   Add option for SDL2 controller mappings
+-   Fix Wine install in game installers
+-   Disable Lutris Runtime in XDG imported games
+-   Fix Wine Registry parsing for keys ending in a backslash
+-   Prevent games from stopping twice
 
- -- Mathieu Comandon <strycore@gmail.com>  Wed, 15 Mar 2017 16:07:39 -0700
+-- Mathieu Comandon <strycore@gmail.com> Wed, 15 Mar 2017 16:07:39 -0700
 
 lutris (0.4.5) yakkety; urgency=medium
 
-  * Fix Quit menu item
-  * Fall back to an existing Wine version if selected doesn't exist
-  * Remove Desura
-  * Add --exec command line flag
-  * Fix minor issues when switching between grid and list view
-  * Add "View on Lutris.net" to game context menus
-  * Add 64-bit support to Wine Steam runner
-  * Make Lutris remember window maximized state and size
-  * Sidepanel doesn't resize with the window
-  * Make delete key trigger remove game dialog
-  * Auto-import installed (.desktop) games on the system
-  * Scan for games before loading gui
-  * Show runner human name everywhere
-  * Add Steam Big Picture mode option to the Steam runner config
-  * Make year editable in game info dialog
-  * Remove the force-disable of DirectWrite in Wine Steam
-  * Show last played in game list view
-  * Fix Wine dll overrides
-  * Add game command line argument option to Steam/Wine Steam games
-  * Add small icons option
-  * Fix the runner icons in sidebar
-  * Add filter by platform
+-   Fix Quit menu item
+-   Fall back to an existing Wine version if selected doesn't exist
+-   Remove Desura
+-   Add --exec command line flag
+-   Fix minor issues when switching between grid and list view
+-   Add "View on Lutris.net" to game context menus
+-   Add 64-bit support to Wine Steam runner
+-   Make Lutris remember window maximized state and size
+-   Sidepanel doesn't resize with the window
+-   Make delete key trigger remove game dialog
+-   Auto-import installed (.desktop) games on the system
+-   Scan for games before loading gui
+-   Show runner human name everywhere
+-   Add Steam Big Picture mode option to the Steam runner config
+-   Make year editable in game info dialog
+-   Remove the force-disable of DirectWrite in Wine Steam
+-   Show last played in game list view
+-   Fix Wine dll overrides
+-   Add game command line argument option to Steam/Wine Steam games
+-   Add small icons option
+-   Fix the runner icons in sidebar
+-   Add filter by platform
 
- -- Mathieu Comandon <strycore@gmail.com>  Wed, 08 Mar 2017 08:08:09 +0100
+-- Mathieu Comandon <strycore@gmail.com> Wed, 08 Mar 2017 08:08:09 +0100
 
 lutris (0.4.4.1) yakkety; urgency=medium
 
-  * Fix installer command line options
+-   Fix installer command line options
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 13 Dec 2016 18:47:29 -0800
+-- Mathieu Comandon <strycore@gmail.com> Tue, 13 Dec 2016 18:47:29 -0800
 
 lutris (0.4.4) yakkety; urgency=medium
 
-  * Add widget to edit environment variables in system options
-  * Ignore processes launched before the game
-  * Check for presence and checksum of BIOS files in RetroArch
-  * Prevent a crash on empty Wine prefixes
-  * Remove DBus service and replace with Gtk.Application
-  * Make Dolphin runnable by itself
-  * Remove dependencies to python3-xdg and xdg-user-dirs
-  * Fix joystick detection in Mednafen
+-   Add widget to edit environment variables in system options
+-   Ignore processes launched before the game
+-   Check for presence and checksum of BIOS files in RetroArch
+-   Prevent a crash on empty Wine prefixes
+-   Remove DBus service and replace with Gtk.Application
+-   Make Dolphin runnable by itself
+-   Remove dependencies to python3-xdg and xdg-user-dirs
+-   Fix joystick detection in Mednafen
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 13 Dec 2016 16:55:59 -0800
+-- Mathieu Comandon <strycore@gmail.com> Tue, 13 Dec 2016 16:55:59 -0800
 
 lutris (0.4.3) yakkety; urgency=medium
 
-  * Change labels in dialogs to "Save"
-  * Disable Lutris runtime by default in Dolphin
-  * Fix typo preventing the Steam Store to be displayed in Wine
-  * Fix path handling for fuser
-  * Fix Wine registry parser for keys with square brackets
-  * Fix Mednafen joystick detection
-  * Fix ld_library_path option
-  * Fix Wine not being displayed in the sidebar
+-   Change labels in dialogs to "Save"
+-   Disable Lutris runtime by default in Dolphin
+-   Fix typo preventing the Steam Store to be displayed in Wine
+-   Fix path handling for fuser
+-   Fix Wine registry parser for keys with square brackets
+-   Fix Mednafen joystick detection
+-   Fix ld_library_path option
+-   Fix Wine not being displayed in the sidebar
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 29 Nov 2016 13:20:55 -0800
+-- Mathieu Comandon <strycore@gmail.com> Tue, 29 Nov 2016 13:20:55 -0800
 
 lutris (0.4.2) yakkety; urgency=medium
 
-  * Add suport for 7zip extractors
-  * Python based Wine registry parser
-  * Allow more complex rules for installer dependencies
-  * Fixes in RetroArch runner
-  * Misc bugfixes
+-   Add suport for 7zip extractors
+-   Python based Wine registry parser
+-   Allow more complex rules for installer dependencies
+-   Fixes in RetroArch runner
+-   Misc bugfixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 31 Oct 2016 18:05:14 -0700
+-- Mathieu Comandon <strycore@gmail.com> Mon, 31 Oct 2016 18:05:14 -0700
 
 lutris (0.4.1) xenial; urgency=medium
 
-  * Switch to new versioning scheme
-  * Improve terminal emulator detection
-  * Initial support for ARM
+-   Switch to new versioning scheme
+-   Improve terminal emulator detection
+-   Initial support for ARM
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 18 Oct 2016 13:35:36 -0700
+-- Mathieu Comandon <strycore@gmail.com> Tue, 18 Oct 2016 13:35:36 -0700
 
 lutris (0.4.0ubuntu4) xenial; urgency=medium
 
-  * Better fixes for old Gtk versions
-  * System wine is detected when installing Wine Steam
-  * Preselect runner when adding a game and the sidebar filter is active
-  * Fix sidebar being displayed on splash screen
+-   Better fixes for old Gtk versions
+-   System wine is detected when installing Wine Steam
+-   Preselect runner when adding a game and the sidebar filter is active
+-   Fix sidebar being displayed on splash screen
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 17 Oct 2016 17:16:59 -0700
+-- Mathieu Comandon <strycore@gmail.com> Mon, 17 Oct 2016 17:16:59 -0700
 
 lutris (0.4.0ubuntu3) xenial; urgency=medium
 
-  * Fallback to list view when running an old version of Gtk
+-   Fallback to list view when running an old version of Gtk
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 17 Oct 2016 13:59:14 -0700
+-- Mathieu Comandon <strycore@gmail.com> Mon, 17 Oct 2016 13:59:14 -0700
 
 lutris (0.4.0ubuntu2) xenial; urgency=medium
 
-  * Fix a nasty bug that would freeze the installer window
+-   Fix a nasty bug that would freeze the installer window
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 17 Oct 2016 13:21:01 -0700
+-- Mathieu Comandon <strycore@gmail.com> Mon, 17 Oct 2016 13:21:01 -0700
 
 lutris (0.4.0ubuntu1) xenial; urgency=medium
 
-  * Fix some packaging issues
-  * Fix AGS runner
+-   Fix some packaging issues
+-   Fix AGS runner
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 17 Oct 2016 12:08:34 -0700
+-- Mathieu Comandon <strycore@gmail.com> Mon, 17 Oct 2016 12:08:34 -0700
 
 lutris (0.4.0) xenial; urgency=medium
 
-  * Project ported to Python3
-  * Libretro runner added
-  * New web runner, using Electron by default
-  * Adventure Game Studio runner added
-  * Improvements and fixes in Vice runner
-  * Fixes for Zdoom runner
-  * Main icon view uses Gtk.FlowBox
-  * Optimization for downloading icons and banners
-  * Add system option to switch to US keyboard layout while running a game
-  * Add system option to select monitor in SDL1 games
-  * Allow changing game id
-  * Allow setting custom banners and icons
+-   Project ported to Python3
+-   Libretro runner added
+-   New web runner, using Electron by default
+-   Adventure Game Studio runner added
+-   Improvements and fixes in Vice runner
+-   Fixes for Zdoom runner
+-   Main icon view uses Gtk.FlowBox
+-   Optimization for downloading icons and banners
+-   Add system option to switch to US keyboard layout while running a game
+-   Add system option to select monitor in SDL1 games
+-   Allow changing game id
+-   Allow setting custom banners and icons
 
-
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 11 Oct 2016 11:19:17 -0700
+-- Mathieu Comandon <strycore@gmail.com> Tue, 11 Oct 2016 11:19:17 -0700
 
 lutris (0.3.8) xenial; urgency=medium
 
-  * Add option to use the dark GTK theme variant
-  * Add Desmume runner
-  * Add option to limit games to a single CPU core
-  * Fix button mappings on mednafen
-  * Improve Reicast installation
-  * Add controller support to Reicast
-  * Disable Wine crash dialogs by default
-  * Sync steam games without depending on the remote library
-  * Use inotify to detect changes in Steam folders
-  * Allow to browse for mounted CD images during installation
+-   Add option to use the dark GTK theme variant
+-   Add Desmume runner
+-   Add option to limit games to a single CPU core
+-   Fix button mappings on mednafen
+-   Improve Reicast installation
+-   Add controller support to Reicast
+-   Disable Wine crash dialogs by default
+-   Sync steam games without depending on the remote library
+-   Use inotify to detect changes in Steam folders
+-   Allow to browse for mounted CD images during installation
 
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 04 Aug 2016 00:13:38 -0700
+-- Mathieu Comandon <strycore@gmail.com> Thu, 04 Aug 2016 00:13:38 -0700
 
 lutris (0.3.7.5) xenial; urgency=medium
 
-  * Fix a bug where booleans in scripts would be converted to strings
-  * Update Debian package source format
+-   Fix a bug where booleans in scripts would be converted to strings
+-   Update Debian package source format
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 07 Mar 2016 09:57:29 -0800
+-- Mathieu Comandon <strycore@gmail.com> Mon, 07 Mar 2016 09:57:29 -0800
 
 lutris (0.3.7.4) xenial; urgency=medium
 
-  * Add support for Xephyr
-  * Detect Wine versions installed from WineHQ
-  * Update koku-xinput-wine to work with the build provided in the runtime
-  * Always install the required runner when a game is installed
+-   Add support for Xephyr
+-   Detect Wine versions installed from WineHQ
+-   Update koku-xinput-wine to work with the build provided in the runtime
+-   Always install the required runner when a game is installed
 
- -- Mathieu Comandon <strycore@gmail.com>  Sun, 06 Mar 2016 14:37:09 -0800
+-- Mathieu Comandon <strycore@gmail.com> Sun, 06 Mar 2016 14:37:09 -0800
 
 lutris (0.3.7.3) xenial; urgency=medium
 
-  * Add PCSX2 runner
-  * Add PPSSPP runner
-  * Extended kickstart support for Amiga CD32
-  * UI improvements
-  * Regedit fixes
+-   Add PCSX2 runner
+-   Add PPSSPP runner
+-   Extended kickstart support for Amiga CD32
+-   UI improvements
+-   Regedit fixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Sun, 21 Feb 2016 21:13:39 -0800
+-- Mathieu Comandon <strycore@gmail.com> Sun, 21 Feb 2016 21:13:39 -0800
 
 lutris (0.3.7.2) wily; urgency=medium
 
-  * Add button to eject CD-ROMs during installation of Wine games
-  * Prevent MAME and MESS to save config files in home directory
-  * Monitor installation tasks so installers can respawn processes
-  * Randomize extractions folder names to prevent a bug occuring when
+-   Add button to eject CD-ROMs during installation of Wine games
+-   Prevent MAME and MESS to save config files in home directory
+-   Monitor installation tasks so installers can respawn processes
+-   Randomize extractions folder names to prevent a bug occuring when
     extracting several archives concurrently
-  * Allow loading environment variables from system config
+-   Allow loading environment variables from system config
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 05 Jan 2016 08:41:23 -0800
+-- Mathieu Comandon <strycore@gmail.com> Tue, 05 Jan 2016 08:41:23 -0800
 
 lutris (0.3.7.1) wily; urgency=medium
 
-  * Improved command line option to list games
-  * Force update of runners
-  * Add support of 64bit wine
-  * Improve MESS runner
-  * Fix Vice runner for non Commodore 64 machines
-  * Fix RPM packaging
-  * Various bugfixes
+-   Improved command line option to list games
+-   Force update of runners
+-   Add support of 64bit wine
+-   Improve MESS runner
+-   Fix Vice runner for non Commodore 64 machines
+-   Fix RPM packaging
+-   Various bugfixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 29 Dec 2015 18:47:05 -0800
+-- Mathieu Comandon <strycore@gmail.com> Tue, 29 Dec 2015 18:47:05 -0800
 
 lutris (0.3.7) wily; urgency=medium
 
-  * Global:
-    - Open a single instance of the program
-    - Improved performance and responsiveness of the UI
-    - New sidebar to filter games by runner
-    - New log window to view output of last launched game
-    - Much improved runtime (cross-distro support for games and emulators)
-    - Initial support for the installation of multiple versions of the same game
-    - Cancelling a game installation will clean up downloaded and installed files
-    - Showing wait cursor when loading a game
-    - Improved config dialogs usability & reliability
-    - Improved monitoring of running game process
-    - Tons of bug fixes and minor improvements
+-   Global:
 
-  * Runner specific:
-    - New runner: Dolphin (Wii and GameCube)
-    - New runner: Reicast (Dreamcast)
-    - New runner: ResidualVM (some 3D adventure games)
-    - Gens is replaced by DGen for Sega Genesis games
-    - Fully automate Steam for Windows installation
-    - Installing Steam games now does start the installation in Steam
-    - New option to shut down Steam when quitting a Steam game
-    - Added ability to manage wine versions
-    - Added Winetricks and other config tools for Wine games (in the context menu)
-    - Winetricks now bundled, used as fallback if not installed on the system
-    - New experimental support for Xinput in Wine games
-    - Monitor installation for Steam games
+    -   Open a single instance of the program
+    -   Improved performance and responsiveness of the UI
+    -   New sidebar to filter games by runner
+    -   New log window to view output of last launched game
+    -   Much improved runtime (cross-distro support for games and emulators)
+    -   Initial support for the installation of multiple versions of the same game
+    -   Cancelling a game installation will clean up downloaded and installed files
+    -   Showing wait cursor when loading a game
+    -   Improved config dialogs usability & reliability
+    -   Improved monitoring of running game process
+    -   Tons of bug fixes and minor improvements
 
- -- Mathieu Comandon <strycore@gmail.com>  Sat, 21 Nov 2015 18:02:58 -0800
+-   Runner specific:
+    -   New runner: Dolphin (Wii and GameCube)
+    -   New runner: Reicast (Dreamcast)
+    -   New runner: ResidualVM (some 3D adventure games)
+    -   Gens is replaced by DGen for Sega Genesis games
+    -   Fully automate Steam for Windows installation
+    -   Installing Steam games now does start the installation in Steam
+    -   New option to shut down Steam when quitting a Steam game
+    -   Added ability to manage wine versions
+    -   Added Winetricks and other config tools for Wine games (in the context menu)
+    -   Winetricks now bundled, used as fallback if not installed on the system
+    -   New experimental support for Xinput in Wine games
+    -   Monitor installation for Steam games
+
+-- Mathieu Comandon <strycore@gmail.com> Sat, 21 Nov 2015 18:02:58 -0800
 
 lutris (0.3.6.3) utopic; urgency=medium
 
-  * Added "Custom Steam location" option to winesteam runner
-  * Use Windows Steam from ~/.wine if not installed in Lutris' own prefix
-  * Fixed Winetricks used in installers
+-   Added "Custom Steam location" option to winesteam runner
+-   Use Windows Steam from ~/.wine if not installed in Lutris' own prefix
+-   Fixed Winetricks used in installers
 
- -- Mathieu Comandon <strycore@gmail.com>  Fri, 14 Nov 2014 00:10:00 +0100
+-- Mathieu Comandon <strycore@gmail.com> Fri, 14 Nov 2014 00:10:00 +0100
 
 lutris (0.3.6.2) utopic; urgency=medium
 
-  * Add gvfs-backend to fix downloads on non-Gnome environments
-  * Fix winesteam install
+-   Add gvfs-backend to fix downloads on non-Gnome environments
+-   Fix winesteam install
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 11 Nov 2014 15:05:49 +0100
+-- Mathieu Comandon <strycore@gmail.com> Tue, 11 Nov 2014 15:05:49 +0100
 
 lutris (0.3.6.1) utopic; urgency=medium
 
-  * Fixed an issue with Steam sync
-  * Fixed an issue with displaying years in listview
+-   Fixed an issue with Steam sync
+-   Fixed an issue with displaying years in listview
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 04 Nov 2014 22:31:47 +0100
+-- Mathieu Comandon <strycore@gmail.com> Tue, 04 Nov 2014 22:31:47 +0100
 
 lutris (0.3.6) trusty; urgency=medium
 
-  * New:
-    - Lutris Runtime, removing the need to install libraries on the system
-    - Synchronization of installation state of (Linux) Steam games
-    - Real uninstallation of Steam games through Steam
-    - Auto-install of Wine Steam
-    - Better detection of Wine Steam install location
-    - Support for Steam's secondary library folders
-    - Wine version 1.7.29 (including fix for Steam's overlay/keyboard crash)
-    - Tooltips on most configuration options
-    - Wine's desktop integration disabled for newly installed Wine games
-    - DOSBox options: scaler and auto-exit
-    - ScummVM options: aspect correction, subtitles
-    - "Remove" context menu action added to uninstalled games
-    - sdlmame and sdlmess runners renamed to mame and mess
-    - "Prefix command" system option
-    - Button to access runners folder in the Manage runners window
-    - Manually re-synchronize from the menu: Lutris > Synchronize library
+-   New:
 
-  * Fixes:
-    - Fixed inconsistent password field limit to 26 chars, raised to 1024.
-    - Fixed impossibility to use system's Wine when Wine Steam was running.
-    - Fixed Wine games install failing when there is a space in the setup file path
-    - Fixed browser games not launching at all
-    - Fixed PCSX-Reloaded and Vice emulators not launching at all
-    - Fixed Hatari and Mess emulators not launching nor warning when no bios file configured
-    - Fixed Hatari startup fail if there is spaces in bios path
-    - Fixed the "Restore desktop resolution" option and enable it by default
-    - Fixed the Browse Files action on DOSBox games
-    - Fixed Winetricks in installers
-    - Fixed checked by default config options not saving unchecked state
-    - Fixed the "insert disc" part of installers
-    - Fixed renaming games breaking synchronization with the website
-    - Fixed Mupen64Plus fullscreen option not working when unchecked.
-    - More small fixes
+    -   Lutris Runtime, removing the need to install libraries on the system
+    -   Synchronization of installation state of (Linux) Steam games
+    -   Real uninstallation of Steam games through Steam
+    -   Auto-install of Wine Steam
+    -   Better detection of Wine Steam install location
+    -   Support for Steam's secondary library folders
+    -   Wine version 1.7.29 (including fix for Steam's overlay/keyboard crash)
+    -   Tooltips on most configuration options
+    -   Wine's desktop integration disabled for newly installed Wine games
+    -   DOSBox options: scaler and auto-exit
+    -   ScummVM options: aspect correction, subtitles
+    -   "Remove" context menu action added to uninstalled games
+    -   sdlmame and sdlmess runners renamed to mame and mess
+    -   "Prefix command" system option
+    -   Button to access runners folder in the Manage runners window
+    -   Manually re-synchronize from the menu: Lutris > Synchronize library
 
-  * Website changes since the last version:
-    - Improved the About page
-    - Added a direct link to your Library in the menu
+-   Fixes:
 
-  * For contributors:
-    - New mailing list available at lists.lutris.net/cgi-bin/mailman/listinfo/lutris
-    - Fixed the game submission form
-    - Improved feedback on submissions
-    - New write_config installer directive to write into INI files
-    - Documented how to use tasks from any runner in an installer
+    -   Fixed inconsistent password field limit to 26 chars, raised to 1024.
+    -   Fixed impossibility to use system's Wine when Wine Steam was running.
+    -   Fixed Wine games install failing when there is a space in the setup file path
+    -   Fixed browser games not launching at all
+    -   Fixed PCSX-Reloaded and Vice emulators not launching at all
+    -   Fixed Hatari and Mess emulators not launching nor warning when no bios file configured
+    -   Fixed Hatari startup fail if there is spaces in bios path
+    -   Fixed the "Restore desktop resolution" option and enable it by default
+    -   Fixed the Browse Files action on DOSBox games
+    -   Fixed Winetricks in installers
+    -   Fixed checked by default config options not saving unchecked state
+    -   Fixed the "insert disc" part of installers
+    -   Fixed renaming games breaking synchronization with the website
+    -   Fixed Mupen64Plus fullscreen option not working when unchecked.
+    -   More small fixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Sat, 27 Sep 2014 01:36:10 +0200
+-   Website changes since the last version:
+
+    -   Improved the About page
+    -   Added a direct link to your Library in the menu
+
+-   For contributors:
+    -   New mailing list available at lists.lutris.net/cgi-bin/mailman/listinfo/lutris
+    -   Fixed the game submission form
+    -   Improved feedback on submissions
+    -   New write_config installer directive to write into INI files
+    -   Documented how to use tasks from any runner in an installer
+
+-- Mathieu Comandon <strycore@gmail.com> Sat, 27 Sep 2014 01:36:10 +0200
 
 lutris (0.3.5) trusty; urgency=medium
 
-  * All runners now use the version hosted on lutris.net (auto-install!)
-  * Desura and Virtual Jaguar support
-  * Browse installed games' files from the context menu
-  * New "Connected" status indicator in the status bar
-  * New small icons and small banners style (switch in View menu)
-  * Better path management
-  * Consistent configuration loading
-  * UI Fixes
-  * Runner fixes
-  * Even more fixes
+-   All runners now use the version hosted on lutris.net (auto-install!)
+-   Desura and Virtual Jaguar support
+-   Browse installed games' files from the context menu
+-   New "Connected" status indicator in the status bar
+-   New small icons and small banners style (switch in View menu)
+-   Better path management
+-   Consistent configuration loading
+-   UI Fixes
+-   Runner fixes
+-   Even more fixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Wed, 10 Sep 2014 16:41:10 +0200
+-- Mathieu Comandon <strycore@gmail.com> Wed, 10 Sep 2014 16:41:10 +0200
 
 lutris (0.3.4) quantal; urgency=low
 
-  * Initial SDLMess Support
-  * Fixes for Gens and Hatari runners
-  * Various bugfixes
+-   Initial SDLMess Support
+-   Fixes for Gens and Hatari runners
+-   Various bugfixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Sat, 8 Feb 2014 19:14:18 +0200
+-- Mathieu Comandon <strycore@gmail.com> Sat, 8 Feb 2014 19:14:18 +0200
 
 lutris (0.3.3) quantal; urgency=low
 
-  * Improved design of installer dialog and main window
-  * Prevent users from deleting important files when uninstalling games
-  * Show help screen on first start
-  * Support for Amiga CD32 games
-  * Dosbox install scripts can now run DOS executables
-  * Better xrandr support
-  * Give option to restrict display to a single monitor while in-game
-  * Improve contextual menu in client (Install, uninstall, manually add)
-  * Show dialog when trying to install games with no script.
+-   Improved design of installer dialog and main window
+-   Prevent users from deleting important files when uninstalling games
+-   Show help screen on first start
+-   Support for Amiga CD32 games
+-   Dosbox install scripts can now run DOS executables
+-   Better xrandr support
+-   Give option to restrict display to a single monitor while in-game
+-   Improve contextual menu in client (Install, uninstall, manually add)
+-   Show dialog when trying to install games with no script.
 
- -- Mathieu Comandon <strycore@gmail.com>  Sat, 25 Jan 2014 17:58:00 +0200
+-- Mathieu Comandon <strycore@gmail.com> Sat, 25 Jan 2014 17:58:00 +0200
 
 lutris (0.3.2) quantal; urgency=low
 
-  * Support for Steam for Linux
-  * Allow switching from Steam for Linux <-> Wine
-  * Option to show only installed games in UI
-  * Ability to automatically migrate local database
-  * Misc bugfixes
+-   Support for Steam for Linux
+-   Allow switching from Steam for Linux <-> Wine
+-   Option to show only installed games in UI
+-   Ability to automatically migrate local database
+-   Misc bugfixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Sun, 15 Dec 2013 17:51:00 +0200
+-- Mathieu Comandon <strycore@gmail.com> Sun, 15 Dec 2013 17:51:00 +0200
 
 lutris (0.3.1) quantal; urgency=low
 
-  * Support for Wine installers
-  * Library sync with Lutris.net
-  * Misc bugfixes
+-   Support for Wine installers
+-   Library sync with Lutris.net
+-   Misc bugfixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Sat, 20 Jul 2013 21:55:37 +0200
+-- Mathieu Comandon <strycore@gmail.com> Sat, 20 Jul 2013 21:55:37 +0200
 
 lutris (0.3.0) quantal; urgency=low
 
-  * Initial release of Lutris 0.3
-  * Support for game installers
-  * Support for lutris.net authentication
-  * Games are now stored in SQLite database
-  * Basic support for Personnal Game Archives
+-   Initial release of Lutris 0.3
+-   Support for game installers
+-   Support for lutris.net authentication
+-   Games are now stored in SQLite database
+-   Basic support for Personnal Game Archives
 
- -- Mathieu Comandon <strycore@gmail.com>  Wed, 26 Jun 2013 12:05:22 +0200
+-- Mathieu Comandon <strycore@gmail.com> Wed, 26 Jun 2013 12:05:22 +0200
 
 lutris (0.2.8) quantal; urgency=low
 
-  * Bump version to 0.2.8
-  * Save window size and view type
-  * Let user choose which Web browser to use for Browser runner
-  * Fix search in icon view
+-   Bump version to 0.2.8
+-   Save window size and view type
+-   Let user choose which Web browser to use for Browser runner
+-   Fix search in icon view
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 04 Feb 2013 15:02:47 +0100
+-- Mathieu Comandon <strycore@gmail.com> Mon, 04 Feb 2013 15:02:47 +0100
 
 lutris (0.2.7ubuntu0) quantal; urgency=low
 
-  * Updated to version 0.2.7
+-   Updated to version 0.2.7
 
- -- Mathieu Comandon <strycore@gmail.com>  Sat, 10 Nov 2012 03:46:55 +0100
+-- Mathieu Comandon <strycore@gmail.com> Sat, 10 Nov 2012 03:46:55 +0100
 
 lutris (0.2.6ubuntu1) natty; urgency=low
 
-  * Forgot to actually remove cedega stuff ... Silly me
+-   Forgot to actually remove cedega stuff ... Silly me
 
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 12 May 2011 03:40:27 +0200
+-- Mathieu Comandon <strycore@gmail.com> Thu, 12 May 2011 03:40:27 +0200
 
 lutris (0.2.6) natty; urgency=low
 
-  * Improved appearence of runners dialog
-  * Removed Cedega runner (Not maintained anymore)
-  * Minor Bugfixes
+-   Improved appearence of runners dialog
+-   Removed Cedega runner (Not maintained anymore)
+-   Minor Bugfixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 12 May 2011 03:32:12 +0200
+-- Mathieu Comandon <strycore@gmail.com> Thu, 12 May 2011 03:32:12 +0200
 
 lutris (0.2.5r2) natty; urgency=low
 
-  * xdg is a build dependency
+-   xdg is a build dependency
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 09 May 2011 13:36:55 +0200
+-- Mathieu Comandon <strycore@gmail.com> Mon, 09 May 2011 13:36:55 +0200
 
 lutris (0.2.5r1) natty; urgency=low
 
-  * Oops, forgot to bump the python version
+-   Oops, forgot to bump the python version
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 09 May 2011 11:25:52 +0200
+-- Mathieu Comandon <strycore@gmail.com> Mon, 09 May 2011 11:25:52 +0200
 
 lutris (0.2.5) natty; urgency=low
 
-  * Bugfixes and code cleanup
-  * Installer enhancement
-  * Added Play button
+-   Bugfixes and code cleanup
+-   Installer enhancement
+-   Added Play button
 
- -- Mathieu Comandon <strycore@gmail.com>  Mon, 09 May 2011 11:03:43 +0200
+-- Mathieu Comandon <strycore@gmail.com> Mon, 09 May 2011 11:03:43 +0200
 
 lutris (0.2.4) maverick; urgency=low
 
-  * A lot of bug fixes
-  * Better support for the web installers
-  * Initial support for Mupen64+
-  * New logging system inspired by Gwibber
+-   A lot of bug fixes
+-   Better support for the web installers
+-   Initial support for Mupen64+
+-   New logging system inspired by Gwibber
 
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 06 Jan 2011 02:08:35 +0100
+-- Mathieu Comandon <strycore@gmail.com> Thu, 06 Jan 2011 02:08:35 +0100
 
 lutris (0.2.2ubuntu2) maverick; urgency=low
 
-  * Fixed a bug in Steam and NullDC runner which prevented to add games.
+-   Fixed a bug in Steam and NullDC runner which prevented to add games.
 
- -- Mathieu Comandon <strycore@gmail.com>  Wed, 13 Oct 2010 19:54:17 +0200
+-- Mathieu Comandon <strycore@gmail.com> Wed, 13 Oct 2010 19:54:17 +0200
 
 lutris (0.2.2ubuntu1) maverick; urgency=low
 
-  * Fixed file paths
+-   Fixed file paths
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 12 Oct 2010 23:33:41 +0200
+-- Mathieu Comandon <strycore@gmail.com> Tue, 12 Oct 2010 23:33:41 +0200
 
 lutris (0.2.2) maverick; urgency=low
 
-  * Added support for nullDC, joy2key
-  * New common dialogs
-  * Basic steam installer
-  * Many bugfixes
+-   Added support for nullDC, joy2key
+-   New common dialogs
+-   Basic steam installer
+-   Many bugfixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Sat, 25 Sep 2010 12:53:43 +0200
+-- Mathieu Comandon <strycore@gmail.com> Sat, 25 Sep 2010 12:53:43 +0200
 
 lutris (0.2.1) maverick; urgency=low
 
-  * Cleaned some files to prepare for 0.33 release
-  * First attempt at the Lutris installer
-  * Many bugfixes
+-   Cleaned some files to prepare for 0.33 release
+-   First attempt at the Lutris installer
+-   Many bugfixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 31 Aug 2010 02:44:47 +0200
+-- Mathieu Comandon <strycore@gmail.com> Tue, 31 Aug 2010 02:44:47 +0200
 
 lutris (0.2) lucid; urgency=low
 
-  * Initial Quickly release.
+-   Initial Quickly release.
 
- -- Mathieu Comandon <strycore@gmail.com>  Fri, 22 Jan 2010 19:38:42 +0100
+-- Mathieu Comandon <strycore@gmail.com> Fri, 22 Jan 2010 19:38:42 +0100
 
 lutris (0.1.1)
 
-  * Resize the covers to 250px
-  * Added fullscreen coverflow
-  * Icons show up in the status bar when joysticks are connected
-  * Rewrite of preferences dialog using GTK and not Glade
-  * Implementation of user_wm and game_wm options
-  * Removed the oss boolean option, set the oss_wrapper to none for no oss
+-   Resize the covers to 250px
+-   Added fullscreen coverflow
+-   Icons show up in the status bar when joysticks are connected
+-   Rewrite of preferences dialog using GTK and not Glade
+-   Implementation of user_wm and game_wm options
+-   Removed the oss boolean option, set the oss_wrapper to none for no oss
 
 lutris (0.1.0)
 
-  * First public release
-  * Support for uae
-  * ScummVM and Cedega import
-  * Search Google Images for covers
+-   First public release
+-   Support for uae
+-   ScummVM and Cedega import
+-   Search Google Images for covers
 
- -- Mathieu Comandon <strycore@gmail.com> Sat, 28 Nov 2009 21:57:00
+-- Mathieu Comandon <strycore@gmail.com> Sat, 28 Nov 2009 21:57:00
