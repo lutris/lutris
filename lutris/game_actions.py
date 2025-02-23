@@ -313,10 +313,7 @@ class SingleGameActions(GameActions):
             runner = game.runner
             env = runner.get_env()
             MonitoredCommand(
-                [manual_command],
-                include_processes=[os.path.basename(manual_command)],
-                cwd=game.directory,
-                env=env
+                [manual_command], include_processes=[os.path.basename(manual_command)], cwd=game.directory, env=env
             ).start()
             logger.info("Running %s in the background", manual_command)
 
