@@ -2,6 +2,7 @@
 
 # pylint: disable=not-an-iterable
 import time
+from typing import Set, Union
 
 from gi.repository import GLib, GObject, Gtk
 
@@ -125,34 +126,43 @@ class GameStore(GObject.Object):
         if row:
             self.store.remove(row.iter)
 
-    def update(self, db_game):
+    def update(self, db_game: dict) -> Union[Set[int], None]:
         """Update game information
-        Return whether a row was updated; False if the game was not already
-        present.
+        Return the indices of the row that were updated, or an empty set if no change
+        was made, or None if the game could not be found.
         """
         store_item = StoreItem(db_game, self.service_media)
         row = self.get_row_by_id(store_item.id)
         if not row and "service_id" in db_game:
             row = self.get_row_by_id(db_game["service_id"])
         if not row:
-            return False
-        row[COL_ID] = str(store_item.id)
-        row[COL_SLUG] = store_item.slug
-        row[COL_NAME] = store_item.name
-        row[COL_SORTNAME] = store_item.sortname if store_item.sortname else store_item.name
-        row[COL_MEDIA_PATHS] = store_item.get_media_paths() if settings.SHOW_MEDIA else []
-        row[COL_YEAR] = store_item.year
-        row[COL_RUNNER] = store_item.runner
-        row[COL_RUNNER_HUMAN_NAME] = store_item.runner_text
-        row[COL_PLATFORM] = store_item.platform
-        row[COL_LASTPLAYED] = store_item.lastplayed
-        row[COL_LASTPLAYED_TEXT] = store_item.lastplayed_text
-        row[COL_INSTALLED] = store_item.installed
-        row[COL_INSTALLED_AT] = store_item.installed_at
-        row[COL_INSTALLED_AT_TEXT] = store_item.installed_at_text
-        row[COL_PLAYTIME] = store_item.playtime
-        row[COL_PLAYTIME_TEXT] = store_item.playtime_text
-        return True
+            return None
+
+        new_values = dict()
+
+        new_values[COL_ID] = str(store_item.id)
+        new_values[COL_SLUG] = store_item.slug
+        new_values[COL_NAME] = store_item.name
+        new_values[COL_SORTNAME] = store_item.sortname if store_item.sortname else store_item.name
+        new_values[COL_MEDIA_PATHS] = store_item.get_media_paths() if settings.SHOW_MEDIA else []
+        new_values[COL_YEAR] = store_item.year
+        new_values[COL_RUNNER] = store_item.runner
+        new_values[COL_RUNNER_HUMAN_NAME] = store_item.runner_text
+        new_values[COL_PLATFORM] = store_item.platform
+        new_values[COL_LASTPLAYED] = store_item.lastplayed
+        new_values[COL_LASTPLAYED_TEXT] = store_item.lastplayed_text
+        new_values[COL_INSTALLED] = store_item.installed
+        new_values[COL_INSTALLED_AT] = store_item.installed_at
+        new_values[COL_INSTALLED_AT_TEXT] = store_item.installed_at_text
+        new_values[COL_PLAYTIME] = store_item.playtime
+        new_values[COL_PLAYTIME_TEXT] = store_item.playtime_text
+
+        changed_indices = set()
+        for idx, value in new_values.items():
+            if row[idx] != value:
+                row[idx] = value
+                changed_indices.add(idx)
+        return changed_indices
 
     def add_game(self, db_game):
         """Add a game to the store"""

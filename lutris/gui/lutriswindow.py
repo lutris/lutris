@@ -5,7 +5,7 @@
 import os
 from collections import namedtuple
 from gettext import gettext as _
-from typing import Iterable, List
+from typing import Iterable, List, Set
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, Gtk
@@ -33,6 +33,17 @@ from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog, g
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
 from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.download_queue import DownloadQueue
+from lutris.gui.views import (
+    COL_INSTALLED_AT,
+    COL_INSTALLED_AT_TEXT,
+    COL_LASTPLAYED,
+    COL_LASTPLAYED_TEXT,
+    COL_NAME,
+    COL_PLAYTIME,
+    COL_PLAYTIME_TEXT,
+    COL_SORTNAME,
+    COL_YEAR,
+)
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
@@ -420,6 +431,21 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         """True if the view sorting options will be effective; dynamic categories ignore them."""
         return self.filters.get("dynamic_category") not in self.dynamic_categories_game_factories
 
+    def get_sort_sensitive_columns(self) -> Set[int]:
+        if self.is_view_sort_sensitive:
+            if self.view_sorting == "name":
+                return set([COL_NAME, COL_SORTNAME])
+            elif self.view_sorting == "year":
+                return set([COL_YEAR])
+            elif self.view_sorting == "lastplayed":
+                return set([COL_LASTPLAYED, COL_LASTPLAYED_TEXT])
+            elif self.view_sorting == "installed_at":
+                return set([COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT])
+            elif self.view_sorting == "playtime":
+                return set([COL_PLAYTIME, COL_PLAYTIME_TEXT])
+
+        return set()
+
     def apply_view_sort(self, items, resolver=lambda i: i):
         """This sorts a list of items according to the view settings of this window;
         the items can be anything, but you can provide a lambda that provides a
@@ -750,13 +776,15 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 view.service = self.service
 
             GLib.idle_add(self.update_revealer)
-            self.game_store = game_store
 
-            view_type = self.current_view_type
+            if self.game_store != game_store:
+                self.game_store = game_store
 
-            if view_type in self.views:
-                self.current_view = self.views[view_type]
-                self.current_view.set_game_store(self.game_store)
+                view_type = self.current_view_type
+
+                if view_type in self.views:
+                    self.current_view = self.views[view_type]
+                    self.current_view.set_game_store(self.game_store)
 
             if games:
                 self.hide_overlay()
@@ -1295,8 +1323,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 return True
 
         if db_game:
-            updated = self.game_store.update(db_game)
-            if not updated:
+            updated_columns = self.game_store.update(db_game)
+            sensitive_columns = self.get_sort_sensitive_columns()
+            if updated_columns is None or not sensitive_columns.isdisjoint(updated_columns):
                 self.update_store()
 
         return True
