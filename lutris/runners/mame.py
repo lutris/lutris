@@ -178,6 +178,30 @@ class mame(Runner):  # pylint: disable=invalid-name
             "default": False,
         },
         {
+            "option": "verbose",
+            "type": "bool",
+            "section": _("Debugging"),
+            "label": _("Verbose"),
+            "help": _("display additional diagnostic information."),
+            "default": False,
+        },
+        {
+            "option": "log",
+            "type": "bool",
+            "section": _("Debugging"),
+            "label": _("Log"),
+            "help": _("generate an error.log file."),
+            "default": False,
+        },
+        {
+            "option": "oslog",
+            "type": "bool",
+            "section": _("Debugging"),
+            "label": _("OSLog"),
+            "help": _("output error.log data to system diagnostic output (debugger or standard error)"),
+            "default": False,
+        },
+        {
             "option": "video",
             "type": "choice",
             "section": _("Graphics"),
@@ -316,6 +340,13 @@ class mame(Runner):  # pylint: disable=invalid-name
         if self.runner_config.get("crt"):
             command += self.get_shader_params("CRT-geom", ["Gaussx", "Gaussy", "CRT-geom-halation"])
             command += ["-nounevenstretch"]
+
+        if self.runner_config.get("verbose"):
+            command += ["-verbose"]
+        if self.runner_config.get("log"):
+            command += ["-log"]
+        if self.runner_config.get("verbose"):
+            command += ["-oslog"]
 
         if self.game_config.get("machine"):
             rompath = self.runner_config.get("rompath")
