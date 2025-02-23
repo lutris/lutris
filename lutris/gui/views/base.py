@@ -74,8 +74,8 @@ class GameView:
         if current_path:
             selection = self.get_selected()
             if current_path not in selection:
-                self.set_selected(current_path)
                 selection = [current_path]
+                self.set_selected(selection)
 
             game_actions = self.get_game_actions_for_paths(selection)
             contextual_menu = ContextualMenu(game_actions.get_game_actions())
@@ -145,6 +145,9 @@ class GameView:
         return []
 
     def get_game_id_for_path(self, path):
+        raise NotImplementedError()
+
+    def get_path_for_game_id(self, game_id):
         raise NotImplementedError()
 
     def on_game_start(self, game: Game) -> None:

@@ -577,8 +577,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         """Resume install when user has selected extras to download"""
         selected_extras = []
 
-        def save_extra(store, path, iter_):
-            selected, _inconsistent, extra, _label = store[iter_]
+        def save_extra(model, path, iter_):
+            selected, _inconsistent, extra, _label = model[iter_]
             if selected and extra:
                 selected_extras.append(extra)
 

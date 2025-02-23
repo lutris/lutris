@@ -131,10 +131,11 @@ class GameListView(Gtk.TreeView, GameView):
         path, _col, _cx, _cy = path_at
         return path
 
-    def set_selected(self, path):
+    def set_selected(self, paths):
         selection = self.get_selection()
         selection.unselect_all()
-        selection.select_path(path)
+        for path in paths:
+            selection.select_path(path)
 
     def get_selected(self):
         """Return list of all selected items"""
@@ -146,6 +147,19 @@ class GameListView(Gtk.TreeView, GameView):
     def get_game_id_for_path(self, path):
         iterator = self.get_model().get_iter(path)
         return self.get_model().get_value(iterator, COL_ID)
+
+    def get_path_for_game_id(self, game_id):
+        path_found = None
+
+        def check_path(model, path, iterator):
+            nonlocal path_found
+            row_id = model.get_value(iterator, COL_ID)
+            if game_id == row_id:
+                path_found = path
+                return True  # stop iteration
+
+        self.get_model().foreach(check_path)
+        return path_found
 
     def set_selected_game(self, game_id):
         row = self.game_store.get_row_by_id(game_id, filtered=True)

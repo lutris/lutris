@@ -783,8 +783,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 view_type = self.current_view_type
 
                 if view_type in self.views:
-                    self.current_view = self.views[view_type]
-                    self.current_view.set_game_store(self.game_store)
+                    view = self.views[view_type]
+                    self.current_view = view
+                    selected_ids = [view.get_game_id_for_path(p) for p in view.get_selected()]
+                    view.set_game_store(self.game_store)
+                    new_selection = [view.get_path_for_game_id(game_id) for game_id in selected_ids]
+                    view.set_selected(filter(None, new_selection))
 
             if games:
                 self.hide_overlay()
