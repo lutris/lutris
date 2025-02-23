@@ -126,9 +126,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
 
-        key, mod = Gtk.accelerator_parse("F5")
-        self.accelerators.connect(key, mod, Gtk.AccelFlags.VISIBLE, self.on_refresh)
-
         self.connect("delete-event", self.on_window_delete)
         self.connect("configure-event", self.on_window_configure)
         self.connect("realize", self.on_load)
@@ -1196,10 +1193,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         side_panel_visible = value.get_boolean()
         settings.write_setting("side_panel_visible", bool(side_panel_visible))
         self.sidebar_revealer.set_reveal_child(side_panel_visible)
-
-    def on_refresh(self, _accel_group, _window, _keyval, _modifier):
-        """Handle F5 key, which updates the view explicitly."""
-        self.refresh_view()
 
     def on_sidebar_changed(self, widget):
         """Handler called when the selected element of the sidebar changes"""
