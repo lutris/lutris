@@ -10,8 +10,8 @@ from lutris.util.strings import split_arguments
 
 class zdoom(Runner):
     # http://zdoom.org/wiki/Command_line_parameters
-    description = _("ZDoom DOOM Game Engine")
-    human_name = _("ZDoom")
+    description = _("GZDoom Game Engine")
+    human_name = _("GZDoom")
     platforms = [_("Linux")]
     runner_executable = "zdoom/gzdoom"
     flatpak_id = "org.zdoom.GZDoom"
