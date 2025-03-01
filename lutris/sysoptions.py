@@ -31,7 +31,7 @@ def get_locale_choices():
         (_("Dutch"), "nl_NL.utf8"),
         (_("English"), "en_US.utf8"),
         (_("Finnish"), "fi_FI.utf8"),
-        (_("French"), "fr_FR.utf"),
+        (_("French"), "fr_FR.utf8"),
         (_("Georgian"), "ka_GE.utf8"),
         (_("German"), "de_DE.utf8"),
         (_("Greek"), "el_GR.utf8"),
