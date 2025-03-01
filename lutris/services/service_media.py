@@ -46,6 +46,8 @@ class ServiceMedia:
     def get_possible_media_paths(self, slug: str) -> List[str]:
         """Returns a list of each path where the media might be found. At most one of these should
         be found, but they are in a priority order - the first is in the preferred format."""
+        if os.environ.get("LUTRIS_BALANCE_ASSETS"):
+            self.file_patterns = [f"{slug[0]}/%s.jpg", f"{slug[0]}/%s.png", "%s.jpg", "%s.png"]
         return [os.path.join(self.dest_path, pattern % slug) for pattern in self.file_patterns]
 
     def trash_media(
@@ -90,7 +92,10 @@ class ServiceMedia:
         """Downloads the banner if not present"""
         if not url:
             return
-        cache_path = os.path.join(self.dest_path, self.get_filename(slug))
+        if os.environ.get("LUTRIS_BALANCE_ASSETS"):
+            cache_path = os.path.join(os.path.join(self.dest_path, slug[0]), self.get_filename(slug))
+        else:
+            cache_path = os.path.join(self.dest_path, self.get_filename(slug))
         if system.path_exists(cache_path, exclude_empty=True):
             return
         if system.path_exists(cache_path):

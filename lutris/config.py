@@ -21,7 +21,10 @@ def write_game_config(game_slug: str, config: dict):
     """Writes a game config to disk"""
     configpath = make_game_config_id(game_slug)
     logger.debug("Writing game config to %s", configpath)
-    config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
+    if os.environ.get("LUTRIS_BALANCE_ASSETS"):
+        config_filename = os.path.join(settings.CONFIG_DIR, "games/%s/%s.yml" % (game_slug[0], configpath))
+    else:
+        config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
     write_yaml_to_file(config, config_filename)
     return configpath
 
@@ -30,8 +33,12 @@ def duplicate_game_config(game_slug: str, source_config_id: str):
     """Copies an existing configuration file, giving it a new id that this
     function returns."""
     new_config_id = make_game_config_id(game_slug)
-    src_path = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % source_config_id)
-    dest_path = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % new_config_id)
+    if os.environ.get("LUTRIS_BALANCE_ASSETS"):
+        src_path = os.path.join(settings.CONFIG_DIR, "games/%s/%s.yml" % (game_slug[0], source_config_id))
+        dest_path = os.path.join(settings.CONFIG_DIR, "games/%s/%s.yml" % (game_slug[0], new_config_id))
+    else:
+        src_path = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % source_config_id)
+        dest_path = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % new_config_id)
     copyfile(src_path, dest_path)
     return new_config_id
 
@@ -111,6 +118,12 @@ class LutrisConfig:
         self.initialize_config()
 
     def __repr__(self):
+        if os.environ.get("LUTRIS_BALANCE_ASSETS") and self.level == "game" and self.game_config_id:
+            return "LutrisConfig(level=%s, game_config_id=%s, runner=%s)" % (
+                self.level,
+                os.path.join(str(self.game_config_id[0]), self.game_config_id),
+                self.runner_slug,
+            )
         return "LutrisConfig(level=%s, game_config_id=%s, runner=%s)" % (
             self.level,
             self.game_config_id,
@@ -131,6 +144,10 @@ class LutrisConfig:
     def game_config_path(self):
         if not self.game_config_id:
             return None
+        if os.environ.get("LUTRIS_BALANCE_ASSETS"):
+            return os.path.join(
+                settings.CONFIG_DIR, "games/%s/%s.yml" % (str(self.game_config_id[0]), self.game_config_id)
+            )
         return os.path.join(settings.CONFIG_DIR, "games/%s.yml" % self.game_config_id)
 
     def initialize_config(self):
