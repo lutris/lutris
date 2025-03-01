@@ -13,7 +13,7 @@ class DXVKNVAPIManager(DLLManager):
     # see https://github.com/jp7677/dxvk-nvapi/pull/213
     managed_dlls = ("nvapi", "nvapi64", "nvml", "nvofapi64", "nvoptix", "nvencodeapi", "nvencodeapi64", "nvcuvid", "nvcuda")
     releases_url = "https://api.github.com/repos/lutris/dxvk-nvapi/releases"
-    dlss_dlls = ("nvngx", "_nvngx")
+    dlss_dlls = ("nvngx", "_nvngx", "nvngx_dlssg")
 
     def can_enable(self):
         return LINUX_SYSTEM.is_vulkan_supported()
