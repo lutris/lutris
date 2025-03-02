@@ -3,6 +3,7 @@
 # isort:skip_file
 import enum
 import os
+import json
 import subprocess
 from typing import Any, Dict
 
@@ -52,65 +53,285 @@ def is_display_x11():
     display = Gdk.Display.get_default()
     return "x11" in type(display).__name__.casefold()
 
+@cache_single
+def is_display_wayland():
+    """True if the current display is Wayland"""
+    display = Gdk.Display.get_default()
+    return "wayland" in type(display).__name__.casefold()
 
 class DisplayManager:
-    """Get display and resolution using GnomeDesktop"""
+    """Get display and resolution using various backends based on the current environment"""
 
-    def __init__(self, screen: Gdk.Screen):
+    def __init__(self, screen=None):
+        self.display = Gdk.Display.get_default()
+        self.screen = screen
+        self.hyprctl_path = None
+        self.rr_screen = None
+        self.rr_config = None
+
+        # Determine which backend to use
+        self.backend = self._determine_backend()
+
+        # Initialize the appropriate backend
+        if self.backend == "hyprland":
+            self._init_hyprland()
+        elif self.backend == "gnome" and screen:
+            self._init_gnome(screen)
+
+    def _determine_backend(self):
+        """Determine which backend to use based on the environment"""
+        # Check for Hyprland
+        if "HYPRLAND_INSTANCE_SIGNATURE" in os.environ:
+            for path in os.environ.get("PATH", "").split(os.pathsep):
+                hyprctl_path = os.path.join(path, "hyprctl")
+                if os.path.isfile(hyprctl_path) and os.access(hyprctl_path, os.X_OK):
+                    self.hyprctl_path = hyprctl_path
+                    return "hyprland"
+
+        # Check for GNOME Desktop
+        if LIB_GNOME_DESKTOP_AVAILABLE and self.screen:
+            return "gnome"
+        # Generic Wayland
+        if is_display_wayland():
+            return "wayland"
+        # X11
+        if is_display_x11():
+            return "x11"
+        return "fallback"
+
+    def _init_gnome(self, screen):
+        """Initialize GNOME Desktop backend"""
         self.rr_screen = GnomeDesktop.RRScreen.new(screen)
         self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
         self.rr_config.load_current()
 
+    def _init_hyprland(self):
+        """Initialize Hyprland backend"""
+        # Already have hyprctl_path from _determine_backend
+        pass
+
+    def _run_hyprctl(self, *args):
+        """Run hyprctl with given arguments and return the output"""
+        if not self.hyprctl_path:
+            return {}
+
+        try:
+            cmd = [self.hyprctl_path, *args, "-j"]  # Use JSON output
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            return json.loads(result.stdout)
+        except (subprocess.SubprocessError, json.JSONDecodeError) as ex:
+            logger.error(f"Error running hyprctl: {ex}")
+            return {}
+
     def get_display_names(self):
         """Return names of connected displays"""
-        return [output_info.get_display_name() for output_info in self.rr_config.get_outputs()]
+        if self.backend == "hyprland":
+            monitors = self._run_hyprctl("monitors")
+            if not monitors:
+                return []
+            return [monitor.get("name") for monitor in monitors]
+
+        elif self.backend == "gnome" and self.rr_config:
+            return [output_info.get_display_name() for output_info in self.rr_config.get_outputs()]
+
+        elif self.backend == "wayland":
+            names = []
+            n_monitors = self.display.get_n_monitors()
+            for i in range(n_monitors):
+                monitor = self.display.get_monitor(i)
+                model = monitor.get_model()
+                names.append(model if model else f"Monitor-{i}")
+            return names
+
+        else:
+            # Fallback to XRandR
+            return LegacyDisplayManager().get_display_names()
 
     def get_resolutions(self):
         """Return available resolutions"""
-        resolutions = ["%sx%s" % (mode.get_width(), mode.get_height()) for mode in self.rr_screen.list_modes()]
-        if not resolutions:
-            logger.error("Failed to generate resolution list from default GdkScreen")
-            return ["%sx%s" % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
-        return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
+        if self.backend == "hyprland":
+            modes = []
+            monitors = self._run_hyprctl("monitors")
 
-    def _get_primary_output(self):
-        """Return the RROutput used as a primary display"""
+            # If no monitors, return default
+            if not monitors:
+                return [f"{DEFAULT_RESOLUTION_WIDTH}x{DEFAULT_RESOLUTION_HEIGHT}"]
+
+            # Get modes from monitors
+            for monitor in monitors:
+                if monitor.get("reserved"):  # Skip special monitors
+                    continue
+
+                width = monitor.get("width")
+                height = monitor.get("height")
+                if width and height:
+                    modes.append(f"{width}x{height}")
+
+            if not modes:
+                return [f"{DEFAULT_RESOLUTION_WIDTH}x{DEFAULT_RESOLUTION_HEIGHT}"]
+
+            return sorted(set(modes), key=lambda x: int(x.split("x")[0]), reverse=True)
+
+        elif self.backend == "gnome" and self.rr_screen:
+            resolutions = ["%sx%s" % (mode.get_width(), mode.get_height()) for mode in self.rr_screen.list_modes()]
+            if not resolutions:
+                logger.error("Failed to generate resolution list from default GdkScreen")
+                return ["%sx%s" % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
+            return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
+
+        elif self.backend == "wayland":
+            # For generic Wayland, we can only report current resolutions
+            resolutions = []
+            n_monitors = self.display.get_n_monitors()
+            for i in range(n_monitors):
+                monitor = self.display.get_monitor(i)
+                geometry = monitor.get_geometry()
+                resolution = f"{geometry.width}x{geometry.height}"
+                resolutions.append(resolution)
+
+            if not resolutions:
+                return [f"{DEFAULT_RESOLUTION_WIDTH}x{DEFAULT_RESOLUTION_HEIGHT}"]
+
+            return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
+
+        else:
+            # Fallback to XRandR
+            return LegacyDisplayManager().get_resolutions()
+
+    def _get_primary_output_gnome(self):
+        """Return the RROutput used as a primary display (GNOME backend)"""
+        if not self.rr_screen:
+            return None
+
         for output in self.rr_screen.list_outputs():
             if output.get_is_primary():
                 return output
-        return
+        return None
 
     def get_current_resolution(self):
         """Return the current resolution for the primary display"""
-        output = self._get_primary_output()
-        if not output:
-            logger.error("Failed to get a default output")
-            return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
-        current_mode = output.get_current_mode()
-        return str(current_mode.get_width()), str(current_mode.get_height())
+        if self.backend == "hyprland":
+            monitors = self._run_hyprctl("monitors")
 
-    @staticmethod
-    def set_resolution(resolution):
-        """Set the resolution of one or more displays.
-        The resolution can either be a string, which will be applied to the
-        primary display or a list of configurations as returned by `get_config`.
-        This method uses XrandR and will not work on Wayland.
-        """
-        return change_resolution(resolution)
+            # Find primary/focused monitor
+            primary_monitor = None
+            for monitor in monitors:
+                if monitor.get("focused", False):
+                    primary_monitor = monitor
+                    break
 
-    @staticmethod
-    def get_config():
-        """Return the current display resolution
-        This method uses XrandR and will not work on wayland
-        The output can be fed in `set_resolution`
-        """
-        return get_outputs()
+            if not primary_monitor:
+                # If no primary found, use the first non-reserved one
+                for monitor in monitors:
+                    if not monitor.get("reserved"):
+                        primary_monitor = monitor
+                        break
+
+            if not primary_monitor:
+                logger.error("Failed to get a primary monitor from Hyprland")
+                return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
+
+            width = primary_monitor.get("width", DEFAULT_RESOLUTION_WIDTH)
+            height = primary_monitor.get("height", DEFAULT_RESOLUTION_HEIGHT)
+            return str(width), str(height)
+
+        elif self.backend == "gnome":
+            output = self._get_primary_output_gnome()
+            if not output:
+                logger.error("Failed to get a default output")
+                return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
+            current_mode = output.get_current_mode()
+            return str(current_mode.get_width()), str(current_mode.get_height())
+
+        elif self.backend == "wayland":
+            monitor = self.display.get_primary_monitor()
+            if not monitor:
+                # Fall back to first monitor if no primary
+                if self.display.get_n_monitors() > 0:
+                    monitor = self.display.get_monitor(0)
+
+            if not monitor:
+                logger.error("Failed to get a monitor from Wayland display")
+                return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
+
+            geometry = monitor.get_geometry()
+            return str(geometry.width), str(geometry.height)
+
+        else:
+            # Fallback to XRandR
+            return LegacyDisplayManager().get_current_resolution()
+
+    def set_resolution(self, resolution):
+        """Set the resolution of one or more displays"""
+        if self.backend == "hyprland":
+            if isinstance(resolution, list):
+                # We don't support multi-monitor configuration yet
+                logger.warning("Multi-monitor configuration not supported for Hyprland")
+                return False
+
+            try:
+                width, height = resolution.split("x")
+                monitor = self._get_focused_monitor_name_hyprland()
+                if not monitor:
+                    logger.error("Failed to get focused monitor")
+                    return False
+
+                # Format: keyword arg=value
+                cmd = [self.hyprctl_path, "keyword", f"monitor,{monitor},preferred,auto,{float(width)/float(height)}"]
+                subprocess.run(cmd, check=True)
+                return True
+            except (ValueError, subprocess.SubprocessError) as ex:
+                logger.error(f"Failed to set resolution in Hyprland: {ex}")
+                return False
+
+        elif self.backend in ("x11", "gnome"):
+            # Both use XRandR underneath
+            return change_resolution(resolution)
+
+        elif self.backend == "wayland":
+            logger.warning("Cannot set resolution directly in generic Wayland mode")
+            return False
+
+        else:
+            return LegacyDisplayManager().set_resolution(resolution)
+
+    def _get_focused_monitor_name_hyprland(self):
+        """Get the name of the focused monitor (Hyprland backend)"""
+        monitors = self._run_hyprctl("monitors")
+        for monitor in monitors:
+            if monitor.get("focused", False):
+                return monitor.get("name")
+        return None
+
+    def get_config(self):
+        """Return the current display configuration"""
+        if self.backend == "hyprland":
+            # For Hyprland, we'll just return the current resolutions as strings
+            monitors = self._run_hyprctl("monitors")
+            configs = []
+
+            for monitor in monitors:
+                if monitor.get("reserved"):
+                    continue
+                width = monitor.get("width")
+                height = monitor.get("height")
+                if width and height:
+                    configs.append(f"{width}x{height}")
+
+            return configs
+
+        elif self.backend == "wayland":
+            # For generic Wayland, return current resolutions
+            return self.get_resolutions()
+
+        else:
+            # Use XRandR for X11 and GNOME
+            return get_outputs()
 
 
 def get_display_manager():
-    """Return the appropriate display manager instance.
-    Defaults to Mutter if available. This is the only one to support Wayland.
-    """
+    """Return the appropriate display manager instance."""
+    # Try Mutter (which supports Wayland) if DBus is available
     if DBUS_AVAILABLE:
         try:
             return MutterDisplayManager()
@@ -121,14 +342,13 @@ def get_display_manager():
     else:
         logger.error("DBus is not available, Lutris was not properly installed.")
 
-    if LIB_GNOME_DESKTOP_AVAILABLE:
-        try:
-            screen = Gdk.Screen.get_default()
-            if screen:
-                return DisplayManager(screen)
-        except GLib.Error:
-            pass
-    return LegacyDisplayManager()
+    # For GNOME Desktop or other backends
+    try:
+        screen = Gdk.Screen.get_default()
+        return DisplayManager(screen)
+    except Exception as ex:  # pylint: disable=broad-except
+        logger.exception("Failed to instantiate DisplayManager: %s", ex)
+        return LegacyDisplayManager()
 
 
 DISPLAY_MANAGER = get_display_manager()
@@ -141,6 +361,7 @@ class DesktopEnvironment(enum.Enum):
     MATE = 1
     XFCE = 2
     DEEPIN = 3
+    HYPRLAND = 4
     UNKNOWN = 999
 
 
@@ -187,6 +408,12 @@ _compositor_commands_by_de = {
             "com.deepin.WMSwitcher.RequestSwitchWM",
         ],
     },
+    DesktopEnvironment.HYPRLAND: {
+        "check": ["echo", "$HYPRLAND_CMD"],
+        "active_result": b"Hyprland\n",
+        "stop_compositor": ["Hyprland"],
+        "start_compositor": ["hyprctl", "dispatch", "exit"],
+    },
 }
 
 # These additional compositors can be detected by looking for their process,
@@ -223,6 +450,8 @@ def get_desktop_environment():
         return DesktopEnvironment.DEEPIN
     if "plasma" in desktop_session:
         return DesktopEnvironment.PLASMA
+    if os.environ.get("XDG_SESSION_DESKTOP", "") == "Hyprland":
+        return DesktopEnvironment.HYPRLAND
     return DesktopEnvironment.UNKNOWN
 
 
@@ -304,8 +533,8 @@ def _run_command(*command, run_in_background=False):
     are you lost little _run_command?
     """
     try:
-        if run_in_background:
-            command = " ".join(command)
+        if not command:
+            raise ValueError("No command provided")
         return subprocess.Popen(  # pylint: disable=consider-using-with
             command,
             stdin=subprocess.DEVNULL,
@@ -316,6 +545,7 @@ def _run_command(*command, run_in_background=False):
     except FileNotFoundError:
         errorMessage = "FileNotFoundError when running command:", command
         logger.error(errorMessage)
+        return None
 
 
 def disable_compositing():
