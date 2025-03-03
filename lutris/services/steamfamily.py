@@ -14,13 +14,17 @@ from lutris.services.steam import SteamGame, SteamService
 from lutris.util.steam.config import get_active_steamid64
 from lutris.database.services import ServiceGameCollection
 
-STEAM_INSTALLER = "steam-wine"  # Lutris installer used to setup the Steam client
-
 class SteamFamilyGame(SteamGame):
     service = "steamfamily"
     installer_slug = "steam"
     runner = "steam"
 
+    @classmethod
+    def new_from_steamfamily_game(cls, game):
+        """Return a Steam Family game instance from an AppManifest"""
+        game = cls.new_from_steam_game(game)
+        game.service = cls.service
+        return game
 
 class SteamFamilyService(SteamService, OnlineService):
     """Service class for Epic Games Store"""
@@ -30,8 +34,10 @@ class SteamFamilyService(SteamService, OnlineService):
     description = _("Use for displaying every game in the Steam family")
     login_window_width = 500
     login_window_height = 850
-    online = True
-    requires_login_page = True
+    online = True # TODO: needed?
+    requires_login_page = True # TODO: needed?
+    game_class = SteamFamilyGame
+    include_own_games = settings.STEAM_FAMILY_INCLUDE_OWN
     cookies_path = os.path.join(settings.CACHE_DIR, ".steam.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".steam.token")
     cache_path = os.path.join(settings.CACHE_DIR, "steam-library.json")
@@ -48,7 +54,6 @@ class SteamFamilyService(SteamService, OnlineService):
 
     def __init__(self):
         super().__init__()
-        logger.debug(f"STEAM FAMILY INIT, conn:{self.is_connected()}, cachepath:{self.cache_path}, accesstoken:{self.load_access_token()}")
         self.session = requests.session()
         self.session.headers["User-Agent"] = self.user_agent
         self.access_token = self.load_access_token()
@@ -81,7 +86,6 @@ class SteamFamilyService(SteamService, OnlineService):
         )
         response.raise_for_status()
         token_data = response.json()
-        logger.debug(f"TOKEN DATA {token_data}")
         return token_data
 
     def login_callback(self, content):
@@ -108,7 +112,8 @@ class SteamFamilyService(SteamService, OnlineService):
     def get_library(self):
         response = self.session.get(self.library_url, params={"access_token": self.load_access_token(),
                                                               "family_groupid": self.get_family_groupid(),
-                                                              "steamid": get_active_steamid64()})
+                                                              "steamid": get_active_steamid64(),
+                                                              "include_own": self.include_own_games})
         response.raise_for_status()
         resData = response.json()
         records = resData["response"]["apps"]
@@ -116,7 +121,6 @@ class SteamFamilyService(SteamService, OnlineService):
 
     def load(self):
         """Load the list of games"""
-        logger.debug("STEAMFAMILY GAME CLASS {}".format(self.game_class))
         try:
             library = self.get_library()
         except Exception as ex:  # pylint=disable:broad-except
@@ -125,8 +129,7 @@ class SteamFamilyService(SteamService, OnlineService):
         for steam_game in library:
             if (steam_game["appid"] in self.excluded_appids) or (steam_game["app_type"] == 4): # Skip SDKs
                 continue
-            game = self.game_class.new_from_steam_game(steam_game)
+            game = self.game_class.new_from_steamfamily_game(steam_game)
             game.save()
-        logger.debug("LIBRARY: {}".format(ServiceGameCollection.get_for_service(self.id)))
         self.match_games()
         return library
