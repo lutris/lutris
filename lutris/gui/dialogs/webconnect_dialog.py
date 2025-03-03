@@ -4,7 +4,6 @@ import os
 from gettext import gettext as _
 from typing import TYPE_CHECKING
 
-from lutris.util.log import logger
 import gi
 
 if TYPE_CHECKING:
@@ -86,8 +85,7 @@ class WebConnectDialog(ModalDialog):
                 script = self.service.scripts[url]
                 widget.run_javascript(script, None, None)
                 return True
-            if url.startswith(self.service.redirect_uri) and url != self.service.login_url:
-                logger.debug(f"Redirected to {url} and requires login page: {self.service.requires_login_page}")
+            if url.startswith(self.service.redirect_uri):
                 if self.service.requires_login_page:
                     resource = widget.get_main_resource()
                     resource.get_data(None, self._get_response_data_finish, None)
@@ -100,7 +98,6 @@ class WebConnectDialog(ModalDialog):
     def _get_response_data_finish(self, resource, result, user_data=None):
         html_response = resource.get_data_finish(result)
         self.service.is_login_in_progress = False
-        logger.debug(f"GET RESPONSE DATA FINISH")
         self.service.login_callback(html_response)
         self.destroy()
 
