@@ -180,7 +180,7 @@ class GOGService(OnlineService):
         }
         params.update(extra_params)
         url = "https://auth.gog.com/token?" + urlencode(params)
-        request = Request(url)
+        request = Request(url, redacted_query_parameters=("refresh_token", "code"))
         try:
             request.get()
         except HTTPError as http_error:

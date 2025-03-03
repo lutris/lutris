@@ -40,6 +40,7 @@ class Request:
         stop_request=None,
         headers=None,
         cookies=None,
+        redacted_query_parameters=None,
     ):
         self.url = self._clean_url(url)
         self.status_code = None
@@ -52,6 +53,7 @@ class Request:
         self.headers = {"User-Agent": self.user_agent}
         self.response_headers = None
         self.info = None
+        self.redacted_query_parameters = redacted_query_parameters
         if headers is None:
             headers = {}
         if not isinstance(headers, dict):
@@ -84,8 +86,31 @@ class Request:
     def user_agent(self):
         return "{} {}".format(PROJECT, VERSION)
 
+    @property
+    def redacted_url(self):
+        """A version of the ULR with specified query string parameters
+        replaced with REDACTED for security. We log these."""
+        if self.redacted_query_parameters:
+            parsed = urllib.parse.urlparse(self.url)
+            query_items = urllib.parse.parse_qsl(parsed.query)
+            new_query_items = []
+            redacted_any = False
+            for key, value in query_items:
+                if key in self.redacted_query_parameters:
+                    redacted_any = True
+                    value = "REDACTED"
+                new_query_items.append((key, value))
+
+            if redacted_any:
+                parsed_parts = list(parsed)
+                parsed_parts[4] = urllib.parse.urlencode(new_query_items)
+                parsed = tuple(parsed_parts)
+                return urllib.parse.urlunparse(parsed)
+
+        return self.url
+
     def _request(self, method, data=None):
-        logger.debug("%s %s", method, self.url)
+        logger.debug("%s %s", method, self.redacted_url)
         try:
             req = urllib.request.Request(url=self.url, data=data, headers=self.headers, method=method)
         except ValueError as ex:
