@@ -1,4 +1,4 @@
-"""Epic Games Store service"""
+"""Steam Family service"""
 
 import json
 import os
@@ -27,22 +27,23 @@ class SteamFamilyGame(SteamGame):
         return game
 
 class SteamFamilyService(SteamService, OnlineService):
-    """Service class for Epic Games Store"""
+    """Service class for Steam Family sharing"""
 
     id = "steamfamily"
     name = _("Steam Family")
     description = _("Use for displaying every game in the Steam family")
     login_window_width = 500
     login_window_height = 850
-    online = True # TODO: needed?
-    requires_login_page = True # TODO: needed?
+    online = True
+    requires_login_page = True
     game_class = SteamFamilyGame
     include_own_games = settings.STEAM_FAMILY_INCLUDE_OWN
     cookies_path = os.path.join(settings.CACHE_DIR, ".steam.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".steam.token")
     cache_path = os.path.join(settings.CACHE_DIR, "steam-library.json")
-    login_url = "https://store.steampowered.com/login/?redir="
-    redirect_uri = "https://store.steampowered.com/"
+    login_url = "https://store.steampowered.com/login/?redir=/about"
+    redirect_uri = "https://store.steampowered.com/about"
+    access_token_url = "https://store.steampowered.com/pointssummary/ajaxgetasyncconfig"
     library_url = "https://api.steampowered.com/IFamilyGroupsService/GetSharedLibraryApps/v1/"
     family_url = "https://api.steampowered.com/IFamilyGroupsService/GetFamilyGroupForUser/v1/"
 
@@ -62,6 +63,7 @@ class SteamFamilyService(SteamService, OnlineService):
         return self.is_authenticated() and bool(self.load_access_token())
 
     def fetch_access_token(self):
+        """Fetch the access token from the store, save to disk and set"""
         token_data = self.get_access_token()
         if not token_data:
             raise RuntimeError("Failed to get access token")
@@ -70,6 +72,7 @@ class SteamFamilyService(SteamService, OnlineService):
         self.access_token = self.load_access_token()
 
     def load_access_token(self):
+        """Load the access token from disk"""
         if not os.path.exists(self.token_path):
             return ""
         with open(self.token_path, encoding="utf-8") as token_file:
@@ -77,11 +80,10 @@ class SteamFamilyService(SteamService, OnlineService):
             return token_data.get("data").get("webapi_token", "")
 
     def get_access_token(self):
-        """Request an access token from steam"""
+        """Request an access token from steam and return dump"""
         logger.debug("Requesting access token")
         response = self.session.get(
-            "https://store.steampowered.com/pointssummary/ajaxgetasyncconfig",
-            #params={},
+            self.access_token_url,
             cookies=self.load_cookies(),
         )
         response.raise_for_status()
@@ -89,9 +91,9 @@ class SteamFamilyService(SteamService, OnlineService):
         return token_data
 
     def login_callback(self, content):
-        """Once the user logs in in a browser window, Epic redirects
-        to a page containing a Session ID which we can use to finish the authentication.
-        Store session ID and exchange token to auth file"""
+        """Once the user logs in in a browser window, they're redirected to a
+        an arbitrary page (about), then we redirect to a page containing the
+        store access token which we can use to fetch family games"""
         logger.debug("Login to Steam store successful")
         logger.debug(content)
         self.fetch_access_token()
@@ -124,8 +126,13 @@ class SteamFamilyService(SteamService, OnlineService):
         try:
             library = self.get_library()
         except Exception as ex:  # pylint=disable:broad-except
-            logger.warning("Access Token expired")
-            raise AuthTokenExpiredError("Access Token expired") from ex
+            logger.warning("Access Token expired, will attempt to get a new one")
+            try:
+                self.fetch_access_token()
+                library = self.get_library()
+            except:
+                logger.warning("Failed to get a new access token")
+                raise AuthTokenExpiredError("Access Token expired") from ex
         for steam_game in library:
             if (steam_game["appid"] in self.excluded_appids) or (steam_game["app_type"] == 4): # Skip SDKs
                 continue

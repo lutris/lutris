@@ -102,13 +102,11 @@ class SteamService(BaseService):
             game = self.game_class.new_from_steam_game(steam_game)
             game.save()
         self.match_games()
-        logger.debug(str(steam_games) + " games loaded")
         return steam_games
 
     def match_game(self, service_game, lutris_game):
         super().match_game(service_game, lutris_game)
 
-        logger.debug("Matched game %s with %s", service_game, lutris_game)
         if service_game:
             # Copy playtimes from Steam's data
             for game in get_games(filters={"service": self.id, "service_id": service_game["appid"]}):
