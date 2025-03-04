@@ -14,6 +14,7 @@ from lutris.services.steam import SteamGame, SteamService
 from lutris.util.steam.config import get_active_steamid64
 from lutris.database.services import ServiceGameCollection
 
+
 class SteamFamilyGame(SteamGame):
     service = "steamfamily"
     installer_slug = "steam"
@@ -25,6 +26,7 @@ class SteamFamilyGame(SteamGame):
         game = cls.new_from_steam_game(game)
         game.service = cls.service
         return game
+
 
 class SteamFamilyService(SteamService, OnlineService):
     """Service class for Steam Family sharing"""
@@ -95,14 +97,14 @@ class SteamFamilyService(SteamService, OnlineService):
         an arbitrary page (about), then we redirect to a page containing the
         store access token which we can use to fetch family games"""
         logger.debug("Login to Steam store successful")
-        logger.debug(content)
         self.fetch_access_token()
         SERVICE_LOGIN.fire(self)
 
     def get_family_groupid(self):
         """Get the user's family group id"""
-        response = self.session.get(self.family_url, params={"access_token": self.load_access_token(),
-                                                              "steamid": get_active_steamid64()})
+        response = self.session.get(
+            self.family_url, params={"access_token": self.load_access_token(), "steamid": get_active_steamid64()}
+        )
         response.raise_for_status()
         resData = response.json()
         records = resData["response"]
@@ -112,10 +114,15 @@ class SteamFamilyService(SteamService, OnlineService):
         return None
 
     def get_library(self):
-        response = self.session.get(self.library_url, params={"access_token": self.load_access_token(),
-                                                              "family_groupid": self.get_family_groupid(),
-                                                              "steamid": get_active_steamid64(),
-                                                              "include_own": self.include_own_games})
+        response = self.session.get(
+            self.library_url,
+            params={
+                "access_token": self.load_access_token(),
+                "family_groupid": self.get_family_groupid(),
+                "steamid": get_active_steamid64(),
+                "include_own": self.include_own_games,
+            },
+        )
         response.raise_for_status()
         resData = response.json()
         records = resData["response"]["apps"]
@@ -134,7 +141,7 @@ class SteamFamilyService(SteamService, OnlineService):
                 logger.warning("Failed to get a new access token")
                 raise AuthTokenExpiredError("Access Token expired") from ex
         for steam_game in library:
-            if (steam_game["appid"] in self.excluded_appids) or (steam_game["app_type"] == 4): # Skip SDKs
+            if (steam_game["appid"] in self.excluded_appids) or (steam_game["app_type"] == 4):  # Skip SDKs
                 continue
             game = self.game_class.new_from_steamfamily_game(steam_game)
             game.save()
