@@ -3,7 +3,6 @@
 import json
 import os
 from gettext import gettext as _
-from typing import Any, Dict, Optional
 
 import requests
 
@@ -11,8 +10,7 @@ from lutris import settings
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.util.log import logger
 from lutris.services.steam import SteamGame, SteamService
-from lutris.util.steam.config import get_active_steamid64
-from lutris.database.services import ServiceGameCollection
+from lutris.util.steam.config import get_active_steamid64, get_steam_library
 
 
 class SteamFamilyGame(SteamGame):
@@ -114,18 +112,25 @@ class SteamFamilyService(SteamService, OnlineService):
         return None
 
     def get_library(self):
+        steamid = get_active_steamid64()
+        if not steamid:
+            logger.error("Unable to find SteamID from Steam config")
+            return []
         response = self.session.get(
             self.library_url,
             params={
                 "access_token": self.load_access_token(),
                 "family_groupid": self.get_family_groupid(),
                 "steamid": get_active_steamid64(),
-                "include_own": self.include_own_games,
             },
         )
         response.raise_for_status()
         resData = response.json()
         records = resData["response"]["apps"]
+        if self.include_own_games:
+            own_games = get_steam_library(steamid)
+            ids = {game["appid"] for game in records}
+            records.extend([game for game in own_games if game["appid"] not in ids])
         return records
 
     def load(self):
@@ -141,7 +146,7 @@ class SteamFamilyService(SteamService, OnlineService):
                 logger.warning("Failed to get a new access token")
                 raise AuthTokenExpiredError("Access Token expired") from ex
         for steam_game in library:
-            if (steam_game["appid"] in self.excluded_appids) or (steam_game["app_type"] == 4):  # Skip SDKs
+            if steam_game["appid"] in self.excluded_appids:
                 continue
             game = self.game_class.new_from_steamfamily_game(steam_game)
             game.save()
