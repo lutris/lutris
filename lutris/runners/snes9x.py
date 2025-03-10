@@ -1,7 +1,7 @@
 # Standard Library
 import os
 import subprocess
-import xml.etree.ElementTree as etree
+import defusedxml.ElementTree as etree
 from gettext import gettext as _
 
 # Lutris Modules

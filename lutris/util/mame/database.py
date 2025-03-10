@@ -3,7 +3,7 @@
 # Standard Library
 import json
 import os
-from xml.etree import ElementTree
+from defusedxml import ElementTree
 
 # Lutris Modules
 from lutris import settings

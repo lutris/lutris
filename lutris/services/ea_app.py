@@ -6,7 +6,7 @@ import random
 import ssl
 from gettext import gettext as _
 from typing import Any, Dict, Optional
-from xml.etree import ElementTree
+from defusedxml import ElementTree
 
 import requests
 import urllib3
