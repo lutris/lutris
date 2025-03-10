@@ -26,7 +26,8 @@ def get_locale_choices():
     """
     return [
         (_("System"), ""),
-        (_("Chinese"), "zh_CN.utf8"),
+        (_("Chinese (Simplified)"), "zh_CN.utf8"),
+        (_("Chinese (Traditional)"), "zh_TW.utf8"),
         (_("Croatian"), "hr_HR.utf8"),
         (_("Dutch"), "nl_NL.utf8"),
         (_("English"), "en_US.utf8"),
