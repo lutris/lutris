@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from gettext import gettext as _
 
-from gi.repository import Gdk, GObject, Gtk
+from gi.repository import Gdk, GObject, Gtk, Pango
 
 from lutris.gui.dialogs import FileDialog
 from lutris.gui.widgets.log_text_view import LogTextView
@@ -37,6 +37,9 @@ class LogWindow(GObject.Object):
         save_button = builder.get_object("save_button")
         save_button.connect("clicked", self.on_save_clicked)
 
+        self.window.add_events(Gdk.EventMask.SCROLL_MASK)
+        self.window.connect("scroll-event", self.on_scroll_event)
+
         self.window.connect("key-press-event", self.on_key_press_event)
         self.window.show_all()
 
@@ -62,3 +65,19 @@ class LogWindow(GObject.Object):
         text = self.buffer.get_text(self.buffer.get_start_iter(), self.buffer.get_end_iter(), True)
         with open(log_path, "w", encoding="utf-8") as log_file:
             log_file.write(text)
+    def on_scroll_event(self, widget, event):
+        """Handle Ctrl+scroll to zoom text"""
+        ctrl_pressed = event.state & Gdk.ModifierType.CONTROL_MASK
+
+        if ctrl_pressed:
+            change = 0
+            font = self.logtextview.get_style_context().get_font(Gtk.StateFlags.NORMAL)
+            size = font.get_size() / Pango.SCALE
+            if event.direction == Gdk.ScrollDirection.UP:
+                if size < 48:  # Maximum size
+                    change = 1
+            elif event.direction == Gdk.ScrollDirection.DOWN:
+                if size > 6:
+                    change = -1
+            self.logtextview.override_font(Pango.FontDescription(f"monospace {size + change}"))
+        return
