@@ -254,9 +254,9 @@ class libretro(Runner):
                 required_firmware_filename = retro_config["firmware%d_path" % index]
                 required_firmware_path = os.path.join(system_path, required_firmware_filename)
                 required_firmware_name = required_firmware_filename.split("/")[-1]
-                required_firmware_checksum = checksums[required_firmware_filename]
+                required_firmware_checksum = checksums.get(required_firmware_filename)
                 if system.path_exists(required_firmware_path):
-                    if required_firmware_filename in checksums:
+                    if required_firmware_checksum:
                         checksum = system.get_md5_hash(required_firmware_path)
                         if checksum == required_firmware_checksum:
                             checksum_status = "Checksum good"
@@ -266,8 +266,9 @@ class libretro(Runner):
                         checksum_status = "No checksum info"
                     logger.info("Firmware '%s' found (%s)", required_firmware_filename, checksum_status)
                 else:
-                    get_firmware(required_firmware_name, required_firmware_checksum, system_path)
                     logger.warning("Firmware '%s' not found!", required_firmware_filename)
+                    if required_firmware_checksum:
+                        get_firmware(required_firmware_name, required_firmware_checksum, system_path)
 
     def get_runner_parameters(self):
         parameters = []
