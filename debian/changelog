@@ -9,7 +9,6 @@ lutris (0.5.20) jammy; urgency=medium
   * Obtain the release year from GOG and Itch.io.
   * MAME Machine setting uses a searchable entry for its enourmous list
   * Support for importing Commodore 64 ROMs
-  * F5 will refresh the main Lutris window
 
 -- Mathieu Comandon <mathieucomandon@gmail.com> Sun, 23 Feb 2025 10:55:10 -0800
 
