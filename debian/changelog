@@ -1,4 +1,4 @@
-lutris (0.5.19) jammy; urgency=medium
+lutris (0.5.20) jammy; urgency=medium
 
   * Fix Proton integration bugs so Proton-fixes are applied
   * Do not offer DXVK, VKD3D, D3D Extras or DDXVK-NVAPI on Proton versions; Proton will handle these.
