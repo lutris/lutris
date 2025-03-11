@@ -28,7 +28,6 @@
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
     <release version="0.5.20" date="2024-12-02" urgency="low"></release>
-    <release version="0.5.19" date="2024-12-02" urgency="low"></release>
     <release version="0.5.18" date="2024-12-02" urgency="low">
       <description>
         <ul>
