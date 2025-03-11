@@ -4,6 +4,7 @@ lutris (0.5.20) jammy; urgency=medium
   * Do not offer DXVK, VKD3D, D3D Extras or DDXVK-NVAPI on Proton versions; Proton will handle these.
   * The "Enable Esync" and "Enable Fsync" settings are now passed on to Proton
   * DXVK's integrated D8VK will be enabled in Proton
+  * Fix for updated Flathub API
   * Emulator BIOS file location (used by libretro) may be set in Preferences
   * Obtain the release year from GOG and Itch.io.
   * MAME Machine setting uses a searchable entry for its enourmous list
