@@ -16,7 +16,7 @@ jobs:
       - name: Install Ubuntu dependencies
         run: |
           sudo apt update
-          sudo apt-get install libdbus-1-dev pkg-config libgirepository1.0-dev python3-gi-cairo libcairo2-dev
+          sudo apt-get install libdbus-1-dev pkg-config libgirepository-2.0-dev python3-gi-cairo libcairo2-dev
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
