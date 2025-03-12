@@ -207,7 +207,7 @@ class WidgetGenerator(ABC):
 
     def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
         tooltip = option.get("help")
-        if isinstance(self.tooltip_default, str):
+        if self.tooltip_default:
             tooltip = tooltip + "\n\n" if tooltip else ""
             tooltip += _("<b>Default</b>: ") + self.tooltip_default
         return tooltip
@@ -404,7 +404,7 @@ class WidgetGenerator(ABC):
                 liststore.append(choice)
 
             if tooltip_default:
-                self.tooltip_default = tooltip_default
+                self.tooltip_default = str(tooltip_default)
 
         def expand_combobox_choices():
             expanded = []
