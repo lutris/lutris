@@ -21,6 +21,7 @@ from lutris.util.process import Process
 
 GLVND_DIR = "/usr/share/glvnd/egl_vendor.d"
 
+
 def kill_processes(sig: int, pids: Iterable[int]) -> None:
     """Sends a signal to a process list, logging errors without stopping."""
     for pid in pids:
@@ -269,10 +270,10 @@ class Runner:  # pylint: disable=too-many-public-methods
                 env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
                 env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
                 env["__VK_LAYER_NV_optimus"] = "NVIDIA_only"
-                env["__EGL_VENDOR_LIBRARY_FILENAMES"] = os.path.join(GLVND_DIR,"10_nvidia.json")
+                env["__EGL_VENDOR_LIBRARY_FILENAMES"] = os.path.join(GLVND_DIR, "10_nvidia.json")
             else:
                 env["DRI_PRIME"] = gpu.pci_id
-                env["__EGL_VENDOR_LIBRARY_FILENAMES"] = os.path.join(GLVND_DIR,"50_mesa.json")
+                env["__EGL_VENDOR_LIBRARY_FILENAMES"] = os.path.join(GLVND_DIR, "50_mesa.json")
             env["VK_ICD_FILENAMES"] = gpu.icd_files  # Deprecated
             env["VK_DRIVER_FILES"] = gpu.icd_files  # Current form
 

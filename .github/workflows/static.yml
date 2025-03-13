@@ -44,4 +44,4 @@ jobs:
         run: ruff --version
           ruff check .
       - name: Check format
-        run: ruff format . --check
+        run: ruff format . --check --diff

@@ -65,19 +65,19 @@ class LogWindow(GObject.Object):
         text = self.buffer.get_text(self.buffer.get_start_iter(), self.buffer.get_end_iter(), True)
         with open(log_path, "w", encoding="utf-8") as log_file:
             log_file.write(text)
-    def on_scroll_event(self, widget, event):
-        """Handle Ctrl+scroll to zoom text"""
-        ctrl_pressed = event.state & Gdk.ModifierType.CONTROL_MASK
 
-        if ctrl_pressed:
-            change = 0
-            font = self.logtextview.get_style_context().get_font(Gtk.StateFlags.NORMAL)
-            size = font.get_size() / Pango.SCALE
-            if event.direction == Gdk.ScrollDirection.UP:
-                if size < 48:  # Maximum size
-                    change = 1
-            elif event.direction == Gdk.ScrollDirection.DOWN:
-                if size > 6:
-                    change = -1
-            self.logtextview.override_font(Pango.FontDescription(f"monospace {size + change}"))
-        return
+    def on_scroll_event(self, widget: Gtk.Widget, event: Gdk.EventScroll) -> bool:
+        """Handle Ctrl+scroll to zoom text"""
+        if not event.state & Gdk.ModifierType.CONTROL_MASK:
+            return False
+
+        font = self.logtextview.get_style_context().get_font(Gtk.StateFlags.NORMAL)
+        size = font.get_size() // Pango.SCALE
+        if event.direction == Gdk.ScrollDirection.UP and size < 48:
+            new_size = size + 1
+        elif event.direction == Gdk.ScrollDirection.DOWN and size > 6:
+            new_size = size - 1
+        else:
+            return False
+        self.logtextview.override_font(Pango.FontDescription(f"monospace {new_size}"))
+        return True

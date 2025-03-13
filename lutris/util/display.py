@@ -53,11 +53,13 @@ def is_display_x11():
     display = Gdk.Display.get_default()
     return "x11" in type(display).__name__.casefold()
 
+
 @cache_single
 def is_display_wayland():
     """True if the current display is Wayland"""
     display = Gdk.Display.get_default()
     return "wayland" in type(display).__name__.casefold()
+
 
 class DisplayManager:
     """Get display and resolution using various backends based on the current environment"""
