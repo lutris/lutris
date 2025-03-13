@@ -528,7 +528,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                     value = db_game.get(self.view_sorting)
 
             value = value or get_sort_default(item)
-            value = convert_value(value)
+            value = convert_value(value) or get_sort_default(item)
             value = extend_value(value)
 
             if self.view_sorting_installed_first:
