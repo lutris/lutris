@@ -24,7 +24,10 @@ class WebConnectDialog(ModalDialog):
     def __init__(self, service: "OnlineService", parent=None):
         service.is_login_in_progress = True
 
-        self.context = WebKit2.WebContext.new()
+        self.context: WebKit2.WebContext = WebKit2.WebContext.new()
+
+        # Set locale
+        self.context.set_preferred_languages([os.environ["LANG"].split(".")[0], "en_US"])
 
         if "http_proxy" in os.environ:
             proxy = WebKit2.NetworkProxySettings.new(os.environ["http_proxy"])
