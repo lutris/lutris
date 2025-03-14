@@ -471,6 +471,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             to extract this from the item.."""
             if self.view_sorting == "year" and self.service:
                 service_year = self.service.get_game_release_date(item)
+                service_year = convert_value(service_year)
                 if service_year:
                     return service_year
 
@@ -485,17 +486,17 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 if not value:
                     return None
                 if self.view_sorting == "name":
-                    return str(value) if value else ""
-                elif self.view_sorting == "year":
+                    return str(value)
+                if self.view_sorting == "year":
                     # Years can take many forms! We'll try to convert as best we can.
                     if isinstance(value, datetime):
-                        value = value.year
+                        return int(value.year)
                     else:
                         try:
                             return int(value)
                         except ValueError:
                             as_date = datetime.strptime(str(value), "%Y-%m-%d")
-                            value = as_date.year
+                            return int(as_date.year)
                 else:
                     return float(value)
             except ValueError:
@@ -505,7 +506,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             """Expands the value to sort by to a more complex form, for smarter sorting."""
             if self.view_sorting == "name":
                 return get_natural_sort_key(value)
-            elif self.view_sorting == "year":
+            if self.view_sorting == "year":
                 contains_year = bool(value)
                 if self.view_reverse_order:
                     contains_year = not contains_year
@@ -527,7 +528,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 else:
                     value = db_game.get(self.view_sorting)
 
-            value = value or get_sort_default(item)
             value = convert_value(value) or get_sort_default(item)
             value = extend_value(value)
 
