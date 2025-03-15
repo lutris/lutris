@@ -124,7 +124,9 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         self.install_script_file_chooser = FileChooserEntry(title=_("Select script"), action=Gtk.FileChooserAction.OPEN)
 
-        self.import_rom_file_chooser = FileChooserEntry(title=_("Select ROM folder"), action=Gtk.FileChooserAction.SELECT_FOLDER)
+        self.import_rom_file_chooser = FileChooserEntry(
+            title=_("Select ROM folder"), action=Gtk.FileChooserAction.SELECT_FOLDER
+        )
 
         self.stack.add_named_factory("initial", self.create_initial_page)
         self.stack.add_named_factory("search_installers", self.create_search_installers_page)
