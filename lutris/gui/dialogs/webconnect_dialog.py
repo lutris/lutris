@@ -2,9 +2,12 @@
 
 import os
 from gettext import gettext as _
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
 import gi
+
+from ...config import LutrisConfig
+from ...util.log import logger
 
 if TYPE_CHECKING:
     from lutris.services.base import OnlineService
@@ -27,7 +30,20 @@ class WebConnectDialog(ModalDialog):
         self.context: WebKit2.WebContext = WebKit2.WebContext.new()
 
         # Set locale
-        self.context.set_preferred_languages([os.environ["LANG"].split(".")[0], "en_US"])
+        # Locale fallback routine:
+        # Lutris locale -> System environment locale -> US English
+        webview_locales: List = ["en_US"]
+        lutris_config: LutrisConfig = LutrisConfig()
+        environment_lang: Optional[str] = os.environ.get("LANG")
+        if environment_lang is not None and environment_lang != "":
+            webview_locales = [environment_lang.split(".")[0]] + webview_locales
+        lutris_locale: Optional[str] = lutris_config.system_config.get("locale")
+        if lutris_locale is not None and lutris_locale != "":
+            webview_locales = [lutris_locale.split(".")[0]] + webview_locales
+        logger.debug(
+            f"Webview locale fallback order: {webview_locales[0]}{''.join(' -> ' + i for i in webview_locales[1:])}"
+        )
+        self.context.set_preferred_languages(webview_locales)
 
         if "http_proxy" in os.environ:
             proxy = WebKit2.NetworkProxySettings.new(os.environ["http_proxy"])
