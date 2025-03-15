@@ -42,8 +42,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         (
             "application-x-firmware-symbolic",
             "go-next-symbolic",
-            _("Import a ROM"),
-            _("Import a ROM that is known to Lutris"),
+            _("Import a ROM folder"),
+            _("Import a folder with ROMs that are known to Lutris"),
             "import_rom",
         ),
         (
@@ -124,7 +124,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         self.install_script_file_chooser = FileChooserEntry(title=_("Select script"), action=Gtk.FileChooserAction.OPEN)
 
-        self.import_rom_file_chooser = FileChooserEntry(title=_("Select ROM file"), action=Gtk.FileChooserAction.OPEN)
+        self.import_rom_file_chooser = FileChooserEntry(title=_("Select ROM folder"), action=Gtk.FileChooserAction.SELECT_FOLDER)
 
         self.stack.add_named_factory("initial", self.create_initial_page)
         self.stack.add_named_factory("search_installers", self.create_search_installers_page)
@@ -465,10 +465,10 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.import_rom_file_chooser.set_hexpand(True)
 
         explanation = _(
-            "Lutris will identify a ROM via its MD5 hash and download game "
+            "Lutris will identify ROMs via its MD5 hash and download game "
             "information from Lutris.net.\n\n"
             "The ROM data used for this comes from the TOSEC project.\n\n"
-            "When you click 'Install' below, the process of installing the game will "
+            "When you click 'Install' below, the process of installing the games will "
             "begin."
         )
 
@@ -476,19 +476,21 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         return grid
 
     def present_import_rom_page(self):
-        self.set_page_title_markup(_("<b>Select a ROM file</b>"))
+        self.set_page_title_markup(_("<b>Select a ROM folder</b>"))
         self.stack.present_page("import_rom")
         self.display_continue_button(self.on_continue_import_rom_clicked, label=_("_Install"))
 
     def on_continue_import_rom_clicked(self, _widget):
-        path = self.import_rom_file_chooser.get_text()
-        if not path:
-            ErrorDialog(_("You must select a ROM file to install."), parent=self)
-        elif not os.path.isfile(path):
-            ErrorDialog(_("No file exists at '%s'.") % path, parent=self)
+        paths = []
+        for path, dirs, files in os.walk(self.import_rom_file_chooser.get_text()):
+            for file in files:
+                paths.append(os.path.join(path, file))
+
+        if not paths:
+            ErrorDialog(_("You must select a ROM folder file to install."), parent=self)
         else:
             application = Gio.Application.get_default()
-            dialog = ImportGameDialog([path], parent=application.window)
+            dialog = ImportGameDialog(paths, parent=application.window)
             dialog.show()
             self.destroy()
 
