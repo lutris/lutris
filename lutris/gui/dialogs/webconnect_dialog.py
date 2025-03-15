@@ -2,7 +2,7 @@
 
 import os
 from gettext import gettext as _
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 import gi
 
@@ -32,13 +32,13 @@ class WebConnectDialog(ModalDialog):
         # Set locale
         # Locale fallback routine:
         # Lutris locale -> System environment locale -> US English
-        webview_locales: List = ["en_US"]
-        lutris_config: LutrisConfig = LutrisConfig()
-        environment_lang: Optional[str] = os.environ.get("LANG")
-        if environment_lang is not None and environment_lang != "":
-            webview_locales = [environment_lang.split(".")[0]] + webview_locales
-        lutris_locale: Optional[str] = lutris_config.system_config.get("locale")
-        if lutris_locale is not None and lutris_locale != "":
+        webview_locales = ["en_US"]
+        lutris_config = LutrisConfig()
+        environment_locale_lang = os.environ.get("LANG")
+        if environment_locale_lang:
+            webview_locales = [environment_locale_lang.split(".")[0]] + webview_locales
+        lutris_locale = lutris_config.system_config.get("locale")
+        if lutris_locale:
             webview_locales = [lutris_locale.split(".")[0]] + webview_locales
         logger.debug(
             f"Webview locale fallback order: {webview_locales[0]}{''.join(' -> ' + i for i in webview_locales[1:])}"
