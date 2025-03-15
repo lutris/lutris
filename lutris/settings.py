@@ -58,6 +58,7 @@ GAME_URL = SITE_URL + "/games/%s/"
 RUNTIME_URL = SITE_URL + "/api/runtimes"
 
 STEAM_API_KEY = sio.read_setting("steam_api_key") or "34C9698CEB394AB4401D65927C6B3752"
+STEAM_FAMILY_INCLUDE_OWN = sio.read_setting("steam_family_include_own", default="False")
 
 SHOW_MEDIA = os.environ.get("LUTRIS_HIDE_MEDIA") != "1" and sio.read_setting("hide_media") != "True"
 
