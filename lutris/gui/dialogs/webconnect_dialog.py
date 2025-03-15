@@ -6,9 +6,6 @@ from typing import TYPE_CHECKING
 
 import gi
 
-from ...config import LutrisConfig
-from ...util.log import logger
-
 if TYPE_CHECKING:
     from lutris.services.base import OnlineService
 
@@ -18,7 +15,9 @@ except ValueError:
     gi.require_version("WebKit2", "4.0")
 from gi.repository import WebKit2
 
+from lutris.config import LutrisConfig
 from lutris.gui.dialogs import ModalDialog
+from lutris.util.log import logger
 
 
 class WebConnectDialog(ModalDialog):
