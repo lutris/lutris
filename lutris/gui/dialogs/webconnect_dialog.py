@@ -41,7 +41,10 @@ class WebConnectDialog(ModalDialog):
         if lutris_locale:
             webview_locales = [lutris_locale.split(".")[0]] + webview_locales
         logger.debug(
-            f"Webview locale fallback order: {webview_locales[0]}{''.join(' -> ' + i for i in webview_locales[1:])}"
+            f"Webview locale fallback order: "
+            f"[Lutris locale]: '{lutris_locale}' -> "
+            f"[env: LANG]: '{environment_locale_lang}' -> "
+            f"[Default]: '{webview_locales[-1]}'"
         )
         self.context.set_preferred_languages(webview_locales)
 
