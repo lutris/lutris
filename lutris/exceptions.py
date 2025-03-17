@@ -11,6 +11,14 @@ class LutrisError(Exception):
         self.message = message
 
 
+class MissingRuntimeComponentError(LutrisError):
+    """Raised when a Lutris component isn't found, but should have been installed."""
+
+    def __init__(self, message, component_name, *args, **kwarg):
+        super().__init__(message, *args, **kwarg)
+        self.component_name = component_name
+
+
 class MisconfigurationError(LutrisError):
     """Raised for incorrect configuration or installation, like incorrect
     or missing settings, missing components, that sort of thing. This has subclasses

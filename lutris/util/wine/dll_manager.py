@@ -7,6 +7,7 @@ from gettext import gettext as _
 
 from lutris import settings
 from lutris.api import get_runtime_versions
+from lutris.exceptions import MissingRuntimeComponentError
 from lutris.util import system
 from lutris.util.extract import extract_archive
 from lutris.util.http import download_file
@@ -96,8 +97,13 @@ class DLLManager:
         """Path to local folder containing DLLs"""
         version = self.version
         if not version:
-            raise RuntimeError(
-                "No path can be generated for %s because no version information is available." % self.human_name
+            raise MissingRuntimeComponentError(
+                _(
+                    "The '%s' runtime component is not installed; "
+                    "visit the Updates tab in the Preferences dialog to install it."
+                )
+                % self.human_name,
+                component_name=self.name,
             )
         return os.path.join(self.base_dir, version)
 
