@@ -21,6 +21,7 @@ from lutris.gui.dialogs.cache import CacheConfigurationDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.installer.files_box import InstallerFilesBox
 from lutris.gui.installer.script_picker import InstallerPicker
+from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.navigation_stack import NavigationStack
@@ -34,6 +35,9 @@ from lutris.util.log import get_log_contents, logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import human_size
 from lutris.util.system import is_removeable
+
+INSTALLATION_FAILED = NotificationSource()
+INSTALLATION_COMPLETED = NotificationSource()
 
 
 class MarkupLabel(Gtk.Label):
@@ -253,6 +257,12 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         if self.interpreter:
             self.interpreter.cleanup()  # still remove temporary downloads in any case
+
+        if self.interpreter and not self.install_in_progress:
+            INSTALLATION_COMPLETED.fire()
+        else:
+            INSTALLATION_FAILED.fire()
+
         self.destroy()
 
     def on_source_clicked(self, _button):
