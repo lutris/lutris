@@ -150,6 +150,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.installer_files_box.connect("files-ready", self.on_files_ready)
 
         self.log_buffer = Gtk.TextBuffer()
+        self.error_details_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, no_show_all=True)
         self.error_details_buffer = Gtk.TextBuffer()
         self.error_reporter = self.load_error_page
 
@@ -859,14 +860,19 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def present_error_page(self, error: BaseException) -> None:
         self.set_status(str(error))
 
-        formatted = traceback.format_exception(type(error), error, error.__traceback__)
-        formatted = "\n".join(formatted).strip()
+        is_expected = hasattr(error, "is_expected") and error.is_expected
 
-        log = get_log_contents()
-        if log:
-            formatted = f"{formatted}\n\nLutris log:\n{log}".strip()
+        if is_expected:
+            formatted = traceback.format_exception(type(error), error, error.__traceback__)
+            formatted = "\n".join(formatted).strip()
 
-        self.error_details_buffer.set_text(formatted)
+            log = get_log_contents()
+            if log:
+                formatted = f"{formatted}\n\nLutris log:\n{log}".strip()
+
+            self.error_details_buffer.set_text(formatted)
+
+        self.error_details_box.set_visible(not is_expected)
 
         self.stack.present_page("error")
         self.display_cancel_button()
@@ -881,7 +887,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
             clipboard.set_text(text, -1)
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        error_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+
         label = Gtk.Label(xalign=0.0, wrap=True)
         label.set_markup(
             _(
@@ -891,7 +898,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
                 "<a href='https://discordapp.com/invite/Pnt5CuY'>Discord</a>."
             )
         )
-        box.pack_start(label, False, False, 0)
+        self.error_details_box.pack_start(label, False, False, 0)
+
         frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
 
         details_textview = Gtk.TextView(editable=False, buffer=self.error_details_buffer)
@@ -899,13 +907,14 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         scrolledwindow = Gtk.ScrolledWindow()
         scrolledwindow.add(details_textview)
         frame.add(scrolledwindow)
-        box.pack_start(frame, True, True, 0)
+        self.error_details_box.pack_start(frame, True, True, 0)
+        error_box.pack_start(self.error_details_box, True, True, 0)
 
         copy_button = Gtk.Button(_("Copy Details to Clipboard"), halign=Gtk.Align.START)
-        box.pack_end(copy_button, False, True, 0)
+        error_box.pack_end(copy_button, False, True, 0)
         copy_button.connect("clicked", on_copy_clicked)
 
-        return box
+        return error_box
 
     # Finished Page
     #

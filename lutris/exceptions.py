@@ -9,6 +9,7 @@ class LutrisError(Exception):
     def __init__(self, message, *args, **kwarg):
         super().__init__(message, *args, **kwarg)
         self.message = message
+        self.is_expected = False
 
 
 class MissingRuntimeComponentError(LutrisError):
@@ -17,6 +18,7 @@ class MissingRuntimeComponentError(LutrisError):
     def __init__(self, message, component_name, *args, **kwarg):
         super().__init__(message, *args, **kwarg)
         self.component_name = component_name
+        self.is_expected = True
 
 
 class MisconfigurationError(LutrisError):
