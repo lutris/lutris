@@ -9,9 +9,17 @@ from lutris.util.log import logger
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.xdgshortcuts import get_xdg_entry
 
-DESKTOP_KEYS = ["Desktop", "Personal", "My Music", "My Videos", "My Pictures"]
-DEFAULT_DESKTOP_FOLDERS = ["Desktop", "Documents", "Music", "Videos", "Pictures"]
-DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES"]
+DESKTOP_KEYS = [
+    "Desktop",
+    "Personal",
+    "My Music",
+    "My Videos",
+    "My Pictures",
+    "{374DE290-123F-4565-9164-39C4925E467B}",  # Downloads
+    "Templates",
+]
+DEFAULT_DESKTOP_FOLDERS = ["Desktop", "Documents", "Music", "Videos", "Pictures", "Downloads"]
+DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES", "DOWNLOADS"]
 DEFAULT_DLL_OVERRIDES = {
     "winemenubuilder": "",
 }
