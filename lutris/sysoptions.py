@@ -426,16 +426,6 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "section": _("Game execution"),
-        "option": "override_system_locale",
-        "type": "bool",
-        "default": False,
-        "advanced": True,
-        "conditional_on": "locale",
-        "label": _("Override system locale"),
-        "help": _("Use the locale defined above in priority to any system value, whenever possible."),
-    },
-    {
-        "section": _("Game execution"),
         "option": "prefix_command",
         "type": "string",
         "label": _("Command prefix"),
