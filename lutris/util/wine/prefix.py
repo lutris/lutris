@@ -164,7 +164,7 @@ class WinePrefixManager:
         folders in your home directory."""
         user_dir = self.user_dir
         home_dir = os.path.expanduser("~")
-        current_dir = self._get_desktop_integration_assignment() or user_dir
+        current_dir = self._get_desktop_integration_assignment()
 
         if system.path_exists(user_dir, check_symlinks=True) and current_dir != home_dir:
             desktop_folders = self.get_desktop_folders()
@@ -188,7 +188,7 @@ class WinePrefixManager:
     def remove_desktop_integration(self):
         """Replace the desktop integration links with proper folders."""
         user_dir = self.user_dir
-        current_dir = self._get_desktop_integration_assignment() or user_dir
+        current_dir = self._get_desktop_integration_assignment()
 
         if system.path_exists(user_dir) and current_dir != user_dir:
             desktop_folders = self.get_desktop_folders()
