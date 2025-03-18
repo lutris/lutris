@@ -5,12 +5,15 @@ import locale
 from lutris.config import LutrisConfig
 from lutris.util.log import logger
 
+
 def get_locale_override():
     """Get a tuple of overridden user locale and encoding values if set"""
     config = LutrisConfig(level="system")
-    if config.system_config.get('override_system_locale', False) and config.system_config.get('locale'):
-        user_locale, _user_encoding = config.system_config.get('locale').split('.')
-        return (user_locale, _user_encoding.replace('utf8', 'UTF8'))
+    if config.system_config.get(
+        "override_system_locale", False
+    ) and config.system_config.get("locale"):
+        user_locale, _user_encoding = config.system_config.get("locale").split(".")
+        return (user_locale, _user_encoding.replace("utf8", "UTF8"))
     return (None, None)
 
 
