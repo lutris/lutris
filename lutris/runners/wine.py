@@ -4,7 +4,7 @@
 import os
 import shlex
 from gettext import gettext as _
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Callable
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
@@ -143,6 +143,46 @@ def _get_dxvk_version_warning(_option_key: str, config: LutrisConfig) -> Optiona
                 )
 
     return None
+
+
+def _get_dlls_proton_warning(dlls_type: str, check_proton: bool = True) -> Callable[[str, LutrisConfig], Optional[str]]:
+    """Creates a warning checker for specific DLL types.
+
+    Args:
+        dlls_type: Type of DLLs to check ("dxvk", "nvapi", or "vkd3d")
+        check_proton: Whether to check for Proton compatibility warnings (False for pre-Proton)
+
+    Returns:
+        A function that checks for warnings based on the provided parameters
+    """
+    version_key = {"dxvk": "dxvk_version", "nvapi": "dxvk_nvapi_version", "vkd3d": "vkd3d_version"}.get(dlls_type)
+    if not version_key:
+        return lambda *_: None
+
+    def check_warnings(_option_key: str, config: LutrisConfig) -> Optional[str]:
+        try:
+            if not config or not config.runner_config:
+                return None
+
+            runner_config = config.runner_config
+            proton_warning = None
+
+            # Only check for Proton warnings if check_proton is True
+            if check_proton and runner_config.get(version_key) != "manual":
+                proton_warning = _("<b>Warning</b> Not using default %s DLLs of Proton") % dlls_type
+
+            if dlls_type == "dxvk":
+                vulkan_warning = get_dxvk_version_warning(_option_key, config)
+                # Return both warnings if both exist
+                return (f"{proton_warning}\n{vulkan_warning}" if proton_warning and vulkan_warning else
+                        proton_warning or vulkan_warning)
+
+            return proton_warning
+
+        except Exception:
+            return None
+
+    return check_warnings
 
 
 def _get_esync_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
@@ -310,19 +350,17 @@ class wine(Runner):
             "label": _("DXVK version"),
             "advanced": True,
             "type": "choice_with_entry",
-            "visible": _is_pre_proton,
             "condition": LINUX_SYSTEM.is_vulkan_supported(),
             "conditional_on": "dxvk",
             "choices": lambda: DXVKManager().version_choices,
-            "default": lambda: DXVKManager().version,
-            "warning": _get_dxvk_version_warning,
+            "default": "manual" if _is_pre_proton else lambda: DXVKManager().version,
+            "warning": _get_dlls_proton_warning("dxvk",_is_pre_proton),
         },
         {
             "option": "vkd3d",
             "section": _("Graphics"),
             "label": _("Enable VKD3D"),
             "type": "bool",
-            "visible": _is_pre_proton,
             "error": lambda k, c: _get_simple_vulkan_support_error(k, c, _("VKD3D")),
             "default": True,
             "active": True,
@@ -336,11 +374,11 @@ class wine(Runner):
             "label": _("VKD3D version"),
             "advanced": True,
             "type": "choice_with_entry",
-            "visible": _is_pre_proton,
             "condition": LINUX_SYSTEM.is_vulkan_supported(),
             "conditional_on": "vkd3d",
             "choices": lambda: VKD3DManager().version_choices,
-            "default": lambda: VKD3DManager().version,
+            "default": "manual" if _is_pre_proton else lambda: VKD3DManager().version,
+            "warring": _get_dlls_proton_warning("vkd3d",_is_pre_proton),
         },
         {
             "option": "d3d_extras",
@@ -374,7 +412,6 @@ class wine(Runner):
             "error": lambda k, c: _get_simple_vulkan_support_error(k, c, _("DXVK-NVAPI / DLSS")),
             "default": True,
             "advanced": True,
-            "visible": _is_pre_proton,
             "help": _("Enable emulation of Nvidia's NVAPI and add DLSS support, if available."),
         },
         {
@@ -383,10 +420,10 @@ class wine(Runner):
             "label": _("DXVK NVAPI version"),
             "advanced": True,
             "conditional_on": "dxvk_nvapi",
-            "visible": _is_pre_proton,
             "type": "choice_with_entry",
             "choices": lambda: DXVKNVAPIManager().version_choices,
-            "default": lambda: DXVKNVAPIManager().version,
+            "default": "manual" if _is_pre_proton else lambda: DXVKNVAPIManager().version,
+            "warning": _get_dlls_proton_warning("nvapi",_is_pre_proton),
         },
         {
             "option": "dgvoodoo2",
