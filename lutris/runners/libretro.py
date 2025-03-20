@@ -123,14 +123,11 @@ class libretro(Runner):
         return ""
 
     def get_core_path(self, core):
-        """Return the path of a core, prioritizing Retroarch cores"""
-        lutris_cores_folder = os.path.join(self.directory, "cores")
-        retroarch_core_folder = os.path.join(os.path.expanduser("~/.config/retroarch/cores"))
+        """Return the path of a core from libretro's runner only"""
+        lutris_cores_folder = get_default_config_path("cores")
         core_filename = "{}_libretro.so".format(core)
-        retroarch_core = os.path.join(retroarch_core_folder, core_filename)
-        if system.path_exists(retroarch_core):
-            return retroarch_core
-        return os.path.join(lutris_cores_folder, core_filename)
+        lutris_core = os.path.join(lutris_cores_folder, core_filename)
+        return lutris_core
 
     def get_version(self, use_default=True):
         return self.game_config["core"]
@@ -254,7 +251,7 @@ class libretro(Runner):
                 required_firmware_filename = retro_config["firmware%d_path" % index]
                 required_firmware_path = os.path.join(system_path, required_firmware_filename)
                 required_firmware_name = required_firmware_filename.split("/")[-1]
-                required_firmware_checksum = checksums.get(required_firmware_filename)
+                required_firmware_checksum = checksums.get(required_firmware_name)
                 if system.path_exists(required_firmware_path):
                     if required_firmware_checksum:
                         checksum = system.get_md5_hash(required_firmware_path)
