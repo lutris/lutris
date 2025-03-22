@@ -12,7 +12,7 @@ The tests should be run on any of these systems (32 or 64bit):
     - Fedora current
     - Debian testing or sid (stable isn't supported officially)
     - Archlinux
-Any other distrution is good but is not a requirement.
+Any other distribution is good but is not a requirement.
 
 0. Take note of your testing config
 
@@ -27,7 +27,6 @@ Write down the following:
 
 * Move lutris settings.
 
-mv ~/.config/lutris ~/.config/lutris.bak
 mv ~/.cache/lutris ~/.cache/lutris.bak
 mv ~/.local/share/lutris ~/.local/share/lutris.bak
 
@@ -60,8 +59,8 @@ Scenario 1: Launching Lutris
 - You can find a lutris icon in your menu/launcher (Unity dash, GS launcher,
   XFCE main menu, ...) in the games category
 - When clicking the interface loads with no complains
-- After the UI has been opened, there should be ~/.config/lutris,
-  ~/.cache/lutris and ~/.local/share/lutris directories
+- After the UI has been opened, there should be ~/.cache/lutris
+  and ~/.local/share/lutris directories
 
 Scenario 2: Installing teeworlds from the website (64bit only ATM)
 - Using Chrome or Chromium open http://lutris.net/games/teeworlds/
