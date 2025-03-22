@@ -1,8 +1,8 @@
 import os
 
 from lutris.database.games import get_games
+from lutris.settings import CONFIG_DIR
 
-CONFIG_DIR = os.path.expanduser("~/.config/lutris/games")
 
 config_paths = set()
 for dbgame in get_games():
