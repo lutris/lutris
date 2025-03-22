@@ -3,7 +3,6 @@ import os
 from lutris.database.games import get_games
 from lutris.settings import CONFIG_DIR
 
-
 config_paths = set()
 for dbgame in get_games():
     config_paths.add(dbgame["configpath"] + ".yml")
