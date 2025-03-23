@@ -40,7 +40,7 @@ installer has finished.
 The configuration for a game is constructed from its installer. The `files` and
 `installer` sections are removed from the script, some variables such as
 $GAMEDIR are substituted and the results is saved in:
-~/.config/lutris/games/<game>-<timestamp>.yml.
+~/.local/share/lutris/games/<game>-<timestamp>.yml.
 
 Published installers can be accessed from a command line by using the ``lutris:``
 URL prefix followed by the installer slug.
