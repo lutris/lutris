@@ -35,6 +35,7 @@ class Downloader:
         self.referer = referer
         self.stop_request = None
         self.thread = None
+        self.url_is_file = url.startswith("file://")
 
         # Read these after a check_progress()
         self.state = self.INIT
@@ -125,29 +126,56 @@ class Downloader:
         if os.path.isfile(self.dest):
             os.remove(self.dest)
 
-    def async_download(self):
-        try:
-            headers = requests.utils.default_headers()
-            headers["User-Agent"] = "Lutris/%s" % __version__
-            if self.referer:
-                headers["Referer"] = self.referer
-            response = requests.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
-            if response.status_code != 200:
-                logger.info("%s returned a %s error", self.url, response.status_code)
-            response.raise_for_status()
-            self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
-            self.progress_event.set()
-            for chunk in response.iter_content(chunk_size=8192):
-                if not self.file_pointer:
-                    break
+    @staticmethod
+    def seq_local_copy(src, chunk_size):
+        with open(src, "rb") as file:
+            for chunk in iter(lambda: file.read(chunk_size), ""):
                 if chunk:
-                    self.downloaded_size += len(chunk)
-                    self.file_pointer.write(chunk)
+                    yield chunk
+                else:
+                    break
+
+    def async_download(self):
+        if self.url_is_file:
+            try:
+                localfile = self.url.replace("file://", "")
+                self.full_size = os.path.getsize(localfile)
+                for chunk in self.seq_local_copy(localfile, 8192):
+                    if not self.file_pointer:
+                        break
+                    if isinstance(chunk, bytes):
+                        self.downloaded_size += len(chunk)
+                        self.file_pointer.write(chunk)
+                    self.progress_event.set()
+                self.on_download_completed()
+            except Exception as ex:
+                logger.exception("Local copy failed: %s", ex)
+                self.on_download_failed(ex)
+        else:
+            try:
+                headers = requests.utils.default_headers()
+                headers["User-Agent"] = "Lutris/%s" % __version__
+                if self.referer:
+                    headers["Referer"] = self.referer
+                rsession = requests.Session()
+                response = rsession.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
+
+                if response.status_code != 200:
+                    logger.info("%s returned a %s error", self.url, response.status_code)
+                response.raise_for_status()
+                self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
                 self.progress_event.set()
-            self.on_download_completed()
-        except Exception as ex:
-            logger.exception("Download failed: %s", ex)
-            self.on_download_failed(ex)
+                for chunk in response.iter_content(chunk_size=8192):
+                    if not self.file_pointer:
+                        break
+                    if chunk:
+                        self.downloaded_size += len(chunk)
+                        self.file_pointer.write(chunk)
+                    self.progress_event.set()
+                self.on_download_completed()
+            except Exception as ex:
+                logger.exception("Download failed: %s", ex)
+                self.on_download_failed(ex)
 
     def on_download_failed(self, error: Exception):
         # Cancelling closes the file, which can result in an
