@@ -135,47 +135,53 @@ class Downloader:
                 else:
                     break
 
+    def async_download_local(self):
+        try:
+            localfile = self.url.replace("file://", "")
+            self.full_size = os.path.getsize(localfile)
+            for chunk in self.seq_local_copy(localfile, 8192):
+                if not self.file_pointer:
+                    break
+                if isinstance(chunk, bytes):
+                    self.downloaded_size += len(chunk)
+                    self.file_pointer.write(chunk)
+                self.progress_event.set()
+            self.on_download_completed()
+        except Exception as ex:
+            logger.exception("Local copy failed: %s", ex)
+            self.on_download_failed(ex)
+
+    def async_download_remote(self):
+        try:
+            headers = requests.utils.default_headers()
+            headers["User-Agent"] = "Lutris/%s" % __version__
+            if self.referer:
+                headers["Referer"] = self.referer
+            rsession = requests.Session()
+            response = rsession.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
+
+            if response.status_code != 200:
+                logger.info("%s returned a %s error", self.url, response.status_code)
+            response.raise_for_status()
+            self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
+            self.progress_event.set()
+            for chunk in response.iter_content(chunk_size=8192):
+                if not self.file_pointer:
+                    break
+                if chunk:
+                    self.downloaded_size += len(chunk)
+                    self.file_pointer.write(chunk)
+                self.progress_event.set()
+            self.on_download_completed()
+        except Exception as ex:
+            logger.exception("Download failed: %s", ex)
+            self.on_download_failed(ex)
+
     def async_download(self):
         if self.url_is_file:
-            try:
-                localfile = self.url.replace("file://", "")
-                self.full_size = os.path.getsize(localfile)
-                for chunk in self.seq_local_copy(localfile, 8192):
-                    if not self.file_pointer:
-                        break
-                    if isinstance(chunk, bytes):
-                        self.downloaded_size += len(chunk)
-                        self.file_pointer.write(chunk)
-                    self.progress_event.set()
-                self.on_download_completed()
-            except Exception as ex:
-                logger.exception("Local copy failed: %s", ex)
-                self.on_download_failed(ex)
+            self.async_download_local()
         else:
-            try:
-                headers = requests.utils.default_headers()
-                headers["User-Agent"] = "Lutris/%s" % __version__
-                if self.referer:
-                    headers["Referer"] = self.referer
-                rsession = requests.Session()
-                response = rsession.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
-
-                if response.status_code != 200:
-                    logger.info("%s returned a %s error", self.url, response.status_code)
-                response.raise_for_status()
-                self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
-                self.progress_event.set()
-                for chunk in response.iter_content(chunk_size=8192):
-                    if not self.file_pointer:
-                        break
-                    if chunk:
-                        self.downloaded_size += len(chunk)
-                        self.file_pointer.write(chunk)
-                    self.progress_event.set()
-                self.on_download_completed()
-            except Exception as ex:
-                logger.exception("Download failed: %s", ex)
-                self.on_download_failed(ex)
+            self.async_download_remote()
 
     def on_download_failed(self, error: Exception):
         # Cancelling closes the file, which can result in an
