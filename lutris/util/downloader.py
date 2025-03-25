@@ -142,9 +142,8 @@ class Downloader:
             for chunk in self.seq_local_copy(localfile, 8192):
                 if not self.file_pointer:
                     break
-                if isinstance(chunk, bytes):
-                    self.downloaded_size += len(chunk)
-                    self.file_pointer.write(chunk)
+                self.downloaded_size += len(chunk)
+                self.file_pointer.write(chunk)
                 self.progress_event.set()
             self.on_download_completed()
         except Exception as ex:
@@ -157,9 +156,7 @@ class Downloader:
             headers["User-Agent"] = "Lutris/%s" % __version__
             if self.referer:
                 headers["Referer"] = self.referer
-            rsession = requests.Session()
-            response = rsession.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
-
+            response = requests.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
             if response.status_code != 200:
                 logger.info("%s returned a %s error", self.url, response.status_code)
             response.raise_for_status()
