@@ -2,6 +2,7 @@ import bisect
 import os
 import threading
 import time
+import urllib
 from typing import Any
 
 import requests
@@ -35,7 +36,7 @@ class Downloader:
         self.referer = referer
         self.stop_request = None
         self.thread = None
-        self.url_is_file = url.startswith("file://")
+        self.url_is_file = urllib.parse.urlparse(self.url).scheme == 'file'
 
         # Read these after a check_progress()
         self.state = self.INIT
@@ -137,7 +138,7 @@ class Downloader:
 
     def async_download_local(self):
         try:
-            localfile = self.url.replace("file://", "")
+            localfile = urllib.parse.unquote(urllib.parse.urlparse(self.url).path)
             self.full_size = os.path.getsize(localfile)
             for chunk in self.seq_local_copy(localfile, 8192):
                 if not self.file_pointer:
