@@ -36,7 +36,7 @@ class Downloader:
         self.referer = referer
         self.stop_request = None
         self.thread = None
-        self.url_is_file = urllib.parse.urlparse(self.url).scheme == 'file'
+        self.url_is_file = urllib.parse.urlparse(self.url).scheme == "file"
 
         # Read these after a check_progress()
         self.state = self.INIT
