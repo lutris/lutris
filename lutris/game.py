@@ -569,6 +569,7 @@ class Game:
             logger.warning("Command %s not found", command_array[0])
             return
         env = self.game_runtime_config["env"]
+        env["LUTRIS_RUNNER_SYSTEM_CONFIG"] = json.dumps(self.runner.system_config)
         if wait_for_completion:
             logger.info("Prelauch command: %s, waiting for completion", prelaunch_command)
             # Monitor the prelaunch command and wait until it has finished
