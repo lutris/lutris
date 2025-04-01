@@ -208,11 +208,10 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
     def gamemode_available(self):
         """Return whether gamemode is available"""
-        # Current versions of gamemode use gamemoderun
+        if missing_arch := self.get_missing_lib_arch("GAMEMODE"):
+            logger.warning("Missing libgamemode arch: %s", missing_arch)
+
         if system.can_find_executable("gamemoderun"):
-            return True
-        # This is for old versions of gamemode only
-        if self.is_feature_supported("GAMEMODE"):
             return True
         return False
 
