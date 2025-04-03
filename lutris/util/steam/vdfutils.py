@@ -27,7 +27,7 @@ def vdf_parse(steam_config_file, config):
                 break
             line = line[:-1] + nextline
         if any(k in line for k in ['"AccountName"', '"PersonaName"']):
-            line = line.replace('\\"', '')
+            line = line.replace('\\"', "")
         line_elements = line.strip().split('"')
         if len(line_elements) == 3:
             key = line_elements[1]
