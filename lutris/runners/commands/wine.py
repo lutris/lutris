@@ -6,6 +6,7 @@ import shlex
 import time
 
 from lutris import runtime, settings
+from lutris.exceptions import SymlinkNotUsableError
 from lutris.monitored_command import MonitoredCommand
 from lutris.runners import import_runner
 from lutris.util import linux, system
@@ -108,6 +109,12 @@ def create_prefix(
 
     # Follow symlinks, don't delete existing ones as it would break some setups
     if os.path.islink(prefix):
+        try:
+            _ = os.stat(prefix)
+        except FileNotFoundError:
+            raise SymlinkNotUsableError(
+                message=f"Link {prefix} couldn't be used, please check permissions or broken link.", link=prefix
+            )
         prefix = os.readlink(prefix)
 
     # Avoid issue of 64bit Wine refusing to create win32 prefix
