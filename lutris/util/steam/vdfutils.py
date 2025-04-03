@@ -10,12 +10,14 @@ def vdf_parse(steam_config_file, config):
     while line:
         try:
             line = steam_config_file.readline()
+
         except UnicodeDecodeError:
             logger.error(
                 "Error while reading Steam VDF file %s. Returning %s",
                 steam_config_file,
                 config,
             )
+
             return config
         if not line or line.strip() == "}":
             return config
@@ -24,7 +26,8 @@ def vdf_parse(steam_config_file, config):
             if not nextline:
                 break
             line = line[:-1] + nextline
-
+        if any(k in line for k in ['"AccountName"', '"PersonaName"']):
+            line = line.replace('\\"', '')
         line_elements = line.strip().split('"')
         if len(line_elements) == 3:
             key = line_elements[1]
