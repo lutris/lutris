@@ -46,7 +46,7 @@ from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION, DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
-from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, ExtractIcon
+from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, IconExtractor
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
@@ -1001,7 +1001,7 @@ class wine(Runner):
         }
         for key, path in self.reg_keys.items():
             value = self.runner_config.get(key) or "auto"
-            if not value or value == "auto" and key not in managed_keys:
+            if not value or (value == "auto" and key not in managed_keys):
                 prefix_manager.clear_registry_subkeys(path, key)
             elif key in self.runner_config:
                 if key in managed_keys:
@@ -1324,29 +1324,14 @@ class wine(Runner):
             if not exe or os.path.exists(pathtoicon) or not PEFILE_AVAILABLE:
                 return False
 
-            extractor = ExtractIcon(self.game_exe)
-            groups = extractor.get_group_icons()
+            extractor = IconExtractor(exe)
 
-            if not groups:
-                return False
+            icon = extractor.get_best_icon()
 
-            icons = []
-            biggestsize = (0, 0)
-            biggesticon = -1
-            for i in range(len(groups[0])):
-                icons.append(extractor.export(groups[0], i))
-                if icons[i].size > biggestsize:
-                    biggesticon = i
-                    biggestsize = icons[i].size
-                elif icons[i].size == wantedsize:
-                    icons[i].save(pathtoicon)
-                    return True
-
-            if biggesticon >= 0:
-                resized = icons[biggesticon].resize(wantedsize)
-                resized.save(pathtoicon)
-                return True
-            return False
+            if not icon.size == wantedsize:
+                icon = icon.resize(wantedsize)
+            icon.save(pathtoicon)
+            return True
         except Exception as ex:
             logger.exception("Unable to extract icon from %s: %s", exe, ex)
             return False
