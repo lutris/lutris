@@ -177,15 +177,14 @@ class LutrisConfig:
 
     def merge_to_system_config(self, config):
         """Merge a configuration to the system configuration"""
-        if not config:
-            return
-        existing_env = None
-        if self.system_config.get("env") and "env" in config:
-            existing_env = self.system_config["env"]
-        self.system_config.update(config)
-        if existing_env:
-            self.system_config["env"] = existing_env
-            self.system_config["env"].update(config["env"])
+        if config:
+            existing_env = None
+            if self.system_config.get("env") and "env" in config:
+                existing_env = self.system_config["env"]
+            self.system_config.update(config)
+            if existing_env:
+                self.system_config["env"] = existing_env
+                self.system_config["env"].update(config["env"])
 
         # Don't save env items where the key is empty; this would crash when used.
         if "env" in self.system_config:
