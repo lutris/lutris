@@ -187,6 +187,9 @@ class LutrisConfig:
             self.system_config["env"] = existing_env
             self.system_config["env"].update(config["env"])
 
+        # Don't save env have key is empty
+        self.system_config["env"] = {k: v for k, v in self.system_config["env"].items() if k}
+
     def update_raw_config(self):
         # Select the right level of config
         if self.level == "game":
