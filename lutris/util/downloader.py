@@ -3,6 +3,7 @@ import os
 import threading
 import time
 from typing import Any
+from requests_file import FileAdapter
 
 import requests
 
@@ -35,6 +36,7 @@ class Downloader:
         self.referer = referer
         self.stop_request = None
         self.thread = None
+        self.url_is_file = url.startswith("file://")
 
         # Read these after a check_progress()
         self.state = self.INIT
@@ -131,11 +133,18 @@ class Downloader:
             headers["User-Agent"] = "Lutris/%s" % __version__
             if self.referer:
                 headers["Referer"] = self.referer
-            response = requests.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
+            rsession = requests.Session()
+            if self.url_is_file:
+                rsession.mount("file://", FileAdapter())
+            response = rsession.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
             if response.status_code != 200:
                 logger.info("%s returned a %s error", self.url, response.status_code)
             response.raise_for_status()
-            self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
+            if self.url_is_file:
+                # requests_file FileAdapter returns an int, no casting necessary
+                self.full_size = response.headers.get("Content-Length", "") or 0
+            else:
+                self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
             self.progress_event.set()
             for chunk in response.iter_content(chunk_size=8192):
                 if not self.file_pointer:
