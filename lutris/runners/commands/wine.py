@@ -125,13 +125,20 @@ def create_prefix(
 
     logger.info("Winepath: %s", wine_path)
 
-    wineenv = {
-        "WINEARCH": arch,
-        "WINEPREFIX": prefix,
-        "WINEDLLOVERRIDES": get_overrides_env(overrides),
-        "WINE_MONO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "mono"),
-        "WINE_GECKO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "gecko"),
-    }
+    if runner:
+        wineenv = runner.system_config.get("env") or {}
+    else:
+        wineenv = {}
+
+    wineenv.update(
+        {
+            "WINEARCH": arch,
+            "WINEPREFIX": prefix,
+            "WINEDLLOVERRIDES": get_overrides_env(overrides),
+            "WINE_MONO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "mono"),
+            "WINE_GECKO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "gecko"),
+        }
+    )
 
     if install_gecko == "False":
         wineenv["WINE_SKIP_GECKO_INSTALLATION"] = "1"
