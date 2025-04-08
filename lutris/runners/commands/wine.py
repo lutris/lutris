@@ -118,18 +118,15 @@ def create_prefix(
         except OSError:
             logger.error("Failed to delete %s, you may lack permissions on this folder.", prefix)
 
+    if not runner:
+        runner = import_runner("wine")(prefix=prefix, wine_arch=arch)
+
     if not wine_path:
-        if not runner:
-            runner = import_runner("wine")()
         wine_path = runner.get_executable()
 
     logger.info("Winepath: %s", wine_path)
 
-    if runner:
-        wineenv = runner.system_config.get("env") or {}
-    else:
-        wineenv = {}
-
+    wineenv = runner.system_config.get("env") or {}
     wineenv.update(
         {
             "WINEARCH": arch,
