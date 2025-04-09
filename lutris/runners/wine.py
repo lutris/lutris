@@ -16,6 +16,7 @@ from lutris.exceptions import (
     MisconfigurationError,
     MissingExecutableError,
     MissingGameExecutableError,
+    SymlinkNotUsableError,
     UnspecifiedVersionError,
 )
 from lutris.game import Game
@@ -1052,6 +1053,11 @@ class wine(Runner):
 
         prefix_path = self.prefix_path
         if prefix_path:
+            if os.path.islink(prefix_path) and not os.path.exists(prefix_path):
+                raise SymlinkNotUsableError(
+                    message=f"Link {prefix_path} couldn't be used, please check permissions or broken link.",
+                    link=prefix_path,
+                )
             if not system.path_exists(os.path.join(prefix_path, "user.reg")):
                 logger.warning("No valid prefix detected in %s, creating one...", prefix_path)
                 create_prefix(prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
