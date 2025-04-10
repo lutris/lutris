@@ -8,7 +8,8 @@ from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
 
-VER_STR = "azahar-2120.2-linux-appimage"
+REL_STR = "2120.2"
+VER_STR = f"azahar-{REL_STR}-linux-appimage"
 
 
 class azahar(Runner):
@@ -17,7 +18,7 @@ class azahar(Runner):
     description = _("Nintendo 3DS Emulator")
     runnable_alone = True
     runner_executable = f"azahar/{VER_STR}/azahar.AppImage"
-    download_url = f"https://github.com/azahar-emu/azahar/releases/download/2120.2/{VER_STR}.tar.gz"
+    download_url = f"https://github.com/azahar-emu/azahar/releases/download/{REL_STR}/{VER_STR}.tar.gz"
 
     # Azahar uses an AppImage, runtime causes QT  platform plugins issues.
     system_options_override = [{"option": "disable_runtime", "default": True}]
