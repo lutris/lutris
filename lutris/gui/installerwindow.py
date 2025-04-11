@@ -158,7 +158,24 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.error_details_buffer = Gtk.TextBuffer()
         self.error_reporter = self.load_error_page
 
-        self.load_choose_installer_page()
+        application = Gio.Application.get_default()
+        if application and application.window and not application.window.download_queue.is_empty:
+            download_queue = application.window.download_queue
+
+            def on_start_installation(*args):
+                self.load_choose_installer_page()
+                download_queue.disconnect(dc_handler)
+
+            self.load_spinner_page("Waiting for Lutris component installation")
+            self.display_continue_button(on_start_installation)
+
+            def on_download_complete(*args):
+                if download_queue.is_empty:
+                    on_start_installation()
+
+            dc_handler = download_queue.connect("download-completed", on_download_complete)
+        else:
+            self.load_choose_installer_page()
 
         # And... go!
         self.show_all()
