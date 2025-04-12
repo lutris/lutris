@@ -576,8 +576,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         self.set_status(
             _(
-                "This game has extra content. \nSelect which one you want and "
-                "they will be available in the 'extras' folder where the game is installed."
+                "This game has extra content\n"
+                "<small>Select which one you want and "
+                "they will be available in the 'extras' folder where the game is installed.</small>"
             )
         )
         self.stack.present_page("extras")
