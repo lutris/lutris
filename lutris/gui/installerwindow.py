@@ -34,7 +34,7 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import get_log_contents, logger
 from lutris.util.steam import shortcut as steam_shortcut
-from lutris.util.strings import human_size
+from lutris.util.strings import gtk_safe, human_size
 from lutris.util.system import is_removeable
 
 INSTALLATION_FAILED = NotificationSource()
@@ -336,7 +336,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         GLib.idle_add(self.error_reporter, error)
 
     def report_status(self, status):
-        GLib.idle_add(self.set_status, status)
+        GLib.idle_add(self.set_status, gtk_safe(status))
 
     def attach_log(self, command):
         # Hook the log buffer right now, lest we miss updates.
@@ -356,7 +356,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         GLib.idle_add(self.load_input_menu_page, alias, options, preselect, callback)
 
     def report_finished(self, game_id, status):
-        GLib.idle_add(self.load_finish_install_page, game_id, status)
+        GLib.idle_add(self.load_finish_install_page, game_id, gtk_safe(status))
 
     # Choose Installer Page
     #
@@ -764,7 +764,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self.error_reporter = saved_reporter
 
         def on_error(error):
-            self.set_status(str(error))
+            self.set_status(gtk_safe(error))
 
         saved_reporter = self.error_reporter
         self.error_reporter = on_error
@@ -896,7 +896,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.cancel_button.grab_focus()
 
     def present_error_page(self, error: BaseException) -> None:
-        self.set_status(str(error))
+        self.set_status(gtk_safe(str(error)))
 
         is_expected = hasattr(error, "is_expected") and error.is_expected
 
