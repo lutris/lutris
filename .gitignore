@@ -19,6 +19,10 @@ tests/coverage/*
 /flake.nix
 /flake.lock
 
+# direnv
+/.direnv
+.envrc
+
 # meson builddirs
 builddir
 
@@ -38,3 +42,4 @@ env
 
 # glade recovery files
 *.ui~
+
