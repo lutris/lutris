@@ -185,25 +185,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "help": _("display additional diagnostic information."),
             "default": False,
             "advanced": True,
-        },
-        {
-            "option": "log",
-            "type": "bool",
-            "section": _("Debugging"),
-            "label": _("Log"),
-            "help": _("generate an error.log file."),
-            "default": False,
-            "advanced": True,
-        },
-        {
-            "option": "oslog",
-            "type": "bool",
-            "section": _("Debugging"),
-            "label": _("OSLog"),
-            "help": _("output error.log data to system diagnostic output (debugger or standard error)"),
-            "default": False,
-            "advanced": True,
-        },
+        }
         {
             "option": "video",
             "type": "choice",
@@ -345,11 +327,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             command += ["-nounevenstretch"]
 
         if self.runner_config.get("verbose"):
-            command += ["-verbose"]
-        if self.runner_config.get("log"):
-            command += ["-log"]
-        if self.runner_config.get("verbose"):
-            command += ["-oslog"]
+            command += ["-verbose", "-oslog", "-log"]
 
         if self.game_config.get("machine"):
             rompath = self.runner_config.get("rompath")
