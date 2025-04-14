@@ -184,6 +184,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "label": _("Verbose"),
             "help": _("display additional diagnostic information."),
             "default": False,
+            "advanced": True,
         },
         {
             "option": "log",
@@ -192,6 +193,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "label": _("Log"),
             "help": _("generate an error.log file."),
             "default": False,
+            "advanced": True,
         },
         {
             "option": "oslog",
@@ -200,6 +202,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "label": _("OSLog"),
             "help": _("output error.log data to system diagnostic output (debugger or standard error)"),
             "default": False,
+            "advanced": True,
         },
         {
             "option": "video",
