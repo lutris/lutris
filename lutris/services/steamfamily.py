@@ -8,8 +8,8 @@ import requests
 
 from lutris import settings
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
-from lutris.util.log import logger
 from lutris.services.steam import SteamGame, SteamService
+from lutris.util.log import logger
 from lutris.util.steam.config import get_active_steamid64, get_steam_library
 
 
