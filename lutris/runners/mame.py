@@ -185,7 +185,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "help": _("display additional diagnostic information."),
             "default": False,
             "advanced": True,
-        }
+        },
         {
             "option": "video",
             "type": "choice",
