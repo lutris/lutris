@@ -8,7 +8,7 @@ from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
 
-REL_STR = "2120.2"
+REL_STR = "2120.3"
 VER_STR = f"azahar-{REL_STR}-linux-appimage"
 
 
