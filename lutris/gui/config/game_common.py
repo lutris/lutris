@@ -3,8 +3,10 @@
 # pylint: disable=not-an-iterable
 import os.path
 import shutil
+import uuid
 from gettext import gettext as _
 
+import requests
 from gi.repository import GdkPixbuf, Gtk, Pango
 
 from lutris import runners, settings
@@ -291,9 +293,19 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         banner_box.set_column_spacing(12)
         banner_box.set_row_spacing(4)
 
-        self._create_image_button(banner_box, "coverart_big", _("Set custom cover art"), _("Remove custom cover art"), _("Download custom cover art"))
-        self._create_image_button(banner_box, "banner", _("Set custom banner"), _("Remove custom banner"), _("Download custom banner"))
-        self._create_image_button(banner_box, "icon", _("Set custom icon"), _("Remove custom icon"), _("Download custom icon"))
+        self._create_image_button(
+            banner_box,
+            "coverart_big",
+            _("Set custom cover art"),
+            _("Remove custom cover art"),
+            _("Download custom cover art"),
+        )
+        self._create_image_button(
+            banner_box, "banner", _("Set custom banner"), _("Remove custom banner"), _("Download custom banner")
+        )
+        self._create_image_button(
+            banner_box, "icon", _("Set custom icon"), _("Remove custom icon"), _("Download custom icon")
+        )
 
         return banner_box
 
@@ -736,7 +748,39 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.refresh_image(image_type)
 
     def on_custom_image_download_clicked(self, _widget, image_type):
-        pass
+        dialog = UrlDialog(self)
+        response = dialog.run()
+
+        if response != Gtk.ResponseType.OK:
+            dialog.destroy()
+            return
+
+        url = dialog.get_url()
+        dialog.destroy()
+
+        file_id = uuid.uuid4()
+        tmp_file = os.path.join(settings.TMP_DIR, f"download-{file_id}.tmp")
+        logger.info(f"Downloading custom image from `{url}` to `{tmp_file}`")
+
+        def download():
+            with requests.get(url, stream=True) as r:
+                if not r.ok:
+                    logger.error(
+                        f"Request returned a status code that didn't indicate success: `{url}` (`{r.status_code}`)"
+                    )
+                    return
+                with open(tmp_file, "wb") as fp:
+                    for chunk in r.iter_content(chunk_size=8196):
+                        if chunk:
+                            fp.write(chunk)
+
+            self.save_custom_media(image_type, tmp_file)
+
+        def download_cb(_result, error):
+            if error:
+                raise error
+
+        AsyncCall(download, download_cb)
 
     def save_custom_media(self, image_type: str, image_path: str) -> None:
         slug = self.slug or self.game.slug
@@ -831,6 +875,24 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self._set_image(image_type, self.image_buttons[image_type])
             service_media = self.service_medias[image_type]
             service_media.run_system_update_desktop_icons()
+
+
+class UrlDialog(Gtk.Dialog):
+    def __init__(self, parent):
+        super().__init__(title=_("Enter URL"), transient_for=parent, flags=0)
+        self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK)
+
+        self.set_default_size(300, 100)
+
+        box = self.get_content_area()
+        self.entry = Gtk.Entry()
+        self.entry.set_placeholder_text("https://example.com/image.png")
+        box.add(self.entry)
+
+        self.show_all()
+
+    def get_url(self):
+        return self.entry.get_text()
 
 
 class RunnerMessageBox(WidgetWarningMessageBox):
