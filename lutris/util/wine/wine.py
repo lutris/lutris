@@ -117,7 +117,7 @@ def list_lutris_wine_versions() -> List[str]:
     versions = []
     for dirname in version_sort(os.listdir(WINE_DIR), reverse=True):
         try:
-            wine_path = get_wine_path_for_version(version=dirname)
+            wine_path = os.path.join(WINE_DIR, dirname, "bin/wine")
             if wine_path and os.path.isfile(wine_path):
                 versions.append(dirname)
         except MisconfigurationError:
