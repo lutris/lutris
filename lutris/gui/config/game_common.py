@@ -291,18 +291,18 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         banner_box.set_column_spacing(12)
         banner_box.set_row_spacing(4)
 
-        self._create_image_button(banner_box, "coverart_big", _("Set custom cover art"), _("Remove custom cover art"))
-        self._create_image_button(banner_box, "banner", _("Set custom banner"), _("Remove custom banner"))
-        self._create_image_button(banner_box, "icon", _("Set custom icon"), _("Remove custom icon"))
+        self._create_image_button(banner_box, "coverart_big", _("Set custom cover art"), _("Remove custom cover art"), _("Download custom cover art"))
+        self._create_image_button(banner_box, "banner", _("Set custom banner"), _("Remove custom banner"), _("Download custom banner"))
+        self._create_image_button(banner_box, "icon", _("Set custom icon"), _("Remove custom icon"), _("Download custom icon"))
 
         return banner_box
 
-    def _create_image_button(self, banner_box, image_type, image_tooltip, reset_tooltip):
+    def _create_image_button(self, banner_box, image_type, image_tooltip, reset_tooltip, download_tooltip):
         """This adds an image button and its reset button to the box given,
         and adds the image button to self.image_buttons for future reference."""
 
         image_button_container = Gtk.VBox()
-        reset_button_container = Gtk.HBox()
+        button_container = Gtk.HBox()
 
         image_button = Gtk.Button()
         self._set_image(image_type, image_button)
@@ -316,10 +316,17 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         reset_button.set_tooltip_text(reset_tooltip)
         reset_button.connect("clicked", self.on_custom_image_reset_clicked, image_type)
         reset_button.set_valign(Gtk.Align.CENTER)
-        reset_button_container.pack_start(reset_button, True, False, 0)
+        button_container.pack_start(reset_button, True, False, 0)
+
+        download_button = Gtk.Button.new_from_icon_name("web-browser-symbolic", Gtk.IconSize.MENU)
+        download_button.set_relief(Gtk.ReliefStyle.NONE)
+        download_button.set_tooltip_text(download_tooltip)
+        download_button.connect("clicked", self.on_custom_image_download_clicked, image_type)
+        download_button.set_valign(Gtk.Align.CENTER)
+        button_container.pack_end(download_button, True, False, 0)
 
         banner_box.add(image_button_container)
-        banner_box.attach_next_to(reset_button_container, image_button_container, Gtk.PositionType.BOTTOM, 1, 1)
+        banner_box.attach_next_to(button_container, image_button_container, Gtk.PositionType.BOTTOM, 1, 1)
 
         self.image_buttons[image_type] = image_button
 
@@ -727,6 +734,9 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
     def on_custom_image_reset_clicked(self, _widget, image_type):
         self.refresh_image(image_type)
+
+    def on_custom_image_download_clicked(self, _widget, image_type):
+        pass
 
     def save_custom_media(self, image_type: str, image_path: str) -> None:
         slug = self.slug or self.game.slug
