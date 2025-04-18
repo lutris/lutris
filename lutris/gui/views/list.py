@@ -24,6 +24,8 @@ from lutris.gui.views import (
     COL_SORTNAME,
     COL_YEAR,
     COLUMN_NAMES,
+    COL_MODIFIED_AT,
+    COL_MODIFIED_AT_TEXT,
 )
 from lutris.gui.views.base import GameView
 from lutris.gui.views.store import sort_func
@@ -70,6 +72,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_column(default_text_cell, _("Last Played"), COL_LASTPLAYED_TEXT, 120)
         self.set_column(default_text_cell, _("Play Time"), COL_PLAYTIME_TEXT, 100)
         self.set_column(default_text_cell, _("Installed At"), COL_INSTALLED_AT_TEXT, 120)
+        self.set_column(default_text_cell, _("Modified At"), COL_MODIFIED_AT_TEXT, 120)
 
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
 
@@ -84,6 +87,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_model(self.model)
         self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
         self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
+        self.set_sort_with_column(COL_MODIFIED_AT_TEXT, COL_MODIFIED_AT)
         self.set_sort_with_column(COL_PLAYTIME_TEXT, COL_PLAYTIME)
 
         if self.media_column:

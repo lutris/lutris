@@ -644,13 +644,28 @@
             <property name="can-focus">True</property>
             <property name="receives-default">False</property>
             <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'modified_at'</property>
+            <property name="text" translatable="yes">Modified At</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">8</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="action-name">win.view-sorting</property>
             <property name="action-target">'playtime'</property>
             <property name="text" translatable="yes">Play Time</property>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">8</property>
+            <property name="position">9</property>
           </packing>
         </child>
       </object>

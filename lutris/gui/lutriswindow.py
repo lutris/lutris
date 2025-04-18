@@ -44,6 +44,8 @@ from lutris.gui.views import (
     COL_PLAYTIME_TEXT,
     COL_SORTNAME,
     COL_YEAR,
+    COL_MODIFIED_AT,
+    COL_MODIFIED_AT_TEXT,
 )
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
@@ -444,6 +446,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 return set([COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT])
             elif self.view_sorting == "playtime":
                 return set([COL_PLAYTIME, COL_PLAYTIME_TEXT])
+            elif self.view_sorting == "modified_at":
+                return set([COL_MODIFIED_AT, COL_MODIFIED_AT_TEXT])
 
         return set()
 
@@ -464,6 +468,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "lastplayed": 0.0,
             "installed_at": 0.0,
             "playtime": 0.0,
+            "modified_at": 0.0,
         }
 
         def get_sort_default(item):
@@ -625,7 +630,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def combine_games(service_game, lutris_game):
         """Inject lutris game information into a service game"""
         if lutris_game and service_game["appid"] == lutris_game["service_id"]:
-            for field in ("platform", "runner", "installed_at", "lastplayed", "playtime", "installed"):
+            for field in ("platform", "runner", "installed_at", "lastplayed", "playtime", "installed", "modified_at"):
                 service_game[field] = lutris_game[field]
             service_game["year"] = service_game["year"] if "year" in service_game else lutris_game["year"]
         return service_game
