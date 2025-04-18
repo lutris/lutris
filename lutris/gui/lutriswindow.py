@@ -39,13 +39,13 @@ from lutris.gui.views import (
     COL_INSTALLED_AT_TEXT,
     COL_LASTPLAYED,
     COL_LASTPLAYED_TEXT,
+    COL_MODIFIED_AT,
+    COL_MODIFIED_AT_TEXT,
     COL_NAME,
     COL_PLAYTIME,
     COL_PLAYTIME_TEXT,
     COL_SORTNAME,
     COL_YEAR,
-    COL_MODIFIED_AT,
-    COL_MODIFIED_AT_TEXT,
 )
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView

@@ -20,6 +20,8 @@ from . import (
     COL_LASTPLAYED,
     COL_LASTPLAYED_TEXT,
     COL_MEDIA_PATHS,
+    COL_MODIFIED_AT,
+    COL_MODIFIED_AT_TEXT,
     COL_NAME,
     COL_PLATFORM,
     COL_PLAYTIME,
@@ -29,8 +31,6 @@ from . import (
     COL_SLUG,
     COL_SORTNAME,
     COL_YEAR,
-    COL_MODIFIED_AT,
-    COL_MODIFIED_AT_TEXT,
 )
 
 

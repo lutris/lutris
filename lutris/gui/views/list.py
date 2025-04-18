@@ -16,6 +16,8 @@ from lutris.gui.views import (
     COL_LASTPLAYED,
     COL_LASTPLAYED_TEXT,
     COL_MEDIA_PATHS,
+    COL_MODIFIED_AT,
+    COL_MODIFIED_AT_TEXT,
     COL_NAME,
     COL_PLATFORM,
     COL_PLAYTIME,
@@ -24,8 +26,6 @@ from lutris.gui.views import (
     COL_SORTNAME,
     COL_YEAR,
     COLUMN_NAMES,
-    COL_MODIFIED_AT,
-    COL_MODIFIED_AT_TEXT,
 )
 from lutris.gui.views.base import GameView
 from lutris.gui.views.store import sort_func
