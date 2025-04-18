@@ -138,7 +138,9 @@ def get_games_by_slug(slug):
 
 def add_game(**game_data):
     """Add a game to the database."""
-    game_data["installed_at"] = int(time.time())
+    now = int(time.time())
+    game_data["installed_at"] = now
+    game_data["modified_at"] = now
     if "slug" not in game_data:
         game_data["slug"] = slugify(game_data["name"])
     return sql.db_insert(settings.DB_PATH, "games", game_data)
@@ -177,6 +179,7 @@ def update_existing(**params):
     game_id = get_matching_game(params)
     if game_id:
         params["id"] = game_id
+        params["modified_at"] = int(time.time())
         sql.db_update(settings.DB_PATH, "games", params, {"id": game_id})
         return game_id
     return None
