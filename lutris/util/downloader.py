@@ -1,5 +1,6 @@
 import bisect
 import os
+import io
 import threading
 import time
 from typing import Any
@@ -25,9 +26,9 @@ class Downloader:
     Stop with cancel().
     """
 
-    (INIT, DOWNLOADING, CANCELLED, ERROR, COMPLETED) = list(range(5))
+    (INIT, DOWNLOADING, SPEEDTEST, CANCELLED, ERROR, COMPLETED) = list(range(6))
 
-    def __init__(self, url: str, dest: str, overwrite: bool = False, referer: str = None, cookies: Any = None) -> None:
+    def __init__(self, url: str, dest: str, overwrite: bool = False, referer: str = None, cookies: Any = None, speedtest = False) -> None:
         self.url: str = url
         self.dest: str = dest
         self.cookies = cookies
@@ -35,6 +36,14 @@ class Downloader:
         self.referer = referer
         self.stop_request = None
         self.thread = None
+
+        # Speedtest mode writes to memory for more accurate results and less disk I/O
+        # In this mode the COMPLETED state will be reached once get_speed determines a value, not when the download is complete
+        # To check if a tiny file has been fully downloaded anyway (given 'dest' has been set), file_completed() has to be called
+        self.speedtest = speedtest
+        if speedtest: 
+            self.memfile = io.BytesIO()
+            self.start_time = get_time()
 
         # Read these after a check_progress()
         self.state = self.INIT
@@ -57,13 +66,23 @@ class Downloader:
         return "downloader for %s" % self.url
 
     def start(self):
-        """Start download job."""
-        logger.debug("⬇ %s", self.url)
-        self.state = self.DOWNLOADING
+        """Start download or speedtest job."""
+        if self.speedtest:
+            logger.debug("📶 %s", self.url)
+            self.state = self.SPEEDTEST
+        else:
+            if not self.dest: 
+                logger.exception("Downloader class called in download mode without a destination file, Aborting. URL: %s", self.url)
+                self.state = self.ERROR
+                self.error = "No destination file provided"
+                return
+            logger.debug("⬇ %s", self.url)
+            self.state = self.DOWNLOADING
         self.last_check_time = get_time()
         if self.overwrite and os.path.isfile(self.dest):
             os.remove(self.dest)
-        self.file_pointer = open(self.dest, "wb")  # pylint: disable=consider-using-with
+        if self.dest: 
+            self.file_pointer = open(self.dest, "wb")  # pylint: disable=consider-using-with
         self.thread = jobs.AsyncCall(self.async_download, None)
         self.stop_request = self.thread.stop_request
 
@@ -89,7 +108,7 @@ class Downloader:
 
         blocking: if true and still downloading, block until some progress is made.
         :return: progress (between 0.0 and 1.0)"""
-        if blocking and self.state in [self.INIT, self.DOWNLOADING] and self.progress_fraction < 1.0:
+        if blocking and self.state in [self.INIT, self.DOWNLOADING, self.SPEEDTEST] and self.progress_fraction < 1.0:
             self.progress_event.wait()
             self.progress_event.clear()
 
@@ -104,7 +123,7 @@ class Downloader:
         proceeds, if given, and is passed the downloader itself.
 
         Returns True on success, False if cancelled."""
-        while self.state == self.DOWNLOADING:
+        while self.state in [self.DOWNLOADING, self.SPEEDTEST]:
             self.check_progress(blocking=True)
             if progress_callback:
                 progress_callback(self)
@@ -115,13 +134,16 @@ class Downloader:
 
     def cancel(self):
         """Request download stop and remove destination file."""
-        logger.debug("❌ %s", self.url)
+        logger.debug("❌ Cancelled download: %s", self.url)
         self.state = self.CANCELLED
         if self.stop_request:
             self.stop_request.set()
         if self.file_pointer:
             self.file_pointer.close()
             self.file_pointer = None
+        if self.speedtest:
+            self.memfile.close()
+            self.memfile = None
         if os.path.isfile(self.dest):
             os.remove(self.dest)
 
@@ -137,14 +159,28 @@ class Downloader:
             response.raise_for_status()
             self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
             self.progress_event.set()
-            for chunk in response.iter_content(chunk_size=8192):
-                if not self.file_pointer:
-                    break
-                if chunk:
-                    self.downloaded_size += len(chunk)
-                    self.file_pointer.write(chunk)
-                self.progress_event.set()
-            self.on_download_completed()
+
+            if self.state == self.DOWNLOADING:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if not self.file_pointer:
+                        break
+                    if chunk:
+                        self.downloaded_size += len(chunk)
+                        self.file_pointer.write(chunk)
+                    self.progress_event.set()
+                self.on_download_completed()
+
+            elif self.state == self.SPEEDTEST:
+                for chunk in response.iter_content(chunk_size=1024):
+                    if chunk:
+                        self.downloaded_size += len(chunk)
+                        self.memfile.write(chunk)
+                    if get_time() - self.start_time > 1:
+                        self.average_speed = self.downloaded_size / (get_time() - self.start_time)
+                        break
+                    self.progress_event.set()
+                self.on_speedtest_completed(not chunk)
+                
         except Exception as ex:
             logger.exception("Download failed: %s", ex)
             self.on_download_failed(ex)
@@ -163,7 +199,7 @@ class Downloader:
         if self.state == self.CANCELLED:
             return
 
-        logger.debug("Finished downloading %s", self.url)
+        logger.debug("✔⬇ Finished downloading %s", self.url)
         if not self.downloaded_size:
             logger.warning("Downloaded file is empty")
 
@@ -173,6 +209,22 @@ class Downloader:
         self.state = self.COMPLETED
         self.file_pointer.close()
         self.file_pointer = None
+
+    def on_speedtest_completed(self, download_completed = False):
+        if self.state == self.CANCELLED:
+            return
+        
+        logger.debug("✔📶 %s KB/s for %s", f"{(self.average_speed / 1_000):.1f}", self.url)
+        if self.file_pointer and download_completed:
+            self.memfile.close()
+            self.file_pointer.write(self.memfile.getvalue())
+            self.memfile = None
+            self.on_download_completed()
+        self.progress_fraction = 1.0    # Not technically true, but we don't want to show a progress bar for speedtests anyway
+        self.progress_percentage = 100
+        self.progress_event.set()
+        self.state = self.COMPLETED
+
 
     def get_stats(self):
         """Calculate and store download stats."""

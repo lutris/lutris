@@ -2,6 +2,7 @@ from gi.repository import GObject, Gtk
 
 from lutris.gui.installer.file_box import InstallerFileBox
 from lutris.util.log import logger
+from lutris.util.jobs import AsyncCall
 
 
 class InstallerFilesBox(Gtk.ListBox):
@@ -120,3 +121,20 @@ class InstallerFilesBox(Gtk.ListBox):
         for installer_file in self.installer.files:
             files.update(installer_file.get_dest_files_by_id())
         return files
+
+    def speedtest(self):
+        """Begin speedtest on all files sequentially and update the UI"""
+        domains = {}
+        def iter_files():
+            for file_id, file_entry in self.installer_files_boxes.items():
+                if file_id not in self.available_files:
+                    if file_entry.provider == "download":
+                        if file_entry.installer_file.domain in domains: # Makes sure we only run speedtest once per domain
+                            file_entry.installer_file.speed = domains[file_entry.installer_file.domain]
+                            file_entry.replace_file_provider_widget()
+                        else:
+                            file_entry.replace_file_provider_widget(processing = True) # Display Spinner
+                            file_entry.installer_file.run_speedtest()
+                            file_entry.replace_file_provider_widget() # Display Result
+                            domains[file_entry.installer_file.domain] = file_entry.installer_file.speed
+        AsyncCall(iter_files, None)

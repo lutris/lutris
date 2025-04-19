@@ -35,6 +35,7 @@ class InstallerFileBox(Gtk.VBox):
         self.set_margin_right(12)
         self.provider = self.installer_file.default_provider
         self.file_provider_widget = None
+        self.spinner_widget = None
         self.add(self.get_widgets())
 
     @property
@@ -113,19 +114,28 @@ class InstallerFileBox(Gtk.VBox):
         combobox.set_active_id(self.provider)
         return combobox
 
-    def replace_file_provider_widget(self):
-        """Replace the file provider label and the source button with the actual widget"""
+    def replace_file_provider_widget(self, processing = False):
+        """
+        Replace the file provider label and the source button with the actual widget.
+        Set processing to True to add a spinner to the widget.
+        """
         self.file_provider_widget.destroy()
+        if self.spinner_widget: self.spinner_widget.destroy()
         widget_box = self.get_children()[0]
         if self.started:
             self.file_provider_widget = self.get_file_provider_widget()
+            self.spinner_widget = self.get_spinner_widget()
             # Also remove the the source button
             for child in widget_box.get_children():
                 child.destroy()
         else:
             self.file_provider_widget = self.get_file_provider_label()
+            self.spinner_widget = self.get_spinner_widget()
+        if processing:
+            widget_box.pack_start(self.spinner_widget, False, False, 0)
         widget_box.pack_start(self.file_provider_widget, True, True, 0)
         widget_box.reorder_child(self.file_provider_widget, 0)
+        widget_box.reorder_child(self.spinner_widget, 1)
         widget_box.show_all()
 
     def on_source_changed(self, combobox):
@@ -179,6 +189,14 @@ class InstallerFileBox(Gtk.VBox):
         combobox = self.get_combobox()
         source_box.pack_start(combobox, False, False, 0)
         return box
+
+    def get_spinner_widget(self, size = 24):
+        """ Returns a standard GTK Spinner"""
+        spinner = Gtk.Spinner()
+        spinner.set_size_request(size, size)
+        spinner.start()
+        spinner.hides_when_stopped = True
+        return spinner
 
     def on_location_changed(self, widget):
         """Open a file picker when the browse button is clicked"""

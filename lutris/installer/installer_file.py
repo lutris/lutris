@@ -1,6 +1,7 @@
 """Manipulates installer files"""
 
 import os
+import io
 from gettext import gettext as _
 from typing import Optional
 from urllib.parse import urlparse
@@ -12,6 +13,7 @@ from lutris.util import system
 from lutris.util.downloader import Downloader
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe_urls
+from lutris.util.jobs import AsyncCall
 
 
 class InstallerFile:
@@ -19,6 +21,8 @@ class InstallerFile:
 
     def __init__(self, game_slug, file_id, file_meta):
         self.game_slug = game_slug
+        self.speedtest = None # Gets instantiated by run_speedtest() if needed
+        self.speed = None  # None if never done, False if failed, otherwise speed in bytes/s
         self.id = file_id.replace("-", "_")  # pylint: disable=invalid-name
         self._file_meta = file_meta
         self._dest_file_override = None  # Used to override the destination
@@ -59,6 +63,54 @@ class InstallerFile:
             self._file_meta["url"] = url
         else:
             self._file_meta = url
+
+    @property
+    def domain(self):
+        """Return the domain the file is hosted on, if applicable"""
+        if self.url.startswith("http"):
+            parsed = urlparse(self.url)
+            return parsed.netloc
+
+    @property
+    def speed_human_readable(self):
+        """Return speed as a string in a more human-readable format."""
+        if self.speed is None:
+            return None
+        elif self.speed < 1_000:
+            return f"{self.speed:.1f}" + " B/s"
+        elif self.speed < 1_000_000:
+            return f"{self.speed / 1_000:.1f} KB/s"
+        elif self.speed < 1_000_000_000:
+            return f"{self.speed / 1_000_000:.1f} MB/s"
+        else:
+            return f"{self.speed / 1_000_000_000:.1f} GB/s"
+
+    def run_speedtest(self, result_callback = None):
+        """
+        Run a speedtest on the URL. Returns the average speed in bytes per second, or False if the speedtest failed or isn't applicable to the file provider.
+        This is a blocking call unless result_callback is provided. If provided this function will instead return True.
+        """
+        if self.url.startswith("http"):
+            self.speedtest = Downloader(self.url, dest = None, overwrite = False, referer = self.referer, speedtest = True)
+            self.speedtest.start()
+            if callable(result_callback):
+                AsyncCall(self.speedtest.join, _async)
+                return True
+            else:    
+                if self.speedtest.join() == True:
+                   self.speed = self.speedtest.average_speed
+                else:
+                    self.speed = False
+            return self.speed
+        return False
+
+        def _async(self, successful):
+            if successful:
+                self.speed = self.speedtest.average_speed
+                result_callback(self.speed)
+            else:
+                self.speed = False
+                result_callback(False)
 
     @property
     def filename(self):
@@ -158,8 +210,9 @@ class InstallerFile:
         """Return a human readable label for installer files"""
         url = self.url
         if url.startswith("http"):
-            parsed = urlparse(url)
-            label = _("{file} on {host}").format(file=self.filename, host=parsed.netloc)
+            label = _("{file} on {host}").format(file=self.filename, host=self.domain)
+            if self.speed: 
+                label += " (%s)" % self.speed_human_readable
         elif url.startswith("N/A"):
             label = url[3:].lstrip(":")
         else:
