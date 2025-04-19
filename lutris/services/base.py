@@ -317,7 +317,6 @@ class BaseService:
             service_installers.extend(installers)
         if not service_installers:
             logger.error("No installer found for %s", db_game)
-            return
         return service_installers, db_game, None
 
     def install(self, db_game, update=False):
