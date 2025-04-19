@@ -15,7 +15,9 @@ except ValueError:
     gi.require_version("WebKit2", "4.0")
 from gi.repository import WebKit2
 
+from lutris.config import LutrisConfig
 from lutris.gui.dialogs import ModalDialog
+from lutris.util.log import logger
 
 
 class WebConnectDialog(ModalDialog):
@@ -24,7 +26,26 @@ class WebConnectDialog(ModalDialog):
     def __init__(self, service: "OnlineService", parent=None):
         service.is_login_in_progress = True
 
-        self.context = WebKit2.WebContext.new()
+        self.context: WebKit2.WebContext = WebKit2.WebContext.new()
+
+        # Set locale
+        # Locale fallback routine:
+        # Lutris locale -> System environment locale -> US English
+        webview_locales = ["en_US"]
+        lutris_config = LutrisConfig()
+        environment_locale_lang = os.environ.get("LANG")
+        if environment_locale_lang:
+            webview_locales = [environment_locale_lang.split(".")[0]] + webview_locales
+        lutris_locale = lutris_config.system_config.get("locale")
+        if lutris_locale:
+            webview_locales = [lutris_locale.split(".")[0]] + webview_locales
+        logger.debug(
+            f"Webview locale fallback order: "
+            f"[Lutris locale]: '{lutris_locale}' -> "
+            f"[env: LANG]: '{environment_locale_lang}' -> "
+            f"[Default]: '{webview_locales[-1]}'"
+        )
+        self.context.set_preferred_languages(webview_locales)
 
         if "http_proxy" in os.environ:
             proxy = WebKit2.NetworkProxySettings.new(os.environ["http_proxy"])

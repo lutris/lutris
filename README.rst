@@ -51,7 +51,7 @@ This token is stored in ``~/.cache/lutris/auth-token``.
 Configuration files
 ===================
 
-* ``~/.config/lutris``: The client, runners, and game configuration files
+* ``~/.local/share/lutris``: The client, runners, and game configuration files
 
    There is no need to manually edit these files as everything should be done from the client.
 
@@ -63,14 +63,6 @@ Configuration files
 
 * ``games/*.yml``: Game-specific configurations
 
-Game-specific configurations overwrite runner-specific configurations, which in
-turn overwrite the system configuration.
-
-Runners and the game database
-=============================
-
-``~/.local/share/lutris``: All data necessary to manage Lutris' library and games, including:
-
 * ``pga.db``: An SQLite database tracking the game library, game installation status, various file locations, and some additional metadata
 
 * ``runners/*``: Runners downloaded from `lutris.net <https://lutris.net>`_
@@ -78,6 +70,9 @@ Runners and the game database
 * ``banners/*.jpg``: Game banners
 
 ``~/.local/share/icons/hicolor/128x128/apps/lutris_*.png``: Game icons
+
+Game-specific configurations overwrite runner-specific configurations, which in
+turn overwrite the system configuration.
 
 Command line options
 ====================

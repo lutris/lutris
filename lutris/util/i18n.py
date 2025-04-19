@@ -2,10 +2,20 @@
 
 import locale
 
+from lutris.config import LutrisConfig
 from lutris.util.log import logger
 
 
 def get_user_locale():
+    """Get locale for the user, based on global options, else try system locale"""
+    config = LutrisConfig(level="system")
+    if config.system_config.get("locale"):
+        try:
+            user_locale, _user_encoding = config.system_config["locale"].split(".")
+            return user_locale
+        except ValueError:  # If '.' is not found
+            return config.system_config["locale"]
+
     user_locale, _user_encoding = locale.getlocale()
     if not user_locale:
         logger.error("Unable to get locale")

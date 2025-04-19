@@ -129,9 +129,10 @@ def get_proton_versions() -> Dict[str, str]:
     for proton_path in _iter_proton_locations():
         if os.path.isdir(proton_path):
             for version in os.listdir(proton_path):
-                wine_path = os.path.join(proton_path, version)
-                if os.path.isfile(os.path.join(wine_path, "proton")):
-                    versions[version] = wine_path
+                if version not in versions:
+                    wine_path = os.path.join(proton_path, version)
+                    if os.path.isfile(os.path.join(wine_path, "proton")):
+                        versions[version] = wine_path
     return versions
 
 

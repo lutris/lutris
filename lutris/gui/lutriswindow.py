@@ -4,6 +4,7 @@
 # pylint: disable=no-member
 import os
 from collections import namedtuple
+from datetime import datetime
 from gettext import gettext as _
 from typing import Iterable, List, Set
 from urllib.parse import unquote, urlparse
@@ -465,36 +466,71 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "playtime": 0.0,
         }
 
+        def get_sort_default(item):
+            """Returns the default value to use when the value is missing; we may be able
+            to extract this from the item.."""
+            if self.view_sorting == "year" and self.service:
+                service_year = self.service.get_game_release_date(item)
+                service_year = convert_value(service_year)
+                if service_year:
+                    return service_year
+
+            # Users may have obsolete view_sorting settings, so
+            # we must tolerate them. We treat them all as blank.
+            return sort_defaults.get(self.view_sorting, "")
+
+        def convert_value(value):
+            """Converts 'value' to the type required for the sort that is in use. Returns None if this
+            can't be managed."""
+            try:
+                if not value:
+                    return None
+                if self.view_sorting == "name":
+                    return str(value)
+                if self.view_sorting == "year":
+                    # Years can take many forms! We'll try to convert as best we can.
+                    if isinstance(value, datetime):
+                        return int(value.year)
+                    else:
+                        try:
+                            return int(value)
+                        except ValueError:
+                            as_date = datetime.strptime(str(value), "%Y-%m-%d")
+                            return int(as_date.year)
+                else:
+                    return float(value)
+            except ValueError:
+                return None  # unable to parse value?
+
+        def extend_value(value):
+            """Expands the value to sort by to a more complex form, for smarter sorting."""
+            if self.view_sorting == "name":
+                return get_natural_sort_key(value)
+            if self.view_sorting == "year":
+                contains_year = bool(value)
+                if self.view_reverse_order:
+                    contains_year = not contains_year
+                return contains_year, value
+            return value
+
         def get_sort_value(item):
             db_game = resolver(item)
             if not db_game:
                 installation_flag = False
-                value = sort_defaults.get(self.view_sorting, "")
+                value = None
             else:
                 installation_flag = bool(db_game.get("installed"))
 
                 # When sorting by name, check for a valid sortname first, then fall back
                 # on name if valid sortname is not available.
-                sortname = db_game.get("sortname")
-                if self.view_sorting == "name" and sortname:
-                    value = sortname
+                if self.view_sorting == "name":
+                    value = db_game.get("sortname") or db_game.get("name")
                 else:
                     value = db_game.get(self.view_sorting)
 
-                if self.view_sorting == "name":
-                    value = get_natural_sort_key(value)
-            # Users may have obsolete view_sorting settings, so
-            # we must tolerate them. We treat them all as blank.
-            value = value or sort_defaults.get(self.view_sorting, "")
-            if self.view_sorting == "year":
-                if self.service:
-                    service_value = self.service.get_game_release_date(item)
-                    if service_value:
-                        value = service_value
-                contains_year = bool(value)
-                if self.view_reverse_order:
-                    contains_year = not contains_year
-                value = [contains_year, value]
+            value = convert_value(value) or get_sort_default(item)
+            value = extend_value(value)
+
             if self.view_sorting_installed_first:
                 # We want installed games to always be first, even in
                 # a descending sort.
@@ -502,7 +538,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                     installation_flag = not installation_flag
                 if self.view_sorting == "name":
                     installation_flag = not installation_flag
-                return [installation_flag, value]
+                return installation_flag, value
             return value
 
         reverse = self.view_reverse_order if self.view_sorting == "name" else not self.view_reverse_order

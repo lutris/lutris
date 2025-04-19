@@ -4,6 +4,7 @@
 import os
 import traceback
 from gettext import gettext as _
+from typing import List
 
 from gi.repository import Gdk, Gio, GLib, Gtk
 
@@ -21,6 +22,7 @@ from lutris.gui.dialogs.cache import CacheConfigurationDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.installer.files_box import InstallerFilesBox
 from lutris.gui.installer.script_picker import InstallerPicker
+from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.navigation_stack import NavigationStack
@@ -32,15 +34,18 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import get_log_contents, logger
 from lutris.util.steam import shortcut as steam_shortcut
-from lutris.util.strings import human_size
+from lutris.util.strings import gtk_safe, human_size
 from lutris.util.system import is_removeable
+
+INSTALLATION_FAILED = NotificationSource()
+INSTALLATION_COMPLETED = NotificationSource()
 
 
 class MarkupLabel(Gtk.Label):
     """Label for installer window"""
 
     def __init__(self, markup=None, **kwargs):
-        super().__init__(label=markup, use_markup=True, wrap=True, max_width_chars=80, **kwargs)
+        super().__init__(label=markup, use_markup=True, wrap=True, justify=Gtk.Justification.CENTER, **kwargs)
         self.set_alignment(0.5, 0)
 
 
@@ -156,12 +161,12 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.installer_files_box.connect("files-ready", self.on_files_ready)
 
         self.log_buffer = Gtk.TextBuffer()
+        self.error_details_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, no_show_all=True)
         self.error_details_buffer = Gtk.TextBuffer()
         self.error_reporter = self.load_error_page
 
-        self.load_choose_installer_page()
-
         # And... go!
+        self.load_first_page()
         self.show_all()
         self.present()
 
@@ -262,6 +267,12 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         if self.interpreter:
             self.interpreter.cleanup()  # still remove temporary downloads in any case
+
+        if self.interpreter and not self.install_in_progress:
+            INSTALLATION_COMPLETED.fire()
+        else:
+            INSTALLATION_FAILED.fire()
+
         self.destroy()
 
     def on_source_clicked(self, _button):
@@ -280,10 +291,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             display_error(error, parent=self)
             self.stack.navigation_reset()
 
-    def set_status(self, text):
+    def set_status(self, markup):
         """Display a short status text."""
-        self.status_label.set_text(text)
-        self.status_label.set_visible(bool(text))
+        self.status_label.set_markup(markup)
+        self.status_label.set_visible(bool(markup))
 
     def get_status(self):
         return self.status_label.get_text() if self.status_label.get_visible() else ""
@@ -298,6 +309,34 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.stack.add_named_factory("error", self.create_error_page)
         self.stack.add_named_factory("nothing", lambda *x: Gtk.Box())
 
+    def load_first_page(self) -> None:
+        # If we're downloading updates in the background, we'll
+        # put up a spinner page to wait until that's done. Installations can
+        # fail if Lutris components are missing, and users sometimes try to install
+        # a game just after their first Lutris startup. This should help.
+        application = Gio.Application.get_default()
+        if application and application.window and not application.window.download_queue.is_empty:
+            download_queue = application.window.download_queue
+
+            def on_start_installation(*args):
+                self.load_choose_installer_page()
+                download_queue.disconnect(dc_handler)
+
+            def on_download_complete(*args):
+                if download_queue.is_empty:
+                    on_start_installation()
+
+            dc_handler = download_queue.connect("download-completed", on_download_complete)
+            self.load_spinner_page(
+                _(
+                    "Waiting for Lutris component installation\n"
+                    "<small>Installations can fail if Lutris components are not installed first.</small>"
+                )
+            )
+            self.display_continue_button(on_start_installation)
+        else:
+            self.load_choose_installer_page()
+
     # Interpreter UI Delegate
     #
     # These methods are called from the ScriptInterpreter, and defer work until idle time
@@ -307,17 +346,17 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         GLib.idle_add(self.error_reporter, error)
 
     def report_status(self, status):
-        GLib.idle_add(self.set_status, status)
+        GLib.idle_add(self.set_status, gtk_safe(status))
 
     def attach_log(self, command):
         # Hook the log buffer right now, lest we miss updates.
         command.set_log_buffer(self.log_buffer)
         GLib.idle_add(self.load_log_page)
 
-    def begin_disc_prompt(self, message, requires, installer, callback):
+    def begin_disc_prompt(self, message_markup, requires, installer, callback):
         GLib.idle_add(
             self.load_ask_for_disc_page,
-            message,
+            message_markup,
             requires,
             installer,
             callback,
@@ -327,7 +366,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         GLib.idle_add(self.load_input_menu_page, alias, options, preselect, callback)
 
     def report_finished(self, game_id, status):
-        GLib.idle_add(self.load_finish_install_page, game_id, status)
+        GLib.idle_add(self.load_finish_install_page, game_id, gtk_safe(status))
 
     # Choose Installer Page
     #
@@ -547,8 +586,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         self.set_status(
             _(
-                "This game has extra content. \nSelect which one you want and "
-                "they will be available in the 'extras' folder where the game is installed."
+                "This game has extra content\n"
+                "<small>Select which one you want and "
+                "they will be available in the 'extras' folder where the game is installed.</small>"
             )
         )
         self.stack.present_page("extras")
@@ -697,7 +737,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     # Provides a generic progress spinner and displays a status. The back button
     # is disabled for this page.
 
-    def load_spinner_page(self, status, cancellable=True, extra_buttons=None):
+    def load_spinner_page(self, status: str, cancellable: bool = True, extra_buttons: List[Gtk.Button] = None) -> None:
         def present_spinner_page():
             """Show a spinner in the middle of the view"""
 
@@ -741,7 +781,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self.error_reporter = saved_reporter
 
         def on_error(error):
-            self.set_status(str(error))
+            self.set_status(gtk_safe(error))
 
         saved_reporter = self.error_reporter
         self.error_reporter = on_error
@@ -803,7 +843,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     # This page asks the user for a disc; it also has a callback used when
     # the user selects a disc. Again, this is summoned by the installer script.
 
-    def load_ask_for_disc_page(self, message, requires, installer, callback):
+    def load_ask_for_disc_page(self, message_markup, requires, installer, callback):
         def present_ask_for_disc_page():
             """Ask the user to do insert a CD-ROM."""
 
@@ -817,7 +857,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
                     self.load_error_page(err)
 
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-            label = MarkupLabel(message)
+            label = MarkupLabel(message_markup)
             vbox.pack_start(label, False, False, 0)
 
             buttons_box = Gtk.Box()
@@ -873,16 +913,21 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.cancel_button.grab_focus()
 
     def present_error_page(self, error: BaseException) -> None:
-        self.set_status(str(error))
+        self.set_status(gtk_safe(str(error)))
 
-        formatted = traceback.format_exception(type(error), error, error.__traceback__)
-        formatted = "\n".join(formatted).strip()
+        is_expected = hasattr(error, "is_expected") and error.is_expected
 
-        log = get_log_contents()
-        if log:
-            formatted = f"{formatted}\n\nLutris log:\n{log}".strip()
+        if is_expected:
+            formatted = traceback.format_exception(type(error), error, error.__traceback__)
+            formatted = "\n".join(formatted).strip()
 
-        self.error_details_buffer.set_text(formatted)
+            log = get_log_contents()
+            if log:
+                formatted = f"{formatted}\n\nLutris log:\n{log}".strip()
+
+            self.error_details_buffer.set_text(formatted)
+
+        self.error_details_box.set_visible(not is_expected)
 
         self.stack.present_page("error")
         self.display_cancel_button()
@@ -897,7 +942,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
             clipboard.set_text(text, -1)
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        error_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+
         label = Gtk.Label(xalign=0.0, wrap=True)
         label.set_markup(
             _(
@@ -907,7 +953,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
                 "<a href='https://discordapp.com/invite/Pnt5CuY'>Discord</a>."
             )
         )
-        box.pack_start(label, False, False, 0)
+        self.error_details_box.pack_start(label, False, False, 0)
+
         frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
 
         details_textview = Gtk.TextView(editable=False, buffer=self.error_details_buffer)
@@ -915,13 +962,14 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         scrolledwindow = Gtk.ScrolledWindow()
         scrolledwindow.add(details_textview)
         frame.add(scrolledwindow)
-        box.pack_start(frame, True, True, 0)
+        self.error_details_box.pack_start(frame, True, True, 0)
+        error_box.pack_start(self.error_details_box, True, True, 0)
 
         copy_button = Gtk.Button(_("Copy Details to Clipboard"), halign=Gtk.Align.START)
-        box.pack_end(copy_button, False, True, 0)
+        error_box.pack_end(copy_button, False, True, 0)
         copy_button.connect("clicked", on_copy_clicked)
 
-        return box
+        return error_box
 
     # Finished Page
     #

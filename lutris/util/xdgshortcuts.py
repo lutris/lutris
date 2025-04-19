@@ -29,6 +29,8 @@ def get_xdg_entry(directory):
         "PICTURES": GLib.UserDirectory.DIRECTORY_PICTURES,
         "VIDEOS": GLib.UserDirectory.DIRECTORY_VIDEOS,
         "DOCUMENTS": GLib.UserDirectory.DIRECTORY_DOCUMENTS,
+        "DOWNLOADS": GLib.UserDirectory.DIRECTORY_DOWNLOAD,
+        "TEMPLATES": GLib.UserDirectory.DIRECTORY_TEMPLATES,
     }
     directory = directory.upper()
     if directory not in special_dir:

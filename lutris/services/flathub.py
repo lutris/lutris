@@ -57,7 +57,7 @@ class FlathubService(BaseService):
     icon = "flathub"
     medias = {"banner": FlathubBanner}
     default_format = "banner"
-    api_url = "https://flathub.org/api/v2/category/game"
+    api_url = "https://flathub.org/api/v2/collection/category/game"
     cache_path = os.path.join(settings.CACHE_DIR, "flathub-library.json")
 
     branch = "stable"

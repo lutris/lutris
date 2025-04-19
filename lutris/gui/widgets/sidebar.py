@@ -481,7 +481,7 @@ class LutrisSidebar(Gtk.ListBox):
         self.add(
             SidebarRow(
                 ".uncategorized",
-                "category",
+                "dynamic_category",
                 _("Uncategorized"),
                 self.get_sidebar_icon("tag-symbolic", ["poi-marker", "favorite-symbolic"]),
             )

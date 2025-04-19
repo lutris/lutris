@@ -2,7 +2,7 @@
 Name=Lutris
 StartupWMClass=Lutris
 Comment=Video Game Preservation Platform
-Categories=Game;
+Categories=Game;PackageManager;
 Keywords=gaming;wine;emulator;
 Exec=lutris %U
 Icon=net.lutris.Lutris
