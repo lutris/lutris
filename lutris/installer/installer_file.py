@@ -12,7 +12,6 @@ from lutris.util import system
 from lutris.util.downloader import Downloader
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe_urls
-from lutris.util.jobs import AsyncCall
 
 
 class InstallerFile:
