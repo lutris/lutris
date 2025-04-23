@@ -1,6 +1,6 @@
 import bisect
-import os
 import io
+import os
 import threading
 import time
 from typing import Any
@@ -20,6 +20,7 @@ get_time = time.monotonic
 SPEEDTEST_DEFAULT_DURATION = 1.5
 SPEEDTEST_DEFAULT_CHUNK_SIZE = 1024
 
+
 class Downloader:
     """Non-blocking downloader.
 
@@ -30,7 +31,9 @@ class Downloader:
 
     (INIT, DOWNLOADING, SPEEDTEST, CANCELLED, ERROR, COMPLETED) = list(range(6))
 
-    def __init__(self, url: str, dest: str, overwrite: bool = False, referer: str = None, cookies: Any = None, speedtest = False) -> None:
+    def __init__(
+        self, url: str, dest: str, overwrite: bool = False, referer: str = None, cookies: Any = None, speedtest=False
+    ) -> None:
         self.url: str = url
         self.dest: str = dest
         self.cookies = cookies
@@ -43,7 +46,7 @@ class Downloader:
         # In this mode the COMPLETED state will be reached once get_speed determines a value, not when the download is complete
         # To check if a tiny file has been fully downloaded anyway (given 'dest' has been set), file_completed() has to be called
         self.speedtest = speedtest
-        if speedtest: 
+        if speedtest:
             self.memfile = io.BytesIO()
             self.start_time = get_time()
 
@@ -73,8 +76,10 @@ class Downloader:
             logger.debug("📶 %s", self.url)
             self.state = self.SPEEDTEST
         else:
-            if not self.dest: 
-                logger.exception("Downloader class called in download mode without a destination file, Aborting. URL: %s", self.url)
+            if not self.dest:
+                logger.exception(
+                    "Downloader class called in download mode without a destination file, Aborting. URL: %s", self.url
+                )
                 self.state = self.ERROR
                 self.error = "No destination file provided"
                 return
@@ -83,7 +88,7 @@ class Downloader:
         self.last_check_time = get_time()
         if self.overwrite and os.path.isfile(self.dest):
             os.remove(self.dest)
-        if self.dest: 
+        if self.dest:
             self.file_pointer = open(self.dest, "wb")  # pylint: disable=consider-using-with
         self.thread = jobs.AsyncCall(self.async_download, None)
         self.stop_request = self.thread.stop_request
@@ -184,7 +189,7 @@ class Downloader:
 
                 # There surely is a better way than checking the time twice, but for now it works
                 self.on_download_complete(get_time() - self.start_time <= SPEEDTEST_DEFAULT_DURATION)
-                
+
         except Exception as ex:
             logger.exception("Download failed: %s", ex)
             self.on_download_failed(ex)
@@ -199,7 +204,7 @@ class Downloader:
             self.file_pointer.close()
             self.file_pointer = None
 
-    def on_download_complete(self, file_completed = True):  # If file_completed is False we are in speedtest mode
+    def on_download_complete(self, file_completed=True):  # If file_completed is False we are in speedtest mode
         if self.state == self.CANCELLED:
             return
         if self.state == self.SPEEDTEST:

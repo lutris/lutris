@@ -685,11 +685,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.set_status(_("Please review the files needed for the installation then click 'Install'"))
         self.stack.present_page("installer_files")
         self.display_install_button(
-            self.on_files_confirmed, 
-            sensitive=self.installer_files_box.is_ready, 
-            extra_buttons=[self.speedtest_button if self.interpreter.installer.files else None, 
-                           self.source_button
-                           ]
+            self.on_files_confirmed,
+            sensitive=self.installer_files_box.is_ready,
+            extra_buttons=[self.speedtest_button if self.interpreter.installer.files else None, self.source_button],
         )
 
     def present_downloading_files_page(self):

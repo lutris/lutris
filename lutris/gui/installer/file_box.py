@@ -114,13 +114,14 @@ class InstallerFileBox(Gtk.VBox):
         combobox.set_active_id(self.provider)
         return combobox
 
-    def replace_file_provider_widget(self, processing = False):
+    def replace_file_provider_widget(self, processing=False):
         """
         Replace the file provider label and the source button with the actual widget.
         Set processing to True to add a spinner to the widget.
         """
         self.file_provider_widget.destroy()
-        if self.spinner_widget: self.spinner_widget.destroy()
+        if self.spinner_widget:
+            self.spinner_widget.destroy()
         widget_box = self.get_children()[0]
         if self.started:
             self.file_provider_widget = self.get_file_provider_widget()
@@ -190,8 +191,8 @@ class InstallerFileBox(Gtk.VBox):
         source_box.pack_start(combobox, False, False, 0)
         return box
 
-    def get_spinner_widget(self, size = 24):
-        """ Returns a standard GTK Spinner"""
+    def get_spinner_widget(self, size=24):
+        """Returns a standard GTK Spinner"""
         spinner = Gtk.Spinner()
         spinner.set_size_request(size, size)
         spinner.start()

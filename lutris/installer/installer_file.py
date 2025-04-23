@@ -19,7 +19,7 @@ class InstallerFile:
 
     def __init__(self, game_slug, file_id, file_meta):
         self.game_slug = game_slug
-        self.speedtest = None # Gets instantiated by run_speedtest() if needed
+        self.speedtest = None  # Gets instantiated by run_speedtest() if needed
         self.speed = None  # None if never done, False if failed, otherwise speed in bytes/s
         self.id = file_id.replace("-", "_")  # pylint: disable=invalid-name
         self._file_meta = file_meta
@@ -83,17 +83,17 @@ class InstallerFile:
         else:
             return f"{self.speed / 1_000_000_000:.1f} GB/s"
 
-    def run_speedtest(self, result_callback = None):
+    def run_speedtest(self, result_callback=None):
         """
-        Run a speedtest on the URL. Blocking call. 
+        Run a speedtest on the URL. Blocking call.
         Returns the average speed in bytes per second, or False if the speedtest failed or isn't applicable to the file provider.
         """
         if self.url.startswith("http"):
             self.prepare()
-            self.speedtest = Downloader(url = self.url, dest = self.download_file, referer = self.referer, speedtest = True)
+            self.speedtest = Downloader(url=self.url, dest=self.download_file, referer=self.referer, speedtest=True)
             self.speedtest.start()
             if self.speedtest.join() == True:
-               self.speed = self.speedtest.average_speed
+                self.speed = self.speedtest.average_speed
             else:
                 self.speed = False
             if self.speedtest.is_file_completed:
@@ -201,7 +201,7 @@ class InstallerFile:
         url = self.url
         if url.startswith("http"):
             label = _("{file} on {host}").format(file=self.filename, host=self.domain)
-            if not self.is_cached and self.speed: 
+            if not self.is_cached and self.speed:
                 label += " (%s)" % self.speed_human_readable
         elif url.startswith("N/A"):
             label = url[3:].lstrip(":")
