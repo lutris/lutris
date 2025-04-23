@@ -433,6 +433,7 @@ class OnlineService(BaseService):
     login_window_width = 390
     login_window_height = 500
     login_user_agent = settings.DEFAULT_USER_AGENT
+    redirect_uris = NotImplemented
 
     @property
     def credential_files(self):

@@ -88,7 +88,7 @@ class GOGService(OnlineService):
 
     client_id = "46899977096215655"
     client_secret = "9d85c43b1482497dbbce61f6e4aa173a433796eeae2ca8c5f6129f2dc4de46d9"
-    redirect_uri = "https://embed.gog.com/on_login_success?origin=client"
+    redirect_uris = ["https://embed.gog.com/on_login_success?origin=client"]
 
     login_success_url = "https://www.gog.com/on_login_success"
     cookies_path = os.path.join(settings.CACHE_DIR, ".gog.auth")
@@ -116,7 +116,7 @@ class GOGService(OnlineService):
         params = {
             "client_id": self.client_id,
             "layout": "client2",
-            "redirect_uri": self.redirect_uri,
+            "redirect_uri": self.redirect_uris[0],
             "response_type": "code",
         }
         return "https://auth.gog.com/auth?" + urlencode(params)
@@ -170,7 +170,7 @@ class GOGService(OnlineService):
                 return
             extra_params = {
                 "code": response_params["code"],
-                "redirect_uri": self.redirect_uri,
+                "redirect_uri": self.redirect_uris[0],
             }
 
         params = {

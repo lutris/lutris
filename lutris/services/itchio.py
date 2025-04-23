@@ -106,7 +106,7 @@ class ItchIoService(OnlineService):
 
     api_url = "https://api.itch.io"
     login_url = "https://itch.io/login"
-    redirect_uri = "https://itch.io/my-feed"
+    redirect_uris = ["https://itch.io/my-feed"]
     cookies_path = os.path.join(settings.CACHE_DIR, ".itchio.auth")
     cache_path = os.path.join(settings.CACHE_DIR, "itchio/api/")
 
