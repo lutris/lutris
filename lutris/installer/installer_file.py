@@ -1,7 +1,6 @@
 """Manipulates installer files"""
 
 import os
-import io
 from gettext import gettext as _
 from typing import Optional
 from urllib.parse import urlparse
