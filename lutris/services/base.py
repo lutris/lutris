@@ -457,12 +457,12 @@ class OnlineService(BaseService):
 
     @property
     def is_login_in_progress(self) -> bool:
-        """Set to true if the login process is underway; the credential files make be created at this
+        """Set to true if the login process is underway; the credential files may be created at this
         time, but that does not count as 'authenticated' until the login process is over. This is used
         by WebConnectDialog since it creates its cookies before the login is actually complete.
 
         This is recorded with a file in ~/.cache/lutris so it will persist across Lutris
-        restarted, just as the credentials themselves do. For this reason, we need to allow
+        restarts, just as the credentials themselves do. For this reason, we need to allow
         the user to login again even when a login is in progress."""
         return self._get_login_in_progress_path().exists()
 
