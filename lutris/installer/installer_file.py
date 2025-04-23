@@ -87,30 +87,22 @@ class InstallerFile:
 
     def run_speedtest(self, result_callback = None):
         """
-        Run a speedtest on the URL. Returns the average speed in bytes per second, or False if the speedtest failed or isn't applicable to the file provider.
-        This is a blocking call unless result_callback is provided. If provided this function will instead return True.
+        Run a speedtest on the URL. Blocking call. 
+        Returns the average speed in bytes per second, or False if the speedtest failed or isn't applicable to the file provider.
         """
         if self.url.startswith("http"):
-            self.speedtest = Downloader(self.url, dest = None, overwrite = False, referer = self.referer, speedtest = True)
+            self.prepare()
+            self.speedtest = Downloader(url = self.url, dest = self.download_file, referer = self.referer, speedtest = True)
             self.speedtest.start()
-            if callable(result_callback):
-                AsyncCall(self.speedtest.join, _async)
-                return True
-            else:    
-                if self.speedtest.join() == True:
-                   self.speed = self.speedtest.average_speed
-                else:
-                    self.speed = False
-            return self.speed
-        return False
-
-        def _async(self, successful):
-            if successful:
-                self.speed = self.speedtest.average_speed
-                result_callback(self.speed)
+            if self.speedtest.join() == True:
+               self.speed = self.speedtest.average_speed
             else:
                 self.speed = False
-                result_callback(False)
+            if self.speedtest.is_file_completed:
+                os.rename(self.download_file, self.dest_file)
+            return self.speed
+        logger.debug("Speedtest called but not applicable for this file provider: %s", self.url)
+        return False
 
     @property
     def filename(self):
@@ -211,7 +203,7 @@ class InstallerFile:
         url = self.url
         if url.startswith("http"):
             label = _("{file} on {host}").format(file=self.filename, host=self.domain)
-            if self.speed: 
+            if not self.is_cached and self.speed: 
                 label += " (%s)" % self.speed_human_readable
         elif url.startswith("N/A"):
             label = url[3:].lstrip(":")
@@ -340,8 +332,11 @@ class InstallerFile:
 
     @property
     def is_cached(self):
-        """Is the file available in the local PGA cache?"""
-        return self.uses_pga_cache() and system.path_exists(self.dest_file)
+        """Is the file available in the local (PGA or temporary) cache?"""
+        if self.speedtest:
+            return self.speedtest.is_file_completed
+        else:
+            return self.uses_pga_cache() and system.path_exists(self.dest_file)
 
     def save_to_cache(self):
         """Copy the file into the PGA cache."""

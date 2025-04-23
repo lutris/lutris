@@ -135,6 +135,12 @@ class InstallerFilesBox(Gtk.ListBox):
                         else:
                             file_entry.replace_file_provider_widget(processing = True) # Display Spinner
                             file_entry.installer_file.run_speedtest()
+                            if file_entry.installer_file.speedtest.is_file_completed:
+                                for widget in file_entry.get_children():
+                                    file_entry.remove(widget)
+                                file_entry.provider = "pga"
+                                file_entry.add(file_entry.get_widgets())
+                            else:
+                                domains[file_entry.installer_file.domain] = file_entry.installer_file.speed
                             file_entry.replace_file_provider_widget() # Display Result
-                            domains[file_entry.installer_file.domain] = file_entry.installer_file.speed
         AsyncCall(iter_files, None)

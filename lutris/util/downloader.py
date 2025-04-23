@@ -17,6 +17,8 @@ from lutris.util.log import logger
 # download speeds.
 get_time = time.monotonic
 
+SPEEDTEST_DEFAULT_DURATION = 1.5
+SPEEDTEST_DEFAULT_CHUNK_SIZE = 1024
 
 class Downloader:
     """Non-blocking downloader.
@@ -168,18 +170,20 @@ class Downloader:
                         self.downloaded_size += len(chunk)
                         self.file_pointer.write(chunk)
                     self.progress_event.set()
-                self.on_download_completed()
+                self.on_download_complete()
 
             elif self.state == self.SPEEDTEST:
-                for chunk in response.iter_content(chunk_size=1024):
+                for chunk in response.iter_content(chunk_size=SPEEDTEST_DEFAULT_CHUNK_SIZE):
                     if chunk:
                         self.downloaded_size += len(chunk)
                         self.memfile.write(chunk)
-                    if get_time() - self.start_time > 1:
-                        self.average_speed = self.downloaded_size / (get_time() - self.start_time)
+                    if get_time() - self.start_time > SPEEDTEST_DEFAULT_DURATION:
                         break
                     self.progress_event.set()
-                self.on_speedtest_completed(not chunk)
+                self.average_speed = self.downloaded_size / (get_time() - self.start_time)
+
+                # There surely is a better way than checking the time twice, but for now it works
+                self.on_download_complete(get_time() - self.start_time <= SPEEDTEST_DEFAULT_DURATION)
                 
         except Exception as ex:
             logger.exception("Download failed: %s", ex)
@@ -195,36 +199,26 @@ class Downloader:
             self.file_pointer.close()
             self.file_pointer = None
 
-    def on_download_completed(self):
+    def on_download_complete(self, file_completed = True):  # If file_completed is False we are in speedtest mode
         if self.state == self.CANCELLED:
             return
-
-        logger.debug("✔⬇ Finished downloading %s", self.url)
+        if self.state == self.SPEEDTEST:
+            logger.debug("✔📶 %s KB/s for %s", f"{(self.average_speed / 1_000):.1f}", self.url)
+            if file_completed:
+                self.file_pointer.write(self.memfile.getvalue())
+                self.memfile.close()
+                self.memfile = None
+        if self.state == self.DOWNLOADING or file_completed:
+            logger.debug("✔⬇ Finished downloading %s", self.url)
         if not self.downloaded_size:
             logger.warning("Downloaded file is empty")
-
-        if not self.full_size:
+        if not self.full_size and file_completed:
             self.progress_fraction = 1.0
             self.progress_percentage = 100
+        self.progress_event.set()
         self.state = self.COMPLETED
         self.file_pointer.close()
         self.file_pointer = None
-
-    def on_speedtest_completed(self, download_completed = False):
-        if self.state == self.CANCELLED:
-            return
-        
-        logger.debug("✔📶 %s KB/s for %s", f"{(self.average_speed / 1_000):.1f}", self.url)
-        if self.file_pointer and download_completed:
-            self.memfile.close()
-            self.file_pointer.write(self.memfile.getvalue())
-            self.memfile = None
-            self.on_download_completed()
-        self.progress_fraction = 1.0    # Not technically true, but we don't want to show a progress bar for speedtests anyway
-        self.progress_percentage = 100
-        self.progress_event.set()
-        self.state = self.COMPLETED
-
 
     def get_stats(self):
         """Calculate and store download stats."""
@@ -282,3 +276,8 @@ class Downloader:
         hours, minutes = divmod(minutes, 60)
         self.time_left_check_time = get_time()
         return "%d:%02d:%02d" % (hours, minutes, seconds)
+
+    @property
+    def is_file_completed(self):
+        """Returns true if the file is fully downloaded. Mostly useful after speedtests."""
+        return self.progress_percentage == 100
