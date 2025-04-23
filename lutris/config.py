@@ -3,7 +3,7 @@
 import os
 import time
 from shutil import copyfile
-from typing import Set
+from typing import Set, Optional
 
 from lutris import settings, sysoptions
 from lutris.runners import InvalidRunnerError, import_runner
@@ -33,6 +33,17 @@ def duplicate_game_config(game_slug: str, source_config_id: str):
     src_path = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % source_config_id)
     dest_path = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % new_config_id)
     copyfile(src_path, dest_path)
+    return new_config_id
+
+
+def rename_config(old_config_id: str, new_slug: str) -> Optional[str]:
+    old_slug, timestamp = old_config_id.rsplit("-", 1)
+    if old_slug == new_slug:
+        return None
+    new_config_id = f"{new_slug}-{timestamp}"
+    src_path = f"{settings.GAME_CONFIG_DIR}/{old_config_id}.yml"
+    dest_path = f"{settings.GAME_CONFIG_DIR}/{new_config_id}.yml"
+    os.rename(src_path, dest_path)
     return new_config_id
 
 

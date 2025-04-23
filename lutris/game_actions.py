@@ -404,7 +404,7 @@ class SingleGameActions(GameActions):
 
         old_config_id = game.game_config_id
         if old_config_id:
-            new_config_id = duplicate_game_config(game.slug, old_config_id)
+            new_config_id = duplicate_game_config(slugify(new_name), old_config_id)
         else:
             new_config_id = None
         categories = game.get_categories()
