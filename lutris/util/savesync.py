@@ -27,17 +27,21 @@ class SaveInfo:
 
     def __init__(self, game: Game):
         self.game = game
+        if not self.game.config:
+            raise ValueError("%s has no configuration" % self.game)
         self.save_config = self.game.config.game_level["game"].get("save_config")
         if not self.save_config:
             raise ValueError("%s has no save configuration" % self.game)
         self.basedir = self.get_basedir()
 
     def get_basedir(self) -> str:
+        if not self.game.config:
+            raise ValueError("%s has no configuration" % self.game)
         save_config = self.game.config.game_level["game"]["save_config"]
         basedir = save_config.get("basedir") or self.game.directory
         if not basedir:
             raise ValueError("No save directory provided")
-        prefix_path = os.path.dirname(self.game.config.game_config.get("exe"))
+        prefix_path = os.path.dirname(str(self.game.config.game_config.get("exe")))
 
         if self.game.runner_name == "wine":
             prefix_path = self.game.config.game_config.get("prefix", "")
