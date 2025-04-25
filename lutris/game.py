@@ -1,6 +1,5 @@
 """Module that actually runs the games."""
 
-from __future__ import annotations
 
 # pylint: disable=too-many-public-methods disable=too-many-lines
 import json
@@ -11,7 +10,7 @@ import signal
 import subprocess
 import time
 from gettext import gettext as _
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 from gi.repository import Gio, GLib, Gtk
 
@@ -126,7 +125,7 @@ class Game:
         self.screen_saver_inhibitor_cookie = None
 
     @staticmethod
-    def create_empty_service_game(db_game: Dict[str, str | int], service: Any) -> Game:
+    def create_empty_service_game(db_game: Dict[str, Union[str, int]], service: Any) -> Any:
         """Creates a Game from the database data from ServiceGameCollection, which is
         not a real game, but which can be used to install. Such a game has no ID, but
         has an 'appid' and slug."""
@@ -284,7 +283,7 @@ class Game:
         return ""
 
     @property
-    def config(self) -> LutrisConfig | None:
+    def config(self) -> Union[LutrisConfig, None]:
         if not self.is_installed or not self.game_config_id:
             return None
         if not self._config:
