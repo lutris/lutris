@@ -18,6 +18,7 @@ class azahar(Runner):
     description = _("Nintendo 3DS Emulator")
     runnable_alone = True
     runner_executable = f"azahar/{VER_STR}/azahar.AppImage"
+    flatpak_id = "org.azahar_emu.Azahar"
     download_url = f"https://github.com/azahar-emu/azahar/releases/download/{REL_STR}/{VER_STR}.tar.gz"
 
     # Azahar uses an AppImage, runtime causes QT  platform plugins issues.
