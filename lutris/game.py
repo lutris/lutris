@@ -1,6 +1,5 @@
 """Module that actually runs the games."""
 
-
 # pylint: disable=too-many-public-methods disable=too-many-lines
 import json
 import os
