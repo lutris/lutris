@@ -35,13 +35,8 @@ class UbisoftCover(ServiceMedia):
     size = (160, 186)
     dest_path = os.path.join(settings.CACHE_DIR, "ubisoft/covers")
     file_patterns = ["%s.jpg"]
-    api_field = "id"
-    url_pattern = "https://ubiservices.cdn.ubi.com/%s/spaceCardAsset/boxArt_mobile.jpg?imwidth=320"
-
-    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
-        if self.api_field in details:
-            return super().get_media_url(details)
-        return details["thumbImage"]
+    api_field = "thumbImage"
+    url_pattern = "https://static3.cdn.ubi.com/orbit/uplay_launcher_3_0/assets/%s"
 
     def download(self, slug, url):
         if url.startswith("http"):
