@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from gettext import gettext as _
 
-from gi.repository import Gdk, GObject, Gtk
+from gi.repository import Gdk, GObject, Gtk, Pango
 
 from lutris.gui.dialogs import FileDialog
 from lutris.gui.widgets.log_text_view import LogTextView
@@ -37,6 +37,12 @@ class LogWindow(GObject.Object):
         save_button = builder.get_object("save_button")
         save_button.connect("clicked", self.on_save_clicked)
 
+        # Add zoom buttons
+        zoom_in_button = builder.get_object("zoom_in_button")
+        zoom_out_button = builder.get_object("zoom_out_button")
+        zoom_in_button.connect("clicked", self.on_zoom_in_clicked)
+        zoom_out_button.connect("clicked", self.on_zoom_out_clicked)
+
         self.window.connect("key-press-event", self.on_key_press_event)
         self.window.show_all()
 
@@ -62,3 +68,17 @@ class LogWindow(GObject.Object):
         text = self.buffer.get_text(self.buffer.get_start_iter(), self.buffer.get_end_iter(), True)
         with open(log_path, "w", encoding="utf-8") as log_file:
             log_file.write(text)
+
+    def on_zoom_in_clicked(self, _button):
+        """Increase font size"""
+        font = self.logtextview.get_style_context().get_font(Gtk.StateFlags.NORMAL)
+        size = font.get_size() / Pango.SCALE
+        if size < 48:  # Maximum size
+            self.logtextview.override_font(Pango.FontDescription(f"monospace {size + 1}"))
+
+    def on_zoom_out_clicked(self, _button):
+        """Decrease font size"""
+        font = self.logtextview.get_style_context().get_font(Gtk.StateFlags.NORMAL)
+        size = font.get_size() / Pango.SCALE
+        if size > 6:  # Minimum size
+            self.logtextview.override_font(Pango.FontDescription(f"monospace {size - 1}"))

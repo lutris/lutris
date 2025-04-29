@@ -93,7 +93,7 @@ class UbisoftConnectService(OnlineService):
     token_path = os.path.join(settings.CACHE_DIR, "ubisoft/.token")
     cache_path = os.path.join(settings.CACHE_DIR, "ubisoft/library/")
     login_url = consts.LOGIN_URL
-    redirect_uri = "https://connect.ubisoft.com/change_domain/"
+    redirect_uris = ["https://connect.ubisoft.com/change_domain/"]
     scripts = {
         "https://connect.ubisoft.com/ready": ('window.location.replace("https://connect.ubisoft.com/change_domain/");'),
         "https://connect.ubisoft.com/change_domain/": (
