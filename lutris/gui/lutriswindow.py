@@ -112,6 +112,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         )
         update_desktop_icons()
         load_icon_theme()
+        self.set_wmclass("net.lutris.Lutris", "net.lutris.Lutris")
         self.application = application
         self.window_x, self.window_y = self.get_position()
         self.restore_window_position()

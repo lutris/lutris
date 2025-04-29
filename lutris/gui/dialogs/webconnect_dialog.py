@@ -106,7 +106,7 @@ class WebConnectDialog(ModalDialog):
                 script = self.service.scripts[url]
                 widget.run_javascript(script, None, None)
                 return True
-            if url.startswith(self.service.redirect_uri):
+            if any(url.startswith(r) for r in self.service.redirect_uris):
                 if self.service.requires_login_page:
                     resource = widget.get_main_resource()
                     resource.get_data(None, self._get_response_data_finish, None)
