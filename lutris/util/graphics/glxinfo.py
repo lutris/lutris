@@ -49,7 +49,7 @@ class GlxInfo:
             key = key.replace(" string", "").replace(" ", "_")
             value = value.strip()
 
-            if not value and key.startswith(("Extended_renderer_info", "Memory_info")):
+            if not value and key.startswith(("Extended_renderer_info", "Memory_info")) and "(" in key:
                 self._section = key[key.index("(") + 1 : -1]
                 setattr(self, self._section, Container())
                 continue

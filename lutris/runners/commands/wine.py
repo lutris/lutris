@@ -118,20 +118,24 @@ def create_prefix(
         except OSError:
             logger.error("Failed to delete %s, you may lack permissions on this folder.", prefix)
 
+    if not runner:
+        runner = import_runner("wine")(prefix=prefix, wine_arch=arch)
+
     if not wine_path:
-        if not runner:
-            runner = import_runner("wine")()
         wine_path = runner.get_executable()
 
     logger.info("Winepath: %s", wine_path)
 
-    wineenv = {
-        "WINEARCH": arch,
-        "WINEPREFIX": prefix,
-        "WINEDLLOVERRIDES": get_overrides_env(overrides),
-        "WINE_MONO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "mono"),
-        "WINE_GECKO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "gecko"),
-    }
+    wineenv = runner.system_config.get("env") or {}
+    wineenv.update(
+        {
+            "WINEARCH": arch,
+            "WINEPREFIX": prefix,
+            "WINEDLLOVERRIDES": get_overrides_env(overrides),
+            "WINE_MONO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "mono"),
+            "WINE_GECKO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "gecko"),
+        }
+    )
 
     if install_gecko == "False":
         wineenv["WINE_SKIP_GECKO_INSTALLATION"] = "1"

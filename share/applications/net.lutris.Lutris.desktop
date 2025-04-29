@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Lutris
-StartupWMClass=Lutris
+StartupWMClass=net.lutris.Lutris
 Comment=Video Game Preservation Platform
-Categories=Game;
+Categories=Game;PackageManager;
 Keywords=gaming;wine;emulator;
 Exec=lutris %U
 Icon=net.lutris.Lutris
