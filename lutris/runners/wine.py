@@ -1001,7 +1001,7 @@ class wine(Runner):
         }
         for key, path in self.reg_keys.items():
             value = self.runner_config.get(key) or "auto"
-            if not value or value == "auto" and key not in managed_keys:
+            if not value or (value == "auto" and key not in managed_keys):
                 prefix_manager.clear_registry_subkeys(path, key)
             elif key in self.runner_config:
                 if key in managed_keys:

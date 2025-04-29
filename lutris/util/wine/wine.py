@@ -117,7 +117,7 @@ def list_lutris_wine_versions() -> List[str]:
     versions = []
     for dirname in version_sort(os.listdir(WINE_DIR), reverse=True):
         try:
-            wine_path = get_wine_path_for_version(version=dirname)
+            wine_path = os.path.join(WINE_DIR, dirname, "bin/wine")
             if wine_path and os.path.isfile(wine_path):
                 versions.append(dirname)
         except MisconfigurationError:
@@ -127,8 +127,22 @@ def list_lutris_wine_versions() -> List[str]:
 
 @cache_single
 def get_installed_wine_versions() -> List[str]:
-    """Return the list of Wine versions installed"""
-    return list_system_wine_versions() + proton.list_proton_versions() + list_lutris_wine_versions()
+    """Return the list of Wine versions installed, with no duplicates and in
+    the presentation order."""
+    versions = {}
+    for v in list_system_wine_versions():
+        if v not in versions:
+            versions[v] = v
+
+    for v in proton.list_proton_versions():
+        if v not in versions:
+            versions[v] = v
+
+    for v in list_lutris_wine_versions():
+        if v not in versions:
+            versions[v] = v
+
+    return list(versions.keys())
 
 
 def clear_wine_version_cache() -> None:

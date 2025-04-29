@@ -178,6 +178,15 @@ class mame(Runner):  # pylint: disable=invalid-name
             "default": False,
         },
         {
+            "option": "verbose",
+            "type": "bool",
+            "section": _("Debugging"),
+            "label": _("Verbose"),
+            "help": _("display additional diagnostic information."),
+            "default": False,
+            "advanced": True,
+        },
+        {
             "option": "video",
             "type": "choice",
             "section": _("Graphics"),
@@ -316,6 +325,9 @@ class mame(Runner):  # pylint: disable=invalid-name
         if self.runner_config.get("crt"):
             command += self.get_shader_params("CRT-geom", ["Gaussx", "Gaussy", "CRT-geom-halation"])
             command += ["-nounevenstretch"]
+
+        if self.runner_config.get("verbose"):
+            command += ["-verbose", "-oslog", "-log"]
 
         if self.game_config.get("machine"):
             rompath = self.runner_config.get("rompath")

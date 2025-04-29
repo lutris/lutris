@@ -110,7 +110,7 @@ class BattleNetService(BaseService):
     client_installer = "battlenet"
     cookies_path = os.path.join(settings.CACHE_DIR, ".bnet.auth")
     cache_path = os.path.join(settings.CACHE_DIR, "bnet-library.json")
-    redirect_uri = "https://lutris.net"
+    redirect_uris = ["https://lutris.net"]
 
     @property
     def battlenet_config_path(self):
