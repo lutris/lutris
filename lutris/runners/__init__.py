@@ -14,7 +14,6 @@ __all__ = [
     # Multi-system
     "easyrpg",
     "mame",
-    "mednafen",
     "scummvm",
     "libretro",
     # Commodore
