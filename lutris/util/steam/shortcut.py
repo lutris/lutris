@@ -170,17 +170,17 @@ def set_artwork(game):
     shortcut_id = generate_appid(game)
     source_cover = resources.get_cover_path(game.slug)
     source_banner = resources.get_banner_path(game.slug)
-    target_cover = os.path.join(artwork_path, "{}p.jpg".format(shortcut_id))
-    target_banner = os.path.join(artwork_path, "{}_hero.jpg".format(shortcut_id))
-    if not system.path_exists(target_cover, exclude_empty=True):
-        try:
-            shutil.copyfile(source_cover, target_cover)
-            logger.debug("Copied %s cover to %s", game, target_cover)
-        except FileNotFoundError as ex:
-            logger.error("Failed to copy cover to %s: %s", target_cover, ex)
-    if not system.path_exists(target_banner, exclude_empty=True):
-        try:
-            shutil.copyfile(source_banner, target_banner)
-            logger.debug("Copied %s cover to %s", game, target_banner)
-        except FileNotFoundError as ex:
-            logger.error("Failed to copy banner to %s: %s", target_banner, ex)
+    source_icon = resources.get_icon_path(game.slug)
+    assets = [
+        ("grid horizontal", source_banner, os.path.join(artwork_path, "{}.jpg".format(shortcut_id))),
+        ("grid vertical", source_cover, os.path.join(artwork_path, "{}p.jpg".format(shortcut_id))),
+        ("hero", source_banner, os.path.join(artwork_path, "{}_hero.jpg".format(shortcut_id))),
+        ("icon", source_icon, os.path.join(artwork_path, "{}_icon.jpg".format(shortcut_id))),
+    ]
+    for name, source, target in assets:
+        if not system.path_exists(target, exclude_empty=True):
+            try:
+                shutil.copyfile(source, target)
+                logger.debug("Copied %s %s asset to %s", game, name, target)
+            except FileNotFoundError as ex:
+                logger.error("Failed to copy %s %s asset to %s: %s", game, name, target, ex)
