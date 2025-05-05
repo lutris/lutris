@@ -4,7 +4,6 @@ import json
 import os
 import shutil
 from gettext import gettext as _
-from typing import Any, Dict, Optional
 from urllib.parse import unquote
 
 from gi.repository import Gio
