@@ -1,15 +1,10 @@
-import os
-import shutil
 from gettext import gettext as _
 
-from lutris import settings
 from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.log import logger
 
-REL_STR = "2120.3"
-VER_STR = f"azahar-{REL_STR}-linux-appimage"
+VER_STR = "2121"
 
 
 class azahar(Runner):
@@ -17,9 +12,9 @@ class azahar(Runner):
     platforms = [_("Nintendo 3DS")]
     description = _("Nintendo 3DS Emulator")
     runnable_alone = True
-    runner_executable = f"azahar/{VER_STR}/azahar.AppImage"
+    runner_executable = "azahar/azahar.AppImage"
     flatpak_id = "org.azahar_emu.Azahar"
-    download_url = f"https://github.com/azahar-emu/azahar/releases/download/{REL_STR}/{VER_STR}.tar.gz"
+    download_url = f"https://github.com/azahar-emu/azahar/releases/download/{VER_STR}/azahar.AppImage"
 
     # Azahar uses an AppImage, runtime causes QT  platform plugins issues.
     system_options_override = [{"option": "disable_runtime", "default": True}]
@@ -39,23 +34,6 @@ class azahar(Runner):
             "default": True,
         },
     ]
-
-    def __init__(self, config=None):
-        super().__init__(config)
-
-    def extract_icon(self, runner_dir):
-        icon_src = os.path.join(os.path.join(runner_dir, VER_STR), "dist/azahar.png")
-        icon_dst = os.path.join(os.path.join(settings.RUNTIME_DIR, "icons"), "azahar.png")
-        if not os.path.exists(icon_dst):
-            try:
-                shutil.copyfile(icon_src, icon_dst)
-                logger.debug(f"Installed runner icon: {icon_dst}")
-            except Exception as e:
-                logger.debug(f"Failed to copy {icon_src} to {icon_dst} for runner Azahar. exc: {e}")
-
-    def download_and_extract(self, url, dest=None, **opts):
-        super().download_and_extract(url, dest, **opts)
-        self.extract_icon(runner_dir=dest)
 
     def play(self):
         """Run the game."""
