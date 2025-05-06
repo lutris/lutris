@@ -1,6 +1,33 @@
+"""
+The MIT License (MIT)
+
+Copyright (c) 2015-2016 Fadhil Mandaga
+Copyright (c) 2019 James Lu <james@overdrivenetworks.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 # pylint: disable=no-member
 import struct
 from io import BytesIO
+import logging
+import sys
 
 try:
     import pefile
@@ -12,143 +39,164 @@ except ImportError:
 
 from PIL import Image
 
-# From https://github.com/firodj/extract-icon-py
+
+GRPICONDIRENTRY_FORMAT = (
+    "GRPICONDIRENTRY",
+    ("B,Width", "B,Height", "B,ColorCount", "B,Reserved", "H,Planes", "H,BitCount", "I,BytesInRes", "H,ID"),
+)
+GRPICONDIR_FORMAT = ("GRPICONDIR", ("H,Reserved", "H,Type", "H,Count"))
+
+logger = logging.getLogger("icoextract")
+logging.basicConfig()
+
+try:
+    from .version import __version__
+except ImportError:
+    __version__ = "unknown"
+    logger.info("icoextract: failed to read program version")
 
 
-class ExtractIcon(object):
-    GRPICONDIRENTRY_format = (
-        "GRPICONDIRENTRY",
-        ("B,Width", "B,Height", "B,ColorCount", "B,Reserved", "H,Planes", "H,BitCount", "I,BytesInRes", "H,ID"),
-    )
-    GRPICONDIR_format = ("GRPICONDIR", ("H,Reserved", "H,Type", "H,Count"))
-    RES_ICON = 1
-    RES_CURSOR = 2
+class IconExtractorError(Exception):
+    """Superclass for exceptions raised by IconExtractor."""
 
-    def __init__(self, filepath):
-        self.pe = pefile.PE(filepath)
 
-    def find_resource_base(self, res_type):
-        if hasattr(self.pe, "DIRECTORY_ENTRY_RESOURCE"):
-            try:
-                rt_base_idx = [entry.id for entry in self.pe.DIRECTORY_ENTRY_RESOURCE.entries].index(
-                    pefile.RESOURCE_TYPE[res_type]
-                )
+class NoIconsAvailableError(IconExtractorError):
+    """Exception raised when the input program has no icon resources."""
 
-                if rt_base_idx is not None:
-                    return self.pe.DIRECTORY_ENTRY_RESOURCE.entries[rt_base_idx]
-            except (ValueError, IndexError):
-                pass  # if the resource is not found or the index is bogus
 
-        return None
+class InvalidIconDefinitionError(IconExtractorError):
+    """Exception raised when the input program has an invalid icon resource."""
 
-    def find_resource(self, res_type, res_index):
-        rt_base_dir = self.find_resource_base(res_type)
 
-        if not rt_base_dir:
-            return None
+class IconExtractor:
+    def __init__(self, filename=None, data=None):
+        """
+        Loads an executable from the given `filename` or `data` (raw bytes).
+        As with pefile, if both `filename` and `data` are given, `filename` takes precedence.
 
-        if res_index < 0:
-            try:
-                idx = [entry.id for entry in rt_base_dir.directory.entries].index(-res_index)
-            except:
-                return None
-        else:
-            idx = res_index if res_index < len(rt_base_dir.directory.entries) else None
+        If the executable has contains no icons, this will raise `NoIconsAvailableError`.
+        """
+        # Use fast loading and explicitly load the RESOURCE directory entry. This saves a LOT of time
+        # on larger files
+        self._pe = pefile.PE(name=filename, data=data, fast_load=True)
+        self._pe.parse_data_directories(pefile.DIRECTORY_ENTRY["IMAGE_DIRECTORY_ENTRY_RESOURCE"])
 
-        if idx is None:
-            return None
+        if not hasattr(self._pe, "DIRECTORY_ENTRY_RESOURCE"):
+            raise NoIconsAvailableError("File has no resources")
 
-        test_res_dir = rt_base_dir.directory.entries[idx]
-        res_dir = test_res_dir
-        if test_res_dir.struct.DataIsDirectory:
-            # another Directory
-            # probably language take the first one
-            res_dir = test_res_dir.directory.entries[0]
-        if res_dir.struct.DataIsDirectory:
-            # Ooooooooooiconoo no !! another Directory !!!
-            return None
+        # Reverse the list of entries before making the mapping so that earlier values take precedence
+        # When an executable includes multiple icon resources, we should use only the first one.
+        resources = {rsrc.id: rsrc for rsrc in reversed(self._pe.DIRECTORY_ENTRY_RESOURCE.entries)}
 
-        return res_dir
+        self.groupiconres = resources.get(pefile.RESOURCE_TYPE["RT_GROUP_ICON"])
+        if not self.groupiconres:
+            raise NoIconsAvailableError("File has no group icon resources")
+        self.rticonres = resources.get(pefile.RESOURCE_TYPE["RT_ICON"])
 
-    def get_group_icons(self):
-        rt_base_dir = self.find_resource_base("RT_GROUP_ICON")
+    def list_group_icons(self):
+        """
+        Returns all group icon entries as a list of (name, offset) tuples.
+        """
+        return [(e.struct.Name, e.struct.OffsetToData) for e in self.groupiconres.directory.entries]
 
-        if not rt_base_dir:
-            return []
+    def _get_group_icon_entries(self, num=0):
+        """
+        Returns the group icon entries for the specified group icon in the executable.
+        """
+        groupicon = self.groupiconres.directory.entries[num]
+        if groupicon.struct.DataIsDirectory:
+            # Select the first language from subfolders as needed.
+            groupicon = groupicon.directory.entries[0]
 
-        groups = []
-        for res_index in range(0, len(rt_base_dir.directory.entries)):
-            grp_icon_dir_entry = self.find_resource("RT_GROUP_ICON", res_index)
+        # Read the data pointed to by the group icon directory (GRPICONDIR) struct.
+        rva = groupicon.data.struct.OffsetToData
+        size = groupicon.data.struct.Size
+        data = self._pe.get_data(rva, size)
+        file_offset = self._pe.get_offset_from_rva(rva)
 
-            if not grp_icon_dir_entry:
-                continue
+        grp_icon_dir = self._pe.__unpack_data__(GRPICONDIR_FORMAT, data, file_offset)
+        logger.debug(grp_icon_dir)
 
-            data_rva = grp_icon_dir_entry.data.struct.OffsetToData
-            size = grp_icon_dir_entry.data.struct.Size
-            data = self.pe.get_memory_mapped_image()[data_rva : data_rva + size]
-            file_offset = self.pe.get_offset_from_rva(data_rva)
+        if grp_icon_dir.Reserved:
+            raise InvalidIconDefinitionError(
+                "Invalid group icon definition (got Reserved=%s instead of 0)" % hex(grp_icon_dir.Reserved)
+            )
 
-            grp_icon_dir = pefile.Structure(self.GRPICONDIR_format, file_offset=file_offset)
-            grp_icon_dir.__unpack__(data)
+        # For each group icon entry (GRPICONDIRENTRY) that immediately follows, read its data and save it.
+        grp_icons = []
+        icon_offset = grp_icon_dir.sizeof()
+        for idx in range(grp_icon_dir.Count):
+            grp_icon = self._pe.__unpack_data__(GRPICONDIRENTRY_FORMAT, data[icon_offset:], file_offset + icon_offset)
+            icon_offset += grp_icon.sizeof()
+            grp_icons.append(grp_icon)
+            logger.debug("Got logical group icon %s", grp_icon)
 
-            if grp_icon_dir.Reserved != 0 or grp_icon_dir.Type != self.RES_ICON:
-                continue
-            offset = grp_icon_dir.sizeof()
+        return grp_icons
 
-            entries = []
-            for _idx in range(0, grp_icon_dir.Count):
-                grp_icon = pefile.Structure(self.GRPICONDIRENTRY_format, file_offset=file_offset + offset)
-                grp_icon.__unpack__(data[offset:])
-                offset += grp_icon.sizeof()
-                entries.append(grp_icon)
+    def _get_icon_data(self, icon_ids):
+        """
+        Return a list of raw icon images corresponding to the icon IDs given.
+        """
+        icons = []
+        icon_entry_lists = {icon_entry_list.id: icon_entry_list for icon_entry_list in self.rticonres.directory.entries}
+        for icon_id in icon_ids:
+            icon_entry_list = icon_entry_lists[icon_id]
 
-            groups.append(entries)
-        return groups
+            icon_entry = icon_entry_list.directory.entries[0]  # Select first language
+            rva = icon_entry.data.struct.OffsetToData
+            size = icon_entry.data.struct.Size
+            data = self._pe.get_data(rva, size)
+            logger.debug(f"Exported icon with ID {icon_entry_list.id}: {icon_entry.struct}")
+            icons.append(data)
+        return icons
 
-    def get_icon(self, index):
-        icon_entry = self.find_resource("RT_ICON", -index)
-        if not icon_entry:
-            return None
+    def _write_ico(self, fd, num=0):
+        """
+        Writes ICO data to a file descriptor.
+        """
+        group_icons = self._get_group_icon_entries(num=num)
+        icon_images = self._get_icon_data([g.ID for g in group_icons])
+        icons = list(zip(group_icons, icon_images))
+        assert len(group_icons) == len(icon_images)
+        fd.write(b"\x00\x00")  # 2 reserved bytes
+        fd.write(struct.pack("<H", 1))  # 0x1 (little endian) specifying that this is an .ICO image
+        fd.write(struct.pack("<H", len(icons)))  # number of images
 
-        data_rva = icon_entry.data.struct.OffsetToData
-        size = icon_entry.data.struct.Size
-        data = self.pe.get_memory_mapped_image()[data_rva : data_rva + size]
+        dataoffset = 6 + (len(icons) * 16)
+        # First pass: write the icon dir entries
+        for datapair in icons:
+            group_icon, icon_data = datapair
+            # Elements in ICONDIRENTRY and GRPICONDIRENTRY are all the same
+            # except the last value, which is an ID in GRPICONDIRENTRY and
+            # the offset from the beginning of the file in ICONDIRENTRY.
+            fd.write(group_icon.__pack__()[:12])
+            fd.write(struct.pack("<I", dataoffset))
+            dataoffset += len(icon_data)  # Increase offset for next image
 
-        return data
+        # Second pass: write the icon data
+        for datapair in icons:
+            group_icon, icon_data = datapair
+            fd.write(icon_data)
 
-    def export_raw(self, entries, index=None):
-        if index is not None:
-            entries = entries[index : index + 1]
+    def export_icon(self, filename, num=0):
+        """
+        Exports ICO data for the requested group icon (`num`) to `filename`.
+        """
+        with open(filename, "wb") as f:
+            self._write_ico(f, num=num)
 
-        ico = struct.pack("<HHH", 0, self.RES_ICON, len(entries))
-        data_offset = None
-        data = []
-        info = []
-        for grp_icon in entries:
-            if data_offset is None:
-                data_offset = len(ico) + ((grp_icon.sizeof() + 2) * len(entries))
+    def get_icon(self, num=0):
+        """
+        Exports ICO data for the requested group icon (`num`) as a PIL Image instance.
+        """
+        f = BytesIO()
+        self._write_ico(f, num=num)
+        return Image.open(f)
 
-            nfo = grp_icon.__pack__()[:-2] + struct.pack("<L", data_offset)
-            info.append(nfo)
 
-            raw_data = self.get_icon(grp_icon.ID)
-            if not raw_data:
-                continue
+__all__ = ["IconExtractor", "IconExtractorError", "NoIconsAvailableError", "InvalidIconDefinitionError"]
 
-            data.append(raw_data)
-            data_offset += len(raw_data)
-
-        raw = ico + b"".join(info + data)
-        return raw
-
-    def export(self, entries, index=None):
-        raw = self.export_raw(entries, index)
-        return Image.open(BytesIO(raw))
-
-    def _get_bmp_header(self, data):
-        if data[0:4] == b"\x89PNG":
-            header = b""
-        else:
-            dib_size = struct.unpack("<L", data[0:4])[0]
-            header = b"BM" + struct.pack("<LLL", len(data) + 14, 0, 14 + dib_size)
-        return header
+__pdoc__ = {
+    "scripts": False,
+    "version": False,
+}
