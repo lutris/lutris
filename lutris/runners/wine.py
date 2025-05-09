@@ -838,7 +838,10 @@ class wine(Runner):
             if not db_game:
                 raise MisconfigurationError(_("The required game '%s' could not be found.") % installer.requires)
             game = Game(db_game["id"])
-            version = game.config.runner_config["version"]
+            if game.config:
+                version = game.config.runner_config["version"]
+            else:
+                version = None
 
         if not version and use_runner_config:
             # Try to read the version from the saved runner config for Wine.
