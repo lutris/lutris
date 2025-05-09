@@ -64,6 +64,7 @@ from lutris.util.wine.wine import (
     is_esync_limit_set,
     is_fsync_supported,
     is_gstreamer_build,
+    is_winewayland_available,
 )
 
 
@@ -174,6 +175,20 @@ def _get_virtual_desktop_warning(_option_key: str, config: LutrisConfig) -> Opti
             message += "\n"
             message += _("Virtual desktops cannot be enabled in Proton or GE Wine versions.")
     return message
+
+
+def _get_wine_wayland_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+    runner_config = config.runner_config
+    if runner_config.get("Graphics") == "wayland":
+        runner_version = runner_config.get("version")
+
+        if not runner_version:
+            return None
+
+        if not is_winewayland_available(runner_version):
+            return _("Your Wine version does not support winewayland graphics driver")
+
+    return None
 
 
 def _get_wine_version_choices():
@@ -555,6 +570,24 @@ class wine(Runner):
             ),
         },
         {
+            "option": "Graphics",
+            "label": _("Graphics driver"),
+            "type": "choice",
+            "advanced": True,
+            "choices": [
+                (_("Auto"), "auto"),
+                ("Wayland", "wayland"),
+                ("X11", "x11"),
+            ],
+            "default": "auto",
+            "warning": _get_wine_wayland_warning,
+            "help": _(
+                "Which graphics backend to use.\n"
+                "By default, Wine automatically picks the right one "
+                "for your system."
+            ),
+        },
+        {
             "option": "overrides",
             "type": "mapping",
             "label": _("DLL overrides"),
@@ -594,6 +627,7 @@ class wine(Runner):
     reg_prefix = "HKEY_CURRENT_USER/Software/Wine"
     reg_keys = {
         "Audio": r"%s/Drivers" % reg_prefix,
+        "Graphics": r"%s/Drivers" % reg_prefix,
         "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
         "Desktop": "MANAGED",
         "WineDesktop": "MANAGED",
@@ -1004,6 +1038,11 @@ class wine(Runner):
             if not value or (value == "auto" and key not in managed_keys):
                 prefix_manager.clear_registry_subkeys(path, key)
             elif key in self.runner_config:
+                if value and key == "Graphics" and value == "wayland":
+                    if not is_winewayland_available(self.read_version_from_config()):
+                        logger.warning("Your Wine version does not support winewayland graphics driver")
+                        continue
+
                 if key in managed_keys:
                     # Do not pass fallback 'auto' value to managed keys
                     if value == "auto":
