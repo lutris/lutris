@@ -29,6 +29,49 @@ from lutris.util.strings import gtk_safe, slugify
 from lutris.util.system import path_exists
 
 
+def nuke_home_paths(data):
+    from re import compile
+
+    home_re = compile(r"^(/home/([^/]+))(/.*)$")
+
+    def repl_p(path):
+        if isinstance(path, str) and (match := home_re.match(path)):
+            return f"$HOME{match.group(3)}"
+        return path
+
+    def keys_targeted(d):
+        if not isinstance(d, dict):
+            return d
+        d = dict(d)
+        # check in game key
+        if "game" in d and isinstance(d["game"], dict):
+            game_d = d["game"]
+            for k in ["exe", "prefix", "working_dir"]:
+                if k in game_d:
+                    game_d[k] = repl_p(game_d[k])
+        # check in system key
+        if "system" in d and isinstance(d["system"], dict):
+            system_d = d["system"]
+            for k in ["antimicro_config", "sdl_gamecontrollerconfig"]:
+                if k in system_d:
+                    system_d[k] = repl_p(system_d[k])
+            # env
+            if "env" in system_d and isinstance(system_d["env"], dict):
+                env_d = system_d["env"]
+                for k, v in env_d.items():
+                    env_d[k] = repl_p(v)
+        # check in wine key
+        wine_d = d.get("wine")
+        if isinstance(wine_d, dict) and "custom_wine_path" in wine_d:
+            wine_d["custom_wine_path"] = repl_p(wine_d["custom_wine_path"])
+        # check in script key
+        if "script" in d and isinstance(d["script"], dict):
+            d["script"] = keys_targeted(d["script"])
+        return d
+
+    return keys_targeted(data)
+
+
 class GameActions:
     """These classes provide a set of action to apply to a game or list of games, and can be used
     to populate menus. The base class handles the no-games case, for which there are no actions. But
@@ -250,6 +293,7 @@ class SingleGameActions(GameActions):
             ("rm-steam-shortcut", _("Delete Steam shortcut"), self.on_remove_steam_shortcut),
             ("view", _("View on Lutris.net"), self.on_view_game),
             ("duplicate", _("Duplicate"), self.on_game_duplicate),
+            ("export_script", _("Export Script"), self.on_export_script),
             (None, "-", None),
             ("remove", _("Remove"), self.on_remove_game),
         ]
@@ -268,6 +312,7 @@ class SingleGameActions(GameActions):
 
         return {
             "duplicate": game.is_installed,
+            "export_script": game.is_installed,
             "install": self.is_installable,
             "add": not game.is_installed,
             "play": self.is_game_launchable,
@@ -435,6 +480,38 @@ class SingleGameActions(GameActions):
         # Download in the background; we'll update the LutrisWindow when this
         # completes, no need to wait for it.
         AsyncCall(download_lutris_media, None, db_game["slug"])
+
+    def on_export_script(self, _widget):
+        game = self.game
+        config_id = game.game_config_id
+        # db_game = get_game_by_field(game.id, "id")
+        # print(f"--> db:{db_game}")
+        from lutris.settings import GAME_CONFIG_DIR
+        from lutris.util.yaml import read_yaml_from_file, save_yaml_as
+
+        _config = read_yaml_from_file(f"{GAME_CONFIG_DIR}/{config_id}.yml")
+        _config["slug"] = game.slug
+        _config["name"] = game.name
+        _config["game_slug"] = game.slug
+        _config["runner"] = get_game_by_field(game.id, "id")["runner"]
+        _config["description"] = _config.get("description")
+        _config["notes"] = _config.get("notes", f"Import {game.name} config")
+        _config["version"] = _config.get("Standard")
+
+        if _script := _config.get("script"):
+            _config["script"] = _script
+        else:
+            _config["script"] = {"files": {}, "game": _config["game"], "installer": {}}
+            # _config["script"]["game"]["working_dir"] = "$GAMEDIR"
+            if _sys := _config.get("system"):
+                _config["script"]["system"] = _sys
+            if _wine := _config.get("wine"):
+                _config["script"]["wine"] = _wine
+                # avoid to crash `version: system`
+                _config["script"]["wine"].pop("version")
+        _config = nuke_home_paths(_config)
+        # print(f"-->CONFIG: {_config}")
+        save_yaml_as(_config, f"{config_id}.yml")
 
     def _select_game_launch_config_name(self, game):
         game_config = game.config.game_level.get("game", {})
