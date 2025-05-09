@@ -93,6 +93,21 @@ def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> Optional[str]
     return _("<b>Warning</b> Some Wine configuration options cannot be applied, if no prefix can be found.")
 
 
+def _get_exe_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+    exe = config.game_config.get("exe")
+    if not exe:
+        return _("<b>Warning</b> No executable path specified")
+    _exe = exe.strip()
+    good_path = exe == _exe
+    if not _exe:
+        return _("<b>Warning</b> No executable path specified")
+    if good_path and os.path.isfile(_exe):
+        return None
+    elif not good_path:
+        return _("<b>Warning</b> Executable path has extra whitespace at the beginning or end")
+    return _("<b>Warning</b> Executable file does not exist")
+
+
 def _get_dxvk_warning() -> Optional[str]:
     if drivers.is_outdated():
         driver_info = drivers.get_nvidia_driver_info()
@@ -210,6 +225,7 @@ class wine(Runner):
             "type": "file",
             "label": _("Executable"),
             "help": _("The game's main EXE file"),
+            "warning": _get_exe_warning,
         },
         {
             "option": "args",
