@@ -35,7 +35,7 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
 )
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
+from lutris.util.display import DISPLAY_MANAGER, get_default_dpi, is_display_x11
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -70,6 +70,11 @@ from lutris.util.wine.wine import (
 def _is_pre_proton(_option_key: str, config: LutrisConfig) -> bool:
     version = config.runner_config.get("version")
     return not proton.is_proton_version(version)
+
+
+def _is_proton_wayland_available(_option_key: str, config: LutrisConfig) -> bool:
+    version = config.runner_config.get("version")
+    return proton.is_proton_version(version) and not is_display_x11()
 
 
 def _get_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
@@ -410,6 +415,27 @@ class wine(Runner):
             "choices": lambda: dgvoodoo2Manager().version_choices,
             "default": lambda: dgvoodoo2Manager().version,
             "conditional_on": "dgvoodoo2",
+        },
+        {
+            "option": "proton_wayland",
+            "section": _("Graphics"),
+            "label": _("Enable Wayland"),
+            "type": "bool",
+            "default": False,
+            "advanced": True,
+            "visible": _is_proton_wayland_available,
+            "help": _("Enable Proton's support for the Wayland Display Server."),
+        },
+        {
+            "option": "proton_hdr",
+            "section": _("Graphics"),
+            "label": _("Enable HDR"),
+            "type": "bool",
+            "default": False,
+            "advanced": True,
+            "visible": _is_proton_wayland_available,
+            "conditional_on": "proton_wayland",
+            "help": _("Enable Proton's support for the High Dynamic Range graphics. Requires Wayland."),
         },
         {
             "option": "esync",
@@ -1177,6 +1203,12 @@ class wine(Runner):
 
         if not self.runner_config.get("dxvk") or not LINUX_SYSTEM.is_vulkan_supported():
             env["PROTON_USE_WINED3D"] = "1"
+
+        if self.runner_config.get("proton_wayland") and not is_display_x11():
+            env["PROTON_ENABLE_WAYLAND"] = "1"
+
+            if self.runner_config.get("proton_hdr"):
+                env["PROTON_ENABLE_HDR"] = "1"
 
         # We always use DXVK D3D8; so should Proton.
         if "PROTON_DXVK_D3D8" not in env:
