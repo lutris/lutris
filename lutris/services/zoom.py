@@ -9,6 +9,7 @@ from gettext import gettext as _
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import parse_qsl, unquote, urlencode, urlparse
 
+
 from lxml import etree
 
 from lutris import settings
@@ -23,7 +24,7 @@ from lutris.services.service_media import ServiceMedia
 from lutris.util import i18n, system
 from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
 from lutris.util.log import logger
-from lutris.util.strings import human_size, slugify
+from lutris.util.strings import human_size, slugify, computer_size
 
 if typing.TYPE_CHECKING:
     from lutris.installer.installer import LutrisInstaller
@@ -252,7 +253,7 @@ class ZoomService(OnlineService):
         installer_file_dict = {
                         "url": json["files"]["windows"][0]["file_url"],
                         "filename": json["files"]["windows"][0]["name"],
-                        "total_size": json["files"]["windows"][0]["file_size"],
+                        "total_size": computer_size(json["files"]["windows"][0]["file_size"])
         }
 
 
