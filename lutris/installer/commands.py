@@ -615,12 +615,14 @@ class CommandsMixin:
             self.installer.runner = "dosbox"
         elif scummvm_found:
             self._extract_gog_game(file_id)
-            arguments = None
-            for filename in os.listdir(self.target_path):
-                if filename.startswith("goggame") and filename.endswith(".info"):
-                    arguments = self._get_scummvm_arguments(os.path.join(self.target_path, filename))
-            if not arguments:
-                raise RuntimeError("Unable to get ScummVM arguments")
+            if file_id == "zoominstaller":
+                arguments = {"path": os.path.join(self.target_path, "Data"), "args": "--auto-detect"}
+            else:
+                for filename in os.listdir(self.target_path):
+                    if filename.startswith("goggame") and filename.endswith(".info"):
+                        arguments = self._get_scummvm_arguments(os.path.join(self.target_path, filename))
+                if not arguments:
+                    raise RuntimeError("Unable to get ScummVM arguments")
             logger.info("ScummVM config: %s", arguments)
             self.installer.script["game"] = arguments
             self.installer.runner = "scummvm"
