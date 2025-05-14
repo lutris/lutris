@@ -11,7 +11,7 @@ from lutris.util import system
 def get():
     """Return the path for the resources."""
     launch_path = os.path.realpath(sys.path[0])
-    if launch_path.startswith("/usr/local"):
+    if launch_path.startswith("/usr/local") and os.path.isdir("/usr/local/share/lutris"):
         data_path = "/usr/local/share/lutris"
     elif launch_path.startswith("/usr") and os.path.isdir("/usr/share/lutris"):
         data_path = "/usr/share/lutris"
