@@ -40,6 +40,7 @@ class ZoomMediumBanner(ZoomSmallBanner):
     size = (200, 300)
     dest_path = os.path.join(settings.CACHE_DIR, "zoom/banners/medium")
 
+
 class ZoomGame(ServiceGame):
     """Representation of a Zoom game"""
 
@@ -171,7 +172,7 @@ class ZoomService(OnlineService):
         """Send a token authenticated request to Zoom"""
         token = self.load_token()
 
-        #if self.get_token_age() > 2600:
+        # if self.get_token_age() > 2600:
         #    self.request_token(refresh_token=token["refresh_token"])
         #    token = self.load_token()
         headers = {"Authorization": "Bearer " + token["access_token"]}
@@ -224,7 +225,6 @@ class ZoomService(OnlineService):
             },
         }
 
-
     def get_installer_files(
         self, installer: "LutrisInstaller", installer_file_id: str, selected_extras: List[dict]
     ) -> Tuple[List[InstallerFileCollection], List[InstallerFile]]:
@@ -236,7 +236,6 @@ class ZoomService(OnlineService):
 
         return files, []
 
-
     def _get_installer(self, game_slug: str, appid: str) -> List[InstallerFile]:
         # fetch the installer url using https://www.zoom-platform.com/public/profile/product/ + appid
         # and then parse the response to get the download url
@@ -245,9 +244,9 @@ class ZoomService(OnlineService):
         json = self.make_request(product_url)
         logger.debug(json["files"]["windows"][0]["file_url"])
         installer_file_dict = {
-                        "url": json["files"]["windows"][0]["file_url"],
-                        "filename": json["files"]["windows"][0]["name"],
-                        "total_size": computer_size(json["files"]["windows"][0]["file_size"])
+            "url": json["files"]["windows"][0]["file_url"],
+            "filename": json["files"]["windows"][0]["name"],
+            "total_size": computer_size(json["files"]["windows"][0]["file_size"]),
         }
 
         installer_file = InstallerFile(
@@ -257,7 +256,6 @@ class ZoomService(OnlineService):
         )
         file_list = [installer_file]
         return file_list
-
 
     def get_service_game(self, zoom_game: dict) -> ZoomGame:
         return ZoomGame.new_from_zoom_game(zoom_game)
@@ -269,4 +267,3 @@ class ZoomService(OnlineService):
     def get_installed_runner_name(self, db_game: dict) -> str:
         platforms = [platform.casefold() for platform in self.get_game_platforms(db_game)]
         return "linux" if "linux" in platforms else "wine"
-

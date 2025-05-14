@@ -386,6 +386,7 @@ def human_size(size: float) -> str:
         unit_index += 1
     return "%0.1f %s" % (size, units[unit_index])
 
+
 # inverse of human_size converts a human readable size to bytes
 def computer_size(size: str) -> int:
     """Converts a human readable size to bytes"""
@@ -394,14 +395,15 @@ def computer_size(size: str) -> int:
     size = size.strip()
     for unit in units:
         if size.endswith(unit):
-            size = size[:-len(unit)].strip()
+            size = size[: -len(unit)].strip()
             break
         unit_index += 1
     try:
-        return int(float(size) * (1024 ** unit_index))
+        return int(float(size) * (1024**unit_index))
     except ValueError:
         logger.warning("Invalid size value '%s'", size)
-        return 0 # if we can't parse the size, return 0 bytes to avoid crashing
+        return 0  # if we can't parse the size, return 0 bytes to avoid crashing
+
 
 def time_ago(timestamp: float) -> str:
     time_delta = time.time() - timestamp
