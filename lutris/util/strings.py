@@ -399,7 +399,7 @@ def computer_size(size: str) -> int:
         unit_index += 1
     try:
         return int(float(size) * (1024 ** unit_index))
-    except ValueError as ex:
+    except ValueError:
         logger.warning("Invalid size value '%s'", size)
         return 0 # if we can't parse the size, return 0 bytes to avoid crashing
 

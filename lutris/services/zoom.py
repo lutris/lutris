@@ -4,27 +4,21 @@ import json
 import os
 import time
 import typing
-from collections import defaultdict
 from gettext import gettext as _
-from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import parse_qsl, unquote, urlencode, urlparse
-
-
-from lxml import etree
+from typing import Any, Dict, List, Tuple
 
 from lutris import settings
-from lutris.exceptions import AuthenticationError, UnavailableGameError
-from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
+from lutris.exceptions import AuthenticationError
+from lutris.installer import AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.installer_file_collection import InstallerFileCollection
-from lutris.runners import get_runner_human_name
 from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import i18n, system
-from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
+from lutris.util.http import Request
 from lutris.util.log import logger
-from lutris.util.strings import human_size, slugify, computer_size
+from lutris.util.strings import computer_size
 
 if typing.TYPE_CHECKING:
     from lutris.installer.installer import LutrisInstaller
