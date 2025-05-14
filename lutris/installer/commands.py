@@ -588,7 +588,8 @@ class CommandsMixin:
                 windows_override_found = True
         if dosbox_found and not windows_override_found:
             self._extract_gog_game(file_id)
-            if "DOSBOX" in os.listdir(self.target_path):
+            # Zoom seems to use always the default working dir for dosbox
+            if file_id != "zoominstaller" and "DOSBOX" in os.listdir(self.target_path):
                 dosbox_config = {
                     "working_dir": "$GAMEDIR/DOSBOX",
                 }
