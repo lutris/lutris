@@ -192,7 +192,7 @@ class ZoomService(OnlineService):
         url = "https://www.zoom-platform.com/account/library"
         return self.make_api_request(url)
 
-    def get_library(self) -> List[dict]:
+    def get_library(self) -> Dict:
         """Return the user's library of Zoom games"""
         if system.path_exists(self.cache_path):
             logger.debug("Returning cached Zoom library")
@@ -237,13 +237,13 @@ class ZoomService(OnlineService):
         logger.debug("Getting installer files for %s", installer_file_id)
         logger.debug("Installer: %s", installer)
 
-        installer_files = self.get_installer_url(installer.game_slug, installer.service_appid)
+        installer_files = self._get_installer(installer.game_slug, installer.service_appid)
         files = [InstallerFileCollection(installer.game_slug, installer_file_id, installer_files)]
 
         return files, []
 
 
-    def get_installer_url(self, game_slug: str, appid: str) -> str:
+    def _get_installer(self, game_slug: str, appid: str) -> List[InstallerFile]:
         # fetch the installer url using https://www.zoom-platform.com/public/profile/product/ + appid
         # and then parse the response to get the download url
 
@@ -255,7 +255,6 @@ class ZoomService(OnlineService):
                         "filename": json["files"]["windows"][0]["name"],
                         "total_size": computer_size(json["files"]["windows"][0]["file_size"])
         }
-
 
         installer_file = InstallerFile(
             game_slug,
