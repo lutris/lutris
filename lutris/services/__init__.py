@@ -10,7 +10,6 @@ from lutris.services.ea_app import EAAppService
 from lutris.services.egs import EpicGamesStoreService
 from lutris.services.flathub import FlathubService
 from lutris.services.gog import GOGService
-from lutris.services.zoom import ZoomService
 from lutris.services.humblebundle import HumbleBundleService
 from lutris.services.itchio import ItchIoService
 from lutris.services.lutris import LutrisService
@@ -21,6 +20,7 @@ from lutris.services.steamfamily import SteamFamilyService
 from lutris.services.steamwindows import SteamWindowsService
 from lutris.services.ubisoft import UbisoftConnectService
 from lutris.services.xdg import XDGService
+from lutris.services.zoom import ZoomService
 from lutris.util import system
 from lutris.util.dolphin.cache_reader import DOLPHIN_GAME_CACHE_FILE
 from lutris.util.linux import LINUX_SYSTEM
