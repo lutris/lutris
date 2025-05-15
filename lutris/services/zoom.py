@@ -211,7 +211,6 @@ class ZoomService(OnlineService):
         else:
             return self._generate_installer("wine", db_game)
 
-
     def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
         details = json.loads(db_game["details"])
         slug = details["slug"]
