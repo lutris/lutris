@@ -180,19 +180,18 @@ class ZoomService(OnlineService):
         print(json)
 
         all_extras = []
-        for extra_type in ["manual"]:
+        for extra_type in ["manual", "misc", "soundtrack"]:
             files = json["files"][extra_type]
-            if len(files) == 0:
-                continue
             print(files)
 
-            extra_file_dict = {
-                "name": extra_type,
-                "url": files[0]["file_url"],
-                "filename": files[0]["name"],
-                "total_size": computer_size(files[0]["file_size"]),
-            }
-            all_extras.append(extra_file_dict)
+            for file in files:
+                extra_file_dict = {
+                    "name": file["name"],
+                    "url": file["file_url"],
+                    "filename": file["name"],  # we cannot use "path" here as it can include a directory
+                    "total_size": computer_size(file["file_size"]),
+                }
+                all_extras.append(extra_file_dict)
         return all_extras
 
     def generate_installer(self, db_game: Dict[str, Any]) -> Dict[str, Any]:
@@ -266,7 +265,7 @@ class ZoomService(OnlineService):
 
         if selected_extras:
             for selected_extra in selected_extras:
-                extras.append(InstallerFile(installer.game_slug, "zoominstaller-extra", selected_extra))
+                extras.append(InstallerFile(installer.game_slug, selected_extra["name"], selected_extra))
 
         return files, extras
 
