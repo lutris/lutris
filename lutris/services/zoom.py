@@ -9,9 +9,10 @@ from typing import Any, Dict, List, Tuple
 
 from lutris import settings
 from lutris.exceptions import AuthenticationError
-from lutris.installer import AUTO_WIN32_EXE
+from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.installer_file_collection import InstallerFileCollection
+from lutris.runners import get_runner_human_name
 from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -50,13 +51,13 @@ class ZoomGame(ServiceGame):
     def new_from_zoom_game(cls, zoom_game):
         """Return a Zoom game instance from the API info"""
         service_game = ZoomGame()
-        logger.debug("Creating new Zoom game from %s", zoom_game)
         service_game.appid = str(zoom_game["product"]["id"])
         service_game.game_id = str(zoom_game["product"]["id"])
         service_game.slug = zoom_game["product"]["slug"]
         service_game.name = zoom_game["product"]["name"]
-
-        details = {"image": zoom_game["product"]["search_image"]}
+        details = zoom_game["product"]
+        details["image"] = zoom_game["product"]["search_image"]
+        details["slug"] = zoom_game["product"]["slug"]
         service_game.details = json.dumps(details)
         return service_game
 
@@ -203,24 +204,59 @@ class ZoomService(OnlineService):
 
     def generate_installer(self, db_game: Dict[str, Any]) -> Dict[str, Any]:
         logger.debug("Generating installer for %s", db_game)
+        details = json.loads(db_game["details"])
+        platforms = details["operating_systems"]
+        if "linux" in platforms:
+            return self._generate_installer("linux", db_game)
+        else:
+            return self._generate_installer("wine", db_game)
 
+
+    def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
+        details = json.loads(db_game["details"])
+        slug = details["slug"]
+        platforms = details["operating_systems"]
+
+        installers = []
+
+        if "linux" in platforms:
+            installers.append(self._generate_installer("linux", db_game))
+
+        if "windows" in platforms:
+            installers.append(self._generate_installer("wine", db_game))
+
+        if len(installers) > 1:
+            for installer in installers:
+                runner_human_name = get_runner_human_name(installer["runner"])
+                installer["version"] += " " + (runner_human_name or installer["runner"])
+
+        return installers
+
+    def _generate_installer(self, runner: str, db_game: Dict[str, Any]) -> Dict[str, Any]:
+        slug = db_game["slug"]
         system_config = {}
-        game_config = {"exe": AUTO_WIN32_EXE}
-        script = [
-            {"autosetup_gog_game": "zoominstaller"},
-        ]
-
+        if runner == "linux":
+            game_config = {"exe": AUTO_ELF_EXE}
+            script = [
+                {"extract": {"file": "zoominstaller", "dst": "$CACHE"}},
+                {"merge": {"src": "$CACHE", "dst": "$GAMEDIR"}},
+            ]
+        else:
+            game_config = {"exe": AUTO_WIN32_EXE}
+            script = [
+                {"autosetup_gog_game": "zoominstaller"},
+            ]
         return {
             "name": db_game["name"],
             "version": "Zoom",
-            "slug": db_game["slug"],
+            "slug": slug,
             "game_slug": self.get_installed_slug(db_game),
-            "runner": "wine",
+            "runner": runner,
             "zoomid": db_game["appid"],
             "script": {
                 "game": game_config,
                 "system": system_config,
-                "files": [{"zoominstaller": "N/A:Select the installer from Zoom"}],
+                "files": [{"zoominstaller": "N/A:Select the installer from GOG"}],
                 "installer": script,
             },
         }
@@ -229,24 +265,31 @@ class ZoomService(OnlineService):
         self, installer: "LutrisInstaller", installer_file_id: str, selected_extras: List[dict]
     ) -> Tuple[List[InstallerFileCollection], List[InstallerFile]]:
         logger.debug("Getting installer files for %s", installer_file_id)
-        logger.debug("Installer: %s", installer)
+        platform = installer.runner
+        if platform == "wine":
+            platform = "windows"
 
-        installer_files = self._get_installer(installer.game_slug, installer.service_appid)
+        installer_files = self._get_installers(platform, installer.game_slug, installer.service_appid)
         files = [InstallerFileCollection(installer.game_slug, installer_file_id, installer_files)]
 
         return files, []
 
-    def _get_installer(self, game_slug: str, appid: str) -> List[InstallerFile]:
+    def _get_installers(self, platform: str, game_slug: str, appid: str) -> List[InstallerFile]:
         # fetch the installer url using https://www.zoom-platform.com/public/profile/product/ + appid
         # and then parse the response to get the download url
 
         product_url = "https://www.zoom-platform.com/public/profile/product/%s" % appid
         json = self.make_request(product_url)
-        logger.debug(json["files"]["windows"][0]["file_url"])
+
+        file_list = []
+        files = json["files"][platform]
+        print(files)
+        print(len(files))
+        assert len(files) == 1, "More than one file found for %s" % platform
         installer_file_dict = {
-            "url": json["files"]["windows"][0]["file_url"],
-            "filename": json["files"]["windows"][0]["name"],
-            "total_size": computer_size(json["files"]["windows"][0]["file_size"]),
+            "url": files[0]["file_url"],
+            "filename": files[0]["name"],
+            "total_size": computer_size(files[0]["file_size"]),
         }
 
         installer_file = InstallerFile(
@@ -254,7 +297,7 @@ class ZoomService(OnlineService):
             "zoominstaller",
             installer_file_dict,
         )
-        file_list = [installer_file]
+        file_list.append(installer_file)
         return file_list
 
     def get_service_game(self, zoom_game: dict) -> ZoomGame:
