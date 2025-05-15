@@ -25,22 +25,15 @@ if typing.TYPE_CHECKING:
     from lutris.installer.installer import LutrisInstaller
 
 
-class ZoomSmallBanner(ServiceMedia):
+class ZoomBanner(ServiceMedia):
     """Small size game logo"""
 
     service = "zoom"
-    dest_path = os.path.join(settings.CACHE_DIR, "zoom/banners/small")
+    size = (200, 300)
+    dest_path = os.path.join(settings.CACHE_DIR, "zoom/banners/")
     file_patterns = ["%s.jpg"]
     api_field = "image"
     url_pattern = "%s"
-
-
-class ZoomMediumBanner(ZoomSmallBanner):
-    """Medium size game logo"""
-
-    size = (200, 300)
-    dest_path = os.path.join(settings.CACHE_DIR, "zoom/banners/medium")
-
 
 class ZoomGame(ServiceGame):
     """Representation of a Zoom game"""
@@ -70,15 +63,13 @@ class ZoomService(OnlineService):
     icon = "zoom"
     has_extras = False
     drm_free = True
-    medias = {"banner": ZoomMediumBanner}
+    medias = {"banner": ZoomBanner}
     default_format = "banner"
 
     embed_url = "https://www.zoom-platform.com"
     api_url = "https://www.zoom-platform.com"
 
-    client_id = "46899977096215655"
-    client_secret = "9d85c43b1482497dbbce61f6e4aa173a433796eeae2ca8c5f6129f2dc4de46d9"
-    redirect_uris = ["https://abc.com"]
+    redirect_uris = []
 
     login_success_url = "https://www.zoom-platform.com"
     cookies_path = os.path.join(settings.CACHE_DIR, ".zoom.auth")
@@ -142,25 +133,6 @@ class ZoomService(OnlineService):
     def request_token(self, url: str = "", refresh_token: str = "") -> None:
         SERVICE_LOGIN.fire(self)
 
-    def load_token(self) -> dict:
-        """Load token from disk"""
-        if not os.path.exists(self.token_path):
-            raise AuthenticationError("No Zoom token available")
-
-        with open(self.token_path, encoding="utf-8") as token_file:
-            token_content = json.loads(token_file.read())
-
-        if not token_content:
-            raise AuthenticationError("No Zoom token available")
-
-        return token_content
-
-    def get_token_age(self) -> float:
-        """Return age of token"""
-        token_stat = os.stat(self.token_path)
-        token_modified = token_stat.st_mtime
-        return time.time() - token_modified
-
     def make_request(self, url: str) -> Any:
         """Send a cookie authenticated HTTP request to Zoom"""
         request = Request(url, cookies=self.load_cookies())
@@ -171,16 +143,8 @@ class ZoomService(OnlineService):
 
     def make_api_request(self, url: str) -> Any:
         """Send a token authenticated request to Zoom"""
-        token = self.load_token()
-
-        # if self.get_token_age() > 2600:
-        #    self.request_token(refresh_token=token["refresh_token"])
-        #    token = self.load_token()
-        headers = {"Authorization": "Bearer " + token["access_token"]}
-        request = Request(url, headers=headers, cookies=self.load_cookies())
+        request = Request(url, cookies=self.load_cookies())
         request.get()
-        logger.debug(request)
-        logger.debug("Out: %s", request.json)
         return request.json
 
     def get_user_data(self) -> dict:
