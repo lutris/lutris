@@ -349,7 +349,6 @@ class wine(Runner):
             "type": "bool",
             "default": True,
             "advanced": True,
-            "visible": _is_pre_proton,
             "help": _(
                 "Replace Wine's D3DX and D3DCOMPILER libraries with alternative ones. "
                 "Needed for proper functionality of DXVK with some games."
@@ -360,7 +359,6 @@ class wine(Runner):
             "section": _("Graphics"),
             "label": _("D3D Extras version"),
             "advanced": True,
-            "visible": _is_pre_proton,
             "conditional_on": "d3d_extras",
             "type": "choice_with_entry",
             "choices": lambda: D3DExtrasManager().version_choices,
