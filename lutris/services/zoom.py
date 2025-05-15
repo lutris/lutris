@@ -2,7 +2,6 @@
 
 import json
 import os
-import time
 import typing
 from gettext import gettext as _
 from typing import Any, Dict, List, Tuple
@@ -34,6 +33,7 @@ class ZoomBanner(ServiceMedia):
     file_patterns = ["%s.jpg"]
     api_field = "image"
     url_pattern = "%s"
+
 
 class ZoomGame(ServiceGame):
     """Representation of a Zoom game"""
@@ -190,7 +190,7 @@ class ZoomService(OnlineService):
                 "name": extra_type,
                 "url": files[0]["file_url"],
                 "filename": files[0]["name"],
-                "total_size": computer_size(files[0]["file_size"])
+                "total_size": computer_size(files[0]["file_size"]),
             }
             all_extras.append(extra_file_dict)
         return all_extras
@@ -276,7 +276,7 @@ class ZoomService(OnlineService):
 
         product_url = "https://www.zoom-platform.com/public/profile/product/%s" % appid
         json = self.make_request(product_url)
-        #print(json)
+        # print(json)
 
         file_list = []
         files = json["files"][platform]
