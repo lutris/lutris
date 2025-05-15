@@ -61,7 +61,7 @@ class ZoomService(OnlineService):
     id = "zoom"
     name = _("Zoom")
     icon = "zoom"
-    has_extras = False
+    has_extras = True
     drm_free = True
     medias = {"banner": ZoomBanner}
     default_format = "banner"
@@ -166,6 +166,35 @@ class ZoomService(OnlineService):
 
         return games
 
+    def get_extras(self, appid: str) -> Dict[str, List[dict]]:
+        """Return a list of bonus content available for a Zoom ID and its DLCs"""
+        logger.debug("Download extras for Zoom ID %s and its DLCs", appid)
+        return {"extras": self._get_extra(appid)}
+
+    def _get_extra(self, appid: str) -> List[dict]:
+        # fetch the extra files urls using https://www.zoom-platform.com/public/profile/product/ + appid
+        # and then parse the response to get the download url
+
+        product_url = "https://www.zoom-platform.com/public/profile/product/%s" % appid
+        json = self.make_request(product_url)
+        print(json)
+
+        all_extras = []
+        for extra_type in ["manual"]:
+            files = json["files"][extra_type]
+            if len(files) == 0:
+                continue
+            print(files)
+
+            extra_file_dict = {
+                "name": extra_type,
+                "url": files[0]["file_url"],
+                "filename": files[0]["name"],
+                "total_size": computer_size(files[0]["file_size"])
+            }
+            all_extras.append(extra_file_dict)
+        return all_extras
+
     def generate_installer(self, db_game: Dict[str, Any]) -> Dict[str, Any]:
         logger.debug("Generating installer for %s", db_game)
         details = json.loads(db_game["details"])
@@ -218,7 +247,7 @@ class ZoomService(OnlineService):
             "script": {
                 "game": game_config,
                 "system": system_config,
-                "files": [{"zoominstaller": "N/A:Select the installer from GOG"}],
+                "files": [{"zoominstaller": "N/A:Select the installer from Zoom"}],
                 "installer": script,
             },
         }
@@ -233,8 +262,13 @@ class ZoomService(OnlineService):
 
         installer_files = self._get_installers(platform, installer.game_slug, installer.service_appid)
         files = [InstallerFileCollection(installer.game_slug, installer_file_id, installer_files)]
+        extras = []
 
-        return files, []
+        if selected_extras:
+            for selected_extra in selected_extras:
+                extras.append(InstallerFile(installer.game_slug, "zoominstaller-extra", selected_extra))
+
+        return files, extras
 
     def _get_installers(self, platform: str, game_slug: str, appid: str) -> List[InstallerFile]:
         # fetch the installer url using https://www.zoom-platform.com/public/profile/product/ + appid
@@ -242,11 +276,11 @@ class ZoomService(OnlineService):
 
         product_url = "https://www.zoom-platform.com/public/profile/product/%s" % appid
         json = self.make_request(product_url)
+        #print(json)
 
         file_list = []
         files = json["files"][platform]
         print(files)
-        print(len(files))
         assert len(files) == 1, "More than one file found for %s" % platform
         installer_file_dict = {
             "url": files[0]["file_url"],
