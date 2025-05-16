@@ -424,18 +424,20 @@ class wine(Runner):
             "default": False,
             "advanced": True,
             "visible": _is_proton_wayland_available,
-            "help": _("Enable Proton's support for the Wayland Display Server."),
+            "help": _(
+                "Enable Proton's support for the Wayland Display Server. Some Proton versions don't support this."
+            ),
         },
         {
             "option": "proton_hdr",
             "section": _("Graphics"),
-            "label": _("Enable HDR"),
+            "label": _("Enable HDR (Experimental)"),
             "type": "bool",
             "default": False,
             "advanced": True,
             "visible": _is_proton_wayland_available,
             "conditional_on": "proton_wayland",
-            "help": _("Enable Proton's support for the High Dynamic Range graphics. Requires Wayland."),
+            "help": _("Enable Proton's support for High Dynamic Range graphics. Requires Wayland."),
         },
         {
             "option": "esync",
