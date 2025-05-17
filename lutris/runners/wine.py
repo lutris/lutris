@@ -447,12 +447,15 @@ class wine(Runner):
         {
             "option": "proton_hdr",
             "section": _("Graphics"),
-            "label": _("Enable HDR"),
+            "label": _("Enable HDR (Experimental)"),
             "type": "bool",
             "default": False,
             "advanced": True,
             "visible": _is_proton_hdr_available,
-            "help": _("Enable Proton's support for the High Dynamic Range graphics. Requires Wayland."),
+            "help": _(
+                "Enable Proton's support for High Dynamic Range graphics. "
+                "Requires Wayland selected as Graphics backend."
+            ),
         },
         {
             "option": "esync",
