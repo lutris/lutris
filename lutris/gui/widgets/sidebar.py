@@ -6,7 +6,6 @@ from typing import List
 
 from gi.repository import GObject, Gtk, Pango
 
-from all_services import AllService
 from lutris import runners, services
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
@@ -654,9 +653,6 @@ class LutrisSidebar(Gtk.ListBox):
                     self.service_rows[service_name] = service_row
                 except Exception as ex:
                     logger.exception("Sidebar row for '%s' could not be loaded: %s", service_name, ex)
-
-        allservice_name = "All services"
-        allservice_class = AllService
 
         for runner_name in self.installed_runners:
             if runner_name not in self.runner_rows:

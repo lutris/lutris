@@ -3,6 +3,7 @@
 import os
 
 from lutris import settings
+from lutris.services.all_services import AllService
 from lutris.services.amazon import AmazonService
 from lutris.services.battlenet import BNET_ENABLED, BattleNetService
 from lutris.services.dolphin import DolphinService
@@ -38,6 +39,7 @@ def get_services():
         "ubisoft": UbisoftConnectService,
         "amazon": AmazonService,
         "flathub": FlathubService,
+        "all_services": AllService,
     }
     if BNET_ENABLED:
         _services["battlenet"] = BattleNetService
