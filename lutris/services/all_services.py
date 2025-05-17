@@ -24,9 +24,13 @@ class AllService(BaseService):
 
         target_services = get_enabled_services()
         target_services.pop(self.id)
+        total_game_list = []
         for service_name, service_class in target_services.items():
             logger.debug("Checking service %s with class %s", service_name, service_class)
             service_object = service_class()
             if isinstance(service_object, OnlineService):
                 if service_object.is_authenticated():
                     logger.debug("Service %s is authenticated", service_name)
+            elif isinstance(service_object, BaseService):
+                total_game_list.append(service_object.load())
+        return total_game_list

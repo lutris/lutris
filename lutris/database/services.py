@@ -14,6 +14,8 @@ class ServiceGameCollection:
     def get_for_service(cls, service):
         if not service:
             raise ValueError("No service provided")
+        if service == "all_services":
+            return sql.filtered_query(settings.DB_PATH, "service_games")
         return sql.filtered_query(settings.DB_PATH, "service_games", filters={"service": service})
 
     @classmethod
