@@ -3,7 +3,7 @@
 import json
 import os
 from gettext import gettext as _
-from typing import Dict, Generator, List, Optional
+from typing import Dict, Generator, List, Optional, Tuple
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
@@ -38,7 +38,7 @@ def is_proton_path(wine_path: str) -> bool:
 
     This function may be given the wine root directory or a file within such as
     the wine executable and will return true for either."""
-    for candidate_wine_path in get_proton_versions().values():
+    for candidate_wine_path, _proton_version, _proton_variant in get_proton_versions().values():
         if system.path_contains(candidate_wine_path, wine_path):
             return True
     return False
@@ -86,15 +86,17 @@ def get_umu_path() -> str:
 
 def get_proton_wine_path(version: str) -> str:
     """Get the wine path for the specified proton version"""
-    wine_path = get_proton_versions().get(version)
-    if wine_path:
-        wine_path_dist = os.path.join(wine_path, "dist/bin/wine")
-        if os.path.exists(wine_path_dist):
-            return wine_path_dist
+    versions = get_proton_versions()
+    if version in versions:
+        wine_path, _proton_version, _proton_variant = versions[version]
+        if wine_path:
+            wine_path_dist = os.path.join(wine_path, "dist/bin/wine")
+            if os.path.exists(wine_path_dist):
+                return wine_path_dist
 
-        wine_path_files = os.path.join(wine_path, "files/bin/wine")
-        if os.path.exists(wine_path_files):
-            return wine_path_files
+            wine_path_files = os.path.join(wine_path, "files/bin/wine")
+            if os.path.exists(wine_path_files):
+                return wine_path_files
 
     raise MissingExecutableError(_("Proton version '%s' is missing its wine executable and can't be used.") % version)
 
@@ -115,15 +117,27 @@ def list_proton_versions() -> List[str]:
 
 
 @cache_single
-def get_proton_versions() -> Dict[str, str]:
+def get_proton_versions() -> Dict[str, Tuple[str, int, str]]:
     """Return the dict of Proton versions installed in Steam, which is cached.
-    The keys are the versions, and the values are the paths to those versions,
-    which are their wine-paths."""
+    The keys are the versions, and the values are tuples; they contain the
+    the paths to those versions, which are their wine-paths, followed by the proton
+    version number as an int, and the rest of the version file as a string,
+    which indicates the variant of Proton."""
     try:
         # We can only use a Proton install via the Umu launcher script.
         _ = get_umu_path()
     except MissingExecutableError:
         return {}
+
+    def read_version_info(path):
+        try:
+            with open(path) as f:
+                parts = f.read().split(maxsplit=1)
+                version = int(parts[0].strip())
+                variant = parts[1].strip() if len(parts) > 1 else ""
+                return version, variant
+        except ValueError:
+            return None, None
 
     versions = dict()
     for proton_path in _iter_proton_locations():
@@ -131,8 +145,10 @@ def get_proton_versions() -> Dict[str, str]:
             for version in os.listdir(proton_path):
                 if version not in versions:
                     wine_path = os.path.join(proton_path, version)
-                    if os.path.isfile(os.path.join(wine_path, "proton")):
-                        versions[version] = wine_path
+                    path = os.path.join(wine_path, "version")
+                    if os.path.isfile(path):
+                        version_info = read_version_info(path)
+                        versions[version] = (wine_path, version_info[0], version_info[1])
     return versions
 
 

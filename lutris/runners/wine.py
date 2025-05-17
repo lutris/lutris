@@ -73,8 +73,13 @@ def _is_pre_proton(_option_key: str, config: LutrisConfig) -> bool:
 
 
 def _is_proton_wayland_available(_option_key: str, config: LutrisConfig) -> bool:
-    version = config.runner_config.get("version")
-    return proton.is_proton_version(version) and not is_display_x11()
+    if not is_display_x11():
+        version = config.runner_config.get("version")
+        versions = proton.get_proton_versions()
+        if version in versions:
+            _wine_path, proton_version, _proton_source = versions[version]
+            return proton_version and proton_version >= 1747214205
+    return False
 
 
 def _get_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
