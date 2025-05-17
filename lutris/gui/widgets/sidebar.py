@@ -6,6 +6,7 @@ from typing import List
 
 from gi.repository import GObject, Gtk, Pango
 
+from all_services import AllService
 from lutris import runners, services
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
@@ -641,6 +642,8 @@ class LutrisSidebar(Gtk.ListBox):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = games_db.get_used_platforms()
 
+        # TODO:Make 'all services tab'
+
         for service_name, service_class in self.active_services.items():
             if service_name not in self.service_rows:
                 try:
@@ -651,6 +654,9 @@ class LutrisSidebar(Gtk.ListBox):
                     self.service_rows[service_name] = service_row
                 except Exception as ex:
                     logger.exception("Sidebar row for '%s' could not be loaded: %s", service_name, ex)
+
+        allservice_name = "All services"
+        allservice_class = AllService
 
         for runner_name in self.installed_runners:
             if runner_name not in self.runner_rows:
