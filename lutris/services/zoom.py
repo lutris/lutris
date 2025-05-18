@@ -56,10 +56,10 @@ class ZoomGame(ServiceGame):
 
 
 class ZoomService(OnlineService):
-    """Service class for Zoom"""
+    """Service class for ZOOM Platform"""
 
     id = "zoomplatform"
-    name = _("Zoom")
+    name = _("ZOOM Platform")
     icon = "zoom"
     has_extras = True
     drm_free = True
