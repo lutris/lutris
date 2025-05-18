@@ -27,7 +27,7 @@ if typing.TYPE_CHECKING:
 class ZoomBanner(ServiceMedia):
     """Small size game logo"""
 
-    service = "zoom"
+    service = "zoomplatform"
     size = (200, 300)
     dest_path = os.path.join(settings.CACHE_DIR, "zoom/banners/")
     file_patterns = ["%s.jpg"]
@@ -38,7 +38,7 @@ class ZoomBanner(ServiceMedia):
 class ZoomGame(ServiceGame):
     """Representation of a Zoom game"""
 
-    service = "zoom"
+    service = "zoomplatform"
 
     @classmethod
     def new_from_zoom_game(cls, zoom_game):
@@ -58,7 +58,7 @@ class ZoomGame(ServiceGame):
 class ZoomService(OnlineService):
     """Service class for Zoom"""
 
-    id = "zoom"
+    id = "zoomplatform"
     name = _("Zoom")
     icon = "zoom"
     has_extras = True

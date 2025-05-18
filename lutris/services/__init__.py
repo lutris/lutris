@@ -32,7 +32,7 @@ def get_services():
     """Return a mapping of available services"""
     _services = {
         "gog": GOGService,
-        "zoom": ZoomService,
+        "zoomplatform": ZoomService,
         "humblebundle": HumbleBundleService,
         "egs": EpicGamesStoreService,
         "itchio": ItchIoService,
