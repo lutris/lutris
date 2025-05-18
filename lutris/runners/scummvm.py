@@ -544,7 +544,8 @@ class scummvm(Runner):
         args = self.game_config.get("args") or ""
         for arg in split_arguments(args):
             command.append(arg)
-        command.append(self.game_config.get("game_id"))
+        if self.game_config.get("game_id"):
+            command.append(self.game_config.get("game_id"))
         output = {"command": command}
 
         extra_libs = self.get_extra_libs()
