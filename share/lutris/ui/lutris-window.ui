@@ -106,10 +106,10 @@
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <child>
-                          <object class="GtkLabel">
+                          <object class="GtkLabel" id="lutris_log_in_label">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">&lt;a href=""&gt;Login&lt;/a&gt; to Lutris.net to sync your game library</property>
+                            <property name="label" translatable="yes">&lt;a href=""&gt;Login&lt;/a&gt; to Lutris to sync your game library</property>
                             <property name="use-markup">True</property>
                             <signal name="activate-link" handler="on_lutris_log_in_label_activate_link" swapped="no"/>
                           </object>

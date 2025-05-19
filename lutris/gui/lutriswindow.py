@@ -16,7 +16,6 @@ from lutris.api import (
     LUTRIS_ACCOUNT_CONNECTED,
     LUTRIS_ACCOUNT_DISCONNECTED,
     get_runtime_versions,
-    read_user_info,
 )
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
@@ -93,7 +92,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     game_view_spinner: Gtk.Spinner = GtkTemplate.Child()
     login_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     lutris_log_in_label: Gtk.Label = GtkTemplate.Child()
-    turn_on_library_sync_label: Gtk.Label = GtkTemplate.Child()
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     version_notification_label: Gtk.Revealer = GtkTemplate.Child()
     show_hidden_games_button: Gtk.ModelButton = GtkTemplate.Child()
@@ -1044,26 +1042,17 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def update_notification(self):
         show_notification = self.is_showing_splash()
         if show_notification:
-            if not read_user_info():
-                self.lutris_log_in_label.show()
-                self.turn_on_library_sync_label.hide()
-            elif not settings.read_bool_setting("library_sync_enabled"):
-                self.lutris_log_in_label.hide()
-                self.turn_on_library_sync_label.show()
-            else:
-                show_notification = False
-
+            self.lutris_log_in_label.show()
         self.login_notification_revealer.set_reveal_child(show_notification)
 
     @GtkTemplate.Callback
     def on_lutris_log_in_label_activate_link(self, _label, _url):
-        ClientLoginDialog(parent=self)
+        def on_connect_success(widget, _username):
+            self.sync_library(force=True)
 
-    @GtkTemplate.Callback
-    def on_turn_on_library_sync_label_activate_link(self, _label, _url):
-        settings.write_setting("library_sync_enabled", True)
-        self.sync_library(force=True)
-        self.update_notification()
+        self.login_notification_revealer.set_reveal_child(False)
+        login_dialog = ClientLoginDialog(parent=self)
+        login_dialog.connect("connected", on_connect_success)
 
     def on_version_notification_close_button_clicked(self, _button):
         dialog = QuestionDialog(
