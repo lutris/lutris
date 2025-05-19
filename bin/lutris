@@ -19,9 +19,6 @@ import sys
 import asyncio
 from os.path import dirname, normpath, realpath
 
-from lutris.gui.dialogs import Dialog
-from lutris.util.jobs import init_main_loop
-
 LAUNCH_PATH = dirname(realpath(__file__))
 
 # Prevent loading Python modules from home folder
@@ -41,6 +38,9 @@ try:
     locale.setlocale(locale.LC_ALL, "")
 except locale.Error as ex:
     sys.stderr.write("Unsupported locale setting: %s\n" % ex)
+
+from lutris.gui.dialogs import Dialog
+from lutris.util.jobs import init_main_loop
 
 try:
     # optional_settings does not exist if you don't use the meson build system
