@@ -87,6 +87,9 @@ def get_game_for_service(service, appid):
     if service == "lutris":
         return get_game_by_field(appid, field="slug")
 
+    if service == "all_services":
+        return get_game_by_field(appid, field="slug")
+
     existing_games = get_games(filters={"service_id": appid, "service": service})
     if existing_games:
         return existing_games[0]
@@ -96,6 +99,10 @@ def get_all_installed_game_for_service(service):
     if service == "lutris":
         db_games = get_games(filters={"installed": 1})
         return {g["slug"]: g for g in db_games}
+
+    if service == "all_services":
+        db_games = get_games()
+        return {g["slug"]: g for g in db_games}  # This returns an array of all the installed games slugs no?
 
     db_games = get_games(filters={"service": service, "installed": 1})
     return {g["service_id"]: g for g in db_games}
@@ -109,6 +116,8 @@ def get_service_games(service):
     if service not in _SERVICE_CACHE or _SERVICE_CACHE_ACCESSED - previous_cache_accessed > 1:
         if service == "lutris":
             _SERVICE_CACHE[service] = [game["slug"] for game in get_games(filters={"installed": "1"})]
+        elif service == "all_services":
+            _SERVICE_CACHE[service] = [game["slug"] for game in get_games()]
         else:
             _SERVICE_CACHE[service] = [
                 game["service_id"] for game in get_games(filters={"service": service, "installed": "1"})
@@ -221,7 +230,7 @@ def get_used_platforms():
     """Return a list of platforms currently in use"""
     with sql.db_cursor(settings.DB_PATH) as cursor:
         query = (
-            "select distinct platform from games " "where platform is not null and platform is not '' order by platform"
+            "select distinct platform from games where platform is not null and platform is not '' order by platform"
         )
         rows = cursor.execute(query)
         results = rows.fetchall()

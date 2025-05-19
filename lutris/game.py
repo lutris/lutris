@@ -347,7 +347,7 @@ class Game:
         if not self.slug:
             raise ValueError("Invalid game passed: %s" % self)
 
-        if not self.service or self.service == "lutris":
+        if not self.service or self.service == "lutris" or self.service == "all_services":
             application = Gio.Application.get_default()
             application.show_lutris_installer_window(game_slug=self.slug)
             return
