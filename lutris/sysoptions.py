@@ -104,7 +104,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "label": _("Prefer system libraries"),
         "default": True,
-        "help": _("When the runtime is enabled, prioritize the system libraries" " over the provided ones."),
+        "help": _("When the runtime is enabled, prioritize the system libraries over the provided ones."),
     },
     {
         "section": _("Display"),
@@ -148,7 +148,7 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "available": is_display_x11,
         "condition": is_compositing_enabled(),
-        "help": _("Disable desktop effects while game is running, " "reducing stuttering and increasing performance"),
+        "help": _("Disable desktop effects while game is running, reducing stuttering and increasing performance"),
     },
     {
         "section": _("Display"),
@@ -213,7 +213,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Enable Gamescope"),
         "default": False,
         "condition": system.can_find_executable("gamescope") and linux.LINUX_SYSTEM.nvidia_gamescope_support(),
-        "help": _("Use gamescope to draw the game window isolated from your desktop.\n" "Toggle fullscreen: Super + F"),
+        "help": _("Use gamescope to draw the game window isolated from your desktop.\nToggle fullscreen: Super + F"),
     },
     {
         "section": _("Gamescope"),
@@ -224,7 +224,7 @@ system_options = [  # pylint: disable=invalid-name
         "default": False,
         "conditional_on": "gamescope",
         "condition": bool(system.can_find_executable("gamescope")),
-        "help": _("Enable HDR for games that support it.\n" "Requires Plasma 6 and VK_hdr_layer."),
+        "help": _("Enable HDR for games that support it.\nRequires Plasma 6 and VK_hdr_layer."),
     },
     {
         "section": _("Gamescope"),
@@ -265,7 +265,7 @@ system_options = [  # pylint: disable=invalid-name
         "choices": DISPLAY_MANAGER.get_resolutions,
         "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
-        "help": _("Set the maximum resolution used by the game.\n" "\n" "<b>Custom Resolutions:</b> (width)x(height)"),
+        "help": _("Set the maximum resolution used by the game.\n\n<b>Custom Resolutions:</b> (width)x(height)"),
     },
     {
         "section": _("Gamescope"),
@@ -280,7 +280,7 @@ system_options = [  # pylint: disable=invalid-name
         "default": "-f",
         "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
-        "help": _("Run gamescope in fullscreen, windowed or borderless mode\n" "Toggle fullscreen : Super + F"),
+        "help": _("Run gamescope in fullscreen, windowed or borderless mode\nToggle fullscreen : Super + F"),
     },
     {
         "section": _("Gamescope"),
@@ -291,7 +291,7 @@ system_options = [  # pylint: disable=invalid-name
         "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
         "help": _(
-            "Use AMD FidelityFX™ Super Resolution 1.0 for upscaling.\n" "Upscaler sharpness from 0 (max) to 20 (min)."
+            "Use AMD FidelityFX™ Super Resolution 1.0 for upscaling.\nUpscaler sharpness from 0 (max) to 20 (min)."
         ),
     },
     {
@@ -313,7 +313,7 @@ system_options = [  # pylint: disable=invalid-name
         "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
         "help": _(
-            "Set additional flags for gamescope (if available).\n" "See 'gamescope --help' for a full list of options."
+            "Set additional flags for gamescope (if available).\nSee 'gamescope --help' for a full list of options."
         ),
     },
     {
@@ -350,7 +350,7 @@ system_options = [  # pylint: disable=invalid-name
         "default": False,
         "advanced": True,
         "condition": system.can_find_executable("pulseaudio") or system.can_find_executable("pipewire-pulse"),
-        "help": _("Set the environment variable PULSE_LATENCY_MSEC=60 " "to improve audio quality on some games"),
+        "help": _("Set the environment variable PULSE_LATENCY_MSEC=60 to improve audio quality on some games"),
     },
     {
         "section": _("Input"),
@@ -377,8 +377,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("SDL2 gamepad mapping"),
         "advanced": True,
         "help": _(
-            "SDL_GAMECONTROLLERCONFIG mapping string or path to a custom "
-            "gamecontrollerdb.txt file containing mappings."
+            "SDL_GAMECONTROLLERCONFIG mapping string or path to a custom gamecontrollerdb.txt file containing mappings."
         ),
     },
     {
@@ -430,7 +429,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "string",
         "label": _("Command prefix"),
         "advanced": True,
-        "help": _("Command line instructions to add in front of the game's " "execution command."),
+        "help": _("Command line instructions to add in front of the game's execution command."),
     },
     {
         "section": _("Game execution"),

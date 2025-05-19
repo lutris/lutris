@@ -122,7 +122,7 @@ class FsyncUnsupportedError(Exception):
 
     def __init__(self, message=None, *args, **kwarg):
         if not message:
-            message = _("Your kernel is not patched for fsync." " Please get a patched kernel to use fsync.")
+            message = _("Your kernel is not patched for fsync. Please get a patched kernel to use fsync.")
 
         super().__init__(message, *args, **kwarg)
 

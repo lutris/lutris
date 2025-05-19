@@ -42,7 +42,7 @@ class AccountsBox(BaseConfigBox):
         self.connect("unrealize", self.on_unrealize)
 
         self.sync_frame = self._get_framed_options_list_box([self.sync_box])
-        self.sync_frame.set_visible(settings.read_bool_setting("library_sync_enabled"))
+        self.sync_frame.set_visible(settings.read_bool_setting("library_sync_enabled", True))
 
         self.pack_start(self.sync_frame, False, False, 0)
 
@@ -111,7 +111,7 @@ class AccountsBox(BaseConfigBox):
         sync_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, visible=True)
         sync_label = Gtk.Label(_("Keep your game library synced with Lutris.net"), visible=True)
         sync_switch = Gtk.Switch(visible=True)
-        sync_switch.set_active(settings.read_bool_setting("library_sync_enabled"))
+        sync_switch.set_active(settings.read_bool_setting("library_sync_enabled", default=True))
         sync_switch.connect("state-set", self.on_sync_state_set)
         sync_box.pack_start(sync_label, False, False, 0)
         sync_box.pack_end(sync_switch, False, False, 0)

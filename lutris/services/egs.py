@@ -416,4 +416,4 @@ class EpicGamesStoreService(OnlineService):
 
 
 def get_launch_arguments(app_name, action="launch"):
-    return ("-opengl" " -SkipBuildPatchPrereq" " -com.epicgames.launcher://apps/%s?action=%s") % (app_name, action)
+    return ("-opengl -SkipBuildPatchPrereq -com.epicgames.launcher://apps/%s?action=%s") % (app_name, action)

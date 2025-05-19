@@ -38,7 +38,7 @@ class flatpak(Runner):
             "type": "string",
             "label": _("Architecture"),
             "help": _(
-                "The architecture to run. " "See flatpak --supported-arches for architectures supported by the host."
+                "The architecture to run. See flatpak --supported-arches for architectures supported by the host."
             ),
             "advanced": True,
         },
@@ -141,7 +141,7 @@ class flatpak(Runner):
 
         if appid.count(".") < 2:
             raise GameConfigError(
-                _("Application ID is not specified in correct format." "Must be something like: tld.domain.app")
+                _("Application ID is not specified in correct format.Must be something like: tld.domain.app")
             )
 
         if any(x in appid for x in ("--", "/")):

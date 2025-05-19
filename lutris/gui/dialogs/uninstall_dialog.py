@@ -150,7 +150,7 @@ class UninstallDialog(Gtk.Dialog):
                 )
             )
         else:
-            messages.append(_("After you remove these games, they will no longer " "appear in the 'Games' view."))
+            messages.append(_("After you remove these games, they will no longer appear in the 'Games' view."))
 
         if self.any_shared:
             messages.append(
@@ -258,7 +258,7 @@ class UninstallDialog(Gtk.Dialog):
 
         if dirs_to_delete:
             if len(dirs_to_delete) == 1:
-                question = _("Please confirm.\nEverything under <b>%s</b>\n" "will be moved to the trash.") % gtk_safe(
+                question = _("Please confirm.\nEverything under <b>%s</b>\nwill be moved to the trash.") % gtk_safe(
                     dirs_to_delete[0]
                 )
             else:
@@ -278,7 +278,8 @@ class UninstallDialog(Gtk.Dialog):
                 return
 
         games_removed_from_library = []
-        if settings.read_bool_setting("library_sync_enabled"):
+        library_sync_enabled = settings.read_bool_setting("library_sync_enabled", True)
+        if library_sync_enabled:
             library_syncer = LibrarySyncer()
             for row in rows:
                 if row.remove_from_library:
@@ -289,7 +290,7 @@ class UninstallDialog(Gtk.Dialog):
         for row in rows:
             row.perform_removal()
 
-        if settings.read_bool_setting("library_sync_enabled") and games_removed_from_library:
+        if library_sync_enabled and games_removed_from_library:
             library_syncer.delete_from_remote_library(games_removed_from_library)
         self.parent.on_game_removed()
         self.destroy()

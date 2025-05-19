@@ -22,7 +22,7 @@ class RetroConfig:
             return self._config
         except UnicodeDecodeError:
             logger.error(
-                "The Retroarch config in %s could not " "be read because of character encoding issues", self.config_path
+                "The Retroarch config in %s could not be read because of character encoding issues", self.config_path
             )
             return []
 

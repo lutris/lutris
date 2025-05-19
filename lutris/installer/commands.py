@@ -105,7 +105,7 @@ class CommandsMixin:
             self._check_required_params([("file", "command")], data, "execute")
             if "command" in data and "file" in data:
                 raise ScriptingError(
-                    _("Parameters file and command can't be used " "at the same time for the execute command"),
+                    _("Parameters file and command can't be used at the same time for the execute command"),
                     data,
                 )
 

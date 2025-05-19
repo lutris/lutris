@@ -57,9 +57,7 @@ class mednafen(Runner):
             "option": "main_file",
             "type": "file",
             "label": _("ROM file"),
-            "help": _(
-                "The game data, commonly called a ROM image. \n" "Mednafen supports GZIP and ZIP compressed ROMs."
-            ),
+            "help": _("The game data, commonly called a ROM image. \nMednafen supports GZIP and ZIP compressed ROMs."),
         },
         {
             "option": "machine",

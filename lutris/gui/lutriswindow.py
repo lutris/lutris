@@ -310,7 +310,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             if not error:
                 sync_media()
 
-        if settings.read_bool_setting("library_sync_enabled"):
+        if settings.read_bool_setting("library_sync_enabled", True):
             AsyncCall(LibrarySyncer().sync_local_library, on_library_synced if force else None, force=force)
 
     def update_action_state(self):
