@@ -9,6 +9,7 @@ Here are some guidelines on how to accept or reject submissions. Please follow t
 Valid Submissions
 =================
 - Games from reputable sources (e.g., GOG, Epic..)
+- Games that look okay that are hosted on on small websites.
 - Open source games with public source code repositories
 
 Non-Ideal Submissions (Usually Approved)
@@ -17,9 +18,8 @@ Non-Ideal Submissions (Usually Approved)
 
 Invalid Submissions
 ===================
-- Any games hosted on low-quality or spammy websites, including most `.io` games.
+- Most web games hosted on `.io` domains
 - Games with incorrect or misleading publisher information.
 - Low-effort games from questionable sources, including gambling apps and low-quality Chinese knockoffs.
 - Duplicate submissions — only one entry per game is allowed.
-- Games requiring third-party shady launchers known for poor practices (e.g., sketchy crypto miners)
-- Leaked, pirated, or unofficially redistributed games
+- Games requiring shady third-party launchers known for poor practices (e.g., sketchy crypto miners)
