@@ -277,21 +277,23 @@ class UninstallDialog(Gtk.Dialog):
             if dlg.result != Gtk.ResponseType.YES:
                 return
 
-        games_removed_from_library = []
         library_sync_enabled = settings.read_bool_setting("library_sync_enabled", True)
-        if library_sync_enabled:
-            library_syncer = LibrarySyncer()
-            for row in rows:
-                if row.remove_from_library:
-                    games_removed_from_library.append(get_game_by_field(row.game._id, "id"))
-            if games_removed_from_library:
-                library_syncer.sync_local_library()
+        games_removed_from_library = []
+        library_syncer = LibrarySyncer() if library_sync_enabled else None
 
         for row in rows:
+            if library_syncer and row.remove_from_library:
+                games_removed_from_library.append(get_game_by_field(row.game._id, "id"))
             row.perform_removal()
 
-        if library_sync_enabled and games_removed_from_library:
-            library_syncer.delete_from_remote_library(games_removed_from_library)
+        if library_syncer and games_removed_from_library:
+
+            def sync_local_library():
+                library_syncer.sync_local_library()
+                library_syncer.delete_from_remote_library(games_removed_from_library)
+
+            AsyncCall(sync_local_library, None)
+
         self.parent.on_game_removed()
         self.destroy()
 
