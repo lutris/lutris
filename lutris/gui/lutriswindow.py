@@ -306,7 +306,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         def on_library_synced(_result, error):
             """Sync media after the library is loaded"""
             if not error:
-                sync_media()
+                AsyncCall(sync_media, None)
 
         if settings.read_bool_setting("library_sync_enabled", True):
             AsyncCall(LibrarySyncer().sync_local_library, on_library_synced if force else None, force=force)
