@@ -131,10 +131,6 @@ class ZoomService(OnlineService):
         request.get()
         return request.json
 
-    def get_user_data(self) -> dict:
-        """Return Zoom profile information"""
-        url = "https://www.zoom-platform.com/account/library"
-        return self.make_api_request(url)
 
     def get_library(self) -> Dict:
         """Return the user's library of Zoom games"""
