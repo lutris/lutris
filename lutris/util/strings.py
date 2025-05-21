@@ -387,7 +387,7 @@ def human_size(size: int) -> str:
 # inverse of human_size converts a human readable size to bytes
 def computer_size(size: str) -> int:
     """Converts a human readable size to bytes"""
-    units = ("bytes", "kB", "MB", "GB", "TB", "PB", "nuh uh", "no way", "BS")
+    units = ("bytes", "kB", "MB", "GB", "TB", "PB")
     unit_index = 0
     size = size.strip()
     for unit in units:
