@@ -542,7 +542,7 @@ class CommandsMixin:
             logger.debug("Process %s returned: %s", func, result)
             return result
 
-    def _extract_gog_game(self, file_id):
+    def _extract_innosetup(self, file_id):
         self.extract({"src": file_id, "dst": "$GAMEDIR", "extractor": "innoextract"})
         app_path = os.path.join(self.target_path, "app")
         if system.path_exists(app_path):
@@ -587,7 +587,7 @@ class CommandsMixin:
                 # before extracting the game. Added for Quake but GlQuake.exe doesn't run on modern wine
                 windows_override_found = True
         if dosbox_found and not windows_override_found:
-            self._extract_gog_game(file_id)
+            self._extract_innosetup(file_id)
             # Zoom seems to use always the default working dir for dosbox
             if file_id != "zoominstaller" and "DOSBOX" in os.listdir(self.target_path):
                 dosbox_config = {
@@ -623,6 +623,82 @@ class CommandsMixin:
                         arguments = self._get_scummvm_arguments(os.path.join(self.target_path, filename))
                 if not arguments:
                     raise RuntimeError("Unable to get ScummVM arguments")
+            logger.info("ScummVM config: %s", arguments)
+            self.installer.script["game"] = arguments
+            self.installer.runner = "scummvm"
+        else:
+            args = "/SP- /NOCANCEL"
+            if silent:
+                args += " /SUPPRESSMSGBOXES /VERYSILENT /NOGUI"
+            self.installer.is_gog = True
+            return self.task({"name": "wineexec", "prefix": "$GAMEDIR", "executable": file_id, "args": args})
+
+    def _get_dosbox_arguments(self, zoom_bat_path):
+        """Return the arguments for the DOSBox executable from a ZOOM Plaform installer"""
+        with open(zoom_bat_path, encoding="utf-8") as zoom_bat_file:
+            zoom_bat = zoom_bat_file.read()
+
+        # Find the line that starts with ".\DOSBOX\dosbox.exe" and extract the arguments
+        lines = zoom_bat.splitlines()
+        arguments = []
+        for line in lines:
+            if line.startswith(".\\DOSBOX\\dosbox.exe"):
+                # Extract the arguments from the line
+                arguments = line.split(" ", 1)[1].strip()
+                break
+
+        return arguments
+
+    def autosetup_zoom_platform(self, file_id, silent=False):
+        """Automatically guess the best way to install a ZOOM Platofrm game by inspecting its contents.
+        This chooses the right runner (DOSBox, Wine) for Windows game files.
+        Linux setup files don't use innosetup, they can be unzipped instead.
+        """
+        file_path = self.game_files[file_id]
+        file_list = extract.get_innoextract_list(file_path)
+        dosbox_found = False
+        scummvm_found = False
+        for filename in file_list:
+            if "dosbox.exe" in filename.lower():
+                dosbox_found = True
+            if "scummvm.exe" in filename.lower():
+                scummvm_found = True
+        if dosbox_found:
+            self._extract_innosetup(file_id)
+            dosbox_config = {}
+            single_conf = None
+            config_file = None
+            for filename in os.listdir(self.target_path):
+                if filename == "dosbox.conf":
+                    dosbox_config["main_file"] = filename
+                elif filename.endswith("_single.conf"):
+                    single_conf = filename
+                elif filename.endswith(".conf"):
+                    config_file = filename
+            if single_conf:
+                dosbox_config["main_file"] = single_conf
+            if config_file:
+                if dosbox_config.get("main_file"):
+                    dosbox_config["config_file"] = config_file
+                else:
+                    dosbox_config["main_file"] = config_file
+
+            for filename in os.listdir(self.target_path):
+                if filename.startswith("Launch") and filename.endswith(".bat"):
+                    arguments = self._get_dosbox_arguments(os.path.join(self.target_path, filename))
+
+            if len(arguments) > 0:
+                # Add the arguments to the dosbox config
+                dosbox_config["args"] = arguments
+                # Remove "config_file" from the dosbox config
+                if "config_file" in dosbox_config:
+                    del dosbox_config["config_file"]
+
+            self.installer.script["game"] = dosbox_config
+            self.installer.runner = "dosbox"
+        elif scummvm_found:
+            self._extract_innoextract_setup(file_id)
+            arguments = {"path": os.path.join(self.target_path, "Data"), "args": "--auto-detect"}
             logger.info("ScummVM config: %s", arguments)
             self.installer.script["game"] = arguments
             self.installer.runner = "scummvm"

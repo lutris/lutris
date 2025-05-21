@@ -15,7 +15,7 @@ from lutris.runners import get_runner_human_name
 from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
-from lutris.util import i18n, system
+from lutris.util import system
 from lutris.util.http import Request
 from lutris.util.log import logger
 from lutris.util.strings import computer_size
@@ -131,7 +131,6 @@ class ZoomService(OnlineService):
         request.get()
         return request.json
 
-
     def get_library(self) -> Dict:
         """Return the user's library of Zoom games"""
         if system.path_exists(self.cache_path):
@@ -214,7 +213,7 @@ class ZoomService(OnlineService):
         else:
             game_config = {"exe": AUTO_WIN32_EXE}
             script = [
-                {"autosetup_gog_game": "zoominstaller"},
+                {"autosetup_zoom_platform": "zoominstaller"},
             ]
         return {
             "name": db_game["name"],
