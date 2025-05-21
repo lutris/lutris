@@ -24,12 +24,12 @@ if typing.TYPE_CHECKING:
     from lutris.installer.installer import LutrisInstaller
 
 
-class ZoomBanner(ServiceMedia):
+class ZoomCover(ServiceMedia):
     """Small size game logo"""
 
     service = "zoomplatform"
     size = (200, 300)
-    dest_path = os.path.join(settings.CACHE_DIR, "zoom/banners/")
+    dest_path = os.path.join(settings.CACHE_DIR, "zoom/cover/")
     file_patterns = ["%s.jpg"]
     api_field = "image"
     url_pattern = "%s"
@@ -63,8 +63,8 @@ class ZoomService(OnlineService):
     icon = "zoom"
     has_extras = True
     drm_free = True
-    medias = {"banner": ZoomBanner}
-    default_format = "banner"
+    medias = {"coverart": ZoomCover}
+    default_format = "coverart"
 
     embed_url = "https://www.zoom-platform.com"
     api_url = "https://www.zoom-platform.com"
@@ -77,19 +77,6 @@ class ZoomService(OnlineService):
     cache_path = os.path.join(settings.CACHE_DIR, "zoom-library.json")
 
     runner_to_os_dict = {"wine": "windows", "linux": "linux"}
-
-    def __init__(self):
-        super().__init__()
-
-        zoom_locales = {
-            "en": "en-US",
-            "de": "de-DE",
-            "fr": "fr-FR",
-            "pl": "pl-PL",
-            "ru": "ru-RU",
-            "zh": "zh-Hans",
-        }
-        self.locale = zoom_locales.get(i18n.get_lang(), "en-US")
 
     @property
     def login_url(self):
@@ -128,9 +115,6 @@ class ZoomService(OnlineService):
 
     def login_callback(self, url) -> None:
         assert not self.is_login_in_progress
-        return self.request_token(url)
-
-    def request_token(self, url: str = "", refresh_token: str = "") -> None:
         SERVICE_LOGIN.fire(self)
 
     def make_request(self, url: str) -> Any:
