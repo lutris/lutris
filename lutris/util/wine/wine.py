@@ -96,6 +96,22 @@ def is_gstreamer_build(wine_path: str) -> bool:
     return system.path_exists(os.path.join(base_path, "lib64/gstreamer-1.0"))
 
 
+def is_winewayland_available(runner_version: str) -> bool:
+    """Check if winewayland graphics driver available"""
+    files_dir = get_runner_files_dir_for_version(runner_version)
+    if files_dir:
+        winewayland_paths = (
+            "lib64/wine/x86_64-windows/winewayland.drv",
+            "lib64/wine/i386-windows/winewayland.drv",
+            "lib/wine/x86_64-windows/winewayland.drv",
+            "lib/wine/i386-windows/winewayland.drv",
+        )
+        if not any(os.path.exists(os.path.join(files_dir, winewayland_path)) for winewayland_path in winewayland_paths):
+            return False
+
+    return True
+
+
 def is_installed_systemwide() -> bool:
     """Return whether Wine is installed outside of Lutris"""
     for build in WINE_PATHS.values():
