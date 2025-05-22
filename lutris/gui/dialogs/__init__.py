@@ -581,8 +581,8 @@ class ClientLoginDialog(GtkBuilderDialog):
         if not token:
             NoticeDialog(_("Login failed"), parent=self.parent)
         else:
-            self.emit("connected", username)
             self.dialog.destroy()
+            self.emit("connected", username)
 
 
 class InstallerSourceDialog(ModelessDialog):

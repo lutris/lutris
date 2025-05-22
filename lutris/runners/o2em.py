@@ -86,7 +86,7 @@ class o2em(Runner):
             "section": _("Graphics"),
             "label": _("Scanlines display style"),
             "default": False,
-            "help": _("Activates a display filter adding scanlines to imitate " "the displays of yesteryear."),
+            "help": _("Activates a display filter adding scanlines to imitate the displays of yesteryear."),
         },
     ]
 

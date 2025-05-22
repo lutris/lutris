@@ -249,7 +249,7 @@ class FileChooserEntry(Gtk.Box):
         if self.warn_if_non_empty and os.path.exists(path) and os.listdir(path):
             non_empty_label = Gtk.Label(visible=True)
             non_empty_label.set_markup(
-                _("<b>Warning!</b> The selected path " "contains files. Installation will not work properly.")
+                _("<b>Warning!</b> The selected path contains files. Installation will not work properly.")
             )
             self.pack_end(non_empty_label, False, False, 10)
         if self.warn_if_non_writable_parent:
@@ -257,7 +257,7 @@ class FileChooserEntry(Gtk.Box):
             if parent is not None and not os.access(parent, os.W_OK):
                 non_writable_destination_label = Gtk.Label(visible=True)
                 non_writable_destination_label.set_markup(
-                    _("<b>Warning</b> The destination folder " "is not writable by the current user.")
+                    _("<b>Warning</b> The destination folder is not writable by the current user.")
                 )
                 self.pack_end(non_writable_destination_label, False, False, 10)
 

@@ -150,7 +150,7 @@ class UninstallDialog(Gtk.Dialog):
                 )
             )
         else:
-            messages.append(_("After you remove these games, they will no longer " "appear in the 'Games' view."))
+            messages.append(_("After you remove these games, they will no longer appear in the 'Games' view."))
 
         if self.any_shared:
             messages.append(
@@ -258,7 +258,7 @@ class UninstallDialog(Gtk.Dialog):
 
         if dirs_to_delete:
             if len(dirs_to_delete) == 1:
-                question = _("Please confirm.\nEverything under <b>%s</b>\n" "will be moved to the trash.") % gtk_safe(
+                question = _("Please confirm.\nEverything under <b>%s</b>\nwill be moved to the trash.") % gtk_safe(
                     dirs_to_delete[0]
                 )
             else:
@@ -277,20 +277,23 @@ class UninstallDialog(Gtk.Dialog):
             if dlg.result != Gtk.ResponseType.YES:
                 return
 
+        library_sync_enabled = settings.read_bool_setting("library_sync_enabled", True)
         games_removed_from_library = []
-        if settings.read_bool_setting("library_sync_enabled"):
-            library_syncer = LibrarySyncer()
-            for row in rows:
-                if row.remove_from_library:
-                    games_removed_from_library.append(get_game_by_field(row.game._id, "id"))
-            if games_removed_from_library:
-                library_syncer.sync_local_library()
+        library_syncer = LibrarySyncer() if library_sync_enabled else None
 
         for row in rows:
+            if library_syncer and row.remove_from_library:
+                games_removed_from_library.append(get_game_by_field(row.game._id, "id"))
             row.perform_removal()
 
-        if settings.read_bool_setting("library_sync_enabled") and games_removed_from_library:
-            library_syncer.delete_from_remote_library(games_removed_from_library)
+        if library_syncer and games_removed_from_library:
+
+            def sync_local_library():
+                library_syncer.sync_local_library()
+                library_syncer.delete_from_remote_library(games_removed_from_library)
+
+            AsyncCall(sync_local_library, None)
+
         self.parent.on_game_removed()
         self.destroy()
 

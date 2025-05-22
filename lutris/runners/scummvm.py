@@ -154,7 +154,7 @@ class scummvm(Runner):
             ],
             "warning": _get_opengl_warning,
             "help": _(
-                "The algorithm used to scale up the game's base " "resolution, resulting in different visual styles. "
+                "The algorithm used to scale up the game's base resolution, resulting in different visual styles. "
             ),
         },
         {
@@ -282,8 +282,7 @@ class scummvm(Runner):
             "type": "string",
             "label": _("Engine speed"),
             "help": _(
-                "Sets frames per second limit (0 - 100) for Grim Fandango "
-                "or Escape from Monkey Island (default: 60)."
+                "Sets frames per second limit (0 - 100) for Grim Fandango or Escape from Monkey Island (default: 60)."
             ),
             "advanced": True,
         },
@@ -361,8 +360,7 @@ class scummvm(Runner):
                 ("rwopl3", "rwopl3"),
             ],
             "help": _(
-                "Chooses which emulator is used by ScummVM when the AdLib emulator "
-                "is chosen as the Preferred device."
+                "Chooses which emulator is used by ScummVM when the AdLib emulator is chosen as the Preferred device."
             ),
             "advanced": True,
         },
@@ -544,7 +542,8 @@ class scummvm(Runner):
         args = self.game_config.get("args") or ""
         for arg in split_arguments(args):
             command.append(arg)
-        command.append(self.game_config.get("game_id"))
+        if self.game_config.get("game_id"):
+            command.append(self.game_config.get("game_id"))
         output = {"command": command}
 
         extra_libs = self.get_extra_libs()

@@ -462,7 +462,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         """
 
         if ui_delegate.show_install_yesno_inquiry(
-            question=_("The required runner is not installed.\n" "Do you wish to install it now?"),
+            question=_("The required runner is not installed.\nDo you wish to install it now?"),
             title=_("Required runner unavailable"),
         ):
             if hasattr(self, "get_version"):

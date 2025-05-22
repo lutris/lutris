@@ -222,6 +222,18 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def on_cancel_clicked(self, _button=None):
         """Ask a confirmation before cancelling the installation, if it has started."""
+
+        def on_cancelled():
+            if self.interpreter:
+                self.interpreter.cleanup()  # still remove temporary downloads in any case
+
+            if self.interpreter and not self.install_in_progress:
+                INSTALLATION_COMPLETED.fire()
+            else:
+                INSTALLATION_FAILED.fire()
+
+            self.destroy()
+
         if self.install_in_progress:
             widgets = []
 
@@ -251,19 +263,16 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
             self.installer_files_box.stop_all()
             if self.interpreter:
-                self.interpreter.revert(remove_game_dir=remove_checkbox.get_active())
+                self.interpreter.revert(
+                    remove_game_dir=remove_checkbox.get_active(),
+                    completion_function=on_cancelled,
+                    error_function=self.on_signal_error,
+                )
+            else:
+                on_cancelled()
         else:
             self.installer_files_box.stop_all()
-
-        if self.interpreter:
-            self.interpreter.cleanup()  # still remove temporary downloads in any case
-
-        if self.interpreter and not self.install_in_progress:
-            INSTALLATION_COMPLETED.fire()
-        else:
-            INSTALLATION_FAILED.fire()
-
-        self.destroy()
+            on_cancelled()
 
     def on_source_clicked(self, _button):
         InstallerSourceDialog(self.interpreter.installer.script_pretty, self.interpreter.installer.game_name, self)
