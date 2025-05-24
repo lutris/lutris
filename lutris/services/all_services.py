@@ -27,7 +27,19 @@ class AllService(BaseService):
 
     def load(self):
         """Return all importable games"""
-        from lutris.services import get_enabled_services
 
-        """Gets around circular import limitations. Do tell if you have a better way"""
-        test = get_enabled_services()
+
+def get_service_from_view(_view, game_id):
+    selected_index = _view.get_selected_items()[0]
+    selected_object = _view.game_store
+    store_game_data = selected_object.store[selected_index]
+    """With the game data + game_id we can find the service no?"""
+    gotten_data = sql.filtered_query(
+        settings.DB_PATH, "service_games", filters={"appid": game_id, "slug": store_game_data[1]}
+    )
+    target_service = gotten_data[0]["service"]
+    """Gets around circular import limitations. Do tell if you have a better way"""
+    from lutris.services import get_services
+
+    target_service = get_services()[target_service]
+    return target_service()

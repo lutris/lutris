@@ -55,6 +55,7 @@ from lutris.gui.widgets.utils import has_stock_icon, load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
 from lutris.search_predicate import NotPredicate
+from lutris.services.all_services import get_service_from_view
 from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGOUT
 from lutris.services.lutris import LutrisService, sync_media
 from lutris.style_manager import THEME_CHANGED
@@ -637,7 +638,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         for game in service_games:
             game["year"] = self.service.get_game_release_year(game)
 
-        if service_id == "lutris":
+        if service_id == "lutris" or service_id == "all_services":
             lutris_games = {g["slug"]: g for g in games_db.get_games()}
         else:
             lutris_games = {g["service_id"]: g for g in games_db.get_games(filters={"service": self.service.id})}
@@ -1390,13 +1391,26 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def on_game_activated(self, _view, game_id):
         """Handles view activations (double click, enter press)"""
         if self.service:
-            logger.debug("Looking up %s game %s", self.service.id, game_id)
-            db_game = games_db.get_game_for_service(self.service.id, game_id)
+            if self.service.id == "all_services":
+                logger.debug("Looking up service for game %s", game_id)
+                target_service = get_service_from_view(_view, game_id)
 
-            if db_game and db_game["installed"]:
-                game_id = db_game["id"]
+                logger.debug("Looking up %s game %s", target_service.id, game_id)
+                db_game = games_db.get_game_for_service(target_service.id, game_id)
+
+                if db_game and db_game["installed"]:
+                    game_id = db_game["id"]
+                else:
+                    game_id = target_service.install_by_id(game_id)
+
             else:
-                game_id = self.service.install_by_id(game_id)
+                logger.debug("Looking up %s game %s", self.service.id, game_id)
+                db_game = games_db.get_game_for_service(self.service.id, game_id)
+
+                if db_game and db_game["installed"]:
+                    game_id = db_game["id"]
+                else:
+                    game_id = self.service.install_by_id(game_id)
 
         if game_id:
             game = Game(game_id)
