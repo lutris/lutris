@@ -2,8 +2,11 @@
 
 from gettext import gettext as _
 
+import lutris.database.sql as sql
+from lutris import settings
 from lutris.services.base import BaseService
 from lutris.services.steam import SteamBanner
+from lutris.util.log import logger
 
 
 class AllService(BaseService):
@@ -11,11 +14,16 @@ class AllService(BaseService):
 
     id = "all_services"
     name = _("All services")
-    media = {
+    medias = {
         "banner": SteamBanner,
     }
     icon = "lutris"
     default_format = "banner"
+
+    def install_by_id(self, appid):
+        test_query = sql.filtered_query(settings.DB_PATH, "games", {"service_id": appid})
+        logger.debug(test_query)
+        return super().install_by_id(appid)
 
     def load(self):
         """Return all importable games"""
