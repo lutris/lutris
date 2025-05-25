@@ -160,7 +160,7 @@ class SteamID:
         match = COMMUNITY32_REGEX.match(url.path)
         if match:
             if match.group("path") not in TYPE_URL_PATH_MAP[LETTER_TYPE_MAP[match.group("type")]]:
-                warnings.warn("Community URL ({}) path doesn't " "match type character".format(url.path))
+                warnings.warn("Community URL ({}) path doesn't match type character".format(url.path))
             steamid = int(match.group("steamid"))
             instance = steamid & 1
             account_number = (steamid - instance) / 2
@@ -306,7 +306,7 @@ class SteamID:
             return "[{}:1:{}]".format(TYPE_LETTER_MAP[self.account_type], self.get_32_bit_community_id())
         except KeyError as ex:
             raise SteamIDError(
-                "Cannot create 32-bit indentifier for " "SteamID with type {}".format(self.type_name)
+                "Cannot create 32-bit indentifier for SteamID with type {}".format(self.type_name)
             ) from ex
 
     def get_32_bit_community_id(self):

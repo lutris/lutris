@@ -426,7 +426,7 @@ def _get_screen_saver_inhibitor():
             inhibitor.set_dbus_iface(name, path, interface)
         except GLib.Error as err:
             logger.warning(
-                "Failed to set up a DBus proxy for name %s, path %s, " "interface %s: %s", name, path, interface, err
+                "Failed to set up a DBus proxy for name %s, path %s, interface %s: %s", name, path, interface, err
             )
 
     return inhibitor

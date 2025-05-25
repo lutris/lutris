@@ -110,8 +110,7 @@ def _get_simple_vulkan_support_error(option_key: str, config: LutrisConfig, feat
         return None
     if config.runner_config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
         return (
-            _("<b>Error</b> Vulkan is not installed or is not supported by your system, " "%s is not available.")
-            % feature
+            _("<b>Error</b> Vulkan is not installed or is not supported by your system, %s is not available.") % feature
         )
     return None
 
@@ -223,9 +222,7 @@ class wine(Runner):
             "type": "directory",
             "label": _("Working directory"),
             "help": _(
-                "The location where the game is run from.\n"
-                "By default, Lutris uses the directory of the "
-                "executable."
+                "The location where the game is run from.\nBy default, Lutris uses the directory of the executable."
             ),
         },
         {
@@ -279,7 +276,7 @@ class wine(Runner):
             "label": _("Custom Wine executable"),
             "type": "file",
             "advanced": True,
-            "help": _("The Wine executable to be used if you have " 'selected "Custom" as the Wine version.'),
+            "help": _('The Wine executable to be used if you have selected "Custom" as the Wine version.'),
         },
         {
             "option": "system_winetricks",
@@ -326,9 +323,7 @@ class wine(Runner):
             "error": lambda k, c: _get_simple_vulkan_support_error(k, c, _("VKD3D")),
             "default": True,
             "active": True,
-            "help": _(
-                "Use VKD3D to enable support for Direct3D 12 " "applications by translating their calls to Vulkan."
-            ),
+            "help": _("Use VKD3D to enable support for Direct3D 12 applications by translating their calls to Vulkan."),
         },
         {
             "option": "vkd3d_version",
@@ -549,7 +544,7 @@ class wine(Runner):
             ],
             "default": "auto",
             "help": _(
-                "Which audio backend to use.\n" "By default, Wine automatically picks the right one " "for your system."
+                "Which audio backend to use.\nBy default, Wine automatically picks the right one for your system."
             ),
         },
         {
@@ -570,7 +565,7 @@ class wine(Runner):
                 (_("Full (CAUTION: Will cause MASSIVE slowdown)"), "+all"),
             ],
             "default": "-all",
-            "help": _("Output debugging information in the game log " "(might affect performance)"),
+            "help": _("Output debugging information in the game log (might affect performance)"),
         },
         {
             "option": "ShowCrashDialog",
@@ -585,7 +580,7 @@ class wine(Runner):
             "label": _("Autoconfigure joypads"),
             "advanced": True,
             "default": False,
-            "help": _("Automatically disables one of Wine's detected joypad " "to avoid having 2 controllers detected"),
+            "help": _("Automatically disables one of Wine's detected joypad to avoid having 2 controllers detected"),
         },
     ]
 

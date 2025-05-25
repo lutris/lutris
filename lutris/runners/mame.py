@@ -137,9 +137,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type": "string",
             "section": _("Autoboot"),
             "label": _("Autoboot command"),
-            "help": _(
-                "Autotype this command when the system has started, " "an enter keypress is automatically added."
-            ),
+            "help": _("Autotype this command when the system has started, an enter keypress is automatically added."),
         },
         {
             "option": "autoboot_delay",
@@ -174,7 +172,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type": "bool",
             "section": _("Graphics"),
             "label": _("CRT effect ()"),
-            "help": _("Applies a CRT effect to the screen." "Requires OpenGL renderer."),
+            "help": _("Applies a CRT effect to the screen.Requires OpenGL renderer."),
             "default": False,
         },
         {
@@ -205,9 +203,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type": "bool",
             "section": _("Graphics"),
             "label": _("Wait for VSync"),
-            "help": _(
-                "Enable waiting for  the  start  of  vblank  before " "flipping  screens; reduces tearing effects."
-            ),
+            "help": _("Enable waiting for  the  start  of  vblank  before flipping  screens; reduces tearing effects."),
             "advanced": True,
             "default": False,
         },
@@ -229,7 +225,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             ],
             "default": "SCRLOCK",
             "advanced": True,
-            "help": _("Key to switch between Full Keyboard Mode and " "Partial Keyboard Mode (default: Scroll Lock)"),
+            "help": _("Key to switch between Full Keyboard Mode and Partial Keyboard Mode (default: Scroll Lock)"),
         },
     ]
 

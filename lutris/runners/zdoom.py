@@ -32,7 +32,7 @@ class zdoom(Runner):
             "option": "files",
             "type": "multiple_file",
             "label": _("PWAD files"),
-            "help": _("Used to load one or more PWAD files which generally contain " "user-created levels."),
+            "help": _("Used to load one or more PWAD files which generally contain user-created levels."),
         },
         {
             "option": "warp",
