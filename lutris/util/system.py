@@ -1,6 +1,7 @@
 """System utilities"""
 
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -11,7 +12,7 @@ import subprocess
 import zipfile
 from gettext import gettext as _
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from gi.repository import Gio, GLib
 
@@ -37,6 +38,18 @@ def get_environment():
     """Return a safe to use copy of the system's environment.
     Values starting with BASH_FUNC can cause issues when written in a text file."""
     return {key: value for key, value in os.environ.items() if not key.startswith("BASH_FUNC")}
+
+
+def expose_environment(runner: Any, env: Dict[str, str]):
+    """Expose runner's system, runner, and game config as JSON data to scripts via env vars, if enabled"""
+    for expose in zip(
+        ("env_expose_systemconfig", "env_expose_runnerconfig", "env_expose_gameconfig"),
+        ("LUTRIS_RUNNER_SYSTEM_CONFIG", "LUTRIS_RUNNER_RUNNER_CONFIG", "LUTRIS_RUNNER_GAME_CONFIG"),
+        (runner.system_config, runner.runner_config, runner.game_config),
+    ):
+        if runner.system_config.get(expose[0]):
+            env[expose[1]] = json.dumps(expose[2])
+    return env
 
 
 def execute(
