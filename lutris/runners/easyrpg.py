@@ -30,8 +30,7 @@ class easyrpg(Runner):
             "advanced": True,
             "label": _("Encoding"),
             "help": _(
-                "Instead of auto detecting the encoding or using the "
-                "one in RPG_RT.ini, the specified encoding is used."
+                "Instead of auto detecting the encoding or using the one in RPG_RT.ini, the specified encoding is used."
             ),
             "choices": [
                 (_("Auto"), ""),
@@ -114,7 +113,7 @@ class easyrpg(Runner):
             "option": "load_game_id",
             "type": "range",
             "label": _("Load game ID"),
-            "help": _("Skip the title scene and load SaveXX.lsd.\n" "Set to 0 to disable."),
+            "help": _("Skip the title scene and load SaveXX.lsd.\nSet to 0 to disable."),
             "min": 0,
             "max": 99,
             "default": 0,
@@ -249,7 +248,7 @@ class easyrpg(Runner):
             "advanced": True,
             "section": _("Engine"),
             "label": _("RNG seed"),
-            "help": _("Seeds the random number generator.\n" "Use -1 to disable."),
+            "help": _("Seeds the random number generator.\nUse -1 to disable."),
             "min": -1,
             "max": 2147483647,
             "default": -1,
@@ -305,7 +304,7 @@ class easyrpg(Runner):
             "advanced": True,
             "label": _("Game resolution"),
             "help": _(
-                "Force a different game resolution.\n\n" "This is experimental and can cause glitches or break games!"
+                "Force a different game resolution.\n\nThis is experimental and can cause glitches or break games!"
             ),
             "choices": [
                 (_("320×240 (4:3, Original)"), "original"),
@@ -388,14 +387,14 @@ class easyrpg(Runner):
             "type": "directory",
             "section": _("Runtime Package"),
             "label": _("RPG2000 RTP location"),
-            "help": _("Full path to a directory containing an extracted " "RPG Maker 2000 Run-Time-Package (RTP)."),
+            "help": _("Full path to a directory containing an extracted RPG Maker 2000 Run-Time-Package (RTP)."),
         },
         {
             "option": "rpg2k3_rtp_path",
             "type": "directory",
             "section": _("Runtime Package"),
             "label": _("RPG2003 RTP location"),
-            "help": _("Full path to a directory containing an extracted " "RPG Maker 2003 Run-Time-Package (RTP)."),
+            "help": _("Full path to a directory containing an extracted RPG Maker 2003 Run-Time-Package (RTP)."),
         },
         {
             "option": "rpg_rtp_path",

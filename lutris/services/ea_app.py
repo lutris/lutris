@@ -163,7 +163,7 @@ class EAAppService(OnlineService):
     token_path = os.path.join(settings.CACHE_DIR, "ea_app/auth_token")
     origin_redirect_uri = "https://www.origin.com/views/login.html"
     login_url = "https://www.ea.com/login"
-    redirect_uri = "https://www.ea.com/"
+    redirect_uris = ["https://www.ea.com/"]
     origin_login_url = (
         "https://accounts.ea.com/connect/auth"
         "?response_type=code&client_id=ORIGIN_SPA_ID&display=originXWeb/login"

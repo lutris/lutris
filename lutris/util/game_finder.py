@@ -89,9 +89,11 @@ def find_windows_game_executable(path):
             file_type = magic.from_file(abspath)
             if "MS Windows shortcut" in file_type:
                 candidates["link"] = abspath
-            elif "PE32+ executable (GUI) x86-64" in file_type:
+            elif all([_ in file_type for _ in ("PE32+ executable", "(GUI)", "x86-64")]):
                 candidates["64bit"] = abspath
-            elif "PE32 executable (GUI) Intel 80386" in file_type:
+            elif all([_ in file_type for _ in ("PE32 executable", "(GUI)")]) and any(
+                [_ in file_type for _ in ("Intel i386", "Intel 80386")]
+            ):
                 candidates["32bit"] = abspath
         if candidates:
             return candidates.get("link") or candidates.get("64bit") or candidates.get("32bit")

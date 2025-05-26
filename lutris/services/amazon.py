@@ -90,7 +90,7 @@ class AmazonService(OnlineService):
     serial = None
     verifier = None
 
-    redirect_uri = "https://www.amazon.com/?"
+    redirect_uris = ["https://www.amazon.com/?"]
 
     cookies_path = os.path.join(settings.CACHE_DIR, ".amazon.auth")
     user_path = os.path.join(settings.CACHE_DIR, ".amazon.user")
@@ -516,7 +516,7 @@ class AmazonService(OnlineService):
 
         try:
             return self.request_sds(
-                "com.amazonaws.gearbox." "softwaredistribution.service.model." "SoftwareDistributionService.GetPatches",
+                "com.amazonaws.gearbox.softwaredistribution.service.model.SoftwareDistributionService.GetPatches",
                 access_token,
                 request_data,
             )

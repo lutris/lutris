@@ -317,7 +317,6 @@ class BaseService:
             service_installers.extend(installers)
         if not service_installers:
             logger.error("No installer found for %s", db_game)
-            return
         return service_installers, db_game, None
 
     def install(self, db_game, update=False):
@@ -383,7 +382,7 @@ class BaseService:
         """Services can implement this method to scan for locally
         installed games and add them to lutris.
 
-        This runs on a worker thread, and must trigger UI actions -
+        This runs on a worker thread, and must no trigger UI actions -
         so no emitting signals here.
         """
 
@@ -434,6 +433,7 @@ class OnlineService(BaseService):
     login_window_width = 390
     login_window_height = 500
     login_user_agent = settings.DEFAULT_USER_AGENT
+    redirect_uris = NotImplemented
 
     @property
     def credential_files(self):
@@ -458,12 +458,12 @@ class OnlineService(BaseService):
 
     @property
     def is_login_in_progress(self) -> bool:
-        """Set to true if the login process is underway; the credential files make be created at this
+        """Set to true if the login process is underway; the credential files may be created at this
         time, but that does not count as 'authenticated' until the login process is over. This is used
         by WebConnectDialog since it creates its cookies before the login is actually complete.
 
         This is recorded with a file in ~/.cache/lutris so it will persist across Lutris
-        restarted, just as the credentials themselves do. For this reason, we need to allow
+        restarts, just as the credentials themselves do. For this reason, we need to allow
         the user to login again even when a login is in progress."""
         return self._get_login_in_progress_path().exists()
 

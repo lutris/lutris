@@ -158,7 +158,7 @@ def create_prefix(
         wineboot_path = os.path.join(os.path.dirname(wine_path), "wineboot")
         if not system.path_exists(wineboot_path):
             logger.error(
-                "No wineboot executable found in %s, " "your wine installation is most likely broken",
+                "No wineboot executable found in %s, your wine installation is most likely broken",
                 wine_path,
             )
             return

@@ -22,7 +22,7 @@ class RunnersBox(BaseConfigBox):
         self.add(self.get_section_label(_("Add, remove or configure runners")))
         self.add(
             self.get_description_label(
-                _("Runners are programs such as emulators, engines or " "translation layers capable of running games.")
+                _("Runners are programs such as emulators, engines or translation layers capable of running games.")
             )
         )
         self.search_failed_label = Gtk.Label(_("No runners matched the search"))

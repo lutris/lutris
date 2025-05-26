@@ -26,7 +26,7 @@ class reicast(Runner):
             "option": "iso",
             "type": "file",
             "label": _("Disc image file"),
-            "help": _("The game data.\n" "Supported formats: ISO, CDI"),
+            "help": _("The game data.\nSupported formats: ISO, CDI"),
         }
     ]
 

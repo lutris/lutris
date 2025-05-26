@@ -385,19 +385,34 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         os.chdir(os.path.expanduser("~"))
         system.delete_folder(self.cache_path)
 
-    def revert(self, remove_game_dir=True):
-        """Revert installation in case of an error"""
+    def revert(self, remove_game_dir=True, completion_function=None, error_function=None):
+        """Revert installation in case of an error. Since winekill can be slow,
+        this runs asynchronously and calls cocompletion_function() when successful,
+        or error_function(err) if it fails."""
         logger.info("Cancelling installation of %s", self.installer.game_name)
-        if self.installer.runner.startswith("wine"):
-            self.task({"name": "winekill"})
 
         self.cancelled = True
 
-        if self.abort_current_task:
-            self.abort_current_task()
+        def on_complete(_result, error):
+            if error:
+                error_function(error)
+                return
 
-        if self.target_path and remove_game_dir:
-            system.remove_folder(self.target_path)
+            try:
+                if self.abort_current_task:
+                    self.abort_current_task()
+
+                if self.target_path and remove_game_dir:
+                    system.remove_folder(self.target_path)
+
+                completion_function()
+            except Exception as ex:
+                error_function(ex)
+
+        if self.installer.runner.startswith("wine"):
+            AsyncCall(self.task, on_complete, {"name": "winekill"})
+        else:
+            on_complete(None, None)
 
     def _get_string_replacements(self):
         """Return a mapping of variables to their actual value"""

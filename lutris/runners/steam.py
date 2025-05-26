@@ -48,8 +48,7 @@ class steam(Runner):
             "type": "string",
             "label": _("Arguments"),
             "help": _(
-                "Command line arguments used when launching the game.\n"
-                "Ignored when Steam Big Picture mode is enabled."
+                "Command line arguments used when launching the game.\nIgnored when Steam Big Picture mode is enabled."
             ),
         },
         {
