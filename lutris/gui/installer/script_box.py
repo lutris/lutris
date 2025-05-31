@@ -3,15 +3,17 @@ from gettext import gettext as _
 from gi.repository import Gtk
 
 from lutris.gui.installer.widgets import InstallerLabel
+from lutris.installer import Installer
 from lutris.util.strings import gtk_safe, gtk_safe_urls
 
 
 class InstallerScriptBox(Gtk.VBox):
     """Box displaying the details of a script, with associated action buttons"""
 
-    def __init__(self, script, parent=None, revealed=False):
+    def __init__(self, installer: Installer, parent=None, revealed=False):
         super().__init__()
-        self.script = script
+        self.installer = installer
+        self.script = installer.script
         self.parent = parent
         self.revealer = None
         self.set_margin_left(12)

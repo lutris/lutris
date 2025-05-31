@@ -6,7 +6,7 @@ from gettext import gettext as _
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
 from lutris.exceptions import AuthenticationError, UnavailableGameError
-from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
+from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE, Installer
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import import_runner
@@ -21,24 +21,25 @@ from lutris.util.system import fix_path_case
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     """Represents a Lutris installer"""
 
-    def __init__(self, installer, interpreter, service, appid):
+    def __init__(self, installer: Installer, interpreter, service, appid):
         self.interpreter = interpreter
         self.installer = installer
+        installer_script = installer.script
         self.is_update = False
 
         try:
-            self.version = installer["version"]
-            self.slug = installer["slug"]
-            self.year = installer.get("year")
-            self.runner = installer["runner"]
-            self.script = installer.get("script")
-            self.game_name = installer["name"]
-            self.game_slug = installer["game_slug"]
+            self.version = installer_script["version"]
+            self.slug = installer_script["slug"]
+            self.year = installer_script.get("year")
+            self.runner = installer_script["runner"]
+            self.script = installer_script.get("script", {})
+            self.game_name = installer_script["name"]
+            self.game_slug = installer_script["game_slug"]
         except KeyError as ex:
             raise ScriptingError(_("The script was missing the '%s' key, which is required.") % ex.args[0]) from ex
 
         self.service = self.get_service(initial=service)
-        self.service_appid = self.get_appid(installer, initial=appid)
+        self.service_appid = self.get_appid(installer_script, initial=appid)
         self.variables = self.script.get("variables", {})
         self.script_files = [
             InstallerFile(self.game_slug, file_id, file_meta)
@@ -51,7 +52,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
         self.is_gog = False
-        self.discord_id = installer.get("discord_id")
+        self.discord_id = installer_script.get("discord_id")
 
     def get_service(self, initial=None):
         if initial:

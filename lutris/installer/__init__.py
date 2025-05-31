@@ -1,8 +1,10 @@
 """Install script interpreter package."""
 
 import enum
+from typing import Optional, List
 
 import yaml
+import dataclasses as dc
 
 from lutris.api import get_game_installers, normalize_installer
 from lutris.util import system
@@ -11,6 +13,12 @@ from lutris.util.log import logger
 AUTO_EXE_PREFIX = "_xXx_AUTO_"
 AUTO_ELF_EXE = AUTO_EXE_PREFIX + "ELF_xXx_"
 AUTO_WIN32_EXE = AUTO_EXE_PREFIX + "WIN32_xXx_"
+
+
+@dc.dataclass
+class Installer(object):
+    script: dict
+    file: Optional[str] = None
 
 
 class InstallationKind(enum.Enum):
@@ -31,8 +39,10 @@ def read_script(filename):
         return [script]
 
 
-def get_installers(game_slug=None, installer_file=None, revision=None):
+def get_installers(game_slug=None, installer_file=None, revision=None) -> List[Installer]:
     # check if installer is local or online
     if system.path_exists(installer_file):
-        return [normalize_installer(i) for i in read_script(installer_file)]
-    return get_game_installers(game_slug=game_slug, revision=revision)
+        scripts = [normalize_installer(i) for i in read_script(installer_file)]
+    else:
+        scripts = get_game_installers(game_slug=game_slug, revision=revision)
+    return [Installer(script=script, file=installer_file) for script in scripts]

@@ -10,7 +10,7 @@ from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import AuthenticationError, MisconfigurationError, UnavailableGameError
 from lutris.gui.dialogs.delegates import Delegate
-from lutris.installer import AUTO_EXE_PREFIX
+from lutris.installer import AUTO_EXE_PREFIX, Installer
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.installer import LutrisInstaller
@@ -62,7 +62,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             """Called to report the successful completion of the installation."""
             logger.info("Installation of game %s completed.", game_id)
 
-    def __init__(self, installer, interpreter_ui_delegate=None):
+    def __init__(self, installer: Installer, interpreter_ui_delegate=None):
         super().__init__()
         self.target_path = None
         self.interpreter_ui_delegate = interpreter_ui_delegate or ScriptInterpreter.InterpreterUIDelegate()
@@ -419,8 +419,14 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         current_res = self.current_resolution
 
+        if self.installer.installer.file is not None:
+            installer_dir = os.path.dirname(self.installer.installer.file)
+        else:
+            installer_dir = None  # seems a safe default, steam_data_dir or os.getenv also None if not set
+
         replacements = {
             "GAMEDIR": self.target_path,
+            "INSTALLERDIR": installer_dir,
             "CACHE": self.cache_path,
             "HOME": os.path.expanduser("~"),
             "STEAM_DATA_DIR": steam.steam().steam_data_dir,

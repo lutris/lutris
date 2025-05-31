@@ -360,7 +360,7 @@ class Application(Gtk.Application):
         if kwargs.get("runner"):
             return kwargs["runner"].name
         if kwargs.get("installers"):
-            return kwargs["installers"][0]["game_slug"]
+            return kwargs["installers"][0].script["game_slug"]
         if kwargs.get("game"):
             return kwargs["game"].id
         return str(kwargs)

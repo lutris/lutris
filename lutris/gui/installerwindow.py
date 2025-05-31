@@ -26,7 +26,7 @@ from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.navigation_stack import NavigationStack
-from lutris.installer import InstallationKind, interpreter
+from lutris.installer import InstallationKind, interpreter, Installer
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.util import xdgshortcuts
@@ -67,7 +67,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         ModelessDialog.__init__(self, use_header_bar=True, **kwargs)
         ScriptInterpreter.InterpreterUIDelegate.__init__(self, service, appid)
         self.set_default_size(740, 460)
-        self.installers = installers
+        self.installers: List[Installer] = installers
         self.config = {}
         self.selected_extras = []
         self.install_in_progress = False
@@ -385,7 +385,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def present_choose_installer_page(self):
         """Stage where we choose an install script."""
         self.set_status("")
-        self.set_title(_("Install %s") % self.installers[0]["name"])
+        self.set_title(_("Install %s") % self.installers[0].script["name"])
         self.stack.present_page("choose_installer")
         self.display_cancel_button(extra_buttons=[self.cache_button])
 
@@ -397,11 +397,11 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         prompt the user to install it and quit this installer.
         """
         try:
-            script = None
-            for _script in self.installers:
-                if _script["version"] == installer_version:
-                    script = _script
-            self.interpreter = interpreter.ScriptInterpreter(script, self)
+            installer = None
+            for _installer in self.installers:
+                if _installer.script["version"] == installer_version:
+                    installer = _installer
+            self.interpreter = interpreter.ScriptInterpreter(installer, self)
             self.interpreter.connect("runners-installed", self.on_runners_ready)
         except MissingGameDependencyError as ex:
             dlg = QuestionDialog(
@@ -419,17 +419,17 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.set_title(_("Installing {}").format(self.interpreter.installer.game_name))
         self.load_destination_page()
 
-    def validate_scripts(self, installers):
+    def validate_scripts(self, installers: List[Installer]):
         """Auto-fixes some script aspects and checks for mandatory fields"""
         if not installers:
             raise ScriptingError(_("No installer available"))
         for script in installers:
             for item in ["description", "notes"]:
-                script[item] = script.get(item) or ""
+                script.script[item] = script.script.get(item) or ""
             for item in ["name", "runner", "version"]:
-                if item not in script:
+                if item not in script.script:
                     raise ScriptingError(_('Missing field "%s" in install script') % item)
-            for file_desc in script["script"].get("files", {}):
+            for file_desc in script.script["script"].get("files", {}):
                 if len(file_desc) > 1:
                     raise ScriptingError(_('Improperly formatted file "%s"') % file_desc)
 
