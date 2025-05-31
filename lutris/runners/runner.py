@@ -268,6 +268,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             env["VK_ICD_FILENAMES"] = gpu.icd_files  # Deprecated
             env["VK_DRIVER_FILES"] = gpu.icd_files  # Current form
 
+            # To classify for multile GPUs with the same vendorID:deviceID
+            env["DXVK_FILTER_DEVICE_UUID"] = gpu.device_uuid
+
         # Set PulseAudio latency to 60ms
         if self.system_config.get("pulse_latency"):
             env["PULSE_LATENCY_MSEC"] = "60"
