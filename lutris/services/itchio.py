@@ -73,20 +73,6 @@ class ItchIoGame(ServiceGame):
         return service_game
 
 
-class ItchIoGameTraits:
-    """Game Traits Helper Class"""
-
-    def __init__(self, traits):
-        self._traits = traits
-        self.windows = bool("p_windows" in traits)
-        self.linux = bool("p_linux" in traits)
-        self.can_be_bought = bool("can_be_bought" in traits)
-        self.has_demo = bool("has_demo" in traits)
-
-    def has_supported_platform(self):
-        return self.windows or self.linux
-
-
 class ItchIoService(OnlineService):
     """Service class for itch.io"""
 
@@ -116,7 +102,9 @@ class ItchIoService(OnlineService):
     collection_cache_path = os.path.join(cache_path, "collections/")
     key_cache = {}
 
-    supported_platforms = ("p_linux", "p_windows")
+    runners_by_trait = {"p_linux": "linux", "p_windows": "wine"}
+    platforms_by_runner = {"wine": "Windows", "linux": "Linux"}
+
     extra_types = (
         "soundtrack",
         "book",
@@ -396,8 +384,7 @@ class ItchIoService(OnlineService):
 
         filtered_games = []
         for game in games:
-            traits = game.get("traits", {})
-            if any(platform in traits for platform in self.supported_platforms):
+            if any(self._get_detail_runners(game)):
                 filtered_games.append(game)
         return filtered_games
 
@@ -461,17 +448,27 @@ class ItchIoService(OnlineService):
             all_extras["Bonus Content"] = extras
         return all_extras
 
+    @staticmethod
+    def _get_detail_runners(details: Dict[str, Any]) -> List[str]:
+        """Extracts the runners available for a given game, given its details.
+        This test the traits for specific platforms, and returns the runners
+        in a priority order- Linux is first, which occasionally matters."""
+        runners = []
+        for trait, runner in ItchIoService.runners_by_trait.items():
+            if trait in details["traits"]:
+                runners.append(runner)
+        return runners
+
     def get_installed_slug(self, db_game):
         return db_game["slug"]
 
     def generate_installer(self, db_game: Dict[str, Any]) -> Dict[str, Any]:
         """Auto generate installer for itch.io game"""
         details = json.loads(db_game["details"])
+        runners = self._get_detail_runners(details)
 
-        if "p_linux" in details["traits"]:
-            return self._generate_installer("linux", db_game)
-        elif "p_windows" in details["traits"]:
-            return self._generate_installer("wine", db_game)
+        if runners:
+            return self._generate_installer(runners[0], db_game)
 
         logger.warning("No supported platforms found")
         return {}
@@ -480,13 +477,8 @@ class ItchIoService(OnlineService):
         """Auto generate installer for itch.io game"""
         details = json.loads(db_game["details"])
 
-        installers = []
-
-        if "p_linux" in details["traits"]:
-            installers.append(self._generate_installer("linux", db_game))
-
-        if "p_windows" in details["traits"]:
-            installers.append(self._generate_installer("wine", db_game))
+        runners = self._get_detail_runners(details)
+        installers = [self._generate_installer(runner, db_game) for runner in runners]
 
         if len(installers) > 1:
             for installer in installers:
@@ -523,27 +515,17 @@ class ItchIoService(OnlineService):
             },
         }
 
-    def get_installed_runner_name(self, db_game):
+    def get_installed_runner_name(self, db_game: Dict[str, Any]) -> str:
         details = json.loads(db_game["details"])
-
-        if "p_linux" in details["traits"]:
-            return "linux"
-        if "p_windows" in details["traits"]:
-            return "wine"
-
-        return ""
+        runners = self._get_detail_runners(details)
+        return runners[0] if runners else ""
 
     def get_game_platforms(self, db_game: dict) -> List[str]:
         platforms = []
         details = json.loads(db_game["details"])
 
-        if "p_linux" in details["traits"]:
-            platforms.append("Linux")
-
-        if "p_windows" in details["traits"]:
-            platforms.append("Windows")
-
-        return platforms
+        runners = self._get_detail_runners(details)
+        return [self.platforms_by_runner[r] for r in runners]
 
     def _check_update_with_db(self, db_game, key, upload=None):
         stamp = 0
@@ -698,12 +680,11 @@ class ItchIoService(OnlineService):
                     continue
                 # default =  games/tools ("executables")
                 if upload["type"] == "default" and (installer.runner in ("linux", "wine")):
-                    is_linux = installer.runner == "linux" and "p_linux" in upload["traits"]
-                    is_windows = installer.runner == "wine" and "p_windows" in upload["traits"]
-                    is_demo = "demo" in upload["traits"]
-                    if not (is_linux or is_windows):
+                    upload_runners = self._get_detail_runners(upload)
+                    if installer.runner not in upload_runners:
                         continue
 
+                    is_demo = "demo" in upload["traits"]
                     upload["Weight"] = self.get_file_weight(upload["filename"], is_demo)
                     if upload["Weight"] == 0xFF:
                         continue
