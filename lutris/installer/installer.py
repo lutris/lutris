@@ -1,6 +1,7 @@
 """Lutris installer class"""
 
 import json
+import os
 from gettext import gettext as _
 
 from lutris.config import LutrisConfig, write_game_config
@@ -40,6 +41,10 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.service = self.get_service(initial=service)
         self.service_appid = self.get_appid(installer, initial=appid)
         self.variables = self.script.get("variables", {})
+        try:
+            self.installer_dir = os.path.dirname(installer["_lutris_installer_file"])
+        except:
+            self.installer_dir = None
         self.script_files = [
             InstallerFile(self.game_slug, file_id, file_meta)
             for file_desc in self.script.get("files", [])

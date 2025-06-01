@@ -33,6 +33,12 @@ def read_script(filename):
 
 def get_installers(game_slug=None, installer_file=None, revision=None):
     # check if installer is local or online
+
     if system.path_exists(installer_file):
-        return [normalize_installer(i) for i in read_script(installer_file)]
-    return get_game_installers(game_slug=game_slug, revision=revision)
+        installers = [normalize_installer(i) for i in read_script(installer_file)]
+        for installer in installers:
+            installer["_lutris_installer_file"] = installer_file
+    else:
+        installers = get_game_installers(game_slug=game_slug, revision=revision)
+
+    return installers

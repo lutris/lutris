@@ -33,6 +33,20 @@ class TestScriptInterpreter(TestCase):
         self.assertEqual(interpreter.installer.game_name, "Doom")
         self.assertFalse(interpreter.installer.get_errors())
 
+    def test_installer_dir(self):
+        installer = {
+            "_lutris_installer_file": "/tmp/lutris_installer_file.yml",
+            "runner": "linux",
+            "script": {"exe": "doom"},
+            "name": "Doom",
+            "slug": "doom",
+            "game_slug": "doom",
+            "version": "doom-gzdoom",
+        }
+        interpreter = ScriptInterpreter(installer, None)
+        replacements = interpreter._get_string_replacements()
+        assert replacements["INSTALLERDIR"] == "/tmp"
+
     def test_move_requires_src_and_dst(self):
         script = {
             "foo": "bar",
