@@ -374,7 +374,7 @@ class ItchIoService(OnlineService):
         else:
             # if there are collections titled "lutris" (case insestitive) we use only these
             lutris_collections = list(
-                filter(lambda col: col.get("title", "").lower() == "lutris" and "id" in col, collections)
+                filter(lambda col: col.get("title", "").casefold() == "lutris" and "id" in col, collections)
             )
             if len(lutris_collections) > 0:
                 games = self.get_games_in_collections(lutris_collections)
@@ -384,8 +384,10 @@ class ItchIoService(OnlineService):
 
         filtered_games = []
         for game in games:
-            if any(self._get_detail_runners(game)):
-                filtered_games.append(game)
+            classification = game.get("classification")
+            if not classification or classification == "game":
+                if self._get_detail_runners(game):
+                    filtered_games.append(game)
         return filtered_games
 
     def get_key(self, appid):
@@ -449,14 +451,32 @@ class ItchIoService(OnlineService):
         return all_extras
 
     @staticmethod
-    def _get_detail_runners(details: Dict[str, Any]) -> List[str]:
+    def _get_detail_runners(details: Dict[str, Any], fix_missing_platforms: bool = True) -> List[str]:
         """Extracts the runners available for a given game, given its details.
         This test the traits for specific platforms, and returns the runners
-        in a priority order- Linux is first, which occasionally matters."""
+        in a priority order- Linux is first, which occasionally matters.
+
+        Normally, if a game has no platforms we'll assume a default set of runners,
+        but 'fix_missing_platforms' may be set to false to turn this off."""
         runners = []
+        traits = details["traits"]
+        traits.clear
         for trait, runner in ItchIoService.runners_by_trait.items():
-            if trait in details["traits"]:
+            if trait in traits:
                 runners.append(runner)
+
+        # Special case- some games don't list platform at all. If the game has
+        # no "p_" traits- not even "p_osx"- we can assume *all* our platforms are
+        # supported and hope for the best!
+
+        if fix_missing_platforms and not runners:
+            if not any(t for t in traits if t.startswith("p_")):
+                logger.warning(
+                    "The itch.io game '%s' has no platforms lists; Lutris will assume all supported runners will work.",
+                    details.get("title"),
+                )
+                return list(ItchIoService.runners_by_trait.values())
+
         return runners
 
     def get_installed_slug(self, db_game):
@@ -521,10 +541,9 @@ class ItchIoService(OnlineService):
         return runners[0] if runners else ""
 
     def get_game_platforms(self, db_game: dict) -> List[str]:
-        platforms = []
         details = json.loads(db_game["details"])
 
-        runners = self._get_detail_runners(details)
+        runners = self._get_detail_runners(details, fix_missing_platforms=False)
         return [self.platforms_by_runner[r] for r in runners]
 
     def _check_update_with_db(self, db_game, key, upload=None):
