@@ -29,6 +29,7 @@ import logging
 import struct
 from io import BytesIO
 from typing import List, Tuple
+
 from PIL import Image
 
 try:
@@ -98,7 +99,7 @@ class IconExtractor:
             for icon_entry_list in self.rticonres.directory.entries
         }
 
-    def _get_icon(self, index: int = 0) -> List[Tuple[pefile.Structure, bytes]]:
+    def _get_icon(self, index: int = 0):
         """
         Returns the specified group icon in the binary.
 
