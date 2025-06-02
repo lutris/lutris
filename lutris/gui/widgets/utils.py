@@ -98,8 +98,8 @@ def get_scaled_surface_by_path(path, size, device_scale, preserve_aspect_ratio=T
         scale_x = min(scale_x, scale_y)
         scale_y = scale_x
 
-    pixel_width = int(round(pixbuf_width * scale_x))
-    pixel_height = int(round(pixbuf_height * scale_y))
+    pixel_width = round(pixbuf_width * scale_x)
+    pixel_height = round(pixbuf_height * scale_y)
 
     surface = cairo.ImageSurface(cairo.Format.ARGB32, pixel_width, pixel_height)  # pylint:disable=no-member
     cr = cairo.Context(surface)  # pylint:disable=no-member
