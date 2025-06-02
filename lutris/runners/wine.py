@@ -53,7 +53,6 @@ from lutris.util.wine.wine import (
     WINE_DEFAULT_ARCH,
     WINE_PATHS,
     detect_arch,
-    get_default_wine_runner_version_info,
     get_default_wine_version,
     get_installed_wine_versions,
     get_overrides_env,
@@ -697,11 +696,6 @@ class wine(Runner):
         return arch
 
     def get_runner_version(self, version: str = None) -> Optional[Dict[str, str]]:
-        if not version:
-            default_version_info = get_default_wine_runner_version_info()
-            default_version = format_runner_version(default_version_info) if default_version_info else None
-            version = self.read_version_from_config(default=default_version)
-
         if version in WINE_PATHS:
             return {"version": version}
 
