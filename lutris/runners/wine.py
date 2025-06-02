@@ -610,18 +610,6 @@ class wine(Runner):
         self.dll_overrides = DEFAULT_DLL_OVERRIDES.copy()  # we'll modify this, so we better copy it
 
     @property
-    def runner_warning(self):
-        if not get_system_wine_version():
-            return _(
-                "<b>Warning</b> Wine is not installed on your system\n\n"
-                "Having Wine installed on your system guarantees that "
-                "Wine builds from Lutris will have all required dependencies.\nPlease "
-                "follow the instructions given in the <a "
-                "href='https://github.com/lutris/docs/blob/master/WineDependencies.md'>Lutris Wiki</a> to "
-                "install Wine."
-            )
-
-    @property
     def context_menu_entries(self):
         """Return the contexual menu entries for wine"""
         return [
@@ -1034,9 +1022,6 @@ class wine(Runner):
         return None
 
     def prelaunch(self):
-        if not get_system_wine_version():
-            logger.warning("Wine is not installed on your system; required dependencies may be missing.")
-
         prefix_path = self.prefix_path
         if prefix_path:
             if not system.path_exists(os.path.join(prefix_path, "user.reg")):
