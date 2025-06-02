@@ -46,14 +46,13 @@ from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION, DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
-from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, ExtractIcon
+from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, IconExtractor
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
     WINE_DEFAULT_ARCH,
     WINE_PATHS,
     detect_arch,
-    get_default_wine_runner_version_info,
     get_default_wine_version,
     get_installed_wine_versions,
     get_overrides_env,
@@ -110,8 +109,7 @@ def _get_simple_vulkan_support_error(option_key: str, config: LutrisConfig, feat
         return None
     if config.runner_config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
         return (
-            _("<b>Error</b> Vulkan is not installed or is not supported by your system, " "%s is not available.")
-            % feature
+            _("<b>Error</b> Vulkan is not installed or is not supported by your system, %s is not available.") % feature
         )
     return None
 
@@ -223,9 +221,7 @@ class wine(Runner):
             "type": "directory",
             "label": _("Working directory"),
             "help": _(
-                "The location where the game is run from.\n"
-                "By default, Lutris uses the directory of the "
-                "executable."
+                "The location where the game is run from.\nBy default, Lutris uses the directory of the executable."
             ),
         },
         {
@@ -279,7 +275,7 @@ class wine(Runner):
             "label": _("Custom Wine executable"),
             "type": "file",
             "advanced": True,
-            "help": _("The Wine executable to be used if you have " 'selected "Custom" as the Wine version.'),
+            "help": _('The Wine executable to be used if you have selected "Custom" as the Wine version.'),
         },
         {
             "option": "system_winetricks",
@@ -326,9 +322,7 @@ class wine(Runner):
             "error": lambda k, c: _get_simple_vulkan_support_error(k, c, _("VKD3D")),
             "default": True,
             "active": True,
-            "help": _(
-                "Use VKD3D to enable support for Direct3D 12 " "applications by translating their calls to Vulkan."
-            ),
+            "help": _("Use VKD3D to enable support for Direct3D 12 applications by translating their calls to Vulkan."),
         },
         {
             "option": "vkd3d_version",
@@ -349,7 +343,6 @@ class wine(Runner):
             "type": "bool",
             "default": True,
             "advanced": True,
-            "visible": _is_pre_proton,
             "help": _(
                 "Replace Wine's D3DX and D3DCOMPILER libraries with alternative ones. "
                 "Needed for proper functionality of DXVK with some games."
@@ -360,7 +353,6 @@ class wine(Runner):
             "section": _("Graphics"),
             "label": _("D3D Extras version"),
             "advanced": True,
-            "visible": _is_pre_proton,
             "conditional_on": "d3d_extras",
             "type": "choice_with_entry",
             "choices": lambda: D3DExtrasManager().version_choices,
@@ -551,7 +543,7 @@ class wine(Runner):
             ],
             "default": "auto",
             "help": _(
-                "Which audio backend to use.\n" "By default, Wine automatically picks the right one " "for your system."
+                "Which audio backend to use.\nBy default, Wine automatically picks the right one for your system."
             ),
         },
         {
@@ -572,7 +564,7 @@ class wine(Runner):
                 (_("Full (CAUTION: Will cause MASSIVE slowdown)"), "+all"),
             ],
             "default": "-all",
-            "help": _("Output debugging information in the game log " "(might affect performance)"),
+            "help": _("Output debugging information in the game log (might affect performance)"),
         },
         {
             "option": "ShowCrashDialog",
@@ -587,7 +579,7 @@ class wine(Runner):
             "label": _("Autoconfigure joypads"),
             "advanced": True,
             "default": False,
-            "help": _("Automatically disables one of Wine's detected joypad " "to avoid having 2 controllers detected"),
+            "help": _("Automatically disables one of Wine's detected joypad to avoid having 2 controllers detected"),
         },
     ]
 
@@ -616,18 +608,6 @@ class wine(Runner):
         self._working_dir = working_dir
         self._wine_arch = wine_arch
         self.dll_overrides = DEFAULT_DLL_OVERRIDES.copy()  # we'll modify this, so we better copy it
-
-    @property
-    def runner_warning(self):
-        if not get_system_wine_version():
-            return _(
-                "<b>Warning</b> Wine is not installed on your system\n\n"
-                "Having Wine installed on your system guarantees that "
-                "Wine builds from Lutris will have all required dependencies.\nPlease "
-                "follow the instructions given in the <a "
-                "href='https://github.com/lutris/docs/blob/master/WineDependencies.md'>Lutris Wiki</a> to "
-                "install Wine."
-            )
 
     @property
     def context_menu_entries(self):
@@ -704,11 +684,6 @@ class wine(Runner):
         return arch
 
     def get_runner_version(self, version: str = None) -> Optional[Dict[str, str]]:
-        if not version:
-            default_version_info = get_default_wine_runner_version_info()
-            default_version = format_runner_version(default_version_info) if default_version_info else None
-            version = self.read_version_from_config(default=default_version)
-
         if version in WINE_PATHS:
             return {"version": version}
 
@@ -1050,9 +1025,6 @@ class wine(Runner):
         return None
 
     def prelaunch(self):
-        if not get_system_wine_version():
-            logger.warning("Wine is not installed on your system; required dependencies may be missing.")
-
         prefix_path = self.prefix_path
         if prefix_path:
             if not system.path_exists(os.path.join(prefix_path, "user.reg")):
@@ -1327,29 +1299,14 @@ class wine(Runner):
             if not exe or os.path.exists(pathtoicon) or not PEFILE_AVAILABLE:
                 return False
 
-            extractor = ExtractIcon(self.game_exe)
-            groups = extractor.get_group_icons()
+            extractor = IconExtractor(exe)
 
-            if not groups:
-                return False
+            icon = extractor.get_best_icon()
 
-            icons = []
-            biggestsize = (0, 0)
-            biggesticon = -1
-            for i in range(len(groups[0])):
-                icons.append(extractor.export(groups[0], i))
-                if icons[i].size > biggestsize:
-                    biggesticon = i
-                    biggestsize = icons[i].size
-                elif icons[i].size == wantedsize:
-                    icons[i].save(pathtoicon)
-                    return True
-
-            if biggesticon >= 0:
-                resized = icons[biggesticon].resize(wantedsize)
-                resized.save(pathtoicon)
-                return True
-            return False
+            if not icon.size == wantedsize:
+                icon = icon.resize(wantedsize)
+            icon.save(pathtoicon)
+            return True
         except Exception as ex:
             logger.exception("Unable to extract icon from %s: %s", exe, ex)
             return False

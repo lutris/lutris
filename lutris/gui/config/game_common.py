@@ -25,7 +25,7 @@ from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, dow
 from lutris.services.service_media import resolve_media_path
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.strings import gtk_safe, parse_playtime, slugify
+from lutris.util.strings import parse_playtime, slugify
 
 
 # pylint: disable=too-many-instance-attributes, no-member
@@ -44,7 +44,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.name_entry = None
         self.sortname_entry = None
         self.runner_box = None
-        self.runner_warning_box = None
 
         self.timer_id = None
         self.game = None
@@ -159,10 +158,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
         self.runner_box = self._get_runner_box()
         info_box.pack_start(self.runner_box, False, False, 6)  # Runner
-
-        self.runner_warning_box = RunnerMessageBox()
-        info_box.pack_start(self.runner_warning_box, False, False, 6)  # Runner
-        self.runner_warning_box.update_message(self.runner_name)
 
         info_box.pack_start(self._get_year_box(), False, False, 6)  # Year
 
@@ -602,7 +597,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.runner_name = runner_name
             self.lutris_config = LutrisConfig(runner_slug=self.runner_name, level="game")
         self._rebuild_tabs()
-        self.runner_warning_box.update_message(self.runner_name)
         self.notebook.set_current_page(current_page)
 
     def _rebuild_tabs(self):
@@ -826,16 +820,3 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 class RunnerMessageBox(WidgetWarningMessageBox):
     def __init__(self):
         super().__init__(margin_left=12, margin_right=12, icon_name="dialog-warning")
-
-    def update_message(self, runner_name):
-        try:
-            if runner_name:
-                runner_class = import_runner(runner_name)
-                runner = runner_class()
-                warning = runner.runner_warning
-                if warning:
-                    self.show_markup(warning)
-                    return
-            self.show_markup(None)
-        except Exception as ex:
-            self.show_message(gtk_safe(ex))

@@ -73,7 +73,7 @@ def check_vulkan():
         library_api_version = vkquery.get_vulkan_api_version()
         if library_api_version and library_api_version < required_api_version:
             logger.warning(
-                "Vulkan reports an API version of %s. " "%s is required for the latest DXVK.",
+                "Vulkan reports an API version of %s. %s is required for the latest DXVK.",
                 vkquery.format_version(library_api_version),
                 vkquery.format_version(required_api_version),
             )
@@ -82,7 +82,7 @@ def check_vulkan():
 
         if devices and devices[0].api_version < required_api_version:
             logger.warning(
-                "Vulkan reports that the '%s' device has API version of %s. " "%s is required for the latest DXVK.",
+                "Vulkan reports that the '%s' device has API version of %s. %s is required for the latest DXVK.",
                 devices[0].name,
                 vkquery.format_version(devices[0].api_version),
                 vkquery.format_version(required_api_version),

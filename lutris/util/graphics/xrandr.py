@@ -51,7 +51,7 @@ def get_outputs():  # pylint: disable=too-many-locals
                 position = "{x_pos}x{y_pos}".format(x_pos=x_pos, y_pos=y_pos)
             except ValueError as ex:
                 logger.error(
-                    "Unhandled xrandr line %s, error: %s. " "Please send your xrandr output to the dev team", line, ex
+                    "Unhandled xrandr line %s, error: %s. Please send your xrandr output to the dev team", line, ex
                 )
                 continue
         elif "*" in line:

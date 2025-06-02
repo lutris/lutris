@@ -314,6 +314,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         preset_label = Gtk.Label(_("Installer preset:"), visible=True)
         grid.attach(preset_label, 0, 3, 1, 1)
 
+        self.installer_presets.append(["win11", _("Windows 11 64-bit")])
         self.installer_presets.append(["win10", _("Windows 10 64-bit (Default)")])
         self.installer_presets.append(["win7", _("Windows 7 64-bit")])
         self.installer_presets.append(["winxp", _("Windows XP 32-bit")])

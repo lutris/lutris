@@ -88,25 +88,25 @@ def _get_syscall_nr_from_headers(syscall_name):
             close_fds=True,
             universal_newlines=True,
         ) as popen:
-            stdout, stderr = popen.communicate("#include <sys/syscall.h>\n" "__NR_" + syscall_name + "\n")
+            stdout, stderr = popen.communicate("#include <sys/syscall.h>\n__NR_" + syscall_name + "\n")
     except FileNotFoundError as ex:
         raise RuntimeError(
-            "failed to determine " + syscall_name + " syscall number: " "cpp not installed or not in PATH"
+            "failed to determine " + syscall_name + " syscall number: cpp not installed or not in PATH"
         ) from ex
 
     if popen.returncode:
         raise RuntimeError(
-            "failed to determine " + syscall_name + " syscall number: " "cpp returned nonzero exit code", stderr
+            "failed to determine " + syscall_name + " syscall number: cpp returned nonzero exit code", stderr
         )
 
     if not stdout:
-        raise RuntimeError("failed to determine " + syscall_name + " syscall number: " "no output from cpp")
+        raise RuntimeError("failed to determine " + syscall_name + " syscall number: no output from cpp")
 
     last_line = stdout.splitlines()[-1]
 
     if last_line == "__NR_futex":
         raise RuntimeError(
-            "failed to determine " + syscall_name + " syscall number: " "__NR_" + syscall_name + " not expanded"
+            "failed to determine " + syscall_name + " syscall number: __NR_" + syscall_name + " not expanded"
         )
 
     try:

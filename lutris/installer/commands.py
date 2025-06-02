@@ -105,7 +105,7 @@ class CommandsMixin:
             self._check_required_params([("file", "command")], data, "execute")
             if "command" in data and "file" in data:
                 raise ScriptingError(
-                    _("Parameters file and command can't be used " "at the same time for the execute command"),
+                    _("Parameters file and command can't be used at the same time for the execute command"),
                     data,
                 )
 
@@ -565,7 +565,7 @@ class CommandsMixin:
         game_id = arguments.split()[-1]
         arguments = " ".join(arguments.split()[:-1])
         base_dir = os.path.dirname(gog_config_path)
-        return {"game_id": game_id, "path": base_dir, "arguments": arguments}
+        return {"game_id": game_id, "path": base_dir, "args": arguments}
 
     def autosetup_gog_game(self, file_id, silent=False):
         """Automatically guess the best way to install a GOG game by inspecting its contents.

@@ -221,7 +221,7 @@ def get_used_platforms():
     """Return a list of platforms currently in use"""
     with sql.db_cursor(settings.DB_PATH) as cursor:
         query = (
-            "select distinct platform from games " "where platform is not null and platform is not '' order by platform"
+            "select distinct platform from games where platform is not null and platform is not '' order by platform"
         )
         rows = cursor.execute(query)
         results = rows.fetchall()

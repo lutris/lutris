@@ -1,49 +1,39 @@
 """Runner loaders"""
 
 __all__ = [
-    # Native
-    "linux",
-    "steam",
-    "web",
-    "flatpak",
-    "zdoom",
-    # Microsoft based
-    "wine",
+    "atari800",
+    "cemu",
+    "dolphin",
     "dosbox",
-    "xemu",
-    # Multi-system
+    "duckstation",
     "easyrpg",
+    "flatpak",
+    "fsuae",
+    "hatari",
+    "jzintv",
+    "libretro",
+    "linux",
     "mame",
     "mednafen",
-    "scummvm",
-    "libretro",
-    # Commodore
-    "fsuae",
-    "vice",
-    # Atari
-    "atari800",
-    "hatari",
-    # Nintendo
-    "snes9x",
     "mupen64plus",
-    "dolphin",
-    "ryujinx",
-    "yuzu",
-    "cemu",
-    # Sony
-    "duckstation",
-    "pcsx2",
-    "rpcs3",
-    "vita3k",
-    # Sega
-    "osmose",
-    "reicast",
-    "redream",
-    # Fantasy consoles
-    "pico8",
-    # Misc legacy systems
-    "jzintv",
     "o2em",
+    "osmose",
+    "pcsx2",
+    "pico8",
+    "redream",
+    "reicast",
+    "rpcs3",
+    "ryujinx",
+    "scummvm",
+    "snes9x",
+    "steam",
+    "vice",
+    "vita3k",
+    "web",
+    "wine",
+    "xemu",
+    "yuzu",
+    "zdoom",
 ]
 
 from lutris.exceptions import LutrisError, MisconfigurationError

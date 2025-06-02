@@ -159,13 +159,13 @@ def is_nvidia() -> bool:
     try:
         return os.path.exists("/proc/driver/nvidia")
     except OSError:
-        logger.info("Could not determine whether /proc/driver/nvidia exists. " "Falling back to alternative method")
+        logger.info("Could not determine whether /proc/driver/nvidia exists. Falling back to alternative method")
     try:
         with open("/proc/modules", encoding="utf-8") as f:
             modules = f.read()
         return bool(re.search(r"^nvidia ", modules, flags=re.MULTILINE))
     except OSError:
-        logger.error("Could not access /proc/modules to find the Nvidia drivers. " "Nvidia card may not be detected.")
+        logger.error("Could not access /proc/modules to find the Nvidia drivers. Nvidia card may not be detected.")
     glx_info = GlxInfo()
     return "NVIDIA" in glx_info.opengl_vendor  # type: ignore[attr-defined]
 

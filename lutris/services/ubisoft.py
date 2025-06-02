@@ -4,7 +4,6 @@ import json
 import os
 import shutil
 from gettext import gettext as _
-from typing import Any, Dict, Optional
 from urllib.parse import unquote
 
 from gi.repository import Gio
@@ -35,13 +34,8 @@ class UbisoftCover(ServiceMedia):
     size = (160, 186)
     dest_path = os.path.join(settings.CACHE_DIR, "ubisoft/covers")
     file_patterns = ["%s.jpg"]
-    api_field = "id"
-    url_pattern = "https://ubiservices.cdn.ubi.com/%s/spaceCardAsset/boxArt_mobile.jpg?imwidth=320"
-
-    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
-        if self.api_field in details:
-            return super().get_media_url(details)
-        return details["thumbImage"]
+    api_field = "thumbImage"
+    url_pattern = "https://static3.cdn.ubi.com/orbit/uplay_launcher_3_0/assets/%s"
 
     def download(self, slug, url):
         if url.startswith("http"):
@@ -136,7 +130,7 @@ class UbisoftConnectService(OnlineService):
             return
         base_dir = ubi_game["directory"]
         configurations_path = os.path.join(
-            base_dir, "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/" "cache/configuration/configurations"
+            base_dir, "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/configuration/configurations"
         )
         if not os.path.exists(configurations_path):
             return
