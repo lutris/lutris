@@ -13,7 +13,6 @@ from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import get_natural_sort_key
 
 DEFAULT_GAMEID = "umu-default"
-PROTON_DIR: str = os.path.join(settings.RUNNER_DIR, "proton")
 
 
 def is_proton_version(version: Optional[str]) -> bool:
@@ -138,8 +137,6 @@ def get_proton_versions() -> Dict[str, str]:
 
 def _iter_proton_locations() -> Generator[str, None, None]:
     """Iterate through all potential Proton locations"""
-    yield PROTON_DIR
-
     try:
         steamapp_dirs = get_steamapps_dirs()
     except:
