@@ -37,6 +37,16 @@ class DirectoryNotFoundError(MisconfigurationError):
         self.directory = directory
 
 
+class SymlinkNotUsableError(MisconfigurationError):
+    """Raise this error if a symlink that is required is not usable."""
+
+    def __init__(self, message=None, link=None, *args, **kwarg):
+        if not message and link:
+            message = message or _("The link {} could not be used.").format(link)
+        super().__init__(message, *args, **kwarg)
+        self.link = link
+
+
 class GameConfigError(MisconfigurationError):
     """Throw this error when the game configuration prevents the game from
     running properly."""
