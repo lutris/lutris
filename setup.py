@@ -62,7 +62,7 @@ setup(
         "evdev",
         "lxml",
         "pillow",
-        "PyGObject",
+        "PyGObject == 3.50.0",
         "pypresence",
         "PyYAML",
         "requests",
