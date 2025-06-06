@@ -5,6 +5,7 @@ import os
 
 # Lutris Modules
 from lutris import runtime
+from lutris.config import LutrisConfig
 from lutris.runners import import_runner
 from lutris.util import system
 from lutris.util.log import logger
@@ -24,8 +25,9 @@ def dosexec(config_file=None, executable=None, args=None, close_on_exit=True, wo
         raise ValueError("Neither a config file or an executable were provided")
     logger.debug("Running dosbox with %s", run_with)
     working_dir = system.create_folder(working_dir)
+    config = LutrisConfig(runner_slug="dosbox")
     dosbox = import_runner("dosbox")
-    dosbox_runner = dosbox()
+    dosbox_runner = dosbox(config)
     command = [dosbox_runner.get_executable()]
     if config_file:
         command += ["-conf", config_file]
