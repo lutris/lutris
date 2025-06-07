@@ -26,6 +26,7 @@ def dosexec(config_file=None, executable=None, args=None, close_on_exit=True, wo
     logger.debug("Running dosbox with %s", run_with)
     working_dir = system.create_folder(working_dir)
     config = LutrisConfig(runner_slug="dosbox")
+    logger.info("Config: %s", config.runner_config)
     dosbox = import_runner("dosbox")
     dosbox_runner = dosbox(config)
     command = [dosbox_runner.get_executable()]
