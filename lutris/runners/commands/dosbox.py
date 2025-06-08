@@ -29,7 +29,7 @@ def dosexec(config_file=None, executable=None, args=None, close_on_exit=True, wo
     logger.info("Config: %s", config.runner_config)
     dosbox = import_runner("dosbox")
     dosbox_runner = dosbox(config)
-    command = [dosbox_runner.get_executable()]
+    command = dosbox_runner.get_command()
     if config_file:
         command += ["-conf", config_file]
     if executable:
