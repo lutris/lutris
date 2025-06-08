@@ -26,7 +26,7 @@ def dosexec(config_file=None, executable=None, args=None, close_on_exit=True, wo
     working_dir = system.create_folder(working_dir)
     dosbox = import_runner("dosbox")
     dosbox_runner = dosbox()
-    command = dosbox_runner.get_command()
+    command = [dosbox_runner.get_executable()]
     if config_file:
         command += ["-conf", config_file]
     if executable:
