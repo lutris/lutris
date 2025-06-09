@@ -57,10 +57,12 @@ from lutris.util.wine.wine import (
     get_installed_wine_versions,
     get_overrides_env,
     get_real_executable,
+    get_runner_files_dir_for_version,
     get_system_wine_version,
     get_wine_path_for_version,
     is_esync_limit_set,
     is_fsync_supported,
+    is_gstreamer_build,
 )
 
 
@@ -1098,8 +1100,22 @@ class wine(Runner):
                 env["UMU_LOG"] = "debug"
         env["WINEARCH"] = self.wine_arch
         wine_exe = self.get_executable()
+        is_proton = proton.is_proton_path(wine_exe)
 
+        wine_config_version = self.read_version_from_config()
         env["WINE"] = wine_exe
+
+        files_dir = get_runner_files_dir_for_version(wine_config_version)
+        if files_dir:
+            env["WINE_MONO_CACHE_DIR"] = os.path.join(files_dir, "mono")
+            env["WINE_GECKO_CACHE_DIR"] = os.path.join(files_dir, "gecko")
+
+        # We don't want to override gstreamer for proton, it has it's own version
+        if files_dir and not is_proton and is_gstreamer_build(wine_exe):
+            path_64 = os.path.join(files_dir, "lib64/gstreamer-1.0/")
+            path_32 = os.path.join(files_dir, "lib/gstreamer-1.0/")
+            if os.path.exists(path_64) or os.path.exists(path_32):
+                env["GST_PLUGIN_SYSTEM_PATH_1_0"] = path_64 + ":" + path_32
 
         if self.prefix_path:
             env["WINEPREFIX"] = self.prefix_path

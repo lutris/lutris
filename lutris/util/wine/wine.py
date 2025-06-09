@@ -3,7 +3,7 @@
 import os
 from collections import OrderedDict
 from gettext import gettext as _
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from lutris import settings
 from lutris.exceptions import MisconfigurationError, UnspecifiedVersionError
@@ -148,6 +148,18 @@ def clear_wine_version_cache() -> None:
     get_installed_wine_versions.cache_clear()
     proton.get_proton_versions.cache_clear()
     proton.get_umu_path.cache_clear()
+
+
+def get_runner_files_dir_for_version(version: str) -> Optional[str]:
+    """This returns the path to the root of the Wine files for a specific version. The
+    'bin' directory for that version is there, and we can place more directories there.
+    If we shouldn't do that, this will return None."""
+    if version in WINE_PATHS:
+        return None
+    elif proton.is_proton_version(version):
+        return os.path.join(proton.PROTON_DIR, version, "files")
+    else:
+        return os.path.join(WINE_DIR, version)
 
 
 def get_wine_path_for_version(version: str, config: dict = None) -> str:
