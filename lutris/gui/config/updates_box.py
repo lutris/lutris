@@ -1,15 +1,10 @@
 import os
 from gettext import gettext as _
-from typing import Callable, Tuple
+from typing import Callable
 
 from gi.repository import Gio, Gtk
 
 from lutris import settings
-from lutris.api import (
-    format_runner_version,
-    get_default_wine_runner_version_info,
-    get_runtime_versions_date_time_ago,
-)
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.dialogs import NoticeDialog
 from lutris.runtime import RuntimeUpdater
@@ -26,18 +21,6 @@ LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATU
 
 class UpdatesBox(BaseConfigBox):
     def populate(self):
-        self.add(self.get_section_label(_("Wine update channel")))
-
-        update_channel_radio_buttons = self.get_update_channel_radio_buttons()
-
-        update_label_text, update_button_text = self.get_wine_update_texts()
-        self.update_runners_box = UpdateButtonBox(
-            update_label_text, update_button_text, clicked=self.on_runners_update_clicked
-        )
-
-        self.pack_start(self._get_framed_options_list_box(update_channel_radio_buttons), False, False, 0)
-        self.pack_start(self._get_framed_options_list_box([self.update_runners_box]), False, False, 0)
-
         self.add(self.get_section_label(_("Runtime updates")))
         self.add(self.get_description_label(_("Runtime components include DXVK, VKD3D and Winetricks.")))
         self.update_runtime_box = UpdateButtonBox("", _("Check for Updates"), clicked=self.on_runtime_update_clicked)
@@ -52,63 +35,6 @@ class UpdatesBox(BaseConfigBox):
         self.add(self.get_section_label(_("Media updates")))
         self.update_media_box = UpdateButtonBox("", _("Download Missing Media"), clicked=self.on_download_media_clicked)
         self.pack_start(self._get_framed_options_list_box([self.update_media_box]), False, False, 0)
-
-    def get_update_channel_radio_buttons(self):
-        update_channel = settings.read_setting("wine-update-channel", UPDATE_CHANNEL_STABLE)
-        markup = _(
-            "<b>Stable</b>:\n"
-            "Wine-GE updates are downloaded automatically and the latest version "
-            "is always used unless overridden in the settings.\n"
-            "\n"
-            "This allows us to keep track of regressions more efficiently and provide "
-            "fixes more reliably."
-        )
-        stable_channel_radio_button = self._get_radio_button(
-            markup, active=update_channel == UPDATE_CHANNEL_STABLE, group=None
-        )
-
-        markup = _(
-            "<b>Self-maintained</b>:\n"
-            "Wine updates are no longer delivered automatically and you have full responsibility "
-            "of your Wine versions.\n"
-            "\n"
-            "Please note that this mode is <b>fully unsupported</b>. In order to submit issues on Github "
-            "or ask for help on Discord, switch back to the <b>Stable channel</b>."
-        )
-        unsupported_channel_radio_button = self._get_radio_button(
-            markup, active=update_channel == UPDATE_CHANNEL_UNSUPPORTED, group=stable_channel_radio_button
-        )
-        # Safer to connect these after the active property has been initialized on all radio buttons
-        stable_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_STABLE)
-        unsupported_channel_radio_button.connect("toggled", self.on_update_channel_toggled, UPDATE_CHANNEL_UNSUPPORTED)
-
-        return stable_channel_radio_button, unsupported_channel_radio_button
-
-    def get_wine_update_texts(self) -> Tuple[str, str]:
-        wine_version_info = get_default_wine_runner_version_info()
-        if not wine_version_info:
-            update_label_text = _("No compatible Wine version could be identified. No updates are available.")
-            update_button_text = _("Check Again")
-            return update_label_text, update_button_text
-
-        wine_version = format_runner_version(wine_version_info)
-        if wine_version and system.path_exists(os.path.join(settings.RUNNER_DIR, "wine", wine_version)):
-            update_label_text = _("Your Wine version is up to date. Using: <b>%s</b>\n<i>Last checked %s.</i>") % (
-                wine_version_info["version"],
-                get_runtime_versions_date_time_ago(),
-            )
-            update_button_text = _("Check Again")
-        elif not system.path_exists(os.path.join(settings.RUNNER_DIR, "wine")):
-            update_label_text = (
-                _("You don't have any Wine version installed.\nWe recommend <b>%s</b>") % wine_version_info["version"]
-            )
-            update_button_text = _("Download %s") % wine_version_info["version"]
-        else:
-            update_label_text = (
-                _("You don't have the recommended Wine version: <b>%s</b>") % wine_version_info["version"]
-            )
-            update_button_text = _("Download %s") % wine_version_info["version"]
-        return update_label_text, update_button_text
 
     def apply_wine_update_texts(self, completion_markup: str = "") -> None:
         label_markup, _button_label = self.get_wine_update_texts()

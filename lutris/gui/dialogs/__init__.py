@@ -1,9 +1,9 @@
 """Commonly used dialogs"""
 
+import builtins
 import inspect
 import os
 import traceback
-from builtins import BaseException
 from gettext import gettext as _
 from typing import Any, Callable, Dict, Type, TypeVar, Union
 
@@ -275,14 +275,14 @@ class ErrorDialog(Gtk.MessageDialog):
 
     def __init__(
         self,
-        error: Union[str, BaseException],
+        error: Union[str, builtins.BaseException],
         message_markup: str = None,
         secondary: str = None,
         parent: Gtk.Window = None,
     ):
         super().__init__(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, parent=parent)
 
-        if isinstance(error, BaseException):
+        if isinstance(error, builtins.BaseException):
             if secondary:
                 # Some errors contain < and > and look like markup, but aren't-
                 # we'll need to protect the message dialog against this. To use markup,

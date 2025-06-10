@@ -77,6 +77,7 @@ class GPU:
         self.icd_files = self.get_icd_files()
         if VULKANINFO_AVAILABLE:
             try:
+                self.device_uuid = self.get_vulkaninfo_device_uuid()
                 self.name = self.get_vulkaninfo_name() or self.get_lspci_name()
             except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
                 # already logged this, so we'll just fall back to lspci.
@@ -156,6 +157,13 @@ class GPU:
             )
             if pci_id == self.pci_id:
                 return vulkaninfo[gpu_index]["deviceName"]
+        return None
+
+    def get_vulkaninfo_device_uuid(self) -> Optional[str]:
+        vulkaninfo = self.get_vulkaninfo()
+        for gpu_index in vulkaninfo:
+            device_uuid = vulkaninfo[gpu_index]["deviceUUID"].replace("-", "")
+            return device_uuid
         return None
 
     def get_lspci_name(self):

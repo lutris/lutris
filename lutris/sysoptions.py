@@ -153,16 +153,12 @@ system_options = [  # pylint: disable=invalid-name
     {
         "section": _("Display"),
         "option": "disable_screen_saver",
-        "label": _("Disable screen saver"),
+        "label": _("Prevent sleep"),
         "type": "bool",
         "default": SCREEN_SAVER_INHIBITOR is not None,
         "advanced": True,
         "condition": SCREEN_SAVER_INHIBITOR is not None,
-        "help": _(
-            "Disable the screen saver while a game is running. "
-            "Requires the screen saver's functionality "
-            "to be exposed over DBus."
-        ),
+        "help": _("Prevents the computer from suspending when a game is running."),
     },
     {
         "section": _("Display"),

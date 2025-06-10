@@ -17,7 +17,7 @@ import requests
 
 from lutris import settings
 from lutris.gui.widgets import NotificationSource
-from lutris.util import cache_single, http, system
+from lutris.util import http, system
 from lutris.util.graphics.gpu import get_gpus_info
 from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
@@ -75,7 +75,6 @@ def download_runtime_versions() -> Dict[str, Any]:
         return {}
     with open(settings.RUNTIME_VERSIONS_PATH, mode="w", encoding="utf-8") as runtime_file:
         json.dump(response.json, runtime_file, indent=2)
-    get_default_wine_runner_version_info.cache_clear()
     return response.json
 
 
@@ -306,13 +305,6 @@ def get_default_runner_version_info(runner_name: str, version: Optional[str] = N
         a dict containing only the version itself.
     """
     return get_runner_version_from_cache(runner_name, version) or get_runner_version_from_api(runner_name, version)
-
-
-@cache_single
-def get_default_wine_runner_version_info() -> Optional[Dict[str, str]]:
-    """Just returns the runner info for the default Wine, but with
-    caching. This is just a little optimization."""
-    return get_default_runner_version_info("wine")
 
 
 def get_http_post_response(url, payload):

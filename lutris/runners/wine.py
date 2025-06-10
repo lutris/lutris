@@ -46,14 +46,13 @@ from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION, DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
-from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, ExtractIcon
+from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, IconExtractor
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
     WINE_DEFAULT_ARCH,
     WINE_PATHS,
     detect_arch,
-    get_default_wine_runner_version_info,
     get_default_wine_version,
     get_installed_wine_versions,
     get_overrides_env,
@@ -611,18 +610,6 @@ class wine(Runner):
         self.dll_overrides = DEFAULT_DLL_OVERRIDES.copy()  # we'll modify this, so we better copy it
 
     @property
-    def runner_warning(self):
-        if not get_system_wine_version():
-            return _(
-                "<b>Warning</b> Wine is not installed on your system\n\n"
-                "Having Wine installed on your system guarantees that "
-                "Wine builds from Lutris will have all required dependencies.\nPlease "
-                "follow the instructions given in the <a "
-                "href='https://github.com/lutris/docs/blob/master/WineDependencies.md'>Lutris Wiki</a> to "
-                "install Wine."
-            )
-
-    @property
     def context_menu_entries(self):
         """Return the contexual menu entries for wine"""
         return [
@@ -697,11 +684,6 @@ class wine(Runner):
         return arch
 
     def get_runner_version(self, version: str = None) -> Optional[Dict[str, str]]:
-        if not version:
-            default_version_info = get_default_wine_runner_version_info()
-            default_version = format_runner_version(default_version_info) if default_version_info else None
-            version = self.read_version_from_config(default=default_version)
-
         if version in WINE_PATHS:
             return {"version": version}
 
@@ -1040,9 +1022,6 @@ class wine(Runner):
         return None
 
     def prelaunch(self):
-        if not get_system_wine_version():
-            logger.warning("Wine is not installed on your system; required dependencies may be missing.")
-
         prefix_path = self.prefix_path
         if prefix_path:
             if not system.path_exists(os.path.join(prefix_path, "user.reg")):
@@ -1317,29 +1296,14 @@ class wine(Runner):
             if not exe or os.path.exists(pathtoicon) or not PEFILE_AVAILABLE:
                 return False
 
-            extractor = ExtractIcon(self.game_exe)
-            groups = extractor.get_group_icons()
+            extractor = IconExtractor(exe)
 
-            if not groups:
-                return False
+            icon = extractor.get_best_icon()
 
-            icons = []
-            biggestsize = (0, 0)
-            biggesticon = -1
-            for i in range(len(groups[0])):
-                icons.append(extractor.export(groups[0], i))
-                if icons[i].size > biggestsize:
-                    biggesticon = i
-                    biggestsize = icons[i].size
-                elif icons[i].size == wantedsize:
-                    icons[i].save(pathtoicon)
-                    return True
-
-            if biggesticon >= 0:
-                resized = icons[biggesticon].resize(wantedsize)
-                resized.save(pathtoicon)
-                return True
-            return False
+            if not icon.size == wantedsize:
+                icon = icon.resize(wantedsize)
+            icon.save(pathtoicon)
+            return True
         except Exception as ex:
             logger.exception("Unable to extract icon from %s: %s", exe, ex)
             return False
