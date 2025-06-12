@@ -157,7 +157,8 @@ def get_runner_files_dir_for_version(version: str) -> Optional[str]:
     if version in WINE_PATHS:
         return None
     elif proton.is_proton_version(version):
-        return os.path.join(proton.PROTON_DIR, version, "files")
+        version_dir = proton.get_proton_versions()[version]
+        return os.path.join(version_dir, "files") if version_dir else None
     else:
         return os.path.join(WINE_DIR, version)
 

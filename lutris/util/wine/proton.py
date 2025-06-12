@@ -39,7 +39,7 @@ def is_proton_path(wine_path: str) -> bool:
     This function may be given the wine root directory or a file within such as
     the wine executable and will return true for either."""
     for candidate_wine_path in get_proton_versions().values():
-        if system.path_contains(candidate_wine_path, wine_path):
+        if not candidate_wine_path or system.path_contains(candidate_wine_path, wine_path):
             return True
     return False
 
@@ -115,7 +115,7 @@ def list_proton_versions() -> List[str]:
 
 
 @cache_single
-def get_proton_versions() -> Dict[str, str]:
+def get_proton_versions() -> Dict[str, Optional[str]]:
     """Return the dict of Proton versions installed in Steam, which is cached.
     The keys are the versions, and the values are the paths to those versions,
     which are their wine-paths."""
@@ -125,7 +125,9 @@ def get_proton_versions() -> Dict[str, str]:
     except MissingExecutableError:
         return {}
 
-    versions = dict()
+    # Represents 'default' Umu with no specific PROTONPATH
+    versions: Dict[str, Optional[str]] = {"proton": None}
+
     for proton_path in _iter_proton_locations():
         if os.path.isdir(proton_path):
             for version in os.listdir(proton_path):
@@ -152,7 +154,9 @@ def _iter_proton_locations() -> Generator[str, None, None]:
         yield path
 
 
-def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = None) -> None:
+def update_proton_env(
+    wine_path: Optional[str], env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = None
+) -> None:
     """Add various env-vars to an 'env' dict for use by Proton and Umu; this won't replace env-vars, so they can still
     be pre-set before we get here. This sets the PROTONPATH so the Umu launcher will know what Proton to use,
     and the WINEARCH to win64, which is what we expect Proton to always be. GAMEID is required, but we'll use a default
@@ -160,7 +164,7 @@ def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAUL
 
     This also propagates LC_ALL to HOST_LC_ALL, if LC_ALL is set."""
 
-    if "PROTONPATH" not in env:
+    if wine_path and "PROTONPATH" not in env:
         env["PROTONPATH"] = get_proton_path_by_path(wine_path)
 
     if "GAMEID" not in env:

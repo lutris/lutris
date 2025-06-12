@@ -187,6 +187,8 @@ def _get_wine_version_choices():
         if version in labels:
             version_number = get_system_wine_version(WINE_PATHS[version])
             label = labels[version].format(version_number)
+        elif version == "proton":
+            label = _("Proton (Latest)")
         elif version == "ge-proton":
             label = _("GE-Proton (Latest)")
         else:
@@ -676,6 +678,9 @@ class wine(Runner):
         Get it from the config or detect it from the prefix"""
         arch = self._wine_arch or self.game_config.get("arch") or "auto"
         if arch not in ("win32", "win64"):
+            if self.is_proton_version():
+                return "win64"
+
             prefix_path = self.prefix_path
             if prefix_path:
                 arch = detect_arch(prefix_path, self.get_executable())
@@ -692,7 +697,7 @@ class wine(Runner):
     def read_version_from_config(self, default: str = None) -> str:
         """Return the Wine version to use. use_default can be set to false to
         force the installation of a specific wine version. If no version is configured,
-        we return the default supplied, or the4 global Wine default if none is."""
+        we return the default supplied, or the global Wine default if none is."""
 
         # We must use the config levels to avoid getting a default if the setting
         # is not set; we'll fall back to get_default_version()
@@ -728,6 +733,12 @@ class wine(Runner):
             return fixed_resolved
 
         return resolved
+
+    def is_proton_version(self, version: str = None):
+        if version is None:
+            version = self.read_version_from_config()
+
+        return proton.is_proton_version(version)
 
     def get_executable(self, version: str = None, fallback: bool = True) -> str:
         """Return the path to the Wine executable.
@@ -766,13 +777,13 @@ class wine(Runner):
         return wine_path
 
     def get_command(self) -> List[str]:
-        command = super().get_command()
-        if command:
-            if proton.is_proton_path(command[0]) and not proton.is_umu_path(command[0]):
-                command[0] = proton.get_umu_path()
+        if self.is_proton_version():
+            command = [proton.get_umu_path()]
+        else:
+            command = super().get_command()
 
-            if proton.is_umu_path(command[0]) and self.wine_arch == "win32":
-                raise RuntimeError(_("Proton is not compatible with 32-bit prefixes."))
+        if command and proton.is_umu_path(command[0]) and self.wine_arch == "win32":
+            raise RuntimeError(_("Proton is not compatible with 32-bit prefixes."))
 
         return command
 
@@ -986,10 +997,7 @@ class wine(Runner):
                     if (
                         value
                         and key in ("Desktop", "WineDesktop")
-                        and (
-                            "wine-ge" in self.get_executable().casefold()
-                            or proton.is_proton_path(self.get_executable())
-                        )
+                        and ("wine-ge" in self.get_executable().casefold() or self.is_proton_version())
                     ):
                         logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
                         value = None
@@ -1051,7 +1059,7 @@ class wine(Runner):
         ]
 
         managers = {}
-        is_proton = proton.is_proton_path(self.get_executable())
+        is_proton = self.is_proton_version()
 
         for manager_class, enabled_option, version_option in manager_classes:
             enabled = bool(self.runner_config.get(enabled_option))
@@ -1099,11 +1107,11 @@ class wine(Runner):
                 env["DXVK_LOG_LEVEL"] = "debug"
                 env["UMU_LOG"] = "debug"
         env["WINEARCH"] = self.wine_arch
-        wine_exe = self.get_executable()
-        is_proton = proton.is_proton_path(wine_exe)
+        is_proton = self.is_proton_version()
 
         wine_config_version = self.read_version_from_config()
-        env["WINE"] = wine_exe
+        if not is_proton:
+            env["WINE"] = self.get_executable()
 
         files_dir = get_runner_files_dir_for_version(wine_config_version)
         if files_dir:
@@ -1111,7 +1119,7 @@ class wine(Runner):
             env["WINE_GECKO_CACHE_DIR"] = os.path.join(files_dir, "gecko")
 
         # We don't want to override gstreamer for proton, it has it's own version
-        if files_dir and not is_proton and is_gstreamer_build(wine_exe):
+        if files_dir and not is_proton and is_gstreamer_build(self.get_executable()):
             path_64 = os.path.join(files_dir, "lib64/gstreamer-1.0/")
             path_32 = os.path.join(files_dir, "lib/gstreamer-1.0/")
             if os.path.exists(path_64) or os.path.exists(path_32):
@@ -1168,9 +1176,12 @@ class wine(Runner):
     def finish_env(self, env: Dict[str, str], game) -> None:
         super().finish_env(env, game)
 
-        wine_exe = self.get_executable()
+        if self.is_proton_version():
+            try:
+                wine_exe = self.get_executable()
+            except MissingExecutableError:
+                wine_exe = None
 
-        if proton.is_proton_path(wine_exe):
             game_id = proton.get_game_id(game, env)
             proton.update_proton_env(wine_exe, env, game_id=game_id)
 
@@ -1259,7 +1270,7 @@ class wine(Runner):
         """Checks the pids given and returns a set containing only those that are part of the running game,
         identified by its UUID and directory."""
 
-        if proton.is_proton_path(self.get_executable()):
+        if self.is_proton_version():
             folder_pids = set()
             for pid in candidate_pids:
                 cmdline = Process(pid).cmdline or ""
@@ -1277,10 +1288,17 @@ class wine(Runner):
         """Kill WINE with kindness, or at least with -k. This seems to leave a process
         alive for some reason, but the caller will detect this and SIGKILL it."""
 
+        version = self.read_version_from_config()
+        try:
+            wine_exe = self.get_executable()
+        except MissingExecutableError:
+            wine_exe = None
+
         winekill(
             self.prefix_path,
             arch=self.wine_arch,
-            wine_path=self.get_executable(),
+            wine_path=wine_exe,
+            wine_version=version,
             env=self.get_env(),
             initial_pids=game_pids,
         )

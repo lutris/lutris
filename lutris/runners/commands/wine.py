@@ -183,18 +183,29 @@ def create_prefix(
     prefix_manager.setup_defaults()
 
 
-def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_pids=None, runner=None):
+def winekill(
+    prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, wine_version=None, env=None, initial_pids=None, runner=None
+):
     """Kill processes in Wine prefix."""
 
     initial_pids = initial_pids or []
     if not env:
         env = {"WINEARCH": arch, "WINEPREFIX": prefix}
-    if proton.is_proton_path(wine_path):
+
+    is_proton = proton.is_proton_version(wine_version) if wine_version else proton.is_proton_path(wine_path)
+
+    if is_proton:
         command = [proton.get_umu_path(), "wineboot", "-k"]
         env["GAMEID"] = proton.DEFAULT_GAMEID
         env["WINEPREFIX"] = prefix
         env["PROTON_VERB"] = "runinprefix"
-        env["PROTONPATH"] = proton.get_proton_path_by_path(wine_path)
+        if wine_path:
+            proton_path = proton.get_proton_path_by_path(wine_path)
+        elif wine_version:
+            proton_path = proton.get_proton_versions().get(wine_version)
+
+        if proton_path:
+            env["PROTONPATH"] = proton_path
     else:
         if not wine_path:
             if not runner:
