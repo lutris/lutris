@@ -8,6 +8,7 @@ import shlex
 import shutil
 from gettext import gettext as _
 from pathlib import Path
+from typing import Optional, Tuple
 
 from lutris import runtime
 from lutris.cache import is_file_in_custom_cache
@@ -30,14 +31,22 @@ class CommandsMixin:
     # pylint: disable=no-member
     installer: LutrisInstaller = NotImplemented
 
-    def get_wine_path(self) -> str:
+    def get_wine_version(self)->Optional[str]:
+        runner = self.get_runner_class(self.installer.runner)()
+        return runner.get_installer_runner_version(self.installer, use_runner_config=False)
+
+    def get_wine_path(self) -> Optional[str]:
+        wine_path, _wine_version = self.get_wine_path_and_version()
+        return wine_path
+
+    def get_wine_path_and_version(self) -> Tuple[Optional[str], Optional[str]]:
         """Return absolute path of wine version used during the installation, but
         None if the wine exe can't be located."""
         runner = self.get_runner_class(self.installer.runner)()
         version = runner.get_installer_runner_version(self.installer, use_runner_config=False)
         if version:
             wine_path = get_wine_path_for_version(version)
-            return wine_path
+            return wine_path, version
 
         # Special case that lets the Wine configuration explicit specify the path
         # to the Wine executable, not just a version number.
@@ -45,13 +54,13 @@ class CommandsMixin:
             try:
                 config_version, runner_config = wine.get_runner_version_and_config()
                 wine_path = get_wine_path_for_version(config_version, config=runner_config.runner_level["wine"])
-                return wine_path
+                return wine_path, config_version
             except UnspecifiedVersionError:
                 pass
 
         version = get_default_wine_version()
         wine_path = get_wine_path_for_version(version)
-        return wine_path
+        return wine_path, version
 
     def get_runner_class(self, runner_name):
         """Runner the runner class from its name"""
@@ -404,7 +413,9 @@ class CommandsMixin:
             return_code = "0"
 
         if runner_name.startswith("wine"):
-            data["wine_path"] = self.get_wine_path()
+            wine_path, wine_version = self.get_wine_path_and_version()
+            data["wine_path"] = wine_path
+            data["wine_version"] = wine_version
             data["prefix"] = data.get("prefix") or self.installer.script.get("game", {}).get("prefix") or "$GAMEDIR"
             data["arch"] = data.get("arch") or self.installer.script.get("game", {}).get("arch") or WINE_DEFAULT_ARCH
             if task_name == "wineexec":

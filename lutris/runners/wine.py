@@ -714,7 +714,7 @@ class wine(Runner):
 
         return get_default_wine_version()
 
-    def get_path_for_version(self, version: str) -> str:
+    def get_path_for_version(self, version: str) -> Optional[str]:
         """Return the absolute path of a wine executable for a given version"""
         return get_wine_path_for_version(version, config=self.runner_config)
 
@@ -752,7 +752,7 @@ class wine(Runner):
             return proton.get_proton_wine_path(version)
         try:
             wine_path = self.get_path_for_version(version)
-            if system.path_exists(wine_path):
+            if wine_path and system.path_exists(wine_path):
                 return wine_path
         except MissingExecutableError:
             if not fallback:
@@ -764,7 +764,7 @@ class wine(Runner):
         # Fallback to default version
         default_version = get_default_wine_version()
         wine_path = self.get_path_for_version(default_version)
-        if not system.path_exists(wine_path):
+        if not wine_path or not system.path_exists(wine_path):
             raise MissingExecutableError(_("The Wine executable at '%s' is missing.") % wine_path)
 
         # Update the version in the config
@@ -776,6 +776,14 @@ class wine(Runner):
             # config or the runner specific config. We need to know
             # which one to get the correct LutrisConfig object.
         return wine_path
+
+    def get_wine_path(self, version: str = None) -> Optional[str]:
+        """Returns the executable, but if the version in use is the special
+        'proton' version, this returns None instead."""
+        try:
+            return self.get_executable(version=version)
+        except UndefinedExecutableError:
+            return None
 
     def get_command(self) -> List[str]:
         if self.is_proton_version():
@@ -799,6 +807,8 @@ class wine(Runner):
                 return True
 
             return bool(get_installed_wine_versions())
+        except UndefinedExecutableError:
+            return True
         except MisconfigurationError:
             return False
 
@@ -910,7 +920,8 @@ class wine(Runner):
         """Run winecfg in the current context"""
         self.prelaunch()
         winecfg(
-            wine_path=self.get_executable(),
+            wine_path=self.get_wine_path(),
+            wine_version=self.read_version_from_config(),
             prefix=self.prefix_path,
             arch=self.wine_arch,
             config=self,
@@ -1035,7 +1046,13 @@ class wine(Runner):
         if prefix_path:
             if not system.path_exists(os.path.join(prefix_path, "user.reg")):
                 logger.warning("No valid prefix detected in %s, creating one...", prefix_path)
-                create_prefix(prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
+                create_prefix(
+                    prefix_path,
+                    wine_path=self.get_wine_path(),
+                    wine_version=self.read_version_from_config(),
+                    arch=self.wine_arch,
+                    runner=self,
+                )
 
             prefix_manager = WinePrefixManager(prefix_path)
             if self.runner_config.get("autoconf_joypad", False):
@@ -1202,10 +1219,10 @@ class wine(Runner):
     def get_wine_executable_pids(self):
         """Return a list of pids of processes using the current wine exe."""
         try:
-            exe = self.get_executable()
-            if proton.is_proton_path(exe):
+            if self.is_proton_version():
                 logger.debug("Tracking PIDs of Proton games is not possible at the moment")
                 return set()
+            exe = self.get_executable()
             if not exe.startswith("/"):
                 exe = system.find_required_executable(exe)
             pids = system.get_pids_using_file(exe)

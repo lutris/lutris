@@ -36,8 +36,14 @@ except Exception as ex:
     logger.exception("Unable to enumerate system Wine versions: %s", ex)
 
 
-def detect_arch(prefix_path: str = None, wine_path: str = None) -> str:
+def detect_arch(prefix_path: str = None, wine_path: str = None, wine_version: str = None) -> str:
     """Given a Wine prefix path, return its architecture"""
+    if wine_version:
+        if proton.is_proton_version(wine_version):
+            return "win64"
+        if not wine_path:
+            wine_path = get_wine_path_for_version(wine_version)
+
     if wine_path:
         if proton.is_proton_path(wine_path) or system.path_exists(wine_path + "64"):
             return "win64"
@@ -163,7 +169,7 @@ def get_runner_files_dir_for_version(version: str) -> Optional[str]:
         return os.path.join(WINE_DIR, version)
 
 
-def get_wine_path_for_version(version: str, config: dict = None) -> str:
+def get_wine_path_for_version(version: str, config: dict = None) -> Optional[str]:
     """Return the absolute path of a wine executable for a given version,
     or the configured version if you don't ask for a version."""
     if not version and config:
@@ -172,6 +178,8 @@ def get_wine_path_for_version(version: str, config: dict = None) -> str:
     if not version:
         raise UnspecifiedVersionError(_("The Wine version must be specified."))
 
+    if version == "proton":
+        return None
     if version in WINE_PATHS:
         return system.find_required_executable(WINE_PATHS[version])
     if proton.is_proton_version(version):

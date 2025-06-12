@@ -29,7 +29,7 @@ def is_umu_path(path: str) -> bool:
     return bool(path and (path.endswith("/umu_run.py") or path.endswith("/umu-run")))
 
 
-def is_proton_path(wine_path: str) -> bool:
+def is_proton_path(wine_path: Optional[str]) -> bool:
     """True if the path given actually runs Umu; this will run Proton-Wine in turn,
     but can be directed to particular Proton implementation by setting the env-var
     PROTONPATH, but if this is omitted it will default to the latest Proton it
@@ -37,9 +37,10 @@ def is_proton_path(wine_path: str) -> bool:
 
     This function may be given the wine root directory or a file within such as
     the wine executable and will return true for either."""
-    for candidate_wine_path in get_proton_versions().values():
-        if not candidate_wine_path or system.path_contains(candidate_wine_path, wine_path):
-            return True
+    if wine_path:
+        for candidate_wine_path in get_proton_versions().values():
+            if not candidate_wine_path or system.path_contains(candidate_wine_path, wine_path):
+                return True
     return False
 
 
