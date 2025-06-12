@@ -16,6 +16,7 @@ from lutris.exceptions import (
     MisconfigurationError,
     MissingExecutableError,
     MissingGameExecutableError,
+    UndefinedExecutableError,
     UnspecifiedVersionError,
 )
 from lutris.game import Game
@@ -1179,7 +1180,7 @@ class wine(Runner):
         if self.is_proton_version():
             try:
                 wine_exe = self.get_executable()
-            except MissingExecutableError:
+            except UndefinedExecutableError:
                 wine_exe = None
 
             game_id = proton.get_game_id(game, env)
@@ -1291,7 +1292,7 @@ class wine(Runner):
         version = self.read_version_from_config()
         try:
             wine_exe = self.get_executable()
-        except MissingExecutableError:
+        except UndefinedExecutableError:
             wine_exe = None
 
         winekill(

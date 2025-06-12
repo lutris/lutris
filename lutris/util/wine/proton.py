@@ -2,11 +2,10 @@
 
 import json
 import os
-from gettext import gettext as _
 from typing import Dict, Generator, List, Optional
 
 from lutris import settings
-from lutris.exceptions import MissingExecutableError
+from lutris.exceptions import MissingExecutableError, UndefinedExecutableError
 from lutris.monitored_command import RUNNING_COMMANDS
 from lutris.util import cache_single, system
 from lutris.util.steam.config import get_steamapps_dirs
@@ -86,7 +85,11 @@ def get_umu_path() -> str:
 
 def get_proton_wine_path(version: str) -> str:
     """Get the wine path for the specified proton version"""
-    wine_path = get_proton_versions().get(version)
+    proton_version = get_proton_versions()
+    if version not in proton_version:
+        raise MissingExecutableError("'%s' is not a known Proton version." % version)
+
+    wine_path = proton_version[version]
     if wine_path:
         wine_path_dist = os.path.join(wine_path, "dist/bin/wine")
         if os.path.exists(wine_path_dist):
@@ -96,7 +99,7 @@ def get_proton_wine_path(version: str) -> str:
         if os.path.exists(wine_path_files):
             return wine_path_files
 
-    raise MissingExecutableError(_("Proton version '%s' is missing its wine executable and can't be used.") % version)
+    raise UndefinedExecutableError("Proton version '%s' is has no wine executable." % version)
 
 
 def get_proton_path_by_path(wine_path: str) -> str:
