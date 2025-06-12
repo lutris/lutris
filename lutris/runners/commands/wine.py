@@ -4,6 +4,7 @@
 import os
 import shlex
 import time
+from gettext import gettext as _
 
 from lutris import runtime, settings
 from lutris.exceptions import UndefinedExecutableError
@@ -440,6 +441,7 @@ def winetricks(
     arch=None,
     silent=True,
     wine_path=None,
+    wine_version=None,
     config=None,
     env=None,
     disable_runtime=False,
@@ -450,19 +452,22 @@ def winetricks(
     """Execute winetricks."""
     winetricks_path, working_dir, env = find_winetricks(env, system_winetricks)
 
-    if wine_path:
+    is_proton = proton.is_proton_version(wine_version) if wine_version else proton.is_proton_path(wine_path)
+
+    if is_proton:
+        protonfixes_path = os.path.join(proton.get_proton_path_by_path(wine_path), "protonfixes") if wine_path else None
+        if protonfixes_path and os.path.exists(protonfixes_path):
+            winetricks_wine = os.path.join(protonfixes_path, "winetricks")
+            winetricks_path = wine_path
+            if not app:
+                silent = False
+                app = "--gui"
+        else:
+            raise RuntimeError(_("Valve official Proton builds do not support winetricks."))
+            return
+
+    if wine_path and not is_proton:
         winetricks_wine = wine_path
-        if proton.is_proton_path(wine_path):
-            protonfixes_path = os.path.join(proton.get_proton_path_by_path(wine_path), "protonfixes")
-            if os.path.exists(protonfixes_path):
-                winetricks_wine = os.path.join(protonfixes_path, "winetricks")
-                winetricks_path = wine_path
-                if not app:
-                    silent = False
-                    app = "--gui"
-            else:
-                logger.info("winetricks: Valve official Proton builds do not support winetricks.")
-                return
     else:
         if not runner:
             runner = import_runner("wine")()
@@ -472,11 +477,10 @@ def winetricks(
         arch = detect_arch(prefix, winetricks_wine)
     args = app
 
-    if str(silent).lower() in ("yes", "on", "true") and not proton.is_proton_path(wine_path):
+    if str(silent).lower() in ("yes", "on", "true") and not is_proton:
         args = "-q " + args
-    else:
-        if proton.is_proton_path(wine_path):
-            proton_verb = "waitforexitandrun"
+    elif is_proton:
+        proton_verb = "waitforexitandrun"
 
     # Execute wineexec
     return wineexec(
@@ -484,6 +488,7 @@ def winetricks(
         prefix=prefix,
         winetricks_wine=winetricks_wine,
         wine_path=winetricks_path,
+        wine_version=wine_version,
         working_dir=working_dir,
         arch=arch,
         args=args,

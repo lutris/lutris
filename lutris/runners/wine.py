@@ -957,7 +957,8 @@ class wine(Runner):
         winetricks(
             "",
             prefix=self.prefix_path,
-            wine_path=self.get_executable(),
+            wine_path=self.get_wine_path(),
+            wine_version=self.read_version_from_config(),
             config=self,
             disable_runtime=disable_runtime,
             system_winetricks=system_winetricks,
