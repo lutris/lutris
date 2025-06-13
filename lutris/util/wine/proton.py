@@ -109,7 +109,7 @@ def get_proton_wine_path(version: str) -> str:
         if os.path.exists(wine_path_files):
             return wine_path_files
 
-    raise UndefinedExecutableError("Proton version '%s' is has no wine executable." % version)
+    raise UndefinedExecutableError("Proton version '%s' is has no stable wine path." % version)
 
 
 def get_proton_path_by_path(wine_path: str) -> str:

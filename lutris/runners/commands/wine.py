@@ -550,16 +550,31 @@ def eject_disc(wine_path=None, wine_version=None, prefix=None, proton_verb=None)
     wineexec("eject", prefix=prefix, wine_path=wine_path, wine_version=wine_version, args="-a", proton_verb=proton_verb)
 
 
-def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=None, proton_verb=None):
+def install_cab_component(
+    cabfile, component, wine_path=None, wine_version=None, prefix=None, arch=None, proton_verb=None
+):
     """Install a component from a cabfile in a prefix"""
 
-    if proton.is_proton_path(wine_path):
+    if proton.is_proton(wine_path, wine_version):
         proton_verb = "run"
-    cab_installer = CabInstaller(prefix, wine_path=wine_path, arch=arch)
+        if not wine_path and wine_version:
+            wine_path = proton.get_proton_wine_path(wine_version)
+
+    if not wine_path:
+        raise RuntimeError("CAB components can't be installed without a wine path")
+
+    cab_installer = CabInstaller(prefix, wine_path=wine_path, wine_version=wine_version, arch=arch)
     files = cab_installer.extract_from_cab(cabfile, component)
     registry_files = cab_installer.get_registry_files(files)
     for registry_file, _arch in registry_files:
-        set_regedit_file(registry_file, wine_path=wine_path, prefix=prefix, arch=_arch, proton_verb=proton_verb)
+        set_regedit_file(
+            registry_file,
+            wine_path=wine_path,
+            wine_version=wine_version,
+            prefix=prefix,
+            arch=_arch,
+            proton_verb=proton_verb,
+        )
     cab_installer.cleanup()
 
 
