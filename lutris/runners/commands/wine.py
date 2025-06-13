@@ -35,6 +35,7 @@ def set_regedit(
     value="",
     type="REG_SZ",  # pylint: disable=redefined-builtin
     wine_path=None,
+    wine_version=None,
     prefix=None,
     arch=WINE_DEFAULT_ARCH,
 ):
@@ -54,11 +55,13 @@ def set_regedit(
     with open(reg_path, "w", encoding="utf-8") as reg_file:
         reg_file.write('REGEDIT4\n\n[%s]\n"%s"=%s\n' % (path, key, formatted_value[type]))
     logger.debug("Setting [%s]:%s=%s", path, key, formatted_value[type])
-    set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix, arch=arch)
+    set_regedit_file(reg_path, wine_path=wine_path, wine_version=wine_version, prefix=prefix, arch=arch)
     os.remove(reg_path)
 
 
-def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None):
+def set_regedit_file(
+    filename, wine_path=None, wine_version=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None
+):
     """Apply a regedit file to the Windows registry."""
     if arch == "win64" and wine_path and system.path_exists(wine_path + "64"):
         # Use wine64 by default if set to a 64bit prefix. Using regular wine
@@ -73,6 +76,7 @@ def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_AR
         "regedit",
         args="/S '%s'" % filename,
         wine_path=wine_path,
+        wine_version=wine_version,
         prefix=prefix,
         arch=arch,
         blocking=True,
@@ -80,7 +84,7 @@ def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_AR
     )
 
 
-def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None):
+def delete_registry_key(key, wine_path=None, wine_version=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None):
     """Deletes a registry key from a Wine prefix"""
 
     if proton.is_proton_path(wine_path):
@@ -90,6 +94,7 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH
         "regedit",
         args='/S /D "%s"' % key,
         wine_path=wine_path,
+        wine_version=wine_version,
         prefix=prefix,
         arch=arch,
         blocking=True,
@@ -541,12 +546,14 @@ def winecfg(
     )
 
 
-def eject_disc(wine_path, prefix, proton_verb=None):
+def eject_disc(wine_path=None, wine_version=None, prefix=None, proton_verb=None):
     """Use Wine to eject a drive"""
 
-    if proton.is_proton_path(wine_path):
+    is_proton = proton.is_proton_version(wine_version) if wine_version else proton.is_proton_path(wine_path)
+
+    if is_proton:
         proton_verb = "run"
-    wineexec("eject", prefix=prefix, wine_path=wine_path, args="-a", proton_verb=proton_verb)
+    wineexec("eject", prefix=prefix, wine_path=wine_path, wine_version=wine_version, args="-a", proton_verb=proton_verb)
 
 
 def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=None, proton_verb=None):
@@ -562,10 +569,11 @@ def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=
     cab_installer.cleanup()
 
 
-def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
+def open_wine_terminal(terminal, wine_path=None, wine_version=None, prefix=None, env=None, system_winetricks=False):
+    is_proton = proton.is_proton_version(wine_version) if wine_version else proton.is_proton_path(wine_path)
     winetricks_path, _working_dir, env = find_winetricks(env, system_winetricks)
-    path_paths = [os.path.dirname(wine_path)]
-    if proton.is_proton_path(wine_path):
+    path_paths = [os.path.dirname(wine_path)] if wine_path else []
+    if is_proton:
         proton.update_proton_env(wine_path, env)
         umu_path = proton.get_umu_path()
         path_paths.insert(0, os.path.dirname(umu_path))

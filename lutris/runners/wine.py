@@ -894,7 +894,8 @@ class wine(Runner):
         """Runs a Windows executable using this game's configuration"""
         wineexec(
             executable,
-            wine_path=self.get_executable(),
+            wine_path=self.get_wine_path(),
+            wine_version=self.read_version_from_config(),
             prefix=self.prefix_path,
             working_dir=self.prefix_path,
             config=self,
@@ -939,7 +940,8 @@ class wine(Runner):
         system_winetricks = self.runner_config.get("system_winetricks")
         open_wine_terminal(
             terminal=terminal,
-            wine_path=self.get_executable(),
+            wine_path=self.get_wine_path(),
+            wine_version=self.read_version_from_config(),
             prefix=self.prefix_path,
             env=self.get_env(os_env=True),
             system_winetricks=system_winetricks,
@@ -982,7 +984,8 @@ class wine(Runner):
         winekill(
             self.prefix_path,
             arch=self.wine_arch,
-            wine_path=self.get_executable(),
+            wine_path=self.get_wine_path(),
+            wine_version=self.read_version_from_config(),
             env=self.get_env(),
             initial_pids=self.get_wine_executable_pids(),
         )
