@@ -15,6 +15,15 @@ DEFAULT_GAMEID = "umu-default"
 PROTON_DIR: str = os.path.join(settings.RUNNER_DIR, "proton")
 
 
+def is_proton(path: str = None, version: str = None) -> bool:
+    """True if the version indicated specifies a Proton version, or if that is null,
+    if the path is a known Proton path. If both are None, this returns False.
+
+    This is a convenience to check for Proton when you may have either a path or
+    a version. This comes up during install scripts frequently."""
+    return is_proton_version(version) if version else is_proton_path(path)
+
+
 def is_proton_version(version: Optional[str]) -> bool:
     """True if the version indicated specifies a Proton version of Wine; these
     require special handling."""

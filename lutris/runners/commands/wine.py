@@ -136,8 +136,6 @@ def create_prefix(
     if not runner:
         runner = import_runner("wine")(prefix=prefix, wine_arch=arch)
 
-    is_proton = proton.is_proton_version(wine_version) if wine_version else proton.is_proton_path(wine_path)
-
     if not wine_path:
         try:
             wine_path = runner.get_executable()
@@ -166,7 +164,7 @@ def create_prefix(
         wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
         overrides["mscoree"] = "disabled"
 
-    if is_proton:
+    if proton.is_proton(wine_path, wine_version):
         # All proton path prefixes are created via Umu; if you aren't using
         # the default Umu, we'll use PROTONPATH to indicate what Proton is
         # to be used.
@@ -214,9 +212,7 @@ def winekill(
     if not env:
         env = {"WINEARCH": arch, "WINEPREFIX": prefix}
 
-    is_proton = proton.is_proton_version(wine_version) if wine_version else proton.is_proton_path(wine_path)
-
-    if is_proton:
+    if proton.is_proton(wine_path, wine_version):
         command = [proton.get_umu_path(), "wineboot", "-k"]
         env["GAMEID"] = proton.DEFAULT_GAMEID
         env["WINEPREFIX"] = prefix
@@ -329,7 +325,7 @@ def wineexec(
     if not runner:
         runner = import_runner("wine")(prefix=prefix, working_dir=working_dir, wine_arch=arch)
 
-    is_proton = proton.is_proton_version(wine_version) if wine_version else proton.is_proton_path(wine_path)
+    is_proton = proton.is_proton(wine_path, wine_version)
 
     if not wine_path:
         wine_path = runner.get_wine_path(version=wine_version)
@@ -457,7 +453,7 @@ def winetricks(
     """Execute winetricks."""
     winetricks_path, working_dir, env = find_winetricks(env, system_winetricks)
 
-    is_proton = proton.is_proton_version(wine_version) if wine_version else proton.is_proton_path(wine_path)
+    is_proton = proton.is_proton(wine_path, wine_version)
 
     if is_proton:
         protonfixes_path = os.path.join(proton.get_proton_path_by_path(wine_path), "protonfixes") if wine_path else None
@@ -517,7 +513,7 @@ def winecfg(
 ):
     """Execute winecfg."""
 
-    is_proton = proton.is_proton_version(wine_version) if wine_version else proton.is_proton_path(wine_path)
+    is_proton = proton.is_proton(wine_path, wine_version)
 
     if not wine_path and not is_proton:
         if wine_version:
@@ -549,9 +545,7 @@ def winecfg(
 def eject_disc(wine_path=None, wine_version=None, prefix=None, proton_verb=None):
     """Use Wine to eject a drive"""
 
-    is_proton = proton.is_proton_version(wine_version) if wine_version else proton.is_proton_path(wine_path)
-
-    if is_proton:
+    if proton.is_proton(wine_path, wine_version):
         proton_verb = "run"
     wineexec("eject", prefix=prefix, wine_path=wine_path, wine_version=wine_version, args="-a", proton_verb=proton_verb)
 
@@ -570,10 +564,9 @@ def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=
 
 
 def open_wine_terminal(terminal, wine_path=None, wine_version=None, prefix=None, env=None, system_winetricks=False):
-    is_proton = proton.is_proton_version(wine_version) if wine_version else proton.is_proton_path(wine_path)
     winetricks_path, _working_dir, env = find_winetricks(env, system_winetricks)
     path_paths = [os.path.dirname(wine_path)] if wine_path else []
-    if is_proton:
+    if proton.is_proton(wine_path, wine_version):
         proton.update_proton_env(wine_path, env)
         umu_path = proton.get_umu_path()
         path_paths.insert(0, os.path.dirname(umu_path))
