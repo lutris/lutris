@@ -71,6 +71,7 @@ SYSTEM_COMPONENTS = {
         "deepin-terminal",
         "wezterm",
         "foot",
+        "ptyxis"
     ],
     "LIBRARIES": {
         "OPENGL": ["libGL.so.1"],
