@@ -3,6 +3,7 @@ from gettext import gettext as _
 
 from lutris.exceptions import UnavailableRunnerError
 from lutris.util import cache_single
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
 
@@ -17,6 +18,10 @@ def get_executable():
     fp = shutil.which("flatpak")
     logger.info("Which flatpak-spawn: %s", spn)
     logger.info("Which flatpak: %s", fp)
+    if LINUX_SYSTEM.is_flatpak() and not spn:
+        logger.info("Falling back to flatpak-spawn")
+        spn = "flatpak-spawn"
+
     return spn or fp
 
 
