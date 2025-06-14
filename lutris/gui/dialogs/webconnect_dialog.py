@@ -24,6 +24,13 @@ class WebConnectDialog(ModalDialog):
     """Login form for external services"""
 
     def __init__(self, service: "OnlineService", parent=None):
+        if service.is_login_in_progress:
+            # If the previous login was abandoned, remove any
+            # credentials that may have been left over for a clean start-
+            # this helps if the service thinks we are logged in (ie, credenial
+            # cookiers remain), but Lutris does not.
+            service.wipe_game_cache()
+
         service.is_login_in_progress = True
 
         self.context: WebKit2.WebContext = WebKit2.WebContext.new()
