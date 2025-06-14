@@ -13,7 +13,11 @@ def get_executable():
 
     In the case where Lutris is a Flatpak, we use flatpak-spawn.
     """
-    return shutil.which("flatpak-spawn") or shutil.which("flatpak")
+    spn = shutil.which("flatpak-spawn")
+    fp = shutil.which("flatpak")
+    logger.info("Which flatpak-spawn: %s", spn)
+    logger.info("Which flatpak: %s", fp)
+    return spn or fp
 
 
 def is_installed():
