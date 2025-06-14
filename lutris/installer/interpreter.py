@@ -421,6 +421,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         replacements = {
             "GAMEDIR": self.target_path,
+            "INSTALLERDIR": self.installer.installer_dir,
             "CACHE": self.cache_path,
             "HOME": os.path.expanduser("~"),
             "STEAM_DATA_DIR": steam.steam().steam_data_dir,
