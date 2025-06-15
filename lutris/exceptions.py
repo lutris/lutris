@@ -78,6 +78,10 @@ class MissingExecutableError(MisconfigurationError):
     """Raised when a program can't be located."""
 
 
+class UndefinedExecutableError(MissingExecutableError):
+    """Raised when a program isn't actually specified, and shouldn't be needed."""
+
+
 class MissingMediaError(LutrisError):
     """Raised when an image file could not be found."""
 
