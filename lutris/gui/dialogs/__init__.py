@@ -9,6 +9,8 @@ from typing import Any, Callable, Dict, Type, TypeVar, Union
 
 import gi
 
+from lutris.exceptions import LutrisError
+
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 
@@ -277,29 +279,35 @@ class ErrorDialog(Gtk.MessageDialog):
         self,
         error: Union[str, builtins.BaseException],
         message_markup: str = None,
-        secondary: str = None,
+        secondary_markup: str = None,
         parent: Gtk.Window = None,
     ):
         super().__init__(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, parent=parent)
 
+        def get_message_markup(err):
+            if isinstance(err, LutrisError):
+                return err.message_markup or gtk_safe(str(err))
+            else:
+                return gtk_safe(str(err))
+
         if isinstance(error, builtins.BaseException):
-            if secondary:
+            if secondary_markup:
                 # Some errors contain < and > and look like markup, but aren't-
                 # we'll need to protect the message dialog against this. To use markup,
                 # you must pass the message itself directly.
-                message_markup = message_markup or gtk_safe(str(error))
+                message_markup = message_markup or get_message_markup(error)
             elif not message_markup:
                 message_markup = "<span weight='bold'>%s</span>" % _("Lutris has encountered an error")
-                secondary = str(error)
+                secondary_markup = get_message_markup(error)
         elif not message_markup:
-            message_markup = gtk_safe(str(error))
+            message_markup = get_message_markup(error)
 
         # Gtk doesn't wrap long labels containing no space correctly
         # the length of the message is limited to avoid display issues
         self.set_markup(message_markup[:256])
 
-        if secondary:
-            self.format_secondary_text(secondary[:256])
+        if secondary_markup:
+            self.format_secondary_markup(secondary_markup[:256])
 
         # So you can copy error text
         for child in self.get_message_area().get_children():

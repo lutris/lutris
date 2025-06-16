@@ -263,7 +263,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             try:
                 game_config.update(self.script["game"])
             except ValueError as err:
-                raise ScriptingError(_("Invalid 'game' section"), self.script["game"]) from err
+                raise ScriptingError(_("Invalid 'game' section"), faulty_data=self.script["game"]) from err
 
         # Obsolete install scripts may have the entry point key at root level;
         # we'll move them into the game-config if so, and if they are not already

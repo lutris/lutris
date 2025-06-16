@@ -6,9 +6,10 @@ from gettext import gettext as _
 class LutrisError(Exception):
     """Base exception for Lutris related errors"""
 
-    def __init__(self, message, *args, **kwarg):
+    def __init__(self, message, message_markup=None, *args, **kwarg):
         super().__init__(message, *args, **kwarg)
         self.message = message
+        self.message_markup = message_markup
         self.is_expected = False
 
 
