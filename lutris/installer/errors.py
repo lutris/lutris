@@ -13,10 +13,17 @@ class ScriptingError(LutrisError):
     """Custom exception for scripting errors, can be caught by modifying
     excepthook."""
 
-    def __init__(self, message, faulty_data=None):
+    def __init__(self, message, message_markup=None, faulty_data=None):
         self.faulty_data = faulty_data
-        super().__init__(message)
+        super().__init__(message, message_markup=message_markup)
         logger.error(self.__str__())
+
+    @staticmethod
+    def wrap(error: BaseException) -> "ScriptingError":
+        if isinstance(error, LutrisError):
+            return ScriptingError(error.message, message_markup=error.message_markup)
+        else:
+            return ScriptingError(str(error))
 
     def __str__(self):
         if self.faulty_data is None:

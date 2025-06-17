@@ -8,8 +8,10 @@ import resource
 import shutil
 import sys
 from collections import Counter, defaultdict
+from gettext import gettext as _
 
 from lutris import settings
+from lutris.exceptions import MisconfigurationError
 from lutris.util import flatpak, system
 from lutris.util.graphics import drivers, glxinfo, vkquery
 from lutris.util.log import logger
@@ -71,6 +73,7 @@ SYSTEM_COMPONENTS = {
         "deepin-terminal",
         "wezterm",
         "foot",
+        "ptyxis",
     ],
     "LIBRARIES": {
         "OPENGL": ["libGL.so.1"],
@@ -535,3 +538,12 @@ def get_default_terminal():
     if terms:
         return terms[0]
     logger.error("Couldn't find a terminal emulator.")
+
+
+def get_required_default_terminal():
+    """Return the default terminal emulator, or raises MisconfigurationError if none can be
+    found."""
+    term = get_default_terminal()
+    if term:
+        return term
+    raise MisconfigurationError(_("No terminal emulator could be detected."))

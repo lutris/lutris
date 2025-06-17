@@ -539,5 +539,5 @@ def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
     if path_paths:
         env["PATH"] = ":".join(path_paths)
     shell_command = get_shell_command(prefix, env, aliases)
-    terminal = terminal or linux.get_default_terminal()
+    terminal = terminal or linux.get_required_default_terminal()
     system.spawn([terminal, "-e", shell_command])

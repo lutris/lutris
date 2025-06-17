@@ -61,7 +61,7 @@ class SteamInstaller:
         since install progress is handled by _monitor_steam_game_install
         """
         if error:
-            raise ScriptingError(str(error))
+            raise ScriptingError.wrap(error)
 
     def install_steam_game(self) -> None:
         """Launch installation of a steam game"""

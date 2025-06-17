@@ -183,12 +183,13 @@ class steam(Runner):
 
     def install(self, install_ui_delegate, version=None, callback=None):
         raise NonInstallableRunnerError(
-            _(
+            message=_("Steam for Linux installation is not handled by Lutris."),
+            message_markup=_(
                 "Steam for Linux installation is not handled by Lutris.\n"
                 "Please go to "
                 "<a href='http://steampowered.com'>http://steampowered.com</a>"
                 " or install Steam with the package provided by your distribution."
-            )
+            ),
         )
 
     def install_game(self, appid, generate_acf=False):

@@ -250,13 +250,15 @@ class InstallerFile:
         try:
             hash_type, expected_hash = self.checksum.split(":", 1)
         except ValueError as err:
-            raise ScriptingError(_("Invalid checksum, expected format (type:hash) "), self.checksum) from err
+            raise ScriptingError(
+                _("Invalid checksum, expected format (type:hash) "), faulty_data=self.checksum
+            ) from err
 
         logger.info("Checking hash %s for %s", hash_type, self.dest_file)
         calculated_hash = system.get_file_checksum(self.dest_file, hash_type)
         if calculated_hash != expected_hash:
             raise ScriptingError(
-                hash_type.capitalize() + _(" checksum mismatch "), f"{expected_hash} != {calculated_hash}"
+                hash_type.capitalize() + _(" checksum mismatch "), faulty_data=f"{expected_hash} != {calculated_hash}"
             )
 
     @property
