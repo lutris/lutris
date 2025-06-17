@@ -284,7 +284,7 @@ class ErrorDialog(Gtk.MessageDialog):
     ):
         super().__init__(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, parent=parent)
 
-        def get_message_markup(err: BaseException) -> str:
+        def get_message_markup(err: Union[BaseException, str]) -> str:
             if isinstance(err, LutrisError):
                 return err.message_markup or gtk_safe(str(err))
             else:
