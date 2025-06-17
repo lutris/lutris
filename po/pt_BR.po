@@ -1221,7 +1221,7 @@ msgstr "Selecionar arquivo"
 
 #: lutris/gui/addgameswindow.py:402
 msgid "Select the setup file"
-msgstr "<b>Selecione arquivo de instalação</b>"
+msgstr "Selecione arquivo de instalação"
 
 #: lutris/gui/addgameswindow.py:423
 msgid "Script file"
