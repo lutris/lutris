@@ -284,7 +284,7 @@ class ErrorDialog(Gtk.MessageDialog):
     ):
         super().__init__(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, parent=parent)
 
-        def get_message_markup(err):
+        def get_message_markup(err: BaseException) -> str:
             if isinstance(err, LutrisError):
                 return err.message_markup or gtk_safe(str(err))
             else:
@@ -304,7 +304,9 @@ class ErrorDialog(Gtk.MessageDialog):
 
         # Gtk doesn't wrap long labels containing no space correctly
         # the length of the message is limited to avoid display issues
-        self.set_markup(message_markup[:256])
+
+        if message_markup:
+            self.set_markup(message_markup[:256])
 
         if secondary_markup:
             self.format_secondary_markup(secondary_markup[:256])
