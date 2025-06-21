@@ -899,7 +899,7 @@ class LutrisApplication(Gtk.Application):
                 "playtime": str(playtime) if playtime else None,
                 "playtimeSeconds": playtime.total_seconds() if playtime else None,
                 "lastplayed": (str(datetime.fromtimestamp(game["lastplayed"])) if game["lastplayed"] else None),
-                "coverPath": cover_path
+                "coverPath": cover_path,
             }
 
             games.append(game_obj)
