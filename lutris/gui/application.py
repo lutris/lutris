@@ -54,7 +54,7 @@ from lutris.runners import InvalidRunnerError, RunnerInstallationError, get_runn
 from lutris.services import get_enabled_services
 from lutris.startup import init_lutris, run_all_checks
 from lutris.style_manager import StyleManager
-from lutris.util import datapath, log, system
+from lutris.util import datapath, log, system, resources
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
@@ -879,8 +879,16 @@ class LutrisApplication(Gtk.Application):
             )
 
     def print_game_json(self, command_line, game_list):
-        games = [
-            {
+        games = []
+
+        for game in game_list:
+            playtime = timedelta(hours=game["playtime"]) if game["playtime"] else None
+            cover_path = resources.get_cover_path(game["slug"]) if game["slug"] else None
+
+            if not os.path.exists(cover_path):
+                cover_path = None
+
+            game_obj = {
                 "id": game["id"],
                 "slug": game["slug"],
                 "name": game["name"],
@@ -888,11 +896,14 @@ class LutrisApplication(Gtk.Application):
                 "platform": game["platform"] or None,
                 "year": game["year"] or None,
                 "directory": game["directory"] or None,
-                "playtime": (str(timedelta(hours=game["playtime"])) if game["playtime"] else None),
+                "playtime": str(playtime) if playtime else None,
+                "playtimeSeconds": playtime.total_seconds() if playtime else None,
                 "lastplayed": (str(datetime.fromtimestamp(game["lastplayed"])) if game["lastplayed"] else None),
+                "coverPath": cover_path
             }
-            for game in game_list
-        ]
+
+            games.append(game_obj)
+
         self._print(command_line, json.dumps(games, indent=2))
 
     def print_service_game_list(self, command_line, game_list):
