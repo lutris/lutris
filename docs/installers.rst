@@ -728,7 +728,7 @@ Currently, the following tasks are implemented:
         - task:
             name: dosexec
             executable: file_id
-            config: $GAMEDIR/game_install.conf
+            config_file: $GAMEDIR/game_install.conf
             args: -scaler normal3x -conf more_conf.conf
 
 Displaying a drop-down menu with options
