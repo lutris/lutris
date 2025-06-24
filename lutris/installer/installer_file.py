@@ -19,6 +19,8 @@ class InstallerFile:
 
     def __init__(self, game_slug, file_id, file_meta):
         self.game_slug = game_slug
+        self.speedtest = None  # Gets instantiated by run_speedtest() if needed
+        self.speed = None  # None if never done, False if failed, otherwise speed in bytes/s
         self.id = file_id.replace("-", "_")  # pylint: disable=invalid-name
         self._file_meta = file_meta
         self._dest_file_override = None  # Used to override the destination
@@ -59,6 +61,46 @@ class InstallerFile:
             self._file_meta["url"] = url
         else:
             self._file_meta = url
+
+    @property
+    def domain(self):
+        """Return the domain the file is hosted on, if applicable"""
+        if self.url.startswith("http"):
+            parsed = urlparse(self.url)
+            return parsed.netloc
+
+    @property
+    def speed_human_readable(self):
+        """Return speed as a string in a more human-readable format."""
+        if self.speed is None:
+            return None
+        elif self.speed < 1_000:
+            return f"{self.speed:.1f}" + " B/s"
+        elif self.speed < 1_000_000:
+            return f"{self.speed / 1_000:.1f} KB/s"
+        elif self.speed < 1_000_000_000:
+            return f"{self.speed / 1_000_000:.1f} MB/s"
+        else:
+            return f"{self.speed / 1_000_000_000:.1f} GB/s"
+
+    def run_speedtest(self, result_callback=None):
+        """
+        Run a speedtest on the URL. Blocking call.
+        Returns the average speed in bytes per second, or False if the speedtest failed or isn't applicable to the file provider.
+        """
+        if self.url.startswith("http"):
+            self.prepare()
+            self.speedtest = Downloader(url=self.url, dest=self.download_file, referer=self.referer, speedtest=True)
+            self.speedtest.start()
+            if self.speedtest.join() == True:
+                self.speed = self.speedtest.average_speed
+            else:
+                self.speed = False
+            if self.speedtest.is_file_completed:
+                os.rename(self.download_file, self.dest_file)
+            return self.speed
+        logger.debug("Speedtest called but not applicable for this file provider: %s", self.url)
+        return False
 
     @property
     def filename(self):
@@ -158,8 +200,9 @@ class InstallerFile:
         """Return a human readable label for installer files"""
         url = self.url
         if url.startswith("http"):
-            parsed = urlparse(url)
-            label = _("{file} on {host}").format(file=self.filename, host=parsed.netloc)
+            label = _("{file} on {host}").format(file=self.filename, host=self.domain)
+            if not self.is_cached and self.speed:
+                label += " (%s)" % self.speed_human_readable
         elif url.startswith("N/A"):
             label = url[3:].lstrip(":")
         else:
@@ -289,8 +332,11 @@ class InstallerFile:
 
     @property
     def is_cached(self):
-        """Is the file available in the local PGA cache?"""
-        return self.uses_pga_cache() and system.path_exists(self.dest_file)
+        """Is the file available in the local (PGA or temporary) cache?"""
+        if self.speedtest:
+            return self.speedtest.is_file_completed
+        else:
+            return self.uses_pga_cache() and system.path_exists(self.dest_file)
 
     def save_to_cache(self):
         """Copy the file into the PGA cache."""
