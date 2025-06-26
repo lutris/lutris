@@ -880,7 +880,6 @@ class Game:
             # Inspect why it could have crashed
 
         self.state = self.STATE_STOPPED
-        self.save()
         GAME_STOPPED.fire(self)
         if os.path.exists(self.now_playing_path):
             os.unlink(self.now_playing_path)
@@ -888,6 +887,7 @@ class Game:
             self.timer.end()
             self.playtime += self.timer.duration / 3600
             logger.debug("Playtime: %s", self.formatted_playtime)
+            self.save_lastplayed()
 
     @watch_game_errors(game_stop_result=False)
     def beat(self):
