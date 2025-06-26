@@ -880,6 +880,7 @@ class Game:
             # Inspect why it could have crashed
 
         self.state = self.STATE_STOPPED
+        self.save()
         GAME_STOPPED.fire(self)
         if os.path.exists(self.now_playing_path):
             os.unlink(self.now_playing_path)
