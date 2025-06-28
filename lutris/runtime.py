@@ -28,7 +28,6 @@ from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
-from lutris.util.wine.proton import PROTON_DIR
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import clear_wine_version_cache
 
@@ -260,18 +259,6 @@ class RuntimeUpdater:
             if upstream_runner:
                 updaters.append(RunnerComponentUpdater(name, upstream_runner))
 
-        for name, remote_runtime in runtime_versions.get("runtimes", {}).items():
-            if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
-                continue
-
-            try:
-                # This one runtime is really a runner!
-                url = remote_runtime.get("url")
-                if url and "-proton" in os.path.basename(url).casefold():
-                    updaters.append(ProtonComponentUpdater(remote_runtime))
-            except Exception as ex:
-                logger.exception("Unable to download %s: %s", name, ex)
-
         return updaters
 
 
@@ -438,35 +425,6 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
         self.state = ComponentUpdater.EXTRACTING
         archive_path, _destination_path = extract_archive(path, dest_path, merge_single=True)
         os.unlink(archive_path)
-
-
-class ProtonComponentUpdater(RuntimeExtractedComponentUpdater):
-    """This is a special case updater for a runtime that is secretly a runner;
-    it's placed in subdirectory under ~/.local/share/lutris/runners/proton,
-    and with a custom directory name for some reason."""
-
-    def __init__(self, remote_runtime_info: Dict[str, Any]) -> None:
-        super().__init__(remote_runtime_info)
-
-    @property
-    def should_update(self) -> bool:
-        wine_dir = os.path.join(settings.RUNNER_DIR, "wine")
-        return os.path.isdir(wine_dir) and super().should_update
-
-    @property
-    def local_runtime_path(self) -> str:
-        """Return the local path for the runtime folder"""
-        return os.path.join(PROTON_DIR, self.name)
-
-    @property
-    def archive_path(self):
-        return os.path.join(PROTON_DIR, os.path.basename(self.url))
-
-    def install_update(self, updater: RuntimeUpdater) -> None:
-        # This is a bit of a hack, but until Proton is a real runner we never really isntall it, so
-        # it's directory may not exist. So, we create it.
-        os.makedirs(PROTON_DIR, exist_ok=True)
-        return super().install_update(updater)
 
 
 class RuntimeFilesComponentUpdater(RuntimeComponentUpdater):
