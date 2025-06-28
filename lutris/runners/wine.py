@@ -176,7 +176,7 @@ def _get_virtual_desktop_warning(_option_key: str, config: LutrisConfig) -> Opti
 
 def _get_wine_version_choices():
     version_choices = [(_("Custom (select executable below)"), "custom")]
-    labels = {
+    system_wine_labels = {
         "winehq-devel": _("WineHQ Devel ({})"),
         "winehq-staging": _("WineHQ Staging ({})"),
         "wine-development": _("Wine Development ({})"),
@@ -184,11 +184,11 @@ def _get_wine_version_choices():
     }
     versions = get_installed_wine_versions()
     for version in versions:
-        if version in labels:
-            version_number = get_system_wine_version(WINE_PATHS[version])
-            label = labels[version].format(version_number)
-        elif version == "ge-proton":
+        if version == "ge-proton":
             label = _("GE-Proton (Latest)")
+        elif version in system_wine_labels:
+            version_number = get_system_wine_version(WINE_PATHS[version])
+            label = system_wine_labels[version].format(version_number)
         else:
             label = version
         version_choices.append((label, version))
@@ -196,7 +196,7 @@ def _get_wine_version_choices():
 
 
 class wine(Runner):
-    description = _("Runs Windows games")
+    description: str = _("Runs Windows games")
     human_name = _("Wine")
     platforms = [_("Windows")]
     multiple_versions = True
@@ -506,9 +506,9 @@ class wine(Runner):
             "type": "string",
             "conditional_on": "Dpi",
             "advanced": True,
+            "default": str(get_default_dpi()),
             "help": _(
-                "The DPI to be used if 'Enable DPI Scaling' is turned on.\n"
-                "If blank or 'auto', Lutris will auto-detect this."
+                "The DPI to be used if 'Enable DPI Scaling' is turned on."
             ),
         },
         {
@@ -729,12 +729,14 @@ class wine(Runner):
 
         return resolved
 
-    def get_executable(self, version: str = None, fallback: bool = True) -> str:
+    def get_executable(self, version: str = "", fallback: bool = True) -> str:
         """Return the path to the Wine executable.
         A specific version can be specified if needed.
         """
-        if version is None:
+        if not version:
             version = self.read_version_from_config()
+        if version == "ge-proton":
+            return proton.get_umu_path()
 
         if proton.is_proton_version(version):
             return proton.get_proton_wine_path(version)
@@ -1005,21 +1007,15 @@ class wine(Runner):
         # had been on the only way to implement that is to save 96 DPI into the registry.
         prefix_manager.set_dpi(self.get_dpi())
 
-    def get_dpi(self):
+    def get_dpi(self) -> int:
         """Return the DPI to be used by Wine; returns None to allow Wine's own
         setting to govern."""
         if bool(self.runner_config.get("Dpi")):
-            explicit_dpi = self.runner_config.get("ExplicitDpi")
-            if explicit_dpi == "auto":
-                explicit_dpi = None
-            else:
-                try:
-                    explicit_dpi = int(explicit_dpi)
-                except:
-                    explicit_dpi = None
-            return explicit_dpi or get_default_dpi()
-
-        return None
+            try:
+                return int(self.runner_config.get("ExplicitDpi", get_default_dpi()))
+            except:
+                return get_default_dpi()
+        return get_default_dpi()
 
     def prelaunch(self):
         prefix_path = self.prefix_path

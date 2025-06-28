@@ -87,7 +87,7 @@ class Application(Gtk.Application):
         GLib.set_prgname("net.lutris.Lutris")
         self.force_updates = False
         self.css_provider = Gtk.CssProvider.new()
-        self.window = None
+        self.window: Optional[LutrisWindow] = None
         self.launch_ui_delegate = LaunchUIDelegate()
         self.install_ui_delegate = InstallUIDelegate()
 

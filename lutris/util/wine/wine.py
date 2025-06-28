@@ -5,14 +5,12 @@ from collections import OrderedDict
 from gettext import gettext as _
 from typing import Dict, List, Optional, Tuple
 
-from lutris import settings
 from lutris.exceptions import MisconfigurationError, UnspecifiedVersionError
+from lutris.settings import WINE_DIR
 from lutris.util import cache_single, linux, system
 from lutris.util.log import logger
 from lutris.util.strings import get_natural_sort_key, parse_version
 from lutris.util.wine import fsync, proton
-
-WINE_DIR: str = os.path.join(settings.RUNNER_DIR, "wine")
 
 WINE_DEFAULT_ARCH: str = "win64" if linux.LINUX_SYSTEM.is_64_bit else "win32"
 WINE_PATHS: Dict[str, str] = {
@@ -36,7 +34,7 @@ except Exception as ex:
     logger.exception("Unable to enumerate system Wine versions: %s", ex)
 
 
-def detect_arch(prefix_path: str = None, wine_path: str = None) -> str:
+def detect_arch(prefix_path: str = "", wine_path: str = "") -> str:
     """Given a Wine prefix path, return its architecture"""
     if wine_path:
         if proton.is_proton_path(wine_path) or system.path_exists(wine_path + "64"):
@@ -128,20 +126,21 @@ def list_lutris_wine_versions() -> List[str]:
 def get_installed_wine_versions() -> List[str]:
     """Return the list of Wine versions installed, with no duplicates and in
     the presentation order."""
-    versions = {}
-    for v in list_system_wine_versions():
-        if v not in versions:
-            versions[v] = v
+    versions: set[str] = {'ge-proton', }
 
     for v in proton.list_proton_versions():
         if v not in versions:
-            versions[v] = v
+            versions.add(v)
 
     for v in list_lutris_wine_versions():
         if v not in versions:
-            versions[v] = v
+            versions.add(v)
 
-    return list(versions.keys())
+    for v in list_system_wine_versions():
+        if v not in versions:
+            versions.add(v)
+
+    return list(versions)
 
 
 def clear_wine_version_cache() -> None:
@@ -157,7 +156,7 @@ def get_runner_files_dir_for_version(version: str) -> Optional[str]:
     if version in WINE_PATHS:
         return None
     elif proton.is_proton_version(version):
-        return os.path.join(proton.PROTON_DIR, version, "files")
+        return os.path.join(WINE_DIR, version, "files")
     else:
         return os.path.join(WINE_DIR, version)
 
