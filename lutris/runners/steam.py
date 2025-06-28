@@ -81,18 +81,6 @@ class steam(Runner):
             ),
         },
         {
-            "option": "lsi_steam",
-            "label": _("Start Steam with LSI"),
-            "type": "bool",
-            "default": False,
-            "help": _(
-                "Launches steam with LSI patches enabled. "
-                "Make sure Lutris Runtime is disabled and "
-                "you have LSI installed. "
-                "https://github.com/solus-project/linux-steam-integration"
-            ),
-        },
-        {
             "option": "args",
             "type": "string",
             "label": _("Arguments"),
@@ -140,10 +128,6 @@ class steam(Runner):
         if linux.LINUX_SYSTEM.is_flatpak():
             # Fallback to xgd-open for Steam URIs in Flatpak
             return system.find_required_executable("xdg-open")
-        if self.runner_config.get("lsi_steam"):
-            lsi_steam_path = system.find_executable("lsi-steam")
-            if lsi_steam_path:
-                return lsi_steam_path
         runner_executable = self.runner_config.get("runner_executable")
         if runner_executable and os.path.isfile(runner_executable):
             return runner_executable

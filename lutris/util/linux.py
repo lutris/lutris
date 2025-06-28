@@ -38,7 +38,6 @@ SYSTEM_COMPONENTS = {
     ],
     "OPTIONAL_COMMANDS": [
         "fluidsynth",
-        "lsi-steam",
         "nvidia-smi",
         "fluidsynth",
     ],
