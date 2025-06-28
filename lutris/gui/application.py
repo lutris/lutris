@@ -24,7 +24,7 @@ import sys
 import tempfile
 from datetime import datetime, timedelta
 from gettext import gettext as _
-from typing import List
+from typing import List, Optional
 
 import gi
 
@@ -456,7 +456,6 @@ class Application(Gtk.Application):
     def do_command_line(self, command_line):  # noqa: C901  # pylint: disable=arguments-differ
         # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
         # pylint: disable=too-many-statements
-        # TODO: split into multiple methods to reduce complexity (35)
         options = command_line.get_options_dict()
 
         # Use stdout to output logs, only if no command line argument is

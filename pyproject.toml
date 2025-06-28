@@ -35,3 +35,8 @@ hide_stats = false
 no_colors = false
 # --ignore: regexes for error messages to ignore
 ignore = []
+
+[tool.pyright]
+
+typeCheckingMode = "basic"
+reportMissingImports = false

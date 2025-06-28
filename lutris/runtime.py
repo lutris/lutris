@@ -531,7 +531,8 @@ class RunnerComponentUpdater(ComponentUpdater):
         self.upstream_runner = upstream_runner
         self.runner_version = format_runner_version(upstream_runner)
         self.version_path = os.path.join(settings.RUNNER_DIR, name, self.runner_version)
-        self.downloader: Downloader = None
+        archive_download_path = os.path.join(settings.TMP_DIR, os.path.basename(upstream_runner["url"]))
+        self.downloader: Downloader = Downloader(upstream_runner["url"], archive_download_path)
         self.state = ComponentUpdater.PENDING
 
     @property
@@ -552,7 +553,6 @@ class RunnerComponentUpdater(ComponentUpdater):
         self.downloader.start()
         self.downloader.join()
         if self.downloader.state == self.downloader.COMPLETED:
-            self.downloader = None
             self.state = ComponentUpdater.EXTRACTING
             extract_archive(archive_download_path, self.version_path)
             clear_wine_version_cache()
@@ -567,7 +567,7 @@ class RunnerComponentUpdater(ComponentUpdater):
             return ProgressInfo(d.progress_fraction, status_text, d.cancel)
 
         if self.state == ComponentUpdater.EXTRACTING:
-            return ProgressInfo(None, status_text)
+            return ProgressInfo(0, status_text)
 
         if self.state == ComponentUpdater.COMPLETED:
             return ProgressInfo.ended(status_text)
