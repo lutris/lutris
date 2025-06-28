@@ -34,7 +34,6 @@ SYSTEM_COMPONENTS = {
         "gtk-update-icon-cache",
         "lspci",
         "ldconfig",
-        "wine",
     ],
     "OPTIONAL_COMMANDS": [
         "fluidsynth",
