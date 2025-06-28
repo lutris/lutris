@@ -1099,6 +1099,8 @@ class wine(Runner):
         is_proton = proton.is_proton_path(wine_exe)
 
         wine_config_version = self.read_version_from_config()
+        if wine_config_version == "ge-proton":
+            env["PROTONPATH"] = "GE-Proton"
         env["WINE"] = wine_exe
 
         files_dir = get_runner_files_dir_for_version(wine_config_version)
