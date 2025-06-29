@@ -151,7 +151,7 @@ def _iter_proton_locations() -> Generator[str, None, None]:
         yield path
 
 
-def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = None) -> None:
+def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = "") -> None:
     """Add various env-vars to an 'env' dict for use by Proton and Umu; this won't replace env-vars, so they can still
     be pre-set before we get here. This sets the PROTONPATH so the Umu launcher will know what Proton to use,
     and the WINEARCH to win64, which is what we expect Proton to always be. GAMEID is required, but we'll use a default

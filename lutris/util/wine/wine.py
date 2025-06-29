@@ -3,7 +3,7 @@
 import os
 from collections import OrderedDict
 from gettext import gettext as _
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from lutris.exceptions import MisconfigurationError, UnspecifiedVersionError
 from lutris.settings import WINE_DIR
@@ -163,7 +163,7 @@ def get_runner_files_dir_for_version(version: str) -> Optional[str]:
         return os.path.join(WINE_DIR, version)
 
 
-def get_wine_path_for_version(version: str, config: dict = None) -> str:
+def get_wine_path_for_version(version: str, config: Optional[dict] = None) -> str:
     """Return the absolute path of a wine executable for a given version,
     or the configured version if you don't ask for a version."""
     if not version and config:
@@ -186,7 +186,7 @@ def get_wine_path_for_version(version: str, config: dict = None) -> str:
     return os.path.join(WINE_DIR, version, "bin/wine")
 
 
-def parse_wine_version(version: str) -> Tuple[List[int], str, str]:
+def parse_wine_version(version: str) -> Tuple[Sequence[int], str, str]:
     """This is a specialized parse_version() that adjusts some odd
     Wine versions for correct parsing."""
     version = version.replace("Proton7-", "Proton-7.")
@@ -199,7 +199,7 @@ def version_sort(versions: List[str], reverse: bool = False) -> List[str]:
     def version_key(version):
         version_list, prefix, suffix = parse_wine_version(version)
         # Normalize the length of sub-versions
-        sort_key = version_list + [0] * (10 - len(version_list))
+        sort_key: List[Any] = version_list + [0] * (10 - len(version_list))
         sort_key.append(prefix)
         sort_key.append(suffix)
         return sort_key
