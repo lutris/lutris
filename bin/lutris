@@ -41,7 +41,7 @@ except locale.Error as ex:
 
 try:
     # optional_settings does not exist if you don't use the meson build system
-    from lutris import optional_settings
+    from lutris import optional_settings  # type: ignore
 
     try:
         locale.bindtextdomain("lutris", optional_settings.LOCALE_DIR)
@@ -60,10 +60,10 @@ if "WEBKIT_DISABLE_DMABUF_RENDERER" not in os.environ:
     os.environ["WEBKIT_DISABLE_DMABUF_RENDERER"] = "1"
 
 try:
-    from lutris.gui.application import Application  # pylint: disable=no-name-in-module
+    from lutris.gui.application import LutrisApplication
 except ImportError as ex:
     sys.stderr.write("Error importing Lutris application module: %s\n" % ex)
     sys.exit(1)
 
-app = Application()  # pylint: disable=invalid-name
+app = LutrisApplication()
 sys.exit(app.run(sys.argv))
