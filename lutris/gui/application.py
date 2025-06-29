@@ -66,7 +66,7 @@ LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATU
 
 
 class LutrisApplication(Gtk.Application):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             application_id="net.lutris.Lutris",
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
@@ -351,6 +351,8 @@ class LutrisApplication(Gtk.Application):
     def start_runtime_updates(self) -> None:
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
+        elif not self.window:
+            logger.error("Runtime updates can't be started with a LutrisWindow.")
         else:
             self.window.start_runtime_updates(self.force_updates)
 
