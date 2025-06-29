@@ -126,7 +126,9 @@ def list_lutris_wine_versions() -> List[str]:
 def get_installed_wine_versions() -> List[str]:
     """Return the list of Wine versions installed, with no duplicates and in
     the presentation order."""
-    versions: set[str] = {'ge-proton', }
+    versions: set[str] = {
+        "ge-proton",
+    }
 
     for v in proton.list_proton_versions():
         if v not in versions:

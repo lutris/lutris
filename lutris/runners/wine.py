@@ -507,9 +507,7 @@ class wine(Runner):
             "conditional_on": "Dpi",
             "advanced": True,
             "default": str(get_default_dpi()),
-            "help": _(
-                "The DPI to be used if 'Enable DPI Scaling' is turned on."
-            ),
+            "help": _("The DPI to be used if 'Enable DPI Scaling' is turned on."),
         },
         {
             "option": "MouseWarpOverride",
