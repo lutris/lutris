@@ -159,7 +159,7 @@ def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAUL
 
     This also propagates LC_ALL to HOST_LC_ALL, if LC_ALL is set."""
 
-    if "PROTONPATH" not in env:
+    if "PROTONPATH" not in env and not is_umu_path(wine_path):
         env["PROTONPATH"] = get_proton_path_by_path(wine_path)
 
     if "GAMEID" not in env:

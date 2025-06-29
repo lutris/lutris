@@ -110,14 +110,6 @@ def create_prefix(
     if os.path.islink(prefix):
         prefix = os.readlink(prefix)
 
-    # Avoid issue of 64bit Wine refusing to create win32 prefix
-    # over an existing empty folder.
-    if os.path.isdir(prefix) and not os.listdir(prefix):
-        try:
-            os.rmdir(prefix)
-        except OSError:
-            logger.error("Failed to delete %s, you may lack permissions on this folder.", prefix)
-
     if not runner:
         runner = import_runner("wine")(prefix=prefix, wine_arch=arch)
 
@@ -144,7 +136,7 @@ def create_prefix(
         wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
         overrides["mscoree"] = "disabled"
 
-    if proton.is_proton_path(wine_path):
+    if proton.is_umu_path(wine_path) or proton.is_proton_path(wine_path):
         # All proton path prefixes are created via Umu; if you aren't using
         # the default Umu, we'll use PROTONPATH to indicate what Proton is
         # to be used.
