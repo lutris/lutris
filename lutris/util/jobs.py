@@ -1,9 +1,9 @@
 import sys
 import threading
 import traceback
-from typing import Callable
+from typing import Callable, Optional
 
-from gi.repository import GLib
+from gi.repository import GLib  # type: ignore
 
 from lutris.util.log import logger
 
@@ -48,18 +48,14 @@ class IdleTask:
     def __init__(self) -> None:
         """Initializes a task with no connection to a source, but also not completed; this can be
         connected to a source via the connect() method, unless it is completed first."""
-        self.source_id = None
+        self.source_id: Optional[int] = None
         self._is_completed = False
 
     def unschedule(self) -> None:
         """Call this to prevent the idle task from running, if it has not already run."""
-        if self.is_connected():
+        if self.source_id is not None:
             GLib.source_remove(self.source_id)
             self.disconnect()
-
-    def is_connected(self) -> bool:
-        """True if the idle task can still be unscheduled. If false, unschedule() will do nothing."""
-        return self.source_id is not None
 
     def is_completed(self) -> bool:
         """True if the idle task has completed; that is, if mark_completed() was called on it."""

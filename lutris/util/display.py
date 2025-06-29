@@ -4,13 +4,13 @@
 import enum
 import os
 import subprocess
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import gi
 
 try:
     gi.require_version("GnomeDesktop", "3.0")
-    from gi.repository import GnomeDesktop
+    from gi.repository import GnomeDesktop  # type: ignore
 
     LIB_GNOME_DESKTOP_AVAILABLE = True
 except ValueError:
@@ -207,7 +207,7 @@ _non_de_compositor_commands = [
 ]
 
 
-def get_desktop_environment():
+def get_desktop_environment() -> Optional[DesktopEnvironment]:
     """Converts the value of the DESKTOP_SESSION environment variable
     to one of the constants in the DesktopEnvironment class.
     Returns None if DESKTOP_SESSION is empty or unset.
@@ -282,7 +282,9 @@ def _get_compositor_commands():
     a flag to indicate if we need to run the commands in the background.
     """
     desktop_environment = get_desktop_environment()
-    command_set = _compositor_commands_by_de.get(desktop_environment)
+    command_set = None
+    if desktop_environment is not None:
+        command_set = _compositor_commands_by_de.get(desktop_environment)
 
     if not command_set:
         for c in _non_de_compositor_commands:

@@ -16,7 +16,6 @@ from lutris.api import (
     get_time_from_api_date,
 )
 from lutris.gui.widgets.progress_box import ProgressInfo
-from lutris.settings import UPDATE_CHANNEL_STABLE
 from lutris.util import http, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -43,7 +42,9 @@ DLL_MANAGERS = {
 }
 
 
-def get_env(version: str = None, prefer_system_libs: bool = False, wine_path: str = None) -> Dict[str, str]:
+def get_env(
+    version: Optional[str] = None, prefer_system_libs: bool = False, wine_path: Optional[str] = None
+) -> Dict[str, str]:
     """Return a dict containing LD_LIBRARY_PATH env var
 
     Params:

@@ -3,7 +3,7 @@
 import os
 from collections import OrderedDict
 from gettext import gettext as _
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from lutris.exceptions import MisconfigurationError, UnspecifiedVersionError
 from lutris.settings import WINE_DIR
@@ -126,7 +126,7 @@ def list_lutris_wine_versions() -> List[str]:
 def get_installed_wine_versions() -> List[str]:
     """Return the list of Wine versions installed, with no duplicates and in
     the presentation order."""
-    versions: set[str] = {
+    versions: Set[str] = {
         "ge-proton",
     }
 
@@ -186,7 +186,7 @@ def get_wine_path_for_version(version: str, config: Optional[dict] = None) -> st
     return os.path.join(WINE_DIR, version, "bin/wine")
 
 
-def parse_wine_version(version: str) -> Tuple[Sequence[int], str, str]:
+def parse_wine_version(version: str) -> Tuple[List[int], str, str]:
     """This is a specialized parse_version() that adjusts some odd
     Wine versions for correct parsing."""
     version = version.replace("Proton7-", "Proton-7.")
@@ -196,10 +196,10 @@ def parse_wine_version(version: str) -> Tuple[Sequence[int], str, str]:
 
 
 def version_sort(versions: List[str], reverse: bool = False) -> List[str]:
-    def version_key(version):
+    def version_key(version: str) -> List[Any]:
         version_list, prefix, suffix = parse_wine_version(version)
         # Normalize the length of sub-versions
-        sort_key: List[Any] = version_list + [0] * (10 - len(version_list))
+        sort_key: List[Any] = list(version_list) + [0] * (10 - len(version_list))
         sort_key.append(prefix)
         sort_key.append(suffix)
         return sort_key
@@ -265,7 +265,9 @@ def get_overrides_env(overrides: Dict[str, str]) -> str:
     """
     default_overrides = {"winemenubuilder": ""}
     overrides.update(default_overrides)
-    override_buckets = OrderedDict([("n,b", []), ("b,n", []), ("b", []), ("n", []), ("d", []), ("", [])])
+    override_buckets: Dict[str, List] = OrderedDict(
+        [("n,b", []), ("b,n", []), ("b", []), ("n", []), ("d", []), ("", [])]
+    )
     for dll, value in overrides.items():
         if not value:
             value = ""
