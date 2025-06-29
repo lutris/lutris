@@ -65,7 +65,7 @@ from .lutriswindow import LutrisWindow
 LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATURES_ENABLED") == "1"
 
 
-class Application(Gtk.Application):
+class LutrisApplication(Gtk.Application):
     def __init__(self):
         super().__init__(
             application_id="net.lutris.Lutris",

@@ -74,7 +74,9 @@ def get_winelib_paths(wine_path: str) -> List[str]:
     return paths
 
 
-def get_runtime_paths(version: str = None, prefer_system_libs: bool = True, wine_path: str = None) -> List[str]:
+def get_runtime_paths(
+    version: Optional[str] = None, prefer_system_libs: bool = True, wine_path: Optional[str] = None
+) -> List[str]:
     """Return Lutris runtime paths"""
     version = version or DEFAULT_RUNTIME
     lutris_runtime_path = "%s-i686" % version
@@ -106,7 +108,9 @@ def get_runtime_paths(version: str = None, prefer_system_libs: bool = True, wine
     return paths
 
 
-def get_paths(version: str = None, prefer_system_libs: bool = True, wine_path: str = None) -> List[str]:
+def get_paths(
+    version: Optional[str] = None, prefer_system_libs: bool = True, wine_path: Optional[str] = None
+) -> List[str]:
     """Return a list of paths containing the runtime libraries."""
     if not RUNTIME_DISABLED:
         paths = get_runtime_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path)
@@ -159,21 +163,16 @@ class RuntimeUpdater:
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled by environment variable. Re-enable runtime before submitting issues.")
             self.update_runtime = False
-            self.update_runners = False
         elif force:
             self.update_runtime = True
-            self.update_runners = True
         else:
             self.update_runtime = settings.read_bool_setting("auto_update_runtime", default=True)
-            wine_update_channel = settings.read_setting("wine-update-channel", default=UPDATE_CHANNEL_STABLE)
-            self.update_runners = wine_update_channel.casefold() == UPDATE_CHANNEL_STABLE
 
             if not self.update_runtime:
                 logger.warning("Runtime updates are disabled. This configuration is not supported.")
 
             if not check_stale_runtime_versions():
                 self.update_runtime = False
-                self.update_runners = False
 
         if self.has_updates:
             self.runtime_versions = download_runtime_versions()
@@ -182,7 +181,7 @@ class RuntimeUpdater:
 
     @property
     def has_updates(self):
-        return self.update_runtime or self.update_runners
+        return self.update_runtime
 
     def create_component_updaters(self) -> List[ComponentUpdater]:
         """Creates the component updaters that need to be applied and returns them in a list.
@@ -199,9 +198,6 @@ class RuntimeUpdater:
 
         if self.update_runtime:
             updaters += self._get_runtime_updaters(self.runtime_versions)
-
-        if self.update_runners:
-            updaters += self._get_runner_updaters(self.runtime_versions)
 
         return [u for u in updaters if u.should_update]
 
@@ -244,24 +240,6 @@ class RuntimeUpdater:
 
         return updaters
 
-    @staticmethod
-    def _get_runner_updaters(runtime_versions: Dict[str, Any]) -> List[ComponentUpdater]:
-        """Update installed runners (only works for Wine at the moment)"""
-        updaters: List[ComponentUpdater] = []
-        upstream_runners = runtime_versions.get("runners", {})
-        for name, runner_set in upstream_runners.items():
-            if name != "wine":
-                continue
-            upstream_runner = None
-            for runner in runner_set:
-                if runner["architecture"] == LINUX_SYSTEM.arch:
-                    upstream_runner = runner
-
-            if upstream_runner:
-                updaters.append(RunnerComponentUpdater(name, upstream_runner))
-
-        return updaters
-
 
 class RuntimeComponentUpdater(ComponentUpdater):
     """A base class for component updates that use the timestamp from a runtime-info dict
@@ -301,7 +279,7 @@ class RuntimeComponentUpdater(ComponentUpdater):
         if self.state == ComponentUpdater.PENDING:
             return ProgressInfo(0.0, status_text)
 
-        return ProgressInfo(None, status_text)
+        return ProgressInfo(0, status_text)
 
     def get_updated_at(self) -> time.struct_time:
         """Return the modification date of the runtime folder"""
