@@ -63,16 +63,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         return self.name < other.name
 
     @property
-    def description(self):
-        """Return the class' docstring as the description."""
-        return self.__doc__
-
-    @description.setter
-    def description(self, value):
-        """Leave the ability to override the docstring."""
-        self.__doc__ = value  # What the shit
-
-    @property
     def name(self):
         return self.__class__.__name__
 
