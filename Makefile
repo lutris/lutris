@@ -94,7 +94,7 @@ req-python:
 	 types-PyYAML evdev PyGObject pypresence protobuf moddb
 
 dev:
-	pip3 install ruff==0.12.1 mypy==1.8.0 mypy-baseline nose2
+	pip3 install ruff==0.12.1 mypy==1.16.1 mypy-baseline nose2
 
 # ============
 # Style checks
