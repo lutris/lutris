@@ -52,9 +52,9 @@ msgid ""
 "implementations and compatibility layers, it gives you a central interface "
 "to launch all your games."
 msgstr ""
-"لوتریس شما را یاری می‌کند تا بازی‌های ویدیویی را از همه دوران‌ها و از بیشتر "
-"سامانه‌های بازی نصب و اجرا کنید. با بکارگیری و به هم پیوستن شبیه‌سازهایی که "
-"هست، پیاده‌سازی‌های دوباره موتور و لایه‌های سازگاری، یک رابط کانونی برای "
+"لوتریس شما را یاری می‌کند تا بازی‌های ویدیویی هر دوره‌ای را از بیشتر "
+"سکوهای بازی نصب و اجرا کنید. با استفاده و به هم پیوستن شبیه‌سازهای"
+"موجود، پیاده‌سازی‌های دوباره موتور و لایه‌های سازگاری، یک رابط مرکزی برای "
 "راه‌اندازی همه بازی‌های شما فراهم می‌کند."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:33
@@ -62,12 +62,12 @@ msgid ""
 "Lutris downloads the latest GE-Proton build for Wine if any Wine version is "
 "installed"
 msgstr ""
-"لوتریس آخرین نگارش GE-Proton را برای واین دریافت می‌کند اگر نگارش‌ای از واین "
+"لوتریس آخرین نگارش GE-Proton را برای واین دریافت می‌کند اگر نگارشی از واین "
 "نصب شده باشد."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:34
 msgid "Use dark theme by default"
-msgstr "به‌طور پیش‌گزیده پوسته تیره بکارگرفته میشود"
+msgstr "به‌طور پیش‌گزیده پوسته تیره استفاده میشود"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:35
 msgid "Display cover-art rather than banners by default"
@@ -75,22 +75,21 @@ msgstr "به‌طور پیش‌گزیده، جلد بازی را به جای ب�
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:36
 msgid "Add 'Uncategorized' view to sidebar"
-msgstr "نمای 'بدون دسته‌بندی' را به نوار کناری بیفزایید"
+msgstr "دسته‌بندی «بدون دسته» را به نوار کناری بیفزایید"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:37
 msgid ""
 "Preference options that do not work on Wayland will be hidden when on Wayland"
 msgstr ""
-"گزینه‌های ترجیحی که در وی‌لند کار نمی‌کنند، هنگام بکارگیری وی‌لند پنهان خواهند"
-"شد."
+"گزینه‌های ترجیحی که در وی‌لند کار نمی‌کنند، هنگام کار با وی‌لند پنهان میشوند"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:38
 msgid ""
 "Game searches can now use fancy tags like 'installed:yes' or 'source:gog', "
 "with explanatory tool-tip"
 msgstr ""
-"جستجوی بازی‌ها اینک می‌تواند با برچسب‌های ویژه‌ای مانند 'installed:yes' or "
-"'source:gog',  انجام شود، با توضیحات راهنما."
+"می‌توانید بازی‌ها را با استفاده از برچسب‌های خاص مانند «installed:yes» یا «source:gog»"
+"جستجو کنید، همراه با توضیحات راهنما"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:39
 msgid ""
@@ -105,7 +104,7 @@ msgid ""
 "Runner searches can use 'installed:yes' as well, but no other fancy searches "
 "or anything"
 msgstr ""
-"جستجوهای اجراکننده نیز می‌توانند با 'installed:yes' انجام شوند، ولی نه هیچ "
+"جستجوی اجراکننده‌ها نیز می‌تواند با «installed:yes» انجام شود، ولی بدون هیچ "
 "جستجوی ویژه دیگری یا چیزی مشابه."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:41
@@ -119,7 +118,7 @@ msgstr ""
 msgid ""
 "Itch.io source integration will load a collection named 'Lutris' if present"
 msgstr ""
-"یکپارچگی منبع Itch.io اگر موجود باشد، مجموعه‌ای به نام 'لوتریس' را بارگذاری "
+"یکپارچگی منبع Itch.io اگر موجود باشد، مجموعه‌ای به نام «لوتریس» را بارگذاری "
 "خواهد کرد."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:43
@@ -127,12 +126,12 @@ msgid ""
 "GOG and Itch.io sources can now offer Linux and Windows installers for the "
 "same game"
 msgstr ""
-"منابع GOG و Itch.io اینک می‌توانند نصب‌کننده‌های لینوکس و ویندوز را برای یک "
+"منابع GOG و Itch.io اکنون می‌توانند نصب‌کننده‌های لینوکس و ویندوز را برای یک "
 "بازی یکسان نشان دهند."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:44
 msgid "Added support for the 'foot' terminal"
-msgstr "پشتیبانی از ترمینال 'foot' افزوده شد"
+msgstr "پشتیبانی از ترمینال «foot» افزوده شد"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:45
 msgid "Support for DirectX 8 in DXVK v2.4"
@@ -159,13 +158,13 @@ msgstr ""
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:50
 msgid "Lutris log is included in the 'System' tab of the Preferences window"
-msgstr "گزارش لوتریس در زبانه 'سامانه' پنجره تنظیمات گنجانده شده است."
+msgstr "گزارش‌های لوتریس در زبانه «سامانه» پنجره تنظیمات قرار دارد."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:51
 msgid ""
 "Improved error reporting, with the Lutris log included in the error details"
 msgstr ""
-"گزارش‌گیری خطا بهبود یافته است و گزارش لوتریس در جزئیات خطا گنجانده شده است."
+"گزارش خطاها بهبود یافته و گزارش‌های لوتریس در جزئیات خطا گنجانده شده‌اند"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:52
 msgid "Add AppArmor profile for Ubuntu versions >= 23.10"
@@ -180,7 +179,7 @@ msgid ""
 "Fix critical bug preventing completion of installs if the script specifies a "
 "wine version"
 msgstr ""
-"رفع اشکال بحرانی که وقتی اسکریپت نگارش‌ای از واین را مشخص میکند.مانع از به "
+"رفع اشکال بحرانی که وقتی اسکریپت نگارشی از واین را مشخص میکند.مانع از به "
 "پایان رساندن نصب‌ها می‌شود"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:61
@@ -221,12 +220,12 @@ msgstr ""
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:67
 msgid ""
 "EXPERIMENTAL support for umu, which allows running games with Proton and"
-msgstr "پشتیبانی EXPERIMENTAL از umu، که اجازه می‌دهد بازی‌ها با پروتون و"
+msgstr "پشتیبانی آزمایشی از umu، که اجازه می‌دهد بازی‌ها با پروتون و"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:68
 msgid ""
 "Pressure Vessel. Using Proton in Lutris without umu is no longer possible."
-msgstr "Pressure Vessel. بکارگیری پروتون در لوتریس بدون umu دیگر ممکن نیست."
+msgstr "Pressure Vessel. استفاده از پروتون در لوتریس بدون umu دیگر ممکن نیست."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:69
 msgid ""
@@ -243,7 +242,7 @@ msgstr ""
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:71
 msgid "Notification bar when your Lutris is no longer supported"
-msgstr "نوار آگاه‌سازی زمانی که لوتریس شما دیگر پشتیبانی نمی‌شود"
+msgstr "نوار آگاه‌سازی زمانی نمایش داده می‌شود که نگارش لوتریس شما دیگر پشتیبانی نشود"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:72
 msgid "Improved error dialog."
@@ -259,16 +258,16 @@ msgstr "افزودن اجراکننده Supermodel"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:75
 msgid "WUA files are now supported in Cemu"
-msgstr "پرونده‌های WUA اینک در Cemu پشتیبانی می‌شوند"
+msgstr "پرونده‌های WUA اکنون در Cemu پشتیبانی می‌شوند"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:76
 msgid ""
 "\"Show Hidden Games\" now displays the hidden games in a separate view, and "
 "re-hides them as soon as you leave it."
 msgstr ""
-"\"نمایش بازی‌های پنهان\" اینک بازی‌های پنهان را در یک نمای جداگانه نمایش می‌ده"
+"\"نمایش بازی‌های پنهان\" اکنون بازی‌های پنهان را در یک نمای جداگانه نمایش می‌ده"
 "د "
-"و به محض اینکه از آن خارج شوید، دوباره آن‌ها را پنهان می‌کند."
+"و به‌محض خروج از این نما، آن‌ها دوباره مخفی می‌شوند."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:77
 msgid "Support transparent PNG files for custom banner and cover-art"
@@ -276,12 +275,12 @@ msgstr "پشتیبانی از پرونده‌های PNG شفاف برای بنر
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:78
 msgid "Images are now downloaded for manually added games."
-msgstr "تصاویر اینک برای بازی‌های اضافه‌شده به‌صورت دستی دریافت می‌شوند."
+msgstr "تصاویر اکنون برای بازی‌های اضافه‌شده به‌صورت دستی دریافت می‌شوند."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:79
 msgid "Deprecate 'exe', 'main_file' or 'iso' placed at the root of the script,"
 msgstr ""
-"بکارگیری 'exe'، 'main_file' یا 'iso' که در ریشه اسکریپت قرار دارد، منسوخ شده "
+"استفاده از «exe»، «main_file» یا «iso» که در ریشه اسکریپت قرار دارد، منسوخ شده "
 "است،"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:80
@@ -297,7 +296,7 @@ msgid ""
 "Deprecate DXVK state cache feature (it was never used and is no longer "
 "relevant to DXVK 2)"
 msgstr ""
-"ویژگی کش وضعیت DXVK منسوخ شده است (هرگز بکارگرفته نشده و دیگر به DXVK 2 مرتبط "
+"ویژگی کش وضعیت DXVK منسوخ شده است (هرگز استفاده نشده و دیگر به DXVK 2 مرتبط "
 "نیست)."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:89
@@ -316,7 +315,7 @@ msgstr "بارگذاری کتابخانه بازی را در یک رشته پس�
 msgid ""
 "Fix some crashes happening when using Wayland and a high DPI gaming mouse"
 msgstr ""
-"رفع برخی از فروپاشی‌ها که هنگام بکارگیری وی‌لند و یک ماوس بازی با DPI بالا رخ "
+"رفع برخی از فروپاشی‌ها که هنگام استفاده از وی‌لند و یک ماوس بازی با DPI بالا رخ "
 "می‌دهد."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:99
@@ -344,7 +343,7 @@ msgid ""
 "the \"updating runtime\" dialog appearing before Lutris opens has been "
 "removed"
 msgstr ""
-"دیالوگ \"به‌روزرسانی زمان اجرا\" که پیش از باز شدن لوتریس ظاهر می‌شد، برداشته "
+"دیالوگ \"به‌روزرسانی زمان اجرا\" که پیش از باز شدن لوتریس نمایان می‌شد، برداشته "
 "شده."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:104
@@ -365,7 +364,7 @@ msgstr "افزودن قابلیت انتخاب، برداشتن یا متوقف 
 msgid ""
 "Redesigned 'Uninstall Game' dialog now completely removes games by default"
 msgstr ""
-"دیالوگ 'پاک‌کردن بازی' بازطراحی شده اینک به‌طور پیش‌گزیده بازی‌ها را به‌طور کا"
+"دیالوگ «پاک‌کردن بازی» بازطراحی شده اکنون به‌طور پیش‌گزیده بازی‌ها را به‌طور کا"
 "مل "
 "پاک می‌کند."
 
@@ -375,7 +374,7 @@ msgstr "رفع اشکال ویژگی صادرات / واردات"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:108
 msgid "Show an animation when a game is launched"
-msgstr "نمایش پویانمایی هنگام راه‌اندازی یک بازی"
+msgstr "نمایش پویانمایی هنگام راه‌اندازی بازی"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:109
 msgid ""
@@ -406,7 +405,7 @@ msgstr ""
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:113
 msgid "in the 'Games' view."
-msgstr "در نمای 'بازی‌ها'."
+msgstr "در نمای «بازی‌ها»."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:114
 msgid ""
@@ -434,7 +433,7 @@ msgstr "افزودن دو اندازه بنر جدید و کوچک‌تر برا
 msgid ""
 "Ignore Wine virtual desktop setting when using Wine-GE/Proton to avoid crash"
 msgstr ""
-"تنظیمات میزکار مجازی واین را هنگام بکارگیری Wine-GE/Proton نادیده بگیرید تا "
+"تنظیمات میزکار مجازی واین را هنگام استفاده از Wine-GE/Proton نادیده بگیرید تا "
 "از فروپاشی جلوگیری شود."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:119
@@ -504,7 +503,7 @@ msgstr "افزودن یک قسمت نام مرتب‌سازی"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:140
 msgid "Yuzu and xemu now use an AppImage"
-msgstr "Yuzu و xemu اینک از یک AppImage را بکار میگیرد"
+msgstr "Yuzu و xemu اکنون از یک AppImage را استفاده میکند"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:141
 msgid "Experimental support for Flatpak provided runners"
@@ -550,7 +549,7 @@ msgstr ""
 "بنیاد نرم‌افزارهای آزاد منتشر شده است، نگارش 3 مجوز یا\n"
 "(به انتخاب شما) هر نگارش بعدی.\n"
 "\n"
-"این برنامه با امید اینکه مفید باشد توزیع شده است،\n"
+"این برنامه با امید اکنونه مفید باشد توزیع شده است،\n"
 "ولی بدون هیچ گونه ضمانتی؛ حتی بدون ضمانت ضمنی\n"
 "قابلیت فروش یا تناسب برای یک هدف ویژه را ندارد. به\n"
 "مجوز عمومی GNU برای جزئیات بیشتر مراجعه کنید.\n"
@@ -632,11 +631,11 @@ msgid ""
 "<b>lastplayed:</b><i>&lt;2 days</i>\tOnly games played in the last 2 days.\n"
 "<b>directory:</b><i>game/dir</i>\tOnly games at the path."
 msgstr ""
-"نام یک بازی را برای جستجو وارد کنید یا کلیدواژه‌های جستجو  را بکاربگیرید:\n"
+"نام بازی را برای جستجو وارد کنید یا از کلیدواژه‌های زیر استفاده کنید:\n"
 "\n"
 "<b>installed:</b><i>true</i>\t\t\tتنها بازی‌های نصب شده.\n"
 "<b>hidden:</b><i>true</i>\t\t\tتنها بازی‌های مخفی.\n"
-"<b>favorite:</b><i>true</i>\t\t\tتنها بازی‌های مورد علاقه.\n"
+"<b>favorite:</b><i>true</i>\t\t\tتنها بازی‌های دلخواه.\n"
 "<b>categorized:</b><i>true</i>\t\tتنها بازی‌های در یک دسته.\n"
 "<b>category:</b><i>x</i>\t\t\tتنها بازی‌های در دسته <i>x</i>.\n"
 "<b>source:</b><i>استیم</i>\t\t\tتنها بازی‌های استیم\n"
@@ -764,7 +763,7 @@ msgstr "هرگز"
 
 #: lutris/exceptions.py:25
 msgid "The directory {} could not be found"
-msgstr "مسیر {} پیدا نشد"
+msgstr "پوشه {} پیدا نشد"
 
 #: lutris/exceptions.py:39
 msgid "A bios file is required to run this game"
@@ -799,7 +798,7 @@ msgid ""
 "Your kernel is not patched for fsync. Please get a patched kernel to use "
 "fsync."
 msgstr ""
-"هسته شما برای fsync پچ نشده است. لطفاً یک هسته پچ شده برای بکارگیری fsync "
+"هسته شما برای fsync پچ نشده است. لطفاً یک هسته پچ شده برای استفاده از fsync "
 "دریافت کنید."
 
 #: lutris/game_actions.py:190 lutris/game_actions.py:228
@@ -815,11 +814,11 @@ msgstr "دسته‌ها"
 
 #: lutris/game_actions.py:193 lutris/game_actions.py:235
 msgid "Add to favorites"
-msgstr "افزودن به مورد علاقه‌ها"
+msgstr "افزودن به موارد دلخواه"
 
 #: lutris/game_actions.py:194 lutris/game_actions.py:236
 msgid "Remove from favorites"
-msgstr "برداشتن از مورد علاقه‌ها"
+msgstr "برداشتن از موارد دلخواه"
 
 #: lutris/game_actions.py:195 lutris/game_actions.py:237
 msgid "Hide game from library"
@@ -884,11 +883,11 @@ msgstr "پاک‌کردن میانبر میزکار"
 
 #: lutris/game_actions.py:247 lutris/gui/installerwindow.py:419
 msgid "Create application menu shortcut"
-msgstr "ایجاد میانبر گزینگان برنامه"
+msgstr "ایجاد میانبر منو برنامه"
 
 #: lutris/game_actions.py:248
 msgid "Delete application menu shortcut"
-msgstr "پاک‌کردن میانبر گزینگان برنامه"
+msgstr "پاک‌کردن میانبر منو برنامه"
 
 #: lutris/game_actions.py:249 lutris/gui/installerwindow.py:427
 msgid "Create Steam shortcut"
@@ -928,10 +927,8 @@ msgid ""
 "Please enter the new name for the copy:"
 msgstr ""
 "آیا می‌خواهید %s را هم‌مانندسازی کنید؟\n"
-"پیکربندی هم‌مانندسازی خواهد شد، ولی پرونده‌های بازی <b>هم‌مانندسازی نخواهند شد"
-"</"
-"b>.\n"
-"لطفاً نام جدیدی برای هم‌مانندسازی وارد کنید:"
+"پیکربندی تکرار خواهد شد، ولی پرونده‌های بازی <b>تکرار نخواهند شد</b>.\n"
+"لطفاً نام جدیدی برای هم‌مانند وارد کنید:"
 
 #: lutris/game_actions.py:395
 msgid "Duplicate game?"
@@ -944,7 +941,7 @@ msgstr "انتخاب هدف میانبر"
 
 #: lutris/game.py:316 lutris/game.py:503
 msgid "Invalid game configuration: Missing runner"
-msgstr "پیکربندی بازی نامعتبر: اجرا کننده گم شده است"
+msgstr "پیکربندی نامعتبر بازی: اجرا کننده گم شده است"
 
 #: lutris/game.py:382
 msgid "No updates found"
@@ -1002,13 +999,13 @@ msgstr ""
 msgid ""
 "<b>Error: A different Wine version is already using the same Wine prefix.</b>"
 msgstr ""
-"<b>خطا: نگارش دیگری از واین در حال حاضر از همان پیشوند واین بکارگرفته می‌شود."
+"<b>خطا: نگارش دیگری از واین در حال حاضر از همان پیشوند واین استفاده می‌شود."
 "</b>"
 
 #: lutris/game.py:1043
 #, python-format
 msgid "Lutris can't move '%s' to a location inside of itself, '%s'."
-msgstr "لوتریس نمی‌تواند '%s' را به خود '%s' جابه‌جا کند."
+msgstr "لوتریس نمی‌تواند «%s» را به خود «%s» جابه‌جا کند."
 
 #: lutris/gui/addgameswindow.py:24
 msgid "Search the Lutris website for installers"
@@ -1036,11 +1033,11 @@ msgstr "اجرای یک اسکریپت نصب YAML"
 
 #: lutris/gui/addgameswindow.py:45
 msgid "Import a ROM"
-msgstr "وارد کردن یک ROM"
+msgstr "وارد کردن یک رام"
 
 #: lutris/gui/addgameswindow.py:46
 msgid "Import a ROM that is known to Lutris"
-msgstr "وارد کردن یک ROM که برای لوتریس شناخته شده"
+msgstr "وارد کردن یک رام که برای لوتریس شناخته شده"
 
 #: lutris/gui/addgameswindow.py:52
 msgid "Add locally installed game"
@@ -1080,7 +1077,7 @@ msgstr "انتخاب اسکریپت"
 
 #: lutris/gui/addgameswindow.py:127
 msgid "Select ROM file"
-msgstr "انتخاب پرونده ROM"
+msgstr "انتخاب پرونده رام"
 
 #: lutris/gui/addgameswindow.py:202
 msgid ""
@@ -1093,7 +1090,7 @@ msgstr ""
 "لوتریس در Lutris.net به دنبال بازی‌هایی می‌گردد که با چیزهایی که وارد می‌کنید "
 "هم‌خوانی دارند و هر کدام که پیدا کند اینجا نمایش می‌دهد.\n"
 "\n"
-"وقتی روی بازی‌ای که پیدا کرده‌است ضربه بزنید، پنجره نصب‌کننده برای نصب ظاهر "
+"وقتی روی یک بازی که پیدا کرده‌است بزنید، پنجره نصب‌کننده برای نصب نمایان "
 "می‌شود."
 
 #: lutris/gui/addgameswindow.py:223
@@ -1132,11 +1129,11 @@ msgid ""
 msgstr ""
 "نام بازی که می‌خواهید نصب کنید را وارد کنید.\n"
 "\n"
-"وقتی روی 'نصب' پایین ضربه بزنید، پنجره نصب‌کننده ظاهر می‌شود و شما را در یک "
+"وقتی روی «نصب» پایین ضربه بزنید، پنجره نصب‌کننده نمایان می‌شود و شما را در یک "
 "نصب ساده راهنمایی می‌کند.\n"
 "\n"
 "این پنجره از شما یک پرونده اجرایی نصب را درخواست می‌کند و واین را برای نصب آن "
-"بکار میگیرد.\n"
+"استفاده میکند.\n"
 "\n"
 "اگر شناسه لوتریس بازی را می‌دانید، می‌توانید آن را برای بهبود یکپارچگی لوتریس،"
 " "
@@ -1214,7 +1211,7 @@ msgstr ""
 "\n"
 "این اسکریپت‌ها را می‌توان از Lutris.net دریافت کرد یا به صورت دستی نوشت.\n"
 "\n"
-"وقتی روی 'نصب' پایین ضربه میزنید، پنجره نصب ظاهر می‌شود و اسکریپت را بارگذاری "
+"وقتی روی «نصب» پایین ضربه میزنید، پنجره نصب نمایان می‌شود و اسکریپت را بارگذاری "
 "می‌کند و از آنجا فرآیند را راهنمایی می‌کند."
 
 #: lutris/gui/addgameswindow.py:438
@@ -1228,7 +1225,7 @@ msgstr "شما باید یک پرونده اسکریپت برای نصب انت�
 #: lutris/gui/addgameswindow.py:447 lutris/gui/addgameswindow.py:488
 #, python-format
 msgid "No file exists at '%s'."
-msgstr "پرونده‌ای در '%s' نیست."
+msgstr "پرونده‌ای در «%s» نیست."
 
 #: lutris/gui/addgameswindow.py:462 lutris/runners/atari800.py:37
 #: lutris/runners/duckstation.py:27 lutris/runners/jzintv.py:21
@@ -1238,7 +1235,7 @@ msgstr "پرونده‌ای در '%s' نیست."
 #: lutris/runners/osmose.py:20 lutris/runners/snes9x.py:29
 #: lutris/runners/vice.py:37 lutris/runners/yuzu.py:23
 msgid "ROM file"
-msgstr "پرونده ROM"
+msgstr "پرونده رام"
 
 #: lutris/gui/addgameswindow.py:468
 msgid ""
@@ -1250,20 +1247,20 @@ msgid ""
 "When you click 'Install' below, the process of installing the game will "
 "begin."
 msgstr ""
-"لوتریس یک ROM را از طریق هش MD5 آن شناسایی کرده و داده‌های بازی را از "
+"لوتریس یک رام را با MD5 hash آن شناسایی کرده و داده‌های بازی را از "
 "Lutris.net دریافت می‌کند.\n"
 "\n"
-"داده‌های ROM بکارگرفته شده برای این کار از پروژه TOSEC می‌آید.\n"
+"داده‌های رام استفاده شده برای این کار از پروژه TOSEC می‌آیند.\n"
 "\n"
-"وقتی روی 'نصب' پایین ضربه میزنید، فرآیند نصب بازی آغاز میشود."
+"وقتی روی «نصب» پایین ضربه میزنید، فرآیند نصب بازی آغاز میشود."
 
 #: lutris/gui/addgameswindow.py:479
 msgid "<b>Select a ROM file</b>"
-msgstr "<b>یک ROM انتخاب کنید</b>"
+msgstr "<b>یک رام انتخاب کنید</b>"
 
 #: lutris/gui/addgameswindow.py:486
 msgid "You must select a ROM file to install."
-msgstr "شما باید یک ROM برای نصب انتخاب کنید."
+msgstr "شما باید یک رام برای نصب انتخاب کنید."
 
 #: lutris/gui/application.py:100
 msgid "Do not run Lutris as root."
@@ -1282,10 +1279,10 @@ msgid ""
 "To install a game, add lutris:install/game-identifier."
 msgstr ""
 "یک بازی را مستقیم با افزودن شاخص لوتریس:rungame/game-identifier اجرا کنید.\n"
-"اگر چندین بازی یک شناسه مشترک را بکار میگیرند، می‌توانید شناسه عددی (که هنگام "
-"اجرای لوتریس --list-games نمایش داده می‌شود) بکار بگیرید و لوتریس:rungameid/"
+"اگر چندین بازی یک شناسه مشترک را استفاده میکنند، می‌توانید شناسه عددی (که هنگام "
+"اجرای لوتریس --list-games نمایش داده می‌شود) استفاده کنید و لوتریس:rungameid/"
 "numerical-id را بیفزایید.\n"
-"برای نصب یک بازی، لوتریس:install/game-identifier را بیفزایید."
+"برای نصب یک بازی، lutris:install/game-identifier را بیفزایید."
 
 #: lutris/gui/application.py:131
 msgid "Print the version of Lutris and exit"
@@ -1313,7 +1310,7 @@ msgstr "یک برنامه را با محیط اجرایی لوتریس اجرا 
 
 #: lutris/gui/application.py:179
 msgid "List all games in database"
-msgstr "فهرست کردن همه بازی‌ها را در پایگاه داده"
+msgstr "فهرست کردن همه بازی‌ها در پایگاه داده"
 
 #: lutris/gui/application.py:187
 msgid "Only list installed games"
@@ -1321,11 +1318,11 @@ msgstr "تنها فهرست کردن بازی‌های نصب‌شده"
 
 #: lutris/gui/application.py:195
 msgid "List available Steam games"
-msgstr "فهرست کردن بازی‌های استیم موجود"
+msgstr "فهرست کردن بازی‌های موجود استیم"
 
 #: lutris/gui/application.py:203
 msgid "List all known Steam library folders"
-msgstr "فهرست کردن همه پوشه‌های کتابخانه استیم شناخته‌شده"
+msgstr "فهرست کردن همه پوشه‌های شناخته‌شده کتابخانه استیم"
 
 #: lutris/gui/application.py:211
 msgid "List all known runners"
@@ -1337,11 +1334,11 @@ msgstr "فهرست کردن همه نگارش‌های واین شناخته‌�
 
 #: lutris/gui/application.py:227
 msgid "List all games for all services in database"
-msgstr "فهرست کردن همه بازی‌ها را برای همه خدمات در پایگاه داده"
+msgstr "فهرست کردن همه بازی‌ها برای همه خدمات در پایگاه داده"
 
 #: lutris/gui/application.py:235
 msgid "List all games for provided service in database"
-msgstr "همه بازی‌ها را برای خدمات به‌دست آمده در پایگاه داده فهرست کنید"
+msgstr "فهرست کردن همه بازی‌ها برای خدمات داده شده در پایگاه داده"
 
 #: lutris/gui/application.py:243
 msgid "Install a Runner"
@@ -1369,7 +1366,7 @@ msgstr "بارگذاری ذخیره‌سازی‌ها"
 
 #: lutris/gui/application.py:292
 msgid "Verify status of save syncing"
-msgstr "وضعیت همگام‌سازی ذخیره‌سازی‌ها را بپذیرید"
+msgstr "پذیرش وضعیت همگام‌سازی ذخیره‌سازی‌ها"
 
 #: lutris/gui/application.py:301
 msgid "Destination path for export"
@@ -1428,8 +1425,8 @@ msgid ""
 "Select which Steam account is used for Lutris integration and creating Steam "
 "shortcuts."
 msgstr ""
-"انتخاب کنید که کدام حساب استیم برای ادغام با لوتریس و ایجاد میانبرهای استیم "
-"بکارگرفته شود."
+"انتخاب کنید که کدام حساب استیم برای یکپارچه با لوتریس و ایجاد میانبرهای استیم "
+"استفاده شود."
 
 #: lutris/gui/config/accounts_box.py:89
 #, python-format
@@ -1506,8 +1503,8 @@ msgid ""
 "If modified, these options supersede the same options from the base runner "
 "configuration, which themselves supersede the global preferences."
 msgstr ""
-"اگر تغییر داده شود، این گزینه‌ها گزینه‌های مشابه را از پیکربندی پایه "
-"اجراکننده نادیده می‌گیرند، که خودشان گزینه‌های پایه(Global) را نادیده می‌گیرند"
+"اگر این گزینه‌ها تغییر داده شوند، گزینه‌های مشابه از پیکربندی پایه "
+"اجراکننده را نادیده می‌گیرند، که خودشان گزینه‌های عمومی را نادیده می‌گیرند"
 "."
 
 #: lutris/gui/config/boxes.py:245
@@ -1515,19 +1512,19 @@ msgid ""
 "If modified, these options supersede the same options from the global "
 "preferences."
 msgstr ""
-"اگر تغییر داده شود، این گزینه‌ها گزینه‌های مشابه را از گزینه‌های پایه(Global) "
+"اگر این گزینه‌ها تغییر داده شوند، گزینه‌های مشابه از گزینه‌های عمومی را "
 "نادیده می‌گیرند."
 
 #: lutris/gui/config/boxes.py:294
 msgid "Reset option to global or default config"
-msgstr "بازنشانی گزینه را به پیکربندی پایه(Global) یا پیش‌گزیده"
+msgstr "بازنشانی گزینه به پیکربندی عمومی یا پیش‌گزیده"
 
 #: lutris/gui/config/boxes.py:323
 msgid ""
 "<i>(Italic indicates that this option is modified in a lower configuration "
 "level.)</i>"
 msgstr ""
-"<i>(کج نشان می‌دهد که این گزینه در سطح پیکربندی پایین‌تر تغییر داده شده است.)<"
+"<i>(متن کج نشان می‌دهد که این گزینه در سطح پیکربندی پایین‌تر تغییر داده شده است.)<"
 "/"
 "i>"
 
@@ -1541,7 +1538,7 @@ msgstr "پیکربندی %s"
 #: lutris/gui/config/edit_category_games.py:69
 #, python-format
 msgid "Do you want to delete the category '%s'?"
-msgstr "آیا می‌خواهید دسته‌بندی '%s' را پاک کنید؟"
+msgstr "آیا می‌خواهید دسته‌بندی «%s» را پاک کنید؟"
 
 #: lutris/gui/config/edit_category_games.py:71
 msgid ""
@@ -1553,12 +1550,12 @@ msgstr ""
 #: lutris/gui/config/edit_category_games.py:113
 #, python-format
 msgid "'%s' is a reserved category name."
-msgstr "'%s' یک نام دسته‌بندی رزرو شده است."
+msgstr "«%s» یک نام دسته‌بندی رزرو شده است."
 
 #: lutris/gui/config/edit_category_games.py:118
 #, python-format
 msgid "Merge the category '%s' into '%s'?"
-msgstr "آیا می‌خواهید دسته‌بندی '%s' را با '%s' یکی کنید؟"
+msgstr "آیا می‌خواهید دسته‌بندی «%s» را با «%s» یکی کنید؟"
 
 #: lutris/gui/config/edit_category_games.py:120
 #, python-format
@@ -1566,7 +1563,7 @@ msgid ""
 "If you rename this category, it will be combined with '%s'. Do you want to "
 "merge them?"
 msgstr ""
-"اگر نام این دسته‌بندی را تغییر دهید، با '%s' یکی خواهد شد. آیا می‌خواهید آنها "
+"اگر نام این دسته‌بندی را تغییر دهید، با «%s» یکی خواهد شد. آیا می‌خواهید آنها "
 "را یکی کنید؟"
 
 #: lutris/gui/config/edit_game_categories.py:78
@@ -1617,7 +1614,7 @@ msgstr "نصب‌شده"
 
 #: lutris/gui/config/edit_saved_search.py:131
 msgid "Favorite"
-msgstr "مورد علاقه"
+msgstr "دلخواه"
 
 #: lutris/gui/config/edit_saved_search.py:132 lutris/gui/widgets/sidebar.py:493
 msgid "Hidden"
@@ -1657,12 +1654,12 @@ msgstr "سکو"
 #: lutris/gui/config/edit_saved_search.py:292
 #, python-format
 msgid "'%s' is already a saved search."
-msgstr "'%s' یک جستجوی از پیش ذخیره شده است."
+msgstr "«%s» یک جستجوی از پیش ذخیره شده است."
 
 #: lutris/gui/config/edit_saved_search.py:335
 #, python-format
 msgid "Do you want to delete the saved search '%s'?"
-msgstr "آیا می‌خواهید جستجوی ذخیره شده '%s' را پاک کنید؟"
+msgstr "آیا می‌خواهید جستجوی ذخیره شده «%s» را پاک کنید؟"
 
 #: lutris/gui/config/edit_saved_search.py:337
 msgid ""
@@ -1679,7 +1676,7 @@ msgstr "یک اجراکننده را در سربرگ درباره بازی ان�
 #: lutris/gui/config/game_common.py:144 lutris/gui/config/runner.py:27
 #, python-format
 msgid "Search %s options"
-msgstr "جستجوی گزینه‌های %s"
+msgstr "جستجوی در %s گزینه"
 
 #: lutris/gui/config/game_common.py:146 lutris/gui/config/game_common.py:509
 msgid "Search options"
@@ -1716,12 +1713,12 @@ msgstr "جابه‌جایی"
 
 #: lutris/gui/config/game_common.py:254
 msgid "The default launch option will be used for this game"
-msgstr "گزینه راه‌اندازی پیش‌گزیده برای این بازی بکارگرفته خواهد شد"
+msgstr "گزینه راه‌اندازی پیش‌گزیده برای این بازی استفاده خواهد شد"
 
 #: lutris/gui/config/game_common.py:256
 #, python-format
 msgid "The '%s' launch option will be used for this game"
-msgstr "گزینه راه‌اندازی '%s' برای این بازی بکارگرفته خواهد شد"
+msgstr "گزینه راه‌اندازی «%s» برای این بازی استفاده خواهد شد"
 
 #: lutris/gui/config/game_common.py:263
 msgid "Reset"
@@ -1830,7 +1827,7 @@ msgstr "تصاویر"
 
 #: lutris/gui/config/preferences_box.py:22
 msgid "Minimize client when a game is launched"
-msgstr "کوچک کردن کارخواه(Client) هنگام راه‌اندازی بازی"
+msgstr "کوچک کردن کارخواه هنگام راه‌اندازی بازی"
 
 #: lutris/gui/config/preferences_box.py:24
 msgid ""
@@ -1868,7 +1865,7 @@ msgid ""
 "Lutris window is closed. You can still exit using the menu of the tray icon."
 msgstr ""
 "یک نماد لوتریس به سینی اضافه می‌کند و از خروج لوتریس هنگام بسته شدن پنجره‌اش "
-"جلوگیری می‌کند. شما هنوز هم می‌توانید با بکارگرفتن گزینگان در نماد سینی از "
+"جلوگیری می‌کند. شما هنوز هم می‌توانید با استفاده از منو در نماد سینی از "
 "برنامه خارج شوید."
 
 #: lutris/gui/config/preferences_box.py:51
@@ -1934,11 +1931,11 @@ msgstr "ذخیره‌سازی"
 
 #: lutris/gui/config/preferences_dialog.py:42
 msgid "Global options"
-msgstr "گزینه‌های پایه(Global)"
+msgstr "گزینه‌های عمومی"
 
 #: lutris/gui/config/preferences_dialog.py:111
 msgid "Search global options"
-msgstr "جستجوی گزینه‌های پایه"
+msgstr "جستجوی گزینه‌های عمومی"
 
 #: lutris/gui/config/runner_box.py:89 lutris/gui/widgets/sidebar.py:254
 #, python-format
@@ -1976,7 +1973,7 @@ msgstr "هیچ اجراکننده‌ای با جستجو هم‌خوانی ند�
 #: lutris/gui/config/runners_box.py:47
 #, python-format
 msgid "Search %s runners"
-msgstr "جستجوی اجراکننده‌های %s"
+msgstr "جستجو در %s اجراکننده"
 
 #: lutris/gui/config/services_box.py:18
 msgid "Enable integrations with game sources"
@@ -1988,7 +1985,7 @@ msgid ""
 "to take effect."
 msgstr ""
 "به کتابخانه‌های بازی خود از منابع مختلف دسترسی پیدا کنید. تغییرات نیاز به باز "
-"راه‌اندازی دارند تا مؤثر باشند."
+"راه‌اندازی دارند تا اثر بگذارند."
 
 #: lutris/gui/config/storage_box.py:20
 msgid "Paths"
@@ -2019,12 +2016,12 @@ msgstr ""
 
 #: lutris/gui/config/storage_box.py:50
 msgid "Emulator BIOS files location"
-msgstr "محل پرونده‌های BIOS شبیه‌ساز"
+msgstr "محل پرونده‌های بایوس شبیه‌ساز"
 
 #: lutris/gui/config/storage_box.py:54
 msgid "The folder Lutris will search in for emulator BIOS files if needed"
 msgstr ""
-"پوشه‌ای که لوتریس در صورت نیاز برای پرونده‌های BIOS شبیه‌ساز جستجو خواهد کرد"
+"پوشه‌ای که لوتریس در صورت نیاز برای پرونده‌های بایوس شبیه‌ساز جستجو خواهد کرد"
 
 #: lutris/gui/config/sysinfo_box.py:18
 msgid "Vulkan support"
@@ -2096,7 +2093,7 @@ msgstr "کانال به‌روزرسانی واین"
 
 #: lutris/gui/config/updates_box.py:41
 msgid "Runtime updates"
-msgstr "به‌روزرسانی‌های زمان اجرا"
+msgstr "به‌روزرسانی‌های زمان اجرا(ران‌تایم)"
 
 #: lutris/gui/config/updates_box.py:42
 msgid "Runtime components include DXVK, VKD3D and Winetricks."
@@ -2129,10 +2126,10 @@ msgid ""
 msgstr ""
 "<b>پایدار</b>:\n"
 "به‌روزرسانی‌های Wine-GE به‌طور خودکار دریافت می‌شوند و همیشه آخرین نگارش "
-"بکارگرفته می‌شود مگر در تنظیمات تغییر داده شود.\n"
+"استفاده می‌شود مگر در تنظیمات تغییر داده شود.\n"
 "\n"
 "این به ما اجازه می‌دهد تا به‌طور مؤثرتری تغییرات منفی را پیگیری کنیم و اصلاحات"
-"را به‌طور قابل اعتمادی فراهم کنیم."
+" را به‌طور قابل اعتمادی فراهم کنیم."
 
 #: lutris/gui/config/updates_box.py:71
 msgid ""
@@ -2166,7 +2163,7 @@ msgid ""
 "Your Wine version is up to date. Using: <b>%s</b>\n"
 "<i>Last checked %s.</i>"
 msgstr ""
-"نگارش واین شما به‌روز است. بکارگرفته شده: <b>%s</b>\n"
+"نگارش واین شما به‌روز است. استفاده شده: <b>%s</b>\n"
 "<i>آخرین بررسی %s.</i>"
 
 #: lutris/gui/config/updates_box.py:103
@@ -2284,7 +2281,7 @@ msgstr "%s (پیش‌گزیده)"
 #, python-format
 msgid ""
 "The setting '%s' is no longer available. You should select another choice."
-msgstr "تنظیم '%s' دیگر در دسترس نیست. باید گزینه دیگری را انتخاب کنید."
+msgstr "تنظیم «%s» دیگر در دسترس نیست. باید گزینه دیگری را انتخاب کنید."
 
 #: lutris/gui/config/widget_generator.py:534 lutris/gui/widgets/common.py:49
 msgid "Select file"
@@ -2334,14 +2331,14 @@ msgid ""
 "If left empty, the installer files are discarded after the install "
 "completion."
 msgstr ""
-"اگر شناسانده شده باشد، این مکان توسط نصب‌کننده‌ها بکارگرفته خواهد شد تا برای "
-"بکارگیری دوباره پرونده‌های دریافت شده آنها را به‌صورت محلی کش کند.\n"
+"اگر شناسانده شده باشد، این مکان توسط نصب‌کننده‌ها استفاده خواهد شد تا برای "
+"استفاده دوباره پرونده‌های دریافت شده آنها را به‌صورت محلی کش کند.\n"
 "اگر خالی بماند، پرونده‌های نصب‌کننده پس از پایان نصب پاک خواهند شد."
 
 #: lutris/gui/dialogs/delegates.py:41
 #, python-format
 msgid "The required runner '%s' is not installed."
-msgstr "اجراکننده مورد نیاز '%s' نصب نشده است."
+msgstr "اجراکننده مورد نیاز «%s» نصب نشده است."
 
 #: lutris/gui/dialogs/delegates.py:207
 msgid "Select game to launch"
@@ -2370,7 +2367,7 @@ msgstr "در حال جستجوی checksum در Lutris.net..."
 
 #: lutris/gui/dialogs/game_import.py:141
 msgid "This ROM could not be identified."
-msgstr "این ROM شناسایی نشد."
+msgstr "این رام شناسایی نشد."
 
 #: lutris/gui/dialogs/game_import.py:150
 msgid "Looking for installed game..."
@@ -2379,7 +2376,7 @@ msgstr "در حال جستجوی بازی نصب شده..."
 #: lutris/gui/dialogs/game_import.py:199
 #, python-format
 msgid "Failed to import a ROM: %s"
-msgstr "وارد کردن یک ROM ناموفق بود: %s"
+msgstr "وارد کردن یک رام ناموفق بود: %s"
 
 #: lutris/gui/dialogs/game_import.py:220
 msgid "Game already installed in Lutris"
@@ -2388,12 +2385,12 @@ msgstr "بازی از پیش در لوتریس نصب شده است"
 #: lutris/gui/dialogs/game_import.py:242
 #, python-format
 msgid "The platform '%s' is unknown to Lutris."
-msgstr "سکو '%s' برای لوتریس ناشناخته است."
+msgstr "سکو «%s» برای لوتریس ناشناخته است."
 
 #: lutris/gui/dialogs/game_import.py:252
 #, python-format
 msgid "Lutris does not have a default installer for the '%s' platform."
-msgstr "لوتریس برای سکو '%s' نصب‌کننده پیش‌گزیده‌ای ندارد."
+msgstr "لوتریس برای سکو «%s» نصب‌کننده پیش‌گزیده‌ای ندارد."
 
 #: lutris/gui/dialogs/__init__.py:171
 msgid "Save"
@@ -2417,7 +2414,7 @@ msgstr ""
 "شما می‌توانید از <a href='https://github.com/لوتریس/لوتریس'>گیت‌هاب</a> یا <a "
 "href='https://discordapp.com/invite/Pnt5CuY'>دیسکورد</a> پشتیبانی بگیرید. "
 "اطمینان حاصل کنید که جزئیات خطا را نیز هم‌رسانی کنید؛\n"
-"برای دریافت آن‌ها روی دکمه 'جزئیات را به بریده‌دان رونویسی کنید' بزنید."
+"برای دریافت آن‌ها روی دکمه «رونویسی جزئیات در بریده‌دان» بزنید."
 
 #: lutris/gui/dialogs/__init__.py:348
 msgid "Error details"
@@ -2486,7 +2483,7 @@ msgstr ""
 "export-cookies-txt/</a>\n"
 "- یک برگه در humblebundle.com باز کنید و مطمئن شوید که وارد شده‌اید.\n"
 "- روی نماد کوکی در گوشه بالا سمت راست، کنار نماد تنظیمات ضربه بزنید\n"
-"- 'Prefix HttpOnly cookies' را بررسی کنید و روی 'humblebundle.com' ضربه "
+"- «Prefix HttpOnly cookies» را بررسی کنید و روی «humblebundle.com» ضربه "
 "بزنید\n"
 "- پرونده تولید شده را باز کنید و محتویات زیر را بچسبانید. برای پایان روی OK "
 "ضربه بزنید.\n"
@@ -2498,7 +2495,7 @@ msgstr ""
 #: lutris/gui/dialogs/__init__.py:707
 #, python-format
 msgid "The key '%s' could not be found."
-msgstr "کلید '%s' پیدا نشد."
+msgstr "کلید «%s» پیدا نشد."
 
 #: lutris/gui/dialogs/issue.py:24
 msgid "<b>Submit an issue</b>"
@@ -2548,7 +2545,7 @@ msgstr ""
 #: lutris/gui/dialogs/runner_install.py:59
 #, python-format
 msgid "Showing games using %s"
-msgstr "نمایش بازی‌ها با بکارگیری %s"
+msgstr "نمایش بازی‌ها با استفاده از %s"
 
 #: lutris/gui/dialogs/runner_install.py:115
 #, python-format
@@ -2583,7 +2580,7 @@ msgstr "پاک‌کردن"
 
 #: lutris/gui/dialogs/runner_install.py:294
 msgid "Wine version usage"
-msgstr "نگارش واین بکارگرفته شده"
+msgstr "نگارش واین استفاده شده"
 
 #: lutris/gui/dialogs/runner_install.py:365
 #, python-format
@@ -2636,15 +2633,13 @@ msgid ""
 "Uninstalled games that you remove from the library will no longer appear in "
 "the 'Games' view, but those that remain will retain their playtime data."
 msgstr ""
-"بازی‌های پاک شده‌ای که از کتابخانه برمیدارید دیگر در نمای 'بازی‌ها' ظاهر "
-"نخواهند شد، ولی آن‌هایی که باقی می‌مانند داده‌های زمان بازی خود را نگه‌داری "
-"خواهند کرد."
+"بازی‌های پاک‌شده‌ای که از کتابخانه برمیدارید، دیگر در بخش «بازی‌ها» نمایش داده نمی‌شوند، اما بازی‌های باقی‌مانده داده‌های زمان بازی خود را نگه خواهند داشت."
 
 #: lutris/gui/dialogs/uninstall_dialog.py:153
 msgid ""
 "After you remove these games, they will no longer appear in the 'Games' view."
 msgstr ""
-"پس از برداشتن این بازی‌ها، آن‌ها دیگر در نمای 'بازی‌ها' ظاهر نخواهند شد."
+"پس از برداشتن این بازی‌ها، آن‌ها دیگر در نمای «بازی‌ها» نمایان نخواهند شد."
 
 #: lutris/gui/dialogs/uninstall_dialog.py:158
 msgid ""
@@ -2707,7 +2702,7 @@ msgstr "دریافت"
 
 #: lutris/gui/installer/file_box.py:98
 msgid "Use Cache"
-msgstr "بکارگرفتن کش"
+msgstr "استفاده از کش"
 
 #: lutris/gui/installer/file_box.py:102
 msgid "Select File"
@@ -2792,14 +2787,14 @@ msgid ""
 "where the game is installed."
 msgstr ""
 "این بازی محتوای افزوده دارد. \n"
-"کدام یک را می‌خواهید انتخاب کنید و آن‌ها در پوشه 'extras' که بازی در آن نصب "
+"کدام یک را می‌خواهید انتخاب کنید و آن‌ها در پوشه «extras» که بازی در آن نصب "
 "شده است در دسترس خواهند بود."
 
 #: lutris/gui/installerwindow.py:635
 msgid ""
 "Please review the files needed for the installation then click 'Install'"
 msgstr ""
-"لطفاً پرونده‌های مورد نیاز برای نصب را بررسی کنید و سپس روی 'نصب' ضربه بزنید"
+"لطفاً پرونده‌های مورد نیاز برای نصب را بررسی کنید و سپس روی «نصب» ضربه بزنید"
 
 #: lutris/gui/installerwindow.py:643
 msgid "Downloading game data"
@@ -2869,13 +2864,13 @@ msgstr "حساب %s خود را متصل کنید تا به بازی‌های خ
 #, python-format
 msgid "Add a game matching '%s' to your favorites to see it here."
 msgstr ""
-"یک بازی که با '%s' هم‌خوانی دارد به علاقه‌مندی‌های خود بیفزایید "
+"یک بازی که با «%s» هم‌خوانی دارد به موارد دلخواه‌تان بیفزایید "
 "تا آن را اینجا ببینید."
 
 #: lutris/gui/lutriswindow.py:679
 #, python-format
 msgid "No hidden games matching '%s' found."
-msgstr "هیچ بازی پنهانی که با '%s' هم‌خوانی داشته باشد پیدا نشد."
+msgstr "هیچ بازی پنهانی که با «%s» هم‌خوانی داشته باشد پیدا نشد."
 
 #: lutris/gui/lutriswindow.py:682
 #, python-format
@@ -2883,17 +2878,17 @@ msgid ""
 "No installed games matching '%s' found. Press Ctrl+I to show uninstalled "
 "games."
 msgstr ""
-"هیچ بازی نصب شده‌ای که با '%s' هم‌خوانی داشته باشد پیدا نشد. برای نمایش "
+"هیچ بازی نصب شده‌ای که با «%s» هم‌خوانی داشته باشد پیدا نشد. برای نمایش "
 "بازی‌های پاک شده Ctrl+I را فشار دهید."
 
 #: lutris/gui/lutriswindow.py:685
 #, python-format
 msgid "No games matching '%s' found "
-msgstr "هیچ بازی که با '%s' هم‌خوانی داشته باشد پیدا نشد"
+msgstr "هیچ بازی که با «%s» هم‌خوانی داشته باشد پیدا نشد"
 
 #: lutris/gui/lutriswindow.py:688
 msgid "Add games to your favorites to see them here."
-msgstr "بازی‌ها را به علاقه‌مندی‌های خود بیفزایید تا آن‌ها را اینجا ببینید."
+msgstr "بازی‌ها را به موارد دلخواه‌تان بیفزایید تا آن‌ها را اینجا ببینید."
 
 #: lutris/gui/lutriswindow.py:690
 msgid "No games are hidden."
@@ -2911,7 +2906,7 @@ msgstr "هیچ بازی پیدا نشد"
 #: lutris/gui/lutriswindow.py:746
 #, python-format
 msgid "Search %s games"
-msgstr "جستجوی %s بازی"
+msgstr "جستجو در %s بازی"
 
 #: lutris/gui/lutriswindow.py:748
 msgid "Search 1 game"
@@ -2928,8 +2923,8 @@ msgid ""
 "anyway?"
 msgstr ""
 "این نگارش از لوتریس دیگر پشتیبانی در GitHub و Discord دریافت نخواهد کرد و "
-"ممکن است به درستی با Lutris.net کار نکند. آیا می‌خواهید به هر حال آن vh بکار "
-"بگیرید؟"
+"ممکن است به درستی با Lutris.net کار نکند. آیا می‌خواهید به هر حال آن را استفاده "
+"کنید؟"
 
 #: lutris/gui/lutriswindow.py:1218
 msgid "Show Hidden Games"
@@ -3089,7 +3084,7 @@ msgstr "اخیر"
 
 #: lutris/gui/widgets/sidebar.py:476
 msgid "Favorites"
-msgstr "علاقه‌مندی‌ها"
+msgstr "دلخواه"
 
 #: lutris/gui/widgets/sidebar.py:485
 msgid "Uncategorized"
@@ -3119,7 +3114,7 @@ msgstr "اجرای نادرست به دست آمده %s"
 #: lutris/installer/commands.py:77
 #, python-brace-format
 msgid "One of {params} parameter is mandatory for the {cmd} command"
-msgstr "یکی از شاخصهای {params} برای دستور {cmd} الزامی است"
+msgstr "یکی از شاخص‌های {params} برای دستور {cmd} الزامی است"
 
 #: lutris/installer/commands.py:78 lutris/installer/interpreter.py:165
 #: lutris/installer/interpreter.py:188
@@ -3134,14 +3129,14 @@ msgstr "شاخص {param} برای دستور {cmd} الزامی است"
 #: lutris/installer/commands.py:103
 #, python-format
 msgid "Invalid file '%s'. Can't make it executable"
-msgstr "پرونده نادرست '%s'. نمی‌توان آن را اجرایی کرد"
+msgstr "پرونده نادرست «%s». نمی‌توان آن را اجرایی کرد"
 
 #: lutris/installer/commands.py:116
 msgid ""
 "Parameters file and command can't be used at the same time for the execute "
 "command"
 msgstr ""
-"پرونده شاخص‌ها و دستور نمی‌توانند به طور همزمان برای دستور اجرا بکارگرفته شوند"
+"پرونده شاخص‌ها و دستور نمی‌توانند به طور همزمان برای دستور اجرا استفاده شوند"
 
 #: lutris/installer/commands.py:150
 msgid "No parameters supplied to execute command."
@@ -3188,7 +3183,7 @@ msgstr ""
 #: lutris/installer/commands.py:269
 #, python-format
 msgid "The required file '%s' could not be located."
-msgstr "پرونده مورد نیاز '%s' پیدا نشد."
+msgstr "پرونده مورد نیاز «%s» پیدا نشد."
 
 #: lutris/installer/commands.py:290
 #, python-format
@@ -3198,7 +3193,7 @@ msgstr "منبع نیست: %s"
 #: lutris/installer/commands.py:316
 #, python-format
 msgid "Invalid source for 'move' operation: %s"
-msgstr "منبع نادرست برای کنش 'جابه‌جایی': %s"
+msgstr "منبع نادرست برای کنش «جابه‌جایی»: %s"
 
 #: lutris/installer/commands.py:335
 #, python-brace-format
@@ -3225,11 +3220,11 @@ msgstr "شاخص src گم شده است"
 
 #: lutris/installer/commands.py:368
 msgid "Wrong value for 'src' param"
-msgstr "مقدار نادرست برای شاخص 'src'"
+msgstr "مقدار نادرست برای شاخص «src»"
 
 #: lutris/installer/commands.py:372
 msgid "Wrong value for 'dst' param"
-msgstr "مقدار نادرست برای شاخص 'dst'"
+msgstr "مقدار نادرست برای شاخص «dst»"
 
 #: lutris/installer/commands.py:447
 #, python-format
@@ -3239,7 +3234,7 @@ msgstr "دستور خارج شد با کد %s"
 #: lutris/installer/commands.py:466
 #, python-format
 msgid "Wrong value for write_file mode: '%s'"
-msgstr "مقدار نادرست برای حالت write_file: '%s'"
+msgstr "مقدار نادرست برای حالت write_file: «%s»"
 
 #: lutris/installer/commands.py:659
 msgid "install_or_extract only works with wine!"
@@ -3271,16 +3266,16 @@ msgstr "{پرونده} در {میزبان}"
 
 #: lutris/installer/installer_file.py:259
 msgid "Invalid checksum, expected format (type:hash) "
-msgstr "چک‌سام نادرست، قالب مورد انتظار (type:hash) "
+msgstr "checksum نادرست، قالب مورد انتظار (type:hash) "
 
 #: lutris/installer/installer_file.py:265
 msgid " checksum mismatch "
-msgstr " ناهم‌خوانی چک‌سام "
+msgstr " ناهم‌خوانی checksum "
 
 #: lutris/installer/installer.py:38
 #, python-format
 msgid "The script was missing the '%s' key, which is required."
-msgstr "اسکریپت کلید '%s' را که الزامی است، گم کرده."
+msgstr "اسکریپت کلید «%s» را که الزامی است، گم کرده."
 
 #: lutris/installer/installer.py:218
 msgid "Game config key must be a string"
@@ -3288,11 +3283,11 @@ msgstr "کلید پیکربندی بازی باید متن باشد"
 
 #: lutris/installer/installer.py:266
 msgid "Invalid 'game' section"
-msgstr "بخش 'بازی' نادرست است"
+msgstr "بخش «بازی» نادرست است"
 
 #: lutris/installer/interpreter.py:85
 msgid "This installer doesn't have a 'script' section"
-msgstr "این نصب‌کننده بخش 'اسکریپت' ندارد"
+msgstr "این نصب‌کننده بخش «اسکریپت» ندارد"
 
 #: lutris/installer/interpreter.py:90
 msgid ""
@@ -3359,7 +3354,7 @@ msgstr "آتاری 800"
 
 #: lutris/runners/atari800.py:22
 msgid "Atari 8bit computers"
-msgstr "کامپیوترهای 8 بیتی آتاری"
+msgstr "رایانه‌های 8 بیتی آتاری"
 
 #: lutris/runners/atari800.py:25
 msgid "Atari 400, 800 and XL emulator"
@@ -3370,19 +3365,19 @@ msgid ""
 "The game data, commonly called a ROM image. \n"
 "Supported formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ and PRO."
 msgstr ""
-"داده‌های بازی، که معمولاً به آن تصویر ROM گفته می‌شود. \n"
+"داده‌های بازی، که معمولاً به آن تصویر رام گفته می‌شود. \n"
 "قالب‌های پشتیبانی شده: ATR، XFD، DCM، ATR.GZ، XFD.GZ و PRO."
 
 #: lutris/runners/atari800.py:50
 msgid "BIOS location"
-msgstr "مکان BIOS"
+msgstr "مکان بایوس"
 
 #: lutris/runners/atari800.py:52
 msgid ""
 "A folder containing the Atari 800 BIOS files.\n"
 "They are provided by Lutris so you shouldn't have to change this."
 msgstr ""
-"یک پوشه حاوی پرونده‌های BIOS آتاری 800.\n"
+"یک پوشه حاوی پرونده‌های بایوس آتاری 800.\n"
 "این پرونده‌ها توسط لوتریس به دست آمده‌اند، بنابراین نیازی به تغییر این نیست."
 
 #: lutris/runners/atari800.py:61
@@ -3463,7 +3458,7 @@ msgstr "وضوح تمام صفحه"
 
 #: lutris/runners/atari800.py:93
 msgid "Could not download Atari 800 BIOS archive"
-msgstr "نمی‌توان BIOS آتاری 800 را دریافت کرد"
+msgstr "نمی‌توان بایوس آتاری 800 را دریافت کرد"
 
 #: lutris/runners/cemu.py:12
 msgid "Cemu"
@@ -3491,7 +3486,7 @@ msgstr ""
 
 #: lutris/runners/cemu.py:31
 msgid "Compressed ROM"
-msgstr "ROM فشرده"
+msgstr "رام فشرده"
 
 #: lutris/runners/cemu.py:32
 msgid ""
@@ -3499,7 +3494,7 @@ msgid ""
 "game directory"
 msgstr ""
 "یک بازی فشرده شده در یک پرونده واحد (قالب WUA)، تنها در صورتی این گرینه را "
-"بکار بگیرید که مسیر بازی را بکار نمیگیرید"
+"استفاده کنید که مسیر بازی را استفاده نمیکنید"
 
 #: lutris/runners/cemu.py:44
 msgid "Custom mlc folder location"
@@ -3548,7 +3543,7 @@ msgstr "خروج از دلفین با شبیه‌ساز."
 
 #: lutris/runners/dolphin.py:52
 msgid "Custom Global User Directory"
-msgstr "مسیر پایه(Global) سفارشی کاربر"
+msgstr "مسیر عمومی سفارشی کاربر"
 
 #: lutris/runners/dosbox.py:16
 msgid "DOSBox"
@@ -3574,7 +3569,7 @@ msgid ""
 msgstr ""
 "پرونده CONF، EXE، COM یا BAT برای راه‌اندازی.\n"
 "اگر پرونده اجرایی در پرونده پیکربندی مدیریت می‌شود، این باید پرونده پیکربندی "
-"باشد، به جای اینکه در 'پرونده پیکربندی' مشخص شود."
+"باشد، به جای اکنونه در «پرونده پیکربندی» مشخص شود."
 
 #: lutris/runners/dosbox.py:36
 msgid "Configuration file"
@@ -3596,7 +3591,7 @@ msgstr "آرگومان‌های خط فرمان"
 
 #: lutris/runners/dosbox.py:48
 msgid "Command line arguments used when launching DOSBox"
-msgstr "آرگومان‌های خط فرمان بکارگرفته شده هنگام راه‌اندازی DOSBox"
+msgstr "آرگومان‌های خط فرمان استفاده شده هنگام راه‌اندازی DOSBox"
 
 #: lutris/runners/dosbox.py:54 lutris/runners/flatpak.py:69
 #: lutris/runners/linux.py:39 lutris/runners/wine.py:223
@@ -3610,7 +3605,7 @@ msgid ""
 "By default, Lutris uses the directory of the executable."
 msgstr ""
 "مکانی که بازی از آن اجرا می‌شود.\n"
-"به طور پیش‌گزیده، لوتریس مسیر پرونده اجرایی را بکار می‌گیرد."
+"به طور پیش‌گزیده، لوتریس مسیر پرونده اجرایی را استفاده میکند."
 
 #: lutris/runners/dosbox.py:68
 msgid "Open game in fullscreen"
@@ -3630,7 +3625,7 @@ msgstr "DOSBox زمانی که بازی بسته می‌شود خاموش شود
 
 #: lutris/runners/duckstation.py:13
 msgid "DuckStation"
-msgstr "داک‌استیشن"
+msgstr "DuckStation"
 
 #: lutris/runners/duckstation.py:14
 msgid "PlayStation 1 Emulator"
@@ -3712,7 +3707,7 @@ msgstr ""
 
 #: lutris/runners/easyrpg.py:12
 msgid "EasyRPG Player"
-msgstr "پخش‌کننده EasyRPG"
+msgstr "EasyRPG Player"
 
 #: lutris/runners/easyrpg.py:13
 msgid "Runs RPG Maker 2000/2003 games"
@@ -3738,8 +3733,8 @@ msgid ""
 "Instead of auto detecting the encoding or using the one in RPG_RT.ini, the "
 "specified encoding is used."
 msgstr ""
-"به جای تشخیص خودکار کدگذاری یا بکارگرفتن کدگذاری موجود در RPG_RT.ini، "
-"کدگذاری مشخص شده بکارگرفته می‌شود."
+"به جای تشخیص خودکار کدگذاری یا استفاده از کدگذاری موجود در RPG_RT.ini، "
+"کدگذاری مشخص شده استفاده می‌شود."
 
 #: lutris/runners/easyrpg.py:37 lutris/runners/easyrpg.py:62
 #: lutris/runners/easyrpg.py:221 lutris/runners/easyrpg.py:240
@@ -3858,7 +3853,7 @@ msgid ""
 "\n"
 "You can provide multiple patches or use 'none' to disable all engine patches."
 msgstr ""
-"به جای تشخیص خودکار پچ‌های بکارگرفته شده توسط این بازی، شبیه‌سازی برخی پچ‌ها ر"
+"به جای تشخیص خودکار پچ‌های استفاده شده توسط این بازی، شبیه‌سازی برخی پچ‌ها ر"
 "ا "
 "اجباری کنید.\n"
 "\n"
@@ -3869,8 +3864,8 @@ msgstr ""
 "cmds</b>: پشتیبانی از همه دستورات رویداد RPG Maker 2003 در هر نگارش‌ای از "
 "موتور\n"
 "\n"
-"شما می‌توانید چندین پچ بدهید یا 'none' را برای غیرفعال کردن همه پچ‌های موتور "
-"بکار بگیرید."
+"شما می‌توانید چندین پچ بدهید یا «none» را برای غیرفعال کردن همه پچ‌های موتور "
+"استفاده کنید."
 
 #: lutris/runners/easyrpg.py:93 lutris/runners/scummvm.py:276
 msgid "Language"
@@ -3932,7 +3927,7 @@ msgid ""
 "it was when the log was recorded, this should reproduce an identical run to "
 "the one recorded."
 msgstr ""
-"ورودی دکمه را از پرونده گزارش مشخص شده که توسط 'ضبط ورودی' تولید شده است، "
+"ورودی دکمه را از پرونده گزارش مشخص شده که توسط «ضبط ورودی» تولید شده است، "
 "پخش می‌کند.\n"
 "اگر بذر RNG و وضعیت مسیر پرونده ذخیره نیز همانند زمانی که گزارش ضبط شده است، "
 "باشد، این باید یک اجرای مشابه با آنچه ضبط شده است را تولید کند."
@@ -3958,7 +3953,7 @@ msgstr "پنهان کردن عنوان"
 #: lutris/runners/easyrpg.py:155
 msgid "Hide the title background image and center the command menu."
 msgstr ""
-"تصویر پس‌زمینه عنوان را پنهان کرده و گزینگان فرمان را در مرکز قرار دهید."
+"تصویر پس‌زمینه عنوان را پنهان کرده و منو فرمان را در مرکز قرار دهید."
 
 #: lutris/runners/easyrpg.py:163
 msgid "Start map ID"
@@ -3971,11 +3966,11 @@ msgid ""
 "\n"
 "Incompatible with 'Load game ID'."
 msgstr ""
-"نقشه‌ای که برای بازی‌های جدید بکارگرفته می‌شود را بازنویسی کرده و به جای آن "
-"MapXXXX.lmu را بکار بگیرید.\n"
+"نقشه‌ای که برای بازی‌های جدید استفاده می‌شود را بازنویسی کرده و به جای آن "
+"MapXXXX.lmu را استفاده کنید.\n"
 "برای غیرفعال کردن، مقدار را به ۰ تنظیم کنید.\n"
 "\n"
-"با 'بارگذاری شناسه بازی' ناسازگار است."
+"با «بارگذاری شناسه بازی» ناسازگار است."
 
 #: lutris/runners/easyrpg.py:178
 msgid "Start position"
@@ -3992,7 +3987,7 @@ msgstr ""
 "موقعیت شروع گروه را بازنویسی کرده و گروه را به موقعیت مشخص شده جابه‌جا کنید.\n"
 "دو عدد را با یک فاصله نشان دهید.\n"
 "\n"
-"با 'بارگذاری شناسه بازی' ناسازگار است."
+"با «بارگذاری شناسه بازی» ناسازگار است."
 
 #: lutris/runners/easyrpg.py:190
 msgid "Start party"
@@ -4009,7 +4004,7 @@ msgstr ""
 "اعضای گروه شروع را با بازیگران دارای شناسه‌های مشخص شده بازنویسی کنید.\n"
 "یک تا چهار عدد را با فاصله نشان دهید.\n"
 "\n"
-"با 'بارگذاری شناسه بازی' ناسازگار است."
+"با «بارگذاری شناسه بازی» ناسازگار است."
 
 #: lutris/runners/easyrpg.py:202
 msgid "Battle test"
@@ -4032,7 +4027,7 @@ msgid ""
 "<b>RPG_RT+</b>: The default RPG_RT compatible algorithm, with bug-fixes.\n"
 "<b>ATTACK</b>: Like RPG_RT+ but only physical attacks, no skills."
 msgstr ""
-"کدام الگوریتم AutoBattle باید بکارگرفته شود.\n"
+"کدام الگوریتم AutoBattle باید استفاده شود.\n"
 "\n"
 "<b>RPG_RT</b>: الگوریتم پیش‌گزیده سازگار با RPG_RT، شامل باگ‌های RPG_RT.\n"
 "<b>RPG_RT+</b>: الگوریتم پیش‌گزیده سازگار با RPG_RT، با اصلاحات باگ.\n"
@@ -4062,7 +4057,7 @@ msgid ""
 "bugs.\n"
 "<b>RPG_RT+</b>: The default RPG_RT compatible algorithm, with bug-fixes.\n"
 msgstr ""
-"کدام الگوریتم هوش دشمن را بکار بگیریم.\n"
+"کدام الگوریتم هوش دشمن را استفاده کنیم.\n"
 "\n"
 "<b>RPG_RT</b>: الگوریتم پیش‌گزیده سازگار با RPG_RT، شامل باگ‌های RPG_RT.\n"
 "<b>RPG_RT+</b>: الگوریتم پیش‌گزیده سازگار با RPG_RT، با اصلاحات باگ.\n"
@@ -4077,7 +4072,7 @@ msgid ""
 "Use -1 to disable."
 msgstr ""
 "بذر تولیدکننده عدد تصادفی را تعیین می‌کند.\n"
-"برای غیرفعال کردن، -1 را بکار بگیرید."
+"برای غیرفعال کردن، -1 را استفاده کنید."
 
 #: lutris/runners/easyrpg.py:260 lutris/runners/easyrpg.py:268
 #: lutris/runners/easyrpg.py:278 lutris/runners/easyrpg.py:289
@@ -4122,7 +4117,7 @@ msgstr "صوت‌فونت"
 
 #: lutris/runners/easyrpg.py:291
 msgid "Soundfont in sf2 format to use when playing MIDI files."
-msgstr "صوت‌فونت در قالب sf2 که هنگام پخش پرونده‌های MIDI بکارگرفته می‌شود."
+msgstr "صوت‌فونت در قالب sf2 که هنگام پخش پرونده‌های MIDI استفاده می‌شود."
 
 #: lutris/runners/easyrpg.py:298
 msgid "Start in fullscreen mode."
@@ -4203,7 +4198,7 @@ msgstr "فعال‌سازی VSync"
 
 #: lutris/runners/easyrpg.py:348
 msgid "Switch off to disable VSync and use the FPS limit."
-msgstr "برای غیرفعال کردن VSync و بکارگیری محدودیت FPS، خاموش کنید"
+msgstr "برای غیرفعال کردن VSync و استفاده از محدودیت FPS، خاموش کنید"
 
 #: lutris/runners/easyrpg.py:355
 msgid "FPS limit"
@@ -4316,7 +4311,7 @@ msgstr "شاخه"
 
 #: lutris/runners/flatpak.py:45
 msgid "The branch to use."
-msgstr "شاخه‌ای که باید بکارگرفته شود."
+msgstr "شاخه‌ای که باید استفاده شود."
 
 #: lutris/runners/flatpak.py:49
 msgid "Install type"
@@ -4444,7 +4439,7 @@ msgstr "68010"
 
 #: lutris/runners/fsuae.py:111
 msgid "68020 with 24-bit addressing"
-msgstr "68020 با آدرس‌دهی 24 بیتی"
+msgstr "68020 با نشانی‌دهی 24 بیتی"
 
 #: lutris/runners/fsuae.py:112
 msgid "68020"
@@ -4573,7 +4568,7 @@ msgstr ""
 "رایج‌ترین‌ها هستند. ADZ (ADF فشرده) و ADFهای موجود در پرونده‌های zip نیز "
 "پشتیبانی می‌شوند.\n"
 "پرونده‌هایی که با .hdf پایان می‌یابند به عنوان درایوهای سخت نصب خواهند شد و "
-"ISOها می‌توانند برای مدل‌های آمیگا CD32 و CDTV بکارگرفته شوند."
+"ISOها می‌توانند برای مدل‌های آمیگا CD32 و CDTV استفاده شوند."
 
 #: lutris/runners/fsuae.py:203 lutris/runners/fsuae.py:211
 #: lutris/runners/fsuae.py:325 lutris/runners/fsuae.py:335
@@ -4594,7 +4589,7 @@ msgstr "تصویر CD-ROM"
 
 #: lutris/runners/fsuae.py:214
 msgid "CD-ROM image to use on non CD32/CDTV models"
-msgstr "تصویر CD-ROM برای بکارگیری در مدل‌های غیر CD32/CDTV"
+msgstr "تصویر CD-ROM برای استفاده در مدل‌های غیر CD32/CDTV"
 
 #: lutris/runners/fsuae.py:221
 msgid "Amiga model"
@@ -4610,7 +4605,7 @@ msgstr "Kickstart"
 
 #: lutris/runners/fsuae.py:230
 msgid "Kickstart ROMs location"
-msgstr "محل ROMهای Kickstart"
+msgstr "محل رام‌های Kickstart"
 
 #: lutris/runners/fsuae.py:233
 msgid ""
@@ -4618,10 +4613,10 @@ msgid ""
 "documentation to find how to acquire them. Without these, FS-UAE uses a "
 "bundled replacement ROM which is less compatible with Amiga software."
 msgstr ""
-"پوشه‌ای را که شامل ROMهای Kickstart اصلی آمیگا است انتخاب کنید. به مستندات FS-"
+"پوشه‌ای را که شامل رام‌های Kickstart اصلی آمیگا است انتخاب کنید. به مستندات FS-"
 "UAE مراجعه کنید تا نحوه به‌دست آوردن آن‌ها را پیدا کنید. بدون این‌ها، FS-UAE ی"
 "ک "
-"ROM جایگزین بسته‌بندی شده را بکار میگیرد که با نرم‌افزار آمیگا سازگاری کمتری "
+"رام جایگزین بسته‌بندی شده را استفاده میکند که با نرم‌افزار آمیگا سازگاری کمتری "
 "دارد."
 
 #: lutris/runners/fsuae.py:243
@@ -4657,7 +4652,7 @@ msgid ""
 "Use this option to enable a graphics card. This option is none by default, "
 "in which case only chipset graphics (OCS/ECS/AGA) support is available."
 msgstr ""
-"این گزینه را برای فعال‌سازی کارت گرافیک بکار بگیرید. این گزینه به‌طور پیش‌گزید"
+"این گزینه را برای فعال‌سازی کارت گرافیک استفاده کنید. این گزینه به‌طور پیش‌گزید"
 "ه "
 "خالی است، که در این صورت تنها پشتیبانی از گرافیک‌های چیپست (OCS/ECS/AGA) در "
 "دسترس است."
@@ -4685,9 +4680,9 @@ msgid ""
 "models imply a default CPU model, so you only need to use this option if you "
 "want to use another CPU."
 msgstr ""
-"این گزینه را برای نادیده گرفتن مدل CPU در آمیگای شبیه‌سازی شده بکارگرفته "
+"این گزینه را برای نادیده گرفتن مدل CPU در آمیگای شبیه‌سازی شده استفاده "
 "کنید. همه مدل‌های آمیگا به طور پیش‌گزیده یک مدل CPU را فرض می‌کند، بنابراین "
-"تنها در صورتی که می‌خواهید CPU دیگری را بکار بگیرید، به این گزینه نیاز دارید."
+"تنها در صورتی که می‌خواهید CPU دیگری را استفاده کنید، به این گزینه نیاز دارید."
 
 #: lutris/runners/fsuae.py:303
 msgid "Fast Memory"
@@ -4709,7 +4704,7 @@ msgid ""
 msgstr ""
 "مقدار حافظه سریع Zorro III را که به KB مشخص شده است نادیده بگیرید. باید یک "
 "مضرب از 1024 باشد. مقدار پیش‌گزیده به [amiga_model] بستگی دارد. به پردازنده‌ای"
-"با باس آدرس 32 بیتی نیاز دارد (برای مثال مدل A1200/020 را بکار بگیرید)."
+"با باس نشانی 32 بیتی نیاز دارد (برای مثال مدل A1200/020 را استفاده کنید)."
 
 #: lutris/runners/fsuae.py:326
 msgid "Floppy Drive Volume"
@@ -4736,7 +4731,7 @@ msgid ""
 msgstr ""
 "سرعت درایوهای فلاپی شبیه‌سازی شده را به درصد تنظیم کنید. به عنوان مثال، "
 "می‌توانید 800 را مشخص کنید تا افزایش سرعت 8 برابری داشته باشید. برای مشخص "
-"کردن حالت توربو 0 را بکار بگیرید. حالت توربو به این معنی است که همه کنش "
+"کردن حالت توربو 0 را استفاده کنید. حالت توربو به این معنی است که همه کنش "
 "فلاپی بلافاصله کامل می‌شود. مقدار پیش‌گزیده برای بیشتر مدل‌ها 100 است."
 
 #: lutris/runners/fsuae.py:350
@@ -4752,7 +4747,7 @@ msgid ""
 "Automatically uses Feral GameMode daemon if available. Set to true to "
 "disable the feature."
 msgstr ""
-"به‌طور خودکار دیمن حالت بازی Feral در صورت در دسترس بودن بکارگرفته می‌شود. "
+"به‌طور خودکار دیمن حالت بازی Feral در صورت در دسترس بودن استفاده می‌شود. "
 "برای غیرفعال کردن این ویژگی، آن را به true تنظیم کنید."
 
 #: lutris/runners/fsuae.py:365
@@ -4773,11 +4768,11 @@ msgstr "کتابخانه bsdsocket UAE"
 
 #: lutris/runners/hatari.py:14
 msgid "Hatari"
-msgstr "هاتاری"
+msgstr "Hatari"
 
 #: lutris/runners/hatari.py:15
 msgid "Atari ST computers emulator"
-msgstr "شبیه‌ساز کامپیوترهای آتاری ST"
+msgstr "شبیه‌ساز رایانه‌های آتاری ST"
 
 #: lutris/runners/hatari.py:16 lutris/runners/scummvm.py:212
 #, fuzzy
@@ -4818,7 +4813,7 @@ msgstr "جوی استیک"
 
 #: lutris/runners/hatari.py:53
 msgid "Bios file (TOS)"
-msgstr "پرونده BIOS (TOS)"
+msgstr "پرونده بایوس (TOS)"
 
 #: lutris/runners/hatari.py:55
 msgid ""
@@ -4849,10 +4844,10 @@ msgid ""
 "display graphics in fullscreen. But people from the demo scene were able to "
 "remove them and some games made use of this technique."
 msgstr ""
-"برای برخی بازی‌ها و دموها که شگرد overscan را بکار می‌گیرند مفید است. "
+"برای برخی بازی‌ها و دموها که شگرد overscan را استفاده میکنند مفید است. "
 "آتاری ST حاشیه‌هایی در اطراف صفحه نمایش می‌داد زیرا به اندازه کافی قوی نبود تا"
 "گرافیک را در تمام صفحه نمایش دهد. ولی افرادی از صحنه دمو توانستند آن‌ها را "
-"پاک کنند و برخی بازی‌ها این شگرد را بکار گرفتند."
+"پاک کنند و برخی بازی‌ها این شگرد را استفاده کرده‌اند."
 
 #: lutris/runners/hatari.py:95
 msgid "Display status bar"
@@ -4880,15 +4875,15 @@ msgstr "جوی استیک 1"
 
 #: lutris/runners/hatari.py:126
 msgid "Do you want to select an Atari ST BIOS file?"
-msgstr "آیا می‌خواهید یک پرونده BIOS آتاری ST انتخاب کنید؟"
+msgstr "آیا می‌خواهید یک پرونده بایوس آتاری ST انتخاب کنید؟"
 
 #: lutris/runners/hatari.py:127
 msgid "Use BIOS file?"
-msgstr "پرونده BIOS بکارگرفته شود؟"
+msgstr "پرونده بایوس استفاده شود؟"
 
 #: lutris/runners/hatari.py:128
 msgid "Select a BIOS file"
-msgstr "انتخاب یک پرونده BIOS"
+msgstr "انتخاب یک پرونده بایوس"
 
 #: lutris/runners/jzintv.py:13
 msgid "jzIntv"
@@ -4908,13 +4903,13 @@ msgid ""
 "Supported formats: ROM, BIN+CFG, INT, ITV \n"
 "The file extension must be lower-case."
 msgstr ""
-"داده‌های بازی، که معمولاً به آن تصویر ROM گفته می‌شود. \n"
+"داده‌های بازی، که معمولاً به آن تصویر رام گفته می‌شود. \n"
 "قالب‌های پشتیبانی شده: ROM، BIN+CFG، INT، ITV \n"
 "پسوند پرونده باید با حروف کوچک باشد."
 
 #: lutris/runners/jzintv.py:34
 msgid "Bios location"
-msgstr "محل BIOS"
+msgstr "محل بایوس"
 
 #: lutris/runners/jzintv.py:36
 msgid ""
@@ -4953,7 +4948,7 @@ msgstr "گزارش‌گیری کامل‌تر"
 
 #: lutris/runners/libretro.py:153
 msgid "The installer does not specify the libretro 'core' version."
-msgstr "نصب‌کننده نگارش 'هسته' libretro را مشخص نمی‌کند."
+msgstr "نصب‌کننده نگارش «هسته» libretro را مشخص نمی‌کند."
 
 #: lutris/runners/libretro.py:286
 msgid "No core has been selected for this game"
@@ -4985,7 +4980,7 @@ msgstr "آرگومان‌ها"
 #: lutris/runners/linux.py:34 lutris/runners/mame.py:127
 #: lutris/runners/scummvm.py:67
 msgid "Command line arguments used when launching the game"
-msgstr "آرگومان‌های خط فرمان که هنگام راه‌اندازی بازی بکارگرفته می‌شوند"
+msgstr "آرگومان‌های خط فرمان که هنگام راه‌اندازی بازی استفاده می‌شوند"
 
 #: lutris/runners/linux.py:49
 msgid "Preload library"
@@ -5006,14 +5001,14 @@ msgid ""
 "using a nonstandard library for special purposes."
 msgstr ""
 "مسیر که باید ابتدا برای جستجوی کتابخانه‌ها بررسی شود، پیش از مجموعه استاندارد "
-"مسیر‌ها؛ این برای اشکال‌زدایی یک کتابخانه جدید یا بکارگیری یک کتابخانه غیر "
+"مسیر‌ها؛ این برای اشکال‌زدایی یک کتابخانه جدید یا استفاده از یک کتابخانه غیر "
 "استاندارد برای اهداف ویژه مفید است."
 
 #: lutris/runners/linux.py:141
 msgid ""
 "The runner could not find a command or exe to use for this configuration."
 msgstr ""
-"اجراکننده نتوانست یک دستور یا exe برای بکارگیری در این پیکربندی پیدا کند."
+"اجراکننده نتوانست یک دستور یا exe برای استفاده در این پیکربندی پیدا کند."
 
 #: lutris/runners/linux.py:164
 #, python-format
@@ -5042,19 +5037,19 @@ msgstr "دیسک فلاپی"
 
 #: lutris/runners/mame.py:95
 msgid "Floppy drive 1"
-msgstr "درایو فلاپی 1"
+msgstr "درایو فلاپی ۱"
 
 #: lutris/runners/mame.py:96
 msgid "Floppy drive 2"
-msgstr "درایو فلاپی 2"
+msgstr "درایو فلاپی ۲"
 
 #: lutris/runners/mame.py:97
 msgid "Floppy drive 3"
-msgstr "درایو فلاپی 3"
+msgstr "درایو فلاپی ۳"
 
 #: lutris/runners/mame.py:98
 msgid "Floppy drive 4"
-msgstr "درایو فلاپی 4"
+msgstr "درایو فلاپی ۴"
 
 #: lutris/runners/mame.py:99
 msgid "Cassette (tape)"
@@ -5062,11 +5057,11 @@ msgstr "کاست (نوار)"
 
 #: lutris/runners/mame.py:100
 msgid "Cassette 1 (tape)"
-msgstr "کاست 1 (نوار)"
+msgstr "کاست ۱ (نوار)"
 
 #: lutris/runners/mame.py:101
 msgid "Cassette 2 (tape)"
-msgstr "کاست 2 (نوار)"
+msgstr "کاست ۲ (نوار)"
 
 #: lutris/runners/mame.py:102
 msgid "Cartridge"
@@ -5074,19 +5069,19 @@ msgstr "کارتریج"
 
 #: lutris/runners/mame.py:103
 msgid "Cartridge 1"
-msgstr "کارتریج 1"
+msgstr "کارتریج ۱"
 
 #: lutris/runners/mame.py:104
 msgid "Cartridge 2"
-msgstr "کارتریج 2"
+msgstr "کارتریج ۲"
 
 #: lutris/runners/mame.py:105
 msgid "Cartridge 3"
-msgstr "کارتریج 3"
+msgstr "کارتریج ۳"
 
 #: lutris/runners/mame.py:106
 msgid "Cartridge 4"
-msgstr "کارتریج 4"
+msgstr "کارتریج ۴"
 
 #: lutris/runners/mame.py:107
 msgid "Snapshot"
@@ -5098,11 +5093,11 @@ msgstr "هارد دیسک"
 
 #: lutris/runners/mame.py:109
 msgid "Hard Disk 1"
-msgstr "هارد دیسک 1"
+msgstr "هارد دیسک ۱"
 
 #: lutris/runners/mame.py:110
 msgid "Hard Disk 2"
-msgstr "هارد دیسک 2"
+msgstr "هارد دیسک ۲"
 
 #: lutris/runners/mame.py:111
 msgid "CD-ROM"
@@ -5166,7 +5161,7 @@ msgstr "تاخیر پیش از وارد کردن دستور راه‌انداز�
 
 #: lutris/runners/mame.py:158
 msgid "ROM/BIOS path"
-msgstr "مسیر ROM/BIOS"
+msgstr "مسیر رام/بایوس"
 
 #: lutris/runners/mame.py:160
 msgid ""
@@ -5174,7 +5169,7 @@ msgid ""
 "These files contain code from the original hardware necessary to the "
 "emulation."
 msgstr ""
-"پوشه‌ای را که شامل پرونده‌های ROM و BIOS است انتخاب کنید.\n"
+"پوشه‌ای را که شامل پرونده‌های رام و بایوس است انتخاب کنید.\n"
 "این پرونده‌ها شامل کدهایی از سخت‌افزار اصلی هستند که برای شبیه‌سازی ضروری است."
 
 #: lutris/runners/mame.py:176
@@ -5183,7 +5178,7 @@ msgstr "اثر CRT ()"
 
 #: lutris/runners/mame.py:177
 msgid "Applies a CRT effect to the screen.Requires OpenGL renderer."
-msgstr "اثر CRT را در صفحه بکار میگیرد. نیاز به رندر OpenGL دارد."
+msgstr "اثر CRT را در صفحه استفاده میکند. نیاز به رندر OpenGL دارد."
 
 #: lutris/runners/mame.py:184
 msgid "Video backend"
@@ -5207,7 +5202,7 @@ msgstr ""
 
 #: lutris/runners/mame.py:208
 msgid "Menu mode key"
-msgstr "کلید حالت گزینگان"
+msgstr "کلید حالت منو"
 
 #: lutris/runners/mame.py:210
 msgid "Scroll Lock"
@@ -5223,7 +5218,7 @@ msgstr "قفل حروف بزرگ"
 
 #: lutris/runners/mame.py:213
 msgid "Menu"
-msgstr "گزینگان"
+msgstr "منو"
 
 #: lutris/runners/mame.py:214
 msgid "Right Control"
@@ -5272,11 +5267,11 @@ msgstr "هیچ دستگاهی برای ماشین %s تنظیم نشده است"
 #: lutris/runners/mame.py:339
 #, python-format
 msgid "The path '%s' is not set. please set it in the options."
-msgstr "مسیر '%s' تنظیم نشده است. لطفاً آن را در گزینه‌ها تنظیم کنید."
+msgstr "مسیر «%s» تنظیم نشده است. لطفاً آن را در گزینه‌ها تنظیم کنید."
 
 #: lutris/runners/mednafen.py:18
 msgid "Mednafen"
-msgstr "مدنافن"
+msgstr "Mednafen"
 
 #: lutris/runners/mednafen.py:19
 msgid "Multi-system emulator: NES, PC Engine, PSX…"
@@ -5304,7 +5299,7 @@ msgstr "آتاری پیوندس"
 
 #: lutris/runners/mednafen.py:26 lutris/runners/osmose.py:14
 msgid "Sega Master System"
-msgstr "سگا مستر سامانه"
+msgstr "سگا مستر سیستم"
 
 #: lutris/runners/mednafen.py:27
 msgid "SNK Neo Geo Pocket (Color)"
@@ -5403,8 +5398,8 @@ msgid ""
 "The game data, commonly called a ROM image. \n"
 "Mednafen supports GZIP and ZIP compressed ROMs."
 msgstr ""
-"داده‌های بازی که معمولاً به آن تصویر ROM گفته می‌شود. \n"
-"مدنافن از ROMهای فشرده GZIP و ZIP پشتیبانی می‌کند."
+"داده‌های بازی که معمولاً به آن تصویر رام گفته می‌شود. \n"
+"مدنافن از رامهای فشرده GZIP و ZIP پشتیبانی می‌کند."
 
 #: lutris/runners/mednafen.py:67
 msgid "Machine type"
@@ -5448,11 +5443,11 @@ msgstr "پیش‌گزیده ALSA"
 
 #: lutris/runners/mednafen.py:129
 msgid "Use default Mednafen controller configuration"
-msgstr "بکارگیری پیکربندی پیش‌گزیده دسته بازی مدنافن"
+msgstr "استفاده از پیکربندی پیش‌گزیده دسته بازی مدنافن"
 
 #: lutris/runners/mupen64plus.py:13
 msgid "Mupen64Plus"
-msgstr "موپن64 پلاس"
+msgstr "Mupen64Plus"
 
 #: lutris/runners/mupen64plus.py:14
 msgid "Nintendo 64 emulator"
@@ -5466,7 +5461,7 @@ msgstr "نینتندو ۶۴"
 #: lutris/runners/openmsx.py:21 lutris/runners/ryujinx.py:26
 #: lutris/runners/snes9x.py:30 lutris/runners/yuzu.py:24
 msgid "The game data, commonly called a ROM image."
-msgstr "داده‌های بازی که معمولاً به آن تصویر ROM گفته می‌شود."
+msgstr "داده‌های بازی که معمولاً به آن تصویر رام گفته می‌شود."
 
 #: lutris/runners/mupen64plus.py:32
 msgid "Hide OSD"
@@ -5510,7 +5505,7 @@ msgstr "W، S، A، D، SPACE"
 
 #: lutris/runners/o2em.py:57
 msgid "BIOS"
-msgstr "BIOS"
+msgstr "بایوس"
 
 #: lutris/runners/o2em.py:65
 msgid "First controller"
@@ -5526,7 +5521,7 @@ msgstr "openMSX"
 
 #: lutris/runners/openmsx.py:13
 msgid "MSX computer emulator"
-msgstr "شبیه‌ساز کامپیوتر MSX"
+msgstr "شبیه‌ساز رایانه MSX"
 
 #: lutris/runners/openmsx.py:14
 msgid "MSX, MSX2, MSX2+, MSX turboR"
@@ -5534,7 +5529,7 @@ msgstr "MSX، MSX2، MSX2+، MSX turboR"
 
 #: lutris/runners/osmose.py:12
 msgid "Osmose"
-msgstr "اوزموز"
+msgstr "Osmose"
 
 #: lutris/runners/osmose.py:13
 msgid "Sega Master System Emulator"
@@ -5545,7 +5540,7 @@ msgid ""
 "The game data, commonly called a ROM image.\n"
 "Supported formats: SMS and GG files. ZIP compressed ROMs are supported."
 msgstr ""
-"داده‌های بازی که معمولاً به آن تصویر ROM گفته می‌شود.\n"
+"داده‌های بازی که معمولاً به آن تصویر رام گفته می‌شود.\n"
 "قالب‌های پشتیبانی شده: پرونده‌های SMS و GG. ROMهای فشرده ZIP پشتیبانی می‌شوند."
 
 #: lutris/runners/pcsx2.py:12
@@ -5620,7 +5615,7 @@ msgstr "نام موتور (بارگیری خواهد شد) یا مسیر پرو�
 
 #: lutris/runners/redream.py:10
 msgid "Redream"
-msgstr "ردریم"
+msgstr "Redream"
 
 #: lutris/runners/redream.py:11 lutris/runners/reicast.py:17
 msgid "Sega Dreamcast emulator"
@@ -5724,19 +5719,19 @@ msgstr "مقیاس وضوح ویدیو داخلی"
 
 #: lutris/runners/redream.py:95
 msgid "Only available in premium version."
-msgstr "تنها در نگارش پریمیوم در دسترس است."
+msgstr "تنها در نگارش ویژه در دسترس است."
 
 #: lutris/runners/redream.py:102
 msgid "Do you want to select a premium license file?"
-msgstr "آیا می‌خواهید یک پرونده مجوز پریمیوم انتخاب کنید؟"
+msgstr "آیا می‌خواهید یک پرونده مجوز ویژه انتخاب کنید؟"
 
 #: lutris/runners/redream.py:103 lutris/runners/redream.py:104
 msgid "Use premium version?"
-msgstr "آیا نگارش پریمیوم را بکار میگیرید؟"
+msgstr "آیا نگارش ویژه را استفاده میکنید؟"
 
 #: lutris/runners/reicast.py:16
 msgid "Reicast"
-msgstr "ریکاست"
+msgstr "Reicast"
 
 #: lutris/runners/reicast.py:29
 msgid ""
@@ -5769,7 +5764,7 @@ msgstr "دسته ۴"
 
 #: lutris/runners/rpcs3.py:12
 msgid "RPCS3"
-msgstr "آرپی‌سی‌اس۳"
+msgstr "RPCS3"
 
 #: lutris/runners/rpcs3.py:13
 msgid "PlayStation 3 emulator"
@@ -5807,7 +5802,7 @@ msgstr ""
 #: lutris/runners/vice.py:115 lutris/util/system.py:261
 #, python-format
 msgid "The executable '%s' could not be found."
-msgstr "اجرای '%s' پیدا نشد."
+msgstr "اجرای «%s» پیدا نشد."
 
 #: lutris/runners/runner.py:439
 msgid ""
@@ -5815,7 +5810,7 @@ msgid ""
 "Do you wish to install it now?"
 msgstr ""
 "اجراکننده مورد نیاز نصب نشده است.\n"
-"آیا می‌خواهید اینک آن را نصب کنید؟"
+"آیا می‌خواهید اکنون آن را نصب کنید؟"
 
 #: lutris/runners/runner.py:440
 msgid "Required runner unavailable"
@@ -5828,12 +5823,12 @@ msgstr "دریافت اطلاعات {} ({}) ناموفق بود"
 #: lutris/runners/runner.py:500
 #, python-format
 msgid "The '%s' version of the '%s' runner can't be downloaded."
-msgstr "نگارش '%s' از اجراکننده '%s' قابل دریافت نیست."
+msgstr "نگارش «%s» از اجراکننده «%s» قابل دریافت نیست."
 
 #: lutris/runners/runner.py:503
 #, python-format
 msgid "The the '%s' runner can't be downloaded."
-msgstr "اجراکننده '%s' قابل دریافت نیست."
+msgstr "اجراکننده «%s» قابل دریافت نیست."
 
 #: lutris/runners/runner.py:532
 msgid "Failed to extract {}"
@@ -5845,7 +5840,7 @@ msgstr "استخراج {}: {} ناموفق بود"
 
 #: lutris/runners/ryujinx.py:13
 msgid "Ryujinx"
-msgstr "ریوجینکس"
+msgstr "Ryujinx"
 
 #: lutris/runners/ryujinx.py:14 lutris/runners/yuzu.py:14
 msgid "Nintendo Switch"
@@ -5882,7 +5877,7 @@ msgstr "<b>هشدار</b> مقیاس‌گرها ممکن است با رندری�
 #: lutris/runners/scummvm.py:45
 #, python-format
 msgid "<b>Warning</b> The '%s' scaler does not work with a scale factor of %s."
-msgstr "<b>هشدار</b> مقیاس‌گر '%s' با ضریب مقیاس %s کار نمی‌کند."
+msgstr "<b>هشدار</b> مقیاس‌گر «%s» با ضریب مقیاس %s کار نمی‌کند."
 
 #: lutris/runners/scummvm.py:54
 msgid "Engine for point-and-click games."
@@ -5927,7 +5922,7 @@ msgid ""
 "The algorithm used to scale up the game's base resolution, resulting in "
 "different visual styles. "
 msgstr ""
-"الگوریتمی که برای بزرگ‌نمایی وضوح پایه بازی بکارگرفته می‌شود و منجر "
+"الگوریتمی که برای بزرگ‌نمایی وضوح پایه بازی استفاده می‌شود و منجر "
 "به سبک‌های بصری مختلف می‌شود."
 
 #: lutris/runners/scummvm.py:163
@@ -5956,7 +5951,7 @@ msgstr "OpenGL (با شیدرها)"
 
 #: lutris/runners/scummvm.py:193
 msgid "Changes the rendering method used for 3D games."
-msgstr "روش رندرینگ بکارگرفته شده برای بازی‌های 3D را تغییر می‌دهد."
+msgstr "روش رندرینگ استفاده شده برای بازی‌های 3D را تغییر می‌دهد."
 
 #: lutris/runners/scummvm.py:198
 msgid "Render mode"
@@ -6051,7 +6046,7 @@ msgid ""
 "Uses bilinear interpolation instead of nearest neighbor resampling for the "
 "aspect ratio correction and stretch mode."
 msgstr ""
-"درون‌یابی بی‌خطی را به جای نمونه‌برداری نزدیک‌ترین همسایه بکار میگیرد، برای "
+"درون‌یابی بی‌خطی را به جای نمونه‌برداری نزدیک‌ترین همسایه استفاده میکند، برای "
 "تصحیح نسبت ابعاد و حالت کشش."
 
 #: lutris/runners/scummvm.py:251
@@ -6126,7 +6121,7 @@ msgstr "درایور موسیقی"
 
 #: lutris/runners/scummvm.py:332
 msgid "Specifies the device ScummVM uses to output audio."
-msgstr "دستگاهی که ScummVM برای خروجی صدا بکار میگیرد را مشخص می‌کند."
+msgstr "دستگاهی که ScummVM برای خروجی صدا استفاده میکند را مشخص می‌کند."
 
 #: lutris/runners/scummvm.py:338
 msgid "Output rate"
@@ -6146,7 +6141,7 @@ msgid ""
 "as the Preferred device."
 msgstr ""
 "انتخاب می‌کند که کدام شبیه‌ساز توسط ScummVM زمانی که شبیه‌ساز AdLib به عنوان "
-"دستگاه ترجیحی انتخاب شده است، بکارگرفته شود."
+"دستگاه ترجیحی انتخاب شده است، استفاده شود."
 
 #: lutris/runners/scummvm.py:373
 msgid "Music volume"
@@ -6214,11 +6209,11 @@ msgstr ""
 
 #: lutris/runners/scummvm.py:445
 msgid "Use alternate intro"
-msgstr "بکارگیری از مقدمه جایگزین"
+msgstr "استفاده از مقدمه جایگزین"
 
 #: lutris/runners/scummvm.py:446
 msgid "Uses alternative intro for CD versions"
-msgstr "مقدمه جایگزین برای نگارش‌های CD بکار میگیرد"
+msgstr "مقدمه جایگزین برای نگارش‌های CD استفاده میکند"
 
 #: lutris/runners/scummvm.py:452
 msgid "Copy protection"
@@ -6262,7 +6257,7 @@ msgstr "شبیه‌ساز سوپر نینتندو"
 
 #: lutris/runners/snes9x.py:19
 msgid "Snes9x"
-msgstr "اسنِس۹x"
+msgstr "Snes9x"
 
 #: lutris/runners/snes9x.py:40
 msgid "Maintain aspect ratio (4:3)"
@@ -6305,7 +6300,7 @@ msgid ""
 "Command line arguments used when launching the game.\n"
 "Ignored when Steam Big Picture mode is enabled."
 msgstr ""
-"آرگومان‌های خط فرمانی که هنگام راه‌اندازی بازی بکارگرفته می‌شوند.\n"
+"آرگومان‌های خط فرمانی که هنگام راه‌اندازی بازی استفاده می‌شوند.\n"
 "هنگام فعال بودن حالت تصویر بزرگ استیم نادیده گرفته می‌شوند."
 
 #: lutris/runners/steam.py:57
@@ -6358,7 +6353,7 @@ msgstr ""
 #: lutris/runners/steam.py:101
 msgid "Extra command line arguments used when launching Steam"
 msgstr ""
-"آرگومان‌های افزوده خط فرمان که هنگام راه‌اندازی استیم بکارگرفته می‌شوند"
+"آرگومان‌های افزوده خط فرمان که هنگام راه‌اندازی استیم استفاده می‌شوند"
 
 #: lutris/runners/steam.py:188
 msgid ""
@@ -6380,7 +6375,7 @@ msgstr "شبیه‌ساز Commodore"
 
 #: lutris/runners/vice.py:15
 msgid "Vice"
-msgstr "وایس"
+msgstr "Vice"
 
 #: lutris/runners/vice.py:18
 msgid "Commodore 64"
@@ -6412,13 +6407,13 @@ msgid ""
 "Supported formats: X64, D64, G64, P64, D67, D71, D81, D80, D82, D1M, D2M, "
 "D4M, T46, P00 and CRT."
 msgstr ""
-"داده‌های بازی، که معمولاً به آن تصویر ROM گفته می‌شود.\n"
+"داده‌های بازی، که معمولاً به آن تصویر رام گفته می‌شود.\n"
 "قالب‌های پشتیبانی شده: X64، D64، G64، P64، D67، D71، D81، D80، D82، D1M، D2M، "
 "D4M، T46، P00 و CRT."
 
 #: lutris/runners/vice.py:47
 msgid "Use joysticks"
-msgstr "بکارگیری جوی‌استیک‌ها"
+msgstr "استفاده از جوی‌استیک‌ها"
 
 #: lutris/runners/vice.py:59
 msgid "Scale up display by 2"
@@ -6434,7 +6429,7 @@ msgstr "فعال‌سازی شبیه‌سازی صدا برای درایوهای
 
 #: lutris/runners/vice.py:190
 msgid "No rom provided"
-msgstr "هیچ ROMی شناسانده نشده"
+msgstr "رام شناسانده نشده"
 
 #: lutris/runners/vita3k.py:12 lutris/runners/vita3k.py:98
 msgid "The Vita App has no Title ID set"
@@ -6442,7 +6437,7 @@ msgstr "برنامه ویتا هیچ شناسه عنوانی تنظیم نشده
 
 #: lutris/runners/vita3k.py:18
 msgid "Vita3K"
-msgstr "ویتاکی"
+msgstr "Vita3K"
 
 #: lutris/runners/vita3k.py:19
 msgid "Sony PlayStation Vita"
@@ -6502,11 +6497,11 @@ msgstr "بازی‌های مبتنی بر وب را اجرا می‌کند"
 
 #: lutris/runners/web.py:26
 msgid "Full URL or HTML file path"
-msgstr "آدرس کامل URL یا مسیر پرونده HTML"
+msgstr "نشانی کامل URL یا مسیر پرونده HTML"
 
 #: lutris/runners/web.py:27
 msgid "The full address of the game's web page or path to a HTML file."
-msgstr "آدرس کامل صفحه وب بازی یا مسیر یک پرونده HTML."
+msgstr "نشانی کامل صفحه وب بازی یا مسیر یک پرونده HTML."
 
 #: lutris/runners/web.py:33
 msgid "Open in fullscreen"
@@ -6547,14 +6542,14 @@ msgstr "پنجره هیچ حاشیه/قاب ندارد."
 
 #: lutris/runners/web.py:76
 msgid "Disable menu bar and default shortcuts"
-msgstr "غیرفعال کردن نوار گزینگان و میانبرهای پیش‌گزیده"
+msgstr "غیرفعال کردن نوار منو و میانبرهای پیش‌گزیده"
 
 #: lutris/runners/web.py:79
 msgid ""
 "This also disables default keyboard shortcuts, like copy/paste and "
 "fullscreen toggling."
 msgstr ""
-"این همچنین میانبرهای پیش‌گزیده صفحه‌کلید، مانند هم‌مانندسازی/چسباندن و تغییر "
+"این همچنین میانبرهای پیش‌گزیده صفحه‌کلید، مانند رونویسی/چسباندن و تغییر "
 "حالت تمام صفحه را غیرفعال می‌کند."
 
 #: lutris/runners/web.py:83
@@ -6610,7 +6605,7 @@ msgstr "User-Agent سفارشی"
 #: lutris/runners/web.py:124
 msgid "Overrides the default User-Agent header used by the runner."
 msgstr ""
-"هدر User-Agent پیش‌گزیده بکارگرفته شده توسط اجراکننده را نادیده می‌گیرد."
+"هدر User-Agent پیش‌گزیده استفاده شده توسط اجراکننده را نادیده می‌گیرد."
 
 #: lutris/runners/web.py:129
 msgid "Debug with Developer Tools"
@@ -6653,16 +6648,16 @@ msgid ""
 "For Chrome/Chromium app mode use: --app=\"$GAME\""
 msgstr ""
 "آرگومان‌های خط فرمان برای ارسال به پرونده اجرایی.\n"
-"$GAME یا $URL آدرس بازی را وارد می‌کند.\n"
+"$GAME یا $URL نشانی بازی را وارد می‌کند.\n"
 "\n"
-"برای حالت برنامه Chrome/Chromium، : --app=\"$GAME\" را بکار بگیرید."
+"برای حالت برنامه Chrome/Chromium، : --app=\"$GAME\" را استفاده کنید."
 
 #: lutris/runners/web.py:176
 msgid ""
 "The web address is empty, \n"
 "verify the game's configuration."
 msgstr ""
-"آدرس وب خالی است، \n"
+"نشانی وب خالی است، \n"
 "پیکربندی بازی را بررسی کنید."
 
 #: lutris/runners/web.py:183
@@ -6713,7 +6708,7 @@ msgid ""
 "but to use the latest DXVK version, %s is required."
 msgstr ""
 "<b>هشدار</b> لوتریس تشخیص داده است که نگارش API Vulkan %s نصب شده است، ولی "
-"برای بکارگرفتن آخرین نگارش DXVK، %s مورد نیاز است."
+"برای استفاده از آخرین نگارش DXVK، %s مورد نیاز است."
 
 #: lutris/runners/wine.py:136
 #, python-format
@@ -6721,8 +6716,8 @@ msgid ""
 "<b>Warning</b> Lutris has detected that the best device available ('%s') "
 "supports Vulkan API %s, but to use the latest DXVK version, %s is required."
 msgstr ""
-"<b>هشدار</b> لوتریس تشخیص داده است که بهترین دستگاه موجود ('%s') API Vulkan "
-"%s را پشتیبانی می‌کند، ولی برای بکارگرفتن آخرین نگارش DXVK، %s مورد نیاز است."
+"<b>هشدار</b> لوتریس تشخیص داده است که بهترین دستگاه موجود («%s») API Vulkan "
+"%s را پشتیبانی می‌کند، ولی برای استفاده از آخرین نگارش DXVK، %s مورد نیاز است."
 
 #: lutris/runners/wine.py:152
 msgid ""
@@ -6791,7 +6786,7 @@ msgstr "پرونده EXE اصلی بازی"
 
 #: lutris/runners/wine.py:217
 msgid "Windows command line arguments used when launching the game"
-msgstr "آرگومان‌های خط فرمان ویندوز که هنگام راه‌اندازی بازی بکارگرفته می‌شوند"
+msgstr "آرگومان‌های خط فرمان ویندوز که هنگام راه‌اندازی بازی استفاده می‌شوند"
 
 #: lutris/runners/wine.py:233
 msgid "Wine prefix"
@@ -6803,7 +6798,7 @@ msgid ""
 "It's a directory containing a set of files and folders making up a confined "
 "Windows environment."
 msgstr ""
-"پیشوندی که توسط واین بکارگرفته می‌شود.\n"
+"پیشوندی که توسط واین استفاده می‌شود.\n"
 "این یک مسیر است که شامل مجموعه‌ای از پرونده‌ها و پوشه‌ها است "
 "که یک محیط ویندوز محدود را تشکیل می‌دهد."
 
@@ -6825,15 +6820,15 @@ msgstr "معماری محیط ویندوز"
 
 #: lutris/runners/wine.py:252
 msgid "Integrate system files in the prefix"
-msgstr "ادغام پرونده‌های سامانه در پیشوند"
+msgstr "یکپارچه سازی پیشوند پرونده‌های سامانه"
 
 #: lutris/runners/wine.py:256
 msgid ""
 "Place 'Documents', 'Pictures', and similar files in your home folder, "
 "instead of keeping them in the game's prefix. This includes some saved games."
 msgstr ""
-"پرونده‌های 'Documents'، 'Pictures' و پرونده‌های مشابه را در پوشه خانگی خود "
-"قرار دهید، به جای اینکه آنها را در پیشوند بازی نگه دارید. این شامل برخی از "
+"پرونده‌های «Documents»، «Pictures» و پرونده‌های مشابه را در پوشه خانگی خود "
+"قرار دهید، به جای اکنونه آنها را در پیشوند بازی نگه دارید. این شامل برخی از "
 "بازی‌های ذخیره شده است."
 
 #: lutris/runners/wine.py:265
@@ -6846,8 +6841,8 @@ msgid ""
 "Using the last version is generally recommended, but some games work better "
 "on older versions."
 msgstr ""
-"نگارش واین که برای راه‌اندازی بازی بکارگرفته می‌شود.\n"
-"بکارگرفتن آخرین نگارش به طور کلی توصیه می‌شود، ولی برخی از بازی‌ها بهتر در "
+"نگارش واین که برای راه‌اندازی بازی استفاده می‌شود.\n"
+"استفاده از آخرین نگارش به طور کلی توصیه می‌شود، ولی برخی از بازی‌ها بهتر در "
 "نگارش‌های قدیمی‌تر کار می‌کنند."
 
 #: lutris/runners/wine.py:278
@@ -6859,16 +6854,16 @@ msgid ""
 "The Wine executable to be used if you have selected \"Custom\" as the Wine "
 "version."
 msgstr ""
-"پرونده اجرایی واین که باید بکارگرفته شود اگر \"سفارشی\" را به عنوان نگارش "
+"پرونده اجرایی واین که باید استفاده شود اگر \"سفارشی\" را به عنوان نگارش "
 "واین انتخاب کرده‌اید."
 
 #: lutris/runners/wine.py:285
 msgid "Use system winetricks"
-msgstr "بکارگرفتن winetricks سامانه"
+msgstr "استفاده از winetricks سامانه"
 
 #: lutris/runners/wine.py:289
 msgid "Switch on to use /usr/bin/winetricks for winetricks."
-msgstr "برای بکارگرفتن /usr/bin/winetricks برای winetricks روشن کنید."
+msgstr "برای استفاده از /usr/bin/winetricks برای winetricks روشن کنید."
 
 #: lutris/runners/wine.py:294
 msgid "Enable DXVK"
@@ -6884,7 +6879,7 @@ msgid ""
 "applications by translating their calls to Vulkan."
 msgstr ""
 "DXVK را برای افزایش سازگاری و عملکرد در برنامه‌های Direct3D 11، 10 و 9 با "
-"ترجمه تماس‌های آن‌ها به Vulkan بکار بگیرید."
+"ترجمه تماس‌های آن‌ها به Vulkan استفاده کنید."
 
 #: lutris/runners/wine.py:310
 msgid "DXVK version"
@@ -6904,7 +6899,7 @@ msgid ""
 "their calls to Vulkan."
 msgstr ""
 "VKD3D را برای فعال‌سازی پشتیبانی از برنامه‌های Direct3D 12 با ترجمه تماس‌های "
-"آن‌ها به Vulkan بکار بگیرید."
+"آن‌ها به Vulkan استفاده کنید."
 
 #: lutris/runners/wine.py:336
 msgid "VKD3D version"
@@ -6955,8 +6950,8 @@ msgid ""
 "to use it in combination with DXVK. Only 32-bit apps are supported."
 msgstr ""
 "dgvoodoo2 یک لایه ترجمه جایگزین برای رندر کردن بازی‌های قدیمی است که APIهای "
-"D3D1-7 و Glide را بکار میگیرند. از آنجا که به D3D11 ترجمه می‌شود، توصیه می‌شود"
-"که آن را در به هم پیوسته با DXVK بکار بگیرید. تنها برنامه‌های 32 بیتی "
+"D3D1-7 و Glide را استفاده میکنند. از آنجا که به D3D11 ترجمه می‌شود، توصیه می‌شود"
+"که آن را در به هم پیوسته با DXVK استفاده کنید. تنها برنامه‌های 32 بیتی "
 "پشتیبانی می‌شوند."
 
 #: lutris/runners/wine.py:407
@@ -6973,7 +6968,7 @@ msgid ""
 "in applications that take advantage of multi-core processors."
 msgstr ""
 "فعال کردن همگام سازی مبتنی بر eventfd (esync). این کار باعث افزایش عملکرد در "
-"برنامه هایی می شود که پردازنده های چند هسته ای را بکار میگیرند."
+"برنامه هایی می شود که پردازنده های چند هسته ای را استفاده میکنند."
 
 #: lutris/runners/wine.py:429
 msgid "Enable Fsync"
@@ -6986,7 +6981,7 @@ msgid ""
 "kernel 5.16 or above."
 msgstr ""
 "فعال کردن همگام سازی مبتنی بر futex (fsync). این کار باعث افزایش عملکرد در "
-"برنامه هایی می شود که پردازنده های چند هسته‌ای را بکار میگیرند. نیاز به هسته "
+"برنامه هایی می شود که پردازنده های چند هسته‌ای را استفاده میکنند. نیاز به هسته "
 "5.16 یا بالاتر دارد."
 
 #: lutris/runners/wine.py:443
@@ -7001,7 +6996,7 @@ msgid ""
 "Does not work with games running in borderless window mode or that perform "
 "their own upscaling."
 msgstr ""
-"بکارگرفتن FSR برای افزایش کیفیت پنجره بازی به رزولوشن بومی.\n"
+"استفاده از FSR برای افزایش کیفیت پنجره بازی به رزولوشن بومی.\n"
 "نیاز به لوتریس واین FShack >= 6.13 و تنظیم بازی به رزولوشن پایین تر دارد.\n"
 "با بازی هایی که در حالت پنجره بدون مرز اجرا می شوند یا خودشان افزایش کیفیت "
 "را انجام می دهند، کار نمی کند."
@@ -7072,15 +7067,15 @@ msgid ""
 "this."
 msgstr ""
 "فعال کردن مقیاس بندی DPI برنامه های ویندوز.\n"
-"در غیر این صورت، گزینه رزولوشن صفحه در 'پیکربندی واین' این را کنترل می کند."
+"در غیر این صورت، گزینه رزولوشن صفحه در «پیکربندی واین» این را کنترل می کند."
 
 #: lutris/runners/wine.py:516
 msgid ""
 "The DPI to be used if 'Enable DPI Scaling' is turned on.\n"
 "If blank or 'auto', Lutris will auto-detect this."
 msgstr ""
-"DPI بکارگرفته شده در صورت فعال بودن 'فعال کردن مقیاس بندی DPI'.\n"
-"اگر خالی یا 'auto' باشد، لوتریس این را به طور خودکار تشخیص می دهد."
+"DPI استفاده شده در صورت فعال بودن «فعال کردن مقیاس بندی DPI».\n"
+"اگر خالی یا «خودکار» باشد، لوتریس این را به طور خودکار تشخیص می دهد."
 
 #: lutris/runners/wine.py:522
 msgid "Mouse Warp Override"
@@ -7117,7 +7112,7 @@ msgid ""
 "Which audio backend to use.\n"
 "By default, Wine automatically picks the right one for your system."
 msgstr ""
-"کدام backend صوتی باید بکارگرفته شود.\n"
+"کدام backend صوتی باید استفاده شود.\n"
 "به‌طور پیش‌گزیده، واین به‌طور خودکار گزینه مناسب را برای سامانه شما انتخاب "
 "می‌کند."
 
@@ -7188,7 +7183,7 @@ msgstr "باز کردن ترمینال Bash"
 
 #: lutris/runners/wine.py:636
 msgid "Open Wine console"
-msgstr "باز کردن کنسول ٌواین"
+msgstr "باز کردن کنسول واین"
 
 #: lutris/runners/wine.py:638
 msgid "Wine configuration"
@@ -7213,12 +7208,12 @@ msgstr "winetricks"
 #: lutris/runners/wine.py:773 lutris/runners/wine.py:779
 #, python-format
 msgid "The Wine executable at '%s' is missing."
-msgstr "اجرای واین در '%s' گم شده است."
+msgstr "اجرای واین در «%s» گم شده است."
 
 #: lutris/runners/wine.py:837
 #, python-format
 msgid "The required game '%s' could not be found."
-msgstr "بازی مورد نیاز '%s' پیدا نشد."
+msgstr "بازی مورد نیاز «%s» پیدا نشد."
 
 #: lutris/runners/wine.py:870
 msgid "The runner configuration does not specify a Wine version."
@@ -7267,7 +7262,7 @@ msgstr "داده‌های بازی، که معمولاً به آن پرونده 
 
 #: lutris/runners/zdoom.py:29
 msgid "Command line arguments used when launching the game."
-msgstr "آرگومان‌های خط فرمان که هنگام راه‌اندازی بازی بکارگرفته می‌شوند."
+msgstr "آرگومان‌های خط فرمان که هنگام راه‌اندازی بازی استفاده می‌شوند."
 
 #: lutris/runners/zdoom.py:34
 msgid "PWAD files"
@@ -7279,7 +7274,7 @@ msgid ""
 "levels."
 msgstr ""
 "برای بارگذاری یک یا چند پرونده PWAD که معمولاً شامل سطوح ایجادشده توسط کاربر "
-"هستند، بکارگرفته می‌شود."
+"هستند، استفاده می‌شود."
 
 #: lutris/runners/zdoom.py:40
 msgid "Warp to map"
@@ -7334,7 +7329,7 @@ msgid ""
 "Used to load a user-created configuration file. If specified, the file must "
 "contain the wad directory list or launch will fail."
 msgstr ""
-"برای بارگذاری یک پرونده پیکربندی ایجادشده توسط کاربر بکارگرفته می‌شود. اگر "
+"برای بارگذاری یک پرونده پیکربندی ایجادشده توسط کاربر استفاده می‌شود. اگر "
 "مشخص شود، پرونده باید شامل فهرست مسیر wad باشد وگرنه راه‌اندازی شکست خواهد "
 "خورد."
 
@@ -7383,7 +7378,7 @@ msgstr "الگوریتم فشرده‌سازی ناشناخته‌ای در ما
 #: lutris/services/amazon.py:526
 #, python-format
 msgid "Unable to get the patches of game '%s'"
-msgstr "نمی‌توان وصله‌های بازی '%s' را دریافت کرد"
+msgstr "نمی‌توان وصله‌های بازی «%s» را دریافت کرد"
 
 #: lutris/services/amazon.py:603
 msgid "Unable to get fuel.json file."
@@ -7412,11 +7407,11 @@ msgstr ""
 
 #: lutris/services/battlenet.py:105
 msgid "Battle.net"
-msgstr "بتل نت"
+msgstr "بتل.نت"
 
 #: lutris/services/ea_app.py:146
 msgid "EA App"
-msgstr "برنامه EA"
+msgstr "نرم‌افزار EA"
 
 #: lutris/services/egs.py:142
 msgid "Epic Games Store"
@@ -7424,7 +7419,7 @@ msgstr "فروشگاه اپیک گیمز"
 
 #: lutris/services/flathub.py:56
 msgid "Flathub"
-msgstr "فلاتهاب"
+msgstr "فلت‌هاب"
 
 #: lutris/services/flathub.py:84
 msgid "No flatpak or flatpak-spawn found"
@@ -7435,7 +7430,7 @@ msgid ""
 "Flathub is not configured on the system. Visit https://flatpak.org/setup/ "
 "for instructions."
 msgstr ""
-"فلاتهاب بر روی سامانه پیکربندی نشده است. به https://فلت‌پک.org/setup/ برای "
+"فلت‌هاب بر روی سامانه پیکربندی نشده است. به https://فلت‌پک.org/setup/ برای "
 "دستورالعمل‌ها مراجعه کنید."
 
 #: lutris/services/gog.py:79
@@ -7452,11 +7447,11 @@ msgstr "نمی‌توان پرونده صحیح برای راه‌اندازی �
 
 #: lutris/services/humblebundle.py:62
 msgid "Humble Bundle"
-msgstr "همراه با همتایان"
+msgstr "هامبل باندل"
 
 #: lutris/services/humblebundle.py:82
 msgid "Workaround for Humble Bundle authentication"
-msgstr "راه‌حل برای احراز هویت Humble Bundle"
+msgstr "راه‌حل برای احراز هویت هامبل باندل"
 
 #: lutris/services/humblebundle.py:84
 msgid ""
@@ -7466,19 +7461,19 @@ msgid ""
 "There is a workaround involving copying cookies from Firefox, do you want to "
 "do this instead?"
 msgstr ""
-"Humble Bundle تماس‌های API از نرم‌افزارهایی مانند لوتریس و GameHub را محدود "
+"هامبل باندل تماس‌های API از نرم‌افزارهایی مانند لوتریس و گیم‌هاب' را محدود "
 "می‌کند.\n"
 "احراز هویت به این سرویس احتمالاً شکست خواهد خورد.\n"
-"یک راه‌حل شامل هم‌مانندسازی کردن کوکی‌ها از فایرفاکس وجود دارد، آیا می‌خواهید "
+"یک راه‌حل شامل رونویسی کردن کوکی‌ها از فایرفاکس وجود دارد، آیا می‌خواهید "
 "این کار را انجام دهید؟"
 
 #: lutris/services/humblebundle.py:235
 msgid "The download URL for the game could not be determined."
-msgstr "آدرس دریافت برای بازی قابل تعیین نیست."
+msgstr "نشانی دریافت بازی قابل تعیین نیست."
 
 #: lutris/services/humblebundle.py:237
 msgid "No game found on Humble Bundle"
-msgstr "هیچ بازی در Humble Bundle یافت نشد"
+msgstr "هیچ بازی در هامبل باندل یافت نشد"
 
 #. According to their branding, "itch.io" is supposed to be all lowercase
 #: lutris/services/itchio.py:95
@@ -7488,15 +7483,15 @@ msgstr "itch.io"
 #: lutris/services/lutris.py:132
 #, python-format
 msgid "Lutris has no installers for %s. Try using a different service instead."
-msgstr "لوتریس هیچ نصبی برای %s ندارد. بکوشید سرویس دیگری را بکار بگیرید."
+msgstr "لوتریس هیچ نصبی برای %s ندارد. تلاش کنید خدمت دیگری را استفاده کنید."
 
 #: lutris/services/steam.py:98
 msgid ""
 "Failed to load games. Check that your profile is set to public during the "
 "sync."
 msgstr ""
-"بارگذاری بازی‌ها شکست خورد. بررسی کنید که نمایه شما در حین همگام‌سازی عمومی "
-"تنظیم شده باشد."
+"بارگذاری بازی‌ها با خطا مواجه شد. مطمئن شوید که نمایه شما"
+"در زمان همگام‌سازی روی حالت عمومی تنظیم شده است."
 
 #: lutris/services/steamwindows.py:24
 msgid "Steam for Windows"
@@ -7507,11 +7502,11 @@ msgid ""
 "Use only for the rare games or mods requiring the Windows version of Steam"
 msgstr ""
 "تنها برای بازی‌ها یا مدهای نادر که به نگارش ویندوز استیم نیاز دارند، "
-"بکارگرفته میشود"
+"استفاده میشود"
 
 #: lutris/services/ubisoft.py:85
 msgid "Ubisoft Connect"
-msgstr "اتصال یوبی‌سافت"
+msgstr "پیوند بو‌بی‌سافت"
 
 #: lutris/services/xdg.py:44
 msgid "Local"
@@ -7527,8 +7522,8 @@ msgid ""
 "Failed to open database file in %s. Try renaming this file and relaunch "
 "Lutris"
 msgstr ""
-"باز کردن پرونده پایگاه داده در %s شکست خورد. کوشش کنید این پرونده را تغییر "
-"نام دهید و لوتریس را دوباره راه‌اندازی کنید."
+"باز کردن پرونده پایگاه داده در %s شکست خورد. تلاش کنید نام این پرونده را تغییر"
+" دهید و لوتریس را دوباره راه‌اندازی کنید."
 
 #: lutris/sysoptions.py:19
 msgid "Keep current"
@@ -7587,7 +7582,7 @@ msgid ""
 "The Lutris Runtime loads some libraries before running the game, which can "
 "cause some incompatibilities in some cases. Check this option to disable it."
 msgstr ""
-"زمان اجرای لوتریس برخی کتابخانه‌ها را پیش از اجرای بازی بارگذاری می‌کند که "
+"زمان اجرای لوتریس(lutris runtime) برخی کتابخانه‌ها را پیش از اجرای بازی بارگذاری می‌کند که "
 "ممکن است در برخی موارد باعث ناسازگاری شود. این گزینه را بررسی کنید تا آن را "
 "غیرفعال کنید."
 
@@ -7665,19 +7660,19 @@ msgstr ""
 
 #: lutris/sysoptions.py:171
 msgid "SDL 1.2 Fullscreen Monitor"
-msgstr "مانیتور تمام صفحه SDL 1.2"
+msgstr "نمایشگر تمام صفحه SDL 1.2"
 
 #: lutris/sysoptions.py:177
 msgid ""
 "Hint SDL 1.2 games to use a specific monitor when going fullscreen by "
 "setting the SDL_VIDEO_FULLSCREEN environment variable"
 msgstr ""
-"به بازی‌های SDL 1.2 اشاره کنید که برای رفتن به حالت تمام صفحه یک مانیتور ویژه "
-"را بکار میگیرند با تنظیم متغیر محیطی SDL_VIDEO_FULLSCREEN"
+"به بازی‌های SDL 1.2 اشاره کنید که برای رفتن به حالت تمام صفحه یک نمایشگر ویژه "
+"را استفاده میکنند با تنظیم متغیر محیطی SDL_VIDEO_FULLSCREEN"
 
 #: lutris/sysoptions.py:186
 msgid "Turn off monitors except"
-msgstr "خاموش کردن مانیتورها به جز"
+msgstr "خاموش کردن نمایشگرها به جز"
 
 #: lutris/sysoptions.py:192
 msgid ""
@@ -7706,7 +7701,7 @@ msgid ""
 "Use gamescope to draw the game window isolated from your desktop.\n"
 "Toggle fullscreen: Super + F"
 msgstr ""
-"Gamescope را برای رسم پنجره بازی به صورت جدا از میزکار خود بکار بگیرید.\n"
+"Gamescope را برای رسم پنجره بازی به صورت جدا از میزکار خود استفاده کنید.\n"
 "تغییر حالت تمام صفحه: Super + F"
 
 #: lutris/sysoptions.py:222
@@ -7731,7 +7726,7 @@ msgid ""
 "dependent on cursor visibility\n"
 "Can help with games where the player's camera faces the floor"
 msgstr ""
-"همیشه حالت ماوس نسبی را بکار بگیرید به جای تغییر\n"
+"همیشه حالت ماوس نسبی را استفاده کنید به جای تغییر\n"
 "بسته به دید ماوس\n"
 "می‌تواند در بازی‌هایی که دوربین بازیکن به سمت زمین است کمک کند."
 
@@ -7746,7 +7741,7 @@ msgid ""
 "\n"
 "<b>Custom Resolutions:</b> (width)x(height)"
 msgstr ""
-"وضوح بکارگرفته شده توسط Gamescope را تنظیم کنید.\n"
+"وضوح استفاده شده توسط Gamescope را تنظیم کنید.\n"
 "تغییر اندازه پنجره Gamescope این تنظیمات را به‌روزرسانی می‌کند.\n"
 "\n"
 "<b>وضوح‌های سفارشی:</b> (عرض)x(ارتفاع)"
@@ -7761,7 +7756,7 @@ msgid ""
 "\n"
 "<b>Custom Resolutions:</b> (width)x(height)"
 msgstr ""
-"بیشینه وضوح مورد بکارگرفته توسط بازی را تنظیم کنید.\n"
+"بیشینه وضوح مورد استفاده توسط بازی را تنظیم کنید.\n"
 "\n"
 "<b>وضوح‌های سفارشی:</b> (عرض)x(ارتفاع)"
 
@@ -7794,7 +7789,7 @@ msgid ""
 "Use AMD FidelityFX™ Super Resolution 1.0 for upscaling.\n"
 "Upscaler sharpness from 0 (max) to 20 (min)."
 msgstr ""
-"AMD FidelityFX™ Super Resolution 1.0  را برای بزرگ‌نمایی بکار بگیرید.\n"
+"AMD FidelityFX™ Super Resolution 1.0  را برای بزرگ‌نمایی استفاده کنید.\n"
 "تندی بزرگ‌نمایی از 0 (حداکثر) تا 20 (حداقل)."
 
 #: lutris/sysoptions.py:300
@@ -7817,11 +7812,11 @@ msgid ""
 "See 'gamescope --help' for a full list of options."
 msgstr ""
 "پرچم‌های افزوده برای Gamescope را تنظیم کنید (در صورت موجود بودن).\n"
-"برای فهرست کامل گزینه‌ها به 'gamescope --help' مراجعه کنید."
+"برای فهرست کامل گزینه‌ها به «gamescope --help» مراجعه کنید."
 
 #: lutris/sysoptions.py:323
 msgid "Restrict number of cores used"
-msgstr "محدود کردن تعداد هسته‌های بکارگرفته شده"
+msgstr "محدود کردن تعداد هسته‌های استفاده شده"
 
 #: lutris/sysoptions.py:325
 msgid "Restrict the game to a maximum number of CPU cores."
@@ -7836,8 +7831,8 @@ msgid ""
 "Maximum number of CPU cores to be used, if 'Restrict number of cores used' "
 "is turned on."
 msgstr ""
-"بیشینه تعداد هسته‌های CPU که باید بکارگرفته شود، اگر 'محدود کردن تعداد "
-"هسته‌های بکارگرفته شده' فعال باشد."
+"بیشینه تعداد هسته‌های CPU که باید استفاده شود، اگر «محدود کردن تعداد "
+"هسته‌های استفاده شده» فعال باشد."
 
 #: lutris/sysoptions.py:342
 msgid "Enable Feral GameMode"
@@ -7918,7 +7913,7 @@ msgid ""
 "The terminal emulator used with the CLI mode. Choose from the list of "
 "detected terminal apps or enter the terminal's command or path."
 msgstr ""
-"شبیه‌ساز ترمینال بکارگرفته شده با حالت CLI. از فهرست برنامه‌های ترمینال "
+"شبیه‌ساز ترمینال استفاده شده با حالت CLI. از فهرست برنامه‌های ترمینال "
 "شناسایی شده انتخاب کنید یا دستور یا مسیر ترمینال را وارد کنید."
 
 #: lutris/sysoptions.py:410 lutris/sysoptions.py:417 lutris/sysoptions.py:427
@@ -7934,14 +7929,14 @@ msgstr "متغیرهای محیطی در زمان اجرا بارگذاری می
 
 #: lutris/sysoptions.py:420
 msgid "Locale"
-msgstr "محلی(locale)"
+msgstr "زبان"
 
 #: lutris/sysoptions.py:424
 msgid ""
 "Can be used to force certain locale for an app. Fixes encoding issues in "
 "legacy software."
 msgstr ""
-"می‌تواند برای تحمیل یک محلی(locale) ویژه برای یک برنامه بکارگرفته شود. مشکلات "
+"می‌تواند برای تحمیل یک زبان(locale) ویژه برای یک برنامه استفاده شود. مشکلات "
 "کدگذاری در نرم‌افزارهای قدیمی را برطرف می‌کند."
 
 #: lutris/sysoptions.py:430
@@ -7959,7 +7954,7 @@ msgstr "اسکریپت دستی"
 
 #: lutris/sysoptions.py:440
 msgid "Script to execute from the game's contextual menu"
-msgstr "اسکریپتی که از گزینگان زمینه بازی اجرا می‌شود"
+msgstr "اسکریپتی که از منو زمینه بازی اجرا می‌شود"
 
 #: lutris/sysoptions.py:446
 msgid "Pre-launch script"
@@ -8031,11 +8026,11 @@ msgstr ""
 
 #: lutris/sysoptions.py:508 lutris/sysoptions.py:524 lutris/sysoptions.py:533
 msgid "Xephyr (Deprecated, use Gamescope)"
-msgstr "Xephyr (منسوخ شده، Gamescope را بکار بگیرید)"
+msgstr "Xephyr (منسوخ شده، Gamescope را استفاده کنید)"
 
 #: lutris/sysoptions.py:510
 msgid "Use Xephyr"
-msgstr "بکارگرفتن Xephyr"
+msgstr "استفاده از Xephyr"
 
 #: lutris/sysoptions.py:514
 msgid "8BPP (256 colors)"
@@ -8078,7 +8073,7 @@ msgstr "فلت‌پک نصب نشده است"
 msgid ""
 "'%s' could not be moved to the trash. You will need to delete it yourself."
 msgstr ""
-"'%s' نمی‌تواند به سطل زباله جابه‌جا شود. شما باید خودتان آن را پاک کنید."
+"«%s» نمی‌تواند به سطل زباله جابه‌جا شود. شما باید خودتان آن را پاک کنید."
 
 #: lutris/util/portals.py:88
 #, python-format
@@ -8103,7 +8098,7 @@ msgstr "ساعت"
 
 #: lutris/util/strings.py:199 lutris/util/strings.py:266
 msgid "hours"
-msgstr "ساعت‌ها"
+msgstr "ساعت"
 
 #: lutris/util/strings.py:203 lutris/util/strings.py:267
 msgid "minute"
@@ -8111,7 +8106,7 @@ msgstr "دقیقه"
 
 #: lutris/util/strings.py:203 lutris/util/strings.py:267
 msgid "minutes"
-msgstr "دقیقه‌ها"
+msgstr "دقیقه"
 
 #: lutris/util/strings.py:210 lutris/util/strings.py:295
 msgid "Less than a minute"
@@ -8123,7 +8118,7 @@ msgstr "روز"
 
 #: lutris/util/strings.py:268
 msgid "days"
-msgstr "روزها"
+msgstr "روز"
 
 #: lutris/util/strings.py:269
 msgid "week"
@@ -8131,7 +8126,7 @@ msgstr "هفته"
 
 #: lutris/util/strings.py:269
 msgid "weeks"
-msgstr "هفته‌ها"
+msgstr "هفته"
 
 #: lutris/util/strings.py:270
 msgid "month"
@@ -8139,7 +8134,7 @@ msgstr "ماه"
 
 #: lutris/util/strings.py:270
 msgid "months"
-msgstr "ماه‌ها"
+msgstr "ماه"
 
 #: lutris/util/strings.py:271
 msgid "year"
@@ -8147,12 +8142,12 @@ msgstr "سال"
 
 #: lutris/util/strings.py:271
 msgid "years"
-msgstr "سال‌ها"
+msgstr "سال"
 
 #: lutris/util/strings.py:301
 #, python-format
 msgid "'%s' is not a valid playtime."
-msgstr "'%s' زمان بازی معتبری نیست."
+msgstr "«%s» زمان بازی معتبری نیست."
 
 #: lutris/util/strings.py:386
 msgid "in the future"
@@ -8231,7 +8226,7 @@ msgstr "راهنما"
 #, python-format
 msgid "Proton version '%s' is missing its wine executable and can't be used."
 msgstr ""
-"نگارش پروتون '%s' پرونده اجرایی واین خود را ندارد و نمی‌توان آن را بکارگرفت."
+"نگارش پروتون «%s» پرونده اجرایی واین خود را ندارد و نمی‌توان آن را استفاده کرد."
 
 #: lutris/util/wine/wine.py:159
 msgid "The Wine version must be specified."
