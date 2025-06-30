@@ -129,6 +129,12 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             tooltip=_("Change where Lutris downloads game installer files."),
         )
 
+        self.speedtest_button = self.add_menu_button(
+            _("Run Speedtests"),
+            self.on_speedtest_clicked,
+            tooltip=_("Run a short speedtest on all files available for download"),
+        )
+
         self.source_button = self.add_menu_button(_("View installer source"), self.on_source_clicked)
 
         # Pre-create some UI bits we need to refer to in several places.
@@ -207,6 +213,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def on_cache_clicked(self, _button):
         """Open the cache configuration dialog"""
         CacheConfigurationDialog(parent=self)
+
+    def on_speedtest_clicked(self, _button):
+        """Begin speedtest on all files sequentially"""
+        self.installer_files_box.speedtest()
 
     def on_response(self, dialog, response: Gtk.ResponseType) -> None:
         if response in (Gtk.ResponseType.CLOSE, Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
@@ -683,7 +693,11 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         logger.debug("Presenting installer files page")
         self.set_status(_("Please review the files needed for the installation then click 'Install'"))
         self.stack.present_page("installer_files")
-        self.display_install_button(self.on_files_confirmed, sensitive=self.installer_files_box.is_ready)
+        self.display_install_button(
+            self.on_files_confirmed,
+            sensitive=self.installer_files_box.is_ready,
+            extra_buttons=[self.speedtest_button if self.interpreter.installer.files else None, self.source_button],
+        )
 
     def present_downloading_files_page(self):
         def on_exit_page():
@@ -1063,10 +1077,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         buttons = [self.continue_button] + (extra_buttons or [])
         self.display_buttons(buttons)
 
-    def display_install_button(self, handler, sensitive=True):
+    def display_install_button(self, handler, sensitive=True, extra_buttons=None):
         """Displays the continue button, but labels it 'Install'."""
         self.display_continue_button(
-            handler, continue_button_label=_("_Install"), sensitive=sensitive, extra_buttons=[self.source_button]
+            handler, continue_button_label=_("_Install"), sensitive=sensitive, extra_buttons=extra_buttons or []
         )
 
     def display_cancel_button(self, extra_buttons=None):
@@ -1087,7 +1101,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self.cancel_button.set_tooltip_text("")
             style_context.remove_class("destructive-action")
 
-        all_buttons = [self.cache_button, self.source_button, self.continue_button]
+        all_buttons = [self.cache_button, self.source_button, self.continue_button, self.speedtest_button]
 
         for b in all_buttons:
             b.set_visible(b in buttons)
