@@ -2,6 +2,7 @@ import bisect
 import os
 import threading
 import time
+import urllib
 from typing import Any
 
 import requests
@@ -35,6 +36,7 @@ class Downloader:
         self.referer = referer
         self.stop_request = None
         self.thread = None
+        self.url_is_file = urllib.parse.urlparse(self.url).scheme == "file"
 
         # Read these after a check_progress()
         self.state = self.INIT
@@ -125,7 +127,31 @@ class Downloader:
         if os.path.isfile(self.dest):
             os.remove(self.dest)
 
-    def async_download(self):
+    @staticmethod
+    def seq_local_copy(src, chunk_size):
+        with open(src, "rb") as file:
+            for chunk in iter(lambda: file.read(chunk_size), ""):
+                if chunk:
+                    yield chunk
+                else:
+                    break
+
+    def async_download_local(self):
+        try:
+            localfile = urllib.parse.unquote(urllib.parse.urlparse(self.url).path)
+            self.full_size = os.path.getsize(localfile)
+            for chunk in self.seq_local_copy(localfile, 8192):
+                if not self.file_pointer:
+                    break
+                self.downloaded_size += len(chunk)
+                self.file_pointer.write(chunk)
+                self.progress_event.set()
+            self.on_download_completed()
+        except Exception as ex:
+            logger.exception("Local copy failed: %s", ex)
+            self.on_download_failed(ex)
+
+    def async_download_remote(self):
         try:
             headers = requests.utils.default_headers()
             headers["User-Agent"] = "Lutris/%s" % __version__
@@ -148,6 +174,12 @@ class Downloader:
         except Exception as ex:
             logger.exception("Download failed: %s", ex)
             self.on_download_failed(ex)
+
+    def async_download(self):
+        if self.url_is_file:
+            self.async_download_local()
+        else:
+            self.async_download_remote()
 
     def on_download_failed(self, error: Exception):
         # Cancelling closes the file, which can result in an
