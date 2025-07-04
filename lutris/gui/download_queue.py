@@ -1,8 +1,8 @@
 # pylint: disable=no-member
 import os
-from typing import Any, Callable, Dict, Iterable, List, Set
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set
 
-from gi.repository import GObject, Gtk
+from gi.repository import GObject, Gtk  # type: ignore
 
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.progress_box import ProgressBox
@@ -22,7 +22,7 @@ class DownloadQueue(Gtk.ScrolledWindow):
 
     __gtype_name__ = "DownloadQueue"
 
-    download_box: Gtk.Box = GtkTemplate.Child()
+    download_box: Gtk.Box = GtkTemplate.Child()  # type: ignore
 
     CompletionFunction = Callable[[Any], None]
     ErrorFunction = Callable[[Exception], None]
@@ -99,9 +99,9 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self,
         operation: Callable[[], Any],
         progress_function: ProgressBox.ProgressFunction,
-        completion_function: CompletionFunction = None,
-        error_function: ErrorFunction = None,
-        operation_name: str = None,
+        completion_function: Optional[CompletionFunction] = None,
+        error_function: Optional[ErrorFunction] = None,
+        operation_name: Optional[str] = None,
     ) -> bool:
         """Runs 'operation' on a thread, while displaying a progress bar. The 'progress_function'
         controls this progress bar, and it is removed when the 'operation' completes.
@@ -129,9 +129,9 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self,
         operation: Callable[[], Any],
         progress_functions: Iterable[ProgressBox.ProgressFunction],
-        completion_function: CompletionFunction = None,
-        error_function: ErrorFunction = None,
-        operation_names: List[str] = None,
+        completion_function: Optional[CompletionFunction] = None,
+        error_function: Optional[ErrorFunction] = None,
+        operation_names: Optional[List[str]] = None,
     ) -> bool:
         """Runs 'operation' on a thread, while displaying a set of progress bars. The
         'progress_functions' control these progress bars, and they are removed when the
@@ -152,6 +152,8 @@ class DownloadQueue(Gtk.ScrolledWindow):
             if not self.running_operation_names.isdisjoint(operation_names):
                 return False
             self.running_operation_names.update(operation_names)
+        else:
+            operation_names = []
 
         # Must capture the functions, since in earlier (<3.8) Pythons functions do not provide
         # value equality, so we need to make sure we're always using what we started with.

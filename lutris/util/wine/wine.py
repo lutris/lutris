@@ -34,7 +34,7 @@ except Exception as ex:
     logger.exception("Unable to enumerate system Wine versions: %s", ex)
 
 
-def detect_arch(prefix_path: str = "", wine_path: str = "") -> str:
+def detect_arch(prefix_path: Optional[str] = None, wine_path: Optional[str] = None) -> str:
     """Given a Wine prefix path, return its architecture"""
     if wine_path:
         if proton.is_proton_path(wine_path) or system.path_exists(wine_path + "64"):
@@ -237,7 +237,7 @@ def get_system_wine_version(wine_path: str = "wine") -> str:
     return version
 
 
-def get_real_executable(windows_executable: str, working_dir: str) -> Tuple[str, List[str], str]:
+def get_real_executable(windows_executable: str, working_dir: Optional[str]) -> Tuple[str, List[str], Optional[str]]:
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""
 

@@ -13,7 +13,7 @@ from gettext import gettext as _
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from gi.repository import Gio, GLib
+from gi.repository import Gio, GLib  # type: ignore
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
@@ -41,11 +41,11 @@ def get_environment():
 
 def execute(
     command: List[str],
-    env: Dict[str, str] = None,
-    cwd: str = None,
+    env: Optional[Dict[str, str]] = None,
+    cwd: Optional[str] = None,
     quiet: bool = False,
     shell: bool = False,
-    timeout: float = None,
+    timeout: Optional[float] = None,
 ) -> str:
     """
     Execute a system command and return its standard output; standard error is discarded.
@@ -66,11 +66,11 @@ def execute(
 
 def execute_with_error(
     command: List[str],
-    env: Dict[str, str] = None,
-    cwd: str = None,
+    env: Optional[Dict[str, str]] = None,
+    cwd: Optional[str] = None,
     quiet: bool = False,
     shell: bool = False,
-    timeout: float = None,
+    timeout: Optional[float] = None,
 ) -> Tuple[str, str]:
     """
     Execute a system command and return its standard output and; standard error in a tuple.
@@ -90,12 +90,12 @@ def execute_with_error(
 
 def _execute(
     command: List[str],
-    env: Dict[str, str] = None,
-    cwd: str = None,
+    env: Optional[Dict[str, str]] = None,
+    cwd: Optional[str] = None,
     capture_stderr: bool = False,
     quiet: bool = False,
     shell: bool = False,
-    timeout: float = None,
+    timeout: Optional[float] = None,
 ) -> Tuple[str, str]:
     # Check if the executable exists
     if not command:
@@ -292,11 +292,8 @@ def kill_pid(pid):
         logger.error("Could not kill process %s", pid)
 
 
-def python_identifier(unsafe_string):
+def python_identifier(unsafe_string: str):
     """Converts a string to something that can be used as a python variable"""
-    if not isinstance(unsafe_string, str):
-        logger.error("Cannot convert %s to a python identifier", type(unsafe_string))
-        return
 
     def _dashrepl(matchobj):
         return matchobj.group(0).replace("-", "_")
@@ -304,7 +301,7 @@ def python_identifier(unsafe_string):
     return re.sub(r"(\${)([\w-]*)(})", _dashrepl, unsafe_string)
 
 
-def substitute(string_template, variables):
+def substitute(string_template: str, variables):
     """Expand variables on a string template
 
     Args:
@@ -355,8 +352,8 @@ def merge_folders(source, destination):
 
 def remove_folder(
     path: str,
-    completion_function: TrashPortal.CompletionFunction = None,
-    error_function: TrashPortal.ErrorFunction = None,
+    completion_function: Optional[TrashPortal.CompletionFunction] = None,
+    error_function: Optional[TrashPortal.ErrorFunction] = None,
 ) -> None:
     """Trashes a folder specified by path, asynchronously. The folder
     likely exists after this returns, since it's using DBus to ask

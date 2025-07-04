@@ -913,7 +913,7 @@ class wine(Runner):
 
     def run_wine_terminal(self, *args):
         terminal = self.system_config.get("terminal_app")
-        system_winetricks = self.runner_config.get("system_winetricks")
+        system_winetricks: bool = self.runner_config.get("system_winetricks", False)
         open_wine_terminal(
             terminal=terminal,
             wine_path=self.get_executable(),
@@ -1213,10 +1213,10 @@ class wine(Runner):
         except Exception as ex:
             logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
 
-    def play(self):  # pylint: disable=too-many-return-statements # noqa: C901
+    def play(self):  # pylint: disable=too-many-return-statements
         game_exe = self.game_exe
-        arguments = self.game_config.get("args", "")
-        launch_info = {"env": self.get_env(os_env=False)}
+        arguments: str = self.game_config.get("args", "")
+        launch_info: dict = {"env": self.get_env(os_env=False)}
         using_dxvk = self.runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported
 
         if using_dxvk:

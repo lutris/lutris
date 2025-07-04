@@ -160,7 +160,10 @@ class SteamID:
         match = COMMUNITY32_REGEX.match(url.path)
         if match:
             if match.group("path") not in TYPE_URL_PATH_MAP[LETTER_TYPE_MAP[match.group("type")]]:
-                warnings.warn("Community URL ({}) path doesn't match type character".format(url.path))
+                warnings.warn(
+                    "Community URL ({}) path doesn't match type character".format(url.path),
+                    stacklevel=2,
+                )
             steamid = int(match.group("steamid"))
             instance = steamid & 1
             account_number = (steamid - instance) / 2

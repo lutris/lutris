@@ -96,7 +96,7 @@ class LutrisApplication(Gtk.Application):
         self.tray = None
 
         self.quit_on_game_exit = False
-        self.style_manager = None
+        self.style_manager = StyleManager()
 
         if os.geteuid() == 0:
             NoticeDialog(_("Do not run Lutris as root."))
@@ -339,8 +339,6 @@ class LutrisApplication(Gtk.Application):
         action.connect("activate", lambda *x: self.quit())
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
-
-        self.style_manager = StyleManager()
 
     def do_activate(self):  # pylint: disable=arguments-differ
         if not self.window:

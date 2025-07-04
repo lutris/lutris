@@ -96,7 +96,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     version_notification_label: Gtk.Revealer = GtkTemplate.Child()
     show_hidden_games_button: Gtk.ModelButton = GtkTemplate.Child()
 
-    def __init__(self, application, **kwargs) -> None:
+    def __init__(self, application=None, **kwargs) -> None:
         width = int(settings.read_setting("width") or self.default_width)
         height = int(settings.read_setting("height") or self.default_height)
         super().__init__(
@@ -150,7 +150,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         # Since system-search-symbolic is already *right there* we'll try to pick some
         # other icon for the button that shows the search popover.
         fallback_filter_icons_names = ["filter-symbolic", "edit-find-replace-symbolic", "system-search-symbolic"]
-        filter_button_image = self.search_filters_button.get_child()
+        filter_button_image: Gtk.Image = self.search_filters_button.get_child()
         for n in fallback_filter_icons_names:
             if has_stock_icon(n):
                 filter_button_image.set_from_icon_name(n, Gtk.IconSize.BUTTON)
