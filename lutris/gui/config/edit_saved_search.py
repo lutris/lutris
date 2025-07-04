@@ -83,7 +83,7 @@ class SearchFiltersBox(Gtk.Box):
         self.show_all()
 
     def _add_entry_box(
-        self, label: str, text: str, button_icon_names: List[str] = None, clicked: Callable = None
+        self, label: str, text: str, button_icon_names: Optional[List[str]] = None, clicked: Optional[Callable] = None
     ) -> Gtk.Entry:
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         entry_label = Gtk.Label(label)

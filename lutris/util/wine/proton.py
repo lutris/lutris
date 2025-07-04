@@ -21,7 +21,7 @@ def is_proton_version(version: Optional[str]) -> bool:
     return version in get_proton_versions()
 
 
-def is_umu_path(path: str) -> bool:
+def is_umu_path(path: Optional[str]) -> bool:
     """True if the path given actually runs Umu; this will run Proton-Wine in turn,
     but can be directed to particular Proton implementation by setting the env-var
     PROTONPATH, but if this is omitted it will default to the latest Proton it
@@ -29,7 +29,7 @@ def is_umu_path(path: str) -> bool:
     return bool(path and (path.endswith("/umu_run.py") or path.endswith("/umu-run")))
 
 
-def is_proton_path(wine_path: str) -> bool:
+def is_proton_path(wine_path: Optional[str]) -> bool:
     """True if the path given actually runs Umu; this will run Proton-Wine in turn,
     but can be directed to particular Proton implementation by setting the env-var
     PROTONPATH, but if this is omitted it will default to the latest Proton it

@@ -51,8 +51,8 @@ class ServiceMedia:
     def trash_media(
         self,
         slug: str,
-        completion_function: TrashPortal.CompletionFunction = None,
-        error_function: TrashPortal.ErrorFunction = None,
+        completion_function: Optional[TrashPortal.CompletionFunction] = None,
+        error_function: Optional[TrashPortal.ErrorFunction] = None,
     ) -> None:
         """Sends each media file for a game to the trash, and invokes callsbacks when this
         has been completed or has failed."""

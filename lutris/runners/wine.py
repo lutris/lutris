@@ -906,12 +906,12 @@ class wine(Runner):
             runner=self,
         )
 
-    def run_regedit(self, *args):
+    def run_regedit(self, *args) -> None:
         """Run regedit in the current context"""
         self.prelaunch()
         self._run_executable("regedit")
 
-    def run_wine_terminal(self, *args):
+    def run_wine_terminal(self, *args) -> None:
         terminal = self.system_config.get("terminal_app")
         system_winetricks: bool = self.runner_config.get("system_winetricks", False)
         open_wine_terminal(
@@ -1213,7 +1213,7 @@ class wine(Runner):
         except Exception as ex:
             logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
 
-    def play(self):  # pylint: disable=too-many-return-statements
+    def play(self) -> Dict[str, Any]:  # pylint: disable=too-many-return-statements
         game_exe = self.game_exe
         arguments: str = self.game_config.get("args", "")
         launch_info: dict = {"env": self.get_env(os_env=False)}

@@ -7,17 +7,17 @@ _string_type = str
 import collections as _c
 
 
-class _kView(_c.KeysView):
+class _kView(_c.KeysView):  # type: ignore
     def __iter__(self):
         return self._mapping.iterkeys()
 
 
-class _vView(_c.ValuesView):
+class _vView(_c.ValuesView):  # type: ignore
     def __iter__(self):
         return self._mapping.itervalues()
 
 
-class _iView(_c.ItemsView):
+class _iView(_c.ItemsView):  # type: ignore
     def __iter__(self):
         return self._mapping.iteritems()
 

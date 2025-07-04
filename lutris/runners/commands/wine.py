@@ -8,6 +8,7 @@ from typing import Dict, Optional, Tuple
 
 from lutris import runtime, settings
 from lutris.config import LutrisConfig
+from lutris.exceptions import MissingExecutableError
 from lutris.monitored_command import MonitoredCommand
 from lutris.runners import import_runner
 from lutris.util import linux, system
@@ -290,6 +291,9 @@ def wineexec(
     if not wine_path:
         wine_path = runner.get_executable()
 
+        if not wine_path:  # to satisfy mypy really
+            raise MissingExecutableError("The wine path could not be determined.")
+
     if not working_dir:
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
@@ -378,9 +382,10 @@ def wineexec(
 
 
 def find_winetricks(
-    env: Optional[dict[str, str]] = None, system_winetricks=False
+    env: Optional[dict[str, str]] = None, system_winetricks: bool = False
 ) -> Tuple[str, Optional[str], Dict[str, str]]:
     """Find winetricks path."""
+    env = env or {}
     winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
     if system_winetricks or not system.path_exists(winetricks_path):
         winetricks_path = system.find_required_executable("winetricks")
@@ -391,7 +396,6 @@ def find_winetricks(
         # working_dir, so it will find the data file.
         working_dir = os.path.join(settings.RUNTIME_DIR, "winetricks")
 
-        env = env or {}
         path = env.get("PATH", os.environ["PATH"])
         env["PATH"] = "%s:%s" % (working_dir, path)
 
