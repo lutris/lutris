@@ -131,13 +131,13 @@ class ConfigBox(VBox):
             if is_advanced:
                 # Record that we hid this because it was advanced, not because of ordinary
                 # visibility
-                option_container.lutris_advanced_hidden = True
+                option_container.lutris_advanced_hidden = True  # type:ignore[attr-defined]
                 return False
 
         filter_text = self._filter_text
         if filter_text and hasattr(option_container, "lutris_option_label"):
             label = option_container.lutris_option_label.casefold()
-            helptext = option_container.lutris_option_helptext.casefold()
+            helptext = option_container.lutris_option_helptext.casefold()  # type:ignore[attr-defined]
             if filter_text not in label and filter_text not in helptext:
                 return False
 
@@ -263,7 +263,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
         else:
             return default
 
-    def update_option_container(self, option, container: Gtk.Box, wrapper: Gtk.Box):
+    def update_option_container(self, option, container: Gtk.Container, wrapper: Gtk.Container) -> None:
         super().update_option_container(option, container, wrapper)
         option_key = option["option"]
 
@@ -278,7 +278,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
             else:
                 set_option_wrapper_style_class(wrapper, None)
 
-    def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Widget:
+    def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Container:
         option_key = option["option"]
         reset_container = Gtk.Box(visible=True)
         reset_container.set_margin_left(18)
@@ -307,7 +307,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
     def get_visibility(self, option: Dict[str, Any]) -> bool:
         option_container = self.option_containers[option["option"]]
-        option_container.lutris_advanced_hidden = False
+        option_container.lutris_advanced_hidden = False  # type:ignore[attr-defined]
         option_visibility = super().get_visibility(option)
 
         if not option_visibility:
@@ -334,7 +334,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
                 if self.parent.filter:
                     return _("No options match '%s'") % self.parent.filter
-                elif any(c.lutris_advanced_hidden for c in self.option_containers.values()):
+                elif any(c.lutris_advanced_hidden for c in self.option_containers.values()):  # type:ignore[attr-defined]
                     return _("Only advanced options available")
 
             return _("No options available")

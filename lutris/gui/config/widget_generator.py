@@ -4,7 +4,7 @@ import os
 from abc import ABC, abstractmethod
 from gettext import gettext as _
 from inspect import Parameter, signature
-from typing import Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 from gi.repository import Gdk, Gtk  # type: ignore
 
@@ -14,6 +14,9 @@ from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label
 from lutris.gui.widgets.searchable_entrybox import SearchableEntrybox
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
+
+if TYPE_CHECKING:
+    from lutris.gui.config.boxes import ConfigBox
 
 
 class WidgetGenerator(ABC):
@@ -38,7 +41,7 @@ class WidgetGenerator(ABC):
 
     GeneratorFunction = Callable[[Dict[str, Any], Any, Any], Optional[Gtk.Widget]]
 
-    def __init__(self, parent: Gtk.Box, *callback_args, **callback_kwargs) -> None:
+    def __init__(self, parent: "ConfigBox", *callback_args, **callback_kwargs) -> None:
         self.parent = parent
         self.callback_args = callback_args
         self.callback_kwargs = callback_kwargs
@@ -132,13 +135,13 @@ class WidgetGenerator(ABC):
             self.option_containers[option_key] = option_container
             option_container.show_all()
 
-            option_container.lutris_option_key = option_key
-            option_container.lutris_option_label = option["label"]
-            option_container.lutris_option_helptext = option.get("help") or ""
+            option_container.lutris_option_key = option_key  # type:ignore[attr-defined]
+            option_container.lutris_option_label = option["label"]  # type:ignore[attr-defined]
+            option_container.lutris_option_helptext = option.get("help") or ""  # type:ignore[attr-defined]
 
             # Mark advanced option containers, to be hidden by checking for this
-            option_container.lutris_advanced = bool(option.get("advanced"))
-            option_container.lutris_option = option
+            option_container.lutris_advanced = bool(option.get("advanced"))  # type:ignore[attr-defined]
+            option_container.lutris_option = option  # type:ignore[attr-defined]
 
             self.option_container = option_container
             return option_container
