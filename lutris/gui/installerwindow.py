@@ -26,6 +26,7 @@ from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.navigation_stack import NavigationStack
+from lutris.gui.widgets.utils import get_main_window
 from lutris.installer import InstallationKind, interpreter
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
@@ -49,7 +50,7 @@ class MarkupLabel(Gtk.Label):
         self.set_alignment(0.5, 0)
 
 
-class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter.InterpreterUIDelegate):  # pylint: disable=too-many-public-methods
+class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter.InterpreterUIDelegate):  # type:ignore[misc]
     """GUI for the install process.
 
     This window is divided into pages; as you go through the install each page
@@ -313,9 +314,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         # put up a spinner page to wait until that's done. Installations can
         # fail if Lutris components are missing, and users sometimes try to install
         # a game just after their first Lutris startup. This should help.
-        application = Gio.Application.get_default()
-        if application and application.window and not application.window.download_queue.is_empty:
-            download_queue = application.window.download_queue
+        window = get_main_window()
+        if window and not window.download_queue.is_empty:
+            download_queue = window.download_queue
 
             def on_start_installation(*args):
                 self.load_choose_installer_page()
@@ -958,7 +959,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.error_details_box.pack_start(frame, True, True, 0)
         error_box.pack_start(self.error_details_box, True, True, 0)
 
-        copy_button = Gtk.Button(_("Copy Details to Clipboard"), halign=Gtk.Align.START)
+        copy_button = Gtk.Button(label=_("Copy Details to Clipboard"), halign=Gtk.Align.START)
         error_box.pack_end(copy_button, False, True, 0)
         copy_button.connect("clicked", on_copy_clicked)
 
