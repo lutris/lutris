@@ -18,7 +18,7 @@ from gi.repository import Gdk, GObject, Gtk
 
 from lutris import api, settings
 from lutris.gui.widgets.log_text_view import LogTextView
-from lutris.gui.widgets.utils import get_widget_children
+from lutris.gui.widgets.utils import get_widget_children, get_widget_window
 from lutris.util import datapath
 from lutris.util.jobs import schedule_at_idle
 from lutris.util.log import get_log_contents, logger
@@ -240,7 +240,8 @@ class AboutDialog(GtkBuilderDialog):
 class NoticeDialog(Gtk.MessageDialog):
     """Display a message to the user."""
 
-    def __init__(self, message_markup: str, secondary: str = None, parent: Gtk.Window = None):
+    def __init__(self, message_markup: str, secondary: Optional[str] = None, parent: Optional[Gtk.Widget] = None):
+        parent: Gtk.Window = get_widget_window(parent)
         super().__init__(message_type=Gtk.MessageType.INFO, buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message_markup)
         if secondary:
@@ -258,7 +259,8 @@ class WarningDialog(Gtk.MessageDialog):
     """Display a warning to the user, who responds with whether to proceed, like
     a QuestionDialog."""
 
-    def __init__(self, message_markup: str, secondary: str = None, parent: Gtk.Window = None):
+    def __init__(self, message_markup: str, secondary: Optional[str] = None, parent: Optional[Gtk.Widget] = None):
+        parent: Gtk.Window = get_widget_window(parent)
         super().__init__(message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK_CANCEL, parent=parent)
         self.set_markup(message_markup)
         if secondary:
@@ -278,10 +280,11 @@ class ErrorDialog(Gtk.MessageDialog):
     def __init__(
         self,
         error: Union[str, builtins.BaseException],
-        message_markup: str = None,
-        secondary_markup: str = None,
-        parent: Gtk.Window = None,
+        message_markup: Optional[str] = None,
+        secondary_markup: Optional[str] = None,
+        parent: Optional[Gtk.Widget] = None,
     ):
+        parent: Gtk.Window = get_widget_window(parent)
         super().__init__(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, parent=parent)
 
         def get_message_markup(err: Union[BaseException, str]) -> str:

@@ -111,7 +111,7 @@ class BaseConfigBox(VBox):
 
     def get_listed_widget_box(self, label: str, widget: Gtk.Widget, margin: int = 12) -> Gtk.Box:
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin=margin, visible=True)
-        label = Gtk.Label(label, visible=True, wrap=True)
+        label = Gtk.Label(label=label, visible=True, wrap=True)
         label.set_alignment(0, 0.5)
         box.pack_start(label, True, True, 0)
         box.pack_end(widget, False, False, 0)

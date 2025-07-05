@@ -55,6 +55,16 @@ def get_required_main_window() -> "LutrisWindow":
     return window
 
 
+def get_widget_window(widget: Optional[Gtk.Widget]) -> Optional[Gtk.Window]:
+    """Returns the window that contains a widget, if any. This wll return None
+    for a widget that is not in a window, rather than returning the widget itself
+    like get_toplevel()."""
+    if widget:
+        return cast(Optional[Gtk.Window], widget.get_ancestor(Gtk.Window))
+    else:
+        return None
+
+
 TChildWidget = TypeVar("TChildWidget", bound=Gtk.Widget)
 
 
