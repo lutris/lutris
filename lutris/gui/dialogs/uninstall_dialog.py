@@ -10,6 +10,7 @@ from lutris.database.games import get_game_by_field, get_games
 from lutris.game import Game
 from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.widgets.gi_composites import GtkTemplate
+from lutris.gui.widgets.utils import get_required_main_window, get_widget_children
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.library_sync import LibrarySyncer
@@ -43,6 +44,9 @@ class UninstallDialog(Gtk.Dialog):
         self.any_protected = False
         self.init_template()
         self.show_all()
+
+    def get_game_removal_rows(self) -> List["GameRemovalRow"]:
+        return get_widget_children(self.uninstall_game_list, GameRemovalRow)
 
     def add_games(self, game_ids: Iterable[str]) -> None:
         new_game_ids = set(game_ids) - set(g.id for g in self.games)
@@ -81,7 +85,7 @@ class UninstallDialog(Gtk.Dialog):
                 dir_users.discard(g.id)
             return bool(dir_users)
 
-        for row in self.uninstall_game_list.get_children():
+        for row in self.get_game_removal_rows():
             game = row.game
             if game.is_installed and game.directory:
                 if game.config and is_removeable(game.directory, game.config.system_config):
@@ -100,7 +104,7 @@ class UninstallDialog(Gtk.Dialog):
         folders_to_size = []
         folders_seen = set()
 
-        for row in self.uninstall_game_list.get_children():
+        for row in self.get_game_removal_rows():
             game = row.game
             if game in new_games and game.is_installed and game.directory:
                 if game.directory not in folders_seen:
@@ -172,7 +176,7 @@ class UninstallDialog(Gtk.Dialog):
     def on_row_updated(self, row) -> None:
         directory = row.game.directory
         if directory and row.can_delete_files:
-            for r in self.uninstall_game_list.get_children():
+            for r in self.get_game_removal_rows():
                 if row != r and r.game.directory == directory and r.can_delete_files:
                     r.delete_files = row.delete_files
 
@@ -186,7 +190,7 @@ class UninstallDialog(Gtk.Dialog):
         def update(checkbox, is_candidate, is_set):
             set_count = 0
             unset_count = 0
-            for row in self.uninstall_game_list.get_children():
+            for row in self.get_game_removal_rows():
                 if is_candidate(row):
                     if is_set(row):
                         set_count += 1
@@ -241,7 +245,7 @@ class UninstallDialog(Gtk.Dialog):
             active = checkbox.get_active()
             self._setting_all_checkboxes = True
 
-            for row in self.uninstall_game_list.get_children():
+            for row in self.get_game_removal_rows():
                 row_updater(row, active)
 
             self._setting_all_checkboxes = False
@@ -253,7 +257,7 @@ class UninstallDialog(Gtk.Dialog):
 
     @GtkTemplate.Callback
     def on_remove_button_clicked(self, _widget) -> None:
-        rows = list(self.uninstall_game_list.get_children())
+        rows = list(self.get_game_removal_rows())
         dirs_to_delete = list(set(row.game.directory for row in rows if row.delete_files))
 
         if dirs_to_delete:
@@ -294,7 +298,7 @@ class UninstallDialog(Gtk.Dialog):
 
             AsyncCall(sync_local_library, None)
 
-        self.parent.on_game_removed()
+        get_required_main_window().on_game_removed()
         self.destroy()
 
     def on_response(self, _dialog, response: Gtk.ResponseType) -> None:
@@ -328,7 +332,7 @@ class UninstallDialog(Gtk.Dialog):
                 remaining_directories,
             )
 
-        for row in self.uninstall_game_list.get_children():
+        for row in self.get_game_removal_rows():
             if directory == row.game.directory:
                 row.show_folder_size(size)
 
@@ -350,16 +354,16 @@ class GameRemovalRow(Gtk.ListBoxRow):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox.pack_start(hbox, False, False, 0)
 
-        label = Gtk.Label(game.name, selectable=True)
+        label = Gtk.Label(label=game.name, selectable=True)
         hbox.pack_start(label, False, False, 0)
 
-        self.remove_from_library_checkbox = Gtk.CheckButton(_("Remove from Library"), halign=Gtk.Align.START)
+        self.remove_from_library_checkbox = Gtk.CheckButton(label=_("Remove from Library"), halign=Gtk.Align.START)
         self.remove_from_library_checkbox.set_active(False)
         self.remove_from_library_checkbox.connect("toggled", self.on_checkbox_toggled)
         hbox.pack_end(self.remove_from_library_checkbox, False, False, 0)
 
         if game.is_installed and self.game.directory:
-            self.delete_files_checkbox = Gtk.CheckButton(_("Delete Files"))
+            self.delete_files_checkbox = Gtk.CheckButton(label=_("Delete Files"))
             self.delete_files_checkbox.set_sensitive(False)
             self.delete_files_checkbox.set_active(False)
             self.delete_files_checkbox.set_tooltip_text(self.game.directory)
