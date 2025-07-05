@@ -32,7 +32,9 @@ class UpdatesBox(BaseConfigBox):
         self.update_media_box = UpdateButtonBox("", _("Download Missing Media"), clicked=self.on_download_media_clicked)
         self.pack_start(self._get_framed_options_list_box([self.update_media_box]), False, False, 0)
 
-    def _get_radio_button(self, label_markup: str, active: bool, group: Gtk.RadioButton, margin: int = 12) -> Gtk.RadioButton:
+    def _get_radio_button(
+        self, label_markup: str, active: bool, group: Gtk.RadioButton, margin: int = 12
+    ) -> Gtk.RadioButton:
         radio_button = Gtk.RadioButton.new_from_widget(group)
         radio_button.set_active(active)
         radio_button.set_margin_left(margin)

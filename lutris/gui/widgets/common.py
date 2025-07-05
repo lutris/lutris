@@ -19,7 +19,7 @@ from lutris.util.linux import LINUX_SYSTEM
 # we don't control this, so we'll suppress type checking.
 
 
-class SlugEntry(Gtk.Entry, Gtk.Editable):  # type:ignore
+class SlugEntry(Gtk.Entry, Gtk.Editable):  # type:ignore[misc]
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept alphanumeric and dashes"""
         new_text = "".join([c for c in new_text if c.isalnum() or c == "-"]).lower()
@@ -28,7 +28,7 @@ class SlugEntry(Gtk.Entry, Gtk.Editable):  # type:ignore
         return position + length
 
 
-class NumberEntry(Gtk.Entry, Gtk.Editable):  # type:ignore
+class NumberEntry(Gtk.Entry, Gtk.Editable):  # type:ignore[misc]
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept numbers"""
         new_text = "".join([c for c in new_text if c.isnumeric()])
@@ -38,7 +38,7 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):  # type:ignore
         return position
 
 
-class FileChooserEntry(Gtk.Box):  # type:ignore
+class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
     """Editable entry with a file picker button"""
 
     max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.

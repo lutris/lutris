@@ -29,7 +29,7 @@ from lutris.util.strings import parse_playtime, slugify
 
 
 # pylint: disable=too-many-instance-attributes, no-member
-class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
+class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):  # type:ignore[misc]
     """Base class for config dialogs"""
 
     no_runner_label = _("Select a runner in the Game Info tab")
