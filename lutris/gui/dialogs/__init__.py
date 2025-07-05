@@ -676,14 +676,18 @@ _error_handlers: Dict[Type[BaseException], Callable[[BaseException, Gtk.Window],
 TError = TypeVar("TError", bound=BaseException)
 
 
-def display_error(error: BaseException, parent: Gtk.Window) -> None:
+def display_error(error: BaseException, parent: Gtk.Widget) -> None:
     """Displays an error in a modal dialog. This can be customized via
     register_error_handler(), but displays an ErrorDialog by default.
 
     This allows custom error handling to be invoked anywhere that can show an
     ErrorDialog, instead of having to bounce exceptions off the backstop."""
     handler = get_error_handler(type(error))
-    handler(error, parent)
+
+    if isinstance(parent, Gtk.Window):
+        handler(error, parent)
+    else:
+        handler(error, cast(Gtk.Window, parent.get_toplevel()))
 
 
 def register_error_handler(error_class: Type[TError], handler: Callable[[TError, Gtk.Window], Any]) -> None:
