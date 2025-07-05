@@ -2,7 +2,7 @@
 
 import array
 import os
-from typing import Optional
+from typing import Iterable, List, Optional, TypeVar, cast
 
 import cairo
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
@@ -33,6 +33,24 @@ def get_main_window(widget):
         if "LutrisWindow" in window.__class__.__name__:
             return window
     return
+
+
+TChildWidget = TypeVar("TChildWidget", bound=Gtk.Widget)
+
+
+def get_widget_children(
+    widget: Optional[Gtk.Widget], child_type: Optional[type[TChildWidget]] = None
+) -> List[TChildWidget]:
+    """Returns the children of any widget; non-containers have no children
+    and returns an empty list. This can filter out a specific type of child widget if child_type
+    is not None, but otherwise it returns all children."""
+    if isinstance(widget, Gtk.Container):
+        if child_type:
+            return [w for w in widget.get_children() if isinstance(w, child_type)]
+        else:
+            return list(cast(Iterable[TChildWidget], widget.get_children()))
+    else:
+        return []
 
 
 def open_uri(uri):

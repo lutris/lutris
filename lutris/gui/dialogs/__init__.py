@@ -5,7 +5,7 @@ import inspect
 import os
 import traceback
 from gettext import gettext as _
-from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union, cast
 
 import gi
 
@@ -18,6 +18,7 @@ from gi.repository import Gdk, GObject, Gtk
 
 from lutris import api, settings
 from lutris.gui.widgets.log_text_view import LogTextView
+from lutris.gui.widgets.utils import get_widget_children
 from lutris.util import datapath
 from lutris.util.jobs import schedule_at_idle
 from lutris.util.log import get_log_contents, logger
@@ -38,7 +39,8 @@ class Dialog(Gtk.Dialog):
         buttons: Gtk.ButtonsType = None,
         **kwargs,
     ):
-        super().__init__(title, parent, flags, buttons, **kwargs)
+        # MyPy can't see it, but __init__ can handle the new_with_buttons arguments for us
+        super().__init__(title, parent, flags, buttons, **kwargs)  # type:ignore
         self._response_type = Gtk.ResponseType.NONE
         self.connect("response", self.on_response)
 
@@ -245,9 +247,8 @@ class NoticeDialog(Gtk.MessageDialog):
             self.format_secondary_text(secondary[:256])
 
         # So you can copy warning text
-        for child in self.get_message_area().get_children():
-            if isinstance(child, Gtk.Label):
-                child.set_selectable(True)
+        for child in get_widget_children(self.get_message_area(), child_type=Gtk.Label):
+            child.set_selectable(True)
 
         self.run()
         self.destroy()
@@ -264,9 +265,8 @@ class WarningDialog(Gtk.MessageDialog):
             self.format_secondary_text(secondary[:256])
 
         # So you can copy warning text
-        for child in self.get_message_area().get_children():
-            if isinstance(child, Gtk.Label):
-                child.set_selectable(True)
+        for child in get_widget_children(self.get_message_area(), child_type=Gtk.Label):
+            child.set_selectable(True)
 
         self.result = self.run()
         self.destroy()
@@ -312,9 +312,8 @@ class ErrorDialog(Gtk.MessageDialog):
             self.format_secondary_markup(secondary_markup[:256])
 
         # So you can copy error text
-        for child in self.get_message_area().get_children():
-            if isinstance(child, Gtk.Label):
-                child.set_selectable(True)
+        for child in get_widget_children(self.get_message_area(), child_type=Gtk.Label):
+            child.set_selectable(True)
 
         if isinstance(error, BaseException):
             content_area = self.get_content_area()
@@ -325,8 +324,8 @@ class ErrorDialog(Gtk.MessageDialog):
             details_expander.set_margin_top(spacing)
             content_area.pack_end(details_expander, False, False, 0)
 
-            action_area = self.get_action_area()
-            copy_button = Gtk.Button(_("Copy Details to Clipboard"), visible=True)
+            action_area = cast(Gtk.ButtonBox, self.get_action_area())
+            copy_button = Gtk.Button(label=_("Copy Details to Clipboard"), visible=True)
             action_area.pack_start(copy_button, False, True, 0)
             action_area.set_child_secondary(copy_button, True)
             copy_button.connect("clicked", self.on_copy_clicked, error)
