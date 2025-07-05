@@ -2,7 +2,7 @@
 
 import array
 import os
-from typing import Iterable, List, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, Iterable, List, Optional, TypeVar, cast
 
 import cairo
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
@@ -12,6 +12,10 @@ from lutris.exceptions import MissingMediaError
 from lutris.gui.widgets import NotificationSource
 from lutris.util import datapath, magic, system
 from lutris.util.log import logger
+
+if TYPE_CHECKING:
+    from lutris.gui.application import LutrisApplication
+    from lutris.gui.lutriswindow import LutrisWindow
 
 try:
     from PIL import Image
@@ -23,16 +27,32 @@ BANNER_SIZE = (184, 69)
 MEDIA_CACHE_INVALIDATED = NotificationSource()
 
 
-def get_main_window(widget):
-    """Return the application's main window from one of its widget"""
-    parent = widget.get_toplevel()
-    if not isinstance(parent, Gtk.Window):
-        # The sync dialog may have closed
-        parent = Gio.Application.get_default().props.active_window
-    for window in parent.application.get_windows():
-        if "LutrisWindow" in window.__class__.__name__:
-            return window
-    return
+def get_application() -> Optional["LutrisApplication"]:
+    return cast(LutrisApplication, Gio.Application.get_default())
+
+
+def get_required_application() -> "LutrisApplication":
+    application = cast(LutrisApplication, Gio.Application.get_default())
+    if not application:
+        raise RuntimeError("The LutrisApplication does not exist.")
+    return application
+
+
+def get_main_window() -> Optional["LutrisWindow"]:
+    """Return the application's main window, or None if it doesn't exist
+    (though it almost alway does exist)"""
+    application = get_application()
+    return application.window if application else None
+
+
+def get_required_main_window() -> "LutrisWindow":
+    """Return the application's main window or raises an exception if
+    it doesn't exist."""
+    application = get_required_application()
+    window = application.window
+    if not window:
+        raise RuntimeError("The main window does not exist.")
+    return window
 
 
 TChildWidget = TypeVar("TChildWidget", bound=Gtk.Widget)
