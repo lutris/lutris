@@ -6,7 +6,7 @@ import os
 from collections import namedtuple
 from datetime import datetime
 from gettext import gettext as _
-from typing import Iterable, List, Set
+from typing import Iterable, List, Set, cast
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, Gtk
@@ -49,7 +49,7 @@ from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
-from lutris.gui.widgets.sidebar import LutrisSidebar
+from lutris.gui.widgets.sidebar import LutrisSidebar, SidebarRow
 from lutris.gui.widgets.utils import has_stock_icon, load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
@@ -70,7 +70,7 @@ from lutris.util.wine.wine import clear_wine_version_cache
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # type:ignore[misc]
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -1365,7 +1365,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         selected_row = self.sidebar.get_selected_row()
         # Only update the running page- we lose the selected row when we do this,
         # but on the running page this is okay.
-        if selected_row is not None and selected_row.id == "running":
+        if isinstance(selected_row, SidebarRow) and selected_row.id == "running":
             self.game_store.remove_game(game.id)
 
     def on_game_installed(self, game):
@@ -1396,7 +1396,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     @property
     def download_queue(self) -> DownloadQueue:
-        queue = self.download_revealer.get_child()
+        queue = cast(DownloadQueue, self.download_revealer.get_child())
         if not queue:
             queue = DownloadQueue(self.download_revealer)
             self.download_revealer.add(queue)
