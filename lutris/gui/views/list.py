@@ -30,7 +30,7 @@ from lutris.gui.views.store import sort_func
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererImage
 
 
-class GameListView(Gtk.TreeView, GameView):
+class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
     """Show the main list of games."""
 
     __gsignals__ = GameView.__gsignals__
