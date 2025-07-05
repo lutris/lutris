@@ -121,11 +121,17 @@ class GPU:
     def get_vulkaninfo(self) -> Dict[str, Dict[str, str]]:
         """Runs vulkaninfo to find the GPU name"""
         subprocess_env = dict(os.environ)
-        subprocess_env["VK_DRIVER_FILES"] = self.icd_files  # Currently supported
-        subprocess_env["VK_ICD_FILENAMES"] = self.icd_files  # Deprecated
-        vulkaninfo_output = system.read_process_output(
-            ["vulkaninfo", "--summary"], env=subprocess_env, error_result=None
-        ).split("\n")
+        vulkaninfo_output_raw = system.read_process_output(
+            ["/usr/bin/vulkaninfo", "--summary"], env=os.environ, error_result=None
+        )
+        if not vulkaninfo_output_raw:
+            subprocess_env["VK_DRIVER_FILES"] = self.icd_files  # Currently supporte
+            subprocess_env["VK_ICD_FILENAMES"] = self.icd_files  # Deprecated
+            vulkaninfo_output_raw = system.read_process_output(
+                ["/usr/bin/vulkaninfo", "--summary"], env=subprocess_env, error_result=""
+            )
+            
+        vulkaninfo_output = vulkaninfo_output_raw.split("\n") if vulkaninfo_output_raw else []
         result = {}
         devices_seen = False
         for line in vulkaninfo_output:
