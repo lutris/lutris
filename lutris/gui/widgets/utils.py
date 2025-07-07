@@ -28,11 +28,11 @@ MEDIA_CACHE_INVALIDATED = NotificationSource()
 
 
 def get_application() -> Optional["LutrisApplication"]:
-    return cast(LutrisApplication, Gio.Application.get_default())
+    return cast("LutrisApplication", Gio.Application.get_default())
 
 
 def get_required_application() -> "LutrisApplication":
-    application = cast(LutrisApplication, Gio.Application.get_default())
+    application = cast("LutrisApplication", Gio.Application.get_default())
     if not application:
         raise RuntimeError("The LutrisApplication does not exist.")
     return application
