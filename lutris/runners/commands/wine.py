@@ -97,6 +97,28 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH
     )
 
 
+def is_disallowed_fs(prefix):
+    """
+    Check prefix is create in file system that not support to create linux symlink
+
+    Returns:
+        bool: True if the prefix is on a disallowed filesystem or if the filesystem
+              type cannot be determined, False otherwise.
+    """
+
+    # Need add more if needed
+    disallowed_fs_types = {"exfat", "fat", "vfat", "msdos", "umsdos", "ncpfs", "iso9660"}
+
+    if not os.path.exists(prefix):
+        prefix = os.path.dirname(prefix)
+
+    fs_type = linux.LinuxSystem().get_fs_type_for_path(prefix)
+    if fs_type is None:
+        return True
+    logger.info("Creating a prefix in file system type: %s", fs_type)
+    return fs_type in disallowed_fs_types
+
+
 def create_prefix(
     prefix, wine_path=None, arch=WINE_DEFAULT_ARCH, overrides=None, install_gecko=None, install_mono=None, runner=None
 ):
@@ -114,6 +136,26 @@ def create_prefix(
 
     if not runner:
         runner = import_runner("wine")(prefix=prefix, wine_arch=arch)
+
+    # Wine does not allow creating a prefix in a parent directory that does not
+    # exist. For example, if the prefix is /mnt/a/b/c/d but the parent directory
+    # /mnt/a/b/c does not exist, it is not allowed.
+    if not os.path.exists(os.path.dirname(prefix)):
+        raise Exception("Can't create prefix: Not found directory %s" % os.path.dirname(prefix))
+
+    if not os.path.exists(prefix):
+        _stat = os.lstat(os.path.dirname(prefix))
+    else:
+        _stat = os.lstat(prefix)
+    # Wine not allow to create prefix that not owned by user
+    if _stat.st_uid != os.getuid() or _stat.st_mode & 0o700 != 0o700:
+        raise Exception(
+            "%s must be owned by you with full owner permissions, refusing to create a configuration directory there"
+            % prefix
+        )
+
+    if is_disallowed_fs(prefix):
+        raise Exception("Can't create prefix on file system that not support linux symlink")
 
     if not wine_path:
         wine_path = runner.get_executable()
