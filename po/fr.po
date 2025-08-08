@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-05 21:49+0200\n"
-"PO-Revision-Date: 2025-08-06 03:55+0200\n"
+"PO-Revision-Date: 2025-08-09 00:08+0200\n"
 "Last-Translator: Astrobald astrobald@proton.me\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -3653,7 +3653,7 @@ msgid ""
 "you're having difficulties starting the emulator."
 msgstr ""
 "Empêche l'émulateur d'interroger les manettes. Essayez cette option si "
-"l'émulateur a du mal "
+"l'émulateur a du mal à démarrer."
 
 #: lutris/runners/duckstation.py:87
 msgid "Custom configuration file"
@@ -5503,7 +5503,7 @@ msgstr "Brandt Jopac"
 
 #: lutris/runners/o2em.py:38 lutris/runners/wine.py:518
 msgid "Disable"
-msgstr "Désactivé"
+msgstr "Désactiver"
 
 #: lutris/runners/o2em.py:39
 msgid "Arrow Keys and Right Shift"
