@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-05 21:49+0200\n"
-"PO-Revision-Date: 2025-08-09 00:08+0200\n"
+"PO-Revision-Date: 2025-08-10 10:40+0200\n"
 "Last-Translator: Astrobald astrobald@proton.me\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -251,7 +251,7 @@ msgstr ""
 msgid "Support transparent PNG files for custom banner and cover-art"
 msgstr ""
 "Support des fichier PNG transparents pour les bannières personnalisées et "
-"les jacquettes"
+"les jaquettes"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:79
 msgid "Images are now downloaded for manually added games."
@@ -2145,7 +2145,7 @@ msgstr "icone"
 
 #: lutris/gui/config/updates_box.py:69
 msgid "cover"
-msgstr "jacquette"
+msgstr "jaquette"
 
 #: lutris/gui/config/updates_box.py:70
 msgid "banners"
@@ -2157,7 +2157,7 @@ msgstr "icones"
 
 #: lutris/gui/config/updates_box.py:72
 msgid "covers"
-msgstr "jacquettes"
+msgstr "jaquettes"
 
 #: lutris/gui/config/updates_box.py:81
 msgid "No new media found."
