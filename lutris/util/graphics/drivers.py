@@ -17,11 +17,11 @@ MIN_RECOMMENDED_NVIDIA_DRIVER = 515
 
 
 @cache_single
-def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
+def get_nvidia_driver_info() -> Dict[str, str]:
     """Return information about Nvidia drivers"""
     version_file_path = "/proc/driver/nvidia/version"
 
-    def read_from_proc() -> Dict[str, Dict[str, str]]:
+    def read_from_proc() -> Dict[str, str]:
         try:
             if not os.path.exists(version_file_path):
                 return {}
@@ -61,7 +61,7 @@ def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
             logger.warning("Unable to parse %s. Falling back to glxinfo: %s", version_file_path, ex)
             return {}
 
-    def invoke_glxinfo() -> Dict[str, Dict[str, str]]:
+    def invoke_glxinfo() -> Dict[str, str]:
         glx_info = GlxInfo()
         platform = read_process_output(["uname", "-s"])
         arch = read_process_output(["uname", "-m"])
@@ -159,13 +159,13 @@ def is_nvidia() -> bool:
     try:
         return os.path.exists("/proc/driver/nvidia")
     except OSError:
-        logger.info("Could not determine whether /proc/driver/nvidia exists. " "Falling back to alternative method")
+        logger.info("Could not determine whether /proc/driver/nvidia exists. Falling back to alternative method")
     try:
         with open("/proc/modules", encoding="utf-8") as f:
             modules = f.read()
         return bool(re.search(r"^nvidia ", modules, flags=re.MULTILINE))
     except OSError:
-        logger.error("Could not access /proc/modules to find the Nvidia drivers. " "Nvidia card may not be detected.")
+        logger.error("Could not access /proc/modules to find the Nvidia drivers. Nvidia card may not be detected.")
     glx_info = GlxInfo()
     return "NVIDIA" in glx_info.opengl_vendor  # type: ignore[attr-defined]
 

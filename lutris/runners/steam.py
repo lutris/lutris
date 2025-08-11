@@ -48,8 +48,7 @@ class steam(Runner):
             "type": "string",
             "label": _("Arguments"),
             "help": _(
-                "Command line arguments used when launching the game.\n"
-                "Ignored when Steam Big Picture mode is enabled."
+                "Command line arguments used when launching the game.\nIgnored when Steam Big Picture mode is enabled."
             ),
         },
         {
@@ -79,18 +78,6 @@ class steam(Runner):
                 "Only works if Steam is not running or "
                 "already running in Big Picture mode.\n"
                 "Useful when playing with a Steam Controller."
-            ),
-        },
-        {
-            "option": "lsi_steam",
-            "label": _("Start Steam with LSI"),
-            "type": "bool",
-            "default": False,
-            "help": _(
-                "Launches steam with LSI patches enabled. "
-                "Make sure Lutris Runtime is disabled and "
-                "you have LSI installed. "
-                "https://github.com/solus-project/linux-steam-integration"
             ),
         },
         {
@@ -141,10 +128,6 @@ class steam(Runner):
         if linux.LINUX_SYSTEM.is_flatpak():
             # Fallback to xgd-open for Steam URIs in Flatpak
             return system.find_required_executable("xdg-open")
-        if self.runner_config.get("lsi_steam"):
-            lsi_steam_path = system.find_executable("lsi-steam")
-            if lsi_steam_path:
-                return lsi_steam_path
         runner_executable = self.runner_config.get("runner_executable")
         if runner_executable and os.path.isfile(runner_executable):
             return runner_executable
@@ -184,12 +167,13 @@ class steam(Runner):
 
     def install(self, install_ui_delegate, version=None, callback=None):
         raise NonInstallableRunnerError(
-            _(
+            message=_("Steam for Linux installation is not handled by Lutris."),
+            message_markup=_(
                 "Steam for Linux installation is not handled by Lutris.\n"
                 "Please go to "
                 "<a href='http://steampowered.com'>http://steampowered.com</a>"
                 " or install Steam with the package provided by your distribution."
-            )
+            ),
         )
 
     def install_game(self, appid, generate_acf=False):

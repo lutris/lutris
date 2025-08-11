@@ -63,22 +63,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         return self.name < other.name
 
     @property
-    def description(self):
-        """Return the class' docstring as the description."""
-        return self.__doc__
-
-    @description.setter
-    def description(self, value):
-        """Leave the ability to override the docstring."""
-        self.__doc__ = value  # What the shit
-
-    @property
-    def runner_warning(self):
-        """Returns a message (as markup) that is displayed in the configuration dialog as
-        a warning."""
-        return None
-
-    @property
     def name(self):
         return self.__class__.__name__
 
@@ -267,6 +251,9 @@ class Runner:  # pylint: disable=too-many-public-methods
                 env["DRI_PRIME"] = gpu.pci_id
             env["VK_ICD_FILENAMES"] = gpu.icd_files  # Deprecated
             env["VK_DRIVER_FILES"] = gpu.icd_files  # Current form
+
+            # To classify for multile GPUs with the same vendorID:deviceID
+            env["DXVK_FILTER_DEVICE_UUID"] = gpu.device_uuid
 
         # Set PulseAudio latency to 60ms
         if self.system_config.get("pulse_latency"):
@@ -462,7 +449,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         """
 
         if ui_delegate.show_install_yesno_inquiry(
-            question=_("The required runner is not installed.\n" "Do you wish to install it now?"),
+            question=_("The required runner is not installed.\nDo you wish to install it now?"),
             title=_("Required runner unavailable"),
         ):
             if hasattr(self, "get_version"):

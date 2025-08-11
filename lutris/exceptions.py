@@ -6,9 +6,10 @@ from gettext import gettext as _
 class LutrisError(Exception):
     """Base exception for Lutris related errors"""
 
-    def __init__(self, message, *args, **kwarg):
+    def __init__(self, message, message_markup=None, *args, **kwarg):
         super().__init__(message, *args, **kwarg)
         self.message = message
+        self.message_markup = message_markup
         self.is_expected = False
 
 
@@ -122,7 +123,7 @@ class FsyncUnsupportedError(Exception):
 
     def __init__(self, message=None, *args, **kwarg):
         if not message:
-            message = _("Your kernel is not patched for fsync." " Please get a patched kernel to use fsync.")
+            message = _("Your kernel is not patched for fsync. Please get a patched kernel to use fsync.")
 
         super().__init__(message, *args, **kwarg)
 

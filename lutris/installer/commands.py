@@ -77,7 +77,7 @@ class CommandsMixin:
                         _("One of {params} parameter is mandatory for the {cmd} command").format(
                             params=_(" or ").join(param), cmd=command_name
                         ),
-                        command_data,
+                        faulty_data=command_data,
                     )
             else:
                 if param not in command_data:
@@ -85,7 +85,7 @@ class CommandsMixin:
                         _("The {param} parameter is mandatory for the {cmd} command").format(
                             param=param, cmd=command_name
                         ),
-                        command_data,
+                        faulty_data=command_data,
                     )
 
     def chmodx(self, filename):
@@ -105,8 +105,8 @@ class CommandsMixin:
             self._check_required_params([("file", "command")], data, "execute")
             if "command" in data and "file" in data:
                 raise ScriptingError(
-                    _("Parameters file and command can't be used " "at the same time for the execute command"),
-                    data,
+                    _("Parameters file and command can't be used at the same time for the execute command"),
+                    faulty_data=data,
                 )
 
             # Accept return codes other than 0
@@ -139,7 +139,7 @@ class CommandsMixin:
             include_processes = []
             exclude_processes = []
         else:
-            raise ScriptingError(_("No parameters supplied to execute command."), data)
+            raise ScriptingError(_("No parameters supplied to execute command."), faulty_data=data)
 
         if command:
             exec_path = "bash"
@@ -565,7 +565,7 @@ class CommandsMixin:
         game_id = arguments.split()[-1]
         arguments = " ".join(arguments.split()[:-1])
         base_dir = os.path.dirname(gog_config_path)
-        return {"game_id": game_id, "path": base_dir, "arguments": arguments}
+        return {"game_id": game_id, "path": base_dir, "args": arguments}
 
     def autosetup_gog_game(self, file_id, silent=False):
         """Automatically guess the best way to install a GOG game by inspecting its contents.

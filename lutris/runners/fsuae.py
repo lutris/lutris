@@ -257,7 +257,7 @@ class fsuae(Runner):
             "label": _("Scanlines display style"),
             "type": "bool",
             "default": False,
-            "help": _("Activates a display filter adding scanlines to imitate " "the displays of yesteryear."),
+            "help": _("Activates a display filter adding scanlines to imitate the displays of yesteryear."),
         },
         {
             "option": "grafixcard",
@@ -328,7 +328,7 @@ class fsuae(Runner):
             "choices": flsound_choices,
             "default": "0",
             "advanced": True,
-            "help": _("Set volume to 0 to disable floppy drive clicks " "when the drive is empty. Max volume is 100."),
+            "help": _("Set volume to 0 to disable floppy drive clicks when the drive is empty. Max volume is 100."),
         },
         {
             "option": "fdspeed",
@@ -358,7 +358,7 @@ class fsuae(Runner):
             "type": "bool",
             "default": False,
             "advanced": True,
-            "help": _("Automatically uses Feral GameMode daemon if available. " "Set to true to disable the feature."),
+            "help": _("Automatically uses Feral GameMode daemon if available. Set to true to disable the feature."),
         },
         {
             "option": "govwarning",
@@ -367,7 +367,7 @@ class fsuae(Runner):
             "default": False,
             "advanced": True,
             "help": _(
-                "Warn if running with a CPU governor other than performance. " "Set to true to disable the warning."
+                "Warn if running with a CPU governor other than performance. Set to true to disable the warning."
             ),
         },
         {

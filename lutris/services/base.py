@@ -382,7 +382,7 @@ class BaseService:
         """Services can implement this method to scan for locally
         installed games and add them to lutris.
 
-        This runs on a worker thread, and must trigger UI actions -
+        This runs on a worker thread, and must no trigger UI actions -
         so no emitting signals here.
         """
 

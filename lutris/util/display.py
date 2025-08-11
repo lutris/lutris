@@ -4,13 +4,13 @@
 import enum
 import os
 import subprocess
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import gi
 
 try:
     gi.require_version("GnomeDesktop", "3.0")
-    from gi.repository import GnomeDesktop
+    from gi.repository import GnomeDesktop  # type: ignore
 
     LIB_GNOME_DESKTOP_AVAILABLE = True
 except ValueError:
@@ -207,7 +207,7 @@ _non_de_compositor_commands = [
 ]
 
 
-def get_desktop_environment():
+def get_desktop_environment() -> Optional[DesktopEnvironment]:
     """Converts the value of the DESKTOP_SESSION environment variable
     to one of the constants in the DesktopEnvironment class.
     Returns None if DESKTOP_SESSION is empty or unset.
@@ -282,7 +282,9 @@ def _get_compositor_commands():
     a flag to indicate if we need to run the commands in the background.
     """
     desktop_environment = get_desktop_environment()
-    command_set = _compositor_commands_by_de.get(desktop_environment)
+    command_set = None
+    if desktop_environment is not None:
+        command_set = _compositor_commands_by_de.get(desktop_environment)
 
     if not command_set:
         for c in _non_de_compositor_commands:
@@ -344,10 +346,10 @@ def enable_compositing():
 
 
 class DBusScreenSaverInhibitor:
-    """Inhibit and uninhibit the screen saver using DBus.
+    """Inhibit and uninhibit the suspend using DBus.
 
-    It will use the Gtk.Application's inhibit and uninhibit methods to inhibit
-    the screen saver.
+    It will use the Gtk.Application's inhibit and uninhibit methods to
+    prevent the computer from going to sleep.
 
     For enviroments which don't support either org.freedesktop.ScreenSaver or
     org.gnome.ScreenSaver interfaces one can declare a DBus interface which
@@ -364,7 +366,7 @@ class DBusScreenSaverInhibitor:
         )
 
     def inhibit(self, game_name):
-        """Inhibit the screen saver.
+        """Inhibit suspend.
         Returns a cookie that must be passed to the corresponding uninhibit() call.
         If an error occurs, None is returned instead."""
         reason = "Running game: %s" % game_name
@@ -387,7 +389,7 @@ class DBusScreenSaverInhibitor:
             return cookie
 
     def uninhibit(self, cookie):
-        """Uninhibit the screen saver.
+        """Uninhibit suspend.
         Takes a cookie as returned by inhibit. If cookie is None, no action is taken."""
         if not cookie:
             return
@@ -399,8 +401,8 @@ class DBusScreenSaverInhibitor:
             app.uninhibit(cookie)
 
 
-def _get_screen_saver_inhibitor():
-    """Return the appropriate screen saver inhibitor instance.
+def _get_suspend_inhibitor():
+    """Return the appropriate suspend inhibitor instance.
     If the required interface isn't available, it will default to GTK's
     implementation."""
     desktop_environment = get_desktop_environment()
@@ -426,10 +428,10 @@ def _get_screen_saver_inhibitor():
             inhibitor.set_dbus_iface(name, path, interface)
         except GLib.Error as err:
             logger.warning(
-                "Failed to set up a DBus proxy for name %s, path %s, " "interface %s: %s", name, path, interface, err
+                "Failed to set up a DBus proxy for name %s, path %s, interface %s: %s", name, path, interface, err
             )
 
     return inhibitor
 
 
-SCREEN_SAVER_INHIBITOR = _get_screen_saver_inhibitor()
+SCREEN_SAVER_INHIBITOR = _get_suspend_inhibitor()

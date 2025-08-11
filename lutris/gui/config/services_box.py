@@ -18,7 +18,7 @@ class ServicesBox(BaseConfigBox):
         self.add(self.get_section_label(_("Enable integrations with game sources")))
         self.add(
             self.get_description_label(
-                _("Access your game libraries from various sources. " "Changes require a restart to take effect.")
+                _("Access your game libraries from various sources. Changes require a restart to take effect.")
             )
         )
         self.frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)

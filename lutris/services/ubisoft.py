@@ -130,7 +130,7 @@ class UbisoftConnectService(OnlineService):
             return
         base_dir = ubi_game["directory"]
         configurations_path = os.path.join(
-            base_dir, "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/" "cache/configuration/configurations"
+            base_dir, "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/configuration/configurations"
         )
         if not os.path.exists(configurations_path):
             return

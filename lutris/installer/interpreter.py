@@ -87,7 +87,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             self.service = self.installer.service
         script_errors = self.installer.get_errors()
         if script_errors:
-            raise ScriptingError(_("Invalid script: \n{}").format("\n".join(script_errors)), self.installer.script)
+            raise ScriptingError(
+                _("Invalid script: \n{}").format("\n".join(script_errors)), faulty_data=self.installer.script
+            )
 
         self._check_binary_dependencies()
         self._check_dependency()
@@ -228,12 +230,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             except PermissionError as err:
                 raise ScriptingError(
                     _("Lutris does not have the necessary permissions to install to path:"),
-                    self.target_path,
+                    faulty_data=self.target_path,
                 ) from err
             except FileNotFoundError as err:
                 raise ScriptingError(
                     _("Path %s not found, unable to create game folder. Is the disk mounted?"),
-                    self.target_path,
+                    faulty_data=self.target_path,
                 ) from err
 
     def get_runners_to_install(self):
@@ -284,7 +286,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             )
         except (NonInstallableRunnerError, RunnerInstallationError) as ex:
             logger.error(ex.message)
-            raise ScriptingError(ex.message) from ex
+            raise ScriptingError.wrap(ex) from ex
 
     def launch_installer_commands(self):
         """Run the pre-installation steps and launch install."""

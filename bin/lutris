@@ -12,6 +12,7 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Main entry point for Lutris"""
+
 import gettext
 import locale
 import os
@@ -28,7 +29,7 @@ if os.environ.get("LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES") != "1":
 
 if os.path.isdir(os.path.join(LAUNCH_PATH, "../lutris")):
     sys.dont_write_bytecode = True
-    SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, '..'))
+    SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, ".."))
     sys.path.insert(0, SOURCE_PATH)
 else:
     sys.path.insert(0, os.path.normpath(os.path.join(LAUNCH_PATH, "../lib/lutris")))
@@ -40,7 +41,7 @@ except locale.Error as ex:
 
 try:
     # optional_settings does not exist if you don't use the meson build system
-    from lutris import optional_settings
+    from lutris import optional_settings  # type: ignore
 
     try:
         locale.bindtextdomain("lutris", optional_settings.LOCALE_DIR)
@@ -50,7 +51,7 @@ try:
     except Exception as ex:
         sys.stderr.write(
             "Couldn't bind gettext domain, translations won't work.\n"
-            "LOCALE_DIR: %s\nError: %s\n" % (optional_settings.LOCALE_DIR,ex)
+            "LOCALE_DIR: %s\nError: %s\n" % (optional_settings.LOCALE_DIR, ex)
         )
 except ImportError:
     pass
@@ -59,10 +60,10 @@ if "WEBKIT_DISABLE_DMABUF_RENDERER" not in os.environ:
     os.environ["WEBKIT_DISABLE_DMABUF_RENDERER"] = "1"
 
 try:
-    from lutris.gui.application import Application  # pylint: disable=no-name-in-module
+    from lutris.gui.application import LutrisApplication
 except ImportError as ex:
     sys.stderr.write("Error importing Lutris application module: %s\n" % ex)
     sys.exit(1)
 
-app = Application()  # pylint: disable=invalid-name
+app = LutrisApplication()
 sys.exit(app.run(sys.argv))

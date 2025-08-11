@@ -1,5 +1,5 @@
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.12"
 packages = [
     "lutris",
     "tests",
@@ -18,7 +18,6 @@ disable_error_code = [
 allow_redefinition = true
 follow_imports = "silent"
 ignore_missing_imports = true
-implicit_optional = true
 
 [tool.mypy-baseline]
 # --baseline-path: the file where the baseline should be stored
@@ -35,3 +34,8 @@ hide_stats = false
 no_colors = false
 # --ignore: regexes for error messages to ignore
 ignore = []
+
+[tool.pyright]
+
+typeCheckingMode = "basic"
+reportMissingImports = false

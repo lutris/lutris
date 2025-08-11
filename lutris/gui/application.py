@@ -24,7 +24,7 @@ import sys
 import tempfile
 from datetime import datetime, timedelta
 from gettext import gettext as _
-from typing import List
+from typing import List, Optional
 
 import gi
 
@@ -65,8 +65,8 @@ from .lutriswindow import LutrisWindow
 LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATURES_ENABLED") == "1"
 
 
-class Application(Gtk.Application):
-    def __init__(self):
+class LutrisApplication(Gtk.Application):
+    def __init__(self) -> None:
         super().__init__(
             application_id="net.lutris.Lutris",
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
@@ -87,7 +87,7 @@ class Application(Gtk.Application):
         GLib.set_prgname("net.lutris.Lutris")
         self.force_updates = False
         self.css_provider = Gtk.CssProvider.new()
-        self.window = None
+        self.window: Optional[LutrisWindow] = None
         self.launch_ui_delegate = LaunchUIDelegate()
         self.install_ui_delegate = InstallUIDelegate()
 
@@ -96,7 +96,7 @@ class Application(Gtk.Application):
         self.tray = None
 
         self.quit_on_game_exit = False
-        self.style_manager = None
+        self.style_manager = StyleManager()
 
         if os.geteuid() == 0:
             NoticeDialog(_("Do not run Lutris as root."))
@@ -340,8 +340,6 @@ class Application(Gtk.Application):
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
 
-        self.style_manager = StyleManager()
-
     def do_activate(self):  # pylint: disable=arguments-differ
         if not self.window:
             self.window = LutrisWindow(application=self)
@@ -351,6 +349,8 @@ class Application(Gtk.Application):
     def start_runtime_updates(self) -> None:
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
+        elif not self.window:
+            logger.error("Runtime updates can't be started with a LutrisWindow.")
         else:
             self.window.start_runtime_updates(self.force_updates)
 
@@ -456,7 +456,6 @@ class Application(Gtk.Application):
     def do_command_line(self, command_line):  # noqa: C901  # pylint: disable=arguments-differ
         # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
         # pylint: disable=too-many-statements
-        # TODO: split into multiple methods to reduce complexity (35)
         options = command_line.get_options_dict()
 
         # Use stdout to output logs, only if no command line argument is

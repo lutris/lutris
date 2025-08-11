@@ -3,17 +3,14 @@
 import os
 from collections import OrderedDict
 from gettext import gettext as _
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from lutris import settings
-from lutris.api import get_default_wine_runner_version_info
-from lutris.exceptions import MisconfigurationError, UnavailableRunnerError, UnspecifiedVersionError
+from lutris.exceptions import MisconfigurationError, UnspecifiedVersionError
+from lutris.settings import WINE_DIR
 from lutris.util import cache_single, linux, system
 from lutris.util.log import logger
 from lutris.util.strings import get_natural_sort_key, parse_version
 from lutris.util.wine import fsync, proton
-
-WINE_DIR: str = os.path.join(settings.RUNNER_DIR, "wine")
 
 WINE_DEFAULT_ARCH: str = "win64" if linux.LINUX_SYSTEM.is_64_bit else "win32"
 WINE_PATHS: Dict[str, str] = {
@@ -37,7 +34,7 @@ except Exception as ex:
     logger.exception("Unable to enumerate system Wine versions: %s", ex)
 
 
-def detect_arch(prefix_path: str = None, wine_path: str = None) -> str:
+def detect_arch(prefix_path: Optional[str] = None, wine_path: Optional[str] = None) -> str:
     """Given a Wine prefix path, return its architecture"""
     if wine_path:
         if proton.is_proton_path(wine_path) or system.path_exists(wine_path + "64"):
@@ -129,20 +126,23 @@ def list_lutris_wine_versions() -> List[str]:
 def get_installed_wine_versions() -> List[str]:
     """Return the list of Wine versions installed, with no duplicates and in
     the presentation order."""
-    versions = {}
-    for v in list_system_wine_versions():
-        if v not in versions:
-            versions[v] = v
+    versions: Set[str] = {
+        "ge-proton",
+    }
 
     for v in proton.list_proton_versions():
         if v not in versions:
-            versions[v] = v
+            versions.add(v)
 
     for v in list_lutris_wine_versions():
         if v not in versions:
-            versions[v] = v
+            versions.add(v)
 
-    return list(versions.keys())
+    for v in list_system_wine_versions():
+        if v not in versions:
+            versions.add(v)
+
+    return list(versions)
 
 
 def clear_wine_version_cache() -> None:
@@ -158,12 +158,12 @@ def get_runner_files_dir_for_version(version: str) -> Optional[str]:
     if version in WINE_PATHS:
         return None
     elif proton.is_proton_version(version):
-        return os.path.join(proton.PROTON_DIR, version, "files")
+        return os.path.join(WINE_DIR, version, "files")
     else:
         return os.path.join(WINE_DIR, version)
 
 
-def get_wine_path_for_version(version: str, config: dict = None) -> str:
+def get_wine_path_for_version(version: str, config: Optional[dict] = None) -> str:
     """Return the absolute path of a wine executable for a given version,
     or the configured version if you don't ask for a version."""
     if not version and config:
@@ -196,10 +196,10 @@ def parse_wine_version(version: str) -> Tuple[List[int], str, str]:
 
 
 def version_sort(versions: List[str], reverse: bool = False) -> List[str]:
-    def version_key(version):
+    def version_key(version: str) -> List[Any]:
         version_list, prefix, suffix = parse_wine_version(version)
         # Normalize the length of sub-versions
-        sort_key = version_list + [0] * (10 - len(version_list))
+        sort_key: List[Any] = list(version_list) + [0] * (10 - len(version_list))
         sort_key.append(prefix)
         sort_key.append(suffix)
         return sort_key
@@ -219,15 +219,7 @@ def is_fsync_supported() -> bool:
 
 def get_default_wine_version() -> str:
     """Return the default version of wine."""
-    installed_versions = get_installed_wine_versions()
-    if installed_versions:
-        default_version = get_default_wine_runner_version_info()
-        if default_version and "version" in default_version and "architecture" in default_version:
-            version = default_version["version"] + "-" + default_version["architecture"]
-            if version in installed_versions:
-                return version
-        return installed_versions[0]
-    raise UnavailableRunnerError(_("No versions of Wine are installed."))
+    return "ge-proton"
 
 
 def get_system_wine_version(wine_path: str = "wine") -> str:
@@ -245,7 +237,7 @@ def get_system_wine_version(wine_path: str = "wine") -> str:
     return version
 
 
-def get_real_executable(windows_executable: str, working_dir: str) -> Tuple[str, List[str], str]:
+def get_real_executable(windows_executable: str, working_dir: Optional[str]) -> Tuple[str, List[str], Optional[str]]:
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""
 
@@ -273,7 +265,9 @@ def get_overrides_env(overrides: Dict[str, str]) -> str:
     """
     default_overrides = {"winemenubuilder": ""}
     overrides.update(default_overrides)
-    override_buckets = OrderedDict([("n,b", []), ("b,n", []), ("b", []), ("n", []), ("d", []), ("", [])])
+    override_buckets: Dict[str, List] = OrderedDict(
+        [("n,b", []), ("b,n", []), ("b", []), ("n", []), ("d", []), ("", [])]
+    )
     for dll, value in overrides.items():
         if not value:
             value = ""

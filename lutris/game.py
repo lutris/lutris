@@ -9,7 +9,7 @@ import signal
 import subprocess
 import time
 from gettext import gettext as _
-from typing import cast
+from typing import Optional, cast
 
 from gi.repository import Gio, GLib, Gtk
 
@@ -66,7 +66,7 @@ class Game:
 
     PRIMARY_LAUNCH_CONFIG_NAME = "(primary)"
 
-    def __init__(self, game_id: str = None):
+    def __init__(self, game_id: Optional[str] = None):
         super().__init__()
 
         self.game_error = NotificationSource()
@@ -725,15 +725,15 @@ class Game:
 
         self.runner.finish_env(env, self)
 
-        antimicro_config = self.runner.system_config.get("antimicro_config")
+        antimicro_config = self.runner.system_config.get("antimicro_config", "")
         if system.path_exists(antimicro_config):
             self.start_antimicrox(antimicro_config)
 
         # Execution control
         self.killswitch = self.get_killswitch()
 
-        if self.runner.system_config.get("prelaunch_command"):
-            self.start_prelaunch_command(self.runner.system_config.get("prelaunch_wait"))
+        if self.runner.system_config.get("prelaunch_command", ""):
+            self.start_prelaunch_command(self.runner.system_config["prelaunch_wait"])
 
         self.start_game()
         return True
