@@ -188,7 +188,7 @@ class ZoomService(OnlineService):
         for extra_type in ["manual", "misc", "soundtrack"]:
             files = files_request[extra_type]
             for file in files:
-                download_request = self.make_request(f"{self.api_url}/li/download/{file["id"]}")
+                download_request = self.make_request(f"{self.api_url}/li/download/{file['id']}")
                 extra_file_dict = {
                     "name": file["name"],
                     "url": download_request["url"],
@@ -283,7 +283,7 @@ class ZoomService(OnlineService):
         files = files_request[platform]
         print(files)
         assert len(files) == 1, "More than one file found for %s" % platform  # TODO: Handle multiple files
-        json = self.make_request(f"{self.api_url}/li/download/{files[0]["id"]}")
+        json = self.make_request(f"{self.api_url}/li/download/{files[0]['id']}")
 
         installer_file_dict = {
             "url": json["url"],
