@@ -3,6 +3,7 @@
 import json
 import os
 import typing
+import time
 from gettext import gettext as _
 from typing import Any, Dict, List, Tuple
 
@@ -46,11 +47,11 @@ class ZoomGame(ServiceGame):
         service_game = ZoomGame()
         service_game.appid = str(zoom_game["id"])
         service_game.game_id = str(zoom_game["id"])
-        service_game.slug = zoom_game["name"].casefold().replace(" ", "-")
+        service_game.slug = zoom_game["slug"]
         service_game.name = zoom_game["name"]
         details = zoom_game
         details["image"] = zoom_game["poster_url"]
-        details["slug"] = zoom_game["name"].casefold().replace(" ", "-")
+        details["slug"] = zoom_game["slug"]
         service_game.details = json.dumps(details)
         return service_game
 
@@ -161,6 +162,7 @@ class ZoomService(OnlineService):
 
         games = response["games"]
         while current_page < total_pages - 1:
+            time.sleep(1)  # Avoid hitting the API too fast, until HTTP 429 is handled in the Request class
             logger.debug("Fetching additional pages of Zoom library")
             current_page += 1
             next_page_url = f"{url}?page={current_page}"
