@@ -167,7 +167,7 @@ class ZoomService(OnlineService):
             response = self.make_request(next_page_url)
             games.extend(response["games"])
 
-        #print(games)
+        # print(games)
         with open(self.cache_path, "w", encoding="utf-8") as zoom_cache:
             json.dump(games, zoom_cache)
 
@@ -182,7 +182,7 @@ class ZoomService(OnlineService):
         # fetch the extra files urls and then parse the response to get the download url
 
         files_request = self.make_request(f"{self.api_url}/li/game/{appid}/files")
-        #print(product_request)
+        # print(product_request)
 
         all_extras = []
         for extra_type in ["manual", "misc", "soundtrack"]:
@@ -277,12 +277,12 @@ class ZoomService(OnlineService):
         # fetch the installer url and then parse the response to get the download url
 
         files_request = self.make_request(f"{self.api_url}/li/game/{appid}/files")
-        #print(json)
+        # print(json)
 
         file_list = []
         files = files_request[platform]
         print(files)
-        assert len(files) == 1, "More than one file found for %s" % platform # TODO: Handle multiple files
+        assert len(files) == 1, "More than one file found for %s" % platform  # TODO: Handle multiple files
         json = self.make_request(f"{self.api_url}/li/download/{files[0]["id"]}")
 
         installer_file_dict = {
