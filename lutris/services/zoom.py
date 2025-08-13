@@ -44,13 +44,13 @@ class ZoomGame(ServiceGame):
     def new_from_zoom_game(cls, zoom_game):
         """Return a Zoom game instance from the API info"""
         service_game = ZoomGame()
-        service_game.appid = str(zoom_game["product"]["id"])
-        service_game.game_id = str(zoom_game["product"]["id"])
-        service_game.slug = zoom_game["product"]["slug"]
-        service_game.name = zoom_game["product"]["name"]
-        details = zoom_game["product"]
-        details["image"] = zoom_game["product"]["search_image"]
-        details["slug"] = zoom_game["product"]["slug"]
+        service_game.appid = str(zoom_game["id"])
+        service_game.game_id = str(zoom_game["id"])
+        service_game.slug = zoom_game["name"].casefold().replace(" ", "-")
+        service_game.name = zoom_game["name"]
+        details = zoom_game
+        details["image"] = zoom_game["poster_url"]
+        details["slug"] = zoom_game["name"].casefold().replace(" ", "-")
         service_game.details = json.dumps(details)
         return service_game
 
@@ -69,10 +69,9 @@ class ZoomService(OnlineService):
     embed_url = "https://www.zoom-platform.com"
     api_url = "https://www.zoom-platform.com"
 
-    redirect_uris = []
+    redirect_uris = ["https://www.zoom-platform.com/account?li_token="]
 
-    login_success_url = "https://www.zoom-platform.com"
-    cookies_path = os.path.join(settings.CACHE_DIR, ".zoom.auth")
+    login_success_url = "https://www.zoom-platform.com/account?li_token="
     token_path = os.path.join(settings.CACHE_DIR, ".zoom.token")
     cache_path = os.path.join(settings.CACHE_DIR, "zoom-library.json")
 
@@ -81,23 +80,23 @@ class ZoomService(OnlineService):
     @property
     def login_url(self):
         """Return authentication URL"""
-        return "https://www.zoom-platform.com/login"
+        return f"{self.embed_url}/login?li=lutris&return_li_token=true"
 
     @property
     def credential_files(self) -> List[str]:
-        return [self.cookies_path, self.token_path]
+        return [self.token_path]
 
     def is_connected(self) -> bool:
         """Return whether the user is authenticated and if the service is available"""
-        if self.load_cookies() is None:
-            logger.debug("No cookies found")
+
+        try:
+            request = self.make_request(f"{self.api_url}/li/loggedin")
+        except AuthenticationError:
+            logger.debug("User is not authenticated")
             return False
 
-        for coookie in self.load_cookies():
-            if coookie.name == "zoom_platform_session":
-                return True
-
-        return False
+        logger.debug("User is authenticated: %s", request)
+        return True
 
     def is_authenticated(self):
         return self.is_connected()
@@ -107,39 +106,68 @@ class ZoomService(OnlineService):
         if not self.is_connected():
             logger.error("User not connected to Zoom")
             return []
-        games = [ZoomGame.new_from_zoom_game(game) for game in self.get_library().values()]
+        games = [ZoomGame.new_from_zoom_game(game) for game in self.get_library()]
         for game in games:
             game.save()
         self.match_games()
         return games
 
     def login_callback(self, url) -> None:
+        if "li_token=" not in url:
+            logger.error("Login callback URL does not contain 'li_token'")
+            return
+
+        token = url.split("li_token=")[-1]
+        with open(self.token_path, "w", encoding="utf-8") as token_file:
+            token_file.write(token)
+
         assert not self.is_login_in_progress
         SERVICE_LOGIN.fire(self)
 
+    def load_token(self) -> str:
+        """Load token from disk"""
+        if not os.path.exists(self.token_path):
+            raise AuthenticationError("No Zoom token available")
+
+        with open(self.token_path, encoding="utf-8") as token_file:
+            token_content = token_file.read()
+
+        if not token_content:
+            raise AuthenticationError("No Zoom token available")
+
+        return token_content
+
     def make_request(self, url: str) -> Any:
-        """Send a cookie authenticated HTTP request to Zoom"""
-        request = Request(url, cookies=self.load_cookies())
-        request.get()
-        if request.content.startswith(b"<"):
-            raise AuthenticationError("Token expired, please log in again")
-        return request.json
+        """Send a token authenticated HTTP request to Zoom"""
 
-    def make_api_request(self, url: str) -> Any:
-        """Send a token authenticated request to Zoom"""
-        request = Request(url, cookies=self.load_cookies())
+        token = self.load_token()
+        headers = {"Authorization": "Bearer " + token, "Accept": "application/json"}
+
+        request = Request(url, headers=headers)
         request.get()
         return request.json
 
-    def get_library(self) -> Dict:
+    def get_library(self) -> List[Dict]:
         """Return the user's library of Zoom games"""
         if system.path_exists(self.cache_path):
             logger.debug("Returning cached Zoom library")
             with open(self.cache_path, "r", encoding="utf-8") as zoom_cache:
                 return json.load(zoom_cache)
 
-        url = self.embed_url + "/public/profile/products"
-        games = self.make_request(url)
+        url = f"{self.api_url}/li/games"
+        response = self.make_request(url)
+        current_page = response.get("current_page", 0)
+        total_pages = response.get("total_pages", 0)
+
+        games = response["games"]
+        while current_page < total_pages - 1:
+            logger.debug("Fetching additional pages of Zoom library")
+            current_page += 1
+            next_page_url = f"{url}?page={current_page}"
+            response = self.make_request(next_page_url)
+            games.extend(response["games"])
+
+        #print(games)
         with open(self.cache_path, "w", encoding="utf-8") as zoom_cache:
             json.dump(games, zoom_cache)
 
@@ -151,24 +179,21 @@ class ZoomService(OnlineService):
         return {"extras": self._get_extra(appid)}
 
     def _get_extra(self, appid: str) -> List[dict]:
-        # fetch the extra files urls using https://www.zoom-platform.com/public/profile/product/ + appid
-        # and then parse the response to get the download url
+        # fetch the extra files urls and then parse the response to get the download url
 
-        product_url = "https://www.zoom-platform.com/public/profile/product/%s" % appid
-        json = self.make_request(product_url)
-        print(json)
+        files_request = self.make_request(f"{self.api_url}/li/game/{appid}/files")
+        #print(product_request)
 
         all_extras = []
         for extra_type in ["manual", "misc", "soundtrack"]:
-            files = json["files"][extra_type]
-            print(files)
-
+            files = files_request[extra_type]
             for file in files:
+                download_request = self.make_request(f"{self.api_url}/li/download/{file["id"]}")
                 extra_file_dict = {
                     "name": file["name"],
-                    "url": file["file_url"],
+                    "url": download_request["url"],
                     "filename": file["name"],  # we cannot use "path" here as it can include a directory
-                    "total_size": computer_size(file["file_size"]),
+                    "total_size": computer_size(file["size"]),
                 }
                 all_extras.append(extra_file_dict)
         return all_extras
@@ -249,21 +274,21 @@ class ZoomService(OnlineService):
         return files, extras
 
     def _get_installers(self, platform: str, game_slug: str, appid: str) -> List[InstallerFile]:
-        # fetch the installer url using https://www.zoom-platform.com/public/profile/product/ + appid
-        # and then parse the response to get the download url
+        # fetch the installer url and then parse the response to get the download url
 
-        product_url = "https://www.zoom-platform.com/public/profile/product/%s" % appid
-        json = self.make_request(product_url)
-        # print(json)
+        files_request = self.make_request(f"{self.api_url}/li/game/{appid}/files")
+        #print(json)
 
         file_list = []
-        files = json["files"][platform]
+        files = files_request[platform]
         print(files)
-        assert len(files) == 1, "More than one file found for %s" % platform
+        assert len(files) == 1, "More than one file found for %s" % platform # TODO: Handle multiple files
+        json = self.make_request(f"{self.api_url}/li/download/{files[0]["id"]}")
+
         installer_file_dict = {
-            "url": files[0]["file_url"],
+            "url": json["url"],
             "filename": files[0]["name"],
-            "total_size": computer_size(files[0]["file_size"]),
+            "total_size": computer_size(files[0]["size"]),
         }
 
         installer_file = InstallerFile(
