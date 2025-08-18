@@ -8,7 +8,7 @@ from gettext import gettext as _
 from gi.repository import GdkPixbuf, Gtk, Pango
 
 from lutris import runners, settings
-from lutris.config import LutrisConfig, make_game_config_id
+from lutris.config import LutrisConfig, make_game_config_id, rename_config
 from lutris.game import Game
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemConfigBox
@@ -690,6 +690,11 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):  # type:
             self.game.playtime = playtime
         self.game.is_installed = True
         self.game.config = self.lutris_config
+
+        # Rename config file if game slug changed
+        if new_config_id := rename_config(self.game.config.game_config_id, self.game.slug):
+            self.game.config.game_config_id = new_config_id
+
         self.game.runner_name = self.runner_name
 
         if "icon" not in self.game.custom_images:
