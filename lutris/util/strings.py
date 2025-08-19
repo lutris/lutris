@@ -393,7 +393,7 @@ def computer_size(size: str) -> int:
     units = ("bytes", "kb", "mb", "gb", "tb", "pb")
     unit_index = 0
     size = size.strip()
-    size = size.lower()
+    size = size.casefold()
     for unit in units:
         if size.endswith(unit):
             size = size[: -len(unit)].strip()

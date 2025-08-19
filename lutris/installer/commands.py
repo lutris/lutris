@@ -578,11 +578,11 @@ class CommandsMixin:
         scummvm_found = False
         windows_override_found = False  # DOS games that also have a Windows executable
         for filename in file_list:
-            if "dosbox.exe" in filename.lower():
+            if "dosbox.exe" in filename.casefold():
                 dosbox_found = True
-            if "scummvm.exe" in filename.lower():
+            if "scummvm.exe" in filename.casefold():
                 scummvm_found = True
-            if "_some_windows.exe" in filename.lower():
+            if "_some_windows.exe" in filename.casefold():
                 # There's not a good way to handle exceptions without extracting the .info file
                 # before extracting the game. Added for Quake but GlQuake.exe doesn't run on modern wine
                 windows_override_found = True
@@ -655,9 +655,9 @@ class CommandsMixin:
         dosbox_found = False
         scummvm_found = False
         for filename in file_list:
-            if "dosbox.exe" in filename.lower():
+            if "dosbox.exe" in filename.casefold():
                 dosbox_found = True
-            if "scummvm.exe" in filename.lower():
+            if "scummvm.exe" in filename.casefold():
                 scummvm_found = True
         if dosbox_found:
             self._extract_innosetup(file_id)
