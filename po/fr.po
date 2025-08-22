@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-05 21:49+0200\n"
-"PO-Revision-Date: 2025-08-10 10:40+0200\n"
+"PO-Revision-Date: 2025-08-22 23:58+0200\n"
 "Last-Translator: Astrobald astrobald@proton.me\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -662,7 +662,7 @@ msgstr "Afficher le panneau latéral"
 
 #: share/lutris/ui/lutris-window.ui:677
 msgid "Show _Hidden Games"
-msgstr "Montrer les jeux cachés"
+msgstr "Montrer les jeux masqués"
 
 #: share/lutris/ui/lutris-window.ui:698
 msgid "Preferences"
@@ -801,7 +801,7 @@ msgstr "Masquer le jeu de la bibliothèque"
 
 #: lutris/game_actions.py:196 lutris/game_actions.py:238
 msgid "Unhide game from library"
-msgstr "Ne plus masquer le jeu de la bibliothèque"
+msgstr "Démasquer le jeu de la bibliothèque"
 
 #. Local services don't show an install dialog, they can be launched directly
 #: lutris/game_actions.py:227 lutris/gui/widgets/game_bar.py:210
@@ -1431,7 +1431,7 @@ msgstr "Se connecter"
 
 #: lutris/gui/config/accounts_box.py:112
 msgid "Keep your game library synced with Lutris.net"
-msgstr "Gardez votre bibliothèque synchronisée avec Lutris.net"
+msgstr "Garder votre bibliothèque synchronisée avec Lutris.net"
 
 #: lutris/gui/config/accounts_box.py:125
 msgid ""
@@ -3653,7 +3653,7 @@ msgid ""
 "you're having difficulties starting the emulator."
 msgstr ""
 "Empêche l'émulateur d'interroger les manettes. Essayez cette option si "
-"l'émulateur a du mal à démarrer."
+"l'émulation a du mal à démarrer."
 
 #: lutris/runners/duckstation.py:87
 msgid "Custom configuration file"
@@ -4919,7 +4919,7 @@ msgstr "Émulateur multi-système"
 
 #: lutris/runners/libretro.py:80
 msgid "Core"
-msgstr "Core"
+msgstr "Cœur"
 
 #: lutris/runners/libretro.py:89 lutris/runners/zdoom.py:76
 msgid "Config file"
@@ -6942,7 +6942,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:354
 msgid "D3D Extras version"
-msgstr "Versions D3D Extras"
+msgstr "Version D3D Extras"
 
 #: lutris/runners/wine.py:364
 msgid "Enable DXVK-NVAPI / DLSS"
@@ -7751,7 +7751,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:229
 msgid "Relative Mouse Mode"
-msgstr "Gestion Relative de la Souris"
+msgstr "Activer la souris relative"
 
 #: lutris/sysoptions.py:235
 msgid ""
@@ -7910,7 +7910,7 @@ msgstr "Passer à une configuration clavier US QWERTY dans le jeu"
 
 #: lutris/sysoptions.py:365
 msgid "AntiMicroX Profile"
-msgstr "AntiMicroX Profile"
+msgstr "Profil AntiMicroX"
 
 #: lutris/sysoptions.py:367
 msgid "Path to an AntiMicroX profile file"
@@ -7920,7 +7920,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:373
 msgid "SDL2 gamepad mapping"
-msgstr "SDL2 gamepad mapping"
+msgstr "Fichier de mappage SDL2"
 
 #: lutris/sysoptions.py:376
 msgid ""
