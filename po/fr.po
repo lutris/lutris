@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-05 21:49+0200\n"
-"PO-Revision-Date: 2025-08-22 23:58+0200\n"
+"PO-Revision-Date: 2025-08-23 00:24+0200\n"
 "Last-Translator: Astrobald astrobald@proton.me\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -79,7 +79,9 @@ msgstr ""
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:38
 msgid ""
 "Preference options that do not work on Wayland will be hidden when on Wayland"
-msgstr "Les options qui ne fonctionnent pas sous Wayland seront cachées en c"
+msgstr ""
+"Lors d'une session Wayland, les options qui ne fonctionnent pas sous Wayland "
+"seront cachées"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:39
 msgid ""
@@ -591,16 +593,16 @@ msgstr ""
 "Entrez le nom d'un jeu à chercher ou utilisez les filtres :\r\n"
 "\r\n"
 "<b>installed:</b><i>true</i>\t\t\tSeulement les jeux installés.\r\n"
-"<b>hidden:</b><i>true</i>\t\t\tSeulement les jeux cachés.\r\n"
+"<b>hidden:</b><i>true</i>\t\t\t\tSeulement les jeux masqués.\r\n"
 "<b>favorite:</b><i>true</i>\t\t\tSeulement les jeux favoris.\r\n"
 "<b>categorized:</b><i>true</i>\t\tSeulement dans une catégorie.\r\n"
-"<b>category:</b><i>x</i>\t\t\tSeulement dans une catégorie <i>x</i>.\r\n"
+"<b>category:</b><i>x</i>\t\t\t\tSeulement dans une catégorie <i>x</i>.\r\n"
 "<b>source:</b><i>steam</i>\t\t\tSeulement les jeux Steam\r\n"
-"<b>runner:</b><i>wine</i>\t\t\tSeulement les jeux Wine\r\n"
-"<b>platform:</b><i>windows</i>\tSeulement les jeux Windows\r\n"
-"<b>playtime:</b><i>&gt;2 hours</i>\tSeulement les jeux ayant tournés plus de "
-"2 heures.\r\n"
-"<b>lastplayed:</b><i>&lt;2 days</i>\tSeulement les jeux lancés il y a plus "
+"<b>runner:</b><i>wine</i>\t\t\t\tSeulement les jeux Wine\r\n"
+"<b>platform:</b><i>windows</i>\t\tSeulement les jeux Windows\r\n"
+"<b>playtime:</b><i>&gt;2 hours</i>\t\tSeulement les jeux ayant tournés plus "
+"de 2 heures.\r\n"
+"<b>lastplayed:</b><i>&lt;2 days</i>\t\tSeulement les jeux lancés il y a plus "
 "de 2 jours.\r\n"
 "<b>directory:</b><i>jeu/chemin</i>\tSeulement dans le chemin fourni."
 
@@ -1613,7 +1615,7 @@ msgstr "Favoris"
 
 #: lutris/gui/config/edit_saved_search.py:132 lutris/gui/widgets/sidebar.py:493
 msgid "Hidden"
-msgstr "Caché"
+msgstr "Masqué"
 
 #: lutris/gui/config/edit_saved_search.py:133
 msgid "Categorized"
@@ -2818,7 +2820,7 @@ msgstr ""
 #: lutris/gui/lutriswindow.py:737
 #, python-format
 msgid "No hidden games matching '%s' found."
-msgstr "Aucun jeu caché correspondant à \"%s\" trouvé."
+msgstr "Aucun jeu masqué correspondant à \"%s\" trouvé."
 
 #: lutris/gui/lutriswindow.py:740
 #, python-format
@@ -2840,7 +2842,7 @@ msgstr "Ajoutez des jeux à vos favoris pour les voir ici."
 
 #: lutris/gui/lutriswindow.py:748
 msgid "No games are hidden."
-msgstr "Aucun jeu n'est caché."
+msgstr "Aucun jeu n'est masqué."
 
 #: lutris/gui/lutriswindow.py:750
 msgid "No installed games found. Press Ctrl+I to show uninstalled games."
@@ -2877,11 +2879,11 @@ msgstr ""
 
 #: lutris/gui/lutriswindow.py:1273
 msgid "Show Hidden Games"
-msgstr "Montrer les jeux cachés"
+msgstr "Montrer les jeux masqués"
 
 #: lutris/gui/lutriswindow.py:1275
 msgid "Rehide Hidden Games"
-msgstr "Recacher les jeux cachés"
+msgstr "Montrer les jeux non masqués"
 
 #: lutris/gui/lutriswindow.py:1473
 msgid ""
@@ -3911,11 +3913,11 @@ msgstr "Activer le mode TestPlay (debug)"
 
 #: lutris/runners/easyrpg.py:153
 msgid "Hide title"
-msgstr "Cacher le titre"
+msgstr "Masquer le titre"
 
 #: lutris/runners/easyrpg.py:154
 msgid "Hide the title background image and center the command menu."
-msgstr "Cacher l’arrière-plan du titre et centrer le menu de commande."
+msgstr "Masquer l’arrière-plan du titre et centrer le menu de commande."
 
 #: lutris/runners/easyrpg.py:162
 msgid "Start map ID"
@@ -5475,7 +5477,7 @@ msgstr "Les données du jeu, communément appelées image ROM."
 
 #: lutris/runners/mupen64plus.py:32
 msgid "Hide OSD"
-msgstr "Cacher OSD"
+msgstr "Masquer l'OSD"
 
 #: lutris/runners/o2em.py:13
 msgid "O2EM"
@@ -6572,7 +6574,7 @@ msgstr "Désactiver le défilement sur la page."
 
 #: lutris/runners/web.py:90
 msgid "Hide mouse cursor"
-msgstr "Cacher le curseur de la souris"
+msgstr "Masquer le curseur de la souris"
 
 #: lutris/runners/web.py:93
 msgid "Prevents the mouse cursor from showing when hovering above the window."
