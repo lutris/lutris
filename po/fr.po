@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-05 21:49+0200\n"
-"PO-Revision-Date: 2025-08-23 21:24+0200\n"
+"PO-Revision-Date: 2025-08-23 21:34+0200\n"
 "Last-Translator: Astrobald astrobald@proton.me\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -1517,7 +1517,7 @@ msgstr "Aucune option ne correspond à \"%s\""
 #. type:ignore[attr-defined]
 #: lutris/gui/config/boxes.py:338
 msgid "Only advanced options available"
-msgstr "Pas d'options disponibles"
+msgstr "Seules les options avancées sont disponibles"
 
 #: lutris/gui/config/boxes.py:340
 msgid "No options available"
@@ -2505,9 +2505,7 @@ msgstr "Gestion de la version %s"
 #, python-format
 msgid "View %d game"
 msgid_plural "View %d games"
-msgstr[0] ""
-"_Voir \n"
-"%d jeu"
+msgstr[0] "_Voir %d jeu"
 msgstr[1] "_Voir %d jeux"
 
 #: lutris/gui/dialogs/runner_install.py:280
