@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-05 21:49+0200\n"
-"PO-Revision-Date: 2025-08-23 00:24+0200\n"
+"PO-Revision-Date: 2025-08-23 21:24+0200\n"
 "Last-Translator: Astrobald astrobald@proton.me\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -1516,7 +1516,6 @@ msgstr "Aucune option ne correspond à \"%s\""
 
 #. type:ignore[attr-defined]
 #: lutris/gui/config/boxes.py:338
-#, fuzzy
 msgid "Only advanced options available"
 msgstr "Pas d'options disponibles"
 
@@ -1659,7 +1658,6 @@ msgid "Do you want to delete the saved search '%s'?"
 msgstr "Voulez-vous supprimer la catégorie \"%s\" ?"
 
 #: lutris/gui/config/edit_saved_search.py:338
-#, fuzzy
 msgid ""
 "This will permanently destroy the saved search, but the games themselves "
 "will not be deleted."
@@ -2507,7 +2505,9 @@ msgstr "Gestion de la version %s"
 #, python-format
 msgid "View %d game"
 msgid_plural "View %d games"
-msgstr[0] "_Voir %d jeu"
+msgstr[0] ""
+"_Voir \n"
+"%d jeu"
 msgstr[1] "_Voir %d jeux"
 
 #: lutris/gui/dialogs/runner_install.py:280
