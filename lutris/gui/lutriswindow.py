@@ -6,7 +6,7 @@ import os
 from collections import namedtuple
 from datetime import datetime
 from gettext import gettext as _
-from typing import Iterable, List, Set, cast
+from typing import Dict, Iterable, List, Set, cast
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, Gtk
@@ -680,10 +680,24 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         filters = self.get_sql_filters()
         games = games_db.get_games(filters=filters)
+
+        if self.filters.get("category") == "all":
+            included_services = set(
+                s.casefold()
+                for s in services.SERVICES.keys()
+                if settings.read_bool_setting(s + "_in_games_view", default=True, section="services")
+            )
+            included_services.add("lutris")
+
+            def in_games_view(db_game):
+                return (db_game.get("service") or "lutris").casefold() in included_services
+
+            games = [game for game in games if in_games_view(game)]
+
         games = self.filter_games([game for game in games if game["id"] in category_game_ids], searches=searches)
         return self.apply_view_sort(games)
 
-    def get_sql_filters(self):
+    def get_sql_filters(self) -> Dict[str, str]:
         """Return the current filters for the view"""
         sql_filters = {}
         if self.filters.get("runner"):
@@ -1305,11 +1319,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.on_settings_changed(None, not state, "hide_badges_on_icons")
 
     def on_settings_changed(self, setting_key, new_value, section):
-        if section == "lutris":
-            if setting_key == "hide_text_under_icons":
-                self.rebuild_view("grid")
-            else:
-                self.update_view_settings()
+        if section == "lutris" and setting_key == "hide_text_under_icons":
+            self.rebuild_view("grid")
+        elif section == "services" and setting_key.endswith("_in_games_view"):
+            self.update_store()
+        else:
+            self.update_view_settings()
         self.update_notification()
         return True
 
