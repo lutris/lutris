@@ -1304,11 +1304,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         settings.write_setting("hide_badges_on_icons", not state)
         self.on_settings_changed(None, not state, "hide_badges_on_icons")
 
-    def on_settings_changed(self, setting_key, new_value):
-        if setting_key == "hide_text_under_icons":
-            self.rebuild_view("grid")
-        else:
-            self.update_view_settings()
+    def on_settings_changed(self, setting_key, new_value, section):
+        if section == "lutris":
+            if setting_key == "hide_text_under_icons":
+                self.rebuild_view("grid")
+            else:
+                self.update_view_settings()
         self.update_notification()
         return True
 
