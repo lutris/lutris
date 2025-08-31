@@ -679,21 +679,18 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         category_game_ids = categories_db.get_game_ids_for_categories(included, excluded)
 
         filters = self.get_sql_filters()
-        games = games_db.get_games(filters=filters)
+        excludes = {}
 
-        if self.filters.get("category") == "all":
-            included_services = set(
+        if self.filters.get("category") == "all" and "service" not in self.filters:
+            excluded_services = set(
                 s.casefold()
                 for s in services.SERVICES.keys()
-                if settings.read_bool_setting(s + "_in_games_view", default=True, section="services")
+                if not settings.read_bool_setting(s + "_in_games_view", default=True, section="services")
             )
-            included_services.add("lutris")
+            if excluded_services:
+                excludes["service"] = excluded_services
 
-            def in_games_view(db_game):
-                return (db_game.get("service") or "lutris").casefold() in included_services
-
-            games = [game for game in games if in_games_view(game)]
-
+        games = games_db.get_games(filters=filters, excludes=excludes)
         games = self.filter_games([game for game in games if game["id"] in category_game_ids], searches=searches)
         return self.apply_view_sort(games)
 
