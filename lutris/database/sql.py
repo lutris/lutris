@@ -1,5 +1,6 @@
 import sqlite3
 import threading
+from typing import Any
 
 # Prevent multiple access to the database (SQLite limitation)
 DB_LOCK = threading.RLock()
@@ -126,6 +127,55 @@ def add_field(db_path, tablename, field):
         cursor.execute(query)
 
 
+def _create_filter(field: str, value: Any, params: list, negate: bool = False) -> str:
+    """Creates a filter to match a field to a vlaue, or to a list of
+    values. None can be used as well, to make NULL."""
+    also_null = False
+    if hasattr(value, "__iter__") and not isinstance(value, str):
+        values = list(value)
+
+        if None in values:
+            values.remove(None)
+            also_null = True
+    elif value is None:
+        also_null = True
+        values = []
+    else:
+        values = [value]
+
+    if len(values) == 0:
+        if negate:
+            if also_null:
+                return f"{field} IS NOT NULL"
+            else:
+                return "1 = 1"
+        else:
+            if also_null:
+                return f"{field} IS NULL"
+            else:
+                return "1 = 0"
+
+    if len(values) == 1:
+        params.append(values[0])
+        sql = f"{field} != ?" if negate else f"{field} = ?"
+    else:
+        sql = f"{field} NOT IN (" if negate else f"{field} IN ("
+        for i, v in enumerate(values):
+            params.append(v)
+            if i > 0:
+                sql += ", "
+            sql += "?"
+        sql += ")"
+
+    if also_null:
+        if negate:
+            return f"({field} IS NOT NULL AND {sql})"
+        else:
+            return f"({field} IS NULL OR {sql})"
+    else:
+        return sql
+
+
 def filtered_query(db_path, table, searches=None, filters=None, excludes=None, sorts=None):
     query = "select * from %s" % table
     params = []
@@ -134,13 +184,9 @@ def filtered_query(db_path, table, searches=None, filters=None, excludes=None, s
         sql_filters.append("%s LIKE ?" % field)
         params.append("%" + searches[field] + "%")
     for field in filters or {}:
-        if filters[field] is not None:  # but 0 or False are okay!
-            sql_filters.append("%s = ?" % field)
-            params.append(filters[field])
+        sql_filters.append(_create_filter(field, filters[field], params))
     for field in excludes or {}:
-        if excludes[field]:
-            sql_filters.append("%s IS NOT ?" % field)
-            params.append(excludes[field])
+        sql_filters.append(_create_filter(field, excludes[field], params, negate=True))
     if sql_filters:
         query += " WHERE " + " AND ".join(sql_filters)
     if sorts:
