@@ -104,7 +104,7 @@ class DolphinGame(ServiceGame):
 
     def get_banner(self, cache_entry):
         banner = DolphinBanner()
-        banner_path = banner.get_possible_media_paths(self.appid)[0]  # Dolphin only supports one media type
+        banner_path = banner.get_possible_media_paths(self.appid)[0].path  # Dolphin only supports one media type
 
         if os.path.exists(banner_path):
             return banner_path

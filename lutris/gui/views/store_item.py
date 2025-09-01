@@ -1,10 +1,12 @@
 """Game representation for views"""
 
 import time
+from typing import List
 
 from lutris.database import games
 from lutris.runners import get_runner_human_name
-from lutris.services import SERVICES
+from lutris.services import SERVICES, LutrisService
+from lutris.services.service_media import MediaPath
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
 
@@ -14,13 +16,14 @@ class StoreItem:
     TODO: Fix overlap with Game class
     """
 
-    def __init__(self, game_data, service_media):
+    def __init__(self, game_data, service, service_media):
         if not game_data:
             raise RuntimeError("No game data provided")
         self._game_data = game_data
         self._cached_installed_game_data = None
         self._cached_installed_game_data_loaded = False
-        self.service_media = service_media
+        self._service_obj = service
+        self._service_media = service_media
 
     def __str__(self):
         return self.name
@@ -80,6 +83,10 @@ class StoreItem:
         return gtk_safe(self._game_data.get("service"))
 
     @property
+    def service_media(self):
+        return self._service_media
+
+    @property
     def slug(self):
         """Slug identifier"""
         return gtk_safe(self._game_data["slug"])
@@ -135,12 +142,13 @@ class StoreItem:
 
         return check_data(self._installed_game_data)
 
-    def get_media_paths(self):
+    def get_media_paths(self) -> List[MediaPath]:
         """Returns the path to the image file for this item"""
         if self._game_data.get("icon"):
             return [self._game_data["icon"]]
 
-        return self.service_media.get_possible_media_paths(self.slug)
+        service = self._service_obj or LutrisService
+        return self.service_media.get_fallback_media_paths(self.slug, service)
 
     @property
     def installed_at(self):

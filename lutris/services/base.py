@@ -55,6 +55,9 @@ class LutrisIcon(LutrisBanner):
     def run_system_update_desktop_icons(self):
         system.update_desktop_icons()
 
+    def get_fallback_media_paths(self, slug, service):
+        return self.get_possible_media_paths(slug)
+
 
 class LutrisCoverart(ServiceMedia):
     service = "lutris"
