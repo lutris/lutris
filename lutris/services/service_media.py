@@ -80,7 +80,8 @@ class ServiceMedia:
         medias.extend(mt() for mt in service.medias.values())
 
         def similarity(media):
-            return abs(media.size[1] - self.size[1])
+            diff = abs(media.size[1] - self.size[1])
+            return diff if media.size[1] >= self.size[1] else diff + 1000
 
         seen = set()
 
