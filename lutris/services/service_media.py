@@ -2,13 +2,16 @@ import json
 import os
 import random
 import time
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
 from lutris.util.http import HTTPError, download_file
 from lutris.util.log import logger
 from lutris.util.portals import TrashPortal
+
+if TYPE_CHECKING:
+    from lutris.services.base import BaseService
 
 
 class MediaPath:
@@ -73,26 +76,36 @@ class ServiceMedia:
         be found, but they are in a priority order - the first is in the preferred format."""
         return [MediaPath(os.path.join(self.dest_path, pattern % slug), self) for pattern in self.file_patterns]
 
-    def get_fallback_media_paths(self, slug, service):
-        """Returns a list of each path where media can be found, but including paths from other
-        media objects selected by this one. Again, the first is the preferred path."""
+    def get_fallback_media_paths(self, slug: str, service: "BaseService") -> List[MediaPath]:
+        """Returns a list of one or two paths where the media can be found; the first is the 'official'
+        one that carries the canonical size for this media, but if that file does not exist there may
+        be a second one that does to use as a fallback."""
         medias = [self]
-        medias.extend(mt() for mt in service.medias.values())
+        medias.extend(mt for mt in service.medias.values())  # these are types!
 
         def similarity(media):
             diff = abs(media.size[1] - self.size[1])
             return diff if media.size[1] >= self.size[1] else diff + 1000
 
         seen = set()
+        media_paths = []
 
-        def visit(path):
-            if path in seen:
-                return False
-            seen.add(path)
-            return True
+        for media in sorted(medias, key=similarity):
+            if isinstance(media, type):
+                media = media()
 
-        ordered = sorted(medias, key=similarity)
-        return [path for media in ordered for path in media.get_possible_media_paths(slug) if visit(path.path)]
+            for mp in media.get_possible_media_paths(slug):
+                if mp.path not in seen:
+                    seen.add(mp.path)
+                    if not media_paths:
+                        media_paths.append(mp)
+                        if mp.exists:
+                            return media_paths
+                    elif mp.exists:
+                        media_paths.append(mp)
+                        return media_paths
+
+        return media_paths
 
     def trash_media(
         self,
