@@ -385,53 +385,74 @@ class GameSearch(BaseSearch):
 
     def get_service_predicate(self, service_name: str) -> SearchPredicate:
         service_name = service_name.casefold()
-
-        def match_service(db_game):
-            game_service = db_game.get("service")
-            if not game_service:
-                return False
-
-            if game_service.casefold() == service_name:
-                return True
-
-            service = SERVICES.get(game_service)
-            return service and service_name in service.name.casefold()
-
         text = f"source:{service_name}"
+
+        if service_name == "none":
+
+            def match_service(db_game):
+                game_service = db_game.get("service")
+                return not game_service
+        else:
+
+            def match_service(db_game):
+                game_service = db_game.get("service")
+                if not game_service:
+                    return False
+
+                if game_service.casefold() == service_name:
+                    return True
+
+                service = SERVICES.get(game_service)
+                return service and service_name in service.name.casefold()
+
         return MatchPredicate(match_service, text=text, tag="source", value=service_name)
 
     def get_runner_predicate(self, runner_name: str) -> SearchPredicate:
         folded_runner_name = runner_name.casefold()
-
-        def match_runner(db_game):
-            game_runner = db_game.get("runner")
-
-            if not game_runner:
-                return False
-
-            if game_runner.casefold() == folded_runner_name:
-                return True
-
-            runner_human_name = get_runner_human_name(game_runner)
-            return runner_name in runner_human_name.casefold()
-
         text = f"runner:{self.quote_token(runner_name)}"
+
+        if folded_runner_name == "none":
+
+            def match_runner(db_game):
+                game_runner = db_game.get("runner")
+                return not game_runner
+        else:
+
+            def match_runner(db_game):
+                game_runner = db_game.get("runner")
+
+                if not game_runner:
+                    return False
+
+                if game_runner.casefold() == folded_runner_name:
+                    return True
+
+                runner_human_name = get_runner_human_name(game_runner)
+                return runner_name in runner_human_name.casefold()
+
         return MatchPredicate(match_runner, text=text, tag="runner", value=runner_name)
 
     def get_platform_predicate(self, platform: str) -> SearchPredicate:
         folded_platform = platform.casefold()
-
-        def match_platform(db_game):
-            game_platform = db_game.get("platform")
-            if game_platform:
-                return folded_platform in game_platform.casefold()
-            if self.service:
-                platforms = [p.casefold() for p in self.service.get_game_platforms(db_game)]
-                matches = [p for p in platforms if folded_platform in p]
-                return any(matches)
-            return False
-
         text = f"platform:{self.quote_token(platform)}"
+
+        if folded_platform == "none":
+
+            def match_platform(db_game):
+                game_platform = db_game.get("platform")
+                return not game_platform
+        else:
+
+            def match_platform(db_game):
+                game_platform = db_game.get("platform")
+                if game_platform:
+                    return folded_platform in game_platform.casefold()
+                if self.service:
+                    platforms = [p.casefold() for p in self.service.get_game_platforms(db_game)]
+                    matches = [p for p in platforms if folded_platform in p]
+                    return any(matches)
+                return False
+
         return MatchPredicate(match_platform, text=text, tag="platform", value=platform)
 
 
