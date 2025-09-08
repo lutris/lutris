@@ -29,6 +29,7 @@ from typing import List, Optional
 import gi
 
 from ..util.busy import BusyAsyncCall
+from ..util.standalone_scripts import generate_script
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
@@ -429,21 +430,6 @@ class LutrisApplication(Gtk.Application):
         # Workaround broken pygobject bindings
         command_line.do_print_literal(command_line, string + "\n")
 
-    def generate_script(self, db_game, script_path):
-        """Output a script to a file.
-        The script is capable of launching a game without the client
-        """
-
-        logger.info(f"Try creating script for \'{db_game["name"]}\'")
-        def on_error(error: BaseException) -> None:
-            logger.exception("Unable to generate script: %s", error)
-
-        game = Game(db_game["id"])
-        game.game_error.register(on_error)
-        game.reload_config()
-        game.write_script(script_path, self.launch_ui_delegate)
-        logger.info(f"Wrote script to: \'{script_path}\'")
-
     def do_handle_local_options(self, options):
         # Text only commands
 
@@ -499,7 +485,7 @@ class LutrisApplication(Gtk.Application):
             if not export_script_game or not export_script_game["id"]:
                 logger.warning(f"No valid game ({searchstring}) provided to generate the script. Use the -l option to find suitable games!")
                 return 1
-            self.generate_script(export_script_game, f"{export_script_game["slug"]}.sh")
+            generate_script(logger, self.launch_ui_delegate, export_script_game, f"{export_script_game["slug"]}.sh")
             return 0
 
         # List game
