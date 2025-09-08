@@ -434,6 +434,7 @@ class LutrisApplication(Gtk.Application):
         The script is capable of launching a game without the client
         """
 
+        logger.info(f"Try creating script for \'{db_game["name"]}\'")
         def on_error(error: BaseException) -> None:
             logger.exception("Unable to generate script: %s", error)
 
@@ -441,6 +442,7 @@ class LutrisApplication(Gtk.Application):
         game.game_error.register(on_error)
         game.reload_config()
         game.write_script(script_path, self.launch_ui_delegate)
+        logger.info(f"Wrote script to: \'{script_path}\'")
 
     def do_handle_local_options(self, options):
         # Text only commands
@@ -485,6 +487,20 @@ class LutrisApplication(Gtk.Application):
             dest_dir = options.lookup_value("dest").get_string()
         else:
             dest_dir = None
+
+        if options.contains("output-script"):
+            searchstring = options.lookup_value("output-script").get_string()
+            export_script_game = (
+                games_db.get_game_by_field(searchstring, "id")
+                or games_db.get_game_by_field(searchstring, "slug")
+                or games_db.get_game_by_field(searchstring, "installer_slug")
+            )
+
+            if not export_script_game or not export_script_game["id"]:
+                logger.warning(f"No valid game ({searchstring}) provided to generate the script. Use the -l option to find suitable games!")
+                return 1
+            self.generate_script(export_script_game, f"{export_script_game["slug"]}.sh")
+            return 0
 
         # List game
         if options.contains("list-games"):
@@ -636,9 +652,6 @@ class LutrisApplication(Gtk.Application):
 
         self.launch_ui_delegate = CommandLineUIDelegate(launch_config_name)
 
-        if options.contains("output-script"):
-            action = "write-script"
-
         revision = installer_info["revision"]
 
         installer_file = None
@@ -698,13 +711,6 @@ class LutrisApplication(Gtk.Application):
         # If reinstall flag is passed, force the action to install
         if options.contains("reinstall"):
             action = "install"
-
-        if action == "write-script":
-            if not db_game or not db_game["id"]:
-                logger.warning("No game provided to generate the script")
-                return 1
-            self.generate_script(db_game, options.lookup_value("output-script").get_string())
-            return 0
 
         # Graphical commands
         self.set_tray_icon()
