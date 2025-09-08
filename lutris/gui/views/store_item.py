@@ -4,6 +4,7 @@ import time
 from typing import List
 
 from lutris.database import games
+from lutris.database.services import ServiceGameCollection
 from lutris.runners import get_runner_human_name
 from lutris.services import SERVICES, LutrisService
 from lutris.services.service_media import MediaPath
@@ -147,8 +148,26 @@ class StoreItem:
         if self._game_data.get("icon"):
             return [self._game_data["icon"]]
 
+        possible_paths = self.service_media.get_possible_media_paths(self.slug)
+        media_paths = [mp for mp in possible_paths if mp.exists]
+        if media_paths:
+            return media_paths
+
         service = self._service_obj or LutrisService
-        return self.service_media.get_fallback_media_paths(self.slug, service)
+        services = [(service, self.slug)]
+
+        game_service_name = self._game_data.get("service")
+        game_service_id = self._game_data.get("service_id")
+
+        if game_service_name and game_service_id:
+            service_game = ServiceGameCollection.get_game(game_service_name, game_service_id)
+            if service_game:
+                service_slug = service_game.get("slug")
+                game_service = SERVICES[game_service_name]()
+                services.append((game_service, service_slug))
+
+        fallback_paths = self.service_media.get_fallback_media_paths(services)
+        return fallback_paths or possible_paths
 
     @property
     def installed_at(self):

@@ -33,8 +33,8 @@ class HumbleBundleIcon(ServiceMedia):
 class HumbleSmallIcon(HumbleBundleIcon):
     size = (35, 35)
 
-    def get_fallback_media_paths(self, slug, service):
-        return self.get_possible_media_paths(slug)
+    def get_fallback_media_paths(self, services):
+        return []
 
 
 class HumbleBigIcon(HumbleBundleIcon):

@@ -2,7 +2,7 @@ import json
 import os
 import random
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple
 
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
@@ -19,21 +19,29 @@ class MediaPath:
     is defined by Lutris, not the size of the image in the file. Note that
     the file may not exist."""
 
-    def __init__(self, path: str, service_media: "ServiceMedia"):
+    def __init__(self, path: str, service_media: "ServiceMedia", size: Optional[Tuple[int, int]] = None):
         self.path = path
         self.service_media = service_media
+        self.size = size or service_media.size
 
     @property
     def width(self) -> int:
-        return self.service_media.size[0]
+        return self.size[0]
 
     @property
     def height(self) -> int:
-        return self.service_media.size[1]
+        return self.size[1]
 
     @property
     def exists(self) -> bool:
         return system.path_exists(self.path, exclude_empty=True) and os.path.isfile(self.path)
+
+    def scale_to_fit(self, max_size: Tuple[int, int]) -> "MediaPath":
+        if self.height > max_size[1]:
+            factor = max_size[1] / self.height
+            scaled_width = int(self.width * factor)
+            return MediaPath(self.path, self.service_media, (scaled_width, max_size[1]))
+        return self
 
     def __repr__(self) -> str:
         return self.path
@@ -76,36 +84,27 @@ class ServiceMedia:
         be found, but they are in a priority order - the first is in the preferred format."""
         return [MediaPath(os.path.join(self.dest_path, pattern % slug), self) for pattern in self.file_patterns]
 
-    def get_fallback_media_paths(self, slug: str, service: "BaseService") -> List[MediaPath]:
+    def get_fallback_media_paths(self, services: Iterable[Tuple["BaseService", str]]) -> List[MediaPath]:
         """Returns a list of one or two paths where the media can be found; the first is the 'official'
         one that carries the canonical size for this media, but if that file does not exist there may
         be a second one that does to use as a fallback."""
-        medias = [self]
-        medias.extend(mt for mt in service.medias.values())  # these are types!
 
-        def similarity(media):
-            diff = abs(media.size[1] - self.size[1])
-            return diff if media.size[1] >= self.size[1] else diff + 1000
+        medias = [(mt(), t[1]) for t in services for mt in t[0].medias.values()]
 
-        seen = set()
-        media_paths = []
+        def similarity(media: Tuple[ServiceMedia, str]) -> int:
+            diff = abs(media[0].size[1] - self.size[1])
+            return diff if media[0].size[1] >= self.size[1] else diff + 1000
 
-        for media in sorted(medias, key=similarity):
-            if isinstance(media, type):
-                media = media()
+        first: Optional[MediaPath] = None
 
+        for media, slug in sorted(medias, key=similarity):
             for mp in media.get_possible_media_paths(slug):
-                if mp.path not in seen:
-                    seen.add(mp.path)
-                    if not media_paths:
-                        media_paths.append(mp)
-                        if mp.exists:
-                            return media_paths
-                    elif mp.exists:
-                        media_paths.append(mp)
-                        return media_paths
+                if not first:
+                    first = mp
+                if mp.exists:
+                    return [mp.scale_to_fit(self.size)]
 
-        return media_paths
+        return [first] if first else []
 
     def trash_media(
         self,
