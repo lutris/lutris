@@ -154,20 +154,22 @@ class StoreItem:
             return media_paths
 
         service = self._service_obj or LutrisService
-        services = [(service, self.slug)]
+        services = [(service, lambda: self.slug)]
 
         game_service_name = self._game_data.get("service")
         game_service_id = self._game_data.get("service_id")
 
         if game_service_name and game_service_id:
-            service_game = ServiceGameCollection.get_game(game_service_name, game_service_id)
-            if service_game:
-                service_slug = service_game.get("slug")
-                game_service = SERVICES[game_service_name]()
-                services.append((game_service, service_slug))
 
-        fallback_paths = self.service_media.get_fallback_media_paths(services)
-        return fallback_paths or possible_paths
+            def get_service_slug():
+                service_game = ServiceGameCollection.get_game(game_service_name, game_service_id)
+                return service_game.get("slug") if service_game else None
+
+            game_service = SERVICES[game_service_name]()
+            services.append((game_service, get_service_slug))
+
+        fallback_path = self.service_media.get_fallback_media_path(services)
+        return [fallback_path] if fallback_path else possible_paths
 
     @property
     def installed_at(self):
