@@ -4,7 +4,7 @@ from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 
-VER_STR = "2123.1"
+VER_STR = "2123.2"
 
 
 class azahar(Runner):
