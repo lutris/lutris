@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-02-04 23:57\n"
-"PO-Revision-Date: 2025-09-17 14:07+0300\n"
+"PO-Revision-Date: 2025-09-17 14:14+0300\n"
 "Last-Translator: Tunahan Yardımcı <tunahanyrd@gmail.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
 "Language: tr\n"
@@ -1830,9 +1830,8 @@ msgid "Library"
 msgstr "Kütüphane"
 
 #: lutris/gui/widgets/sidebar.py:293
-#, fuzzy
 msgid "Platforms"
-msgstr "platformlar"
+msgstr "Platformlar"
 
 #: lutris/gui/widgets/sidebar.py:338 lutris/util/system.py:28
 msgid "Games"
@@ -2559,8 +2558,8 @@ msgid ""
 "all platforms."
 msgstr ""
 "Saniye başına özel bir kare sınırı ayarlayın. Belirtilmemişse, varsayılan değe"
-"r 60 FPS'dir."
-"Kare sınırlayıcıyı devre dışı bırakmak için '0' olarak ayarlayın."
+"r 60 FPS'dir. "
+"Kare sınırlayıcıyı devre dışı bırakmak için '0' olarak ayarlayın. "
 "Bu seçenek tüm platformlarda desteklenmeyebilir."
 
 #: lutris/runners/easyrpg.py:206 lutris/runners/wine.py:444
@@ -2740,7 +2739,7 @@ msgstr ""
 
 #: lutris/runners/fsuae.py:12
 msgid "Amiga 500"
-msgstr ""
+msgstr "Amiga 500"
 
 #: lutris/runners/fsuae.py:20
 msgid "Amiga 500+"
@@ -3138,6 +3137,9 @@ msgid ""
 "STX, IPF, RAW and CRT. The last three require the caps library (capslib). "
 "ZIP is supported, you don't need to uncompress the file."
 msgstr ""
+"Hatari, aşağıdaki formatlardaki disket görüntülerini destekler: ST, DIM, MSA, "
+"STX, IPF, RAW ve CRT. Son üçü caps kütüphanesi (capslib) gerektirir. "
+"ZIP desteklenir, dosyayı açmanıza gerek yoktur."
 
 #: lutris/runners/hatari.py:41
 msgid "Floppy Disk B"
@@ -3867,6 +3869,9 @@ msgid ""
 "The game data, commonly called a ROM image.\n"
 "Supported formats: SMS and GG files. ZIP compressed ROMs are supported."
 msgstr ""
+"Genellikle ROM görüntüsü olarak adlandırılan oyun verileri."
+"Desteklenen formatlar: SMS ve GG dosyaları. ZIP sıkıştırılmış ROM'lar destekle"
+"nir."
 
 #: lutris/runners/pcsx2.py:8
 msgid "PCSX2"
@@ -3907,6 +3912,7 @@ msgstr ""
 #: lutris/runners/pico8.py:30
 msgid "You can put a .p8.png file path, URL, or BBS cartridge ID here."
 msgstr ""
+"Buraya bir .p8.png dosya yolu, URL veya BBS kartuş kimliği girebilirsiniz."
 
 #: lutris/runners/pico8.py:40
 msgid "Launch in fullscreen."
@@ -4398,6 +4404,8 @@ msgid ""
 "Tells ScummVM that the MIDI device is an actual Roland MT-32, LAPC-I, CM-64, "
 "CM-32L, CM-500 or other MT-32 device."
 msgstr ""
+"ScummVM'ye MIDI cihazının gerçek bir Roland MT-32, LAPC-I, CM-64, "
+"CM-32L, CM-500 veya başka bir MT-32 cihazı olduğunu bildirir."
 
 #: lutris/runners/scummvm.py:331
 msgid "Enable Roland GS"
@@ -4832,7 +4840,7 @@ msgstr "Oyunun ana EXE dosyası"
 
 #: lutris/runners/wine.py:57
 msgid "Windows command line arguments used when launching the game"
-msgstr ""
+msgstr "Oyunu başlatırken kullanılan Windows komut satırı argümanları"
 
 #: lutris/runners/wine.py:73
 msgid "Wine prefix"
