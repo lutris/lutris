@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-02-04 23:57\n"
-"PO-Revision-Date: 2025-09-16 20:41+0300\n"
+"PO-Revision-Date: 2025-09-17 14:07+0300\n"
 "Last-Translator: Tunahan Yardımcı <tunahanyrd@gmail.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
 "Language: tr\n"
@@ -166,7 +166,7 @@ msgstr "Yan _Paneli Göster"
 
 #: share/lutris/ui/lutris-window.ui:494
 msgid "Add games"
-msgstr "Oyun Ekle"
+msgstr "Oyunlar ekle"
 
 #: share/lutris/ui/lutris-window.ui:508
 msgid "Preferences"
@@ -570,7 +570,7 @@ msgstr "_Kapat"
 
 #: lutris/gui/addgameswindow.py:409
 msgid "Game name"
-msgstr ""
+msgstr "Oyun adı"
 
 #: lutris/gui/addgameswindow.py:425
 msgid ""
@@ -1112,6 +1112,8 @@ msgid ""
 "Runners are programs such as emulators, engines or translation layers "
 "capable of running games."
 msgstr ""
+"Çalıştırıcılar, oyunları çalıştırabilen emülatörler, motorlar veya "
+"çeviri katmanları gibi programlardır"
 
 #: lutris/gui/config/runners_box.py:25
 msgid "No runners matched the search"
@@ -1544,11 +1546,11 @@ msgstr "Yüklemeyi iptal et?"
 #: lutris/gui/installerwindow.py:301
 #, python-format
 msgid "This game requires %s. Do you want to install it?"
-msgstr ""
+msgstr "Bu oyun %s gerektirir. Yüklemek ister misiniz?"
 
 #: lutris/gui/installerwindow.py:302
 msgid "Missing dependency"
-msgstr ""
+msgstr "Eksik bağımlılık"
 
 #: lutris/gui/installerwindow.py:310
 msgid "<b>Installing {}</b>"
@@ -1561,7 +1563,7 @@ msgstr "Yükleyici mevcut değil"
 #: lutris/gui/installerwindow.py:323
 #, python-format
 msgid "Missing field \"%s\" in install script"
-msgstr ""
+msgstr "Yükleme komut dosyasında “%s” alanı eksik"
 
 #: lutris/gui/installerwindow.py:363
 msgid "Select installation directory"
@@ -1577,11 +1579,16 @@ msgid ""
 "Select which one you want and they will be available in the 'extras' folder "
 "where the game is installed."
 msgstr ""
+"Bu oyunda ekstra içerik bulunmaktadır. \n"
+"İstediğinizi seçin ve oyun yüklü olduğu ‘extras’ klasöründe "
+"bulunacaktır."
 
 #: lutris/gui/installerwindow.py:561
 msgid ""
 "Please review the files needed for the installation then click 'Continue'"
 msgstr ""
+"Yükleme için gerekli dosyaları inceleyin ve ardından ‘Devam’ düğmesine tıklayı"
+"n."
 
 #: lutris/gui/installerwindow.py:570
 msgid "Downloading game data"
@@ -1590,7 +1597,7 @@ msgstr "Oyun verisi indiriliyor"
 #: lutris/gui/installerwindow.py:590
 #, python-format
 msgid "Unable to get files: %s"
-msgstr ""
+msgstr "Dosyalar alınamıyor: %s"
 
 #: lutris/gui/installerwindow.py:604
 msgid "Installing game data"
@@ -1598,7 +1605,7 @@ msgstr "Oyun verisi yükleniyor"
 
 #: lutris/gui/installerwindow.py:748
 msgid "Autodetect"
-msgstr ""
+msgstr "Otomatik algılama"
 
 #: lutris/gui/installerwindow.py:754
 msgid "Browse…"
@@ -1606,7 +1613,7 @@ msgstr "Gözat..."
 
 #: lutris/gui/installerwindow.py:771
 msgid "Select the folder where the disc is mounted"
-msgstr ""
+msgstr "Diskin bağlı olduğu klasörü seçin."
 
 #: lutris/gui/installerwindow.py:831
 msgid "_Launch"
@@ -2495,7 +2502,7 @@ msgstr "Tam ekran modunda başlat"
 
 #: lutris/runners/easyrpg.py:151
 msgid "Enable audio"
-msgstr "Ses aktif"
+msgstr "Sesi aktifleştir"
 
 #: lutris/runners/easyrpg.py:153
 msgid "Switch off to disable audio (in case you prefer your own music)."
@@ -3242,6 +3249,9 @@ msgid ""
 "Supported formats: ROM, BIN+CFG, INT, ITV \n"
 "The file extension must be lower-case."
 msgstr ""
+"Oyun verileri, genellikle ROM görüntüsü olarak adlandırılır. \n"
+"Desteklenen formatlar: ROM, BIN+CFG, INT, ITV \n"
+"Dosya uzantısı küçük harflerle yazılmalıdır."
 
 #: lutris/runners/jzintv.py:32
 msgid "Bios location"
@@ -3876,11 +3886,11 @@ msgstr ""
 
 #: lutris/runners/pcsx2.py:44
 msgid "Custom config file"
-msgstr ""
+msgstr "Özel yapılandırma dosyası"
 
 #: lutris/runners/pcsx2.py:50
 msgid "Custom config path"
-msgstr ""
+msgstr "Özel yapılandırmanın yolu"
 
 #: lutris/runners/pico8.py:21
 msgid "Runs PICO-8 fantasy console cartridges"
@@ -3949,13 +3959,15 @@ msgstr ""
 
 #: lutris/runners/redream.py:19 lutris/runners/reicast.py:28
 msgid "Disc image file"
-msgstr ""
+msgstr "Disk imaj dosyası"
 
 #: lutris/runners/redream.py:20
 msgid ""
 "Game data file\n"
 "Supported formats: GDI, CDI, CHD"
 msgstr ""
+"Oyunun veri dosyası\n"
+"Desteklenen formatlar: GDI, CDI, CHD"
 
 #: lutris/runners/redream.py:28
 msgid "Aspect Ratio"
@@ -4403,7 +4415,7 @@ msgstr "Alternatif jenerik kullan"
 
 #: lutris/runners/scummvm.py:342
 msgid "Uses alternative intro for CD versions"
-msgstr ""
+msgstr "CD sürümleri için alternatif intro kullanır"
 
 #: lutris/runners/scummvm.py:348
 msgid "Copy protection"
@@ -4455,6 +4467,11 @@ msgid ""
 "modern screens have square pixels, which results in a vertically squeezed "
 "image. This option corrects this by displaying rectangular pixels."
 msgstr ""
+"Super Nintendo oyunları dikdörtgen pikselli 4:3 ekranlar için yapılmıştır, anc"
+"ak "
+"modern ekranlar kare piksellidir, bu da görüntünün dikey olarak sıkışmasına ne"
+"den olur."
+" Bu seçenek, dikdörtgen pikseller görüntüleyerek bu sorunu düzeltir."
 
 #: lutris/runners/snes9x.py:59
 msgid "Sound driver"
@@ -4811,7 +4828,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:51
 msgid "The game's main EXE file"
-msgstr ""
+msgstr "Oyunun ana EXE dosyası"
 
 #: lutris/runners/wine.py:57
 msgid "Windows command line arguments used when launching the game"
@@ -5108,7 +5125,7 @@ msgstr "Fare Warp Ayarını Geçersiz Kılma"
 
 #: lutris/runners/wine.py:398
 msgid "Enable"
-msgstr "Etkin"
+msgstr "Etkinleştir"
 
 #: lutris/runners/wine.py:400
 msgid "Force"
