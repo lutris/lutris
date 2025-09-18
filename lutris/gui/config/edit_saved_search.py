@@ -179,6 +179,7 @@ class SearchFiltersBox(Gtk.Box):
 
     def _add_service_widget(self, row):
         options = [(s[1]().name, s[0]) for s in services.get_enabled_services().items()]
+        options.append(("(none)", "none"))
 
         self._add_match_widget(
             row, _("Source"), "source", options, predicate_factory=lambda s, v: s.get_service_predicate(v)
@@ -186,6 +187,7 @@ class SearchFiltersBox(Gtk.Box):
 
     def _add_runner_widget(self, row):
         options = [(r.human_name, r.name) for r in runners.get_installed()]
+        options.append(("(none)", "none"))
 
         self._add_match_widget(
             row, _("Runner"), "runner", options, predicate_factory=lambda s, v: s.get_runner_predicate(v)
@@ -193,6 +195,7 @@ class SearchFiltersBox(Gtk.Box):
 
     def _add_platform_widget(self, row):
         options = [(p, p) for p in games_db.get_used_platforms()]
+        options.append(("(none)", "none"))
 
         self._add_match_widget(
             row, _("Platform"), "platform", options, predicate_factory=lambda s, v: s.get_platform_predicate(v)
