@@ -67,3 +67,29 @@
 	min-width: 0px;
 	border-radius: 0px;
 }
+
+.smallcheckbox label {
+   font-size: 10px
+}
+
+.smallcheckbox check {
+  min-width: 8px;
+  min-height: 8px;
+  border-bottom-left-radius: 2px;
+  border-bottom-right-radius: 2px;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  margin-right: 2px
+}
+
+.cuddledcheckbox {
+  padding: 0px
+}
+
+.cuddledcheckbox check {
+  margin-left: 0px;
+}
+
+.cuddledcheckbox label {
+  margin-right: 0px
+}
