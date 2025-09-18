@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Mahmut Elmas <mahmutelmas@gmail.com>
+# SPDX-FileCopyrightText: 2022 Ömer Gündoğar <omer670067@gmail.com>
+# SPDX-FileCopyrightText: 2023 Batuhan Uysalar <batuhan55uysalar34@gmail.com>
+# SPDX-FileCopyrightText: 2023 Halil Murat Ünay
 # SPDX-FileCopyrightText: 2025 Tunahan Yardımcı <tunahanyrd@gmail.com>
 msgid ""
 msgstr ""
