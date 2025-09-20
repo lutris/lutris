@@ -887,6 +887,7 @@ class Game:
             self.timer.end()
             self.playtime += self.timer.duration / 3600
             logger.debug("Playtime: %s", self.formatted_playtime)
+            self.save_lastplayed()
 
     @watch_game_errors(game_stop_result=False)
     def beat(self):
