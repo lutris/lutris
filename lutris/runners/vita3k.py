@@ -20,11 +20,12 @@ class vita3k(Runner):
     description = _("Sony PlayStation Vita emulator")
     runnable_alone = True
     runner_executable = "vita3k/Vita3K-x86_64.AppImage"
+    entry_point_option = "title_id"
     flatpak_id = None
     download_url = "https://github.com/Vita3K/Vita3K/releases/download/continuous/Vita3K-x86_64.AppImage"
     game_options = [
         {
-            "option": "main_file",
+            "option": "title_id",
             "type": "string",
             "label": _("Title ID of Installed Application"),
             "argument": "-r",
@@ -62,6 +63,19 @@ class vita3k(Runner):
         },
     ]
 
+    legacy_game_options = [
+        {
+            "option": "main_file",
+            "type": "string",
+            "label": _("Legacy Title ID of Installed Application"),
+            "argument": "-r",
+            "help": _(
+                'DEPRECATED: Legacy Title ID of installed application. The "title_id" option should be used instead'
+                "ux0:/app/&lt;title-id&gt;."
+            ),
+        }
+    ]
+
     # Vita3k uses an AppImage and doesn't require the Lutris runtime.
     system_options_override = [{"option": "disable_runtime", "default": True}]
 
@@ -75,11 +89,11 @@ class vita3k(Runner):
                 if option["option"] not in config:
                     continue
                 if option["type"] == "bool":
-                    if self.runner_config.get(option["option"]):
+                    if config.get(option["option"]):
                         if "argument" in option:
                             arguments.append(option["argument"])
                 elif option["type"] == "choice":
-                    if self.runner_config.get(option["option"]) != "off":
+                    if config.get(option["option"]) != "off":
                         if "argument" in option:
                             arguments.append(option["argument"])
                         arguments.append(config.get(option["option"]))
@@ -93,13 +107,18 @@ class vita3k(Runner):
         # Append the runner arguments first, and game arguments afterwards
         append_args(self.runner_options, self.runner_config)
 
-        title_id = self.game_config.get("main_file") or ""
+        # Read the "main_file" key option for backwards compatibility
+        title_id = self.game_config.get(self.entry_point_option, "") or self.game_config.get("main_file", "")
         if not title_id:
             raise MissingVitaTitleIDError(_("The Vita App has no Title ID set"))
 
         append_args(self.game_options, self.game_config)
+
+        # Fallback to reading the main_file option if the 'title_id' option is missing from the config yaml
+        if self.entry_point_option not in self.game_config:
+            append_args(self.legacy_game_options, self.game_config)
         return {"command": arguments}
 
     @property
     def game_path(self):
-        return self.game_config.get(self.entry_point_option, "")
+        return ""
