@@ -33,6 +33,7 @@ DATABASE = {
             "name": "discord_id",
             "type": "TEXT",
         },
+        {"name": "modified_at", "type": "INTEGER"},
     ],
     "service_games": [
         {"name": "id", "type": "INTEGER", "indexed": True},

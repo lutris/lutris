@@ -182,6 +182,16 @@ class StoreItem:
         return gtk_safe(time.strftime("%X %x", time.localtime(self.installed_at)) if self.installed_at else "")
 
     @property
+    def modified_at(self):
+        """Date when the game was last modified"""
+        return self._get_game_attribute("modified_at")
+
+    @property
+    def modified_at_text(self):
+        """Date when the game was last modified (textual representation)"""
+        return gtk_safe(time.strftime("%X %x", time.localtime(self.modified_at)) if self.modified_at else "")
+
+    @property
     def lastplayed(self):
         """Date of last play"""
         return self._get_game_attribute("lastplayed")
