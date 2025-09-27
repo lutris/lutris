@@ -1,6 +1,7 @@
 """Widget generators and their signal handlers"""
 
 import os
+from abc import abstractmethod
 
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
@@ -34,7 +35,32 @@ def set_option_wrapper_style_class(wrapper: Gtk.Widget, class_name: Optional[str
         style_context.add_class(class_name)
 
 
-class ConfigBox(VBox):
+class AdvancedSettingsBox(VBox):
+    """Intermediate vbox class for expsoing the Advanced Visiblity options"""
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._advanced_visibility = False
+
+    @property
+    def advanced_visibility(self):
+        return self._advanced_visibility
+
+    @advanced_visibility.setter
+    def advanced_visibility(self, value):
+        """Sets the visibility of every 'advanced' option and every section that
+        contains only 'advanced' options."""
+        self._advanced_visibility = value
+        self.update_widgets()
+
+    @abstractmethod
+    def update_widgets(self):
+        """Updates widgets on visibility change; this method must be
+        implemented by a subclass."""
+        raise NotImplementedError()
+
+
+class ConfigBox(AdvancedSettingsBox):
     """Dynamically generate a vbox built upon on a python dict."""
 
     config_section = NotImplemented
@@ -50,7 +76,6 @@ class ConfigBox(VBox):
         self.files = []
         self.files_list_store = None
         self._widget_generator = None
-        self._advanced_visibility = False
         self._filter = ""
         self._filter_text = ""
 
@@ -58,17 +83,6 @@ class ConfigBox(VBox):
         self.no_options_label.set_line_wrap(True)
         self.no_options_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.pack_end(self.no_options_label, True, True, 0)
-
-    @property
-    def advanced_visibility(self):
-        return self._advanced_visibility
-
-    @advanced_visibility.setter
-    def advanced_visibility(self, value):
-        """Sets the visibility of every 'advanced' option and every section that
-        contains only 'advanced' options."""
-        self._advanced_visibility = value
-        self.update_widgets()
 
     @property
     def filter(self) -> str:
