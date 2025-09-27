@@ -3,7 +3,7 @@ from unittest import TestCase
 from lutris import runners
 from lutris.gui.application import LutrisApplication
 from lutris.gui.config.add_game_dialog import AddGameDialog
-from lutris.gui.config.game_common import GameDialogCommon
+from lutris.gui.config.game_info_box import GameInfoBox
 from lutris.gui.views.store import sort_func
 from lutris.util.test_config import setup_test_environment
 
@@ -12,8 +12,7 @@ setup_test_environment()
 
 class TestGameDialogCommon(TestCase):
     def test_get_runner_liststore(self):
-        dlg = GameDialogCommon("test", config_level="system")
-        list_store = dlg._get_runner_liststore()
+        list_store = GameInfoBox._get_runner_liststore()
         self.assertTrue(list_store[1][0].startswith(runners.get_installed()[0].human_name))
         self.assertEqual(list_store[1][1], runners.get_installed()[0].name)
 
