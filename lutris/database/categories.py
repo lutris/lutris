@@ -2,9 +2,10 @@ import abc
 import re
 from collections import defaultdict
 from itertools import repeat
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 
 from lutris import settings
+from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.gui.widgets import NotificationSource
 
@@ -19,7 +20,7 @@ class _SmartCategory(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_games(self) -> List[str]:
+    def get_games(self) -> List[Any]:
         pass
 
 
@@ -29,8 +30,8 @@ class _SmartUncategorizedCategory(_SmartCategory):
     def get_name(self) -> str:
         return ".uncategorized"
 
-    def get_games(self) -> List[str]:
-        return get_uncategorized_game_ids()
+    def get_games(self) -> List[Any]:
+        return get_uncategorized_games()
 
 
 # All smart categories should be added to this variable.
@@ -136,12 +137,12 @@ def get_game_ids_for_categories(included_category_names=None, excluded_category_
             continue
         if included_category_names is not None and smart_cat.get_name() not in included_category_names:
             continue
-        result |= set(smart_cat.get_games())
+        result |= set(game["id"] for game in smart_cat.get_games())
 
     return list(sorted(result))
 
 
-def get_uncategorized_game_ids() -> List[str]:
+def get_uncategorized_game_ids() -> List[Any]:
     """Returns the ids of games that are in no categories. We do not count
     the 'favorites' category, but we do count '.hidden'- hidden games are hidden
     from this too."""
@@ -154,6 +155,11 @@ def get_uncategorized_game_ids() -> List[str]:
     )
     uncategorized = sql.db_query(settings.DB_PATH, query)
     return [row["id"] for row in uncategorized]
+
+
+def get_uncategorized_games() -> List[Any]:
+    """Return a list of currently running games"""
+    return games_db.get_games_by_ids(get_uncategorized_game_ids())
 
 
 def get_categories_in_game(game_id):

@@ -159,7 +159,7 @@ class StoreItem:
         game_service_name = self._game_data.get("service")
         game_service_id = self._game_data.get("service_id")
 
-        if game_service_name and game_service_id:
+        if game_service_name and game_service_id and game_service_name in SERVICES:
 
             def get_service_slug():
                 service_game = ServiceGameCollection.get_game(game_service_name, game_service_id)
