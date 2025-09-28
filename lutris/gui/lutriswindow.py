@@ -136,7 +136,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         }
 
         for smart_category in categories._SMART_CATEGORIES:
-            if not smart_category.get_name() in self.dynamic_categories_game_factories:
+            if smart_category.get_name() not in self.dynamic_categories_game_factories:
                 self.dynamic_categories_game_factories[smart_category.get_name()] = smart_category.get_games
 
         self.accelerators = Gtk.AccelGroup()
