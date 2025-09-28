@@ -58,6 +58,7 @@ class GameInfoBox(AdvancedSettingsBox):
         self.image_buttons = {}
         self.image_path_entries = {}
         self.image_path_open_button = {}
+        self._game_config_location_entry = None
 
         if self.game:
             centering_container = Gtk.HBox()
@@ -79,6 +80,8 @@ class GameInfoBox(AdvancedSettingsBox):
             self.pack_start(self._get_slug_box(), False, False, 6)
             self.pack_start(self._get_directory_box(), False, False, 6)
             self.pack_start(self._get_launch_config_box(), False, False, 6)
+            self._game_config_location_entry = self._get_game_config_location_box()
+            self.pack_start(self._game_config_location_entry, False, False, 6)
 
         # Read the show advanced options from the settings before updating the widget to have
         # it show correctly
@@ -94,6 +97,10 @@ class GameInfoBox(AdvancedSettingsBox):
             self._banner_entry.set_no_show_all(not self._advanced_visibility)
             self._icon_entry.set_visible(self._advanced_visibility)
             self._icon_entry.set_no_show_all(not self._advanced_visibility)
+
+        if self._game_config_location_entry:
+            self._game_config_location_entry.set_visible(self._advanced_visibility)
+            self._game_config_location_entry.set_no_show_all(not self._advanced_visibility)
 
     def _get_name_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
@@ -215,6 +222,41 @@ class GameInfoBox(AdvancedSettingsBox):
             box.pack_start(button, False, False, 0)
         else:
             box.hide()
+        return box
+
+    def _get_game_config_location_box(self):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12, visible=True)
+
+        game_config_path = ""
+        if self.game and self.game.config and isinstance(self.game.config.game_config_path, str):
+            game_config_path = self.game.config.game_config_path
+
+        label = Label(_("Game Config"))
+        box.pack_start(label, False, False, 0)
+
+        # Get the current entry path for the image type and set it as the text
+        path_entry = Gtk.Entry(visible=True)
+        path_entry.set_text(game_config_path)
+        path_entry.set_tooltip_text(_("Path to the game config file (readonly)"))
+        path_entry.set_sensitive(False)
+        box.pack_start(path_entry, True, True, 0)
+
+        open_dir_button = Gtk.Button.new_from_icon_name("folder-symbolic", Gtk.IconSize.BUTTON)
+        open_dir_button.show()
+        open_dir_button.set_tooltip_text(_("Open in file browser"))
+        open_dir_button.get_style_context().add_class("circular")
+
+        def open_in_file_browser(_widget, game_info_box):
+            if (
+                game_info_box.game
+                and game_info_box.game.config
+                and isinstance(game_info_box.game.config.game_config_path, str)
+            ):
+                game_config_dir = Path(game_info_box.game.config.game_config_path).parent
+                open_uri(str(game_config_dir))
+
+        open_dir_button.connect("clicked", open_in_file_browser, self)
+        box.pack_start(open_dir_button, False, False, 0)
         return box
 
     def on_reset_preferred_launch_config_clicked(self, _button, launch_config_box):
