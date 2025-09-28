@@ -36,7 +36,7 @@ def set_option_wrapper_style_class(wrapper: Gtk.Widget, class_name: Optional[str
 
 
 class AdvancedSettingsBox(VBox):
-    """Intermediate vbox class for expsoing the Advanced Visiblity options"""
+    """Intermediate vbox class for expsoing the Advanced Visibility options"""
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
