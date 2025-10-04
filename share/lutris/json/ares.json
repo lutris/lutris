@@ -1,0 +1,232 @@
+{
+    "human_name": "ares",
+    "description": "Multi System Emulator: focusing on accuracy and preservation...",
+    "platforms": {
+        "Arcade": "Arcade",
+        "Atari 2600": "Atari 2600",
+        "WonderSwan": "Bandai WonderSwan",
+        "WonderSwan Color": "Bandai WonderSwan Color",
+        "Pocket Challenge V2": "Benesse Pocket Challenge V2",
+        "ColecoVision": "ColecoVision",
+        "MyVision": "Nichibutsu My Vision",
+        "MSX": "Microsoft MSX",
+        "MSX2": "Microsoft MSX2",
+        "PC Engine": "NEC PC Engine TurboGrafx-16",
+        "PC Engine CD": "NEC PC Engine CD",
+        "SuperGrafx": "NEC SuperGrafx",
+        "SuperGrafx CD": "NEC SuperGrafx CD",
+        "Famicom": "Nintendo NES",
+        "Famicom Disk System": "Nintendo Famicom Disk System",
+        "Super Famicom": "Nintendo SNES",
+        "Nintendo 64": "Nintendo 64",
+        "Nintendo 64DD": "Nintendo 64 DD",
+        "Game Boy": "Nintendo Game Boy",
+        "Game Boy Color": "Nintendo Game Boy (Color)",
+        "Game Boy Advance": "Nintendo Game Boy Advance",
+        "SG-1000": "Sega SG-1000",
+        "SC-3000": "Sega SC-3000",
+        "Master System": "Sega Master System",
+        "Mega Drive": "Sega Genesis/Mega Drive",
+        "Game Gear": "Sega Game Gear",
+        "Mega 32X": "Sega Mega 32X",
+        "Mega CD": "Sega Mega CD",
+        "Mega CD 32X": "Sega Mega CD 32X",
+        "Mega LD": "Sega Mega LD",
+        "Neo Geo AES": "SNK Neo Geo AES",
+        "Neo Geo MVS": "SNK Neo Geo MVS",
+        "Neo Geo Pocket": "SNK Neo Geo Pocket",
+        "Neo Geo Pocket Color": "SNK Neo Geo Pocket (Color)",
+        "PlayStation": "Sony PlayStation",
+        "ZX Spectrum": "Sinclair ZX Spectrum",
+        "ZX Spectrum 128": "Sinclair ZX Spectrum 128"
+    },
+    "runner_executable": "ares-v146-anylinux-x86_64.AppImage",
+    "runnable_alone": true,
+    "flatpak_id": "dev.ares.ares",
+    "download_url": "https://github.com/pkgforge-dev/ares-emu-appimage/releases/download/v146%402025-09-15_1757920610/ares-v146-anylinux-x86_64.AppImage",
+    "entry_point_option": "main_file",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ROM/ISO file",
+            "help": "The game data, commonly called a ROM or ISO image.",
+            "default": "",
+            "default_path": "game_path"
+        },
+        {
+            "option": "platform",
+            "type": "choice_with_entry",
+            "label": "System",
+            "argument": "--system",
+            "help": "The system to emulate.\nEx. Super Famicom, PlayStation, Mega Drive, etc...",
+            "default": "",
+            "choices": [
+                {
+                    "None": ""
+                },
+                {
+                    "Arcade": "Arcade"
+                },
+                {
+                    "Atari 2600": "Atari 2600"
+                },
+                {
+                    "Bandai WonderSwan": "WonderSwan"
+                },
+                {
+                    "Bandai WonderSwan Color": "WonderSwan Color"
+                },
+                {
+                    "Benesse Pocket Challenge V2": "Pocket Challenge V2"
+                },
+                {
+                    "ColecoVision": "ColecoVision"
+                },
+                {
+                    "Nichibutsu My Vision": "MyVision"
+                },
+                {
+                    "Microsoft MSX": "MSX"
+                },
+                {
+                    "Microsoft MSX2": "MSX2"
+                },
+                {
+                    "NEC PC Engine": "PC Engine"
+                },
+                {
+                    "NEC PC Engine CD": "PC Engine CD"
+                },
+                {
+                    "NEC SuperGrafx": "SuperGrafx"
+                },
+                {
+                    "NEC SuperGrafx CD": "SuperGrafx CD"
+                },
+                {
+                    "Nintendo NES": "Famicom"
+                },
+                {
+                    "Nintendo Famicom Disk System": "Famicom Disk System"
+                },
+                {
+                    "Nintendo SNES": "Super Famicom"
+                },
+                {
+                    "Nintendo 64": "Nintendo 64"
+                },
+                {
+                    "Nintendo 64 DD": "Nintendo 64DD"
+                },
+                {
+                    "Nintendo Game Boy": "Game Boy"
+                },
+                {
+                    "Nintendo Game Boy (Color)": "Game Boy Color"
+                },
+                {
+                    "Nintendo Game Boy Advance": "Game Boy Advance"
+                },
+                {
+                    "Sega SG-1000": "SG-1000"
+                },
+                {
+                    "Sega SC-3000": "SC-3000"
+                },
+                {
+                    "Sega Master System": "Master System"
+                },
+                {
+                    "Sega Mega Drive (Genesis)": "Mega Drive"
+                },
+                {
+                    "Sega Game Gear": "Game Gear"
+                },
+                {
+                    "Sega Mega 32X": "Mega 32X"
+                },
+                {
+                    "Sega Mega CD": "Mega CD"
+                },
+                {
+                    "Sega Mega CD 32X": "Mega CD 32X"
+                },
+                {
+                    "Sega Mega LD": "Mega LD"
+                },
+                {
+                    "SNK Neo Geo MVS": "Neo Geo MVS"
+                },
+                {
+                    "SNK Neo Geo AES": "Neo Geo AES"
+                },
+                {
+                    "SNK Neo Geo Pocket": "Neo Geo Pocket"
+                },
+                {
+                    "SNK Neo Geo Pocket Color": "Neo Geo Pocket Color"
+                },
+                {
+                    "Sony PlayStation": "PlayStation"
+                },
+                {
+                    "Sinclair ZX Spectrum": "ZX Spectrum"
+                },
+                {
+                    "Sinclair ZX Spectrum 128": "ZX Spectrum 128"
+                }
+            ]
+        }
+    ],
+    "runner_options": [
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "section": "Graphics",
+            "label": "Fullscreen",
+            "argument": "--fullscreen",
+            "help": "Start in full screen mode",
+            "default": false
+        },
+        {
+            "option": "shader",
+            "type": "string",
+            "section": "Graphics",
+            "label": "Shader",
+            "argument": "--shader",
+            "help": "Specify the name of the shader to use",
+            "default": ""
+        },
+        {
+            "option": "settings",
+            "type": "string",
+            "section": "Settings",
+            "label": "Settings",
+            "argument": "--setting",
+            "help": "Specify a value for a setting. This can be used to override settings per game.\n Available Settings are in the $XDG_DATA_HOME/ares/settings.bml file",
+            "default": "",
+            "advanced": true
+        },
+        {
+            "option": "dump_all_settings",
+            "type": "bool",
+            "section": "Settings",
+            "label": "Dump all settings",
+            "argument": "--dump-all-settings",
+            "help": "Dumps list of all existing settings to the lutris log and exit the emulator",
+            "default": false,
+            "advanced": true
+        },
+        {
+            "option": "no_file_prompt",
+            "type": "bool",
+            "section": "Settings",
+            "label": "No file prompt",
+            "argument": "--no-file-prompt",
+            "help": "Do not prompt to load (optional) additional roms (eg: Nintendo 64DD)",
+            "default": false,
+            "advanced": true
+        }
+    ]
+}
