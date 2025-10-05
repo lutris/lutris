@@ -64,6 +64,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     download_url = None
     arch = None  # If the runner is only available for an architecture that isn't x86_64
     flatpak_id = None
+    runner_name: str = ""
     human_name = ""
     use_sniper_runtime = False
 
@@ -83,7 +84,13 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     @property
     def name(self) -> str:
-        return self.__class__.__name__
+        return self.runner_name or self.__class__.__name__
+
+    @property
+    def runner_executable_path(self) -> str:
+        if not self.runner_executable:
+            return ""
+        return os.path.join(self.runner_name, self.runner_executable) if self.runner_name else self.runner_executable
 
     @property
     def directory(self) -> str:
@@ -241,10 +248,10 @@ class Runner:  # pylint: disable=too-many-public-methods
             runner_executable: str = self.runner_config["runner_executable"]
             if os.path.isfile(runner_executable):
                 return runner_executable
-        if not self.runner_executable:
+        if not self.runner_executable_path:
             raise MisconfigurationError("runner_executable not set for {}".format(self.name))
 
-        exe = os.path.join(settings.RUNNER_DIR, self.runner_executable)
+        exe = os.path.join(settings.RUNNER_DIR, self.runner_executable_path)
         if not os.path.isfile(exe):
             raise MissingExecutableError(_("The executable '%s' could not be found.") % exe)
         return exe
@@ -669,8 +676,8 @@ class Runner:  # pylint: disable=too-many-public-methods
 
             clear_wine_version_cache()
 
-        if self.runner_executable:
-            runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable)
+        if self.runner_executable_path:
+            runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable_path)
             if os.path.isfile(runner_executable):
                 system.make_executable(runner_executable)
 
