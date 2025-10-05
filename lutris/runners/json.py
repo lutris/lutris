@@ -1,180 +1,61 @@
 """Base class and utilities for JSON based runners"""
 
 import json
-import os
-import shlex
-from dataclasses import dataclass
-from typing import Optional
+from pathlib import Path
+from typing import Any
 
 from lutris import settings
-from lutris.exceptions import MissingGameExecutableError
-from lutris.runners.runner import Runner
-from lutris.util import datapath, system
+from lutris.runners.model import ModelRunner
+from lutris.util import datapath
+
+SETTING_JSON_RUNNER_DIR = Path(settings.RUNNER_DIR) / "json"
 
 JSON_RUNNER_DIRS = [
-    os.path.join(datapath.get(), "json"),
-    os.path.join(settings.RUNNER_DIR, "json"),
+    Path(datapath.get()) / "json",
+    SETTING_JSON_RUNNER_DIR,
 ]
 
 
-@dataclass(frozen=True)
-class JsonRunnerSpec:
-    game_options: list
-    runner_options: list
-    human_name: str
-    description: str
-    platforms: list
-    runner_executable: str
-    system_options_override: list
-    entry_point_option: str
-    download_url: Optional[str]
-    runnable_alone: Optional[bool]
-    flatpak_id: Optional[str]
+class JsonRunner(ModelRunner):
+    json_path: Path | None = None
 
+    def __init__(
+        self,
+        config=None,
+        *,
+        dict_data: dict[str, Any] | None = None,
+    ):
+        if not self.json_path and not isinstance(dict_data, dict):
+            raise RuntimeError(
+                "Create subclasses of JsonRunner with the json_path attribute set,"
+                " or supply the `dict_data` argument with a dictionary"
+            )
 
-_REQUIRED_KEYS = {
-    "game_options",
-    "human_name",
-    "description",
-    "platforms",
-    "runner_executable",
-}
+        json_data: dict[str, Any] = {}
+        if self.json_path:
+            with open(self.json_path, encoding="utf-8") as json_file:
+                json_data = json.load(json_file)
+        else:
+            json_data = dict_data if dict_data else {}
+        super().__init__(dict_data=json_data, config=config)
 
-
-def _load_and_validate_json(path: str) -> JsonRunnerSpec:
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-
-    missing = _REQUIRED_KEYS - data.keys()
-    if missing:
-        raise ValueError(f"Invalid runner JSON {path}: missing {missing}")
-
-    return JsonRunnerSpec(
-        game_options=data["game_options"],
-        runner_options=data.get("runner_options", []),
-        human_name=data["human_name"],
-        description=data["description"],
-        platforms=data["platforms"],
-        runner_executable=data["runner_executable"],
-        system_options_override=data.get("system_options_override", []),
-        entry_point_option=data.get("entry_point_option", "main_file"),
-        download_url=data.get("download_url"),
-        runnable_alone=data.get("runnable_alone"),
-        flatpak_id=data.get("flatpak_id"),
-    )
-
-
-class JsonRunner(Runner):
-    json_path = None
-    _json_cache = {}
-
-    def __init__(self, config=None):
-        super().__init__(config)
-        path = self.json_path
-        if not path:
-            raise RuntimeError("Create subclasses of JsonRunner with the json_path attribute set")
-
-        data = self._json_cache.get(path)
-        if data is None:
-            with open(path, encoding="utf-8") as file:
-                data = json.load(file)
-            self._json_cache[path] = data
-
-        self._json_data = data
-
-        spec = JsonRunnerSpec(
-            game_options=data["game_options"],
-            runner_options=data.get("runner_options", []),
-            human_name=data["human_name"],
-            description=data["description"],
-            platforms=data["platforms"],
-            runner_executable=data["runner_executable"],
-            system_options_override=data.get("system_options_override", []),
-            entry_point_option=data.get("entry_point_option", "main_file"),
-            download_url=data.get("download_url"),
-            runnable_alone=data.get("runnable_alone"),
-            flatpak_id=data.get("flatpak_id"),
-        )
-        self.spec = spec
-
-        self.game_options = spec.game_options
-        self.runner_options = spec.runner_options
-        self.human_name = spec.human_name
-        self.description = spec.description
-        self.platforms = spec.platforms
-        self.runner_executable = spec.runner_executable
-        self.system_options_override = spec.system_options_override
-        self.entry_point_option = spec.entry_point_option
-        self.download_url = spec.download_url
-        self.runnable_alone = spec.runnable_alone
-        self.flatpak_id = spec.flatpak_id
-
-    def _opt_bool(self, opt, args):
-        if self.runner_config.get(opt["option"]):
-            args.append(opt["argument"])
-
-    def _opt_choice(self, opt, args):
-        val = self.runner_config.get(opt["option"])
-        if val != "off":
-            args.extend((opt["argument"], val))
-
-    def _opt_string(self, opt, args):
-        args.extend((opt["argument"], self.runner_config.get(opt["option"])))
-
-    def _opt_cmd(self, opt, args):
-        arg = opt.get("argument")
-        if arg:
-            args.append(arg)
-        args.extend(shlex.split(self.runner_config.get(opt["option"])))
-
-    _OPTION_HANDLERS = {
-        "bool": _opt_bool,
-        "choice": _opt_choice,
-        "string": _opt_string,
-        "command_line": _opt_cmd,
-    }
-
-    def play(self):
-        """Return a launchable command constructed from the options"""
-        arguments = self.get_command()
-
-        for opt in self.runner_options:
-            key = opt["option"]
-            if key not in self.runner_config:
-                continue
-            try:
-                self._OPTION_HANDLERS[opt["type"]](self, opt, arguments)
-            except KeyError:
-                raise RuntimeError(f"Unhandled type {opt['type']}")
-
-        # Prepend the option flag before for entry_point_option value
-        for option in self.game_options:
-            if self.entry_point_option != option["option"]:
-                continue
-            if "argument" in option:
-                arguments.append(option["argument"])
-
-        main_file = self.game_config.get(self.entry_point_option)
-        if not main_file or not system.path_exists(main_file):
-            raise MissingGameExecutableError(filename=main_file)
-
-        arguments.append(main_file)
-        result = {"command": arguments}
-        if self._json_data.get("env"):
-            result["env"] = self._json_data["env"]
-        if self._json_data.get("working_dir") == "runner":
-            result["working_dir"] = os.path.dirname(os.path.join(settings.RUNNER_DIR, self.runner_executable_path))
-        return result
+    @property
+    def file_path(self):
+        return self.json_path
 
 
 def load_json_runners():
-    runners = {}
-    for base in JSON_RUNNER_DIRS:
-        if not os.path.isdir(base):
+    json_runners = {}
+    for json_dir in JSON_RUNNER_DIRS:
+        if not json_dir.exists():
             continue
-        for entry in os.scandir(base):
-            if not entry.name.endswith(".json"):
+        for json_path in json_dir.iterdir():
+            if json_path.suffix not in [".json"]:
                 continue
-            name = entry.name[:-5]
-            runners[name] = type(name, (JsonRunner,), {"json_path": entry.path})
-    return runners
+            json_data = {}
+            with open(json_path, encoding="utf-8") as json_file:
+                json_data = json.load(json_file)
+            runner_name = json_data.get("name") or json_path.stem
+            runner_class = type(runner_name, (JsonRunner,), {"json_path": json_dir / json_path})
+            json_runners[runner_name] = runner_class
+    return json_runners
