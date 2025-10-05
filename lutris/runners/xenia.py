@@ -12,12 +12,13 @@ from lutris.util.wine.wine import get_default_wine_version
 
 
 class xenia(wine):
+    runner_name = "xenia"
     human_name = _("Xenia")
     description = _("Xbox 360 Emulator")
     platform_dict = Runner.to_platform_dict([_("Microsoft Xbox 360")])
     runnable_alone = True
     multiple_versions = False
-    runner_executable = "xenia/xenia_canary.exe"
+    runner_executable = "xenia_canary.exe"
     download_url = (
         "https://github.com/xenia-canary/xenia-canary-releases/releases/latest/download/xenia_canary_windows.zip"
     )
@@ -60,7 +61,7 @@ class xenia(wine):
     @property
     def game_exe(self):
         """Return path to the managed Xenia Windows binary."""
-        return os.path.join(settings.RUNNER_DIR, self.runner_executable)
+        return os.path.join(settings.RUNNER_DIR, self.runner_executable_path)
 
     @property
     def prefix_path(self):
