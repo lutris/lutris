@@ -1,12 +1,15 @@
 from gettext import gettext as _
+from pathlib import Path
 
 from gi.repository import GObject, Gtk
 
 from lutris import runners
+from lutris.gui.config.create_runner_config_dialog import EditRunnerConfigDialog, RunnerConfigEditMode
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.scaled_image import ScaledImage
+from lutris.runners.json import SETTING_JSON_RUNNER_DIR
 from lutris.util.log import logger
 
 
@@ -54,14 +57,31 @@ class RunnerBox(Gtk.Box):
         self.configure_button.set_valign(Gtk.Align.CENTER)
         self.configure_button.set_margin_right(12)
         self.configure_button.connect("clicked", self.on_configure_clicked)
-        self.pack_start(self.configure_button, False, False, 0)
         if not self.runner.is_installed():
             self.runner_label_box.set_sensitive(False)
         self.configure_button.show()
         self.action_alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
         self.action_alignment.show()
         self.action_alignment.add(self.get_action_button())
+        self.edit_button = Gtk.Button.new_from_icon_name("document-edit-symbolic", Gtk.IconSize.BUTTON)
+
+        self.edit_button.set_valign(Gtk.Align.CENTER)
+        self.edit_button.set_margin_right(12)
+
+        self.edit_button.connect("clicked", self.on_edit_clicked)
+        self.pack_start(self.edit_button, False, False, 0)
+        self.pack_start(self.configure_button, False, False, 0)
         self.pack_start(self.action_alignment, False, False, 0)
+
+        # Provide a button to edit the runner if it is existing in the user writable runner directory
+        if hasattr(self.runner, "file_path"):
+            runner_json_path = Path(self.runner.file_path)
+            if (
+                runner_json_path
+                and runner_json_path.exists()
+                and runner_json_path.is_relative_to(SETTING_JSON_RUNNER_DIR)
+            ):
+                self.edit_button.show()
 
     def get_action_button(self):
         """Return a install or remove button"""
@@ -101,6 +121,17 @@ class RunnerBox(Gtk.Box):
         window = self.get_toplevel()
         application = window.get_application()
         application.show_window(RunnerConfigDialog, runner=self.runner, parent=window)
+
+    def on_edit_clicked(self, widget):
+        window = self.get_toplevel()
+        application = window.get_application()
+        create_dialog_window = application.show_window(
+            EditRunnerConfigDialog, runner=self.runner, parent=window, edit_mode=RunnerConfigEditMode.UPDATE
+        )
+        create_dialog_window.connect("runner-saved", self.on_runner_saved)
+
+    def on_runner_saved(self, widget, runner_name):
+        self.runner = runners.import_runner(runner_name)()
 
     def on_remove_clicked(self, widget):
         dialog = QuestionDialog(
