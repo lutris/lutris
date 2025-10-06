@@ -65,6 +65,14 @@ class JsonRunner(Runner):
                 arguments += shlex.split(self.runner_config.get(option["option"]))
             else:
                 raise RuntimeError("Unhandled type %s" % option["type"])
+
+        # Prepend the option flag before for entry_point_option value
+        for option in self.game_options:
+            if self.entry_point_option != option["option"]:
+                continue
+            if "argument" in option:
+                arguments.append(option["argument"])
+
         main_file = self.game_config.get(self.entry_point_option)
         if not system.path_exists(main_file):
             raise MissingGameExecutableError(filename=main_file)
