@@ -1,0 +1,53 @@
+{
+    "human_name": "Vita3K",
+    "description": "Sony PlayStation Vita emulator",
+    "platforms": {
+        "Sony PlayStation Vita": "Sony PlayStation Vita"
+    },
+    "runner_executable": "Vita3K-x86_64.AppImage",
+    "runnable_alone": true,
+    "download_url": "https://github.com/Vita3K/Vita3K/releases/download/continuous/Vita3K-x86_64.AppImage",
+    "entry_point_option": "title_id",
+    "game_options": [
+        {
+            "option": "title_id",
+            "type": "string",
+            "label": "Title ID of Installed Application",
+            "argument": "-r",
+            "help": "Title ID of installed application. Eg.\"PCSG00042\". User installed apps are located in ux0:/app/&lt;title-id&gt;.",
+            "default": ""
+        }
+    ],
+    "runner_options": [
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "label": "Fullscreen",
+            "argument": "-F",
+            "default": true
+        },
+        {
+            "option": "config",
+            "type": "file",
+            "label": "Config location",
+            "argument": "-c",
+            "help": "Get a configuration file from a given location. If a filename is given, it must end with \".yml\", otherwise it will be assumed to be a directory.",
+            "default": ""
+        },
+        {
+            "option": "load-config",
+            "type": "bool",
+            "label": "Load configuration file",
+            "argument": "-f",
+            "help": "If trues, informs the emulator to load the config file from the \"Config location\" option.",
+            "default": false
+        }
+    ],
+    "system_options_override": [
+        {
+            "option": "disable_runtime",
+            "type": "bool",
+            "default": true
+        }
+    ]
+}
