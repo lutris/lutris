@@ -19,6 +19,10 @@ tests/coverage/*
 /flake.nix
 /flake.lock
 
+# direnv
+/.direnv
+.envrc
+
 # meson builddirs
 builddir
 
