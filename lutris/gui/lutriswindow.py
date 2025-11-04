@@ -17,6 +17,7 @@ from lutris.api import (
     LUTRIS_ACCOUNT_DISCONNECTED,
     get_runtime_versions,
 )
+from lutris.database import categories
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import saved_searches as saved_searches_db
@@ -133,6 +134,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "missing": self.get_missing_games,
             "running": self.get_running_games,
         }
+
+        for smart_category in categories._SMART_CATEGORIES:
+            if smart_category.get_name() not in self.dynamic_categories_game_factories:
+                self.dynamic_categories_game_factories[smart_category.get_name()] = smart_category.get_games
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
@@ -1304,11 +1309,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         settings.write_setting("hide_badges_on_icons", not state)
         self.on_settings_changed(None, not state, "hide_badges_on_icons")
 
-    def on_settings_changed(self, setting_key, new_value):
-        if setting_key == "hide_text_under_icons":
-            self.rebuild_view("grid")
-        else:
-            self.update_view_settings()
+    def on_settings_changed(self, setting_key, new_value, section):
+        if section == "lutris":
+            if setting_key == "hide_text_under_icons":
+                self.rebuild_view("grid")
+            else:
+                self.update_view_settings()
         self.update_notification()
         return True
 

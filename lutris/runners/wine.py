@@ -1166,7 +1166,7 @@ class wine(Runner):
 
         wine_exe = self.get_executable()
 
-        if proton.is_proton_path(wine_exe):
+        if proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe):
             game_id = proton.get_game_id(game, env)
             proton.update_proton_env(wine_exe, env, game_id=game_id)
 

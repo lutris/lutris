@@ -772,12 +772,13 @@ class LutrisApplication(Gtk.Application):
             self.quit_on_game_exit = False
         return 0
 
-    def on_settings_changed(self, setting_key, new_value):
-        if setting_key == "preferred_theme":
-            self.style_manager.preferred_theme = new_value
-        elif setting_key == "show_tray_icon" and self.window:
-            if self.window.get_visible():
-                self.set_tray_icon()
+    def on_settings_changed(self, setting_key, new_value, section):
+        if section == "lutris":
+            if setting_key == "preferred_theme":
+                self.style_manager.preferred_theme = new_value
+            elif setting_key == "show_tray_icon" and self.window:
+                if self.window.get_visible():
+                    self.set_tray_icon()
         return True
 
     def on_game_start(self, game: Game) -> None:

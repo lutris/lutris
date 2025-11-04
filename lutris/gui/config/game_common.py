@@ -348,7 +348,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):  # type:
         scale_factor = self.get_scale_factor()
         service_media = self.service_medias[image_format]
         game_slug = self.slug or (self.game.slug if self.game else "")
-        media_path = resolve_media_path(service_media.get_possible_media_paths(game_slug))
+        media_path = resolve_media_path(service_media.get_possible_media_paths(game_slug)).path
         try:
             image = ScaledImage.new_from_media_path(media_path, service_media.config_ui_size, scale_factor)
             image_button.set_image(image)
@@ -726,7 +726,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):  # type:
         slug = self.slug or self.game.slug
         service_media = self.service_medias[image_type]
         self.game.custom_images.add(image_type)
-        dest_paths = service_media.get_possible_media_paths(slug)
+        dest_paths = [mp.path for mp in service_media.get_possible_media_paths(slug)]
 
         if image_path not in dest_paths:
             ext = get_image_file_extension(image_path)
