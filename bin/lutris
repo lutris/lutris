@@ -15,9 +15,14 @@
 
 import gettext
 import locale
+import multiprocessing
 import os
 import sys
 from os.path import dirname, normpath, realpath
+
+# Python 3.14 changes the default to 'forkserver' which is very different;
+# let's not put up with _that_!
+multiprocessing.set_start_method("fork")
 
 LAUNCH_PATH = dirname(realpath(__file__))
 
