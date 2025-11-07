@@ -17,7 +17,9 @@
     COL_INSTALLED_AT_TEXT,
     COL_PLAYTIME,
     COL_PLAYTIME_TEXT,
-) = list(range(16))
+    COL_MODIFIED_AT,
+    COL_MODIFIED_AT_TEXT,
+) = list(range(18))
 
 COLUMN_NAMES = {
     COL_NAME: "name",
@@ -27,4 +29,5 @@ COLUMN_NAMES = {
     COL_LASTPLAYED_TEXT: "lastplayed",
     COL_INSTALLED_AT_TEXT: "installedat",
     COL_PLAYTIME_TEXT: "playtime",
+    COL_MODIFIED_AT_TEXT: "modifiedat",
 }

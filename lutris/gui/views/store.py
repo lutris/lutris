@@ -20,6 +20,8 @@ from . import (
     COL_LASTPLAYED,
     COL_LASTPLAYED_TEXT,
     COL_MEDIA_PATHS,
+    COL_MODIFIED_AT,
+    COL_MODIFIED_AT_TEXT,
     COL_NAME,
     COL_PLATFORM,
     COL_PLAYTIME,
@@ -95,6 +97,8 @@ class GameStore(GObject.Object):
             str,
             float,
             str,
+            int,
+            str,
         )
 
     @property
@@ -156,6 +160,8 @@ class GameStore(GObject.Object):
         new_values[COL_INSTALLED_AT_TEXT] = store_item.installed_at_text
         new_values[COL_PLAYTIME] = store_item.playtime
         new_values[COL_PLAYTIME_TEXT] = store_item.playtime_text
+        new_values[COL_MODIFIED_AT] = store_item.modified_at
+        new_values[COL_MODIFIED_AT_TEXT] = store_item.modified_at_text
 
         changed_indices = set()
         for idx, value in new_values.items():
@@ -188,6 +194,8 @@ class GameStore(GObject.Object):
                 store_item.installed_at_text,
                 store_item.playtime,
                 store_item.playtime_text,
+                store_item.modified_at,
+                store_item.modified_at_text,
             )
         )
 
