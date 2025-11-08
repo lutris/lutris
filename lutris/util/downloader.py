@@ -2,7 +2,7 @@ import bisect
 import os
 import threading
 import time
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 import requests
 
@@ -28,11 +28,18 @@ class Downloader:
     (INIT, DOWNLOADING, CANCELLED, ERROR, COMPLETED) = list(range(5))
 
     def __init__(
-        self, url: str, dest: str, overwrite: bool = False, referer: Optional[str] = None, cookies: Any = None
+        self,
+        url: str,
+        dest: str,
+        overwrite: bool = False,
+        referer: Optional[str] = None,
+        cookies: Any = None,
+        headers: Dict[str, str] = None,
     ) -> None:
         self.url: str = url
         self.dest: str = dest
         self.cookies = cookies
+        self.headers = headers
         self.overwrite: bool = overwrite
         self.referer = referer
         self.stop_request = None
@@ -133,6 +140,9 @@ class Downloader:
             headers["User-Agent"] = "Lutris/%s" % __version__
             if self.referer:
                 headers["Referer"] = self.referer
+            if self.headers:
+                for key, value in self.headers.items():
+                    headers[key] = value
             response = requests.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
             if response.status_code != 200:
                 logger.info("%s returned a %s error", self.url, response.status_code)
