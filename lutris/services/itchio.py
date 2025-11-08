@@ -16,7 +16,7 @@ from lutris.gui.dialogs import InputDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import get_runner_human_name
-from lutris.services.base import SERVICE_LOGIN, SERVICE_LOGOUT, OnlineService
+from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import linux
@@ -96,10 +96,9 @@ class ItchIoService(OnlineService):
     api_url = "https://api.itch.io"
     login_url = "https://itch.io/login"
     redirect_uris = ["https://itch.io/my-feed", "https://itch.io/dashboard"]
-    cookies_path = os.path.join(settings.CACHE_DIR, ".itchio.auth")
     cache_path = os.path.join(settings.CACHE_DIR, "itchio/api/")
 
-    api_key = None
+    api_key_path = os.path.join(settings.CACHE_DIR, "itchio/api-key") # must be kept outside of cache-path
     key_cache_file = os.path.join(cache_path, "profile/owned-keys.json")
     collection_list_cache_file = os.path.join(cache_path, "profile/collections.json")
     games_cache_path = os.path.join(cache_path, "games/")
@@ -140,22 +139,28 @@ class ItchIoService(OnlineService):
         api_key = api_key_dialog.user_value
 
         if api_key:
-            ItchIoService.api_key = api_key
+            with open(self.api_key_path, "w") as key_file:
+                key_file.write(api_key)
             SERVICE_LOGIN.fire(self)
         else:
             self.logout()
 
-    def logout(self):
-        ItchIoService.api_key = None
-        SERVICE_LOGOUT.fire(self)
+    @property
+    def credential_files(self):
+        """Return a list of all files used for authentication"""
+        return [self.api_key_path]
 
-    def login_callback(self, url):
-        """Called after the user has logged in successfully"""
-        SERVICE_LOGIN.fire(self)
+    def load_api_key(self) -> Optional[str]:
+        if not os.path.exists(self.api_key_path):
+            return None
+
+        with open(self.api_key_path, "r") as key_file:
+            return key_file.read()
 
     def get_headers(self):
-        if ItchIoService.api_key:
-            return {"Authorization": f"Bearer {ItchIoService.api_key}"}
+        api_key = self.load_api_key()
+        if api_key:
+            return {"Authorization": f"Bearer {api_key}"}
         else:
             return {}
 
@@ -169,9 +174,6 @@ class ItchIoService(OnlineService):
             logger.warning("Not connected to itch.io account.")
             return False
         return profile and "user" in profile
-
-    def is_authenticated(self):
-        return bool(ItchIoService.api_key)
 
     def load(self):
         """Load the user's itch.io library"""
