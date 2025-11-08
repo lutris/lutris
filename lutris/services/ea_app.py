@@ -342,7 +342,7 @@ class EAAppService(OnlineService):
     def get_entitlements(self, user_id):
         """Request the user's entitlements"""
         games = []
-        variables = {"limit": 10}
+        variables = {"limit": 100}
         while True:
             result = self.fetch_api(
                 """query getEntitlements($limit: Int, $next: String) {
