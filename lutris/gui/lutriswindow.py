@@ -656,7 +656,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         service_id = self.filters.get("service")
         if service_id in services.SERVICES:
             if self.service.online and not self.service.is_authenticated():
-                self.show_label(_("Connect your %s account to access your games") % self.service.name)
+                self.show_empty_label()
                 return []
             return self.get_service_games(service_id)
         if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
@@ -733,6 +733,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def show_empty_label(self):
         """Display a label when the view is empty"""
+        if self.service.online and not self.service.is_authenticated():
+            self.show_label(_("Connect your %s account to access your games") % self.service.name)
+            return
+
         filter_text = self.filters.get("text")
         has_uninstalled_games = games_db.get_game_count("installed", "0")
         if filter_text:
