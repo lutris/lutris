@@ -2,7 +2,6 @@
 
 import json
 import os
-import random
 import ssl
 from gettext import gettext as _
 from typing import Any, Dict, Optional
@@ -67,7 +66,7 @@ class EAAppMedia(ServiceMedia):
 
     def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
         image = details["baseItem"][self.name]["largestImage"]
-        return image.get("path", None) if image != None else None
+        return image.get("path", None) if image is not None else None
 
 
 class EAAppKeyArt(EAAppMedia):
@@ -202,9 +201,9 @@ class EAAppService(OnlineService):
             token_data = json.load(token_file)
             return token_data.get("access_token", "")
 
-    def fetch_api(self, query, params: dict = {}):
+    def fetch_api(self, query, params: dict = None):
         result = self.session.post(
-            self.api_url, headers=self.api_headers, json={"query": query, "variables": params}
+            self.api_url, headers=self.api_headers, json={"query": query, "variables": params or {}}
         ).json()
 
         if "errors" in result:
@@ -272,7 +271,7 @@ class EAAppService(OnlineService):
         games = []
         entitlements = list(
             filter(
-                lambda e: e["product"] != None and e["product"]["baseItem"]["gameType"] == "BASE_GAME",
+                lambda e: e["product"] is not None and e["product"]["baseItem"]["gameType"] == "BASE_GAME",
                 self.get_entitlements(user_id),
             )
         )
@@ -377,7 +376,7 @@ class EAAppService(OnlineService):
             products = result["data"]["me"]["ownedGameProducts"]
             variables["next"] = products["next"]
             games += products["items"]
-            if products["next"] == None:
+            if products["next"] is None:
                 break
         return games
 
