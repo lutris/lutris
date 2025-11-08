@@ -59,11 +59,30 @@ class EAAppGames:
 class EAAppMedia(ServiceMedia):
     service = "ea_app"
     file_patterns = ["%s.jpg"]
-    size = (0, 0)
+    name = NotImplemented
 
     @property
     def dest_path(self):
-        return os.path.join(settings.CACHE_DIR, self.service, "icon")
+        return os.path.join(settings.CACHE_DIR, self.service, self.name)
+
+    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
+        image = details["baseItem"][self.name]["largestImage"]
+        return image.get("path", None) if image != None else None
+
+
+class EAAppKeyArt(EAAppMedia):
+    name = "keyArt"
+    size = (192, 108)
+
+
+class EAAppPackArt(EAAppMedia):
+    name = "packArt"
+    size = (135, 240)
+
+
+class EAAppPrimaryLogo(EAAppMedia):
+    name = "primaryLogo"
+    size = (200, 100)
 
 
 class EAAppGame(ServiceGame):
@@ -128,8 +147,11 @@ class EAAppService(OnlineService):
     runner = "wine"
     online = True
     medias = {
-        "icon": EAAppMedia,
+        "keyArt": EAAppKeyArt,
+        "packArt": EAAppPackArt,
+        "primaryLogo": EAAppPrimaryLogo,
     }
+    default_format = "keyArt"
     cache_path = os.path.join(settings.CACHE_DIR, "ea_app/cache/")
     cookies_path = os.path.join(settings.CACHE_DIR, "ea_app/cookies")
     token_path = os.path.join(settings.CACHE_DIR, "ea_app/auth_token")
@@ -272,6 +294,15 @@ class EAAppService(OnlineService):
                         originOfferId
                         gameSlug
                         baseItem {
+                            keyArt {
+                                largestImage { path }
+                            }
+                            packArt {
+                                largestImage { path }
+                            }
+                            primaryLogo {
+                                largestImage { path }
+                            }
                             title
                         }
                     }
