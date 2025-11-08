@@ -98,7 +98,7 @@ class ItchIoService(OnlineService):
     redirect_uris = ["https://itch.io/my-feed", "https://itch.io/dashboard"]
     cache_path = os.path.join(settings.CACHE_DIR, "itchio/api/")
 
-    api_key_path = os.path.join(settings.CACHE_DIR, "itchio/api-key") # must be kept outside of cache-path
+    api_key_path = os.path.join(settings.CACHE_DIR, "itchio/api-key")  # must be kept outside of cache-path
     key_cache_file = os.path.join(cache_path, "profile/owned-keys.json")
     collection_list_cache_file = os.path.join(cache_path, "profile/collections.json")
     games_cache_path = os.path.join(cache_path, "games/")
@@ -121,11 +121,17 @@ class ItchIoService(OnlineService):
     )
 
     def login(self, parent=None):
+        question = _(
+            "Lutris needs an API key to connect to itch.io. You can obtain one\n"
+            "from the itch.io <a href='https://itch.io/user/settings/api-keys'>API keys page</a>.\n\n"
+            "You should give Lutris its own API key instead of sharing them."
+        )
+
         api_key_dialog = InputDialog(
             {
                 "parent": parent,
-                "question": _("Enter your Itch.IO API Key:"),
-                "title": _("Itch.IO API key"),
+                "question": question,
+                "title": _("Itch.io API key"),
                 "initial_value": "",
             }
         )
