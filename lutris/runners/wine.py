@@ -50,6 +50,7 @@ from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, IconExtractor
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
+    GE_PROTON_LATEST,
     WINE_DEFAULT_ARCH,
     WINE_PATHS,
     detect_arch,
@@ -184,7 +185,7 @@ def _get_wine_version_choices():
     }
     versions = get_installed_wine_versions()
     for version in versions:
-        if version == "ge-proton":
+        if version == GE_PROTON_LATEST:
             label = _("GE-Proton (Latest)")
         elif version in system_wine_labels:
             version_number = get_system_wine_version(WINE_PATHS[version])
@@ -698,7 +699,8 @@ class wine(Runner):
         for level in [self.config.game_level, self.config.runner_level]:
             if "wine" in level:
                 runner_version = level["wine"].get("version")
-                if runner_version:
+                # Treat 'ge-proton' as if no version is set
+                if runner_version and runner_version != GE_PROTON_LATEST:
                     return runner_version
 
         if default:
@@ -733,7 +735,7 @@ class wine(Runner):
         """
         if not version:
             version = self.read_version_from_config()
-        if version == "ge-proton":
+        if version == GE_PROTON_LATEST:
             return proton.get_umu_path()
 
         if proton.is_proton_version(version):
@@ -1097,7 +1099,7 @@ class wine(Runner):
         is_proton = proton.is_proton_path(wine_exe)
 
         wine_config_version = self.read_version_from_config()
-        if wine_config_version == "ge-proton":
+        if wine_config_version == GE_PROTON_LATEST:
             env["PROTONPATH"] = "GE-Proton"
         env["WINE"] = wine_exe
 

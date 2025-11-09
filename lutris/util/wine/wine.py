@@ -13,6 +13,7 @@ from lutris.util.strings import get_natural_sort_key, parse_version
 from lutris.util.wine import fsync, proton
 
 WINE_DEFAULT_ARCH: str = "win64" if linux.LINUX_SYSTEM.is_64_bit else "win32"
+GE_PROTON_LATEST: str = "ge-proton"
 WINE_PATHS: Dict[str, str] = {
     "winehq-devel": "/opt/wine-devel/bin/wine",
     "winehq-staging": "/opt/wine-staging/bin/wine",
@@ -127,7 +128,7 @@ def get_installed_wine_versions() -> List[str]:
     """Return the list of Wine versions installed, with no duplicates and in
     the presentation order."""
     versions: Set[str] = {
-        "ge-proton",
+        GE_PROTON_LATEST,
     }
 
     for v in proton.list_proton_versions():
@@ -155,6 +156,8 @@ def get_runner_files_dir_for_version(version: str) -> Optional[str]:
     """This returns the path to the root of the Wine files for a specific version. The
     'bin' directory for that version is there, and we can place more directories there.
     If we shouldn't do that, this will return None."""
+    if version == GE_PROTON_LATEST:
+        return None
     if version in WINE_PATHS:
         return None
     elif proton.is_proton_version(version):
@@ -172,6 +175,8 @@ def get_wine_path_for_version(version: str, config: Optional[dict] = None) -> st
     if not version:
         raise UnspecifiedVersionError(_("The Wine version must be specified."))
 
+    if version == GE_PROTON_LATEST:
+        return proton.get_umu_path()
     if version in WINE_PATHS:
         return system.find_required_executable(WINE_PATHS[version])
     if proton.is_proton_version(version):
@@ -219,7 +224,7 @@ def is_fsync_supported() -> bool:
 
 def get_default_wine_version() -> str:
     """Return the default version of wine."""
-    return "ge-proton"
+    return GE_PROTON_LATEST
 
 
 def get_system_wine_version(wine_path: str = "wine") -> str:
