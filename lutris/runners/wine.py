@@ -682,13 +682,13 @@ class wine(Runner):
                 arch = WINE_DEFAULT_ARCH
         return arch
 
-    def get_runner_version(self, version: str = None) -> Optional[Dict[str, str]]:
+    def get_runner_version(self, version: Optional[str] = None) -> Optional[Dict[str, str]]:
         if version in WINE_PATHS:
             return {"version": version}
 
         return super().get_runner_version(version)
 
-    def read_version_from_config(self, default: str = None) -> str:
+    def read_version_from_config(self, default: Optional[str] = None) -> str:
         """Return the Wine version to use. use_default can be set to false to
         force the installation of a specific wine version. If no version is configured,
         we return the default supplied, or the4 global Wine default if none is."""
