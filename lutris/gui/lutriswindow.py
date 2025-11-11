@@ -733,7 +733,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def show_empty_label(self):
         """Display a label when the view is empty"""
-        if self.service.online and not self.service.is_authenticated():
+        if self.service and self.service.online and not self.service.is_authenticated():
             self.show_label(_("Connect your %s account to access your games") % self.service.name)
             return
 
