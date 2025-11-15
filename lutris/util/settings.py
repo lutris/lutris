@@ -13,7 +13,7 @@ class SettingsIO:
         self.config = configparser.ConfigParser()
 
         # A notification that fires on each settings change
-        self.SETTINGS_CHANGED = NotificationSource()  # called with (setting-key, new-value)
+        self.SETTINGS_CHANGED = NotificationSource()  # called with (setting-key, new-value, section)
 
         if os.path.exists(self.config_file):
             try:
@@ -53,4 +53,4 @@ class SettingsIO:
         with open(self.config_file, "w", encoding="utf-8") as config_file:
             self.config.write(config_file)
 
-        self.SETTINGS_CHANGED.fire(key, value)
+        self.SETTINGS_CHANGED.fire(key, value, section)

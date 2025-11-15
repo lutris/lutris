@@ -37,6 +37,8 @@ def is_proton_path(wine_path: Optional[str]) -> bool:
 
     This function may be given the wine root directory or a file within such as
     the wine executable and will return true for either."""
+    if not wine_path:
+        return True
     for candidate_wine_path in get_proton_versions().values():
         if system.path_contains(candidate_wine_path, wine_path):
             return True

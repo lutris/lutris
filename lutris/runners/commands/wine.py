@@ -423,10 +423,11 @@ def winetricks(
     if not wine_path or proton.is_umu_path(wine_path):
         winetricks_wine = proton.get_umu_path()
         proton_verb = "waitforexitandrun"
-
+        working_dir = None
     elif proton.is_proton_path(wine_path):
         proton_verb = "waitforexitandrun"
         protonfixes_path = os.path.join(proton.get_proton_path_by_path(wine_path), "protonfixes")
+        working_dir = None
         if os.path.exists(protonfixes_path):
             winetricks_wine = os.path.join(protonfixes_path, "winetricks")
             winetricks_path = wine_path

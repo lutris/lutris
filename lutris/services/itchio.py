@@ -7,9 +7,12 @@ from gettext import gettext as _
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote_plus, urlencode
 
+from gi.repository import Gtk
+
 from lutris import settings
 from lutris.database import games as games_db
 from lutris.exceptions import UnavailableGameError
+from lutris.gui.dialogs import InputDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import get_runner_human_name
@@ -93,9 +96,9 @@ class ItchIoService(OnlineService):
     api_url = "https://api.itch.io"
     login_url = "https://itch.io/login"
     redirect_uris = ["https://itch.io/my-feed", "https://itch.io/dashboard"]
-    cookies_path = os.path.join(settings.CACHE_DIR, ".itchio.auth")
     cache_path = os.path.join(settings.CACHE_DIR, "itchio/api/")
 
+    api_key_path = os.path.join(settings.CACHE_DIR, "itchio/api-key")  # must be kept outside of cache-path
     key_cache_file = os.path.join(cache_path, "profile/owned-keys.json")
     collection_list_cache_file = os.path.join(cache_path, "profile/collections.json")
     games_cache_path = os.path.join(cache_path, "games/")
@@ -117,9 +120,55 @@ class ItchIoService(OnlineService):
         "other",
     )
 
-    def login_callback(self, url):
-        """Called after the user has logged in successfully"""
-        SERVICE_LOGIN.fire(self)
+    def login(self, parent=None):
+        question = _(
+            "Lutris needs an API key to connect to itch.io. You can obtain one\n"
+            "from the itch.io <a href='https://itch.io/user/settings/api-keys'>API keys page</a>.\n\n"
+            "You should give Lutris its own API key instead of sharing them."
+        )
+
+        api_key_dialog = InputDialog(
+            {
+                "parent": parent,
+                "question": question,
+                "title": _("Itch.io API key"),
+                "initial_value": "",
+            }
+        )
+
+        result = api_key_dialog.run()
+        if result != Gtk.ResponseType.OK:
+            api_key_dialog.destroy()
+            self.logout()
+            return
+
+        api_key = api_key_dialog.user_value
+
+        if api_key:
+            with open(self.api_key_path, "w") as key_file:
+                key_file.write(api_key)
+            SERVICE_LOGIN.fire(self)
+        else:
+            self.logout()
+
+    @property
+    def credential_files(self):
+        """Return a list of all files used for authentication"""
+        return [self.api_key_path]
+
+    def load_api_key(self) -> Optional[str]:
+        if not os.path.exists(self.api_key_path):
+            return None
+
+        with open(self.api_key_path, "r") as key_file:
+            return key_file.read()
+
+    def get_headers(self):
+        api_key = self.load_api_key()
+        if api_key:
+            return {"Authorization": f"Bearer {api_key}"}
+        else:
+            return {}
 
     def is_connected(self):
         """Check if service is connected and can call the API"""
@@ -156,7 +205,10 @@ class ItchIoService(OnlineService):
         if query is not None and isinstance(query, dict):
             url += "?{}".format(urlencode(query, quote_via=quote_plus))
         try:
-            request = Request(url, cookies=self.load_cookies())
+            request = Request(
+                url,
+                headers=self.get_headers(),
+            )
             request.get()
             return request.json
         except UnauthorizedAccessError:
@@ -635,7 +687,7 @@ class ItchIoService(OnlineService):
                             "url": patch_url,
                             "filename": "update.zip",
                             "downloader": lambda f, url=patch_url: Downloader(
-                                url, f.download_file, overwrite=True, cookies=self.load_cookies()
+                                url, f.download_file, overwrite=True, headers=self.get_headers()
                             ),
                         }
                     }
@@ -740,7 +792,7 @@ class ItchIoService(OnlineService):
                         "url": link,
                         "filename": filename or file.filename or "setup.zip",
                         "downloader": lambda f, url=link: Downloader(
-                            url, f.download_file, overwrite=True, cookies=self.load_cookies()
+                            url, f.download_file, overwrite=True, headers=self.get_headers()
                         ),
                     },
                 )
@@ -758,7 +810,7 @@ class ItchIoService(OnlineService):
                         "url": link,
                         "filename": extra["filename"],
                         "downloader": lambda f, url=link: Downloader(
-                            url, f.download_file, overwrite=True, cookies=self.load_cookies()
+                            url, f.download_file, overwrite=True, headers=self.get_headers()
                         ),
                     },
                 )
