@@ -121,6 +121,10 @@ class ItchIoService(OnlineService):
     )
 
     def login(self, parent=None):
+        # The InputDialog doesn't keep any state we need to protect,
+        # but we used to so we'll clear this persistent flag.
+        self.is_login_in_progress = False
+
         question = _(
             "Lutris needs an API key to connect to itch.io. You can obtain one\n"
             "from the itch.io <a href='https://itch.io/user/settings/api-keys'>API keys page</a>.\n\n"
