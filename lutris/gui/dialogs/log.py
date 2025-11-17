@@ -37,11 +37,13 @@ class LogWindow(GObject.Object):
         save_button = builder.get_object("save_button")
         save_button.connect("clicked", self.on_save_clicked)
 
-        # Add zoom buttons
+        # Add zoom buttons (may not exist in all UI versions)
         zoom_in_button = builder.get_object("zoom_in_button")
         zoom_out_button = builder.get_object("zoom_out_button")
-        zoom_in_button.connect("clicked", self.on_zoom_in_clicked)
-        zoom_out_button.connect("clicked", self.on_zoom_out_clicked)
+        if zoom_in_button:
+            zoom_in_button.connect("clicked", self.on_zoom_in_clicked)
+        if zoom_out_button:
+            zoom_out_button.connect("clicked", self.on_zoom_out_clicked)
 
         self.window.connect("key-press-event", self.on_key_press_event)
         self.window.show_all()

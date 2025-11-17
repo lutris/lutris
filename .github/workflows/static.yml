@@ -5,14 +5,17 @@ jobs:
   mypy-checker:
     name: Mypy
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.14"]
     steps:
       - uses: actions/checkout@v4
       - name: Print current dir
         run: pwd
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
       - name: Install Ubuntu dependencies
         run: |
           sudo apt update
@@ -30,18 +33,22 @@ jobs:
   ruff-checker:
     name: Ruff
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.14"]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           make dev
       - name: Check code style
-        run: ruff --version
+        run: |
+          ruff --version
           ruff check .
       - name: Check format
         run: ruff format . --check

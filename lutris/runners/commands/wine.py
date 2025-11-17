@@ -423,7 +423,7 @@ def winetricks(
     if not wine_path or proton.is_umu_path(wine_path):
         winetricks_wine = proton.get_umu_path()
         proton_verb = "waitforexitandrun"
-        working_dir = None
+        winetricks_path, working_dir, env = find_winetricks(env, system_winetricks)
     elif proton.is_proton_path(wine_path):
         proton_verb = "waitforexitandrun"
         protonfixes_path = os.path.join(proton.get_proton_path_by_path(wine_path), "protonfixes")
@@ -462,7 +462,6 @@ def winetricks(
         runner=runner,
         proton_verb=proton_verb,
     )
-
 
 def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, env=None, runner=None, proton_verb=None):
     """Execute winecfg."""

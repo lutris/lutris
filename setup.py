@@ -8,6 +8,7 @@ from lutris import __version__ as VERSION
 
 if sys.version_info < (3, 8):
     sys.exit("Python >= 3.8 is required to run Lutris")
+# Python 3.14 is supported and tested
 
 data_files = []
 
