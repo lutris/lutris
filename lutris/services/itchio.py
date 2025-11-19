@@ -374,9 +374,9 @@ class ItchIoService(OnlineService):
                     safety -= 1
 
                 # filter out bad data for safety
-                collection["games"] = list(
-                    filter(lambda col_game: "game" in col_game and "id" in col_game["game"], collection["games"])
-                )
+                collection["games"] = [
+                    col_game for col_game in collection["games"] if "game" in col_game and "id" in col_game["game"]
+                ]
 
                 # try to get download keys from cache
                 for col_game in collection["games"]:
@@ -418,25 +418,20 @@ class ItchIoService(OnlineService):
 
     def get_games(self):
         """Return games from the user's library"""
-        # get and cache owned games
+        # get and cache owned games; this populates collections.json for later
         owned_games = self.get_owned_games()
 
         # get all collections
         collections = self.get_collection_list()
 
-        # if there is only one collecion, use owned games and this collection
-        if len(collections) == 1:
-            games = owned_games + self.get_games_in_collections(collections)
+        # if there are collections titled "lutris" (case insestitive) we use only these
+        lutris_collections = [col for col in collections if col.get("title", "").casefold() == "lutris" and "id" in col]
+
+        if len(lutris_collections) > 0:
+            games = self.get_games_in_collections(lutris_collections)
         else:
-            # if there are collections titled "lutris" (case insestitive) we use only these
-            lutris_collections = list(
-                filter(lambda col: col.get("title", "").casefold() == "lutris" and "id" in col, collections)
-            )
-            if len(lutris_collections) > 0:
-                games = self.get_games_in_collections(lutris_collections)
-            # otherwise we just use all owned games
-            else:
-                games = self.get_owned_games()
+            # otherwise, dig up every game we can find!
+            games = owned_games + self.get_games_in_collections(collections)
 
         filtered_games = []
         for game in games:
