@@ -26,7 +26,6 @@ from lutris.gui.views import (
     COLUMN_NAMES,
 )
 from lutris.gui.views.base import GameView
-from lutris.gui.views.store import sort_func
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererImage
 
 
@@ -98,7 +97,6 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         column = Gtk.TreeViewColumn(header, cell, markup=column_id)
         column.set_sort_indicator(True)
         column.set_sort_column_id(column_id if sort_id is None else sort_id)
-        self.set_column_sort(column_id if sort_id is None else sort_id)
         column.set_resizable(True)
         column.set_reorderable(True)
         width = settings.read_setting("%s_column_width" % COLUMN_NAMES[column_id], section="list view")
@@ -109,16 +107,6 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         column.connect("notify::width", self.on_column_width_changed)
         column.get_button().connect("button-press-event", self.on_column_header_button_pressed)
         return column
-
-    def set_column_sort(self, col):
-        """Sort a column and fallback to sorting by name and runner."""
-        model = self.get_model()
-        if model:
-            model.set_sort_func(col, sort_func, col)
-
-    def set_sort_with_column(self, col, sort_col):
-        """Sort a column by using another column's data"""
-        self.model.set_sort_func(col, sort_func, sort_col)
 
     def get_path_at(self, x, y):
         path_at = self.get_path_at_pos(x, y)
