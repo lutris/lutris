@@ -67,7 +67,7 @@ msgstr ""
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:34
 msgid "Use dark theme by default"
-msgstr "به‌طور پیش‌گزیده پوسته تیره استفاده میشود"
+msgstr "به‌طور پیش‌گزیده پوسته تیره استفاده می‌شود"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:35
 msgid "Display cover-art rather than banners by default"
@@ -75,20 +75,20 @@ msgstr "به‌طور پیش‌گزیده، جلد بازی را به جای ب�
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:36
 msgid "Add 'Uncategorized' view to sidebar"
-msgstr "دسته‌بندی «بدون دسته» را به نوار کناری بیفزایید"
+msgstr "دسته‌بندی «دسته‌بندی نشده» را به نوار کناری بیفزایید"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:37
 msgid ""
 "Preference options that do not work on Wayland will be hidden when on Wayland"
 msgstr ""
-"گزینه‌های ترجیحی که در وی‌لند کار نمی‌کنند، هنگام کار با وی‌لند پنهان میشوند"
+"گزینه‌های ترجیحی که در وی‌لند کار نمی‌کنند، هنگام کار با وی‌لند پنهان می‌شوند"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:38
 msgid ""
 "Game searches can now use fancy tags like 'installed:yes' or 'source:gog', "
 "with explanatory tool-tip"
 msgstr ""
-"می‌توانید بازی‌ها را با استفاده از برچسب‌های خاص مانند «installed:yes» یا «source:gog»"
+"می‌توانید بازی‌ها را با استفاده از برچسب‌های پیشرفته مانند «installed:yes» یا «source:gog»"
 "جستجو کنید، همراه با توضیحات راهنما"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:39
@@ -96,7 +96,7 @@ msgid ""
 "A new filter button on the search box can build many of these fancy tags for "
 "you"
 msgstr ""
-"یک دکمه پالایش جدید در کادر جستجو می‌تواند بسیاری از این برچسب‌های ویژه را "
+"یک دکمه پالایش جدید در کادر جستجو می‌تواند بسیاری از این برچسب‌های پیشرفته را "
 "برای شما بسازد."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:40
@@ -105,7 +105,7 @@ msgid ""
 "or anything"
 msgstr ""
 "جستجوی اجراکننده‌ها نیز می‌تواند با «installed:yes» انجام شود، ولی بدون هیچ "
-"جستجوی ویژه دیگری یا چیزی مشابه."
+"جستجوی پیشرفته دیگری یا چیزی مشابه."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:41
 msgid ""
@@ -118,7 +118,7 @@ msgstr ""
 msgid ""
 "Itch.io source integration will load a collection named 'Lutris' if present"
 msgstr ""
-"یکپارچگی منبع Itch.io اگر موجود باشد، مجموعه‌ای به نام «لوتریس» را بارگذاری "
+"اگر یکپارچگی منبع Itch.io موجود باشد، مجموعه‌ای به نام «لوتریس» را بارگذاری "
 "خواهد کرد."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:43
@@ -214,7 +214,7 @@ msgid ""
 "Torturous and sadistic options for multi-GPUs that were half broken and "
 "understood by no one have been replaced by a simple GPU selector."
 msgstr ""
-"گزینه‌های دردناک و آزار دهنده برای چندین GPU که نیمه‌خراب بودند "
+"گزینه‌های پیچیده و عذاب‌آور برای چند GPU که نیمه‌خراب بودند "
 "و هیچ‌کس آن‌ها را درک نمی‌کرد، با یک انتخاب‌کننده GPU ساده جایگزین شده‌اند."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:67
@@ -444,7 +444,7 @@ msgstr ""
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:120
 msgid "Sync Steam playtimes with the Lutris library"
-msgstr "همگام‌سازی زمان‌های بازی استیم با کتابخانه لوتریس"
+msgstr "همگام‌سازی زمان بازی استیم با کتابخانه لوتریس"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:127
 msgid "Add Steam account switcher to handle multiple Steam accounts"
@@ -503,7 +503,7 @@ msgstr "افزودن یک قسمت نام مرتب‌سازی"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:140
 msgid "Yuzu and xemu now use an AppImage"
-msgstr "Yuzu و xemu اکنون از یک AppImage را استفاده میکند"
+msgstr "Yuzu و xemu اکنون از یک AppImage استفاده میکند"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:141
 msgid "Experimental support for Flatpak provided runners"
@@ -634,10 +634,10 @@ msgstr ""
 "نام بازی را برای جستجو وارد کنید یا از کلیدواژه‌های زیر استفاده کنید:\n"
 "\n"
 "<b>installed:</b><i>true</i>\t\t\tتنها بازی‌های نصب شده.\n"
-"<b>hidden:</b><i>true</i>\t\t\tتنها بازی‌های مخفی.\n"
+"<b>hidden:</b><i>true</i>\t\t\tتنها بازی‌های پنهان.\n"
 "<b>favorite:</b><i>true</i>\t\t\tتنها بازی‌های دلخواه.\n"
-"<b>categorized:</b><i>true</i>\t\tتنها بازی‌های در یک دسته.\n"
-"<b>category:</b><i>x</i>\t\t\tتنها بازی‌های در دسته <i>x</i>.\n"
+"<b>categorized:</b><i>true</i>\t\tتنها بازی‌های در یک دسته‌بندی.\n"
+"<b>category:</b><i>x</i>\t\t\tتنها بازی‌های در دسته‌بندی <i>x</i>.\n"
 "<b>source:</b><i>استیم</i>\t\t\tتنها بازی‌های استیم\n"
 "<b>runner:</b><i>واین</i>\t\t\tتنها بازی‌های واین\n"
 "<b>platform:</b><i>windows</i>\tتنها بازی‌های ویندوز\n"
@@ -705,7 +705,7 @@ msgstr "نمایش _پنل جانبی"
 
 #: share/lutris/ui/lutris-window.ui:707
 msgid "Show _Hidden Games"
-msgstr "نمایش _بازی‌های مخفی"
+msgstr "نمایش _بازی‌های پنهان"
 
 #: share/lutris/ui/lutris-window.ui:725
 msgid "Add Games"
@@ -810,7 +810,7 @@ msgstr "متوقف کردن"
 #: lutris/gui/config/edit_game_categories.py:18
 #: lutris/gui/config/edit_saved_search.py:72 lutris/gui/widgets/sidebar.py:400
 msgid "Categories"
-msgstr "دسته‌ها"
+msgstr "دسته‌بندی‌ها"
 
 #: lutris/game_actions.py:193 lutris/game_actions.py:235
 msgid "Add to favorites"
@@ -941,7 +941,7 @@ msgstr "انتخاب هدف میانبر"
 
 #: lutris/game.py:316 lutris/game.py:503
 msgid "Invalid game configuration: Missing runner"
-msgstr "پیکربندی نامعتبر بازی: اجرا کننده گم شده است"
+msgstr "پیکربندی نامعتبر بازی: اجراکننده گم شده است"
 
 #: lutris/game.py:382
 msgid "No updates found"
@@ -1252,7 +1252,7 @@ msgstr ""
 "\n"
 "داده‌های رام استفاده شده برای این کار از پروژه TOSEC می‌آیند.\n"
 "\n"
-"وقتی روی «نصب» پایین ضربه میزنید، فرآیند نصب بازی آغاز میشود."
+"وقتی روی «نصب» پایین ضربه میزنید، فرآیند نصب بازی آغاز می‌شود."
 
 #: lutris/gui/addgameswindow.py:479
 msgid "<b>Select a ROM file</b>"
@@ -1286,7 +1286,7 @@ msgstr ""
 
 #: lutris/gui/application.py:131
 msgid "Print the version of Lutris and exit"
-msgstr "نگارش لوتریس را چاپ کرده و خارج میشود"
+msgstr "نگارش لوتریس را چاپ کرده و خارج می‌شود"
 
 #: lutris/gui/application.py:139
 msgid "Show debug messages"
@@ -3535,7 +3535,7 @@ msgstr "پرونده ISO"
 
 #: lutris/runners/dolphin.py:42
 msgid "Batch"
-msgstr "دسته‌ای"
+msgstr "چندتایی"
 
 #: lutris/runners/dolphin.py:45
 msgid "Exit Dolphin with emulator."
@@ -3649,7 +3649,7 @@ msgstr "از فعال شدن حالت تمام صفحه جلوگیری می‌ک
 
 #: lutris/runners/duckstation.py:51
 msgid "Batch Mode"
-msgstr "حالت دسته‌ای"
+msgstr "حالت چندتایی"
 
 #: lutris/runners/duckstation.py:52 lutris/runners/duckstation.py:61
 #: lutris/runners/duckstation.py:69
@@ -3658,7 +3658,7 @@ msgstr "راه‌اندازی"
 
 #: lutris/runners/duckstation.py:53
 msgid "Enables batch mode (exits after powering off)."
-msgstr "حالت دسته‌ای را فعال می‌کند (پس از خاموش شدن خارج می‌شود)."
+msgstr "حالت چندتایی را فعال می‌کند (پس از خاموش شدن خارج می‌شود)."
 
 #: lutris/runners/duckstation.py:60
 msgid "Force Fastboot"
@@ -3678,19 +3678,19 @@ msgstr "اجبار به راه‌اندازی کند."
 
 #: lutris/runners/duckstation.py:76
 msgid "No Controllers"
-msgstr "بدون دسته‌بازی"
+msgstr "بدون دسته بازی"
 
 #: lutris/runners/duckstation.py:77 lutris/runners/o2em.py:64
 #: lutris/runners/o2em.py:72
 msgid "Controllers"
-msgstr "دسته‌بازی‌ها"
+msgstr "دسته‌‌های بازی"
 
 #: lutris/runners/duckstation.py:79
 msgid ""
 "Prevents the emulator from polling for controllers. Try this option if "
 "you're having difficulties starting the emulator."
 msgstr ""
-"از بررسی دسته‌بازی‌ها توسط شبیه‌ساز جلوگیری می‌کند. اگر در راه‌اندازی شبیه‌ساز"
+"از بررسی دسته‌های بازی توسط شبیه‌ساز جلوگیری می‌کند. اگر در راه‌اندازی شبیه‌ساز"
 "مشکل دارید، این گزینه را امتحان کنید."
 
 #: lutris/runners/duckstation.py:87
@@ -5509,11 +5509,11 @@ msgstr "بایوس"
 
 #: lutris/runners/o2em.py:65
 msgid "First controller"
-msgstr "دسته‌بازی اول"
+msgstr "دسته بازی اول"
 
 #: lutris/runners/o2em.py:73
 msgid "Second controller"
-msgstr "دسته‌بازی دوم"
+msgstr "دسته بازی دوم"
 
 #: lutris/runners/openmsx.py:12
 msgid "openMSX"
@@ -6967,8 +6967,8 @@ msgid ""
 "Enable eventfd-based synchronization (esync). This will increase performance "
 "in applications that take advantage of multi-core processors."
 msgstr ""
-"فعال کردن همگام سازی مبتنی بر eventfd (esync). این کار باعث افزایش عملکرد در "
-"برنامه هایی می شود که پردازنده های چند هسته ای را استفاده میکنند."
+"فعال کردن همگام‌سازی مبتنی بر eventfd (esync). این کار باعث افزایش عملکرد در "
+"برنامه هایی می‌شود که پردازنده های چند هسته ای را استفاده میکنند."
 
 #: lutris/runners/wine.py:429
 msgid "Enable Fsync"
@@ -6980,8 +6980,8 @@ msgid ""
 "in applications that take advantage of multi-core processors. Requires "
 "kernel 5.16 or above."
 msgstr ""
-"فعال کردن همگام سازی مبتنی بر futex (fsync). این کار باعث افزایش عملکرد در "
-"برنامه هایی می شود که پردازنده های چند هسته‌ای را استفاده میکنند. نیاز به هسته "
+"فعال کردن همگام‌سازی مبتنی بر futex (fsync). این کار باعث افزایش عملکرد در "
+"برنامه هایی می‌شود که پردازنده های چند هسته‌ای را استفاده میکنند. نیاز به هسته "
 "5.16 یا بالاتر دارد."
 
 #: lutris/runners/wine.py:443
@@ -6998,7 +6998,7 @@ msgid ""
 msgstr ""
 "استفاده از FSR برای افزایش کیفیت پنجره بازی به رزولوشن بومی.\n"
 "نیاز به لوتریس واین FShack >= 6.13 و تنظیم بازی به رزولوشن پایین تر دارد.\n"
-"با بازی هایی که در حالت پنجره بدون مرز اجرا می شوند یا خودشان افزایش کیفیت "
+"با بازی هایی که در حالت پنجره بدون مرز اجرا می‌شوند یا خودشان افزایش کیفیت "
 "را انجام می دهند، کار نمی کند."
 
 #: lutris/runners/wine.py:454
@@ -7155,7 +7155,7 @@ msgid ""
 "controllers detected"
 msgstr ""
 "به‌طور خودکار یکی از دسته‌‌بازی‌های شناسایی‌شده واین را غیرفعال می‌کند تا از "
-"شناسایی ۲ دسته‌بازی جلوگیری کند"
+"شناسایی ۲ دسته بازی جلوگیری کند"
 
 #: lutris/runners/wine.py:622
 msgid ""
@@ -7306,11 +7306,11 @@ msgstr "مهارت"
 
 #: lutris/runners/zdoom.py:67
 msgid "I'm Too Young To Die (1)"
-msgstr "من خیلی جوانم که بمیرم (۱)"
+msgstr "من هنوز جوونم آرزو دارم (۱)"
 
 #: lutris/runners/zdoom.py:68
 msgid "Hey, Not Too Rough (2)"
-msgstr "هی، نه خیلی سخت (۲)"
+msgstr "هی، نه اونقدرا سخت (۲)"
 
 #: lutris/runners/zdoom.py:69
 msgid "Hurt Me Plenty (3)"
@@ -7502,7 +7502,7 @@ msgid ""
 "Use only for the rare games or mods requiring the Windows version of Steam"
 msgstr ""
 "تنها برای بازی‌ها یا مدهای نادر که به نگارش ویندوز استیم نیاز دارند، "
-"استفاده میشود"
+"استفاده می‌شود"
 
 #: lutris/services/ubisoft.py:85
 msgid "Ubisoft Connect"
@@ -7633,7 +7633,7 @@ msgid ""
 "into play to save your bacon."
 msgstr ""
 "برخی از بازی‌ها هنگام بسته شدن یا هنگ کردن، وضوح صفحه نمایش شما را "
-"بازنمی‌گردانند. این گزینه برای نجات شما به کار می‌آید."
+"بازنمی‌گردانند. این گزینه به نجات شما می‌آید."
 
 #: lutris/sysoptions.py:145
 msgid "Disable desktop effects"
