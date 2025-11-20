@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-20 14:14+0330\n"
-"PO-Revision-Date: 2025-01-12 12:27+0330\n"
+"PO-Revision-Date: 2025-11-20 16:25+0330\n"
 "Last-Translator: Alireza Rashidi <injaneb@dock.com>\n"
 "Language-Team: Persian\n"
 "Language: Persian\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 24.12.0\n"
+"X-Generator: Lokalize 25.08.3\n"
 
 #: share/applications/net.lutris.Lutris.desktop:2
 #: share/lutris/ui/lutris-window.ui:25 lutris/gui/application.py:86
@@ -580,11 +580,11 @@ msgstr "جستجو..."
 
 #: share/lutris/ui/log-window.ui:48
 msgid "Decrease text size"
-msgstr ""
+msgstr "کاهش اندازه متن"
 
 #: share/lutris/ui/log-window.ui:64
 msgid "Increase text size"
-msgstr ""
+msgstr "افزایش اندازه متن"
 
 #: share/lutris/ui/lutris-window.ui:112
 msgid "<a href=\"\">Login</a> to Lutris to sync your game library"
@@ -749,6 +749,8 @@ msgid ""
 "The cache path '%s' does not exist, but its parent does so it will be "
 "created when needed."
 msgstr ""
+"مسیر کش '%s' وجود ندارد. ولی مسیر مادرش موجود است. پس هر زمان که لازم باشد "
+"این مسیر ساخته خواهد شد"
 
 #: lutris/cache.py:88
 #, python-format
@@ -756,6 +758,8 @@ msgid ""
 "The cache path %s does not exist, nor does its parent, so it won't be "
 "created."
 msgstr ""
+"مسیر کش '%s' وجود ندارد. مسیر مادرش هم موجود نیست. پس این مسیر ساخته نخواهد "
+"شد"
 
 #: lutris/exceptions.py:36
 #, python-brace-format
@@ -2032,15 +2036,15 @@ msgstr ""
 #: lutris/gui/config/storage_box.py:119
 #, python-format
 msgid "Folder is too large (%s)"
-msgstr ""
+msgstr "پوشه بسیار بزرگ است (%s)"
 
 #: lutris/gui/config/storage_box.py:121
 msgid "Too many files in folder"
-msgstr ""
+msgstr "پرونده‌های بسیاری در این پوشه است"
 
 #: lutris/gui/config/storage_box.py:123
 msgid "Folder is too deep"
-msgstr ""
+msgstr "پوشه بسیار عمیق است"
 
 #: lutris/gui/config/sysinfo_box.py:18
 msgid "Vulkan support"
@@ -2680,6 +2684,9 @@ msgid ""
 "<small>Installations can fail if Lutris components are not installed first.</"
 "small>"
 msgstr ""
+"در حال انتظار برای نصب اجزای لوتریس\n"
+"<small>اگر ابتدا اجزای لوتریس نصب نشده باشند ممکن است نصب‌ها ناموفق شوند.</"
+"small>"
 
 #: lutris/gui/installerwindow.py:389
 #, python-format
@@ -4894,7 +4901,7 @@ msgstr "نصب‌کننده نگارش «هسته» libretro را مشخص نم�
 msgid ""
 "The emulator files BIOS location must be configured in the Preferences "
 "dialog."
-msgstr ""
+msgstr "مسیر پرونده‌های بایوس شبیه‌ساز باید در تنظیمات تنظیم شود."
 
 #: lutris/runners/libretro.py:292
 msgid "No core has been selected for this game"
@@ -5137,7 +5144,7 @@ msgstr "گزارش‌گیری کامل‌تر"
 
 #: lutris/runners/mame.py:183
 msgid "display additional diagnostic information."
-msgstr ""
+msgstr "نمایش گزارش‌های کامل‌تر."
 
 #: lutris/runners/mame.py:191
 msgid "Video backend"
@@ -6298,7 +6305,7 @@ msgstr "آرگومان‌های افزوده خط فرمان که هنگام ر�
 
 #: lutris/runners/steam.py:170
 msgid "Steam for Linux installation is not handled by Lutris."
-msgstr ""
+msgstr "نصب استیم برای لینوکس به‌دست لوتریس انجام نمی‌شود"
 
 #: lutris/runners/steam.py:172
 msgid ""
@@ -7414,10 +7421,15 @@ msgid ""
 "\n"
 "You should give Lutris its own API key instead of sharing them."
 msgstr ""
+"لوتریس برای برقراری پیوند با itch.io نیاز به یک API Key دارد. می‌توانید یکی "
+"از آن را\n"
+"در itch.io <a href='https://itch.io/user/settings/api-keys'>صفحهAPI keys</a> "
+"دریافت کنید.\n"
+"برای لوتریس باید یک کلید جدید بسازید و از یک کلید اشتراکی استفاده نکنید."
 
 #: lutris/services/itchio.py:138
 msgid "Itch.io API key"
-msgstr ""
+msgstr "Itch.io API key"
 
 #: lutris/services/lutris.py:132
 #, python-format
@@ -8011,7 +8023,7 @@ msgstr "فلت‌پک نصب نشده است"
 
 #: lutris/util/linux.py:547
 msgid "No terminal emulator could be detected."
-msgstr ""
+msgstr "هیچ شبیه‌ساز پایانه ترمینالی شناسایی نشد."
 
 #: lutris/util/portals.py:83
 #, python-format
@@ -8167,6 +8179,8 @@ msgid ""
 "The '%s' runtime component is not installed; visit the Updates tab in the "
 "Preferences dialog to install it."
 msgstr ""
+"اجزای اجرایی «%s» نصب نشده است؛ برای نصب آن در پنجره تنظیمات به بخش "
+"به‌روزرسانی‌ها بروید."
 
 #: lutris/util/wine/dll_manager.py:113
 msgid "Manual"
