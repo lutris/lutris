@@ -62,14 +62,13 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         name_cell = self.set_text_cell()
         name_cell.set_padding(5, 0)
 
-        self.set_column(name_cell, _("Name"), COL_NAME, 200, always_visible=True)
-        self.set_sort_with_column(COL_NAME, COL_SORTNAME)
+        self.set_column(name_cell, _("Name"), COL_NAME, 200, always_visible=True, sort_id=COL_SORTNAME)
         self.set_column(default_text_cell, _("Year"), COL_YEAR, 60)
         self.set_column(default_text_cell, _("Runner"), COL_RUNNER_HUMAN_NAME, 120)
         self.set_column(default_text_cell, _("Platform"), COL_PLATFORM, 120)
-        self.set_column(default_text_cell, _("Last Played"), COL_LASTPLAYED_TEXT, 120)
-        self.set_column(default_text_cell, _("Play Time"), COL_PLAYTIME_TEXT, 100)
-        self.set_column(default_text_cell, _("Installed At"), COL_INSTALLED_AT_TEXT, 120)
+        self.set_column(default_text_cell, _("Last Played"), COL_LASTPLAYED_TEXT, 120, sort_id=COL_LASTPLAYED)
+        self.set_column(default_text_cell, _("Play Time"), COL_PLAYTIME_TEXT, 100, sort_id=COL_PLAYTIME)
+        self.set_column(default_text_cell, _("Installed At"), COL_INSTALLED_AT_TEXT, 120, sort_id=COL_INSTALLED_AT)
 
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
 
@@ -82,9 +81,6 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
 
         self.model = game_store.store
         self.set_model(self.model)
-        self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
-        self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
-        self.set_sort_with_column(COL_PLAYTIME_TEXT, COL_PLAYTIME)
 
         if self.media_column:
             size = game_store.service_media.size
