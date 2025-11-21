@@ -216,7 +216,7 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path="", env=None, initial_pid
         if not running_processes:
             break
         if num_cycles > 20:
-            logger.warning("Some wine processes are still running: %s", running_processes)
+            logger.warning("Some wine processes are still running: %s", ", ".join(map(str, running_processes)))
             break
         time.sleep(0.1)
     logger.debug("Done waiting.")
