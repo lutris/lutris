@@ -9,18 +9,50 @@ from lutris.util.log import logger
 
 
 class AsyncCall(threading.Thread):
-    def __init__(self, func, callback, *args, **kwargs):
+    def __init__(self, func, callback, *args, callback_target=None, **kwargs):
         """Execute `function` in a new thread then schedule `callback` for
-        execution in the main loop.
+        execution in the main loop. If 'callback_target' is a widget and it is destroyed
+        in the meantime, the callback is cancelled.
         """
         self.callback_task = None
         self.stop_request = threading.Event()
 
         super().__init__(target=self.target, args=args, kwargs=kwargs)
         self.function = func
-        self.callback = callback if callback else lambda r, e: None
+        if not callback:
+            self.callback = lambda r, e: None
+        else:
+            self.callback = self._protect_callback(callback, callback_target)
         self.daemon = kwargs.pop("daemon", True)
         self.start()
+
+    def _protect_callback(self, callback, callback_target=None):
+        """Wraps and hooks up an on-destroyed handler on the callback_target that
+        removes the callback; this prevents an AsyncJob from completing on a
+        destroyed widget, which can cause a crash.
+
+        If no callback_target is given, this will use the receiver of the callback
+        (if it has one)."""
+        if not callback_target:
+            callback_target = callback.__self__ if hasattr(callback, "__self__") else None
+
+        if callback_target and hasattr(callback_target, "call_when_destroyed"):
+
+            def unhook():
+                # If the target is destroyed, block the callback; no need to disconnect
+                # from a dead object.
+                self.callback = lambda r, e: None
+
+            def fire(r, e):
+                # Before starting the callback, unhook the on-destroyed callback
+                # so we don't leak it.
+                disconnecter()
+                callback(r, e)
+
+            disconnecter = callback_target.call_when_destroyed(unhook)
+            return fire
+        else:
+            return callback
 
     def target(self, *a, **kw):
         result = None
