@@ -373,10 +373,15 @@ class DBusScreenSaverInhibitor:
 
         if self.proxy:
             try:
-                return self.proxy.Inhibit("(ss)", "Lutris", reason)
+                cookie = self.proxy.Inhibit("(ss)", "Lutris", reason)
+                if cookie:
+                    return cookie
+
+                logger.error(
+                    "Unable to inhibit screensaver via DBUS, no cookie returned. Falling back on Gtk.Application"
+                )
             except Exception as ex:
-                logger.exception("Unable to inhibit screensaver via DBUS, fallback back on Gtk.Application: %s", ex)
-                pass
+                logger.exception("Unable to inhibit screensaver via DBUS, falling back on Gtk.Application: %s", ex)
 
         app = Gio.Application.get_default()
         window = app.window
