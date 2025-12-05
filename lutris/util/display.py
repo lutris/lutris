@@ -374,19 +374,20 @@ class DBusScreenSaverInhibitor:
         if self.proxy:
             try:
                 return self.proxy.Inhibit("(ss)", "Lutris", reason)
-            except Exception:
-                return None
-        else:
-            app = Gio.Application.get_default()
-            window = app.window
-            flags = Gtk.ApplicationInhibitFlags.SUSPEND | Gtk.ApplicationInhibitFlags.IDLE
-            cookie = app.inhibit(window, flags, reason)
+            except Exception as ex:
+                logger.exception("Unable to inhibit screensaver via DBUS, fallback back on Gtk.Application: %s", ex)
+                pass
 
-            # Gtk.Application.inhibit returns 0 if there was an error.
-            if cookie == 0:
-                return None
+        app = Gio.Application.get_default()
+        window = app.window
+        flags = Gtk.ApplicationInhibitFlags.SUSPEND | Gtk.ApplicationInhibitFlags.IDLE
+        cookie = app.inhibit(window, flags, reason)
 
-            return cookie
+        # Gtk.Application.inhibit returns 0 if there was an error.
+        if cookie == 0:
+            return None
+
+        return cookie
 
     def uninhibit(self, cookie):
         """Uninhibit suspend.
