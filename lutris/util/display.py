@@ -377,10 +377,12 @@ class DBusScreenSaverInhibitor:
                 if cookie:
                     return cookie
 
+                self.proxy = None  # broken proxy- do not use
                 logger.error(
                     "Unable to inhibit screensaver via DBUS, no cookie returned. Falling back on Gtk.Application"
                 )
             except Exception as ex:
+                self.proxy = None  # broken proxy- do not use
                 logger.exception("Unable to inhibit screensaver via DBUS, falling back on Gtk.Application: %s", ex)
 
         app = Gio.Application.get_default()
