@@ -72,6 +72,8 @@ variables get substituted for their actual value during the install process.
 Available variables are:
 
 * ``$GAMEDIR``: Absolute path where the game is installed.
+* ``$SCRIPTDIR``: Absolute path to the directory containing the YAML script, when installing from
+    local script; in other conditions, this variable is empty.
 * ``$CACHE``: Temporary cache used to manipulate game files and deleted at the
   end of the installation.
 * ``$RESOLUTION``: Full resolution of the user's main display (eg. ``1920x1080``)
@@ -333,7 +335,6 @@ stuttering. (``pulse_latency: true``)
 game is running.  Useful for games that handle other layouts poorly and don't
 have key remapping options. (``use_us_layou: true``)
 
-
 Fetching required files
 =======================
 
@@ -385,6 +386,44 @@ After every file needed by the game has been acquired, the actual installation
 can take place. A series of directives will tell the installer how to set up
 the game correctly. Start the installer section with ``installer:`` then stack
 the directives by order of execution (top to bottom).
+
+Local installation specifying local files with ``$SCRIPTDIR``
+-------------------------------------------------------------
+
+If you keep local copies of your games — for instance your old games — you may
+want to keep a local Lutris script with game files to automate the installation.
+In this situation, specifying files using the ``files:`` section
+(see `Fetching required files`_) adds useless steps since the files' location
+is known prior installation. You can now specify files relative the the YAML
+script using the `$SCRIPTDIR` variable (see `Variable substitution`_).
+
+For instance, with the following layout::
+
+    <game-dir>
+    ├── lutris-script.yaml
+    ├── setup.exe
+    ├── game-assets
+    │   └── …
+    └── …
+
+You can reference ``setup.exe`` relative to ``lutris-script.yaml`` with
+``$SCRIPTDIR/setup.exe``. If ``setup.exe`` is located in a parent directory, relative
+to ``lutris-script.yaml``, you can use `..` to refer to ``lutris-script.yaml``
+parent directory. For instance, given the following layout::
+
+    <game-dir>
+    ├── lutris
+    │   └── script
+    │       └──lutris-script.yaml
+    ├── setup.exe
+    ├── game-assets
+    │   └── …
+    └── …
+
+You can reference ``setup.exe`` relative to ``lutris-script.yaml`` with
+``$SCRIPTDIR/../../setup.exe``.
+
+See `Example scripts`_ below for a complete example.
 
 Displaying an 'Insert disc' dialog
 ----------------------------------
@@ -932,3 +971,25 @@ Example steam Linux game::
       game:
         appid: 227300
         args: --some-args
+
+
+Local installation referencing local files::
+
+    name: My Game
+    game_slug: my-game
+    version: Installer
+    slug: my-game-installer
+    runner: wine
+
+    script:
+      game:
+        exe: $GAMEDIR/drive_c/game/bin/Game.exe
+        args: --some-arg
+        prefix: $GAMEDIR
+        working_dir: $GAMEDIR/drive_c/game
+      installer:
+      - task:
+          args: /SILENT /LANG=en /SP- /NOCANCEL /SUPPRESSMSGBOXES /NOGUI /DIR="C:/game"
+          # In this situation, `setup.exe` is located next to this YAML file
+          executable: $SCRIPTDIR/setup.exe
+          name: wineexec

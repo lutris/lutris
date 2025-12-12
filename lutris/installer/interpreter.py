@@ -2,6 +2,7 @@
 
 import os
 from gettext import gettext as _
+from pathlib import Path
 
 from gi.repository import GObject
 
@@ -423,6 +424,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         replacements = {
             "GAMEDIR": self.target_path,
+            "SCRIPTDIR": self.installer.scriptdir,
             "CACHE": self.cache_path,
             "HOME": os.path.expanduser("~"),
             "STEAM_DATA_DIR": steam.steam().steam_data_dir,
