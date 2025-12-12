@@ -451,7 +451,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         else:
             installers = get_installers(installer_file=path)
             application = Gio.Application.get_default()
-            application.show_installer_window(installers)
+            application.show_installer_window(installers, installer_file=path)
             self.destroy()
 
     # Install ROM Page

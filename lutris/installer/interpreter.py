@@ -2,6 +2,7 @@
 
 import os
 from gettext import gettext as _
+from pathlib import Path
 
 from gi.repository import GObject
 
@@ -62,7 +63,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             """Called to report the successful completion of the installation."""
             logger.info("Installation of game %s completed.", game_id)
 
-    def __init__(self, installer, interpreter_ui_delegate=None):
+    def __init__(self, installer, *, installer_file=None, interpreter_ui_delegate=None):
         super().__init__()
         self.target_path = None
         self.interpreter_ui_delegate = interpreter_ui_delegate or ScriptInterpreter.InterpreterUIDelegate()
@@ -80,6 +81,13 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.runners_to_install = []
         self.current_resolution = DISPLAY_MANAGER.get_current_resolution()
         self.installer = LutrisInstaller(installer, self, service=self.service, appid=_appid)
+        self.scriptdir = installer_file
+        if self.scriptdir:
+            file = Path(installer_file).resolve()
+            if file.exists():
+                self.scriptdir = str(file.parent) if file.is_file() else str(file)
+            else:
+                self.scriptdir = None
 
         if not self.installer.script:
             raise ScriptingError(_("This installer doesn't have a 'script' section"))
@@ -423,6 +431,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         replacements = {
             "GAMEDIR": self.target_path,
+            "SCRIPTDIR": self.scriptdir or "",
             "CACHE": self.cache_path,
             "HOME": os.path.expanduser("~"),
             "STEAM_DATA_DIR": steam.steam().steam_data_dir,

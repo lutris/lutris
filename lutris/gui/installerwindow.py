@@ -64,11 +64,20 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     uses a create_X_page() function to create the page the first time it is visited.
     """
 
-    def __init__(self, installers, service=None, appid=None, installation_kind=InstallationKind.INSTALL, **kwargs):
+    def __init__(
+        self,
+        installers,
+        installer_file=None,
+        service=None,
+        appid=None,
+        installation_kind=InstallationKind.INSTALL,
+        **kwargs,
+    ):
         ModelessDialog.__init__(self, use_header_bar=True, **kwargs)
         ScriptInterpreter.InterpreterUIDelegate.__init__(self, service, appid)
         self.set_default_size(740, 460)
         self.installers = installers
+        self.installer_file = installer_file
         self.config = {}
         self.selected_extras = []
         self.install_in_progress = False
@@ -402,7 +411,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             for _script in self.installers:
                 if _script["version"] == installer_version:
                     script = _script
-            self.interpreter = interpreter.ScriptInterpreter(script, self)
+            self.interpreter = interpreter.ScriptInterpreter(
+                script, interpreter_ui_delegate=self, installer_file=self.installer_file
+            )
             self.interpreter.connect("runners-installed", self.on_runners_ready)
         except MissingGameDependencyError as ex:
             dlg = QuestionDialog(
