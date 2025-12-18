@@ -374,7 +374,7 @@ class SingleGameActions(GameActions):
         launch_config_name = self._select_game_launch_config_name(game)
 
         if launch_config_name is not None:
-            steam_shortcut.create_shortcut(game, launch_config_name)
+            steam_shortcut.create_shortcut(game, launch_config_name, True)
             gameDict = games.get_game_by_field(game.id, "id")
             gamepath = f"{str(Path.home())}/.local/share/applications/lutris-{game.slug}.sh"
             generate_script(logger, LaunchUIDelegate(), gameDict, gamepath)
