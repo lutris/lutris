@@ -90,7 +90,6 @@ def create_shortcut(game, launch_config_name=None, standalone=False):
     else:
         shortcuts = []
 
-
     if standalone:
         shortcuts = list(shortcuts) + [generate_standalone_shortcut(game, launch_config_name)]
     else:
@@ -193,6 +192,7 @@ def generate_standalone_shortcut(game, launch_config_name):
         "DevkitOverrideAppID": 0,
         "LastPlayTime": 0,
     }
+
 
 def set_artwork(game):
     config_path = get_config_path()
