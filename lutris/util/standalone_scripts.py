@@ -1,3 +1,5 @@
+import os
+
 from lutris.game import Game
 
 
@@ -15,4 +17,5 @@ def generate_script(logger, launch_ui_delegate, db_game, script_path):
     game.game_error.register(on_error)
     game.reload_config()
     game.write_script(script_path, launch_ui_delegate)
-    logger.info(f"Wrote script to: \'{script_path}\'")
+    absolutePath = os.path.abspath(script_path)
+    logger.info(f"Wrote script to: \'{absolutePath}\'")
