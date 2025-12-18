@@ -2,8 +2,9 @@
 
 import os
 
-# pylint: disable=no-member
 import yaml
+from yaml.parser import ParserError
+from yaml.scanner import ScannerError
 
 from lutris.util.log import logger
 from lutris.util.system import path_exists
@@ -16,7 +17,7 @@ def read_yaml_from_file(filename: str) -> dict:
     with open(filename, "r", encoding="utf-8") as yaml_file:
         try:
             yaml_content = yaml.safe_load(yaml_file) or {}
-        except (yaml.scanner.ScannerError, yaml.parser.ParserError):
+        except (ScannerError, ParserError):
             logger.error("error parsing file %s", filename)
             yaml_content = {}
     return yaml_content

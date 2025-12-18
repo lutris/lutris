@@ -355,7 +355,7 @@ class GameSearch(BaseSearch):
         return FlagPredicate(installed, lambda db_game: bool(db_game["installed"]), tag="installed")
 
     def get_categorized_predicate(self, categorized: Optional[bool]) -> SearchPredicate:
-        uncategorized_ids = set(get_uncategorized_game_ids())
+        uncategorized_ids = get_uncategorized_game_ids()
 
         def is_categorized(db_game):
             return db_game["id"] not in uncategorized_ids

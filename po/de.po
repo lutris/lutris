@@ -2159,7 +2159,7 @@ msgstr "Dolphin"
 
 #: lutris/runners/dolphin.py:12 lutris/runners/dolphin.py:27
 msgid "Nintendo GameCube"
-msgstr "Nintenndo GameCube"
+msgstr "Nintendo GameCube"
 
 #: lutris/runners/dolphin.py:12 lutris/runners/dolphin.py:27
 msgid "Nintendo Wii"
