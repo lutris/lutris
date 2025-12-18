@@ -5,6 +5,7 @@ import os
 import re
 import shlex
 import shutil
+from pathlib import Path
 
 from lutris.api import format_installer_url
 from lutris.util import resources, system
@@ -139,7 +140,11 @@ def generate_shortcut(game, launch_config_name):
     )
 
     launch_options = shlex.quote(launch_options)
+    start_dir = f'"{os.path.dirname(lutris_binary)}"'
 
+    if "/nix/store/" in lutris_binary:
+        lutris_binary = "lutris"
+        start_dir = f'"{Path.home()}"'
     if lutris_binary == "/app/bin/lutris":
         lutris_binary = "/usr/bin/flatpak"
         launch_options = "run net.lutris.Lutris " + launch_options
@@ -147,7 +152,7 @@ def generate_shortcut(game, launch_config_name):
         "appid": generate_shortcut_id(game),
         "AppName": game.name,
         "Exe": f'"{lutris_binary}"',
-        "StartDir": f'"{os.path.dirname(lutris_binary)}"',
+        "StartDir": start_dir,
         "icon": resources.get_icon_path(game.slug),
         "LaunchOptions": launch_options,
         "IsHidden": 0,
