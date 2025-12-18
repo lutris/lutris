@@ -483,9 +483,11 @@ class LutrisApplication(Gtk.Application):
             )
 
             if not export_script_game or not export_script_game["id"]:
-                logger.warning(f"No valid game ({searchstring}) provided to generate the script. Use the -l option to find suitable games!")
+                logger.warning(
+                    f"No valid game ({searchstring}) provided to generate the script. Use the -l option to find suitable games!"
+                )
                 return 1
-            generate_script(logger, self.launch_ui_delegate, export_script_game, f"{export_script_game["slug"]}.sh")
+            generate_script(logger, self.launch_ui_delegate, export_script_game, f"{export_script_game['slug']}.sh")
             return 0
 
         # List game

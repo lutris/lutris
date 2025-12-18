@@ -8,7 +8,7 @@ def generate_script(logger, launch_ui_delegate, db_game, script_path):
     The script is capable of launching a game without the client
     """
 
-    logger.info(f"Try creating script for \'{db_game["name"]}\'")
+    logger.info(f"Try creating script for '{db_game['name']}'")
 
     def on_error(error: BaseException) -> None:
         logger.exception("Unable to generate script: %s", error)
@@ -18,4 +18,4 @@ def generate_script(logger, launch_ui_delegate, db_game, script_path):
     game.reload_config()
     game.write_script(script_path, launch_ui_delegate)
     absolutePath = os.path.abspath(script_path)
-    logger.info(f"Wrote script to: \'{absolutePath}\'")
+    logger.info(f"Wrote script to: '{absolutePath}'")

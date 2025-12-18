@@ -145,7 +145,6 @@ def generate_shortcut(game, launch_config_name):
         lutris_binary = "/usr/bin/flatpak"
         launch_options = "run net.lutris.Lutris " + launch_options
 
-
     return {
         "appid": generate_shortcut_id(game),
         "AppName": game.name,

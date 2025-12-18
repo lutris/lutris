@@ -251,7 +251,11 @@ class SingleGameActions(GameActions):
             ("menu-shortcut", _("Create application menu shortcut"), self.on_create_menu_shortcut),
             ("rm-menu-shortcut", _("Delete application menu shortcut"), self.on_remove_menu_shortcut),
             ("steam-shortcut", _("Create Steam shortcut"), self.on_create_steam_shortcut),
-            ("steam-bigpicture-shortcut", _("Create Steam Big-Picture shortcut"), self.on_create_steam_bigpicture_shortcut),
+            (
+                "steam-bigpicture-shortcut",
+                _("Create Steam Big-Picture shortcut"),
+                self.on_create_steam_bigpicture_shortcut,
+            ),
             ("rm-steam-shortcut", _("Delete Steam shortcut"), self.on_remove_steam_shortcut),
             ("view", _("View on Lutris.net"), self.on_view_game),
             ("duplicate", _("Duplicate"), self.on_game_duplicate),
@@ -368,7 +372,6 @@ class SingleGameActions(GameActions):
         """Add the selected game to steam as a nonsteam-game."""
         game = self.game
         launch_config_name = self._select_game_launch_config_name(game)
-
 
         if launch_config_name is not None:
             steam_shortcut.create_shortcut(game, launch_config_name)
