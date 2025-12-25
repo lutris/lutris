@@ -4,7 +4,7 @@ import json
 import os
 import shlex
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 
 from lutris import settings
 from lutris.exceptions import MissingGameExecutableError
@@ -82,20 +82,20 @@ class JsonRunner(Runner):
 
         self._json_data = data
 
-        self.game_options = _json_data.game_options
-        self.runner_options = _json_data.runner_options
-        self.human_name = _json_data.human_name
-        self.description = _json_data.description
-        self.platforms = _json_data.platforms
-        self.runner_executable = _json_data.runner_executable
-        self.system_options_override = _json_data.system_options_override
-        self.entry_point_option = _json_data.entry_point_option
-        self.download_url = _json_data.download_url
-        self.runnable_alone = _json_data.runnable_alone
-        self.flatpak_id = _json_data.flatpak_id
+        self.game_options = data.game_options
+        self.runner_options = data.runner_options
+        self.human_name = data.human_name
+        self.description = data.description
+        self.platforms = data.platforms
+        self.runner_executable = data.runner_executable
+        self.system_options_override = data.system_options_override
+        self.entry_point_option = data.entry_point_option
+        self.download_url = data.download_url
+        self.runnable_alone = data.runnable_alone
+        self.flatpak_id = data.flatpak_id
 
     def _opt_bool(self, opt, args):
-        if self.runner_config.get(optp["option"]):
+        if self.runner_config.get(opt["option"]):
             args.append(opt["argument"])
 
     def _opt_choice(self, opt, args):
@@ -132,7 +132,7 @@ class JsonRunner(Runner):
             if key not in self.runner_config:
                 continue
             try:
-                _OPTION_HANDLERS[opt["type"]](self, opt, arguments)
+                self._OPTION_HANDLERS[opt["type"]](self, opt, arguments)
             except KeyError:
                 raise RuntimeError(f"Unhandled type {opt['type']}")
 
@@ -145,9 +145,9 @@ def load_json_runners():
     for base in JSON_RUNNER_DIRS:
         if not os.path.isdir(base):
             continue
-        for entry in os.scandir(json_dir):
-            if not json_path.endswith(".json"):
+        for entry in os.scandir(base):
+            if not entry.name.endswith(".json"):
                 continue
-            name = json_path[:-5]
-            runner[name] = type(name, (JsonRunner,), {"json_path": entry.path})
+            name = entry.name[:-5]
+            runners[name] = type(name, (JsonRunner,), {"json_path": entry.path})
     return runners
