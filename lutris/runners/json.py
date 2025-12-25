@@ -82,32 +82,17 @@ class JsonRunner(Runner):
 
         self._json_data = data
 
-        spec = JsonRunnerSpec(
-            game_options=data["game_options"],
-            runner_options=data.get("runner_options", []),
-            human_name=data["human_name"],
-            description=data["description"],
-            platforms=data["platforms"],
-            runner_executable=data["runner_executable"],
-            system_options_override=data.get("system_options_override", []),
-            entry_point_option=data.get("entry_point_option", "main_file"),
-            download_url=data.get("download_url"),
-            runnable_alone=data.get("runnable_alone"),
-            flatpak_id=data.get("flatpak_id"),
-        )
-        self.spec = spec
-
-        self.game_options = spec.game_options
-        self.runner_options = spec.runner_options
-        self.human_name = spec.human_name
-        self.description = spec.description
-        self.platforms = spec.platforms
-        self.runner_executable = spec.runner_executable
-        self.system_options_override = spec.system_options_override
-        self.entry_point_option = spec.entry_point_option
-        self.download_url = spec.download_url
-        self.runnable_alone = spec.runnable_alone
-        self.flatpak_id = spec.flatpak_id
+        self.game_options = _json_data.game_options
+        self.runner_options = _json_data.runner_options
+        self.human_name = _json_data.human_name
+        self.description = _json_data.description
+        self.platforms = _json_data.platforms
+        self.runner_executable = _json_data.runner_executable
+        self.system_options_override = _json_data.system_options_override
+        self.entry_point_option = _json_data.entry_point_option
+        self.download_url = _json_data.download_url
+        self.runnable_alone = _json_data.runnable_alone
+        self.flatpak_id = _json_data.flatpak_id
 
     def _opt_bool(self, opt, args):
         if self.runner_config.get(optp["option"]):
