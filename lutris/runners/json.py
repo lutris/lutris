@@ -16,6 +16,7 @@ JSON_RUNNER_DIRS = [
     os.path.join(settings.RUNNER_DIR, "json"),
 ]
 
+
 @dataclass(frozen=True)
 class JsonRunnerSpec:
     game_options: list
@@ -29,6 +30,7 @@ class JsonRunnerSpec:
     download_url: Optional[str]
     runnable_alone: Optional[bool]
     flatpak_id: Optional[str]
+
 
 _REQUIRED_KEYS = {
     "game_options",
@@ -70,9 +72,7 @@ class JsonRunner(Runner):
         super().__init__(config)
         path = self.json_path
         if not path:
-            raise RuntimeError(
-                "Create subclasses of JsonRunner with the json_path attribute set"
-            )
+            raise RuntimeError("Create subclasses of JsonRunner with the json_path attribute set")
 
         data = self._json_cache.get(path)
         if data is None:
