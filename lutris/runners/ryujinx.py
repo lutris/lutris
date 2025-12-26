@@ -24,7 +24,13 @@ class ryujinx(Runner):
             "type": "file",
             "label": _("NSP file"),
             "help": _("The game data, commonly called a ROM image."),
-        }
+        },
+        {
+            "option": "application_id",
+            "type": "string",
+            "label": _("Application ID"),
+            "help": _("Select which app to launch for a multi-game XCI image"),
+        },
     ]
     runner_options = [
         {
@@ -56,6 +62,10 @@ class ryujinx(Runner):
         rom = self.game_config.get("main_file") or ""
         if not system.path_exists(rom):
             raise MissingGameExecutableError(filename=rom)
+
+        if app_id := self.game_config.get("application_id"):
+            arguments.append("--application-id")
+            arguments.append(app_id)
         arguments.append(rom)
         return {"command": arguments}
 
