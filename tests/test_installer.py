@@ -29,7 +29,7 @@ class TestScriptInterpreter(TestCase):
             "game_slug": "doom",
             "version": "doom-gzdoom",
         }
-        interpreter = ScriptInterpreter(installer, None)
+        interpreter = ScriptInterpreter(installer)
         self.assertEqual(interpreter.installer.game_name, "Doom")
         self.assertFalse(interpreter.installer.get_errors())
 
@@ -44,7 +44,7 @@ class TestScriptInterpreter(TestCase):
             "version": "bar-baz",
         }
         with self.assertRaises(ScriptingError):
-            interpreter = ScriptInterpreter(script, None)
+            interpreter = ScriptInterpreter(script)
             interpreter._get_move_paths({})
 
     def test_get_command_returns_a_method(self):

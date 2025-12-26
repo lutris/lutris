@@ -398,9 +398,16 @@ class LutrisApplication(Gtk.Application):
         window_inst.show()
         return window_inst
 
-    def show_installer_window(self, installers, service=None, appid=None, installation_kind=InstallationKind.INSTALL):
+    def show_installer_window(
+        self, installers, installer_file=None, service=None, appid=None, installation_kind=InstallationKind.INSTALL
+    ):
         self.show_window(
-            InstallerWindow, installers=installers, service=service, appid=appid, installation_kind=installation_kind
+            InstallerWindow,
+            installer_file=installer_file,
+            installers=installers,
+            service=service,
+            appid=appid,
+            installation_kind=installation_kind,
         )
 
     def show_lutris_installer_window(self, game_slug):
@@ -744,7 +751,7 @@ class LutrisApplication(Gtk.Application):
                 revision=revision,
             )
             if installers:
-                self.show_installer_window(installers)
+                self.show_installer_window(installers, installer_file=installer_file)
         elif action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:
                 logger.warning("No game found in library")
