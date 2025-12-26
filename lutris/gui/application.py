@@ -761,6 +761,15 @@ class LutrisApplication(Gtk.Application):
 
             if game.state == game.STATE_STOPPED and not self.window.is_visible():
                 self.quit()
+
+            if self.quit_on_game_exit:
+
+                def game_stop_signal_handler(signum, _frame):
+                    logger.debug("signal handler called with signal: %d", signum)
+                    game.stop()
+
+                signal.signal(signal.SIGTERM, game_stop_signal_handler)
+                signal.signal(signal.SIGINT, game_stop_signal_handler)
         elif self.window:
             # If we're showing the window, it will handle the delegated UI
             # from here on out, no matter what command line we got.
