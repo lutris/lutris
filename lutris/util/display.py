@@ -423,13 +423,11 @@ def _get_suspend_inhibitor():
         path = "/"
         interface = "org.mate.ScreenSaver"
     elif desktop_environment is DesktopEnvironment.XFCE:
-        # According to
-        # https://github.com/xfce-mirror/xfce4-session/blob/master/xfce4-session/xfce-screensaver.c#L240
-        # The XFCE enviroment does support the org.freedesktop.ScreenSaver interface
-        # but this might be not present in older releases.
-        name = "org.xfce.ScreenSaver"
+        # At this point, org.xfce.ScreenSaver is no nlonger supported even on XFCE anymore;
+        # but it does support the org.freedesktop.ScreenSaver interface.
+        name = "org.freedesktop.ScreenSaver"
         path = "/"
-        interface = "org.xfce.ScreenSaver"
+        interface = "org.freedesktop.ScreenSaver"
 
     if name:
         try:
