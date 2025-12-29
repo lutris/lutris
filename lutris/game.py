@@ -808,7 +808,8 @@ class Game:
         # If force_stop_game fails, wait a few seconds and try SIGKILL on any survivors
 
         def force_stop_game():
-            self.runner.force_stop_game(self.get_stop_pids())
+            pids = [str(pid) for pid in self.get_stop_pids()]
+            self.runner.force_stop_game(pids)
             return not self.get_stop_pids()
 
         def force_stop_game_cb(all_dead, error):
