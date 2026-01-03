@@ -6,7 +6,7 @@ import os
 from collections import namedtuple
 from datetime import datetime
 from gettext import gettext as _
-from typing import Iterable, List, Set
+from typing import Iterable, List, Set, cast
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, Gtk
@@ -17,6 +17,7 @@ from lutris.api import (
     LUTRIS_ACCOUNT_DISCONNECTED,
     get_runtime_versions,
 )
+from lutris.database import categories
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import saved_searches as saved_searches_db
@@ -49,7 +50,7 @@ from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
-from lutris.gui.widgets.sidebar import LutrisSidebar
+from lutris.gui.widgets.sidebar import LutrisSidebar, SidebarRow
 from lutris.gui.widgets.utils import has_stock_icon, load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
@@ -70,7 +71,7 @@ from lutris.util.wine.wine import clear_wine_version_cache
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # type:ignore[misc]
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -96,7 +97,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     version_notification_label: Gtk.Revealer = GtkTemplate.Child()
     show_hidden_games_button: Gtk.ModelButton = GtkTemplate.Child()
 
-    def __init__(self, application, **kwargs) -> None:
+    def __init__(self, application=None, **kwargs) -> None:
         width = int(settings.read_setting("width") or self.default_width)
         height = int(settings.read_setting("height") or self.default_height)
         super().__init__(
@@ -134,6 +135,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "running": self.get_running_games,
         }
 
+        for smart_category in categories._SMART_CATEGORIES:
+            if smart_category.get_name() not in self.dynamic_categories_game_factories:
+                self.dynamic_categories_game_factories[smart_category.get_name()] = smart_category.get_games
+
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
 
@@ -150,7 +155,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         # Since system-search-symbolic is already *right there* we'll try to pick some
         # other icon for the button that shows the search popover.
         fallback_filter_icons_names = ["filter-symbolic", "edit-find-replace-symbolic", "system-search-symbolic"]
-        filter_button_image = self.search_filters_button.get_child()
+        filter_button_image: Gtk.Image = self.search_filters_button.get_child()
         for n in fallback_filter_icons_names:
             if has_stock_icon(n):
                 filter_button_image.set_from_icon_name(n, Gtk.IconSize.BUTTON)
@@ -651,7 +656,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         service_id = self.filters.get("service")
         if service_id in services.SERVICES:
             if self.service.online and not self.service.is_authenticated():
-                self.show_label(_("Connect your %s account to access your games") % self.service.name)
+                self.show_empty_label()
                 return []
             return self.get_service_games(service_id)
         if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
@@ -728,6 +733,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def show_empty_label(self):
         """Display a label when the view is empty"""
+        if self.service and self.service.online and not self.service.is_authenticated():
+            self.show_label(_("Connect your %s account to access your games") % self.service.name)
+            return
+
         filter_text = self.filters.get("text")
         has_uninstalled_games = games_db.get_game_count("installed", "0")
         if filter_text:
@@ -1304,11 +1313,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         settings.write_setting("hide_badges_on_icons", not state)
         self.on_settings_changed(None, not state, "hide_badges_on_icons")
 
-    def on_settings_changed(self, setting_key, new_value):
-        if setting_key == "hide_text_under_icons":
-            self.rebuild_view("grid")
-        else:
-            self.update_view_settings()
+    def on_settings_changed(self, setting_key, new_value, section):
+        if section == "lutris":
+            if setting_key == "hide_text_under_icons":
+                self.rebuild_view("grid")
+            else:
+                self.update_view_settings()
         self.update_notification()
         return True
 
@@ -1365,7 +1375,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         selected_row = self.sidebar.get_selected_row()
         # Only update the running page- we lose the selected row when we do this,
         # but on the running page this is okay.
-        if selected_row is not None and selected_row.id == "running":
+        if isinstance(selected_row, SidebarRow) and selected_row.id == "running":
             self.game_store.remove_game(game.id)
 
     def on_game_installed(self, game):
@@ -1396,7 +1406,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     @property
     def download_queue(self) -> DownloadQueue:
-        queue = self.download_revealer.get_child()
+        queue = cast(DownloadQueue, self.download_revealer.get_child())
         if not queue:
             queue = DownloadQueue(self.download_revealer)
             self.download_revealer.add(queue)

@@ -16,7 +16,7 @@ Run the following command to update:
 ./po/generate-potfiles.sh
 ```
 
-## Updating a translations
+## Updating a translation
 
 ```bash
 meson builddir

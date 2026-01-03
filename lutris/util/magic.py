@@ -23,6 +23,7 @@ import sys
 import threading
 from ctypes import POINTER, byref, c_char_p, c_int, c_size_t, c_void_p
 
+# ruff: noqa
 # avoid shadowing the real open with the version from compat.py
 _real_open = open
 
@@ -231,11 +232,11 @@ if not libmagic or not libmagic._name:
     platform_to_lib = {
         "darwin": ["/opt/local/lib/libmagic.dylib", "/usr/local/lib/libmagic.dylib"]
         # Assumes there will only be one version installed
-        + glob.glob("/usr/local/Cellar/libmagic/*/lib/libmagic.dylib"),  # flake8:noqa
+        + glob.glob("/usr/local/Cellar/libmagic/*/lib/libmagic.dylib"),
         "win32": windows_dlls,
         "cygwin": windows_dlls,
         "linux": ["libmagic.so.1"],
-        # fallback for some Linuxes (e.g. Alpine) where library search does not work # flake8:noqa
+        # fallback for some Linuxes (e.g. Alpine) where library search does not work
     }
     platform = "linux" if sys.platform.startswith("linux") else sys.platform
     for dll in platform_to_lib.get(platform, []):

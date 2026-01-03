@@ -5,7 +5,7 @@ import inspect
 import os
 import traceback
 from gettext import gettext as _
-from typing import Any, Callable, Dict, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union, cast
 
 import gi
 
@@ -18,6 +18,7 @@ from gi.repository import Gdk, GObject, Gtk
 
 from lutris import api, settings
 from lutris.gui.widgets.log_text_view import LogTextView
+from lutris.gui.widgets.utils import get_widget_children, get_widget_window
 from lutris.util import datapath
 from lutris.util.jobs import schedule_at_idle
 from lutris.util.log import get_log_contents, logger
@@ -38,7 +39,8 @@ class Dialog(Gtk.Dialog):
         buttons: Gtk.ButtonsType = None,
         **kwargs,
     ):
-        super().__init__(title, parent, flags, buttons, **kwargs)
+        # MyPy can't see it, but __init__ can handle the new_with_buttons arguments for us
+        super().__init__(title, parent, flags, buttons, **kwargs)  # type:ignore
         self._response_type = Gtk.ResponseType.NONE
         self.connect("response", self.on_response)
 
@@ -59,7 +61,7 @@ class Dialog(Gtk.Dialog):
         this records the response for 'response_type'."""
         self._response_type = response
 
-    def destroy_at_idle(self, condition: Callable = None):
+    def destroy_at_idle(self, condition: Optional[Callable] = None):
         """Adds as idle task to destroy this window at idle time;
         it can do so conditionally if you provide a callable to check,
         but it checks only once. You can still explicitly destroy the
@@ -238,16 +240,16 @@ class AboutDialog(GtkBuilderDialog):
 class NoticeDialog(Gtk.MessageDialog):
     """Display a message to the user."""
 
-    def __init__(self, message_markup: str, secondary: str = None, parent: Gtk.Window = None):
+    def __init__(self, message_markup: str, secondary: Optional[str] = None, parent: Optional[Gtk.Widget] = None):
+        parent: Gtk.Window = get_widget_window(parent)
         super().__init__(message_type=Gtk.MessageType.INFO, buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message_markup)
         if secondary:
             self.format_secondary_text(secondary[:256])
 
         # So you can copy warning text
-        for child in self.get_message_area().get_children():
-            if isinstance(child, Gtk.Label):
-                child.set_selectable(True)
+        for child in get_widget_children(self.get_message_area(), child_type=Gtk.Label):
+            child.set_selectable(True)
 
         self.run()
         self.destroy()
@@ -257,16 +259,16 @@ class WarningDialog(Gtk.MessageDialog):
     """Display a warning to the user, who responds with whether to proceed, like
     a QuestionDialog."""
 
-    def __init__(self, message_markup: str, secondary: str = None, parent: Gtk.Window = None):
+    def __init__(self, message_markup: str, secondary: Optional[str] = None, parent: Optional[Gtk.Widget] = None):
+        parent: Gtk.Window = get_widget_window(parent)
         super().__init__(message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK_CANCEL, parent=parent)
         self.set_markup(message_markup)
         if secondary:
             self.format_secondary_text(secondary[:256])
 
         # So you can copy warning text
-        for child in self.get_message_area().get_children():
-            if isinstance(child, Gtk.Label):
-                child.set_selectable(True)
+        for child in get_widget_children(self.get_message_area(), child_type=Gtk.Label):
+            child.set_selectable(True)
 
         self.result = self.run()
         self.destroy()
@@ -278,10 +280,11 @@ class ErrorDialog(Gtk.MessageDialog):
     def __init__(
         self,
         error: Union[str, builtins.BaseException],
-        message_markup: str = None,
-        secondary_markup: str = None,
-        parent: Gtk.Window = None,
+        message_markup: Optional[str] = None,
+        secondary_markup: Optional[str] = None,
+        parent: Optional[Gtk.Widget] = None,
     ):
+        parent: Gtk.Window = get_widget_window(parent)
         super().__init__(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, parent=parent)
 
         def get_message_markup(err: Union[BaseException, str]) -> str:
@@ -312,9 +315,8 @@ class ErrorDialog(Gtk.MessageDialog):
             self.format_secondary_markup(secondary_markup[:256])
 
         # So you can copy error text
-        for child in self.get_message_area().get_children():
-            if isinstance(child, Gtk.Label):
-                child.set_selectable(True)
+        for child in get_widget_children(self.get_message_area(), child_type=Gtk.Label):
+            child.set_selectable(True)
 
         if isinstance(error, BaseException):
             content_area = self.get_content_area()
@@ -325,8 +327,8 @@ class ErrorDialog(Gtk.MessageDialog):
             details_expander.set_margin_top(spacing)
             content_area.pack_end(details_expander, False, False, 0)
 
-            action_area = self.get_action_area()
-            copy_button = Gtk.Button(_("Copy Details to Clipboard"), visible=True)
+            action_area = cast(Gtk.ButtonBox, self.get_action_area())
+            copy_button = Gtk.Button(label=_("Copy Details to Clipboard"), visible=True)
             action_area.pack_start(copy_button, False, True, 0)
             action_area.set_child_secondary(copy_button, True)
             copy_button.connect("clicked", self.on_copy_clicked, error)
@@ -673,18 +675,32 @@ class HumbleBundleCookiesDialog(ModalDialog):
         super().on_response(dialog, response)
 
 
+def _call_when_destroyed(self: Gtk.Widget, callback: Callable[[], None]) -> Callable[[], None]:
+    handler_id = self.connect("destroy", lambda *x: callback())
+    return lambda: self.disconnect(handler_id)
+
+
+# call_when_destroyed is a utility that hooks up the 'destroy' signal to call your callback,
+# and returns a callable that unhooks it. This is used by AsyncJob to avoid sending a callback
+# to a destroyed widget.
+Gtk.Widget.call_when_destroyed = _call_when_destroyed  # type: ignore[attr-defined]
+
 _error_handlers: Dict[Type[BaseException], Callable[[BaseException, Gtk.Window], Any]] = {}
 TError = TypeVar("TError", bound=BaseException)
 
 
-def display_error(error: BaseException, parent: Gtk.Window) -> None:
+def display_error(error: BaseException, parent: Gtk.Widget) -> None:
     """Displays an error in a modal dialog. This can be customized via
     register_error_handler(), but displays an ErrorDialog by default.
 
     This allows custom error handling to be invoked anywhere that can show an
     ErrorDialog, instead of having to bounce exceptions off the backstop."""
     handler = get_error_handler(type(error))
-    handler(error, parent)
+
+    if isinstance(parent, Gtk.Window):
+        handler(error, parent)
+    else:
+        handler(error, cast(Gtk.Window, parent.get_toplevel()))
 
 
 def register_error_handler(error_class: Type[TError], handler: Callable[[TError, Gtk.Window], Any]) -> None:

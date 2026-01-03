@@ -27,15 +27,12 @@ See: https://gitlab.gnome.org/GNOME/pygobject/merge_requests/52
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
 # USA
 
-# Standard Library
 import inspect
+import os
 import warnings
-from os.path import abspath, join
 
-# Third Party Libraries
-from gi.repository import Gio, GLib, GObject, Gtk
+from gi.repository import Gio, GLib, GObject, Gtk  # type: ignore
 
-# Lutris Modules
 from lutris.gui.dialogs import ErrorDialog
 
 __all__ = ["GtkTemplate"]
@@ -58,12 +55,13 @@ def _connect_func(builder, obj, signal_name, handler_name, connect_object, flags
     template_inst = builder.get_object(cls.__gtype_name__)
 
     if template_inst is None:  # This should never happen
-        errmsg = (
+        warnings.warn(
             "Internal error: cannot find template instance! obj: %s; "
             "signal: %s; handler: %s; connect_obj: %s; class: %s"
-            % (obj, signal_name, handler_name, connect_object, cls)
+            % (obj, signal_name, handler_name, connect_object, cls),
+            GtkTemplateWarning,
+            stacklevel=2,
         )
-        warnings.warn(errmsg, GtkTemplateWarning)
         return
 
     handler = getattr(template_inst, handler_name)
@@ -145,8 +143,11 @@ def _init_template(self, cls, base_init_template):
             )
 
     for name in self.__gtemplate_methods__.difference(connected_signals):
-        errmsg = ("Signal '%s' was declared with @GtkTemplate.Callback " + "but was not present in template") % name
-        warnings.warn(errmsg, GtkTemplateWarning)
+        warnings.warn(
+            "Signal '%s' was declared with @GtkTemplate.Callback but was not present in template" % name,
+            GtkTemplateWarning,
+            stacklevel=2,
+        )
 
 
 # TODO: Make it easier for IDE to introspect this
@@ -242,7 +243,7 @@ class _GtkTemplate:
         TODO: Alternatively, could wait until first class instantiation
               before registering templates? Would need a metaclass...
         """
-        _GtkTemplate.__ui_path__ = abspath(join(*path))  # pylint: disable=no-value-for-parameter
+        _GtkTemplate.__ui_path__ = os.path.abspath(os.path.join(*path))
 
     def __init__(self, ui):
         self.ui = ui
@@ -260,13 +261,13 @@ class _GtkTemplate:
 
         try:
             template_bytes = Gio.resources_lookup_data(self.ui, Gio.ResourceLookupFlags.NONE)
-        except GLib.GError:
+        except GLib.GError:  # type: ignore
             ui = self.ui
             if isinstance(ui, (list, tuple)):
-                ui = join(ui)
+                ui = " ".join(ui)
 
             if _GtkTemplate.__ui_path__ is not None:
-                ui = join(_GtkTemplate.__ui_path__, ui)
+                ui = os.path.join(_GtkTemplate.__ui_path__, ui)
 
             with open(ui, "rb") as fp:
                 template_bytes = GLib.Bytes.new(fp.read())

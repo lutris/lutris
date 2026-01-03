@@ -17,11 +17,11 @@ MIN_RECOMMENDED_NVIDIA_DRIVER = 515
 
 
 @cache_single
-def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
+def get_nvidia_driver_info() -> Dict[str, str]:
     """Return information about Nvidia drivers"""
     version_file_path = "/proc/driver/nvidia/version"
 
-    def read_from_proc() -> Dict[str, Dict[str, str]]:
+    def read_from_proc() -> Dict[str, str]:
         try:
             if not os.path.exists(version_file_path):
                 return {}
@@ -61,7 +61,7 @@ def get_nvidia_driver_info() -> Dict[str, Dict[str, str]]:
             logger.warning("Unable to parse %s. Falling back to glxinfo: %s", version_file_path, ex)
             return {}
 
-    def invoke_glxinfo() -> Dict[str, Dict[str, str]]:
+    def invoke_glxinfo() -> Dict[str, str]:
         glx_info = GlxInfo()
         platform = read_process_output(["uname", "-s"])
         arch = read_process_output(["uname", "-m"])

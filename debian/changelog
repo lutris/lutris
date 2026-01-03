@@ -1,8 +1,8 @@
 lutris (0.5.20) jammy; urgency=medium
 
   * Fix Proton integration bugs so Proton-fixes are applied
-  * Do not offer DXVK, VKD3D, D3D Extras or DDXVK-NVAPI on Proton versions; Proton will handle these.
-  * The "Enable Esync" and "Enable Fsync" settings are now passed on to Proton
+  * Do not offer VKD3D, D3D Extras or DXVK-NVAPI on Proton versions; Proton will handle these.
+  * The "Enable Esync" and "Enable Fsync" and "DXVK" settings are now passed on to Proton
   * DXVK's integrated D8VK will be enabled in Proton
   * Fix for updated Flathub API
   * Emulator BIOS file location (used by libretro) may be set in Preferences
@@ -11,6 +11,7 @@ lutris (0.5.20) jammy; urgency=medium
   * Support for importing Commodore 64 ROMs
   * Redundant "Add Games" menu item removed; use the plus button in the corner
   * "Manual Script" for the context menu will now see the game's environment variables
+  * Support for Steam Families in the form of a "Steam Family" source
 
 -- Mathieu Comandon <mathieucomandon@gmail.com> Sun, 23 Feb 2025 10:55:10 -0800
 

@@ -8,9 +8,9 @@ import unicodedata
 import uuid
 from dataclasses import dataclass
 from gettext import gettext as _
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
-from gi.repository import GLib
+from gi.repository import GLib  # type: ignore
 
 from lutris.util.log import logger
 
@@ -175,12 +175,15 @@ def is_valid_pango_markup(text: str) -> bool:
         parser = GLib.MarkupParser()
         # DEFAULT_FLAGS == 0, but was not defined before GLib 2.74 so
         # we'll just hard-code the value.
-        context = GLib.MarkupParseContext(parser, 0, None, destroy_func)
+        parser_flags: GLib.MarkupParseFlags = 0  # type: ignore
+        context = GLib.MarkupParseContext.new(
+            parser=parser, flags=parser_flags, user_data=None, user_data_dnotify=destroy_func
+        )
 
         markup = f"<markup>{text}</markup>"
         context.parse(markup, len(markup))
         return True
-    except GLib.GError:
+    except GLib.GError:  # type: ignore
         return False
 
 
@@ -353,7 +356,7 @@ def parse_playtime_parts(text: str) -> PlaytimeParts:
     return playtime
 
 
-def _split_arguments(args: str, closing_quot: str = "", quotations: str = None) -> List[str]:
+def _split_arguments(args: str, closing_quot: str = "", quotations: Optional[List[str]] = None) -> List[str]:
     if quotations is None:
         quotations = ["'", '"']
     try:
@@ -374,7 +377,7 @@ def split_arguments(args: str) -> List[str]:
     return _split_arguments(args)
 
 
-def human_size(size: int) -> str:
+def human_size(size: float) -> str:
     """Shows a size in bytes in a more readable way"""
     units = ("bytes", "kB", "MB", "GB", "TB", "PB", "nuh uh", "no way", "BS")
     unit_index = 0

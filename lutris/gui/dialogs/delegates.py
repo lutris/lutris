@@ -1,7 +1,7 @@
 from gettext import gettext as _
 from typing import Optional
 
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, Gtk  # type: ignore
 
 from lutris.exceptions import UnavailableRunnerError
 from lutris.game import Game
@@ -79,7 +79,7 @@ class InstallUIDelegate(Delegate):
         """
         return None
 
-    def download_install_file(self, url: str, destination: str) -> Downloader:
+    def download_install_file(self, url: str, destination: str) -> bool:
         """Downloads a file from a URL to a destination, overwriting any
         file at that path.
 
@@ -137,7 +137,7 @@ class DialogInstallUIDelegate(InstallUIDelegate):
             dlg = dialogs.FileDialog(message)
             return dlg.filename
 
-    def download_install_file(self, url, destination):
+    def download_install_file(self, url: str, destination: str) -> bool:
         dialog = DownloadDialog(url, destination, parent=self)
         dialog.run()
         return dialog.downloader.state == Downloader.COMPLETED

@@ -123,7 +123,7 @@ class BattleNetService(BaseService):
         return games
 
     def add_installed_games(self):
-        """Scan an existing EGS install for games"""
+        """Scan an existing Battle.net install for games"""
         bnet_game = get_game_by_field(self.client_installer, "slug")
         if not bnet_game:
             raise RuntimeError("Battle.net is not installed in Lutris")
@@ -168,11 +168,11 @@ class BattleNetService(BaseService):
     def get_installed_slug(self, db_game):
         return db_game["slug"]
 
-    def generate_installer(self, db_game, egs_db_game):
-        egs_game = Game(egs_db_game["id"])
-        egs_exe = egs_game.config.game_config["exe"]
-        if not os.path.isabs(egs_exe):
-            egs_exe = os.path.join(egs_game.config.game_config["prefix"], egs_exe)
+    def generate_installer(self, db_game, bnet_db_game):
+        bnet_app = Game(bnet_db_game["id"])
+        bnet_exe = bnet_app.config.game_config["exe"]
+        if not os.path.isabs(bnet_exe):
+            bnet_exe = os.path.join(bnet_app.config.game_config["prefix"], bnet_exe)
         return {
             "name": db_game["name"],
             "version": self.name,
@@ -189,9 +189,9 @@ class BattleNetService(BaseService):
                     {
                         "task": {
                             "name": "wineexec",
-                            "executable": egs_exe,
+                            "executable": bnet_exe,
                             "args": '--exec="install %s"' % db_game["appid"],
-                            "prefix": egs_game.config.game_config["prefix"],
+                            "prefix": bnet_app.config.game_config["prefix"],
                             "description": (
                                 "Battle.net will now open. Please launch "
                                 "the installation of %s then close Battle.net "

@@ -31,6 +31,7 @@ CACHE_DIR = sio.read_setting("cache_dir") or os.path.join(GLib.get_user_cache_di
 TMP_DIR = os.path.join(CACHE_DIR, "tmp")
 GAME_CONFIG_DIR = os.path.join(CONFIG_DIR, "games")
 RUNNERS_CONFIG_DIR = os.path.join(CONFIG_DIR, "runners")
+WINE_DIR: str = os.path.join(RUNNER_DIR, "wine")
 
 SHADER_CACHE_DIR = os.path.join(CACHE_DIR, "shaders")
 INSTALLER_CACHE_DIR = os.path.join(CACHE_DIR, "installer")
@@ -63,8 +64,6 @@ DEFAULT_RESOLUTION_HEIGHT = sio.read_setting("default_resolution_height", defaul
 
 DEFAULT_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
 
-UPDATE_CHANNEL_STABLE = "stable"
-UPDATE_CHANNEL_UNSUPPORTED = "self-maintained"
 
 read_setting = sio.read_setting
 read_bool_setting = sio.read_bool_setting

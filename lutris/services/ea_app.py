@@ -2,7 +2,6 @@
 
 import json
 import os
-import random
 import ssl
 from gettext import gettext as _
 from typing import Any, Dict, Optional
@@ -56,51 +55,45 @@ class EAAppGames:
         return installed_game_ids
 
 
-class EAAppArtSmall(ServiceMedia):
+class EAAppMedia(ServiceMedia):
     service = "ea_app"
     file_patterns = ["%s.jpg"]
-    size = (63, 89)
-    dest_path = os.path.join(settings.CACHE_DIR, "ea_app/pack-art-small")
-    api_field = "packArtSmall"
+    name = NotImplemented
+
+    @property
+    def dest_path(self):
+        return os.path.join(settings.CACHE_DIR, self.service, self.name)
 
     def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
-        image_server = details.get("imageServer")
-        if not image_server:
-            logger.warning("No field 'imageServer' in API game %s", details)
-            return None
-        i18n = details.get("i18n")
-        if not i18n:
-            logger.warning("No field 'i18n' in API game %s", details)
-            return None
-        field = i18n.get(self.api_field)
-        if not field:
-            logger.warning("No field 'i18n.%s' in API game %s", self.api_field, details)
-            return None
-        return image_server + field
+        image = details["baseItem"][self.name]["largestImage"]
+        return image.get("path", None) if image is not None else None
 
 
-class EAAppArtMedium(EAAppArtSmall):
-    size = (142, 200)
-    dest_path = os.path.join(settings.CACHE_DIR, "ea_app/pack-art-medium")
-    api_field = "packArtMedium"
+class EAAppKeyArt(EAAppMedia):
+    name = "keyArt"
+    size = (192, 108)
 
 
-class EAAppArtLarge(EAAppArtSmall):
-    size = (231, 326)
-    dest_path = os.path.join(settings.CACHE_DIR, "ea_app/pack-art-large")
-    api_field = "packArtLarge"
+class EAAppPackArt(EAAppMedia):
+    name = "packArt"
+    size = (135, 240)
+
+
+class EAAppPrimaryLogo(EAAppMedia):
+    name = "primaryLogo"
+    size = (200, 100)
 
 
 class EAAppGame(ServiceGame):
     service = "ea_app"
 
     @classmethod
-    def new_from_api(cls, offer):
+    def new_from_api(cls, game):
         ea_game = EAAppGame()
-        ea_game.appid = offer["contentId"]
-        ea_game.slug = offer["gameNameFacetKey"]
-        ea_game.name = offer["i18n"]["displayName"]
-        ea_game.details = json.dumps(offer)
+        ea_game.appid = game["contentId"]
+        ea_game.slug = game["gameSlug"]
+        ea_game.name = game["baseItem"]["title"]
+        ea_game.details = json.dumps(game)
         return ea_game
 
 
@@ -153,11 +146,11 @@ class EAAppService(OnlineService):
     runner = "wine"
     online = True
     medias = {
-        "packArtSmall": EAAppArtSmall,
-        "packArtMedium": EAAppArtMedium,
-        "packArtLarge": EAAppArtLarge,
+        "keyArt": EAAppKeyArt,
+        "packArt": EAAppPackArt,
+        "primaryLogo": EAAppPrimaryLogo,
     }
-    default_format = "packArtMedium"
+    default_format = "keyArt"
     cache_path = os.path.join(settings.CACHE_DIR, "ea_app/cache/")
     cookies_path = os.path.join(settings.CACHE_DIR, "ea_app/cookies")
     token_path = os.path.join(settings.CACHE_DIR, "ea_app/auth_token")
@@ -170,6 +163,7 @@ class EAAppService(OnlineService):
         "&locale=en_US&release_type=prod"
         "&redirect_uri=%s"
     ) % origin_redirect_uri
+    api_url = "https://service-aggregation-layer.juno.ea.com/graphql"
     login_user_agent = settings.DEFAULT_USER_AGENT + " QtWebEngine/5.8.0"
 
     def __init__(self):
@@ -180,8 +174,10 @@ class EAAppService(OnlineService):
         self.access_token = self.load_access_token()
 
     @property
-    def api_url(self):
-        return "https://api%s.origin.com" % random.randint(1, 4)
+    def api_headers(self):
+        headers = {"User-Agent": self.login_user_agent}
+        headers.update(self.get_auth_headers())
+        return headers
 
     def is_connected(self):
         return bool(self.access_token)
@@ -204,6 +200,16 @@ class EAAppService(OnlineService):
         with open(self.token_path, encoding="utf-8") as token_file:
             token_data = json.load(token_file)
             return token_data.get("access_token", "")
+
+    def fetch_api(self, query, params: dict = None):
+        result = self.session.post(
+            self.api_url, headers=self.api_headers, json={"query": query, "variables": params or {}}
+        ).json()
+
+        if "errors" in result:
+            raise RuntimeError("Errors occurred while running an EA api query.", result["errors"])
+
+        return result
 
     def get_access_token(self):
         """Request an access token from EA"""
@@ -241,19 +247,11 @@ class EAAppService(OnlineService):
 
         if "error" in identity_data:
             raise RuntimeError(identity_data["error"])
-        try:
-            user_id = identity_data["pid"]["pidId"]
-        except KeyError:
-            logger.error("Can't read user ID from %s", identity_data)
-            raise
 
-        persona_id_response = self.session.get(
-            "{}/atom/users?userIds={}".format(self.api_url, user_id), headers=self.get_auth_headers()
-        )
-        content = persona_id_response.text
-        ea_account_info = ElementTree.fromstring(content)
-        persona_id = ea_account_info.find("user").find("personaId").text
-        user_name = ea_account_info.find("user").find("EAID").text
+        player = self.fetch_api("query{me{player{pd psd displayName}}}")["data"]["me"]["player"]
+        user_id = player["pd"]
+        persona_id = player["psd"]
+        user_name = player["displayName"]
         return str(user_id), str(persona_id), str(user_name)
 
     def load(self):
@@ -269,29 +267,118 @@ class EAAppService(OnlineService):
 
     def get_library(self, user_id):
         """Load EA library"""
-        offers = []
-        for entitlement in self.get_entitlements(user_id):
-            if entitlement["offerType"] != "basegame":
-                continue
-            offer_id = entitlement["offerId"]
-            offer = self.get_offer(offer_id)
-            offers.append(offer)
-        return offers
+        chunk_size = 100
+        games = []
+        entitlements = list(
+            filter(
+                lambda e: e["product"] is not None and e["product"]["baseItem"]["gameType"] == "BASE_GAME",
+                self.get_entitlements(user_id),
+            )
+        )
+        for chunk in [entitlements[i : i + chunk_size] for i in range(0, len(entitlements), chunk_size)]:
+            games += self.get_games([e["originOfferId"] for e in chunk])
+        return games
 
-    def get_offer(self, offer_id):
-        """Load offer details from EA"""
-        url = "{}/ecommerce2/public/supercat/{}/{}".format(self.api_url, offer_id, "en_US")
-        response = self.session.get(url, headers=self.get_auth_headers())
-        return response.json()
+    def get_games(self, offer_ids):
+        """Load game details from EA"""
+        result = self.fetch_api(
+            """query getOffers($offerIds: [String!]!) {
+                legacyOffers(offerIds: $offerIds, locale: "DEFAULT") {
+                    offerId: id
+                    contentId
+                }
+                gameProducts(offerIds: $offerIds, locale: "DEFAULT") {
+                    items {
+                        id
+                        originOfferId
+                        gameSlug
+                        baseItem {
+                            keyArt {
+                                largestImage { path }
+                            }
+                            packArt {
+                                largestImage { path }
+                            }
+                            primaryLogo {
+                                largestImage { path }
+                            }
+                            title
+                        }
+                    }
+                }
+            }
+            """,
+            params={"offerIds": offer_ids},
+        )
+
+        games = []
+        legacy_offers = result["data"].get("legacyOffers")
+        game_products = (result["data"].get("gameProducts") or {}).get("items", [])
+        by_offer = {p.get("originOfferId"): p for p in game_products if isinstance(p, dict) and p.get("originOfferId")}
+        by_product_id = {p.get("id"): p for p in game_products if isinstance(p, dict) and p.get("id")}
+
+        for legacy_offer in legacy_offers:
+            if not isinstance(legacy_offer, dict):
+                continue
+            offer_id = legacy_offer["offerId"]
+            content_id = legacy_offer["contentId"]
+            if not offer_id:
+                continue
+            product = (
+                by_offer.get(offer_id)
+                or (content_id and by_product_id.get(content_id))
+                or by_product_id.get(offer_id)
+                or {}
+            )
+            # Certain games will have identification data but without any product information.
+            # Skip those.
+            if not product:
+                continue
+            game = {"contentId": content_id}
+            game.update(product)
+            games.append(game)
+        return games
 
     def get_entitlements(self, user_id):
         """Request the user's entitlements"""
-        url = "%s/ecommerce2/consolidatedentitlements/%s?machine_hash=1" % (self.api_url, user_id)
-        headers = self.get_auth_headers()
-        headers["Accept"] = "application/vnd.origin.v3+json; x-cache/force-write"
-        response = self.session.get(url, headers=headers)
-        data = response.json()
-        return data["entitlements"]
+        games = []
+        variables = {"limit": 100}
+        while True:
+            result = self.fetch_api(
+                """query getEntitlements($limit: Int, $next: String) {
+                    me {
+                        ownedGameProducts(
+                            locale: "DEFAULT"
+                            entitlementEnabled: true
+                            storefronts: [EA]
+                            type: [DIGITAL_FULL_GAME, PACKAGED_FULL_GAME]
+                            platforms: [PC]
+                            paging: {
+                                limit: $limit,
+                                next: $next
+                            }
+                        ) {
+                            next,
+                            items {
+                                originOfferId
+                                product {
+                                    baseItem {
+                                        gameType
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }""",
+                params=variables,
+            )
+
+            products = result["data"]["me"]["ownedGameProducts"]
+            variables["next"] = products["next"]
+            games += products["items"]
+            if products["next"] is None:
+                break
+        return games
 
     def get_auth_headers(self):
         """Return headers needed to authenticate HTTP requests"""

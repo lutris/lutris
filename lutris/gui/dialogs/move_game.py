@@ -25,7 +25,7 @@ class MoveDialog(ModelessDialog):
         self.set_size_request(320, 60)
         self.set_decorated(False)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 12)
-        label = Gtk.Label(_("Moving %s to %s..." % (game, destination)))
+        label = Gtk.Label(label=_("Moving %s to %s..." % (game, destination)))
         vbox.add(label)
         self.progress = Gtk.ProgressBar(visible=True)
         self.progress.set_pulse_step(0.1)

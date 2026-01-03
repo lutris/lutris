@@ -5,7 +5,6 @@ select = ["A", "ARG", "B", "E", "F", "I", "W", "PERF", "RUF"]
 ignore = [
     # Ignores that is not worth/too hard to fix
     "RUF001", #  String contains ambiguous `！` (FULLWIDTH EXCLAMATION MARK). Did you mean `!` (EXCLAMATION MARK)? - used ,mostly on tests
-    "B028", # No explicit `stacklevel` keyword argument found - not sure why this is needed
     "E402", # Module level import not at top of file - gtk stuff
 
     # Ignores that should be fixed and removed
