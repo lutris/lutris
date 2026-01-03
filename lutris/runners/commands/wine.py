@@ -186,8 +186,8 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path="", env=None, initial_pid
             "WINEARCH": arch,
             "WINEPREFIX": prefix,
             "GAMEID": proton.DEFAULT_GAMEID,
-            "PROTON_VERB": "runinprefix",
         }
+    env["PROTON_VERB"] = "runinprefix"  # must not block until the game exits, that would be sily!
     if proton.is_umu_path(wine_path):
         command = [wine_path, "wineboot", "-k"]
     elif proton.is_proton_path(wine_path):
