@@ -542,11 +542,9 @@ def with_runner_overrides(runner_slug):
     """Return system options updated with overrides from given runner."""
     options = system_options
     try:
-        runner = runners.import_runner(runner_slug)
+        runner = runners.import_runner(runner_slug)()
     except runners.InvalidRunnerError:
         return options
-    if not getattr(runner, "system_options_override"):
-        runner = runner()
     if runner.system_options_override:
         opts_dict = OrderedDict((opt["option"], opt) for opt in options)
         for option in runner.system_options_override:
