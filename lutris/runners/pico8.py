@@ -77,7 +77,6 @@ class pico8(Runner):
 
     def __init__(self, config=None):
         super().__init__(config)
-        self.runnable_alone = self.is_native
 
     @property
     def is_native(self):
