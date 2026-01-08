@@ -133,26 +133,22 @@ def generate_shortcut_id(game):
 
 
 def generate_shortcut(game, launch_config_name):
-    lutris_binary = shutil.which("lutris")
+    lutris_binary = "lutris"
 
     launch_options = format_installer_url(
         {"action": "rungameid", "game_slug": game.id, "launch_config_name": launch_config_name}
     )
 
     launch_options = shlex.quote(launch_options)
-    start_dir = f'"{os.path.dirname(lutris_binary)}"'
 
-    if "/nix/store/" in lutris_binary:
-        lutris_binary = "lutris"
-        start_dir = f'"{Path.home()}"'
-    if lutris_binary == "/app/bin/lutris":
+    if is_flatpak_lutris():
         lutris_binary = "/usr/bin/flatpak"
         launch_options = "run net.lutris.Lutris " + launch_options
     return {
         "appid": generate_shortcut_id(game),
         "AppName": game.name,
         "Exe": f'"{lutris_binary}"',
-        "StartDir": start_dir,
+        "StartDir": f'"{Path.home()}"',
         "icon": resources.get_icon_path(game.slug),
         "LaunchOptions": launch_options,
         "IsHidden": 0,
@@ -163,6 +159,10 @@ def generate_shortcut(game, launch_config_name):
         "DevkitOverrideAppID": 0,
         "LastPlayTime": 0,
     }
+
+
+def is_flatpak_lutris():
+    return shutil.which("lutris") == "/app/bin/lutris"
 
 
 def set_artwork(game):
