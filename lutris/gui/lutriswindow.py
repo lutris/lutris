@@ -5,7 +5,7 @@
 import os
 from collections import namedtuple
 from datetime import datetime
-from gettext import gettext as _
+from gettext import gettext as _, ngettext
 from typing import Iterable, List, Set, cast
 from urllib.parse import unquote, urlparse
 
@@ -808,13 +808,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
             games, game_store = result
 
-            if games:
-                if len(games) > 1:
-                    self.search_entry.set_placeholder_text(_("Search %s games") % len(games))
-                else:
-                    self.search_entry.set_placeholder_text(_("Search 1 game"))
-            else:
-                self.search_entry.set_placeholder_text(_("Search games"))
+            placeholder_text = self._get_search_placeholder_text(games)
+            self.search_entry.set_placeholder_text(placeholder_text)
 
             for view in self.views.values():
                 view.service = self.service
@@ -842,6 +837,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.update_notification()
 
         AsyncCall(self.get_games_from_filters, on_games_ready)
+
+    @staticmethod
+    def _get_search_placeholder_text(games) -> str:
+        if not games:
+            return _("Search games")
+
+        games_count = len(games)
+        return ngettext("Search %d game", "Search %d games", games_count) % games_count
 
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""

@@ -1,7 +1,7 @@
 """Configuration dialog for client and system options"""
 
 # pylint: disable=no-member
-from gettext import gettext as _
+from gettext import gettext as _, pgettext as C_
 from textwrap import dedent
 
 from gi.repository import Gtk
@@ -37,7 +37,7 @@ class PreferencesDialog(GameDialogCommon):
         sidebar.add(self.get_sidebar_button("services-stack", _("Sources"), "application-x-addon-symbolic"))
         sidebar.add(self.get_sidebar_button("accounts-stack", _("Accounts"), "system-users-symbolic"))
         sidebar.add(self.get_sidebar_button("updates-stack", _("Updates"), "system-software-install-symbolic"))
-        sidebar.add(self.get_sidebar_button("sysinfo-stack", _("System"), "computer-symbolic"))
+        sidebar.add(self.get_sidebar_button("sysinfo-stack", C_("preferences", "System"), "computer-symbolic"))
         sidebar.add(self.get_sidebar_button("storage-stack", _("Storage"), "drive-harddisk-symbolic"))
         sidebar.add(self.get_sidebar_button("system-stack", _("Global options"), "emblem-system-symbolic"))
         hbox.pack_start(sidebar, False, False, 0)
