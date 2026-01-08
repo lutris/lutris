@@ -1,5 +1,5 @@
 import os
-from gettext import gettext as _
+from gettext import gettext as _, ngettext
 
 from gi.repository import Gio, Gtk
 
@@ -255,7 +255,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         if not count:
             self.search_result_label.set_markup(_("No results"))
         elif count == total_count:
-            self.search_result_label.set_markup(_("Showing <b>%s</b> results") % count)
+            text = ngettext("Showing <b>%d</b> result", "Showing <b>%d</b> results", count) % count
+            self.search_result_label.set_markup(text)
         else:
             self.search_result_label.set_markup(_("<b>%s</b> results, only displaying first %s") % (total_count, count))
         for row in self.search_listbox.get_children():
