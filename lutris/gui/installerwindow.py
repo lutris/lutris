@@ -651,7 +651,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             patch_version = self.interpreter.installer.version
         else:
             patch_version = None
-
+        self.load_spinner_page(_("Preparing game files..."), cancellable=False)
         AsyncCall(
             self.interpreter.installer.prepare_game_files, self.on_files_prepared, self.selected_extras, patch_version
         )
@@ -744,7 +744,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             if cancellable:
                 self.display_cancel_button(extra_buttons=extra_buttons)
             else:
-                self.display_buttons(extra_buttons or [])
+                self.display_buttons(extra_buttons or [], False)
 
             self.stack.set_back_allowed(False)
             return on_exit_page
@@ -1071,9 +1071,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         )
 
     def display_cancel_button(self, extra_buttons=None):
-        self.display_buttons(extra_buttons or [])
+        self.display_buttons(extra_buttons or [], True)
 
-    def display_buttons(self, buttons):
+    def display_buttons(self, buttons, cancel_sensitive=True):
         """Shows exactly the buttons given, and hides the others. Updates the close button
         according to whether the install has started."""
 
@@ -1087,6 +1087,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self.cancel_button.set_label(_("_Close") if self.install_complete else _("Cancel"))
             self.cancel_button.set_tooltip_text("")
             style_context.remove_class("destructive-action")
+
+        self.cancel_button.set_sensitive(cancel_sensitive)
 
         all_buttons = [self.cache_button, self.source_button, self.continue_button]
 
