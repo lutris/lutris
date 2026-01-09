@@ -86,6 +86,8 @@ it gives you a central interface to launch all your games.
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
 desktop-file-install --dir=%{buildroot}%{_datadir}/applications share/applications/%{appid}.desktop
 desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
+desktop-file-install --dir=%{buildroot}%{_datadir}/applications share/applications/%{appid}1.desktop
+desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}1.desktop
 %endif
 
 %if 0%{?suse_version} >= 1140
@@ -105,15 +107,25 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %{_bindir}/%{name}
 %{_datadir}/%{name}/
 %{_datadir}/metainfo/%{appid}.metainfo.xml
+%{_datadir}/mime/packages/application-x-lutris.xml
 %{_datadir}/applications/%{appid}.desktop
+%{_datadir}/applications/%{appid}1.desktop
 %{_datadir}/icons/hicolor/16x16/apps/net.lutris.Lutris.png
+%{_datadir}/icons/hicolor/16x16/mimetypes/application-x-lutris.png
 %{_datadir}/icons/hicolor/22x22/apps/net.lutris.Lutris.png
+%{_datadir}/icons/hicolor/22x22/mimetypes/application-x-lutris.png
 %{_datadir}/icons/hicolor/24x24/apps/net.lutris.Lutris.png
+%{_datadir}/icons/hicolor/24x24/mimetypes/application-x-lutris.png
 %{_datadir}/icons/hicolor/32x32/apps/net.lutris.Lutris.png
+%{_datadir}/icons/hicolor/32x32/mimetypes/application-x-lutris.png
 %{_datadir}/icons/hicolor/48x48/apps/net.lutris.Lutris.png
+%{_datadir}/icons/hicolor/48x48/mimetypes/application-x-lutris.png
 %{_datadir}/icons/hicolor/64x64/apps/net.lutris.Lutris.png
+%{_datadir}/icons/hicolor/64x64/mimetypes/application-x-lutris.png
 %{_datadir}/icons/hicolor/128x128/apps/net.lutris.Lutris.png
+%{_datadir}/icons/hicolor/128x128/mimetypes/application-x-lutris.png
 %{_datadir}/icons/hicolor/scalable/apps/net.lutris.Lutris.svg
+%{_datadir}/icons/hicolor/scalable/mimetypes/application-x-lutris.svg
 %{_datadir}/man/man1/%{name}.1.gz
 %{python3_sitelib}/%{name}-*.egg-info
 %{python3_sitelib}/%{name}/
@@ -121,6 +133,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %{_datadir}/locale/
 
 %changelog
+* Wed Dec 31 2025 Christophe Henry <contact@c-henry.fr> 0.5.20
+- Add .lutris file type association to install from local script
+
 * Mon Sep 11 2023 Mathieu Comandon <mathieucomandon@gmail.com> 0.5.13
 - Update to Meson build system
 
