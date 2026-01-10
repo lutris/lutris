@@ -2,7 +2,7 @@
 
 import os
 from collections import OrderedDict
-from gettext import gettext as _
+from gettext import gettext as _, pgettext as C_
 
 from lutris import runners
 from lutris.util import linux, system
@@ -25,7 +25,7 @@ def get_locale_choices():
     suitable for inclusion in drop-downs.
     """
     return [
-        (_("System"), ""),
+        (C_("locale", "System"), ""),
         (_("Chinese"), "zh_CN.utf8"),
         (_("Croatian"), "hr_HR.utf8"),
         (_("Dutch"), "nl_NL.utf8"),
