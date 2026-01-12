@@ -269,7 +269,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [runtime_ld_library_path, ld_library_path]))
 
         # Apply user overrides at the end
-        env.update(self.system_config.get("env") or {})
+        env.update({key: val.get("Value", "") for key, val in self.system_config.get("env", {}).items()})
 
         return env
 
