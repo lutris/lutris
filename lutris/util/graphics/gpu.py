@@ -130,7 +130,7 @@ class GPU:
             vulkaninfo_output_raw = system.read_process_output(
                 ["/usr/bin/vulkaninfo", "--summary"], env=subprocess_env, error_result=""
             )
-            
+
         vulkaninfo_output = vulkaninfo_output_raw.split("\n") if vulkaninfo_output_raw else []
         result = {}
         devices_seen = False

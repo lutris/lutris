@@ -2,8 +2,8 @@
 
 import json
 import os
-import typing
 import time
+import typing
 from gettext import gettext as _
 from typing import Any, Dict, List, Tuple
 

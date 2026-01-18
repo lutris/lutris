@@ -687,8 +687,7 @@ class CommandsMixin:
                 # Add the arguments to the dosbox config
                 dosbox_config["args"] = arguments
                 # Remove "config_file" from the dosbox config
-                if "config_file" in dosbox_config:
-                    del dosbox_config["config_file"]
+                dosbox_config.pop("config_file", None)
 
             self.installer.script["game"] = dosbox_config
             self.installer.runner = "dosbox"
