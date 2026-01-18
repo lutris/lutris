@@ -376,7 +376,7 @@ class SingleGameActions(GameActions):
         if launch_config_name is not None:
             steam_shortcut.create_shortcut(game, launch_config_name, True)
             gameDict = games.get_game_by_field(game.id, "id")
-            gamepath = f"{str(Path.home())}/.local/share/applications/lutris-{game.slug}.sh"
+            gamepath = f"{Path.home()!s}/.local/share/applications/lutris-{game.slug}.sh"
             generate_script(logger, LaunchUIDelegate(), gameDict, gamepath)
 
     def on_create_desktop_shortcut(self, *_args):

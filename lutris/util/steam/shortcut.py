@@ -180,8 +180,8 @@ def generate_standalone_shortcut(game, launch_config_name):
     return {
         "appid": generate_shortcut_id(game),
         "AppName": game.name,
-        "Exe": f'"{str(Path.home())}/.local/share/applications/lutris-{game.slug}.sh"',
-        "StartDir": f'"{str(Path.home())}/.local/share/applications/"',
+        "Exe": f'"{Path.home()!s}/.local/share/applications/lutris-{game.slug}.sh"',
+        "StartDir": f'"{Path.home()!s}/.local/share/applications/"',
         "icon": resources.get_icon_path(game.slug),
         "LaunchOptions": launch_options,
         "IsHidden": 0,
@@ -192,7 +192,8 @@ def generate_standalone_shortcut(game, launch_config_name):
         "DevkitOverrideAppID": 0,
         "LastPlayTime": 0,
     }
-  
+
+
 def is_flatpak_lutris():
     return shutil.which("lutris") == "/app/bin/lutris"
 

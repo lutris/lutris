@@ -2,7 +2,6 @@
 
 import os
 from gettext import gettext as _
-from pathlib import Path
 
 from gi.repository import GObject
 
