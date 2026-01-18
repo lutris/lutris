@@ -621,9 +621,7 @@ class wine(Runner):
             "default": "auto",
             "warning": _get_wine_wayland_warning,
             "help": _(
-                "Which graphics backend to use.\n"
-                "By default, Wine automatically picks the right one "
-                "for your system."
+                "Which graphics backend to use.\nBy default, Wine automatically picks the right one for your system."
             ),
         },
         {
