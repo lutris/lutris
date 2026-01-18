@@ -210,13 +210,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
     def gamemode_available(self):
         """Return whether gamemode is available"""
-        # Current versions of gamemode use gamemoderun
-        if system.can_find_executable("gamemoderun"):
-            return True
-        # This is for old versions of gamemode only
-        if self.is_feature_supported("GAMEMODE"):
-            return True
-        return False
+        return system.can_find_executable("gamemoderun")
 
     def nvidia_gamescope_support(self):
         """Return whether gamescope is supported if we're on nvidia"""
