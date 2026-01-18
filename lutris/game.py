@@ -1053,13 +1053,17 @@ class Game:
         if not self.config:
             raise RuntimeError(f"Game configuration not found for {self.name}.")
 
-        with open(self.config.game_config_path, encoding="utf-8") as config_file:
+        config_path = self.config.game_config_path
+        if not config_path:
+            raise RuntimeError(f"Game configuration path not found for {self.name}.")
+
+        with open(config_path, encoding="utf-8") as config_file:
             for line in config_file.readlines():
                 if target_directory in line:
                     new_config += line
                 else:
                     new_config += line.replace(old_location, target_directory)
-        with open(self.config.game_config_path, "w", encoding="utf-8") as config_file:
+        with open(config_path, "w", encoding="utf-8") as config_file:
             config_file.write(new_config)
 
         if not system.path_exists(old_location):
