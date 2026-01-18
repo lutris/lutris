@@ -117,8 +117,6 @@ def _get_syscall_nr_from_headers(syscall_name):
             "__NR_" + syscall_name + " not a valid number: " + last_line
         ) from ex
 
-    assert False
-
 
 # Hardcode some of the most commonly used architectures's
 # futex syscall numbers.
