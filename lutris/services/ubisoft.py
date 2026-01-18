@@ -143,7 +143,7 @@ class UbisoftConnectService(OnlineService):
             self.client.authorise_with_stored_credentials(self.load_credentials())
         except RuntimeError as ex:
             logger.error("Failed to authorize with API: %s. Re-login required." % ex)
-            AsyncCall(self.logout, self.login)
+            AsyncCall(self.logout, lambda _result, _error: self.login())
             return
         response = self.client.get_club_titles()
         games = response["data"]["viewer"]["ownedGames"].get("nodes", [])
