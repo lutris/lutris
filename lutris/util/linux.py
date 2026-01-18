@@ -12,7 +12,7 @@ from gettext import gettext as _
 
 from lutris import settings
 from lutris.exceptions import MisconfigurationError
-from lutris.util import flatpak, system
+from lutris.util import cache_single, flatpak, system
 from lutris.util.graphics import drivers, glxinfo, vkquery
 from lutris.util.log import logger
 
@@ -82,6 +82,11 @@ SYSTEM_COMPONENTS = {
         "GNUTLS": ["libgnutls.so.30"],
     },
 }
+
+
+@cache_single
+def is_exherbo_with_cross_i686():
+    return system.path_exists("/etc/exherbo-release") and system.path_exists("/etc/ld-i686-pc-linux-gnu.cache")
 
 
 class LinuxSystem:  # pylint: disable=too-many-public-methods
@@ -252,7 +257,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     def runtime_architectures(self):
         """Return the architectures supported on this machine"""
         x86 = "i386"
-        if self.is_exherbo_with_cross_i686():
+        if is_exherbo_with_cross_i686():
             x86 = "libc6"
         if self.arch == "x86_64":
             return [x86, "x86_64"]
@@ -334,9 +339,6 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                     if lib_paths[1] not in exported_lib_folders:
                         yield lib_paths[1]
 
-    def is_exherbo_with_cross_i686(self):
-        return system.path_exists("/etc/exherbo-release") and system.path_exists("/etc/ld-i686-pc-linux-gnu.cache")
-
     def get_ldconfig_libs(self):
         """Return a list of available libraries, as returned by `ldconfig -p`."""
         ldconfig = self.get("ldconfig")
@@ -345,7 +347,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
             return []
 
         ld_cmd = [ldconfig, "-p"]
-        if self.is_exherbo_with_cross_i686():
+        if is_exherbo_with_cross_i686():
             ld_cmd = [ldconfig, "-C", "/etc/ld-i686-pc-linux-gnu.cache", "-p"]
 
         output = system.read_process_output(ld_cmd).split("\n")
@@ -439,7 +441,11 @@ class SharedLibrary:
     @property
     def arch(self):
         """Return the architecture for a shared library"""
-        detected_arch = ["x86-64", "x32", "libc6"]
+        detected_arch = ["x86-64", "x32"]
+
+        if is_exherbo_with_cross_i686():
+            detected_arch.append("libc6")
+
         for arch in detected_arch:
             if arch in self.flags:
                 return arch.replace("-", "_")
