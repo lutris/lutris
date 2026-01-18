@@ -410,9 +410,9 @@ def get_game_details(slug: str) -> dict:
     return response.json
 
 
-def normalize_installer(installer: dict) -> dict:
+def normalize_installer(installer: dict, **additionnal) -> dict:
     """Adjusts an installer dict so it is in the correct form, with values
-    of the expected types."""
+    of the expected types. ``additionnal`` kwargs will be added to the result as is."""
 
     def must_be_str(key):
         if key in installer:
@@ -425,6 +425,7 @@ def normalize_installer(installer: dict) -> dict:
     must_be_str("game_slug")
     must_be_str("dlcid")
     must_be_str("runner")
+    installer.update(additionnal)
     return installer
 
 

@@ -433,15 +433,22 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Checks the pids given and returns a set containing only those that are part of the running game,
         identified by its UUID and directory."""
         folder_pids = set()
+        gamescope_pids = set()
+        has_gamescope = self.system_config.get("gamescope")
+
         for pid in candidate_pids:
-            cmdline = Process(pid).cmdline or ""
+            proc = Process(pid)
+            cmdline = proc.cmdline or ""
             # pressure-vessel: This could potentially pick up PIDs not started by lutris?
             if game_folder in cmdline:
                 folder_pids.add(pid)
+            # Include gamescope-related processes when gamescope is enabled
+            if has_gamescope and (proc.name or "").startswith("gamescope"):
+                gamescope_pids.add(pid)
 
         uuid_pids = set(pid for pid in candidate_pids if Process(pid).environ.get("LUTRIS_GAME_UUID") == game_uuid)
 
-        return folder_pids & uuid_pids
+        return (folder_pids & uuid_pids) | gamescope_pids
 
     def install_dialog(self, ui_delegate):
         """Ask the user if they want to install the runner.

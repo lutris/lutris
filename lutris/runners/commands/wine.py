@@ -186,8 +186,8 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path="", env=None, initial_pid
             "WINEARCH": arch,
             "WINEPREFIX": prefix,
             "GAMEID": proton.DEFAULT_GAMEID,
-            "PROTON_VERB": "runinprefix",
         }
+    env["PROTON_VERB"] = "runinprefix"  # must not block until the game exits, that would be sily!
     if proton.is_umu_path(wine_path):
         command = [wine_path, "wineboot", "-k"]
     elif proton.is_proton_path(wine_path):
@@ -352,11 +352,10 @@ def wineexec(
     command_parameters = []
     if proton.is_proton_path(wine_path):
         command_parameters.append(proton.get_umu_path())
-        if winetricks_wine and wine_path not in winetricks_wine:
+        if winetricks_wine and wine_path not in winetricks_wine and "winetricks" not in args:
             command_parameters.append("winetricks")
     else:
         command_parameters.append(wine_path)
-
     if executable:
         command_parameters.append(executable)
     command_parameters += split_arguments(args)
@@ -420,26 +419,28 @@ def winetricks(
         silent = False
         app = "--gui"
     args = app
-    if not wine_path or proton.is_umu_path(wine_path):
+
+    if wine_path and proton.is_proton_path(wine_path):
+        protonfixes_path = os.path.join(proton.get_proton_path_by_path(wine_path), "protonfixes")
+    else:
+        protonfixes_path = None
+
+    if protonfixes_path and os.path.exists(protonfixes_path):
+        proton_verb = "waitforexitandrun"
+        working_dir = None
+        winetricks_wine = os.path.join(protonfixes_path, "winetricks")
+        winetricks_path = wine_path
+    elif not wine_path or proton.is_umu_path(wine_path):
         winetricks_wine = proton.get_umu_path()
         winetricks_path = None
         args = "winetricks " + args
         proton_verb = "waitforexitandrun"
         working_dir = None
-    elif proton.is_proton_path(wine_path):
-        proton_verb = "waitforexitandrun"
-        protonfixes_path = os.path.join(proton.get_proton_path_by_path(wine_path), "protonfixes")
-        working_dir = None
-        if os.path.exists(protonfixes_path):
-            winetricks_wine = os.path.join(protonfixes_path, "winetricks")
-            winetricks_path = wine_path
-            if not app:
-                silent = False
-                app = "--gui"
-        else:
-            logger.error("winetricks: Valve official Proton builds do not support winetricks.")
-            return
     else:
+        if protonfixes_path:
+            logger.warning(
+                "winetricks: attempting to run on a Valve official Proton build; this may not work as expected."
+            )
         winetricks_path, working_dir, env = find_winetricks(env, system_winetricks)
         if not runner:
             runner = import_runner("wine")()
