@@ -47,11 +47,7 @@ class GameView:
         self.service = game_store.service
         self.service_media = game_store.service_media
 
-        size = self.service_media.size
-
         if self.image_renderer:
-            self.image_renderer.media_width = size[0]
-            self.image_renderer.media_height = size[1]
             self.image_renderer.service = self.service
 
     def on_media_cache_invalidated(self):

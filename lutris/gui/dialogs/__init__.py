@@ -675,6 +675,16 @@ class HumbleBundleCookiesDialog(ModalDialog):
         super().on_response(dialog, response)
 
 
+def _call_when_destroyed(self: Gtk.Widget, callback: Callable[[], None]) -> Callable[[], None]:
+    handler_id = self.connect("destroy", lambda *x: callback())
+    return lambda: self.disconnect(handler_id)
+
+
+# call_when_destroyed is a utility that hooks up the 'destroy' signal to call your callback,
+# and returns a callable that unhooks it. This is used by AsyncJob to avoid sending a callback
+# to a destroyed widget.
+Gtk.Widget.call_when_destroyed = _call_when_destroyed  # type: ignore[attr-defined]
+
 _error_handlers: Dict[Type[BaseException], Callable[[BaseException, Gtk.Window], Any]] = {}
 TError = TypeVar("TError", bound=BaseException)
 

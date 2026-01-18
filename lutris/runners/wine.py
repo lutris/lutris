@@ -50,6 +50,7 @@ from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, IconExtractor
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
+    GE_PROTON_LATEST,
     WINE_DEFAULT_ARCH,
     WINE_PATHS,
     detect_arch,
@@ -184,7 +185,7 @@ def _get_wine_version_choices():
     }
     versions = get_installed_wine_versions()
     for version in versions:
-        if version == "ge-proton":
+        if version == GE_PROTON_LATEST:
             label = _("GE-Proton (Latest)")
         elif version in system_wine_labels:
             version_number = get_system_wine_version(WINE_PATHS[version])
@@ -681,13 +682,13 @@ class wine(Runner):
                 arch = WINE_DEFAULT_ARCH
         return arch
 
-    def get_runner_version(self, version: str = None) -> Optional[Dict[str, str]]:
+    def get_runner_version(self, version: Optional[str] = None) -> Optional[Dict[str, str]]:
         if version in WINE_PATHS:
             return {"version": version}
 
         return super().get_runner_version(version)
 
-    def read_version_from_config(self, default: str = None) -> str:
+    def read_version_from_config(self, default: Optional[str] = None) -> str:
         """Return the Wine version to use. use_default can be set to false to
         force the installation of a specific wine version. If no version is configured,
         we return the default supplied, or the4 global Wine default if none is."""
@@ -698,7 +699,8 @@ class wine(Runner):
         for level in [self.config.game_level, self.config.runner_level]:
             if "wine" in level:
                 runner_version = level["wine"].get("version")
-                if runner_version:
+                # Treat 'ge-proton' as if no version is set
+                if runner_version and runner_version != GE_PROTON_LATEST:
                     return runner_version
 
         if default:
@@ -733,7 +735,7 @@ class wine(Runner):
         """
         if not version:
             version = self.read_version_from_config()
-        if version == "ge-proton":
+        if version == GE_PROTON_LATEST:
             return proton.get_umu_path()
 
         if proton.is_proton_version(version):
@@ -1097,7 +1099,7 @@ class wine(Runner):
         is_proton = proton.is_proton_path(wine_exe)
 
         wine_config_version = self.read_version_from_config()
-        if wine_config_version == "ge-proton":
+        if wine_config_version == GE_PROTON_LATEST:
             env["PROTONPATH"] = "GE-Proton"
         env["WINE"] = wine_exe
 
@@ -1257,15 +1259,22 @@ class wine(Runner):
 
         if proton.is_proton_path(self.get_executable()):
             folder_pids = set()
+            gamescope_pids = set()
+            has_gamescope = self.system_config.get("gamescope")
+
             for pid in candidate_pids:
-                cmdline = Process(pid).cmdline or ""
+                proc = Process(pid)
+                cmdline = proc.cmdline or ""
                 # pressure-vessel: This could potentially pick up PIDs not started by lutris?
                 if game_folder in cmdline or "pressure-vessel" in cmdline:
                     folder_pids.add(pid)
+                # Include gamescope-related processes when gamescope is enabled
+                if has_gamescope and (proc.name or "").startswith("gamescope"):
+                    gamescope_pids.add(pid)
 
             uuid_pids = set(pid for pid in candidate_pids if Process(pid).environ.get("LUTRIS_GAME_UUID") == game_uuid)
 
-            return folder_pids & uuid_pids
+            return (folder_pids & uuid_pids) | gamescope_pids
         else:
             return super().filter_game_pids(candidate_pids, game_uuid, game_folder)
 

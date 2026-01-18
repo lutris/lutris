@@ -1,6 +1,7 @@
 # pylint: disable=no-member
 import os
 from gettext import gettext as _
+from gettext import ngettext
 from typing import Callable, Iterable, List
 
 from gi.repository import GObject, Gtk
@@ -120,25 +121,34 @@ class UninstallDialog(Gtk.Dialog):
             )
 
     def update_subtitle(self) -> None:
+        subtitle = self.build_subtitle()
+
+        self.header_bar.set_subtitle(subtitle)
+
+    def build_subtitle(self) -> str:
         """Updates the dialog subtitle according to what games are being removed."""
         to_uninstall = [g for g in self.games if g.is_installed]
         to_remove = [g for g in self.games if not g.is_installed]
 
-        if len(to_uninstall) == 1 and not to_remove:
-            subtitle = _("Uninstall %s") % gtk_safe(to_uninstall[0].name)
-        elif len(to_remove) == 1 and not to_uninstall:
-            subtitle = _("Remove %s") % gtk_safe(to_remove[0].name)
-        elif not to_remove:
-            subtitle = _("Uninstall %d games") % len(to_uninstall)
-        elif not to_uninstall:
-            subtitle = _("Remove %d games") % len(to_remove)
-        else:
-            subtitle = _("Uninstall %d games and remove %d games") % (
-                len(to_uninstall),
-                len(to_remove),
-            )
+        count_uninstall = len(to_uninstall)
+        count_remove = len(to_remove)
 
-        self.header_bar.set_subtitle(subtitle)
+        if not to_remove:
+            if count_uninstall == 1:
+                return _("Uninstall %s") % gtk_safe(to_uninstall[0].name)
+
+            return ngettext("Uninstall %d game", "Uninstall %d games", count_uninstall) % count_uninstall
+
+        if not to_uninstall:
+            if count_remove == 1:
+                return _("Remove %s") % gtk_safe(to_remove[0].name)
+
+            return ngettext("Remove %d game", "Remove %d games", count_remove) % count_remove
+
+        uninstall_part = ngettext("Uninstall %d game", "Uninstall %d games", count_uninstall) % count_uninstall
+        remove_part = ngettext("remove %d game", "remove %d games", count_remove) % count_remove
+
+        return _("%s and %s") % (uninstall_part, remove_part)
 
     def update_message(self) -> None:
         """Updates the message label at the top of the dialog."""

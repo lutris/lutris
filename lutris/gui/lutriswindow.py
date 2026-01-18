@@ -6,6 +6,7 @@ import os
 from collections import namedtuple
 from datetime import datetime
 from gettext import gettext as _
+from gettext import ngettext
 from typing import Dict, Iterable, List, Set, cast
 from urllib.parse import unquote, urlparse
 
@@ -17,6 +18,7 @@ from lutris.api import (
     LUTRIS_ACCOUNT_DISCONNECTED,
     get_runtime_versions,
 )
+from lutris.database import categories
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import saved_searches as saved_searches_db
@@ -133,6 +135,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "missing": self.get_missing_games,
             "running": self.get_running_games,
         }
+
+        for smart_category in categories._SMART_CATEGORIES:
+            if smart_category.get_name() not in self.dynamic_categories_game_factories:
+                self.dynamic_categories_game_factories[smart_category.get_name()] = smart_category.get_games
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
@@ -651,7 +657,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         service_id = self.filters.get("service")
         if service_id in services.SERVICES:
             if self.service.online and not self.service.is_authenticated():
-                self.show_label(_("Connect your %s account to access your games") % self.service.name)
+                self.show_empty_label()
                 return []
             return self.get_service_games(service_id)
         if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
@@ -739,6 +745,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def show_empty_label(self):
         """Display a label when the view is empty"""
+        if self.service and self.service.online and not self.service.is_authenticated():
+            self.show_label(_("Connect your %s account to access your games") % self.service.name)
+            return
+
         filter_text = self.filters.get("text")
         has_uninstalled_games = games_db.get_game_count("installed", "0")
         if filter_text:
@@ -810,13 +820,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
             games, game_store = result
 
-            if games:
-                if len(games) > 1:
-                    self.search_entry.set_placeholder_text(_("Search %s games") % len(games))
-                else:
-                    self.search_entry.set_placeholder_text(_("Search 1 game"))
-            else:
-                self.search_entry.set_placeholder_text(_("Search games"))
+            placeholder_text = self._get_search_placeholder_text(games)
+            self.search_entry.set_placeholder_text(placeholder_text)
 
             for view in self.views.values():
                 view.service = self.service
@@ -844,6 +849,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.update_notification()
 
         AsyncCall(self.get_games_from_filters, on_games_ready)
+
+    @staticmethod
+    def _get_search_placeholder_text(games) -> str:
+        if not games:
+            return _("Search games")
+
+        games_count = len(games)
+        return ngettext("Search %d game", "Search %d games", games_count) % games_count
 
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""

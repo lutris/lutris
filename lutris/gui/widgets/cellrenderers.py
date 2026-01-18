@@ -106,8 +106,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._media_width = 0
-        self._media_height = 0
         self._game_id = None
         self._service = None
         self._media_paths = []
@@ -145,28 +143,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             return True
 
         return False
-
-    @GObject.Property(type=int, default=0)
-    def media_width(self):
-        """This is the width of the media being rendered; if the cell is larger
-        it will be centered in the cell area."""
-        return self._media_width
-
-    @media_width.setter
-    def media_width(self, value):
-        self._media_width = value
-        self.clear_cache()
-
-    @GObject.Property(type=int, default=0)
-    def media_height(self):
-        """This is the height of the media being rendered; if the cell is larger
-        it will be at the bottom of the cell area."""
-        return self._media_height
-
-    @media_height.setter
-    def media_height(self, value):
-        self._media_height = value
-        self.clear_cache()
 
     @GObject.Property(type=str)
     def game_id(self):
@@ -223,27 +199,42 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def is_installed(self, value):
         self._is_installed = value
 
+    def _get_preferred_size(self):
+        paths = self.media_paths
+        if paths:
+            path = paths[0]
+            return path.width, path.height
+        return 0, 0
+
     def do_get_preferred_width(self, widget):
-        return self.media_width, self.media_width
+        size = self._get_preferred_size()
+        return size[0], size[0]
 
     def do_get_preferred_height(self, widget):
-        return self.media_height, self.media_height
+        size = self._get_preferred_size()
+        return size[1], size[1]
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
-        media_width = self.media_width
-        media_height = self.media_height
-        path = resolve_media_path(self.media_paths) if self.media_paths else None
+        media_path = resolve_media_path(self.media_paths) if self.media_paths else None
+        if not media_path:
+            return
+
+        media_width = media_path.width
+        media_height = media_path.height
+        path = media_path.path
         alpha = 1 if self.is_installed else 100 / 255
 
         if media_width > 0 and media_height > 0 and path:
-            surface = self._get_cached_surface_by_path(widget, path)
+            surface = self._get_cached_surface_by_path(widget, path, size=(media_width, media_height))
             if not surface:
                 # The default icon needs to be scaled to fill the cell space.
                 path = get_default_icon_path((media_width, media_height))
-                surface = self._get_cached_surface_by_path(widget, path, preserve_aspect_ratio=False)
+                surface = self._get_cached_surface_by_path(
+                    widget, path, size=(media_width, media_height), preserve_aspect_ratio=False
+                )
             if surface:
                 media_area = self.get_media_area(surface, cell_area)
-                self.select_badge_metrics(surface)
+                self.select_badge_metrics(surface, media_width, media_height)
 
                 cr.save()
 
@@ -284,7 +275,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             # we can then discard surfaces we aren't using anymore.
             schedule_at_idle(self.cycle_cache)
 
-    def select_badge_metrics(self, surface):
+    def select_badge_metrics(self, surface, media_width, media_height):
         """Updates fields holding data about the appearance of the badges;
         this sets self.badge_size to None if no badges should be shown at all."""
 
@@ -292,11 +283,11 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             """Returns the size of the badge icons to render, or None to hide them. We check
             width for the smallest size because Dolphin has very thin banners, but we only hide
             badges for icons, not banners."""
-            if self.media_width < 64:
+            if media_width < 64:
                 return None
-            if self.media_height < 128:
+            if media_height < 128:
                 return 16, 16
-            if self.media_height < 256:
+            if media_height < 256:
                 return 24, 24
             return 32, 32
 
@@ -514,7 +505,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             self.cached_surfaces_new = {}
             self.cached_surfaces_loaded = 0
 
-    def _get_cached_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
+    def _get_cached_surface_by_path(self, widget, path, size, preserve_aspect_ratio=True):
         """This obtains the scaled surface to rander for a given media path; this is cached
         in this render, but we'll clear that cache when the media generation number is changed,
         or certain properties are. We also age surfaces from the cache at idle time after
@@ -540,8 +531,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.cached_surfaces_new[key] = surface
         return surface
 
-    def _get_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
-        cell_size = size or (self.media_width, self.media_height)
+    def _get_surface_by_path(self, widget, path, size, preserve_aspect_ratio=True):
+        cell_size = size
         scale_factor = widget.get_scale_factor() if widget else 1
         try:
             return get_scaled_surface_by_path(

@@ -26,7 +26,6 @@ from lutris.gui.views import (
     COLUMN_NAMES,
 )
 from lutris.gui.views.base import GameView
-from lutris.gui.views.store import sort_func
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererImage
 
 
@@ -62,14 +61,13 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         name_cell = self.set_text_cell()
         name_cell.set_padding(5, 0)
 
-        self.set_column(name_cell, _("Name"), COL_NAME, 200, always_visible=True)
-        self.set_sort_with_column(COL_NAME, COL_SORTNAME)
+        self.set_column(name_cell, _("Name"), COL_NAME, 200, always_visible=True, sort_id=COL_SORTNAME)
         self.set_column(default_text_cell, _("Year"), COL_YEAR, 60)
         self.set_column(default_text_cell, _("Runner"), COL_RUNNER_HUMAN_NAME, 120)
         self.set_column(default_text_cell, _("Platform"), COL_PLATFORM, 120)
-        self.set_column(default_text_cell, _("Last Played"), COL_LASTPLAYED_TEXT, 120)
-        self.set_column(default_text_cell, _("Play Time"), COL_PLAYTIME_TEXT, 100)
-        self.set_column(default_text_cell, _("Installed At"), COL_INSTALLED_AT_TEXT, 120)
+        self.set_column(default_text_cell, _("Last Played"), COL_LASTPLAYED_TEXT, 120, sort_id=COL_LASTPLAYED)
+        self.set_column(default_text_cell, _("Play Time"), COL_PLAYTIME_TEXT, 100, sort_id=COL_PLAYTIME)
+        self.set_column(default_text_cell, _("Installed At"), COL_INSTALLED_AT_TEXT, 120, sort_id=COL_INSTALLED_AT)
 
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
 
@@ -82,9 +80,6 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
 
         self.model = game_store.store
         self.set_model(self.model)
-        self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
-        self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
-        self.set_sort_with_column(COL_PLAYTIME_TEXT, COL_PLAYTIME)
 
         if self.media_column:
             size = game_store.service_media.size
@@ -102,7 +97,6 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         column = Gtk.TreeViewColumn(header, cell, markup=column_id)
         column.set_sort_indicator(True)
         column.set_sort_column_id(column_id if sort_id is None else sort_id)
-        self.set_column_sort(column_id if sort_id is None else sort_id)
         column.set_resizable(True)
         column.set_reorderable(True)
         width = settings.read_setting("%s_column_width" % COLUMN_NAMES[column_id], section="list view")
@@ -113,16 +107,6 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         column.connect("notify::width", self.on_column_width_changed)
         column.get_button().connect("button-press-event", self.on_column_header_button_pressed)
         return column
-
-    def set_column_sort(self, col):
-        """Sort a column and fallback to sorting by name and runner."""
-        model = self.get_model()
-        if model:
-            model.set_sort_func(col, sort_func, col)
-
-    def set_sort_with_column(self, col, sort_col):
-        """Sort a column by using another column's data"""
-        self.model.set_sort_func(col, sort_func, sort_col)
 
     def get_path_at(self, x, y):
         path_at = self.get_path_at_pos(x, y)

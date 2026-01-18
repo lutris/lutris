@@ -47,6 +47,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     download_url = None
     arch = None  # If the runner is only available for an architecture that isn't x86_64
     flatpak_id = None
+    human_name = ""
 
     def __init__(self, config=None):
         """Initialize runner."""
@@ -84,9 +85,6 @@ class Runner:  # pylint: disable=too-many-public-methods
     @property
     def game_config(self):
         """Return the cascaded game config as a dict."""
-        if not self.has_explicit_config:
-            logger.warning("Accessing game config while runner wasn't given one.")
-
         return self.config.game_config
 
     @property
@@ -395,6 +393,9 @@ class Runner:  # pylint: disable=too-many-public-methods
         if unavailable_libs:
             raise UnavailableLibrariesError(unavailable_libs, self.arch)
 
+    def get_version(self, use_default=True):
+        raise NotImplementedError
+
     def get_run_data(self):
         """Return dict with command (exe & args list) and env vars (dict).
 
@@ -432,15 +433,22 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Checks the pids given and returns a set containing only those that are part of the running game,
         identified by its UUID and directory."""
         folder_pids = set()
+        gamescope_pids = set()
+        has_gamescope = self.system_config.get("gamescope")
+
         for pid in candidate_pids:
-            cmdline = Process(pid).cmdline or ""
+            proc = Process(pid)
+            cmdline = proc.cmdline or ""
             # pressure-vessel: This could potentially pick up PIDs not started by lutris?
             if game_folder in cmdline:
                 folder_pids.add(pid)
+            # Include gamescope-related processes when gamescope is enabled
+            if has_gamescope and (proc.name or "").startswith("gamescope"):
+                gamescope_pids.add(pid)
 
         uuid_pids = set(pid for pid in candidate_pids if Process(pid).environ.get("LUTRIS_GAME_UUID") == game_uuid)
 
-        return folder_pids & uuid_pids
+        return (folder_pids & uuid_pids) | gamescope_pids
 
     def install_dialog(self, ui_delegate):
         """Ask the user if they want to install the runner.
@@ -486,12 +494,12 @@ class Runner:  # pylint: disable=too-many-public-methods
         the confliguration before it is saved. This method should modify the dict given."""
         pass
 
-    def get_runner_version(self, version: str = None) -> Optional[Dict[str, str]]:
+    def get_runner_version(self, version: Optional[str] = None) -> Optional[Dict[str, str]]:
         """Get the appropriate version for a runner, as with get_default_runner_version(),
         but this method allows the runner to apply its configuration."""
         return get_default_runner_version_info(self.name, version)
 
-    def install(self, install_ui_delegate, version=None, callback=None):
+    def install(self, install_ui_delegate, version: Optional[str] = None, callback=None):
         """Install runner using package management systems."""
         logger.debug(
             "Installing %s (version=%s, callback=%s)",
@@ -540,7 +548,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         else:
             logger.info("Download canceled by the user.")
 
-    def extract(self, archive=None, dest=None, merge_single=None, callback=None):
+    def extract(self, archive: str, dest: str, merge_single: bool = False, callback=None):
         if not system.path_exists(archive, exclude_empty=True):
             raise RunnerInstallationError(_("Failed to extract {}").format(archive))
         try:
@@ -564,8 +572,9 @@ class Runner:  # pylint: disable=too-many-public-methods
         if callback:
             callback()
 
-    def remove_game_data(self, app_id=None, game_path=None):
-        system.remove_folder(game_path)
+    def remove_game_data(self, app_id=None, game_path: Optional[str] = None):
+        if game_path:
+            system.remove_folder(game_path)
 
     def can_uninstall(self):
         return os.path.isdir(self.directory)

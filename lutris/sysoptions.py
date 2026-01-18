@@ -3,6 +3,7 @@
 import os
 from collections import OrderedDict
 from gettext import gettext as _
+from gettext import pgettext as C_
 
 from lutris import runners
 from lutris.util import linux, system
@@ -25,7 +26,7 @@ def get_locale_choices():
     suitable for inclusion in drop-downs.
     """
     return [
-        (_("System"), ""),
+        (C_("locale", "System"), ""),
         (_("Chinese"), "zh_CN.utf8"),
         (_("Croatian"), "hr_HR.utf8"),
         (_("Dutch"), "nl_NL.utf8"),
@@ -542,11 +543,9 @@ def with_runner_overrides(runner_slug):
     """Return system options updated with overrides from given runner."""
     options = system_options
     try:
-        runner = runners.import_runner(runner_slug)
+        runner = runners.import_runner(runner_slug)()
     except runners.InvalidRunnerError:
         return options
-    if not getattr(runner, "system_options_override"):
-        runner = runner()
     if runner.system_options_override:
         opts_dict = OrderedDict((opt["option"], opt) for opt in options)
         for option in runner.system_options_override:
