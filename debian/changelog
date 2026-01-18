@@ -5,20 +5,30 @@ lutris (0.5.20) jammy; urgency=medium
   * Do not offer VKD3D, D3D Extras or DXVK-NVAPI on Proton versions; Proton will handle these.
   * The "Enable Esync" and "Enable Fsync" and "DXVK" settings are now passed on to Proton
   * DXVK's integrated D8VK will be enabled in Proton
+  * Wine runner adds an option to select Wine's "Wayland driver"
+  * Add little buttons to select covert-art, banner and icons via URL in game configuration
   * Cover-art or banners from sources will be used when Lutris media is not available
-  * Fix for updated Flathub API
   * Emulator BIOS file location (used by libretro) may be set in Preferences
-  * Obtain the release year from GOG and Itch.io
-  * Change Itch.io over to the use of API keys
+  * Fix for updated Flathub API
+  * Change Itch.io over to the use of API keys instead of usernames and passwords
   * Update EA App source to their new API
-  * Simplify Itcho.io collections- if there's no "Lutris" collection, we will show all games
+  * Simplify Itcho.io collections- if you have no collection named "Lutris", we will show all games
   * MAME Machine setting uses a searchable entry for its enourmous list
+  * Obtain the release year from GOG and Itch.io
+  * Add "Azahar" runner
+  * Add "ZOOM Platform" source
+  * Add "Steam Family" source to support Steam Families
+  * Updated versions of runners for TIC-80, EasyRPG, mGBA, Rosalie's Mupen GUI, Ruffle, 86Box
+  * Ryujinx runner can now specific 'application ID' for your multi-game XCIs.
   * Support for importing Commodore 64 ROMs
-  * Redundant "Add Games" menu item removed; use the plus button in the corner
-  * "Manual Script" for the context menu will now see the game's environment variables
-  * Support for Steam Families in the form of a "Steam Family" source
   * Support ICDs for Intel Xe GPUs
   * Add option for 'ptyxis' terminal
+  * Redundant "Add Games" menu item removed; use the plus button in the corner
+  * Option to hide a source's games from also appearing in the Games view
+  * "Manual Script" for the context menu will now see the game's environment variables
+  * Add "Create Steam Big Picture shortcut" to the context menu
+  * Add a file association to run .lutris installater files via double-click
+  * Installer files can use $SCRIPTDIR variable for 'self contained' local installations
 
 -- Mathieu Comandon <mathieucomandon@gmail.com> Sun, 23 Feb 2025 10:55:10 -0800
 
