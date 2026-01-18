@@ -36,7 +36,7 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
 )
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
+from lutris.util.display import DISPLAY_MANAGER, get_default_dpi, is_display_x11
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -65,12 +65,25 @@ from lutris.util.wine.wine import (
     is_esync_limit_set,
     is_fsync_supported,
     is_gstreamer_build,
+    is_winewayland_available,
 )
 
 
 def _is_pre_proton(_option_key: str, config: LutrisConfig) -> bool:
     version = config.runner_config.get("version")
     return not proton.is_proton_version(version)
+
+
+def _is_proton_hdr_available(_option_key: str, config: LutrisConfig) -> bool:
+    version = config.runner_config.get("version")
+    if version:
+        return (
+            is_winewayland_available(version)
+            and proton.is_proton_version(version)
+            and config.runner_config.get("Graphics") == "wayland"
+        )
+
+    return False
 
 
 def _get_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
@@ -189,6 +202,26 @@ def _get_virtual_desktop_warning(_option_key: str, config: LutrisConfig) -> Opti
             message += "\n"
             message += _("Virtual desktops cannot be enabled in Proton or GE Wine versions.")
     return message
+
+
+def _get_wine_wayland_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+    runner_config = config.runner_config
+    if runner_config.get("Graphics") == "wayland":
+        runner_version = runner_config.get("version")
+
+        if not runner_version:
+            return None
+
+        if not is_display_x11():
+            return _("You cannot use winewayland driver when using an X11-based session")
+
+        if not is_winewayland_available(runner_version):
+            if proton.is_proton_version(runner_version):
+                return _("Your Proton version does not support winewayland graphics driver")
+            else:
+                return _("Your Wine version does not support winewayland graphics driver")
+
+    return None
 
 
 def _get_wine_version_choices():
@@ -422,6 +455,19 @@ class wine(Runner):
             "conditional_on": "dgvoodoo2",
         },
         {
+            "option": "proton_hdr",
+            "section": _("Graphics"),
+            "label": _("Enable HDR (Experimental)"),
+            "type": "bool",
+            "default": False,
+            "advanced": True,
+            "visible": _is_proton_hdr_available,
+            "help": _(
+                "Enable Proton's support for High Dynamic Range graphics. "
+                "Requires Wayland selected as Graphics backend."
+            ),
+        },
+        {
             "option": "esync",
             "label": _("Enable Esync"),
             "type": "bool",
@@ -563,6 +609,24 @@ class wine(Runner):
             ),
         },
         {
+            "option": "Graphics",
+            "label": _("Graphics driver"),
+            "type": "choice",
+            "advanced": True,
+            "choices": [
+                (_("Auto"), "auto"),
+                ("Wayland", "wayland"),
+                ("X11", "x11"),
+            ],
+            "default": "auto",
+            "warning": _get_wine_wayland_warning,
+            "help": _(
+                "Which graphics backend to use.\n"
+                "By default, Wine automatically picks the right one "
+                "for your system."
+            ),
+        },
+        {
             "option": "overrides",
             "type": "mapping",
             "label": _("DLL overrides"),
@@ -602,6 +666,7 @@ class wine(Runner):
     reg_prefix = "HKEY_CURRENT_USER/Software/Wine"
     reg_keys = {
         "Audio": r"%s/Drivers" % reg_prefix,
+        "Graphics": r"%s/Drivers" % reg_prefix,
         "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
         "Desktop": "MANAGED",
         "WineDesktop": "MANAGED",
@@ -998,6 +1063,14 @@ class wine(Runner):
             if not value or (value == "auto" and key not in managed_keys):
                 prefix_manager.clear_registry_subkeys(path, key)
             elif key in self.runner_config:
+                if value and key == "Graphics" and value == "wayland":
+                    if not is_winewayland_available(self.read_version_from_config()):
+                        logger.warning("Your Wine version does not support winewayland graphics driver")
+                        continue
+
+                    if proton.is_proton_path(self.get_executable()):
+                        continue
+
                 if key in managed_keys:
                     # Do not pass fallback 'auto' value to managed keys
                     if value == "auto":
@@ -1169,6 +1242,16 @@ class wine(Runner):
 
         if not self.runner_config.get("dxvk") or not LINUX_SYSTEM.is_vulkan_supported():
             env["PROTON_USE_WINED3D"] = "1"
+
+        if (
+            self.runner_config.get("Graphics") == "wayland"
+            and is_winewayland_available(wine_config_version)
+            and proton.is_proton_version(wine_config_version)
+        ):
+            env["PROTON_ENABLE_WAYLAND"] = "1"
+
+            if self.runner_config.get("proton_hdr"):
+                env["PROTON_ENABLE_HDR"] = "1"
 
         # We always use DXVK D3D8; so should Proton.
         if "PROTON_DXVK_D3D8" not in env:
