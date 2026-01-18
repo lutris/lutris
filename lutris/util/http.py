@@ -17,7 +17,7 @@ from lutris.util.log import logger
 
 DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 30
 
-ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())  # type: ignore[misc]
 
 
 class HTTPError(Exception):
