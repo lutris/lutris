@@ -1,7 +1,8 @@
 """Configuration dialog for client and system options"""
 
 # pylint: disable=no-member
-from gettext import gettext as _, pgettext as C_
+from gettext import gettext as _
+from gettext import pgettext as C_
 from textwrap import dedent
 
 from gi.repository import Gtk

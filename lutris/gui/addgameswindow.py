@@ -1,5 +1,6 @@
 import os
-from gettext import gettext as _, ngettext
+from gettext import gettext as _
+from gettext import ngettext
 
 from gi.repository import Gio, Gtk
 

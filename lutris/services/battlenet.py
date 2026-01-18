@@ -34,7 +34,12 @@ GAME_IDS = {
     "s2": ("s2", "StarCraft II", "S2", "starcraft-ii"),
     "wow": ("wow", "World of Warcraft", "WoW", "world-of-warcraft"),
     "wow_classic": ("wow_classic", "World of Warcraft Classic", "WoW_wow_classic", "world-of-warcraft-classic"),
-    "wow_classic_era": ("wow_classic_era", "World of Warcraft Classic Era", "WoW_wow_classic_era", "world-of-warcraft-classic"),
+    "wow_classic_era": (
+        "wow_classic_era",
+        "World of Warcraft Classic Era",
+        "WoW_wow_classic_era",
+        "world-of-warcraft-classic",
+    ),
     "pro": ("pro", "Overwatch 2", "Pro", "overwatch-2"),
     "w1": ("w1", "Warcraft: Orcs & Humans", "W1", "warcraft-orcs-humans"),
     "w1r": ("w1r", "Warcraft I: Remastered", "W1R", "warcraft-i-remastered"),

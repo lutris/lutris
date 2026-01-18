@@ -1,6 +1,7 @@
 # pylint: disable=no-member
 import os
-from gettext import gettext as _, ngettext
+from gettext import gettext as _
+from gettext import ngettext
 from typing import Callable, Iterable, List
 
 from gi.repository import GObject, Gtk

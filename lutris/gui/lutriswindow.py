@@ -5,7 +5,8 @@
 import os
 from collections import namedtuple
 from datetime import datetime
-from gettext import gettext as _, ngettext
+from gettext import gettext as _
+from gettext import ngettext
 from typing import Iterable, List, Set, cast
 from urllib.parse import unquote, urlparse
 

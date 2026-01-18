@@ -431,7 +431,9 @@ def _get_suspend_inhibitor():
         # Some XFCE setups use xfce4-screensaver (org.xfce.ScreenSaver),
         # others use light-locker or other lockers (org.freedesktop.ScreenSaver).
         interfaces_to_try.append(("org.xfce.ScreenSaver", "/", "org.xfce.ScreenSaver"))
-        interfaces_to_try.append(("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver", "org.freedesktop.ScreenSaver"))
+        interfaces_to_try.append(
+            ("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver", "org.freedesktop.ScreenSaver")
+        )
 
     for name, path, interface in interfaces_to_try:
         try:

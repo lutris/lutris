@@ -2,7 +2,8 @@
 
 import os
 from collections import OrderedDict
-from gettext import gettext as _, pgettext as C_
+from gettext import gettext as _
+from gettext import pgettext as C_
 
 from lutris import runners
 from lutris.util import linux, system
