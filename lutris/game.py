@@ -9,7 +9,7 @@ import signal
 import subprocess
 import time
 from gettext import gettext as _
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union, cast
 
 from gi.repository import Gio, GLib, Gtk
 
@@ -20,7 +20,6 @@ from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.exception_backstops import watch_game_errors
 from lutris.exceptions import GameConfigError, InvalidGameMoveError, MissingExecutableError
-from lutris.gui.dialogs.delegates import LaunchUIDelegate
 from lutris.gui.widgets import NotificationSource
 from lutris.installer import InstallationKind
 from lutris.monitored_command import MonitoredCommand
@@ -43,6 +42,10 @@ from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
 from lutris.util.system import fix_path_case
 from lutris.util.timer import Timer
 from lutris.util.yaml import write_yaml_to_file
+
+if TYPE_CHECKING:
+    from lutris.gui.application import LutrisApplication
+    from lutris.gui.dialogs.delegates import LaunchUIDelegate
 
 HEARTBEAT_DELAY = 2000
 
@@ -238,7 +241,7 @@ class Game:
                 self.remove_category(".hidden")
 
     @property
-    def log_buffer(self) -> Dict:
+    def log_buffer(self) -> Gtk.TextBuffer:
         """Access the log buffer object, creating it if necessary"""
         _log_buffer = LOG_BUFFERS.get(self.id)
         if _log_buffer:
@@ -349,7 +352,7 @@ class Game:
             raise ValueError("Invalid game passed: %s" % self)
 
         if not self.service or self.service == "lutris":
-            application = Gio.Application.get_default()
+            application: "LutrisApplication" = Gio.Application.get_default()
             application.show_lutris_installer_window(game_slug=self.slug)
             return
 
@@ -357,7 +360,7 @@ class Game:
         db_game = service.get_service_db_game(self)
         if not db_game:
             logger.error("Can't find %s for %s, trying to fall back to Lutris installers", self.name, service.name)
-            application = Gio.Application.get_default()
+            application: "LutrisApplication" = Gio.Application.get_default()
             application.show_lutris_installer_window(game_slug=self.slug)
             return
 
