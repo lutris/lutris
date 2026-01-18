@@ -1259,15 +1259,22 @@ class wine(Runner):
 
         if proton.is_proton_path(self.get_executable()):
             folder_pids = set()
+            gamescope_pids = set()
+            has_gamescope = self.system_config.get("gamescope")
+
             for pid in candidate_pids:
-                cmdline = Process(pid).cmdline or ""
+                proc = Process(pid)
+                cmdline = proc.cmdline or ""
                 # pressure-vessel: This could potentially pick up PIDs not started by lutris?
                 if game_folder in cmdline or "pressure-vessel" in cmdline:
                     folder_pids.add(pid)
+                # Include gamescope-related processes when gamescope is enabled
+                if has_gamescope and (proc.name or "").startswith("gamescope"):
+                    gamescope_pids.add(pid)
 
             uuid_pids = set(pid for pid in candidate_pids if Process(pid).environ.get("LUTRIS_GAME_UUID") == game_uuid)
 
-            return folder_pids & uuid_pids
+            return (folder_pids & uuid_pids) | gamescope_pids
         else:
             return super().filter_game_pids(candidate_pids, game_uuid, game_folder)
 
