@@ -2,6 +2,7 @@
 
 __all__ = [
     "atari800",
+    "azahar",
     "cemu",
     "dolphin",
     "dosbox",
