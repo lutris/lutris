@@ -346,7 +346,7 @@ class Game:
                 disable_compositing()
                 self.compositor_disabled = True
 
-    def install(self, launch_ui_delegate: LaunchUIDelegate) -> None:
+    def install(self, launch_ui_delegate: "LaunchUIDelegate") -> None:
         """Request installation of a game"""
         if not self.slug:
             raise ValueError("Invalid game passed: %s" % self)
@@ -379,7 +379,7 @@ class Game:
             game.game_error.register(on_error)
             game.launch(launch_ui_delegate)
 
-    def install_updates(self, install_ui_delegate: LaunchUIDelegate) -> bool:
+    def install_updates(self, install_ui_delegate: "LaunchUIDelegate") -> bool:
         service = install_ui_delegate.get_service(self.service)
         db_game = games_db.get_game_by_field(self.id, "id")
 
@@ -398,7 +398,7 @@ class Game:
         busy.BusyAsyncCall(service.get_update_installers, on_installers_ready, db_game)
         return True
 
-    def install_dlc(self, install_ui_delegate: LaunchUIDelegate) -> bool:
+    def install_dlc(self, install_ui_delegate: "LaunchUIDelegate") -> bool:
         service = install_ui_delegate.get_service(self.service)
         db_game = games_db.get_game_by_field(self.id, "id")
 
@@ -611,7 +611,7 @@ class Game:
             return killswitch
         return ""
 
-    def get_gameplay_info(self, launch_ui_delegate: LaunchUIDelegate):
+    def get_gameplay_info(self, launch_ui_delegate: "LaunchUIDelegate"):
         """Return the information provided by a runner's play method.
         It checks for possible errors and raises exceptions if they occur.
 
@@ -680,7 +680,7 @@ class Game:
         return store
 
     @watch_game_errors(game_stop_result=False)
-    def configure_game(self, launch_ui_delegate: LaunchUIDelegate) -> bool:
+    def configure_game(self, launch_ui_delegate: "LaunchUIDelegate") -> bool:
         """Get the game ready to start, applying all the options.
         This method sets the game_runtime_config attribute.
         """
