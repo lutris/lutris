@@ -28,9 +28,6 @@ from typing import List, Optional
 
 import gi
 
-from ..util.busy import BusyAsyncCall
-from ..util.standalone_scripts import generate_script
-
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 
@@ -54,13 +51,15 @@ from lutris.runners import InvalidRunnerError, RunnerInstallationError, get_runn
 from lutris.services import get_enabled_services
 from lutris.startup import init_lutris, run_all_checks
 from lutris.style_manager import StyleManager
-from lutris.util import datapath, log, system, resources
+from lutris.util import datapath, log, resources, system
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_dirs
 
+from ..util.busy import BusyAsyncCall
+from ..util.standalone_scripts import generate_script
 from .lutriswindow import LutrisWindow
 
 LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATURES_ENABLED") == "1"
