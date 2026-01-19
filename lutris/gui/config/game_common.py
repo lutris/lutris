@@ -546,7 +546,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):  # type:
         self.header_bar_widgets = [self.cancel_button, self.save_button, switch_box]
 
         if self.notebook:
-            self.update_advanced_switch_visibilty(self.notebook.get_current_page())
+            self.update_advanced_switch_visibility(self.notebook.get_current_page())
 
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
