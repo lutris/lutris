@@ -108,22 +108,20 @@ def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> Optional[str]
 
 
 def _get_exe_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
-    exe = config.game_config.get("exe")
-    working_dir = config.game_config.get("working_dir")
-    if not exe:
+    exe = config.game_config.get("exe") or ""
+    stripped_exe = exe.strip()
+    working_dir = config.game_config.get("working_dir") or ""
+
+    if not stripped_exe:
         return _("<b>Warning</b> No executable path specified")
-    _exe = exe.strip()
-    good_path = exe == _exe
-    if not _exe:
-        return _("<b>Warning</b> No executable path specified")
-    if not good_path:
+    if exe != stripped_exe:
         return _("<b>Warning</b> Executable path has extra whitespace at the beginning or end")
-    if os.path.isfile(_exe):
-        return None
-    if working_dir is not None:
-        if os.path.isfile(os.path.join(working_dir, _exe)):
-            return None
-    return _("<b>Warning</b> Executable file does not exist")
+    if not os.path.isabs(exe):
+        exe = os.path.join(os.path.expanduser(working_dir), os.path.expanduser(exe))
+    if not os.path.isfile(exe):
+        return _("<b>Warning</b> Executable file does not exist")
+
+    return None
 
 
 def _get_dxvk_warning() -> Optional[str]:
