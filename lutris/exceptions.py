@@ -43,7 +43,7 @@ class DirectoryNotFoundError(MisconfigurationError):
 class SymlinkNotUsableError(MisconfigurationError):
     """Raise this error if a symlink that is required is not usable."""
 
-    def __init__(self, message=None, link=None, *args, **kwarg):
+    def __init__(self, message: str = None, link: str = None, *args: Any, **kwarg: Any):
         if not message and link:
             message = message or _("The link {} could not be used.").format(link)
         super().__init__(message, *args, **kwarg)
