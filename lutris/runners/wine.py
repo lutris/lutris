@@ -110,14 +110,20 @@ def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> Optional[str]
 def _get_exe_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     exe = config.game_config.get("exe") or ""
     stripped_exe = exe.strip()
-    working_dir = config.game_config.get("working_dir") or ""
 
     if not stripped_exe:
         return _("<b>Warning</b> No executable path specified")
     if exe != stripped_exe:
         return _("<b>Warning</b> Executable path has extra whitespace at the beginning or end")
     if not os.path.isabs(exe):
+        # The working dir is a bit dicey- Lutris doe snot use the prefix as a working dir,
+        # but it seems like Wine does, so we'll be conservative here. Only works with an explicit
+        # prefix- if we derive it from "exe" we obviosly can't use that.
+        working_dir = config.game_config.get("working_dir") or config.game_config.get("prefix") or ""
         exe = os.path.join(os.path.expanduser(working_dir), os.path.expanduser(exe))
+
+    exe = system.fix_path_case(exe)
+
     if not os.path.isfile(exe):
         return _("<b>Warning</b> Executable file does not exist")
 
