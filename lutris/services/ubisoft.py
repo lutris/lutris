@@ -3,6 +3,7 @@
 import json
 import os
 import shutil
+import glob
 from gettext import gettext as _
 from urllib.parse import unquote
 
@@ -127,16 +128,27 @@ class UbisoftConnectService(OnlineService):
     def get_configurations(self):
         ubi_game = get_game_by_field("ubisoft-connect", "slug")
         if not ubi_game:
-            return
+            return None
+
         base_dir = ubi_game["directory"]
-        configurations_path = os.path.join(
-            base_dir, "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/configuration/configurations"
-        )
-        if not os.path.exists(configurations_path):
-            return
-        with open(configurations_path, "rb") as config_file:
-            content = config_file.read()
-        return content
+        # Standardize search for the configuration file across different launcher versions
+        possible_paths = [
+            "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/configuration/configurations",
+            "drive_c/users/*/AppData/Local/Ubisoft Game Launcher/cache/configuration/configurations",
+        ]
+
+        for path_pattern in possible_paths:
+            full_pattern = os.path.join(base_dir, path_pattern)
+            matching_paths = glob.glob(full_pattern)
+            if matching_paths:
+                config_path = matching_paths[0]
+                if os.path.exists(config_path):
+                    logger.debug("Ubisoft configurations found at: %s", config_path)
+                    with open(config_path, "rb") as config_file:
+                        return config_file.read()
+
+        logger.info("Ubisoft configuration file not found in %s", base_dir)
+        return None
 
     def load(self):
         try:
