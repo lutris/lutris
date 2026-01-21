@@ -26,8 +26,6 @@ from lutris.util.path_cache import MISSING_GAMES
 
 _MEDIA_CACHE_GENERATION_NUMBER = 0
 
-_LIBRARY_BACKGROUND_COLOR = (0.15, 0.15, 0.15)  # Subtle dark gray background
-
 
 class GridViewCellRendererText(Gtk.CellRendererText):
     """CellRendererText adjusted for grid view display, removes extra padding
@@ -253,12 +251,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 media_area = self.get_media_area(surface, cell_area)
                 self.select_badge_metrics(surface, media_width, media_height)
 
-                # Render background for library view
-                if self.is_library_view():
-                    bg_x = cell_area.x
-                    bg_y = cell_area.y
-                    self.render_background(cr, bg_x, bg_y, cell_area.width, cell_area.height)
-
                 cr.save()
 
                 # Adjust context to place media_area at 0,0 and scale it.
@@ -365,12 +357,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             and is_bright_pixel(pixel_width - 1, pixel_height - corner_pixel_height)
             and is_bright_pixel(pixel_width - corner_pixel_width, pixel_height - corner_pixel_height)
         )
-
-    def render_background(self, cr, x, y, width, height):
-        """Renders a subtle background for the standardized media area in library view"""
-        cr.set_source_rgb(*_LIBRARY_BACKGROUND_COLOR)
-        cr.rectangle(x, y, width, height)
-        cr.fill()
 
     def get_media_area(self, surface, cell_area):
         """Computes the position of the upper left corner where we will render
