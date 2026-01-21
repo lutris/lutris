@@ -40,10 +40,10 @@ class UbisoftCover(ServiceMedia):
 
     def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
         # First try coverUrl from the API (available for games fetched via GraphQL)
-        if "coverUrl" in details and details["coverUrl"]:
+        if details.get("coverUrl"):
             return details["coverUrl"]
         # Fall back to thumbImage from local config files (for locally parsed games)
-        if self.api_field in details and details[self.api_field]:
+        if details.get(self.api_field):
             return self.url_pattern % details[self.api_field]
         # No image available - this is expected for some games
         return None
