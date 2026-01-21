@@ -87,7 +87,7 @@ class SidebarRow(Gtk.ListBoxRow):
         self.box.pack_start(label, True, True, 0)
         self.btn_box = Gtk.Box(spacing=3, no_show_all=True, valign=Gtk.Align.CENTER, homogeneous=True)
         self.box.pack_end(self.btn_box, False, False, 0)
-        self.spinner = Gtk.Spinner()
+        self.spinner = Gtk.Spinner(visible=False, no_show_all=True)
         self.box.pack_end(self.spinner, False, False, 0)
 
     @property
