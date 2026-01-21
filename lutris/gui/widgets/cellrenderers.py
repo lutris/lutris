@@ -26,6 +26,8 @@ from lutris.util.path_cache import MISSING_GAMES
 
 _MEDIA_CACHE_GENERATION_NUMBER = 0
 
+_LIBRARY_BACKGROUND_COLOR = (0.15, 0.15, 0.15)  # Subtle dark gray background
+
 
 class GridViewCellRendererText(Gtk.CellRendererText):
     """CellRendererText adjusted for grid view display, removes extra padding
@@ -121,6 +123,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.badge_fore_color = 1, 1, 1
         self.badge_back_color = 0, 0, 0
         self._inset_fractions = {}
+        self._expected_width = None
+        self._expected_height = None
 
     def inset_game(self, game_id: str, fraction: float) -> bool:
         """This function indicates that a particular game should be displayed inset by a certain fraction of
@@ -143,6 +147,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             return True
 
         return False
+
+    def is_library_view(self):
+        """Returns True if this is rendering for the library view (not a service view)"""
+        return self.service is None
+
+    def set_expected_size(self, width, height):
+        """Sets the expected dimensions for library view based on the selected zoom level"""
+        self._expected_width = width
+        self._expected_height = height
 
     @GObject.Property(type=str)
     def game_id(self):
@@ -207,10 +220,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         return 0, 0
 
     def do_get_preferred_width(self, widget):
+        if self.is_library_view() and self._expected_width:
+            return self._expected_width, self._expected_width
         size = self._get_preferred_size()
         return size[0], size[0]
 
     def do_get_preferred_height(self, widget):
+        if self.is_library_view() and self._expected_height:
+            return self._expected_height, self._expected_height
         size = self._get_preferred_size()
         return size[1], size[1]
 
@@ -235,6 +252,12 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             if surface:
                 media_area = self.get_media_area(surface, cell_area)
                 self.select_badge_metrics(surface, media_width, media_height)
+
+                # Render background for library view
+                if self.is_library_view():
+                    bg_x = cell_area.x
+                    bg_y = cell_area.y
+                    self.render_background(cr, bg_x, bg_y, cell_area.width, cell_area.height)
 
                 cr.save()
 
@@ -343,14 +366,28 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             and is_bright_pixel(pixel_width - corner_pixel_width, pixel_height - corner_pixel_height)
         )
 
-    @staticmethod
-    def get_media_area(surface, cell_area):
+    def render_background(self, cr, x, y, width, height):
+        """Renders a subtle background for the standardized media area in library view"""
+        cr.set_source_rgb(*_LIBRARY_BACKGROUND_COLOR)
+        cr.rectangle(x, y, width, height)
+        cr.fill()
+
+    def get_media_area(self, surface, cell_area):
         """Computes the position of the upper left corner where we will render
         a surface within the cell area."""
         media_area = Gdk.Rectangle()
         width, height = get_surface_size(surface)
-        media_area.x = round(cell_area.x + (cell_area.width - width) / 2)  # centered
-        media_area.y = round(cell_area.y + cell_area.height - height)  # at bottom of cell
+
+        # Horizontal centering (same for both library and service views)
+        media_area.x = round(cell_area.x + (cell_area.width - width) / 2)
+
+        if self.is_library_view():
+            # For library view, center vertically within cell height
+            media_area.y = round(cell_area.y + (cell_area.height - height) / 2)
+        else:
+            # Service views: bottom-aligned
+            media_area.y = round(cell_area.y + cell_area.height - height)
+
         media_area.width, media_area.height = width, height
         return media_area
 
