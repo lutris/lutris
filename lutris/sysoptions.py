@@ -501,41 +501,6 @@ system_options = [  # pylint: disable=invalid-name
             "unplugging)"
         ),
     },
-    {
-        "section": _("Xephyr (Deprecated, use Gamescope)"),
-        "option": "xephyr",
-        "label": _("Use Xephyr"),
-        "type": "choice",
-        "choices": (
-            (_("Off"), "off"),
-            (_("8BPP (256 colors)"), "8bpp"),
-            (_("16BPP (65536 colors)"), "16bpp"),
-            (_("24BPP (16M colors)"), "24bpp"),
-        ),
-        "default": "off",
-        "available": is_display_x11,
-        "advanced": True,
-        "help": _("Run program in Xephyr to support 8BPP and 16BPP color modes"),
-    },
-    {
-        "section": _("Xephyr (Deprecated, use Gamescope)"),
-        "option": "xephyr_resolution",
-        "type": "string",
-        "label": _("Xephyr resolution"),
-        "available": is_display_x11,
-        "advanced": True,
-        "help": _("Screen resolution of the Xephyr server"),
-    },
-    {
-        "section": _("Xephyr (Deprecated, use Gamescope)"),
-        "option": "xephyr_fullscreen",
-        "type": "bool",
-        "label": _("Xephyr Fullscreen"),
-        "default": True,
-        "available": is_display_x11,
-        "advanced": True,
-        "help": _("Open Xephyr in fullscreen (at the desktop resolution)"),
-    },
 ]
 
 

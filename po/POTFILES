@@ -219,7 +219,6 @@ lutris/util/graphics/glxinfo.py
 lutris/util/graphics/gpu.py
 lutris/util/graphics/__init__.py
 lutris/util/graphics/vkquery.py
-lutris/util/graphics/xephyr.py
 lutris/util/graphics/xrandr.py
 lutris/util/http.py
 lutris/util/i18n.py
