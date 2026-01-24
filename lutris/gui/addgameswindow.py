@@ -5,6 +5,9 @@ from gettext import ngettext
 from gi.repository import Gio, Gtk
 
 from lutris import api, sysoptions
+from lutris.config import LutrisConfig
+from lutris.util.wine.proton import is_proton_version
+from lutris.util.wine.wine import GE_PROTON_LATEST
 from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.dialogs import ErrorDialog, ModelessDialog
 from lutris.gui.dialogs.game_import import ImportGameDialog
@@ -319,10 +322,11 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.installer_presets.append(["win11", _("Windows 11 64-bit")])
         self.installer_presets.append(["win10", _("Windows 10 64-bit (Default)")])
         self.installer_presets.append(["win7", _("Windows 7 64-bit")])
-        self.installer_presets.append(["winxp", _("Windows XP 32-bit")])
-        self.installer_presets.append(["winxp-3dfx", _("Windows XP + 3DFX 32-bit")])
-        self.installer_presets.append(["win98", _("Windows 98 32-bit")])
-        self.installer_presets.append(["win98-3dfx", _("Windows 98 + 3DFX 32-bit")])
+
+        wine_version = LutrisConfig(runner_slug="wine").runner_config.get("version")
+        if wine_version != GE_PROTON_LATEST and not is_proton_version(wine_version):
+            self.installer_presets.append(["winxp", _("Windows XP 32-bit")])
+            self.installer_presets.append(["win98", _("Windows 98 32-bit")])
 
         renderer_text = Gtk.CellRendererText()
         self.install_preset_dropdown.pack_start(renderer_text, True)
@@ -409,8 +413,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         }
         if win_ver_task:
             installer["script"]["installer"].insert(0, win_ver_task)
-        if installer_preset.endswith("3dfx"):
-            installer["script"]["wine"] = {"dgvoodoo2": True}
         application = Gio.Application.get_default()
         application.show_installer_window([installer])
         self.destroy()
