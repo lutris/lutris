@@ -327,6 +327,41 @@ class WinePrefixManager:
                 assign_dpi(96)  # reset previous DPI
             set_lutris_directory_settings(self.path, {"dpi_assigned": ""})
 
+    def cleanup_broken_symlinks(self):
+        """Remove broken symlinks from system32/syswow64 before Proton runs.
+
+        When switching Proton versions, DLL symlinks from the previous version
+        remain in the prefix pointing to a now-uninstalled Proton. Proton's
+        pfx_copy calls os.symlink() without checking if the destination exists,
+        causing FileExistsError on prefix upgrades.
+        """
+        removed_count = 0
+
+        # prefix_path may be the compatdata directory with pfx/ inside it
+        pfx_path = os.path.join(self.path, "pfx")
+        prefix = pfx_path if os.path.isdir(pfx_path) else self.path
+
+        for subdir in ("system32", "syswow64"):
+            dir_path = os.path.join(prefix, "drive_c", "windows", subdir)
+            if not os.path.isdir(dir_path):
+                continue
+            try:
+                entries = os.listdir(dir_path)
+            except OSError as ex:
+                logger.warning("Failed to list %s: %s", dir_path, ex)
+                continue
+            for entry in entries:
+                full_path = os.path.join(dir_path, entry)
+                if os.path.islink(full_path) and not os.path.exists(full_path):
+                    try:
+                        os.unlink(full_path)
+                        removed_count += 1
+                    except OSError as ex:
+                        logger.warning("Failed to remove broken symlink %s: %s", full_path, ex)
+
+        if removed_count:
+            logger.debug("Removed %d broken symlink(s) from prefix", removed_count)
+
     def configure_joypads(self):
         """Disables some joypad devices"""
         key = self.hkcu_prefix + "/Software/Wine/DirectInput/Joysticks"

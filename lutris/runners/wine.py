@@ -1130,6 +1130,7 @@ class wine(Runner):
                 create_prefix(prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
 
             prefix_manager = WinePrefixManager(prefix_path)
+            prefix_manager.cleanup_broken_symlinks()
             if self.runner_config.get("autoconf_joypad", False):
                 prefix_manager.configure_joypads()
             prefix_manager.create_user_symlinks()
