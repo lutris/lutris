@@ -298,6 +298,7 @@ class wine(Runner):
             "option": "arch",
             "type": "choice",
             "label": _("Prefix architecture"),
+            "visible": _is_pre_proton,
             "choices": [(_("Auto"), "auto"), (_("32-bit"), "win32"), (_("64-bit"), "win64")],
             "default": "auto",
             "help": _("The architecture of the Windows environment"),
