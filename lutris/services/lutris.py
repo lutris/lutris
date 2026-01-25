@@ -189,7 +189,7 @@ def download_lutris_media(slug):
         download_media({slug: coverart_url}, LutrisCoverart())
 
 
-def sync_media(slugs: Iterable[str] = None) -> Dict[str, int]:
+def sync_media(slugs: Optional[Iterable[str]] = None) -> Dict[str, int]:
     """Download missing media for Lutris games; if a set of slugs
     is not provided, downloads them for all games in the PGA."""
     if slugs is None:
