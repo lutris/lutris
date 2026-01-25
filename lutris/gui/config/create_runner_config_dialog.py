@@ -28,6 +28,8 @@ from lutris.runners import inject_runners
 from lutris.runners.json import SETTING_JSON_RUNNER_DIR, JsonRunner
 from lutris.runners.model import ModelRunner
 from lutris.runners.runner import Runner
+from lutris.runners.yaml import SETTING_YAML_RUNNER_DIR, YamlRunner
+from lutris.util.yaml import write_yaml_to_file
 
 
 class RunnerConfigCreator:
@@ -213,6 +215,11 @@ class RunnerConfigEditMode(Enum):
     UPDATE = 1
 
 
+class RunnerConfigFileFormats(str, Enum):
+    JSON = "json"
+    YAML = "yml"
+
+
 class EditRunnerConfigDialog(GameDialogCommon):
     """Allow creation of a runner config JSON"""
 
@@ -229,13 +236,18 @@ class EditRunnerConfigDialog(GameDialogCommon):
             _("The prefix used to name the runner file for the runner in the form of <runner-file-prefix>.(json|yml)")
         )
         self._runner_name_entry.connect("changed", self._on_runner_name_changed)
+
+        runner_fileformat_box = self._get_runner_format_box()
+
         # Only allow editing the runner name when creating a new runner
         # Existing runners cannot have their runner name changed as the save location would change
+        # Also prevent changing the file format type as well
         if edit_mode == RunnerConfigEditMode.UPDATE:
             if isinstance(runner, ModelRunner):
                 self._runner_name_entry.set_sensitive(False)
                 self._runner_name_entry.set_text(runner.name)
                 self._create_runner_box.from_dict(runner.to_dict())
+                self._runner_format_dropdown.set_sensitive(False)
 
         self.save_button.set_sensitive(bool(self._runner_name_entry.get_text()))
 
@@ -244,8 +256,31 @@ class EditRunnerConfigDialog(GameDialogCommon):
         name_box.pack_start(self._runner_name_entry, True, True, 0)
 
         self.get_content_area().pack_start(name_box, False, False, 0)
+        self.get_content_area().pack_start(runner_fileformat_box, False, False, 0)
         self.get_content_area().pack_start(self._create_runner_box, True, True, 0)
         self.show_all()
+
+    def _get_runner_format_box(self):
+        box = Gtk.Box(visible=True, spacing=12, margin_right=12, margin_left=12)
+        label = Label(_("Runner Format Type"))
+
+        fileformat_liststore = Gtk.ListStore(str, str)
+        for fileformat in RunnerConfigFileFormats:
+            fileformat_liststore.append((fileformat.name, fileformat.value))
+
+        self._runner_format_dropdown = Gtk.ComboBox.new_with_model(fileformat_liststore)
+        self._runner_format_dropdown.set_tooltip_text(_("The file format to used when saving the runner"))
+        self._runner_format_dropdown.connect("changed", self._on_runner_name_changed)
+        self._runner_format_dropdown.set_id_column(1)  # Contains the widget_type key used to create UI elements
+        self._runner_format_dropdown.set_active_id(RunnerConfigFileFormats.YAML)
+
+        cell = Gtk.CellRendererText()
+        self._runner_format_dropdown.pack_start(cell, True)
+        self._runner_format_dropdown.add_attribute(cell, "text", 0)
+        box.pack_start(label, False, False, 0)
+        box.pack_start(self._runner_format_dropdown, True, True, 0)
+
+        return box
 
     def _on_runner_name_changed(self, widget):
         self.save_button.set_sensitive(bool(self._runner_name_entry.get_text()))
@@ -255,13 +290,18 @@ class EditRunnerConfigDialog(GameDialogCommon):
         if not runner_name:
             return
 
-        new_runner = type(runner_name, (JsonRunner,), {"json_path": runner_config_path})
+        runner_format = self._runner_format_dropdown.get_active_id()
+        if runner_format == RunnerConfigFileFormats.JSON:
+            new_runner = type(runner_name, (JsonRunner,), {"json_path": runner_config_path})
+        else:
+            new_runner = type(runner_name, (YamlRunner,), {"yaml_path": runner_config_path})
         inject_runners(runners={runner_name: new_runner})
         return new_runner
 
     def on_save(self, _widget):
         runner_dict = self._create_runner_box.to_dict()
         runner_name = self._runner_name_entry.get_text()
+        runner_format = self._runner_format_dropdown.get_active_id()
 
         if runner_messages := ModelRunner.validate(runner_dict):
             ErrorDialog(
@@ -271,12 +311,17 @@ class EditRunnerConfigDialog(GameDialogCommon):
             )
             return
 
-        # Make json directory runner directory if it doesn't exist
-        SETTING_JSON_RUNNER_DIR.mkdir(parents=True, exist_ok=True)
-        runner_config_path = SETTING_JSON_RUNNER_DIR / f"{runner_name}.json"
-        with runner_config_path.open("w", encoding="utf-8") as runner_file:
-            json.dump(runner_dict, runner_file, indent=4)
-            runner_file.write("\n")
+        if runner_format == RunnerConfigFileFormats.JSON:
+            # Make json directory runner directory if it doesn't exist
+            SETTING_JSON_RUNNER_DIR.mkdir(parents=True, exist_ok=True)
+            runner_config_path = SETTING_JSON_RUNNER_DIR / f"{runner_name}.{runner_format}"
+            with runner_config_path.open("w", encoding="utf-8") as runner_file:
+                json.dump(runner_dict, runner_file, indent=4)
+                runner_file.write("\n")
+        elif runner_format == RunnerConfigFileFormats.YAML:
+            SETTING_YAML_RUNNER_DIR.mkdir(parents=True, exist_ok=True)
+            runner_config_path = SETTING_YAML_RUNNER_DIR / f"{runner_name}.{runner_format}"
+            write_yaml_to_file(config=runner_dict, filepath=str(runner_config_path))
 
         # Injects the runner into the list of addon runners
         if self._inject_runner(runner_name, runner_config_path):

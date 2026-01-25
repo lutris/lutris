@@ -16,6 +16,7 @@ from lutris.database.games import get_games
 from lutris.database.schema import syncdb
 from lutris.game import Game
 from lutris.runners.json import load_json_runners
+from lutris.runners.yaml import load_yaml_runners
 from lutris.services import DEFAULT_SERVICES
 from lutris.util.graphics import vkquery
 from lutris.util.graphics.drivers import get_gpu_cards
@@ -130,6 +131,7 @@ def run_all_checks() -> None:
 def init_lutris():
     """Run full initialization of Lutris"""
     runners.inject_runners(load_json_runners())
+    runners.inject_runners(load_yaml_runners())
     init_dirs()
     try:
         syncdb()
