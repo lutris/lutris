@@ -59,7 +59,9 @@ class UbisoftCover(ServiceMedia):
             return
         base_dir = ubi_game["directory"]
         asset_file = os.path.join(
-            base_dir, "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/assets", url
+            base_dir,
+            "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/assets",
+            url,
         )
         cache_path = os.path.join(self.dest_path, self.get_filename(slug))
         if os.path.exists(asset_file):
@@ -101,7 +103,9 @@ class UbisoftConnectService(OnlineService):
     login_url = consts.LOGIN_URL
     redirect_uris = ["https://connect.ubisoft.com/change_domain/"]
     scripts = {
-        "https://connect.ubisoft.com/ready": ('window.location.replace("https://connect.ubisoft.com/change_domain/");'),
+        "https://connect.ubisoft.com/ready": (
+            'window.location.replace("https://connect.ubisoft.com/change_domain/");'
+        ),
         "https://connect.ubisoft.com/change_domain/": (
             'window.location.replace(localStorage.getItem("PRODloginData") +","+ '
             'localStorage.getItem("PRODrememberMe") +"," + localStorage.getItem("PRODlastProfile"));'
@@ -142,7 +146,7 @@ class UbisoftConnectService(OnlineService):
             return None
 
         base_dir = ubi_game["directory"]
-        
+
         """Define potential relative paths for configuration files across different launcher versions"""
         possible_paths = [
             "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/configuration/configurations",
@@ -236,9 +240,15 @@ class UbisoftConnectService(OnlineService):
             logger.debug("Ubisoft Connect game %s installed in Lutris", app_name)
             return
         logger.debug("Installing Ubisoft Connect game %s", app_name)
-        game_config = LutrisConfig(game_config_id=ubisoft_connect["configpath"]).game_level
+        game_config = LutrisConfig(
+            game_config_id=ubisoft_connect["configpath"]
+        ).game_level
         details = json.loads(game["details"])
-        launch_id = details.get("launchId") or details.get("installId") or details.get("spaceId")
+        launch_id = (
+            details.get("launchId")
+            or details.get("installId")
+            or details.get("spaceId")
+        )
         game_config["game"]["args"] = f"uplay://launch/{launch_id}"
         configpath = write_game_config(lutris_game_id, game_config)
         slug = self.get_installed_slug(game)
@@ -294,8 +304,16 @@ class UbisoftConnectService(OnlineService):
         if not os.path.isabs(uc_exe):
             uc_exe = os.path.join(ubisoft_connect.config.game_config["prefix"], uc_exe)
         details = json.loads(db_game["details"])
-        launch_id = details.get("launchId") or details.get("installId") or details.get("spaceId")
-        install_id = details.get("installId") or details.get("launchId") or details.get("spaceId")
+        launch_id = (
+            details.get("launchId")
+            or details.get("installId")
+            or details.get("spaceId")
+        )
+        install_id = (
+            details.get("installId")
+            or details.get("launchId")
+            or details.get("spaceId")
+        )
         return {
             "name": db_game["name"],
             "version": self.name,
@@ -338,5 +356,7 @@ class UbisoftConnectService(OnlineService):
             application.show_lutris_installer_window(game_slug=self.client_installer)
         else:
             application.show_installer_window(
-                [self.generate_installer(db_game, ubisoft_connect)], service=self, appid=db_game["appid"]
+                [self.generate_installer(db_game, ubisoft_connect)],
+                service=self,
+                appid=db_game["appid"],
             )
