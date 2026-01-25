@@ -441,29 +441,6 @@ class wine(Runner):
             "default": lambda: DXVKNVAPIManager().version,
         },
         {
-            "option": "dgvoodoo2",
-            "section": _("Graphics"),
-            "label": _("Enable dgvoodoo2"),
-            "type": "bool",
-            "default": False,
-            "advanced": False,
-            "help": _(
-                "dgvoodoo2 is an alternative translation layer for rendering old games "
-                "that utilize D3D1-7 and Glide APIs. As it translates to D3D11, it's "
-                "recommended to use it in combination with DXVK. Only 32-bit apps are supported."
-            ),
-        },
-        {
-            "option": "dgvoodoo2_version",
-            "section": _("Graphics"),
-            "label": _("dgvoodoo2 version"),
-            "advanced": True,
-            "type": "choice_with_entry",
-            "choices": lambda: dgvoodoo2Manager().version_choices,
-            "default": lambda: dgvoodoo2Manager().version,
-            "conditional_on": "dgvoodoo2",
-        },
-        {
             "option": "proton_hdr",
             "section": _("Graphics"),
             "label": _("Enable HDR (Experimental)"),
