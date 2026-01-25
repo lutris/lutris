@@ -10,6 +10,7 @@ from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.scaled_image import ScaledImage
 from lutris.runners.json import SETTING_JSON_RUNNER_DIR
+from lutris.runners.yaml import SETTING_YAML_RUNNER_DIR
 from lutris.util.log import logger
 
 
@@ -75,11 +76,14 @@ class RunnerBox(Gtk.Box):
 
         # Provide a button to edit the runner if it is existing in the user writable runner directory
         if hasattr(self.runner, "file_path"):
-            runner_json_path = Path(self.runner.file_path)
+            runner_file_path = Path(self.runner.file_path)
             if (
-                runner_json_path
-                and runner_json_path.exists()
-                and runner_json_path.is_relative_to(SETTING_JSON_RUNNER_DIR)
+                runner_file_path
+                and runner_file_path.exists()
+                and (
+                    runner_file_path.is_relative_to(SETTING_JSON_RUNNER_DIR)
+                    or runner_file_path.is_relative_to(SETTING_YAML_RUNNER_DIR)
+                )
             ):
                 self.edit_button.show()
 
