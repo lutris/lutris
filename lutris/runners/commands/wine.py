@@ -120,6 +120,10 @@ def create_prefix(
 
     logger.info("Winepath: %s", wine_path)
 
+    if arch == "win32" and (proton.is_umu_path(wine_path) or proton.is_proton_path(wine_path)):
+        logger.warning("Proton is not compatible with 32-bit prefixes, forcing win64")
+        arch = "win64"
+
     wineenv = runner.system_config.get("env") or {}
     wineenv.update(
         {
@@ -293,6 +297,10 @@ def wineexec(
 
         if not wine_path:  # to satisfy mypy really
             raise MissingExecutableError("The wine path could not be determined.")
+
+    if arch == "win32" and (proton.is_umu_path(wine_path) or proton.is_proton_path(wine_path)):
+        logger.warning("Proton is not compatible with 32-bit prefixes, forcing win64")
+        arch = "win64"
 
     if not working_dir:
         if os.path.isfile(executable):

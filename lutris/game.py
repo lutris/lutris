@@ -34,7 +34,6 @@ from lutris.util.display import (
     enable_compositing,
     is_display_x11,
 )
-from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
@@ -538,16 +537,6 @@ class Game:
             return True
         return False
 
-    def start_xephyr(self, display: str = ":2") -> str:
-        """Start a monitored Xephyr instance"""
-        if not system.can_find_executable("Xephyr"):
-            raise GameConfigError(_("Unable to find Xephyr, install it or disable the Xephyr option"))
-        xephyr_command = get_xephyr_command(display, self.runner.system_config)
-        xephyr_thread = MonitoredCommand(xephyr_command)
-        xephyr_thread.start()
-        time.sleep(3)
-        return display
-
     def start_antimicrox(self, antimicro_config) -> None:
         """Start Antimicrox with a given config path"""
         if LINUX_SYSTEM.is_flatpak():
@@ -728,10 +717,6 @@ class Game:
             DISPLAY_MANAGER.set_resolution(resolution)
             time.sleep(3)
             self.resolution_changed = True
-
-        xephyr = self.runner.system_config.get("xephyr") or "off"
-        if xephyr != "off":
-            env["DISPLAY"] = self.start_xephyr()
 
         self.runner.finish_env(env, self)
 
