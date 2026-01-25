@@ -15,7 +15,6 @@ ignore = [
     "PERF203", # `try`-`except` within a loop incurs performance overhead
     "RUF015", #  Prefer `next(...)` over single element slice - opinionated, but some cases could be changed
     "PERF102",# When using only the values of a dict use the `values()` method
-    "B011", # Do not `assert False` (`python -O` removes these calls), raise `AssertionError()`
     "RUF005", # Consider iterable unpacking instead of concatenation
     "A003", # Class attribute `id` is shadowing a Python builtin
     "B024", # `DiscordRichPresenceBase` is an abstract base class, but it has no abstract methods
