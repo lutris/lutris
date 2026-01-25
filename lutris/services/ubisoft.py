@@ -3,6 +3,7 @@
 import json
 import os
 import shutil
+import glob
 from gettext import gettext as _
 from typing import Any, Dict, Optional
 from urllib.parse import unquote
@@ -138,16 +139,43 @@ class UbisoftConnectService(OnlineService):
     def get_configurations(self):
         ubi_game = get_game_by_field("ubisoft-connect", "slug")
         if not ubi_game:
-            return
+            return None
+
         base_dir = ubi_game["directory"]
-        configurations_path = os.path.join(
-            base_dir, "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/configuration/configurations"
-        )
-        if not os.path.exists(configurations_path):
-            return
-        with open(configurations_path, "rb") as config_file:
-            content = config_file.read()
-        return content
+        
+        """Define potential relative paths for configuration files across different launcher versions"""
+        possible_paths = [
+            "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/configuration/configurations",
+            "drive_c/users/*/AppData/Local/Ubisoft Game Launcher/cache/configuration/configurations",
+        ]
+
+        all_valid_files = []
+
+        """Iterate through patterns to find all matching files on the system"""
+        for path_pattern in possible_paths:
+            full_pattern = os.path.join(base_dir, path_pattern)
+            matching_paths = glob.glob(full_pattern)
+
+            """Filter results to ensure we only collect actual files (ignoring directories)"""
+            for p in matching_paths:
+                if os.path.isfile(p):
+                    all_valid_files.append(p)
+
+        """Log all discovered candidates for debugging purposes"""
+        for f in all_valid_files:
+            logger.debug("Found config file candidate: %s", f)
+
+        """If any valid files were found, select and read the most recently modified one"""
+        if all_valid_files:
+            latest_file = max(all_valid_files, key=os.path.getmtime)
+
+            logger.debug("Loading configuration from: %s", latest_file)
+            with open(latest_file, "rb") as f:
+                return f.read()
+
+        """Fallback if no configuration files were detected"""
+        logger.info("Ubisoft configuration file not found in %s", base_dir)
+        return None
 
     def load(self):
         try:
