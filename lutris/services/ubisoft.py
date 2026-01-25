@@ -142,22 +142,38 @@ class UbisoftConnectService(OnlineService):
             return None
 
         base_dir = ubi_game["directory"]
-        # Standardize search for the configuration file across different launcher versions
+        
+        """Define potential relative paths for configuration files across different launcher versions"""
         possible_paths = [
             "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/configuration/configurations",
             "drive_c/users/*/AppData/Local/Ubisoft Game Launcher/cache/configuration/configurations",
         ]
 
+        all_valid_files = []
+
+        """Iterate through patterns to find all matching files on the system"""
         for path_pattern in possible_paths:
             full_pattern = os.path.join(base_dir, path_pattern)
             matching_paths = glob.glob(full_pattern)
-            if matching_paths:
-                config_path = matching_paths[0]
-                if os.path.exists(config_path):
-                    logger.debug("Ubisoft configurations found at: %s", config_path)
-                    with open(config_path, "rb") as config_file:
-                        return config_file.read()
 
+            """Filter results to ensure we only collect actual files (ignoring directories)"""
+            for p in matching_paths:
+                if os.path.isfile(p):
+                    all_valid_files.append(p)
+
+        """Log all discovered candidates for debugging purposes"""
+        for f in all_valid_files:
+            logger.debug("Found config file candidate: %s", f)
+
+        """If any valid files were found, select and read the most recently modified one"""
+        if all_valid_files:
+            latest_file = max(all_valid_files, key=os.path.getmtime)
+
+            logger.debug("Loading configuration from: %s", latest_file)
+            with open(latest_file, "rb") as f:
+                return f.read()
+
+        """Fallback if no configuration files were detected"""
         logger.info("Ubisoft configuration file not found in %s", base_dir)
         return None
 
