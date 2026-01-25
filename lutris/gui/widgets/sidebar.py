@@ -2,11 +2,11 @@
 
 import locale
 from gettext import gettext as _
-from typing import List
+from typing import Callable, List, Optional, Set, Tuple, Union
 
-from gi.repository import GObject, Gtk, Pango
+from gi.repository import Gdk, GObject, Gtk, Pango
 
-from lutris import runners, services
+from lutris import runners, services, settings
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
@@ -91,9 +91,9 @@ class SidebarRow(Gtk.ListBoxRow):
         self.box.pack_end(self.spinner, False, False, 0)
 
     @property
-    def sort_key(self):
+    def sort_key(self) -> Union[int, str]:
         """An index indicate the place this row has within its type. The id is used
-        as a tie-breaker."""
+        as a tie-breaker. Can be int or str depending on row type."""
         return 0
 
     def get_actions(self):
@@ -335,13 +335,29 @@ class SavedSearchSidebarRow(SidebarRow):
         return self._sort_name > other._sort_name
 
 
-class SidebarHeader(Gtk.Box):
-    """Header shown on top of each sidebar section"""
+class SidebarHeader(Gtk.ListBoxRow):
+    """Header shown on top of each sidebar section, as a selectable row"""
 
-    def __init__(self, name, header_index):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL)
-        self.header_index = header_index
-        self.first_row = None
+    def __init__(
+        self,
+        name: str,
+        header_index: int,
+        section_id: str,
+        collapsible: bool = True,
+        on_toggle: Optional[Callable[[str, bool], None]] = None,
+    ) -> None:
+        super().__init__()
+        self.set_selectable(False)
+        self.set_activatable(False)
+        self.header_index: int = header_index
+        self.section_id: str = section_id
+        self.type: str = "header"
+        self.id: str = section_id
+        self.collapsible: bool = collapsible
+        self.on_toggle: Optional[Callable[[str, bool], None]] = on_toggle
+        self._collapsed: bool = False
+
+        outer_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
         label = Gtk.Label(
             halign=Gtk.Align.START,
@@ -349,11 +365,57 @@ class SidebarHeader(Gtk.Box):
             use_markup=True,
             label="<b>{}</b>".format(name),
         )
-        box = Gtk.Box(margin_start=9, margin_top=6, margin_bottom=6, margin_right=9)
-        box.add(label)
-        self.add(box)
-        self.add(Gtk.Separator())
+
+        self.arrow = Gtk.Image.new_from_icon_name("pan-down-symbolic", Gtk.IconSize.MENU)
+        self.arrow.set_margin_end(6)
+
+        box = Gtk.Box(margin_start=9, margin_top=6, margin_bottom=6, margin_end=9)
+        if collapsible:
+            box.pack_start(self.arrow, False, False, 0)
+        box.pack_start(label, True, True, 0)
+
+        if collapsible:
+            event_box = Gtk.EventBox()
+            event_box.add(box)
+            event_box.connect("button-press-event", self._on_click)
+            event_box.connect("enter-notify-event", self._on_enter)
+            event_box.connect("leave-notify-event", self._on_leave)
+            outer_box.add(event_box)
+        else:
+            outer_box.add(box)
+
+        outer_box.add(Gtk.Separator())
+        self.add(outer_box)
         self.show_all()
+
+    @property
+    def collapsed(self) -> bool:
+        return self._collapsed
+
+    @collapsed.setter
+    def collapsed(self, value: bool) -> None:
+        self._collapsed = value
+        if self.collapsible:
+            icon_name = "pan-end-symbolic" if value else "pan-down-symbolic"
+            self.arrow.set_from_icon_name(icon_name, Gtk.IconSize.MENU)
+
+    def _on_click(self, widget: Gtk.EventBox, event: Gdk.EventButton) -> bool:
+        if event.button == 1:  # Left click
+            self.collapsed = not self.collapsed
+            if self.on_toggle:
+                self.on_toggle(self.section_id, self.collapsed)
+        return True
+
+    def _on_enter(self, widget: Gtk.EventBox, event: Gdk.EventCrossing) -> None:
+        widget.get_window().set_cursor(Gdk.Cursor.new_from_name(widget.get_display(), "pointer"))
+
+    def _on_leave(self, widget: Gtk.EventBox, event: Gdk.EventCrossing) -> None:
+        widget.get_window().set_cursor(None)
+
+    @property
+    def sort_key(self) -> Union[int, str]:
+        # Headers sort before all rows in their section (not used directly in sorting)
+        return 0
 
 
 class DummyRow:
@@ -395,14 +457,33 @@ class LutrisSidebar(Gtk.ListBox):
         self.running_row = DummyRow()
         self.hidden_row = DummyRow()
         self.missing_row = DummyRow()
+
+        # Load collapsed sections state from settings
+        self.collapsed_sections = self._load_collapsed_sections()
+
         self.row_headers = {
-            "library": SidebarHeader(_("Library"), header_index=0),
-            "user_category": SidebarHeader(_("Categories"), header_index=1),
-            "saved_search": SidebarHeader(_("Saved Searches"), header_index=2),
-            "service": SidebarHeader(_("Sources"), header_index=3),
-            "runner": SidebarHeader(_("Runners"), header_index=4),
-            "platform": SidebarHeader(_("Platforms"), header_index=5),
+            "library": SidebarHeader(_("Library"), header_index=0, section_id="library", collapsible=False),
+            "user_category": SidebarHeader(
+                _("Categories"), header_index=1, section_id="user_category", on_toggle=self._on_section_toggle
+            ),
+            "saved_search": SidebarHeader(
+                _("Saved Searches"), header_index=2, section_id="saved_search", on_toggle=self._on_section_toggle
+            ),
+            "service": SidebarHeader(
+                _("Sources"), header_index=3, section_id="service", on_toggle=self._on_section_toggle
+            ),
+            "runner": SidebarHeader(
+                _("Runners"), header_index=4, section_id="runner", on_toggle=self._on_section_toggle
+            ),
+            "platform": SidebarHeader(
+                _("Platforms"), header_index=5, section_id="platform", on_toggle=self._on_section_toggle
+            ),
         }
+
+        # Restore collapsed state for each header
+        for section_id, header in self.row_headers.items():
+            if section_id in self.collapsed_sections:
+                header.collapsed = True
         GObject.add_emission_hook(RunnerBox, "runner-installed", self.update_rows)
         GObject.add_emission_hook(RunnerBox, "runner-removed", self.update_rows)
         GObject.add_emission_hook(RunnerConfigDialog, "runner-updated", self.update_runner_rows)
@@ -420,7 +501,6 @@ class LutrisSidebar(Gtk.ListBox):
         LOCAL_LIBRARY_SYNCING.register(self.on_local_library_syncing)
         LOCAL_LIBRARY_SYNCED.register(self.on_local_library_synced)
         self.set_filter_func(self._filter_func)
-        self.set_header_func(self._header_func)
         self.show_all()
 
     @staticmethod
@@ -443,12 +523,40 @@ class LutrisSidebar(Gtk.ListBox):
 
         return icon
 
+    def _load_collapsed_sections(self) -> Set[str]:
+        """Load collapsed sections state from settings."""
+        collapsed_str = settings.read_setting("sidebar_collapsed_sections", default="")
+        if collapsed_str:
+            return set(collapsed_str.split(","))
+        return set()
+
+    def _save_collapsed_sections(self) -> None:
+        """Save collapsed sections state to settings."""
+        collapsed_str = ",".join(sorted(self.collapsed_sections))
+        settings.write_setting("sidebar_collapsed_sections", collapsed_str)
+
+    def _on_section_toggle(self, section_id: str, collapsed: bool) -> None:
+        """Handle section collapse/expand toggle."""
+        if collapsed:
+            self.collapsed_sections.add(section_id)
+        else:
+            self.collapsed_sections.discard(section_id)
+        self._save_collapsed_sections()
+        self.invalidate_filter()
+
+    def is_section_collapsed(self, section_type: str) -> bool:
+        """Check if a section is collapsed."""
+        return section_type in self.collapsed_sections
+
     def initialize_rows(self):
         """
         Select the initial row; this triggers the initialization of the game view,
         so we must do this even if this sidebar is never realized, but only after
         the sidebar's signals are connected.
         """
+
+        # Add the Library header first
+        self.add(self.row_headers["library"])
 
         # Create the basic rows that are not data dependant
 
@@ -555,8 +663,29 @@ class LutrisSidebar(Gtk.ListBox):
                 )
             return self.runner_visibility_cache[runner_name]
 
+        # Header rows: show if their section has content
+        if row.type == "header":
+            section_id = row.section_id
+            if section_id == "library":
+                return True
+            if section_id == "user_category":
+                return bool(self.used_categories)
+            if section_id == "saved_search":
+                return bool(self.saved_searches)
+            if section_id == "service":
+                return bool(self.active_services)
+            if section_id == "runner":
+                return bool(self.installed_runners)
+            if section_id == "platform":
+                return bool(self.active_platforms)
+            return True
+
         if not row or not row.id or row.type in ("category", "dynamic_category"):
             return True
+
+        # Hide rows if their section is collapsed
+        if self.is_section_collapsed(row.type):
+            return False
 
         if row.type == "runner":
             if row.id is None:
@@ -574,33 +703,6 @@ class LutrisSidebar(Gtk.ListBox):
 
         return row.id in allowed_ids
 
-    def _header_func(self, row, before):
-        if not before:
-            header = self.row_headers["library"]
-        elif before.type in ("category", "dynamic_category") and row.type == "user_category":
-            header = self.row_headers[row.type]
-        elif before.type in ("category", "dynamic_category", "user_category") and row.type == "saved_search":
-            header = self.row_headers[row.type]
-        elif before.type in ("category", "dynamic_category", "user_category", "saved_search") and row.type == "service":
-            header = self.row_headers[row.type]
-        elif before.type == "service" and row.type == "runner":
-            header = self.row_headers[row.type]
-        elif before.type == "runner" and row.type == "platform":
-            header = self.row_headers[row.type]
-        else:
-            header = None
-
-        if header and row.get_header() != header:
-            # GTK is messy here; a header can't belong to two rows at once,
-            # so we must remove it from the one that owns it, if any, and
-            # also from the sidebar itself. Then we can reuse it.
-            if header.first_row:
-                header.first_row.set_header(None)
-                if header.get_parent() == self:
-                    self.remove(header)
-            header.first_row = row
-            row.set_header(header)
-
     def update_runner_rows(self, *_args):
         self.runner_visibility_cache.clear()
         self.update_rows()
@@ -611,14 +713,22 @@ class LutrisSidebar(Gtk.ListBox):
         any no longer needed. GTK has a lot of trouble dynamically updating and re-arranging
         rows, so this will have to do. This keeps the total row count down reasonably well."""
 
-        def get_sort_key(row):
+        # Type alias for sort key: (header_index, is_header, sort_key, id)
+        SortKey = Tuple[int, bool, Union[int, str], str]
+
+        def get_sort_key(row: Gtk.ListBoxRow) -> SortKey:
             """Returns a key used to sort the rows. This keeps rows for a header
-            together, and rows in a hopefully reasonable order as we insert them."""
+            together, and rows in a hopefully reasonable order as we insert them.
+            Returns (header_index, is_header, sort_key, id) where is_header ensures
+            headers sort before content rows."""
+            if isinstance(row, SidebarHeader):
+                # Headers sort at the start of their section (is_header=False sorts before True)
+                return row.header_index, False, 0, ""
             header_row = self.row_headers.get(row.type) if row.type else None
             header_index = header_row.header_index if header_row else 0
-            return header_index, row.sort_key, row.id
+            return header_index, True, row.sort_key, row.id
 
-        def insert_row(row):
+        def insert_row(row: Gtk.ListBoxRow) -> None:
             """Find the best place to insert the row, to maintain order, and inserts it there."""
             index = 0
             seq = get_sort_key(row)
@@ -640,6 +750,11 @@ class LutrisSidebar(Gtk.ListBox):
         self.active_services = services.get_enabled_services()
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = games_db.get_used_platforms()
+
+        # Add section headers if not already in the sidebar
+        for section_id, header in self.row_headers.items():
+            if section_id != "library" and header.get_parent() is None:
+                insert_row(header)
 
         for service_name, service_class in self.active_services.items():
             if service_name not in self.service_rows:
