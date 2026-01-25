@@ -38,7 +38,7 @@ from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
-from lutris.util.system import fix_path_case
+from lutris.util.system import expose_environment, fix_path_case
 from lutris.util.timer import Timer
 from lutris.util.yaml import write_yaml_to_file
 
@@ -563,6 +563,7 @@ class Game:
             logger.warning("Command %s not found", command_array[0])
             return
         env = self.game_runtime_config["env"]
+        env = expose_environment(self.runner, env)
         if wait_for_completion:
             logger.info("Prelauch command: %s, waiting for completion", prelaunch_command)
             # Monitor the prelaunch command and wait until it has finished
@@ -953,12 +954,13 @@ class Game:
         postexit_command = self.runner.system_config.get("postexit_command")
         if postexit_command:
             command_array = shlex.split(postexit_command)
+            env = self.game_runtime_config["env"]
             if system.path_exists(command_array[0]):
                 logger.info("Running post-exit command: %s", postexit_command)
                 postexit_thread = MonitoredCommand(
                     command_array,
                     include_processes=[os.path.basename(postexit_command)],
-                    env=self.game_runtime_config["env"],
+                    env=expose_environment(self.runner, env),
                     cwd=self.resolve_game_path(),
                 )
                 postexit_thread.start()

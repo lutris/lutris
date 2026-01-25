@@ -30,7 +30,7 @@ from lutris.util.log import logger
 from lutris.util.standalone_scripts import generate_script
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, slugify
-from lutris.util.system import path_exists
+from lutris.util.system import expose_environment, path_exists
 
 
 class GameActions:
@@ -321,6 +321,7 @@ class SingleGameActions(GameActions):
         if path_exists(manual_command):
             runner = game.runner
             env = runner.get_env()
+            env = expose_environment(runner, env)
             MonitoredCommand(
                 [manual_command], include_processes=[os.path.basename(manual_command)], cwd=game.directory, env=env
             ).start()
