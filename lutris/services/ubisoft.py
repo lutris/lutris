@@ -1,9 +1,9 @@
 """Ubisoft Connect service"""
 
+import glob
 import json
 import os
 import shutil
-import glob
 from gettext import gettext as _
 from typing import Any, Dict, Optional
 from urllib.parse import unquote
@@ -142,7 +142,7 @@ class UbisoftConnectService(OnlineService):
             return None
 
         base_dir = ubi_game["directory"]
-        
+
         """Define potential relative paths for configuration files across different launcher versions"""
         possible_paths = [
             "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/configuration/configurations",
