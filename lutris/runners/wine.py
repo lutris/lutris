@@ -1228,8 +1228,12 @@ class wine(Runner):
         if self.runner_config.get("eac"):
             env["PROTON_EAC_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "eac_runtime")
 
-        if not self.runner_config.get("dxvk") or not LINUX_SYSTEM.is_vulkan_supported():
+        using_dxvk = self.runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported
+        if not using_dxvk:
             env["PROTON_USE_WINED3D"] = "1"
+
+        if "PROTON_DXVK_D3D8" not in env:
+            env["PROTON_DXVK_D3D8"] = "1" if using_dxvk else "0"
 
         if (
             self.runner_config.get("Graphics") == "wayland"
@@ -1240,10 +1244,6 @@ class wine(Runner):
 
             if self.runner_config.get("proton_hdr"):
                 env["PROTON_ENABLE_HDR"] = "1"
-
-        # We always use DXVK D3D8; so should Proton.
-        if "PROTON_DXVK_D3D8" not in env:
-            env["PROTON_DXVK_D3D8"] = "1"
 
         for dll_manager in self.get_dll_managers(enabled_only=True):
             self.dll_overrides.update(dll_manager.get_enabling_dll_overrides())
