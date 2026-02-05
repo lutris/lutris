@@ -412,6 +412,51 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "section": _("Game execution"),
+        "option": "env_expose_systemconfig",
+        "label": "Expose system config to scripts",
+        "type": "bool",
+        "default": False,
+        "advanced": False,
+        "help": _(
+            "Expose system configuration values"
+            "to the following scripts:"
+            "Manual Script, Pre-launch script, Post-exit script"
+            "as a JSON string available in environment variable:"
+            "LUTRIS_RUNNER_SYSTEM_CONFIG"
+        ),
+    },
+    {
+        "section": _("Game execution"),
+        "option": "env_expose_runnerconfig",
+        "label": "Expose runner config to scripts",
+        "type": "bool",
+        "default": False,
+        "advanced": False,
+        "help": _(
+            "Expose runner's own configuration values"
+            "to the following scripts:"
+            "Manual Script, Pre-launch script, Post-exit script"
+            "as a JSON string available in environment variable:"
+            "LUTRIS_RUNNER_RUNNER_CONFIG"
+        ),
+    },
+    {
+        "section": _("Game execution"),
+        "option": "env_expose_gameconfig",
+        "label": "Expose game config to scripts",
+        "type": "bool",
+        "default": False,
+        "advanced": False,
+        "help": _(
+            "Expose game configuration values"
+            "to the following scripts:"
+            "Manual Script, Pre-launch script, Post-exit script"
+            "as a JSON string available in environment variable:"
+            "LUTRIS_RUNNER_GAME_CONFIG"
+        ),
+    },
+    {
+        "section": _("Game execution"),
         "option": "locale",
         "type": "choice_with_entry",
         "label": _("Locale"),
