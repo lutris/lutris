@@ -15,6 +15,15 @@
             "default_path": "game_path"
         }
     ],
+    "runner_options": [
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "default": true,
+            "label": "Fullscreen",
+            "argument": "--fullscreen"
+        }
+    ],
     "system_options_override": [
         {
             "option": "disable_runtime",
