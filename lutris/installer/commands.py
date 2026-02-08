@@ -713,9 +713,17 @@ class CommandsMixin:
             self.mkdir(f"$GAMEDIR/drive_c/game/{directory}")
 
         # move installed files from CACHE to game folder
-        for file_hash, file in self.game_files.items():
-            file_dir = os.path.dirname(files[file_hash]["path"])
-            self.move({"src": file, "dst": f"$GAMEDIR/drive_c/game/{file_dir}"})
+        for file_hash, source_file in self.game_files.items():
+            if file_hash not in files:
+                continue
+            paths = files[file_hash]["paths"]
+            for i, path in enumerate(paths):
+                file_dir = os.path.dirname(path)
+                dest_dir = f"$GAMEDIR/drive_c/game/{file_dir}"
+                if i < len(paths) - 1:
+                    self.copy({"src": source_file, "dst": dest_dir})
+                else:
+                    self.move({"src": source_file, "dst": dest_dir})
 
     def install_or_extract(self, file_id):
         """Runs if file is executable or extracts if file is archive"""
