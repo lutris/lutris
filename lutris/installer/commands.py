@@ -713,17 +713,27 @@ class CommandsMixin:
             self.mkdir(f"$GAMEDIR/drive_c/game/{directory}")
 
         # move installed files from CACHE to game folder
-        for file_hash, source_file in self.game_files.items():
-            if file_hash not in files:
+        for file_hash, file_data in files.items():
+            if file_hash not in self.game_files:
+                logger.warning("Amazon: Missing file hash %s (expected at %s)", file_hash, file_data["paths"][0])
                 continue
-            paths = files[file_hash]["paths"]
-            for i, path in enumerate(paths):
+
+            source_file = self.game_files[file_hash]
+            paths = file_data["paths"]
+
+            for path in paths:
                 file_dir = os.path.dirname(path)
-                dest_dir = f"$GAMEDIR/drive_c/game/{file_dir}"
-                if i < len(paths) - 1:
-                    self.copy({"src": source_file, "dst": dest_dir})
-                else:
-                    self.move({"src": source_file, "dst": dest_dir})
+                dest_path = f"$GAMEDIR/drive_c/game/{path}"
+
+                abs_dest_path = self._substitute(dest_path)
+                if os.path.isdir(abs_dest_path):
+                    logger.warning("Amazon: Removing conflicting directory %s", abs_dest_path)
+                    shutil.rmtree(abs_dest_path)
+
+                self._killable_process(shutil.copyfile, source_file, abs_dest_path)
+
+            if os.path.exists(source_file):
+                os.remove(source_file)
 
     def install_or_extract(self, file_id):
         """Runs if file is executable or extracts if file is archive"""
