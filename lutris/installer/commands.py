@@ -722,7 +722,6 @@ class CommandsMixin:
             paths = file_data["paths"]
 
             for path in paths:
-                file_dir = os.path.dirname(path)
                 dest_path = f"$GAMEDIR/drive_c/game/{path}"
 
                 abs_dest_path = self._substitute(dest_path)
