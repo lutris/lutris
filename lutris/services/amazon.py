@@ -549,10 +549,13 @@ class AmazonService(OnlineService):
         file_dict = {}
         directories = []
         hashpairs = []
+        file_paths = set()
+
         for __, package in enumerate(manifest.packages):
             for __, file in enumerate(package.files):
                 file_hash = file.hash.value.hex()
                 file_path = file.path.decode().replace("\\", "/")
+                file_paths.add(file_path)
 
                 if file_hash in file_dict:
                     file_dict[file_hash]["paths"].append(file_path)
@@ -571,7 +574,9 @@ class AmazonService(OnlineService):
                 )
             for __, directory in enumerate(package.dirs):
                 if directory.path is not None:
-                    directories.append(directory.path.decode().replace("\\", "/"))
+                    dir_path = directory.path.decode().replace("\\", "/")
+                    if dir_path not in file_paths:
+                        directories.append(dir_path)
 
         return file_dict, directories, hashpairs
 
