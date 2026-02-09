@@ -283,6 +283,14 @@ class Game:
             return self.runner.resolve_game_path()
         return ""
 
+    def find_working_dir(self) -> str:
+        """Returns a working directory- if we can't get one from the runner,
+        we'll use the game path as a fallback."""
+        if self.has_runner:
+            return self.runner.working_dir or self.resolve_game_path()
+        else:
+            return self.resolve_game_path()
+
     @property
     def config(self) -> Union[LutrisConfig, None]:
         if not self.is_installed or not self.game_config_id:
@@ -563,17 +571,18 @@ class Game:
             logger.warning("Command %s not found", command_array[0])
             return
         env = self.game_runtime_config["env"]
+        cwd = self.find_working_dir()
         if wait_for_completion:
             logger.info("Prelauch command: %s, waiting for completion", prelaunch_command)
             # Monitor the prelaunch command and wait until it has finished
-            system.execute(command_array, env=env, cwd=self.resolve_game_path())
+            system.execute(command_array, env=env, cwd=cwd)
         else:
             logger.info("Prelaunch command %s launched in the background", prelaunch_command)
             self.prelaunch_executor = MonitoredCommand(
                 command_array,
                 include_processes=[os.path.basename(command_array[0])],
                 env=env,
-                cwd=self.resolve_game_path(),
+                cwd=cwd,
             )
             if not hasattr(self.prelaunch_executor, "start") or not self.prelaunch_executor:
                 raise RuntimeError("Prelaunch Executor: %s doesn't have a start attribute" % self.prelaunch_executor)
@@ -959,7 +968,7 @@ class Game:
                     command_array,
                     include_processes=[os.path.basename(postexit_command)],
                     env=self.game_runtime_config["env"],
-                    cwd=self.resolve_game_path(),
+                    cwd=self.find_working_dir(),
                 )
                 postexit_thread.start()
 
