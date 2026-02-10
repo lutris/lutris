@@ -25,6 +25,7 @@
   <url type="faq">https://lutris.net/faq</url>
   <url type="translate">https://github.com/lutris/lutris/tree/master/po</url>
   <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
+  <url type="vcs-browser">https://github.com/lutris/lutris</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
     <release version="0.5.20" date="2024-12-02" urgency="low"></release>
