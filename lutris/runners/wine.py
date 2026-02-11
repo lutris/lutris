@@ -69,27 +69,26 @@ from lutris.util.wine.wine import (
 )
 
 
-def _is_pre_proton(_option_key: str, config: LutrisConfig) -> bool:
+def _is_proton_config(config: LutrisConfig) -> bool:
     version = config.runner_config.get("version")
-    return not proton.is_proton_version(version)
+    return version == GE_PROTON_LATEST or proton.is_proton_version(version)
+
+
+def _is_pre_proton(_option_key: str, config: LutrisConfig) -> bool:
+    return not _is_proton_config(config)
 
 
 def _is_proton_hdr_available(_option_key: str, config: LutrisConfig) -> bool:
-    version = config.runner_config.get("version")
-    if version:
-        return (
-            is_winewayland_available(version)
-            and proton.is_proton_version(version)
-            and config.runner_config.get("Graphics") == "wayland"
-        )
+    if _is_proton_config(config):
+        version = config.runner_config.get("version")
+        return bool(version and is_winewayland_available(version) and config.runner_config.get("Graphics") == "wayland")
 
     return False
 
 
 def _get_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     arch = config.game_config.get("arch")
-    version = config.runner_config.get("version")
-    if arch == "win32" and proton.is_proton_version(version):
+    if arch == "win32" and _is_proton_config(config):
         return _("Proton is not compatible with 32-bit prefixes.")
 
     return None
@@ -224,7 +223,7 @@ def _get_wine_wayland_warning(_option_key: str, config: LutrisConfig) -> Optiona
             return _("You cannot use winewayland driver when using an X11-based session")
 
         if not is_winewayland_available(runner_version):
-            if proton.is_proton_version(runner_version):
+            if _is_proton_config(config):
                 return _("Your Proton version does not support winewayland graphics driver")
             else:
                 return _("Your Wine version does not support winewayland graphics driver")
@@ -1184,6 +1183,9 @@ class wine(Runner):
         wine_config_version = self.read_version_from_config()
         if wine_config_version == GE_PROTON_LATEST:
             env["PROTONPATH"] = "GE-Proton"
+            is_proton_version = True
+        else:
+            is_proton_version = proton.is_proton_version(wine_config_version)
         env["WINE"] = wine_exe
 
         files_dir = get_runner_files_dir_for_version(wine_config_version)
@@ -1238,7 +1240,7 @@ class wine(Runner):
         if (
             self.runner_config.get("Graphics") == "wayland"
             and is_winewayland_available(wine_config_version)
-            and proton.is_proton_version(wine_config_version)
+            and is_proton_version
         ):
             env["PROTON_ENABLE_WAYLAND"] = "1"
 

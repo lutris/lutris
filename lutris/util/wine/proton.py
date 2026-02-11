@@ -17,7 +17,8 @@ DEFAULT_GAMEID = "umu-default"
 
 def is_proton_version(version: Optional[str]) -> bool:
     """True if the version indicated specifies a Proton version of Wine; these
-    require special handling."""
+    require special handling. This does not recognize the special 'ge-proton' version
+    found in configurations; this must be specially  handled elsewhere."""
     return version in get_proton_versions()
 
 
