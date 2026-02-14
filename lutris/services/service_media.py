@@ -74,6 +74,7 @@ class ServiceMedia:
     file_patterns = NotImplemented
     api_field = NotImplemented
     url_pattern = "%s"
+    can_be_fallback = True
 
     def __init__(self):
         if self.dest_path and not system.path_exists(self.dest_path):
@@ -106,11 +107,12 @@ class ServiceMedia:
             return diff if media[0].size[1] >= self.size[1] else diff + 1000
 
         for media, slug_function in sorted(medias, key=similarity):
-            slug = slug_function()
-            if slug:
-                for mp in media.get_possible_media_paths(slug):
-                    if mp.exists:
-                        return mp.scale_to_fit(self.size)
+            if media.can_be_fallback:
+                slug = slug_function()
+                if slug:
+                    for mp in media.get_possible_media_paths(slug):
+                        if mp.exists:
+                            return mp.scale_to_fit(self.size)
 
         return None
 
