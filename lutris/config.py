@@ -36,6 +36,17 @@ def duplicate_game_config(game_slug: str, source_config_id: str) -> str:
     return new_config_id
 
 
+def rename_config(old_config_id: str, new_slug: str) -> Optional[str]:
+    old_slug, timestamp = old_config_id.rsplit("-", 1)
+    if old_slug == new_slug:
+        return None
+    new_config_id = f"{new_slug}-{timestamp}"
+    src_path = f"{settings.GAME_CONFIG_DIR}/{old_config_id}.yml"
+    dest_path = f"{settings.GAME_CONFIG_DIR}/{new_config_id}.yml"
+    os.rename(src_path, dest_path)
+    return new_config_id
+
+
 class LutrisConfig:
     """Class where all the configuration handling happens.
 
