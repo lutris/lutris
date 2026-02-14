@@ -32,6 +32,10 @@ class HumbleBundleIcon(ServiceMedia):
 
 class HumbleSmallIcon(HumbleBundleIcon):
     size = (35, 35)
+    can_be_fallback = False
+
+    def get_fallback_media_path(self, services):
+        return None
 
 
 class HumbleBigIcon(HumbleBundleIcon):
@@ -68,7 +72,7 @@ class HumbleBundleService(OnlineService):
 
     api_url = "https://www.humblebundle.com/"
     login_url = "https://www.humblebundle.com/login?goto=/home/library"
-    redirect_uri = "https://www.humblebundle.com/home/library"
+    redirect_uris = ["https://www.humblebundle.com/home/library"]
 
     cookies_path = os.path.join(settings.CACHE_DIR, ".humblebundle.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".humblebundle.token")

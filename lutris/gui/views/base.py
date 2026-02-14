@@ -1,7 +1,7 @@
 import time
 from typing import List
 
-from gi.repository import Gdk, Gio, GObject, Gtk
+from gi.repository import Gdk, GObject, Gtk
 
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
@@ -9,7 +9,7 @@ from lutris.game import GAME_START, Game
 from lutris.game_actions import GameActions, get_game_actions
 from lutris.gui.widgets import EMPTY_NOTIFICATION_REGISTRATION
 from lutris.gui.widgets.contextual_menu import ContextualMenu
-from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED
+from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED, get_application
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES
@@ -47,11 +47,7 @@ class GameView:
         self.service = game_store.service
         self.service_media = game_store.service_media
 
-        size = self.service_media.size
-
         if self.image_renderer:
-            self.image_renderer.media_width = size[0]
-            self.image_renderer.media_height = size[1]
             self.image_renderer.service = self.service
 
     def on_media_cache_invalidated(self):
@@ -97,7 +93,7 @@ class GameView:
         looking up running games, service games and all that."""
 
         def _get_game_by_id(id_to_find: str) -> Game:
-            application = Gio.Application.get_default()
+            application = get_application()
             return application.get_game_by_id(id_to_find) if application else Game(id_to_find)
 
         games = []

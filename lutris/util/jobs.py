@@ -1,26 +1,58 @@
 import sys
 import threading
 import traceback
-from typing import Callable
+from typing import Callable, Optional
 
-from gi.repository import GLib
+from gi.repository import GLib  # type: ignore
 
 from lutris.util.log import logger
 
 
 class AsyncCall(threading.Thread):
-    def __init__(self, func, callback, *args, **kwargs):
+    def __init__(self, func, callback, *args, callback_target=None, **kwargs):
         """Execute `function` in a new thread then schedule `callback` for
-        execution in the main loop.
+        execution in the main loop. If 'callback_target' is a widget and it is destroyed
+        in the meantime, the callback is cancelled.
         """
         self.callback_task = None
         self.stop_request = threading.Event()
 
         super().__init__(target=self.target, args=args, kwargs=kwargs)
         self.function = func
-        self.callback = callback if callback else lambda r, e: None
+        if not callback:
+            self.callback = lambda r, e: None
+        else:
+            self.callback = self._protect_callback(callback, callback_target)
         self.daemon = kwargs.pop("daemon", True)
         self.start()
+
+    def _protect_callback(self, callback, callback_target=None):
+        """Wraps and hooks up an on-destroyed handler on the callback_target that
+        removes the callback; this prevents an AsyncJob from completing on a
+        destroyed widget, which can cause a crash.
+
+        If no callback_target is given, this will use the receiver of the callback
+        (if it has one)."""
+        if not callback_target:
+            callback_target = callback.__self__ if hasattr(callback, "__self__") else None
+
+        if callback_target and hasattr(callback_target, "call_when_destroyed"):
+
+            def unhook():
+                # If the target is destroyed, block the callback; no need to disconnect
+                # from a dead object.
+                self.callback = lambda r, e: None
+
+            def fire(r, e):
+                # Before starting the callback, unhook the on-destroyed callback
+                # so we don't leak it.
+                disconnecter()
+                callback(r, e)
+
+            disconnecter = callback_target.call_when_destroyed(unhook)
+            return fire
+        else:
+            return callback
 
     def target(self, *a, **kw):
         result = None
@@ -48,18 +80,14 @@ class IdleTask:
     def __init__(self) -> None:
         """Initializes a task with no connection to a source, but also not completed; this can be
         connected to a source via the connect() method, unless it is completed first."""
-        self.source_id = None
+        self.source_id: Optional[int] = None
         self._is_completed = False
 
     def unschedule(self) -> None:
         """Call this to prevent the idle task from running, if it has not already run."""
-        if self.is_connected():
+        if self.source_id is not None:
             GLib.source_remove(self.source_id)
             self.disconnect()
-
-    def is_connected(self) -> bool:
-        """True if the idle task can still be unscheduled. If false, unschedule() will do nothing."""
-        return self.source_id is not None
 
     def is_completed(self) -> bool:
         """True if the idle task has completed; that is, if mark_completed() was called on it."""

@@ -5,6 +5,7 @@ import os
 import re
 import shlex
 import shutil
+from pathlib import Path
 
 from lutris.api import format_installer_url
 from lutris.util import resources, system
@@ -77,7 +78,7 @@ def is_steam_game(game):
     return game.runner_name == "steam"
 
 
-def create_shortcut(game, launch_config_name=None):
+def create_shortcut(game, launch_config_name=None, standalone=False):
     if is_steam_game(game):
         logger.warning("Not updating shortcut for Steam game")
         return
@@ -89,7 +90,10 @@ def create_shortcut(game, launch_config_name=None):
     else:
         shortcuts = []
 
-    shortcuts = list(shortcuts) + [generate_shortcut(game, launch_config_name)]
+    if standalone:
+        shortcuts = list(shortcuts) + [generate_standalone_shortcut(game, launch_config_name)]
+    else:
+        shortcuts = list(shortcuts) + [generate_shortcut(game, launch_config_name)]
 
     updated_shortcuts = {"shortcuts": {str(index): elem for index, elem in enumerate(shortcuts)}}
     with open(shortcut_path, "wb") as shortcut_file:
@@ -132,7 +136,7 @@ def generate_shortcut_id(game):
 
 
 def generate_shortcut(game, launch_config_name):
-    lutris_binary = shutil.which("lutris")
+    lutris_binary = "lutris"
 
     launch_options = format_installer_url(
         {"action": "rungameid", "game_slug": game.id, "launch_config_name": launch_config_name}
@@ -140,14 +144,14 @@ def generate_shortcut(game, launch_config_name):
 
     launch_options = shlex.quote(launch_options)
 
-    if lutris_binary == "/app/bin/lutris":
+    if is_flatpak_lutris():
         lutris_binary = "/usr/bin/flatpak"
         launch_options = "run net.lutris.Lutris " + launch_options
     return {
         "appid": generate_shortcut_id(game),
         "AppName": game.name,
         "Exe": f'"{lutris_binary}"',
-        "StartDir": f'"{os.path.dirname(lutris_binary)}"',
+        "StartDir": f'"{Path.home()}"',
         "icon": resources.get_icon_path(game.slug),
         "LaunchOptions": launch_options,
         "IsHidden": 0,
@@ -160,6 +164,40 @@ def generate_shortcut(game, launch_config_name):
     }
 
 
+def generate_standalone_shortcut(game, launch_config_name):
+    lutris_binary = shutil.which("lutris")
+
+    launch_options = format_installer_url(
+        {"action": "rungameid", "game_slug": game.id, "launch_config_name": launch_config_name}
+    )
+
+    launch_options = shlex.quote(launch_options)
+
+    if lutris_binary == "/app/bin/lutris":
+        lutris_binary = "/usr/bin/flatpak"
+        launch_options = "run net.lutris.Lutris " + launch_options
+
+    return {
+        "appid": generate_shortcut_id(game),
+        "AppName": game.name,
+        "Exe": f'"{Path.home()!s}/.local/share/applications/lutris-{game.slug}.sh"',
+        "StartDir": f'"{Path.home()!s}/.local/share/applications/"',
+        "icon": resources.get_icon_path(game.slug),
+        "LaunchOptions": launch_options,
+        "IsHidden": 0,
+        "AllowDesktopConfig": 1,
+        "AllowOverlay": 1,
+        "OpenVR": 0,
+        "Devkit": 0,
+        "DevkitOverrideAppID": 0,
+        "LastPlayTime": 0,
+    }
+
+
+def is_flatpak_lutris():
+    return shutil.which("lutris") == "/app/bin/lutris"
+
+
 def set_artwork(game):
     config_path = get_config_path()
     if not config_path:
@@ -170,17 +208,17 @@ def set_artwork(game):
     shortcut_id = generate_appid(game)
     source_cover = resources.get_cover_path(game.slug)
     source_banner = resources.get_banner_path(game.slug)
-    target_cover = os.path.join(artwork_path, "{}p.jpg".format(shortcut_id))
-    target_banner = os.path.join(artwork_path, "{}_hero.jpg".format(shortcut_id))
-    if not system.path_exists(target_cover, exclude_empty=True):
-        try:
-            shutil.copyfile(source_cover, target_cover)
-            logger.debug("Copied %s cover to %s", game, target_cover)
-        except FileNotFoundError as ex:
-            logger.error("Failed to copy cover to %s: %s", target_cover, ex)
-    if not system.path_exists(target_banner, exclude_empty=True):
-        try:
-            shutil.copyfile(source_banner, target_banner)
-            logger.debug("Copied %s cover to %s", game, target_banner)
-        except FileNotFoundError as ex:
-            logger.error("Failed to copy banner to %s: %s", target_banner, ex)
+    source_icon = resources.get_icon_path(game.slug)
+    assets = [
+        ("grid horizontal", source_banner, os.path.join(artwork_path, "{}.jpg".format(shortcut_id))),
+        ("grid vertical", source_cover, os.path.join(artwork_path, "{}p.jpg".format(shortcut_id))),
+        ("hero", source_banner, os.path.join(artwork_path, "{}_hero.jpg".format(shortcut_id))),
+        ("icon", source_icon, os.path.join(artwork_path, "{}_icon.jpg".format(shortcut_id))),
+    ]
+    for name, source, target in assets:
+        if not system.path_exists(target, exclude_empty=True):
+            try:
+                shutil.copyfile(source, target)
+                logger.debug("Copied %s %s asset to %s", game, name, target)
+            except FileNotFoundError as ex:
+                logger.error("Failed to copy %s %s asset to %s: %s", game, name, target, ex)

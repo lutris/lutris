@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 
 from gi.repository import Gtk
 
@@ -111,14 +111,14 @@ class BaseConfigBox(VBox):
 
     def get_listed_widget_box(self, label: str, widget: Gtk.Widget, margin: int = 12) -> Gtk.Box:
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin=margin, visible=True)
-        label = Gtk.Label(label, visible=True, wrap=True)
+        label = Gtk.Label(label=label, visible=True, wrap=True)
         label.set_alignment(0, 0.5)
         box.pack_start(label, True, True, 0)
         box.pack_end(widget, False, False, 0)
         return box
 
     def on_setting_change(
-        self, _widget, state: bool, setting_key: str, when_setting_changed: Callable[[bool], None] = None
+        self, _widget, state: bool, setting_key: str, when_setting_changed: Optional[Callable[[bool], None]] = None
     ) -> None:
         """Save a setting when an option is toggled"""
         settings.write_setting(setting_key, state)

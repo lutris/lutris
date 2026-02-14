@@ -1,6 +1,7 @@
 """Widget generators and their signal handlers"""
 
 import os
+from abc import abstractmethod
 
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
@@ -34,7 +35,32 @@ def set_option_wrapper_style_class(wrapper: Gtk.Widget, class_name: Optional[str
         style_context.add_class(class_name)
 
 
-class ConfigBox(VBox):
+class AdvancedSettingsBox(VBox):
+    """Intermediate vbox class for expsoing the Advanced Visibility options"""
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._advanced_visibility = False
+
+    @property
+    def advanced_visibility(self):
+        return self._advanced_visibility
+
+    @advanced_visibility.setter
+    def advanced_visibility(self, value):
+        """Sets the visibility of every 'advanced' option and every section that
+        contains only 'advanced' options."""
+        self._advanced_visibility = value
+        self.update_widgets()
+
+    @abstractmethod
+    def update_widgets(self):
+        """Updates widgets on visibility change; this method must be
+        implemented by a subclass."""
+        raise NotImplementedError()
+
+
+class ConfigBox(AdvancedSettingsBox):
     """Dynamically generate a vbox built upon on a python dict."""
 
     config_section = NotImplemented
@@ -50,7 +76,6 @@ class ConfigBox(VBox):
         self.files = []
         self.files_list_store = None
         self._widget_generator = None
-        self._advanced_visibility = False
         self._filter = ""
         self._filter_text = ""
 
@@ -58,17 +83,6 @@ class ConfigBox(VBox):
         self.no_options_label.set_line_wrap(True)
         self.no_options_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.pack_end(self.no_options_label, True, True, 0)
-
-    @property
-    def advanced_visibility(self):
-        return self._advanced_visibility
-
-    @advanced_visibility.setter
-    def advanced_visibility(self, value):
-        """Sets the visibility of every 'advanced' option and every section that
-        contains only 'advanced' options."""
-        self._advanced_visibility = value
-        self.update_widgets()
 
     @property
     def filter(self) -> str:
@@ -131,13 +145,13 @@ class ConfigBox(VBox):
             if is_advanced:
                 # Record that we hid this because it was advanced, not because of ordinary
                 # visibility
-                option_container.lutris_advanced_hidden = True
+                option_container.lutris_advanced_hidden = True  # type:ignore[attr-defined]
                 return False
 
         filter_text = self._filter_text
         if filter_text and hasattr(option_container, "lutris_option_label"):
             label = option_container.lutris_option_label.casefold()
-            helptext = option_container.lutris_option_helptext.casefold()
+            helptext = option_container.lutris_option_helptext.casefold()  # type:ignore[attr-defined]
             if filter_text not in label and filter_text not in helptext:
                 return False
 
@@ -208,7 +222,7 @@ class RunnerBox(ConfigBox):
 
         if lutris_config.level == "game":
             self.generate_top_info_box(
-                _("If modified, these options supersede the same options from " "the base runner configuration.")
+                _("If modified, these options supersede the same options from the base runner configuration.")
             )
 
     def generate_widgets(self):
@@ -241,7 +255,7 @@ class SystemConfigBox(ConfigBox):
             )
         elif runner_slug:
             self.generate_top_info_box(
-                _("If modified, these options supersede the same options from " "the global preferences.")
+                _("If modified, these options supersede the same options from the global preferences.")
             )
 
 
@@ -263,7 +277,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
         else:
             return default
 
-    def update_option_container(self, option, container: Gtk.Box, wrapper: Gtk.Box):
+    def update_option_container(self, option, container: Gtk.Container, wrapper: Gtk.Container) -> None:
         super().update_option_container(option, container, wrapper)
         option_key = option["option"]
 
@@ -278,7 +292,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
             else:
                 set_option_wrapper_style_class(wrapper, None)
 
-    def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Widget:
+    def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Container:
         option_key = option["option"]
         reset_container = Gtk.Box(visible=True)
         reset_container.set_margin_left(18)
@@ -307,7 +321,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
     def get_visibility(self, option: Dict[str, Any]) -> bool:
         option_container = self.option_containers[option["option"]]
-        option_container.lutris_advanced_hidden = False
+        option_container.lutris_advanced_hidden = False  # type:ignore[attr-defined]
         option_visibility = super().get_visibility(option)
 
         if not option_visibility:
@@ -334,7 +348,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
                 if self.parent.filter:
                     return _("No options match '%s'") % self.parent.filter
-                elif any(c.lutris_advanced_hidden for c in self.option_containers.values()):
+                elif any(c.lutris_advanced_hidden for c in self.option_containers.values()):  # type:ignore[attr-defined]
                     return _("Only advanced options available")
 
             return _("No options available")

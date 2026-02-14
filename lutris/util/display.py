@@ -4,13 +4,13 @@
 import enum
 import os
 import subprocess
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import gi
 
 try:
     gi.require_version("GnomeDesktop", "3.0")
-    from gi.repository import GnomeDesktop
+    from gi.repository import GnomeDesktop  # type: ignore
 
     LIB_GNOME_DESKTOP_AVAILABLE = True
 except ValueError:
@@ -207,7 +207,7 @@ _non_de_compositor_commands = [
 ]
 
 
-def get_desktop_environment():
+def get_desktop_environment() -> Optional[DesktopEnvironment]:
     """Converts the value of the DESKTOP_SESSION environment variable
     to one of the constants in the DesktopEnvironment class.
     Returns None if DESKTOP_SESSION is empty or unset.
@@ -282,7 +282,9 @@ def _get_compositor_commands():
     a flag to indicate if we need to run the commands in the background.
     """
     desktop_environment = get_desktop_environment()
-    command_set = _compositor_commands_by_de.get(desktop_environment)
+    command_set = None
+    if desktop_environment is not None:
+        command_set = _compositor_commands_by_de.get(desktop_environment)
 
     if not command_set:
         for c in _non_de_compositor_commands:
@@ -344,10 +346,10 @@ def enable_compositing():
 
 
 class DBusScreenSaverInhibitor:
-    """Inhibit and uninhibit the screen saver using DBus.
+    """Inhibit and uninhibit the suspend using DBus.
 
-    It will use the Gtk.Application's inhibit and uninhibit methods to inhibit
-    the screen saver.
+    It will use the Gtk.Application's inhibit and uninhibit methods to
+    prevent the computer from going to sleep.
 
     For enviroments which don't support either org.freedesktop.ScreenSaver or
     org.gnome.ScreenSaver interfaces one can declare a DBus interface which
@@ -355,6 +357,7 @@ class DBusScreenSaverInhibitor:
 
     def __init__(self):
         self.proxy = None
+        self._used_gtk_fallback = False
 
     def set_dbus_iface(self, name, path, interface, bus_type=Gio.BusType.SESSION):
         """Sets a dbus proxy to be used instead of Gtk.Application methods, this
@@ -364,72 +367,84 @@ class DBusScreenSaverInhibitor:
         )
 
     def inhibit(self, game_name):
-        """Inhibit the screen saver.
+        """Inhibit suspend.
         Returns a cookie that must be passed to the corresponding uninhibit() call.
         If an error occurs, None is returned instead."""
         reason = "Running game: %s" % game_name
+        self._used_gtk_fallback = False
 
         if self.proxy:
             try:
-                return self.proxy.Inhibit("(ss)", "Lutris", reason)
-            except Exception:
-                return None
-        else:
-            app = Gio.Application.get_default()
-            window = app.window
-            flags = Gtk.ApplicationInhibitFlags.SUSPEND | Gtk.ApplicationInhibitFlags.IDLE
-            cookie = app.inhibit(window, flags, reason)
+                cookie = self.proxy.Inhibit("(ss)", "Lutris", reason)
+                if cookie:
+                    return cookie
+                # D-Bus call succeeded but returned no cookie
+                logger.warning("D-Bus screensaver inhibit returned no cookie, falling back to GTK")
+            except Exception as ex:
+                logger.warning("Failed to inhibit screensaver via D-Bus, falling back to GTK: %s", ex)
 
-            # Gtk.Application.inhibit returns 0 if there was an error.
-            if cookie == 0:
-                return None
+        # GTK fallback
+        app = Gio.Application.get_default()
+        window = app.window
+        flags = Gtk.ApplicationInhibitFlags.SUSPEND | Gtk.ApplicationInhibitFlags.IDLE
+        cookie = app.inhibit(window, flags, reason)
 
-            return cookie
+        # Gtk.Application.inhibit returns 0 if there was an error.
+        if cookie == 0:
+            return None
+
+        self._used_gtk_fallback = True
+        return cookie
 
     def uninhibit(self, cookie):
-        """Uninhibit the screen saver.
+        """Uninhibit suspend.
         Takes a cookie as returned by inhibit. If cookie is None, no action is taken."""
         if not cookie:
             return
 
-        if self.proxy:
-            self.proxy.UnInhibit("(u)", cookie)
-        else:
-            app = Gio.Application.get_default()
-            app.uninhibit(cookie)
+        if self.proxy and not self._used_gtk_fallback:
+            try:
+                self.proxy.UnInhibit("(u)", cookie)
+                return
+            except Exception as ex:
+                logger.warning("Failed to uninhibit screensaver via D-Bus: %s", ex)
+
+        # GTK fallback
+        app = Gio.Application.get_default()
+        app.uninhibit(cookie)
 
 
-def _get_screen_saver_inhibitor():
-    """Return the appropriate screen saver inhibitor instance.
+def _get_suspend_inhibitor():
+    """Return the appropriate suspend inhibitor instance.
     If the required interface isn't available, it will default to GTK's
     implementation."""
     desktop_environment = get_desktop_environment()
-
-    name = None
     inhibitor = DBusScreenSaverInhibitor()
 
-    if desktop_environment is DesktopEnvironment.MATE:
-        name = "org.mate.ScreenSaver"
-        path = "/"
-        interface = "org.mate.ScreenSaver"
-    elif desktop_environment is DesktopEnvironment.XFCE:
-        # According to
-        # https://github.com/xfce-mirror/xfce4-session/blob/master/xfce4-session/xfce-screensaver.c#L240
-        # The XFCE enviroment does support the org.freedesktop.ScreenSaver interface
-        # but this might be not present in older releases.
-        name = "org.xfce.ScreenSaver"
-        path = "/"
-        interface = "org.xfce.ScreenSaver"
+    # Build list of D-Bus interfaces to try in order of preference
+    interfaces_to_try = []
 
-    if name:
+    if desktop_environment is DesktopEnvironment.MATE:
+        interfaces_to_try.append(("org.mate.ScreenSaver", "/", "org.mate.ScreenSaver"))
+    elif desktop_environment is DesktopEnvironment.XFCE:
+        # Try XFCE-specific interface first, then fall back to freedesktop.
+        # Some XFCE setups use xfce4-screensaver (org.xfce.ScreenSaver),
+        # others use light-locker or other lockers (org.freedesktop.ScreenSaver).
+        interfaces_to_try.append(("org.xfce.ScreenSaver", "/", "org.xfce.ScreenSaver"))
+        interfaces_to_try.append(
+            ("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver", "org.freedesktop.ScreenSaver")
+        )
+
+    for name, path, interface in interfaces_to_try:
         try:
             inhibitor.set_dbus_iface(name, path, interface)
+            logger.debug("Using D-Bus screensaver interface: %s", name)
+            return inhibitor
         except GLib.Error as err:
-            logger.warning(
-                "Failed to set up a DBus proxy for name %s, path %s, " "interface %s: %s", name, path, interface, err
-            )
+            logger.debug("D-Bus interface %s not available: %s", name, err)
 
+    # No D-Bus interface available, will use GTK fallback
     return inhibitor
 
 
-SCREEN_SAVER_INHIBITOR = _get_screen_saver_inhibitor()
+SCREEN_SAVER_INHIBITOR = _get_suspend_inhibitor()

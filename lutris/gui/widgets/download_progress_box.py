@@ -44,7 +44,7 @@ class DownloadProgressBox(Gtk.Box):
             parsed_url = urlparse(url)
             title = "%s%s" % (parsed_url.netloc, parsed_url.path)
 
-        self.main_label = Gtk.Label(title)
+        self.main_label = Gtk.Label(label=title)
         self.main_label.set_alignment(0, 0)
         self.main_label.set_property("wrap", True)
         self.main_label.set_margin_bottom(10)

@@ -90,7 +90,7 @@ class AmazonService(OnlineService):
     serial = None
     verifier = None
 
-    redirect_uri = "https://www.amazon.com/?"
+    redirect_uris = ["https://www.amazon.com/?"]
 
     cookies_path = os.path.join(settings.CACHE_DIR, ".amazon.auth")
     user_path = os.path.join(settings.CACHE_DIR, ".amazon.user")
@@ -516,7 +516,7 @@ class AmazonService(OnlineService):
 
         try:
             return self.request_sds(
-                "com.amazonaws.gearbox." "softwaredistribution.service.model." "SoftwareDistributionService.GetPatches",
+                "com.amazonaws.gearbox.softwaredistribution.service.model.SoftwareDistributionService.GetPatches",
                 access_token,
                 request_data,
             )
@@ -546,16 +546,25 @@ class AmazonService(OnlineService):
 
     def structure_manifest_data(self, manifest):
         """Transform the manifest to more convenient data structures"""
-        files = []
+        file_dict = {}
         directories = []
-        hashes = []
         hashpairs = []
+        file_paths = set()
+
         for __, package in enumerate(manifest.packages):
             for __, file in enumerate(package.files):
                 file_hash = file.hash.value.hex()
+                file_path = file.path.decode().replace("\\", "/")
+                file_paths.add(file_path)
 
-                hashes.append(file_hash)
-                files.append({"path": file.path.decode().replace("\\", "/"), "size": file.size, "url": None})
+                if file_hash in file_dict:
+                    file_dict[file_hash]["paths"].append(file_path)
+                else:
+                    file_dict[file_hash] = {
+                        "paths": [file_path],
+                        "size": file.size,
+                        "url": None,
+                    }
 
                 hashpairs.append(
                     {
@@ -565,9 +574,9 @@ class AmazonService(OnlineService):
                 )
             for __, directory in enumerate(package.dirs):
                 if directory.path is not None:
-                    directories.append(directory.path.decode().replace("\\", "/"))
-
-        file_dict = dict(zip(hashes, files))
+                    dir_path = directory.path.decode().replace("\\", "/")
+                    if dir_path not in file_paths:
+                        directories.append(dir_path)
 
         return file_dict, directories, hashpairs
 
@@ -649,7 +658,7 @@ class AmazonService(OnlineService):
 
         files = []
         for file_hash, file in file_dict.items():
-            file_name = os.path.basename(file["path"])
+            file_name = os.path.basename(file["paths"][0])
             files.append(
                 InstallerFile(
                     installer.game_slug, file_hash, {"url": file["url"], "filename": file_name, "size": file["size"]}
@@ -680,7 +689,7 @@ class AmazonService(OnlineService):
         ]
 
         # try to get fuel file that contain the main exe
-        fuel_file = [k for k, v in file_dict.items() if "fuel.json" in v["path"]]
+        fuel_file = [k for k, v in file_dict.items() if any("fuel.json" in p for p in v["paths"])]
         fuel_url = None
         if fuel_file:
             fuel_url = manifest_info["downloadUrl"]

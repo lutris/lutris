@@ -21,7 +21,7 @@ from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.dialogs import display_error
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
-from lutris.gui.widgets.utils import has_stock_icon
+from lutris.gui.widgets.utils import get_widget_children, has_stock_icon
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.runners import InvalidRunnerError
 from lutris.services import SERVICES
@@ -87,7 +87,7 @@ class SidebarRow(Gtk.ListBoxRow):
         self.box.pack_start(label, True, True, 0)
         self.btn_box = Gtk.Box(spacing=3, no_show_all=True, valign=Gtk.Align.CENTER, homogeneous=True)
         self.box.pack_end(self.btn_box, False, False, 0)
-        self.spinner = Gtk.Spinner()
+        self.spinner = Gtk.Spinner(visible=False, no_show_all=True)
         self.box.pack_end(self.spinner, False, False, 0)
 
     @property
@@ -532,7 +532,7 @@ class LutrisSidebar(Gtk.ListBox):
         like ('service', 'lutris')"""
         self.previous_category = self.selected_category
         selected_row_type, selected_row_id = value or ("category", "all")
-        children = list(self.get_children())
+        children = get_widget_children(self, SidebarRow)
         for row in children:
             if row.type == selected_row_type and row.id == selected_row_id:
                 if row.get_visible():
@@ -703,7 +703,7 @@ class LutrisSidebar(Gtk.ListBox):
             self.running_row.hide()
 
             if self.get_selected_row() == self.running_row:
-                self.select_row(self.get_children()[0])
+                self.select_row(get_widget_children(self, SidebarRow)[0])
 
     def on_service_auth_changed(self, service):
         logger.debug("Service %s auth changed", service.id)

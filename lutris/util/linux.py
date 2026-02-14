@@ -8,9 +8,11 @@ import resource
 import shutil
 import sys
 from collections import Counter, defaultdict
+from gettext import gettext as _
 
 from lutris import settings
-from lutris.util import flatpak, system
+from lutris.exceptions import MisconfigurationError
+from lutris.util import cache_single, flatpak, system
 from lutris.util.graphics import drivers, glxinfo, vkquery
 from lutris.util.log import logger
 
@@ -32,11 +34,9 @@ SYSTEM_COMPONENTS = {
         "gtk-update-icon-cache",
         "lspci",
         "ldconfig",
-        "wine",
     ],
     "OPTIONAL_COMMANDS": [
         "fluidsynth",
-        "lsi-steam",
         "nvidia-smi",
         "fluidsynth",
     ],
@@ -71,6 +71,7 @@ SYSTEM_COMPONENTS = {
         "deepin-terminal",
         "wezterm",
         "foot",
+        "ptyxis",
     ],
     "LIBRARIES": {
         "OPENGL": ["libGL.so.1"],
@@ -81,6 +82,11 @@ SYSTEM_COMPONENTS = {
         "GNUTLS": ["libgnutls.so.30"],
     },
 }
+
+
+@cache_single
+def is_exherbo_with_cross_i686():
+    return system.path_exists("/etc/exherbo-release") and system.path_exists("/etc/ld-i686-pc-linux-gnu.cache")
 
 
 class LinuxSystem:  # pylint: disable=too-many-public-methods
@@ -96,6 +102,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         ("/lib/i386-linux-gnu", "/lib/x86_64-linux-gnu"),
         ("/usr/lib/i386-linux-gnu", "/usr/lib/x86_64-linux-gnu"),
         ("/usr/lib", "/opt/32/lib"),
+        ("/usr/i686-pc-linux-gnu/lib", "/usr/x86_64-pc-linux-gnu/lib"),
     ]
 
     soundfont_folders = [
@@ -208,13 +215,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
     def gamemode_available(self):
         """Return whether gamemode is available"""
-        # Current versions of gamemode use gamemoderun
-        if system.can_find_executable("gamemoderun"):
-            return True
-        # This is for old versions of gamemode only
-        if self.is_feature_supported("GAMEMODE"):
-            return True
-        return False
+        return system.can_find_executable("gamemoderun")
 
     def nvidia_gamescope_support(self):
         """Return whether gamescope is supported if we're on nvidia"""
@@ -255,9 +256,12 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     @property
     def runtime_architectures(self):
         """Return the architectures supported on this machine"""
+        x86 = "i386"
+        if is_exherbo_with_cross_i686():
+            x86 = "libc6"
         if self.arch == "x86_64":
-            return ["i386", "x86_64"]
-        return ["i386"]
+            return [x86, "x86_64"]
+        return [x86]
 
     @property
     def requirements(self):
@@ -341,7 +345,12 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         if not ldconfig:
             logger.error("Could not detect ldconfig on this system")
             return []
-        output = system.read_process_output([ldconfig, "-p"]).split("\n")
+
+        ld_cmd = [ldconfig, "-p"]
+        if is_exherbo_with_cross_i686():
+            ld_cmd = [ldconfig, "-C", "/etc/ld-i686-pc-linux-gnu.cache", "-p"]
+
+        output = system.read_process_output(ld_cmd).split("\n")
         return [line.strip("\t") for line in output if line.startswith("\t")]
 
     def get_shared_libraries(self):
@@ -433,6 +442,10 @@ class SharedLibrary:
     def arch(self):
         """Return the architecture for a shared library"""
         detected_arch = ["x86-64", "x32"]
+
+        if is_exherbo_with_cross_i686():
+            detected_arch.append("libc6")
+
         for arch in detected_arch:
             if arch in self.flags:
                 return arch.replace("-", "_")
@@ -535,3 +548,12 @@ def get_default_terminal():
     if terms:
         return terms[0]
     logger.error("Couldn't find a terminal emulator.")
+
+
+def get_required_default_terminal():
+    """Return the default terminal emulator, or raises MisconfigurationError if none can be
+    found."""
+    term = get_default_terminal()
+    if term:
+        return term
+    raise MisconfigurationError(_("No terminal emulator could be detected."))

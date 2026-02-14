@@ -20,6 +20,7 @@ from lutris.services.steamfamily import SteamFamilyService
 from lutris.services.steamwindows import SteamWindowsService
 from lutris.services.ubisoft import UbisoftConnectService
 from lutris.services.xdg import XDGService
+from lutris.services.zoom import ZoomService
 from lutris.util import system
 from lutris.util.dolphin.cache_reader import DOLPHIN_GAME_CACHE_FILE
 from lutris.util.linux import LINUX_SYSTEM
@@ -31,6 +32,7 @@ def get_services():
     """Return a mapping of available services"""
     _services = {
         "gog": GOGService,
+        "zoomplatform": ZoomService,
         "humblebundle": HumbleBundleService,
         "egs": EpicGamesStoreService,
         "itchio": ItchIoService,

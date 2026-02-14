@@ -54,3 +54,4 @@ class D3DExtrasManager(DLLManager):
         "d3dcompiler_47",
     )
     releases_url = "https://api.github.com/repos/lutris/d3d_extras/releases"
+    proton_compatible = True

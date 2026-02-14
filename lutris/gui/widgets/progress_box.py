@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 
 from gi.repository import Gtk, Pango
 
@@ -13,7 +13,7 @@ class ProgressInfo:
     Processes sometimes cannot be stopped after a certain point; at that point they start
     providing Progress objects with no stop-function."""
 
-    def __init__(self, progress: float = None, label_markup: str = "", stop_function: Callable = None):
+    def __init__(self, progress: float = 0, label_markup: str = "", stop_function: Optional[Callable] = None):
         self.progress = progress
         self.label_markup = label_markup
         self.stop_function = stop_function
@@ -56,7 +56,7 @@ class ProgressBox(Gtk.Box):
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True, spacing=6, valign=Gtk.Align.CENTER)
 
-        self.label = Gtk.Label("", visible=False, wrap=True, ellipsize=Pango.EllipsizeMode.MIDDLE, xalign=0)
+        self.label = Gtk.Label(label="", visible=False, wrap=True, ellipsize=Pango.EllipsizeMode.MIDDLE, xalign=0)
         vbox.pack_start(self.label, False, False, 0)
 
         self.progressbar = Gtk.ProgressBar(pulse_step=0.4, visible=True)

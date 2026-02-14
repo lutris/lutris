@@ -141,28 +141,26 @@ class TestGetNvidiaDriverInfo(unittest.TestCase):
     )
     @patch("os.path.exists", return_value=True)
     def test_file_errors(self, mock_path_exists, mock_open):
-        with (
-            patch.object(drivers, "GlxInfo", return_value=FAKE_GLXINFO_NVIDIA),
-            patch.object(
+        with patch.object(drivers, "GlxInfo", return_value=FAKE_GLXINFO_NVIDIA):
+            with patch.object(
                 subprocess,
                 "run",
                 side_effect=[
                     subprocess.CompletedProcess([], 0, stdout="Linux\n"),
                     subprocess.CompletedProcess([], 0, stdout="x86_64\n"),
                 ],
-            ),
-        ):
-            actual = drivers.get_nvidia_driver_info()
+            ):
+                actual = drivers.get_nvidia_driver_info()
 
-        self.assertEqual(
-            actual,
-            {
-                "vendor": "NVIDIA Corporation",
-                "platform": "Linux",
-                "arch": "x86_64",
-                "version": "525.105.17",
-            },
-        )
+                self.assertEqual(
+                    actual,
+                    {
+                        "vendor": "NVIDIA Corporation",
+                        "platform": "Linux",
+                        "arch": "x86_64",
+                        "version": "525.105.17",
+                    },
+                )
 
 
 class TestGetNvidiaGpuIds(unittest.TestCase):

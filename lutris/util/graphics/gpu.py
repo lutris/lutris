@@ -77,6 +77,7 @@ class GPU:
         self.icd_files = self.get_icd_files()
         if VULKANINFO_AVAILABLE:
             try:
+                self.device_uuid = self.get_vulkaninfo_device_uuid()
                 self.name = self.get_vulkaninfo_name() or self.get_lspci_name()
             except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
                 # already logged this, so we'll just fall back to lspci.
@@ -120,11 +121,17 @@ class GPU:
     def get_vulkaninfo(self) -> Dict[str, Dict[str, str]]:
         """Runs vulkaninfo to find the GPU name"""
         subprocess_env = dict(os.environ)
-        subprocess_env["VK_DRIVER_FILES"] = self.icd_files  # Currently supported
-        subprocess_env["VK_ICD_FILENAMES"] = self.icd_files  # Deprecated
-        vulkaninfo_output = system.read_process_output(
-            ["vulkaninfo", "--summary"], env=subprocess_env, error_result=None
-        ).split("\n")
+        vulkaninfo_output_raw = system.read_process_output(
+            ["/usr/bin/vulkaninfo", "--summary"], env=os.environ, error_result=None
+        )
+        if not vulkaninfo_output_raw:
+            subprocess_env["VK_DRIVER_FILES"] = self.icd_files  # Currently supporte
+            subprocess_env["VK_ICD_FILENAMES"] = self.icd_files  # Deprecated
+            vulkaninfo_output_raw = system.read_process_output(
+                ["/usr/bin/vulkaninfo", "--summary"], env=subprocess_env, error_result=""
+            )
+
+        vulkaninfo_output = vulkaninfo_output_raw.split("\n") if vulkaninfo_output_raw else []
         result = {}
         devices_seen = False
         for line in vulkaninfo_output:
@@ -158,6 +165,13 @@ class GPU:
                 return vulkaninfo[gpu_index]["deviceName"]
         return None
 
+    def get_vulkaninfo_device_uuid(self) -> Optional[str]:
+        vulkaninfo = self.get_vulkaninfo()
+        for gpu_index in vulkaninfo:
+            device_uuid = vulkaninfo[gpu_index]["deviceUUID"].replace("-", "")
+            return device_uuid
+        return None
+
     def get_lspci_name(self):
         lspci_results = [line.split(maxsplit=1) for line in system.execute(["lspci"], timeout=3).split("\n")]
         lspci_results = [parts for parts in lspci_results if len(parts) == 2 and ": " in parts[1]]
@@ -175,6 +189,7 @@ class GPU:
             "v3d": "broadcom",
             "virtio-pci": "lvp",
             "i915": "intel",
+            "xe": "intel",
         }
         if self.driver in loader_map:
             loader = loader_map[self.driver]

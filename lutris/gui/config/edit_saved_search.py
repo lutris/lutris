@@ -56,7 +56,7 @@ class SearchFiltersBox(Gtk.Box):
         self.predicate_widget_functions: Dict[str, Callable[[SearchPredicate], None]] = {}
         self.updating_predicate_widgets = False
 
-        predicates_box = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+        predicates_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
 
         self.flags_grid = Gtk.Grid(row_spacing=6, column_spacing=6)
         self._add_flag_widgets()
@@ -69,7 +69,7 @@ class SearchFiltersBox(Gtk.Box):
         self.categories_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         categories_scrolled_window.add(self.categories_box)
         categories_frame_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        categories_frame_box.pack_start(Gtk.Label(_("Categories"), halign=Gtk.Align.START), False, False, 0)
+        categories_frame_box.pack_start(Gtk.Label(label=_("Categories"), halign=Gtk.Align.START), False, False, 0)
         categories_frame_box.pack_start(categories_frame, True, True, 0)
 
         self._add_category_widgets()
@@ -83,10 +83,10 @@ class SearchFiltersBox(Gtk.Box):
         self.show_all()
 
     def _add_entry_box(
-        self, label: str, text: str, button_icon_names: List[str] = None, clicked: Callable = None
+        self, label: str, text: str, button_icon_names: Optional[List[str]] = None, clicked: Optional[Callable] = None
     ) -> Gtk.Entry:
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        entry_label = Gtk.Label(label)
+        entry_label = Gtk.Label(label=label)
         entry_label.set_alignment(0, 0.5)
         entry_label.set_size_request(120, -1)
         entry = Gtk.Entry()
@@ -179,6 +179,7 @@ class SearchFiltersBox(Gtk.Box):
 
     def _add_service_widget(self, row):
         options = [(s[1]().name, s[0]) for s in services.get_enabled_services().items()]
+        options.append(("(none)", "none"))
 
         self._add_match_widget(
             row, _("Source"), "source", options, predicate_factory=lambda s, v: s.get_service_predicate(v)
@@ -186,6 +187,7 @@ class SearchFiltersBox(Gtk.Box):
 
     def _add_runner_widget(self, row):
         options = [(r.human_name, r.name) for r in runners.get_installed()]
+        options.append(("(none)", "none"))
 
         self._add_match_widget(
             row, _("Runner"), "runner", options, predicate_factory=lambda s, v: s.get_runner_predicate(v)
@@ -193,6 +195,7 @@ class SearchFiltersBox(Gtk.Box):
 
     def _add_platform_widget(self, row):
         options = [(p, p) for p in games_db.get_used_platforms()]
+        options.append(("(none)", "none"))
 
         self._add_match_widget(
             row, _("Platform"), "platform", options, predicate_factory=lambda s, v: s.get_platform_predicate(v)
@@ -217,7 +220,7 @@ class SearchFiltersBox(Gtk.Box):
             else:
                 combobox.set_active_id("")
 
-        label = Gtk.Label(caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
+        label = Gtk.Label(label=caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
         self.flags_grid.attach(label, 0, row, 1, 1)
 
         options = [(_("-"), "")] + options
@@ -316,9 +319,10 @@ class EditSavedSearchDialog(SavableModelessDialog):
         super().__init__(title, parent=parent, border_width=10)
         self.set_default_size(600, -1)
 
-        self.vbox.set_homogeneous(False)
-        self.vbox.set_spacing(10)
-        self.vbox.pack_start(self.filter_box, True, True, 0)
+        content_area = self.get_content_area()
+        content_area.set_homogeneous(False)
+        content_area.set_spacing(10)
+        content_area.pack_start(self.filter_box, True, True, 0)
 
         delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
         delete_button.connect("clicked", self.on_delete_clicked)

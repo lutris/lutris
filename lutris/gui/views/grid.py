@@ -10,7 +10,7 @@ from lutris.gui.widgets.cellrenderers import GridViewCellRendererImage, GridView
 from lutris.util.log import logger
 
 
-class GameGridView(Gtk.IconView, GameView):
+class GameGridView(Gtk.IconView, GameView):  # type:ignore[misc]
     __gsignals__ = GameView.__gsignals__
 
     min_width = 70  # Minimum width for a cell
@@ -50,8 +50,10 @@ class GameGridView(Gtk.IconView, GameView):
         self.model = game_store.store
         self.set_model(self.model)
 
+        size = game_store.service_media.size
+        if self.image_renderer:
+            self.image_renderer.set_expected_size(size[0], size[1])
         if self.text_renderer:
-            size = game_store.service_media.size
             cell_width = max(size[0], self.min_width)
             self.text_renderer.set_width(cell_width)
 

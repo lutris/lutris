@@ -4,9 +4,9 @@ import os
 from abc import ABC, abstractmethod
 from gettext import gettext as _
 from inspect import Parameter, signature
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, Gtk  # type: ignore
 
 from lutris.config import LutrisConfig
 from lutris.gui.widgets import NotificationSource
@@ -14,6 +14,9 @@ from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label
 from lutris.gui.widgets.searchable_entrybox import SearchableEntrybox
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
+
+if TYPE_CHECKING:
+    from lutris.gui.config.boxes import ConfigBox
 
 
 class WidgetGenerator(ABC):
@@ -38,7 +41,7 @@ class WidgetGenerator(ABC):
 
     GeneratorFunction = Callable[[Dict[str, Any], Any, Any], Optional[Gtk.Widget]]
 
-    def __init__(self, parent: Gtk.Box, *callback_args, **callback_kwargs) -> None:
+    def __init__(self, parent: "ConfigBox", *callback_args, **callback_kwargs) -> None:
         self.parent = parent
         self.callback_args = callback_args
         self.callback_kwargs = callback_kwargs
@@ -50,7 +53,7 @@ class WidgetGenerator(ABC):
 
         # These are outputs set by generate_widget() or generate_container()
         # and they are reset on each call.
-        self.wrapper: Optional[Gtk.Widget] = None
+        self.wrapper: Optional[Gtk.Box] = None
         self.default_value = None
         self.tooltip_default: Optional[str] = None
         self.options: Dict[str, Dict[str, Any]] = {}
@@ -59,9 +62,9 @@ class WidgetGenerator(ABC):
         self.warning_messages: List[Gtk.Widget] = []
 
         # These accumulate results across all widgets
-        self.wrappers: Dict[str, Gtk.Widget] = {}
+        self.wrappers: Dict[str, Gtk.Container] = {}
         self.section_frames: List[SectionFrame] = []
-        self.option_containers: Dict[str, Gtk.Widget] = {}
+        self.option_containers: Dict[str, Gtk.Container] = {}
 
         self._generators: Dict[str, WidgetGenerator.GeneratorFunction] = {
             "label": self._generate_label,
@@ -98,7 +101,7 @@ class WidgetGenerator(ABC):
 
     # Widget Construction
 
-    def add_container(self, option: Dict[str, Any], wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
+    def add_container(self, option: Dict[str, Any], wrapper: Optional[Gtk.Box] = None) -> Optional[Gtk.Widget]:
         """Generates the option's widget, wrapper and container, and adds the container to the parent;
         if the option uses 'section', then the container is actually placed inside a SectionFrame,
         or in the previous frame if it is for the same section."""
@@ -122,7 +125,7 @@ class WidgetGenerator(ABC):
             self._current_parent.pack_start(option_container, False, False, 0)
         return option_container
 
-    def generate_container(self, option: Dict[str, Any], wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
+    def generate_container(self, option: Dict[str, Any], wrapper: Optional[Gtk.Box] = None) -> Optional[Gtk.Widget]:
         """Creates the widget, wrapper, and container; this returns the container
         (or the wrapper if there's no container)."""
         option_widget = self.generate_widget(option, wrapper)
@@ -132,20 +135,20 @@ class WidgetGenerator(ABC):
             self.option_containers[option_key] = option_container
             option_container.show_all()
 
-            option_container.lutris_option_key = option_key
-            option_container.lutris_option_label = option["label"]
-            option_container.lutris_option_helptext = option.get("help") or ""
+            option_container.lutris_option_key = option_key  # type:ignore[attr-defined]
+            option_container.lutris_option_label = option["label"]  # type:ignore[attr-defined]
+            option_container.lutris_option_helptext = option.get("help") or ""  # type:ignore[attr-defined]
 
             # Mark advanced option containers, to be hidden by checking for this
-            option_container.lutris_advanced = bool(option.get("advanced"))
-            option_container.lutris_option = option
+            option_container.lutris_advanced = bool(option.get("advanced"))  # type:ignore[attr-defined]
+            option_container.lutris_option = option  # type:ignore[attr-defined]
 
             self.option_container = option_container
             return option_container
         else:
             return None
 
-    def generate_widget(self, option: Dict[str, Any], wrapper: Gtk.Box = None) -> Optional[Gtk.Widget]:
+    def generate_widget(self, option: Dict[str, Any], wrapper: Optional[Gtk.Box] = None) -> Optional[Gtk.Widget]:
         """This creates a wrapper box and a label and widget within it according to the options dict
         given. The option widget itself, is returned, but this method also sets attributes on the
         generator. You get 'wrapper', 'default_value', 'tooltip_default' and 'option_widget' which restates
@@ -232,7 +235,7 @@ class WidgetGenerator(ABC):
 
         return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin_bottom=6, visible=True)
 
-    def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Widget:
+    def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Container) -> Gtk.Container:
         """This creates a wrapper box around the widget wrapper, to support additional controls. The
         base implementation wraps 'wrapper' in a Box with the error and warning widgets; if
         there are none it just returns 'wrapper'."""
@@ -292,15 +295,15 @@ class WidgetGenerator(ABC):
             frame.set_visible(visible)
             frame.set_no_show_all(not visible)
 
-    def update_option_container(self, option, container: Gtk.Box, wrapper: Gtk.Box):
+    def update_option_container(self, option, container: Gtk.Container, wrapper: Gtk.Container):
         """This method updates an option container and its wrapper; this re-evaluates the
         relevant options in case they contain callables and those callables return different
         results."""
 
         # Update messages in message boxes that support it
-        for ch in container.get_children():
-            if hasattr(ch, "update_message"):
-                ch.update_message(option, self)
+        for child in container.get_children():
+            if hasattr(child, "update_message"):
+                child.update_message(option, self)
 
         # Hide entire container if the option is not visible
         visible = self.get_visibility(option)
@@ -308,7 +311,7 @@ class WidgetGenerator(ABC):
         container.set_no_show_all(not visible)
 
         # Grey out option if condition unmet, or if a second setting is False
-        condition = self.get_condition(option)
+        condition: bool = self.get_condition(option)
         wrapper.set_sensitive(condition)
 
     # Widget factories
@@ -600,7 +603,7 @@ class WidgetGenerator(ABC):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         label = Label(label + ":")
         label.set_halign(Gtk.Align.START)
-        button = Gtk.Button(_("Add Files"))
+        button = Gtk.Button(label=_("Add Files"))
         button.connect("clicked", on_add_files_clicked)
         button.set_margin_left(10)
         vbox.pack_start(label, False, False, 5)
@@ -619,7 +622,7 @@ class WidgetGenerator(ABC):
         for filename in files:
             files_list_store.append([filename])
         cell_renderer = Gtk.CellRendererText()
-        files_treeview = Gtk.TreeView(files_list_store)
+        files_treeview = Gtk.TreeView(model=files_list_store)
         files_column = Gtk.TreeViewColumn(_("Files"), cell_renderer, text=0)
         files_treeview.append_column(files_column)
         files_treeview.connect("key-press-event", on_files_treeview_keypress)
@@ -709,7 +712,7 @@ class WidgetGenerator(ABC):
         True, and if it is callable this calls it. Subclasses can add further conditions."""
         return self._evaluate_flag_option("visible", option)
 
-    def get_condition(self, option: Dict[str, Any]) -> Union[None, bool, Callable]:
+    def get_condition(self, option: Dict[str, Any]) -> bool:
         """Extracts the 'condition' option; but also the 'conditional_on' option, and if both
         are present, then if either indicates the control should be disabled this will be false.."""
         condition = self._evaluate_flag_option("condition", option)
@@ -722,8 +725,8 @@ class WidgetGenerator(ABC):
 
         container = self.option_containers[option["option"]]
 
-        for ch in container.get_children():
-            if hasattr(ch, "blocks_sensitivity") and ch.blocks_sensitivity:
+        for child in container.get_children():
+            if hasattr(child, "blocks_sensitivity") and child.blocks_sensitivity:
                 return False
 
         return condition

@@ -26,6 +26,7 @@ from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.navigation_stack import NavigationStack
+from lutris.gui.widgets.utils import get_main_window
 from lutris.installer import InstallationKind, interpreter
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
@@ -49,7 +50,7 @@ class MarkupLabel(Gtk.Label):
         self.set_alignment(0.5, 0)
 
 
-class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter.InterpreterUIDelegate):  # pylint: disable=too-many-public-methods
+class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter.InterpreterUIDelegate):  # type:ignore[misc]
     """GUI for the install process.
 
     This window is divided into pages; as you go through the install each page
@@ -222,6 +223,18 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def on_cancel_clicked(self, _button=None):
         """Ask a confirmation before cancelling the installation, if it has started."""
+
+        def on_cancelled():
+            if self.interpreter:
+                self.interpreter.cleanup()  # still remove temporary downloads in any case
+
+            if self.interpreter and not self.install_in_progress:
+                INSTALLATION_COMPLETED.fire()
+            else:
+                INSTALLATION_FAILED.fire()
+
+            self.destroy()
+
         if self.install_in_progress:
             widgets = []
 
@@ -251,19 +264,16 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
             self.installer_files_box.stop_all()
             if self.interpreter:
-                self.interpreter.revert(remove_game_dir=remove_checkbox.get_active())
+                self.interpreter.revert(
+                    remove_game_dir=remove_checkbox.get_active(),
+                    completion_function=on_cancelled,
+                    error_function=self.on_signal_error,
+                )
+            else:
+                on_cancelled()
         else:
             self.installer_files_box.stop_all()
-
-        if self.interpreter:
-            self.interpreter.cleanup()  # still remove temporary downloads in any case
-
-        if self.interpreter and not self.install_in_progress:
-            INSTALLATION_COMPLETED.fire()
-        else:
-            INSTALLATION_FAILED.fire()
-
-        self.destroy()
+            on_cancelled()
 
     def on_source_clicked(self, _button):
         InstallerSourceDialog(self.interpreter.installer.script_pretty, self.interpreter.installer.game_name, self)
@@ -304,9 +314,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         # put up a spinner page to wait until that's done. Installations can
         # fail if Lutris components are missing, and users sometimes try to install
         # a game just after their first Lutris startup. This should help.
-        application = Gio.Application.get_default()
-        if application and application.window and not application.window.download_queue.is_empty:
-            download_queue = application.window.download_queue
+        window = get_main_window()
+        if window and not window.download_queue.is_empty:
+            download_queue = window.download_queue
 
             def on_start_installation(*args):
                 self.load_choose_installer_page()
@@ -641,7 +651,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             patch_version = self.interpreter.installer.version
         else:
             patch_version = None
-
+        self.load_spinner_page(_("Preparing game files..."), cancellable=False)
         AsyncCall(
             self.interpreter.installer.prepare_game_files, self.on_files_prepared, self.selected_extras, patch_version
         )
@@ -734,7 +744,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             if cancellable:
                 self.display_cancel_button(extra_buttons=extra_buttons)
             else:
-                self.display_buttons(extra_buttons or [])
+                self.display_buttons(extra_buttons or [], False)
 
             self.stack.set_back_allowed(False)
             return on_exit_page
@@ -949,7 +959,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.error_details_box.pack_start(frame, True, True, 0)
         error_box.pack_start(self.error_details_box, True, True, 0)
 
-        copy_button = Gtk.Button(_("Copy Details to Clipboard"), halign=Gtk.Align.START)
+        copy_button = Gtk.Button(label=_("Copy Details to Clipboard"), halign=Gtk.Align.START)
         error_box.pack_end(copy_button, False, True, 0)
         copy_button.connect("clicked", on_copy_clicked)
 
@@ -1061,9 +1071,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         )
 
     def display_cancel_button(self, extra_buttons=None):
-        self.display_buttons(extra_buttons or [])
+        self.display_buttons(extra_buttons or [], True)
 
-    def display_buttons(self, buttons):
+    def display_buttons(self, buttons, cancel_sensitive=True):
         """Shows exactly the buttons given, and hides the others. Updates the close button
         according to whether the install has started."""
 
@@ -1077,6 +1087,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self.cancel_button.set_label(_("_Close") if self.install_complete else _("Cancel"))
             self.cancel_button.set_tooltip_text("")
             style_context.remove_class("destructive-action")
+
+        self.cancel_button.set_sensitive(cancel_sensitive)
 
         all_buttons = [self.cache_button, self.source_button, self.continue_button]
 

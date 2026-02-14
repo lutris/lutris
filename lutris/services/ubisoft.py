@@ -1,5 +1,6 @@
 """Ubisoft Connect service"""
 
+import glob
 import json
 import os
 import shutil
@@ -35,13 +36,18 @@ class UbisoftCover(ServiceMedia):
     size = (160, 186)
     dest_path = os.path.join(settings.CACHE_DIR, "ubisoft/covers")
     file_patterns = ["%s.jpg"]
-    api_field = "id"
-    url_pattern = "https://ubiservices.cdn.ubi.com/%s/spaceCardAsset/boxArt_mobile.jpg?imwidth=320"
+    api_field = "thumbImage"
+    url_pattern = "https://static3.cdn.ubi.com/orbit/uplay_launcher_3_0/assets/%s"
 
     def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
-        if self.api_field in details:
-            return super().get_media_url(details)
-        return details["thumbImage"]
+        # First try coverUrl from the API (available for games fetched via GraphQL)
+        if details.get("coverUrl"):
+            return details["coverUrl"]
+        # Fall back to thumbImage from local config files (for locally parsed games)
+        if details.get(self.api_field):
+            return self.url_pattern % details[self.api_field]
+        # No image available - this is expected for some games
+        return None
 
     def download(self, slug, url):
         if url.startswith("http"):
@@ -93,7 +99,7 @@ class UbisoftConnectService(OnlineService):
     token_path = os.path.join(settings.CACHE_DIR, "ubisoft/.token")
     cache_path = os.path.join(settings.CACHE_DIR, "ubisoft/library/")
     login_url = consts.LOGIN_URL
-    redirect_uri = "https://connect.ubisoft.com/change_domain/"
+    redirect_uris = ["https://connect.ubisoft.com/change_domain/"]
     scripts = {
         "https://connect.ubisoft.com/ready": ('window.location.replace("https://connect.ubisoft.com/change_domain/");'),
         "https://connect.ubisoft.com/change_domain/": (
@@ -133,23 +139,50 @@ class UbisoftConnectService(OnlineService):
     def get_configurations(self):
         ubi_game = get_game_by_field("ubisoft-connect", "slug")
         if not ubi_game:
-            return
+            return None
+
         base_dir = ubi_game["directory"]
-        configurations_path = os.path.join(
-            base_dir, "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/" "cache/configuration/configurations"
-        )
-        if not os.path.exists(configurations_path):
-            return
-        with open(configurations_path, "rb") as config_file:
-            content = config_file.read()
-        return content
+
+        """Define potential relative paths for configuration files across different launcher versions"""
+        possible_paths = [
+            "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/configuration/configurations",
+            "drive_c/users/*/AppData/Local/Ubisoft Game Launcher/cache/configuration/configurations",
+        ]
+
+        all_valid_files = []
+
+        """Iterate through patterns to find all matching files on the system"""
+        for path_pattern in possible_paths:
+            full_pattern = os.path.join(base_dir, path_pattern)
+            matching_paths = glob.glob(full_pattern)
+
+            """Filter results to ensure we only collect actual files (ignoring directories)"""
+            for p in matching_paths:
+                if os.path.isfile(p):
+                    all_valid_files.append(p)
+
+        """Log all discovered candidates for debugging purposes"""
+        for f in all_valid_files:
+            logger.debug("Found config file candidate: %s", f)
+
+        """If any valid files were found, select and read the most recently modified one"""
+        if all_valid_files:
+            latest_file = max(all_valid_files, key=os.path.getmtime)
+
+            logger.debug("Loading configuration from: %s", latest_file)
+            with open(latest_file, "rb") as f:
+                return f.read()
+
+        """Fallback if no configuration files were detected"""
+        logger.info("Ubisoft configuration file not found in %s", base_dir)
+        return None
 
     def load(self):
         try:
             self.client.authorise_with_stored_credentials(self.load_credentials())
         except RuntimeError as ex:
             logger.error("Failed to authorize with API: %s. Re-login required." % ex)
-            AsyncCall(self.logout, self.login)
+            AsyncCall(self.logout, lambda _result, _error: self.login())
             return
         response = self.client.get_club_titles()
         games = response["data"]["viewer"]["ownedGames"].get("nodes", [])

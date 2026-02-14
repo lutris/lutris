@@ -24,11 +24,9 @@ import sys
 import tempfile
 from datetime import datetime, timedelta
 from gettext import gettext as _
-from typing import List
+from typing import List, Optional
 
 import gi
-
-from ..util.busy import BusyAsyncCall
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
@@ -53,20 +51,22 @@ from lutris.runners import InvalidRunnerError, RunnerInstallationError, get_runn
 from lutris.services import get_enabled_services
 from lutris.startup import init_lutris, run_all_checks
 from lutris.style_manager import StyleManager
-from lutris.util import datapath, log, system
+from lutris.util import datapath, log, resources, system
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_dirs
 
+from ..util.busy import BusyAsyncCall
+from ..util.standalone_scripts import generate_script
 from .lutriswindow import LutrisWindow
 
 LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATURES_ENABLED") == "1"
 
 
-class Application(Gtk.Application):
-    def __init__(self):
+class LutrisApplication(Gtk.Application):
+    def __init__(self) -> None:
         super().__init__(
             application_id="net.lutris.Lutris",
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
@@ -87,7 +87,7 @@ class Application(Gtk.Application):
         GLib.set_prgname("net.lutris.Lutris")
         self.force_updates = False
         self.css_provider = Gtk.CssProvider.new()
-        self.window = None
+        self.window: Optional[LutrisWindow] = None
         self.launch_ui_delegate = LaunchUIDelegate()
         self.install_ui_delegate = InstallUIDelegate()
 
@@ -96,7 +96,7 @@ class Application(Gtk.Application):
         self.tray = None
 
         self.quit_on_game_exit = False
-        self.style_manager = None
+        self.style_manager = StyleManager()
 
         if os.geteuid() == 0:
             NoticeDialog(_("Do not run Lutris as root."))
@@ -340,8 +340,6 @@ class Application(Gtk.Application):
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
 
-        self.style_manager = StyleManager()
-
     def do_activate(self):  # pylint: disable=arguments-differ
         if not self.window:
             self.window = LutrisWindow(application=self)
@@ -351,6 +349,8 @@ class Application(Gtk.Application):
     def start_runtime_updates(self) -> None:
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
+        elif not self.window:
+            logger.error("Runtime updates can't be started with a LutrisWindow.")
         else:
             self.window.start_runtime_updates(self.force_updates)
 
@@ -429,19 +429,6 @@ class Application(Gtk.Application):
         # Workaround broken pygobject bindings
         command_line.do_print_literal(command_line, string + "\n")
 
-    def generate_script(self, db_game, script_path):
-        """Output a script to a file.
-        The script is capable of launching a game without the client
-        """
-
-        def on_error(error: BaseException) -> None:
-            logger.exception("Unable to generate script: %s", error)
-
-        game = Game(db_game["id"])
-        game.game_error.register(on_error)
-        game.reload_config()
-        game.write_script(script_path, self.launch_ui_delegate)
-
     def do_handle_local_options(self, options):
         # Text only commands
 
@@ -456,7 +443,6 @@ class Application(Gtk.Application):
     def do_command_line(self, command_line):  # noqa: C901  # pylint: disable=arguments-differ
         # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
         # pylint: disable=too-many-statements
-        # TODO: split into multiple methods to reduce complexity (35)
         options = command_line.get_options_dict()
 
         # Use stdout to output logs, only if no command line argument is
@@ -486,6 +472,23 @@ class Application(Gtk.Application):
             dest_dir = options.lookup_value("dest").get_string()
         else:
             dest_dir = None
+
+        if options.contains("output-script"):
+            searchstring = options.lookup_value("output-script").get_string()
+            export_script_game = (
+                games_db.get_game_by_field(searchstring, "id")
+                or games_db.get_game_by_field(searchstring, "slug")
+                or games_db.get_game_by_field(searchstring, "installer_slug")
+            )
+
+            if not export_script_game or not export_script_game["id"]:
+                logger.warning(
+                    "No valid game (%s) provided to generate the script. Use the -l option to find suitable games!",
+                    searchstring,
+                )
+                return 1
+            generate_script(logger, self.launch_ui_delegate, export_script_game, f"{export_script_game['slug']}.sh")
+            return 0
 
         # List game
         if options.contains("list-games"):
@@ -637,9 +640,6 @@ class Application(Gtk.Application):
 
         self.launch_ui_delegate = CommandLineUIDelegate(launch_config_name)
 
-        if options.contains("output-script"):
-            action = "write-script"
-
         revision = installer_info["revision"]
 
         installer_file = None
@@ -700,13 +700,6 @@ class Application(Gtk.Application):
         if options.contains("reinstall"):
             action = "install"
 
-        if action == "write-script":
-            if not db_game or not db_game["id"]:
-                logger.warning("No game provided to generate the script")
-                return 1
-            self.generate_script(db_game, options.lookup_value("output-script").get_string())
-            return 0
-
         # Graphical commands
         self.set_tray_icon()
         self.activate()
@@ -762,6 +755,15 @@ class Application(Gtk.Application):
 
             if game.state == game.STATE_STOPPED and not self.window.is_visible():
                 self.quit()
+
+            if self.quit_on_game_exit:
+
+                def game_stop_signal_handler(signum, _frame):
+                    logger.debug("signal handler called with signal: %d", signum)
+                    game.stop()
+
+                signal.signal(signal.SIGTERM, game_stop_signal_handler)
+                signal.signal(signal.SIGINT, game_stop_signal_handler)
         elif self.window:
             # If we're showing the window, it will handle the delegated UI
             # from here on out, no matter what command line we got.
@@ -773,12 +775,13 @@ class Application(Gtk.Application):
             self.quit_on_game_exit = False
         return 0
 
-    def on_settings_changed(self, setting_key, new_value):
-        if setting_key == "preferred_theme":
-            self.style_manager.preferred_theme = new_value
-        elif setting_key == "show_tray_icon" and self.window:
-            if self.window.get_visible():
-                self.set_tray_icon()
+    def on_settings_changed(self, setting_key, new_value, section):
+        if section == "lutris":
+            if setting_key == "preferred_theme":
+                self.style_manager.preferred_theme = new_value
+            elif setting_key == "show_tray_icon" and self.window:
+                if self.window.get_visible():
+                    self.set_tray_icon()
         return True
 
     def on_game_start(self, game: Game) -> None:
@@ -875,8 +878,16 @@ class Application(Gtk.Application):
             )
 
     def print_game_json(self, command_line, game_list):
-        games = [
-            {
+        games = []
+
+        for game in game_list:
+            playtime = timedelta(hours=game["playtime"]) if game["playtime"] else None
+            cover_path = resources.get_cover_path(game["slug"]) if game["slug"] else None
+
+            if cover_path and not os.path.exists(cover_path):
+                cover_path = None
+
+            game_obj = {
                 "id": game["id"],
                 "slug": game["slug"],
                 "name": game["name"],
@@ -884,11 +895,14 @@ class Application(Gtk.Application):
                 "platform": game["platform"] or None,
                 "year": game["year"] or None,
                 "directory": game["directory"] or None,
-                "playtime": (str(timedelta(hours=game["playtime"])) if game["playtime"] else None),
+                "playtime": str(playtime) if playtime else None,
+                "playtimeSeconds": playtime.total_seconds() if playtime else None,
                 "lastplayed": (str(datetime.fromtimestamp(game["lastplayed"])) if game["lastplayed"] else None),
+                "coverPath": cover_path,
             }
-            for game in game_list
-        ]
+
+            games.append(game_obj)
+
         self._print(command_line, json.dumps(games, indent=2))
 
     def print_service_game_list(self, command_line, game_list):

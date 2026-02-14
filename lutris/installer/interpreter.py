@@ -87,7 +87,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             self.service = self.installer.service
         script_errors = self.installer.get_errors()
         if script_errors:
-            raise ScriptingError(_("Invalid script: \n{}").format("\n".join(script_errors)), self.installer.script)
+            raise ScriptingError(
+                _("Invalid script: \n{}").format("\n".join(script_errors)), faulty_data=self.installer.script
+            )
 
         self._check_binary_dependencies()
         self._check_dependency()
@@ -228,12 +230,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             except PermissionError as err:
                 raise ScriptingError(
                     _("Lutris does not have the necessary permissions to install to path:"),
-                    self.target_path,
+                    faulty_data=self.target_path,
                 ) from err
             except FileNotFoundError as err:
                 raise ScriptingError(
                     _("Path %s not found, unable to create game folder. Is the disk mounted?"),
-                    self.target_path,
+                    faulty_data=self.target_path,
                 ) from err
 
     def get_runners_to_install(self):
@@ -284,7 +286,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             )
         except (NonInstallableRunnerError, RunnerInstallationError) as ex:
             logger.error(ex.message)
-            raise ScriptingError(ex.message) from ex
+            raise ScriptingError.wrap(ex) from ex
 
     def launch_installer_commands(self):
         """Run the pre-installation steps and launch install."""
@@ -385,19 +387,34 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         os.chdir(os.path.expanduser("~"))
         system.delete_folder(self.cache_path)
 
-    def revert(self, remove_game_dir=True):
-        """Revert installation in case of an error"""
+    def revert(self, remove_game_dir=True, completion_function=None, error_function=None):
+        """Revert installation in case of an error. Since winekill can be slow,
+        this runs asynchronously and calls cocompletion_function() when successful,
+        or error_function(err) if it fails."""
         logger.info("Cancelling installation of %s", self.installer.game_name)
-        if self.installer.runner.startswith("wine"):
-            self.task({"name": "winekill"})
 
         self.cancelled = True
 
-        if self.abort_current_task:
-            self.abort_current_task()
+        def on_complete(_result, error):
+            if error:
+                error_function(error)
+                return
 
-        if self.target_path and remove_game_dir:
-            system.remove_folder(self.target_path)
+            try:
+                if self.abort_current_task:
+                    self.abort_current_task()
+
+                if self.target_path and remove_game_dir:
+                    system.remove_folder(self.target_path)
+
+                completion_function()
+            except Exception as ex:
+                error_function(ex)
+
+        if self.installer.runner.startswith("wine"):
+            AsyncCall(self.task, on_complete, {"name": "winekill"})
+        else:
+            on_complete(None, None)
 
     def _get_string_replacements(self):
         """Return a mapping of variables to their actual value"""
@@ -406,6 +423,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         replacements = {
             "GAMEDIR": self.target_path,
+            "SCRIPTDIR": self.installer.scriptdir,
             "CACHE": self.cache_path,
             "HOME": os.path.expanduser("~"),
             "STEAM_DATA_DIR": steam.steam().steam_data_dir,

@@ -1,7 +1,9 @@
 """Lutris installer class"""
 
 import json
+from functools import cached_property
 from gettext import gettext as _
+from pathlib import Path
 
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
@@ -52,6 +54,16 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.game_id = self.get_game_id()
         self.is_gog = False
         self.discord_id = installer.get("discord_id")
+
+    @cached_property
+    def scriptdir(self):
+        installer_file = self.installer.get("installer_file")
+        if not installer_file:
+            return ""
+        file = Path(installer_file).resolve()
+        if not file.exists():
+            return ""
+        return str(file.parent) if file.is_file() else str(file)
 
     def get_service(self, initial=None):
         if initial:
@@ -263,7 +275,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             try:
                 game_config.update(self.script["game"])
             except ValueError as err:
-                raise ScriptingError(_("Invalid 'game' section"), self.script["game"]) from err
+                raise ScriptingError(_("Invalid 'game' section"), faulty_data=self.script["game"]) from err
 
         # Obsolete install scripts may have the entry point key at root level;
         # we'll move them into the game-config if so, and if they are not already

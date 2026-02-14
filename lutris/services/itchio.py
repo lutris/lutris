@@ -7,9 +7,12 @@ from gettext import gettext as _
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote_plus, urlencode
 
+from gi.repository import Gtk
+
 from lutris import settings
 from lutris.database import games as games_db
 from lutris.exceptions import UnavailableGameError
+from lutris.gui.dialogs import InputDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import get_runner_human_name
@@ -73,20 +76,6 @@ class ItchIoGame(ServiceGame):
         return service_game
 
 
-class ItchIoGameTraits:
-    """Game Traits Helper Class"""
-
-    def __init__(self, traits):
-        self._traits = traits
-        self.windows = bool("p_windows" in traits)
-        self.linux = bool("p_linux" in traits)
-        self.can_be_bought = bool("can_be_bought" in traits)
-        self.has_demo = bool("has_demo" in traits)
-
-    def has_supported_platform(self):
-        return self.windows or self.linux
-
-
 class ItchIoService(OnlineService):
     """Service class for itch.io"""
 
@@ -106,17 +95,19 @@ class ItchIoService(OnlineService):
 
     api_url = "https://api.itch.io"
     login_url = "https://itch.io/login"
-    redirect_uri = "https://itch.io/my-feed"
-    cookies_path = os.path.join(settings.CACHE_DIR, ".itchio.auth")
+    redirect_uris = ["https://itch.io/my-feed", "https://itch.io/dashboard"]
     cache_path = os.path.join(settings.CACHE_DIR, "itchio/api/")
 
+    api_key_path = os.path.join(settings.CACHE_DIR, "itchio/api-key")  # must be kept outside of cache-path
     key_cache_file = os.path.join(cache_path, "profile/owned-keys.json")
     collection_list_cache_file = os.path.join(cache_path, "profile/collections.json")
     games_cache_path = os.path.join(cache_path, "games/")
     collection_cache_path = os.path.join(cache_path, "collections/")
     key_cache = {}
 
-    supported_platforms = ("p_linux", "p_windows")
+    runners_by_trait = {"p_linux": "linux", "p_windows": "wine"}
+    platforms_by_runner = {"wine": "Windows", "linux": "Linux"}
+
     extra_types = (
         "soundtrack",
         "book",
@@ -129,9 +120,59 @@ class ItchIoService(OnlineService):
         "other",
     )
 
-    def login_callback(self, url):
-        """Called after the user has logged in successfully"""
-        SERVICE_LOGIN.fire(self)
+    def login(self, parent=None):
+        # The InputDialog doesn't keep any state we need to protect,
+        # but we used to so we'll clear this persistent flag.
+        self.is_login_in_progress = False
+
+        question = _(
+            "Lutris needs an API key to connect to itch.io. You can obtain one\n"
+            "from the itch.io <a href='https://itch.io/user/settings/api-keys'>API keys page</a>.\n\n"
+            "You should give Lutris its own API key instead of sharing them."
+        )
+
+        api_key_dialog = InputDialog(
+            {
+                "parent": parent,
+                "question": question,
+                "title": _("Itch.io API key"),
+                "initial_value": "",
+            }
+        )
+
+        result = api_key_dialog.run()
+        if result != Gtk.ResponseType.OK:
+            api_key_dialog.destroy()
+            self.logout()
+            return
+
+        api_key = api_key_dialog.user_value
+
+        if api_key:
+            with open(self.api_key_path, "w") as key_file:
+                key_file.write(api_key)
+            SERVICE_LOGIN.fire(self)
+        else:
+            self.logout()
+
+    @property
+    def credential_files(self):
+        """Return a list of all files used for authentication"""
+        return [self.api_key_path]
+
+    def load_api_key(self) -> Optional[str]:
+        if not os.path.exists(self.api_key_path):
+            return None
+
+        with open(self.api_key_path, "r") as key_file:
+            return key_file.read()
+
+    def get_headers(self):
+        api_key = self.load_api_key()
+        if api_key:
+            return {"Authorization": f"Bearer {api_key}"}
+        else:
+            return {}
 
     def is_connected(self):
         """Check if service is connected and can call the API"""
@@ -168,7 +209,10 @@ class ItchIoService(OnlineService):
         if query is not None and isinstance(query, dict):
             url += "?{}".format(urlencode(query, quote_via=quote_plus))
         try:
-            request = Request(url, cookies=self.load_cookies())
+            request = Request(
+                url,
+                headers=self.get_headers(),
+            )
             request.get()
             return request.json
         except UnauthorizedAccessError:
@@ -330,9 +374,9 @@ class ItchIoService(OnlineService):
                     safety -= 1
 
                 # filter out bad data for safety
-                collection["games"] = list(
-                    filter(lambda col_game: "game" in col_game and "id" in col_game["game"], collection["games"])
-                )
+                collection["games"] = [
+                    col_game for col_game in collection["games"] if "game" in col_game and "id" in col_game["game"]
+                ]
 
                 # try to get download keys from cache
                 for col_game in collection["games"]:
@@ -374,31 +418,27 @@ class ItchIoService(OnlineService):
 
     def get_games(self):
         """Return games from the user's library"""
-        # get and cache owned games
+        # get and cache owned games; this populates collections.json for later
         owned_games = self.get_owned_games()
 
         # get all collections
         collections = self.get_collection_list()
 
-        # if there is only one collecion, use owned games and this collection
-        if len(collections) == 1:
-            games = owned_games + self.get_games_in_collections(collections)
+        # if there are collections titled "lutris" (case insestitive) we use only these
+        lutris_collections = [col for col in collections if col.get("title", "").casefold() == "lutris" and "id" in col]
+
+        if len(lutris_collections) > 0:
+            games = self.get_games_in_collections(lutris_collections)
         else:
-            # if there are collections titled "lutris" (case insestitive) we use only these
-            lutris_collections = list(
-                filter(lambda col: col.get("title", "").lower() == "lutris" and "id" in col, collections)
-            )
-            if len(lutris_collections) > 0:
-                games = self.get_games_in_collections(lutris_collections)
-            # otherwise we just use all owned games
-            else:
-                games = self.get_owned_games()
+            # otherwise, dig up every game we can find!
+            games = owned_games + self.get_games_in_collections(collections)
 
         filtered_games = []
         for game in games:
-            traits = game.get("traits", {})
-            if any(platform in traits for platform in self.supported_platforms):
-                filtered_games.append(game)
+            classification = game.get("classification")
+            if not classification or classification == "game":
+                if self._get_detail_runners(game):
+                    filtered_games.append(game)
         return filtered_games
 
     def get_key(self, appid):
@@ -461,17 +501,45 @@ class ItchIoService(OnlineService):
             all_extras["Bonus Content"] = extras
         return all_extras
 
+    @staticmethod
+    def _get_detail_runners(details: Dict[str, Any], fix_missing_platforms: bool = True) -> List[str]:
+        """Extracts the runners available for a given game, given its details.
+        This test the traits for specific platforms, and returns the runners
+        in a priority order- Linux is first, which occasionally matters.
+
+        Normally, if a game has no platforms we'll assume a default set of runners,
+        but 'fix_missing_platforms' may be set to false to turn this off."""
+        runners = []
+        traits = details["traits"]
+        traits.clear
+        for trait, runner in ItchIoService.runners_by_trait.items():
+            if trait in traits:
+                runners.append(runner)
+
+        # Special case- some games don't list platform at all. If the game has
+        # no "p_" traits- not even "p_osx"- we can assume *all* our platforms are
+        # supported and hope for the best!
+
+        if fix_missing_platforms and not runners:
+            if not any(t for t in traits if t.startswith("p_")):
+                logger.warning(
+                    "The itch.io game '%s' has no platforms lists; Lutris will assume all supported runners will work.",
+                    details.get("title"),
+                )
+                return list(ItchIoService.runners_by_trait.values())
+
+        return runners
+
     def get_installed_slug(self, db_game):
         return db_game["slug"]
 
     def generate_installer(self, db_game: Dict[str, Any]) -> Dict[str, Any]:
         """Auto generate installer for itch.io game"""
         details = json.loads(db_game["details"])
+        runners = self._get_detail_runners(details)
 
-        if "p_linux" in details["traits"]:
-            return self._generate_installer("linux", db_game)
-        elif "p_windows" in details["traits"]:
-            return self._generate_installer("wine", db_game)
+        if runners:
+            return self._generate_installer(runners[0], db_game)
 
         logger.warning("No supported platforms found")
         return {}
@@ -480,13 +548,8 @@ class ItchIoService(OnlineService):
         """Auto generate installer for itch.io game"""
         details = json.loads(db_game["details"])
 
-        installers = []
-
-        if "p_linux" in details["traits"]:
-            installers.append(self._generate_installer("linux", db_game))
-
-        if "p_windows" in details["traits"]:
-            installers.append(self._generate_installer("wine", db_game))
+        runners = self._get_detail_runners(details)
+        installers = [self._generate_installer(runner, db_game) for runner in runners]
 
         if len(installers) > 1:
             for installer in installers:
@@ -523,27 +586,16 @@ class ItchIoService(OnlineService):
             },
         }
 
-    def get_installed_runner_name(self, db_game):
+    def get_installed_runner_name(self, db_game: Dict[str, Any]) -> str:
         details = json.loads(db_game["details"])
-
-        if "p_linux" in details["traits"]:
-            return "linux"
-        if "p_windows" in details["traits"]:
-            return "wine"
-
-        return ""
+        runners = self._get_detail_runners(details)
+        return runners[0] if runners else ""
 
     def get_game_platforms(self, db_game: dict) -> List[str]:
-        platforms = []
         details = json.loads(db_game["details"])
 
-        if "p_linux" in details["traits"]:
-            platforms.append("Linux")
-
-        if "p_windows" in details["traits"]:
-            platforms.append("Windows")
-
-        return platforms
+        runners = self._get_detail_runners(details, fix_missing_platforms=False)
+        return [self.platforms_by_runner[r] for r in runners]
 
     def _check_update_with_db(self, db_game, key, upload=None):
         stamp = 0
@@ -634,7 +686,7 @@ class ItchIoService(OnlineService):
                             "url": patch_url,
                             "filename": "update.zip",
                             "downloader": lambda f, url=patch_url: Downloader(
-                                url, f.download_file, overwrite=True, cookies=self.load_cookies()
+                                url, f.download_file, overwrite=True, headers=self.get_headers()
                             ),
                         }
                     }
@@ -698,12 +750,11 @@ class ItchIoService(OnlineService):
                     continue
                 # default =  games/tools ("executables")
                 if upload["type"] == "default" and (installer.runner in ("linux", "wine")):
-                    is_linux = installer.runner == "linux" and "p_linux" in upload["traits"]
-                    is_windows = installer.runner == "wine" and "p_windows" in upload["traits"]
-                    is_demo = "demo" in upload["traits"]
-                    if not (is_linux or is_windows):
+                    upload_runners = self._get_detail_runners(upload)
+                    if installer.runner not in upload_runners:
                         continue
 
+                    is_demo = "demo" in upload["traits"]
                     upload["Weight"] = self.get_file_weight(upload["filename"], is_demo)
                     if upload["Weight"] == 0xFF:
                         continue
@@ -740,7 +791,7 @@ class ItchIoService(OnlineService):
                         "url": link,
                         "filename": filename or file.filename or "setup.zip",
                         "downloader": lambda f, url=link: Downloader(
-                            url, f.download_file, overwrite=True, cookies=self.load_cookies()
+                            url, f.download_file, overwrite=True, headers=self.get_headers()
                         ),
                     },
                 )
@@ -758,7 +809,7 @@ class ItchIoService(OnlineService):
                         "url": link,
                         "filename": extra["filename"],
                         "downloader": lambda f, url=link: Downloader(
-                            url, f.download_file, overwrite=True, cookies=self.load_cookies()
+                            url, f.download_file, overwrite=True, headers=self.get_headers()
                         ),
                     },
                 )

@@ -15,8 +15,11 @@ from lutris.gui.widgets.utils import open_uri
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
 
+# MyPy does not like GTK's notion of multiple inheritancs, but
+# we don't control this, so we'll suppress type checking.
 
-class SlugEntry(Gtk.Entry, Gtk.Editable):
+
+class SlugEntry(Gtk.Entry, Gtk.Editable):  # type:ignore[misc]
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept alphanumeric and dashes"""
         new_text = "".join([c for c in new_text if c.isalnum() or c == "-"]).lower()
@@ -25,7 +28,7 @@ class SlugEntry(Gtk.Entry, Gtk.Editable):
         return position + length
 
 
-class NumberEntry(Gtk.Entry, Gtk.Editable):
+class NumberEntry(Gtk.Entry, Gtk.Editable):  # type:ignore[misc]
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept numbers"""
         new_text = "".join([c for c in new_text if c.isnumeric()])
@@ -35,7 +38,7 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
         return position
 
 
-class FileChooserEntry(Gtk.Box):
+class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
     """Editable entry with a file picker button"""
 
     max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.
@@ -249,7 +252,7 @@ class FileChooserEntry(Gtk.Box):
         if self.warn_if_non_empty and os.path.exists(path) and os.listdir(path):
             non_empty_label = Gtk.Label(visible=True)
             non_empty_label.set_markup(
-                _("<b>Warning!</b> The selected path " "contains files. Installation will not work properly.")
+                _("<b>Warning!</b> The selected path contains files. Installation will not work properly.")
             )
             self.pack_end(non_empty_label, False, False, 10)
         if self.warn_if_non_writable_parent:
@@ -257,7 +260,7 @@ class FileChooserEntry(Gtk.Box):
             if parent is not None and not os.access(parent, os.W_OK):
                 non_writable_destination_label = Gtk.Label(visible=True)
                 non_writable_destination_label.set_markup(
-                    _("<b>Warning</b> The destination folder " "is not writable by the current user.")
+                    _("<b>Warning</b> The destination folder is not writable by the current user.")
                 )
                 self.pack_end(non_writable_destination_label, False, False, 10)
 

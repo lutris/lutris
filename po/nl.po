@@ -414,7 +414,7 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:26
 msgid "Search the Lutris website for installers"
-msgstr "Zoeken naar installatiewizards op Litrus-website"
+msgstr "Zoeken naar installatiewizards op Lutris-website"
 
 #: lutris/gui/addgameswindow.py:27
 msgid "Query our website for community installers"

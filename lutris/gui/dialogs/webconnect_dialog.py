@@ -13,7 +13,7 @@ try:
     gi.require_version("WebKit2", "4.1")
 except ValueError:
     gi.require_version("WebKit2", "4.0")
-from gi.repository import WebKit2
+from gi.repository import WebKit2  # type: ignore[attr-defined]
 
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import ModalDialog
@@ -24,6 +24,13 @@ class WebConnectDialog(ModalDialog):
     """Login form for external services"""
 
     def __init__(self, service: "OnlineService", parent=None):
+        if service.is_login_in_progress:
+            # If the previous login was abandoned, remove any
+            # credentials that may have been left over for a clean start-
+            # this helps if the service thinks we are logged in (ie, credenial
+            # cookiers remain), but Lutris does not.
+            service.wipe_game_cache()
+
         service.is_login_in_progress = True
 
         self.context: WebKit2.WebContext = WebKit2.WebContext.new()
@@ -59,6 +66,8 @@ class WebConnectDialog(ModalDialog):
 
         super().__init__(title=service.name, parent=parent)
 
+        content_area = self.get_content_area()
+
         self.set_default_size(self.service.login_window_width, self.service.login_window_height)
 
         self.webview = WebKit2.WebView.new_with_context(self.context)
@@ -66,8 +75,8 @@ class WebConnectDialog(ModalDialog):
         self.webview.connect("load-changed", self.on_navigation)
         self.webview.connect("create", self.on_webview_popup)
         self.webview.connect("decide-policy", self.on_decide_policy)
-        self.vbox.set_border_width(0)  # pylint: disable=no-member
-        self.vbox.pack_start(self.webview, True, True, 0)  # pylint: disable=no-member
+        content_area.set_border_width(0)
+        content_area.pack_start(self.webview, True, True, 0)
 
         webkit_settings = self.webview.get_settings()
 
@@ -106,7 +115,7 @@ class WebConnectDialog(ModalDialog):
                 script = self.service.scripts[url]
                 widget.run_javascript(script, None, None)
                 return True
-            if url.startswith(self.service.redirect_uri):
+            if any(url.startswith(r) for r in self.service.redirect_uris):
                 if self.service.requires_login_page:
                     resource = widget.get_main_resource()
                     resource.get_data(None, self._get_response_data_finish, None)

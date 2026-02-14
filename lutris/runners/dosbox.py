@@ -54,9 +54,7 @@ class dosbox(Runner):
             "label": _("Working directory"),
             "warn_if_non_writable_parent": True,
             "help": _(
-                "The location where the game is run from.\n"
-                "By default, Lutris uses the directory of the "
-                "executable."
+                "The location where the game is run from.\nBy default, Lutris uses the directory of the executable."
             ),
         },
     ]

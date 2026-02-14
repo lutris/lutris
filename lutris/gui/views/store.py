@@ -131,7 +131,7 @@ class GameStore(GObject.Object):
         Return the indices of the row that were updated, or an empty set if no change
         was made, or None if the game could not be found.
         """
-        store_item = StoreItem(db_game, self.service_media)
+        store_item = StoreItem(db_game, self.service, self.service_media)
         row = self.get_row_by_id(store_item.id)
         if not row and "service_id" in db_game:
             row = self.get_row_by_id(db_game["service_id"])
@@ -166,7 +166,7 @@ class GameStore(GObject.Object):
 
     def add_game(self, db_game):
         """Add a game to the store"""
-        store_item = StoreItem(db_game, self.service_media)
+        store_item = StoreItem(db_game, self.service, self.service_media)
         self.add_item(store_item)
 
     def add_item(self, store_item):
@@ -203,7 +203,7 @@ class GameStore(GObject.Object):
         for db_game in db_games:
             if installed_db_games is not None and "appid" in db_game:
                 appid = db_game["appid"]
-                store_item = StoreItem(db_game, self.service_media)
+                store_item = StoreItem(db_game, self.service, self.service_media)
                 store_item.apply_installed_game_data(installed_db_games.get(appid))
                 self.add_item(store_item)
             else:
@@ -214,7 +214,7 @@ class GameStore(GObject.Object):
             db_games = sql.filtered_query(
                 settings.DB_PATH,
                 "service_games",
-                filters=({"service": self.service_media.service, "appid": game.appid}),
+                filters=({"service": self.service, "appid": game.appid}),
             )
         else:
             db_games = sql.filtered_query(settings.DB_PATH, "games", filters=({"id": game.id}))

@@ -4,11 +4,13 @@
 # pylint: disable=too-many-public-methods
 import os
 from gettext import gettext as _
+from pathlib import Path
 from typing import List
 
 from gi.repository import Gio, Gtk
 
 from lutris.config import duplicate_game_config
+from lutris.database import games
 from lutris.database.games import add_game, get_game_by_field
 from lutris.game import Game
 from lutris.gui import dialogs
@@ -16,6 +18,7 @@ from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.config.edit_game_categories import EditGameCategoriesDialog
 from lutris.gui.dialogs import InputDialog
+from lutris.gui.dialogs.delegates import LaunchUIDelegate
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_dialog import UninstallDialog
 from lutris.gui.widgets.utils import open_uri
@@ -24,6 +27,7 @@ from lutris.services.lutris import download_lutris_media
 from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.standalone_scripts import generate_script
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, slugify
 from lutris.util.system import path_exists
@@ -247,6 +251,11 @@ class SingleGameActions(GameActions):
             ("menu-shortcut", _("Create application menu shortcut"), self.on_create_menu_shortcut),
             ("rm-menu-shortcut", _("Delete application menu shortcut"), self.on_remove_menu_shortcut),
             ("steam-shortcut", _("Create Steam shortcut"), self.on_create_steam_shortcut),
+            (
+                "steam-bigpicture-shortcut",
+                _("Create Steam Big-Picture shortcut"),
+                self.on_create_steam_bigpicture_shortcut,
+            ),
             ("rm-steam-shortcut", _("Delete Steam shortcut"), self.on_remove_steam_shortcut),
             ("view", _("View on Lutris.net"), self.on_view_game),
             ("duplicate", _("Duplicate"), self.on_game_duplicate),
@@ -358,6 +367,17 @@ class SingleGameActions(GameActions):
         launch_config_name = self._select_game_launch_config_name(game)
         if launch_config_name is not None:
             steam_shortcut.create_shortcut(game, launch_config_name)
+
+    def on_create_steam_bigpicture_shortcut(self, *_args):
+        """Add the selected game to steam as a nonsteam-game."""
+        game = self.game
+        launch_config_name = self._select_game_launch_config_name(game)
+
+        if launch_config_name is not None:
+            steam_shortcut.create_shortcut(game, launch_config_name, True)
+            gameDict = games.get_game_by_field(game.id, "id")
+            gamepath = f"{Path.home()!s}/.local/share/applications/lutris-{game.slug}.sh"
+            generate_script(logger, LaunchUIDelegate(), gameDict, gamepath)
 
     def on_create_desktop_shortcut(self, *_args):
         """Create a desktop launcher for the selected game."""

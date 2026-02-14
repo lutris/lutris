@@ -1,9 +1,10 @@
 from functools import wraps
 from typing import Any, Callable, Iterable
 
-from gi.repository import Gio, GLib, GObject, Gtk
+from gi.repository import GLib, GObject, Gtk
 
 from lutris.gui.dialogs import display_error
+from lutris.gui.widgets.utils import get_required_main_window
 from lutris.util.log import logger
 
 
@@ -59,11 +60,10 @@ def _get_error_parent(error_objects: Iterable) -> Gtk.Window:
                 toplevel = error_object.get_toplevel()
                 if toplevel:
                     return toplevel
-        except GLib.GError:
+        except GLib.GError:  # type:ignore
             pass  # hasattr() is always true for (some) GObjects, but the method fails when used
 
-    application = Gio.Application.get_default()
-    return application.window if application else None
+    return get_required_main_window()
 
 
 def _create_error_wrapper(

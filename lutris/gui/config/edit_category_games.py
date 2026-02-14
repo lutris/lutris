@@ -117,7 +117,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
                     {
                         "title": _("Merge the category '%s' into '%s'?") % (old_name, new_name),
                         "question": _(
-                            "If you rename this category, it will be combined with '%s'. " "Do you want to merge them?"
+                            "If you rename this category, it will be combined with '%s'. Do you want to merge them?"
                         )
                         % new_name,
                         "parent": self,
@@ -134,9 +134,11 @@ class EditCategoryGamesDialog(SavableModelessDialog):
                 categories_db.redefine_category(self.category_id, new_name)
                 old_name = new_name
 
-                for game_id, game in self.category_games.items():
-                    if game_id not in added_game_ids and game_id not in removed_game_ids:
-                        updated_games[game_id] = game
+                updated_games = {
+                    game_id: game
+                    for game_id, game in self.category_games.items()
+                    if game_id not in added_game_ids and game_id not in removed_game_ids
+                }
 
         # Apply category changes and fire GAME_UPDATED as needed after everything
         for game_id in added_game_ids:

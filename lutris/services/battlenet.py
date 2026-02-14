@@ -34,9 +34,19 @@ GAME_IDS = {
     "s2": ("s2", "StarCraft II", "S2", "starcraft-ii"),
     "wow": ("wow", "World of Warcraft", "WoW", "world-of-warcraft"),
     "wow_classic": ("wow_classic", "World of Warcraft Classic", "WoW_wow_classic", "world-of-warcraft-classic"),
+    "wow_classic_era": (
+        "wow_classic_era",
+        "World of Warcraft Classic Era",
+        "WoW_wow_classic_era",
+        "world-of-warcraft-classic",
+    ),
     "pro": ("pro", "Overwatch 2", "Pro", "overwatch-2"),
+    "w1": ("w1", "Warcraft: Orcs & Humans", "W1", "warcraft-orcs-humans"),
+    "w1r": ("w1r", "Warcraft I: Remastered", "W1R", "warcraft-i-remastered"),
     "w2bn": ("w2bn", "Warcraft II: Battle.net Edition", "W2BN", "warcraft-ii-battle-net-edition"),
+    "w2r": ("w2r", "Warcraft II: Remastered", "W2R", "warcraft-ii-remastered"),
     "w3": ("w3", "Warcraft III", "W3", "warcraft-iii-reforged"),
+    "gryphon": ("gryphon", "Warcraft Rumble", "GRY", "warcraft-rumble"),
     "hsb": ("hsb", "Hearthstone", "WTCG", "hearthstone"),
     "hero": ("hero", "Heroes of the Storm", "Hero", "heroes-of-the-storm"),
     "d3cn": ("d3cn", "暗黑破壞神III", "D3CN", "diablo-iii"),
@@ -51,6 +61,8 @@ GAME_IDS = {
         "call-of-duty-modern-warfare-2-campaign-remastered",
     ),
     "zeus": ("zeus", "Call of Duty: Black Ops Cold War", "ZEUS", "call-of-duty-black-ops-cold-war"),
+    "auks": ("auks", "Call of Duty: Modern Warfare II", "AUKS", "call-of-duty-modern-warfare-ii"),
+    "codhq": ("codhq", "Call of Duty HQ", "CODHQ", "call-of-duty-hq"),
     "rtro": ("rtro", "Blizzard Arcade Collection", "RTRO", "blizzard-arcade-collection"),
     "wlby": ("wlby", "Crash Bandicoot 4: It's About Time", "WLBY", "crash-bandicoot-4-its-about-time"),
     "osi": ("osi", "Diablo® II: Resurrected", "OSI", "diablo-2-ressurected"),
@@ -110,7 +122,7 @@ class BattleNetService(BaseService):
     client_installer = "battlenet"
     cookies_path = os.path.join(settings.CACHE_DIR, ".bnet.auth")
     cache_path = os.path.join(settings.CACHE_DIR, "bnet-library.json")
-    redirect_uri = "https://lutris.net"
+    redirect_uris = ["https://lutris.net"]
 
     @property
     def battlenet_config_path(self):
@@ -123,7 +135,7 @@ class BattleNetService(BaseService):
         return games
 
     def add_installed_games(self):
-        """Scan an existing EGS install for games"""
+        """Scan an existing Battle.net install for games"""
         bnet_game = get_game_by_field(self.client_installer, "slug")
         if not bnet_game:
             raise RuntimeError("Battle.net is not installed in Lutris")
@@ -168,11 +180,11 @@ class BattleNetService(BaseService):
     def get_installed_slug(self, db_game):
         return db_game["slug"]
 
-    def generate_installer(self, db_game, egs_db_game):
-        egs_game = Game(egs_db_game["id"])
-        egs_exe = egs_game.config.game_config["exe"]
-        if not os.path.isabs(egs_exe):
-            egs_exe = os.path.join(egs_game.config.game_config["prefix"], egs_exe)
+    def generate_installer(self, db_game, bnet_db_game):
+        bnet_app = Game(bnet_db_game["id"])
+        bnet_exe = bnet_app.config.game_config["exe"]
+        if not os.path.isabs(bnet_exe):
+            bnet_exe = os.path.join(bnet_app.config.game_config["prefix"], bnet_exe)
         return {
             "name": db_game["name"],
             "version": self.name,
@@ -189,9 +201,9 @@ class BattleNetService(BaseService):
                     {
                         "task": {
                             "name": "wineexec",
-                            "executable": egs_exe,
+                            "executable": bnet_exe,
                             "args": '--exec="install %s"' % db_game["appid"],
-                            "prefix": egs_game.config.game_config["prefix"],
+                            "prefix": bnet_app.config.game_config["prefix"],
                             "description": (
                                 "Battle.net will now open. Please launch "
                                 "the installation of %s then close Battle.net "

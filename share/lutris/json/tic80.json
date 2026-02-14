@@ -4,7 +4,6 @@
     "platforms": ["TIC-80"],
     "runner_executable": "tic80/tic80",
     "flatpak_id": "com.tic80.TIC_80",
-    "download_url": "https://github.com/nesbox/tic.computer/releases/download/v0.70.6/tic80_0.70.6.tar.gz",
     "game_options": [
         {
             "option": "main_file",
@@ -15,25 +14,32 @@
     ],
     "runner_options": [
         {
-            "option": "surf",
+            "option": "fullscreen",
             "type": "bool",
-            "label": "Start in Surf",
+            "label": "Start in fullscreen",
             "default": false,
-            "argument": "-surf"
+            "argument": "--fullscreen"
+        },    
+        {
+            "option": "software_rendering",
+            "type": "bool",
+            "label": "Software rendering",
+            "default": false,
+            "argument": "--soft"
         },
         {
             "option": "skip",
             "type": "bool",
             "label": "Skip startup animation",
             "default": false,
-            "argument": "-skip"
+            "argument": "--skip"
         },
         {
             "option": "nosound",
             "type": "bool",
             "label": "Start in silent mode",
             "default": false,
-            "argument": "-nosound"
+            "argument": "--volume=0"
         }
     ]
 }

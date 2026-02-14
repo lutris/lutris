@@ -1,13 +1,13 @@
 from gettext import gettext as _
 from typing import Optional
 
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, Gtk  # type: ignore
 
 from lutris.exceptions import UnavailableRunnerError
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.dialogs.download import DownloadDialog
-from lutris.services import get_enabled_services
+from lutris.services import SERVICES
 from lutris.util.downloader import Downloader
 
 
@@ -15,7 +15,7 @@ class Delegate:
     def get_service(self, service_id):
         """Returns a new service object by its id. This seems dumb, but it is a work-around
         for Python's circular import limitations."""
-        return get_enabled_services()[service_id]()
+        return SERVICES[service_id]()
 
 
 class LaunchUIDelegate(Delegate):
@@ -79,7 +79,7 @@ class InstallUIDelegate(Delegate):
         """
         return None
 
-    def download_install_file(self, url: str, destination: str) -> Downloader:
+    def download_install_file(self, url: str, destination: str) -> bool:
         """Downloads a file from a URL to a destination, overwriting any
         file at that path.
 
@@ -137,7 +137,7 @@ class DialogInstallUIDelegate(InstallUIDelegate):
             dlg = dialogs.FileDialog(message)
             return dlg.filename
 
-    def download_install_file(self, url, destination):
+    def download_install_file(self, url: str, destination: str) -> bool:
         dialog = DownloadDialog(url, destination, parent=self)
         dialog.run()
         return dialog.downloader.state == Downloader.COMPLETED

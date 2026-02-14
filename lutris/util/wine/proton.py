@@ -13,16 +13,16 @@ from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import get_natural_sort_key
 
 DEFAULT_GAMEID = "umu-default"
-PROTON_DIR: str = os.path.join(settings.RUNNER_DIR, "proton")
 
 
 def is_proton_version(version: Optional[str]) -> bool:
     """True if the version indicated specifies a Proton version of Wine; these
-    require special handling."""
+    require special handling. This does not recognize the special 'ge-proton' version
+    found in configurations; this must be specially  handled elsewhere."""
     return version in get_proton_versions()
 
 
-def is_umu_path(path: str) -> bool:
+def is_umu_path(path: Optional[str]) -> bool:
     """True if the path given actually runs Umu; this will run Proton-Wine in turn,
     but can be directed to particular Proton implementation by setting the env-var
     PROTONPATH, but if this is omitted it will default to the latest Proton it
@@ -30,7 +30,7 @@ def is_umu_path(path: str) -> bool:
     return bool(path and (path.endswith("/umu_run.py") or path.endswith("/umu-run")))
 
 
-def is_proton_path(wine_path: str) -> bool:
+def is_proton_path(wine_path: Optional[str]) -> bool:
     """True if the path given actually runs Umu; this will run Proton-Wine in turn,
     but can be directed to particular Proton implementation by setting the env-var
     PROTONPATH, but if this is omitted it will default to the latest Proton it
@@ -38,6 +38,8 @@ def is_proton_path(wine_path: str) -> bool:
 
     This function may be given the wine root directory or a file within such as
     the wine executable and will return true for either."""
+    if not wine_path:
+        return True
     for candidate_wine_path in get_proton_versions().values():
         if system.path_contains(candidate_wine_path, wine_path):
             return True
@@ -138,7 +140,7 @@ def get_proton_versions() -> Dict[str, str]:
 
 def _iter_proton_locations() -> Generator[str, None, None]:
     """Iterate through all potential Proton locations"""
-    yield PROTON_DIR
+    yield settings.WINE_DIR
 
     try:
         steamapp_dirs = get_steamapps_dirs()
@@ -152,7 +154,7 @@ def _iter_proton_locations() -> Generator[str, None, None]:
         yield path
 
 
-def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = None) -> None:
+def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = "") -> None:
     """Add various env-vars to an 'env' dict for use by Proton and Umu; this won't replace env-vars, so they can still
     be pre-set before we get here. This sets the PROTONPATH so the Umu launcher will know what Proton to use,
     and the WINEARCH to win64, which is what we expect Proton to always be. GAMEID is required, but we'll use a default
@@ -161,7 +163,10 @@ def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAUL
     This also propagates LC_ALL to HOST_LC_ALL, if LC_ALL is set."""
 
     if "PROTONPATH" not in env:
-        env["PROTONPATH"] = get_proton_path_by_path(wine_path)
+        if is_umu_path(wine_path):
+            env["PROTONPATH"] = "GE-Proton"
+        else:
+            env["PROTONPATH"] = get_proton_path_by_path(wine_path)
 
     if "GAMEID" not in env:
         env["GAMEID"] = game_id

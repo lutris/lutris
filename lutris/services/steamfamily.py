@@ -42,7 +42,7 @@ class SteamFamilyService(SteamService, OnlineService):
     token_path = os.path.join(settings.CACHE_DIR, ".steam.token")
     cache_path = os.path.join(settings.CACHE_DIR, "steam-library.json")
     login_url = "https://store.steampowered.com/login/?redir=/about"
-    redirect_uri = "https://store.steampowered.com/about"
+    redirect_uris = ["https://store.steampowered.com/about"]
     access_token_url = "https://store.steampowered.com/pointssummary/ajaxgetasyncconfig"
     library_url = "https://api.steampowered.com/IFamilyGroupsService/GetSharedLibraryApps/v1/"
     family_url = "https://api.steampowered.com/IFamilyGroupsService/GetFamilyGroupForUser/v1/"

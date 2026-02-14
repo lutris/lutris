@@ -18,7 +18,7 @@ class ServicesBox(BaseConfigBox):
         self.add(self.get_section_label(_("Enable integrations with game sources")))
         self.add(
             self.get_description_label(
-                _("Access your game libraries from various sources. " "Changes require a restart to take effect.")
+                _("Access your game libraries from various sources. Changes require a restart to take effect.")
             )
         )
         self.frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
@@ -41,9 +41,13 @@ class ServicesBox(BaseConfigBox):
             margin_left=12,
             margin_top=12,
             margin_bottom=12,
+            height_request=32,
             visible=True,
         )
+        in_games_view_key = service_key + "_in_games_view"
         service = SERVICES[service_key]
+        is_active = settings.read_bool_setting(service_key, section="services")
+        is_in_games_view = settings.read_bool_setting(in_games_view_key, default=True, section="services")
 
         icon = ScaledImage.get_runtime_icon_image(
             service.icon, service.id, scale_factor=self.get_scale_factor(), visible=True
@@ -55,16 +59,29 @@ class ServicesBox(BaseConfigBox):
         label.set_alignment(0, 0.5)
         service_label_box.pack_start(label, False, False, 0)
 
-        desc_label = Gtk.Label(visible=True, wrap=True)
-        desc_label.set_alignment(0, 0.5)
-        desc_label.set_text(service.description)
-        service_label_box.pack_start(desc_label, False, False, 0)
+        if service.description:
+            desc_label = Gtk.Label(visible=True, wrap=True)
+            desc_label.set_alignment(0, 0.5)
+            desc_label.set_text(service.description)
+            service_label_box.pack_start(desc_label, False, False, 0)
+
+        include_in_games_checkbox = Gtk.CheckButton(
+            _("Show games from this source in the games view"),
+            visible=is_active,
+            active=is_in_games_view,
+            halign=Gtk.Align.START,
+        )
+        style_context = include_in_games_checkbox.get_style_context()
+        style_context.add_class("smallcheckbox")  # teeny tiny!
+        style_context.add_class("cuddledcheckbox")  # remove spacing around the checkbox
+        include_in_games_checkbox.connect("toggled", self._on_include_in_games_change, in_games_view_key)
+        service_label_box.pack_start(include_in_games_checkbox, False, False, 0)
+
         box.pack_start(service_label_box, True, True, 0)
 
         checkbox = Gtk.Switch(visible=True)
-        if settings.read_setting(service_key, section="services").lower() == "true":
-            checkbox.set_active(True)
-        checkbox.connect("state-set", self._on_service_change, service_key)
+        checkbox.set_active(is_active)
+        checkbox.connect("state-set", self._on_service_change, service_key, include_in_games_checkbox)
         alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
         alignment.show()
         alignment.add(checkbox)
@@ -72,7 +89,16 @@ class ServicesBox(BaseConfigBox):
 
         return box
 
-    def _on_service_change(self, widget, state, setting_key):
+    def _on_service_change(self, widget, state, setting_key, include_in_games_checkbox):
         """Save a setting when an option is toggled"""
         settings.write_setting(setting_key, state, section="services")
+        include_in_games_checkbox.set_visible(state)
+        # if you can't view the games in their own service view, then
+        # you need to see the min the name view, so make them visible there.
+        include_in_games_checkbox.set_active(True)
         self.emit("services-changed")
+
+    def _on_include_in_games_change(self, widget, setting_key):
+        """Save a setting when an option is toggled"""
+        state = widget.get_active()
+        settings.write_setting(setting_key, state, section="services")
