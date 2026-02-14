@@ -28,7 +28,40 @@
   <url type="vcs-browser">https://github.com/lutris/lutris</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
-    <release version="0.5.20" date="2024-12-02" urgency="low"></release>
+    <release version="0.5.20" date="2026-02-14" urgency="low">
+      <description>
+        <ul>
+          <li>Fix compatibility with Python 3.14</li>
+          <li>Fix Proton integration bugs so Proton-fixes are applied</li>
+          <li>Do not offer VKD3D, D3D Extras or DXVK-NVAPI on Proton versions; Proton will handle these</li>
+          <li>The "Enable Esync" and "Enable Fsync" and "DXVK" settings are now passed on to Proton</li>
+          <li>DXVK's integrated D8VK will be enabled in Proton</li>
+          <li>Wine runner adds an option to select Wine's "Wayland driver"</li>
+          <li>Add little buttons to select cover-art, banner and icons via URL in game configuration</li>
+          <li>Cover-art or banners from sources will be used when Lutris media is not available</li>
+          <li>Emulator BIOS file location (used by libretro) may be set in Preferences</li>
+          <li>Fix for updated Flathub API</li>
+          <li>Change Itch.io over to the use of API keys instead of usernames and passwords</li>
+          <li>Update EA App source to their new API</li>
+          <li>Simplify Itch.io collections - if you have no collection named "Lutris", we will show all games</li>
+          <li>MAME Machine setting uses a searchable entry for its enormous list</li>
+          <li>Obtain the release year from GOG and Itch.io</li>
+          <li>Add "Azahar" runner</li>
+          <li>Add "ZOOM Platform" source</li>
+          <li>Add "Steam Family" source to support Steam Families</li>
+          <li>Updated versions of runners for TIC-80, EasyRPG, mGBA, Rosalie's Mupen GUI, Ruffle, 86Box</li>
+          <li>Ryujinx runner can now specify 'application ID' for your multi-game XCIs</li>
+          <li>Support for importing Commodore 64 ROMs</li>
+          <li>Support ICDs for Intel Xe GPUs</li>
+          <li>Add option for 'ptyxis' terminal</li>
+          <li>Redundant "Add Games" menu item removed; use the plus button in the corner</li>
+          <li>Option to hide a source's games from also appearing in the Games view</li>
+          <li>"Manual Script" for the context menu will now see the game's environment variables</li>
+          <li>Add "Create Steam Big Picture shortcut" to the context menu</li>
+          <li>Add a file association to run .lutris installer files via double-click</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.5.18" date="2024-12-02" urgency="low">
       <description>
         <ul>
