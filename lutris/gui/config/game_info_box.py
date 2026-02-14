@@ -1,7 +1,6 @@
 """Game Info Panel implementation"""
 
 import os
-import requests
 import shutil
 import uuid
 
@@ -10,6 +9,8 @@ import uuid
 from gettext import gettext as _
 from pathlib import Path
 from typing import Any, Optional
+
+import requests
 
 # Third Party Libraries
 from gi.repository import GdkPixbuf, Gtk, Pango

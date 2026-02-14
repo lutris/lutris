@@ -5,7 +5,7 @@ from gettext import gettext as _
 
 from gi.repository import Gtk
 
-from lutris import runners, settings
+from lutris import settings
 from lutris.config import LutrisConfig, make_game_config_id, rename_config
 from lutris.game import Game
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
