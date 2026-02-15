@@ -376,10 +376,11 @@ class GOGService(OnlineService):
         """Return available installers for a GOG game"""
         # Filter out Mac installers
         gog_installers = [installer for installer in downloads.get("installers", []) if installer["os"] != "mac"]
-        filter_os = self.runner_to_os_dict.get(runner)
-        # If it's a Linux game, also filter out Windows games
-        if filter_os:
-            gog_installers = [installer for installer in gog_installers if installer["os"] == filter_os]
+        # Prefer native Linux installers if available, otherwise fall back to Windows
+        # (scripts may need Windows installers for data extraction, engine reimplementations, etc.)
+        linux_installers = [installer for installer in gog_installers if installer["os"] == "linux"]
+        if linux_installers:
+            gog_installers = linux_installers
         return [
             installer
             for installer in gog_installers
