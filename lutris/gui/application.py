@@ -360,7 +360,8 @@ class LutrisApplication(Gtk.Application):
         if kwargs.get("runner"):
             return kwargs["runner"].name
         if kwargs.get("installers"):
-            return kwargs["installers"][0]["game_slug"]
+            installer = kwargs["installers"][0]
+            return installer.get("slug") or installer.get("game_slug")
         if kwargs.get("game"):
             return kwargs["game"].id
         return str(kwargs)
@@ -396,6 +397,7 @@ class LutrisApplication(Gtk.Application):
             update_function(window_inst)
         self.app_windows[window_key] = window_inst
         window_inst.show()
+        window_inst.present()
         return window_inst
 
     def show_installer_window(self, installers, service=None, appid=None, installation_kind=InstallationKind.INSTALL):
