@@ -1385,6 +1385,9 @@ class wine(Runner):
             initial_pids=game_pids,
         )
 
+        # Kill non-Wine processes (like gamescope) that winekill doesn't handle
+        super().force_stop_game(game_pids)
+
     def extract_icon(self, game_slug):
         """Extracts the 128*128 icon from EXE and saves it, if not resizes the biggest icon found.
         returns true if an icon is saved, false if not"""

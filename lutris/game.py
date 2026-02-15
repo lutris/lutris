@@ -920,6 +920,14 @@ class Game:
             logger.debug("Game thread stopped")
             self.on_game_quit()
             return False
+
+        # If game thread stopped but orphan processes remain (e.g. gamescope), clean them up
+        if not self.game_thread.is_running and game_pids:
+            logger.debug("Game thread stopped but %d orphan processes remain, cleaning up", len(game_pids))
+            self.runner.force_stop_game(game_pids)
+            self.on_game_quit()
+            return False
+
         return True
 
     def stop(self) -> None:
