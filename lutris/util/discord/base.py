@@ -4,7 +4,7 @@ Discord Rich Presence Base Objects
 THIS MODULE IS UNMAINTAINTED AND WILL BE MARKED FOR DEPRECATION UNLESS SOMEONE VOLUNTEERS TO PROPERLY MAINTAIN IT.
 """
 
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 
 
 class DiscordRichPresenceBase(metaclass=ABCMeta):
@@ -13,9 +13,11 @@ class DiscordRichPresenceBase(metaclass=ABCMeta):
 
     """
 
+    @abstractmethod
     def update(self, discord_id: str) -> None:
         raise NotImplementedError()
 
+    @abstractmethod
     def clear(self) -> None:
         raise NotImplementedError()
 
