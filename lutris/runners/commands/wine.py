@@ -150,9 +150,10 @@ def create_prefix(
 
         proton.update_proton_env(wine_path, wineenv)
 
-        command = MonitoredCommand([proton.get_umu_path(), "createprefix"], env=wineenv)
-        command.start()
+        umu_command = MonitoredCommand([proton.get_umu_path(), "createprefix"], env=wineenv)
+        umu_command.start()
     else:
+        umu_command = None
         wineboot_path = os.path.join(os.path.dirname(wine_path), "wineboot")
         if not system.path_exists(wineboot_path):
             logger.error(
@@ -171,6 +172,10 @@ def create_prefix(
             and system.path_exists(os.path.join(prefix, "system.reg"))
         ):
             break
+        # Check if umu crashed before prefix was created
+        if umu_command and not umu_command.is_running:
+            logger.error("Umu exited unexpectedly during prefix creation (return code: %s)", umu_command.return_code)
+            return
         if loop_index == 60:
             logger.warning("Wine prefix creation is taking longer than expected...")
     if not os.path.exists(os.path.join(prefix, "user.reg")):
