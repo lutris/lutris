@@ -3,6 +3,10 @@
     "description": "A Sega Model 3 Arcade Emulator",
     "platforms": ["Arcade"],
     "runner_executable": "supermodel/supermodel",
+    "env": {
+        "SDL_VIDEODRIVER": "x11"
+    },
+    "working_dir": "runner",
     "game_options": [
         {
             "option": "main_file",
@@ -12,6 +16,13 @@
         }
     ],
     "runner_options": [
+        {
+            "option": "netboard",
+            "type": "bool",
+            "label": "Enable netboard",
+            "default": true,
+            "argument": "-net"
+        },
         {
             "option": "fullscreen",
             "type": "bool",
