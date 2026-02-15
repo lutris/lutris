@@ -279,9 +279,16 @@ class RunnerInstallDialog(ModelessDialog):
                 style_context.add_class("destructive-action")
                 button.set_label(_("Uninstall"))
                 handler_id = button.connect("clicked", self.on_uninstall_runner, row)
+            elif not runner["url"]:
+                # Local-only version without download URL
+                style_context.remove_class("destructive-action")
+                button.set_label(_("Unavailable"))
+                button.set_sensitive(False)
+                handler_id = None
             else:
                 style_context.remove_class("destructive-action")
                 button.set_label(_("Install"))
+                button.set_sensitive(True)
                 handler_id = button.connect("clicked", self.on_install_runner, row)
 
         row.install_uninstall_cancel_button = button
@@ -362,7 +369,7 @@ class RunnerInstallDialog(ModelessDialog):
         url = runner["url"]
         version = runner["version"]
         if not url:
-            ErrorDialog(_("Version %s is not longer available") % version, parent=self)
+            ErrorDialog(_("Version %s is no longer available") % version, parent=self)
             return
         downloader = Downloader(url, dest_path, overwrite=True)
         schedule_repeating_at_idle(self.get_progress, downloader, row, interval_seconds=0.1)
