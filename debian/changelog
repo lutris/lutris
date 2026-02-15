@@ -13,7 +13,7 @@ lutris (0.5.20) jammy; urgency=medium
   * Change Itch.io over to the use of API keys instead of usernames and passwords
   * Update EA App source to their new API
   * Simplify Itcho.io collections- if you have no collection named "Lutris", we will show all games
-  * MAME Machine setting uses a searchable entry for its enourmous list
+  * MAME Machine setting uses a searchable entry for its enormous list
   * Obtain the release year from GOG and Itch.io
   * Add "Azahar" runner
   * Add "ZOOM Platform" source
@@ -27,8 +27,7 @@ lutris (0.5.20) jammy; urgency=medium
   * Option to hide a source's games from also appearing in the Games view
   * "Manual Script" for the context menu will now see the game's environment variables
   * Add "Create Steam Big Picture shortcut" to the context menu
-  * Add a file association to run .lutris installater files via double-click
-  * Installer files can use $SCRIPTDIR variable for 'self contained' local installations
+  * Add a file association to run .lutris installer files via double-click
 
 -- Mathieu Comandon <mathieucomandon@gmail.com> Sun, 23 Feb 2025 10:55:10 -0800
 
