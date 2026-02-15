@@ -37,6 +37,7 @@ ignore = []
 
 [[tool.mypy.overrides]]
 module = [
+    "lutris.exception_backstops",
     "lutris.exceptions",
 ]
 # Equivalent to strict = true for per-module config
