@@ -528,6 +528,10 @@ class Runner:  # pylint: disable=too-many-public-methods
             opts["merge_single"] = True
             opts["dest"] = os.path.join(self.directory, format_runner_version(runner_version_info))
 
+        if self.name == "supermodel":
+            opts["merge_single"] = True
+            opts["dest"] = os.path.join(settings.RUNNER_DIR, "supermodel")
+
         if self.name == "libretro" and version:
             opts["merge_single"] = False
             opts["dest"] = os.path.join(settings.RUNNER_DIR, "retroarch/cores")
