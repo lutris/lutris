@@ -395,7 +395,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             raise UnavailableLibrariesError(unavailable_libs, self.arch)
 
     def get_version(self, use_default=True):
-        raise NotImplementedError
+        return None
 
     def get_run_data(self):
         """Return dict with command (exe & args list) and env vars (dict).
@@ -461,12 +461,8 @@ class Runner:  # pylint: disable=too-many-public-methods
             question=_("The required runner is not installed.\nDo you wish to install it now?"),
             title=_("Required runner unavailable"),
         ):
-            if hasattr(self, "get_version"):
-                version = self.get_version(use_default=False)  # pylint: disable=no-member
-                self.install(ui_delegate, version=version)
-            else:
-                self.install(ui_delegate)
-
+            version = self.get_version(use_default=False)
+            self.install(ui_delegate, version=version)
             return self.is_installed()
         return False
 
