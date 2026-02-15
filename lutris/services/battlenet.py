@@ -18,13 +18,19 @@ from lutris.services.service_media import ServiceMedia
 from lutris.util.battlenet.definitions import ProductDbInfo
 from lutris.util.log import logger
 
+import os
+
+# Use pure-Python protobuf implementation for compatibility across all protobuf versions.
+# The old-style generated pb2 file is incompatible with protobuf 4.x+ native implementation.
+os.environ.setdefault("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "python")
+
 try:
     from lutris.util.battlenet.product_db_pb2 import ProductDb
 
     BNET_ENABLED = True
 except Exception as ex:
     # We do get strange Google-defined exceptions from problems with protobuf, so
-    # let's just catch (almost) everything. We do not want Lutris is crash, rather
+    # let's just catch (almost) everything. We do not want Lutris to crash, rather
     # we just want to suppress Battle.net and nothing else.
     logger.warning("The Battle.net source is unavailable because Google protobuf could not be loaded: %s", ex)
     BNET_ENABLED = False
