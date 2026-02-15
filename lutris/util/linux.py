@@ -543,11 +543,11 @@ def get_terminal_apps():
 
 
 def get_default_terminal():
-    """Return the default terminal emulator"""
+    """Return the default terminal emulator, or None if none found."""
     terms = get_terminal_apps()
     if terms:
         return terms[0]
-    logger.error("Couldn't find a terminal emulator.")
+    return None
 
 
 def get_required_default_terminal():
