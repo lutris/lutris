@@ -18,8 +18,6 @@ from lutris.services.service_media import ServiceMedia
 from lutris.util.battlenet.definitions import ProductDbInfo
 from lutris.util.log import logger
 
-import os
-
 # Use pure-Python protobuf implementation for compatibility across all protobuf versions.
 # The old-style generated pb2 file is incompatible with protobuf 4.x+ native implementation.
 os.environ.setdefault("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "python")
