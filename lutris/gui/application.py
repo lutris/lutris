@@ -667,6 +667,11 @@ class LutrisApplication(Gtk.Application):
                 installer_file = file_path
                 action = "install"
             else:
+                # Use the invoking process's cwd for relative paths, not the running instance's
+                if not os.path.isabs(installer_file):
+                    cwd = command_line.get_cwd()
+                    if cwd:
+                        installer_file = os.path.join(cwd, installer_file)
                 installer_file = os.path.abspath(installer_file)
                 action = "install"
 
