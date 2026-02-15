@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, Callable, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Iterable, cast
 
 from gi.repository import GLib, GObject, Gtk
 
@@ -7,8 +7,11 @@ from lutris.gui.dialogs import display_error
 from lutris.gui.widgets.utils import get_required_main_window
 from lutris.util.log import logger
 
+if TYPE_CHECKING:
+    from lutris.game import Game
 
-def watch_game_errors(game_stop_result, game=None):
+
+def watch_game_errors[F: Callable[..., Any]](game_stop_result: Any, game: Game = None) -> Callable[[F], F]:
     """Decorator used to catch exceptions and send events instead of propagating them normally.
     If 'game_stop_result' is not None, and the decorated function returns that, this will
     send game-stop and make the game stopped as well. This simplifies handling cancellation.
@@ -20,9 +23,9 @@ def watch_game_errors(game_stop_result, game=None):
     """
     captured_game = game
 
-    def inner_decorator(function):
+    def inner_decorator(function: F) -> F:
         @wraps(function)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             """Catch all exceptions and emit an event."""
             game = captured_game if captured_game else args[0]
 
@@ -38,12 +41,12 @@ def watch_game_errors(game_stop_result, game=None):
                 game.signal_error(ex)
                 return game_stop_result
 
-        return wrapper
+        return cast(F, wrapper)
 
     return inner_decorator
 
 
-def _get_error_parent(error_objects: Iterable) -> Gtk.Window:
+def _get_error_parent(error_objects: Iterable[GObject.Object | None]) -> Gtk.Window:
     """Obtains a top-level window to use as the parent of an
     error, by examining s list of objects. Any that are None
     are skipped; we call get_toplevel() on each object that has
@@ -57,7 +60,7 @@ def _get_error_parent(error_objects: Iterable) -> Gtk.Window:
 
         try:
             if error_object and hasattr(error_object, "get_toplevel"):
-                toplevel = error_object.get_toplevel()
+                toplevel: Gtk.Window = error_object.get_toplevel()
                 if toplevel:
                     return toplevel
         except GLib.GError:  # type:ignore
@@ -66,15 +69,15 @@ def _get_error_parent(error_objects: Iterable) -> Gtk.Window:
     return get_required_main_window()
 
 
-def _create_error_wrapper(
-    handler: Callable, handler_name: str, error_result: Any, error_method_name: str, connected_object: Any = None
-):
+def _create_error_wrapper[F: Callable[..., Any]](
+    handler: F, handler_name: str, error_result: Any, error_method_name: str, connected_object: Any = None
+) -> F:
     """Wraps a handler function in an error handler that will log and then report
     any exceptions, then return the 'error_result'."""
 
     handler_object = handler.__self__ if hasattr(handler, "__self__") else None
 
-    def error_wrapper(*args, **kwargs):
+    def error_wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return handler(*args, **kwargs)
         except Exception as ex:
@@ -87,10 +90,10 @@ def _create_error_wrapper(
                 display_error(ex, _get_error_parent([handler_object, connected_object]))
             return error_result
 
-    return error_wrapper
+    return cast(F, error_wrapper)
 
 
-def init_exception_backstops():
+def init_exception_backstops[F: Callable[..., Any]]() -> None:
     """This function is called once only, during startup, and replaces ("swizzles") a bunch of
     callback setup functions in GLib. The callbacks are all wrapped with error handlers that
     log the error and report it.
@@ -111,7 +114,7 @@ def init_exception_backstops():
     but signals and emission hooks will remain connected.
     """
 
-    def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler, *args, **kwargs):
+    def _error_handling_connect(self: Gtk.Widget, signal_spec: str, handler: F, *args: Any, **kwargs: Any) -> Any:
         error_wrapper = _create_error_wrapper(
             handler,
             f"signal '{signal_spec}'",
@@ -121,7 +124,9 @@ def init_exception_backstops():
         )
         return _original_connect(self, signal_spec, error_wrapper, *args, **kwargs)
 
-    def _error_handling_add_emission_hook(emitting_type, signal_spec, handler, *args, **kwargs):
+    def _error_handling_add_emission_hook(
+        emitting_type: GObject.Object, signal_spec: str, handler: F, *args: Any, **kwargs: Any
+    ) -> Any:
         error_wrapper = _create_error_wrapper(
             handler,
             f"emission hook '{emitting_type}.{signal_spec}'",
@@ -130,7 +135,7 @@ def init_exception_backstops():
         )
         return _original_add_emission_hook(emitting_type, signal_spec, error_wrapper, *args, **kwargs)
 
-    def _error_handling_idle_add(handler, *args, **kwargs):
+    def _error_handling_idle_add(handler: F, *args: Any, **kwargs: Any) -> Any:
         error_wrapper = _create_error_wrapper(
             handler,
             "idle function",
@@ -139,7 +144,7 @@ def init_exception_backstops():
         )
         return _original_idle_add(error_wrapper, *args, **kwargs)
 
-    def _error_handling_timeout_add(interval, handler, *args, **kwargs):
+    def _error_handling_timeout_add(interval: int, handler: F, *args: Any, **kwargs: Any) -> Any:
         error_wrapper = _create_error_wrapper(
             handler,
             "timeout function",
@@ -151,7 +156,7 @@ def init_exception_backstops():
     _original_connect = Gtk.Widget.connect
     GObject.Object.connect = _error_handling_connect
 
-    _original_add_emission_hook = GObject.add_emission_hook
+    _original_add_emission_hook: Callable[[GObject.Object, str, F], Any] = GObject.add_emission_hook
     GObject.add_emission_hook = _error_handling_add_emission_hook
 
     _original_idle_add = GLib.idle_add
