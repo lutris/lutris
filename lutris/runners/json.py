@@ -68,9 +68,7 @@ class JsonRunner(Runner):
         if self._json_data.get("env"):
             result["env"] = self._json_data["env"]
         if self._json_data.get("working_dir") == "runner":
-            result["working_dir"] = os.path.dirname(
-                os.path.join(settings.RUNNER_DIR, self.runner_executable)
-            )
+            result["working_dir"] = os.path.dirname(os.path.join(settings.RUNNER_DIR, self.runner_executable))
         return result
 
 
