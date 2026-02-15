@@ -794,6 +794,18 @@ class wine(Runner):
 
         return resolved
 
+    def get_launch_config_exe(self, launch_config):
+        """Resolve launch config exe relative to game_path, like game_exe does."""
+        exe = launch_config.get("exe")
+        if not exe:
+            return None
+        exe = os.path.expanduser(exe)
+        if os.path.isabs(exe):
+            return system.fix_path_case(exe)
+        if self.game_path:
+            return system.fix_path_case(os.path.join(self.game_path, exe))
+        return exe
+
     def get_executable(self, version: str = "", fallback: bool = True) -> str:
         """Return the path to the Wine executable.
         A specific version can be specified if needed.
