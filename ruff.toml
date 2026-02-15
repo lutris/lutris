@@ -17,7 +17,6 @@ ignore = [
     "PERF102",# When using only the values of a dict use the `values()` method
     "RUF005", # Consider iterable unpacking instead of concatenation
     "A003", # Class attribute `id` is shadowing a Python builtin
-    "B024", # `DiscordRichPresenceBase` is an abstract base class, but it has no abstract methods
     "B905", # `zip()` without an explicit `strict=` parameter
     "ARG002", # Unused method argument: `mock_path_exists`
     "E722", # Do not use bare `except`
