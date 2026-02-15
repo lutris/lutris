@@ -146,7 +146,11 @@ class StoreItem:
     def get_media_paths(self) -> List[MediaPath]:
         """Returns the path to the image file for this item"""
         if self._game_data.get("icon"):
-            return [self._game_data["icon"]]
+            icon = self._game_data["icon"]
+            if isinstance(icon, MediaPath):
+                return [icon]
+            # String path - wrap it in a MediaPath
+            return [MediaPath(icon, self.service_media)]
 
         possible_paths = self.service_media.get_possible_media_paths(self.slug)
         if any(mp for mp in possible_paths if mp.exists):
