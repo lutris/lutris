@@ -510,8 +510,7 @@ class ItchIoService(OnlineService):
         Normally, if a game has no platforms we'll assume a default set of runners,
         but 'fix_missing_platforms' may be set to false to turn this off."""
         runners = []
-        traits = details["traits"]
-        traits.clear
+        traits = details.get("traits", [])
         for trait, runner in ItchIoService.runners_by_trait.items():
             if trait in traits:
                 runners.append(runner)
@@ -750,7 +749,7 @@ class ItchIoService(OnlineService):
                     continue
                 # default =  games/tools ("executables")
                 if upload["type"] == "default" and (installer.runner in ("linux", "wine")):
-                    upload_runners = self._get_detail_runners(upload)
+                    upload_runners = self._get_detail_runners(upload, fix_missing_platforms=False)
                     if installer.runner not in upload_runners:
                         continue
 
@@ -827,6 +826,10 @@ class ItchIoService(OnlineService):
     def get_file_weight(self, name, demo):
         if name.endswith(".rpm"):
             return 0xFF  # Not supported as an extractor
+        # Exclude non-game files that are sometimes miscategorized as "default"
+        name_lower = name.lower()
+        if any(pattern in name_lower for pattern in ("wallpaper", "background", "artwork", "poster")):
+            return 0xFF
         weight = 0x0
         if name.endswith(".deb"):
             weight |= 0x01
