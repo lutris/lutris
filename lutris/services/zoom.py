@@ -74,6 +74,7 @@ class ZoomService(OnlineService):
 
     login_success_url = "https://www.zoom-platform.com/account?li_token="
     token_path = os.path.join(settings.CACHE_DIR, ".zoom.token")
+    cookies_path = os.path.join(settings.CACHE_DIR, ".zoom.auth")
     cache_path = os.path.join(settings.CACHE_DIR, "zoom-library.json")
 
     runner_to_os_dict = {"wine": "windows", "linux": "linux"}
@@ -85,7 +86,7 @@ class ZoomService(OnlineService):
 
     @property
     def credential_files(self) -> List[str]:
-        return [self.token_path]
+        return [self.cookies_path, self.token_path]
 
     def is_connected(self) -> bool:
         """Return whether the user is authenticated and if the service is available"""
