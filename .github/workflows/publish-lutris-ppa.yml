@@ -10,6 +10,8 @@ on:
   # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#release
   release:
     types: [released,prereleased]
+  # Allow manual triggering from Actions tab or CLI
+  workflow_dispatch:
 
 # Requires that PPA_GPG_PRIVATE_KEY & PPA_GPG_PASSPHRASE be defined
 # as repository secrets and that PPA_RELEASE_URI & PPA_STAGING_URI
@@ -22,9 +24,9 @@ on:
 # The only thing that really differs between the release and staging
 # builds is the target PPA_URI.
 jobs:
-  # Only build the release PPA when the event is not a prerelease.
+  # Only build the release PPA when the event is not a prerelease, or on manual trigger.
   release-ppa:
-    if: github.event.release.prerelease == false
+    if: github.event_name == 'workflow_dispatch' || github.event.release.prerelease == false
     uses: ./.github/workflows/publish-ppa.yml
     with:
       PPA_URI: ${{ vars.PPA_RELEASE_URI }}
