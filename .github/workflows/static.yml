@@ -25,7 +25,7 @@ jobs:
       - name: Run mypy analysis
         run: |
           mypy --version
-          mypy .
+          mypy . --python-version 3.8
 
   ruff-checker:
     name: Ruff
