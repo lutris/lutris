@@ -1,6 +1,6 @@
 lutris (0.5.20) jammy; urgency=medium
 
-  * Fix compatibility with Python 3.14
+  * Proton-GE launched via umu is now the default. Umu takes care of keeping Proton-GE up to date.
   * Fix Proton integration bugs so Proton-fixes are applied
   * Do not offer VKD3D, D3D Extras or DXVK-NVAPI on Proton versions; Proton will handle these.
   * The "Enable Esync" and "Enable Fsync" and "DXVK" settings are now passed on to Proton
@@ -28,6 +28,7 @@ lutris (0.5.20) jammy; urgency=medium
   * "Manual Script" for the context menu will now see the game's environment variables
   * Add "Create Steam Big Picture shortcut" to the context menu
   * Add a file association to run .lutris installer files via double-click
+  * Fix compatibility with Python 3.14
 
 -- Mathieu Comandon <mathieucomandon@gmail.com> Sun, 23 Feb 2025 10:55:10 -0800
 
