@@ -12,10 +12,9 @@ GitHub Release
 - Copy changelog to release notes
 - Close the milestone
 
-Build & Upload
---------------
-- ``make build-source``
-- ``make upload``
+Launchpad PPA
+-------------
+- Check the Github action has uploaded the debs to the PPA
 
 Website
 -------

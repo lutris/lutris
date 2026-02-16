@@ -14,10 +14,16 @@ BuildArch:      noarch
 BuildRequires:  desktop-file-utils
 BuildRequires:  python3-devel
 BuildRequires:  python3-gobject
+%if 0%{?suse_version}
+BuildRequires:  python3-wheel
+BuildRequires:  python3-setuptools
+BuildRequires:  appstream-glib
+%else
 BuildRequires:  python-wheel
 BuildRequires:  python-setuptools
-BuildRequires:  fdupes
 BuildRequires:  libappstream-glib
+%endif
+BuildRequires:  fdupes
 BuildRequires:  meson
 BuildRequires:  gettext
 Requires:       python3-gobject

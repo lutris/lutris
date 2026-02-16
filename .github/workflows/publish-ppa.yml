@@ -33,7 +33,7 @@ jobs:
     # lutris build-dependencies are not supported on that version.
     strategy:
       matrix:
-        os: [ ubuntu-22.04, ubuntu-20.04 ]
+        os: [ ubuntu-24.04, ubuntu-22.04 ]
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -53,11 +53,11 @@ jobs:
           PPA_URI: ${{ inputs.PPA_URI }}
           PPA_GPG_PRIVATE_KEY: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
           PPA_GPG_PASSPHRASE: ${{ secrets.PPA_GPG_PASSPHRASE }}
-          # This will be passed through to the build-specific script for
-          # Jammy and causes it to produce additional builds for the Ubuntu
-          # codenames listed below.
-          # Ex. "lunar mantic"
-          JAMMY_BUILDS: "lunar mantic"
+          # Additional builds from the 24.04 (Noble) runner
+          NOBLE_BUILDS: "oracular"
+          # Additional builds from the 22.04 (Jammy) runner
+          # Note: focal (20.04) can still be built from jammy
+          JAMMY_BUILDS: "focal"
         run: |
           ./.github/scripts/build-ubuntu.sh
 
