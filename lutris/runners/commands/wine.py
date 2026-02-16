@@ -394,7 +394,7 @@ def wineexec(
 
 
 def find_winetricks(
-    env: Optional[dict[str, str]] = None, system_winetricks: bool = False
+    env: Optional[Dict[str, str]] = None, system_winetricks: bool = False
 ) -> Tuple[str, Optional[str], Dict[str, str]]:
     """Find winetricks path."""
     env = env or {}

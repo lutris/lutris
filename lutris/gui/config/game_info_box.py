@@ -36,7 +36,7 @@ ICON_KEY = "icon"
 class GameInfoBox(AdvancedSettingsBox):
     """Generate a vbox for the Game Info tab."""
 
-    def __init__(self, parent_widget: Any, game: Game | None, **kwargs) -> None:
+    def __init__(self, parent_widget: Any, game: Optional[Game], **kwargs) -> None:
         super().__init__(**kwargs)
         self.parent_widget = parent_widget
 
