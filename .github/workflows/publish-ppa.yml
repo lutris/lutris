@@ -54,7 +54,8 @@ jobs:
           PPA_GPG_PRIVATE_KEY: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
           PPA_GPG_PASSPHRASE: ${{ secrets.PPA_GPG_PASSPHRASE }}
           # Additional builds from the 24.04 (Noble) runner
-          NOBLE_BUILDS: "oracular"
+          # oracular=24.10, plucky=25.04, questing=25.10
+          NOBLE_BUILDS: "oracular plucky questing"
           # Additional builds from the 22.04 (Jammy) runner
           # Note: focal (20.04) can still be built from jammy
           JAMMY_BUILDS: "focal"
