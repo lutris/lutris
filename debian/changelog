@@ -30,7 +30,7 @@ lutris (0.5.20) jammy; urgency=medium
   * Add a file association to run .lutris installer files via double-click
   * Fix compatibility with Python 3.14
 
--- Mathieu Comandon <mathieucomandon@gmail.com> Sun, 23 Feb 2025 10:55:10 -0800
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Sun, 23 Feb 2025 10:55:10 -0800
 
 lutris (0.5.18) jammy; urgency=medium
 
