@@ -39,6 +39,17 @@ ignore = []
 module = [
     "lutris.exception_backstops",
     "lutris.exceptions",
+    "lutris.scanners.default_installers",
+    "lutris.services.mame",
+    "lutris.util.discord.base",
+    "lutris.util.retroarch.core_config",
+    "lutris.util.ubisoft.consts",
+    "lutris.util.wine.d3d_extras",
+    "lutris.util.wine.dgvoodoo2",
+    "setup",
+    "utils.bios_format",
+    "utils.issuelocker",
+    "utils.meson_post_install",
 ]
 # Equivalent to strict = true for per-module config
 # Use strict = true when https://github.com/python/mypy/issues/11401 is fixed
