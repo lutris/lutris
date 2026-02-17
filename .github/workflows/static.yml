@@ -47,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install gettext
+        run: sudo apt-get install -y gettext
       - name: Validate .po files
         run: |
           for f in po/*.po; do
