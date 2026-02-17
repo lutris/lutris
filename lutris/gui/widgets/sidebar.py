@@ -407,10 +407,14 @@ class SidebarHeader(Gtk.ListBoxRow):
         return True
 
     def _on_enter(self, widget: Gtk.EventBox, event: Gdk.EventCrossing) -> None:
-        widget.get_window().set_cursor(Gdk.Cursor.new_from_name(widget.get_display(), "pointer"))
+        window = widget.get_window()
+        if window:
+            window.set_cursor(Gdk.Cursor.new_from_name(widget.get_display(), "pointer"))
 
     def _on_leave(self, widget: Gtk.EventBox, event: Gdk.EventCrossing) -> None:
-        widget.get_window().set_cursor(None)
+        window = widget.get_window()
+        if window:
+            window.set_cursor(None)
 
     @property
     def sort_key(self) -> Union[int, str]:
@@ -724,9 +728,12 @@ class LutrisSidebar(Gtk.ListBox):
             if isinstance(row, SidebarHeader):
                 # Headers sort at the start of their section (is_header=False sorts before True)
                 return row.header_index, False, 0, ""
-            header_row = self.row_headers.get(row.type) if row.type else None
-            header_index = header_row.header_index if header_row else 0
-            return header_index, True, row.sort_key, row.id
+            if isinstance(row, SidebarRow):
+                header_row = self.row_headers.get(row.type) if row.type else None
+                header_index = header_row.header_index if header_row else 0
+                return header_index, True, row.sort_key, row.id
+            # Fallback for any other row types
+            return 0, True, 0, ""
 
         def insert_row(row: Gtk.ListBoxRow) -> None:
             """Find the best place to insert the row, to maintain order, and inserts it there."""
