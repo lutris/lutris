@@ -2,6 +2,21 @@ on: [push, pull_request]
 
 name: Static Analysis
 jobs:
+  syntax-compat:
+    name: Syntax Compatibility (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Check syntax compatibility
+        run: python -m compileall -q lutris/
+
   mypy-checker:
     name: Mypy
     runs-on: ubuntu-latest

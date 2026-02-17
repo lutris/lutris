@@ -112,10 +112,13 @@ format:
 # Static analysis
 # ===============
 
-check: ruff_lint mypy
+check: ruff_lint mypy syntax-compat
 
 ruff_lint:
 	ruff check .
+
+syntax-compat:
+	python3 -m compileall -q lutris/
 
 mypy:
 	mypy . --install-types --non-interactive 2>&1 | mypy-baseline filter
