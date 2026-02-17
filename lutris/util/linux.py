@@ -497,6 +497,7 @@ def gather_system_info_dict():
     system_dict["Arch"] = system_info["arch"]
     system_dict["Kernel"] = system_info["kernel"]
     system_dict["Lutris Version"] = settings.VERSION
+    system_dict["Python Version"] = sys.version
     system_dict["Desktop"] = system_info["env"].get("XDG_CURRENT_DESKTOP", "Not found")
     system_dict["Display Server"] = system_info["env"].get("XDG_SESSION_TYPE", "Not found")
     system_info_readable["System"] = system_dict
