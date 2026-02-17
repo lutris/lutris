@@ -40,7 +40,7 @@ jobs:
       - name: Run mypy analysis
         run: |
           mypy --version
-          mypy . --python-version 3.8
+          mypy . --python-version 3.9
 
   po-checker:
     name: Translation files
