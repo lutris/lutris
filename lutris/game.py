@@ -672,7 +672,7 @@ class Game:
     def get_store_name(self) -> str:
         store = self.service
         if not store:
-            return "none"
+            return ""
         if self.service == "humblebundle":
             return "humble"
         return store
@@ -687,7 +687,9 @@ class Game:
             return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
 
-        env["STORE"] = env.get("STORE") or self.get_store_name()
+        store = env.get("STORE") or self.get_store_name()
+        if store:
+            env["STORE"] = store
 
         # Some environment variables for the use of custom pre-launch and post-exit scripts.
         env["GAME_NAME"] = self.name
