@@ -156,14 +156,17 @@ class GPU:
 
     def get_vulkaninfo_name(self) -> Optional[str]:
         vulkaninfo = self.get_vulkaninfo()
+        best_name = None
         for gpu_index in vulkaninfo:
             pci_id = "%s:%s" % (
                 vulkaninfo[gpu_index]["vendorID"].replace("0x", ""),
                 vulkaninfo[gpu_index]["deviceID"].replace("0x", ""),
             )
             if pci_id == self.pci_id:
-                return vulkaninfo[gpu_index]["deviceName"]
-        return None
+                name = vulkaninfo[gpu_index]["deviceName"]
+                if not best_name or len(name) > len(best_name):
+                    best_name = name
+        return best_name
 
     def get_vulkaninfo_device_uuid(self) -> Optional[str]:
         vulkaninfo = self.get_vulkaninfo()
