@@ -159,7 +159,7 @@ class GameInfoBox(AdvancedSettingsBox):
         slug_entry_box = Gtk.Box(spacing=12, margin_right=0, margin_left=0)
         slug_label = Label()
         slug_label.set_markup(
-            _(f"Identifier\n<span size='x-small'>(Internal ID: {self.game.id if self.game else '""'})</span>")
+            _(f"""Identifier\n<span size='x-small'>(Internal ID: {self.game.id if self.game else '""'})</span>""")
         )
         slug_entry_box.pack_start(slug_label, False, False, 0)
 
