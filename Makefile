@@ -112,13 +112,16 @@ format:
 # Static analysis
 # ===============
 
-check: ruff_lint mypy syntax-compat
+check: ruff_lint mypy syntax-compat po-check
 
 ruff_lint:
 	ruff check .
 
 syntax-compat:
 	python3 -m compileall -q lutris/
+
+po-check:
+	@for f in po/*.po; do msgfmt --check "$$f" -o /dev/null; done
 
 mypy:
 	mypy . --install-types --non-interactive 2>&1 | mypy-baseline filter

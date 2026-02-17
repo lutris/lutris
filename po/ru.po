@@ -2427,7 +2427,7 @@ msgstr "Ожидаем ответа от %s"
 #: lutris/gui/dialogs/runner_install.py:176
 #, python-format
 msgid "Unable to get runner versions: %s"
-msgstr "Не удалось получить версии раннера: "
+msgstr "Не удалось получить версии раннера: %s"
 
 #: lutris/gui/dialogs/runner_install.py:182
 msgid "Unable to get runner versions from lutris.net"
@@ -2896,7 +2896,7 @@ msgstr "Загрузка прервана"
 #: lutris/gui/widgets/download_progress_box.py:144
 #, python-brace-format
 msgid "{downloaded} / {size} ({speed:0.2f}MB/s), {time} remaining"
-msgstr "{downloaded:0.2f} / {size:0.2f}МБ ({speed:0.2f}МБ/c), {time} осталось"
+msgstr "{downloaded} / {size} ({speed:0.2f}МБ/c), {time} осталось"
 
 #: lutris/gui/widgets/game_bar.py:174
 #, python-format

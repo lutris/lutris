@@ -3113,7 +3113,7 @@ msgstr "Oynatıcı sağlanamadı %s"
 #: lutris/installer/commands.py:77
 #, python-brace-format
 msgid "One of {params} parameter is mandatory for the {cmd} command"
-msgstr "{Params} parametresinden biri {cmd} komutu için zorunludur"
+msgstr "{params} parametresinden biri {cmd} komutu için zorunludur"
 
 #: lutris/installer/commands.py:78 lutris/installer/interpreter.py:167
 #: lutris/installer/interpreter.py:190
@@ -3123,7 +3123,7 @@ msgstr " ya da "
 #: lutris/installer/commands.py:85
 #, python-brace-format
 msgid "The {param} parameter is mandatory for the {cmd} command"
-msgstr "{Param} parametresi {cmd} komutu için zorunludur"
+msgstr "{param} parametresi {cmd} komutu için zorunludur"
 
 #: lutris/installer/commands.py:95
 #, python-format

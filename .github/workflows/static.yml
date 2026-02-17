@@ -42,6 +42,17 @@ jobs:
           mypy --version
           mypy . --python-version 3.8
 
+  po-checker:
+    name: Translation files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate .po files
+        run: |
+          for f in po/*.po; do
+            msgfmt --check "$f" -o /dev/null
+          done
+
   ruff-checker:
     name: Ruff
     runs-on: ubuntu-latest

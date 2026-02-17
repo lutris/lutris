@@ -1,5 +1,6 @@
 msgid ""
 msgstr ""
+"Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-02-04 23:57+0300\n"
 "PO-Revision-Date: 2022-02-22 15:41+0200\n"
