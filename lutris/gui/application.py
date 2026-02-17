@@ -183,6 +183,14 @@ class LutrisApplication(Gtk.Application):
             None,
         )
         self.add_main_option(
+            "category",
+            ord("c"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Filter games by category"),
+            None,
+        )
+        self.add_main_option(
             "installed",
             ord("o"),
             GLib.OptionFlags.NONE,
@@ -495,7 +503,16 @@ class LutrisApplication(Gtk.Application):
 
         # List game
         if options.contains("list-games"):
-            game_list = games_db.get_games(filters=({"installed": 1} if options.contains("installed") else None))
+            filters = {"installed": 1} if options.contains("installed") else {}
+            if options.contains("category"):
+                category_name = options.lookup_value("category").get_string()
+                game_ids = categories_db.get_game_ids_for_categories(included_category_names=[category_name])
+                game_list = games_db.get_games_by_ids(game_ids)
+                if filters.get("installed"):
+                    game_list = [g for g in game_list if g["installed"]]
+            else:
+                game_list = games_db.get_games(filters=filters or None)
+
             if options.contains("json"):
                 self.print_game_json(command_line, game_list)
             else:
