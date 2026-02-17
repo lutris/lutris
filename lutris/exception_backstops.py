@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 AnyCallable = Callable[..., Any]
 
 
-def watch_game_errors(game_stop_result: Any, game: Game = None) -> Callable[[AnyCallable], AnyCallable]:
+def watch_game_errors(game_stop_result: Any, game: "Game" = None) -> Callable[[AnyCallable], AnyCallable]:
     """Decorator used to catch exceptions and send events instead of propagating them normally.
     If 'game_stop_result' is not None, and the decorated function returns that, this will
     send game-stop and make the game stopped as well. This simplifies handling cancellation.
