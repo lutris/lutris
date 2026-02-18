@@ -242,13 +242,13 @@ def sync_media(slugs: Optional[Iterable[str]] = None) -> Dict[str, int]:
         if game["slug"] not in covers_available and _get_response_game_coverart(game)
     }
     logger.debug("Syncing %s banners, %s icons and %s covers", len(banner_urls), len(icon_urls), len(coverart_urls))
-    download_media(banner_urls, LutrisBanner())
-    download_media(icon_urls, LutrisIcon())
-    download_media(coverart_urls, LutrisCoverart())
+    downloaded_banners = download_media(banner_urls, LutrisBanner())
+    downloaded_icons = download_media(icon_urls, LutrisIcon())
+    downloaded_covers = download_media(coverart_urls, LutrisCoverart())
     return {
-        "banners": len(banner_urls),
-        "icons": len(icon_urls),
-        "covers": len(coverart_urls),
+        "banners": len(downloaded_banners),
+        "icons": len(downloaded_icons),
+        "covers": len(downloaded_covers),
     }
 
 
