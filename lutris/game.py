@@ -523,7 +523,7 @@ class Game:
     def restrict_to_display(self, display: str) -> bool:
         outputs = DISPLAY_MANAGER.get_config()
         if display == "primary":
-            display = None
+            display = ""
             for output in outputs:
                 if output.primary:
                     display = output.name
@@ -538,7 +538,7 @@ class Game:
                     break
             if not found:
                 logger.warning("Selected display %s not found", display)
-                display = None
+                display = ""
         if display:
             turn_off_except(display)
             time.sleep(3)
@@ -566,6 +566,8 @@ class Game:
     def start_prelaunch_command(self, wait_for_completion=False) -> None:
         """Start the prelaunch command specified in the system options"""
         prelaunch_command = self.runner.system_config.get("prelaunch_command")
+        if not prelaunch_command:
+            return
         command_array = shlex.split(prelaunch_command)
         if not system.path_exists(command_array[0]):
             logger.warning("Command %s not found", command_array[0])
@@ -596,7 +598,7 @@ class Game:
             terminal = self.runner.system_config.get("terminal_app", linux.get_default_terminal())
             if terminal and not system.can_find_executable(terminal):
                 raise GameConfigError(_("The selected terminal application could not be launched:\n%s") % terminal)
-            return terminal
+            return terminal or ""
         return ""
 
     def get_killswitch(self) -> str:
@@ -619,9 +621,9 @@ class Game:
         This returns an empty dictionary if the user cancels this UI,
         in which case the game should not be run.
         """
-        if not hasattr(self.runner, "play"):
-            raise RuntimeError(f"Runner: {self.runner} doesn't have a play attribute.")
-        gameplay_info = self.runner.play()
+        if not hasattr(self.runner, "play") or not callable(getattr(self.runner, "play", None)):
+            raise RuntimeError(f"Runner: {self.runner} doesn't have a play method.")
+        gameplay_info = self.runner.play()  # type: ignore[attr-defined]
 
         if "working_dir" not in gameplay_info:
             gameplay_info["working_dir"] = self.runner.working_dir
@@ -721,7 +723,7 @@ class Game:
             self.screen_saver_inhibitor_cookie = SCREEN_SAVER_INHIBITOR.inhibit(self.name)
 
         if self.runner.system_config.get("display") != "off":
-            self.resolution_changed = self.restrict_to_display(self.runner.system_config.get("display"))
+            self.resolution_changed = self.restrict_to_display(self.runner.system_config.get("display") or "")
 
         resolution = self.runner.system_config.get("resolution")
         if resolution != "off":
@@ -791,8 +793,9 @@ class Game:
             include_processes=self.game_runtime_config["include_processes"],
             exclude_processes=self.game_runtime_config["exclude_processes"],
         )
-        if hasattr(self.runner, "stop") and self.game_thread:
-            self.game_thread.stop_func = self.runner.stop
+        stop_func = getattr(self.runner, "stop", None)
+        if stop_func and self.game_thread:
+            self.game_thread.stop_func = stop_func
 
         if self.game_thread:
             self.game_uuid = self.game_thread.env["LUTRIS_GAME_UUID"]
@@ -916,7 +919,7 @@ class Game:
             return False
         game_pids = self.get_game_pids()
         runs_only_prelaunch = False
-        if self.prelaunch_executor and self.prelaunch_executor.is_running:
+        if self.prelaunch_executor and self.prelaunch_executor.is_running and self.prelaunch_executor.game_process:
             runs_only_prelaunch = game_pids == {self.prelaunch_executor.game_process.pid}
         if runs_only_prelaunch or (not self.game_thread.is_running and not game_pids):
             logger.debug("Game thread stopped")
