@@ -800,6 +800,12 @@ class LutrisSidebar(Gtk.ListBox):
                 self.platform_rows[platform] = platform_row
                 insert_row(platform_row)
 
+        # Remove stale category rows that no longer exist in the database
+        stale_categories = set(self.category_rows.keys()) - self.used_categories
+        for stale_name in stale_categories:
+            stale_row = self.category_rows.pop(stale_name)
+            stale_row.destroy()
+
         for category in categories:
             if category["name"] not in self.category_rows:
                 new_category_row = CategorySidebarRow(category, application=self.application)
