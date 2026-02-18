@@ -17,10 +17,10 @@ from lutris.util.graphics import drivers, glxinfo, vkquery
 from lutris.util.log import logger
 
 try:
-    from distro import linux_distribution
+    import distro
 except ImportError:
     logger.warning("Package 'distro' unavailable. Unable to read Linux distribution")
-    linux_distribution = None
+    distro = None
 
 # Linux components used by lutris
 SYSTEM_COMPONENTS = {
@@ -184,12 +184,15 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                 mem[key.strip()] = value.strip("kB \n")
         return mem
 
-    @staticmethod
-    def get_dist_info():
+    def get_dist_info(self):
         """Return distribution information"""
-        if linux_distribution is not None:
-            return linux_distribution()
-        return "unknown"
+        if distro is None:
+            return "unknown"
+        # In Flatpak, read host's os-release instead of the runtime's
+        if self.is_flatpak():
+            host_distro = distro.LinuxDistribution(root_dir="/run/host")
+            return host_distro.name(), host_distro.version(), host_distro.codename()
+        return distro.linux_distribution()
 
     @staticmethod
     def get_arch():
