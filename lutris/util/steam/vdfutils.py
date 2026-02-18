@@ -26,9 +26,12 @@ def vdf_parse(steam_config_file, config):
             if not nextline:
                 break
             line = line[:-1] + nextline
-        if '"PersonaName"' in line:
-            line = line.replace('\\"', "")
+        # Handle escaped quotes in values by temporarily replacing them
+        # This allows split('"') to work correctly
+        line = line.replace('\\"', '\x00')  # Use null as placeholder
         line_elements = line.strip().split('"')
+        # Restore escaped quotes in the parsed values
+        line_elements = [elem.replace('\x00', '"') for elem in line_elements]
         if len(line_elements) == 3:
             key = line_elements[1]
             steam_config_file.readline()  # skip '{'
