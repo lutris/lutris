@@ -124,10 +124,10 @@ po-check:
 	@for f in po/*.po; do msgfmt --check "$$f" -o /dev/null; done
 
 mypy:
-	mypy . --install-types --non-interactive 2>&1 | mypy-baseline filter
+	mypy . --python-version 3.10 --install-types --non-interactive 2>&1 | mypy-baseline filter
 
 mypy-reset-baseline:  # Add new typing errors to mypy. Use sparingly.
-	mypy . --install-types --non-interactive 2>&1 | mypy-baseline sync
+	mypy . --python-version 3.10--install-types --non-interactive 2>&1 | mypy-baseline sync
 
 # =============
 # Abbreviations
