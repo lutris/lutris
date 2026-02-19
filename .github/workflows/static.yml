@@ -68,8 +68,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           make dev
-      - name: Check code style
+      - name: Ruff version
         run: ruff --version
-          ruff check .
+      - name: Check code style
+        run: ruff check .
       - name: Check format
         run: ruff format . --check

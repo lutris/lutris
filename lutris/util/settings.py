@@ -1,9 +1,9 @@
 import configparser
 import os
+from typing import Any
 
 from lutris.gui.widgets import NotificationSource
 from lutris.util.log import logger
-from typing import Any
 
 
 class SettingsIO:
