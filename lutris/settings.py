@@ -4,6 +4,7 @@ import json
 import os
 import sys
 from gettext import gettext as _
+from typing import Dict, cast
 
 from gi.repository import GLib
 
@@ -71,7 +72,7 @@ write_setting = sio.write_setting
 SETTINGS_CHANGED = sio.SETTINGS_CHANGED
 
 
-def get_lutris_directory_settings(directory):
+def get_lutris_directory_settings(directory: str) -> Dict[str, str]:
     """Reads the 'lutris.json' file in 'directory' and returns it as
     a (new) dictionary. The file is missing, unreadable, unparseable, or not a dict,
     this returns an empty dict instead."""
@@ -83,13 +84,13 @@ def get_lutris_directory_settings(directory):
                     json_data = json.load(f)
                     if not isinstance(json_data, dict):
                         logger.error("'%s' does not contain a dict, and will be ignored.", path)
-                    return json_data
+                    return cast(Dict[str, str], json_data)
         except Exception as ex:
             logger.exception("Failed to read '%s': %s", path, ex)
     return {}
 
 
-def set_lutris_directory_settings(directory, settings, merge=True):
+def set_lutris_directory_settings(directory: str, settings: Dict[str, str], merge: bool = True) -> bool:
     """Updates the 'lutris.json' file in the 'directory' given. If it does not exist, this method creates it. By
     default, if it does exist this merges the values of settings into it, but in a shallow way - only the top level
     entries are merged, not the content any of any sub-dictionaries. If 'merge' is False, this replaces the existing
