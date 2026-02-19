@@ -219,7 +219,7 @@ def _get_wine_wayland_warning(_option_key: str, config: LutrisConfig) -> Optiona
         if not runner_version:
             return None
 
-        if not is_display_x11():
+        if is_display_x11():
             return _("You cannot use winewayland driver when using an X11-based session")
 
         if not is_winewayland_available(runner_version):
