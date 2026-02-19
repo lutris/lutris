@@ -8,6 +8,7 @@ from lutris import settings
 from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.gui.widgets import NotificationSource
+from lutris.util.strings import get_natural_sort_key
 
 CATEGORIES_UPDATED = NotificationSource()
 
@@ -165,7 +166,16 @@ def get_uncategorized_game_ids() -> Set[str]:
 
 def get_uncategorized_games() -> List[Any]:
     """Return a list of currently running games"""
-    return games_db.get_games_by_ids(get_uncategorized_game_ids())
+    games = games_db.get_games_by_ids(get_uncategorized_game_ids())
+
+    def get_key(g: Dict[str, Any]):
+        """Sort in the default order for Lutris- installed games first, then by name."""
+        name = str(g.get("name") or "")
+        installed = bool(g.get("installed"))
+        return not installed, get_natural_sort_key(name)
+
+    games.sort(key=get_key)
+    return games
 
 
 def get_categories_in_game(game_id):
