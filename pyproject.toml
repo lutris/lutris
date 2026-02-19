@@ -43,6 +43,7 @@ module = [
     "lutris.services.mame",
     "lutris.util.discord.base",
     "lutris.util.retroarch.core_config",
+    "lutris.util.settings",
     "lutris.util.ubisoft.consts",
     "lutris.util.wine.d3d_extras",
     "lutris.util.wine.dgvoodoo2",
