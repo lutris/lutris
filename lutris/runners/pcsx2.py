@@ -1,11 +1,16 @@
+import json
+import os
+
 # Standard Library
 from gettext import gettext as _
 
+from lutris.config import LutrisConfig
 from lutris.exceptions import MissingGameExecutableError
 
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.retroarch.firmware import get_firmware, scan_firmware_directory
 
 
 class pcsx2(Runner):
@@ -37,6 +42,20 @@ class pcsx2(Runner):
 
     # PCSX2 currently uses an AppImage, no need for the runtime.
     system_options_override = [{"option": "disable_runtime", "default": True}]
+
+    def prelaunch(self):
+        RUNNER_FIRMWARE_DIR = os.path.expanduser("~/.config/PCSX2/bios")
+
+        firmware_list_path = os.path.join(os.path.dirname(__file__), "static/pcsx2/firmwares.json")
+        with open(firmware_list_path, "r") as firmwares_data:
+            firmwares = json.load(firmwares_data)
+
+            lutris_config = LutrisConfig()
+            firmware_directory = lutris_config.raw_system_config["bios_path"]
+            scan_firmware_directory(firmware_directory)
+
+            for firmware in firmwares:
+                get_firmware(firmware["filename"], firmware["checksum"], RUNNER_FIRMWARE_DIR)
 
     def play(self):
         arguments = self.get_command()
