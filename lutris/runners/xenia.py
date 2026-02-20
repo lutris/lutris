@@ -18,8 +18,7 @@ class xenia(wine):
     multiple_versions = False
     runner_executable = "xenia/xenia_canary.exe"
     download_url = (
-        "https://github.com/xenia-canary/xenia-canary-releases"
-        "/releases/latest/download/xenia_canary_windows.zip"
+        "https://github.com/xenia-canary/xenia-canary-releases/releases/latest/download/xenia_canary_windows.zip"
     )
     entry_point_option = "main_file"
 
@@ -97,9 +96,7 @@ class xenia(wine):
 
         xenia_exe = self.game_exe
         if not system.path_exists(xenia_exe):
-            raise MissingExecutableError(
-                _("Xenia executable not found at '%s'") % xenia_exe
-            )
+            raise MissingExecutableError(_("Xenia executable not found at '%s'") % xenia_exe)
 
         command = self.get_command()
         command.append(xenia_exe)
