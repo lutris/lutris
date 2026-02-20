@@ -34,6 +34,7 @@ __all__ = [
     "web",
     "wine",
     "xemu",
+    "xenia",
     "yuzu",
     "zdoom",
 ]
