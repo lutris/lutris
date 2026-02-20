@@ -21,7 +21,7 @@ from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.dialogs import display_error
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
-from lutris.gui.widgets.utils import get_widget_children, has_stock_icon
+from lutris.gui.widgets.utils import get_widget_children, pick_stock_icon
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.runners import InvalidRunnerError
 from lutris.services import SERVICES
@@ -127,13 +127,14 @@ class SidebarRow(Gtk.ListBoxRow):
         """Adds buttons in the button box based on the row's actions"""
         for child in self.btn_box.get_children():
             child.destroy()
-        for action in self.get_actions():
-            btn = Gtk.Button(tooltip_text=action[1], relief=Gtk.ReliefStyle.NONE, visible=True)
-            image = Gtk.Image.new_from_icon_name(action[0], Gtk.IconSize.MENU)
+        for icon_name, text, clicked, key in self.get_actions():
+            icon_name = pick_stock_icon(icon_name, fallback_name="preferences-system-symbolic")
+            btn = Gtk.Button(tooltip_text=text, relief=Gtk.ReliefStyle.NONE, visible=True)
+            image = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
             image.show()
             btn.add(image)
-            btn.connect("clicked", action[2])
-            self.buttons[action[3]] = btn
+            btn.connect("clicked", clicked)
+            self.buttons[key] = btn
             self.btn_box.add(btn)
 
     def on_realize(self, widget):
@@ -510,14 +511,8 @@ class LutrisSidebar(Gtk.ListBox):
     @staticmethod
     def get_sidebar_icon(icon_name: str, fallback_icon_names: List[str] = None) -> Gtk.Image:
         candidate_names = [icon_name] + (fallback_icon_names or [])
-        candidate_names = [name for name in candidate_names if has_stock_icon(name)]
-
-        # Even if this one is not a stock icon, we'll use it as a last resort and
-        # get the 'broken icon' icon if it's not known.
-        if not candidate_names:
-            candidate_names = ["package-x-generic-symbolic"]
-
-        icon = Gtk.Image.new_from_icon_name(candidate_names[0], Gtk.IconSize.MENU)
+        icon_name = pick_stock_icon(candidate_names, fallback_name="package-x-generic-symbolic")
+        icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
 
         # We can wind up with an icon of the wrong size, if that's what is
         # available. So we'll fix that.

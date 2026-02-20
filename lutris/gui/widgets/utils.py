@@ -2,7 +2,7 @@
 
 import array
 import os
-from typing import TYPE_CHECKING, Iterable, List, Optional, Type, TypeVar, cast
+from typing import TYPE_CHECKING, Iterable, List, Optional, Type, TypeVar, Union, cast
 
 import cairo
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
@@ -210,6 +210,19 @@ def has_stock_icon(name):
 
     theme = Gtk.IconTheme.get_default()
     return theme.has_icon(name)
+
+
+def pick_stock_icon(names: Union[str, Iterable[str]], fallback_name: str = "package-x-generic-symbolic") -> str:
+    """Used to select a stock icon that actually exists in the icon set; it tries all the names given,
+    and returns the first where has_stock_icon is true. If none pass the test, returns fallback_name instead."""
+    if isinstance(names, str):
+        names = [names]
+
+    for name in names:
+        if has_stock_icon(name):
+            return name
+
+    return fallback_name
 
 
 def get_runtime_icon_path(icon_name):
