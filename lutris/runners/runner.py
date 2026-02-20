@@ -214,15 +214,11 @@ class Runner:  # pylint: disable=too-many-public-methods
                 # their own loaders), then host /run/host/ paths as fallback for
                 # libraries missing from Sniper (e.g. libgtkmm-3.0, libpulsecommon).
                 host_lib_paths = get_sniper_ld_library_path()
-                shell_cmd = (
-                    'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:%s"; exec "$@"'
-                    % host_lib_paths
-                )
+                shell_cmd = 'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:%s"; exec "$@"' % host_lib_paths
                 command = [sniper_cmd, "--", "bash", "-c", shell_cmd, "bash"] + command
             else:
                 logger.warning(
-                    "Runner %s wants Sniper runtime but it is not available; "
-                    "falling back to running without it.",
+                    "Runner %s wants Sniper runtime but it is not available; falling back to running without it.",
                     self.name,
                 )
 
