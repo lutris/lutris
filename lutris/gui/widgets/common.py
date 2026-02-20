@@ -360,9 +360,17 @@ class EditableGrid(Gtk.Box):
         self.columns = columns
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=6)
 
-        self.liststore = Gtk.ListStore(str, str)
+        self.liststore_types = [type(column) for column in self.columns]
+        self.liststore = Gtk.ListStore(*self.liststore_types)
         for item in data:
-            self.liststore.append([str(value) for value in item])
+            row_data = []
+            for i, column_type in enumerate(self.liststore_types):
+                row_data.append(item.get(self.columns[i], column_type()))
+            # Truncates the number of entries per item to be exactly the number of columns
+            # if the row contains > len(self.columns) entries
+            # otherwise pad the number of entries with a default instance using the python type of the column
+            # until the length is exactly the number of columns
+            self.liststore.append(row_data)
 
         self.treeview = Gtk.TreeView.new_with_model(self.liststore)
         self.treeview.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
@@ -400,7 +408,8 @@ class EditableGrid(Gtk.Box):
         self.show_all()
 
     def on_add(self, widget):  # pylint: disable=unused-argument
-        self.liststore.append(["", ""])
+        # Create default instance of each the column python type
+        self.liststore.append([column_type() for column_type in self.liststore_types])
         row_position = len(self.liststore) - 1
         self.treeview.set_cursor(row_position, None, False)
         self.treeview.scroll_to_cell(row_position, None, False, 0.0, 0.0)

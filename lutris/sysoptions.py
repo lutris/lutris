@@ -408,6 +408,7 @@ system_options = [  # pylint: disable=invalid-name
         "option": "env",
         "type": "mapping",
         "label": _("Environment variables"),
+        "additional_columns": ["Notes / Comments"],
         "help": _("Environment variables loaded at run time"),
     },
     {
