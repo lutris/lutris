@@ -146,7 +146,7 @@ class GPU:
             if line.startswith("GPU"):
                 current_gpu = line
                 result[current_gpu] = {}
-            else:
+            elif "= " in line:
                 key, value = line.split("= ", maxsplit=1)
                 result[current_gpu][key.strip()] = value.strip()
         if "Failed to detect any valid GPUs" in result or "ERROR: [Loader Message]" in result:
