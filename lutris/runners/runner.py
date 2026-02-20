@@ -18,6 +18,7 @@ from lutris.util.graphics.gpu import GPUS
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.process import Process
+from lutris.util.sniper import get_sniper_ld_library_path, get_sniper_run_command
 
 
 def kill_processes(sig: int, pids: Iterable[int]) -> None:
@@ -48,6 +49,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     arch = None  # If the runner is only available for an architecture that isn't x86_64
     flatpak_id = None
     human_name = ""
+    use_sniper_runtime = False
 
     def __init__(self, config=None):
         """Initialize runner."""
@@ -196,12 +198,35 @@ class Runner:  # pylint: disable=too-many-public-methods
             exe = self.get_executable()
             if not system.path_exists(exe):
                 raise MissingExecutableError(_("The executable '%s' could not be found.") % exe)
-            return [exe]
+            command = [exe]
         except MisconfigurationError:
             if flatpak.is_app_installed(self.flatpak_id):
                 return flatpak.get_run_command(self.flatpak_id)
 
             raise
+
+        if self.use_sniper_runtime:
+            sniper_cmd = get_sniper_run_command()
+            if sniper_cmd:
+                # pressure-vessel overrides LD_LIBRARY_PATH, so we must set
+                # library paths inside the container via bash -c. Sniper runtime
+                # paths come first (so module-loading libs like gdk-pixbuf use
+                # their own loaders), then host /run/host/ paths as fallback for
+                # libraries missing from Sniper (e.g. libgtkmm-3.0, libpulsecommon).
+                host_lib_paths = get_sniper_ld_library_path()
+                shell_cmd = (
+                    'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:%s"; exec "$@"'
+                    % host_lib_paths
+                )
+                command = [sniper_cmd, "--", "bash", "-c", shell_cmd, "bash"] + command
+            else:
+                logger.warning(
+                    "Runner %s wants Sniper runtime but it is not available; "
+                    "falling back to running without it.",
+                    self.name,
+                )
+
+        return command
 
     def get_env(self, os_env=False, disable_runtime=False):
         """Return environment variables used for a game."""
@@ -427,6 +452,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             return False
         if self.system_config.get("disable_runtime"):
             logger.info("Runtime disabled by system configuration")
+            return False
+        if self.use_sniper_runtime and get_sniper_run_command():
+            logger.info("Using Sniper runtime; old Lutris runtime disabled for %s", self.name)
             return False
         return True
 

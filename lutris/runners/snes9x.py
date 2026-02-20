@@ -21,6 +21,7 @@ class snes9x(Runner):
     runnable_alone = True
     runner_executable = "snes9x/bin/snes9x-gtk"
     flatpak_id = "com.snes9x.Snes9x"
+    use_sniper_runtime = True
     game_options = [
         {
             "option": "main_file",
