@@ -427,6 +427,10 @@ class CommandsMixin:
             data[key] = value
 
         task = import_task(runner_name, task_name)
+
+        if not task:
+            raise ScriptingError(_("Task '%s' is not defined for runner '%s'") % (task_name, runner_name))
+
         command = task(**data)
         if isinstance(command, MonitoredCommand):
             # Monitor thread and continue when task has executed
