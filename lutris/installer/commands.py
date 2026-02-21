@@ -386,6 +386,10 @@ class CommandsMixin:
             runner_name, task_name = task_name.split(".")
         else:
             runner_name = self.installer.runner
+
+        task_name = task_name.replace("-", "_")
+        # Prevent private functions from being accessed as commands
+        task_name = task_name.strip("_")
         return runner_name, task_name
 
     def task(self, data):
