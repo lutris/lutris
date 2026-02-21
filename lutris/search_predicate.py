@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable
 
 from lutris.util.strings import strip_accents
 
-FLAG_TEXTS: Dict[str, Optional[bool]] = {"true": True, "yes": True, "false": False, "no": False}
+FLAG_TEXTS: dict[str, bool | None] = {"true": True, "yes": True, "false": False, "no": False}
 
 
-def format_flag(flag: Optional[bool]) -> str:
+def format_flag(flag: bool | None) -> str:
     return "yes" if flag else "no"
 
 
@@ -25,12 +25,12 @@ class SearchPredicate(ABC):
         the original."""
         return self
 
-    def without_match(self, tag: str, value: Optional[str] = None) -> "SearchPredicate":
+    def without_match(self, tag: str, value: str | None = None) -> "SearchPredicate":
         """Returns a predicate without the MatchPredicate that has the tag and value
         given (or just the tag). Matches that are negated or the like are not removed."""
         return self
 
-    def get_matches(self, tag: str) -> List[str]:
+    def get_matches(self, tag: str) -> list[str]:
         """ "Returns all the values for the matches for the tag given; again any
         negated matches are ignored."""
         return []
@@ -45,7 +45,7 @@ class SearchPredicate(ABC):
         Flags that are negated or the like are ignored."""
         return False
 
-    def get_flag(self, tag: str) -> Optional[bool]:
+    def get_flag(self, tag: str) -> bool | None:
         """Returns the flag test value for the FlagPredicte with the tag
         given."""
         return None
@@ -84,10 +84,10 @@ class MatchPredicate(FunctionPredicate):
         self.tag = tag
         self.value = value
 
-    def get_matches(self, tag: str) -> List[str]:
+    def get_matches(self, tag: str) -> list[str]:
         return [self.value] if self.tag == tag else []
 
-    def without_match(self, tag: str, value: Optional[str] = None) -> "SearchPredicate":
+    def without_match(self, tag: str, value: str | None = None) -> "SearchPredicate":
         if value is None:
             return TRUE_PREDICATE if self.tag == tag else self
 
@@ -98,7 +98,7 @@ class FlagPredicate(SearchPredicate):
     """This is a predicate to match a boolean property. This odd setting is useful to override
     the default filtering Lutris provides, like filtering out hidden games."""
 
-    def __init__(self, flag: Optional[bool], flag_function: Callable[[Any], bool], tag: str):
+    def __init__(self, flag: bool | None, flag_function: Callable[[Any], bool], tag: str):
         self.flag = flag
         self.flag_function = flag_function
         self.tag = tag
@@ -114,7 +114,7 @@ class FlagPredicate(SearchPredicate):
     def has_flag(self, tag: str) -> bool:
         return tag == self.tag
 
-    def get_flag(self, tag: str) -> Optional[bool]:
+    def get_flag(self, tag: str) -> bool | None:
         return self.flag if self.tag == tag else None
 
     def __str__(self):
@@ -125,7 +125,7 @@ class FlagPredicate(SearchPredicate):
 class TextPredicate(SearchPredicate):
     """This is a predicate with no tag used to make text generically."""
 
-    def __init__(self, match_text: str, text_function: Callable[[Any], Optional[str]], tag: str):
+    def __init__(self, match_text: str, text_function: Callable[[Any], str | None], tag: str):
         self.tag = tag
         self.match_text = match_text
         self.stripped_text = strip_accents(match_text).casefold()
@@ -166,7 +166,7 @@ class AndPredicate(SearchPredicate):
     """This predicate combines other predicates so all must accept a candidate
     before it is accepted."""
 
-    def __init__(self, components: List[SearchPredicate]) -> None:
+    def __init__(self, components: list[SearchPredicate]) -> None:
         self.components = components
 
     def accept(self, candidate: Any) -> bool:
@@ -186,13 +186,13 @@ class AndPredicate(SearchPredicate):
                     simplified.append(c)
         return AndPredicate(simplified) if simplified else TRUE_PREDICATE
 
-    def get_matches(self, tag: str) -> List[str]:
+    def get_matches(self, tag: str) -> list[str]:
         matches = []
         for c in self.components:
             matches += c.get_matches(tag)
         return matches
 
-    def without_match(self, tag: str, value: Optional[str] = None) -> "SearchPredicate":
+    def without_match(self, tag: str, value: str | None = None) -> "SearchPredicate":
         new_components = []
         for c in self.components:
             r = c.without_match(tag, value)
@@ -222,7 +222,7 @@ class AndPredicate(SearchPredicate):
                 return True
         return False
 
-    def get_flag(self, tag: str) -> Optional[bool]:
+    def get_flag(self, tag: str) -> bool | None:
         for c in self.components:
             if c.has_flag(tag):
                 return c.get_flag(tag)
@@ -236,7 +236,7 @@ class OrPredicate(SearchPredicate):
     """This predicate combines other predicates so that a candidate is accepted
     if any component accepts it. This also hides the components from editing."""
 
-    def __init__(self, components: List[SearchPredicate]) -> None:
+    def __init__(self, components: list[SearchPredicate]) -> None:
         self.components = components
 
     def accept(self, candidate: Any) -> bool:

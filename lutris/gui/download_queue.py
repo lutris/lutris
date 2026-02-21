@@ -1,6 +1,6 @@
 # pylint: disable=no-member
 import os
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set
+from typing import Any, Callable, Dict, Iterable
 
 from gi.repository import GObject, Gtk  # type: ignore
 
@@ -32,7 +32,7 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self.revealer = revealer
         self.init_template()
 
-        self.running_operation_names: Set[str] = set()
+        self.running_operation_names: set[str] = set()
         self.progress_boxes: Dict[ProgressBox.ProgressFunction, ProgressBox] = {}
 
         try:
@@ -99,9 +99,9 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self,
         operation: Callable[[], Any],
         progress_function: ProgressBox.ProgressFunction,
-        completion_function: Optional[CompletionFunction] = None,
-        error_function: Optional[ErrorFunction] = None,
-        operation_name: Optional[str] = None,
+        completion_function: CompletionFunction | None = None,
+        error_function: ErrorFunction | None = None,
+        operation_name: str | None = None,
     ) -> bool:
         """Runs 'operation' on a thread, while displaying a progress bar. The 'progress_function'
         controls this progress bar, and it is removed when the 'operation' completes.
@@ -129,9 +129,9 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self,
         operation: Callable[[], Any],
         progress_functions: Iterable[ProgressBox.ProgressFunction],
-        completion_function: Optional[CompletionFunction] = None,
-        error_function: Optional[ErrorFunction] = None,
-        operation_names: Optional[List[str]] = None,
+        completion_function: CompletionFunction | None = None,
+        error_function: ErrorFunction | None = None,
+        operation_names: list[str] | None = None,
     ) -> bool:
         """Runs 'operation' on a thread, while displaying a set of progress bars. The
         'progress_functions' control these progress bars, and they are removed when the

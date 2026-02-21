@@ -1,7 +1,7 @@
 # pylint: disable=no-member
 from copy import copy
 from gettext import gettext as _
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Tuple
 
 from gi.repository import GObject, Gtk
 
@@ -53,7 +53,7 @@ class SearchFiltersBox(Gtk.Box):
         self.search_entry = search_entry or self._add_entry_box(_("Search"), self.search)
         self.search_entry.connect("changed", self.on_search_entry_changed)
 
-        self.predicate_widget_functions: Dict[str, Callable[[SearchPredicate], None]] = {}
+        self.predicate_widget_functions: dict[str, Callable[[SearchPredicate], None]] = {}
         self.updating_predicate_widgets = False
 
         predicates_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -83,7 +83,7 @@ class SearchFiltersBox(Gtk.Box):
         self.show_all()
 
     def _add_entry_box(
-        self, label: str, text: str, button_icon_names: Optional[List[str]] = None, clicked: Optional[Callable] = None
+        self, label: str, text: str, button_icon_names: list[str] | None = None, clicked: Callable | None = None
     ) -> Gtk.Entry:
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         entry_label = Gtk.Label(label=label)
@@ -132,7 +132,7 @@ class SearchFiltersBox(Gtk.Box):
         self._add_flag_widget(5, _("Hidden"), "hidden")
         self._add_flag_widget(6, _("Categorized"), "categorized")
 
-    def _change_search_flag(self, tag: str, flag: Optional[bool]):
+    def _change_search_flag(self, tag: str, flag: bool | None):
         game_search = GameSearch(self.search)
         flag_predicate = game_search.get_flag_predicate(tag, flag)
         if flag_predicate:
@@ -201,7 +201,7 @@ class SearchFiltersBox(Gtk.Box):
             row, _("Platform"), "platform", options, predicate_factory=lambda s, v: s.get_platform_predicate(v)
         )
 
-    def _add_match_widget(self, row: int, caption: str, tag: str, options: List[Tuple[str, str]], predicate_factory):
+    def _add_match_widget(self, row: int, caption: str, tag: str, options: list[Tuple[str, str]], predicate_factory):
         def on_combobox_change(_widget):
             if not self.updating_predicate_widgets:
                 game_search = GameSearch(self.search)
