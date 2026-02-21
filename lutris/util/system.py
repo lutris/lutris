@@ -4,7 +4,6 @@ import hashlib
 import os
 import re
 import shutil
-import signal
 import stat
 import string
 import subprocess
@@ -280,20 +279,6 @@ def get_pid(program: str, multiple: bool = False) -> Optional[Union[str, List[st
     if multiple:
         return pids
     return pids[0]
-
-
-def kill_pid(pid: int) -> None:
-    """Terminate a process referenced by its PID"""
-    try:
-        pid = int(pid)
-    except ValueError:
-        logger.error("Invalid pid %s")
-        return
-    logger.info("Killing PID %s", pid)
-    try:
-        os.kill(pid, signal.SIGKILL)
-    except OSError:
-        logger.error("Could not kill process %s", pid)
 
 
 def python_identifier(unsafe_string: str) -> str:
