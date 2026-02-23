@@ -45,6 +45,7 @@ module = [
     "lutris.settings",
     "lutris.util",
     "lutris.util.discord.base",
+    "lutris.util.log",
     "lutris.util.retroarch.core_config",
     "lutris.util.settings",
     "lutris.util.system",

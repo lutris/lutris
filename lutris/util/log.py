@@ -38,7 +38,7 @@ logger.setLevel(logging.INFO)
 logger.propagate = False
 
 
-def get_log_contents():
+def get_log_contents() -> str:
     """Returns the entire text of the log file for this run."""
     if not os.path.exists(LOG_FILENAME):
         return ""
