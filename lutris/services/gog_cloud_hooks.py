@@ -9,6 +9,7 @@ When a conflict is detected the user is prompted via a GTK dialog.
 """
 
 import os
+import threading
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from lutris.services.gog_cloud import (
@@ -145,17 +146,35 @@ def _resolve_save_locations(
 def _show_conflict_dialog(game_name: str, location_name: str) -> Optional[str]:
     """Show a GTK conflict resolution dialog and return the user's choice.
 
+    This function is safe to call from any thread.  The GTK dialog is
+    always created on the main thread via ``GLib.idle_add`` and the
+    calling thread blocks on a :class:`threading.Event` until the user
+    responds.
+
     Returns:
         ``"download"``, ``"upload"``, or ``None`` (skip).
     """
-    try:
-        from lutris.gui.dialogs.cloud_sync import CloudSyncConflictDialog  # noqa: PLC0415
+    result_holder: List[Optional[str]] = [None]
+    event = threading.Event()
 
-        dialog = CloudSyncConflictDialog(game_name, location_name)
-        return dialog.action
-    except Exception as ex:
-        logger.debug("Could not show conflict dialog: %s", ex)
-        return None
+    def _create_dialog() -> bool:
+        """Run on the GTK main thread."""
+        try:
+            from lutris.gui.dialogs.cloud_sync import CloudSyncConflictDialog  # noqa: PLC0415
+
+            dialog = CloudSyncConflictDialog(game_name, location_name)
+            result_holder[0] = dialog.action
+        except Exception as ex:
+            logger.debug("Could not show conflict dialog: %s", ex)
+        finally:
+            event.set()
+        return False  # do not repeat
+
+    from gi.repository import GLib  # noqa: PLC0415
+
+    GLib.idle_add(_create_dialog)
+    event.wait()
+    return result_holder[0]
 
 
 def _sync_location(

@@ -537,13 +537,34 @@ class TestSyncAfterQuitBranches(unittest.TestCase):
 
 
 class TestShowConflictDialog(unittest.TestCase):
-    """Test _show_conflict_dialog helper."""
+    """Test _show_conflict_dialog helper.
+
+    The function now marshals the GTK dialog to the main thread via
+    ``GLib.idle_add`` and waits on a ``threading.Event``.  In tests we
+    mock ``GLib.idle_add`` to invoke the callback immediately so the
+    event gets set without a real GTK main loop.
+    """
 
     _show_conflict_dialog = staticmethod(_mod._show_conflict_dialog)
 
+    @staticmethod
+    def _immediate_idle_add(callback, *args):
+        """Simulate GLib.idle_add by calling the callback right away."""
+        callback(*args)
+        return 0  # dummy source id
+
     def test_returns_none_on_import_error(self):
         """When GTK isn't available, should return None gracefully."""
-        with patch.dict(sys.modules, {"lutris.gui.dialogs.cloud_sync": None}):
+        mock_glib = MagicMock()
+        mock_glib.idle_add = self._immediate_idle_add
+
+        with patch.dict(
+            sys.modules,
+            {
+                "lutris.gui.dialogs.cloud_sync": None,
+                "gi.repository": MagicMock(GLib=mock_glib),
+            },
+        ):
             result = self._show_conflict_dialog("Game", "saves")
         self.assertIsNone(result)
 
@@ -554,7 +575,16 @@ class TestShowConflictDialog(unittest.TestCase):
         mock_dialog_cls = MagicMock(return_value=mock_dialog)
         mock_module = MagicMock(CloudSyncConflictDialog=mock_dialog_cls)
 
-        with patch.dict(sys.modules, {"lutris.gui.dialogs.cloud_sync": mock_module}):
+        mock_glib = MagicMock()
+        mock_glib.idle_add = self._immediate_idle_add
+
+        with patch.dict(
+            sys.modules,
+            {
+                "lutris.gui.dialogs.cloud_sync": mock_module,
+                "gi.repository": MagicMock(GLib=mock_glib),
+            },
+        ):
             result = self._show_conflict_dialog("Game", "saves")
         self.assertEqual(result, "download")
         mock_dialog_cls.assert_called_once_with("Game", "saves")
