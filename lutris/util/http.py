@@ -8,6 +8,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from ssl import CertificateError
+from typing import TYPE_CHECKING, Any, Collection, Dict, Generator, Optional
 
 import certifi
 
@@ -15,15 +16,20 @@ from lutris.settings import PROJECT, SITE_URL, VERSION, read_setting
 from lutris.util import system
 from lutris.util.log import logger
 
+if TYPE_CHECKING:
+    import threading
+    from http.client import HTTPResponse
+    from http.cookiejar import CookieJar
+
 DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 30
 
-ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())  # type: ignore[misc]
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
 
 class HTTPError(Exception):
     """Exception raised on request failures"""
 
-    def __init__(self, message, code=None):
+    def __init__(self, message: str, code: int = None):
         super().__init__(message)
         self.code = code
 
@@ -35,15 +41,15 @@ class UnauthorizedAccessError(Exception):
 class Request:
     def __init__(
         self,
-        url,
-        timeout=DEFAULT_TIMEOUT,
-        stop_request=None,
-        headers=None,
-        cookies=None,
-        redacted_query_parameters=None,
+        url: str,
+        timeout: int = DEFAULT_TIMEOUT,
+        stop_request: threading.Event = None,
+        headers: Dict[str, str] = None,
+        cookies: CookieJar = None,
+        redacted_query_parameters: Collection[str] = None,
     ):
         self.url = self._clean_url(url)
-        self.status_code = None
+        self.status_code: Optional[int] = None
         self.content = b""
         self.timeout = timeout
         self.stop_request = stop_request
@@ -66,7 +72,7 @@ class Request:
             self.opener = None
 
     @staticmethod
-    def _clean_url(url):
+    def _clean_url(url: str) -> str:
         """Checks that a given URL is valid and return a usable version"""
         if not url:
             raise ValueError("An URL is required!")
@@ -83,11 +89,11 @@ class Request:
         return url
 
     @property
-    def user_agent(self):
+    def user_agent(self) -> str:
         return "{} {}".format(PROJECT, VERSION)
 
     @property
-    def redacted_url(self):
+    def redacted_url(self) -> str:
         """A version of the ULR with specified query string parameters
         replaced with REDACTED for security. We log these."""
         if self.redacted_query_parameters:
@@ -109,7 +115,7 @@ class Request:
 
         return self.url
 
-    def _request(self, method, data=None):
+    def _request(self, method: str, data: bytes = None) -> "Request":
         logger.debug("%s %s", method, self.redacted_url)
         try:
             req = urllib.request.Request(url=self.url, data=data, headers=self.headers, method=method)
@@ -144,7 +150,7 @@ class Request:
         request.close()
         return self
 
-    def _iter_chunks(self, request):
+    def _iter_chunks(self, request: HTTPResponse) -> Generator[bytes, None, bytes]:
         while 1:
             if self.stop_request and self.stop_request.is_set():
                 self.content = b""
@@ -158,16 +164,16 @@ class Request:
                 return b""
             yield chunk
 
-    def get(self, data=None):
+    def get(self, data: bytes = None) -> "Request":
         return self._request("GET", data)
 
-    def post(self, data=None):
+    def post(self, data: bytes = None) -> "Request":
         return self._request("POST", data)
 
-    def delete(self, data=None):
+    def delete(self, data: bytes = None) -> "Request":
         return self._request("DELETE", data)
 
-    def write_to_file(self, path):
+    def write_to_file(self, path: str) -> None:
         content = self.content
         logger.debug("Writing to %s", path)
         if not content:
@@ -180,7 +186,7 @@ class Request:
             dest_file.write(content)
 
     @property
-    def json(self):
+    def json(self) -> Any:
         _raw_json = self.text
         if _raw_json:
             try:
@@ -190,13 +196,13 @@ class Request:
         return {}
 
     @property
-    def text(self):
+    def text(self) -> str:
         if self.content:
             return self.content.decode()
         return ""
 
 
-def download_file(url, dest, overwrite=False, raise_errors=False):
+def download_file(url: str, dest: str, overwrite: bool = False, raise_errors: bool = False) -> Optional[str]:
     """Save a remote resource locally"""
     if system.path_exists(dest):
         if overwrite:
