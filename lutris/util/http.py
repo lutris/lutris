@@ -148,14 +148,14 @@ class Request:
         while 1:
             if self.stop_request and self.stop_request.is_set():
                 self.content = b""
-                return self
+                return b""
             try:
                 chunk = request.read(self.buffer_size)
             except (socket.timeout, ConnectionResetError) as err:
                 raise HTTPError("Request timed out") from err
             self.downloaded_size += len(chunk)
             if not chunk:
-                return
+                return b""
             yield chunk
 
     def get(self, data=None):
