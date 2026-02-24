@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from gettext import gettext as _
 from typing import List, Optional, Tuple, Union
 
-from gi.repository import GLib  # type: ignore
+from gi.repository import GLib
 
 from lutris.util.log import logger
 
@@ -80,7 +80,7 @@ def get_natural_sort_key(value: str, number_width: int = 16) -> str:
     """Returns a string with the numerical parts (runs of digits)
     0-padded out to 'number_width' digits."""
 
-    def pad_numbers(text):
+    def pad_numbers(text: str) -> str:
         return text.zfill(number_width) if text.isdigit() else text.casefold()
 
     runs = [pad_numbers(c) for c in re.split("([0-9]+)", value)]
@@ -117,7 +117,7 @@ def parse_version(version: str) -> Tuple[List[int], str, str]:
     return [int(p) for p in version_number.split(".")], suffix, prefix
 
 
-def unpack_dependencies(string: str) -> List[Union[str, tuple]]:
+def unpack_dependencies(string: str) -> List[Union[str, Tuple[str, ...]]]:
     """Parse a string to allow for complex dependencies
     Works in a similar fashion as Debian dependencies, separate dependencies
     are comma separated and multiple choices for satisfying a dependency are
@@ -127,7 +127,7 @@ def unpack_dependencies(string: str) -> List[Union[str, tuple]]:
         [('quake-steam', 'quake-gog'), 'some-quake-mod']
     """
 
-    def _expand_dep(dep: str) -> Union[str, tuple]:
+    def _expand_dep(dep: str) -> Union[str, Tuple[str, ...]]:
         if "|" in dep:
             return tuple(option.strip() for option in dep.split("|") if option.strip())
         return dep.strip()
@@ -165,7 +165,7 @@ def gtk_safe_urls(text: str) -> str:
 
 
 def is_valid_pango_markup(text: str) -> bool:
-    def destroy_func(_user_data):
+    def destroy_func(_user_data: None) -> None:
         pass  # required by GLib, but we don't need this callback
 
     if len(text) == 0:
@@ -175,7 +175,7 @@ def is_valid_pango_markup(text: str) -> bool:
         parser = GLib.MarkupParser()
         # DEFAULT_FLAGS == 0, but was not defined before GLib 2.74 so
         # we'll just hard-code the value.
-        parser_flags: GLib.MarkupParseFlags = 0  # type: ignore
+        parser_flags: GLib.MarkupParseFlags = 0
         context = GLib.MarkupParseContext.new(
             parser=parser, flags=parser_flags, user_data=None, user_data_dnotify=destroy_func
         )
