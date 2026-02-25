@@ -11,7 +11,6 @@ from ssl import CertificateError
 from typing import TYPE_CHECKING, Any, Collection, Dict, Generator, Optional
 from http.cookiejar import CookieJar
 from http.client import HTTPResponse
-from typing import Generator
 import certifi
 
 from lutris.settings import PROJECT, SITE_URL, VERSION, read_setting
