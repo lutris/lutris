@@ -7,6 +7,9 @@ import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
+import threading
+from http.client import HTTPResponse
+from http.cookiejar import CookieJar
 from ssl import CertificateError
 from typing import TYPE_CHECKING, Any, Collection, Dict, Generator, Optional
 
