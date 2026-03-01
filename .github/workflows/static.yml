@@ -55,6 +55,18 @@ jobs:
             msgfmt --check "$f" -o /dev/null
           done
 
+  annotation-compat:
+    name: Annotation Compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Check for unquoted TYPE_CHECKING annotations
+        run: python utils/check_annotations.py
+
   ruff-checker:
     name: Ruff
     runs-on: ubuntu-latest

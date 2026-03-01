@@ -112,13 +112,16 @@ format:
 # Static analysis
 # ===============
 
-check: ruff_lint mypy syntax-compat po-check
+check: ruff_lint mypy syntax-compat annotation-compat po-check
 
 ruff_lint:
 	ruff check .
 
 syntax-compat:
 	python3 -m compileall -q lutris/
+
+annotation-compat:
+	python3 utils/check_annotations.py
 
 po-check:
 	@for f in po/*.po; do msgfmt --check "$$f" -o /dev/null; done
