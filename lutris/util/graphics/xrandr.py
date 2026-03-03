@@ -41,7 +41,10 @@ def get_outputs():  # pylint: disable=too-many-locals
                 name = " ".join(name_fields)
                 data_fields = fields[connected_index + 1 :]
                 if data_fields[0] == "primary":
+                    primary = True
                     data_fields = data_fields[1:]
+                else:
+                    primary = False
                 geometry, rotate, *_ = data_fields
                 if geometry.startswith("("):  # Screen turned off, no geometry
                     continue
@@ -170,13 +173,12 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
     @staticmethod
     def get_current_resolution():
         """Return the current resolution for the desktop"""
-        for line in _get_vidmodes():
-            if line.startswith("  ") and "*" in line:
-                resolution_match = re.match(r".*?(\d+x\d+).*", line)
-                if resolution_match:
-                    return resolution_match.groups()[0].split("x")
-        logger.error("Unable to find the current resolution from xrandr output")
-        return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
+        outputs = get_outputs()
+        if not outputs:
+            logger.error("Unable to find the current resolution from xrandr output")
+            return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
+        primary = next((o for o in outputs if o.primary), None) or outputs[0]
+        return primary.mode.split("x")
 
     @staticmethod
     def set_resolution(resolution):
