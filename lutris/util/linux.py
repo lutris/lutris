@@ -201,15 +201,18 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         """Return the system architecture only if compatible
         with the supported architectures from the Lutris API
         """
-        machine = platform.machine()
-        if machine == "x86_64":
-            return "x86_64"
-        if machine in ("i386", "i686"):
-            return "i386"
-        if "armv7" in machine:
-            return "armv7"
-        logger.warning("Unsupported architecture %s", machine)
-        return None
+        match platform.machine():
+            case "x86_64":
+                return "x86_64"
+            case "i386" | "i686":
+                return "i386"
+            case m if "armv7" in m:
+                return "armv7"
+            case "aarch64" | "arm64":
+                return "aarch64"
+            case m:
+                logger.warning("Unsupported architecture %s", m)
+                return None
 
     @staticmethod
     def get_kernel_version() -> str:

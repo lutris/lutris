@@ -824,21 +824,32 @@ class ItchIoService(OnlineService):
         return files
 
     def get_file_weight(self, name, demo):
-        if name.endswith(".rpm"):
+        name_folded = name.casefold()
+        if name_folded.endswith(".rpm"):
             return 0xFF  # Not supported as an extractor
         # Exclude non-game files that are sometimes miscategorized as "default"
-        name_lower = name.lower()
-        if any(pattern in name_lower for pattern in ("wallpaper", "background", "artwork", "poster")):
+        if any(pattern in name_folded for pattern in ("wallpaper", "background", "artwork", "poster")):
             return 0xFF
         weight = 0x0
-        if name.endswith(".deb"):
+        # Deprioritize .deb packages
+        if name_folded.endswith(".deb"):
             weight |= 0x01
+        # Deprioritize 'wrong bitness' installers
         if linux.LINUX_SYSTEM.is_64_bit:
-            if "386" in name or "32" in name:
+            if "386" in name_folded or "32" in name_folded:
                 weight |= 0x08
         else:
-            if "64" in name:
+            if "64" in name_folded:
                 weight |= 0x10
+        # Deprioritize builds for incompatible CPU architecture
+        arch = linux.LINUX_SYSTEM.arch
+        is_arm_build = any(a in name_folded for a in ("arm64", "aarch64", "armhf", "armv7"))
+        is_x86_build = any(a in name_folded for a in ("x86_64", "amd64", "x86-64"))
+        if arch in ("x86_64", "i386") and is_arm_build:
+            weight |= 0x20
+        elif arch in ("aarch64", "armv7") and is_x86_build:
+            weight |= 0x20
+        # Deprioritize demos- these are not even the game.
         if demo:
             weight |= 0x40
         return weight
