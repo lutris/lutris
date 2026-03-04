@@ -9,7 +9,7 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
 
-Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate"))
+Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate", "preferred_mode"))
 
 
 def _get_vidmodes():
@@ -19,32 +19,52 @@ def _get_vidmodes():
     return xrandr_output
 
 
-def get_outputs():  # pylint: disable=too-many-locals
-    """Return list of namedtuples containing output 'name', 'geometry',
-    'rotation' and whether it is the 'primary' display."""
-    outputs = []
+def get_outputs() -> list[Output]:
+    """Parse xrandr output and return one Output per active connected display.
+
+    Each Output captures the connector name, current mode (resolution), position,
+    rotation, whether it is the primary display, refresh rate, and EDID-preferred
+    mode (which on recent XWayland with fractional scaling is the physical resolution,
+    while the current mode may be an upscaled virtual canvas)."""
+    outputs: list[Output] = []
     logger.debug("Retrieving display outputs")
     vid_modes = _get_vidmodes()
-    position = None
-    rotate = None
-    primary = None
-    name = None
     if not vid_modes:
         logger.error("xrandr didn't return anything")
         return []
+
+    name = position = rotate = current_mode = preferred_mode = rate = None
+    primary = False
+
+    def flush():
+        if name and current_mode and position:
+            outputs.append(
+                Output(
+                    name=name,
+                    mode=current_mode,
+                    position=position,
+                    rotation=rotate,
+                    primary=primary,
+                    rate=rate,
+                    preferred_mode=preferred_mode,
+                )
+            )
+
     for line in vid_modes:
         fields = line.split()
+        if not fields:
+            continue
         if "connected" in fields[1:] and len(fields) >= 4:
+            flush()
+            current_mode = preferred_mode = rate = name = position = rotate = None
+            primary = False
             try:
                 connected_index = fields.index("connected", 1)
-                name_fields = fields[:connected_index]
-                name = " ".join(name_fields)
+                candidate_name = " ".join(fields[:connected_index])
                 data_fields = fields[connected_index + 1 :]
                 if data_fields[0] == "primary":
                     primary = True
                     data_fields = data_fields[1:]
-                else:
-                    primary = False
                 geometry, rotate, *_ = data_fields
                 if geometry.startswith("("):  # Screen turned off, no geometry
                     continue
@@ -52,27 +72,22 @@ def get_outputs():  # pylint: disable=too-many-locals
                     rotate = "normal"
                 _, x_pos, y_pos = geometry.split("+")
                 position = "{x_pos}x{y_pos}".format(x_pos=x_pos, y_pos=y_pos)
+                name = candidate_name
             except ValueError as ex:
                 logger.error(
                     "Unhandled xrandr line %s, error: %s. Please send your xrandr output to the dev team", line, ex
                 )
                 continue
-        elif "*" in line:
-            mode, *framerates = fields
-            for number in framerates:
+        elif name and line.startswith("  ") and re.match(r"\s+\d+x\d+", line):
+            mode = fields[0]
+            for number in fields[1:]:
                 if "*" in number:
-                    hertz = number[:-2]
-                    outputs.append(
-                        Output(
-                            name=name,
-                            mode=mode,
-                            position=position,
-                            rotation=rotate,
-                            primary=primary,
-                            rate=hertz,
-                        )
-                    )
-                    break
+                    current_mode = mode
+                    rate = number.rstrip("*+")
+                if "+" in number and preferred_mode is None:
+                    preferred_mode = mode
+
+    flush()
     return outputs
 
 
@@ -178,7 +193,16 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
             logger.error("Unable to find the current resolution from xrandr output")
             return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
         primary = next((o for o in outputs if o.primary), None) or outputs[0]
-        return primary.mode.split("x")
+        mode = primary.mode
+        from lutris.util.display import is_display_x11  # import here to avoid circular import
+
+        # This trick will only work on very recent (2026) XWayland implementations; on
+        # older ones the preferred mode and mode are the same anyway. But it's no worse
+        # than ignoring the issue, and when supported, the preferred mode is the physical
+        # resolution instead of the rendering buffer's resolution (which may be scaled).
+        if not is_display_x11() and primary.preferred_mode and primary.preferred_mode != mode:
+            mode = primary.preferred_mode
+        return mode.split("x")
 
     @staticmethod
     def set_resolution(resolution):
