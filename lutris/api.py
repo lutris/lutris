@@ -331,7 +331,7 @@ def get_game_api_page(game_slugs, page=1):
     if int(page) > 1:
         url += "?page={}".format(page)
     if not game_slugs:
-        return []
+        return {}
     payload = json.dumps({"games": game_slugs, "page": page}).encode("utf-8")
     return get_http_post_response(url, payload)
 
@@ -342,7 +342,7 @@ def get_game_service_api_page(service, appids, page=1):
     if int(page) > 1:
         url += "?page={}".format(page)
     if not appids:
-        return []
+        return {}
     payload = json.dumps({"appids": appids}).encode("utf-8")
     return get_http_post_response(url, payload)
 
