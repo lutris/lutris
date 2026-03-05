@@ -985,12 +985,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def load_icon_type(self):
         """Return the icon style depending on the type of view."""
         default_icon_types = {
-            "icon_type_grid": "coverart_med",
+            "icon_type_gridview": "coverart_med",
+            "icon_type_listview": "banner",
         }
-        setting_key = "icon_type_%sview" % self.current_view_type
+        base_key = "icon_type_%sview" % self.current_view_type
+        setting_key = base_key
         if self.service and self.service.id != "lutris":
             setting_key += "_%s" % self.service.id
-        self.icon_type = settings.read_setting(setting_key, default=default_icon_types.get(setting_key, ""))
+        self.icon_type = settings.read_setting(setting_key, default=default_icon_types.get(base_key, ""))
         return self.icon_type
 
     def save_icon_type(self, icon_type):

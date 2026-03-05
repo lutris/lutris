@@ -26,7 +26,7 @@ from lutris.util.log import logger
 from lutris.util.strings import slugify
 
 
-class ItchIoCover(ServiceMedia):
+class ItchIoCoverart(ServiceMedia):
     """itch.io game cover"""
 
     service = "itchio"
@@ -48,13 +48,13 @@ class ItchIoCover(ServiceMedia):
         return None
 
 
-class ItchIoCoverMedium(ItchIoCover):
+class ItchIoCoverartSmall(ItchIoCoverart):
     """itch.io game cover, at 60% size"""
 
     size = (189, 150)
 
 
-class ItchIoCoverSmall(ItchIoCover):
+class ItchIoBanner(ItchIoCoverart):
     """itch.io game cover, at 30% size"""
 
     size = (95, 75)
@@ -87,11 +87,11 @@ class ItchIoService(OnlineService):
     drm_free = True
     has_extras = True
     medias = {
-        "banner_small": ItchIoCoverSmall,
-        "banner_med": ItchIoCoverMedium,
-        "banner": ItchIoCover,
+        "banner": ItchIoBanner,
+        "coverart_small": ItchIoCoverartSmall,
+        "coverart_med": ItchIoCoverart,
     }
-    default_format = "banner"
+    default_format = "coverart_med"
 
     api_url = "https://api.itch.io"
     login_url = "https://itch.io/login"
