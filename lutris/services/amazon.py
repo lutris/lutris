@@ -586,7 +586,7 @@ class AmazonService(OnlineService):
         manifest_info = self.get_game_manifest_info(game_id)
         manifest = self.get_game_manifest(manifest_info)
 
-        file_dict, directories, hashpairs = self.structure_manifest_data(manifest)
+        file_dict, directories, _hashpairs = self.structure_manifest_data(manifest)
 
         for file_hash, file in file_dict.items():
             url = manifest_info["downloadUrl"]
@@ -680,7 +680,7 @@ class AmazonService(OnlineService):
         manifest_info = self.get_game_manifest_info(game_id)
         manifest = self.get_game_manifest(manifest_info)
 
-        file_dict, directories, hashpairs = self.structure_manifest_data(manifest)
+        file_dict, directories, _hashpairs = self.structure_manifest_data(manifest)
 
         installer = [
             {"task": {"name": "create_prefix"}},
