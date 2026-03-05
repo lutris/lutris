@@ -126,16 +126,22 @@ def _import_games_from_library(install_root: str) -> List[int]:
     if not os.path.isdir(apps_base):
         return added_games
 
-    for game_install_root, info in _scan_library(install_root):
-        game_id = _import_game(game_install_root, info)
+    for game_install_root, game_path, info in _scan_library(install_root):
+        game_id = _import_game(game_install_root, game_path, info)
         if game_id:
             added_games.append(game_id)
 
     return added_games
 
 
-def _scan_library(install_root: str) -> List[Tuple[str, Dict]]:
-    """Scan a Playtron library for games"""
+def _scan_library(install_root: str) -> List[Tuple[str, str, Dict]]:
+    """Scan a Playtron library for games.
+
+    Returns a list of (install_root, game_path, info) tuples. game_path is
+    the local directory containing the playtron_info_v3.json file, which may
+    differ from install_config.install_folder when importing from a mounted
+    GameOS drive.
+    """
     games = []
     apps_base = os.path.join(install_root, DEFAULT_APPS_DIR)
 
@@ -156,14 +162,14 @@ def _scan_library(install_root: str) -> List[Tuple[str, Dict]]:
 
             info = _parse_playtron_info(info_file)
             if info:
-                games.append((install_root, info))
+                games.append((install_root, game_path, info))
 
     return games
 
 
-def _import_game(install_root: str, info: Dict) -> Optional[int]:
+def _import_game(install_root: str, game_path: str, info: Dict) -> Optional[int]:
     """Import a single game to Lutris, returns game ID or None"""
-    game_data = _create_game_config(install_root, info)
+    game_data = _create_game_config(install_root, info, game_path)
     if not game_data:
         return None
 
@@ -216,7 +222,7 @@ def _import_game(install_root: str, info: Dict) -> Optional[int]:
     return game_id
 
 
-def _create_game_config(install_root: str, info: Dict) -> Optional[Dict]:
+def _create_game_config(install_root: str, info: Dict, game_path: str = "") -> Optional[Dict]:
     """Create a Lutris game config from Playtron info"""
     owned_app = info.get("owned_app", {})
     install_config = info.get("install_config", {})
@@ -229,6 +235,12 @@ def _create_game_config(install_root: str, info: Dict) -> Optional[Dict]:
     provider_id = owned_app.get("provider_id", "")
     platform = install_config.get("platform", "windows")
     install_folder = install_config.get("install_folder", "")
+
+    # install_folder from the JSON is an absolute path from the original system.
+    # When importing from a mounted GameOS drive it won't exist locally; fall
+    # back to game_path which is the resolved local directory for this game.
+    if install_folder and not os.path.isdir(install_folder) and game_path and os.path.isdir(game_path):
+        install_folder = game_path
 
     # Timestamps (Playtron uses milliseconds)
     launched_at = info.get("launched_at")
@@ -268,11 +280,15 @@ def _create_game_config(install_root: str, info: Dict) -> Optional[Dict]:
     if arguments:
         config["game"]["args"] = arguments
 
-    # Wine prefix
+    # Wine prefix - try install_root from the JSON first, then the local
+    # install_root. The JSON path is absolute from the original system and
+    # won't exist when importing from a mounted GameOS drive.
     if runner == "wine" and provider_id:
-        prefix_path = _get_wine_prefix_path(info_install_root, provider, provider_id)
-        if os.path.isdir(prefix_path):
-            config["game"]["prefix"] = prefix_path
+        for root in dict.fromkeys([info_install_root, install_root]):
+            prefix_path = _get_wine_prefix_path(root, provider, provider_id)
+            if os.path.isdir(prefix_path):
+                config["game"]["prefix"] = prefix_path
+                break
 
     return {
         "name": name,

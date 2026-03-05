@@ -571,6 +571,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             if application and hasattr(application, "window"):
                 application.window.refresh_view()
 
+        self.continue_button.set_sensitive(True)
         self.display_continue_button(lambda _w: self.destroy(), label=_("_Close"), suggested_action=False)
 
     # Add Local Game
