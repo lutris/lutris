@@ -543,14 +543,18 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         """Start the Playtron import process"""
         self.import_playtron_result_label.set_text(_("Scanning for games..."))
         self.continue_button.set_sensitive(False)
+        self.back_button.set_sensitive(False)
+        self.cancel_button.set_sensitive(False)
         AsyncCall(playtron_scanner.scan_all_libraries, self.on_playtron_import_complete)
 
     def on_playtron_import_complete(self, result, error):
         """Handle completion of Playtron import"""
-        self.continue_button.set_sensitive(True)
+        self.back_button.set_sensitive(True)
+        self.cancel_button.set_sensitive(True)
 
         if error:
             self.import_playtron_result_label.set_text(_("Error during import: %s") % str(error))
+            self.continue_button.set_sensitive(True)
             return
 
         game_ids = result or []
@@ -566,6 +570,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             application = Gio.Application.get_default()
             if application and hasattr(application, "window"):
                 application.window.refresh_view()
+
+        self.display_continue_button(lambda _w: self.destroy(), label=_("_Close"), suggested_action=False)
 
     # Add Local Game
 

@@ -4,8 +4,11 @@ import json
 import os
 from typing import Dict, List, Optional, Tuple
 
+from lutris.api import get_api_games
 from lutris.config import write_game_config
-from lutris.database.games import add_or_update, get_games
+from lutris.database import sql
+from lutris.database.games import add_or_update, get_game_by_field, get_games
+from lutris.services.lutris import download_lutris_media
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -21,6 +24,13 @@ GAMEOS_DATA_DIR = "var/home/playtron/.local/share"
 
 # Providers we import (Steam is already managed by Lutris)
 SUPPORTED_PROVIDERS = {"epic", "epicgames", "gog", "local"}
+
+# Map Playtron provider names to Lutris service IDs
+PROVIDER_TO_SERVICE = {
+    "gog": "gog",
+    "epic": "egs",
+    "epicgames": "egs",
+}
 
 # Filesystems that typically contain user data
 DATA_FILESYSTEMS = {"ext4", "ext3", "xfs", "btrfs", "ntfs", "vfat", "exfat", "fuseblk", "ntfs3"}
@@ -41,6 +51,9 @@ def scan_all_libraries() -> List[int]:
     for library_path in library_paths:
         logger.info("Scanning Playtron library: %s", library_path)
         added_games.extend(_import_games_from_library(library_path))
+
+    if added_games:
+        _sync_media_for_games(added_games)
 
     logger.info("Imported %d games from Playtron", len(added_games))
     return added_games
@@ -172,6 +185,9 @@ def _import_game(install_root: str, info: Dict) -> Optional[int]:
 
     configpath = write_game_config(slug, game_data["config"])
 
+    service = PROVIDER_TO_SERVICE.get(provider)
+    provider_id = game_data.get("provider_id")
+
     db_data = {
         "name": name,
         "runner": game_data["runner"],
@@ -182,6 +198,10 @@ def _import_game(install_root: str, info: Dict) -> Optional[int]:
         "installer_slug": installer_slug,
         "configpath": configpath,
     }
+
+    if service and provider_id:
+        db_data["service"] = service
+        db_data["service_id"] = provider_id
 
     if game_data.get("lastplayed"):
         db_data["lastplayed"] = game_data["lastplayed"]
@@ -276,24 +296,59 @@ def _get_wine_prefix_path(install_root: str, provider: str, provider_id: str) ->
 
 
 def _get_gog_game_info(install_folder: str, provider_id: str) -> Optional[Dict]:
-    """Parse GOG game info file to get executable details"""
-    info_file = os.path.join(install_folder, f"goggame-{provider_id}.info")
+    """Parse GOG game info file to get executable details.
 
+    Tries the exact goggame-{provider_id}.info first, then falls back to
+    scanning for any goggame-*.info files in the install folder.
+    """
+    info = _load_gog_info_file(os.path.join(install_folder, f"goggame-{provider_id}.info"))
+
+    # Fallback: scan for any goggame-*.info files
+    if info is None and os.path.isdir(install_folder):
+        for filename in os.listdir(install_folder):
+            if filename.startswith("goggame-") and filename.endswith(".info"):
+                info = _load_gog_info_file(os.path.join(install_folder, filename))
+                if info and info.get("playTasks"):
+                    break
+        else:
+            info = None
+
+    if not info:
+        return None
+
+    return _extract_gog_primary_task(info)
+
+
+def _load_gog_info_file(info_file: str) -> Optional[Dict]:
+    """Load and parse a goggame-*.info JSON file"""
     try:
         with open(info_file, "r", encoding="utf-8") as f:
-            info = json.load(f)
+            return json.load(f)
     except (json.JSONDecodeError, OSError, FileNotFoundError):
         return None
 
-    for task in info.get("playTasks", []):
-        if task.get("isPrimary") and task.get("type") == "FileTask":
-            return {
-                "executable": task.get("path", "").replace("\\", "/"),
-                "arguments": task.get("arguments"),
-                "workingdir": task.get("workingDir", "").replace("\\", "/") if task.get("workingDir") else None,
-            }
 
-    return None
+def _extract_gog_primary_task(info: Dict) -> Optional[Dict]:
+    """Extract executable info from GOG playTasks.
+
+    Prefers the task marked isPrimary, falls back to the first FileTask.
+    """
+    first_file_task = None
+
+    for task in info.get("playTasks", []):
+        if task.get("type") != "FileTask":
+            continue
+        result = {
+            "executable": task.get("path", "").replace("\\", "/"),
+            "arguments": task.get("arguments"),
+            "workingdir": task.get("workingDir", "").replace("\\", "/") if task.get("workingDir") else None,
+        }
+        if task.get("isPrimary"):
+            return result
+        if first_file_task is None:
+            first_file_task = result
+
+    return first_file_task
 
 
 def _parse_playtron_info(filepath: str) -> Optional[Dict]:
@@ -304,3 +359,55 @@ def _parse_playtron_info(filepath: str) -> Optional[Dict]:
     except (json.JSONDecodeError, OSError) as ex:
         logger.warning("Failed to parse %s: %s", filepath, ex)
         return None
+
+
+def _sync_media_for_games(game_ids: List[int]) -> None:
+    """Resolve canonical Lutris slugs via service appids and download media.
+
+    The locally generated slug (from slugify) may not match the Lutris API due
+    to normalization differences (NFD vs NFKD). By looking up games through the
+    service-specific API endpoint using the store appid, we get the canonical
+    slug and can download artwork reliably.
+    """
+    from lutris import settings
+
+    # Group games by service
+    games_by_service: Dict[str, List[Tuple[int, str, str]]] = {}
+    for game_id in game_ids:
+        game = get_game_by_field(game_id, "id")
+        if not game or not game.get("service") or not game.get("service_id"):
+            # No service info; try slug-based media download as fallback
+            if game:
+                download_lutris_media(game["slug"])
+            continue
+        service = game["service"]
+        games_by_service.setdefault(service, []).append((game_id, game["slug"], game["service_id"]))
+
+    for service, games in games_by_service.items():
+        appids = [g[2] for g in games]
+        api_games = get_api_games(appids, service=service)
+        if not api_games:
+            # Fallback to slug-based download
+            for _game_id, slug, _ in games:
+                download_lutris_media(slug)
+            continue
+
+        # Build appid -> api_game lookup from the provider_games in the API response
+        appid_to_api = {}
+        for api_game in api_games:
+            for service_info in api_game.get("provider_games", []):
+                if service_info.get("service") == service:
+                    appid_to_api[str(service_info.get("slug", ""))] = api_game
+            # Also check direct appid field
+            if "appid" in api_game:
+                appid_to_api[str(api_game["appid"])] = api_game
+
+        for game_id, local_slug, appid in games:
+            api_game = appid_to_api.get(appid)
+            if api_game and api_game.get("slug") and api_game["slug"] != local_slug:
+                # Update the game's slug to the canonical Lutris slug
+                logger.info("Updating slug for game %s: %s -> %s", game_id, local_slug, api_game["slug"])
+                sql.db_update(settings.DB_PATH, "games", {"slug": api_game["slug"]}, {"id": game_id})
+                download_lutris_media(api_game["slug"])
+            else:
+                download_lutris_media(api_game["slug"] if api_game else local_slug)
