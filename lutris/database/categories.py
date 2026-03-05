@@ -228,16 +228,20 @@ def remove_category(category_id: int, no_signal: bool = False) -> None:
         CATEGORIES_UPDATED.fire()
 
 
-def add_game_to_category(game_id, category_id):
+def add_game_to_category(game_id: str, category_id: int, no_signal: bool = False) -> None:
     """Add a category to a game"""
-    return sql.db_insert(settings.DB_PATH, "games_categories", {"game_id": game_id, "category_id": category_id})
+    sql.db_insert(settings.DB_PATH, "games_categories", {"game_id": game_id, "category_id": category_id})
+    if not no_signal:
+        CATEGORIES_UPDATED.fire()
 
 
-def remove_category_from_game(game_id, category_id):
+def remove_category_from_game(game_id: str, category_id: int, no_signal: bool = False) -> None:
     """Remove a category from a game"""
     query = "DELETE FROM games_categories WHERE category_id=? AND game_id=?"
     with sql.db_cursor(settings.DB_PATH) as cursor:
         sql.cursor_execute(cursor, query, (category_id, game_id))
+    if not no_signal:
+        CATEGORIES_UPDATED.fire()
 
 
 def remove_unused_categories():
