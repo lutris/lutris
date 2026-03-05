@@ -2,7 +2,7 @@ import os
 from gettext import gettext as _
 from gettext import ngettext
 
-from gi.repository import Gio, Gtk
+from gi.repository import GdkPixbuf, Gio, Gtk
 
 from lutris import api, sysoptions
 from lutris.config import LutrisConfig
@@ -12,6 +12,8 @@ from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.installer import AUTO_WIN32_EXE, get_installers
+from lutris.scanners import playtron as playtron_scanner
+from lutris.util import datapath
 from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
 from lutris.util.strings import gtk_safe, slugify
 from lutris.util.wine.proton import is_proton_version
@@ -49,6 +51,13 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             _("Import ROMs"),
             _("Import ROMs referenced in TOSEC, No-intro or Redump"),
             "import_rom",
+        ),
+        (
+            "media:playtron",
+            "go-next-symbolic",
+            _("Import from Playtron"),
+            _("Import games installed via Playtron GameOS"),
+            "import_playtron",
         ),
         (
             "list-add-symbolic",
@@ -132,11 +141,14 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             title=_("Select ROMs"), action=Gtk.FileChooserAction.SELECT_FOLDER
         )
 
+        self.import_playtron_result_label = Gtk.Label()
+
         self.stack.add_named_factory("initial", self.create_initial_page)
         self.stack.add_named_factory("search_installers", self.create_search_installers_page)
         self.stack.add_named_factory("install_from_setup", self.create_install_from_setup_page)
         self.stack.add_named_factory("install_from_script", self.create_install_from_script_page)
         self.stack.add_named_factory("import_rom", self.create_import_rom_page)
+        self.stack.add_named_factory("import_playtron", self.create_import_playtron_page)
 
         self.show_all()
 
@@ -501,6 +513,60 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             dialog.show()
             self.destroy()
 
+    # Import Playtron Page
+
+    def import_playtron(self):
+        """Import games from Playtron GameOS"""
+        self.stack.navigate_to_page(self.present_import_playtron_page)
+
+    def create_import_playtron_page(self):
+        grid = Gtk.Grid(row_spacing=6, column_spacing=6)
+        grid.set_valign(Gtk.Align.START)
+
+        explanation = _("Import games installed via Playtron GameOS.")
+
+        grid.attach(self._get_explanation_label(explanation), 0, 0, 1, 1)
+
+        # Result label for showing import progress/results
+        self.import_playtron_result_label.set_xalign(0)
+        grid.attach(self.import_playtron_result_label, 0, 1, 1, 1)
+
+        return grid
+
+    def present_import_playtron_page(self):
+        self.set_page_title_markup(_("<b>Import from Playtron</b>"))
+        self.stack.present_page("import_playtron")
+        self.import_playtron_result_label.set_text("")
+        self.display_continue_button(self.on_continue_import_playtron_clicked, label=_("_Import"))
+
+    def on_continue_import_playtron_clicked(self, _widget):
+        """Start the Playtron import process"""
+        self.import_playtron_result_label.set_text(_("Scanning for games..."))
+        self.continue_button.set_sensitive(False)
+        AsyncCall(playtron_scanner.scan_all_libraries, self.on_playtron_import_complete)
+
+    def on_playtron_import_complete(self, result, error):
+        """Handle completion of Playtron import"""
+        self.continue_button.set_sensitive(True)
+
+        if error:
+            self.import_playtron_result_label.set_text(_("Error during import: %s") % str(error))
+            return
+
+        game_ids = result or []
+        count = len(game_ids)
+
+        if count == 0:
+            self.import_playtron_result_label.set_text(_("No new games found to import."))
+        else:
+            self.import_playtron_result_label.set_text(
+                ngettext("Successfully imported %d game.", "Successfully imported %d games.", count) % count
+            )
+            # Refresh the game library
+            application = Gio.Application.get_default()
+            if application and hasattr(application, "window"):
+                application.window.refresh_view()
+
     # Add Local Game
 
     def add_local_game(self):
@@ -562,8 +628,28 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
     def _get_icon(self, name, small=False):
         if small:
             size = Gtk.IconSize.MENU
+            pixel_size = 16
         else:
             size = Gtk.IconSize.DND
+            pixel_size = 32
+
+        # Check if it's a media file reference (e.g., "media:playtron")
+        if name.startswith("media:"):
+            media_name = name[6:]
+            # Pick themed variant based on dark/light mode
+            application = Gio.Application.get_default()
+            theme_suffix = "dark"
+            if application and hasattr(application, "style_manager"):
+                theme_suffix = "dark" if application.style_manager.is_dark else "light"
+            icon_path = os.path.join(datapath.get(), "media", f"{media_name}-{theme_suffix}.svg")
+            if not os.path.exists(icon_path):
+                icon_path = os.path.join(datapath.get(), "media", f"{media_name}.svg")
+            if os.path.exists(icon_path):
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, pixel_size, pixel_size)
+                icon = Gtk.Image.new_from_pixbuf(pixbuf)
+                icon.show()
+                return icon
+
         icon = Gtk.Image.new_from_icon_name(name, size)
         icon.show()
         return icon
