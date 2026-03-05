@@ -106,7 +106,7 @@ class LibrarySyncer:
     def _ensure_category(self, category):
         """Make sure a given category exists in the database, create it if not"""
         if category not in self.categories.values():
-            add_category(category)
+            add_category(category, no_signal=True)
             self.categories = self._load_categories()
             self.category_ids = self._load_categories(reverse=True)
 
@@ -115,7 +115,7 @@ class LibrarySyncer:
         game_categories: List[str] = game.get_categories()
         remote_categories: List[str] = remote_game["categories"]
         for category in game_categories:
-            if category not in remote_categories:
+            if category not in remote_categories and category in self.category_ids:
                 remove_category_from_game(game.id, self.category_ids[category], no_signal=True)
         for category in remote_categories:
             if category not in game_categories:
