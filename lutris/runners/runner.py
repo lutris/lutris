@@ -515,7 +515,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         the confliguration before it is saved. This method should modify the dict given."""
         pass
 
-    def get_runner_version(self, version: Optional[str] = None) -> Optional[Dict[str, Union[str | bool]]]:
+    def get_runner_version(self, version: Optional[str] = None) -> Optional[Dict[str, Union[str, bool]]]:
         """Get the appropriate version for a runner, as with get_default_runner_version(),
         but this method allows the runner to apply its configuration."""
         return get_default_runner_version_info(self.name, version)

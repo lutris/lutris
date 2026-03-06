@@ -747,7 +747,7 @@ class wine(Runner):
                 arch = WINE_DEFAULT_ARCH
         return arch
 
-    def get_runner_version(self, version: Optional[str] = None) -> Optional[Dict[str, Union[str | bool]]]:
+    def get_runner_version(self, version: Optional[str] = None) -> Optional[Dict[str, Union[str, bool]]]:
         if version in WINE_PATHS:
             return {"version": version}
 
