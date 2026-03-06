@@ -117,8 +117,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def get_default_target(self):
         """Return default installation dir"""
-        if self.installer.reinstall_destination_directory:
-            return self.installer.reinstall_destination_directory
         config = LutrisConfig(runner_slug=self.installer.runner)
         games_dir = config.system_config.get("game_path", os.path.expanduser("~"))
         if self.service:

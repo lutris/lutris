@@ -654,16 +654,12 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     # but different buttons at the bottom.
 
     def load_installer_files_page(self):
-        if (
-            self.installation_kind == InstallationKind.UPDATE
-            and not self.interpreter.installer.reinstall_destination_directory
-        ):
-            patch_version = self.interpreter.installer.version
-        else:
-            patch_version = None
         self.load_spinner_page(_("Preparing game files..."), cancellable=False)
         AsyncCall(
-            self.interpreter.installer.prepare_game_files, self.on_files_prepared, self.selected_extras, patch_version
+            self.interpreter.installer.prepare_game_files,
+            self.on_files_prepared,
+            self.selected_extras,
+            self.installation_kind,
         )
 
     def on_files_prepared(self, _result, error):

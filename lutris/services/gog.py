@@ -395,28 +395,11 @@ class GOGService(OnlineService):
         """Normalize a runner name to either 'linux' or 'wine'."""
         return "linux" if runner == "linux" else "wine"
 
-    def get_update_versions(
-        self, downloads: Dict[str, List[dict]], runner_name: Optional[str]
-    ) -> Dict[str, List[dict]]:
-        """Return updates available for a game, keyed by patch version"""
-        filter_os = self.runner_to_os_dict.get(runner_name) if runner_name else None
-        patches = downloads.get("patches")
-        if not patches:
-            return {}
-        patch_versions: Dict[str, List[dict]] = defaultdict(list)
-        for patch in patches:
-            if filter_os:
-                patch_os = patch.get("os")
-                if patch_os and filter_os != patch_os.casefold():
-                    continue
-            patch_versions[patch["name"]].append(patch)
-        return patch_versions
-
-    def determine_language_installer(self, gog_installers: List[dict], default_language: str = "en") -> str:
-        """Return locale language string if available in gog_installers"""
+    def determine_language_installer(self, selected_installers: List[dict], default_language: str = "en") -> str:
+        """Return locale language string if available in selected_installers"""
         language = i18n.get_lang()
-        gog_installers = [installer for installer in gog_installers if installer["language"] == language]
-        if not gog_installers:
+        selected_installers = [installer for installer in selected_installers if installer["language"] == language]
+        if not selected_installers:
             language = default_language
         return language
 
@@ -478,12 +461,12 @@ class GOGService(OnlineService):
     def _get_installer_links(self, installer: "LutrisInstaller", downloads: dict) -> List[dict]:
         """Return links to downloadable files from a list of downloads"""
         try:
-            gog_installers = self.get_installers(downloads, installer.runner)
-            if not gog_installers:
+            selected_installers = self.get_installers(downloads, installer.runner)
+            if not selected_installers:
                 return []
-            if len(gog_installers) > 1:
+            if len(selected_installers) > 1:
                 logger.warning("More than 1 GOG installer found, picking first.")
-            _installer = gog_installers[0]
+            _installer = selected_installers[0]
             installer.service_installer_version = _installer.get("version")
             return self.query_download_links(_installer)
         except HTTPError as err:
@@ -589,10 +572,16 @@ class GOGService(OnlineService):
         else:
             return self._generate_installer(slug, "wine", db_game)
 
-    def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
+    def generate_installers(self, db_game: Dict[str, Any], runner_name: Optional[str] = None) -> List[dict]:
         details = json.loads(db_game["details"])
         slug = details["slug"]
         platforms = [platform.casefold() for platform, is_supported in details["worksOn"].items() if is_supported]
+
+        if runner_name:
+            normalized = self._normalize_runner_name(runner_name)
+            if self.runner_to_os_dict[normalized] in platforms:
+                return [self._generate_installer(slug, normalized, db_game)]
+            return []
 
         installers = []
 
@@ -736,7 +725,7 @@ class GOGService(OnlineService):
         games_detail = self.get_game_details(appid)
         downloads = games_detail["downloads"]
 
-        patch_versions = self.get_update_versions(downloads, runner)
+        patch_versions = self._get_update_versions(downloads, runner)
         patch_installers = []
         for version in patch_versions:
             patch = patch_versions[version]
@@ -763,17 +752,33 @@ class GOGService(OnlineService):
 
         return patch_installers
 
+    def _get_update_versions(
+        self, downloads: Dict[str, List[dict]], runner_name: Optional[str]
+    ) -> Dict[str, List[dict]]:
+        """Return updates available for a game, keyed by patch version"""
+        filter_os = self.runner_to_os_dict.get(runner_name) if runner_name else None
+        patches = downloads.get("patches")
+        if not patches:
+            return {}
+        patch_versions: Dict[str, List[dict]] = defaultdict(list)
+        for patch in patches:
+            if filter_os:
+                patch_os = patch.get("os")
+                if patch_os and filter_os != patch_os.casefold():
+                    continue
+            patch_versions[patch["name"]].append(patch)
+        return patch_versions
+
     def _get_new_version_installer(
-        self, db_game: dict, downloads: Dict[str, List[dict]], runner: Optional[str]
+        self, db_game: dict, downloads: Dict[str, List[dict]], runner_name: Optional[str]
     ) -> Optional[dict]:
         """Return a full-version installer if GOG has a newer version than what is currently
         installed, or if no installed version has been recorded yet. Returns None otherwise."""
         from lutris.database.services import ServiceGameCollection
 
-        stored_version = get_stored_service_installer_version(db_game.get("configpath"))
         try:
-            normalized_runner = "linux" if runner == "linux" else "wine"
-            current_installers = self.get_installers(downloads, normalized_runner)
+            stored_version = get_stored_service_installer_version(db_game.get("configpath"))
+            current_installers = self.get_installers(downloads, runner_name or "wine")
             if not current_installers:
                 return None
             current_version = current_installers[0].get("version")
@@ -782,8 +787,7 @@ class GOGService(OnlineService):
             service_db_game = ServiceGameCollection.get_game(self.id, db_game["service_id"])
             if not service_db_game:
                 return None
-            version_installers = self.generate_installers(service_db_game)
-            version_installers = [i for i in version_installers if i["runner"] == normalized_runner]
+            version_installers = self.generate_installers(service_db_game, runner_name=runner_name)
             if not version_installers:
                 return None
             installer = version_installers[0]

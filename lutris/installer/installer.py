@@ -10,7 +10,7 @@ from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
 from lutris.exceptions import AuthenticationError, UnavailableGameError
-from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
+from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE, InstallationKind
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import import_runner
@@ -165,10 +165,15 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             errors.append("Scripts can't have both extends and requires")
         return errors
 
-    def prepare_game_files(self, extras, patch_version=None):
+    def prepare_game_files(self, extras, installation_kind: InstallationKind):
         """Gathers necessary files before iterating through them."""
         if not self.script_files:
             return
+
+        if installation_kind == InstallationKind.UPDATE and not self.reinstall_destination_directory:
+            patch_version = self.version
+        else:
+            patch_version = None
 
         installer_file_id = None
         installer_file_url = None
@@ -328,7 +333,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             logger.info("Reinstalling %s in place, updating config only", self.game_name)
             game = get_game_by_field(self.game_id, "id")
             if game and game.get("configpath"):
-                for hook in self.post_install_config_hooks:
+                for hook in self.post_install_hooks:
                     hook(self.interpreter.target_path, self.script["game"])
                 config_path = os.path.join(settings.GAME_CONFIG_DIR, "%s.yml" % game["configpath"])
                 config = read_yaml_from_file(config_path)
