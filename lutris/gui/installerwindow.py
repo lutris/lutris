@@ -64,7 +64,14 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     uses a create_X_page() function to create the page the first time it is visited.
     """
 
-    def __init__(self, installers, service=None, appid=None, installation_kind=InstallationKind.INSTALL, **kwargs):
+    def __init__(
+        self,
+        installers,
+        service=None,
+        appid=None,
+        installation_kind=InstallationKind.INSTALL,
+        **kwargs,
+    ):
         ModelessDialog.__init__(self, use_header_bar=True, **kwargs)
         ScriptInterpreter.InterpreterUIDelegate.__init__(self, service, appid)
         self.set_default_size(740, 460)
@@ -647,7 +654,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     # but different buttons at the bottom.
 
     def load_installer_files_page(self):
-        if self.installation_kind == InstallationKind.UPDATE:
+        if (
+            self.installation_kind == InstallationKind.UPDATE
+            and not self.interpreter.installer.reinstall_destination_directory
+        ):
             patch_version = self.interpreter.installer.version
         else:
             patch_version = None

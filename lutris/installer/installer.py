@@ -1,10 +1,12 @@
 """Lutris installer class"""
 
 import json
+import os
 from functools import cached_property
 from gettext import gettext as _
 from pathlib import Path
 
+from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
 from lutris.exceptions import AuthenticationError, UnavailableGameError
@@ -17,6 +19,7 @@ from lutris.util.game_finder import find_linux_game_executable, find_windows_gam
 from lutris.util.log import logger
 from lutris.util.moddb import ModDB, is_moddb_url
 from lutris.util.system import fix_path_case
+from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
 
 
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
@@ -49,8 +52,10 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.extra_file_paths = []
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
+        self.reinstall_destination_directory = installer.get("reinstall_destination_directory")
         self.game_id = self.get_game_id()
         self.post_install_hooks = []
+        self.service_installer_version = None
         self.discord_id = installer.get("discord_id")
 
     @cached_property
@@ -107,12 +112,15 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         # If the game is in the library and uninstalled, the first installation
         # updates it
         existing_game = get_game_by_field(self.game_slug, "slug")
-        if existing_game and (self.extends or not existing_game["installed"]):
+        if existing_game and (self.extends or self.reinstall_destination_directory or not existing_game["installed"]):
             return existing_game["id"]
 
     @property
     def creates_game_folder(self):
         """Determines if an install script should create a game folder for the game"""
+        if self.reinstall_destination_directory:
+            # Installation directory is already determined
+            return False
         if self.requires or self.extends:
             # Game is an extension of an existing game, folder exists
             return False
@@ -310,10 +318,28 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if self.service:
             config["service"] = self.service.id
             config["service_id"] = self.service_appid
+        if self.service_installer_version is not None:
+            config["service_installer_version"] = self.service_installer_version
         return config
 
     def save(self):
         """Write the game configuration in the DB and config file"""
+        if self.reinstall_destination_directory:
+            logger.info("Reinstalling %s in place, updating config only", self.game_name)
+            game = get_game_by_field(self.game_id, "id")
+            if game and game.get("configpath"):
+                for hook in self.post_install_config_hooks:
+                    hook(self.interpreter.target_path, self.script["game"])
+                config_path = os.path.join(settings.GAME_CONFIG_DIR, "%s.yml" % game["configpath"])
+                config = read_yaml_from_file(config_path)
+                config["script"] = self.script
+                config["version"] = self.version
+                config["slug"] = self.slug
+                if self.service_installer_version is not None:
+                    config["service_installer_version"] = self.service_installer_version
+                write_yaml_to_file(config, config_path)
+            return self.game_id
+
         if self.extends:
             logger.info(
                 "This is an extension to %s, not creating a new game entry",

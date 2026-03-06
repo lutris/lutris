@@ -93,7 +93,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         self._check_binary_dependencies()
         self._check_dependency()
-        if self.installer.creates_game_folder:
+        if self.installer.reinstall_destination_directory:
+            self.target_path = self.installer.reinstall_destination_directory
+        elif self.installer.creates_game_folder:
             self.target_path = self.get_default_target()
 
     def on_timeout_error(self, error):
@@ -115,6 +117,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def get_default_target(self):
         """Return default installation dir"""
+        if self.installer.reinstall_destination_directory:
+            return self.installer.reinstall_destination_directory
         config = LutrisConfig(runner_slug=self.installer.runner)
         games_dir = config.system_config.get("game_path", os.path.expanduser("~"))
         if self.service:
