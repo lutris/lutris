@@ -11,7 +11,7 @@ import urllib.request
 from collections import OrderedDict
 from datetime import datetime
 from gettext import gettext as _
-from typing import Any, Callable, Collection, Dict, Iterable, Iterator, List, Optional, Tuple, Union, cast
+from typing import Any, Callable, Collection, Dict, Iterable, Iterator, List, Optional, Tuple, TypeAlias, Union, cast
 
 import requests
 
@@ -27,14 +27,14 @@ from lutris.util.strings import time_ago
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
 USER_INFO_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.json")
 
-Game = Dict[str, Any]
-GamesPage = Dict[str, Any]
-Installer = Dict[str, Any]
-InstallerInfo = Dict[str, str]
-Runner = Dict[str, Any]
-RunnerVersion = Dict[str, Union[str, bool]]
-RuntimeVersions = Dict[str, Any]
-UserInfo = Dict[str, Any]
+Game: TypeAlias = Dict[str, Any]
+GamesPage: TypeAlias = Dict[str, Any]
+Installer: TypeAlias = Dict[str, Any]
+InstallerInfo: TypeAlias = Dict[str, str]
+Runner: TypeAlias = Dict[str, Any]
+RunnerVersion: TypeAlias = Dict[str, Union[str, bool]]
+RuntimeVersions: TypeAlias = Dict[str, Any]
+UserInfo: TypeAlias = Dict[str, Any]
 
 
 def get_time_from_api_date(date_string: str) -> time.struct_time:
