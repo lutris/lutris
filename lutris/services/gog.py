@@ -778,25 +778,21 @@ class GOGService(OnlineService):
 
         try:
             stored_version = get_stored_service_installer_version(db_game.get("configpath"))
-            current_installers = self.get_installers(downloads, runner_name or "wine")
-            if not current_installers:
-                return None
-            current_version = current_installers[0].get("version")
-            if not current_version or current_version == stored_version:
-                return None
-            service_db_game = ServiceGameCollection.get_game(self.id, db_game["service_id"])
-            if not service_db_game:
-                return None
-            version_installers = self.generate_installers(service_db_game, runner_name=runner_name)
-            if not version_installers:
-                return None
-            installer = version_installers[0]
-            installer["reinstall_destination_directory"] = db_game.get("directory", "")
-            installer["description"] = _("Full version %s") % current_version
-            return installer
+            if (
+                (directory := db_game.get("directory"))
+                and (current_installers := self.get_installers(downloads, runner_name or "wine"))
+                and (current_version := current_installers[0].get("version"))
+                and current_version != stored_version
+                and (service_db_game := ServiceGameCollection.get_game(self.id, db_game["service_id"]))
+                and (version_installers := self.generate_installers(service_db_game, runner_name=runner_name))
+            ):
+                installer = version_installers[0]
+                installer["reinstall_target_directory"] = directory
+                installer["description"] = _("Full version %s") % current_version
+                return installer
         except Exception as ex:
             logger.warning("Could not check GOG installer version for %s: %s", db_game.get("name"), ex)
-            return None
+        return None
 
     def get_game_platforms(self, db_game: dict) -> List[str]:
         details = db_game.get("details")

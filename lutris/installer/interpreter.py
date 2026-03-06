@@ -93,8 +93,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         self._check_binary_dependencies()
         self._check_dependency()
-        if self.installer.reinstall_destination_directory:
-            self.target_path = self.installer.reinstall_destination_directory
+        if self.installer.reinstall_target_directory:
+            self.target_path = self.installer.reinstall_target_directory
         elif self.installer.creates_game_folder:
             self.target_path = self.get_default_target()
 
@@ -207,7 +207,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             not self.service
             or not self.service.has_extras
             or not self.installer.service_appid
-            or self.installer.reinstall_destination_directory
+            or self.installer.reinstall_target_directory
         ):
             return []
         try:

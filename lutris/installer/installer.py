@@ -52,7 +52,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.extra_file_paths = []
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
-        self.reinstall_destination_directory = installer.get("reinstall_destination_directory")
+        self.reinstall_target_directory = installer.get("reinstall_target_directory")
         self.game_id = self.get_game_id()
         self.post_install_hooks = []
         self.service_installer_version = None
@@ -112,13 +112,13 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         # If the game is in the library and uninstalled, the first installation
         # updates it
         existing_game = get_game_by_field(self.game_slug, "slug")
-        if existing_game and (self.extends or self.reinstall_destination_directory or not existing_game["installed"]):
+        if existing_game and (self.extends or self.reinstall_target_directory or not existing_game["installed"]):
             return existing_game["id"]
 
     @property
     def creates_game_folder(self):
         """Determines if an install script should create a game folder for the game"""
-        if self.reinstall_destination_directory:
+        if self.reinstall_target_directory:
             # Installation directory is already determined
             return False
         if self.requires or self.extends:
@@ -170,7 +170,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if not self.script_files:
             return
 
-        if installation_kind == InstallationKind.UPDATE and not self.reinstall_destination_directory:
+        if installation_kind == InstallationKind.UPDATE and not self.reinstall_target_directory:
             patch_version = self.version
         else:
             patch_version = None
@@ -329,7 +329,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
     def save(self):
         """Write the game configuration in the DB and config file"""
-        if self.reinstall_destination_directory:
+        if self.reinstall_target_directory:
             logger.info("Reinstalling %s in place, updating config only", self.game_name)
             game = get_game_by_field(self.game_id, "id")
             if game and game.get("configpath"):
