@@ -4,7 +4,7 @@
 import os
 import shlex
 from gettext import gettext as _
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
@@ -747,7 +747,7 @@ class wine(Runner):
                 arch = WINE_DEFAULT_ARCH
         return arch
 
-    def get_runner_version(self, version: Optional[str] = None) -> Optional[Dict[str, str]]:
+    def get_runner_version(self, version: Optional[str] = None) -> Optional[Dict[str, Union[str, bool]]]:
         if version in WINE_PATHS:
             return {"version": version}
 
