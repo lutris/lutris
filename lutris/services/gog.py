@@ -787,6 +787,8 @@ class GOGService(OnlineService):
                 and (version_installers := self.generate_installers(service_db_game, runner_name=runner_name))
             ):
                 installer = version_installers[0]
+                installer["slug"] = db_game.get("installer_slug") or db_game["slug"]
+                installer["game_slug"] = db_game["slug"]
                 installer["reinstall_target_directory"] = directory
                 installer["description"] = _("Full version %s") % current_version
                 return installer
