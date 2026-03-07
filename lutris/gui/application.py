@@ -36,6 +36,7 @@ from gi.repository import Gio, GLib, Gtk
 from lutris import settings
 from lutris.api import get_runners, parse_installer_url
 from lutris.database import games as games_db
+from lutris.database import categories as categories_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import init_exception_backstops
 from lutris.game import GAME_START, GAME_STOPPED, Game, export_game, import_game
@@ -179,6 +180,14 @@ class LutrisApplication(Gtk.Application):
             GLib.OptionFlags.NONE,
             GLib.OptionArg.NONE,
             _("List all games in database"),
+            None,
+        )
+        self.add_main_option(
+            "category",
+            ord("c"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Filter games by category"),
             None,
         )
         self.add_main_option(
@@ -494,7 +503,16 @@ class LutrisApplication(Gtk.Application):
 
         # List game
         if options.contains("list-games"):
-            game_list = games_db.get_games(filters=({"installed": 1} if options.contains("installed") else None))
+            filters = {"installed": 1} if options.contains("installed") else {}
+            if options.contains("category"):
+                category_name = options.lookup_value("category").get_string()
+                game_ids = categories_db.get_game_ids_for_categories(included_category_names=[category_name])
+                game_list = games_db.get_games_by_ids(game_ids)
+                if filters.get("installed"):
+                    game_list = [g for g in game_list if g["installed"]]
+            else:
+                game_list = games_db.get_games(filters=filters or None)
+
             if options.contains("json"):
                 self.print_game_json(command_line, game_list)
             else:
@@ -886,6 +904,8 @@ class LutrisApplication(Gtk.Application):
 
     def print_game_json(self, command_line, game_list):
         games = []
+        games_categories_ids = categories_db.get_all_games_categories()
+        all_categories = {c["id"]: c["name"] for c in categories_db.get_categories()}
 
         for game in game_list:
             playtime = timedelta(hours=game["playtime"]) if game["playtime"] else None
@@ -893,6 +913,9 @@ class LutrisApplication(Gtk.Application):
 
             if cover_path and not os.path.exists(cover_path):
                 cover_path = None
+
+            category_ids = games_categories_ids.get(game["id"], [])
+            categories = [all_categories[c_id] for c_id in category_ids if c_id in all_categories]
 
             game_obj = {
                 "id": game["id"],
@@ -906,6 +929,7 @@ class LutrisApplication(Gtk.Application):
                 "playtimeSeconds": playtime.total_seconds() if playtime else None,
                 "lastplayed": (str(datetime.fromtimestamp(game["lastplayed"])) if game["lastplayed"] else None),
                 "coverPath": cover_path,
+                "categories": categories,
             }
 
             games.append(game_obj)
