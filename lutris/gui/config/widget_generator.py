@@ -4,7 +4,7 @@ import os
 from abc import ABC, abstractmethod
 from gettext import gettext as _
 from inspect import Parameter, signature
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional
 
 from gi.repository import Gdk, Gtk  # type: ignore
 
@@ -663,22 +663,47 @@ class WidgetGenerator(ABC):
         return self.build_option_widget(option, directory_chooser)
 
     # EditableGrid
-    def _generate_mapping(self, option, value, default):
+    def _generate_mapping(self, option: Dict[str, Any], value, default):
         """Adds an editable grid widget"""
 
-        def on_changed(widget):
-            values = dict(widget.get_data())
+        mapping_columns = ["Key", "Value"]
+
+        def on_changed(widget) -> None:
+            values: dict[Any, Any] = {}
+            for data_val in widget.get_data():
+                # If the mapping contains 3 or more columns
+                # then store the values as a mapping of:
+                # key -> { "Value":<value>, <additional_col_name>:<additional_col_val>...]
+                if len(list(data_val)) > 2:
+                    values[data_val[0]] = dict(zip(mapping_columns[1:], data_val[1:]))
+                else:
+                    values[data_val[0]] = data_val[1]
             self.changed.fire(option_key, values)
 
         option_key = option["option"]
         value = value or default or {}
         try:
-            value = list(value.items())
+            value_dict_list: list[dict[Any, Any]] = []
+            for key, val in value.items():
+                value_dict = {}
+                value_dict[mapping_columns[0]] = key
+                if not isinstance(val, dict):
+                    value_dict[mapping_columns[1]] = val
+                else:
+                    value_dict.update(val)
+                value_dict_list.append(value_dict)
+            value = value_dict_list
         except AttributeError:
             logger.error("Invalid value of type %s passed to grid widget: %s", type(value), value)
             value = {}
 
-        grid = EditableGrid(value, columns=["Key", "Value"])
+        # Add optional columns to the right of the Key and the Value columns if specified
+        # in the widget options.
+        additional_columns = option.get("additional_columns", [])
+        if isinstance(additional_columns, Iterable):
+            mapping_columns.extend(additional_columns)
+
+        grid = EditableGrid(value, columns=mapping_columns)
         grid.connect("changed", on_changed)
         return self.build_option_widget(option, grid)
 
