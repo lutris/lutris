@@ -12,6 +12,7 @@ from urllib.parse import parse_qsl, unquote, urlencode, urlparse
 from lxml import etree
 
 from lutris import settings
+from lutris.config import get_stored_service_installer_version
 from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
@@ -394,30 +395,11 @@ class GOGService(OnlineService):
         """Normalize a runner name to either 'linux' or 'wine'."""
         return "linux" if runner == "linux" else "wine"
 
-    def get_update_versions(self, gog_id: str, runner_name: Optional[str]) -> Dict[str, list]:
-        """Return updates available for a game, keyed by patch version"""
-
-        filter_os = self.runner_to_os_dict.get(runner_name) if runner_name else None
-
-        games_detail = self.get_game_details(gog_id)
-        patches = games_detail["downloads"]["patches"]
-        if not patches:
-            logger.info("No patches for %s", games_detail)
-            return {}
-        patch_versions = defaultdict(list)
-        for patch in patches:
-            if filter_os:
-                patch_os = patch.get("os")
-                if patch_os and filter_os != patch_os.casefold():
-                    continue
-            patch_versions[patch["name"]].append(patch)
-        return patch_versions
-
-    def determine_language_installer(self, gog_installers: List[dict], default_language: str = "en") -> str:
-        """Return locale language string if available in gog_installers"""
+    def determine_language_installer(self, selected_installers: List[dict], default_language: str = "en") -> str:
+        """Return locale language string if available in selected_installers"""
         language = i18n.get_lang()
-        gog_installers = [installer for installer in gog_installers if installer["language"] == language]
-        if not gog_installers:
+        selected_installers = [installer for installer in selected_installers if installer["language"] == language]
+        if not selected_installers:
             language = default_language
         return language
 
@@ -479,12 +461,13 @@ class GOGService(OnlineService):
     def _get_installer_links(self, installer: "LutrisInstaller", downloads: dict) -> List[dict]:
         """Return links to downloadable files from a list of downloads"""
         try:
-            gog_installers = self.get_installers(downloads, installer.runner)
-            if not gog_installers:
+            selected_installers = self.get_installers(downloads, installer.runner)
+            if not selected_installers:
                 return []
-            if len(gog_installers) > 1:
+            if len(selected_installers) > 1:
                 logger.warning("More than 1 GOG installer found, picking first.")
-            _installer = gog_installers[0]
+            _installer = selected_installers[0]
+            installer.service_installer_version = _installer.get("version")
             return self.query_download_links(_installer)
         except HTTPError as err:
             raise UnavailableGameError(_("Couldn't load the download links for this game")) from err
@@ -589,10 +572,16 @@ class GOGService(OnlineService):
         else:
             return self._generate_installer(slug, "wine", db_game)
 
-    def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
+    def generate_installers(self, db_game: Dict[str, Any], runner_name: Optional[str] = None) -> List[dict]:
         details = json.loads(db_game["details"])
         slug = details["slug"]
         platforms = [platform.casefold() for platform, is_supported in details["worksOn"].items() if is_supported]
+
+        if runner_name:
+            normalized = self._normalize_runner_name(runner_name)
+            if self.runner_to_os_dict[normalized] in platforms:
+                return [self._generate_installer(slug, normalized, db_game)]
+            return []
 
         installers = []
 
@@ -732,7 +721,11 @@ class GOGService(OnlineService):
     def get_update_installers(self, db_game: dict) -> List[dict]:
         appid = db_game["service_id"]
         runner = db_game.get("runner")
-        patch_versions = self.get_update_versions(appid, runner)
+
+        games_detail = self.get_game_details(appid)
+        downloads = games_detail["downloads"]
+
+        patch_versions = self._get_update_versions(downloads, runner)
         patch_installers = []
         for version in patch_versions:
             patch = patch_versions[version]
@@ -752,7 +745,56 @@ class GOGService(OnlineService):
                 },
             }
             patch_installers.append(installer)
+
+        new_version_installer = self._get_new_version_installer(db_game, downloads, runner)
+        if new_version_installer:
+            patch_installers.append(new_version_installer)
+
         return patch_installers
+
+    def _get_update_versions(
+        self, downloads: Dict[str, List[dict]], runner_name: Optional[str]
+    ) -> Dict[str, List[dict]]:
+        """Return updates available for a game, keyed by patch version"""
+        filter_os = self.runner_to_os_dict.get(runner_name) if runner_name else None
+        patches = downloads.get("patches")
+        if not patches:
+            return {}
+        patch_versions: Dict[str, List[dict]] = defaultdict(list)
+        for patch in patches:
+            if filter_os:
+                patch_os = patch.get("os")
+                if patch_os and filter_os != patch_os.casefold():
+                    continue
+            patch_versions[patch["name"]].append(patch)
+        return patch_versions
+
+    def _get_new_version_installer(
+        self, db_game: dict, downloads: Dict[str, List[dict]], runner_name: Optional[str]
+    ) -> Optional[dict]:
+        """Return a full-version installer if GOG has a newer version than what is currently
+        installed, or if no installed version has been recorded yet. Returns None otherwise."""
+        from lutris.database.services import ServiceGameCollection
+
+        try:
+            stored_version = get_stored_service_installer_version(db_game.get("configpath"))
+            if (
+                (directory := db_game.get("directory"))
+                and (current_installers := self.get_installers(downloads, runner_name or "wine"))
+                and (current_version := current_installers[0].get("version"))
+                and current_version != stored_version
+                and (service_db_game := ServiceGameCollection.get_game(self.id, db_game["service_id"]))
+                and (version_installers := self.generate_installers(service_db_game, runner_name=runner_name))
+            ):
+                installer = version_installers[0]
+                installer["slug"] = db_game.get("installer_slug") or db_game["slug"]
+                installer["game_slug"] = db_game["slug"]
+                installer["reinstall_target_directory"] = directory
+                installer["description"] = _("Full version %s") % current_version
+                return installer
+        except Exception as ex:
+            logger.warning("Could not check GOG installer version for %s: %s", db_game.get("name"), ex)
+        return None
 
     def get_game_platforms(self, db_game: dict) -> List[str]:
         details = db_game.get("details")

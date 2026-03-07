@@ -1,14 +1,16 @@
 """Lutris installer class"""
 
 import json
+import os
 from functools import cached_property
 from gettext import gettext as _
 from pathlib import Path
 
+from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
 from lutris.exceptions import AuthenticationError, UnavailableGameError
-from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
+from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE, InstallationKind
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import import_runner
@@ -17,6 +19,7 @@ from lutris.util.game_finder import find_linux_game_executable, find_windows_gam
 from lutris.util.log import logger
 from lutris.util.moddb import ModDB, is_moddb_url
 from lutris.util.system import fix_path_case
+from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
 
 
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
@@ -49,8 +52,10 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.extra_file_paths = []
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
+        self.reinstall_target_directory = installer.get("reinstall_target_directory")
         self.game_id = self.get_game_id()
         self.post_install_hooks = []
+        self.service_installer_version = None
         self.discord_id = installer.get("discord_id")
 
     @cached_property
@@ -107,12 +112,15 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         # If the game is in the library and uninstalled, the first installation
         # updates it
         existing_game = get_game_by_field(self.game_slug, "slug")
-        if existing_game and (self.extends or not existing_game["installed"]):
+        if existing_game and (self.extends or self.reinstall_target_directory or not existing_game["installed"]):
             return existing_game["id"]
 
     @property
     def creates_game_folder(self):
         """Determines if an install script should create a game folder for the game"""
+        if self.reinstall_target_directory:
+            # Installation directory is already determined
+            return False
         if self.requires or self.extends:
             # Game is an extension of an existing game, folder exists
             return False
@@ -157,10 +165,15 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             errors.append("Scripts can't have both extends and requires")
         return errors
 
-    def prepare_game_files(self, extras, patch_version=None):
+    def prepare_game_files(self, extras, installation_kind: InstallationKind):
         """Gathers necessary files before iterating through them."""
         if not self.script_files:
             return
+
+        if installation_kind == InstallationKind.UPDATE and not self.reinstall_target_directory:
+            patch_version = self.version
+        else:
+            patch_version = None
 
         installer_file_id = None
         installer_file_url = None
@@ -189,6 +202,9 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                         f.allow_pga_cache = False
                 else:
                     content_files, extra_files = self.service.get_installer_files(self, installer_file_id, extras)
+                    if self.reinstall_target_directory:
+                        for f in content_files:
+                            f.allow_pga_cache = False
                     extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
                     installer_files = content_files + extra_files
             except (AuthenticationError, UnavailableGameError) as ex:
@@ -310,10 +326,28 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if self.service:
             config["service"] = self.service.id
             config["service_id"] = self.service_appid
+        if self.service_installer_version is not None:
+            config["service_installer_version"] = self.service_installer_version
         return config
 
     def save(self):
         """Write the game configuration in the DB and config file"""
+        if self.reinstall_target_directory:
+            logger.info("Reinstalling %s in place, updating config only", self.game_name)
+            db_game = get_game_by_field(self.game_id, "id")
+            if db_game and db_game.get("configpath"):
+                for hook in self.post_install_hooks:
+                    hook(self.interpreter.target_path, self.script["game"])
+                config_path = os.path.join(settings.GAME_CONFIG_DIR, "%s.yml" % db_game["configpath"])
+                config = read_yaml_from_file(config_path)
+                config["script"] = self.script
+                config["version"] = self.version
+                config["slug"] = self.slug
+                if self.service_installer_version is not None:
+                    config["service_installer_version"] = self.service_installer_version
+                write_yaml_to_file(config, config_path)
+            return self.game_id
+
         if self.extends:
             logger.info(
                 "This is an extension to %s, not creating a new game entry",
