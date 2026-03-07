@@ -28,6 +28,9 @@ from lutris.util.wine.wine import (
     is_prefix_directory,
 )
 
+# These functions are called by name by installer scripts using the 'task' action;
+# they can't safely be removed even if Lutris does not call them.
+
 
 def set_regedit(
     path,
