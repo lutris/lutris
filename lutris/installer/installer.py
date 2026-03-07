@@ -331,11 +331,11 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         """Write the game configuration in the DB and config file"""
         if self.reinstall_target_directory:
             logger.info("Reinstalling %s in place, updating config only", self.game_name)
-            game = get_game_by_field(self.game_id, "id")
-            if game and game.get("configpath"):
+            db_game = get_game_by_field(self.game_id, "id")
+            if db_game and db_game.get("configpath"):
                 for hook in self.post_install_hooks:
                     hook(self.interpreter.target_path, self.script["game"])
-                config_path = os.path.join(settings.GAME_CONFIG_DIR, "%s.yml" % game["configpath"])
+                config_path = os.path.join(settings.GAME_CONFIG_DIR, "%s.yml" % db_game["configpath"])
                 config = read_yaml_from_file(config_path)
                 config["script"] = self.script
                 config["version"] = self.version
