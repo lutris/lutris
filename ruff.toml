@@ -28,7 +28,6 @@ ignore = [
     "A002", # Argument `type` is shadowing a Python builtin
     "ARG004", # Unused static method argument: `x`
     "B020", # Loop control variable `upstream_runners` overrides iterable it iterates
-    "B018", # Found useless expression. Either assign it to a variable or remove it
 ]
 fixable = ["ALL"]
 unfixable = []
