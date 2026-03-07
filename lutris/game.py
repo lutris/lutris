@@ -771,6 +771,23 @@ class Game:
         if self.runner.system_config.get("prelaunch_command", ""):
             self.start_prelaunch_command(self.runner.system_config["prelaunch_wait"])
 
+        # GOG cloud save sync (download from cloud before launch)
+        if getattr(self, "service", None) == "gog" and getattr(self, "appid", None):
+            try:
+                from lutris.gui.dialogs.cloud_sync_progress import CloudSyncProgressDialog  # noqa: PLC0415
+                from lutris.services.gog_cloud_hooks import sync_before_launch  # noqa: PLC0415
+
+                dialog = CloudSyncProgressDialog(
+                    game=self,
+                    sync_func=sync_before_launch,
+                    direction="pre-launch",
+                )
+                dialog.connect("destroy", lambda _d: self.start_game())
+                dialog.run_sync()
+                return True
+            except Exception as ex:
+                logger.warning("GOG cloud sync before launch failed: %s", ex)
+
         self.start_game()
         return True
 
@@ -1012,6 +1029,21 @@ class Game:
                     cwd=self.find_working_dir(),
                 )
                 postexit_thread.start()
+
+        # GOG cloud save sync (upload to cloud after quit)
+        if getattr(self, "service", None) == "gog" and getattr(self, "appid", None):
+            try:
+                from lutris.gui.dialogs.cloud_sync_progress import CloudSyncProgressDialog  # noqa: PLC0415
+                from lutris.services.gog_cloud_hooks import sync_after_quit  # noqa: PLC0415
+
+                dialog = CloudSyncProgressDialog(
+                    game=self,
+                    sync_func=sync_after_quit,
+                    direction="post-exit",
+                )
+                dialog.run_sync()
+            except Exception as ex:
+                logger.warning("GOG cloud sync after quit failed: %s", ex)
 
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
