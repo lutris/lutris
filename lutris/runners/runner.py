@@ -187,6 +187,20 @@ class Runner:  # pylint: disable=too-many-public-methods
             raise MisconfigurationError("runner_executable not set for {}".format(self.name))
 
         exe = os.path.join(settings.RUNNER_DIR, self.runner_executable)
+        if os.path.isfile(exe):
+            return exe
+        # There is an inconsistency between self.directory and self.is_installed
+        # The self.is_installed() method checks the self.directory property
+        # which is set as <runner-name>/<name-of-runner.json-or-py>/
+        # i.e that means the directory where the runner is saved to is **dependent** on the name
+        # of the file where the runner configuration resides.
+        # However the self.get_executable() method doesn't take into account the
+        # <name-of-runner.json-or-py> directory.
+        # Therefore if the "runner_executable" field property isn't in the form of
+        # <name-of-runner.json-or-py>/<exe-name> then the above check will fail
+        #
+        # To correct this issue, the path of self.directory / self.runner_executable
+        exe = os.path.join(self.directory, self.runner_executable)
         if not os.path.isfile(exe):
             raise MissingExecutableError(_("The executable '%s' could not be found.") % exe)
         return exe
@@ -590,7 +604,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             clear_wine_version_cache()
 
         if self.runner_executable:
-            runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable)
+            runner_executable = self.get_executable()
             if os.path.isfile(runner_executable):
                 system.make_executable(runner_executable)
 

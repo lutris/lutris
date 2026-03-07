@@ -417,6 +417,8 @@ class WidgetGenerator(ABC):
             for choice in choices:
                 if isinstance(choice, str):
                     choice = (choice, choice)
+                elif isinstance(choice, dict):
+                    choice = next(iter(choice.items()))
                 if choice[1] == value:
                     has_value = True
                 if choice[1] == default:

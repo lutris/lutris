@@ -1,0 +1,15 @@
+description: Nintendo Switch 1 emulator
+download_url: https://github.com/eden-emulator/Releases/releases/download/v0.0.4-rc3/Eden-Linux-v0.0.4-rc3-amd64-gcc-standard.AppImage
+entry_point_option: main_file
+game_options:
+- default: ''
+  default_path: game_path
+  help: The Application image to run in emulator.
+  label: ROM/ISO/exe file
+  option: main_file
+  type: file
+human_name: Eden
+platforms:
+  Nintendo Switch: Nintendo Switch
+runnable_alone: true
+runner_executable: Eden-Linux-v0.0.4-rc3-amd64-gcc-standard.AppImage
