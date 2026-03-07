@@ -50,7 +50,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
-        self.post_install_config_hooks = []
+        self.post_install_hooks = []
         self.discord_id = installer.get("discord_id")
 
     @cached_property
@@ -319,8 +319,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             )
             return self.game_id
 
-        for hook in self.post_install_config_hooks:
-            hook(self.interpreter.target_path, self.script["game"])
+        for hook in self.post_install_hooks:
+            hook(self)
 
         configpath = write_game_config(self.slug, self.get_game_config())
         self.game_id = add_or_update(

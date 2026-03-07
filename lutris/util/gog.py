@@ -63,7 +63,7 @@ def get_game_config(task, gog_game_path):
 
 
 def convert_gog_config_to_lutris(gog_config, gog_game_path):
-    play_tasks = gog_config["playTasks"]
+    play_tasks = gog_config.get("playTasks", [])
     lutris_config = {"launch_configs": []}
     for task in play_tasks:
         config = get_game_config(task, gog_game_path)
@@ -83,10 +83,13 @@ def get_gog_config_from_path(target_path):
         return get_gog_config(gog_game_path)
 
 
-def apply_gog_config(target_path, game_config):
-    """Post-install hook: read GOG config from target_path and merge into game_config in place."""
-    gog_config = get_gog_config_from_path(target_path)
-    if gog_config:
-        gog_game_path = get_gog_game_path(target_path)
+def apply_gog_config(installer):
+    """Post-install hook: read GOG config from the install target and merge into the game script."""
+    target_path = installer.interpreter.target_path
+    if (
+        (gog_config := get_gog_config_from_path(target_path))
+        and (gog_game_path := get_gog_game_path(target_path))
+        and "game" in installer.script
+    ):
         lutris_config = convert_gog_config_to_lutris(gog_config, gog_game_path)
-        game_config.update(lutris_config)
+        installer.script["game"].update(lutris_config)

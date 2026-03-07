@@ -631,7 +631,7 @@ class CommandsMixin:
             args = "/SP- /NOCANCEL"
             if silent:
                 args += " /SUPPRESSMSGBOXES /VERYSILENT /NOGUI"
-            self.installer.post_install_config_hooks.append(apply_gog_config)
+            self.installer.post_install_hooks.append(apply_gog_config)
             return self.task({"name": "wineexec", "prefix": "$GAMEDIR", "executable": file_id, "args": args})
 
     def _get_dosbox_arguments(self, zoom_bat_path):
