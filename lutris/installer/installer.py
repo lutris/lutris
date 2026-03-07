@@ -202,6 +202,9 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                         f.allow_pga_cache = False
                 else:
                     content_files, extra_files = self.service.get_installer_files(self, installer_file_id, extras)
+                    if self.reinstall_target_directory:
+                        for f in content_files:
+                            f.allow_pga_cache = False
                     extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
                     installer_files = content_files + extra_files
             except (AuthenticationError, UnavailableGameError) as ex:
