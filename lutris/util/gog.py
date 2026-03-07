@@ -81,3 +81,12 @@ def get_gog_config_from_path(target_path):
     gog_game_path = get_gog_game_path(target_path)
     if gog_game_path:
         return get_gog_config(gog_game_path)
+
+
+def apply_gog_config(target_path, game_config):
+    """Post-install hook: read GOG config from target_path and merge into game_config in place."""
+    gog_config = get_gog_config_from_path(target_path)
+    if gog_config:
+        gog_game_path = get_gog_game_path(target_path)
+        lutris_config = convert_gog_config_to_lutris(gog_config, gog_game_path)
+        game_config.update(lutris_config)

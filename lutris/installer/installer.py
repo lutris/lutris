@@ -14,7 +14,6 @@ from lutris.installer.installer_file import InstallerFile
 from lutris.runners import import_runner
 from lutris.services import SERVICES
 from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
-from lutris.util.gog import convert_gog_config_to_lutris, get_gog_config_from_path, get_gog_game_path
 from lutris.util.log import logger
 from lutris.util.moddb import ModDB, is_moddb_url
 from lutris.util.system import fix_path_case
@@ -52,7 +51,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
-        self.is_gog = False
+        self.post_install_config_hooks = []
         self.discord_id = installer.get("discord_id")
 
     @cached_property
@@ -321,12 +320,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             )
             return self.game_id
 
-        if self.is_gog:
-            gog_config = get_gog_config_from_path(self.interpreter.target_path)
-            if gog_config:
-                gog_game_path = get_gog_game_path(self.interpreter.target_path)
-                lutris_config = convert_gog_config_to_lutris(gog_config, gog_game_path)
-                self.script["game"].update(lutris_config)
+        for hook in self.post_install_config_hooks:
+            hook(self.interpreter.target_path, self.script["game"])
 
         configpath = write_game_config(self.slug, self.get_game_config())
         self.game_id = add_or_update(

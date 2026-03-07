@@ -19,6 +19,7 @@ from lutris.runners import InvalidRunnerError, import_runner, import_task
 from lutris.runners.wine import wine
 from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
+from lutris.util.gog import apply_gog_config
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_default_wine_version, get_wine_path_for_version
@@ -630,7 +631,7 @@ class CommandsMixin:
             args = "/SP- /NOCANCEL"
             if silent:
                 args += " /SUPPRESSMSGBOXES /VERYSILENT /NOGUI"
-            self.installer.is_gog = True
+            self.installer.post_install_config_hooks.append(apply_gog_config)
             return self.task({"name": "wineexec", "prefix": "$GAMEDIR", "executable": file_id, "args": args})
 
     def _get_dosbox_arguments(self, zoom_bat_path):
