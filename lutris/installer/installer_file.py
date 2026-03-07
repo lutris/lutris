@@ -23,6 +23,7 @@ class InstallerFile:
         self._file_meta = file_meta
         self._dest_file_override = None  # Used to override the destination
         self._dest_file_found = None  # Lazy storage for the resolved destination file
+        self.allow_pga_cache = True
         if isinstance(self._file_meta, dict):
             self._downloader = self._file_meta.get("downloader")
         else:
@@ -38,6 +39,7 @@ class InstallerFile:
         file._dest_file_override = self._dest_file_override
         file._dest_file_found = self._dest_file_found
         file._downloader = self._downloader
+        file.allow_pga_cache = self.allow_pga_cache
         return file
 
     @property
@@ -211,7 +213,7 @@ class InstallerFile:
         Returns:
             bool
         """
-        if self.url.startswith("N/A"):
+        if not self.allow_pga_cache or self.url.startswith("N/A"):
             return False
         return has_valid_custom_cache_path()
 

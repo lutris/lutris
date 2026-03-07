@@ -21,6 +21,7 @@ class InstallerFileCollection:
         self.num_files = len(files_list)
         self.files_list = files_list
         self._dest_file_override = None  # Used to override the destination
+        self.allow_pga_cache = True
         self.full_size = 0
         self._get_files_size()
         self._get_service()
@@ -50,6 +51,7 @@ class InstallerFileCollection:
             new_file_list.append(file.copy())
         collection = InstallerFileCollection(self.game_slug, self.id, new_file_list)
         collection._dest_file_override = self._dest_file_override
+        collection.allow_pga_cache = self.allow_pga_cache
         return collection
 
     def override_dest_file(self, new_dest_file):
@@ -118,7 +120,7 @@ class InstallerFileCollection:
         Returns:
             bool
         """
-        return has_valid_custom_cache_path()
+        return self.allow_pga_cache and has_valid_custom_cache_path()
 
     @property
     def is_user_pga_caching_allowed(self):

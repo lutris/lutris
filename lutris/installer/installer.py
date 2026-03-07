@@ -185,6 +185,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 if patch_version:
                     # If a patch version is given download the patch files instead of the installer
                     installer_files = self.service.get_patch_files(self, installer_file_id)
+                    for f in installer_files:
+                        f.allow_pga_cache = False
                 else:
                     content_files, extra_files = self.service.get_installer_files(self, installer_file_id, extras)
                     extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
