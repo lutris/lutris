@@ -372,20 +372,27 @@ class GOGService(OnlineService):
                     all_extras[product.get("title", "").strip()] = extras
         return all_extras
 
-    def get_installers(self, downloads: Dict[str, List[dict]], runner: str, language: str = "en") -> List[dict]:
+    def get_installers(
+        self, downloads: Dict[str, List[dict]], runner_name: Optional[str], language: str = "en"
+    ) -> List[dict]:
         """Return available installers for a GOG game"""
-        # Filter out Mac installers
-        gog_installers = [installer for installer in downloads.get("installers", []) if installer["os"] != "mac"]
+        if runner_name:
+            allowed_os = {self.runner_to_os_dict[self._normalize_runner_name(runner_name)]}
+        else:
+            allowed_os = {"linux", "windows"}
+        all_installers = downloads.get("installers", [])
         # Prefer native Linux installers if available, otherwise fall back to Windows
         # (scripts may need Windows installers for data extraction, engine reimplementations, etc.)
-        linux_installers = [installer for installer in gog_installers if installer["os"] == "linux"]
-        if linux_installers:
-            gog_installers = linux_installers
-        return [
-            installer
-            for installer in gog_installers
-            if installer["language"] == self.determine_language_installer(gog_installers, language)
-        ]
+        selected_installers = sorted(
+            [installer for installer in all_installers if installer["os"] in allowed_os],
+            key=lambda i: i["os"] != "linux",
+        )
+        selected_language = self.determine_language_installer(selected_installers, language)
+        return [installer for installer in selected_installers if installer["language"] == selected_language]
+
+    def _normalize_runner_name(self, runner: str) -> str:
+        """Normalize a runner name to either 'linux' or 'wine'."""
+        return "linux" if runner == "linux" else "wine"
 
     def get_update_versions(self, gog_id: str, runner_name: Optional[str]) -> Dict[str, list]:
         """Return updates available for a game, keyed by patch version"""
