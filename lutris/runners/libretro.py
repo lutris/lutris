@@ -12,6 +12,7 @@ from lutris.config import LutrisConfig
 from lutris.exceptions import GameConfigError, MissingBiosError, MissingGameExecutableError, UnspecifiedVersionError
 from lutris.runners.runner import Runner
 from lutris.util import cache_single, system
+from lutris.util.jobs import AsyncCall
 from lutris.util.libretro import RetroConfig
 from lutris.util.log import logger
 from lutris.util.retroarch.firmware import get_firmware, scan_firmware_directory
@@ -23,25 +24,33 @@ def get_default_config_path(path):
     return os.path.join(RETROARCH_DIR, path)
 
 
+def _download_libretro_info():
+    """Download the libretro core info archive from the buildbot. Run on a worker thread."""
+    info_path = os.path.join(RETROARCH_DIR, "info")
+    req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True, timeout=5)
+    if req.status_code == requests.codes.ok:  # pylint: disable=no-member
+        with open(os.path.join(RETROARCH_DIR, "info.zip"), "wb") as info_zip:
+            info_zip.write(req.content)
+        with ZipFile(os.path.join(RETROARCH_DIR, "info.zip"), "r") as info_zip:
+            info_zip.extractall(info_path)
+        return True
+    logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code, req.reason)
+    return False
+
+
 @cache_single
 def get_libretro_cores():
-    cores = []
-    if not os.path.exists(RETROARCH_DIR):
-        return []
+    """Return the list of available libretro cores by reading installed info files.
 
-    # Get core identifiers from info dir
+    If the info archive hasn't been downloaded yet, performs a synchronous download. Callers on
+    the UI thread should prefer triggering the async download via get_core_choices() first, so
+    this fallback is rarely reached in practice.
+    """
     info_path = os.path.join(RETROARCH_DIR, "info")
     if not os.path.exists(info_path):
-        req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True, timeout=5)
-        if req.status_code == requests.codes.ok:  # pylint: disable=no-member
-            with open(os.path.join(RETROARCH_DIR, "info.zip"), "wb") as info_zip:
-                info_zip.write(req.content)
-            with ZipFile(os.path.join(RETROARCH_DIR, "info.zip"), "r") as info_zip:
-                info_zip.extractall(info_path)
-        else:
-            logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code, req.reason)
+        if not _download_libretro_info():
             return []
-    # Parse info files to fetch display name and platform/system
+    cores = []
     for info_file in os.listdir(info_path):
         if "_libretro.info" not in info_file:
             continue
@@ -56,8 +65,36 @@ def get_libretro_cores():
 
 
 def get_core_choices():
-    """Return (label, identifier) pairs for all installed libretro cores, for use as a choices callable."""
+    """Return (label, identifier) pairs for all installed libretro cores, for use as a choices callable.
+
+    If RetroArch is installed but the info archive hasn't been downloaded yet, kicks off a
+    background download and returns [] immediately. Any callbacks registered via
+    register_reload_callback() are invoked on the UI thread when the download completes, so
+    dropdowns can repopulate without the user having to close and reopen the dialog.
+    """
+
+    def _on_libretro_info_downloaded(result, error):
+        """UI-thread callback after the info archive download completes."""
+        if error:
+            logger.exception("Failed to download libretro info archive: %s", error)
+        elif result:
+            get_libretro_cores.cache_clear()
+            logger.info("Libretro info downloaded; core list updated")
+            for callback in get_core_choices._reload_callbacks:  # type: ignore[attr-defined]
+                callback()
+        get_core_choices._reload_callbacks.clear()  # type: ignore[attr-defined]
+
+    if not os.path.exists(RETROARCH_DIR):
+        return []
+    info_path = os.path.join(RETROARCH_DIR, "info")
+    if not os.path.exists(info_path):
+        AsyncCall(_download_libretro_info, _on_libretro_info_downloaded)
+        return []
     return [(core[0], core[1]) for core in get_libretro_cores()]
+
+
+get_core_choices._reload_callbacks = []  # type: ignore[attr-defined]
+get_core_choices.register_reload_callback = lambda callback: get_core_choices._reload_callbacks.append(callback)  # type: ignore[attr-defined]
 
 
 class libretro(Runner):

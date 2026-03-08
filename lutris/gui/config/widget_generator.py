@@ -448,6 +448,7 @@ class WidgetGenerator(ABC):
             self.changed.fire(option_key, option_value)
 
         option_key = option["option"]
+        choices_src = option.get("choices")  # raw value before evaluation, for reload hook
         choices = self._evaluate_option("choices", None, option)
 
         liststore = Gtk.ListStore(str, str)
@@ -489,6 +490,24 @@ class WidgetGenerator(ABC):
 
         if not has_entry and value not in valid_choices:
             self.warning_messages.append(ConfigWarningBox(get_invalidity_error))
+
+        # Async choices protocol: if the choices callable has a register_reload_callback attribute,
+        # it supports background loading. The callable returns [] immediately when data isn't ready
+        # yet and kicks off a background fetch; callers register a callback to be invoked on the
+        # UI thread when loading completes, at which point the combobox is repopulated in place.
+        if callable(choices_src) and hasattr(choices_src, "register_reload_callback"):
+
+            def reload_choices():
+                nonlocal choices
+                choices = self.evaluate_option_value(choices_src, option=option)
+                liststore.clear()
+                populate_combobox_choices()
+                # The initial set_active_id() will have failed if the value wasn't in the empty
+                # list; try again now that the choices are populated.
+                if value and not combobox.get_active_id():
+                    combobox.set_active_id(value)
+
+            choices_src.register_reload_callback(reload_choices)
 
         return self.build_option_widget(option, combobox)
 
