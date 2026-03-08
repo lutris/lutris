@@ -770,7 +770,7 @@ class Game:
             self.start_prelaunch_command(self.runner.system_config["prelaunch_wait"])
 
         # GOG cloud save sync (download from cloud before launch)
-        if getattr(self, "service", None) == "gog" and getattr(self, "appid", None):
+        if self.service == "gog" and self.appid:
             try:
                 from lutris.gui.dialogs.cloud_sync_progress import CloudSyncProgressDialog  # noqa: PLC0415
                 from lutris.services.gog_cloud_hooks import sync_before_launch  # noqa: PLC0415
@@ -1029,7 +1029,7 @@ class Game:
                 postexit_thread.start()
 
         # GOG cloud save sync (upload to cloud after quit)
-        if getattr(self, "service", None) == "gog" and getattr(self, "appid", None):
+        if self.service == "gog" and self.appid:
             try:
                 from lutris.gui.dialogs.cloud_sync_progress import CloudSyncProgressDialog  # noqa: PLC0415
                 from lutris.services.gog_cloud_hooks import sync_after_quit  # noqa: PLC0415
