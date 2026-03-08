@@ -1,9 +1,11 @@
 """Wine commands for installers"""
 
 # pylint: disable=too-many-arguments
+
 import os
 import shlex
 import time
+from gettext import gettext as _
 from typing import Dict, Optional, Tuple
 
 from lutris import runtime, settings
@@ -141,7 +143,7 @@ def create_prefix(
     # exist. For example, if the prefix is /mnt/a/b/c/d but the parent directory
     # /mnt/a/b/c does not exist, it is not allowed.
     if not os.path.exists(os.path.dirname(prefix)):
-        raise RuntimeError("Can't create prefix: Directory '%s' not found." % os.path.dirname(prefix))
+        raise RuntimeError(_("Can't create prefix: Directory '%s' not found.") % os.path.dirname(prefix))
 
     if not os.path.exists(prefix):
         _stat = os.lstat(os.path.dirname(prefix))
@@ -150,7 +152,7 @@ def create_prefix(
     # Wine not allow to create prefix that not owned by user
     if _stat.st_uid != os.getuid() or _stat.st_mode & 0o700 != 0o700:
         raise RuntimeError(
-            (
+            _(
                 "'%s' must be owned by you, with full owner permissions. "
                 + "Refusing to create a configuration directory there."
             )
@@ -158,7 +160,7 @@ def create_prefix(
         )
 
     if is_disallowed_fs(prefix):
-        raise RuntimeError("Can't create prefix on a file system that does not support Linux symbolic links.")
+        raise RuntimeError(_("Can't create the prefix on a file system that does not support Linux symbolic links."))
 
     if not wine_path:
         wine_path = runner.get_executable()
