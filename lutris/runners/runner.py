@@ -2,6 +2,7 @@
 
 import os
 import signal
+from abc import ABC, abstractmethod
 from gettext import gettext as _
 from typing import Any, Callable, Dict, Iterable, Optional, Set, Union
 
@@ -32,7 +33,7 @@ def kill_processes(sig: int, pids: Iterable[int]) -> None:
             logger.debug("Permission to kill process %s denied", pid)
 
 
-class Runner:  # pylint: disable=too-many-public-methods
+class Runner(ABC):  # pylint: disable=too-many-public-methods
     """Generic runner (base class for other runners)."""
 
     multiple_versions = False
@@ -178,6 +179,11 @@ class Runner:  # pylint: disable=too-many-public-methods
         )
         return runner_options
 
+    @abstractmethod
+    def play(self) -> Dict[str, Any]:
+        """Return the information needed to launch the game: at minimum a 'command' key
+        with the command list. Subclasses must override this."""
+
     def get_executable(self) -> str:
         if "runner_executable" in self.runner_config:
             runner_executable = self.runner_config["runner_executable"]
@@ -297,7 +303,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     def finish_env(self, env: Dict[str, str], game) -> None:
         """This is called by the Game after setting up the environment to allow the runner
         to make final adjustments, which may be based on the environment so far."""
-        pass
+        return None
 
     def get_runtime_env(self):
         """Return runtime environment variables.
@@ -513,7 +519,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     def adjust_installer_runner_config(self, installer_runner_config: Dict[str, Any]) -> None:
         """This is called during installation to let to run fix up in the runner's section of
         the confliguration before it is saved. This method should modify the dict given."""
-        pass
+        return None
 
     def get_runner_version(self, version: Optional[str] = None) -> Optional[Dict[str, Union[str, bool]]]:
         """Get the appropriate version for a runner, as with get_default_runner_version(),
@@ -631,3 +637,4 @@ class Runner:  # pylint: disable=too-many-public-methods
         """The config UI calls this to extract the game icon. Most runners do not
         support this and do nothing. This is not called if a custom icon is installed
         for the game."""
+        return None

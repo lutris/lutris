@@ -649,9 +649,7 @@ class Game:
         This returns an empty dictionary if the user cancels this UI,
         in which case the game should not be run.
         """
-        if not hasattr(self.runner, "play") or not callable(getattr(self.runner, "play", None)):
-            raise RuntimeError(f"Runner: {self.runner} doesn't have a play method.")
-        gameplay_info = self.runner.play()  # type: ignore[attr-defined]
+        gameplay_info = self.runner.play()
 
         if "working_dir" not in gameplay_info:
             gameplay_info["working_dir"] = self.runner.working_dir
