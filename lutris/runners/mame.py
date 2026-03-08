@@ -276,7 +276,7 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     def write_xml_list(self):
         """Write the full game list in XML to disk"""
-        env = runtime.get_env()
+        env = runtime.get_env(prefer_system_libs=True)
         listxml_command = self.get_command() + ["-listxml"]
         os.makedirs(self.cache_dir, exist_ok=True)
         output, error_output = system.execute_with_error(listxml_command, env=env)
