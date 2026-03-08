@@ -9,7 +9,7 @@ main loop responsive so the window manager does not flag Lutris as
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Callable, List, Optional
 
-from gi.repository import GLib, Gtk
+from gi.repository import GLib, Gtk, Pango
 
 from lutris.gui.dialogs import ModelessDialog
 from lutris.services.gog_cloud import SyncResult
@@ -83,7 +83,7 @@ class CloudSyncProgressDialog(ModelessDialog):
         self._detail_label = Gtk.Label(visible=True)
         self._detail_label.set_text(_("Preparing…"))
         self._detail_label.set_xalign(0.0)
-        self._detail_label.set_ellipsize(2)  # Pango.EllipsizeMode.MIDDLE
+        self._detail_label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
         self._detail_label.set_max_width_chars(1)
         content.pack_start(self._detail_label, False, False, 2)
 

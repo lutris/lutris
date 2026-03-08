@@ -65,7 +65,7 @@ def _get_error_parent(error_objects: Iterable[Optional[GObject.Object]]) -> Gtk.
                 toplevel: Gtk.Window = error_object.get_toplevel()
                 if toplevel:
                     return toplevel
-        except GLib.GError:  # type: ignore
+        except GLib.GError:
             pass  # hasattr() is always true for (some) GObjects, but the method fails when used
 
     return get_required_main_window()
