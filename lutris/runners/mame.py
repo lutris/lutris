@@ -13,29 +13,32 @@ from lutris.util.strings import split_arguments
 
 MAME_CACHE_DIR = os.path.join(settings.CACHE_DIR, "mame")
 MAME_XML_PATH = os.path.join(MAME_CACHE_DIR, "mame.xml")
+MAME_SYSTEMS_PATH = os.path.join(MAME_CACHE_DIR, "systems.json")
 
 
-def write_mame_xml(force=False):
+def build_mame_systems_cache(force=False):
     mame_inst = mame()
     if not mame_inst.is_installed():
         logger.warning("MAME is not installed, cannot write XML list")
         return False
     if not system.path_exists(MAME_CACHE_DIR):
         system.create_folder(MAME_CACHE_DIR)
-    if system.path_exists(MAME_XML_PATH, exclude_empty=True) and not force:
-        return False
-    logger.info("Writing full game list from MAME to %s", MAME_XML_PATH)
-    mame_inst.write_xml_list()
-    if system.get_disk_size(MAME_XML_PATH) == 0:
-        logger.warning("MAME did not write anything to %s", MAME_XML_PATH)
-        return False
+    if not system.path_exists(MAME_XML_PATH, exclude_empty=True) or force:
+        logger.info("Writing full game list from MAME to %s", MAME_XML_PATH)
+        mame_inst.write_xml_list()
+        if system.get_disk_size(MAME_XML_PATH) == 0:
+            logger.warning("MAME did not write anything to %s", MAME_XML_PATH)
+            return False
+    if not system.path_exists(MAME_SYSTEMS_PATH, exclude_empty=True) or force:
+        logger.info("Building MAME systems list")
+        _ = get_supported_systems(MAME_XML_PATH, force=True)
     return True
 
 
 @async_choices(
-    generate=write_mame_xml,
-    ready=lambda: system.path_exists(MAME_XML_PATH, exclude_empty=True),
-    error_message="Failed to write MAME XML",
+    generate=build_mame_systems_cache,
+    ready=lambda: system.path_exists(MAME_SYSTEMS_PATH, exclude_empty=True),
+    error_message="Failed to build MAME systems cache",
 )
 def get_system_choices(include_year=True):
     """Return list of systems for inclusion in dropdown"""
