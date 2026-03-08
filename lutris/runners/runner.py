@@ -2,7 +2,6 @@
 
 import os
 import signal
-from abc import ABC, abstractmethod
 from gettext import gettext as _
 from typing import Any, Callable, Dict, Iterable, Optional, Set, Union
 
@@ -33,7 +32,7 @@ def kill_processes(sig: int, pids: Iterable[int]) -> None:
             logger.debug("Permission to kill process %s denied", pid)
 
 
-class Runner(ABC):  # pylint: disable=too-many-public-methods
+class Runner:  # pylint: disable=too-many-public-methods
     """Generic runner (base class for other runners)."""
 
     multiple_versions = False
@@ -179,10 +178,10 @@ class Runner(ABC):  # pylint: disable=too-many-public-methods
         )
         return runner_options
 
-    @abstractmethod
     def play(self) -> Dict[str, Any]:
         """Return the information needed to launch the game: at minimum a 'command' key
         with the command list. Subclasses must override this."""
+        raise NotImplementedError(f"Runner: {self} doesn't have a play method.")
 
     def get_executable(self) -> str:
         if "runner_executable" in self.runner_config:
