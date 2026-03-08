@@ -1456,7 +1456,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 component_updaters, runtime_updater, supported_client_version = result
 
                 if supported_client_version and not LINUX_SYSTEM.is_flatpak():
-                    markup = self.version_notification_label.get_label()
+                    markup = _(
+                        "Lutris %s is no longer supported. "
+                        + '<a href="https://lutris.net/downloads/">Download %s here!</a>'
+                    )
                     markup = markup % (settings.VERSION, supported_client_version)
                     self.version_notification_label.set_label(markup)
                     self.version_notification_revealer.set_reveal_child(True)
