@@ -1,7 +1,7 @@
 """Misc common functions"""
 
 import functools
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Optional
 
 AnyCallable = Callable[..., Any]
 
@@ -44,3 +44,54 @@ class cache_single:
     def cache_clear(self) -> None:
         self.is_cached = False
         self.cached_item = None
+
+
+def async_choices(
+    generate: AnyCallable,
+    ready: Callable[[], bool],
+    invalidate: Optional[Callable[[], None]] = None,
+    error_message: str = "Failed to load choices",
+) -> Callable[[AnyCallable], AnyCallable]:
+    """Decorator that wraps a choices callable with async background loading support.
+
+    When the decorated function is called and ready() returns False, starts an AsyncCall to run
+    generate() on a worker thread and returns [] immediately. When the worker completes,
+    register_reload_callback() callbacks are fired on the UI thread so comboboxes can repopulate
+    in place. When ready() returns True, calls through to the original function normally.
+
+    Adds to the decorated function:
+    - register_reload_callback: used by widget_generator to register combobox refresh callbacks
+
+    See widget_generator._generate_choice() for how register_reload_callback is used.
+    """
+
+    def decorator(choices_func: AnyCallable) -> AnyCallable:
+        @functools.wraps(choices_func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            if not ready():
+                from lutris.util.jobs import AsyncCall
+
+                AsyncCall(generate, _on_loaded)  # type: ignore[no-untyped-call]
+                return []
+            return choices_func(*args, **kwargs)
+
+        wrapper._reload_callbacks = []  # type: ignore[attr-defined]
+        wrapper.register_reload_callback = (  # type: ignore[attr-defined]
+            lambda callback: wrapper._reload_callbacks.append(callback)  # type: ignore[attr-defined]
+        )
+
+        def _on_loaded(result: Any, error: Any) -> None:
+            from lutris.util.log import logger
+
+            if error:
+                logger.exception("%s: %s", error_message, error)
+            elif result:
+                if invalidate is not None:
+                    invalidate()
+                for callback in wrapper._reload_callbacks:  # type: ignore[attr-defined]
+                    callback()
+            wrapper._reload_callbacks.clear()  # type: ignore[attr-defined]
+
+        return wrapper
+
+    return decorator

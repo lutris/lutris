@@ -11,8 +11,7 @@ from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.exceptions import GameConfigError, MissingBiosError, MissingGameExecutableError, UnspecifiedVersionError
 from lutris.runners.runner import Runner
-from lutris.util import cache_single, system
-from lutris.util.jobs import AsyncCall
+from lutris.util import async_choices, cache_single, system
 from lutris.util.libretro import RetroConfig
 from lutris.util.log import logger
 from lutris.util.retroarch.firmware import get_firmware, scan_firmware_directory
@@ -64,6 +63,12 @@ def get_libretro_cores():
     return cores
 
 
+@async_choices(
+    generate=_download_libretro_info,
+    ready=lambda: os.path.exists(os.path.join(RETROARCH_DIR, "info")),
+    invalidate=get_libretro_cores.cache_clear,
+    error_message="Failed to download libretro info archive",
+)
 def get_core_choices():
     """Return (label, identifier) pairs for all installed libretro cores, for use as a choices callable.
 
@@ -72,29 +77,7 @@ def get_core_choices():
     register_reload_callback() are invoked on the UI thread when the download completes, so
     dropdowns can repopulate without the user having to close and reopen the dialog.
     """
-
-    def _on_libretro_info_downloaded(result, error):
-        """UI-thread callback after the info archive download completes."""
-        if error:
-            logger.exception("Failed to download libretro info archive: %s", error)
-        elif result:
-            get_libretro_cores.cache_clear()
-            logger.info("Libretro info downloaded; core list updated")
-            for callback in get_core_choices._reload_callbacks:  # type: ignore[attr-defined]
-                callback()
-        get_core_choices._reload_callbacks.clear()  # type: ignore[attr-defined]
-
-    if not os.path.exists(RETROARCH_DIR):
-        return []
-    info_path = os.path.join(RETROARCH_DIR, "info")
-    if not os.path.exists(info_path):
-        AsyncCall(_download_libretro_info, _on_libretro_info_downloaded)
-        return []
     return [(core[0], core[1]) for core in get_libretro_cores()]
-
-
-get_core_choices._reload_callbacks = []  # type: ignore[attr-defined]
-get_core_choices.register_reload_callback = lambda callback: get_core_choices._reload_callbacks.append(callback)  # type: ignore[attr-defined]
 
 
 class libretro(Runner):
