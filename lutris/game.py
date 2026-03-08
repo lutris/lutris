@@ -482,7 +482,7 @@ class Game:
 
     def set_platform_from_runner(self) -> None:
         """Set the game's platform from the runner"""
-        if not hasattr(self, "has_runner") or not self.has_runner:
+        if not self.has_runner:
             logger.warning("Game has no runner, can't set platform")
             return
         self.platform = self.runner.get_platform()
