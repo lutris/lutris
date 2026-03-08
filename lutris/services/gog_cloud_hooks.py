@@ -10,7 +10,7 @@ When a conflict is detected the user is prompted via a GTK dialog.
 
 import os
 import threading
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 from lutris.services.gog_cloud import (
     GOGCloudSync,
@@ -183,6 +183,7 @@ def _sync_location(
     loc: dict,
     preferred_action: str,
     direction_label: str,
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
 ) -> SyncResult:
     """Sync a single save location, handling conflicts via dialog."""
     result = sync.sync_saves(
@@ -191,6 +192,7 @@ def _sync_location(
         loc["name"],
         loc["platform"],
         preferred_action=preferred_action,
+        progress_callback=progress_callback,
     )
 
     if result.action == SyncAction.CONFLICT:
@@ -206,6 +208,7 @@ def _sync_location(
                 loc["name"],
                 loc["platform"],
                 preferred_action=force_action,
+                progress_callback=progress_callback,
             )
         else:
             logger.info("User skipped sync for %s", loc["name"])
@@ -223,7 +226,10 @@ def _sync_location(
     return result
 
 
-def sync_before_launch(game: "Game") -> List[SyncResult]:
+def sync_before_launch(
+    game: "Game",
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+) -> List[SyncResult]:
     """Sync cloud saves before launching a GOG game (download direction).
 
     This fetches any newer saves from GOG cloud storage to the local
@@ -232,6 +238,8 @@ def sync_before_launch(game: "Game") -> List[SyncResult]:
 
     Args:
         game: The Game instance about to be launched.
+        progress_callback: Optional callable invoked after each file is
+            processed, with arguments (current_index, total_files, filename).
 
     Returns:
         A list of SyncResult objects (one per save location).
@@ -259,13 +267,16 @@ def sync_before_launch(game: "Game") -> List[SyncResult]:
 
     for loc in save_locations:
         logger.info("Cloud sync (pre-launch): %s -> %s", loc["name"], loc["save_path"])
-        result = _sync_location(sync, game, loc, "download", "pre-launch")
+        result = _sync_location(sync, game, loc, "download", "pre-launch", progress_callback)
         results.append(result)
 
     return results
 
 
-def sync_after_quit(game: "Game") -> List[SyncResult]:
+def sync_after_quit(
+    game: "Game",
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+) -> List[SyncResult]:
     """Sync cloud saves after a GOG game quits (upload direction).
 
     This uploads any newer local saves to GOG cloud storage after
@@ -274,6 +285,8 @@ def sync_after_quit(game: "Game") -> List[SyncResult]:
 
     Args:
         game: The Game instance that just quit.
+        progress_callback: Optional callable invoked after each file is
+            processed, with arguments (current_index, total_files, filename).
 
     Returns:
         A list of SyncResult objects (one per save location).
@@ -301,7 +314,7 @@ def sync_after_quit(game: "Game") -> List[SyncResult]:
 
     for loc in save_locations:
         logger.info("Cloud sync (post-exit): %s -> %s", loc["name"], loc["save_path"])
-        result = _sync_location(sync, game, loc, "upload", "post-exit")
+        result = _sync_location(sync, game, loc, "upload", "post-exit", progress_callback)
         results.append(result)
 
     return results

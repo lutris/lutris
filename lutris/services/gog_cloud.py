@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from gettext import gettext as _
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
@@ -795,6 +795,7 @@ class GOGCloudSync:
         location_name: str,
         platform: str = "windows",
         preferred_action: Optional[str] = None,
+        progress_callback: Optional[Callable[[int, int, str], None]] = None,
     ) -> SyncResult:
         """Synchronize saves for a specific game and save location.
 
@@ -805,6 +806,8 @@ class GOGCloudSync:
             platform: The game platform ('windows', 'osx', 'linux').
             preferred_action: Force a specific action ('upload', 'download',
                 'forceupload', 'forcedownload'), or None for automatic.
+            progress_callback: Optional callable invoked after each file is
+                processed, with arguments (current_index, total_files, filename).
 
         Returns:
             SyncResult with details of what was done.
@@ -878,7 +881,9 @@ class GOGCloudSync:
         if local_files and not cloud_files:
             logger.info("No files in cloud, uploading all local files")
             action = SyncAction.UPLOAD
-            for f in local_files:
+            for i, f in enumerate(local_files):
+                if progress_callback:
+                    progress_callback(i, len(local_files), f.relative_path)
                 if client.upload_file(f, location_name):
                     result.uploaded.append(f.relative_path)
             result.action = action
@@ -889,7 +894,9 @@ class GOGCloudSync:
         if not local_files and cloud_files:
             logger.info("No local files, downloading all cloud files")
             action = SyncAction.DOWNLOAD
-            for f in downloadable_cloud:
+            for i, f in enumerate(downloadable_cloud):
+                if progress_callback:
+                    progress_callback(i, len(downloadable_cloud), f.relative_path)
                 if client.download_file(f, location_name):
                     result.downloaded.append(f.relative_path)
             result.action = action
@@ -923,26 +930,44 @@ class GOGCloudSync:
 
         # Step 10: Execute sync
         if action == SyncAction.UPLOAD:
+            all_upload = classifier.updated_local + classifier.not_existing_locally
+            total = len(all_upload)
             logger.info("Uploading %d files", len(classifier.updated_local))
+            idx = 0
             for f in classifier.updated_local:
+                if progress_callback:
+                    progress_callback(idx, total, f.relative_path)
                 if client.upload_file(f, location_name):
                     result.uploaded.append(f.relative_path)
+                idx += 1
             for f in classifier.not_existing_locally:
+                if progress_callback:
+                    progress_callback(idx, total, f.relative_path)
                 if client.delete_file(f, location_name):
                     result.deleted_cloud.append(f.relative_path)
+                idx += 1
 
         elif action == SyncAction.DOWNLOAD:
+            all_download = classifier.updated_cloud + classifier.not_existing_remotely
+            total = len(all_download)
             logger.info("Downloading %d files", len(classifier.updated_cloud))
+            idx = 0
             for f in classifier.updated_cloud:
+                if progress_callback:
+                    progress_callback(idx, total, f.relative_path)
                 if client.download_file(f, location_name):
                     result.downloaded.append(f.relative_path)
+                idx += 1
             for f in classifier.not_existing_remotely:
+                if progress_callback:
+                    progress_callback(idx, total, f.relative_path)
                 logger.info("Deleting local file: %s", f.absolute_path)
                 try:
                     os.remove(f.absolute_path)
                     result.deleted_local.append(f.relative_path)
                 except OSError as ex:
                     logger.error("Failed to delete %s: %s", f.absolute_path, ex)
+                idx += 1
 
         elif action == SyncAction.CONFLICT:
             logger.warning("Save files are in conflict — user action required")

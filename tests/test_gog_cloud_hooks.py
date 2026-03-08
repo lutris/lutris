@@ -178,7 +178,12 @@ class TestSyncBeforeLaunch(unittest.TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].action, SyncAction.DOWNLOAD)
         mock_sync.sync_saves.assert_called_once_with(
-            "12345", "/tmp/saves", "saves", "windows", preferred_action="download"
+            "12345",
+            "/tmp/saves",
+            "saves",
+            "windows",
+            preferred_action="download",
+            progress_callback=None,
         )
 
 
@@ -215,7 +220,12 @@ class TestSyncAfterQuit(unittest.TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].action, SyncAction.UPLOAD)
         mock_sync.sync_saves.assert_called_once_with(
-            "12345", "/tmp/saves", "saves", "windows", preferred_action="upload"
+            "12345",
+            "/tmp/saves",
+            "saves",
+            "windows",
+            preferred_action="upload",
+            progress_callback=None,
         )
 
     def test_handles_multiple_save_locations(self):

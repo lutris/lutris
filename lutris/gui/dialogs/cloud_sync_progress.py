@@ -13,7 +13,7 @@ from gi.repository import GLib, Gtk
 
 from lutris.gui.dialogs import ModelessDialog
 from lutris.services.gog_cloud import SyncResult
-from lutris.util.jobs import AsyncCall, IdleTask, schedule_repeating_at_idle
+from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 
 if TYPE_CHECKING:
@@ -23,10 +23,9 @@ if TYPE_CHECKING:
 class CloudSyncProgressDialog(ModelessDialog):
     """Modal-style progress dialog shown during GOG cloud save sync.
 
-    The dialog displays a pulsing progress bar and status label while
-    the actual sync work runs on a background thread.  This keeps the
-    GTK main loop alive so the desktop environment will not report the
-    application as unresponsive.
+    The dialog displays a progress bar and status label while the
+    actual sync work runs on a background thread.  Progress updates
+    are received via a callback and dispatched to the GTK main loop.
 
     Usage::
 
@@ -43,7 +42,7 @@ class CloudSyncProgressDialog(ModelessDialog):
     def __init__(
         self,
         game: "Game",
-        sync_func: Callable[["Game"], List[SyncResult]],
+        sync_func: Callable[["Game", Optional[Callable[[int, int, str], None]]], List[SyncResult]],
         direction: str = "pre-launch",
         parent: Optional[Gtk.Widget] = None,
     ) -> None:
@@ -55,7 +54,6 @@ class CloudSyncProgressDialog(ModelessDialog):
         self._direction = direction
         self.results: List[SyncResult] = []
         self._cancelled = False
-        self._pulse_task: Optional[IdleTask] = None
 
         self.set_size_request(400, -1)
         self.set_resizable(False)
@@ -76,15 +74,17 @@ class CloudSyncProgressDialog(ModelessDialog):
         self._status_label.set_line_wrap(True)
         content.pack_start(self._status_label, False, False, 6)
 
-        # Progress bar (pulsing - we don't know exact progress)
+        # Progress bar
         self._progress_bar = Gtk.ProgressBar(visible=True)
-        self._progress_bar.set_pulse_step(0.15)
+        self._progress_bar.set_show_text(True)
         content.pack_start(self._progress_bar, False, False, 6)
 
-        # Detail label (shows file counts once finished)
+        # Detail label (shows current file being synced)
         self._detail_label = Gtk.Label(visible=True)
-        self._detail_label.set_text(_("Please wait…"))
+        self._detail_label.set_text(_("Preparing…"))
         self._detail_label.set_xalign(0.0)
+        self._detail_label.set_ellipsize(2)  # Pango.EllipsizeMode.MIDDLE
+        self._detail_label.set_max_width_chars(1)
         content.pack_start(self._detail_label, False, False, 2)
 
         # Skip button - lets the user skip sync and launch immediately
@@ -92,7 +92,6 @@ class CloudSyncProgressDialog(ModelessDialog):
         self._skip_button.set_tooltip_text(_("Skip cloud sync and launch the game immediately"))
 
         self.connect("response", self._on_response)
-        self.connect("destroy", self._on_destroy)
         self.show_all()
 
     # ------------------------------------------------------------------
@@ -101,23 +100,30 @@ class CloudSyncProgressDialog(ModelessDialog):
 
     def run_sync(self) -> None:
         """Start the sync operation on a background thread."""
-        self._pulse_task = schedule_repeating_at_idle(self._pulse, interval_seconds=0.1)
         AsyncCall(self._do_sync, self._on_sync_done)
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _pulse(self) -> bool:
-        """Advance the progress bar pulse; returns True to keep repeating."""
+    def _on_progress(self, current: int, total: int, filename: str) -> None:
+        """Called from the background thread; dispatches to GTK main loop."""
+        GLib.idle_add(self._update_progress, current, total, filename)
+
+    def _update_progress(self, current: int, total: int, filename: str) -> bool:
+        """Update the progress bar and detail label on the main thread."""
         if self._cancelled:
             return False
-        self._progress_bar.pulse()
-        return True
+        if total > 0:
+            fraction = (current + 1) / total
+            self._progress_bar.set_fraction(fraction)
+            self._progress_bar.set_text(_("%d / %d") % (current + 1, total))
+        self._detail_label.set_text(filename)
+        return False  # do not repeat
 
     def _do_sync(self) -> List[SyncResult]:
         """Run on a background thread - performs the actual sync."""
-        return self._sync_func(self.game)
+        return self._sync_func(self.game, self._on_progress)
 
     def _on_sync_done(self, results: Optional[List[SyncResult]], error: Optional[Exception]) -> None:
         """Callback invoked on the main thread when the sync finishes."""
@@ -129,8 +135,11 @@ class CloudSyncProgressDialog(ModelessDialog):
             logger.warning("GOG cloud sync (%s) failed: %s", self._direction, error)
             self._status_label.set_markup(_("<b>Cloud sync failed</b>"))
             self._detail_label.set_text(str(error))
+            self._progress_bar.set_fraction(0.0)
+            self._progress_bar.set_show_text(False)
         else:
             self.results = results or []
+            self._progress_bar.set_fraction(1.0)
             total_down = sum(len(r.downloaded) for r in self.results)
             total_up = sum(len(r.uploaded) for r in self.results)
             if total_down or total_up:
@@ -140,8 +149,10 @@ class CloudSyncProgressDialog(ModelessDialog):
                 if total_up:
                     parts.append(_("%d file(s) uploaded") % total_up)
                 self._detail_label.set_text(", ".join(parts))
+                self._progress_bar.set_text(_("Done"))
             else:
                 self._detail_label.set_text(_("Saves are up to date."))
+                self._progress_bar.set_text(_("Done"))
 
         # Auto-close after a brief moment so the user can see the result
         GLib.timeout_add(600, self._auto_close)
@@ -158,11 +169,3 @@ class CloudSyncProgressDialog(ModelessDialog):
             self._cancelled = True
             self._detail_label.set_text(_("Skipping…"))
             self._skip_button.set_sensitive(False)
-            # The background thread may still be running; we just ignore
-            # its result when it arrives.
-
-    def _on_destroy(self, _dialog: Gtk.Widget) -> None:
-        """Clean up the pulse timer."""
-        if self._pulse_task is not None:
-            self._pulse_task.unschedule()
-            self._pulse_task = None

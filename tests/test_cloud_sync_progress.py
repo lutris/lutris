@@ -58,15 +58,6 @@ _dialogs_stub.ModelessDialog = type(  # type: ignore[attr-defined]
 # Stub jobs module
 _jobs_stub = types.ModuleType("lutris.util.jobs")
 _jobs_stub.AsyncCall = MagicMock  # type: ignore[attr-defined]
-_jobs_stub.IdleTask = type(  # type: ignore[attr-defined]
-    "IdleTask",
-    (),
-    {
-        "unschedule": lambda self: None,
-    },
-)
-_mock_schedule = MagicMock()
-_jobs_stub.schedule_repeating_at_idle = _mock_schedule  # type: ignore[attr-defined]
 sys.modules.setdefault("lutris.util", types.ModuleType("lutris.util"))
 sys.modules["lutris.util.jobs"] = _jobs_stub
 
@@ -126,7 +117,6 @@ class TestCloudSyncProgressDialogInit(unittest.TestCase):
         dialog._direction = direction
         dialog.results = []
         dialog._cancelled = False
-        dialog._pulse_task = None
         dialog._status_label = MagicMock()
         dialog._detail_label = MagicMock()
         dialog._progress_bar = MagicMock()
@@ -136,7 +126,6 @@ class TestCloudSyncProgressDialogInit(unittest.TestCase):
     def test_initial_state_pre_launch(self):
         dialog = self._make_dialog("pre-launch")
         self.assertFalse(dialog._cancelled)
-        self.assertIsNone(dialog._pulse_task)
         self.assertEqual(dialog.results, [])
 
     def test_initial_state_post_exit(self):
@@ -157,25 +146,22 @@ class TestCloudSyncProgressDialogRunSync(unittest.TestCase):
         dialog._direction = "pre-launch"
         dialog.results = []
         dialog._cancelled = False
-        dialog._pulse_task = None
         dialog._status_label = MagicMock()
         dialog._detail_label = MagicMock()
         dialog._progress_bar = MagicMock()
         dialog._skip_button = MagicMock()
         return dialog
 
-    def test_run_sync_starts_pulse(self):
+    def test_run_sync_starts_async_call(self):
         dialog = self._make_dialog()
-        _mock_schedule.reset_mock()
 
         with patch.object(type(dialog), "run_sync", CloudSyncProgressDialog.run_sync):
-            # Patch AsyncCall to prevent actual thread creation
             original_async = _dialog_mod.AsyncCall
-            _dialog_mod.AsyncCall = MagicMock()
+            mock_async = MagicMock()
+            _dialog_mod.AsyncCall = mock_async
             try:
                 dialog.run_sync()
-                _mock_schedule.assert_called_once()
-                self.assertIsNotNone(dialog._pulse_task)
+                mock_async.assert_called_once()
             finally:
                 _dialog_mod.AsyncCall = original_async
 
@@ -193,7 +179,6 @@ class TestCloudSyncProgressDialogCallbacks(unittest.TestCase):
         dialog._direction = "pre-launch"
         dialog.results = []
         dialog._cancelled = False
-        dialog._pulse_task = None
         dialog._status_label = MagicMock()
         dialog._detail_label = MagicMock()
         dialog._progress_bar = MagicMock()
@@ -257,19 +242,20 @@ class TestCloudSyncProgressDialogCallbacks(unittest.TestCase):
         dialog.destroy.assert_called_once()
         mock_glib.timeout_add.assert_not_called()
 
-    def test_pulse_returns_true_when_active(self):
+    def test_update_progress_sets_fraction(self):
         dialog = self._make_dialog()
-        result = dialog._pulse()
-        self.assertTrue(result)
-        dialog._progress_bar.pulse.assert_called_once()
+        dialog._update_progress(2, 5, "save.dat")
+        dialog._progress_bar.set_fraction.assert_called_once_with(3 / 5)
+        dialog._detail_label.set_text.assert_called_with("save.dat")
 
-    def test_pulse_returns_false_when_cancelled(self):
+    def test_update_progress_skipped_when_cancelled(self):
         dialog = self._make_dialog()
         dialog._cancelled = True
-        result = dialog._pulse()
+        result = dialog._update_progress(0, 5, "save.dat")
         self.assertFalse(result)
+        dialog._progress_bar.set_fraction.assert_not_called()
 
-    def test_do_sync_calls_sync_func(self):
+    def test_do_sync_calls_sync_func_with_callback(self):
         dialog = self._make_dialog()
         expected = [_make_sync_result(downloaded=["x"])]
         dialog._sync_func = MagicMock(return_value=expected)
@@ -277,23 +263,16 @@ class TestCloudSyncProgressDialogCallbacks(unittest.TestCase):
         result = dialog._do_sync()
 
         self.assertEqual(result, expected)
-        dialog._sync_func.assert_called_once_with(dialog.game)
+        dialog._sync_func.assert_called_once_with(dialog.game, dialog._on_progress)
 
-    def test_on_destroy_unschedules_pulse(self):
+    def test_on_progress_dispatches_to_glib(self):
         dialog = self._make_dialog()
-        mock_task = MagicMock()
-        dialog._pulse_task = mock_task
+        mock_glib = MagicMock()
 
-        dialog._on_destroy(None)
+        with patch.object(_dialog_mod, "GLib", mock_glib):
+            dialog._on_progress(1, 10, "test.sav")
 
-        mock_task.unschedule.assert_called_once()
-        self.assertIsNone(dialog._pulse_task)
-
-    def test_on_destroy_noop_when_no_pulse_task(self):
-        dialog = self._make_dialog()
-        dialog._pulse_task = None
-        # Should not raise
-        dialog._on_destroy(None)
+        mock_glib.idle_add.assert_called_once_with(dialog._update_progress, 1, 10, "test.sav")
 
 
 class TestCloudSyncProgressDialogSkip(unittest.TestCase):
@@ -308,7 +287,6 @@ class TestCloudSyncProgressDialogSkip(unittest.TestCase):
         dialog._direction = "pre-launch"
         dialog.results = []
         dialog._cancelled = False
-        dialog._pulse_task = None
         dialog._status_label = MagicMock()
         dialog._detail_label = MagicMock()
         dialog._progress_bar = MagicMock()
