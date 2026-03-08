@@ -6,8 +6,7 @@ from gettext import gettext as _
 from lutris import runtime, settings
 from lutris.exceptions import GameConfigError
 from lutris.runners.runner import Runner
-from lutris.util import system
-from lutris.util.jobs import AsyncCall
+from lutris.util import async_choices, system
 from lutris.util.log import logger
 from lutris.util.mame.database import get_supported_systems
 from lutris.util.strings import split_arguments
@@ -17,12 +16,15 @@ MAME_XML_PATH = os.path.join(MAME_CACHE_DIR, "mame.xml")
 
 
 def write_mame_xml(force=False):
+    mame_inst = mame()
+    if not mame_inst.is_installed():
+        logger.warning("MAME is not installed, cannot write XML list")
+        return False
     if not system.path_exists(MAME_CACHE_DIR):
         system.create_folder(MAME_CACHE_DIR)
     if system.path_exists(MAME_XML_PATH, exclude_empty=True) and not force:
         return False
     logger.info("Writing full game list from MAME to %s", MAME_XML_PATH)
-    mame_inst = mame()
     mame_inst.write_xml_list()
     if system.get_disk_size(MAME_XML_PATH) == 0:
         logger.warning("MAME did not write anything to %s", MAME_XML_PATH)
@@ -30,20 +32,13 @@ def write_mame_xml(force=False):
     return True
 
 
-def notify_mame_xml(result, error):
-    if error:
-        logger.error("Failed writing MAME XML")
-    elif result:
-        logger.info("Finished writing MAME XML")
-
-
+@async_choices(
+    generate=write_mame_xml,
+    ready=lambda: system.path_exists(MAME_XML_PATH, exclude_empty=True),
+    error_message="Failed to write MAME XML",
+)
 def get_system_choices(include_year=True):
     """Return list of systems for inclusion in dropdown"""
-    if not system.path_exists(MAME_XML_PATH, exclude_empty=True):
-        mame_inst = mame()
-        if mame_inst.is_installed():
-            AsyncCall(write_mame_xml, notify_mame_xml)
-        return []
     for system_id, info in sorted(
         get_supported_systems(MAME_XML_PATH).items(),
         key=lambda sys: (sys[1]["manufacturer"], sys[1]["description"]),
@@ -254,17 +249,6 @@ class mame(Runner):  # pylint: disable=invalid-name
         self._platforms = [choice[0] for choice in get_system_choices(include_year=False)]
         self._platforms += [_("Arcade"), _("Nintendo Game & Watch")]
         return self._platforms
-
-    def install(self, install_ui_delegate, version=None, callback=None):
-        def on_runner_installed(*args):
-            def on_mame_ready(result, error):
-                notify_mame_xml(result, error)
-                if callback:
-                    callback(*args)
-
-            AsyncCall(write_mame_xml, on_mame_ready)
-
-        super().install(install_ui_delegate, version=version, callback=on_runner_installed)
 
     @property
     def default_path(self):

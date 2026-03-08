@@ -523,9 +523,13 @@ class WidgetGenerator(ABC):
             self.changed.fire(option_key, new_value)
 
         option_key = option["option"]
-        choices = option["choices"]
-        entrybox = SearchableEntrybox(choices, value or default)
+        choices_src = option["choices"]
+        entrybox = SearchableEntrybox(choices_src, value or default)
         entrybox.connect("changed", on_changed)
+
+        if callable(choices_src) and hasattr(choices_src, "register_reload_callback"):
+            choices_src.register_reload_callback(entrybox.repopulate)
+
         return self.build_option_widget(option, entrybox)
 
     # FileChooserEntry
