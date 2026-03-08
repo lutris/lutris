@@ -1,7 +1,6 @@
 import glob
 import os
 import re
-import shutil
 import subprocess
 from typing import Dict, List, Optional, TypeAlias
 
@@ -10,7 +9,7 @@ from lutris.util.graphics import drivers
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
-VULKANINFO_PATH = shutil.which("vulkaninfo")
+VULKANINFO_PATH = system.find_executable("vulkaninfo")
 VULKAN_DATA_DIRS = [
     "/usr/local/etc",  # standard site-local location
     "/usr/local/share",  # standard site-local location
