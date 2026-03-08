@@ -11,7 +11,7 @@ from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.exceptions import GameConfigError, MissingBiosError, MissingGameExecutableError, UnspecifiedVersionError
 from lutris.runners.runner import Runner
-from lutris.util import system
+from lutris.util import cache_single, system
 from lutris.util.libretro import RetroConfig
 from lutris.util.log import logger
 from lutris.util.retroarch.firmware import get_firmware, scan_firmware_directory
@@ -23,6 +23,7 @@ def get_default_config_path(path):
     return os.path.join(RETROARCH_DIR, path)
 
 
+@cache_single
 def get_libretro_cores():
     cores = []
     if not os.path.exists(RETROARCH_DIR):
@@ -54,15 +55,9 @@ def get_libretro_cores():
     return cores
 
 
-# List of supported libretro cores
-# First element is the human readable name for the core with the platform's short name
-# Second element is the core identifier
-# Third element is the platform's long name
-LIBRETRO_CORES = get_libretro_cores()
-
-
 def get_core_choices():
-    return [(core[0], core[1]) for core in LIBRETRO_CORES]
+    """Return (label, identifier) pairs for all installed libretro cores, for use as a choices callable."""
+    return [(core[0], core[1]) for core in get_libretro_cores()]
 
 
 class libretro(Runner):
@@ -78,7 +73,7 @@ class libretro(Runner):
             "option": "core",
             "type": "choice",
             "label": _("Core"),
-            "choices": get_core_choices(),
+            "choices": get_core_choices,
         },
     ]
 
@@ -109,14 +104,14 @@ class libretro(Runner):
 
     @property
     def platforms(self):
-        return [core[2] for core in LIBRETRO_CORES]
+        return [core[2] for core in get_libretro_cores()]
 
     def get_platform(self):
         game_core = self.game_config.get("core")
         if not game_core:
             logger.warning("Game don't have a core set")
             return
-        for core in LIBRETRO_CORES:
+        for core in get_libretro_cores():
             if core[1] == game_core:
                 return core[2]
         logger.warning("'%s' not found in Libretro cores", game_core)
@@ -153,17 +148,21 @@ class libretro(Runner):
     def install(self, install_ui_delegate, version=None, callback=None):
         captured_super = super()  # super() does not work inside install_core()
 
+        def on_installed():
+            get_libretro_cores.cache_clear()
+            if callback:
+                callback()
+
         def install_core():
             if not version:
-                if callback:
-                    callback()
+                on_installed()
             else:
-                captured_super.install(install_ui_delegate, version, callback)
+                captured_super.install(install_ui_delegate, version, on_installed)
 
         if not super().is_installed():
             captured_super.install(install_ui_delegate, version=None, callback=install_core)
         else:
-            captured_super.install(install_ui_delegate, version, callback)
+            captured_super.install(install_ui_delegate, version, on_installed)
 
     def get_run_data(self):
         return {
