@@ -65,6 +65,9 @@ def _get_error_parent(error_objects: Iterable[Optional[GObject.Object]]) -> Gtk.
                 toplevel: Gtk.Window = error_object.get_toplevel()
                 if toplevel:
                     return toplevel
+        # GLib.GError is RuntimeError at runtime, but pygobject-stubs <= 2.16.0 omits the base
+        # class. This is fixed in pygobject-stubs main (post-2.16.0); remove the ignore once
+        # a fixed release is available and we've updated. -- @danieljohnson2
         except GLib.GError:  # type: ignore[misc]
             pass  # hasattr() is always true for (some) GObjects, but the method fails when used
 
