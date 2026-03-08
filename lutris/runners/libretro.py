@@ -239,8 +239,12 @@ class libretro(Runner):
             retro_config = RetroConfig(info_file)
             try:
                 firmware_count = int(retro_config["firmware_count"])
+                mandatory_firmware_count = sum(
+                    1 for i in range(firmware_count) if not retro_config.get("firmware%d_opt" % i)
+                )
             except (ValueError, TypeError):
                 firmware_count = 0
+                mandatory_firmware_count = 0
             system_path = self.get_system_directory(retro_config)
             notes = str(retro_config["notes"] or "")
             checksums = {}
@@ -257,7 +261,7 @@ class libretro(Runner):
 
             # If this requires firmware, confirm we have the firmware folder configured in the first place
             # then rescan it in case the user added anything since the last time they changed it
-            if firmware_count > 0:
+            if mandatory_firmware_count > 0:
                 lutris_config = LutrisConfig()
                 firmware_directory = lutris_config.raw_system_config.get("bios_path")
                 if not firmware_directory:
@@ -267,24 +271,25 @@ class libretro(Runner):
                 scan_firmware_directory(firmware_directory)
 
             for index in range(firmware_count):
-                required_firmware_filename = retro_config["firmware%d_path" % index]
-                required_firmware_path = os.path.join(system_path, required_firmware_filename)
-                required_firmware_name = required_firmware_filename.split("/")[-1]
-                required_firmware_checksum = checksums.get(required_firmware_name)
-                if system.path_exists(required_firmware_path):
-                    if required_firmware_checksum:
-                        checksum = system.get_md5_hash(required_firmware_path)
-                        if checksum == required_firmware_checksum:
+                optional_prefix = "Optional firmware" if retro_config.get("firmware%d_opt" % index) else "Firmware"
+                firmware_filename = retro_config["firmware%d_path" % index]
+                firmware_path = os.path.join(system_path, firmware_filename)
+                firmware_name = firmware_filename.split("/")[-1]
+                firmware_checksum = checksums.get(firmware_name)
+                if system.path_exists(firmware_path):
+                    if firmware_checksum:
+                        checksum = system.get_md5_hash(firmware_path)
+                        if checksum == firmware_checksum:
                             checksum_status = "Checksum good"
                         else:
                             checksum_status = "Checksum failed"
                     else:
                         checksum_status = "No checksum info"
-                    logger.info("Firmware '%s' found (%s)", required_firmware_filename, checksum_status)
+                    logger.info("%s '%s' found (%s)", optional_prefix, firmware_filename, checksum_status)
                 else:
-                    logger.warning("Firmware '%s' not found!", required_firmware_filename)
-                    if required_firmware_checksum:
-                        get_firmware(required_firmware_name, required_firmware_checksum, system_path)
+                    logger.warning("%s '%s' not found!", optional_prefix, firmware_filename)
+                    if firmware_checksum:
+                        get_firmware(firmware_name, firmware_checksum, system_path)
 
     def get_runner_parameters(self):
         parameters = []
