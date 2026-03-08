@@ -252,7 +252,17 @@ def can_find_executable(exec_name: str) -> bool:
 def find_executable(exec_name: str) -> Optional[str]:
     """Return the absolute path of an executable, or None if
     it could not be found."""
-    return shutil.which(exec_name) if exec_name else None
+    if not exec_name:
+        return None
+    path = shutil.which(exec_name)
+    if path and os.path.exists(path):
+        return path
+    # In Flatpak, shutil.which may return paths under /usr/bin that
+    # don't actually exist; the real binary is in /app/bin.
+    app_path = os.path.join("/app/bin", exec_name)
+    if os.path.exists(app_path):
+        return app_path
+    return path
 
 
 def find_required_executable(exec_name: str) -> str:
