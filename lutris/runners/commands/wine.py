@@ -141,7 +141,7 @@ def create_prefix(
     # exist. For example, if the prefix is /mnt/a/b/c/d but the parent directory
     # /mnt/a/b/c does not exist, it is not allowed.
     if not os.path.exists(os.path.dirname(prefix)):
-        raise RuntimeError("Can't create prefix: Not found directory %s" % os.path.dirname(prefix))
+        raise RuntimeError("Can't create prefix: Directory '%s' not found." % os.path.dirname(prefix))
 
     if not os.path.exists(prefix):
         _stat = os.lstat(os.path.dirname(prefix))
@@ -150,12 +150,15 @@ def create_prefix(
     # Wine not allow to create prefix that not owned by user
     if _stat.st_uid != os.getuid() or _stat.st_mode & 0o700 != 0o700:
         raise RuntimeError(
-            "%s must be owned by you with full owner permissions, refusing to create a configuration directory there"
+            (
+                "'%s' must be owned by you, with full owner permissions. "
+                + "Refusing to create a configuration directory there."
+            )
             % prefix
         )
 
     if is_disallowed_fs(prefix):
-        raise RuntimeError("Can't create prefix on file system that not support linux symlink")
+        raise RuntimeError("Can't create prefix on a file system that does not support Linux symbolic links.")
 
     if not wine_path:
         wine_path = runner.get_executable()
