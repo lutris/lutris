@@ -510,7 +510,7 @@ def path_contains(parent: Optional[str], child: Optional[str], resolve_symlinks:
     return resolved_child == resolved_parent or resolved_parent in resolved_child.parents
 
 
-def path_exists(path: str, check_symlinks: bool = False, exclude_empty: bool = False) -> bool:
+def path_exists(path: Optional[str], check_symlinks: bool = False, exclude_empty: bool = False) -> bool:
     """Wrapper around system.path_exists that doesn't crash with empty values
 
     Params:
