@@ -88,10 +88,23 @@ class InstallerFile:
 
     @property
     def downloader(self) -> Optional[Downloader]:
+        """Return custom downloader instance, if one was provided."""
         if callable(self._downloader):
             self._downloader = self._downloader(self)
 
         return self._downloader
+
+    @property
+    def downloader_class(self):
+        """Return custom downloader class from file metadata.
+
+        Services can specify a 'downloader_class' in _file_meta to use
+        a specialized downloader (e.g., GOGDownloader for parallel downloads)
+        instead of the default Downloader.
+        """
+        if isinstance(self._file_meta, dict):
+            return self._file_meta.get("downloader_class")
+        return None
 
     @property
     def checksum(self):

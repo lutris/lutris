@@ -294,6 +294,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         os.makedirs(self.cache_path, exist_ok=True)
 
+        # Mark cached files as being installed
+        self._update_cache_locks_state("installing")
+
         self._iter_commands()
 
     def _iter_commands(self, result=None, exception=None):
@@ -368,6 +371,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         game_id = self.installer.save()
         path = None
 
+        # Mark cached files as successfully installed so cleanup can remove them
+        self._update_cache_locks_state("installed")
+
         if path and AUTO_EXE_PREFIX not in path and not os.path.isfile(path) and self.installer.runner != "web":
             status = (
                 _(
@@ -383,9 +389,41 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.interpreter_ui_delegate.report_finished(game_id, status)
 
     def cleanup(self):
-        """Clean up install dir after a successful install"""
+        """Clean up install dir after a successful install.
+
+        Uses cache-aware deletion that preserves downloaded files
+        if installation hasn't completed successfully. This prevents
+        re-downloading large game files after failed installations.
+        """
         os.chdir(os.path.expanduser("~"))
-        system.delete_folder(self.cache_path)
+        from lutris.util.download_cache import safe_delete_folder
+
+        safe_delete_folder(self.cache_path)
+
+    def _update_cache_locks_state(self, state_name: str) -> None:
+        """Update cache lock state for all files in the cache directory.
+
+        Args:
+            state_name: One of 'downloading', 'downloaded', 'installing',
+                       'installed', 'failed'.
+        """
+        from lutris.util.download_cache import CacheState, update_cache_lock
+
+        try:
+            state = CacheState(state_name)
+        except ValueError:
+            logger.warning("Invalid cache state: %s", state_name)
+            return
+
+        if not os.path.isdir(self.cache_path):
+            return
+
+        for root, _dirs, files in os.walk(self.cache_path):
+            for name in files:
+                if name.endswith((".cache_lock", ".tmp")):
+                    continue
+                file_path = os.path.join(root, name)
+                update_cache_lock(file_path, state)
 
     def revert(self, remove_game_dir=True, completion_function=None, error_function=None):
         """Revert installation in case of an error. Since winekill can be slow,
@@ -394,6 +432,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         logger.info("Cancelling installation of %s", self.installer.game_name)
 
         self.cancelled = True
+
+        # Mark cached files as failed so they're preserved for retry
+        self._update_cache_locks_state("failed")
 
         def on_complete(_result, error):
             if error:
