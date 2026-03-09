@@ -374,7 +374,7 @@ class WidgetGenerator(ABC):
         switch = Gtk.Switch(active=active, valign=Gtk.Align.CENTER)
         switch.connect("notify::active", on_notify_active)
 
-        self.tooltip_default = _("Enabled") if default else _("Disabled")
+        self.tooltip_default = _("Enabled") if to_bool(default) else _("Disabled")
         return self.build_option_widget(option, switch, expand=False)
 
     # SpinButton
@@ -393,7 +393,7 @@ class WidgetGenerator(ABC):
         adjustment = Gtk.Adjustment(float(min_val), float(min_val), float(max_val), 1, 0, 0)
         spin_button = Gtk.SpinButton()
         spin_button.set_adjustment(adjustment)
-        spin_button.set_value(value or default or 0)
+        spin_button.set_value(value if value is not None else (default if default is not None else 0))
         spin_button.connect("changed", on_changed)
         return self.build_option_widget(option, spin_button)
 
@@ -699,7 +699,7 @@ class WidgetGenerator(ABC):
             value = list(value.items())
         except AttributeError:
             logger.error("Invalid value of type %s passed to grid widget: %s", type(value), value)
-            value = {}
+            value = []
 
         grid = EditableGrid(value, columns=["Key", "Value"])
         grid.connect("changed", on_changed)
