@@ -1,6 +1,7 @@
 import os
 import time
 from gettext import gettext as _
+from typing import TYPE_CHECKING
 
 from gi.repository import GObject, Gtk, Pango
 
@@ -10,6 +11,9 @@ from lutris.util.downloader import Downloader
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, human_size
+
+if TYPE_CHECKING:
+    from lutris.installer.installer_file_collection import InstallerFileCollection
 
 # Same reason as Downloader
 get_time = time.monotonic
@@ -26,7 +30,7 @@ class _ActiveDownload:
 
     __slots__ = ("downloader", "file", "num_retries")
 
-    def __init__(self, file, downloader):
+    def __init__(self, file, downloader) -> None:
         self.file = file
         self.downloader = downloader
         self.num_retries = 0
@@ -43,7 +47,12 @@ class DownloadCollectionProgressBox(Gtk.Box):
         "error": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
     }
 
-    def __init__(self, file_collection, cancelable=True, downloader=None):
+    def __init__(
+        self,
+        file_collection: "InstallerFileCollection",
+        cancelable: bool = True,
+        downloader: Downloader | None = None,
+    ) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
 
         self.downloader = downloader

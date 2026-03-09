@@ -37,7 +37,7 @@ _MOD_NAME = "lutris.gui.widgets.download_collection_progress_box"
 _MOD_PATH = os.path.join(_SRC_ROOT, "lutris", "gui", "widgets", "download_collection_progress_box.py")
 
 
-def _load_module():
+def _load_module() -> types.ModuleType:
     """Load the target module, stubbing GTK if necessary."""
     # If the module was already loaded (e.g. in a previous test-collection
     # pass), just reuse it.
@@ -49,7 +49,7 @@ def _load_module():
     # poisoning sys.modules["gi"] when real GTK is installed.
     added: list[str] = []
 
-    def _ensure(name, mod):
+    def _ensure(name: str, mod: types.ModuleType) -> None:
         if name not in sys.modules:
             sys.modules[name] = mod
             added.append(name)
