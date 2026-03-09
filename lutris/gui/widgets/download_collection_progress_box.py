@@ -5,6 +5,7 @@ from gettext import gettext as _
 from gi.repository import GObject, Gtk, Pango
 
 from lutris.gui.dialogs import display_error
+from lutris.util.download_cache import CacheState, create_cache_lock, update_cache_lock
 from lutris.util.downloader import Downloader
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
@@ -12,6 +13,23 @@ from lutris.util.strings import gtk_safe, human_size
 
 # Same reason as Downloader
 get_time = time.monotonic
+
+# Maximum number of file downloads running at the same time.  Keeping
+# this at 2 ("prefetch-one") eliminates the cold-start gap between
+# files without overloading the CDN (GOGDownloader already opens 4
+# Range connections per file).
+MAX_CONCURRENT_FILES = 2
+
+
+class _ActiveDownload:
+    """Tracks one active file download and its retry state."""
+
+    __slots__ = ("downloader", "file", "num_retries")
+
+    def __init__(self, file, downloader):
+        self.file = file
+        self.downloader = downloader
+        self.num_retries = 0
 
 
 class DownloadCollectionProgressBox(Gtk.Box):
@@ -31,18 +49,25 @@ class DownloadCollectionProgressBox(Gtk.Box):
         self.downloader = downloader
         self.is_complete = False
         self._file_queue = file_collection.files_list.copy()
-        self._file_download = None  # file being downloaded
         self.title = file_collection.human_url
         self.num_files_downloaded = 0
         self.num_files_to_download = file_collection.num_files
-        self.num_retries = 0
         self.full_size = file_collection.full_size
-        self.current_size = 0
         self.time_left = "00:00:00"
         self.time_left_check_time = 0
         self.last_size = 0
         self.avg_speed = 0
         self.speed_list = []
+
+        # --- Concurrent download state ---
+        # List of _ActiveDownload objects currently downloading.
+        self._active_downloads: list[_ActiveDownload] = []
+        # Cumulative bytes for files that have already completed.
+        self._completed_sizes: dict[str, int] = {}
+
+        # Legacy compat: kept for the single-downloader callers that
+        # pass a ``downloader`` kwarg (e.g. on_retry_clicked).
+        self.num_retries = 0
 
         top_box = Gtk.Box()
         self.main_label = Gtk.Label(self.title)
@@ -85,60 +110,138 @@ class DownloadCollectionProgressBox(Gtk.Box):
         self.show_all()
         self.cancel_button.hide()
 
-    def update_download_file_label(self, file_name):
-        """Update file label to file being downloaded"""
-        self.file_name_label.set_text(file_name)
+    # ------------------------------------------------------------------
+    # Downloader creation helper
+    # ------------------------------------------------------------------
 
-    def get_next_file_from_queue(self):
-        """Returns the file to download; if there isn't one this will pull the next one
-        from the queue and return that. If there are none there, this returns None."""
-        if not self._file_download:
-            if not self._file_queue:
-                return None
+    def _create_downloader(self, file):
+        """Create a Downloader (or subclass) for *file* and return it.
 
-            self._file_download = self._file_queue.pop()
-            self.num_retries = 0
-
-        return self._file_download
-
-    def start(self) -> None:
-        """Start downloading a file."""
-        file = self.get_next_file_from_queue()
-        if not file:
-            self.cancel_button.set_sensitive(False)
-            self.is_complete = True
-            self.emit("complete", {})
-            return
-
-        # Check if the file already exists in the cache and skip this download then
-        if os.path.exists(file.dest_file):
-            logger.info("File exists, skipping download: '%s'", file.dest_file)
-            self.num_files_downloaded += 1
-            self.current_size += os.path.getsize(file.dest_file)
-            self._file_download = None
-            self.start()
-            return
-
-        # Use a temporary file to avoid problems with partially downloaded files
+        Handles `downloader_class` look-up, ``.tmp`` path creation and
+        cache-lock creation.  Returns ``None`` on failure.
+        """
         tmp_path = file.dest_file + ".tmp"
         file.tmp_file = tmp_path
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
-        self.update_download_file_label(file.filename)
-        if not self.downloader:
-            try:
-                self.downloader = Downloader(file.url, file.tmp_file, referer=file.referer, overwrite=True)
-            except RuntimeError as ex:
-                display_error(ex, parent=self.get_toplevel())
-                self.emit("cancel")
-                return
+        try:
+            downloader_cls = getattr(file, "downloader_class", None) or Downloader
+            dl = downloader_cls(file.url, file.tmp_file, referer=file.referer, overwrite=True)
+        except RuntimeError as ex:
+            display_error(ex, parent=self.get_toplevel())
+            return None
 
+        create_cache_lock(file.dest_file, CacheState.DOWNLOADING)
+        return dl
+
+    # ------------------------------------------------------------------
+    # File-label helpers
+    # ------------------------------------------------------------------
+
+    def _update_active_file_labels(self):
+        """Set the file-name label to the names of all active downloads."""
+        names = [ad.file.filename for ad in self._active_downloads]
+        self.file_name_label.set_text(", ".join(names) if names else "")
+
+    # ------------------------------------------------------------------
+    # Queue helpers
+    # ------------------------------------------------------------------
+
+    def _pop_next_downloadable_file(self):
+        """Pop and return the next file from the queue, skipping cached files.
+
+        Returns ``None`` when the queue is empty.
+        """
+        while self._file_queue:
+            file = self._file_queue.pop()
+            if os.path.exists(file.dest_file):
+                logger.info("File exists, skipping download: '%s'", file.dest_file)
+                self.num_files_downloaded += 1
+                size = os.path.getsize(file.dest_file)
+                self._completed_sizes[file.dest_file] = size
+                continue
+            return file
+        return None
+
+    # ------------------------------------------------------------------
+    # Start / prefetch
+    # ------------------------------------------------------------------
+
+    def _start_one(self, file):
+        """Create a downloader for *file*, add to active list, and start it.
+
+        Returns the ``_ActiveDownload`` on success, ``None`` on failure.
+        """
+        dl = self._create_downloader(file)
+        if dl is None:
+            self.emit("cancel")
+            return None
+        ad = _ActiveDownload(file, dl)
+        self._active_downloads.append(ad)
+        dl.start()
+        return ad
+
+    def _start_prefetch(self):
+        """If there is room and files remain, start the next download."""
+        if len(self._active_downloads) >= MAX_CONCURRENT_FILES:
+            return
+        file = self._pop_next_downloadable_file()
+        if file is None:
+            return
+        self._start_one(file)
+        self._update_active_file_labels()
+
+    def start(self) -> None:
+        """Start downloading files from the collection.
+
+        Launches up to ``MAX_CONCURRENT_FILES`` downloads immediately.
+        """
+        # If an external caller already supplied a downloader
+        # (e.g. on_retry_clicked), honour it as the primary.
+        if self.downloader:
+            file = self._file_queue.pop() if self._file_queue else None
+            if file is None:
+                self.cancel_button.set_sensitive(False)
+                self.is_complete = True
+                self.emit("complete", {})
+                return
+            file.tmp_file = self.downloader.dest
+            ad = _ActiveDownload(file, self.downloader)
+            self._active_downloads.append(ad)
+            self._update_active_file_labels()
+            create_cache_lock(file.dest_file, CacheState.DOWNLOADING)
+            schedule_repeating_at_idle(self._progress, interval_seconds=0.5)
+            self.cancel_button.show()
+            self.cancel_button.set_sensitive(True)
+            if self.downloader.state != self.downloader.DOWNLOADING:
+                self.downloader.start()
+            self._start_prefetch()
+            return
+
+        # Normal path: start first file, then prefetch
+        file = self._pop_next_downloadable_file()
+        if file is None:
+            self.cancel_button.set_sensitive(False)
+            self.is_complete = True
+            self.emit("complete", {})
+            return
+
+        ad = self._start_one(file)
+        if ad is None:
+            return  # error already emitted
+
+        self._update_active_file_labels()
         schedule_repeating_at_idle(self._progress, interval_seconds=0.5)
         self.cancel_button.show()
         self.cancel_button.set_sensitive(True)
-        if not self.downloader.state == self.downloader.DOWNLOADING:
-            self.downloader.start()
+
+        # Prefetch the next file immediately
+        self._start_prefetch()
+
+    # ------------------------------------------------------------------
+    # Retry helpers
+    # ------------------------------------------------------------------
 
     def set_retry_button(self):
         """Transform the cancel button into a retry button"""
@@ -153,35 +256,97 @@ class DownloadCollectionProgressBox(Gtk.Box):
         button.set_label(_("Cancel"))
         button.disconnect(self.cancel_cb_id)
         self.cancel_cb_id = button.connect("clicked", self.on_cancel_clicked)
-        self.downloader.reset()
+        if self.downloader:
+            self.downloader.reset()
+        self._active_downloads.clear()
         self.start()
 
+    # ------------------------------------------------------------------
+    # Cancel
+    # ------------------------------------------------------------------
+
     def on_cancel_clicked(self, _widget=None):
-        """Cancel the current download."""
+        """Cancel all active downloads."""
         logger.debug("Download cancel requested")
-        if self.downloader:
-            self.downloader.cancel()
+        for ad in self._active_downloads:
+            ad.downloader.cancel()
+        self._active_downloads.clear()
+        self.downloader = None
         self.cancel_button.set_sensitive(False)
         self.emit("cancel")
 
+    # ------------------------------------------------------------------
+    # Aggregate progress helpers
+    # ------------------------------------------------------------------
+
+    def _aggregate_downloaded_size(self):
+        """Return total bytes downloaded (completed + active)."""
+        completed = sum(self._completed_sizes.values())
+        active = sum(ad.downloader.downloaded_size for ad in self._active_downloads)
+        return completed + active
+
+    # ------------------------------------------------------------------
+    # Progress polling
+    # ------------------------------------------------------------------
+
     def _progress(self) -> bool:
-        """Show download progress of current file."""
-        if self.downloader.state in [self.downloader.CANCELLED, self.downloader.ERROR]:
-            self.progressbar.set_fraction(0)
-            if self.downloader.state == self.downloader.CANCELLED:
+        """Periodic callback: check active downloads, update UI."""
+        if not self._active_downloads:
+            return False  # nothing to poll
+
+        # ---- Handle error / cancelled states on each active download ----
+        finished = []
+        for ad in self._active_downloads:
+            state = ad.downloader.state
+            if state == ad.downloader.CANCELLED:
+                self.progressbar.set_fraction(0)
                 self._set_text(_("Download interrupted"))
+                self._cancel_all()
                 self.emit("cancel")
-            else:
-                if self.num_retries > self.max_retries:
-                    self._set_text(str(self.downloader.error)[:80])
-                    self.emit("error", self.downloader.error)
+                return False
+
+            if state == ad.downloader.ERROR:
+                if ad.num_retries >= self.max_retries:
+                    # Exhausted retries — fail entire collection
+                    self._set_text(str(ad.downloader.error)[:80])
+                    self._cancel_all()
+                    self.emit("error", ad.downloader.error)
                     return False
-                self.num_retries += 1
-                if self.downloader:
-                    self.downloader.reset()
-                    self.start()
-            return False
-        downloaded_size = self.current_size + self.downloader.downloaded_size
+                # Retry this one download independently
+                ad.num_retries += 1
+                logger.debug(
+                    "Retrying file %s (attempt %d/%d)",
+                    ad.file.filename,
+                    ad.num_retries,
+                    self.max_retries,
+                )
+                ad.downloader.reset()
+                ad.downloader = self._create_downloader(ad.file)
+                if ad.downloader is None:
+                    self._cancel_all()
+                    self.emit("cancel")
+                    return False
+                ad.downloader.start()
+                continue
+
+            if state == ad.downloader.COMPLETED:
+                finished.append(ad)
+
+        # ---- Process completions ----
+        for ad in finished:
+            self.num_files_downloaded += 1
+            self._completed_sizes[ad.file.dest_file] = ad.downloader.downloaded_size
+            os.rename(ad.file.tmp_file, ad.file.dest_file)
+            update_cache_lock(ad.file.dest_file, CacheState.DOWNLOADED)
+            self._active_downloads.remove(ad)
+
+        # If files finished, maybe start more prefetch downloads
+        if finished:
+            self._start_prefetch()
+            self._update_active_file_labels()
+
+        # ---- Update aggregate progress ----
+        downloaded_size = self._aggregate_downloaded_size()
         progress = 0
         if self.full_size > 0:
             progress = min(downloaded_size / self.full_size, 1)
@@ -195,29 +360,28 @@ class DownloadCollectionProgressBox(Gtk.Box):
             time=self.time_left,
         )
         self._set_text(progress_text)
-        if self.downloader.state == self.downloader.COMPLETED:
-            self.num_files_downloaded += 1
-            self.current_size += self.downloader.downloaded_size
-            os.rename(self._file_download.tmp_file, self._file_download.dest_file)
-            # set file to None to get next one
-            self._file_download = None
+
+        # ---- Check if all done ----
+        if not self._active_downloads and not self._file_queue:
+            self.cancel_button.set_sensitive(False)
+            self.is_complete = True
             self.downloader = None
-            # start the downloader to a new file or finish
-            self.start()
+            self.emit("complete", {})
             return False
+
         return True
 
+    # ------------------------------------------------------------------
+    # Speed / ETA (aggregate)
+    # ------------------------------------------------------------------
+
     def update_speed_and_time(self):
-        """Update time left and average speed."""
+        """Update time left and average speed using aggregate throughput."""
         elapsed_time = get_time() - self.time_left_check_time
         if elapsed_time < 1:  # Minimum delay
             return
 
-        if not self.downloader:
-            self.time_left = "???"
-            return
-
-        downloaded_size = self.current_size + self.downloader.downloaded_size
+        downloaded_size = self._aggregate_downloaded_size()
         elapsed_size = downloaded_size - self.last_size
         self.last_size = downloaded_size
 
@@ -237,6 +401,18 @@ class DownloadCollectionProgressBox(Gtk.Box):
         hours, minutes = divmod(minutes, 60)
         self.time_left_check_time = get_time()
         self.time_left = "%d:%02d:%02d" % (hours, minutes, seconds)
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _cancel_all(self):
+        """Cancel every active download without emitting a signal."""
+        for ad in self._active_downloads:
+            ad.downloader.cancel()
+        self._active_downloads.clear()
+        self.downloader = None
+        self.cancel_button.set_sensitive(False)
 
     def _set_text(self, text):
         markup = "<span size='10000'>{}</span>".format(gtk_safe(text))
