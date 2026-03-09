@@ -3,13 +3,18 @@
 import os
 import time
 from shutil import copyfile
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, Optional, Set, TypeAlias
 
 from lutris import settings, sysoptions
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
 from lutris.util.system import path_exists
 from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
+
+GameConfigDict: TypeAlias = Dict[str, Any]
+LaunchConfigDict: TypeAlias = Dict[str, Any]
+RunnerConfigDict: TypeAlias = Dict[str, Any]
+SystemConfigDict: TypeAlias = Dict[str, Any]
 
 
 def make_game_config_id(game_slug: str) -> str:

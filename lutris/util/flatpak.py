@@ -61,7 +61,7 @@ def get_installed_apps() -> List[Dict[str, str]]:
     return packages
 
 
-def is_app_installed(appid: str) -> bool:
+def is_app_installed(appid: Optional[str]) -> bool:
     """Return whether an app is installed"""
     if not appid:
         return False
