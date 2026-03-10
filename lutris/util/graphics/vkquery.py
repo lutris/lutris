@@ -373,7 +373,7 @@ def _get_vk_instance() -> Optional[VkInstance]:
     try:
         vulkan = _get_vulkan()
     except OSError:
-        return []  # type: ignore
+        return None
     app_info = VkApplicationInfo("vkinfo", version=(0, 1, 0))
     create_info = VkInstanceCreateInfo(app_info)
     instance = VkInstance()
