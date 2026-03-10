@@ -115,8 +115,10 @@ class ProgressBox(Gtk.Box):
 
     def _set_label(self, markup: str) -> None:
         if markup:
+            markup = "<span size='10000'>%s</span>" % markup
             if markup != self.label.get_text():
                 self.label.set_markup(markup)
+                self.label.set_tooltip_markup(markup)
             self.label.show()
         else:
             self.label.hide()
