@@ -3,7 +3,7 @@
 import re
 import subprocess
 from collections import namedtuple
-from typing import Iterable, List, Tuple, Union, cast
+from typing import Iterable, List, Tuple, Union
 
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
 from lutris.util.linux import LINUX_SYSTEM
@@ -203,7 +203,7 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
         # resolution instead of the rendering buffer's resolution (which may be scaled).
         if not is_display_x11() and primary.preferred_mode and primary.preferred_mode != mode:
             mode = primary.preferred_mode
-        return cast(Tuple[str, str], mode.split("x"))
+        return tuple(mode.split("x"))
 
     @staticmethod
     def set_resolution(resolution: Union[str, Iterable[Output]]) -> None:
