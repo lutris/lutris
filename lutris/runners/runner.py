@@ -293,7 +293,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             env["VK_DRIVER_FILES"] = gpu.icd_files  # Current form
 
             # To classify for multiple GPUs with the same vendorID:deviceID
-            if hasattr(gpu, "device_uuid"):
+            if hasattr(gpu, "device_uuid") and gpu.device_uuid:
                 env["DXVK_FILTER_DEVICE_UUID"] = gpu.device_uuid
 
         # Set PulseAudio latency to 60ms
