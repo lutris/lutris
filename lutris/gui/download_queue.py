@@ -66,9 +66,6 @@ class DownloadQueue(Gtk.ScrolledWindow):
                 self.remove_progress_box(progress_function)
                 return progress_info
 
-            if progress_info.label_markup:
-                progress_info.label_markup = "<span size='10000'>%s</span>" % progress_info.label_markup
-
             return progress_info
 
         progress_box = self.progress_boxes.get(progress_function)
