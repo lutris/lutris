@@ -3,6 +3,7 @@
 import os
 from collections import OrderedDict
 from gettext import gettext as _
+from gettext import pgettext as C_
 
 from lutris import runners
 from lutris.util import linux, system
@@ -25,7 +26,7 @@ def get_locale_choices():
     suitable for inclusion in drop-downs.
     """
     return [
-        (_("System"), ""),
+        (C_("locale", "System"), ""),
         (_("Chinese"), "zh_CN.utf8"),
         (_("Croatian"), "hr_HR.utf8"),
         (_("Dutch"), "nl_NL.utf8"),
@@ -499,41 +500,6 @@ system_options = [  # pylint: disable=invalid-name
             "(usually /dev/input/js0 to stop the game on joystick "
             "unplugging)"
         ),
-    },
-    {
-        "section": _("Xephyr (Deprecated, use Gamescope)"),
-        "option": "xephyr",
-        "label": _("Use Xephyr"),
-        "type": "choice",
-        "choices": (
-            (_("Off"), "off"),
-            (_("8BPP (256 colors)"), "8bpp"),
-            (_("16BPP (65536 colors)"), "16bpp"),
-            (_("24BPP (16M colors)"), "24bpp"),
-        ),
-        "default": "off",
-        "available": is_display_x11,
-        "advanced": True,
-        "help": _("Run program in Xephyr to support 8BPP and 16BPP color modes"),
-    },
-    {
-        "section": _("Xephyr (Deprecated, use Gamescope)"),
-        "option": "xephyr_resolution",
-        "type": "string",
-        "label": _("Xephyr resolution"),
-        "available": is_display_x11,
-        "advanced": True,
-        "help": _("Screen resolution of the Xephyr server"),
-    },
-    {
-        "section": _("Xephyr (Deprecated, use Gamescope)"),
-        "option": "xephyr_fullscreen",
-        "type": "bool",
-        "label": _("Xephyr Fullscreen"),
-        "default": True,
-        "available": is_display_x11,
-        "advanced": True,
-        "help": _("Open Xephyr in fullscreen (at the desktop resolution)"),
     },
 ]
 

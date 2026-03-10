@@ -17,7 +17,8 @@ DEFAULT_GAMEID = "umu-default"
 
 def is_proton_version(version: Optional[str]) -> bool:
     """True if the version indicated specifies a Proton version of Wine; these
-    require special handling."""
+    require special handling. This does not recognize the special 'ge-proton' version
+    found in configurations; this must be specially  handled elsewhere."""
     return version in get_proton_versions()
 
 
@@ -161,8 +162,11 @@ def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAUL
 
     This also propagates LC_ALL to HOST_LC_ALL, if LC_ALL is set."""
 
-    if "PROTONPATH" not in env and not is_umu_path(wine_path):
-        env["PROTONPATH"] = get_proton_path_by_path(wine_path)
+    if "PROTONPATH" not in env:
+        if is_umu_path(wine_path):
+            env["PROTONPATH"] = "GE-Proton"
+        else:
+            env["PROTONPATH"] = get_proton_path_by_path(wine_path)
 
     if "GAMEID" not in env:
         env["GAMEID"] = game_id

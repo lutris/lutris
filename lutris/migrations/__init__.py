@@ -3,7 +3,7 @@ import importlib
 from lutris import settings
 from lutris.util.log import logger
 
-MIGRATION_VERSION = 16  # Never decrease this number
+MIGRATION_VERSION = 17  # Never decrease this number
 
 # Replace deprecated migrations with empty lists
 MIGRATIONS = [
@@ -23,6 +23,7 @@ MIGRATIONS = [
     ["migrate_hidden_category"],
     ["migrate_ge_proton"],
     ["migrate_banners_back"],
+    ["migrate_proton_to_wine_dir"],
 ]
 
 

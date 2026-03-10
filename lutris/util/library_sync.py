@@ -101,12 +101,12 @@ class LibrarySyncer:
         )
         for category in remote_game["categories"]:
             self._ensure_category(category)
-            add_game_to_category(game_id, self.category_ids[category])
+            add_game_to_category(game_id, self.category_ids[category], no_signal=True)
 
     def _ensure_category(self, category):
         """Make sure a given category exists in the database, create it if not"""
         if category not in self.categories.values():
-            add_category(category)
+            add_category(category, no_signal=True)
             self.categories = self._load_categories()
             self.category_ids = self._load_categories(reverse=True)
 
@@ -115,12 +115,12 @@ class LibrarySyncer:
         game_categories: List[str] = game.get_categories()
         remote_categories: List[str] = remote_game["categories"]
         for category in game_categories:
-            if category not in remote_categories:
-                remove_category_from_game(game.id, self.category_ids[category])
+            if category not in remote_categories and category in self.category_ids:
+                remove_category_from_game(game.id, self.category_ids[category], no_signal=True)
         for category in remote_categories:
             if category not in game_categories:
                 self._ensure_category(category)
-                add_game_to_category(game.id, self.category_ids[category])
+                add_game_to_category(game.id, self.category_ids[category], no_signal=True)
 
     def _db_game_to_api(self, db_game):
         """Serialize DB game entry to a payload compatible with the API"""

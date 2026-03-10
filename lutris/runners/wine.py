@@ -4,7 +4,7 @@
 import os
 import shlex
 from gettext import gettext as _
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Set, Tuple
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
@@ -16,6 +16,7 @@ from lutris.exceptions import (
     MisconfigurationError,
     MissingExecutableError,
     MissingGameExecutableError,
+    SymlinkNotUsableError,
     UnspecifiedVersionError,
 )
 from lutris.game import Game
@@ -35,7 +36,7 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
 )
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
+from lutris.util.display import DISPLAY_MANAGER, get_default_dpi, is_display_x11
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -64,18 +65,33 @@ from lutris.util.wine.wine import (
     is_esync_limit_set,
     is_fsync_supported,
     is_gstreamer_build,
+    is_winewayland_available,
 )
+
+if TYPE_CHECKING:
+    from lutris.api import RunnerVersionDict
+
+
+def _is_proton_config(config: LutrisConfig) -> bool:
+    version = config.runner_config.get("version")
+    return version == GE_PROTON_LATEST or proton.is_proton_version(version)
 
 
 def _is_pre_proton(_option_key: str, config: LutrisConfig) -> bool:
-    version = config.runner_config.get("version")
-    return not proton.is_proton_version(version)
+    return not _is_proton_config(config)
+
+
+def _is_proton_hdr_available(_option_key: str, config: LutrisConfig) -> bool:
+    if _is_proton_config(config):
+        version = config.runner_config.get("version")
+        return bool(version and is_winewayland_available(version) and config.runner_config.get("Graphics") == "wayland")
+
+    return False
 
 
 def _get_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     arch = config.game_config.get("arch")
-    version = config.runner_config.get("version")
-    if arch == "win32" and proton.is_proton_version(version):
+    if arch == "win32" and _is_proton_config(config):
         return _("Proton is not compatible with 32-bit prefixes.")
 
     return None
@@ -91,6 +107,29 @@ def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> Optional[str]
         return None
 
     return _("<b>Warning</b> Some Wine configuration options cannot be applied, if no prefix can be found.")
+
+
+def _get_exe_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+    exe = config.game_config.get("exe") or ""
+    stripped_exe = exe.strip()
+
+    if not stripped_exe:
+        return _("<b>Warning</b> No executable path specified")
+    if exe != stripped_exe:
+        return _("<b>Warning</b> Executable path has extra whitespace at the beginning or end")
+    if not os.path.isabs(exe):
+        # The working dir is a bit dicey- Lutris doe snot use the prefix as a working dir,
+        # but it seems like Wine does, so we'll be conservative here. Only works with an explicit
+        # prefix- if we derive it from "exe" we obviosly can't use that.
+        working_dir = config.game_config.get("working_dir") or config.game_config.get("prefix") or ""
+        exe = os.path.join(os.path.expanduser(working_dir), os.path.expanduser(exe))
+
+    exe = system.fix_path_case(exe)
+
+    if not os.path.isfile(exe):
+        return _("<b>Warning</b> Executable file does not exist")
+
+    return None
 
 
 def _get_dxvk_warning() -> Optional[str]:
@@ -175,6 +214,26 @@ def _get_virtual_desktop_warning(_option_key: str, config: LutrisConfig) -> Opti
     return message
 
 
+def _get_wine_wayland_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+    runner_config = config.runner_config
+    if runner_config.get("Graphics") == "wayland":
+        runner_version = runner_config.get("version")
+
+        if not runner_version:
+            return None
+
+        if is_display_x11():
+            return _("You cannot use winewayland driver when using an X11-based session")
+
+        if not is_winewayland_available(runner_version):
+            if _is_proton_config(config):
+                return _("Your Proton version does not support winewayland graphics driver")
+            else:
+                return _("Your Wine version does not support winewayland graphics driver")
+
+    return None
+
+
 def _get_wine_version_choices():
     version_choices = [(_("Custom (select executable below)"), "custom")]
     system_wine_labels = {
@@ -209,6 +268,7 @@ class wine(Runner):
             "type": "file",
             "label": _("Executable"),
             "help": _("The game's main EXE file"),
+            "warning": _get_exe_warning,
         },
         {
             "option": "args",
@@ -240,6 +300,7 @@ class wine(Runner):
             "option": "arch",
             "type": "choice",
             "label": _("Prefix architecture"),
+            "visible": _is_pre_proton,
             "choices": [(_("Auto"), "auto"), (_("32-bit"), "win32"), (_("64-bit"), "win64")],
             "default": "auto",
             "help": _("The architecture of the Windows environment"),
@@ -382,27 +443,17 @@ class wine(Runner):
             "default": lambda: DXVKNVAPIManager().version,
         },
         {
-            "option": "dgvoodoo2",
+            "option": "proton_hdr",
             "section": _("Graphics"),
-            "label": _("Enable dgvoodoo2"),
+            "label": _("Enable HDR (Experimental)"),
             "type": "bool",
             "default": False,
-            "advanced": False,
-            "help": _(
-                "dgvoodoo2 is an alternative translation layer for rendering old games "
-                "that utilize D3D1-7 and Glide APIs. As it translates to D3D11, it's "
-                "recommended to use it in combination with DXVK. Only 32-bit apps are supported."
-            ),
-        },
-        {
-            "option": "dgvoodoo2_version",
-            "section": _("Graphics"),
-            "label": _("dgvoodoo2 version"),
             "advanced": True,
-            "type": "choice_with_entry",
-            "choices": lambda: dgvoodoo2Manager().version_choices,
-            "default": lambda: dgvoodoo2Manager().version,
-            "conditional_on": "dgvoodoo2",
+            "visible": _is_proton_hdr_available,
+            "help": _(
+                "Enable Proton's support for High Dynamic Range graphics. "
+                "Requires Wayland selected as Graphics backend."
+            ),
         },
         {
             "option": "esync",
@@ -546,6 +597,22 @@ class wine(Runner):
             ),
         },
         {
+            "option": "Graphics",
+            "label": _("Graphics driver"),
+            "type": "choice",
+            "advanced": True,
+            "choices": [
+                (_("Auto"), "auto"),
+                ("Wayland", "wayland"),
+                ("X11", "x11"),
+            ],
+            "default": "auto",
+            "warning": _get_wine_wayland_warning,
+            "help": _(
+                "Which graphics backend to use.\nBy default, Wine automatically picks the right one for your system."
+            ),
+        },
+        {
             "option": "overrides",
             "type": "mapping",
             "label": _("DLL overrides"),
@@ -585,6 +652,7 @@ class wine(Runner):
     reg_prefix = "HKEY_CURRENT_USER/Software/Wine"
     reg_keys = {
         "Audio": r"%s/Drivers" % reg_prefix,
+        "Graphics": r"%s/Drivers" % reg_prefix,
         "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
         "Desktop": "MANAGED",
         "WineDesktop": "MANAGED",
@@ -682,7 +750,7 @@ class wine(Runner):
                 arch = WINE_DEFAULT_ARCH
         return arch
 
-    def get_runner_version(self, version: Optional[str] = None) -> Optional[Dict[str, str]]:
+    def get_runner_version(self, version: Optional[str] = None) -> Optional["RunnerVersionDict"]:
         if version in WINE_PATHS:
             return {"version": version}
 
@@ -728,6 +796,18 @@ class wine(Runner):
             return fixed_resolved
 
         return resolved
+
+    def get_launch_config_exe(self, launch_config):
+        """Resolve launch config exe relative to game_path, like game_exe does."""
+        exe = launch_config.get("exe")
+        if not exe:
+            return None
+        exe = os.path.expanduser(exe)
+        if os.path.isabs(exe):
+            return system.fix_path_case(exe)
+        if self.game_path:
+            return system.fix_path_case(os.path.join(self.game_path, exe))
+        return exe
 
     def get_executable(self, version: str = "", fallback: bool = True) -> str:
         """Return the path to the Wine executable.
@@ -815,7 +895,10 @@ class wine(Runner):
             if not db_game:
                 raise MisconfigurationError(_("The required game '%s' could not be found.") % installer.requires)
             game = Game(db_game["id"])
-            version = game.config.runner_config["version"]
+            if game.config:
+                version = game.config.runner_config["version"]
+            else:
+                version = None
 
         if not version and use_runner_config:
             # Try to read the version from the saved runner config for Wine.
@@ -981,6 +1064,14 @@ class wine(Runner):
             if not value or (value == "auto" and key not in managed_keys):
                 prefix_manager.clear_registry_subkeys(path, key)
             elif key in self.runner_config:
+                if value and key == "Graphics" and value == "wayland":
+                    if not is_winewayland_available(self.read_version_from_config()):
+                        logger.warning("Your Wine version does not support winewayland graphics driver")
+                        continue
+
+                    if proton.is_proton_path(self.get_executable()):
+                        continue
+
                 if key in managed_keys:
                     # Do not pass fallback 'auto' value to managed keys
                     if value == "auto":
@@ -1020,11 +1111,17 @@ class wine(Runner):
     def prelaunch(self):
         prefix_path = self.prefix_path
         if prefix_path:
+            if os.path.islink(prefix_path) and not os.path.exists(prefix_path):
+                raise SymlinkNotUsableError(
+                    message=f"Link {prefix_path} couldn't be used, please check permissions or broken link.",
+                    link=prefix_path,
+                )
             if not system.path_exists(os.path.join(prefix_path, "user.reg")):
                 logger.warning("No valid prefix detected in %s, creating one...", prefix_path)
                 create_prefix(prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
 
             prefix_manager = WinePrefixManager(prefix_path)
+            prefix_manager.cleanup_broken_symlinks()
             if self.runner_config.get("autoconf_joypad", False):
                 prefix_manager.configure_joypads()
             prefix_manager.create_user_symlinks()
@@ -1101,6 +1198,9 @@ class wine(Runner):
         wine_config_version = self.read_version_from_config()
         if wine_config_version == GE_PROTON_LATEST:
             env["PROTONPATH"] = "GE-Proton"
+            is_proton_version = True
+        else:
+            is_proton_version = proton.is_proton_version(wine_config_version)
         env["WINE"] = wine_exe
 
         files_dir = get_runner_files_dir_for_version(wine_config_version)
@@ -1145,12 +1245,22 @@ class wine(Runner):
         if self.runner_config.get("eac"):
             env["PROTON_EAC_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "eac_runtime")
 
-        if not self.runner_config.get("dxvk") or not LINUX_SYSTEM.is_vulkan_supported():
+        using_dxvk = self.runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported
+        if not using_dxvk:
             env["PROTON_USE_WINED3D"] = "1"
 
-        # We always use DXVK D3D8; so should Proton.
         if "PROTON_DXVK_D3D8" not in env:
-            env["PROTON_DXVK_D3D8"] = "1"
+            env["PROTON_DXVK_D3D8"] = "1" if using_dxvk else "0"
+
+        if (
+            self.runner_config.get("Graphics") == "wayland"
+            and is_winewayland_available(wine_config_version)
+            and is_proton_version
+        ):
+            env["PROTON_ENABLE_WAYLAND"] = "1"
+
+            if self.runner_config.get("proton_hdr"):
+                env["PROTON_ENABLE_HDR"] = "1"
 
         for dll_manager in self.get_dll_managers(enabled_only=True):
             self.dll_overrides.update(dll_manager.get_enabling_dll_overrides())
@@ -1259,15 +1369,22 @@ class wine(Runner):
 
         if proton.is_proton_path(self.get_executable()):
             folder_pids = set()
+            gamescope_pids = set()
+            has_gamescope = self.system_config.get("gamescope")
+
             for pid in candidate_pids:
-                cmdline = Process(pid).cmdline or ""
+                proc = Process(pid)
+                cmdline = proc.cmdline or ""
                 # pressure-vessel: This could potentially pick up PIDs not started by lutris?
                 if game_folder in cmdline or "pressure-vessel" in cmdline:
                     folder_pids.add(pid)
+                # Include gamescope-related processes when gamescope is enabled
+                if has_gamescope and (proc.name or "").startswith("gamescope"):
+                    gamescope_pids.add(pid)
 
             uuid_pids = set(pid for pid in candidate_pids if Process(pid).environ.get("LUTRIS_GAME_UUID") == game_uuid)
 
-            return folder_pids & uuid_pids
+            return (folder_pids & uuid_pids) | gamescope_pids
         else:
             return super().filter_game_pids(candidate_pids, game_uuid, game_folder)
 
@@ -1282,6 +1399,9 @@ class wine(Runner):
             env=self.get_env(),
             initial_pids=game_pids,
         )
+
+        # Kill non-Wine processes (like gamescope) that winekill doesn't handle
+        super().force_stop_game(game_pids)
 
     def extract_icon(self, game_slug):
         """Extracts the 128*128 icon from EXE and saves it, if not resizes the biggest icon found.

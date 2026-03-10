@@ -18,13 +18,17 @@ from lutris.services.service_media import ServiceMedia
 from lutris.util.battlenet.definitions import ProductDbInfo
 from lutris.util.log import logger
 
+# Use pure-Python protobuf implementation for compatibility across all protobuf versions.
+# The old-style generated pb2 file is incompatible with protobuf 4.x+ native implementation.
+os.environ.setdefault("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "python")
+
 try:
     from lutris.util.battlenet.product_db_pb2 import ProductDb
 
     BNET_ENABLED = True
 except Exception as ex:
     # We do get strange Google-defined exceptions from problems with protobuf, so
-    # let's just catch (almost) everything. We do not want Lutris is crash, rather
+    # let's just catch (almost) everything. We do not want Lutris to crash, rather
     # we just want to suppress Battle.net and nothing else.
     logger.warning("The Battle.net source is unavailable because Google protobuf could not be loaded: %s", ex)
     BNET_ENABLED = False
@@ -34,9 +38,19 @@ GAME_IDS = {
     "s2": ("s2", "StarCraft II", "S2", "starcraft-ii"),
     "wow": ("wow", "World of Warcraft", "WoW", "world-of-warcraft"),
     "wow_classic": ("wow_classic", "World of Warcraft Classic", "WoW_wow_classic", "world-of-warcraft-classic"),
+    "wow_classic_era": (
+        "wow_classic_era",
+        "World of Warcraft Classic Era",
+        "WoW_wow_classic_era",
+        "world-of-warcraft-classic",
+    ),
     "pro": ("pro", "Overwatch 2", "Pro", "overwatch-2"),
+    "w1": ("w1", "Warcraft: Orcs & Humans", "W1", "warcraft-orcs-humans"),
+    "w1r": ("w1r", "Warcraft I: Remastered", "W1R", "warcraft-i-remastered"),
     "w2bn": ("w2bn", "Warcraft II: Battle.net Edition", "W2BN", "warcraft-ii-battle-net-edition"),
+    "w2r": ("w2r", "Warcraft II: Remastered", "W2R", "warcraft-ii-remastered"),
     "w3": ("w3", "Warcraft III", "W3", "warcraft-iii-reforged"),
+    "gryphon": ("gryphon", "Warcraft Rumble", "GRY", "warcraft-rumble"),
     "hsb": ("hsb", "Hearthstone", "WTCG", "hearthstone"),
     "hero": ("hero", "Heroes of the Storm", "Hero", "heroes-of-the-storm"),
     "d3cn": ("d3cn", "暗黑破壞神III", "D3CN", "diablo-iii"),
@@ -51,6 +65,8 @@ GAME_IDS = {
         "call-of-duty-modern-warfare-2-campaign-remastered",
     ),
     "zeus": ("zeus", "Call of Duty: Black Ops Cold War", "ZEUS", "call-of-duty-black-ops-cold-war"),
+    "auks": ("auks", "Call of Duty: Modern Warfare II", "AUKS", "call-of-duty-modern-warfare-ii"),
+    "codhq": ("codhq", "Call of Duty HQ", "CODHQ", "call-of-duty-hq"),
     "rtro": ("rtro", "Blizzard Arcade Collection", "RTRO", "blizzard-arcade-collection"),
     "wlby": ("wlby", "Crash Bandicoot 4: It's About Time", "WLBY", "crash-bandicoot-4-its-about-time"),
     "osi": ("osi", "Diablo® II: Resurrected", "OSI", "diablo-2-ressurected"),

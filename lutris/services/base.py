@@ -47,6 +47,7 @@ class LutrisIcon(LutrisBanner):
     dest_path = settings.ICON_PATH
     file_patterns = ["lutris_%s.png"]
     api_field = "icon"
+    can_be_fallback = False
 
     @property
     def custom_media_storage_size(self):

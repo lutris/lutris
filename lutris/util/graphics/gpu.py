@@ -10,7 +10,7 @@ from lutris.util.graphics import drivers
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
-VULKANINFO_AVAILABLE = shutil.which("vulkaninfo")
+VULKANINFO_PATH = shutil.which("vulkaninfo")
 VULKAN_DATA_DIRS = [
     "/usr/local/etc",  # standard site-local location
     "/usr/local/share",  # standard site-local location
@@ -75,7 +75,7 @@ class GPU:
         self.pci_subsys_id = self.gpu_info["PCI_SUBSYS_ID"].lower()
         self.pci_slot = self.gpu_info["PCI_SLOT_NAME"]
         self.icd_files = self.get_icd_files()
-        if VULKANINFO_AVAILABLE:
+        if VULKANINFO_PATH:
             try:
                 self.device_uuid = self.get_vulkaninfo_device_uuid()
                 self.name = self.get_vulkaninfo_name() or self.get_lspci_name()
@@ -120,12 +120,20 @@ class GPU:
 
     def get_vulkaninfo(self) -> Dict[str, Dict[str, str]]:
         """Runs vulkaninfo to find the GPU name"""
+        if not VULKANINFO_PATH:
+            raise RuntimeError("vulkaninfo is not available")
         subprocess_env = dict(os.environ)
-        subprocess_env["VK_DRIVER_FILES"] = self.icd_files  # Currently supported
-        subprocess_env["VK_ICD_FILENAMES"] = self.icd_files  # Deprecated
-        vulkaninfo_output = system.read_process_output(
-            ["vulkaninfo", "--summary"], env=subprocess_env, error_result=None
-        ).split("\n")
+        vulkaninfo_output_raw = system.read_process_output(
+            [VULKANINFO_PATH, "--summary"], env=os.environ, error_result=None
+        )
+        if not vulkaninfo_output_raw:
+            subprocess_env["VK_DRIVER_FILES"] = self.icd_files  # Currently supporte
+            subprocess_env["VK_ICD_FILENAMES"] = self.icd_files  # Deprecated
+            vulkaninfo_output_raw = system.read_process_output(
+                [VULKANINFO_PATH, "--summary"], env=subprocess_env, error_result=""
+            )
+
+        vulkaninfo_output = vulkaninfo_output_raw.split("\n") if vulkaninfo_output_raw else []
         result = {}
         devices_seen = False
         for line in vulkaninfo_output:
@@ -140,7 +148,7 @@ class GPU:
             if line.startswith("GPU"):
                 current_gpu = line
                 result[current_gpu] = {}
-            else:
+            elif "= " in line:
                 key, value = line.split("= ", maxsplit=1)
                 result[current_gpu][key.strip()] = value.strip()
         if "Failed to detect any valid GPUs" in result or "ERROR: [Loader Message]" in result:
@@ -150,20 +158,27 @@ class GPU:
 
     def get_vulkaninfo_name(self) -> Optional[str]:
         vulkaninfo = self.get_vulkaninfo()
+        best_name = None
         for gpu_index in vulkaninfo:
             pci_id = "%s:%s" % (
                 vulkaninfo[gpu_index]["vendorID"].replace("0x", ""),
                 vulkaninfo[gpu_index]["deviceID"].replace("0x", ""),
             )
             if pci_id == self.pci_id:
-                return vulkaninfo[gpu_index]["deviceName"]
-        return None
+                name = vulkaninfo[gpu_index]["deviceName"]
+                if not best_name or len(name) > len(best_name):
+                    best_name = name
+        return best_name
 
     def get_vulkaninfo_device_uuid(self) -> Optional[str]:
         vulkaninfo = self.get_vulkaninfo()
         for gpu_index in vulkaninfo:
-            device_uuid = vulkaninfo[gpu_index]["deviceUUID"].replace("-", "")
-            return device_uuid
+            pci_id = "%s:%s" % (
+                vulkaninfo[gpu_index]["vendorID"].replace("0x", ""),
+                vulkaninfo[gpu_index]["deviceID"].replace("0x", ""),
+            )
+            if pci_id == self.pci_id:
+                return vulkaninfo[gpu_index]["deviceUUID"].replace("-", "")
         return None
 
     def get_lspci_name(self):

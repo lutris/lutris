@@ -26,7 +26,7 @@ from lutris.util.log import logger
 from lutris.util.strings import slugify
 
 
-class ItchIoCover(ServiceMedia):
+class ItchIoCoverart(ServiceMedia):
     """itch.io game cover"""
 
     service = "itchio"
@@ -48,13 +48,13 @@ class ItchIoCover(ServiceMedia):
         return None
 
 
-class ItchIoCoverMedium(ItchIoCover):
+class ItchIoCoverartSmall(ItchIoCoverart):
     """itch.io game cover, at 60% size"""
 
     size = (189, 150)
 
 
-class ItchIoCoverSmall(ItchIoCover):
+class ItchIoBanner(ItchIoCoverart):
     """itch.io game cover, at 30% size"""
 
     size = (95, 75)
@@ -87,11 +87,11 @@ class ItchIoService(OnlineService):
     drm_free = True
     has_extras = True
     medias = {
-        "banner_small": ItchIoCoverSmall,
-        "banner_med": ItchIoCoverMedium,
-        "banner": ItchIoCover,
+        "banner": ItchIoBanner,
+        "coverart_small": ItchIoCoverartSmall,
+        "coverart_med": ItchIoCoverart,
     }
-    default_format = "banner"
+    default_format = "coverart_med"
 
     api_url = "https://api.itch.io"
     login_url = "https://itch.io/login"
@@ -510,8 +510,7 @@ class ItchIoService(OnlineService):
         Normally, if a game has no platforms we'll assume a default set of runners,
         but 'fix_missing_platforms' may be set to false to turn this off."""
         runners = []
-        traits = details["traits"]
-        traits.clear
+        traits = details.get("traits", [])
         for trait, runner in ItchIoService.runners_by_trait.items():
             if trait in traits:
                 runners.append(runner)
@@ -750,7 +749,7 @@ class ItchIoService(OnlineService):
                     continue
                 # default =  games/tools ("executables")
                 if upload["type"] == "default" and (installer.runner in ("linux", "wine")):
-                    upload_runners = self._get_detail_runners(upload)
+                    upload_runners = self._get_detail_runners(upload, fix_missing_platforms=False)
                     if installer.runner not in upload_runners:
                         continue
 
@@ -825,17 +824,32 @@ class ItchIoService(OnlineService):
         return files
 
     def get_file_weight(self, name, demo):
-        if name.endswith(".rpm"):
+        name_folded = name.casefold()
+        if name_folded.endswith(".rpm"):
             return 0xFF  # Not supported as an extractor
+        # Exclude non-game files that are sometimes miscategorized as "default"
+        if any(pattern in name_folded for pattern in ("wallpaper", "background", "artwork", "poster")):
+            return 0xFF
         weight = 0x0
-        if name.endswith(".deb"):
+        # Deprioritize .deb packages
+        if name_folded.endswith(".deb"):
             weight |= 0x01
+        # Deprioritize 'wrong bitness' installers
         if linux.LINUX_SYSTEM.is_64_bit:
-            if "386" in name or "32" in name:
+            if "386" in name_folded or "32" in name_folded:
                 weight |= 0x08
         else:
-            if "64" in name:
+            if "64" in name_folded:
                 weight |= 0x10
+        # Deprioritize builds for incompatible CPU architecture
+        arch = linux.LINUX_SYSTEM.arch
+        is_arm_build = any(a in name_folded for a in ("arm64", "aarch64", "armhf", "armv7"))
+        is_x86_build = any(a in name_folded for a in ("x86_64", "amd64", "x86-64"))
+        if arch in ("x86_64", "i386") and is_arm_build:
+            weight |= 0x20
+        elif arch in ("aarch64", "armv7") and is_x86_build:
+            weight |= 0x20
+        # Deprioritize demos- these are not even the game.
         if demo:
             weight |= 0x40
         return weight

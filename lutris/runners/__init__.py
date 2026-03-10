@@ -2,6 +2,7 @@
 
 __all__ = [
     "atari800",
+    "azahar",
     "cemu",
     "dolphin",
     "dosbox",
@@ -25,6 +26,7 @@ __all__ = [
     "rpcs3",
     "ryujinx",
     "scummvm",
+    "shadps4",
     "snes9x",
     "steam",
     "vice",
@@ -32,6 +34,7 @@ __all__ = [
     "web",
     "wine",
     "xemu",
+    "xenia",
     "yuzu",
     "zdoom",
 ]

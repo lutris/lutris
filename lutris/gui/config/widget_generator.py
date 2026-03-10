@@ -374,7 +374,7 @@ class WidgetGenerator(ABC):
         switch = Gtk.Switch(active=active, valign=Gtk.Align.CENTER)
         switch.connect("notify::active", on_notify_active)
 
-        self.tooltip_default = _("Enabled") if default else _("Disabled")
+        self.tooltip_default = _("Enabled") if to_bool(default) else _("Disabled")
         return self.build_option_widget(option, switch, expand=False)
 
     # SpinButton
@@ -393,7 +393,7 @@ class WidgetGenerator(ABC):
         adjustment = Gtk.Adjustment(float(min_val), float(min_val), float(max_val), 1, 0, 0)
         spin_button = Gtk.SpinButton()
         spin_button.set_adjustment(adjustment)
-        spin_button.set_value(value or default or 0)
+        spin_button.set_value(value if value is not None else (default if default is not None else 0))
         spin_button.connect("changed", on_changed)
         return self.build_option_widget(option, spin_button)
 
@@ -448,6 +448,7 @@ class WidgetGenerator(ABC):
             self.changed.fire(option_key, option_value)
 
         option_key = option["option"]
+        choices_src = option.get("choices")  # raw value before evaluation, for reload hook
         choices = self._evaluate_option("choices", None, option)
 
         liststore = Gtk.ListStore(str, str)
@@ -490,6 +491,24 @@ class WidgetGenerator(ABC):
         if not has_entry and value not in valid_choices:
             self.warning_messages.append(ConfigWarningBox(get_invalidity_error))
 
+        # Async choices protocol: if the choices callable has a register_reload_callback attribute,
+        # it supports background loading. The callable returns [] immediately when data isn't ready
+        # yet and kicks off a background fetch; callers register a callback to be invoked on the
+        # UI thread when loading completes, at which point the combobox is repopulated in place.
+        if callable(choices_src) and hasattr(choices_src, "register_reload_callback"):
+
+            def reload_choices():
+                nonlocal choices
+                choices = self.evaluate_option_value(choices_src, option=option)
+                liststore.clear()
+                populate_combobox_choices()
+                # The initial set_active_id() will have failed if the value wasn't in the empty
+                # list; try again now that the choices are populated.
+                if value and not combobox.get_active_id():
+                    combobox.set_active_id(value)
+
+            choices_src.register_reload_callback(reload_choices)
+
         return self.build_option_widget(option, combobox)
 
     # ComboBox
@@ -504,9 +523,13 @@ class WidgetGenerator(ABC):
             self.changed.fire(option_key, new_value)
 
         option_key = option["option"]
-        choices = option["choices"]
-        entrybox = SearchableEntrybox(choices, value or default)
+        choices_src = option["choices"]
+        entrybox = SearchableEntrybox(choices_src, value or default)
         entrybox.connect("changed", on_changed)
+
+        if callable(choices_src) and hasattr(choices_src, "register_reload_callback"):
+            choices_src.register_reload_callback(entrybox.repopulate)
+
         return self.build_option_widget(option, entrybox)
 
     # FileChooserEntry
@@ -676,7 +699,7 @@ class WidgetGenerator(ABC):
             value = list(value.items())
         except AttributeError:
             logger.error("Invalid value of type %s passed to grid widget: %s", type(value), value)
-            value = {}
+            value = []
 
         grid = EditableGrid(value, columns=["Key", "Value"])
         grid.connect("changed", on_changed)

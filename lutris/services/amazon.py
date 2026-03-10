@@ -546,16 +546,25 @@ class AmazonService(OnlineService):
 
     def structure_manifest_data(self, manifest):
         """Transform the manifest to more convenient data structures"""
-        files = []
+        file_dict = {}
         directories = []
-        hashes = []
         hashpairs = []
+        file_paths = set()
+
         for __, package in enumerate(manifest.packages):
             for __, file in enumerate(package.files):
                 file_hash = file.hash.value.hex()
+                file_path = file.path.decode().replace("\\", "/")
+                file_paths.add(file_path)
 
-                hashes.append(file_hash)
-                files.append({"path": file.path.decode().replace("\\", "/"), "size": file.size, "url": None})
+                if file_hash in file_dict:
+                    file_dict[file_hash]["paths"].append(file_path)
+                else:
+                    file_dict[file_hash] = {
+                        "paths": [file_path],
+                        "size": file.size,
+                        "url": None,
+                    }
 
                 hashpairs.append(
                     {
@@ -565,9 +574,9 @@ class AmazonService(OnlineService):
                 )
             for __, directory in enumerate(package.dirs):
                 if directory.path is not None:
-                    directories.append(directory.path.decode().replace("\\", "/"))
-
-        file_dict = dict(zip(hashes, files))
+                    dir_path = directory.path.decode().replace("\\", "/")
+                    if dir_path not in file_paths:
+                        directories.append(dir_path)
 
         return file_dict, directories, hashpairs
 
@@ -577,7 +586,7 @@ class AmazonService(OnlineService):
         manifest_info = self.get_game_manifest_info(game_id)
         manifest = self.get_game_manifest(manifest_info)
 
-        file_dict, directories, hashpairs = self.structure_manifest_data(manifest)
+        file_dict, directories, _hashpairs = self.structure_manifest_data(manifest)
 
         for file_hash, file in file_dict.items():
             url = manifest_info["downloadUrl"]
@@ -649,7 +658,7 @@ class AmazonService(OnlineService):
 
         files = []
         for file_hash, file in file_dict.items():
-            file_name = os.path.basename(file["path"])
+            file_name = os.path.basename(file["paths"][0])
             files.append(
                 InstallerFile(
                     installer.game_slug, file_hash, {"url": file["url"], "filename": file_name, "size": file["size"]}
@@ -671,7 +680,7 @@ class AmazonService(OnlineService):
         manifest_info = self.get_game_manifest_info(game_id)
         manifest = self.get_game_manifest(manifest_info)
 
-        file_dict, directories, hashpairs = self.structure_manifest_data(manifest)
+        file_dict, directories, _hashpairs = self.structure_manifest_data(manifest)
 
         installer = [
             {"task": {"name": "create_prefix"}},
@@ -680,7 +689,7 @@ class AmazonService(OnlineService):
         ]
 
         # try to get fuel file that contain the main exe
-        fuel_file = [k for k, v in file_dict.items() if "fuel.json" in v["path"]]
+        fuel_file = [k for k, v in file_dict.items() if any("fuel.json" in p for p in v["paths"])]
         fuel_url = None
         if fuel_file:
             fuel_url = manifest_info["downloadUrl"]

@@ -327,10 +327,15 @@ class EpicGamesStoreService(OnlineService):
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
             return
+        details = json.loads(service_game.get("details") or "{}")
+        namespace = details.get("namespace")
+        catalog_item_id = details.get("catalogItemId")
         game_config = LutrisConfig(game_config_id=egs_game["configpath"]).game_level
-        game_config["game"]["args"] = get_launch_arguments(app_name)
+        game_config["game"]["args"] = get_launch_arguments(
+            app_name, namespace=namespace, catalog_item_id=catalog_item_id
+        )
         configpath = write_game_config(lutris_game_id, game_config)
-        slug = self.get_installed_slug(egs_game)
+        slug = self.get_installed_slug(service_game)
         add_game(
             name=service_game["name"],
             runner=egs_game["runner"],
@@ -370,6 +375,9 @@ class EpicGamesStoreService(OnlineService):
         egs_exe = egs_game.config.game_config["exe"]
         if not os.path.isabs(egs_exe):
             egs_exe = os.path.join(egs_game.config.game_config["prefix"], egs_exe)
+        details = json.loads(db_game.get("details") or "{}")
+        namespace = details.get("namespace")
+        catalog_item_id = details.get("catalogItemId")
         return {
             "name": db_game["name"],
             "version": self.name,
@@ -380,14 +388,21 @@ class EpicGamesStoreService(OnlineService):
             "script": {
                 "requires": self.client_installer,
                 "game": {
-                    "args": get_launch_arguments(db_game["appid"]),
+                    "args": get_launch_arguments(
+                        db_game["appid"], namespace=namespace, catalog_item_id=catalog_item_id
+                    ),
                 },
                 "installer": [
                     {
                         "task": {
                             "name": "wineexec",
                             "executable": egs_exe,
-                            "args": get_launch_arguments(db_game["appid"], "install"),
+                            "args": get_launch_arguments(
+                                db_game["appid"],
+                                "install",
+                                namespace=namespace,
+                                catalog_item_id=catalog_item_id,
+                            ),
                             "prefix": egs_game.config.game_config["prefix"],
                             "description": (
                                 "The Epic Game Store will now open. Please launch "
@@ -415,5 +430,9 @@ class EpicGamesStoreService(OnlineService):
             )
 
 
-def get_launch_arguments(app_name, action="launch"):
-    return ("-opengl -SkipBuildPatchPrereq -com.epicgames.launcher://apps/%s?action=%s") % (app_name, action)
+def get_launch_arguments(app_name, action="launch", namespace=None, catalog_item_id=None):
+    if namespace and catalog_item_id:
+        app_id = f"{namespace}%3A{catalog_item_id}%3A{app_name}"
+    else:
+        app_id = app_name
+    return f"-opengl -SkipBuildPatchPrereq -com.epicgames.launcher://apps/{app_id}?action={action}"

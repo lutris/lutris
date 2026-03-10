@@ -1,9 +1,11 @@
 """Wine commands for installers"""
 
 # pylint: disable=too-many-arguments
+
 import os
 import shlex
 import time
+from gettext import gettext as _
 from typing import Dict, Optional, Tuple
 
 from lutris import runtime, settings
@@ -97,6 +99,28 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH
     )
 
 
+def is_disallowed_fs(prefix):
+    """
+    Check prefix is create in file system that not support to create linux symlink
+
+    Returns:
+        bool: True if the prefix is on a disallowed filesystem or if the filesystem
+              type cannot be determined, False otherwise.
+    """
+
+    # Need add more if needed
+    disallowed_fs_types = {"exfat", "fat", "vfat", "msdos", "umsdos", "ncpfs", "iso9660"}
+
+    if not os.path.exists(prefix):
+        prefix = os.path.dirname(prefix)
+
+    fs_type = linux.LinuxSystem().get_fs_type_for_path(prefix)
+    if fs_type is None:
+        return True
+    logger.info("Creating a prefix in file system type: %s", fs_type)
+    return fs_type in disallowed_fs_types
+
+
 def create_prefix(
     prefix, wine_path=None, arch=WINE_DEFAULT_ARCH, overrides=None, install_gecko=None, install_mono=None, runner=None
 ):
@@ -115,10 +139,37 @@ def create_prefix(
     if not runner:
         runner = import_runner("wine")(prefix=prefix, wine_arch=arch)
 
+    # Wine does not allow creating a prefix in a parent directory that does not
+    # exist. For example, if the prefix is /mnt/a/b/c/d but the parent directory
+    # /mnt/a/b/c does not exist, it is not allowed.
+    if not os.path.exists(os.path.dirname(prefix)):
+        raise RuntimeError(_("Can't create prefix: Directory '%s' not found.") % os.path.dirname(prefix))
+
+    if not os.path.exists(prefix):
+        _stat = os.lstat(os.path.dirname(prefix))
+    else:
+        _stat = os.lstat(prefix)
+    # Wine not allow to create prefix that not owned by user
+    if _stat.st_uid != os.getuid() or _stat.st_mode & 0o700 != 0o700:
+        raise RuntimeError(
+            _(
+                "'%s' must be owned by you, with full owner permissions. "
+                + "Refusing to create a configuration directory there."
+            )
+            % prefix
+        )
+
+    if is_disallowed_fs(prefix):
+        raise RuntimeError(_("Can't create the prefix on a file system that does not support Linux symbolic links."))
+
     if not wine_path:
         wine_path = runner.get_executable()
 
     logger.info("Winepath: %s", wine_path)
+
+    if arch == "win32" and (proton.is_umu_path(wine_path) or proton.is_proton_path(wine_path)):
+        logger.warning("Proton is not compatible with 32-bit prefixes, forcing win64")
+        arch = "win64"
 
     wineenv = runner.system_config.get("env") or {}
     wineenv.update(
@@ -146,9 +197,10 @@ def create_prefix(
 
         proton.update_proton_env(wine_path, wineenv)
 
-        command = MonitoredCommand([proton.get_umu_path(), "createprefix"], env=wineenv)
-        command.start()
+        umu_command = MonitoredCommand([proton.get_umu_path(), "createprefix"], env=wineenv)
+        umu_command.start()
     else:
+        umu_command = None
         wineboot_path = os.path.join(os.path.dirname(wine_path), "wineboot")
         if not system.path_exists(wineboot_path):
             logger.error(
@@ -167,6 +219,10 @@ def create_prefix(
             and system.path_exists(os.path.join(prefix, "system.reg"))
         ):
             break
+        # Check if umu crashed before prefix was created
+        if umu_command and not umu_command.is_running:
+            logger.error("Umu exited unexpectedly during prefix creation (return code: %s)", umu_command.return_code)
+            return
         if loop_index == 60:
             logger.warning("Wine prefix creation is taking longer than expected...")
     if not os.path.exists(os.path.join(prefix, "user.reg")):
@@ -294,6 +350,10 @@ def wineexec(
         if not wine_path:  # to satisfy mypy really
             raise MissingExecutableError("The wine path could not be determined.")
 
+    if arch == "win32" and (proton.is_umu_path(wine_path) or proton.is_proton_path(wine_path)):
+        logger.warning("Proton is not compatible with 32-bit prefixes, forcing win64")
+        arch = "win64"
+
     if not working_dir:
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
@@ -352,11 +412,10 @@ def wineexec(
     command_parameters = []
     if proton.is_proton_path(wine_path):
         command_parameters.append(proton.get_umu_path())
-        if winetricks_wine and wine_path not in winetricks_wine:
+        if winetricks_wine and wine_path not in winetricks_wine and "winetricks" not in args:
             command_parameters.append("winetricks")
     else:
         command_parameters.append(wine_path)
-
     if executable:
         command_parameters.append(executable)
     command_parameters += split_arguments(args)
@@ -382,7 +441,7 @@ def wineexec(
 
 
 def find_winetricks(
-    env: Optional[dict[str, str]] = None, system_winetricks: bool = False
+    env: Optional[Dict[str, str]] = None, system_winetricks: bool = False
 ) -> Tuple[str, Optional[str], Dict[str, str]]:
     """Find winetricks path."""
     env = env or {}
@@ -420,26 +479,28 @@ def winetricks(
         silent = False
         app = "--gui"
     args = app
-    if not wine_path or proton.is_umu_path(wine_path):
+
+    if wine_path and proton.is_proton_path(wine_path):
+        protonfixes_path = os.path.join(proton.get_proton_path_by_path(wine_path), "protonfixes")
+    else:
+        protonfixes_path = None
+
+    if protonfixes_path and os.path.exists(protonfixes_path):
+        proton_verb = "waitforexitandrun"
+        working_dir = None
+        winetricks_wine = os.path.join(protonfixes_path, "winetricks")
+        winetricks_path = wine_path
+    elif not wine_path or proton.is_umu_path(wine_path):
         winetricks_wine = proton.get_umu_path()
         winetricks_path = None
         args = "winetricks " + args
         proton_verb = "waitforexitandrun"
         working_dir = None
-    elif proton.is_proton_path(wine_path):
-        proton_verb = "waitforexitandrun"
-        protonfixes_path = os.path.join(proton.get_proton_path_by_path(wine_path), "protonfixes")
-        working_dir = None
-        if os.path.exists(protonfixes_path):
-            winetricks_wine = os.path.join(protonfixes_path, "winetricks")
-            winetricks_path = wine_path
-            if not app:
-                silent = False
-                app = "--gui"
-        else:
-            logger.error("winetricks: Valve official Proton builds do not support winetricks.")
-            return
     else:
+        if protonfixes_path:
+            logger.warning(
+                "winetricks: attempting to run on a Valve official Proton build; this may not work as expected."
+            )
         winetricks_path, working_dir, env = find_winetricks(env, system_winetricks)
         if not runner:
             runner = import_runner("wine")()

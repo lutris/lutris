@@ -78,7 +78,7 @@ def is_steam_game(game):
     return game.runner_name == "steam"
 
 
-def create_shortcut(game, launch_config_name=None):
+def create_shortcut(game, launch_config_name=None, standalone=False):
     if is_steam_game(game):
         logger.warning("Not updating shortcut for Steam game")
         return
@@ -90,7 +90,10 @@ def create_shortcut(game, launch_config_name=None):
     else:
         shortcuts = []
 
-    shortcuts = list(shortcuts) + [generate_shortcut(game, launch_config_name)]
+    if standalone:
+        shortcuts = list(shortcuts) + [generate_standalone_shortcut(game, launch_config_name)]
+    else:
+        shortcuts = list(shortcuts) + [generate_shortcut(game, launch_config_name)]
 
     updated_shortcuts = {"shortcuts": {str(index): elem for index, elem in enumerate(shortcuts)}}
     with open(shortcut_path, "wb") as shortcut_file:
@@ -149,6 +152,36 @@ def generate_shortcut(game, launch_config_name):
         "AppName": game.name,
         "Exe": f'"{lutris_binary}"',
         "StartDir": f'"{Path.home()}"',
+        "icon": resources.get_icon_path(game.slug),
+        "LaunchOptions": launch_options,
+        "IsHidden": 0,
+        "AllowDesktopConfig": 1,
+        "AllowOverlay": 1,
+        "OpenVR": 0,
+        "Devkit": 0,
+        "DevkitOverrideAppID": 0,
+        "LastPlayTime": 0,
+    }
+
+
+def generate_standalone_shortcut(game, launch_config_name):
+    lutris_binary = shutil.which("lutris")
+
+    launch_options = format_installer_url(
+        {"action": "rungameid", "game_slug": game.id, "launch_config_name": launch_config_name}
+    )
+
+    launch_options = shlex.quote(launch_options)
+
+    if lutris_binary == "/app/bin/lutris":
+        lutris_binary = "/usr/bin/flatpak"
+        launch_options = "run net.lutris.Lutris " + launch_options
+
+    return {
+        "appid": generate_shortcut_id(game),
+        "AppName": game.name,
+        "Exe": f'"{Path.home()!s}/.local/share/applications/lutris-{game.slug}.sh"',
+        "StartDir": f'"{Path.home()!s}/.local/share/applications/"',
         "icon": resources.get_icon_path(game.slug),
         "LaunchOptions": launch_options,
         "IsHidden": 0,

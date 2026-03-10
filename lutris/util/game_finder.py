@@ -28,9 +28,9 @@ def find_linux_game_executable(path, make_executable=False):
                 candidates["bash"] = abspath
             if "POSIX shell script executable" in file_type:
                 candidates["posix"] = abspath
-            if "64-bit LSB executable" in file_type:
+            if "64-bit LSB executable" in file_type or "64-bit LSB shared object" in file_type:
                 candidates["64bit"] = abspath
-            if "32-bit LSB executable" in file_type:
+            if "32-bit LSB executable" in file_type or "32-bit LSB shared object" in file_type:
                 candidates["32bit"] = abspath
         if candidates:
             if make_executable:

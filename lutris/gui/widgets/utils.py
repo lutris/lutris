@@ -2,7 +2,7 @@
 
 import array
 import os
-from typing import TYPE_CHECKING, Iterable, List, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, Iterable, List, Optional, Type, TypeVar, Union, cast
 
 import cairo
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
@@ -69,14 +69,14 @@ TChildWidget = TypeVar("TChildWidget", bound=Gtk.Widget)
 
 
 def get_widget_children(
-    widget: Optional[Gtk.Widget], child_type: Optional[type[TChildWidget]] = None
+    widget: Optional[Gtk.Widget], child_type: Optional[Type[TChildWidget]] = None
 ) -> List[TChildWidget]:
     """Returns the children of any widget; non-containers have no children
     and returns an empty list. This can filter out a specific type of child widget if child_type
     is not None, but otherwise it returns all children."""
     if isinstance(widget, Gtk.Container):
         if child_type:
-            return [w for w in widget.get_children() if isinstance(w, child_type)]
+            return [cast(TChildWidget, w) for w in widget.get_children() if isinstance(w, child_type)]
         else:
             return list(cast(Iterable[TChildWidget], widget.get_children()))
     else:
@@ -210,6 +210,19 @@ def has_stock_icon(name):
 
     theme = Gtk.IconTheme.get_default()
     return theme.has_icon(name)
+
+
+def pick_stock_icon(names: Union[str, Iterable[str]], fallback_name: str = "package-x-generic-symbolic") -> str:
+    """Used to select a stock icon that actually exists in the icon set; it tries all the names given,
+    and returns the first where has_stock_icon is true. If none pass the test, returns fallback_name instead."""
+    if isinstance(names, str):
+        names = [names]
+
+    for name in names:
+        if has_stock_icon(name):
+            return name
+
+    return fallback_name
 
 
 def get_runtime_icon_path(icon_name):

@@ -3,13 +3,18 @@
 import os
 import time
 from shutil import copyfile
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, Optional, Set, TypeAlias
 
 from lutris import settings, sysoptions
 from lutris.runners import InvalidRunnerError, import_runner
 from lutris.util.log import logger
 from lutris.util.system import path_exists
 from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
+
+GameConfigDict: TypeAlias = Dict[str, Any]
+LaunchConfigDict: TypeAlias = Dict[str, Any]
+RunnerConfigDict: TypeAlias = Dict[str, Any]
+SystemConfigDict: TypeAlias = Dict[str, Any]
 
 
 def make_game_config_id(game_slug: str) -> str:
@@ -33,6 +38,18 @@ def duplicate_game_config(game_slug: str, source_config_id: str) -> str:
     src_path = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % source_config_id)
     dest_path = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % new_config_id)
     copyfile(src_path, dest_path)
+    return new_config_id
+
+
+def rename_config(old_config_id: str, new_slug: str) -> Optional[str]:
+    old_slug, timestamp = old_config_id.rsplit("-", 1)
+    if old_slug == new_slug:
+        return None
+    new_config_id = f"{new_slug}-{timestamp}"
+    src_path = f"{settings.GAME_CONFIG_DIR}/{old_config_id}.yml"
+    dest_path = f"{settings.GAME_CONFIG_DIR}/{new_config_id}.yml"
+    if os.path.exists(src_path):
+        os.rename(src_path, dest_path)
     return new_config_id
 
 

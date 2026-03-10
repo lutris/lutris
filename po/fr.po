@@ -7634,7 +7634,7 @@ msgstr "Affichage"
 
 #: lutris/sysoptions.py:113
 msgid "GPU"
-msgstr "CPU"
+msgstr "GPU"
 
 #: lutris/sysoptions.py:117
 msgid "GPU to use to run games"

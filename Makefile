@@ -112,16 +112,25 @@ format:
 # Static analysis
 # ===============
 
-check: ruff_lint mypy
+check: ruff_lint mypy syntax-compat annotation-compat po-check
 
 ruff_lint:
 	ruff check .
 
+syntax-compat:
+	python3 -m compileall -q lutris/
+
+annotation-compat:
+	python3 utils/check_annotations.py
+
+po-check:
+	@for f in po/*.po; do msgfmt --check "$$f" -o /dev/null; done
+
 mypy:
-	mypy . --install-types --non-interactive 2>&1 | mypy-baseline filter
+	mypy . --python-version 3.10 --install-types --non-interactive 2>&1 | mypy-baseline filter
 
 mypy-reset-baseline:  # Add new typing errors to mypy. Use sparingly.
-	mypy . --install-types --non-interactive 2>&1 | mypy-baseline sync
+	mypy . --python-version 3.10--install-types --non-interactive 2>&1 | mypy-baseline sync
 
 # =============
 # Abbreviations

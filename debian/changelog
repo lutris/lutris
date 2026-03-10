@@ -1,19 +1,74 @@
+lutris (0.5.22) jammy; urgency=medium
+
+  * Fix type annotations requiring quoting for Python < 3.14 compatibility
+  * Add mypy typing annotations on util/strings.py
+  * Update release targets in PPA CI
+
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Mon, 24 Feb 2026 18:00:00 -0800
+
+lutris (0.5.21) jammy; urgency=medium
+
+  * Add Sniper runtime support — runners can execute inside Valve's Sniper container (Steam Linux Runtime 3.0)
+  * Add ShadPS4 runner
+  * Add Xenia runner
+  * Dolphin-emu runner updated to use AppImage (fixes libavformat dependency issues)
+  * Add collapsible sidebar sections
+  * Provide a sort for uncategorized games
+  * Fallback icons for sidebar buttons when icon theme is missing them
+  * Add Python version to System Information
+  * Read host os-release in Flatpak for system info
+  * Add more storage types
+  * Fix GPU UUID detection returning wrong GPU on multi-GPU systems
+  * Prefer most descriptive GPU name from vulkaninfo — fixes Intel Arc GPUs reported as "Intel Graphics"
+  * Add defensive check for vulkaninfo option lines with no "="
+  * Fix ghost categories persisting after rename
+  * Fix sync_media returning attempted count instead of successful
+  * Fix VDF parser handling of escaped quotes
+  * Fix Wine-Wayland warning — warns on Wayland only, not X11
+  * Log but continue for individual file errors in ZOOM Platform extras
+  * Add migration to move Proton versions from runners/proton to runners/wine
+  * Fix broken translations and add .po validation to CI
+  * Add Portuguese (Portugal) language support
+  * Update Spanish and French translations
+  * Strict mypy typing added across util/ modules
+  * Minimum Python version set to 3.10 in several places
+  * CI: add plucky (25.04) and questing (25.10) to PPA builds
+
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Tue, 24 Feb 2026 12:49:08 -0800
+
 lutris (0.5.20) jammy; urgency=medium
 
+  * Proton-GE launched via umu is now the default. Umu takes care of keeping Proton-GE up to date.
   * Fix Proton integration bugs so Proton-fixes are applied
   * Do not offer VKD3D, D3D Extras or DXVK-NVAPI on Proton versions; Proton will handle these.
   * The "Enable Esync" and "Enable Fsync" and "DXVK" settings are now passed on to Proton
   * DXVK's integrated D8VK will be enabled in Proton
-  * Fix for updated Flathub API
+  * Wine runner adds an option to select Wine's "Wayland driver"
+  * Add little buttons to select covert-art, banner and icons via URL in game configuration
+  * Cover-art or banners from sources will be used when Lutris media is not available
   * Emulator BIOS file location (used by libretro) may be set in Preferences
-  * Obtain the release year from GOG and Itch.io.
-  * MAME Machine setting uses a searchable entry for its enourmous list
+  * Fix for updated Flathub API
+  * Change Itch.io over to the use of API keys instead of usernames and passwords
+  * Update EA App source to their new API
+  * Simplify Itcho.io collections- if you have no collection named "Lutris", we will show all games
+  * MAME Machine setting uses a searchable entry for its enormous list
+  * Obtain the release year from GOG and Itch.io
+  * Add "Azahar" runner
+  * Add "ZOOM Platform" source
+  * Add "Steam Family" source to support Steam Families
+  * Updated versions of runners for TIC-80, EasyRPG, mGBA, Rosalie's Mupen GUI, Ruffle, 86Box
+  * Ryujinx runner can now specific 'application ID' for your multi-game XCIs.
   * Support for importing Commodore 64 ROMs
+  * Support ICDs for Intel Xe GPUs
+  * Add option for 'ptyxis' terminal
   * Redundant "Add Games" menu item removed; use the plus button in the corner
+  * Option to hide a source's games from also appearing in the Games view
   * "Manual Script" for the context menu will now see the game's environment variables
-  * Support for Steam Families in the form of a "Steam Family" source
+  * Add "Create Steam Big Picture shortcut" to the context menu
+  * Add a file association to run .lutris installer files via double-click
+  * Fix compatibility with Python 3.14
 
--- Mathieu Comandon <mathieucomandon@gmail.com> Sun, 23 Feb 2025 10:55:10 -0800
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Sun, 23 Feb 2025 10:55:10 -0800
 
 lutris (0.5.18) jammy; urgency=medium
 

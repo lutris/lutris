@@ -19,6 +19,7 @@ from lutris.runners import InvalidRunnerError, import_runner, import_task
 from lutris.runners.wine import wine
 from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
+from lutris.util.gog import apply_gog_config
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_default_wine_version, get_wine_path_for_version
@@ -386,6 +387,10 @@ class CommandsMixin:
             runner_name, task_name = task_name.split(".")
         else:
             runner_name = self.installer.runner
+
+        task_name = task_name.replace("-", "_")
+        # Prevent private functions from being accessed as commands
+        task_name = task_name.strip("_")
         return runner_name, task_name
 
     def task(self, data):
@@ -542,7 +547,7 @@ class CommandsMixin:
             logger.debug("Process %s returned: %s", func, result)
             return result
 
-    def _extract_gog_game(self, file_id):
+    def _extract_innosetup(self, file_id):
         self.extract({"src": file_id, "dst": "$GAMEDIR", "extractor": "innoextract"})
         app_path = os.path.join(self.target_path, "app")
         if system.path_exists(app_path):
@@ -578,16 +583,16 @@ class CommandsMixin:
         scummvm_found = False
         windows_override_found = False  # DOS games that also have a Windows executable
         for filename in file_list:
-            if "dosbox.exe" in filename.lower():
+            if "dosbox.exe" in filename.casefold():
                 dosbox_found = True
-            if "scummvm.exe" in filename.lower():
+            if "scummvm.exe" in filename.casefold():
                 scummvm_found = True
-            if "_some_windows.exe" in filename.lower():
+            if "_some_windows.exe" in filename.casefold():
                 # There's not a good way to handle exceptions without extracting the .info file
                 # before extracting the game. Added for Quake but GlQuake.exe doesn't run on modern wine
                 windows_override_found = True
         if dosbox_found and not windows_override_found:
-            self._extract_gog_game(file_id)
+            self._extract_innosetup(file_id)
             if "DOSBOX" in os.listdir(self.target_path):
                 dosbox_config = {
                     "working_dir": "$GAMEDIR/DOSBOX",
@@ -613,8 +618,7 @@ class CommandsMixin:
             self.installer.script["game"] = dosbox_config
             self.installer.runner = "dosbox"
         elif scummvm_found:
-            self._extract_gog_game(file_id)
-            arguments = None
+            self._extract_innosetup(file_id)
             for filename in os.listdir(self.target_path):
                 if filename.startswith("goggame") and filename.endswith(".info"):
                     arguments = self._get_scummvm_arguments(os.path.join(self.target_path, filename))
@@ -627,7 +631,81 @@ class CommandsMixin:
             args = "/SP- /NOCANCEL"
             if silent:
                 args += " /SUPPRESSMSGBOXES /VERYSILENT /NOGUI"
-            self.installer.is_gog = True
+            self.installer.post_install_hooks.append(apply_gog_config)
+            return self.task({"name": "wineexec", "prefix": "$GAMEDIR", "executable": file_id, "args": args})
+
+    def _get_dosbox_arguments(self, zoom_bat_path):
+        """Return the arguments for the DOSBox executable from a ZOOM Plaform installer"""
+        with open(zoom_bat_path, encoding="utf-8") as zoom_bat_file:
+            zoom_bat = zoom_bat_file.read()
+
+        # Find the line that starts with ".\DOSBOX\dosbox.exe" and extract the arguments
+        lines = zoom_bat.splitlines()
+        arguments = []
+        for line in lines:
+            if line.startswith(".\\DOSBOX\\dosbox.exe"):
+                # Extract the arguments from the line
+                arguments = line.split(" ", 1)[1].strip()
+                break
+
+        return arguments
+
+    def autosetup_zoom_platform(self, file_id, silent=False):
+        """Automatically guess the best way to install a ZOOM Platofrm game by inspecting its contents.
+        This chooses the right runner (DOSBox, Wine) for Windows game files.
+        Linux setup files don't use innosetup, they can be unzipped instead.
+        """
+        file_path = self.game_files[file_id]
+        file_list = extract.get_innoextract_list(file_path)
+        dosbox_found = False
+        scummvm_found = False
+        for filename in file_list:
+            if "dosbox.exe" in filename.casefold():
+                dosbox_found = True
+            if "scummvm.exe" in filename.casefold():
+                scummvm_found = True
+        if dosbox_found:
+            self._extract_innosetup(file_id)
+            dosbox_config = {}
+            single_conf = None
+            config_file = None
+            for filename in os.listdir(self.target_path):
+                if filename == "dosbox.conf":
+                    dosbox_config["main_file"] = filename
+                elif filename.endswith("_single.conf"):
+                    single_conf = filename
+                elif filename.endswith(".conf"):
+                    config_file = filename
+            if single_conf:
+                dosbox_config["main_file"] = single_conf
+            if config_file:
+                if dosbox_config.get("main_file"):
+                    dosbox_config["config_file"] = config_file
+                else:
+                    dosbox_config["main_file"] = config_file
+
+            for filename in os.listdir(self.target_path):
+                if filename.startswith("Launch") and filename.endswith(".bat"):
+                    arguments = self._get_dosbox_arguments(os.path.join(self.target_path, filename))
+
+            if len(arguments) > 0:
+                # Add the arguments to the dosbox config
+                dosbox_config["args"] = arguments
+                # Remove "config_file" from the dosbox config
+                dosbox_config.pop("config_file", None)
+
+            self.installer.script["game"] = dosbox_config
+            self.installer.runner = "dosbox"
+        elif scummvm_found:
+            self._extract_innoextract_setup(file_id)
+            arguments = {"path": os.path.join(self.target_path, "Data"), "args": "--auto-detect"}
+            logger.info("ScummVM config: %s", arguments)
+            self.installer.script["game"] = arguments
+            self.installer.runner = "scummvm"
+        else:
+            args = "/SP- /NOCANCEL"
+            if silent:
+                args += " /SUPPRESSMSGBOXES /VERYSILENT /NOGUI"
             return self.task({"name": "wineexec", "prefix": "$GAMEDIR", "executable": file_id, "args": args})
 
     def autosetup_amazon(self, file_and_dir_dict):
@@ -639,9 +717,26 @@ class CommandsMixin:
             self.mkdir(f"$GAMEDIR/drive_c/game/{directory}")
 
         # move installed files from CACHE to game folder
-        for file_hash, file in self.game_files.items():
-            file_dir = os.path.dirname(files[file_hash]["path"])
-            self.move({"src": file, "dst": f"$GAMEDIR/drive_c/game/{file_dir}"})
+        for file_hash, file_data in files.items():
+            if file_hash not in self.game_files:
+                logger.warning("Amazon: Missing file hash %s (expected at %s)", file_hash, file_data["paths"][0])
+                continue
+
+            source_file = self.game_files[file_hash]
+            paths = file_data["paths"]
+
+            for path in paths:
+                dest_path = f"$GAMEDIR/drive_c/game/{path}"
+
+                abs_dest_path = self._substitute(dest_path)
+                if os.path.isdir(abs_dest_path):
+                    logger.warning("Amazon: Removing conflicting directory %s", abs_dest_path)
+                    shutil.rmtree(abs_dest_path)
+
+                self._killable_process(shutil.copyfile, source_file, abs_dest_path)
+
+            if os.path.exists(source_file):
+                os.remove(source_file)
 
     def install_or_extract(self, file_id):
         """Runs if file is executable or extracts if file is archive"""

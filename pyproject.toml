@@ -35,6 +35,45 @@ no_colors = false
 # --ignore: regexes for error messages to ignore
 ignore = []
 
+[[tool.mypy.overrides]]
+module = [
+    "lutris.cache",
+    "lutris.exception_backstops",
+    "lutris.exceptions",
+    "lutris.scanners.default_installers",
+    "lutris.services.mame",
+    "lutris.settings",
+    "lutris.util",
+    "lutris.util.discord.base",
+    "lutris.util.http",
+    "lutris.util.log",
+    "lutris.util.flatpak",
+    "lutris.util.retroarch.core_config",
+    "lutris.util.settings",
+    "lutris.util.system",
+    "lutris.util.ubisoft.consts",
+    "lutris.util.wine.d3d_extras",
+    "lutris.util.wine.dgvoodoo2",
+    "setup",
+    "utils.bios_format",
+    "utils.issuelocker",
+    "utils.meson_post_install",
+]
+# Equivalent to strict = true for per-module config
+# Use strict = true when https://github.com/python/mypy/issues/11401 is fixed
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+extra_checks = true
+no_implicit_reexport = true
+strict_equality = true
+warn_return_any = true
+warn_unused_ignores = true
+
 [tool.pyright]
 
 typeCheckingMode = "basic"

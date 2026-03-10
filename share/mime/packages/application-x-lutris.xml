@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+    <mime-type type="application/x-lutris">
+        <comment>YAML installation script for Lutris</comment>
+        <glob pattern="*.lutris" />
+        <icon name="application-x-lutris"/>
+    </mime-type>
+</mime-info>

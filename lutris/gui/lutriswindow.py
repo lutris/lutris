@@ -6,7 +6,8 @@ import os
 from collections import namedtuple
 from datetime import datetime
 from gettext import gettext as _
-from typing import Iterable, List, Set, cast
+from gettext import ngettext
+from typing import Callable, Dict, Iterable, List, Set, cast
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, Gtk
@@ -17,7 +18,6 @@ from lutris.api import (
     LUTRIS_ACCOUNT_DISCONNECTED,
     get_runtime_versions,
 )
-from lutris.database import categories
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import saved_searches as saved_searches_db
@@ -51,7 +51,7 @@ from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar, SidebarRow
-from lutris.gui.widgets.utils import has_stock_icon, load_icon_theme, open_uri
+from lutris.gui.widgets.utils import load_icon_theme, open_uri, pick_stock_icon
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
 from lutris.search_predicate import NotPredicate
@@ -94,7 +94,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     login_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     lutris_log_in_label: Gtk.Label = GtkTemplate.Child()
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
-    version_notification_label: Gtk.Revealer = GtkTemplate.Child()
+    version_notification_label: Gtk.Label = GtkTemplate.Child()
     show_hidden_games_button: Gtk.ModelButton = GtkTemplate.Child()
 
     def __init__(self, application=None, **kwargs) -> None:
@@ -129,15 +129,17 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.current_view = Gtk.Box()
         self.views = {}
 
-        self.dynamic_categories_game_factories = {
+        self.dynamic_categories_game_factories: Dict[str, Callable[[], list]] = {
             "recent": self.get_recent_games,
             "missing": self.get_missing_games,
             "running": self.get_running_games,
         }
 
-        for smart_category in categories._SMART_CATEGORIES:
+        for smart_category in categories_db._SMART_CATEGORIES:
             if smart_category.get_name() not in self.dynamic_categories_game_factories:
-                self.dynamic_categories_game_factories[smart_category.get_name()] = smart_category.get_games
+                self.dynamic_categories_game_factories[smart_category.get_name()] = (
+                    lambda c=smart_category: self.filter_games(c.get_games())  # type: ignore
+                )
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
@@ -154,12 +156,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         # Since system-search-symbolic is already *right there* we'll try to pick some
         # other icon for the button that shows the search popover.
-        fallback_filter_icons_names = ["filter-symbolic", "edit-find-replace-symbolic", "system-search-symbolic"]
+        fallback_filter_icons_names = ["filter-symbolic", "edit-find-replace-symbolic"]
+        icon_name = pick_stock_icon(fallback_filter_icons_names, fallback_name="system-search-symbolic")
         filter_button_image: Gtk.Image = self.search_filters_button.get_child()
-        for n in fallback_filter_icons_names:
-            if has_stock_icon(n):
-                filter_button_image.set_from_icon_name(n, Gtk.IconSize.BUTTON)
-                break
+        filter_button_image.set_from_icon_name(icon_name, Gtk.IconSize.BUTTON)
         self.filter_box_search_name = ""
 
         # Setup Drag and drop
@@ -413,22 +413,22 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         return settings.read_bool_setting("show_tray_icon", False)
 
     @property
-    def view_sorting(self):
+    def view_sorting(self) -> str:
         value = settings.read_setting("view_sorting") or "name"
         if value.endswith("_text"):
             value = value[:-5]
         return value
 
     @property
-    def view_reverse_order(self):
+    def view_reverse_order(self) -> bool:
         return settings.read_bool_setting("view_reverse_order", False)
 
     @property
-    def view_sorting_installed_first(self):
+    def view_sorting_installed_first(self) -> bool:
         return settings.read_bool_setting("view_sorting_installed_first", True)
 
     @property
-    def show_hidden_games(self):
+    def show_hidden_games(self) -> bool:
         return settings.read_bool_setting("show_hidden_games", False)
 
     @property
@@ -439,15 +439,15 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def get_sort_sensitive_columns(self) -> Set[int]:
         if self.is_view_sort_sensitive:
             if self.view_sorting == "name":
-                return set([COL_NAME, COL_SORTNAME])
+                return {COL_NAME, COL_SORTNAME}
             elif self.view_sorting == "year":
-                return set([COL_YEAR])
+                return {COL_YEAR}
             elif self.view_sorting == "lastplayed":
-                return set([COL_LASTPLAYED, COL_LASTPLAYED_TEXT])
+                return {COL_LASTPLAYED, COL_LASTPLAYED_TEXT}
             elif self.view_sorting == "installed_at":
-                return set([COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT])
+                return {COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT}
             elif self.view_sorting == "playtime":
-                return set([COL_PLAYTIME, COL_PLAYTIME_TEXT])
+                return {COL_PLAYTIME, COL_PLAYTIME_TEXT}
 
         return set()
 
@@ -470,18 +470,23 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "playtime": 0.0,
         }
 
+        service = self.service
+        view_sorting = self.view_sorting
+        view_reverse_order = self.view_reverse_order
+        view_sorting_installed_first = self.view_sorting_installed_first
+
         def get_sort_default(item):
             """Returns the default value to use when the value is missing; we may be able
             to extract this from the item.."""
-            if self.view_sorting == "year" and self.service:
-                service_year = self.service.get_game_release_date(item)
+            if view_sorting == "year" and service:
+                service_year = service.get_game_release_date(item)
                 service_year = convert_value(service_year)
                 if service_year:
                     return service_year
 
             # Users may have obsolete view_sorting settings, so
             # we must tolerate them. We treat them all as blank.
-            return sort_defaults.get(self.view_sorting, "")
+            return sort_defaults.get(view_sorting, "")
 
         def convert_value(value):
             """Converts 'value' to the type required for the sort that is in use. Returns None if this
@@ -489,9 +494,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             try:
                 if not value:
                     return None
-                if self.view_sorting == "name":
+                if view_sorting == "name":
                     return str(value)
-                if self.view_sorting == "year":
+                if view_sorting == "year":
                     # Years can take many forms! We'll try to convert as best we can.
                     if isinstance(value, datetime):
                         return int(value.year)
@@ -508,11 +513,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         def extend_value(value):
             """Expands the value to sort by to a more complex form, for smarter sorting."""
-            if self.view_sorting == "name":
+            if view_sorting == "name":
                 return get_natural_sort_key(value)
-            if self.view_sorting == "year":
+            if view_sorting == "year":
                 contains_year = bool(value)
-                if self.view_reverse_order:
+                if view_reverse_order:
                     contains_year = not contains_year
                 return contains_year, value
             return value
@@ -527,25 +532,25 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
                 # When sorting by name, check for a valid sortname first, then fall back
                 # on name if valid sortname is not available.
-                if self.view_sorting == "name":
+                if view_sorting == "name":
                     value = db_game.get("sortname") or db_game.get("name")
                 else:
-                    value = db_game.get(self.view_sorting)
+                    value = db_game.get(view_sorting)
 
             value = convert_value(value) or get_sort_default(item)
             value = extend_value(value)
 
-            if self.view_sorting_installed_first:
+            if view_sorting_installed_first:
                 # We want installed games to always be first, even in
                 # a descending sort.
-                if self.view_reverse_order:
+                if view_reverse_order:
                     installation_flag = not installation_flag
-                if self.view_sorting == "name":
+                if view_sorting == "name":
                     installation_flag = not installation_flag
                 return installation_flag, value
             return value
 
-        reverse = self.view_reverse_order if self.view_sorting == "name" else not self.view_reverse_order
+        reverse = view_reverse_order if view_sorting == "name" else not view_reverse_order
         return sorted(items, key=get_sort_value, reverse=reverse)
 
     def get_running_games(self):
@@ -569,7 +574,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.sidebar.missing_row.hide()
 
     def get_recent_games(self):
-        """Return a list of currently running games"""
+        """Return a list of recently played games"""
         games = games_db.get_games(filters={"installed": "1"})
         games = self.filter_games(games)
         return sorted(games, key=lambda game: max(game["installed_at"] or 0, game["lastplayed"] or 0), reverse=True)
@@ -605,7 +610,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             return games
 
         def matches(game):
-            for search in searches:
+            for search in to_apply:
                 if not search.matches(game):
                     return False
             return True
@@ -684,11 +689,22 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         category_game_ids = categories_db.get_game_ids_for_categories(included, excluded)
 
         filters = self.get_sql_filters()
-        games = games_db.get_games(filters=filters)
+        excludes = {}
+
+        if self.filters.get("category") == "all" and "service" not in self.filters:
+            excluded_services = set(
+                s.casefold()
+                for s in services.SERVICES.keys()
+                if not settings.read_bool_setting(s + "_in_games_view", default=True, section="services")
+            )
+            if excluded_services:
+                excludes["service"] = excluded_services
+
+        games = games_db.get_games(filters=filters, excludes=excludes)
         games = self.filter_games([game for game in games if game["id"] in category_game_ids], searches=searches)
         return self.apply_view_sort(games)
 
-    def get_sql_filters(self):
+    def get_sql_filters(self) -> Dict[str, str]:
         """Return the current filters for the view"""
         sql_filters = {}
         if self.filters.get("runner"):
@@ -725,7 +741,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             # when the game gets unselected, which is somewhat closer to what the intended behavior
             # should be anyway. Might require closing the game bar manually in some cases.
             pass
-            # self.game_bar.destroy()
         if self.revealer_box.get_children():
             self.game_revealer.set_reveal_child(True)
         else:
@@ -808,13 +823,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
             games, game_store = result
 
-            if games:
-                if len(games) > 1:
-                    self.search_entry.set_placeholder_text(_("Search %s games") % len(games))
-                else:
-                    self.search_entry.set_placeholder_text(_("Search 1 game"))
-            else:
-                self.search_entry.set_placeholder_text(_("Search games"))
+            placeholder_text = self._get_search_placeholder_text(games)
+            self.search_entry.set_placeholder_text(placeholder_text)
 
             for view in self.views.values():
                 view.service = self.service
@@ -842,6 +852,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.update_notification()
 
         AsyncCall(self.get_games_from_filters, on_games_ready)
+
+    @staticmethod
+    def _get_search_placeholder_text(games) -> str:
+        if not games:
+            return _("Search games")
+
+        games_count = len(games)
+        return ngettext("Search %d game", "Search %d games", games_count) % games_count
 
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
@@ -967,12 +985,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def load_icon_type(self):
         """Return the icon style depending on the type of view."""
         default_icon_types = {
-            "icon_type_grid": "coverart_med",
+            "icon_type_gridview": "coverart_med",
+            "icon_type_listview": "banner",
         }
-        setting_key = "icon_type_%sview" % self.current_view_type
+        base_key = "icon_type_%sview" % self.current_view_type
+        setting_key = base_key
         if self.service and self.service.id != "lutris":
             setting_key += "_%s" % self.service.id
-        self.icon_type = settings.read_setting(setting_key, default=default_icon_types.get(setting_key, ""))
+        self.icon_type = settings.read_setting(setting_key, default=default_icon_types.get(base_key, ""))
         return self.icon_type
 
     def save_icon_type(self, icon_type):
@@ -1080,7 +1100,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             runtime_versions = get_runtime_versions()
             if runtime_versions:
                 client_version = runtime_versions.get("client_version")
-                settings.write_setting("ignored_supported_lutris_verison", client_version or "")
+                settings.write_setting("ignored_supported_lutris_version", client_version or "")
 
     def on_service_games_loaded(self, service):
         """Request a view update when service games are loaded"""
@@ -1314,11 +1334,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.on_settings_changed(None, not state, "hide_badges_on_icons")
 
     def on_settings_changed(self, setting_key, new_value, section):
-        if section == "lutris":
-            if setting_key == "hide_text_under_icons":
-                self.rebuild_view("grid")
-            else:
-                self.update_view_settings()
+        if section == "lutris" and setting_key == "hide_text_under_icons":
+            self.rebuild_view("grid")
+        elif section == "services" and setting_key.endswith("_in_games_view"):
+            self.update_store()
+        else:
+            self.update_view_settings()
         self.update_notification()
         return True
 
@@ -1435,7 +1456,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 component_updaters, runtime_updater, supported_client_version = result
 
                 if supported_client_version and not LINUX_SYSTEM.is_flatpak():
-                    markup = self.version_notification_label.get_label()
+                    markup = _(
+                        "Lutris %s is no longer supported. "
+                        + '<a href="https://lutris.net/downloads/">Download %s here!</a>'
+                    )
                     markup = markup % (settings.VERSION, supported_client_version)
                     self.version_notification_label.set_label(markup)
                     self.version_notification_revealer.set_reveal_child(True)

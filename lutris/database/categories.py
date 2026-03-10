@@ -8,6 +8,7 @@ from lutris import settings
 from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.gui.widgets import NotificationSource
+from lutris.util.strings import get_natural_sort_key
 
 CATEGORIES_UPDATED = NotificationSource()
 
@@ -165,18 +166,38 @@ def get_uncategorized_game_ids() -> Set[str]:
 
 def get_uncategorized_games() -> List[Any]:
     """Return a list of currently running games"""
-    return games_db.get_games_by_ids(get_uncategorized_game_ids())
+    games = games_db.get_games_by_ids(get_uncategorized_game_ids())
+
+    def get_key(g: Dict[str, Any]):
+        """Sort in the default order for Lutris- installed games first, then by name."""
+        name = str(g.get("name") or "")
+        installed = bool(g.get("installed"))
+        return not installed, get_natural_sort_key(name)
+
+    games.sort(key=get_key)
+    return games
 
 
-def get_categories_in_game(game_id):
+def get_categories_in_game(game_id: str) -> list[str]:
     """Get the categories of a game in database."""
+    return get_categories_in_games([game_id]).get(game_id, [])
+
+
+def get_categories_in_games(game_ids: list[str]) -> dict[str, list[str]]:
+    """Get the categories of multiple games in database, returned as a dict mapping game ID to category names."""
+    if not game_ids:
+        return {}
+    placeholders = ", ".join(repeat("?", len(game_ids)))
     query = (
-        "SELECT categories.name FROM categories "
+        "SELECT games.id, categories.name FROM categories "
         "JOIN games_categories ON categories.id = games_categories.category_id "
         "JOIN games ON games.id = games_categories.game_id "
-        "WHERE games.id=?"
+        f"WHERE games.id IN ({placeholders})"
     )
-    return [category["name"] for category in sql.db_query(settings.DB_PATH, query, (game_id,))]
+    result: dict[str, list[str]] = defaultdict(list)
+    for row in sql.db_query(settings.DB_PATH, query, tuple(game_ids)):
+        result[str(row["id"])].append(row["name"])
+    return dict(result)
 
 
 def add_category(category_name, no_signal: bool = False):
@@ -207,16 +228,20 @@ def remove_category(category_id: int, no_signal: bool = False) -> None:
         CATEGORIES_UPDATED.fire()
 
 
-def add_game_to_category(game_id, category_id):
+def add_game_to_category(game_id: str, category_id: int, no_signal: bool = False) -> None:
     """Add a category to a game"""
-    return sql.db_insert(settings.DB_PATH, "games_categories", {"game_id": game_id, "category_id": category_id})
+    sql.db_insert(settings.DB_PATH, "games_categories", {"game_id": game_id, "category_id": category_id})
+    if not no_signal:
+        CATEGORIES_UPDATED.fire()
 
 
-def remove_category_from_game(game_id, category_id):
+def remove_category_from_game(game_id: str, category_id: int, no_signal: bool = False) -> None:
     """Remove a category from a game"""
     query = "DELETE FROM games_categories WHERE category_id=? AND game_id=?"
     with sql.db_cursor(settings.DB_PATH) as cursor:
         sql.cursor_execute(cursor, query, (category_id, game_id))
+    if not no_signal:
+        CATEGORIES_UPDATED.fire()
 
 
 def remove_unused_categories():

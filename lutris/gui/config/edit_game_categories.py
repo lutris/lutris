@@ -129,16 +129,17 @@ class EditGameCategoriesDialog(SavableModelessDialog):
     def on_save(self, _button):
         """Save category changes and destroy widget."""
 
+        all_game_categories = categories_db.get_categories_in_games([game.id for game in self.games])
         changes = []
 
         for game in self.games:
+            game_categories = all_game_categories.get(game.id, [])
             for category_checkbox in self.category_checkboxes.values():
                 removed_categories = set()
                 added_categories = set()
 
                 if not category_checkbox.get_inconsistent():
                     label = category_checkbox.get_label()
-                    game_categories = categories_db.get_categories_in_game(game.id)
                     if label in game_categories:
                         if not category_checkbox.get_active():
                             removed_categories.add(label)

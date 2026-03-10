@@ -108,9 +108,11 @@ def get_supported_systems(xml_path, force=False):
                 systems = None
         if systems:
             return systems
+    logger.info("Parsing MAME XML to build systems list")
     systems = {machine.attrib["name"]: get_machine_info(machine) for machine in iter_machines(xml_path, is_system)}
     if not systems:
         return {}
+    logger.info("Writing %d systems to %s", len(systems), systems_cache_path)
     with open(systems_cache_path, "w", encoding="utf-8") as systems_cache_file:
         json.dump(systems, systems_cache_file, indent=2)
     return systems

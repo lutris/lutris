@@ -146,12 +146,15 @@ class StoreItem:
     def get_media_paths(self) -> List[MediaPath]:
         """Returns the path to the image file for this item"""
         if self._game_data.get("icon"):
-            return [self._game_data["icon"]]
+            icon = self._game_data["icon"]
+            if isinstance(icon, MediaPath):
+                return [icon]
+            # String path - wrap it in a MediaPath
+            return [MediaPath(icon, self.service_media)]
 
         possible_paths = self.service_media.get_possible_media_paths(self.slug)
-        media_paths = [mp for mp in possible_paths if mp.exists]
-        if media_paths:
-            return media_paths
+        if any(mp for mp in possible_paths if mp.exists):
+            return possible_paths
 
         service = self._service_obj or LutrisService
         services = [(service, lambda: self.slug)]
@@ -169,7 +172,7 @@ class StoreItem:
             services.append((game_service, get_service_slug))
 
         fallback_path = self.service_media.get_fallback_media_path(services)
-        return [fallback_path] if fallback_path else possible_paths
+        return possible_paths + [fallback_path] if fallback_path else possible_paths
 
     @property
     def installed_at(self):

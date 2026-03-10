@@ -23,6 +23,7 @@ class InstallerFile:
         self._file_meta = file_meta
         self._dest_file_override = None  # Used to override the destination
         self._dest_file_found = None  # Lazy storage for the resolved destination file
+        self.allow_pga_cache = True
         if isinstance(self._file_meta, dict):
             self._downloader = self._file_meta.get("downloader")
         else:
@@ -38,6 +39,7 @@ class InstallerFile:
         file._dest_file_override = self._dest_file_override
         file._dest_file_found = self._dest_file_found
         file._downloader = self._downloader
+        file.allow_pga_cache = self.allow_pga_cache
         return file
 
     @property
@@ -86,10 +88,23 @@ class InstallerFile:
 
     @property
     def downloader(self) -> Optional[Downloader]:
+        """Return custom downloader instance, if one was provided."""
         if callable(self._downloader):
             self._downloader = self._downloader(self)
 
         return self._downloader
+
+    @property
+    def downloader_class(self):
+        """Return custom downloader class from file metadata.
+
+        Services can specify a 'downloader_class' in _file_meta to use
+        a specialized downloader (e.g., GOGDownloader for parallel downloads)
+        instead of the default Downloader.
+        """
+        if isinstance(self._file_meta, dict):
+            return self._file_meta.get("downloader_class")
+        return None
 
     @property
     def checksum(self):
@@ -211,7 +226,7 @@ class InstallerFile:
         Returns:
             bool
         """
-        if self.url.startswith("N/A"):
+        if not self.allow_pga_cache or self.url.startswith("N/A"):
             return False
         return has_valid_custom_cache_path()
 

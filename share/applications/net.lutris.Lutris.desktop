@@ -9,5 +9,5 @@ Icon=net.lutris.Lutris
 Terminal=false
 Type=Application
 StartupNotify=true
-MimeType=x-scheme-handler/lutris;
+MimeType=x-scheme-handler/lutris;application/x-lutris;
 X-GNOME-UsesNotifications=true

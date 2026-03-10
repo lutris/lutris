@@ -6,44 +6,42 @@ from gettext import gettext as _
 from lutris import runtime, settings
 from lutris.exceptions import GameConfigError
 from lutris.runners.runner import Runner
-from lutris.util import system
-from lutris.util.jobs import AsyncCall
+from lutris.util import async_choices, system
 from lutris.util.log import logger
 from lutris.util.mame.database import get_supported_systems
 from lutris.util.strings import split_arguments
 
 MAME_CACHE_DIR = os.path.join(settings.CACHE_DIR, "mame")
 MAME_XML_PATH = os.path.join(MAME_CACHE_DIR, "mame.xml")
+MAME_SYSTEMS_PATH = os.path.join(MAME_CACHE_DIR, "systems.json")
 
 
-def write_mame_xml(force=False):
+def build_mame_systems_cache(force=False):
+    mame_inst = mame()
+    if not mame_inst.is_installed():
+        logger.warning("MAME is not installed, cannot write XML list")
+        return False
     if not system.path_exists(MAME_CACHE_DIR):
         system.create_folder(MAME_CACHE_DIR)
-    if system.path_exists(MAME_XML_PATH, exclude_empty=True) and not force:
-        return False
-    logger.info("Writing full game list from MAME to %s", MAME_XML_PATH)
-    mame_inst = mame()
-    mame_inst.write_xml_list()
-    if system.get_disk_size(MAME_XML_PATH) == 0:
-        logger.warning("MAME did not write anything to %s", MAME_XML_PATH)
-        return False
+    if not system.path_exists(MAME_XML_PATH, exclude_empty=True) or force:
+        logger.info("Writing full game list from MAME to %s", MAME_XML_PATH)
+        mame_inst.write_xml_list()
+        if system.get_disk_size(MAME_XML_PATH) == 0:
+            logger.warning("MAME did not write anything to %s", MAME_XML_PATH)
+            return False
+    if not system.path_exists(MAME_SYSTEMS_PATH, exclude_empty=True) or force:
+        logger.info("Building MAME systems list")
+        _ = get_supported_systems(MAME_XML_PATH, force=True)
     return True
 
 
-def notify_mame_xml(result, error):
-    if error:
-        logger.error("Failed writing MAME XML")
-    elif result:
-        logger.info("Finished writing MAME XML")
-
-
+@async_choices(
+    generate=build_mame_systems_cache,
+    ready=lambda: system.path_exists(MAME_SYSTEMS_PATH, exclude_empty=True),
+    error_message="Failed to build MAME systems cache",
+)
 def get_system_choices(include_year=True):
     """Return list of systems for inclusion in dropdown"""
-    if not system.path_exists(MAME_XML_PATH, exclude_empty=True):
-        mame_inst = mame()
-        if mame_inst.is_installed():
-            AsyncCall(write_mame_xml, notify_mame_xml)
-        return []
     for system_id, info in sorted(
         get_supported_systems(MAME_XML_PATH).items(),
         key=lambda sys: (sys[1]["manufacturer"], sys[1]["description"]),
@@ -118,6 +116,20 @@ class mame(Runner):  # pylint: disable=invalid-name
                 (_("Punch Tape 1"), "ptap1"),
                 (_("Punch Tape 2"), "ptap2"),
                 (_("Print Out"), "prin"),
+                (_("romimage1"), "rom1"),
+                (_("romimage2"), "rom2"),
+                (_("romimage3"), "rom3"),
+                (_("romimage4"), "rom4"),
+                (_("romimage5"), "rom5"),
+                (_("midiin"), "min"),
+                (_("midiout"), "mout"),
+                (_("bitbanger"), "bitb"),
+                (_("microtape1"), "utap1"),
+                (_("microtape2"), "utap2"),
+                (_("magtape1"), "mtap1"),
+                (_("magtape2"), "mtap2"),
+                (_("magtape3"), "mtap3"),
+                (_("magtape4"), "mtap4"),
             ],
         },
         {
@@ -241,17 +253,6 @@ class mame(Runner):  # pylint: disable=invalid-name
         self._platforms += [_("Arcade"), _("Nintendo Game & Watch")]
         return self._platforms
 
-    def install(self, install_ui_delegate, version=None, callback=None):
-        def on_runner_installed(*args):
-            def on_mame_ready(result, error):
-                notify_mame_xml(result, error)
-                if callback:
-                    callback(*args)
-
-            AsyncCall(write_mame_xml, on_mame_ready)
-
-        super().install(install_ui_delegate, version=version, callback=on_runner_installed)
-
     @property
     def default_path(self):
         """Return the default path, use the runner's rompath"""
@@ -262,7 +263,7 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     def write_xml_list(self):
         """Write the full game list in XML to disk"""
-        env = runtime.get_env()
+        env = runtime.get_env(prefer_system_libs=True)
         listxml_command = self.get_command() + ["-listxml"]
         os.makedirs(self.cache_dir, exist_ok=True)
         output, error_output = system.execute_with_error(listxml_command, env=env)

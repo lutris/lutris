@@ -1,0 +1,24 @@
+Lutris 0.5.20 Open Issues
+=========================
+
+| #     | Issue                                      | Summary                                      |
+|-------|--------------------------------------------|----------------------------------------------|
+| 6227  | Supermodel runner install fails            | API returns 404 - server-side issue          |
+| 6231  | Ubisoft Connect no game pictures           | API missing `thumbImage` field               |
+| 6230  | Dolphin runner doesn't launch              | Missing libavformat.so.60 - system lib issue |
+| 6229  | Disabling Steam source doesn't hide games  | Filtering issue                              |
+| 6109  | Battle.net missing titles                  | FIXED                                        |
+| 6000  | Winetricks fails with UMU                  | --gui argument not supported by umu-run      |
+| 5986  | Question about #5808 fix                   | Question/tracking issue                      |
+| 6054  | Flatpak shows wrong version                | Packaging issue                              |
+| 5703  | ModDB 403 Forbidden in Flatpak             | ModDB blocking Flatpak requests              |
+
+Fixed this session:
+- #6109 (Battle.net missing titles)
+- #6280 (Gamescope not killed)
+- #6267 (XFCE screensaver)
+
+Client-fixable issues remaining:
+- #6229 - Steam source hiding (needs filter logic fix)
+- #6000 - Winetricks with UMU (needs to handle --gui differently)
+- #6231 - Ubisoft pictures (may need fallback for missing thumbImage)

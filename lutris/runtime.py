@@ -211,7 +211,7 @@ class RuntimeUpdater:
             client_version = self.runtime_versions.get("client_version")
             if client_version:
                 if parse_version(client_version) > parse_version(settings.VERSION):
-                    ignored = settings.read_setting("ignored_supported_lutris_verison")
+                    ignored = settings.read_setting("ignored_supported_lutris_version")
                     if not ignored or ignored != client_version:
                         return client_version
 

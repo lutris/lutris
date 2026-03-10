@@ -137,7 +137,12 @@ class JsonRunner(Runner):
                 raise RuntimeError(f"Unhandled type {opt['type']}")
 
         arguments.append(main_file)
-        return {"command": arguments}
+        result = {"command": arguments}
+        if self._json_data.get("env"):
+            result["env"] = self._json_data["env"]
+        if self._json_data.get("working_dir") == "runner":
+            result["working_dir"] = os.path.dirname(os.path.join(settings.RUNNER_DIR, self.runner_executable))
+        return result
 
 
 def load_json_runners():

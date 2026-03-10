@@ -1,7 +1,9 @@
 """Lutris installer class"""
 
 import json
+from functools import cached_property
 from gettext import gettext as _
+from pathlib import Path
 
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
@@ -12,7 +14,6 @@ from lutris.installer.installer_file import InstallerFile
 from lutris.runners import import_runner
 from lutris.services import SERVICES
 from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
-from lutris.util.gog import convert_gog_config_to_lutris, get_gog_config_from_path, get_gog_game_path
 from lutris.util.log import logger
 from lutris.util.moddb import ModDB, is_moddb_url
 from lutris.util.system import fix_path_case
@@ -24,7 +25,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     def __init__(self, installer, interpreter, service, appid):
         self.interpreter = interpreter
         self.installer = installer
-        self.is_update = False
 
         try:
             self.version = installer["version"]
@@ -50,8 +50,18 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
-        self.is_gog = False
+        self.post_install_hooks = []
         self.discord_id = installer.get("discord_id")
+
+    @cached_property
+    def scriptdir(self):
+        installer_file = self.installer.get("installer_file")
+        if not installer_file:
+            return ""
+        file = Path(installer_file).resolve()
+        if not file.exists():
+            return ""
+        return str(file.parent) if file.is_file() else str(file)
 
     def get_service(self, initial=None):
         if initial:
@@ -175,6 +185,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 if patch_version:
                     # If a patch version is given download the patch files instead of the installer
                     installer_files = self.service.get_patch_files(self, installer_file_id)
+                    for f in installer_files:
+                        f.allow_pga_cache = False
                 else:
                     content_files, extra_files = self.service.get_installer_files(self, installer_file_id, extras)
                     extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
@@ -309,12 +321,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             )
             return self.game_id
 
-        if self.is_gog:
-            gog_config = get_gog_config_from_path(self.interpreter.target_path)
-            if gog_config:
-                gog_game_path = get_gog_game_path(self.interpreter.target_path)
-                lutris_config = convert_gog_config_to_lutris(gog_config, gog_game_path)
-                self.script["game"].update(lutris_config)
+        for hook in self.post_install_hooks:
+            hook(self)
 
         configpath = write_game_config(self.slug, self.get_game_config())
         self.game_id = add_or_update(

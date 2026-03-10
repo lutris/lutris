@@ -16,6 +16,25 @@ from lutris.util.log import logger
 # download speeds.
 get_time = time.monotonic
 
+# Default chunk size for downloads (512KB).
+# Previously 8KB which caused excessive syscall overhead.
+# 512KB matches heroic-gogdl and provides good throughput
+# while keeping memory usage reasonable.
+DEFAULT_CHUNK_SIZE = 1024 * 512  # 512KB
+
+
+class DownloadStallError(Exception):
+    """Raised when a download connection stalls below the speed threshold.
+
+    Carries diagnostic information about the stall for logging and retry
+    decisions.
+    """
+
+    def __init__(self, throughput: float, duration: float) -> None:
+        self.throughput = throughput  # bytes/second at time of detection
+        self.duration = duration  # seconds the connection was below threshold
+        super().__init__("Download stalled: %.1f B/s for %.1f seconds" % (throughput, duration))
+
 
 class Downloader:
     """Non-blocking downloader.
@@ -27,6 +46,12 @@ class Downloader:
 
     (INIT, DOWNLOADING, CANCELLED, ERROR, COMPLETED) = list(range(5))
 
+    # Stall detection thresholds (matches lgogdownloader defaults)
+    LOW_SPEED_LIMIT = 200  # bytes/second
+    LOW_SPEED_TIME = 30  # seconds below threshold before triggering
+    RETRY_ATTEMPTS = 3
+    RETRY_DELAY = 2  # seconds between retries
+
     def __init__(
         self,
         url: str,
@@ -35,6 +60,8 @@ class Downloader:
         referer: Optional[str] = None,
         cookies: Any = None,
         headers: Dict[str, str] = None,
+        session: Optional[requests.Session] = None,
+        chunk_size: int = DEFAULT_CHUNK_SIZE,
     ) -> None:
         self.url: str = url
         self.dest: str = dest
@@ -42,6 +69,8 @@ class Downloader:
         self.headers = headers
         self.overwrite: bool = overwrite
         self.referer = referer
+        self.session = session
+        self.chunk_size = chunk_size
         self.stop_request = None
         self.thread = None
 
@@ -61,6 +90,52 @@ class Downloader:
         self.time_left_check_time = 0
         self.file_pointer = None
         self.progress_event = threading.Event()
+
+        # Stall detection state
+        self._stall_start: Optional[float] = None  # monotonic time when speed first dropped
+        self._stall_bytes_at_start: int = 0  # downloaded_size when stall window started
+
+    def _reset_stall_state(self) -> None:
+        """Reset stall detection tracking (call at start of each download attempt)."""
+        self._stall_start = None
+        self._stall_bytes_at_start = 0
+
+    def _check_stall(self, bytes_received_total: int) -> None:
+        """Check if download has stalled and raise DownloadStallError if so.
+
+        Tracks a rolling throughput window. When throughput drops below
+        LOW_SPEED_LIMIT for longer than LOW_SPEED_TIME, raises
+        DownloadStallError to trigger a retry.
+
+        Args:
+            bytes_received_total: Total bytes received so far in this
+                download stream (not self.downloaded_size, which may be
+                shared across workers).
+        """
+        now = get_time()
+
+        if self._stall_start is None:
+            # Not currently in a stall window — start one
+            self._stall_start = now
+            self._stall_bytes_at_start = bytes_received_total
+            return
+
+        elapsed = now - self._stall_start
+        if elapsed <= 0:
+            return
+
+        bytes_in_window = bytes_received_total - self._stall_bytes_at_start
+        throughput = bytes_in_window / elapsed
+
+        if throughput >= self.LOW_SPEED_LIMIT:
+            # Speed is good — reset the window
+            self._stall_start = now
+            self._stall_bytes_at_start = bytes_received_total
+            return
+
+        # Speed is below threshold — check if we've exceeded the time limit
+        if elapsed >= self.LOW_SPEED_TIME:
+            raise DownloadStallError(throughput=throughput, duration=elapsed)
 
     def __repr__(self):
         return "downloader for %s" % self.url
@@ -135,31 +210,129 @@ class Downloader:
             os.remove(self.dest)
 
     def async_download(self):
-        try:
-            headers = requests.utils.default_headers()
-            headers["User-Agent"] = "Lutris/%s" % __version__
-            if self.referer:
-                headers["Referer"] = self.referer
-            if self.headers:
-                for key, value in self.headers.items():
-                    headers[key] = value
-            response = requests.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
-            if response.status_code != 200:
-                logger.info("%s returned a %s error", self.url, response.status_code)
-            response.raise_for_status()
-            self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
-            self.progress_event.set()
-            for chunk in response.iter_content(chunk_size=8192):
-                if not self.file_pointer:
+        """Execute download with stall detection and retry logic.
+
+        Retries up to RETRY_ATTEMPTS times on stalls and transient errors.
+        Non-retryable errors (HTTP 4xx except 408/429) fail immediately.
+        """
+        last_error = None
+        for attempt in range(self.RETRY_ATTEMPTS):
+            try:
+                self._do_download()
+                self.on_download_completed()
+                return  # Success
+            except DownloadStallError as ex:
+                last_error = ex
+                if self.stop_request and self.stop_request.is_set():
                     break
-                if chunk:
-                    self.downloaded_size += len(chunk)
-                    self.file_pointer.write(chunk)
-                self.progress_event.set()
-            self.on_download_completed()
-        except Exception as ex:
-            logger.exception("Download failed: %s", ex)
-            self.on_download_failed(ex)
+                logger.warning(
+                    "Download stall detected (attempt %d/%d): %s — retrying in %ds",
+                    attempt + 1,
+                    self.RETRY_ATTEMPTS,
+                    ex,
+                    self.RETRY_DELAY,
+                )
+                time.sleep(self.RETRY_DELAY)
+                self._prepare_retry()
+            except requests.HTTPError as ex:
+                last_error = ex
+                if self._is_retryable_http_error(ex):
+                    if self.stop_request and self.stop_request.is_set():
+                        break
+                    logger.warning(
+                        "Transient HTTP error (attempt %d/%d): %s — retrying in %ds",
+                        attempt + 1,
+                        self.RETRY_ATTEMPTS,
+                        ex,
+                        self.RETRY_DELAY,
+                    )
+                    time.sleep(self.RETRY_DELAY)
+                    self._prepare_retry()
+                else:
+                    # Non-retryable (4xx client errors like 404, 403)
+                    logger.error("Non-retryable HTTP error: %s", ex)
+                    self.on_download_failed(ex)
+                    return
+            except Exception as ex:
+                last_error = ex
+                if self.stop_request and self.stop_request.is_set():
+                    break
+                if attempt < self.RETRY_ATTEMPTS - 1:
+                    logger.warning(
+                        "Download error (attempt %d/%d): %s — retrying in %ds",
+                        attempt + 1,
+                        self.RETRY_ATTEMPTS,
+                        ex,
+                        self.RETRY_DELAY,
+                    )
+                    time.sleep(self.RETRY_DELAY)
+                    self._prepare_retry()
+                else:
+                    logger.exception("Download failed after %d attempts: %s", self.RETRY_ATTEMPTS, ex)
+                    self.on_download_failed(ex)
+                    return
+
+        # All retries exhausted
+        if last_error:
+            logger.error("Download failed after %d attempts: %s", self.RETRY_ATTEMPTS, last_error)
+            self.on_download_failed(last_error)
+
+    def _do_download(self):
+        """Perform a single download attempt with stall detection."""
+        headers = requests.utils.default_headers()
+        headers["User-Agent"] = "Lutris/%s" % __version__
+        if self.referer:
+            headers["Referer"] = self.referer
+        if self.headers:
+            for key, value in self.headers.items():
+                headers[key] = value
+
+        # Use provided session for connection pooling, or fall back to plain requests
+        requester = self.session if self.session else requests
+        response = requester.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
+        if response.status_code != 200:
+            logger.info("%s returned a %s error", self.url, response.status_code)
+        response.raise_for_status()
+        self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
+        self.progress_event.set()
+
+        self._reset_stall_state()
+        stream_bytes = 0
+
+        for chunk in response.iter_content(chunk_size=self.chunk_size):
+            if not self.file_pointer:
+                break
+            if self.stop_request and self.stop_request.is_set():
+                break
+            if chunk:
+                stream_bytes += len(chunk)
+                self.downloaded_size += len(chunk)
+                self.file_pointer.write(chunk)
+                self._check_stall(stream_bytes)
+            self.progress_event.set()
+
+    def _prepare_retry(self):
+        """Prepare state for a retry attempt.
+
+        Resets stall tracking and restarts the file from the beginning.
+        """
+        self._reset_stall_state()
+        self.downloaded_size = 0
+        if self.file_pointer:
+            self.file_pointer.close()
+        self.file_pointer = open(self.dest, "wb")  # pylint: disable=consider-using-with
+
+    @staticmethod
+    def _is_retryable_http_error(error: requests.HTTPError) -> bool:
+        """Check if an HTTP error is transient and worth retrying.
+
+        Retries on server errors (5xx), timeouts (408), and rate limits (429).
+        Client errors like 404, 403 are not retried.
+        """
+        if error.response is None:
+            return True  # No response means connection-level failure
+        status = error.response.status_code
+        return status >= 500 or status in (408, 429)
 
     def on_download_failed(self, error: Exception):
         # Cancelling closes the file, which can result in an
