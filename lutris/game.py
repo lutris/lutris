@@ -21,7 +21,7 @@ from lutris.database import sql
 from lutris.exception_backstops import watch_game_errors
 from lutris.exceptions import GameConfigError, InvalidGameMoveError, MissingExecutableError
 from lutris.gui.widgets import NotificationSource
-from lutris.installer import InstallationKind
+from lutris.installer import InstallationKind, get_entry_point_path
 from lutris.monitored_command import MonitoredCommand
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import import_runner, is_valid_runner_name
@@ -677,26 +677,21 @@ class Game:
             if "main_file" in game_config and "." not in game_config["main_file"]:
                 return ""
 
-        for key in ["exe", "main_file", "iso", "rom", "disk-a", "path", "files"]:
-            if key in game_config:
-                path = game_config[key]
-                if key == "files":
-                    path = path[0]
+        path = get_entry_point_path(game_config)
+        if not path:
+            logger.warning("No path found in %s", self.config)
+            return ""
 
-                if path:
-                    path = os.path.expanduser(path)
-                    if not path.startswith("/"):
-                        path = os.path.join(self.directory, path)
+        path = os.path.expanduser(path)
+        if not path.startswith("/"):
+            path = os.path.join(self.directory, path)
 
-                    # The Wine runner fixes case mismatches automatically,
-                    # sort of like Windows, so we need to do the same.
-                    if self.runner_name == "wine":
-                        path = fix_path_case(path)
+        # The Wine runner fixes case mismatches automatically,
+        # sort of like Windows, so we need to do the same.
+        if self.runner_name == "wine":
+            path = fix_path_case(path)
 
-                    return path
-
-        logger.warning("No path found in %s", self.config)
-        return ""
+        return path
 
     def get_store_name(self) -> str:
         store = self.service

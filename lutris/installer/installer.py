@@ -8,7 +8,7 @@ from pathlib import Path
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
 from lutris.exceptions import AuthenticationError, UnavailableGameError
-from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
+from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE, ENTRY_POINT_KEYS
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import import_runner
@@ -269,8 +269,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
         game_config = config["game"]
 
-        entry_point_keys = ("iso", "rom", "main_file", "exe")
-
         if "game" in self.script:
             try:
                 game_config.update(self.script["game"])
@@ -281,7 +279,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         # we'll move them into the game-config if so, and if they are not already
         # there. Add a warning because I'm sure this compatibility ship will get lost,
         # and the scripts would be better updated.
-        for entry_point_key in entry_point_keys:
+        for entry_point_key in ENTRY_POINT_KEYS:
             if entry_point_key in self.script and entry_point_key not in game_config:
                 logger.warning("Moving entry point '%s' from script root level to the game config", entry_point_key)
                 game_config[entry_point_key] = self.script[entry_point_key]
@@ -293,9 +291,9 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             game_config["exe"] = find_windows_game_executable(self.interpreter.target_path)
 
         # Fix possible case differences
-        for key in entry_point_keys:
+        for key in ENTRY_POINT_KEYS:
             entry_point = game_config.get(key)
-            if entry_point:
+            if isinstance(entry_point, str):
                 game_config[key] = fix_path_case(entry_point)
 
         config["game"] = game_config
@@ -319,12 +317,13 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 "This is an extension to %s, not creating a new game entry",
                 self.extends,
             )
-            return self.game_id
+            return self.game_id, None
 
         for hook in self.post_install_hooks:
             hook(self)
 
-        configpath = write_game_config(self.slug, self.get_game_config())
+        game_config = self.get_game_config()
+        configpath = write_game_config(self.slug, game_config)
         self.game_id = add_or_update(
             name=self.game_name,
             runner=self.runner,
@@ -341,4 +340,4 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             id=self.game_id,
             discord_id=self.discord_id,
         )
-        return self.game_id
+        return self.game_id, game_config
