@@ -486,6 +486,7 @@ class EAAppService(OnlineService):
         ea_app_game = get_game_by_field("ea-app", "slug")
         if not ea_app_game:
             logger.error("EA App is not installed")
+            return
         ea_app_prefix = ea_app_game["directory"].split("drive_c")[0]
         if not os.path.exists(os.path.join(ea_app_prefix, "drive_c")):
             logger.error("Invalid install of EA App at %s", ea_app_prefix)
