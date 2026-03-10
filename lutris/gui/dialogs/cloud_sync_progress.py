@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Callable, List, Optional
 from lutris.gui.widgets.progress_box import ProgressInfo
 from lutris.services.gog_cloud import SyncResult
 from lutris.util.log import logger
+from lutris.util.strings import gtk_safe
 
 if TYPE_CHECKING:
     from lutris.game import Game
@@ -62,9 +63,9 @@ class CloudSyncProgressAdapter:
         self._error: Optional[str] = None
 
         if direction == "pre-launch":
-            self._label = _("Syncing cloud saves for %s") % game.name
+            self._label = _("Syncing cloud saves for %s") % gtk_safe(game.name)
         else:
-            self._label = _("Uploading cloud saves for %s") % game.name
+            self._label = _("Uploading cloud saves for %s") % gtk_safe(game.name)
 
     def cancel(self) -> None:
         """Called from the main thread when the user clicks the stop button."""
