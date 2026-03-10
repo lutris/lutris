@@ -1086,14 +1086,14 @@ class Game:
         """Do things depending on how the game quitted."""
         if not self.game_thread:
             return
-        if self.game_thread.return_code == 127:
+        if self.game_thread.return_code == "127":
             # Error missing shared lib
             error = "error while loading shared lib"
             error_lines = strings.lookup_strings_in_text(error, self.game_thread.stdout)
             if error_lines:
                 raise RuntimeError(_("<b>Error: Missing shared library.</b>\n\n%s") % error_lines[0])
 
-        if self.game_thread.return_code == 1:
+        if self.game_thread.return_code == "1":
             # Error Wine version conflict
             error = "maybe the wrong wineserver"
             if strings.lookup_strings_in_text(error, self.game_thread.stdout):

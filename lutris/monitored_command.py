@@ -210,7 +210,7 @@ class MonitoredCommand:
             sys.stdout.write(line)
             sys.stdout.flush()
 
-    def get_return_code(self):
+    def get_return_code(self) -> str:
         """Get the return code from the file written by the wrapper"""
         return_code_path = "/tmp/lutris-%s" % self.env["LUTRIS_GAME_UUID"]
         if os.path.exists(return_code_path):
