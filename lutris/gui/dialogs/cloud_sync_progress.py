@@ -1,42 +1,45 @@
-"""Cloud sync progress dialog for GOG cloud save integration.
+"""Cloud sync progress adapter for the sidebar DownloadQueue.
 
-Shows a non-intrusive progress dialog while cloud saves are being
-synchronized before game launch or after game exit, keeping the GTK
-main loop responsive so the window manager does not flag Lutris as
-"not responding".
+Provides a thread-safe bridge between the GOG cloud sync's
+progress_callback(current, total, filename) and the ProgressInfo
+polling used by ProgressBox in the sidebar download queue.
 """
 
+import threading
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Callable, List, Optional
 
-from gi.repository import GLib, Gtk, Pango
-
-from lutris.gui.dialogs import ModelessDialog
+from lutris.gui.widgets.progress_box import ProgressInfo
 from lutris.services.gog_cloud import SyncResult
-from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 
 if TYPE_CHECKING:
     from lutris.game import Game
 
 
-class CloudSyncProgressDialog(ModelessDialog):
-    """Modal-style progress dialog shown during GOG cloud save sync.
+class CloudSyncCancelled(Exception):
+    """Raised when the user skips/cancels cloud sync via the stop button."""
 
-    The dialog displays a progress bar and status label while the
-    actual sync work runs on a background thread.  Progress updates
-    are received via a callback and dispatched to the GTK main loop.
+
+class CloudSyncProgressAdapter:
+    """Thread-safe adapter that bridges GOG cloud sync progress to ProgressBox polling.
+
+    The sync worker thread calls ``progress_callback(current, total, filename)``
+    to update shared state.  The main thread polls ``get_progress()`` which
+    returns a ``ProgressInfo`` for the sidebar ``ProgressBox``.
+
+    The stop button in the ProgressBox triggers cancellation: the next
+    progress_callback call on the worker thread raises ``CloudSyncCancelled``
+    to abort the sync cleanly.
 
     Usage::
 
-        dialog = CloudSyncProgressDialog(
-            game=game,
-            sync_func=sync_before_launch,
-            direction="pre-launch",
-            parent=parent_window,
+        adapter = CloudSyncProgressAdapter(game, sync_func, "pre-launch")
+        download_queue.start(
+            operation=adapter.run,
+            progress_function=adapter.get_progress,
+            completion_function=on_done,
         )
-        dialog.run_sync()
-        # dialog auto-destroys when done; results in dialog.results
     """
 
     def __init__(
@@ -44,128 +47,75 @@ class CloudSyncProgressDialog(ModelessDialog):
         game: "Game",
         sync_func: Callable[["Game", Optional[Callable[[int, int, str], None]]], List[SyncResult]],
         direction: str = "pre-launch",
-        parent: Optional[Gtk.Widget] = None,
     ) -> None:
-        title = _("Syncing Cloud Saves…") if direction == "pre-launch" else _("Uploading Cloud Saves…")
-        super().__init__(title=title, parent=parent, border_width=18)  # type: ignore[arg-type]
-
         self.game = game
         self._sync_func = sync_func
         self._direction = direction
         self.results: List[SyncResult] = []
+
+        self._lock = threading.Lock()
+        self._current = 0
+        self._total = 0
+        self._filename = ""
+        self._finished = False
         self._cancelled = False
+        self._error: Optional[str] = None
 
-        self.set_size_request(400, -1)
-        self.set_resizable(False)
-        self.set_deletable(False)
-
-        content = self.get_content_area()
-
-        # Status label
-        self._status_label = Gtk.Label(visible=True)
         if direction == "pre-launch":
-            self._status_label.set_markup(
-                _("Downloading cloud saves for <b>%s</b>…") % GLib.markup_escape_text(game.name)
-            )
+            self._label = _("Syncing cloud saves for %s") % game.name
         else:
-            self._status_label.set_markup(
-                _("Uploading saves for <b>%s</b> to cloud…") % GLib.markup_escape_text(game.name)
-            )
-        self._status_label.set_line_wrap(True)
-        content.pack_start(self._status_label, False, False, 6)
+            self._label = _("Uploading cloud saves for %s") % game.name
 
-        # Progress bar
-        self._progress_bar = Gtk.ProgressBar(visible=True)
-        self._progress_bar.set_show_text(True)
-        content.pack_start(self._progress_bar, False, False, 6)
-
-        # Detail label (shows current file being synced)
-        self._detail_label = Gtk.Label(visible=True)
-        self._detail_label.set_text(_("Preparing…"))
-        self._detail_label.set_xalign(0.0)
-        self._detail_label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
-        self._detail_label.set_max_width_chars(1)
-        content.pack_start(self._detail_label, False, False, 2)
-
-        # Skip button - lets the user skip sync and launch immediately
-        self._skip_button = self.add_button(_("Skip Sync"), Gtk.ResponseType.CANCEL)
-        self._skip_button.set_tooltip_text(_("Skip cloud sync and launch the game immediately"))
-
-        self.connect("response", self._on_response)
-        self.show_all()
-
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
-    def run_sync(self) -> None:
-        """Start the sync operation on a background thread."""
-        AsyncCall(self._do_sync, self._on_sync_done)
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
-    def _on_progress(self, current: int, total: int, filename: str) -> None:
-        """Called from the background thread; dispatches to GTK main loop."""
-        GLib.idle_add(self._update_progress, current, total, filename)
-
-    def _update_progress(self, current: int, total: int, filename: str) -> bool:
-        """Update the progress bar and detail label on the main thread."""
-        if self._cancelled:
-            return False
-        if total > 0:
-            fraction = (current + 1) / total
-            self._progress_bar.set_fraction(fraction)
-            self._progress_bar.set_text(_("%d / %d") % (current + 1, total))
-        self._detail_label.set_text(filename)
-        return False  # do not repeat
-
-    def _do_sync(self) -> List[SyncResult]:
-        """Run on a background thread - performs the actual sync."""
-        return self._sync_func(self.game, self._on_progress)
-
-    def _on_sync_done(self, results: Optional[List[SyncResult]], error: Optional[Exception]) -> None:
-        """Callback invoked on the main thread when the sync finishes."""
-        if self._cancelled:
-            self.destroy()
-            return
-
-        if error:
-            logger.warning("GOG cloud sync (%s) failed: %s", self._direction, error)
-            self._status_label.set_markup(_("<b>Cloud sync failed</b>"))
-            self._detail_label.set_text(str(error))
-            self._progress_bar.set_fraction(0.0)
-            self._progress_bar.set_show_text(False)
-        else:
-            self.results = results or []
-            self._progress_bar.set_fraction(1.0)
-            total_down = sum(len(r.downloaded) for r in self.results)
-            total_up = sum(len(r.uploaded) for r in self.results)
-            if total_down or total_up:
-                parts = []
-                if total_down:
-                    parts.append(_("%d file(s) downloaded") % total_down)
-                if total_up:
-                    parts.append(_("%d file(s) uploaded") % total_up)
-                self._detail_label.set_text(", ".join(parts))
-                self._progress_bar.set_text(_("Done"))
-            else:
-                self._detail_label.set_text(_("Saves are up to date."))
-                self._progress_bar.set_text(_("Done"))
-
-        # Auto-close after a brief moment so the user can see the result
-        GLib.timeout_add(600, self._auto_close)
-
-    def _auto_close(self) -> bool:
-        """Destroy the dialog after sync completes."""
-        self.destroy()
-        return False  # do not repeat
-
-    def _on_response(self, _dialog: Gtk.Dialog, response_id: int) -> None:
-        """Handle user clicking *Skip Sync*."""
-        if response_id == Gtk.ResponseType.CANCEL:
-            logger.info("User skipped cloud sync (%s) for %s", self._direction, self.game.name)
+    def cancel(self) -> None:
+        """Called from the main thread when the user clicks the stop button."""
+        with self._lock:
             self._cancelled = True
-            self._detail_label.set_text(_("Skipping…"))
-            self._skip_button.set_sensitive(False)
+        logger.info("User skipped cloud sync (%s) for %s", self._direction, self.game.name)
+
+    def progress_callback(self, current: int, total: int, filename: str) -> None:
+        """Called from the worker thread to report progress.
+
+        Raises CloudSyncCancelled if the user has clicked the stop button.
+        """
+        with self._lock:
+            if self._cancelled:
+                raise CloudSyncCancelled()
+            self._current = current
+            self._total = total
+            self._filename = filename
+
+    def get_progress(self) -> ProgressInfo:
+        """Polled from the main thread by ProgressBox."""
+        with self._lock:
+            if self._finished:
+                if self._error:
+                    return ProgressInfo.ended(_("Cloud sync failed: %s") % self._error)
+                return ProgressInfo.ended(self._label)
+
+            if self._total > 0:
+                fraction = (self._current + 1) / self._total
+                label = "%s (%s)" % (self._label, self._filename)
+            else:
+                fraction = 0.0
+                label = self._label
+
+            stop_fn = self.cancel if not self._cancelled else None
+
+        return ProgressInfo(fraction, label, stop_fn)
+
+    def run(self) -> List[SyncResult]:
+        """Run on a worker thread — performs the actual sync."""
+        try:
+            self.results = self._sync_func(self.game, self.progress_callback)
+            return self.results
+        except CloudSyncCancelled:
+            logger.info("Cloud sync (%s) cancelled for %s", self._direction, self.game.name)
+            return self.results
+        except Exception as ex:
+            logger.warning("GOG cloud sync (%s) failed: %s", self._direction, ex)
+            with self._lock:
+                self._error = str(ex)
+            raise
+        finally:
+            with self._lock:
+                self._finished = True

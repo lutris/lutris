@@ -772,17 +772,21 @@ class Game:
         # GOG cloud save sync (download from cloud before launch)
         if self.service == "gog" and self.appid:
             try:
-                from lutris.gui.dialogs.cloud_sync_progress import CloudSyncProgressDialog  # noqa: PLC0415
+                from lutris.gui.dialogs.cloud_sync_progress import CloudSyncProgressAdapter  # noqa: PLC0415
+                from lutris.gui.widgets.utils import get_main_window  # noqa: PLC0415
                 from lutris.services.gog_cloud_hooks import sync_before_launch  # noqa: PLC0415
 
-                dialog = CloudSyncProgressDialog(
-                    game=self,
-                    sync_func=sync_before_launch,
-                    direction="pre-launch",
-                )
-                dialog.connect("destroy", lambda _d: self.start_game())
-                dialog.run_sync()
-                return True
+                window = get_main_window()
+                if window:
+                    adapter = CloudSyncProgressAdapter(self, sync_before_launch, "pre-launch")
+                    window.download_queue.start(
+                        operation=adapter.run,
+                        progress_function=adapter.get_progress,
+                        completion_function=lambda _result: self.start_game(),
+                        error_function=lambda _error: self.start_game(),
+                        operation_name="cloud_sync:%s:pre" % self.id,
+                    )
+                    return True
             except Exception as ex:
                 logger.warning("GOG cloud sync before launch failed: %s", ex)
 
@@ -1031,15 +1035,18 @@ class Game:
         # GOG cloud save sync (upload to cloud after quit)
         if self.service == "gog" and self.appid:
             try:
-                from lutris.gui.dialogs.cloud_sync_progress import CloudSyncProgressDialog  # noqa: PLC0415
+                from lutris.gui.dialogs.cloud_sync_progress import CloudSyncProgressAdapter  # noqa: PLC0415
+                from lutris.gui.widgets.utils import get_main_window  # noqa: PLC0415
                 from lutris.services.gog_cloud_hooks import sync_after_quit  # noqa: PLC0415
 
-                dialog = CloudSyncProgressDialog(
-                    game=self,
-                    sync_func=sync_after_quit,
-                    direction="post-exit",
-                )
-                dialog.run_sync()
+                window = get_main_window()
+                if window:
+                    adapter = CloudSyncProgressAdapter(self, sync_after_quit, "post-exit")
+                    window.download_queue.start(
+                        operation=adapter.run,
+                        progress_function=adapter.get_progress,
+                        operation_name="cloud_sync:%s:post" % self.id,
+                    )
             except Exception as ex:
                 logger.warning("GOG cloud sync after quit failed: %s", ex)
 

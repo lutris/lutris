@@ -1,8 +1,8 @@
-"""Tests for the CloudSyncProgressDialog.
+"""Tests for the CloudSyncProgressAdapter.
 
-These tests verify the dialog's construction, background sync execution,
-skip/cancel behaviour, and auto-close lifecycle without requiring a
-running GTK display (all GTK interactions are mocked).
+These tests verify the adapter that bridges GOG cloud sync progress
+to the sidebar ProgressBox polling mechanism, including cancellation
+via the stop button.
 """
 
 import importlib.util
@@ -10,7 +10,7 @@ import os
 import sys
 import types
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 # ── Load gog_cloud first (no GTK dependency) ────────────────────────
 _cloud_spec = importlib.util.spec_from_file_location(
@@ -30,7 +30,7 @@ if "lutris.services" not in sys.modules:
     sys.modules["lutris.services"] = _services_stub
 sys.modules["lutris.services"].gog_cloud = _cloud_mod  # type: ignore[attr-defined]
 
-# ── Stub out GTK / GLib / GObject so the dialog module can import ────
+# ── Stub out GTK / GLib / GObject so the module can import ────
 _mock_gtk = MagicMock()
 _mock_glib = MagicMock()
 _mock_gobject = MagicMock()
@@ -42,22 +42,16 @@ _gi_repo.Gtk = _mock_gtk  # type: ignore[attr-defined]
 _gi_repo.GLib = _mock_glib  # type: ignore[attr-defined]
 _gi_repo.GObject = _mock_gobject  # type: ignore[attr-defined]
 
-# Stub dialog base classes
+# Stub GUI modules
 _dialogs_stub = types.ModuleType("lutris.gui.dialogs")
 sys.modules.setdefault("lutris.gui", types.ModuleType("lutris.gui"))
 sys.modules.setdefault("lutris.gui.dialogs", _dialogs_stub)
-
-_dialogs_stub.ModelessDialog = type(  # type: ignore[attr-defined]
-    "ModelessDialog",
-    (),
-    {
-        "__init__": lambda self, *a, **kw: None,
-    },
-)
+sys.modules.setdefault("lutris.gui.widgets", types.ModuleType("lutris.gui.widgets"))
 
 # Stub jobs module
 _jobs_stub = types.ModuleType("lutris.util.jobs")
 _jobs_stub.AsyncCall = MagicMock  # type: ignore[attr-defined]
+_jobs_stub.schedule_repeating_at_idle = MagicMock  # type: ignore[attr-defined]
 sys.modules.setdefault("lutris.util", types.ModuleType("lutris.util"))
 sys.modules["lutris.util.jobs"] = _jobs_stub
 
@@ -66,17 +60,29 @@ _log_stub = types.ModuleType("lutris.util.log")
 _log_stub.logger = MagicMock()  # type: ignore[attr-defined]
 sys.modules["lutris.util.log"] = _log_stub
 
-# ── Now load the dialog module ──────────────────────────────────────
+# ── Now load the progress_box and adapter modules ──────────────────
+_pb_spec = importlib.util.spec_from_file_location(
+    "lutris.gui.widgets.progress_box",
+    os.path.join(os.path.dirname(__file__), "..", "lutris", "gui", "widgets", "progress_box.py"),
+)
+assert _pb_spec is not None and _pb_spec.loader is not None
+_pb_mod = importlib.util.module_from_spec(_pb_spec)
+sys.modules["lutris.gui.widgets.progress_box"] = _pb_mod
+_pb_spec.loader.exec_module(_pb_mod)
+
+ProgressInfo = _pb_mod.ProgressInfo
+
 _spec = importlib.util.spec_from_file_location(
     "lutris.gui.dialogs.cloud_sync_progress",
     os.path.join(os.path.dirname(__file__), "..", "lutris", "gui", "dialogs", "cloud_sync_progress.py"),
 )
 assert _spec is not None and _spec.loader is not None
-_dialog_mod = importlib.util.module_from_spec(_spec)
-sys.modules["lutris.gui.dialogs.cloud_sync_progress"] = _dialog_mod
-_spec.loader.exec_module(_dialog_mod)
+_adapter_mod = importlib.util.module_from_spec(_spec)
+sys.modules["lutris.gui.dialogs.cloud_sync_progress"] = _adapter_mod
+_spec.loader.exec_module(_adapter_mod)
 
-CloudSyncProgressDialog = _dialog_mod.CloudSyncProgressDialog
+CloudSyncProgressAdapter = _adapter_mod.CloudSyncProgressAdapter
+CloudSyncCancelled = _adapter_mod.CloudSyncCancelled
 
 
 # ---------------------------------------------------------------------------
@@ -105,204 +111,147 @@ def _make_sync_result(downloaded=None, uploaded=None, error=None) -> "SyncResult
 # ---------------------------------------------------------------------------
 
 
-class TestCloudSyncProgressDialogInit(unittest.TestCase):
-    """Test dialog construction and widget setup."""
-
-    def _make_dialog(self, direction="pre-launch"):
-        game = _make_game()
-        sync_func = MagicMock(return_value=[])
-        dialog = CloudSyncProgressDialog.__new__(CloudSyncProgressDialog)
-        dialog.game = game
-        dialog._sync_func = sync_func
-        dialog._direction = direction
-        dialog.results = []
-        dialog._cancelled = False
-        dialog._status_label = MagicMock()
-        dialog._detail_label = MagicMock()
-        dialog._progress_bar = MagicMock()
-        dialog._skip_button = MagicMock()
-        return dialog
+class TestCloudSyncProgressAdapterInit(unittest.TestCase):
+    """Test adapter construction."""
 
     def test_initial_state_pre_launch(self):
-        dialog = self._make_dialog("pre-launch")
-        self.assertFalse(dialog._cancelled)
-        self.assertEqual(dialog.results, [])
+        game = _make_game()
+        sync_func = MagicMock()
+        adapter = CloudSyncProgressAdapter(game, sync_func, "pre-launch")
+        self.assertEqual(adapter.results, [])
+        self.assertFalse(adapter._finished)
+        self.assertFalse(adapter._cancelled)
+        self.assertIsNone(adapter._error)
 
     def test_initial_state_post_exit(self):
-        dialog = self._make_dialog("post-exit")
-        self.assertFalse(dialog._cancelled)
-        self.assertEqual(dialog._direction, "post-exit")
+        game = _make_game()
+        sync_func = MagicMock()
+        adapter = CloudSyncProgressAdapter(game, sync_func, "post-exit")
+        self.assertEqual(adapter._direction, "post-exit")
+        self.assertIn(game.name, adapter._label)
 
 
-class TestCloudSyncProgressDialogRunSync(unittest.TestCase):
-    """Test the run_sync method schedules pulse and starts async call."""
+class TestCloudSyncProgressAdapterProgress(unittest.TestCase):
+    """Test progress reporting."""
 
-    def _make_dialog(self):
+    def _make_adapter(self):
         game = _make_game()
         sync_func = MagicMock(return_value=[])
-        dialog = CloudSyncProgressDialog.__new__(CloudSyncProgressDialog)
-        dialog.game = game
-        dialog._sync_func = sync_func
-        dialog._direction = "pre-launch"
-        dialog.results = []
-        dialog._cancelled = False
-        dialog._status_label = MagicMock()
-        dialog._detail_label = MagicMock()
-        dialog._progress_bar = MagicMock()
-        dialog._skip_button = MagicMock()
-        return dialog
+        return CloudSyncProgressAdapter(game, sync_func, "pre-launch")
 
-    def test_run_sync_starts_async_call(self):
-        dialog = self._make_dialog()
+    def test_initial_progress_is_zero(self):
+        adapter = self._make_adapter()
+        progress = adapter.get_progress()
+        self.assertEqual(progress.progress, 0.0)
+        self.assertFalse(progress.has_ended)
 
-        with patch.object(type(dialog), "run_sync", CloudSyncProgressDialog.run_sync):
-            original_async = _dialog_mod.AsyncCall
-            mock_async = MagicMock()
-            _dialog_mod.AsyncCall = mock_async
-            try:
-                dialog.run_sync()
-                mock_async.assert_called_once()
-            finally:
-                _dialog_mod.AsyncCall = original_async
+    def test_progress_callback_updates_state(self):
+        adapter = self._make_adapter()
+        adapter.progress_callback(2, 5, "save.dat")
+        progress = adapter.get_progress()
+        self.assertAlmostEqual(progress.progress, 3 / 5)
+        self.assertIn("save.dat", progress.label_markup)
+
+    def test_finished_progress_reports_ended(self):
+        adapter = self._make_adapter()
+        adapter._finished = True
+        progress = adapter.get_progress()
+        self.assertTrue(progress.has_ended)
+
+    def test_error_progress_reports_ended_with_error(self):
+        adapter = self._make_adapter()
+        adapter._finished = True
+        adapter._error = "Network error"
+        progress = adapter.get_progress()
+        self.assertTrue(progress.has_ended)
+        self.assertIn("Network error", progress.label_markup)
+
+    def test_progress_provides_stop_function(self):
+        adapter = self._make_adapter()
+        progress = adapter.get_progress()
+        self.assertTrue(progress.can_stop)
+        self.assertEqual(progress.stop_function, adapter.cancel)
+
+    def test_progress_hides_stop_after_cancel(self):
+        adapter = self._make_adapter()
+        adapter.cancel()
+        progress = adapter.get_progress()
+        self.assertFalse(progress.can_stop)
 
 
-class TestCloudSyncProgressDialogCallbacks(unittest.TestCase):
-    """Test the internal callback behaviour."""
+class TestCloudSyncProgressAdapterCancel(unittest.TestCase):
+    """Test cancellation via the stop button."""
 
-    def _make_dialog(self):
-        """Create a dialog with all GTK interactions mocked out."""
+    def _make_adapter(self):
         game = _make_game()
         sync_func = MagicMock(return_value=[])
-        dialog = CloudSyncProgressDialog.__new__(CloudSyncProgressDialog)
-        dialog.game = game
-        dialog._sync_func = sync_func
-        dialog._direction = "pre-launch"
-        dialog.results = []
-        dialog._cancelled = False
-        dialog._status_label = MagicMock()
-        dialog._detail_label = MagicMock()
-        dialog._progress_bar = MagicMock()
-        dialog._skip_button = MagicMock()
-        return dialog
+        return CloudSyncProgressAdapter(game, sync_func, "pre-launch")
 
-    def test_on_sync_done_success_with_downloads(self):
-        dialog = self._make_dialog()
-        results = [_make_sync_result(downloaded=["save1.dat", "save2.dat"])]
-        mock_glib = MagicMock()
+    def test_cancel_sets_flag(self):
+        adapter = self._make_adapter()
+        adapter.cancel()
+        self.assertTrue(adapter._cancelled)
 
-        with patch.object(_dialog_mod, "GLib", mock_glib):
-            dialog._on_sync_done(results, None)
+    def test_progress_callback_raises_when_cancelled(self):
+        adapter = self._make_adapter()
+        adapter.cancel()
+        with self.assertRaises(CloudSyncCancelled):
+            adapter.progress_callback(0, 5, "save.dat")
 
-        self.assertEqual(dialog.results, results)
-        dialog._detail_label.set_text.assert_called()
-        mock_glib.timeout_add.assert_called_once()
+    def test_run_handles_cancellation_gracefully(self):
+        game = _make_game()
 
-    def test_on_sync_done_success_with_uploads(self):
-        dialog = self._make_dialog()
-        results = [_make_sync_result(uploaded=["save1.dat"])]
-        mock_glib = MagicMock()
+        def fake_sync(g, cb):
+            cb(0, 3, "file1.dat")
+            # Simulate cancel happening between callbacks
+            raise CloudSyncCancelled()
 
-        with patch.object(_dialog_mod, "GLib", mock_glib):
-            dialog._on_sync_done(results, None)
+        adapter = CloudSyncProgressAdapter(game, fake_sync, "pre-launch")
+        result = adapter.run()
 
-        self.assertEqual(dialog.results, results)
-        mock_glib.timeout_add.assert_called_once()
+        self.assertEqual(result, [])
+        self.assertTrue(adapter._finished)
+        self.assertIsNone(adapter._error)
 
-    def test_on_sync_done_up_to_date(self):
-        dialog = self._make_dialog()
-        results = [_make_sync_result()]
-        mock_glib = MagicMock()
 
-        with patch.object(_dialog_mod, "GLib", mock_glib):
-            dialog._on_sync_done(results, None)
+class TestCloudSyncProgressAdapterRun(unittest.TestCase):
+    """Test the run method."""
 
-        self.assertEqual(dialog.results, results)
-        mock_glib.timeout_add.assert_called_once()
-
-    def test_on_sync_done_error(self):
-        dialog = self._make_dialog()
-        error = RuntimeError("Network error")
-        mock_glib = MagicMock()
-
-        with patch.object(_dialog_mod, "GLib", mock_glib):
-            dialog._on_sync_done(None, error)
-
-        dialog._status_label.set_markup.assert_called()
-        mock_glib.timeout_add.assert_called_once()
-
-    def test_on_sync_done_cancelled_destroys_dialog(self):
-        dialog = self._make_dialog()
-        dialog._cancelled = True
-        dialog.destroy = MagicMock()
-        mock_glib = MagicMock()
-
-        with patch.object(_dialog_mod, "GLib", mock_glib):
-            dialog._on_sync_done([_make_sync_result()], None)
-
-        dialog.destroy.assert_called_once()
-        mock_glib.timeout_add.assert_not_called()
-
-    def test_update_progress_sets_fraction(self):
-        dialog = self._make_dialog()
-        dialog._update_progress(2, 5, "save.dat")
-        dialog._progress_bar.set_fraction.assert_called_once_with(3 / 5)
-        dialog._detail_label.set_text.assert_called_with("save.dat")
-
-    def test_update_progress_skipped_when_cancelled(self):
-        dialog = self._make_dialog()
-        dialog._cancelled = True
-        result = dialog._update_progress(0, 5, "save.dat")
-        self.assertFalse(result)
-        dialog._progress_bar.set_fraction.assert_not_called()
-
-    def test_do_sync_calls_sync_func_with_callback(self):
-        dialog = self._make_dialog()
+    def test_run_calls_sync_func(self):
+        game = _make_game()
         expected = [_make_sync_result(downloaded=["x"])]
-        dialog._sync_func = MagicMock(return_value=expected)
+        sync_func = MagicMock(return_value=expected)
+        adapter = CloudSyncProgressAdapter(game, sync_func, "pre-launch")
 
-        result = dialog._do_sync()
+        result = adapter.run()
 
         self.assertEqual(result, expected)
-        dialog._sync_func.assert_called_once_with(dialog.game, dialog._on_progress)
+        self.assertEqual(adapter.results, expected)
+        sync_func.assert_called_once_with(game, adapter.progress_callback)
+        self.assertTrue(adapter._finished)
 
-    def test_on_progress_dispatches_to_glib(self):
-        dialog = self._make_dialog()
-        mock_glib = MagicMock()
-
-        with patch.object(_dialog_mod, "GLib", mock_glib):
-            dialog._on_progress(1, 10, "test.sav")
-
-        mock_glib.idle_add.assert_called_once_with(dialog._update_progress, 1, 10, "test.sav")
-
-
-class TestCloudSyncProgressDialogSkip(unittest.TestCase):
-    """Test the skip/cancel response handling."""
-
-    def _make_dialog(self):
+    def test_run_sets_error_on_exception(self):
         game = _make_game()
-        sync_func = MagicMock(return_value=[])
-        dialog = CloudSyncProgressDialog.__new__(CloudSyncProgressDialog)
-        dialog.game = game
-        dialog._sync_func = sync_func
-        dialog._direction = "pre-launch"
-        dialog.results = []
-        dialog._cancelled = False
-        dialog._status_label = MagicMock()
-        dialog._detail_label = MagicMock()
-        dialog._progress_bar = MagicMock()
-        dialog._skip_button = MagicMock()
-        return dialog
+        sync_func = MagicMock(side_effect=RuntimeError("boom"))
+        adapter = CloudSyncProgressAdapter(game, sync_func, "pre-launch")
 
-    def test_skip_cancels_and_disables_button(self):
-        dialog = self._make_dialog()
-        mock_gtk = MagicMock()
-        cancel_response = mock_gtk.ResponseType.CANCEL
+        with self.assertRaises(RuntimeError):
+            adapter.run()
 
-        with patch.object(_dialog_mod, "Gtk", mock_gtk):
-            dialog._on_response(dialog, cancel_response)
+        self.assertTrue(adapter._finished)
+        self.assertEqual(adapter._error, "boom")
 
-        self.assertTrue(dialog._cancelled)
-        dialog._skip_button.set_sensitive.assert_called_with(False)
+    def test_run_sets_finished_even_on_error(self):
+        game = _make_game()
+        sync_func = MagicMock(side_effect=ValueError("bad"))
+        adapter = CloudSyncProgressAdapter(game, sync_func, "post-exit")
+
+        with self.assertRaises(ValueError):
+            adapter.run()
+
+        self.assertTrue(adapter._finished)
+        progress = adapter.get_progress()
+        self.assertTrue(progress.has_ended)
 
 
 if __name__ == "__main__":
