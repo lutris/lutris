@@ -76,6 +76,14 @@ def get_output_list():
     return choices
 
 
+def _is_cloud_sync_game(_option_key, config):
+    """Show cloud sync option at system level, or at game level only for GOG games."""
+    if config.level != "game":
+        return True
+
+    return config.game_level.get("service") == "gog"
+
+
 system_options = [  # pylint: disable=invalid-name
     {
         "section": _("Lutris"),
@@ -106,6 +114,16 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Prefer system libraries"),
         "default": True,
         "help": _("When the runtime is enabled, prioritize the system libraries over the provided ones."),
+    },
+    {
+        "section": _("Lutris"),
+        "option": "cloud_save_sync",
+        "type": "bool",
+        "label": _("Cloud save sync"),
+        "default": True,
+        "scope": ["system", "game"],
+        "visible": _is_cloud_sync_game,
+        "help": _("Automatically synchronize cloud saves for services that support it (currently GOG)."),
     },
     {
         "section": _("Display"),
