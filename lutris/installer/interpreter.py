@@ -10,7 +10,7 @@ from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import AuthenticationError, MisconfigurationError, UnavailableGameError
 from lutris.gui.dialogs.delegates import Delegate
-from lutris.installer import AUTO_EXE_PREFIX
+from lutris.installer import get_entry_point_path
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.installer import LutrisInstaller
@@ -368,21 +368,23 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         return getattr(self, command_name), command_params
 
     def _finish_install(self):
-        game_id = self.installer.save()
-        path = None
+        game_id, game_config = self.installer.save()
 
         # Mark cached files as successfully installed so cleanup can remove them
         self._update_cache_locks_state("installed")
 
-        if path and AUTO_EXE_PREFIX not in path and not os.path.isfile(path) and self.installer.runner != "web":
+        # Check that the game's executable can actually be found
+        exe_path = get_entry_point_path(game_config.get("game", {})) if game_config else ""
+
+        if exe_path and not os.path.isfile(exe_path) and self.installer.runner != "web":
             status = (
                 _(
                     "The executable at path %s can't be found, please check the destination folder.\n"
                     "Some parts of the installation process may have not completed successfully."
                 )
-                % path
+                % exe_path
             )
-            logger.warning("No executable found at specified location %s", path)
+            logger.warning("No executable found at specified location %s", exe_path)
         else:
             status = self.installer.script.get("install_complete_text") or _("Installation completed!")
         AsyncCall(download_lutris_media, None, self.installer.game_slug)
