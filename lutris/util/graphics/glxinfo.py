@@ -21,7 +21,6 @@ class GlxInfo:
                           of running the program, useful for testing.
         """
         self._output = output or self.get_glxinfo_output()
-        self._section = None
         self._attrs = set()  # Keep a reference of the created attributes
         self.parse()
 
@@ -42,6 +41,7 @@ class GlxInfo:
         # Fix glxinfo output (Great, you saved one line by
         # combining display and screen)
         output = self._output.replace("  screen", "\nscreen")
+        section = None
         for line in output.split("\n"):
             # Skip blank lines, and error lines that may contain no ':'
             if ":" not in line:
@@ -52,14 +52,14 @@ class GlxInfo:
             value = value.strip()
 
             if not value and key.startswith(("Extended_renderer_info", "Memory_info")) and "(" in key:
-                self._section = key[key.index("(") + 1 : -1]
-                setattr(self, self._section, Container())  # type: ignore
+                section = key[key.index("(") + 1 : -1]
+                setattr(self, section, Container())
                 continue
-            if self._section:
+            if section:
                 if not key.startswith("____"):
-                    self._section = None
+                    section = None
                 else:
-                    setattr(getattr(self, self._section), key.strip("_").lower(), value)
+                    setattr(getattr(self, section), key.strip("_").lower(), value)
                     continue
             self._attrs.add(key.lower())
             setattr(self, key.lower(), value)
