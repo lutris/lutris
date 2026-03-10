@@ -111,7 +111,7 @@ class TestCloudSyncProgressDialogInit(unittest.TestCase):
     def _make_dialog(self, direction="pre-launch"):
         game = _make_game()
         sync_func = MagicMock(return_value=[])
-        dialog = object.__new__(CloudSyncProgressDialog)
+        dialog = CloudSyncProgressDialog.__new__(CloudSyncProgressDialog)
         dialog.game = game
         dialog._sync_func = sync_func
         dialog._direction = direction
@@ -140,7 +140,7 @@ class TestCloudSyncProgressDialogRunSync(unittest.TestCase):
     def _make_dialog(self):
         game = _make_game()
         sync_func = MagicMock(return_value=[])
-        dialog = object.__new__(CloudSyncProgressDialog)
+        dialog = CloudSyncProgressDialog.__new__(CloudSyncProgressDialog)
         dialog.game = game
         dialog._sync_func = sync_func
         dialog._direction = "pre-launch"
@@ -173,7 +173,7 @@ class TestCloudSyncProgressDialogCallbacks(unittest.TestCase):
         """Create a dialog with all GTK interactions mocked out."""
         game = _make_game()
         sync_func = MagicMock(return_value=[])
-        dialog = object.__new__(CloudSyncProgressDialog)
+        dialog = CloudSyncProgressDialog.__new__(CloudSyncProgressDialog)
         dialog.game = game
         dialog._sync_func = sync_func
         dialog._direction = "pre-launch"
@@ -281,7 +281,7 @@ class TestCloudSyncProgressDialogSkip(unittest.TestCase):
     def _make_dialog(self):
         game = _make_game()
         sync_func = MagicMock(return_value=[])
-        dialog = object.__new__(CloudSyncProgressDialog)
+        dialog = CloudSyncProgressDialog.__new__(CloudSyncProgressDialog)
         dialog.game = game
         dialog._sync_func = sync_func
         dialog._direction = "pre-launch"
