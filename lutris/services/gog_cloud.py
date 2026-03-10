@@ -127,6 +127,7 @@ class SyncResult:
     downloaded: List[str] = field(default_factory=list)
     deleted_local: List[str] = field(default_factory=list)
     deleted_cloud: List[str] = field(default_factory=list)
+    cloud_only_files: List[str] = field(default_factory=list)
     timestamp: float = 0.0
     error: Optional[str] = None
 
@@ -971,6 +972,7 @@ class GOGCloudSync:
 
         elif action == SyncAction.CONFLICT:
             logger.warning("Save files are in conflict — user action required")
+            result.cloud_only_files = [f.relative_path for f in classifier.not_existing_locally]
 
         elif action == SyncAction.NONE:
             logger.info("Saves are up to date, nothing to do")
