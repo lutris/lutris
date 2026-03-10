@@ -137,6 +137,7 @@ class Game:
         self._log_buffer = None
         self.timer = Timer()
         self.screen_saver_inhibitor_cookie = None
+        self.skip_cloud_sync = False
 
     @staticmethod
     def create_empty_service_game(db_game: Dict[str, Union[str, int]], service: Any) -> Any:
@@ -770,6 +771,7 @@ class Game:
             self.start_prelaunch_command(self.runner.system_config["prelaunch_wait"])
 
         # GOG cloud save sync (download from cloud before launch)
+        self.skip_cloud_sync = False
         if self.service == "gog" and self.appid:
             try:
                 from lutris.gui.dialogs.cloud_sync_progress import CloudSyncProgressAdapter  # noqa: PLC0415

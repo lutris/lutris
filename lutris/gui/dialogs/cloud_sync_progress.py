@@ -70,6 +70,8 @@ class CloudSyncProgressAdapter:
         """Called from the main thread when the user clicks the stop button."""
         with self._lock:
             self._cancelled = True
+        if self._direction == "pre-launch":
+            self.game.skip_cloud_sync = True
         logger.info("User skipped cloud sync (%s) for %s", self._direction, self.game.name)
 
     def progress_callback(self, current: int, total: int, filename: str) -> None:

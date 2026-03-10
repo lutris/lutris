@@ -184,8 +184,15 @@ def _sync_location(
     preferred_action: str,
     direction_label: str,
     progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    auto_resolve_upload: bool = False,
 ) -> SyncResult:
-    """Sync a single save location, handling conflicts via dialog."""
+    """Sync a single save location, handling conflicts via dialog.
+
+    Args:
+        auto_resolve_upload: If True and the conflict is a pure upload
+            (no cloud-only files would be lost), automatically resolve
+            as upload without prompting the user.
+    """
     result = sync.sync_saves(
         game.appid,
         loc["save_path"],
@@ -197,7 +204,13 @@ def _sync_location(
 
     if result.action == SyncAction.CONFLICT:
         logger.info("Cloud save conflict for %s (%s)", loc["name"], direction_label)
-        user_choice = _show_conflict_dialog(game.name, loc["name"])
+        if auto_resolve_upload and not result.cloud_only_files:
+            # Only local files changed and no cloud-only files would be lost,
+            # so we can safely upload without asking.
+            user_choice = "upload"
+            logger.info("Auto-resolving conflict as upload for %s (no cloud-only files)", loc["name"])
+        else:
+            user_choice = _show_conflict_dialog(game.name, loc["name"])
         if user_choice:
             logger.info("User chose '%s' for conflict on %s", user_choice, loc["name"])
             # Convert "upload"/"download" to "forceupload"/"forcedownload" for conflict resolution
@@ -314,7 +327,15 @@ def sync_after_quit(
 
     for loc in save_locations:
         logger.info("Cloud sync (post-exit): %s -> %s", loc["name"], loc["save_path"])
-        result = _sync_location(sync, game, loc, "upload", "post-exit", progress_callback)
+        result = _sync_location(
+            sync,
+            game,
+            loc,
+            "upload",
+            "post-exit",
+            progress_callback,
+            auto_resolve_upload=game.skip_cloud_sync,
+        )
         results.append(result)
 
     return results
