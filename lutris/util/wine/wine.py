@@ -218,11 +218,11 @@ def parse_wine_version(version: str) -> Tuple[List[int], str, str]:
 
 def version_sort(versions: List[str], reverse: bool = False) -> List[str]:
     def version_key(version: str) -> List[Any]:
-        version_list, prefix, suffix = parse_wine_version(version)
+        version_list, suffix, prefix = parse_wine_version(version)
         # Normalize the length of sub-versions
         sort_key: List[Any] = list(version_list) + [0] * (10 - len(version_list))
-        sort_key.append(prefix)
         sort_key.append(suffix)
+        sort_key.append(prefix)
         return sort_key
 
     return sorted(versions, key=version_key, reverse=reverse)

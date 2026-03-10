@@ -98,12 +98,13 @@ def parse_version(version: str) -> Tuple[List[int], str, str]:
 
     Return a 3 element tuple containing:
      - The version number as a list of integers
-     - The prefix (whatever characters before the version number)
      - The suffix (whatever comes after)
+     - The prefix (whatever characters before the version number)
+     The order of the tuple is importand for ordering versions.
 
      Example::
         >>> parse_version("3.6-staging")
-        ([3, 6], '', '-staging')
+        ([3, 6], '-staging', '')
 
     Returns:
         tuple: (version number as list, prefix, suffix)
