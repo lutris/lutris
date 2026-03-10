@@ -7,8 +7,6 @@
 
 """Query Vulkan capabilities"""
 
-from collections import namedtuple
-
 # Standard Library
 from ctypes import (
     CDLL,
@@ -26,7 +24,7 @@ from ctypes import (
     c_void_p,
     pointer,
 )
-from typing import Any, List, Optional, Sequence
+from typing import Any, List, NamedTuple, Optional, Sequence
 
 from lutris.util import cache_single
 
@@ -52,7 +50,7 @@ VkInstance = c_void_p  # handle (struct ptr)
 VkPhysicalDevice = c_void_p  # handle (struct ptr)
 VkDeviceSize = c_uint64
 
-DeviceInfo = namedtuple("DeviceInfo", "name api_version")
+DeviceInfo = NamedTuple("DeviceInfo", (("name", str), ("api_version", int)))
 
 
 def vk_make_version(major: int, minor: int, patch: int) -> int:
@@ -351,7 +349,7 @@ def get_expected_api_version() -> Optional[int]:
 
     devices = get_device_info()
     if devices:
-        return min(api_version, devices[0].api_version)  # type: ignore
+        return min(api_version, devices[0].api_version)
 
     return api_version
 
