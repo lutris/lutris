@@ -180,7 +180,9 @@ class GPU:
                 vulkaninfo[gpu_index]["deviceID"].replace("0x", ""),
             )
             if pci_id == self.pci_id:
-                return vulkaninfo[gpu_index]["deviceUUID"].replace("-", "")
+                deviceUUID = vulkaninfo[gpu_index].get("deviceUUID", "").replace("-", "")
+                if deviceUUID:
+                    return deviceUUID
         return None
 
     def get_lspci_name(self) -> str:
