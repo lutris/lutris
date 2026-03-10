@@ -26,6 +26,7 @@ from ctypes import (
     c_void_p,
     pointer,
 )
+from typing import Any, List, Optional, Sequence
 
 from lutris.util import cache_single
 
@@ -54,7 +55,7 @@ VkDeviceSize = c_uint64
 DeviceInfo = namedtuple("DeviceInfo", "name api_version")
 
 
-def vk_make_version(major, minor, patch):
+def vk_make_version(major: int, minor: int, patch: int) -> int:
     """
     VK_MAKE_VERSION macro logic for Python
 
@@ -63,15 +64,15 @@ def vk_make_version(major, minor, patch):
     return (major << 22) | (minor << 12) | patch
 
 
-def vk_api_version_major(version):
+def vk_api_version_major(version: int) -> int:
     return (version >> 22) & 0x7F
 
 
-def vk_api_version_minor(version):
+def vk_api_version_minor(version: int) -> int:
     return (version >> 12) & 0x3FF
 
 
-def vk_api_version_patch(version):
+def vk_api_version_patch(version: int) -> int:
     return version & 0xFFF
 
 
@@ -93,7 +94,7 @@ class VkApplicationInfo(Structure):
         ("apiVersion", c_uint32),
     ]
 
-    def __init__(self, name, version):
+    def __init__(self, name: str, version: Sequence[int]):
         super().__init__()
         self.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO
         self.pApplicationName = name.encode()
@@ -120,7 +121,7 @@ class VkInstanceCreateInfo(Structure):
         ("ppEnabledExtensionNames", c_char_p),
     ]
 
-    def __init__(self, app_info):
+    def __init__(self, app_info: Any):
         super().__init__()
         self.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO
         self.pApplicationInfo = pointer(app_info)
@@ -280,7 +281,7 @@ def is_vulkan_supported() -> bool:
 
 
 @cache_single
-def get_vulkan_api_version():
+def get_vulkan_api_version() -> Optional[int]:
     """
     Queries libvulkan to get the API version; if this library is missing
     it returns None. Returns an encoded Vulkan version integer; use
@@ -302,7 +303,7 @@ def get_vulkan_api_version():
     return version.value if result == VK_SUCCESS else None
 
 
-def get_device_info():
+def get_device_info() -> List[DeviceInfo]:
     """
     Returns a list of the physical devices known to Vulkan, represented as
     (name, api_version) named-tuples and the api_version numbers are encoded, so
@@ -339,7 +340,7 @@ def get_device_info():
 
 
 @cache_single
-def get_expected_api_version():
+def get_expected_api_version() -> Optional[int]:
     """Returns the version tuple of the API version we expect
     to have; it is the least of the Vulkan library API version, and
     the best device's API version."""
@@ -350,12 +351,12 @@ def get_expected_api_version():
 
     devices = get_device_info()
     if devices:
-        return min(api_version, devices[0].api_version)
+        return min(api_version, devices[0].api_version)  # type: ignore
 
     return api_version
 
 
-def format_version(version):
+def format_version(version: Optional[int]) -> str:
     if version:
         major = vk_api_version_major(version)
         minor = vk_api_version_minor(version)
@@ -366,7 +367,7 @@ def format_version(version):
 
 
 @cache_single
-def _get_vk_instance():
+def _get_vk_instance() -> Optional[VkInstance]:
     """Returns our VKInstance, or None if it can't be obtained.
 
     We've had user see crashes when destroying this, so we don't- we
@@ -374,7 +375,7 @@ def _get_vk_instance():
     try:
         vulkan = _get_vulkan()
     except OSError:
-        return []
+        return []  # type: ignore
     app_info = VkApplicationInfo("vkinfo", version=(0, 1, 0))
     create_info = VkInstanceCreateInfo(app_info)
     instance = VkInstance()
@@ -384,7 +385,7 @@ def _get_vk_instance():
     return instance
 
 
-def _get_vulkan():
+def _get_vulkan() -> CDLL:
     vulkan = CDLL("libvulkan.so.1")
 
     # Provide function signatures; this is required on platforms where var-args are

@@ -1,9 +1,10 @@
 """Misc common functions"""
 
 import functools
-from typing import Any, Callable, Mapping, Optional
+from typing import Any, Callable, Generic, Mapping, Optional, TypeVar, cast
 
 AnyCallable = Callable[..., Any]
+DecoratedResult = TypeVar("DecoratedResult")
 
 
 def selective_merge(base_obj: Any, delta_obj: Mapping[Any, Any]) -> Mapping[Any, Any]:
@@ -19,19 +20,19 @@ def selective_merge(base_obj: Any, delta_obj: Mapping[Any, Any]) -> Mapping[Any,
     return base_obj
 
 
-class cache_single:
+class cache_single(Generic[DecoratedResult]):
     """A simple replacement for lru_cache, with no LRU behavior. This caches
     a single result from a function that has no arguments at all. Exceptions
     are not cached; there's a 'clear_cache()' function on the wrapper like with
     lru_cache to explicitly clear the cache."""
 
-    def __init__(self, function: AnyCallable):
+    def __init__(self, function: Callable[..., DecoratedResult]):
         functools.update_wrapper(self, function)
         self.function = function
         self.is_cached = False
         self.cached_item = None
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+    def __call__(self, *args: Any, **kwargs: Any) -> DecoratedResult:
         if args or kwargs:
             return self.function(*args, **kwargs)
 
@@ -39,7 +40,7 @@ class cache_single:
             self.cached_item = self.function()
             self.is_cached = True
 
-        return self.cached_item
+        return cast(DecoratedResult, self.cached_item)
 
     def cache_clear(self) -> None:
         self.is_cached = False

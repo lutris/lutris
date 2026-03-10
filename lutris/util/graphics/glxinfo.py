@@ -1,5 +1,7 @@
 """Parser for the glxinfo utility"""
 
+from typing import Any, Dict
+
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
 
@@ -11,7 +13,7 @@ class Container:  # pylint: disable=too-few-public-methods
 class GlxInfo:
     """Give access to the glxinfo information"""
 
-    def __init__(self, output=None):
+    def __init__(self, output: str = None):
         """Creates a new GlxInfo object
 
         Params:
@@ -24,15 +26,15 @@ class GlxInfo:
         self.parse()
 
     @staticmethod
-    def get_glxinfo_output():
+    def get_glxinfo_output() -> str:
         """Return the glxinfo -B output"""
         return read_process_output(["glxinfo", "-B"])
 
-    def as_dict(self):
+    def as_dict(self) -> Dict[str, Any]:
         """Return the attributes as a dict"""
         return {attr: getattr(self, attr) for attr in self._attrs}
 
-    def parse(self):
+    def parse(self) -> None:
         """Converts the glxinfo output to class attributes"""
         if not self._output:
             logger.error("No available glxinfo output")
@@ -51,7 +53,7 @@ class GlxInfo:
 
             if not value and key.startswith(("Extended_renderer_info", "Memory_info")) and "(" in key:
                 self._section = key[key.index("(") + 1 : -1]
-                setattr(self, self._section, Container())
+                setattr(self, self._section, Container())  # type: ignore
                 continue
             if self._section:
                 if not key.startswith("____"):
