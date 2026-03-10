@@ -93,7 +93,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         self._check_binary_dependencies()
         self._check_dependency()
-        if self.installer.creates_game_folder:
+        if self.installer.reinstall_target_directory:
+            self.target_path = self.installer.reinstall_target_directory
+        elif self.installer.creates_game_folder:
             self.target_path = self.get_default_target()
 
     def on_timeout_error(self, error):
@@ -201,7 +203,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def get_extras(self):
         """Get extras and store them to move them at the end of the install"""
-        if not self.service or not self.service.has_extras or not self.installer.service_appid:
+        if (
+            not self.service
+            or not self.service.has_extras
+            or not self.installer.service_appid
+            or self.installer.reinstall_target_directory
+        ):
             return []
         try:
             return self.service.get_extras(self.installer.service_appid)

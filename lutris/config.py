@@ -41,6 +41,14 @@ def duplicate_game_config(game_slug: str, source_config_id: str) -> str:
     return new_config_id
 
 
+def get_stored_service_installer_version(config_id: Optional[str]) -> Optional[str]:
+    """Return the service installer version stored in the game's config when it was last installed."""
+    if not config_id:
+        return None
+    config_path = os.path.join(settings.GAME_CONFIG_DIR, "%s.yml" % config_id)
+    return read_yaml_from_file(config_path).get("service_installer_version")
+
+
 def rename_config(old_config_id: str, new_slug: str) -> Optional[str]:
     old_slug, timestamp = old_config_id.rsplit("-", 1)
     if old_slug == new_slug:

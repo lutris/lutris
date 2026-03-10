@@ -543,11 +543,15 @@ class ItchIoService(OnlineService):
         logger.warning("No supported platforms found")
         return {}
 
-    def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
+    def generate_installers(self, db_game: Dict[str, Any], runner_name: Optional[str] = None) -> List[dict]:
         """Auto generate installer for itch.io game"""
         details = json.loads(db_game["details"])
 
         runners = self._get_detail_runners(details)
+
+        if runner_name:
+            runners = [r for r in runners if r == runner_name]
+
         installers = [self._generate_installer(runner, db_game) for runner in runners]
 
         if len(installers) > 1:
@@ -596,20 +600,17 @@ class ItchIoService(OnlineService):
         runners = self._get_detail_runners(details, fix_missing_platforms=False)
         return [self.platforms_by_runner[r] for r in runners]
 
-    def _check_update_with_db(self, db_game, key, upload=None):
+    def _check_update_with_db(self, db_game, key):
         stamp = 0
-        if upload:
-            uploads = [upload["upload"] if "upload" in upload else upload]
-        else:
-            uploads = self.fetch_uploads(db_game["service_id"], key)
-            if "uploads" in uploads:
-                uploads = uploads["uploads"]
+        uploads = self.fetch_uploads(db_game["service_id"], key)
+        if "uploads" in uploads:
+            uploads = uploads["uploads"]
 
-        for _upload in uploads:
+        for upload in uploads:
             # skip extras
-            if _upload["type"] in self.extra_types:
+            if upload["type"] in self.extra_types:
                 continue
-            ts = self._rfc3999_to_timestamp(_upload["updated_at"])
+            ts = self._rfc3999_to_timestamp(upload["updated_at"])
             if (not stamp) or (ts > stamp):
                 stamp = ts
 
@@ -620,95 +621,45 @@ class ItchIoService(OnlineService):
             return len(dbg)
         return False
 
-    def get_update_installers(self, db_game):
-        """Check for updates"""
-        patch_installers = []
-        key = self.get_key(db_game["service_id"])
-        upload = None
-        outdated = False
-        patch_url = None
-        info = {}
+    def _is_outdated(self, db_game: dict, key: str) -> bool:
+        """Check if the installed itch.io game has a newer version available."""
         info_filename = os.path.join(db_game["directory"], ".lutrisgame.json")
         if os.path.exists(info_filename):
             with open(info_filename, encoding="utf-8") as info_file:
                 info = json.load(info_file)
             if "upload" in info:
-                # TODO: Implement wharf patching
-                # if "build" in info and info["build"]:
-                #     upload = self.fetch_upload(info["upload"], key)
-                #     patches = self.fetch_build_patches(info["build"], upload["build_id"], key)
-                #     patch_urls = []
-                #     for build in patches["upgrade_path"]["builds"]:
-                #         patch_urls.append("builds/{}/download/patch/default".format(build["id"]))
-                # else:
-                # Do overinstall of upload / Full build url
                 try:
                     upload = self.fetch_upload(info["upload"], key)
                     upload = upload["upload"] if "upload" in upload else upload
-                    patch_url = self.get_download_link(info["upload"], key)
+                    ts = self._rfc3999_to_timestamp(upload.get("updated_at", 0))
+                    return int(info.get("date", 0)) < ts
                 except HTTPError as error:
                     if error.code == 400:
                         # Bad request probably means the upload was removed
                         logger.info("Upload %s for %s seems to be removed.", info["upload"], db_game["name"])
-                        outdated = True
+                        return True
+        return bool(self._check_update_with_db(db_game, key))
 
-                if upload:
-                    ts = self._rfc3999_to_timestamp(upload.get("updated_at", 0))
-                    if int(info.get("date", 0)) >= ts:
-                        return
-                    info["date"] = int(datetime.datetime.now().timestamp())
+    def get_update_installers(self, db_game):
+        """Check for updates; returns a full-version installer if a newer version is available."""
+        from lutris.database.services import ServiceGameCollection
 
-        # Skip time based checks if we already know it's outdated
-        if not outdated:
-            outdated = self._check_update_with_db(db_game, key, upload)
-
-        if outdated:
-            installer = {
-                "version": "itch.io",
-                "name": db_game["name"],
-                "slug": db_game["installer_slug"],
-                "game_slug": self.get_installed_slug(db_game),
-                "runner": db_game["runner"],
-                "script": {
-                    "extends": db_game["installer_slug"],
-                    "files": [],
-                    "installer": [
-                        {"extract": {"file": "itchupload", "dst": "$CACHE"}},
-                    ],
-                },
-            }
-
-            if patch_url:
-                installer["script"]["files"] = [
-                    {
-                        "itchupload": {
-                            "url": patch_url,
-                            "filename": "update.zip",
-                            "downloader": lambda f, url=patch_url: Downloader(
-                                url, f.download_file, overwrite=True, headers=self.get_headers()
-                            ),
-                        }
-                    }
-                ]
-            else:
-                installer["script"]["files"] = [{"itchupload": "N/A:Select the installer from itch.io"}]
-
-            if db_game["runner"] == "linux":
-                installer["script"]["installer"].append(
-                    {"merge": {"src": "$CACHE", "dst": "$GAMEDIR"}},
-                )
-            elif db_game["runner"] == "wine":
-                installer["script"]["installer"].append(
-                    {"merge": {"src": "$CACHE", "dst": "$GAMEDIR/drive_c/%s" % db_game["slug"]}}
-                )
-
-            if patch_url:
-                installer["script"]["installer"].append(
-                    {"write_json": {"data": info, "file": info_filename, "merge": True}}
-                )
-
-            patch_installers.append(installer)
-        return patch_installers
+        try:
+            if (
+                (directory := db_game.get("directory"))
+                and self._is_outdated(db_game, self.get_key(db_game["service_id"]))
+                and (service_db_game := ServiceGameCollection.get_game(self.id, db_game["service_id"]))
+                and (version_installers := self.generate_installers(service_db_game, runner_name=db_game.get("runner")))
+            ):
+                installer = version_installers[0]
+                installer["slug"] = db_game.get("installer_slug") or db_game["slug"]
+                installer["game_slug"] = db_game["slug"]
+                installer["reinstall_target_directory"] = directory
+                installer["description"] = _("Full version")
+                return [installer]
+        except Exception as ex:
+            logger.warning("Could not check itch.io installer version for %s: %s", db_game.get("name"), ex)
+        return []
 
     def get_dlc_installers_runner(self, db_game, runner, only_owned=True):
         """itch.io does currently not officially support dlc"""
