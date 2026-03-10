@@ -301,7 +301,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
 
     def test_download_file(self):
         mock_response = MagicMock()
-        mock_response.read.return_value = b"save file content"
+        mock_response.read.return_value = gzip.compress(b"save file content")
         mock_response.getheaders.return_value = [("X-Object-Meta-LocalLastModified", "2024-01-15T10:00:00+00:00")]
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -339,7 +339,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
 
     def test_download_file_invalid_timestamp(self):
         mock_response = MagicMock()
-        mock_response.read.return_value = b"data"
+        mock_response.read.return_value = gzip.compress(b"data")
         mock_response.getheaders.return_value = [("X-Object-Meta-LocalLastModified", "not a date")]
 
         with tempfile.TemporaryDirectory() as tmpdir:
