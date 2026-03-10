@@ -88,7 +88,7 @@ class flatpak(Runner):
 
     def get_executable(self) -> str:
         exe = _flatpak.get_executable()
-        if not system.path_exists(exe):
+        if not exe or not system.path_exists(exe):
             raise MissingExecutableError(_("The Flatpak executable could not be found."))
         return exe
 

@@ -3,6 +3,7 @@
 import re
 import subprocess
 from collections import namedtuple
+from typing import Iterable, List, Tuple, Union, cast
 
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
 from lutris.util.linux import LINUX_SYSTEM
@@ -12,14 +13,14 @@ from lutris.util.system import read_process_output
 Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate", "preferred_mode"))
 
 
-def _get_vidmodes():
+def _get_vidmodes() -> List[str]:
     """Return video modes from XrandR"""
     xrandr_output = read_process_output([LINUX_SYSTEM.get("xrandr")]).split("\n")
     logger.debug("Retrieving %s video modes from XrandR", len(xrandr_output))
     return xrandr_output
 
 
-def get_outputs() -> list[Output]:
+def get_outputs() -> List[Output]:
     """Parse xrandr output and return one Output per active connected display.
 
     Each Output captures the connector name, current mode (resolution), position,
@@ -36,7 +37,7 @@ def get_outputs() -> list[Output]:
     name = position = rotate = current_mode = preferred_mode = rate = None
     primary = False
 
-    def flush():
+    def flush() -> None:
         if name and current_mode and position:
             outputs.append(
                 Output(
@@ -91,7 +92,7 @@ def get_outputs() -> list[Output]:
     return outputs
 
 
-def turn_off_except(display):
+def turn_off_except(display: str) -> None:
     """Use XrandR to turn off displays except the one referenced by `display`"""
     if not display:
         logger.error("No active display given, no turning off every display")
@@ -103,7 +104,7 @@ def turn_off_except(display):
                 xrandr.communicate()
 
 
-def get_resolutions():
+def get_resolutions() -> List[str]:
     """Return the list of supported screen resolutions."""
     resolution_list = []
     logger.debug("Retrieving resolution list")
@@ -118,7 +119,7 @@ def get_resolutions():
     return sorted(set(resolution_list), key=lambda x: int(x.split("x")[0]), reverse=True)
 
 
-def change_resolution(resolution):
+def change_resolution(resolution: Union[str, Iterable[Output]]) -> None:
     """Change display resolution.
 
     Takes a string for single monitors or a list of displays as returned
@@ -176,17 +177,17 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
     """
 
     @staticmethod
-    def get_display_names():
+    def get_display_names() -> List[str]:
         """Return output names from XrandR"""
         return [output.name for output in get_outputs()]
 
     @staticmethod
-    def get_resolutions():
+    def get_resolutions() -> List[str]:
         """Return available resolutions"""
         return get_resolutions()
 
     @staticmethod
-    def get_current_resolution():
+    def get_current_resolution() -> Tuple[str, str]:
         """Return the current resolution for the desktop"""
         outputs = get_outputs()
         if not outputs:
@@ -202,14 +203,14 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
         # resolution instead of the rendering buffer's resolution (which may be scaled).
         if not is_display_x11() and primary.preferred_mode and primary.preferred_mode != mode:
             mode = primary.preferred_mode
-        return mode.split("x")
+        return cast(Tuple[str, str], mode.split("x"))
 
     @staticmethod
-    def set_resolution(resolution):
+    def set_resolution(resolution: Union[str, Iterable[Output]]) -> None:
         """Change the current resolution"""
         change_resolution(resolution)
 
     @staticmethod
-    def get_config():
+    def get_config() -> List[Output]:
         """Return the current display configuration"""
         return get_outputs()

@@ -6,7 +6,7 @@ Everything in this module should rely on /proc or /sys only, no executable calls
 
 import os
 import re
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, TypeAlias
 
 from lutris.util import cache_single
 from lutris.util.graphics.glxinfo import GlxInfo
@@ -16,8 +16,12 @@ from lutris.util.system import read_process_output
 MIN_RECOMMENDED_NVIDIA_DRIVER = 515
 
 
+DriverGpuInfoDict: TypeAlias = Dict[str, str]
+DriverInfoDict: TypeAlias = Dict[str, str]
+
+
 @cache_single
-def get_nvidia_driver_info() -> Dict[str, str]:
+def get_nvidia_driver_info() -> DriverInfoDict:
     """Return information about Nvidia drivers"""
     version_file_path = "/proc/driver/nvidia/version"
 
@@ -99,7 +103,7 @@ def get_nvidia_gpu_ids() -> List[str]:
     return [line.split(maxsplit=1)[0] for line in values]
 
 
-def get_nvidia_gpu_info(gpu_id: str) -> Dict[str, str]:
+def get_nvidia_gpu_info(gpu_id: str) -> DriverGpuInfoDict:
     """Return details about a GPU"""
     gpu_info_file = f"/proc/driver/nvidia/gpus/{gpu_id}/information"
     try:
@@ -122,7 +126,7 @@ def get_nvidia_gpu_info(gpu_id: str) -> Dict[str, str]:
     return get_lspci_nvidia_gpu_info(gpu_id)
 
 
-def get_lspci_nvidia_gpu_info(gpu_id: str) -> Dict[str, str]:
+def get_lspci_nvidia_gpu_info(gpu_id: str) -> DriverGpuInfoDict:
     lspci_data = read_process_output(["lspci", "-v", "-s", gpu_id])
     model_info = re.search(r"NVIDIA Corporation \w+ \[(.+?)\]", lspci_data)
     if model_info:
