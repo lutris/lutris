@@ -24,7 +24,7 @@ from ctypes import (
     c_void_p,
     pointer,
 )
-from typing import Any, List, NamedTuple, Optional, Sequence
+from typing import List, NamedTuple, Optional, Sequence
 
 from lutris.util import cache_single
 
@@ -119,7 +119,7 @@ class VkInstanceCreateInfo(Structure):
         ("ppEnabledExtensionNames", c_char_p),
     ]
 
-    def __init__(self, app_info: Any):
+    def __init__(self, app_info: VkApplicationInfo):
         super().__init__()
         self.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO
         self.pApplicationInfo = pointer(app_info)
