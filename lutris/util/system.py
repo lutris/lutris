@@ -26,7 +26,6 @@ PROTECTED_HOME_FOLDERS = (
     _("Desktop"),
     _("Pictures"),
     _("Videos"),
-    _("Pictures"),
     _("Projects"),
     _("Games"),
 )
