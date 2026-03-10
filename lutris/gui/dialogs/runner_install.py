@@ -394,10 +394,10 @@ class RunnerInstallDialog(ModelessDialog):
         else:
             runner["progress"] = 1
             row.install_progress.pulse()
-            row.install_progress.set_text = _("Downloading…")
+            row.install_progress.set_text(_("Downloading…"))
         if downloader.state == downloader.COMPLETED:
             runner["progress"] = 99
-            row.install_progress.set_text = _("Extracting…")
+            row.install_progress.set_text(_("Extracting…"))
             self.on_runner_downloaded(row)
             return False
         return True
@@ -435,7 +435,7 @@ class RunnerInstallDialog(ModelessDialog):
         runner["progress"] = 0
         runner["is_installed"] = True
         self.installing.pop(runner["version"])
-        row.install_progress.set_text = ""
+        row.install_progress.set_text("")
         row.install_progress.set_fraction(0.0)
         row.install_progress.hide()
         self.update_listboxrow(row)
