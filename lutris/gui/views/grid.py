@@ -97,17 +97,9 @@ class GameGridView(Gtk.IconView, GameView):  # type:ignore[misc]
         return self.get_model().get_value(iterator, COL_ID)
 
     def get_path_for_game_id(self, game_id):
-        path_found = None
-
-        def check_path(model, path, iterator):
-            nonlocal path_found
-            row_id = model.get_value(iterator, COL_ID)
-            if game_id == row_id:
-                path_found = path
-                return True  # stop iteration
-
-        self.get_model().foreach(check_path)
-        return path_found
+        if self.game_store:
+            return self.game_store.get_path_by_id(game_id)
+        return None
 
     def on_item_activated(self, _view, _path):
         """Handles double clicks"""
