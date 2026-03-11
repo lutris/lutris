@@ -97,20 +97,27 @@ class GameStore(GObject.Object):
             str,
         )
 
-    def get_row_by_id(self, _id):
-        if not _id:
-            return
-        row_ref = self._rows_by_id.get(str(_id))  # _id may arrive as int
+    def get_path_by_id(self, game_id):
+        """Return the TreePath for a game ID, or None. This is an O(1) lookup."""
+        if not game_id:
+            return None
+        row_ref = self._rows_by_id.get(str(game_id))
         if row_ref is not None:
-            path = row_ref.get_path()
-            if path is not None:
-                return self.store[path]
+            return row_ref.get_path()
+        return None
 
-    def remove_game(self, _id):
+    def get_row_by_id(self, game_id):
+        if not game_id:
+            return
+        path = self.get_path_by_id(game_id)
+        if path is not None:
+            return self.store[path]
+
+    def remove_game(self, game_id):
         """Remove a game from the view."""
-        row = self.get_row_by_id(_id)
+        row = self.get_row_by_id(game_id)
         if row:
-            self._rows_by_id.pop(str(_id), None)
+            self._rows_by_id.pop(str(game_id), None)
             self.store.remove(row.iter)
 
     def update(self, db_game: dict) -> Union[Set[int], None]:
