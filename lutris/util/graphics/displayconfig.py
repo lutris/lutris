@@ -1,6 +1,7 @@
 """DBus backed display management for Mutter"""
 
 from collections import namedtuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import dbus
 
@@ -13,77 +14,77 @@ DisplayConfig = namedtuple("DisplayConfig", ("monitors", "name", "position", "tr
 class Output:
     """Representation of a physical display output"""
 
-    def __init__(self, output_info):
+    def __init__(self, output_info: dbus.Struct):
         self._output = output_info
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Output: %s %s (%s)>" % (self.vendor, self.product, self.display_name)
 
     @property
-    def output_id(self):
+    def output_id(self) -> int:
         """ID of the output"""
-        return self._output[0]
+        return int(self._output[0])
 
     @property
-    def winsys_id(self):
+    def winsys_id(self) -> int:
         """The low-level ID of this output (XID or KMS handle)"""
-        return self._output[1]
+        return int(self._output[1])
 
     @property
-    def current_crtc(self):
+    def current_crtc(self) -> int:
         """The CRTC that is currently driving this output,
         or -1 if the output is disabled
         """
-        return self._output[2]
+        return int(self._output[2])
 
     @property
-    def crtcs(self):
+    def crtcs(self) -> List[int]:
         """All CRTCs that can control this output"""
-        return self._output[3]
+        return [int(crtc) for crtc in self._output[3]]
 
     @property
-    def name(self):
+    def name(self) -> str:
         """The name of the connector to which the output is attached (like VGA1 or HDMI)"""
-        return self._output[4]
+        return str(self._output[4])
 
     @property
-    def modes(self):
+    def modes(self) -> List[int]:
         """Valid modes for this output"""
         return [int(mode_id) for mode_id in self._output[5]]
 
     @property
-    def clones(self):
+    def clones(self) -> List[int]:
         """Valid clones for this output, ie other outputs that can be assigned
         the same CRTC as this one; if you want to mirror two outputs that don't
         have each other in the clone list, you must configure two different
         CRTCs for the same geometry.
         """
-        return self._output[6]
+        return [int(clone) for clone in self._output[6]]
 
     @property
-    def properties(self):
+    def properties(self) -> Dict[str, Any]:
         """Other high-level properties that affect this output; they are not
         necessarily reflected in the hardware.
         """
-        return self._output[7]
+        return dict(self._output[7])
 
     @property
-    def vendor(self):
+    def vendor(self) -> str:
         """Vendor name of the output"""
         return str(self._output[7]["vendor"])
 
     @property
-    def product(self):
+    def product(self) -> str:
         """Product name of the output"""
         return str(self._output[7]["product"])
 
     @property
-    def display_name(self):
+    def display_name(self) -> str:
         """A human readable name of this output, to be shown in the UI"""
         return str(self._output[7]["display-name"])
 
     @property
-    def is_primary(self):
+    def is_primary(self) -> bool:
         """True if the output is the primary one"""
         return bool(self._output[7]["primary"])
 
@@ -91,44 +92,44 @@ class Output:
 class DisplayMode:
     """Representation of a screen mode (resolution, refresh rate)"""
 
-    def __init__(self, mode_info):
+    def __init__(self, mode_info: dbus.Struct):
         self.mode_info = mode_info
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "%sx%s@%s" % (self.width, self.height, self.frequency)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<DisplayMode: %sx%s@%s>" % (self.width, self.height, self.frequency)
 
     @property
-    def id(self):  # pylint: disable=invalid-name
+    def id(self) -> str:  # pylint: disable=invalid-name
         """ID of the mode"""
         return str(self.mode_info[0])
 
     @property
-    def winsys_id(self):
+    def winsys_id(self) -> str:
         """the low-level ID of this mode"""
         return str(self.mode_info[1])
 
     @property
-    def width(self):
+    def width(self) -> int:
         """width in physical pixels"""
         return int(self.mode_info[2])
 
     @property
-    def height(self):
+    def height(self) -> int:
         """height in physical pixels"""
         return int(self.mode_info[3])
 
     @property
-    def frequency(self):
+    def frequency(self) -> str:
         """refresh rate"""
         return str(self.mode_info[4])
 
     @property
-    def flags(self):
+    def flags(self) -> int:
         """mode flags as defined in xf86drmMode.h and randr.h"""
-        return self.mode_info[5]
+        return int(self.mode_info[5])
 
 
 class CRTC:
@@ -138,25 +139,25 @@ class CRTC:
     setting different CRTCs to the same coordinates.
     """
 
-    def __init__(self, crtc_info):
+    def __init__(self, crtc_info: dbus.Struct):
         self.crtc_info = crtc_info
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s %s %s" % (self.id, self.geometry_str, self.current_mode)
 
     @property
-    def id(self):  # pylint: disable=invalid-name
+    def id(self) -> str:  # pylint: disable=invalid-name
         """The ID in the API of this CRTC"""
         return str(self.crtc_info[0])
 
     @property
-    def winsys_id(self):
+    def winsys_id(self) -> int:
         """the low-level ID of this CRTC
         (which might be a XID, a KMS handle or something entirely different)"""
-        return self.crtc_info[1]
+        return int(self.crtc_info[1])
 
     @property
-    def geometry_str(self):
+    def geometry_str(self) -> str:
         """Return a human readable representation of the geometry"""
         return "%dx%d%s%d%s%d" % (
             self.geometry[0],
@@ -168,31 +169,31 @@ class CRTC:
         )
 
     @property
-    def geometry(self):
+    def geometry(self) -> Tuple[int, int, int, int]:
         """The geometry of this CRTC
         (might be invalid if the CRTC is not in use)
         """
         return (int(self.crtc_info[2]), int(self.crtc_info[3]), int(self.crtc_info[4]), int(self.crtc_info[5]))
 
     @property
-    def current_mode(self):
+    def current_mode(self) -> int:
         """The current mode of the CRTC, or -1 if this CRTC is not used
         Note: the size of the mode will always correspond to the width
         and height of the CRTC"""
         return int(self.crtc_info[6])
 
     @property
-    def current_transform(self):
+    def current_transform(self) -> str:
         """The current transform (espressed according to the wayland protocol)"""
         return str(self.crtc_info[7])
 
     @property
-    def transforms(self):
+    def transforms(self) -> str:
         """All possible transforms"""
         return str(self.crtc_info[8])
 
     @property
-    def properties(self):
+    def properties(self) -> str:
         """Other high-level properties that affect this CRTC;
         they are not necessarily reflected in the hardware.
         No property is specified in this version of the API.
@@ -207,37 +208,37 @@ class MonitorMode(DisplayMode):
     """
 
     @property
-    def width(self):
+    def width(self) -> int:
         """width in physical pixels"""
         return int(self.mode_info[1])
 
     @property
-    def height(self):
+    def height(self) -> int:
         """height in physical pixels"""
         return int(self.mode_info[2])
 
     @property
-    def frequency(self):
+    def frequency(self) -> str:
         """refresh rate"""
         return str(self.mode_info[3])
 
     @property
-    def scale(self):
+    def scale(self) -> float:
         """scale preferred as per calculations"""
         return float(self.mode_info[4])
 
     @property
-    def supported_scale(self):
+    def supported_scale(self) -> List[float]:
         """scales supported by this mode"""
-        return self.mode_info[5]
+        return [float(scale) for scale in self.mode_info[5]]
 
     @property
-    def properties(self):
+    def properties(self) -> Dict[str, Any]:
         """Additional properties"""
-        return self.mode_info[6]
+        return dict(self.mode_info[6])
 
     @property
-    def is_current(self):
+    def is_current(self) -> bool:
         """Return True if the mode is the current one"""
         return "is-current" in self.properties
 
@@ -245,60 +246,60 @@ class MonitorMode(DisplayMode):
 class Monitor:
     """A physical monitor"""
 
-    def __init__(self, monitor):
+    def __init__(self, monitor: dbus.Struct):
         self._monitor = monitor
 
-    def get_current_mode(self):
+    def get_current_mode(self) -> Optional[MonitorMode]:
         """Return the current mode"""
         for mode in self.get_modes():
             if mode.is_current:
                 return mode
-        return
+        return None
 
-    def get_modes(self):
+    def get_modes(self) -> List[MonitorMode]:
         """Return available modes"""
         return [MonitorMode(mode) for mode in self._monitor[1]]
 
-    def get_mode_for_resolution(self, resolution):
+    def get_mode_for_resolution(self, resolution: str) -> Optional[MonitorMode]:
         """Return an appropriate mode for a given resolution"""
         width, height = [int(i) for i in resolution.split("x")]
         for mode in self.get_modes():
             if mode.width == width and mode.height == height:
                 return mode
-        return
+        return None
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Name of the connector"""
         return str(self._monitor[0][0])
 
     @property
-    def vendor(self):
+    def vendor(self) -> str:
         """Manufacturer of the monitor"""
         return str(self._monitor[0][1])
 
     @property
-    def model(self):
+    def model(self) -> str:
         """Model name of the monitor"""
         return str(self._monitor[0][2])
 
     @property
-    def serial_number(self):
+    def serial_number(self) -> str:
         """Serial number"""
         return str(self._monitor[0][3])
 
     @property
-    def is_underscanning(self):
+    def is_underscanning(self) -> bool:
         """Return true if the monitor is underscanning"""
         return bool(self._monitor[2]["is-underscanning"])
 
     @property
-    def is_builtin(self):
+    def is_builtin(self) -> bool:
         """Return true if the display is builtin the machine (a laptop or a tablet)"""
         return bool(self._monitor[2]["is-builtin"])
 
     @property
-    def display_name(self):
+    def display_name(self) -> str:
         """Human readable name of the display"""
         return str(self._monitor[2]["display-name"])
 
@@ -308,22 +309,22 @@ class LogicalMonitor:
     scaling information.
     """
 
-    def __init__(self, lm_info, monitors):
+    def __init__(self, lm_info: dbus.Struct, monitors: List[Monitor]):
         self._lm = lm_info
         self._monitors = monitors
 
     @property
-    def position(self):
+    def position(self) -> Tuple[int, int]:
         """Return the position of the monitor"""
         return int(self._lm[0]), int(self._lm[1])
 
     @property
-    def scale(self):
+    def scale(self) -> float:
         """Scale"""
-        return self._lm[2]
+        return float(self._lm[2])
 
     @property
-    def transform(self):
+    def transform(self) -> int:
         """Transforms
 
         Possible transform values:
@@ -336,82 +337,90 @@ class LogicalMonitor:
         6: 180° flipped
         7: 270° flipped
         """
-        return self._lm[3]
+        return int(self._lm[3])
 
     @property
-    def primary(self):
+    def primary(self) -> bool:
         """True if this is the primary logical monitor"""
         return bool(self._lm[4])
 
-    def _get_monitor_for_connector(self, connector):
+    def _get_monitor_for_connector(self, connector: str) -> Optional[Monitor]:
         """Return a Monitor instance from its connector name"""
         for monitor in self._monitors:
             if monitor.name == str(connector):
                 return monitor
-        return
+        return None
 
     @property
-    def monitors(self):
+    def monitors(self) -> List[Monitor]:
         """Monitors displaying that logical monitor"""
-        return [self._get_monitor_for_connector(m[0]) for m in self._lm[5]]
+        monitors = [self._get_monitor_for_connector(m[0]) for m in self._lm[5]]
+        return [monitor for monitor in monitors if monitor]
 
     @property
-    def properties(self):
+    def properties(self) -> Dict[str, Any]:
         """Possibly other properties"""
-        return self._lm[6]
+        return dict(self._lm[6])
 
-    def get_config(self):
+    def get_config(self) -> DisplayConfig:
         """Export the current configuration so it can be stored then reapplied later"""
-        monitors = [(monitor.name, monitor.get_current_mode().id) for monitor in self.monitors]
+
+        def monitor_config(monitor: Monitor) -> Tuple[str, str]:
+            current_mode = monitor.get_current_mode()
+            if not current_mode:
+                raise RuntimeError(f"Invalid mode for monitor {monitor.name}")
+            return (monitor.name, current_mode.id)
+
+        monitors = [monitor_config(monitor) for monitor in self.monitors]
         return DisplayConfig(monitors, self.monitors[0].name, self.position, self.transform, self.primary, self.scale)
 
 
 class DisplayState:
     """Snapshot of a display configuration at a given time"""
 
-    def __init__(self, interface):
+    def __init__(self, interface: dbus.Interface):
         self.interface = interface
         self._state = self.load_state()
 
-    def load_state(self):
+    def load_state(self) -> dbus.Struct:
         """Return current state from dbus interface"""
         return self.interface.GetCurrentState()
 
     @property
-    def serial(self):
+    def serial(self) -> int:
         """Configuration serial"""
-        return self._state[0]
+        return int(self._state[0])
 
     @property
-    def monitors(self):
+    def monitors(self) -> List[Monitor]:
         """Available monitors"""
         return [Monitor(monitor) for monitor in self._state[1]]
 
     @property
-    def logical_monitors(self):
+    def logical_monitors(self) -> List[LogicalMonitor]:
         """Current logical monitor configuration"""
         return [LogicalMonitor(l_m, self.monitors) for l_m in self._state[2]]
 
     @property
-    def properties(self):
+    def properties(self) -> Dict[str, Any]:
         """Display configuration properties"""
-        return self._state[3]
+        return dict(self._state[3])
 
-    def get_primary_logical_monitor(self):
+    def get_primary_logical_monitor(self) -> Optional[LogicalMonitor]:
         """Return the primary logical monitor"""
         for lm in self.logical_monitors:
             if lm.primary:
                 return lm
         return None
 
-    def get_primary_monitor(self):
+    def get_primary_monitor(self) -> Monitor:
         """Returns the first physical monitor on the primary logical monitor."""
         lm = self.get_primary_logical_monitor()
         if lm:
             return lm.monitors[0]
         return self.monitors[0]
 
-    def get_current_mode(self):
+    def get_current_mode(self) -> Optional[MonitorMode]:
         """Return the current mode"""
         return self.get_primary_monitor().get_current_mode()
 
@@ -427,7 +436,7 @@ class MutterDisplayConfig:
     TEMPORARY_METHOD = 1
     PERSISTENT_METHOD = 2
 
-    def __init__(self):
+    def __init__(self) -> None:
         session_bus = dbus.SessionBus()
         proxy_obj = session_bus.get_object(self.namespace, self.dbus_path)
         self.interface = dbus.Interface(proxy_obj, dbus_interface=self.namespace)
@@ -435,7 +444,7 @@ class MutterDisplayConfig:
         self.current_state = DisplayState(self.interface)
 
     @property
-    def serial(self):
+    def serial(self) -> int:
         """
         @serial is an unique identifier representing the current state
         of the screen. It must be passed back to ApplyConfiguration()
@@ -443,10 +452,10 @@ class MutterDisplayConfig:
         mutter can detect that the new configuration is based on old
         state)
         """
-        return self.resources[0]
+        return int(self.resources[0])
 
     @property
-    def crtcs(self):
+    def crtcs(self) -> List[CRTC]:
         """
         A CRTC (CRT controller) is a logical monitor, ie a portion
         of the compositor coordinate space. It might correspond
@@ -488,7 +497,7 @@ class MutterDisplayConfig:
         return [CRTC(crtc) for crtc in self.resources[1]]
 
     @property
-    def outputs(self):
+    def outputs(self) -> List[Output]:
         """
         An output represents a physical screen, connected somewhere to
         the computer. Floating connectors are not exposed in the API.
@@ -533,7 +542,7 @@ class MutterDisplayConfig:
         return [Output(output) for output in self.resources[2]]
 
     @property
-    def modes(self):
+    def modes(self) -> List[DisplayMode]:
         """
         A mode represents a set of parameters that are applied to
         each output, such as resolution and refresh rate. It is a separate
@@ -562,32 +571,32 @@ class MutterDisplayConfig:
         return [DisplayMode(mode) for mode in self.resources[3]]
 
     @property
-    def max_screen_width(self):
+    def max_screen_width(self) -> int:
         """Maximum width supported"""
-        return self.resources[4]
+        return int(self.resources[4])
 
     @property
-    def max_screen_height(self):
+    def max_screen_height(self) -> int:
         """Maximum height supported"""
-        return self.resources[5]
+        return int(self.resources[5])
 
-    def get_mode_for_resolution(self, resolution):
+    def get_mode_for_resolution(self, resolution: str) -> Optional[DisplayMode]:
         """Return an appropriate mode for a given resolution"""
         width, height = [int(i) for i in resolution.split("x")]
         for mode in self.modes:
             if mode.width == width and mode.height == height:
                 return mode
-        return
+        return None
 
-    def get_primary_logical_monitor(self):
+    def get_primary_logical_monitor(self) -> Optional[LogicalMonitor]:
         """Return the primary logical monitor"""
         return self.current_state.get_primary_logical_monitor()
 
-    def get_primary_monitor(self):
+    def get_primary_monitor(self) -> Monitor:
         """Returns the first physical monitor on the primary logical monitor."""
         return self.current_state.get_primary_monitor()
 
-    def apply_monitors_config(self, display_configs):
+    def apply_monitors_config(self, display_configs: List[DisplayConfig]) -> None:
         """Set the selected display to the desired resolution"""
         # Reload resources
         if not display_configs:
@@ -615,18 +624,18 @@ class MutterDisplayConfig:
 class MutterDisplayManager:
     """Manage displays using the DBus Mutter interface"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.display_config = MutterDisplayConfig()
 
-    def get_config(self):
+    def get_config(self) -> List[DisplayConfig]:
         """Return the current configuration for each logical monitor"""
         return [logical_monitor.get_config() for logical_monitor in self.display_config.current_state.logical_monitors]
 
-    def get_display_names(self):
+    def get_display_names(self) -> List[str]:
         """Return display names of connected displays"""
         return [output.display_name for output in self.display_config.outputs]
 
-    def get_resolutions(self):
+    def get_resolutions(self) -> List[str]:
         """Return available resolutions"""
         resolutions = ["%sx%s" % (mode.width, mode.height) for mode in self.display_config.modes]
         if not resolutions:
@@ -634,7 +643,7 @@ class MutterDisplayManager:
             return ["%sx%s" % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
         return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
 
-    def get_current_resolution(self):
+    def get_current_resolution(self) -> Tuple[str, str]:
         """Return the current resolution for the primary display"""
         logger.debug("Retrieving current resolution")
         current_mode = self.display_config.current_state.get_current_mode()
@@ -643,7 +652,7 @@ class MutterDisplayManager:
             return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
         return str(current_mode.width), str(current_mode.height)
 
-    def set_resolution(self, resolution):
+    def set_resolution(self, resolution: Union[str, List[DisplayConfig]]) -> None:
         """Change the current resolution"""
         if isinstance(resolution, str):
             monitor = self.display_config.get_primary_monitor()
