@@ -42,6 +42,7 @@ from lutris.game import GAME_START, GAME_STOPPED, Game, export_game, import_game
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, display_error
 from lutris.gui.dialogs.delegates import CommandLineUIDelegate, InstallUIDelegate, LaunchUIDelegate
 from lutris.gui.dialogs.issue import IssueReportWindow
+from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED
 from lutris.gui.installerwindow import INSTALLATION_COMPLETED, INSTALLATION_FAILED, InstallationKind, InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.installer import get_installers
@@ -82,6 +83,7 @@ class LutrisApplication(Gtk.Application):
         settings.SETTINGS_CHANGED.register(self.on_settings_changed)
         INSTALLATION_COMPLETED.register(self.on_install_ended)
         INSTALLATION_FAILED.register(self.on_install_ended)
+        DOWNLOAD_QUEUE_COMPLETED.register(self.on_download_queue_completed)
 
         GLib.set_application_name(_("Lutris"))
         GLib.set_prgname("net.lutris.Lutris")
@@ -812,16 +814,29 @@ class LutrisApplication(Gtk.Application):
 
         if self.window and settings.read_bool_setting("hide_client_on_game_start") and not self.quit_on_game_exit:
             self.window.show()  # Show launcher window
-        elif not self.window or not self.window.is_visible():
-            if not self.has_running_games:
+        else:
+            self._quit_if_hidden_and_idle()
+
+    def on_install_ended(self):
+        self._quit_if_hidden_and_idle()
+
+    def on_download_queue_completed(self, _widget=None):
+        self._quit_if_hidden_and_idle()
+
+    def _quit_if_hidden_and_idle(self):
+        """Quits Lutris if the window is not visible and there is no ongoing activity
+        (running games or active downloads) keeping it alive."""
+        if not self.window or not self.window.is_visible():
+            if not self.has_running_games and not self.has_active_downloads:
                 if self.quit_on_game_exit or not self.has_tray_icon():
                     self.quit()
 
-    def on_install_ended(self):
-        if not self.window or not self.window.is_visible():
-            if not self.has_running_games:
-                if self.quit_on_game_exit or not self.has_tray_icon():
-                    self.quit()
+    @property
+    def has_active_downloads(self):
+        """True if the download queue has active operations."""
+        if self.window:
+            return not self.window.is_download_queue_empty
+        return False
 
     def get_launch_ui_delegate(self):
         return self.launch_ui_delegate

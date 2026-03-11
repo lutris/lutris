@@ -4,11 +4,14 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Set
 
 from gi.repository import GObject, Gtk  # type: ignore
 
+from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.progress_box import ProgressBox
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+
+DOWNLOAD_QUEUE_COMPLETED = NotificationSource()
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "download-queue.ui"))
@@ -172,6 +175,7 @@ class DownloadQueue(Gtk.ScrolledWindow):
             elif completion_function:
                 completion_function(result)
             self.emit("download-completed")
+            DOWNLOAD_QUEUE_COMPLETED.fire()
 
         AsyncCall(operation, completion_callback)
         return True

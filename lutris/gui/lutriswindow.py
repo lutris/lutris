@@ -7,7 +7,7 @@ from collections import namedtuple
 from datetime import datetime
 from gettext import gettext as _
 from gettext import ngettext
-from typing import Callable, Dict, Iterable, List, Set, cast
+from typing import Callable, Dict, Iterable, List, Optional, Set, cast
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, Gtk
@@ -1171,6 +1171,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         if app.has_running_games:
             self.hide()
             return True
+        if not self.is_download_queue_empty:
+            self.hide()
+            return True
         if app.has_tray_icon():
             self.hide()
             return True
@@ -1424,6 +1427,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 game.launch(launch_ui_delegate=self)
             else:
                 game.install(launch_ui_delegate=self)
+
+    @property
+    def is_download_queue_empty(self) -> bool:
+        """True if the download queue has no active operations, or has not been created yet."""
+        queue = cast(Optional[DownloadQueue], self.download_revealer.get_child())
+        return not queue or queue.is_empty
 
     @property
     def download_queue(self) -> DownloadQueue:
