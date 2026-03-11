@@ -20,6 +20,7 @@ from lutris.gui.dialogs import (
 )
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
+from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED
 from lutris.gui.installer.files_box import InstallerFilesBox
 from lutris.gui.installer.script_picker import InstallerPicker
 from lutris.gui.widgets import NotificationSource
@@ -315,18 +316,17 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         # fail if Lutris components are missing, and users sometimes try to install
         # a game just after their first Lutris startup. This should help.
         window = get_main_window()
-        if window and not window.download_queue.is_empty:
-            download_queue = window.download_queue
+        if window and not window.is_download_queue_empty:
 
             def on_start_installation(*args):
                 self.load_choose_installer_page()
-                download_queue.disconnect(dc_handler)
+                registration.unregister()
 
             def on_download_complete(*args):
-                if download_queue.is_empty:
+                if window.is_download_queue_empty:
                     on_start_installation()
 
-            dc_handler = download_queue.connect("download-completed", on_download_complete)
+            registration = DOWNLOAD_QUEUE_COMPLETED.register(on_download_complete)
             self.load_spinner_page(
                 _(
                     "Waiting for Lutris component installation\n"
