@@ -98,6 +98,7 @@ class DownloadQueue(Gtk.ScrolledWindow):
         completion_function: Optional[CompletionFunction] = None,
         error_function: Optional[ErrorFunction] = None,
         operation_name: Optional[str] = None,
+        wait_for: Optional[Set[str]] = None,
     ) -> bool:
         """Runs 'operation' on a thread, while displaying a progress bar. The 'progress_function'
         controls this progress bar, and it is removed when the 'operation' completes.
@@ -106,12 +107,34 @@ class DownloadQueue(Gtk.ScrolledWindow):
         the 'operation' runs. If the name is present already, this method does nothing
         but returns False. If the worker thread has started, this returns True.
 
+        If 'wait_for' is given, the start is deferred until none of those operation names
+        are running. The new progress box will appear when the actual
+        operation begins- once the blocking operations complete.
+
         Args:
             operation:              Called on a worker thread
             progress_function:      Called on the main thread for progress status
             completion_function:    Called on the main thread on completion, with result
             error_function:         Called on the main threa don error, with exception
-            operation_name:         Name of operation, to prevent duplicate queued work."""
+            operation_name:         Name of operation, to prevent duplicate queued work.
+            wait_for:               Operation names that must finish before this one starts."""
+
+        if wait_for and not self.running_operation_names.isdisjoint(wait_for):
+            # Defer the entire start (including the progress box) until the
+            # blocking operations complete.
+            def on_maybe_ready():
+                if self.running_operation_names.isdisjoint(wait_for):
+                    registration.unregister()
+                    self.start(
+                        operation,
+                        progress_function,
+                        completion_function=completion_function,
+                        error_function=error_function,
+                        operation_name=operation_name,
+                    )
+
+            registration = DOWNLOAD_QUEUE_COMPLETED.register(on_maybe_ready)
+            return True
 
         return self.start_multiple(
             operation,
