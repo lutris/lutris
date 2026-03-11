@@ -2,7 +2,7 @@
 import os
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set
 
-from gi.repository import GObject, Gtk  # type: ignore
+from gi.repository import Gtk  # type: ignore
 
 from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.gi_composites import GtkTemplate
@@ -18,10 +18,6 @@ DOWNLOAD_QUEUE_COMPLETED = NotificationSource()
 class DownloadQueue(Gtk.ScrolledWindow):
     """This class is a widget that displays a stack of progress boxes, which you can create
     and destroy with its methods."""
-
-    __gsignals__ = {
-        "download-completed": (GObject.SignalFlags.RUN_LAST, None, ()),
-    }
 
     __gtype_name__ = "DownloadQueue"
 
@@ -174,7 +170,6 @@ class DownloadQueue(Gtk.ScrolledWindow):
                     error_function(error)
             elif completion_function:
                 completion_function(result)
-            self.emit("download-completed")
             DOWNLOAD_QUEUE_COMPLETED.fire()
 
         AsyncCall(operation, completion_callback)
