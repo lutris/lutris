@@ -782,6 +782,7 @@ class Game:
                         completion_function=lambda _result: self.start_game(),
                         error_function=lambda _error: self.start_game(),
                         operation_name="cloud_sync:%s:pre" % self.id,
+                        wait_for={"cloud_sync:%s:post" % self.id},
                     )
                     return True
             except Exception as ex:
