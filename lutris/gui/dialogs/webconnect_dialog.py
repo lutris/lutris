@@ -77,6 +77,7 @@ class WebConnectDialog(ModalDialog):
         self.webview.connect("decide-policy", self.on_decide_policy)
         content_area.set_border_width(0)
         content_area.pack_start(self.webview, True, True, 0)
+        self.connect("destroy", self.on_destroy)
 
         webkit_settings = self.webview.get_settings()
 
@@ -94,6 +95,9 @@ class WebConnectDialog(ModalDialog):
         webkit_settings.set_enable_webgl(False)
         # self.enable_inspector()
         self.show_all()
+
+    def on_destroy(self, _widget):
+        self.service.is_login_in_progress = False
 
     def enable_inspector(self):
         """If you want a full blown Webkit inspector, call this"""
