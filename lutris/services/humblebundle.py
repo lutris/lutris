@@ -81,6 +81,11 @@ class HumbleBundleService(OnlineService):
     supported_platforms = ("linux", "windows")
 
     def login(self, parent=None):
+        # Clear any stale login-in-progress flag from a previous
+        # abandoned WebConnect login attempt; the cookie path below
+        # bypasses WebConnectDialog entirely.
+        self.is_login_in_progress = False
+
         dialog = QuestionDialog(
             {
                 "title": _("Workaround for Humble Bundle authentication"),
