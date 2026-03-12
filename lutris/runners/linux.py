@@ -98,6 +98,10 @@ class linux(Runner):
         return exe_path
 
     @property
+    def has_working_dir(self) -> bool:
+        return bool(self.game_config.get("working_dir") or self.game_exe or super().has_working_dir)
+
+    @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
         option = self.game_config.get("working_dir")

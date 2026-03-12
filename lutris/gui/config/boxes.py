@@ -127,7 +127,7 @@ class ConfigBox(AdvancedSettingsBox):
 
         if self.game and self.game.directory:
             gen.default_directory = self.game.directory
-        elif self.game and self.game.has_runner:
+        elif self.game and self.game.has_runner and self.game.runner.has_working_dir:
             gen.default_directory = self.game.runner.working_dir
         elif self.lutris_config:
             gen.default_directory = self.lutris_config.system_config.get("game_path") or os.path.expanduser("~")
