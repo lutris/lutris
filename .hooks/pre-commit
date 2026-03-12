@@ -1,0 +1,71 @@
+#!/bin/env python
+"""
+An hook script to verify what is about to be committed.
+Called by "git commit" with no arguments.  The hook should
+exit with non-zero status after issuing an appropriate message if
+it wants to stop the commit.
+
+This validates that the Lutris static analysis checks from .github/workflows/static.yml
+"""
+
+import shutil
+import subprocess
+from os.path import devnull
+import sys
+from pathlib import Path
+
+
+def main():
+    error_list: list[str] = []
+
+    comp_process = subprocess.run(
+        ["git", "config", "--type=bool", "hooks.skip-static-analysis-checks"], capture_output=True
+    )
+    skip_static_analysis_checks: bool = bool(comp_process.stdout.decode("utf-8"))
+
+    if not skip_static_analysis_checks:
+        diff_against_rev: str = "HEAD"
+        comp_process = subprocess.run(["git", "rev-parse", "--verify", "HEAD"], stdout=subprocess.DEVNULL)
+        if comp_process.returncode != 0:
+            # This would be the initial commit, so diff against an empty tree object
+            comp_process = subprocess.run(["git", "hash-object", "-t", "tree", devnull], capture_output=True)
+            diff_against_rev = comp_process.stdout.decode("utf-8")
+
+        comp_process = subprocess.run(
+            ["git", "diff-index", "--cached", "--name-only", "--diff-filter=ACMR", "-z", diff_against_rev],
+            capture_output=True,
+        )
+        modified_files: list[Path] = [Path(f.decode("utf-8")) for f in comp_process.stdout.split(b"\0") if f]
+        modified_python_files: list[Path] = [f for f in modified_files if f.suffix == '.py']
+
+        if modified_python_files:
+            # Run command existence checks
+            for command in ["mypy", "ruff"]:
+                command_path = shutil.which(command)
+                if not command_path:
+                    error_list.append(
+                        f"{command_path} command is missing: Have you run `make dev` to install it or sourced your virtual env?"
+                    )
+
+            checks_to_run: list[list[str]] = [
+                ["mypy", "--python-version=3.10"] + [str(f) for f in modified_python_files],
+                [sys.executable, "utils/check_annotations.py"],
+                ["ruff", "check"] + [str(f) for f in modified_python_files],
+                ["ruff", "format", "--check"] + [str(f) for f in modified_python_files],
+            ]
+            for check in checks_to_run:
+                comp_process = subprocess.run(check, capture_output=True)
+                if comp_process.returncode != 0:
+                    # Store both the stdout and stderr of the failed check in the error list
+                    error_list.append(f"{comp_process.stdout.decode('utf-8')}{comp_process.stderr.decode('utf-8')}")
+
+    # If any of the return codes are non-zero then return a non-zero rc
+    if error_list:
+        print("".join(error_list))
+        sys.exit(1)
+
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
