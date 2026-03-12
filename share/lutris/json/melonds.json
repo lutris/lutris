@@ -11,8 +11,7 @@
             "option": "main_file",
             "type": "file",
             "label": "ROM file",
-            "help": "A DS ROM",
-            "default_path": "game_path"
+            "help": "A DS ROM"
         }
     ],
     "runner_options": [

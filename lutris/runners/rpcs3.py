@@ -19,7 +19,6 @@ class rpcs3(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "default_path": "game_path",
             "label": _("Path to EBOOT.BIN"),
         }
     ]

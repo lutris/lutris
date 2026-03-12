@@ -20,7 +20,6 @@ class pcsx2(Runner):
             "option": "main_file",
             "type": "file",
             "label": _("ISO file"),
-            "default_path": "game_path",
         }
     ]
 

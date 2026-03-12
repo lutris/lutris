@@ -23,7 +23,6 @@ class linux(Runner):
         {
             "option": "exe",
             "type": "file",
-            "default_path": "game_path",
             "label": _("Executable"),
             "help": _("The game's main executable file"),
         },

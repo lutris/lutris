@@ -9,8 +9,7 @@
         {
             "option": "main_file",
             "type": "file",
-            "label": "ISO file",
-            "default_path": "game_path"
+            "label": "ISO file"
         }
     ],
     "runner_options": [

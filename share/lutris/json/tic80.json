@@ -8,8 +8,7 @@
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
-            "default_path": "game_path"
+            "label": "ROM file"
         }
     ],
     "runner_options": [

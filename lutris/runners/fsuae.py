@@ -189,7 +189,6 @@ class fsuae(Runner):
             "option": "main_file",
             "type": "file",
             "label": _("Boot disk"),
-            "default_path": "game_path",
             "help": _(
                 "The main floppy disk file with the game data. \n"
                 "FS-UAE supports floppy images in multiple file formats: "
@@ -204,7 +203,6 @@ class fsuae(Runner):
             "section": _("Media"),
             "type": "multiple_file",
             "label": _("Additional floppies"),
-            "default_path": "game_path",
             "help": _("The additional floppy disk image(s)."),
         },
         {

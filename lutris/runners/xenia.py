@@ -28,7 +28,6 @@ class xenia(wine):
             "type": "file",
             "label": _("Game file"),
             "help": _("Path to .xex or .iso file"),
-            "default_path": "game_path",
         },
         {
             "option": "prefix",

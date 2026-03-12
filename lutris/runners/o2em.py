@@ -45,7 +45,6 @@ class o2em(Runner):
             "option": "main_file",
             "type": "file",
             "label": _("ROM file"),
-            "default_path": "game_path",
             "help": _("The game data, commonly called a ROM image."),
         }
     ]
