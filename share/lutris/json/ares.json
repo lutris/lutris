@@ -51,8 +51,7 @@
             "type": "file",
             "label": "ROM/ISO file",
             "help": "The game data, commonly called a ROM or ISO image.",
-            "default": "",
-            "default_path": "game_path"
+            "default": ""
         },
         {
             "option": "platform",

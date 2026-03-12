@@ -3,7 +3,6 @@ download_url: https://github.com/eden-emulator/Releases/releases/download/v0.0.4
 entry_point_option: main_file
 game_options:
 - default: ''
-  default_path: game_path
   help: The Application image to run in emulator.
   label: ROM/ISO/exe file
   option: main_file
