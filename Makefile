@@ -93,7 +93,10 @@ req-python:
 	pip3 install PyYAML lxml requests Pillow setproctitle python-magic distro dbus-python types-requests \
 	 types-PyYAML evdev PyGObject pypresence protobuf moddb
 
-dev:
+install-hooks:
+	ln -sf -t .git/hooks/ ../../.hooks/pre-commit
+
+dev: install-hooks
 	pip3 install ruff==0.12.1 mypy==1.16.1 mypy-baseline nose2
 	pip3 install pygobject-stubs --no-cache-dir --config-settings=config=Gtk3,Gdk3,Soup2
 
