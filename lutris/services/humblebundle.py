@@ -16,7 +16,7 @@ from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import linux
-from lutris.util.http import HTTPError, Request
+from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
 from lutris.util.log import logger
 
 
@@ -136,6 +136,10 @@ class HumbleBundleService(OnlineService):
         request = Request(url, cookies=self.load_cookies())
         try:
             request.get()
+        except UnauthorizedAccessError:
+            logger.error("Access to %s denied", url)
+            self.logout()
+            raise
         except HTTPError:
             logger.error("Failed to request %s", url)
             return
