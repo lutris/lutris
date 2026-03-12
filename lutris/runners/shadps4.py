@@ -21,7 +21,6 @@ class shadps4(Runner):
             "type": "directory",
             "label": _("Game folder"),
             "help": _("Path to the game folder (e.g., CUSA00001)"),
-            "default_path": "game_path",
         }
     ]
 

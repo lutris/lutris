@@ -23,7 +23,6 @@ class azahar(Runner):
             "option": "main_file",
             "label": _("The game data, commonly called a ROM image."),
             "type": "file",
-            "default_path": "game_path",
         },
     ]
     runner_options = [

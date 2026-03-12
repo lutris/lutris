@@ -8,8 +8,7 @@
         {
             "option": "main_file",
             "type": "file",
-            "label": "SWF file",
-            "default_path": "game_path"
+            "label": "SWF file"
         }
     ],
     "runner_options": [

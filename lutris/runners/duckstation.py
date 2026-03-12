@@ -22,7 +22,6 @@ class duckstation(Runner):
             "option": "main_file",
             "type": "file",
             "label": _("ROM file"),
-            "default_path": "game_path",
         }
     ]
 
