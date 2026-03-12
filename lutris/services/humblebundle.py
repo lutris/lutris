@@ -186,6 +186,8 @@ class HumbleBundleService(OnlineService):
         orders = []
         if not gamekeys:
             gamekeys = self.make_api_request(self.api_url + "api/v1/user/order")
+        if not gamekeys:
+            return []
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
             future_orders = [executor.submit(self.get_order, gamekey["gamekey"]) for gamekey in gamekeys]
             for order in future_orders:
