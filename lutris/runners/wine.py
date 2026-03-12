@@ -720,8 +720,15 @@ class wine(Runner):
         return system.fix_path_case(os.path.join(self.game_path, exe))
 
     @property
+    def has_working_dir(self) -> bool:
+        return bool(self._get_explicit_working_dir() or super().has_working_dir)
+
+    @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
+        return self._get_explicit_working_dir() or super().working_dir
+
+    def _get_explicit_working_dir(self):
         _working_dir = self._working_dir or self.game_config.get("working_dir")
         if _working_dir:
             return os.path.expanduser(_working_dir)
@@ -729,7 +736,7 @@ class wine(Runner):
             game_dir = os.path.dirname(self.game_exe)
             if os.path.isdir(game_dir):
                 return game_dir
-        return super().working_dir
+        return None
 
     @property
     def nvidia_shader_cache_path(self):

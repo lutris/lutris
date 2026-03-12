@@ -105,6 +105,10 @@ class dosbox(Runner):
         return {"env": env, "command": self.get_command()}
 
     @property
+    def has_working_dir(self) -> bool:
+        return bool(self.game_config.get("working_dir") or self.main_file or super().has_working_dir)
+
+    @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
         option = self.game_config.get("working_dir")

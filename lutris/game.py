@@ -305,7 +305,7 @@ class Game:
     def find_working_dir(self) -> str:
         """Returns a working directory- if we can't get one from the runner,
         we'll use the game path as a fallback."""
-        if self.has_runner:
+        if self.has_runner and self.runner.has_working_dir:
             return self.runner.working_dir or self.resolve_game_path()
         else:
             return self.resolve_game_path()

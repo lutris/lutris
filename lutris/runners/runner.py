@@ -140,6 +140,12 @@ class Runner:  # pylint: disable=too-many-public-methods
         return self.game_path
 
     @property
+    def has_working_dir(self) -> bool:
+        """True a game-specific working-dir is available. If false, you'll wind
+        up with the user's home directory."""
+        return bool(self.game_path)
+
+    @property
     def working_dir(self) -> str:
         """Return the working directory to use when running the game."""
         return self.game_path or os.path.expanduser("~/")
