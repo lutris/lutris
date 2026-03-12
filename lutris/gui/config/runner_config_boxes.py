@@ -136,9 +136,6 @@ class OptionBox(BaseRunnerConfigBox):
         self._visible_entry.set_sensitive(False)
         self._visible_box = self._get_visible_box()
 
-        self._default_path_entry = Gtk.Entry()
-        self._default_path_box = self._get_default_path_box()
-
         self._conditional_on_entry = Gtk.Entry()
         self._conditional_on_box = self._get_conditional_on_box()
 
@@ -162,7 +159,6 @@ class OptionBox(BaseRunnerConfigBox):
         self.pack_start(self._max_box, False, False, 6)
         self.pack_start(self._advanced_box, False, False, 6)
         self.pack_start(self._visible_box, False, False, 6)
-        self.pack_start(self._default_path_box, False, False, 6)
         self.pack_start(self._conditional_on_box, False, False, 6)
         self.pack_start(self._warn_if_non_writable_parent_box, False, False, 6)
 
@@ -218,11 +214,6 @@ class OptionBox(BaseRunnerConfigBox):
         ):
             output_dict["visible"] = self._visible_entry.get_active()
 
-        if (
-            default_path := self._default_path_entry.get_text()
-        ) and self._type_dropdown.get_active_id() in FILE_CHOOSER_WIDGET_TYPES:
-            output_dict["default_path"] = default_path
-
         if conditional_on := self._conditional_on_entry.get_text():
             output_dict["conditional_on"] = conditional_on
 
@@ -270,7 +261,6 @@ class OptionBox(BaseRunnerConfigBox):
         self._min_entry.set_text(str(option_dict.get("min", "")))
         self._max_entry.set_text(str(option_dict.get("max", "")))
         self._visible_entry.set_active(option_dict.get("visible", True))
-        self._default_path_entry.set_text(option_dict.get("default_path", ""))
         self._conditional_on_entry.set_text(option_dict.get("conditional_on", ""))
 
         if "warn_if_non_writable_parent" in option_dict:
@@ -286,7 +276,6 @@ class OptionBox(BaseRunnerConfigBox):
         """Update widget visibility when a change event occurs"""
         self._update_choices_visibility()
         self._update_range_visibility()
-        self._update_default_path_visibility()
 
     def connect_option_name_changed(self, callable, *args):
         """Supply a callable to connect to the changed event of the Option field
@@ -570,32 +559,6 @@ class OptionBox(BaseRunnerConfigBox):
 
     def _on_visible_changed(self, switch, gparam):
         self.emit("changed")
-
-    # "default_path" methods
-    def _get_default_path_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-        label = Label(_("Default Path"))
-        box.pack_start(label, False, False, 0)
-
-        self._default_path_entry.set_text("game_path")
-        self._default_path_entry.set_tooltip_text(_("Set the default file path to use when opening the File Chooser"))
-        self._default_path_entry.connect("changed", self._on_default_path_changed)
-        box.pack_start(self._default_path_entry, True, True, 0)
-        return box
-
-    def _on_default_path_changed(self, widget):
-        self.emit("changed")
-
-    def _update_default_path_visibility(self):
-        if not (self._default_path_box and self._type_dropdown):
-            return
-
-        if self._type_dropdown.get_active_id() in FILE_CHOOSER_WIDGET_TYPES:
-            self._default_path_box.set_visible(True)
-            self._default_path_box.set_no_show_all(False)
-        else:
-            self._default_path_box.set_visible(False)
-            self._default_path_box.set_no_show_all(True)
 
     # "conditional_on" methods
     def _get_conditional_on_box(self):
