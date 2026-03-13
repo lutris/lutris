@@ -747,7 +747,7 @@ class Game:
         if self.runner.system_config.get("display") != "off":
             self.resolution_changed = self.restrict_to_display(self.runner.system_config.get("display") or "")
 
-        resolution = self.runner.system_config.get("resolution")
+        resolution: str = self.runner.system_config.get("resolution")
         if resolution != "off":
             DISPLAY_MANAGER.set_resolution(resolution)
             time.sleep(3)
