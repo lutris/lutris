@@ -105,7 +105,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.cancel_button = Gtk.Button(_("Cancel"), use_underline=True)
         self.cancel_button.connect("clicked", self.on_cancel_clicked)
         key, mod = Gtk.accelerator_parse("Escape")
-        self.accelerators.connect(key, mod, Gtk.AccelFlags.VISIBLE, lambda *_args: self.destroy())
+        self.cancel_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
         header_bar.pack_start(self.cancel_button)
         header_bar.set_show_close_button(False)
 
