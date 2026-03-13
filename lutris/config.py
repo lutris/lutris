@@ -3,7 +3,7 @@
 import os
 import time
 from shutil import copyfile
-from typing import Any, Dict, Optional, Set, TypeAlias
+from typing import Any, Dict, List, Optional, Set, TypeAlias
 
 from lutris import settings, sysoptions
 from lutris.runners import InvalidRunnerError, import_runner
@@ -286,7 +286,7 @@ class LutrisConfig:
     def options_as_dict(self, options_type: str) -> Dict[str, Any]:
         """Convert the option list to a dict with option name as keys"""
         if options_type == "system":
-            options = (
+            options: List[Dict[str, Any]] = (
                 sysoptions.with_runner_overrides(self.runner_slug) if self.runner_slug else sysoptions.system_options
             )
         else:
@@ -302,5 +302,5 @@ class LutrisConfig:
                 if not getattr(runner, attribute_name):
                     runner = runner()
 
-                options = getattr(runner, attribute_name)
+                options: List[Dict[str, Any]] = getattr(runner, attribute_name)
         return dict((opt["option"], opt) for opt in options)
