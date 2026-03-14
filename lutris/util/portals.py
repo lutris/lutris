@@ -1,5 +1,4 @@
 import os
-from gettext import gettext as _
 from typing import Callable, Iterable, Optional
 
 from gi.repository import Gio, GLib, GObject
@@ -40,24 +39,38 @@ class TrashPortal(GObject.Object):
         )
 
     def _new_for_bus_cb(self, obj, result):
-        proxy = obj.new_for_bus_finish(result)
+        try:
+            proxy = obj.new_for_bus_finish(result)
+        except GLib.Error as ex:
+            logger.error("Could not connect to the Trash portal: %s", ex.message)
+            self.report_completion()
+            return
+
         if proxy:
             self._dbus_proxy = proxy
-            self.trash_file()
+            self._trash_next_file()
+        else:
+            logger.error("Could not connect to the Trash portal.")
+            self.report_completion()
 
-    def trash_file(self):
+    def _trash_next_file(self):
+        """Trash the next file in the list, then re-invoked from
+        _call_cb since TrashFile accepts only a single fd per call."""
+        if not self.file_paths:
+            self.report_completion()
+            return
+
+        file_path = self.file_paths[0]
         try:
             fds_in = Gio.UnixFDList.new()
-
-            for file_path in self.file_paths:
-                flags = os.O_RDONLY | os.O_PATH | os.O_CLOEXEC
-                # You'd think you could use O_NOFOLLOW for any file, but
-                # I find TrashFile fails. We don't want to trash the link target
-                # in any case.
-                if os.path.islink(file_path):
-                    flags |= os.O_NOFOLLOW
-                file_handle = os.open(file_path, flags)
-                fds_in.append(file_handle)
+            flags = os.O_RDONLY | os.O_PATH | os.O_CLOEXEC
+            # You'd think you could use O_NOFOLLOW for any file, but
+            # I find TrashFile fails. We don't want to trash the link target
+            # in any case.
+            if os.path.islink(file_path):
+                flags |= os.O_NOFOLLOW
+            file_handle = os.open(file_path, flags)
+            fds_in.append(file_handle)
 
             self._dbus_proxy.call_with_unix_fd_list(
                 "TrashFile",
@@ -74,22 +87,23 @@ class TrashPortal(GObject.Object):
             self.report_error(ex)
 
     def _call_cb(self, obj, result):
-        values = obj.call_finish(result)
+        file_path = self.file_paths.pop(0)
+        try:
+            values = obj.call_with_unix_fd_list_finish(result)
+        except GLib.Error as ex:
+            logger.error("Failed to trash '%s': %s", file_path, ex.message)
+            self._trash_next_file()
+            return
+
         if values:
-            result = values[0]
-            if result == 0:
-                if len(self.file_paths) == 1:
-                    message = (
-                        _("'%s' could not be moved to the trash. You will need to delete it yourself.")
-                        % self.file_paths[0]
-                    )
-                else:
-                    message = _(
-                        "The items could not be moved to the trash. You will need to delete them yourself:\n%s"
-                    ) % "\n".join(self.file_paths)
-                self.report_error(RuntimeError(message))
-                return
-        self.report_completion()
+            trash_result = values[0][0]
+            if trash_result == 0:
+                logger.error(
+                    "'%s' could not be moved to the trash. You will need to delete it yourself.",
+                    file_path,
+                )
+
+        self._trash_next_file()
 
     def report_error(self, error: Exception) -> None:
         if self.error_function:
