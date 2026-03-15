@@ -747,7 +747,7 @@ class Game:
         if self.runner.system_config.get("display") != "off":
             self.resolution_changed = self.restrict_to_display(self.runner.system_config.get("display") or "")
 
-        resolution = self.runner.system_config.get("resolution")
+        resolution: str = self.runner.system_config.get("resolution")
         if resolution != "off":
             DISPLAY_MANAGER.set_resolution(resolution)
             time.sleep(3)
@@ -1059,7 +1059,8 @@ class Game:
             self.antimicro_thread.stop()
 
         if self.resolution_changed or self.runner.system_config.get("reset_desktop"):
-            DISPLAY_MANAGER.set_resolution(self.original_outputs)
+            if self.original_outputs:
+                DISPLAY_MANAGER.set_resolution(self.original_outputs)
 
         if self.compositor_disabled:
             self.set_desktop_compositing(True)
