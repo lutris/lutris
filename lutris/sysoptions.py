@@ -4,14 +4,18 @@ import os
 from collections import OrderedDict
 from gettext import gettext as _
 from gettext import pgettext as C_
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple, cast
 
 from lutris import runners
 from lutris.util import linux, system
 from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, is_compositing_enabled, is_display_x11
 from lutris.util.graphics.gpu import GPUS
 
+if TYPE_CHECKING:
+    from lutris.config import LutrisConfig
 
-def get_resolution_choices():
+
+def get_resolution_choices() -> List[Tuple[str, str]]:
     """Return list of available resolutions as label, value tuples
     suitable for inclusion in drop-downs.
     """
@@ -21,7 +25,7 @@ def get_resolution_choices():
     return resolution_choices
 
 
-def get_locale_choices():
+def get_locale_choices() -> List[Tuple[str, str]]:
     """Return list of available locales as label, value tuples
     suitable for inclusion in drop-downs.
     """
@@ -47,14 +51,14 @@ def get_locale_choices():
     ]
 
 
-def get_gpu_list():
+def get_gpu_list() -> List[Tuple[str, str]]:
     choices = [(_("Auto"), "")]
     for card, gpu in GPUS.items():
         choices.append((gpu.short_name, card))
     return choices
 
 
-def get_output_choices():
+def get_output_choices() -> List[Tuple[str, str]]:
     """Return list of outputs for drop-downs"""
     displays = DISPLAY_MANAGER.get_display_names()
     output_choices = list(zip(displays, displays))
@@ -63,7 +67,7 @@ def get_output_choices():
     return output_choices
 
 
-def get_output_list():
+def get_output_list() -> List[Tuple[str, str]]:
     """Return a list of output with their index.
     This is used to indicate to SDL 1.2 which monitor to use.
     """
@@ -76,15 +80,15 @@ def get_output_list():
     return choices
 
 
-def _is_cloud_sync_game(_option_key, config):
+def _is_cloud_sync_game(_option_key: str, config: "LutrisConfig") -> bool:
     """Show cloud sync option at system level, or at game level only for GOG games."""
     if config.level != "game":
         return True
 
-    return config.game_level.get("service") == "gog"
+    return cast(str, config.game_level.get("service")) == "gog"
 
 
-system_options = [  # pylint: disable=invalid-name
+system_options: List[Dict[str, Any]] = [  # pylint: disable=invalid-name
     {
         "section": _("Lutris"),
         "option": "game_path",
@@ -522,7 +526,7 @@ system_options = [  # pylint: disable=invalid-name
 ]
 
 
-def with_runner_overrides(runner_slug):
+def with_runner_overrides(runner_slug: str) -> List[Dict[str, Any]]:
     """Return system options updated with overrides from given runner."""
     options = system_options
     try:
