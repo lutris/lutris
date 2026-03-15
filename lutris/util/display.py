@@ -93,7 +93,7 @@ class DisplayManager:
         return str(current_mode.get_width()), str(current_mode.get_height())
 
     @staticmethod
-    def set_resolution(resolution: Optional[Union[str, Iterable[Output]]]) -> None:
+    def set_resolution(resolution: Union[str, Iterable[Output]]) -> None:
         """Set the resolution of one or more displays.
         The resolution can either be a string, which will be applied to the
         primary display or a list of configurations as returned by `get_config`.

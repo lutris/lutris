@@ -3,7 +3,7 @@
 import re
 import subprocess
 from collections import namedtuple
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Iterable, List, Tuple, Union
 
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
 from lutris.util.linux import LINUX_SYSTEM
@@ -119,7 +119,7 @@ def get_resolutions() -> List[str]:
     return sorted(set(resolution_list), key=lambda x: int(x.split("x")[0]), reverse=True)
 
 
-def change_resolution(resolution: Optional[Union[str, Iterable[Output]]]) -> None:
+def change_resolution(resolution: Union[str, Iterable[Output]]) -> None:
     """Change display resolution.
 
     Takes a string for single monitors or a list of displays as returned
@@ -206,7 +206,7 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
         return tuple(mode.split("x"))
 
     @staticmethod
-    def set_resolution(resolution: Optional[Union[str, Iterable[Output]]]) -> None:
+    def set_resolution(resolution: Union[str, Iterable[Output]]) -> None:
         """Change the current resolution"""
         change_resolution(resolution)
 
