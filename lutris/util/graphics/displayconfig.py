@@ -652,7 +652,7 @@ class MutterDisplayManager:
             return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
         return str(current_mode.width), str(current_mode.height)
 
-    def set_resolution(self, resolution: Optional[Union[str, List[DisplayConfig]]]) -> None:
+    def set_resolution(self, resolution: Union[str, List[DisplayConfig]]) -> None:
         """Change the current resolution"""
         if isinstance(resolution, str):
             monitor = self.display_config.get_primary_monitor()
