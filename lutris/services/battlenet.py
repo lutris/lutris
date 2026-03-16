@@ -16,22 +16,8 @@ from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.battlenet.definitions import ProductDbInfo
+from lutris.util.battlenet.product_db import ProductDb
 from lutris.util.log import logger
-
-# Use pure-Python protobuf implementation for compatibility across all protobuf versions.
-# The old-style generated pb2 file is incompatible with protobuf 4.x+ native implementation.
-os.environ.setdefault("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "python")
-
-try:
-    from lutris.util.battlenet.product_db_pb2 import ProductDb
-
-    BNET_ENABLED = True
-except Exception as ex:
-    # We do get strange Google-defined exceptions from problems with protobuf, so
-    # let's just catch (almost) everything. We do not want Lutris to crash, rather
-    # we just want to suppress Battle.net and nothing else.
-    logger.warning("The Battle.net source is unavailable because Google protobuf could not be loaded: %s", ex)
-    BNET_ENABLED = False
 
 GAME_IDS = {
     "s1": ("s1", "StarCraft", "S1", "starcraft-remastered"),
@@ -260,7 +246,7 @@ class BlizzardProductDbParser:
     def parse(self):
         self.products = {}
         database = ProductDb()
-        database.ParseFromString(self.data)
+        database.decode(self.data)
 
         for product_install in database.product_installs:  # pylint: disable=no-member
             # process region
