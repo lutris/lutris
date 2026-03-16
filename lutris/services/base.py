@@ -215,13 +215,18 @@ class BaseService:
 
         BusyAsyncCall(self.get_installers_from_api, on_installers_ready, appid)
 
-    def get_installer_files(self, installer, installer_file_id, selected_extras):
-        """Used to obtains the content files from the service, when an 'N/A' file is left in
-        the installer. This handles 'extras', and must return a tuple; first a list of
-        InstallerFile or InstallerFileCollection objects that are for the files themselves,
-        and then a list of such objects for the extras. This separation allows us to generate
-        extra installer script steps to move the extras in."""
-        return [], []
+    def get_installer_files(self, installer, installer_file_id):
+        """Used to obtain the content files from the service, when an 'N/A' file is left in
+        the installer. Returns a list of InstallerFile or InstallerFileCollection objects
+        for the game content files."""
+        return []
+
+    def get_extras_files(self, installer, selected_extras):
+        """Download the selected extras for a game. Returns a list of InstallerFile objects.
+
+        Only services with has_extras=True should override this; the base
+        implementation raises UnavailableGameError."""
+        raise NotImplementedError(_("This service does not support extras"))
 
     def match_game(self, service_game, lutris_game):
         """Match a service game to a lutris game referenced by its slug"""

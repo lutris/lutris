@@ -714,7 +714,7 @@ class ItchIoService(OnlineService):
         """itch.io does currently not officially support dlc"""
         return []
 
-    def get_installer_files(self, installer, installer_file_id, selected_extras):
+    def get_installer_files(self, installer, installer_file_id):
         """Replace the user provided file with download links from itch.io"""
 
         key = self.get_key(installer.service_appid)
@@ -723,12 +723,9 @@ class ItchIoService(OnlineService):
         except HTTPError as ex:
             raise UnavailableGameError from ex
         filtered = []
-        extras = []
         files = []
-        extra_files = []
         link = None
         filename = "setup.zip"
-        selected_extras_ids = set(x["id"] for x in selected_extras or [])
 
         file = next(_file.copy() for _file in installer.script_files if _file.id == installer_file_id)
         if not file.url.startswith("N/A"):
@@ -742,11 +739,8 @@ class ItchIoService(OnlineService):
             "date": int(datetime.datetime.now().timestamp()),
         }
 
-        if not link or len(selected_extras_ids) > 0:
+        if not link:
             for upload in uploads["uploads"]:
-                if selected_extras_ids and (upload["type"] in self.extra_types):
-                    extras.append(upload)
-                    continue
                 # default =  games/tools ("executables")
                 if upload["type"] == "default" and (installer.runner in ("linux", "wine")):
                     upload_runners = self._get_detail_runners(upload, fix_missing_platforms=False)
@@ -796,17 +790,32 @@ class ItchIoService(OnlineService):
                 )
             )
 
-        for extra in extras:
-            if str(extra["id"]) not in selected_extras_ids:
+        return files
+
+    def get_extras_files(self, installer, selected_extras):
+        """Download selected extras from itch.io"""
+        key = self.get_key(installer.service_appid)
+        try:
+            uploads = self.fetch_uploads(installer.service_appid, key)
+        except HTTPError as ex:
+            raise UnavailableGameError from ex
+
+        selected_extras_ids = set(str(x["id"]) for x in selected_extras)
+        extra_files = []
+
+        for upload in uploads["uploads"]:
+            if upload["type"] not in self.extra_types:
                 continue
-            link = self.get_download_link(extra["id"], key)
+            if str(upload["id"]) not in selected_extras_ids:
+                continue
+            link = self.get_download_link(upload["id"], key)
             extra_files.append(
                 InstallerFile(
                     installer.game_slug,
-                    str(extra["id"]),
+                    str(upload["id"]),
                     {
                         "url": link,
-                        "filename": extra["filename"],
+                        "filename": upload["filename"],
                         "downloader": lambda f, url=link: Downloader(
                             url, f.download_file, overwrite=True, headers=self.get_headers()
                         ),
@@ -814,14 +823,11 @@ class ItchIoService(OnlineService):
                 )
             )
 
-        return files, extra_files
+        return extra_files
 
     def get_patch_files(self, installer, installer_file_id):
         """Similar to get_installer_files but for patches"""
-        # No really, it is the same! so we just call get_installer_files
-        # and strip off the extras files.
-        files, _extra_files = self.get_installer_files(installer, installer_file_id, [])
-        return files
+        return self.get_installer_files(installer, installer_file_id)
 
     def get_file_weight(self, name, demo):
         name_folded = name.casefold()

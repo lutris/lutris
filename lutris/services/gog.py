@@ -449,7 +449,7 @@ class GOGService(OnlineService):
                 )
         return download_links
 
-    def get_extra_files(self, installer: "LutrisInstaller", selected_extras: List[dict]) -> List[InstallerFile]:
+    def get_extras_files(self, installer: "LutrisInstaller", selected_extras: List[dict]) -> List[InstallerFile]:
         extra_files = []
         for extra in selected_extras:
             downlinks = extra.get("downlinks")
@@ -554,8 +554,8 @@ class GOGService(OnlineService):
         return files
 
     def get_installer_files(
-        self, installer: "LutrisInstaller", installer_file_id: str, selected_extras: List[dict]
-    ) -> Tuple[List[InstallerFileCollection], List[InstallerFile]]:
+        self, installer: "LutrisInstaller", installer_file_id: str
+    ) -> List[InstallerFileCollection]:
         try:
             downloads = self.get_downloads(installer.service_appid)
         except HTTPError as err:
@@ -563,16 +563,8 @@ class GOGService(OnlineService):
         links = self._get_installer_links(installer, downloads)
         if links:
             formatted = self._format_links(installer, installer_file_id, links)
-            files = [InstallerFileCollection(installer.game_slug, installer_file_id, formatted)]
-        else:
-            files = []
-
-        extra_files = []
-        if selected_extras:
-            for extra_file in self.get_extra_files(installer, selected_extras):
-                extra_files.append(extra_file)
-
-        return files, extra_files
+            return [InstallerFileCollection(installer.game_slug, installer_file_id, formatted)]
+        return []
 
     def read_file_checksum(self, file_path: str) -> Tuple[str, str]:
         """Return the MD5 checksum for a GOG file

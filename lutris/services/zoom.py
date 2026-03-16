@@ -5,7 +5,7 @@ import os
 import time
 import typing
 from gettext import gettext as _
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from lutris import settings
 from lutris.exceptions import AuthenticationError
@@ -264,22 +264,21 @@ class ZoomService(OnlineService):
         }
 
     def get_installer_files(
-        self, installer: "LutrisInstaller", installer_file_id: str, selected_extras: List[dict]
-    ) -> Tuple[List[InstallerFileCollection], List[InstallerFile]]:
+        self, installer: "LutrisInstaller", installer_file_id: str
+    ) -> List[InstallerFileCollection]:
         logger.debug("Getting installer files for %s", installer_file_id)
         platform = installer.runner
         if platform == "wine":
             platform = "windows"
 
         installer_files = self._get_installers(platform, installer.game_slug, installer.service_appid)
-        files = [InstallerFileCollection(installer.game_slug, installer_file_id, installer_files)]
+        return [InstallerFileCollection(installer.game_slug, installer_file_id, installer_files)]
+
+    def get_extras_files(self, installer: "LutrisInstaller", selected_extras: List[dict]) -> List[InstallerFile]:
         extras = []
-
-        if selected_extras:
-            for selected_extra in selected_extras:
-                extras.append(InstallerFile(installer.game_slug, selected_extra["name"], selected_extra))
-
-        return files, extras
+        for selected_extra in selected_extras:
+            extras.append(InstallerFile(installer.game_slug, selected_extra["name"], selected_extra))
+        return extras
 
     def _get_installers(self, platform: str, game_slug: str, appid: str) -> List[InstallerFile]:
         # fetch the installer url and then parse the response to get the download url

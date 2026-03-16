@@ -114,11 +114,11 @@ class SteamService(BaseService):
                 playtime = steam_game_playtime / 60
                 sql.db_update(settings.DB_PATH, "games", {"playtime": playtime}, conditions={"id": game["id"]})
 
-    def get_installer_files(self, installer, _installer_file_id, _selected_extras):
+    def get_installer_files(self, installer, _installer_file_id):
         steam_uri = "$STEAM:%s:."
         appid = str(installer.script["game"]["appid"])
         file = InstallerFile(installer.game_slug, "steam_game", {"url": steam_uri % appid, "filename": appid})
-        return [file], []
+        return [file]
 
     def install_from_steam(self, manifest):
         """Create a new Lutris game based on an existing Steam install"""

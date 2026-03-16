@@ -241,7 +241,7 @@ class HumbleBundleService(OnlineService):
                 download_links.append(download)
         return download_links
 
-    def get_installer_files(self, installer, installer_file_id, _selected_extras):
+    def get_installer_files(self, installer, installer_file_id):
         """Replace the user provided file with download links from Humble Bundle"""
         try:
             link = get_humble_download_link(installer.service_appid, installer.runner)
@@ -252,7 +252,7 @@ class HumbleBundleService(OnlineService):
             raise UnavailableGameError(_("No game found on Humble Bundle"))
         filename = link.split("?")[0].split("/")[-1]
         file = InstallerFile(installer.game_slug, installer_file_id, {"url": link, "filename": filename})
-        return [file], []
+        return [file]
 
     @staticmethod
     def get_filename_for_platform(downloads, platform):
