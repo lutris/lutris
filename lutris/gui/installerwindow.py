@@ -348,6 +348,21 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def report_status(self, status):
         GLib.idle_add(self.set_status, gtk_safe(status))
 
+    def report_progress(self, fraction, text=""):
+        GLib.idle_add(self._set_progress, fraction, text)
+
+    def _set_progress(self, fraction, text):
+        if not hasattr(self, "install_progress_bar"):
+            return
+        if fraction is None:
+            self.install_progress_bar.hide()
+            return
+        self.install_progress_bar.set_fraction(fraction)
+        if text:
+            self.install_progress_bar.set_text(text)
+            self.install_progress_bar.set_show_text(True)
+        self.install_progress_bar.show()
+
     def attach_log(self, command):
         # Hook the log buffer right now, lest we miss updates.
         command.set_log_buffer(self.log_buffer)
@@ -752,9 +767,19 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.stack.jump_to_page(present_spinner_page)
 
     def create_spinner_page(self):
-        spinner = Gtk.Spinner(halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
+        box.set_spacing(10)
+
+        spinner = Gtk.Spinner(halign=Gtk.Align.CENTER)
         spinner.start()
-        return spinner
+        box.pack_start(spinner, False, False, 0)
+
+        self.install_progress_bar = Gtk.ProgressBar()
+        self.install_progress_bar.set_no_show_all(True)
+        self.install_progress_bar.set_size_request(400, -1)
+        box.pack_start(self.install_progress_bar, False, False, 0)
+
+        return box
 
     # Log Page
     #

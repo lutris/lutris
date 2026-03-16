@@ -165,7 +165,7 @@ class TestProbeServer:
 
         with patch.object(dl._parallel_session, "head", return_value=mock_head_resp):
             with patch.object(dl._parallel_session, "get", return_value=mock_get_resp):
-                url, size, supports = dl._probe_server({})
+                _url, _size, supports = dl._probe_server({})
 
         assert supports is True
 
@@ -178,7 +178,7 @@ class TestProbeServer:
         mock_head_resp.raise_for_status = MagicMock()
 
         with patch.object(dl._parallel_session, "head", return_value=mock_head_resp):
-            url, size, supports = dl._probe_server({})
+            _url, _size, supports = dl._probe_server({})
 
         assert supports is False
 
@@ -191,7 +191,7 @@ class TestProbeServer:
         mock_resp.raise_for_status = MagicMock()
 
         with patch.object(dl._parallel_session, "head", return_value=mock_resp):
-            url, size, supports = dl._probe_server({})
+            _url, size, supports = dl._probe_server({})
 
         assert size == 0
         assert supports is False

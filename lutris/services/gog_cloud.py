@@ -272,7 +272,7 @@ class GOGCloudStorageClient:
         }
 
         try:
-            response_body, response_headers = self._make_request(
+            _response_body, _response_headers = self._make_request(
                 "PUT", path, data=compressed_data, extra_headers=headers
             )
             logger.info(

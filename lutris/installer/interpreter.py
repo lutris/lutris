@@ -58,6 +58,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             does so, the callback is invoked. The method returns immediately, however."""
             raise NotImplementedError()
 
+        def report_progress(self, fraction, text=""):
+            """Called to report numeric progress (0.0 to 1.0) during installation.
+            If fraction is None, hides the progress bar."""
+
         def report_finished(self, game_id, status):
             """Called to report the successful completion of the installation."""
             logger.info("Installation of game %s completed.", game_id)
