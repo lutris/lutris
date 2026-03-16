@@ -1,3 +1,24 @@
+lutris (0.5.23) jammy; urgency=medium
+
+  * Add GOG depot-based downloads via gogdl integration
+  * Add GOG cloud save synchronization
+  * Add Playtron import
+  * Add parallel GOG download connections with resume support
+  * Replace google-protobuf dependency with custom decoder for Battle.net
+  * Improve Humble Bundle authentication and error handling
+  * Improve EA App auth handling and logo compositing
+  * Lazy-load libretro cores and MAME systems to avoid UI stalls
+  * Fix itch.io ARM vs x86 upload selection
+  * Fix $RESOLUTION on KDE/Wayland with fractional scaling
+  * Fix GPU detection in Flatpak
+  * Fix crash when closing Add Games dialog with Escape
+  * Fix optional libretro firmware incorrectly treated as required
+  * Fix favorites view not updating when removing a game from favorites
+  * Performance improvements for large game libraries
+  * Updated pt_BR translation
+
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Sat, 15 Mar 2026 21:00:00 -0800
+
 lutris (0.5.22) jammy; urgency=medium
 
   * Fix type annotations requiring quoting for Python < 3.14 compatibility
