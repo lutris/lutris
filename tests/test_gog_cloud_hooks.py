@@ -472,6 +472,7 @@ class TestSyncAfterQuitBranches(unittest.TestCase):
         game.service = "gog"
         game.appid = "12345"
         game.name = "Test Game"
+        game.skip_cloud_sync = False
         return game
 
     def test_skips_when_no_service(self):
