@@ -28,6 +28,28 @@
   <url type="vcs-browser">https://github.com/lutris/lutris</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
+    <release version="0.5.23" date="2026-03-15" urgency="low">
+      <description>
+        <ul>
+          <li>Add GOG depot-based downloads via gogdl integration</li>
+          <li>Add GOG cloud save synchronization</li>
+          <li>Add Playtron import</li>
+          <li>Add parallel GOG download connections with resume support</li>
+          <li>Replace google-protobuf dependency with custom decoder for Battle.net</li>
+          <li>Improve Humble Bundle authentication and error handling</li>
+          <li>Improve EA App auth handling and logo compositing</li>
+          <li>Lazy-load libretro cores and MAME systems to avoid UI stalls</li>
+          <li>Fix itch.io ARM vs x86 upload selection</li>
+          <li>Fix $RESOLUTION on KDE/Wayland with fractional scaling</li>
+          <li>Fix GPU detection in Flatpak</li>
+          <li>Fix crash when closing Add Games dialog with Escape</li>
+          <li>Fix optional libretro firmware incorrectly treated as required</li>
+          <li>Fix favorites view not updating when removing a game from favorites</li>
+          <li>Performance improvements for large game libraries</li>
+          <li>Updated pt_BR translation</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.5.22" date="2026-02-24" urgency="low">
       <description>
         <ul>

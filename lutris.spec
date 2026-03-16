@@ -1,7 +1,7 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.5.22
+Version:        0.5.23
 Release:        1%{?dist}
 Summary:        Video game preservation platform
 
@@ -139,6 +139,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}1.desktop
 %{_datadir}/locale/
 
 %changelog
+* Sat Mar 15 2026 Mathieu Comandon <mathieucomandon@gmail.com> 0.5.23
+- Release 0.5.23
+
 * Mon Feb 24 2026 Mathieu Comandon <mathieucomandon@gmail.com> 0.5.22
 - Release 0.5.22
 
