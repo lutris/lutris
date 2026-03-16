@@ -290,6 +290,28 @@ def get_pid(program: str, multiple: bool = False) -> Optional[Union[str, List[st
     return pids[0]
 
 
+def is_process_running(pattern: str, filter_string: Optional[str] = None) -> bool:
+    """Check if a process matching a pattern is running.
+
+    Uses pgrep -f to match against the full command line.
+
+    Args:
+        pattern: Pattern to match against the full command line.
+        filter_string: If provided, only return True if this string
+            also appears in the matching process's command line.
+            Useful for filtering by wine prefix path.
+    """
+    try:
+        result = subprocess.run(["pgrep", "-a", "-f", pattern], capture_output=True, text=True)
+    except FileNotFoundError:
+        return False
+    if result.returncode != 0:
+        return False
+    if not filter_string:
+        return True
+    return any(filter_string in line for line in result.stdout.splitlines())
+
+
 def python_identifier(unsafe_string: str) -> str:
     """Converts a string to something that can be used as a python variable"""
 

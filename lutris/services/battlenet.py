@@ -65,6 +65,8 @@ GAME_IDS = {
     "anbs": ("anbs", "Diablo Immortal", "ANBS", "diablo-immortal"),
 }
 
+PRODUCT_CODES = {game[0]: game[2] for game in GAME_IDS.values()}
+
 
 class BattleNetCover(ServiceMedia):
     service = "battlenet"
@@ -160,7 +162,13 @@ class BattleNetService(BaseService):
         if existing_game:
             return
         game_config = LutrisConfig(game_config_id=bnet_game["configpath"]).game_level
-        game_config["game"]["args"] = '--exec="launch %s"' % game.ngdp
+        product_code = PRODUCT_CODES.get(game.ngdp, game.ngdp)
+        game_config["game"]["args"] = '--exec="launch %s"' % product_code
+        bnet_exe = game_config["game"].get("exe", "")
+        if bnet_exe:
+            if not os.path.isabs(bnet_exe):
+                bnet_exe = os.path.join(game_config["game"].get("prefix", ""), bnet_exe)
+            game_config["game"]["client_exe"] = bnet_exe
         configpath = write_game_config(lutris_game_id, game_config)
         slug = service_game["slug"]
         add_game(
@@ -194,7 +202,7 @@ class BattleNetService(BaseService):
                 "script": {
                     "requires": self.client_installer,
                     "game": {
-                        "args": '--exec="launch %s"' % db_game["appid"],
+                        "args": '--exec="launch %s"' % PRODUCT_CODES.get(db_game["appid"], db_game["appid"]),
                     },
                     "installer": [],
                 },
@@ -216,14 +224,16 @@ class BattleNetService(BaseService):
             "script": {
                 "requires": self.client_installer,
                 "game": {
-                    "args": '--exec="launch %s"' % db_game["appid"],
+                    "exe": bnet_exe,
+                    "client_exe": bnet_exe,
+                    "args": '--exec="launch %s"' % PRODUCT_CODES.get(db_game["appid"], db_game["appid"]),
                 },
                 "installer": [
                     {
                         "task": {
                             "name": "wineexec",
                             "executable": bnet_exe,
-                            "args": '--exec="install %s"' % db_game["appid"],
+                            "args": '--exec="install %s"' % PRODUCT_CODES.get(db_game["appid"], db_game["appid"]),
                             "prefix": bnet_app.config.game_config["prefix"],
                             "description": (
                                 "Battle.net will now open. Please launch "

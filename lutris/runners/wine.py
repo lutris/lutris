@@ -1138,6 +1138,39 @@ class wine(Runner):
             for manager, enabled in self.get_dll_managers().items():
                 manager.setup(enabled)
 
+        client_exe = self.game_config.get("client_exe")
+        if client_exe:
+            self._ensure_client_running(client_exe)
+
+    def _ensure_client_running(self, client_exe, wait_time=15):
+        """Launch a client application (e.g. Battle.net) and wait for it to be ready.
+        Many game clients need to be fully initialized before they can accept
+        commands like --exec to launch a specific game."""
+        import time
+
+        if not os.path.isabs(client_exe):
+            client_exe = os.path.join(self.prefix_path, client_exe)
+
+        if not os.path.exists(client_exe):
+            logger.warning("Client executable not found: %s", client_exe)
+            return
+
+        exe_name = os.path.basename(client_exe)
+
+        if system.is_process_running(exe_name, filter_string=self.prefix_path):
+            logger.info("Client %s is already running", exe_name)
+            return
+
+        logger.info("Launching client %s", exe_name)
+        wineexec(
+            client_exe,
+            prefix=self.prefix_path,
+            wine_path=self.get_executable(),
+            arch=self.wine_arch,
+        )
+        logger.info("Waiting %d seconds for client to be ready", wait_time)
+        time.sleep(wait_time)
+
     def get_dll_managers(self, enabled_only=False):
         """Returns the DLL managers in a dict; the keys are the managers themselves,
         and the values are the enabled flags for them. If 'enabled_only' is true,
