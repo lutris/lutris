@@ -8,7 +8,7 @@ from gi.repository import Gio
 
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
-from lutris.database.games import add_game, get_game_by_field
+from lutris.database.games import add_game, get_game_by_field, get_games, update_existing
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.services.base import BaseService
@@ -124,12 +124,22 @@ class BattleNetService(BaseService):
             game.save()
         return games
 
+    def _mark_games_uninstalled(self):
+        """Mark all Battle.net games as uninstalled when the client is missing."""
+        for game in get_games(filters={"service": self.id, "installed": "1"}):
+            update_existing(id=game["id"], installed=0)
+
     def add_installed_games(self):
         """Scan an existing Battle.net install for games"""
         bnet_game = get_game_by_field(self.client_installer, "slug")
-        if not bnet_game:
-            raise RuntimeError("Battle.net is not installed in Lutris")
+        if not bnet_game or not bnet_game.get("directory"):
+            self._mark_games_uninstalled()
+            return
         bnet_prefix = bnet_game["directory"].split("drive_c")[0]
+        product_db_path = bnet_prefix + BlizzardProductDbParser.PRODUCT_DB_PATH
+        if not os.path.exists(product_db_path):
+            self._mark_games_uninstalled()
+            return
         parser = BlizzardProductDbParser(bnet_prefix)
         installed_slugs = []
         for game in parser.games:
@@ -170,6 +180,27 @@ class BattleNetService(BaseService):
     def get_installed_slug(self, db_game):
         return db_game["slug"]
 
+    def generate_installers(self, db_game):
+        """Generate an installer that requires the Battle.net client.
+        The dependency system will prompt the user to install it if missing."""
+        return [
+            {
+                "name": db_game["name"],
+                "version": self.name,
+                "slug": db_game["slug"] + "-" + self.id,
+                "game_slug": self.get_installed_slug(db_game),
+                "runner": self.runner,
+                "appid": db_game["appid"],
+                "script": {
+                    "requires": self.client_installer,
+                    "game": {
+                        "args": '--exec="launch %s"' % db_game["appid"],
+                    },
+                    "installer": [],
+                },
+            }
+        ]
+
     def generate_installer(self, db_game, bnet_db_game):
         bnet_app = Game(bnet_db_game["id"])
         bnet_exe = bnet_app.config.game_config["exe"]
@@ -208,8 +239,10 @@ class BattleNetService(BaseService):
     def get_installed_runner_name(self, db_game):
         return self.runner
 
-    def install(self, db_game):
+    def install(self, db_game, update=False):
         bnet_game = get_game_by_field(self.client_installer, "slug")
+        if not bnet_game or not bnet_game.get("installed"):
+            return super().install(db_game, update)
         application = Gio.Application.get_default()
         application.show_installer_window(
             [self.generate_installer(db_game, bnet_game)], service=self, appid=db_game["appid"]
