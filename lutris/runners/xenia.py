@@ -85,7 +85,7 @@ class xenia(wine):
             return default
         return get_default_wine_version()
 
-    def is_installed(self, flatpak_allowed=True, version=None, fallback=True):
+    def check_installed(self, version: str = None, fallback: bool = True, **kwargs) -> bool:
         """Check if the Xenia binary is installed."""
         return os.path.isfile(self.game_exe)
 

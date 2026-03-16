@@ -530,17 +530,38 @@ class Runner:  # pylint: disable=too-many-public-methods
             return self.is_installed()
         return False
 
-    def is_installed(self, flatpak_allowed: bool = True) -> bool:
-        """Return whether the runner is installed"""
-        try:
-            # Don't care where the exe is, only if we can find it.
-            exe = self.get_executable()
-            if system.path_exists(exe):
-                return True
-        except MisconfigurationError:
-            pass  # We can still try flatpak even if 'which' fails us!
+    def is_installed(self, flatpak_allowed: bool = True, suppress_allowed: bool = True, **kwargs) -> bool:
+        """Return whether the runner is installed.
 
+        If flatpak_allowed is True (the default), a runner that provides a flatpak_id will
+        fall back to checking whether that Flatpak app is installed when check_installed()
+        returns False.
+
+        If suppress_allowed is True (the default), a runner that has been suppressed by the user
+        is treated as not installed. Pass suppress_allowed=False to check only whether the runner
+        is physically present on the system.
+
+        Subclasses should override check_installed() for runner-specific detection logic
+        rather than overriding this method directly. Any extra keyword arguments are forwarded
+        to check_installed()."""
+        if suppress_allowed and self.is_suppressed():
+            return False
+        if self.check_installed(**kwargs):
+            return True
         return bool(flatpak_allowed and self.flatpak_id and flatpak.is_app_installed(self.flatpak_id))
+
+    def check_installed(self, **kwargs) -> bool:
+        """Return whether the runner is physically present on the system.
+
+        Some runners are not installed by Lutris but are provided by the system or installed
+        externally (e.g. the Flatpak runner, the Linux runner, or Wine from system packages).
+        Subclasses should override this method to detect such installations. This is called by
+        is_installed() which handles the suppress_allowed and flatpak_allowed flags."""
+        try:
+            exe = self.get_executable()
+            return system.path_exists(exe)
+        except MisconfigurationError:
+            return False
 
     def is_installed_for(self, interpreter: ScriptInterpreter) -> bool:
         """Returns whether the runner is installed. Specific runners can extract additional

@@ -866,16 +866,12 @@ class wine(Runner):
 
         return command
 
-    def is_installed(self, flatpak_allowed: bool = True, version: str | None = None, fallback: bool = True) -> bool:
-        """Check if Wine is installed.
-        If no version is passed, checks if any version of wine is available
-        """
+    def check_installed(self, version: str | None = None, fallback: bool = True, **kwargs) -> bool:
+        """Check if Wine is installed, optionally checking for a specific version."""
         try:
             if version:
-                # We don't care where Wine is, but only if it was found at all.
                 self.get_executable(version, fallback)
                 return True
-
             return bool(get_installed_wine_versions())
         except MisconfigurationError:
             return False
