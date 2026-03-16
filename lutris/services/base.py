@@ -115,7 +115,8 @@ class BaseService:
 
     def is_launchable(self):
         if self.client_installer:
-            return bool(get_game_by_field(self.client_installer, "slug"))
+            db_launcher = get_game_by_field(self.client_installer, "slug")
+            return bool(db_launcher and db_launcher.get("installed"))
         return False
 
     def get_launcher(self):
