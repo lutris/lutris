@@ -127,6 +127,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         command_names = [self.interpreter._get_command_name_and_params(c)[0] for c in self.script.get("installer", [])]
         if "insert_disc" in command_names:
             return True
+        if "gogdl_setup" in command_names:
+            return True
         return False
 
     def get_errors(self):

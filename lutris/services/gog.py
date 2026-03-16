@@ -17,7 +17,7 @@ from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.installer_file_collection import InstallerFileCollection
 from lutris.runners import get_runner_human_name
-from lutris.services.base import SERVICE_LOGIN, OnlineService
+from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import i18n, system
@@ -147,7 +147,11 @@ class GOGService(OnlineService):
         if not self.is_connected():
             logger.error("User not connected to GOG")
             return []
-        games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
+        try:
+            games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
+        except AuthenticationError as ex:
+            logger.warning("GOG session expired during library load")
+            raise AuthTokenExpiredError("GOG token expired, please log in again") from ex
         for game in games:
             game.save()
         self.match_games()
@@ -587,9 +591,9 @@ class GOGService(OnlineService):
         slug = details["slug"]
         platforms = [platform.casefold() for platform, is_supported in details["worksOn"].items() if is_supported]
         if "linux" in platforms:
-            return self._generate_installer(slug, "linux", db_game)
+            return self._generate_depot_installer(slug, "linux", db_game)
         else:
-            return self._generate_installer(slug, "wine", db_game)
+            return self._generate_depot_installer(slug, "wine", db_game)
 
     def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
         details = json.loads(db_game["details"])
@@ -598,18 +602,61 @@ class GOGService(OnlineService):
 
         installers = []
 
-        if "linux" in platforms:
-            installers.append(self._generate_installer(slug, "linux", db_game))
+        # Depot-based installers (preferred)
+        runners = self._get_runners(platforms)
+        for runner in runners:
+            installers.append(self._generate_depot_installer(slug, runner, db_game))
 
-        if "windows" in platforms:
-            installers.append(self._generate_installer(slug, "wine", db_game))
+        # Offline installer fallback
+        for runner in runners:
+            inst = self._generate_installer(slug, runner, db_game)
+            inst["version"] += " (offline installer)"
+            installers.append(inst)
 
-        if len(installers) > 1:
+        if len(runners) > 1:
             for installer in installers:
                 runner_human_name = get_runner_human_name(installer["runner"])
                 installer["version"] += " " + (runner_human_name or installer["runner"])
 
         return installers
+
+    @staticmethod
+    def _get_runners(platforms: List[str]) -> List[str]:
+        """Return the list of runner names for the given platforms."""
+        runners = []
+        if "linux" in platforms:
+            runners.append("linux")
+        if "windows" in platforms:
+            runners.append("wine")
+        return runners
+
+    def _generate_depot_installer(self, slug: str, runner: str, db_game: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate an installer that uses gogdl depot downloads.
+        The exe is not set here — gogdl_setup reads it from goggame-*.info
+        after the download completes."""
+        platform = "linux" if runner == "linux" else "windows"
+        game_config = {}
+        if runner == "wine":
+            game_config["prefix"] = "$GAMEDIR/pfx"
+        return {
+            "name": db_game["name"],
+            "version": "GOG",
+            "slug": slug,
+            "game_slug": self.get_installed_slug(db_game),
+            "runner": runner,
+            "gogid": db_game["appid"],
+            "script": {
+                "game": game_config,
+                "installer": [
+                    {
+                        "gogdl_setup": {
+                            "game_id": db_game["appid"],
+                            "platform": platform,
+                        }
+                    },
+                ],
+            },
+        }
 
     def _generate_installer(self, slug: str, runner: str, db_game: Dict[str, Any]) -> Dict[str, Any]:
         system_config = {}
@@ -734,6 +781,36 @@ class GOGService(OnlineService):
     def get_update_installers(self, db_game: dict) -> List[dict]:
         appid = db_game["service_id"]
         runner = db_game.get("runner")
+
+        # For depot-installed games, generate a depot update installer
+        from lutris.util.gogdl import is_depot_installed
+
+        if is_depot_installed(appid):
+            platform = "linux" if runner == "linux" else "windows"
+            return [
+                {
+                    "name": db_game["name"],
+                    "description": _("Update via GOG depot (incremental)"),
+                    "slug": db_game["installer_slug"],
+                    "game_slug": db_game["slug"],
+                    "version": "GOG depot update",
+                    "runner": runner or "wine",
+                    "script": {
+                        "extends": db_game["installer_slug"],
+                        "installer": [
+                            {
+                                "gogdl_setup": {
+                                    "game_id": appid,
+                                    "platform": platform,
+                                    "command": "update",
+                                }
+                            },
+                        ],
+                    },
+                }
+            ]
+
+        # Fallback: offline installer patch-based updates
         patch_versions = self.get_update_versions(appid, runner)
         patch_installers = []
         for version in patch_versions:
