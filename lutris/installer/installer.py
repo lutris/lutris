@@ -161,7 +161,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
     def prepare_game_files(self, extras, patch_version=None):
         """Gathers necessary files before iterating through them."""
-        if not self.script_files:
+        if not self.script_files and not extras:
             return
 
         installer_file_id = None
@@ -190,9 +190,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                     for f in installer_files:
                         f.allow_pga_cache = False
                 else:
-                    content_files, extra_files = self.service.get_installer_files(self, installer_file_id, extras)
-                    extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
-                    installer_files = content_files + extra_files
+                    installer_files = self.service.get_installer_files(self, installer_file_id)
             except (AuthenticationError, UnavailableGameError) as ex:
                 logger.exception("Game not available: %s", ex)
                 installer_files = None
@@ -207,6 +205,14 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                     0, InstallerFile(self.game_slug, installer_file_id, {"url": installer_file_url, "filename": ""})
                 )
 
+        if extras and self.service and self.service.has_extras:
+            try:
+                extra_files = self.service.get_extras_files(self, extras)
+                extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
+                files.extend(extra_files)
+            except (AuthenticationError, UnavailableGameError) as ex:
+                logger.exception("Failed to get extras: %s", ex)
+
         # Commit changes only at the end; this is more robust in this method is runner
         # my two threads concurrently- the GIL can probably save us. It's not desirable
         # to do this, but this is the easiest workaround.
@@ -215,12 +221,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
     def install_extras(self):
         # Copy extras to game folder; this updates the installer script, so it needs
-        # be called just once, before launching the installers commands.
-        if self.extra_file_paths and len(self.extra_file_paths) == len(self.files):
-            # Reset the install script in case there are only extras.
-            logger.warning("Installer with only extras and no game files")
-            self.script["installer"] = []
-
+        # be called just once, before launching the installer commands.
         for extra_file in self.extra_file_paths:
             self.script["installer"].append({"copy": {"src": extra_file, "dst": "$GAMEDIR/extras"}})
 

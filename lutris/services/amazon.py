@@ -650,7 +650,7 @@ class AmazonService(OnlineService):
 
         return game_cmd, game_args
 
-    def get_installer_files(self, installer, _installer_file_id, _selected_extras):
+    def get_installer_files(self, installer, _installer_file_id):
         try:
             file_dict, __ = self.get_game_files(installer.service_appid)
         except HTTPError as err:
@@ -666,7 +666,7 @@ class AmazonService(OnlineService):
             )
         # return should be a list of files, so we return a list containing a InstallerFileCollection
         file_collection = InstallerFileCollection(installer.game_slug, "amazongame", files)
-        return [file_collection], []
+        return [file_collection]
 
     def get_installed_slug(self, db_game):
         details = json.loads(db_game["details"])
