@@ -130,6 +130,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self.on_cache_clicked,
             tooltip=_("Change where Lutris downloads game installer files."),
         )
+        self.cache_button.is_available = lambda: not self.interpreter or bool(self.interpreter.installer.script_files)
 
         self.source_button = self.add_menu_button(_("View installer source"), self.on_source_clicked)
 
@@ -400,6 +401,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def present_choose_installer_page(self):
         """Stage where we choose an install script."""
+        self.interpreter = None
         self.set_status("")
         self.set_title(_("Install %s") % self.installers[0]["name"])
         self.stack.present_page("choose_installer")
@@ -1100,7 +1102,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def display_buttons(self, buttons, cancel_sensitive=True):
         """Shows exactly the buttons given, and hides the others. Updates the close button
-        according to whether the install has started."""
+        according to whether the install has started.
+
+        Buttons may have an optional is_available() method; if present and it
+        returns False, the button is hidden even if it is in the list."""
 
         style_context = self.cancel_button.get_style_context()
 
@@ -1118,7 +1123,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         all_buttons = [self.cache_button, self.source_button, self.continue_button]
 
         for b in all_buttons:
-            b.set_visible(b in buttons)
+            available = not hasattr(b, "is_available") or b.is_available()
+            b.set_visible(b in buttons and available)
 
         any_visible = False
         for b in self.menu_box.get_children():
