@@ -55,7 +55,7 @@ class RunnerBox(Gtk.Box):
         self.configure_button.set_margin_right(12)
         self.configure_button.connect("clicked", self.on_configure_clicked)
         self.pack_start(self.configure_button, False, False, 0)
-        if not self.runner.is_installed() or self.runner.is_suppressed():
+        if not self.runner.is_installed():
             self.runner_label_box.set_sensitive(False)
         self.configure_button.show()
         self.action_alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
@@ -77,7 +77,7 @@ class RunnerBox(Gtk.Box):
             _button = Gtk.Button.new_from_icon_name("system-software-install-symbolic", Gtk.IconSize.BUTTON)
             _button.get_style_context().add_class("circular")
             _button.connect("clicked", self.on_unsuppress_clicked)
-        elif self.runner.is_installed():
+        elif self.runner.is_installed(suppress_allowed=False):
             _button = Gtk.Button.new_from_icon_name("edit-delete-symbolic", Gtk.IconSize.BUTTON)
             _button.get_style_context().add_class("circular")
             _button.connect("clicked", self.on_suppress_clicked)
@@ -99,7 +99,7 @@ class RunnerBox(Gtk.Box):
         logger.debug("Install of %s requested", self.runner)
         self.runner.install(self.get_toplevel())
 
-        if self.runner.is_installed():
+        if self.runner.is_installed(suppress_allowed=False):
             self.emit("runner-installed")
 
     def on_configure_clicked(self, widget):
