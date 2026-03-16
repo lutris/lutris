@@ -477,6 +477,4 @@ class RunnerSearch(BaseSearch):
         return super().get_part_predicate(name, tokens)
 
     def get_installed_predicate(self, installed: bool) -> SearchPredicate:
-        return FlagPredicate(
-            installed, lambda runner: runner.is_installed() and not runner.is_suppressed(), tag="installed"
-        )
+        return FlagPredicate(installed, lambda runner: runner.is_installed(), tag="installed")

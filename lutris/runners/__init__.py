@@ -95,7 +95,7 @@ def get_installed(sort: bool = True) -> list["Runner"]:
     installed = []
     for runner_name in __all__:
         runner = import_runner(runner_name)()
-        if runner.is_installed() and not runner.is_suppressed():
+        if runner.is_installed():
             installed.append(runner)
     return sorted(installed) if sort else installed
 
