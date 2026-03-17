@@ -27,7 +27,7 @@ from lutris.util.strings import time_ago
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
 USER_INFO_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.json")
 
-DbGameDict: TypeAlias = Dict[str, Any]
+ApiGameDict: TypeAlias = Dict[str, Any]
 GamesPageDict: TypeAlias = Dict[str, Any]
 InstallerDict: TypeAlias = Dict[str, Any]
 InstallerInfoDict: TypeAlias = Dict[str, str]
@@ -365,7 +365,7 @@ def get_game_service_api_page(
 
 def get_api_games(
     game_slugs: Optional[Collection[str]] = None, page: int = 1, service: Optional[str] = None
-) -> List[DbGameDict]:
+) -> List[ApiGameDict]:
     """Return all games from the Lutris API matching the given game slugs"""
     if service:
         response_data = get_game_service_api_page(service, game_slugs)
@@ -374,7 +374,7 @@ def get_api_games(
 
     if not response_data:
         return []
-    results: List[DbGameDict] = response_data.get("results", [])
+    results: List[ApiGameDict] = response_data.get("results", [])
     while response_data.get("next"):
         page_match = re.search(r"page=(\d+)", response_data["next"])
         if page_match:
@@ -389,7 +389,7 @@ def get_api_games(
         if not response_data:
             logger.warning("Unable to get response for page %s", next_page)
             break
-        results += cast(List[DbGameDict], response_data.get("results"))
+        results += cast(List[ApiGameDict], response_data.get("results"))
     return results
 
 
@@ -417,7 +417,7 @@ def get_game_installers(game_slug: str, revision: Optional[str] = None) -> List[
     return [normalize_installer(i) for i in installers]
 
 
-def get_game_details(slug: str) -> DbGameDict:
+def get_game_details(slug: str) -> ApiGameDict:
     url = settings.SITE_URL + "/api/games/%s" % slug
     request = http.Request(url)
     try:
@@ -425,7 +425,7 @@ def get_game_details(slug: str) -> DbGameDict:
     except http.HTTPError as ex:
         logger.debug("Unable to load %s: %s", slug, ex)
         return {}
-    return cast(DbGameDict, response.json)
+    return cast(ApiGameDict, response.json)
 
 
 def normalize_installer(installer: InstallerDict, **additionnal: Any) -> InstallerDict:

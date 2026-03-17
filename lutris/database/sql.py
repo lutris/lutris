@@ -1,27 +1,35 @@
 import sqlite3
 import threading
-from typing import Any
+from types import TracebackType
+from typing import Any, Dict, List, Sequence, Tuple, Type, TypeAlias, cast
 
 # Prevent multiple access to the database (SQLite limitation)
 DB_LOCK = threading.RLock()
 
+DBResult: TypeAlias = Dict[str, Any]
+DBResults: TypeAlias = List[DBResult]
+DBCondition: TypeAlias = Tuple[str, Any]
+DBConditionsDict: TypeAlias = Dict[str, Any]
+DBUpdateDict: TypeAlias = Dict[str, Any]
+DBParams: TypeAlias = Sequence[Any]
+
 
 class db_cursor(object):
-    def __init__(self, db_path):
+    def __init__(self, db_path: str):
         self.db_path = db_path
-        self.db_conn = None
+        self.db_conn: sqlite3.Connection = None
 
-    def __enter__(self):
+    def __enter__(self) -> sqlite3.Cursor:
         self.db_conn = sqlite3.connect(self.db_path)
         cursor = self.db_conn.cursor()
         return cursor
 
-    def __exit__(self, _type, value, traceback):
+    def __exit__(self, _type: Type[BaseException], value: BaseException, traceback: TracebackType) -> None:
         self.db_conn.commit()
         self.db_conn.close()
 
 
-def cursor_execute(cursor, query, params=None):
+def cursor_execute(cursor: sqlite3.Cursor, query: str, params: DBParams = None) -> sqlite3.Cursor:
     """Execute a SQL query, run it in a lock block"""
     params = params or ()
     lock = DB_LOCK.acquire(timeout=5)  # pylint: disable=consider-using-with
@@ -34,7 +42,7 @@ def cursor_execute(cursor, query, params=None):
         DB_LOCK.release()
 
 
-def db_insert(db_path, table, fields):
+def db_insert(db_path: str, table: str, fields: DBUpdateDict) -> int:
     columns = ", ".join(list(fields.keys()))
     placeholders = ("?, " * len(fields))[:-2]
     field_values = tuple(fields.values())
@@ -45,10 +53,10 @@ def db_insert(db_path, table, fields):
             field_values,
         )
         inserted_id = cursor.lastrowid
-    return inserted_id
+    return cast(int, inserted_id)
 
 
-def db_update(db_path, table, updated_fields, conditions):
+def db_update(db_path: str, table: str, updated_fields: DBUpdateDict, conditions: DBConditionsDict) -> sqlite3.Cursor:
     """Update `table` with the values given in the dict `values` on the
     condition given with the `row` tuple.
     """
@@ -64,12 +72,12 @@ def db_update(db_path, table, updated_fields, conditions):
     return result
 
 
-def db_delete(db_path, table, field, value):
+def db_delete(db_path: str, table: str, field: str, value: Any) -> None:
     with db_cursor(db_path) as cursor:
         cursor_execute(cursor, "delete from {0} where {1}=?".format(table, field), (value,))
 
 
-def db_select(db_path, table, fields=None, condition=None):
+def db_select(db_path: str, table: str, fields: Sequence[str] = None, condition: DBCondition = None) -> DBResults:
     if fields:
         columns = ", ".join(fields)
     else:
@@ -103,7 +111,7 @@ def db_select(db_path, table, fields=None, condition=None):
     return results
 
 
-def db_query(db_path, query, params=()):
+def db_query(db_path: str, query: str, params: DBParams = ()) -> DBResults:
     with db_cursor(db_path) as cursor:
         cursor_execute(cursor, query, params)
         rows = cursor.fetchall()
@@ -117,7 +125,7 @@ def db_query(db_path, query, params=()):
     return results
 
 
-def add_field(db_path, tablename, field):
+def add_field(db_path: str, tablename: str, field: Dict[str, str]) -> None:
     query = "ALTER TABLE %s ADD COLUMN %s %s" % (
         tablename,
         field["name"],
@@ -127,8 +135,8 @@ def add_field(db_path, tablename, field):
         cursor.execute(query)
 
 
-def _create_filter(field: str, value: Any, params: list, negate: bool = False) -> str:
-    """Creates a filter to match a field to a vlaue, or to a list of
+def _create_filter(field: str, value: Any, params: List[Any], negate: bool = False) -> str:
+    """Creates a filter to match a field to a value, or to a list of
     values. None can be used as well, to make NULL."""
     also_null = False
     if hasattr(value, "__iter__") and not isinstance(value, str):
@@ -176,14 +184,24 @@ def _create_filter(field: str, value: Any, params: list, negate: bool = False) -
         return sql
 
 
-def filtered_query(db_path, table, searches=None, filters=None, excludes=None, sorts=None):
+def filtered_query(
+    db_path: str,
+    table: str,
+    searches: Dict[str, str] = None,
+    filters: DBConditionsDict = None,
+    excludes: DBConditionsDict = None,
+    sorts: Sequence[str] = None,
+) -> DBResults:
+    searches = searches or {}
+    filters = filters or {}
+    excludes = excludes or {}
     query = "select * from %s" % table
     params = []
     sql_filters = []
-    for field in searches or {}:
+    for field in searches:
         sql_filters.append("%s LIKE ?" % field)
         params.append("%" + searches[field] + "%")
-    for field in filters or {}:
+    for field in filters:
         sql_filters.append(_create_filter(field, filters[field], params))
     for field in excludes or {}:
         sql_filters.append(_create_filter(field, excludes[field], params, negate=True))
