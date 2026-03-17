@@ -1352,7 +1352,6 @@ msgstr "未找到任何结果"
 msgid "Showing <b>%d</b> result"
 msgid_plural "Showing <b>%d</b> results"
 msgstr[0] "显示 <b>%d</b> 条结果"
-msgstr[1] "显示 <b>%d</b> 条结果"
 
 
 #: lutris/gui/addgameswindow.py:277
@@ -1532,7 +1531,6 @@ msgstr "未发现可导入的新游戏。"
 msgid "Successfully imported %d game."
 msgid_plural "Successfully imported %d games."
 msgstr[0] "成功导入 %d 款游戏。"
-msgstr[1] "成功导入 %d 款游戏。"
 
 
 #: lutris/gui/addgameswindow.py:575 lutris/gui/installerwindow.py:1117
@@ -2858,7 +2856,6 @@ msgstr "%s 版本管理器"
 msgid "View %d game"
 msgid_plural "View %d games"
 msgstr[0] "查看 %d 款游戏"
-msgstr[1] "查看 %d 款游戏"
 
 
 #: lutris/gui/dialogs/runner_install.py:280
@@ -2902,7 +2899,6 @@ msgstr "卸载 %s"
 msgid "Uninstall %d game"
 msgid_plural "Uninstall %d games"
 msgstr[0] "卸载 %d 个游戏"
-msgstr[1] "卸载 %d 个游戏"
 
 #: lutris/gui/dialogs/uninstall_dialog.py:144
 #, python-format
@@ -2914,14 +2910,12 @@ msgstr "移除 %s"
 msgid "Remove %d game"
 msgid_plural "Remove %d games"
 msgstr[0] "移除 %d 个游戏"
-msgstr[1] "移除 %d 个游戏"
 
 #: lutris/gui/dialogs/uninstall_dialog.py:149
 #, python-format
 msgid "remove %d game"
 msgid_plural "remove %d games"
 msgstr[0] "移除 %d 个游戏"
-msgstr[1] "移除 %d 个游戏"
 
 #: lutris/gui/dialogs/uninstall_dialog.py:151
 #, python-format
@@ -3210,7 +3204,6 @@ msgstr "未找到游戏"
 msgid "Search %d game"
 msgid_plural "Search %d games"
 msgstr[0] "搜索 %d 个游戏"
-msgstr[1] "搜索 %d 个游戏"
 
 #: lutris/gui/lutriswindow.py:1089
 msgid "Unsupported Lutris Version"
@@ -3300,7 +3293,7 @@ msgstr "下载中断"
 #, python-brace-format
 msgid "{downloaded} / {size} ({speed:0.2f}MB/s), {time} remaining"
 msgstr ""
-"{downloaded:0.2f} / {size:0.2f}MB（{speed:0.2f}MB/s），剩余时间：{time}"
+"{downloaded} / {size}MB（{speed:0.2f}MB/s），剩余时间：{time}"
 
 #: lutris/gui/widgets/game_bar.py:174
 #, python-format
