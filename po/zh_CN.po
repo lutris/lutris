@@ -177,7 +177,7 @@ msgid ""
 msgstr "优先使用 vulkaninfo 中最具描述性的 GPU 名称 — 修复 Intel Arc GPU 被报告为“Intel Graphics”的问题"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:75
-msgid "Add defensive check for vulkaninfo option lines with no "=""
+msgid "Add defensive check for vulkaninfo option lines with no \"=\""
 msgstr "为 vulkaninfo 中没有“=”的选项行添加防御性检查"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:76
@@ -480,7 +480,7 @@ msgstr "时长和分类。"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:159
 msgid ""
-"Remove "Lutris" service view; with library sync the "Games" view "
+"Remove \"Lutris\" service view; with library sync the \"Games\" view "
 "replaces it."
 msgstr "移除“Lutris”服务视图；启用游戏库同步后，由“游戏”视图取代。"
 
@@ -645,7 +645,7 @@ msgstr "卸载游戏或运行器时，将其文件移至回收站而非直接删
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:206
 msgid ""
-"Add \"Updates\ tab in Preferences control and check for updates and correct "
+"Add \"Updates\" tab in Preferences control and check for updates and correct "
 "missing media"
 msgstr "在首选项中添加“更新”标签页，用于检查更新和修复缺失的媒体文件"
 
@@ -4018,7 +4018,6 @@ msgstr "字符编码"
 msgid ""
 "Instead of auto detecting the encoding or using the one in RPG_RT.ini, the "
 "specified encoding is used."
-msgstr ""
 msgstr "使用指定的编码，而非自动检测或 RPG_RT.ini 中的编码。"
 
 
@@ -4648,6 +4647,7 @@ msgstr "未指定应用程序。"
 msgid ""
 "Application ID is not specified in correct format.Must be something like: "
 "tld.domain.app"
+msgstr ""
 "应用程序 ID 的格式不正确。必须采用类似如下的格式：tld.domain.app"
 
 #: lutris/runners/flatpak.py:148
@@ -6990,7 +6990,6 @@ msgstr ""
 
 #: lutris/runners/wine.py:95 lutris/runners/wine.py:864
 msgid "Proton is not compatible with 32-bit prefixes."
-msgstr ""
 msgstr "Proton 与 32 位前缀不兼容。"
 
 #: lutris/runners/wine.py:109
@@ -7002,18 +7001,15 @@ msgstr ""
 
 #: lutris/runners/wine.py:117
 msgid "<b>Warning</b> No executable path specified"
-msgstr ""
 msgstr "<b>警告</b> 未指定可执行文件路径"
 
 #: lutris/runners/wine.py:119
 msgid ""
 "<b>Warning</b> Executable path has extra whitespace at the beginning or end"
-msgstr ""
 msgstr "<b>警告</b> 可执行文件路径的开头或结尾包含多余的空格"
 
 #: lutris/runners/wine.py:130
 msgid "<b>Warning</b> Executable file does not exist"
-msgstr ""
 msgstr "<b>警告</b> 可执行文件不存在"
 
 #: lutris/runners/wine.py:139
@@ -7031,7 +7027,7 @@ msgstr ""
 msgid ""
 "<b>Error</b> Vulkan is not installed or is not supported by your system, %s "
 "is not available."
-"<b>错误</b> 未安装 Vulkan 或系统不支持，%s 不可用。"
+msgstr "<b>错误</b> 未安装 Vulkan 或系统不支持，%s 不可用。"
 
 #: lutris/runners/wine.py:167
 #, python-format
@@ -7285,7 +7281,7 @@ msgstr "启用 HDR（实验性）"
 msgid ""
 "Enable Proton's support for High Dynamic Range graphics. Requires Wayland "
 "selected as Graphics backend."
-"启用 Proton 对高动态范围图形的支持。需要将 Wayland 选为图形后端。"
+msgstr "启用 Proton 对高动态范围图形的支持。需要将 Wayland 选为图形后端。"
 
 #: lutris/runners/wine.py:460
 msgid "Enable Esync"
@@ -8563,7 +8559,7 @@ msgstr "育碧身份验证已失效：%s"
 msgid ""
 "The '%s' runtime component is not installed; visit the Updates tab in the "
 "Preferences dialog to install it."
-"“%s”运行时组件未安装；请前往首选项对话框的“更新”选项卡进行安装。"
+msgstr "“%s”运行时组件未安装；请前往首选项对话框的“更新”选项卡进行安装。"
 
 #: lutris/util/wine/dll_manager.py:113
 msgid "Manual"
