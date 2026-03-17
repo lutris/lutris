@@ -23,6 +23,8 @@ from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_dialog import UninstallDialog
 from lutris.gui.widgets.utils import open_uri
 from lutris.monitored_command import MonitoredCommand
+from lutris.services import SERVICES
+from lutris.services.base import BaseService
 from lutris.services.lutris import download_lutris_media
 from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall
@@ -146,6 +148,27 @@ class GameActions:
         for game in self.get_games():
             open_uri("https://lutris.net/games/%s" % game.slug.replace("_", "-"))
 
+    def on_view_store(self, _widget):
+        """Callback to open a game's store page on the service"""
+        for game in self.get_games():
+            url = self._get_store_url(game)
+            if url:
+                open_uri(url)
+
+    def _get_store_url(self, game):
+        """Get the store URL for a game from its service"""
+        service_name = game.service
+        if not service_name or service_name not in SERVICES:
+            return ""
+        service_cls = SERVICES[service_name]
+        if service_cls.get_store_url is BaseService.get_store_url:
+            return ""
+        service = service_cls()
+        db_game = service.get_service_db_game(game)
+        if db_game:
+            return service.get_store_url(db_game)
+        return ""
+
     @property
     def is_game_removable(self):
         for game in self.get_games():
@@ -258,6 +281,7 @@ class SingleGameActions(GameActions):
             ),
             ("rm-steam-shortcut", _("Delete Steam shortcut"), self.on_remove_steam_shortcut),
             ("view", _("View on Lutris.net"), self.on_view_game),
+            ("view-store", _("View on store page"), self.on_view_store),
             ("duplicate", _("Duplicate"), self.on_game_duplicate),
             (None, "-", None),
             ("remove", _("Remove"), self.on_remove_game),
@@ -303,6 +327,7 @@ class SingleGameActions(GameActions):
             "rm-steam-shortcut": bool(game.is_installed and has_steam_shortcut and not is_steam_game),
             "remove": self.is_game_removable,
             "view": True,
+            "view-store": bool(game.service and self._get_store_url(game)),
             "hide": game.is_installed and not game.is_hidden,
             "unhide": game.is_hidden,
         }
@@ -487,11 +512,17 @@ class ServiceGameActions(GameActions):
             ("install", _("Install"), self.on_install_clicked),
             ("add", _("Locate installed game"), self.on_locate_installed_game),
             ("view", _("View on Lutris.net"), self.on_view_game),
+            ("view-store", _("View on store page"), self.on_view_store),
         ]
 
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
-        return {"install": self.is_installable, "add": self.is_installable, "view": True}
+        return {
+            "install": self.is_installable,
+            "add": self.is_installable,
+            "view": True,
+            "view-store": bool(self.game.service and self._get_store_url(self.game)),
+        }
 
 
 def get_game_actions(games: List[Game], window: Gtk.Window, application=None) -> GameActions:

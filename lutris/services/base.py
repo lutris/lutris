@@ -419,6 +419,10 @@ class BaseService:
             return ServiceGameCollection.get_game(self.id, game.appid)
         return None
 
+    def get_store_url(self, db_game: dict) -> str:
+        """Return a URL to the game's store page on this service, or empty string."""
+        return ""
+
     def get_game_release_date(self, db_game: dict):
         """Services can implement this method so games that are not in the
         database can be sorted by release date (Year) based on service data."""
@@ -444,6 +448,12 @@ class OnlineService(BaseService):
     login_window_height = 500
     login_user_agent = settings.DEFAULT_USER_AGENT
     redirect_uris = NotImplemented
+
+    def is_login_complete(self, url):
+        """Check if the given URL indicates that login is complete.
+        Override this for services where simple startswith matching on
+        redirect_uris is not sufficient."""
+        return any(url.startswith(r) for r in self.redirect_uris)
 
     @property
     def credential_files(self):
