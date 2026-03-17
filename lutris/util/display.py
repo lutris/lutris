@@ -1,5 +1,7 @@
 """Module to deal with various aspects of displays"""
 
+from __future__ import annotations
+
 # isort:skip_file
 import enum
 import os
