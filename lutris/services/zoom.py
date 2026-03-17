@@ -309,6 +309,14 @@ class ZoomService(OnlineService):
     def get_service_game(self, zoom_game: dict) -> ZoomGame:
         return ZoomGame.new_from_zoom_game(zoom_game)
 
+    def get_store_url(self, db_game: dict) -> str:
+        details = db_game.get("details")
+        if details:
+            slug = json.loads(details).get("slug")
+            if slug:
+                return f"https://www.zoom-platform.com/product/{slug}"
+        return ""
+
     def get_game_platforms(self, db_game: dict) -> List[str]:
         details = db_game.get("details")
         if details:

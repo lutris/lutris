@@ -825,6 +825,14 @@ class GOGService(OnlineService):
             patch_installers.append(installer)
         return patch_installers
 
+    def get_store_url(self, db_game: dict) -> str:
+        details = db_game.get("details")
+        if details:
+            slug = json.loads(details).get("slug")
+            if slug:
+                return f"https://www.gog.com/game/{slug}"
+        return ""
+
     def get_game_platforms(self, db_game: dict) -> List[str]:
         details = db_game.get("details")
         if details:

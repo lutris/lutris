@@ -199,6 +199,12 @@ class FlathubService(BaseService):
         )
         return os.path.join(self.install_locations[install_type], application, arch, branch)
 
+    def get_store_url(self, db_game: dict) -> str:
+        appid = db_game.get("appid", "")
+        if appid:
+            return f"https://flathub.org/apps/{appid}"
+        return ""
+
     def get_game_platforms(self, db_game: dict) -> List[str]:
         return ["Linux"]
 
