@@ -671,14 +671,21 @@ class Runner:  # pylint: disable=too-many-public-methods
             system.remove_folder(game_path)
 
     def is_suppressed(self) -> bool:
-        """Return True if the user has chosen to treat this runner as uninstalled,
-        even though it is installed outside of Lutris."""
-        return bool(self.runner_config.get("pretend_uninstalled"))
+        """Return True if this runner should be treated as uninstalled even though
+        it is installed outside of Lutris. Externally-installed runners are suppressed
+        by default; the user can unsuppress them to make them visible."""
+        setting = self.runner_config.get("suppressed")
+        if setting is not None:
+            return bool(setting)
+        # No explicit setting: suppress if externally installed (detectable but not Lutris-managed)
+        if self.can_uninstall():
+            return False
+        return self.check_installed() or bool(self.flatpak_id and flatpak.is_app_installed(self.flatpak_id))
 
     def suppress(self) -> None:
         """Mark this externally-installed runner as suppressed so Lutris treats it as not installed."""
         config = LutrisConfig(runner_slug=self.name)
-        config.raw_runner_config["pretend_uninstalled"] = True
+        config.raw_runner_config["suppressed"] = True
         config.save()
         if not self.has_explicit_config:
             self._config = None  # force re-read from disk on next access
@@ -686,7 +693,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     def unsuppress(self) -> None:
         """Remove the suppressed mark so Lutris treats this runner as installed again."""
         config = LutrisConfig(runner_slug=self.name)
-        config.raw_runner_config.pop("pretend_uninstalled", None)
+        config.raw_runner_config["suppressed"] = False
         config.save()
         if not self.has_explicit_config:
             self._config = None  # force re-read from disk on next access
