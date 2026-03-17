@@ -860,6 +860,14 @@ class ItchIoService(OnlineService):
             weight |= 0x40
         return weight
 
+    def get_store_url(self, db_game: dict) -> str:
+        details = db_game.get("details")
+        if details:
+            url = json.loads(details).get("url")
+            if url:
+                return url
+        return ""
+
     def get_game_release_date(self, db_game: dict):
         details = db_game.get("details")
         if details:

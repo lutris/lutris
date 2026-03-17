@@ -155,6 +155,12 @@ class SteamService(BaseService):
             logger.error("Failed to install from Steam: %s", ex)
             return None
 
+    def get_store_url(self, db_game: dict) -> str:
+        appid = db_game.get("appid")
+        if appid:
+            return f"https://store.steampowered.com/app/{appid}"
+        return ""
+
     @property
     def steamapps_paths(self):
         return get_steamapps_dirs()

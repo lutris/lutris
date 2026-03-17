@@ -342,6 +342,12 @@ class HumbleBundleService(OnlineService):
 
         return ""
 
+    def get_store_url(self, db_game: dict) -> str:
+        machine_name = db_game.get("appid", "")
+        if machine_name:
+            return f"https://www.humblebundle.com/store/{machine_name}"
+        return ""
+
 
 def pick_download_url_from_download_info(download_info):
     """From a list of downloads in Humble Bundle, pick the most appropriate one
