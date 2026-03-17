@@ -131,7 +131,7 @@ class LutrisConfig:
                 self.level = "system"
         self.initialize_config()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "LutrisConfig(level=%s, game_config_id=%s, runner=%s)" % (
             self.level,
             self.game_config_id,
