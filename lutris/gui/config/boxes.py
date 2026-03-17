@@ -214,7 +214,7 @@ class RunnerBox(ConfigBox):
         ConfigBox.__init__(self, config_level, lutris_config, game, **kwargs)
 
         try:
-            self.runner = import_runner(self.lutris_config.runner_slug)()
+            self.runner = import_runner(self.lutris_config.runner_slug)() if self.lutris_config.runner_slug else None
         except InvalidRunnerError:
             self.runner = None
         if self.runner:

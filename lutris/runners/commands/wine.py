@@ -6,7 +6,7 @@ import os
 import shlex
 import time
 from gettext import gettext as _
-from typing import Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, Optional, Tuple, Type, cast
 
 from lutris import runtime, settings
 from lutris.config import LutrisConfig
@@ -29,6 +29,9 @@ from lutris.util.wine.wine import (
     is_installed_systemwide,
     is_prefix_directory,
 )
+
+if TYPE_CHECKING:
+    from lutris.runners.wine import wine
 
 
 def set_regedit(
@@ -309,7 +312,7 @@ def wineexec(
     disable_runtime: bool = False,
     env: Optional[dict] = None,
     overrides=None,
-    runner=None,
+    runner: Optional["wine"] = None,
     proton_verb: Optional[str] = None,
 ):
     """
@@ -342,7 +345,7 @@ def wineexec(
         exclude_processes = shlex.split(exclude_processes)
 
     if not runner:
-        runner = import_runner("wine")(prefix=prefix, working_dir=working_dir, wine_arch=arch)
+        runner = cast(Type["wine"], import_runner("wine"))(prefix=prefix, working_dir=working_dir, wine_arch=arch)
 
     if not wine_path:
         wine_path = runner.get_executable()
