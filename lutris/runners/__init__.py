@@ -1,7 +1,5 @@
 """Runner loaders"""
 
-from __future__ import annotations
-
 __all__ = [
     "atari800",
     "azahar",
@@ -49,7 +47,7 @@ from lutris.exceptions import LutrisError, MisconfigurationError
 if TYPE_CHECKING:
     from lutris.runners.runner import Runner
 
-ADDON_RUNNERS: Dict[str, Type[Runner]] = {}
+ADDON_RUNNERS: Dict[str, Type["Runner"]] = {}
 _cached_runner_human_names = {}
 
 
@@ -76,13 +74,13 @@ def get_runner_module(runner_name: str) -> ModuleType:
     return module
 
 
-def import_runner(runner_name: str) -> Type[Runner]:
+def import_runner(runner_name: str) -> Type["Runner"]:
     """Dynamically import a runner class."""
     if runner_name in ADDON_RUNNERS:
         return ADDON_RUNNERS[runner_name]
 
     runner_module = get_runner_module(runner_name)
-    return cast(Type[Runner], getattr(runner_module, runner_name))
+    return cast(Type["Runner"], getattr(runner_module, runner_name))
 
 
 def import_task(runner: str, task: str) -> Callable[..., Any]:
@@ -91,7 +89,7 @@ def import_task(runner: str, task: str) -> Callable[..., Any]:
     return cast(Callable[..., Any], getattr(runner_module, task))
 
 
-def get_installed(sort: bool = True) -> List[Runner]:
+def get_installed(sort: bool = True) -> List["Runner"]:
     """Return a list of installed runners (class instances)."""
     installed = []
     for runner_name in __all__:
@@ -101,7 +99,7 @@ def get_installed(sort: bool = True) -> List[Runner]:
     return sorted(installed) if sort else installed
 
 
-def inject_runners(runners: Dict[str, Type[Runner]]) -> None:
+def inject_runners(runners: Dict[str, Type["Runner"]]) -> None:
     for runner_name in runners:
         if runner_name not in __all__:
             ADDON_RUNNERS[runner_name] = runners[runner_name]
