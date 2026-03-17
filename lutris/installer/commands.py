@@ -956,3 +956,37 @@ class CommandsMixin:
         slug = self.installer.game_slug
         params = {"file": file_id, "dst": f"$GAMEDIR/drive_c/{slug}"}
         return self.extract(params)
+
+    @staticmethod
+    def _is_installer_exe(path):
+        """Check if an .exe file is a known installer (NSIS or Inno Setup)."""
+        try:
+            with open(path, "rb") as f:
+                header = f.read(512 * 1024)
+            return b"NullsoftInst" in header or b"Inno Setup" in header
+        except OSError:
+            return False
+
+    def extract_or_run(self, data):
+        """Extract an archive. If extraction yields an installer exe (NSIS/Inno),
+        run it with Wine instead of placing the files."""
+        self._check_required_params("file", data, "extract_or_run")
+        file_id = data["file"]
+        dst = self._substitute(data.get("dst", "$CACHE"))
+        file_path = self._get_file_path(file_id)
+
+        # Extract the archive (e.g. tar.gz wrapper)
+        self._killable_process(extract.extract_archive, file_path, dst, True)
+
+        # Check if any extracted .exe is an installer
+        for entry in os.listdir(dst):
+            entry_path = os.path.join(dst, entry)
+            if entry.lower().endswith(".exe") and os.path.isfile(entry_path) and self._is_installer_exe(entry_path):
+                logger.info("Detected installer exe: %s, running with Wine", entry)
+                params = {"name": "wineexec", "executable": entry_path}
+                return self.task(params)
+
+        # No installer found, merge the extracted files to the destination
+        merge_dst = self._substitute(data.get("merge_dst", data.get("dst", "$GAMEDIR")))
+        if merge_dst != dst:
+            self.merge({"src": dst, "dst": merge_dst})

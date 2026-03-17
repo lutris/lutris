@@ -9,6 +9,7 @@ from lutris.services.dolphin import DolphinService
 from lutris.services.ea_app import EAAppService
 from lutris.services.egs import EpicGamesStoreService
 from lutris.services.flathub import FlathubService
+from lutris.services.gamejolt import GameJoltService
 from lutris.services.gog import GOGService
 from lutris.services.humblebundle import HumbleBundleService
 from lutris.services.itchio import ItchIoService
@@ -35,6 +36,7 @@ def get_services():
         "zoomplatform": ZoomService,
         "humblebundle": HumbleBundleService,
         "egs": EpicGamesStoreService,
+        "gamejolt": GameJoltService,
         "itchio": ItchIoService,
         "ea_app": EAAppService,
         "ubisoft": UbisoftConnectService,

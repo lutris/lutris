@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import tarfile
 import uuid
+import zipfile
 import zlib
 from typing import List, Tuple
 
@@ -38,6 +39,23 @@ def extract_archive(path: str, to_directory: str = ".", merge_single: bool = Tru
             temp_path = os.path.join(temp_path, extracted[0])
 
     if os.path.isfile(temp_path):
+        # If extraction produced a single file that is itself an archive
+        # (e.g. tar.gz-wrapped zip from GameJolt), extract it recursively.
+        inner_extractor = _guess_extractor(temp_path)
+        if inner_extractor == "exe":
+            inner_extractor = None
+        if inner_extractor is None:
+            if tarfile.is_tarfile(temp_path):
+                inner_extractor = "tar"
+            elif zipfile.is_zipfile(temp_path):
+                inner_extractor = "auto"
+        if inner_extractor:
+            logger.debug("Nested archive detected (%s), extracting inner layer", inner_extractor)
+            try:
+                return extract_archive(temp_path, to_directory, merge_single, inner_extractor)
+            finally:
+                system.delete_folder(temp_dir)
+
         destination_path = os.path.join(to_directory, extracted[0])
         if os.path.isfile(destination_path):
             logger.warning("Overwrite existing file %s", destination_path)
