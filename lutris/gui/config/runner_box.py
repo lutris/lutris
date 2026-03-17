@@ -55,7 +55,7 @@ class RunnerBox(Gtk.Box):
         self.configure_button.set_margin_right(12)
         self.configure_button.connect("clicked", self.on_configure_clicked)
         self.pack_start(self.configure_button, False, False, 0)
-        if not self.runner.is_installed():
+        if not self.runner.is_installed() or self.runner.is_suppressed():
             self.runner_label_box.set_sensitive(False)
         self.configure_button.show()
         self.action_alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
@@ -69,17 +69,22 @@ class RunnerBox(Gtk.Box):
             _button = Gtk.Button.new_from_icon_name("system-software-install-symbolic", Gtk.IconSize.BUTTON)
             _button.get_style_context().add_class("circular")
             _button.connect("clicked", self.on_versions_clicked)
+        elif self.runner.can_uninstall():
+            _button = Gtk.Button.new_from_icon_name("edit-delete-symbolic", Gtk.IconSize.BUTTON)
+            _button.get_style_context().add_class("circular")
+            _button.connect("clicked", self.on_remove_clicked)
+        elif self.runner.is_suppressed():
+            _button = Gtk.Button.new_from_icon_name("system-software-install-symbolic", Gtk.IconSize.BUTTON)
+            _button.get_style_context().add_class("circular")
+            _button.connect("clicked", self.on_unsuppress_clicked)
+        elif self.runner.is_installed():
+            _button = Gtk.Button.new_from_icon_name("edit-delete-symbolic", Gtk.IconSize.BUTTON)
+            _button.get_style_context().add_class("circular")
+            _button.connect("clicked", self.on_suppress_clicked)
         else:
-            if self.runner.can_uninstall():
-                _button = Gtk.Button.new_from_icon_name("edit-delete-symbolic", Gtk.IconSize.BUTTON)
-                _button.get_style_context().add_class("circular")
-                _button.connect("clicked", self.on_remove_clicked)
-                _button.set_sensitive(self.runner.can_uninstall())
-            else:
-                _button = Gtk.Button.new_from_icon_name("system-software-install-symbolic", Gtk.IconSize.BUTTON)
-                _button.get_style_context().add_class("circular")
-                _button.connect("clicked", self.on_install_clicked)
-                _button.set_sensitive(not self.runner.is_installed(flatpak_allowed=False))
+            _button = Gtk.Button.new_from_icon_name("system-software-install-symbolic", Gtk.IconSize.BUTTON)
+            _button.get_style_context().add_class("circular")
+            _button.connect("clicked", self.on_install_clicked)
         _button.show()
         return _button
 
@@ -116,6 +121,25 @@ class RunnerBox(Gtk.Box):
                 self.emit("runner-removed")
 
             self.runner.uninstall(on_runner_uninstalled)
+
+    def on_suppress_clicked(self, widget):
+        dialog = QuestionDialog(
+            {
+                "parent": self.get_toplevel(),
+                "title": _("Do you want to hide %s?") % self.runner.human_name,
+                "question": _(
+                    "<b>%s</b> is installed outside of Lutris and cannot be removed here.\nHide it from Lutris instead?"
+                )
+                % self.runner.human_name,
+            }
+        )
+        if Gtk.ResponseType.YES == dialog.result:
+            self.runner.suppress()
+            self.emit("runner-removed")
+
+    def on_unsuppress_clicked(self, widget):
+        self.runner.unsuppress()
+        self.emit("runner-installed")
 
     def on_runner_installed(self, widget):
         """Called after the runnner is installed"""
