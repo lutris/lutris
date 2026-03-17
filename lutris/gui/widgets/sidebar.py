@@ -7,7 +7,6 @@ from gettext import gettext as _
 from gi.repository import Gdk, GObject, Gtk, Pango
 
 from lutris import runners, services, settings
-from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import saved_searches as saved_search_db
@@ -446,7 +445,6 @@ class LutrisSidebar(Gtk.ListBox):
         # Empty values until LutrisWindow explicitly initializes the rows
         # at the right time.
         self.installed_runners = []
-        self.runner_visibility_cache = {}
         self.used_categories = set()
         self.saved_searches = set()
         self.active_services = {}
@@ -491,7 +489,7 @@ class LutrisSidebar(Gtk.ListBox):
                 header.collapsed = True
         GObject.add_emission_hook(RunnerBox, "runner-installed", self.update_rows)
         GObject.add_emission_hook(RunnerBox, "runner-removed", self.update_rows)
-        GObject.add_emission_hook(RunnerConfigDialog, "runner-updated", self.update_runner_rows)
+        GObject.add_emission_hook(RunnerConfigDialog, "runner-updated", self.update_rows)
         GObject.add_emission_hook(ScriptInterpreter, "runners-installed", self.update_rows)
         GObject.add_emission_hook(ServicesBox, "services-changed", self.update_rows)
         GAME_START.register(self.on_game_start)
@@ -654,14 +652,6 @@ class LutrisSidebar(Gtk.ListBox):
                 return
 
     def _filter_func(self, row):
-        def is_runner_visible(runner_name):
-            if runner_name not in self.runner_visibility_cache:
-                runner_config = LutrisConfig(runner_slug=row.id, options_supported={"visible_in_side_panel"})
-                self.runner_visibility_cache[runner_name] = runner_config.runner_config.get(
-                    "visible_in_side_panel", True
-                )
-            return self.runner_visibility_cache[runner_name]
-
         # Header rows: show if their section has content
         if row.type == "header":
             section_id = row.section_id
@@ -689,7 +679,7 @@ class LutrisSidebar(Gtk.ListBox):
         if row.type == "runner":
             if row.id is None:
                 return True  # 'All'
-            return row.id in self.installed_runners and is_runner_visible(row.id)
+            return row.id in self.installed_runners
 
         if row.type == "user_category":
             allowed_ids = self.used_categories
@@ -701,11 +691,6 @@ class LutrisSidebar(Gtk.ListBox):
             allowed_ids = self.active_platforms
 
         return row.id in allowed_ids
-
-    def update_runner_rows(self, *_args):
-        self.runner_visibility_cache.clear()
-        self.update_rows()
-        return True
 
     def update_rows(self, *_args):
         """Generates any missing rows that are now needed, and re-evaluate the filter to hide

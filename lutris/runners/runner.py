@@ -187,18 +187,6 @@ class Runner:  # pylint: disable=too-many-public-methods
                 }
             )
 
-        runner_options.append(
-            {
-                "section": _("Side Panel"),
-                "option": "visible_in_side_panel",
-                "type": "bool",
-                "label": _("Visible in Side Panel"),
-                "default": True,
-                "advanced": True,
-                "scope": ["runner"],
-                "help": _("Show this runner in the side panel if it is installed or available through Flatpak."),
-            }
-        )
         return runner_options
 
     def play(self) -> dict[str, Any]:
