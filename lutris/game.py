@@ -111,7 +111,7 @@ class Game:
         if game_data.get("has_custom_coverart_big"):
             self.custom_images.add("coverart_big")
         self.service = game_data.get("service")
-        self.appid = game_data.get("service_id")
+        self.appid: str = game_data.get("service_id")
         try:
             self.playtime = float(game_data.get("playtime") or 0.0)
         except ValueError as ex:
