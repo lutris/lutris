@@ -66,7 +66,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     human_name = ""
     use_sniper_runtime = False
 
-    def __init__(self, config: LutrisConfig = None):
+    def __init__(self, config: Optional[LutrisConfig] = None):
         """Initialize runner."""
         if config:
             self.has_explicit_config = True
