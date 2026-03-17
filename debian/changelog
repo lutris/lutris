@@ -2,6 +2,8 @@ lutris (0.5.23) jammy; urgency=medium
 
   * Add GOG depot-based downloads via gogdl integration
   * Add GOG cloud save synchronization
+  * Add GameJolt as a game source
+  * Add store page URLs for GOG, Steam, itch.io, Humble Bundle, Flathub, ZOOM Platform, and GameJolt
   * Add Playtron import
   * Add parallel GOG download connections with resume support
   * Replace google-protobuf dependency with custom decoder for Battle.net
@@ -14,6 +16,7 @@ lutris (0.5.23) jammy; urgency=medium
   * Fix crash when closing Add Games dialog with Escape
   * Fix optional libretro firmware incorrectly treated as required
   * Fix favorites view not updating when removing a game from favorites
+  * Use cover art for grid view and banners for list view by default
   * Performance improvements for large game libraries
   * Updated pt_BR translation
 
