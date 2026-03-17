@@ -649,6 +649,27 @@ class Runner:  # pylint: disable=too-many-public-methods
         if game_path:
             system.remove_folder(game_path)
 
+    def is_suppressed(self) -> bool:
+        """Return True if the user has chosen to treat this runner as uninstalled,
+        even though it is installed outside of Lutris."""
+        return bool(self.runner_config.get("pretend_uninstalled"))
+
+    def suppress(self) -> None:
+        """Mark this externally-installed runner as suppressed so Lutris treats it as not installed."""
+        config = LutrisConfig(runner_slug=self.name)
+        config.raw_runner_config["pretend_uninstalled"] = True
+        config.save()
+        if not self.has_explicit_config:
+            self._config = None  # force re-read from disk on next access
+
+    def unsuppress(self) -> None:
+        """Remove the suppressed mark so Lutris treats this runner as installed again."""
+        config = LutrisConfig(runner_slug=self.name)
+        config.raw_runner_config.pop("pretend_uninstalled", None)
+        config.save()
+        if not self.has_explicit_config:
+            self._config = None  # force re-read from disk on next access
+
     def can_uninstall(self) -> bool:
         return os.path.isdir(self.directory)
 
