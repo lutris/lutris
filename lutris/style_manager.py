@@ -20,7 +20,7 @@ class StyleManager(GObject.Object):
     """
 
     _dbus_proxy = None
-    _preferred_theme = "default"
+    _preferred_theme = None
     _system_theme = None
     _is_dark = False
 
@@ -73,7 +73,9 @@ class StyleManager(GObject.Object):
         try:
             values = obj.call_finish(result)
             if values:
-                value = values[0]
+                # The portal Read method returns (v); unpack() recursively
+                # unwraps all variant layers to plain Python types.
+                value = values.unpack()[0]
                 self.system_theme = self._read_value(value)
             else:
                 raise RuntimeError("Could not read color-scheme")
@@ -84,7 +86,9 @@ class StyleManager(GObject.Object):
         if signal_name != "SettingChanged":
             return
 
-        namespace, name, value = params
+        # params is a GLib.Variant tuple (ssv); unpack() converts to
+        # native Python types so string comparisons and _read_value work.
+        namespace, name, value = params.unpack()
 
         if namespace == "org.freedesktop.appearance" and name == "color-scheme":
             self.system_theme = self._read_value(value)
