@@ -489,7 +489,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Run the runner alone."""
         if not self.runnable_alone:
             return
-        if not self.is_installed():
+        if not self.is_installed(suppress_allowed=False):
             if not self.install_dialog(ui_delegate):
                 logger.info("Runner install cancelled")
                 return
@@ -560,7 +560,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         ):
             version = self.get_version(use_default=False)
             self.install(ui_delegate, version=version)
-            return self.is_installed()
+            return self.is_installed(suppress_allowed=False)
         return False
 
     def is_installed(self, flatpak_allowed: bool = True, suppress_allowed: bool = True, **kwargs) -> bool:
@@ -599,7 +599,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     def is_installed_for(self, interpreter: ScriptInterpreter) -> bool:
         """Returns whether the runner is installed. Specific runners can extract additional
         script settings, to determine more precisely what must be installed."""
-        return self.is_installed()
+        return self.is_installed(suppress_allowed=False)
 
     def get_installer_runner_version(self, installer: LutrisInstaller, use_runner_config: bool = True) -> str | None:
         return None
