@@ -1,3 +1,5 @@
+from typing import Optional
+
 from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
@@ -20,8 +22,8 @@ class StyleManager(GObject.Object):
     """
 
     _dbus_proxy = None
-    _preferred_theme = None
-    _system_theme = None
+    _preferred_theme: Optional[str] = None
+    _system_theme: Optional[str] = None
     _is_dark = False
 
     def __init__(self):
@@ -117,7 +119,7 @@ class StyleManager(GObject.Object):
         self._update_is_dark()
 
     @property
-    def preferred_theme(self) -> str:
+    def preferred_theme(self) -> Optional[str]:
         """Can be 'light' or 'dark' to override the theme, or 'default' to go with
         the system's default theme."""
         return self._preferred_theme
