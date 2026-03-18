@@ -10,6 +10,7 @@ from lutris import runners
 from lutris.util import linux, system
 from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, is_compositing_enabled, is_display_x11
 from lutris.util.graphics.gpu import GPUS
+from lutris.util.sniper import get_sniper_run_command
 
 if TYPE_CHECKING:
     from lutris.config import LutrisConfig
@@ -80,6 +81,19 @@ def get_output_list() -> List[Tuple[str, str]]:
     return choices
 
 
+def _is_not_wine_runner(_option_key: str, config: "LutrisConfig") -> bool:
+    """Hide option for Wine-based runners since they already use Sniper via umu."""
+    if not config.runner_slug:
+        return True
+    try:
+        from lutris.runners.wine import wine
+
+        runner = runners.import_runner(config.runner_slug)
+        return not issubclass(runner, wine)
+    except (runners.InvalidRunnerError, ImportError):
+        return True
+
+
 def _is_cloud_sync_game(_option_key: str, config: "LutrisConfig") -> bool:
     """Show cloud sync option at system level, or at game level only for GOG games."""
     if config.level != "game":
@@ -118,6 +132,20 @@ system_options: List[Dict[str, Any]] = [  # pylint: disable=invalid-name
         "label": _("Prefer system libraries"),
         "default": True,
         "help": _("When the runtime is enabled, prioritize the system libraries over the provided ones."),
+    },
+    {
+        "section": _("Lutris"),
+        "option": "use_sniper_runtime",
+        "type": "bool",
+        "label": _("Use Sniper runtime"),
+        "default": False,
+        "condition": lambda: get_sniper_run_command() is not None,
+        "visible": _is_not_wine_runner,
+        "help": _(
+            "Run the game inside the Steam Sniper runtime (pressure-vessel container). "
+            "This replaces the Lutris runtime with Valve's curated library set. "
+            "Requires umu-launcher or Steam to be installed."
+        ),
     },
     {
         "section": _("Lutris"),
