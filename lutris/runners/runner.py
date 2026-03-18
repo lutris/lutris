@@ -232,7 +232,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
             raise
 
-        if self.use_sniper_runtime:
+        if self.sniper_enabled:
             sniper_cmd = get_sniper_run_command()
             if sniper_cmd:
                 # pressure-vessel overrides LD_LIBRARY_PATH, so we must set
@@ -469,6 +469,18 @@ class Runner:  # pylint: disable=too-many-public-methods
         command_runner = MonitoredCommand(command, runner=self, env=env)
         command_runner.start()
 
+    @property
+    def sniper_enabled(self) -> bool:
+        """Whether the Sniper runtime should be used for this runner.
+
+        The system option takes precedence; if not set, falls back to the
+        runner's class attribute (use_sniper_runtime).
+        """
+        config_value = self.system_config.get("use_sniper_runtime")
+        if config_value is not None:
+            return bool(config_value)
+        return self.use_sniper_runtime
+
     def use_runtime(self) -> bool:
         if runtime.RUNTIME_DISABLED:
             logger.info("Runtime disabled by environment")
@@ -476,7 +488,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.system_config.get("disable_runtime"):
             logger.info("Runtime disabled by system configuration")
             return False
-        if self.use_sniper_runtime and get_sniper_run_command():
+        if self.sniper_enabled and get_sniper_run_command():
             logger.info("Using Sniper runtime; old Lutris runtime disabled for %s", self.name)
             return False
         return True
