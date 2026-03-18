@@ -179,7 +179,7 @@ class libretro(Runner):
             else:
                 captured_super.install(install_ui_delegate, version, on_installed)
 
-        if not super().is_installed():
+        if not super().is_installed(suppress_allowed=False):
             captured_super.install(install_ui_delegate, version=None, callback=install_core)
         else:
             captured_super.install(install_ui_delegate, version, on_installed)

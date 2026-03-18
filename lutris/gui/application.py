@@ -1058,7 +1058,7 @@ Also, check that the version specified is in the correct format.
 
         try:
             runner = import_runner(runner_name)()
-            if runner.is_installed():
+            if runner.is_installed(suppress_allowed=False):
                 print(f"'{runner_name}' is already installed.")
             else:
                 runner.install(self.install_ui_delegate, version=None, callback=None)
@@ -1077,7 +1077,7 @@ Also, check that the version specified is in the correct format.
         except InvalidRunnerError:
             logger.error("Failed to import Runner: %s", runner_name)
             return
-        if not runner.is_installed():
+        if not runner.is_installed(suppress_allowed=False):
             print(f"Runner '{runner_name}' is not installed.")
             return
         if runner.can_uninstall():
