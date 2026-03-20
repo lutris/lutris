@@ -496,6 +496,9 @@ class GameInfoBox(AdvancedSettingsBox):
         url = dialog.get_url()
         dialog.destroy()
 
+        # This tmp file is consumed asynchronously by save_custom_media's
+        # async chains (copy or transcode), so we can't delete it here.
+        # Leftover tmp files are cleaned up on next startup in init_dirs().
         file_id = uuid.uuid4()
         tmp_file = os.path.join(settings.TMP_DIR, f"download-{file_id}.tmp")
         logger.info(f"Downloading custom image from `{url}` to `{tmp_file}`")

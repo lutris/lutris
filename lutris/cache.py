@@ -49,7 +49,7 @@ def get_url_cache_path(url: str, file_id: str, game_slug: str, prepare: bool = F
 
 
 def get_custom_cache_path() -> Optional[str]:
-    """Returns the custom path, wether it is usable or not. Returns
+    """Returns the custom path, whether it is usable or not. Returns
     None if the path is not set, so that the default INSTALLER_CACHE_DIR
     should be used."""
     cache_path = settings.read_setting("pga_cache_path")
@@ -98,9 +98,10 @@ def save_custom_cache_path(path: str) -> None:
 
 def is_file_in_custom_cache(path: str) -> bool:
     """True if the 'path' is inside the custom cache (so we should
-    not causally delete it). False for files in INSTALLER_CACHE_DIR -
-    that is a cache, but not the custom cache, and we do delete those
-    files freely."""
+    not casually delete it). False for files in INSTALLER_CACHE_DIR -
+    that is a cache, but not the custom cache, and Lutris manages
+    the lifecycle of those files itself (cleaning up after successful
+    installs, but preserving them after failures for retry)."""
     cache_path = get_custom_cache_path()
     return bool(cache_path and path_contains(cache_path, path))
 
