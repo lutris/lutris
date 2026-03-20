@@ -186,8 +186,11 @@ def main():
         log("No return code")
     else:
         log("Exit with return code %s" % returncode)
-    if "LUTRIS_GAME_UUID" in os.environ:
-        with open("/tmp/lutris-%s" % os.environ["LUTRIS_GAME_UUID"], "w") as status_file:
+    return_code_path = os.environ.get("LUTRIS_RETURN_CODE_FILE")
+    if not return_code_path and "LUTRIS_GAME_UUID" in os.environ:
+        return_code_path = "/tmp/lutris-%s" % os.environ["LUTRIS_GAME_UUID"]
+    if return_code_path:
+        with open(return_code_path, "w") as status_file:
             status_file.write("%s" % returncode)
     sys.exit(returncode)
 
