@@ -146,15 +146,15 @@ def get_games_by_slug(slug: str) -> List[DbGameDict]:
     return sql.db_select(settings.DB_PATH, "games", condition=("slug", slug))
 
 
-def add_game(**game_data: Any) -> int:
+def add_game(**game_data: Any) -> str:
     """Add a game to the database."""
     game_data["installed_at"] = int(time.time())
     if "slug" not in game_data:
         game_data["slug"] = slugify(game_data["name"])
-    return sql.db_insert(settings.DB_PATH, "games", game_data)
+    return str(sql.db_insert(settings.DB_PATH, "games", game_data))
 
 
-def add_games_bulk(games: List[DbGameDict]) -> List[int]:
+def add_games_bulk(games: List[DbGameDict]) -> List[str]:
     """
     Add a list of games to the database.
     The dicts must have an identical set of keys.
@@ -164,10 +164,10 @@ def add_games_bulk(games: List[DbGameDict]) -> List[int]:
     Returns:
         list: List of inserted game ids
     """
-    return [sql.db_insert(settings.DB_PATH, "games", game) for game in games]
+    return [str(sql.db_insert(settings.DB_PATH, "games", game)) for game in games]
 
 
-def add_or_update(**params: Any) -> int:
+def add_or_update(**params: Any) -> str:
     """Add a game to the database or update an existing one
 
     If an 'id' is provided in the parameters then it
@@ -178,10 +178,10 @@ def add_or_update(**params: Any) -> int:
     if game_id:
         return game_id
 
-    return add_game(**params)
+    return str(add_game(**params))
 
 
-def update_existing(**params: Any) -> Optional[int]:
+def update_existing(**params: Any) -> Optional[str]:
     """Updates a game, but do not add one. If the game exists, this returns its ID;
     if not it returns None and makes no changes."""
     game_id = get_matching_game(params)
@@ -192,13 +192,13 @@ def update_existing(**params: Any) -> Optional[int]:
     return None
 
 
-def get_matching_game(params: DbGameDict) -> Optional[int]:
+def get_matching_game(params: DbGameDict) -> Optional[str]:
     """Tries to match given parameters with an existing game"""
     # Always match by ID if provided
     if params.get("id"):
         game = get_game_by_field(params["id"], "id")
         if game:
-            return cast(int, game["id"])
+            return str(game["id"])
         logger.warning("Game ID %s provided but couldn't be matched", params["id"])
     slug = params.get("slug") or slugify(cast(str, params.get("name")))
     if not slug:
@@ -206,10 +206,10 @@ def get_matching_game(params: DbGameDict) -> Optional[int]:
     for game in get_games_by_slug(slug):
         if game["installed"]:
             if game["configpath"] == params.get("configpath"):
-                return cast(int, game["id"])
+                return str(game["id"])
         else:
             if game["runner"] == params.get("runner") or not all([params.get("runner"), game["runner"]]):
-                return cast(int, game["id"])
+                return str(game["id"])
     return None
 
 
