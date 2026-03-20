@@ -1,6 +1,7 @@
 """Check to run at program start"""
 
 import os
+import shutil
 import sqlite3
 from gettext import gettext as _
 
@@ -46,6 +47,29 @@ def init_dirs():
     ]
     for directory in directories:
         create_folder(directory)
+    _clear_tmp_dir()
+
+
+def _clear_tmp_dir():
+    """Remove leftover files from previous Lutris runs.
+
+    Nothing in TMP_DIR is expected to survive across runs; files there
+    are return-code files from game launches and download temporaries
+    that should have been cleaned up but may not have been (e.g. if
+    Lutris crashed).
+    """
+    try:
+        for entry in os.listdir(settings.TMP_DIR):
+            path = os.path.join(settings.TMP_DIR, entry)
+            try:
+                if os.path.isdir(path) and not os.path.islink(path):
+                    shutil.rmtree(path)
+                else:
+                    os.unlink(path)
+            except OSError as ex:
+                logger.debug("Could not remove %s: %s", path, ex)
+    except OSError as ex:
+        logger.debug("Could not list temp directory %s: %s", settings.TMP_DIR, ex)
 
 
 def check_libs(all_components=False):
