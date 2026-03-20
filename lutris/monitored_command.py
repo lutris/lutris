@@ -132,7 +132,9 @@ class MonitoredCommand:
         env["PYTHONPATH"] = ":".join(sys.path)
         # Drop bad values of environment keys, those will confuse the Python
         # interpreter.
-        env["LUTRIS_GAME_UUID"] = str(uuid.uuid4())
+        game_uuid = str(uuid.uuid4())
+        env["LUTRIS_GAME_UUID"] = game_uuid
+        env["LUTRIS_RETURN_CODE_FILE"] = os.path.join(settings.TMP_DIR, "return-code-%s" % game_uuid)
 
         cleaned = {}
         for key, value in env.items():
@@ -212,7 +214,7 @@ class MonitoredCommand:
 
     def get_return_code(self) -> str:
         """Get the return code from the file written by the wrapper"""
-        return_code_path = "/tmp/lutris-%s" % self.env["LUTRIS_GAME_UUID"]
+        return_code_path = self.env["LUTRIS_RETURN_CODE_FILE"]
         if os.path.exists(return_code_path):
             with open(return_code_path, encoding="utf-8") as return_code_file:
                 return_code = return_code_file.read()
