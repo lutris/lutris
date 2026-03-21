@@ -17,6 +17,7 @@ from lutris.api import (
     LUTRIS_ACCOUNT_CONNECTED,
     LUTRIS_ACCOUNT_DISCONNECTED,
     get_runtime_versions,
+    read_api_key,
 )
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
@@ -1069,7 +1070,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.filters["installed"] = filter_installed
 
     def update_notification(self):
-        show_notification = self.is_showing_splash()
+        show_notification = self.is_showing_splash() and not read_api_key()
         if show_notification:
             self.lutris_log_in_label.show()
         self.login_notification_revealer.set_reveal_child(show_notification)
