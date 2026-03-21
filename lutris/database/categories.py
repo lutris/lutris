@@ -71,7 +71,7 @@ def get_categories() -> List[Dict[str, Union[int, str]]]:
 def get_all_games_categories() -> Dict[str, List[int]]:
     games_categories = defaultdict(list)
     for row in sql.db_select(settings.DB_PATH, "games_categories"):
-        games_categories[row["game_id"]].append(row["category_id"])
+        games_categories[str(row["game_id"])].append(row["category_id"])
     return games_categories
 
 
@@ -144,7 +144,7 @@ def get_game_ids_for_categories(
     if filters:
         query += " WHERE %s" % " AND ".join(filters)
 
-    result = set(game["id"] for game in sql.db_query(settings.DB_PATH, query, tuple(parameters)))
+    result = set(str(game["id"]) for game in sql.db_query(settings.DB_PATH, query, tuple(parameters)))
     for smart_cat in _SMART_CATEGORIES:
         if excluded_category_names is not None and smart_cat.get_name() in excluded_category_names:
             continue
@@ -167,7 +167,7 @@ def get_uncategorized_game_ids() -> Set[str]:
         "WHERE games.id = games_categories.game_id)"
     )
     uncategorized = sql.db_query(settings.DB_PATH, query)
-    return set(row["id"] for row in uncategorized)
+    return set(str(row["id"]) for row in uncategorized)
 
 
 def get_uncategorized_games() -> List[Any]:

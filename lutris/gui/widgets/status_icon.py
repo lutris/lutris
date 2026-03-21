@@ -146,7 +146,7 @@ class LutrisStatusIcon:
         """Adds installed games in order of last use"""
         installed_games = get_games(filters={"installed": 1})
         hidden_game_ids = categories.get_game_ids_for_categories([".hidden"])
-        installed_games = [g for g in installed_games if g.get("id") not in hidden_game_ids]
+        installed_games = [g for g in installed_games if str(g.get("id")) not in hidden_game_ids]
         installed_games.sort(
             key=lambda game: max(game["lastplayed"] or 0, game["installed_at"] or 0),
             reverse=True,
