@@ -842,11 +842,25 @@ class CommandsMixin:
                 return candidate
         return parent_path
 
+    def _find_gog_config_path(self, install_path):
+        """Find the directory containing goggame-*.info, searching subdirectories.
+
+        Linux GOG games nest the info file under a 'game/' subdirectory,
+        while Windows games place it directly in the install path."""
+        matches = glob.glob(os.path.join(install_path, "**/goggame-*.info"), recursive=True)
+        if matches:
+            return os.path.dirname(matches[0])
+        return install_path
+
     def _apply_gogdl_post_install(self, install_path, platform):
         """Detect game configuration from goggame-*.info after a depot download."""
         from lutris.util.gog import convert_gog_config_to_lutris, get_gog_config
 
-        gog_config = get_gog_config(install_path)
+        config_path = self._find_gog_config_path(install_path)
+        if not config_path:
+            return
+
+        gog_config = get_gog_config(config_path)
         if not gog_config:
             return
 
@@ -865,7 +879,7 @@ class CommandsMixin:
                 return
 
         # Normal game — apply config from goggame-*.info
-        lutris_config = convert_gog_config_to_lutris(gog_config, install_path)
+        lutris_config = convert_gog_config_to_lutris(gog_config, config_path)
         if lutris_config and "game" in self.installer.script:
             self.installer.script["game"].update(lutris_config)
 
