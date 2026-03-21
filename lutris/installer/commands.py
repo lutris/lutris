@@ -881,6 +881,13 @@ class CommandsMixin:
         # Normal game — apply config from goggame-*.info
         lutris_config = convert_gog_config_to_lutris(gog_config, config_path)
         if lutris_config and "game" in self.installer.script:
+            # For Linux GOG games, prefer start.sh over the binary from goggame info.
+            # GOG's start.sh handles working directory setup and permissions.
+            if platform == "linux":
+                start_sh = os.path.join(install_path, "start.sh")
+                if os.path.isfile(start_sh):
+                    lutris_config["exe"] = start_sh
+                    system.make_executable(start_sh)
             self.installer.script["game"].update(lutris_config)
 
     def _configure_dosbox_from_depot(self, install_path, gog_config):
