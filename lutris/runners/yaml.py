@@ -49,7 +49,7 @@ def load_yaml_runners():
         if not yaml_dir.exists():
             continue
         for yaml_path in yaml_dir.iterdir():
-            if yaml_path.suffix not in [".yml", "yaml"]:
+            if yaml_path.suffix not in [".yml", ".yaml"]:
                 continue
             runner_name = yaml_path.stem
             runner_class = type(runner_name, (YamlRunner,), {"yaml_path": yaml_dir / yaml_path})

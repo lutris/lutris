@@ -39,7 +39,7 @@
             "type": "bool",
             "label": "Load configuration file",
             "argument": "-f",
-            "help": "If trues, informs the emulator to load the config file from the \"Config location\" option.",
+            "help": "If true, informs the emulator to load the config file from the \"Config location\" option.",
             "default": false
         }
     ],

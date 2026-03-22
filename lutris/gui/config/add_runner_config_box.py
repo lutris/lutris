@@ -17,13 +17,13 @@ class AddRunnerConfigBox(Gtk.Box):
 
         self.label = Gtk.Label(visible=True)
         self.label.set_markup(f"<b>{_('Add runner config')}</b>")
-        self.label.set_alignment(0, 0.5)
+        self.label.set_yalign(0.5)
         self.pack_start(self.label, True, True, 0)
 
         self.description_label = Gtk.Label(visible=True)
         self.description_label.set_markup(_("Create a new runner config for Lutris"))
         self.description_label.set_line_wrap(True)
-        self.description_label.set_alignment(0, 0.5)
+        self.description_label.set_yalign(0.5)
         self.pack_start(self.description_label, True, True, 0)
 
         self.add_runner_config_button = Gtk.Button.new_from_icon_name("list-add-symbolic", Gtk.IconSize.BUTTON)

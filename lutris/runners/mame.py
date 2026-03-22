@@ -69,7 +69,7 @@ class mame(Runner):  # pylint: disable=invalid-name
     config_dir = os.path.expanduser("~/.mame")
     cache_dir = os.path.join(settings.CACHE_DIR, "mame")
     xml_path = os.path.join(cache_dir, "mame.xml")
-    _platforms = []
+    _mame_platforms: list[str] = []
 
     game_options = [
         {
@@ -247,11 +247,15 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     @property
     def platforms(self):
-        if self._platforms:
-            return self.platforms
-        self._platforms = [choice[0] for choice in get_system_choices(include_year=False)]
-        self._platforms += [_("Arcade"), _("Nintendo Game & Watch")]
-        return self._platforms
+        if self._mame_platforms:
+            return super().platforms
+        self._mame_platforms = [choice[0] for choice in get_system_choices(include_year=False)]
+        self._mame_platforms += [_("Arcade"), _("Nintendo Game & Watch")]
+        return self._mame_platforms
+
+    @platforms.setter
+    def platforms(self, platforms: list[str]):
+        self._platforms = {platform: platform for platform in platforms}
 
     @property
     def default_path(self):

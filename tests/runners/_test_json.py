@@ -1,9 +1,7 @@
 import unittest
 
 from lutris.runners import json
-from lutris.runners.model import (
-    ModelRunner,
-)
+from lutris.runners.model_validator import validate
 
 
 class TestJsonRunner(unittest.TestCase):
@@ -13,7 +11,7 @@ class TestJsonRunner(unittest.TestCase):
     def test_validate_installed_runners(self):
         for runner in self.runners:
             with self.subTest(runner.name):
-                runner_messages = ModelRunner.validate(runner.to_dict())
+                runner_messages = validate(runner.to_dict())
                 error_messages = list(runner_messages.get_errors())
                 self.assertEqual(
                     len(error_messages),

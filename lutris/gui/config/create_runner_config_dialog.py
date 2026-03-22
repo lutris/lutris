@@ -5,7 +5,6 @@ from typing import Any, Dict, Optional, Type
 
 from gi.repository import GObject, Gtk
 
-from lutris.gui.config.game_common import GameDialogCommon
 from lutris.gui.config.runner_config_boxes import (
     BaseRunnerConfigBox,
     DescriptionBox,
@@ -22,11 +21,13 @@ from lutris.gui.config.runner_config_boxes import (
     SystemOptionsOverrideBox,
     WorkingDirectoryBox,
 )
-from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs import ErrorDialog, SavableModelessDialog
+from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.widgets.common import Label, VBox
 from lutris.runners import inject_runners
 from lutris.runners.json import SETTING_JSON_RUNNER_DIR, JsonRunner
 from lutris.runners.model import ModelRunner
+from lutris.runners.model_validator import validate
 from lutris.runners.runner import Runner
 from lutris.runners.yaml import SETTING_YAML_RUNNER_DIR, YamlRunner
 from lutris.util.yaml import write_yaml_to_file
@@ -49,7 +50,7 @@ RUNNER_CONFIG_SCHEMA = {
     ),
     "description": RunnerConfigCreator(
         label=_("Description"),
-        tooltip=_("Desciption of the runner"),
+        tooltip=_("Description of the runner"),
         widget_class=DescriptionBox,
         icon_name="insert-text-symbolic",
     ),
@@ -165,23 +166,24 @@ class CreateRunnerBox(VBox):
 
         self.pack_start(toplevel_box, True, True, 0)
 
-    def generate_widgets(self):
-        return super().generate_widgets()
-
     def to_dict(self) -> Dict[str, Any]:
         runner_dict = {}
         for runner_field in RUNNER_CONFIG_SCHEMA.keys():
             field_value = self.config_boxes[runner_field].to_dict()
-            if field_value:
+            if field_value is not None:
                 runner_dict[runner_field] = field_value
 
         return runner_dict
 
     def from_dict(self, runner_dict: Dict[str, Any]) -> bool:
-        return all(
-            runner_box_widgets.from_dict(runner_dict.get(runner_field))
-            for runner_field, runner_box_widgets in self.config_boxes.items()
-        )
+        loaded_no_errors = True
+        for runner_field, runner_box_widgets in self.config_boxes.items():
+            if not runner_box_widgets.from_dict(runner_dict.get(runner_field, {})):
+                # Continue loading the other fields into the UI even if a previous field
+                # has failed
+                loaded_no_errors = False
+
+        return loaded_no_errors
 
     def _on_sidebar_activated(self, _sidebar, row):
         row_widgets = row.get_children()
@@ -205,7 +207,7 @@ class CreateRunnerBox(VBox):
         hbox.pack_start(icon, False, False, 6)
 
         label = Gtk.Label(text, visible=True)
-        label.set_alignment(0, 0.5)
+        label.set_yalign(0.5)
         hbox.pack_start(label, False, False, 0)
         return hbox
 
@@ -220,18 +222,29 @@ class RunnerConfigFileFormats(str, Enum):
     YAML = "yml"
 
 
-class EditRunnerConfigDialog(GameDialogCommon):
+class RunnerNameEntry(Gtk.Entry, Gtk.Editable):  # type:ignore[misc]
+    def do_insert_text(self, new_text, length, position):
+        """Filter inserted characters to only accept alphanumeric and dashes
+        Do not allow backslashes or forward slashes to prevent upward path traverseral
+        """
+        new_text = "".join([c for c in new_text if c.isalnum() or c == "-"])
+        length = len(new_text)
+        self.get_buffer().insert_text(position, new_text, length)
+        return position + length
+
+
+class EditRunnerConfigDialog(SavableModelessDialog, DialogInstallUIDelegate):  # type:ignore[misc]
     """Allow creation of a runner config JSON"""
 
     __gsignals__ = {"runner-saved": (GObject.SIGNAL_RUN_FIRST, None, (str,))}
 
     def __init__(self, parent=None, edit_mode=RunnerConfigEditMode.CREATE, runner: Optional[Runner] = None):
-        super().__init__(_("Create New Runner Config"), config_level="system", parent=parent)
+        super().__init__(_("Create New Runner Config"), parent=parent)
 
         label = Label(_("Runner File Prefix"))
         self._create_runner_box = CreateRunnerBox()
 
-        self._runner_name_entry = Gtk.Entry(visible=True)
+        self._runner_name_entry = RunnerNameEntry(visible=True)
         self._runner_name_entry.set_tooltip_text(
             _("The prefix used to name the runner file for the runner in the form of <runner-file-prefix>.(json|yml)")
         )
@@ -251,17 +264,18 @@ class EditRunnerConfigDialog(GameDialogCommon):
 
         self.save_button.set_sensitive(bool(self._runner_name_entry.get_text()))
 
-        name_box = Gtk.Box(visible=True, spacing=12, margin_right=12, margin_left=12)
+        name_box = Gtk.Box(visible=True, spacing=12, margin_start=12, margin_end=12)
         name_box.pack_start(label, False, False, 0)
         name_box.pack_start(self._runner_name_entry, True, True, 0)
 
         self.get_content_area().pack_start(name_box, False, False, 0)
         self.get_content_area().pack_start(runner_fileformat_box, False, False, 0)
         self.get_content_area().pack_start(self._create_runner_box, True, True, 0)
+
         self.show_all()
 
     def _get_runner_format_box(self):
-        box = Gtk.Box(visible=True, spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(visible=True, spacing=12, margin_start=12, margin_end=12)
         label = Label(_("Runner Format Type"))
 
         fileformat_liststore = Gtk.ListStore(str, str)
@@ -285,10 +299,8 @@ class EditRunnerConfigDialog(GameDialogCommon):
     def _on_runner_name_changed(self, widget):
         self.save_button.set_sensitive(bool(self._runner_name_entry.get_text()))
 
-    def _inject_runner(self, runner_name, runner_config_path):
+    def _inject_runner(self, runner_config_path):
         runner_name = self._runner_name_entry.get_text()
-        if not runner_name:
-            return
 
         runner_format = self._runner_format_dropdown.get_active_id()
         if runner_format == RunnerConfigFileFormats.JSON:
@@ -303,13 +315,42 @@ class EditRunnerConfigDialog(GameDialogCommon):
         runner_name = self._runner_name_entry.get_text()
         runner_format = self._runner_format_dropdown.get_active_id()
 
-        if runner_messages := ModelRunner.validate(runner_dict):
+        validate_result = validate(runner_dict)
+        if validate_result.get_errors():
             ErrorDialog(
-                error=f"Cannot save new runner '{runner_name}'\n"
-                + "\n".join([f"{error.key_path}: {error.message}" for error in runner_messages.get_errors()]),
+                error=_(
+                    "Cannot save new runner '%s'\n" % runner_name
+                    + "\n".join([f"{error.key_path}: {error.message}" for error in validate_result.get_errors()])
+                ),
                 parent=self,
             )
             return
+
+        if runner_format == RunnerConfigFileFormats.JSON:
+            runner_config_path = (SETTING_JSON_RUNNER_DIR / f"{runner_name}.{runner_format}").resolve()
+            if not runner_config_path.is_relative_to(SETTING_JSON_RUNNER_DIR):
+                ErrorDialog(
+                    error=_(
+                        "Cannot save new runner '%s' to path '%s'\n"
+                        "Runner name cannot contain '.' and the path must be relative to '%s'"
+                        % (runner_name, runner_config_path, SETTING_JSON_RUNNER_DIR)
+                    ),
+                    parent=self,
+                )
+                return
+
+        elif runner_format == RunnerConfigFileFormats.YAML:
+            runner_config_path = SETTING_YAML_RUNNER_DIR / f"{runner_name}.{runner_format}"
+            if not runner_config_path.is_relative_to(SETTING_YAML_RUNNER_DIR):
+                ErrorDialog(
+                    error=_(
+                        "Cannot save new runner '%s' to path '%s'\n"
+                        "Runner name cannot contain '.' and the path must be relative to '%s'"
+                        % (runner_name, runner_config_path, SETTING_YAML_RUNNER_DIR)
+                    ),
+                    parent=self,
+                )
+                return
 
         if runner_format == RunnerConfigFileFormats.JSON:
             # Make json directory runner directory if it doesn't exist
@@ -324,7 +365,7 @@ class EditRunnerConfigDialog(GameDialogCommon):
             write_yaml_to_file(config=runner_dict, filepath=str(runner_config_path))
 
         # Injects the runner into the list of addon runners
-        if self._inject_runner(runner_name, runner_config_path):
+        if self._inject_runner(runner_config_path):
             self.emit("runner-saved", runner_name)
 
         self.destroy()

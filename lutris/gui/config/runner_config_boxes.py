@@ -4,7 +4,6 @@ from sys import float_info
 from typing import Any, Dict, Iterable, List, Optional
 
 from gi.repository import Gdk, Gio, GObject, Gtk
-from typing_extensions import override
 
 from lutris.gui.widgets.common import EditableGrid, Label, VBox
 from lutris.runners.model import DEFAULT_ENTRY_POINT_OPTION
@@ -20,7 +19,7 @@ WIDGET_TYPES = {
     "file": "File Chooser with Text Entry",
     "multiple_file": "Multi File Chooser",
     "directory": "Directory Chooser",
-    "mapping": "Editible Grid (Key -> Value map)",
+    "mapping": "Editable Grid (Key -> Value map)",
     "command_line": "File Chooser with text entry and shell quoting ",
 }
 CHOICE_WIDGET_TYPES = {"choice", "choice_with_entry", "choice_with_search"}
@@ -139,7 +138,6 @@ class OptionBox(BaseRunnerConfigBox):
         self._conditional_on_entry = Gtk.Entry()
         self._conditional_on_box = self._get_conditional_on_box()
 
-        self._visible_enabled_button = IconToggleButton()
         self._warn_if_non_writable_parent_enabled_button = IconToggleButton()
         self._warn_if_non_writable_parent_entry = Gtk.Switch(
             active=OptionBox.DEFAULT_WARN_IF_NON_WRITABLE_PARENT, valign=Gtk.Align.CENTER
@@ -200,7 +198,7 @@ class OptionBox(BaseRunnerConfigBox):
         ):
             output_dict["advanced"] = self._advanced_entry.get_active()
 
-        if (min_val := self._min_entry.get_value()) and self._type_dropdown.get_active_id() in RANGE_WIDGET_TYPES:
+        if (min_val := self._min_entry.get_text()) and self._type_dropdown.get_active_id() in RANGE_WIDGET_TYPES:
             output_dict["min"] = float(min_val)
 
         if (max_val := self._max_entry.get_text()) and self._type_dropdown.get_active_id() in RANGE_WIDGET_TYPES:
@@ -285,7 +283,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "option" methods
     def _get_option_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Option"))
         box.pack_start(label, False, False, 0)
 
@@ -300,7 +298,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "type" methods
     def _get_type_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Type"))
 
         self._type_dropdown.set_id_column(1)  # Contains the widget_type key used to create UI elements
@@ -337,7 +335,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "section" methods
     def _get_section_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Section"))
         box.pack_start(label, False, False, 0)
 
@@ -352,7 +350,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "label" methods
     def _get_label_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Label"))
         box.pack_start(label, False, False, 0)
 
@@ -367,7 +365,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "argument" methods
     def _get_argument_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Argument"))
         box.pack_start(label, False, False, 0)
 
@@ -384,7 +382,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "help" methods
     def _get_help_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Help"))
         box.pack_start(label, False, False, 0)
 
@@ -399,7 +397,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "default" methods
     def _get_default_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Default"))
         self._default_entry.set_tooltip_text(_("Default value for this option"))
         self._default_entry.connect("changed", self._on_default_changed)
@@ -437,7 +435,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "Advanced" methods
     def _get_advanced_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Advanced"))
 
         self._advanced_entry.connect("notify::active", self._on_advanced_changed)
@@ -458,7 +456,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "choices" methods
     def _get_choices_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Choices"))
 
         # Add placeholder text for the key value columns
@@ -488,7 +486,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "min" methods
     def _get_min_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Min"))
         box.pack_start(label, False, False, 0)
 
@@ -506,7 +504,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "max" methods
     def _get_max_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Max"))
         box.pack_start(label, False, False, 0)
 
@@ -541,7 +539,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "visible" methods
     def _get_visible_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Visible"))
 
         self._visible_entry.connect("notify::active", self._on_visible_changed)
@@ -562,7 +560,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "conditional_on" methods
     def _get_conditional_on_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Conditional On"))
         box.pack_start(label, False, False, 0)
 
@@ -582,7 +580,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "Warn if non writable parent" methods
     def _get_warn_if_non_writable_parent_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Warn if non-writable parent"))
 
         self._warn_if_non_writable_parent_entry.connect("notify::active", self._on_warn_if_non_writable_parent_changed)
@@ -797,7 +795,7 @@ class BaseConfigTextBox(BaseRunnerConfigBox):
         self.show_all()
 
     def _get_text_box(self, label, tooltip=""):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_(label))
         box.pack_start(label, False, False, 0)
 
@@ -874,7 +872,7 @@ class BaseConfigSwitchBox(BaseRunnerConfigBox):
         self.show_all()
 
     def _get_switch_box(self, label, tooltip=""):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_(label))
         box.pack_start(label, False, False, 0)
 
@@ -883,7 +881,7 @@ class BaseConfigSwitchBox(BaseRunnerConfigBox):
         box.pack_start(self._switch_entry, False, False, 0)
         return box
 
-    def _on_switch_active(self, widget):
+    def _on_switch_active(self, widget, gparam):
         self.emit("changed")
 
     def to_dict(self) -> bool:
@@ -917,7 +915,7 @@ class BaseConfigGridBox(BaseRunnerConfigBox):
         self.show_all()
 
     def _get_grid_box(self, label, tooltip=""):
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, margin_end=12, margin_start=12)
         label = Label(_(label))
         box.pack_start(label, False, False, 0)
 
@@ -985,7 +983,7 @@ class BaseConfigComboBox(BaseRunnerConfigBox):
         self.show_all()
 
     def _get_combo_box(self, label, tooltip):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_(label))
 
         self._combo_dropdown.set_id_column(1)
@@ -1047,7 +1045,6 @@ class WorkingDirectoryBox(BaseConfigComboBox):
         )
 
     @staticmethod
-    @override
     def _get_combo_liststore():
         """Adds an entry to select "runner" working directory value
         This allows a runner to use the directory containing the runner executable if not overridden.

@@ -126,6 +126,10 @@ class libretro(Runner):
     def platforms(self):
         return [core[2] for core in get_libretro_cores()]
 
+    @platforms.setter
+    def platforms(self, platforms: list[str]):
+        self._platforms = {platform: platform for platform in platforms}
+
     def get_platform(self):
         game_core = self.game_config.get("core")
         if not game_core:
