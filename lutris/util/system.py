@@ -296,11 +296,13 @@ def is_process_running(pattern: str, filter_string: Optional[str] = None) -> boo
     Uses pgrep -f to match against the full command line.
 
     Args:
-        pattern: Pattern to match against the full command line.
+        pattern: String to match against the full command line.
+            Regex metacharacters are escaped automatically.
         filter_string: If provided, only return True if this string
             also appears in the matching process's command line.
             Useful for filtering by wine prefix path.
     """
+    pattern = re.escape(pattern)
     try:
         result = subprocess.run(["pgrep", "-a", "-f", pattern], capture_output=True, text=True)
     except FileNotFoundError:

@@ -1157,7 +1157,10 @@ class wine(Runner):
 
         exe_name = os.path.basename(client_exe)
 
-        if system.is_process_running(exe_name, filter_string=self.prefix_path):
+        # Search for the full path so we match the umu-run/pressure-vessel
+        # wrapper processes, which use Unix paths.  This also implicitly
+        # scopes the check to the current prefix.
+        if system.is_process_running(client_exe):
             logger.info("Client %s is already running", exe_name)
             return
 
