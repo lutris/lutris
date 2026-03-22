@@ -39,7 +39,7 @@ DATA_FILESYSTEMS = {"ext4", "ext3", "xfs", "btrfs", "ntfs", "vfat", "exfat", "fu
 SKIP_MOUNT_PREFIXES = ("/sys", "/proc", "/dev", "/run/user", "/boot", "/snap", "/var/lib")
 
 
-def scan_all_libraries() -> List[int]:
+def scan_all_libraries() -> List[str]:
     """Scan all detected Playtron libraries and import games"""
     added_games = []
     library_paths = _get_library_paths()
@@ -118,7 +118,7 @@ def _check_path_for_playtron(path: str, paths: List[str]) -> None:
         paths.append(gameos_data)
 
 
-def _import_games_from_library(install_root: str) -> List[int]:
+def _import_games_from_library(install_root: str) -> List[str]:
     """Scan a Playtron library and import games to Lutris"""
     added_games = []
     apps_base = os.path.join(install_root, DEFAULT_APPS_DIR)
@@ -167,7 +167,7 @@ def _scan_library(install_root: str) -> List[Tuple[str, str, Dict]]:
     return games
 
 
-def _import_game(install_root: str, game_path: str, info: Dict) -> Optional[int]:
+def _import_game(install_root: str, game_path: str, info: Dict) -> Optional[str]:
     """Import a single game to Lutris, returns game ID or None"""
     game_data = _create_game_config(install_root, info, game_path)
     if not game_data:
@@ -377,7 +377,7 @@ def _parse_playtron_info(filepath: str) -> Optional[Dict]:
         return None
 
 
-def _sync_media_for_games(game_ids: List[int]) -> None:
+def _sync_media_for_games(game_ids: List[str]) -> None:
     """Resolve canonical Lutris slugs via service appids and download media.
 
     The locally generated slug (from slugify) may not match the Lutris API due
@@ -388,7 +388,7 @@ def _sync_media_for_games(game_ids: List[int]) -> None:
     from lutris import settings
 
     # Group games by service
-    games_by_service: Dict[str, List[Tuple[int, str, str]]] = {}
+    games_by_service: Dict[str, List[Tuple[str, str, str]]] = {}
     for game_id in game_ids:
         game = get_game_by_field(game_id, "id")
         if not game or not game.get("service") or not game.get("service_id"):

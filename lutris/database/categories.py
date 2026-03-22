@@ -2,7 +2,7 @@ import abc
 import re
 from collections import defaultdict
 from itertools import repeat
-from typing import Any, Dict, List, Set, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, TypeAlias, Union
 
 from lutris import settings
 from lutris.database import games as games_db
@@ -11,6 +11,8 @@ from lutris.gui.widgets import NotificationSource
 from lutris.util.strings import get_natural_sort_key
 
 CATEGORIES_UPDATED = NotificationSource()
+
+DbCategoryDict: TypeAlias = Dict[str, Any]
 
 
 class _SmartCategory(abc.ABC):
@@ -46,7 +48,7 @@ class _SmartUncategorizedCategory(_SmartCategory):
 _SMART_CATEGORIES: List[_SmartCategory] = [_SmartUncategorizedCategory()]
 
 
-def strip_category_name(name):
+def strip_category_name(name: str) -> str:
     """ "This strips the name given, and also removes extra internal whitespace."""
     name = (name or "").strip()
     if not is_reserved_category(name):
@@ -54,7 +56,7 @@ def strip_category_name(name):
     return name
 
 
-def is_reserved_category(name):
+def is_reserved_category(name: str) -> bool:
     """True if name is None, blank or is a name Lutris uses internally, or
     starts with '.' for future expansion."""
     return not name or name[0] == "." or name in ["all", "favorite"]
@@ -66,25 +68,27 @@ def get_categories() -> List[Dict[str, Union[int, str]]]:
     return sql.db_select(settings.DB_PATH, "categories")
 
 
-def get_all_games_categories():
+def get_all_games_categories() -> Dict[str, List[int]]:
     games_categories = defaultdict(list)
     for row in sql.db_select(settings.DB_PATH, "games_categories"):
-        games_categories[row["game_id"]].append(row["category_id"])
+        games_categories[str(row["game_id"])].append(row["category_id"])
     return games_categories
 
 
-def get_category_by_name(name):
+def get_category_by_name(name: str) -> Optional[DbCategoryDict]:
     """Return a category by name"""
     categories = sql.db_select(settings.DB_PATH, "categories", condition=("name", name))
     if categories:
         return categories[0]
+    return None
 
 
-def get_category_by_id(category_id):
+def get_category_by_id(category_id: int) -> Optional[DbCategoryDict]:
     """Return a category by name"""
     categories = sql.db_select(settings.DB_PATH, "categories", condition=("id", category_id))
     if categories:
         return categories[0]
+    return None
 
 
 def normalized_category_names(name: str, subname_allowed: bool = False) -> List[str]:
@@ -106,7 +110,9 @@ def normalized_category_names(name: str, subname_allowed: bool = False) -> List[
     return names or [name]
 
 
-def get_game_ids_for_categories(included_category_names=None, excluded_category_names=None):
+def get_game_ids_for_categories(
+    included_category_names: List[str] = None, excluded_category_names: List[str] = None
+) -> List[str]:
     """Get the ids of games in database."""
     filters = []
     parameters = []
@@ -138,7 +144,7 @@ def get_game_ids_for_categories(included_category_names=None, excluded_category_
     if filters:
         query += " WHERE %s" % " AND ".join(filters)
 
-    result = set(game["id"] for game in sql.db_query(settings.DB_PATH, query, tuple(parameters)))
+    result = set(str(game["id"]) for game in sql.db_query(settings.DB_PATH, query, tuple(parameters)))
     for smart_cat in _SMART_CATEGORIES:
         if excluded_category_names is not None and smart_cat.get_name() in excluded_category_names:
             continue
@@ -161,14 +167,14 @@ def get_uncategorized_game_ids() -> Set[str]:
         "WHERE games.id = games_categories.game_id)"
     )
     uncategorized = sql.db_query(settings.DB_PATH, query)
-    return set(row["id"] for row in uncategorized)
+    return set(str(row["id"]) for row in uncategorized)
 
 
 def get_uncategorized_games() -> List[Any]:
     """Return a list of currently running games"""
     games = games_db.get_games_by_ids(get_uncategorized_game_ids())
 
-    def get_key(g: Dict[str, Any]):
+    def get_key(g: Dict[str, Any]) -> Tuple[bool, str]:
         """Sort in the default order for Lutris- installed games first, then by name."""
         name = str(g.get("name") or "")
         installed = bool(g.get("installed"))
@@ -200,7 +206,7 @@ def get_categories_in_games(game_ids: list[str]) -> dict[str, list[str]]:
     return dict(result)
 
 
-def add_category(category_name, no_signal: bool = False):
+def add_category(category_name: str, no_signal: bool = False) -> int:
     """Add a category to the database"""
     cat = sql.db_insert(settings.DB_PATH, "categories", {"name": category_name})
     if not no_signal:
@@ -244,7 +250,7 @@ def remove_category_from_game(game_id: str, category_id: int, no_signal: bool = 
         CATEGORIES_UPDATED.fire()
 
 
-def remove_unused_categories():
+def remove_unused_categories() -> None:
     """Remove all categories that have no games associated with them"""
 
     delete_orphaned_games = (
