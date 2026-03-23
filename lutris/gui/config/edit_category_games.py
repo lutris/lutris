@@ -99,7 +99,10 @@ class EditCategoryGamesDialog(SavableModelessDialog):
 
         for game_checkbox in self.grid.get_children():
             label = game_checkbox.get_label()
-            game_id = str(games_db.get_game_by_field(label, "name")["id"])
+            db_game = games_db.get_game_by_field(label, "name")
+            if not db_game:
+                continue
+            game_id = str(db_game["id"])
             if game_checkbox.get_active():
                 checked_game_ids.add(game_id)
             else:

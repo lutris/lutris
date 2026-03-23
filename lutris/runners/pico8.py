@@ -201,7 +201,7 @@ class pico8(Runner):
         launch_info = {}
         launch_info["env"] = self.get_env(os_env=False)
 
-        game_data = get_game_by_field(self.config.game_config_id, "configpath")
+        game_data = get_game_by_field(self.config.game_config_id, "configpath") or {}
 
         command = self.launch_args
 

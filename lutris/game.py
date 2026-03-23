@@ -89,7 +89,7 @@ class Game:
         self._id = str(game_id) if game_id else None  # pylint: disable=invalid-name
 
         # Load attributes from database
-        game_data = games_db.get_game_by_field(game_id, "id")
+        game_data = games_db.get_game_by_field(game_id, "id") or {}
 
         self._config = None
         self._game_config_id = game_data.get("configpath") or ""
@@ -418,6 +418,9 @@ class Game:
     def install_updates(self, install_ui_delegate: "LaunchUIDelegate") -> bool:
         service = install_ui_delegate.get_service(self.service)
         db_game = games_db.get_game_by_field(self.id, "id")
+        if not db_game:
+            logger.error("Game %s not found in database", self.id)
+            return False
 
         def on_installers_ready(installers, error):
             if error:
@@ -437,6 +440,9 @@ class Game:
     def install_dlc(self, install_ui_delegate: "LaunchUIDelegate") -> bool:
         service = install_ui_delegate.get_service(self.service)
         db_game = games_db.get_game_by_field(self.id, "id")
+        if not db_game:
+            logger.error("Game %s not found in database", self.id)
+            return False
 
         def on_installers_ready(installers, error):
             if error:

@@ -400,9 +400,10 @@ class SingleGameActions(GameActions):
 
         if launch_config_name is not None:
             steam_shortcut.create_shortcut(game, launch_config_name, True)
-            gameDict = games.get_game_by_field(game.id, "id")
-            gamepath = f"{Path.home()!s}/.local/share/applications/lutris-{game.slug}.sh"
-            generate_script(logger, LaunchUIDelegate(), gameDict, gamepath)
+            db_game = games.get_game_by_field(game.id, "id")
+            if db_game:
+                gamepath = f"{Path.home()!s}/.local/share/applications/lutris-{game.slug}.sh"
+                generate_script(logger, LaunchUIDelegate(), db_game, gamepath)
 
     def on_create_desktop_shortcut(self, *_args):
         """Create a desktop launcher for the selected game."""
@@ -456,6 +457,8 @@ class SingleGameActions(GameActions):
 
         duplicate_game_dialog.destroy()
         db_game = get_game_by_field(game.id, "id")
+        if not db_game:
+            return
         db_game["name"] = new_name
         db_game["slug"] = slugify(new_name) if new_name != game.name else game.slug
         db_game["lastplayed"] = None

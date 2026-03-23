@@ -71,7 +71,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if config:
             self.has_explicit_config = True
             self._config = config
-            self.game_data = get_game_by_field(config.game_config_id, "configpath")
+            self.game_data = get_game_by_field(config.game_config_id, "configpath") or {}
         else:
             self.has_explicit_config = False
             self._config = None
