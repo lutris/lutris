@@ -13,7 +13,7 @@ def generate_script(logger, launch_ui_delegate, db_game, script_path):
     def on_error(error: BaseException) -> None:
         logger.exception("Unable to generate script: %s", error)
 
-    game = Game(str(db_game["id"]))
+    game = Game(db_game["id"])
     game.game_error.register(on_error)
     game.reload_config()
     game.write_script(script_path, launch_ui_delegate)

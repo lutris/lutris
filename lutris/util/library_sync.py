@@ -83,7 +83,7 @@ class LibrarySyncer:
             logger.error("More than one game found for %s", remote_game["slug"])
             return None
         pga_game = pga_game[0]
-        return Game(str(pga_game["id"]))
+        return Game(pga_game["id"])
 
     def _create_new_game(self, remote_game):
         """Create a new local game from a remote record"""
@@ -124,7 +124,7 @@ class LibrarySyncer:
 
     def _db_game_to_api(self, db_game):
         """Serialize DB game entry to a payload compatible with the API"""
-        categories = [self.categories[cat_id] for cat_id in self.games_categories.get(str(db_game["id"]), [])]
+        categories = [self.categories[cat_id] for cat_id in self.games_categories.get(db_game["id"], [])]
         return {
             "name": db_game["name"],
             "slug": db_game["slug"],

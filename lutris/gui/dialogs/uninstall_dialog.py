@@ -81,7 +81,7 @@ class UninstallDialog(Gtk.Dialog):
         self.any_protected = False
 
         def is_shared(directory: str) -> bool:
-            dir_users = set(str(g["id"]) for g in get_games(filters={"directory": directory, "installed": 1}))
+            dir_users = set(g["id"] for g in get_games(filters={"directory": directory, "installed": 1}))
             for g in self.games:
                 dir_users.discard(g.id)
             return bool(dir_users)

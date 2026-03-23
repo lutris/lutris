@@ -702,7 +702,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 excludes["service"] = excluded_services
 
         games = games_db.get_games(filters=filters, excludes=excludes)
-        games = self.filter_games([game for game in games if str(game["id"]) in category_game_ids], searches=searches)
+        games = self.filter_games([game for game in games if game["id"] in category_game_ids], searches=searches)
         return self.apply_view_sort(games)
 
     def get_sql_filters(self) -> Dict[str, str]:
