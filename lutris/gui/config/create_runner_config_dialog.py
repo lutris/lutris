@@ -27,7 +27,7 @@ from lutris.gui.widgets.common import Label, VBox
 from lutris.runners import inject_runners
 from lutris.runners.json import SETTING_JSON_RUNNER_DIR, JsonRunner
 from lutris.runners.model import ModelRunner
-from lutris.runners.model_validator import validate
+from lutris.runners.model_validator import validate, validate_runner_name
 from lutris.runners.runner import Runner
 from lutris.runners.yaml import SETTING_YAML_RUNNER_DIR, YamlRunner
 from lutris.util.yaml import write_yaml_to_file
@@ -326,6 +326,17 @@ class EditRunnerConfigDialog(SavableModelessDialog, DialogInstallUIDelegate):  #
             )
             return
 
+        runner_name_validate_result = validate_runner_name(runner_name)
+        if runner_name_validate_result.get_errors():
+            ErrorDialog(
+                error=_(
+                    "Cannot save new runner '%s'\n" % runner_name
+                    + "\n".join([f"{error.key_path}: {error.message}" for error in validate_result.get_errors()])
+                ),
+                parent=self,
+            )
+            return
+
         if runner_format == RunnerConfigFileFormats.JSON:
             runner_config_path = (SETTING_JSON_RUNNER_DIR / f"{runner_name}.{runner_format}").resolve()
             if not runner_config_path.is_relative_to(SETTING_JSON_RUNNER_DIR):
@@ -340,7 +351,7 @@ class EditRunnerConfigDialog(SavableModelessDialog, DialogInstallUIDelegate):  #
                 return
 
         elif runner_format == RunnerConfigFileFormats.YAML:
-            runner_config_path = SETTING_YAML_RUNNER_DIR / f"{runner_name}.{runner_format}"
+            runner_config_path = (SETTING_YAML_RUNNER_DIR / f"{runner_name}.{runner_format}").resolve()
             if not runner_config_path.is_relative_to(SETTING_YAML_RUNNER_DIR):
                 ErrorDialog(
                     error=_(
