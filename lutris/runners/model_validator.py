@@ -60,7 +60,7 @@ def validate_runner_name(runner_name: str) -> RunnerDefinitionMessages:
                 error_list.runner_messages.append(
                     RunnerDefinitionMessage(
                         key_path="runner_name",
-                        message=_("Runner name '%s' contains invalid character '%s'" % (runner_name, c)),
+                        message=_("Runner name '%s' contains invalid character '%s'") % (runner_name, c),
                     )
                 )
                 break
@@ -96,19 +96,19 @@ def _validate_string_non_empty(data_dict: Dict[str, Any], key: str) -> RunnerDef
     error_list = RunnerDefinitionMessages()
     if key not in data_dict:
         error_list.runner_messages.append(
-            RunnerDefinitionMessage(key_path=key, message=_("Field `%s` must exist" % key))
+            RunnerDefinitionMessage(key_path=key, message=_("Field `%s` must exist") % key)
         )
     else:
         try:
             str_value = str(data_dict[key])
             if str_value == "":
                 error_list.runner_messages.append(
-                    RunnerDefinitionMessage(key_path=key, message=_("Field `%s` must be non-empty" % key))
+                    RunnerDefinitionMessage(key_path=key, message=_("Field `%s` must be non-empty") % key)
                 )
         except Exception as ex:
             error_list.runner_messages.append(
                 RunnerDefinitionMessage(
-                    key_path=key, message=_("Error `%s` not convertible to string: %s" % (key, str(ex)))
+                    key_path=key, message=_("Error `%s` not convertible to string: %s") % (key, str(ex))
                 )
             )
 
@@ -129,7 +129,7 @@ def _validate_string_non_empty_if_exist(data_dict: Dict[str, Any], key: str) -> 
             error_list.runner_messages.append(
                 RunnerDefinitionMessage(
                     key_path=key,
-                    message=_("Field `%s` must be non-empty" % key),
+                    message=_("Field `%s` must be non-empty") % key,
                     category=RunnerDefinitionCategory.WARNING,
                 )
             )
@@ -137,7 +137,7 @@ def _validate_string_non_empty_if_exist(data_dict: Dict[str, Any], key: str) -> 
         error_list.runner_messages.append(
             RunnerDefinitionMessage(
                 key_path=key,
-                message=_("Error `%s` not convertible to string: %s" % (key, str(ex))),
+                message=_("Error `%s` not convertible to string: %s") % (key, str(ex)),
                 category=RunnerDefinitionCategory.WARNING,
             )
         )
@@ -155,7 +155,7 @@ def _validate_bool_if_exist(data_dict: Dict[str, Any], key: str) -> RunnerDefini
         error_list.runner_messages.append(
             RunnerDefinitionMessage(
                 key_path=key,
-                message=_("Error `%s` not convertible to bool: %s" % (str(key), str(ex))),
+                message=_("Error `%s` not convertible to bool: %s") % (str(key), str(ex)),
                 category=RunnerDefinitionCategory.WARNING,
             )
         )
@@ -179,7 +179,7 @@ def validate_platforms(data_dict: Dict[str, Any]) -> RunnerDefinitionMessages:
     key = "platforms"
     if key not in data_dict:
         error_list.runner_messages.append(
-            RunnerDefinitionMessage(key_path=key, message=_("Field `%s` must exist" % key))
+            RunnerDefinitionMessage(key_path=key, message=_("Field `%s` must exist") % key)
         )
     else:
         platforms = data_dict[key]
@@ -187,33 +187,39 @@ def validate_platforms(data_dict: Dict[str, Any]) -> RunnerDefinitionMessages:
             if len(platforms) == 0:
                 error_list.runner_messages.append(
                     RunnerDefinitionMessage(
-                        key_path=key, message=_("`%s` dict must contain at least one string element" % key)
+                        key_path=key, message=_("`%s` dict must contain at least one string element") % key
                     )
                 )
             else:
-                platform_name = next(iter(platforms.values()))  # get first value field in platforms dict
-                if platform_name == "":
-                    error_list.runner_messages.append(
-                        RunnerDefinitionMessage(key_path=key, message=_("`%s` dict string entry cannot be empty" % key))
-                    )
+                for index, platform_name in enumerate(platforms.values()):
+                    if platform_name == "":
+                        key_prefix = f"{key}.{index}"
+                        error_list.runner_messages.append(
+                            RunnerDefinitionMessage(
+                                key_path=key, message=_("`%s` dict string entry cannot be empty") % key_prefix
+                            )
+                        )
         elif isinstance(platforms, list):
             if len(platforms) == 0:
                 error_list.runner_messages.append(
                     RunnerDefinitionMessage(
-                        key_path=key, message=_("`%s` list must contain at least one string element" % key)
+                        key_path=key, message=_("`%s` list must contain at least one string element") % key
                     )
                 )
             else:
-                platform_name = platforms[0]
-                if platform_name == "":
-                    error_list.runner_messages.append(
-                        RunnerDefinitionMessage(key_path=key, message=_("`%s` list string entry cannot be empty" % key))
-                    )
+                for index, platform_name in enumerate(platforms):
+                    if platform_name == "":
+                        key_prefix = f"{key}.{index}"
+                        error_list.runner_messages.append(
+                            RunnerDefinitionMessage(
+                                key_path=key, message=_("`%s` list string entry cannot be empty") % key_prefix
+                            )
+                        )
         elif isinstance(platforms, str):
             platform_name = platforms
             if platform_name == "":
                 error_list.runner_messages.append(
-                    RunnerDefinitionMessage(key_path=key, message=_("`%s` string field cannot be empty" % key))
+                    RunnerDefinitionMessage(key_path=key, message=_("`%s` string field cannot be empty") % key)
                 )
     return error_list
 
@@ -250,7 +256,7 @@ def _validate_option(option_dict: Dict[str, Any], key_prefix="") -> RunnerDefini
         [
             RunnerDefinitionMessage(
                 key_path=f"{key_prefix}{'.' if key_prefix else ''}{key}",
-                message=_("Option is missing required key '%s'" % key),
+                message=_("Option is missing required key '%s'") % key,
             )
             for key in REQUIRED_OPTION_KEYS
             if key not in option_dict
@@ -265,8 +271,9 @@ def _validate_option(option_dict: Dict[str, Any], key_prefix="") -> RunnerDefini
                     key_path=f"{key_prefix}{'.' if key_prefix else ''}{key}",
                     message=_(
                         "'choices' key is required for widget type %s with a least one element."
-                        ' Ex. `"choices": [ {"option1": "value1"}, {"option2": "value2"} ]`' % widget_type
-                    ),
+                        ' Ex. `"choices": [ {"option1": "value1"}, {"option2": "value2"} ]`'
+                    )
+                    % widget_type,
                 )
             )
 
@@ -275,7 +282,7 @@ def _validate_option(option_dict: Dict[str, Any], key_prefix="") -> RunnerDefini
             [
                 RunnerDefinitionMessage(
                     key_path=f"{key_prefix}{'.' if key_prefix else ''}{key}",
-                    message=_("'%s' key is required for widget type '%s'" % (key, widget_type)),
+                    message=_("'%s' key is required for widget type '%s'") % (key, widget_type),
                 )
                 for key in RANGE_TYPE_REQUIRED_KEYS
                 if key not in option_dict
@@ -303,7 +310,7 @@ def validate_game_options(data_dict: Dict[str, Any]) -> RunnerDefinitionMessages
     key = "game_options"
     if key not in data_dict:
         error_list.runner_messages.append(
-            RunnerDefinitionMessage(key_path=key, message=_("Field `%s` must exist" % key))
+            RunnerDefinitionMessage(key_path=key, message=_("Field `%s` must exist") % key)
         )
     else:
         game_options = data_dict[key]
@@ -311,19 +318,18 @@ def validate_game_options(data_dict: Dict[str, Any]) -> RunnerDefinitionMessages
         entry_point_option = data_dict.get("entry_point_option", DEFAULT_ENTRY_POINT_OPTION)
         if not isinstance(game_options, list):
             error_list.runner_messages.append(
-                RunnerDefinitionMessage(key_path=key, message=_("`%s` must be a list" % key))
+                RunnerDefinitionMessage(key_path=key, message=_("`%s` must be a list") % key)
             )
         elif len(game_options) == 0:
             error_list.runner_messages.append(
-                RunnerDefinitionMessage(key_path=key, message=_("`%s` list must contain at least one element" % key))
+                RunnerDefinitionMessage(key_path=key, message=_("`%s` list must contain at least one element") % key)
             )
         elif len([option for option in game_options if option.get("option", "") == entry_point_option]) != 1:
             error_list.runner_messages.append(
                 RunnerDefinitionMessage(
                     key_path=key,
-                    message=_(
-                        "`%s` require exactly one 'option' for the entry point field: %s" % (key, entry_point_option)
-                    ),
+                    message=_("`%s` require exactly one 'option' for the entry point field: %s")
+                    % (key, entry_point_option),
                 )
             )
         else:
@@ -341,7 +347,7 @@ def validate_runner_options(data_dict: Dict[str, Any]) -> RunnerDefinitionMessag
 
     runner_options = data_dict[key]
     if not isinstance(runner_options, list):
-        error_list.runner_messages.append(RunnerDefinitionMessage(key_path=key, message=_("`%s` must be a list" % key)))
+        error_list.runner_messages.append(RunnerDefinitionMessage(key_path=key, message=_("`%s` must be a list") % key))
     else:
         error_list.runner_messages.extend(_validate_options(runner_options, prefix=key).runner_messages)
 
@@ -359,7 +365,7 @@ def validate_system_options_override(data_dict: Dict[str, Any]) -> RunnerDefinit
     if not isinstance(system_options_override, list):
         error_list.runner_messages.append(
             RunnerDefinitionMessage(
-                key_path=key, message=_("`%s` must be a list" % key), category=RunnerDefinitionCategory.WARNING
+                key_path=key, message=_("`%s` must be a list") % key, category=RunnerDefinitionCategory.WARNING
             )
         )
     else:
@@ -368,9 +374,8 @@ def validate_system_options_override(data_dict: Dict[str, Any]) -> RunnerDefinit
                 error_list.runner_messages.append(
                     RunnerDefinitionMessage(
                         key_path=key,
-                        message=_(
-                            "`%s` element:%d must contain an 'option' in order to override system option" % (key, index)
-                        ),
+                        message=_("`%s` element:%d must contain an 'option' in order to override system option")
+                        % (key, index),
                         category=RunnerDefinitionCategory.WARNING,
                     )
                 )
@@ -389,7 +394,7 @@ def validate_envs(data_dict: Dict[str, Any]) -> RunnerDefinitionMessages:
     if not isinstance(env_dict, dict):
         error_list.runner_messages.append(
             RunnerDefinitionMessage(
-                key_path=key, message=_("`%s` must be a dictionary" % key), category=RunnerDefinitionCategory.WARNING
+                key_path=key, message=_("`%s` must be a dictionary") % key, category=RunnerDefinitionCategory.WARNING
             )
         )
     return error_list
@@ -409,7 +414,7 @@ def validate_working_dir(data_dict: Dict[str, Any]) -> RunnerDefinitionMessages:
         error_list.runner_messages.append(
             RunnerDefinitionMessage(
                 key_path=key,
-                message=_("Error `%s` not convertible to string: %s" % (key, str(ex))),
+                message=_("Error `%s` not convertible to string: %s") % (key, str(ex)),
                 category=RunnerDefinitionCategory.WARNING,
             )
         )

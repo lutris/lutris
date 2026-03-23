@@ -37,7 +37,7 @@ class RunnerConfigCreator:
     def __init__(self, label="", tooltip="", widget_class=None, icon_name="") -> None:
         self.label: str = label
         self.tooltip: str = tooltip
-        self.widget_class: Optional[Type[Gtk.Box]] = widget_class
+        self.widget_class: Optional[Type[BaseRunnerConfigBox]] = widget_class
         self.icon_name: str = icon_name
 
 
@@ -238,8 +238,10 @@ class EditRunnerConfigDialog(SavableModelessDialog, DialogInstallUIDelegate):  #
 
     __gsignals__ = {"runner-saved": (GObject.SIGNAL_RUN_FIRST, None, (str,))}
 
-    def __init__(self, parent=None, edit_mode=RunnerConfigEditMode.CREATE, runner: Optional[Runner] = None):
-        super().__init__(_("Create New Runner Config"), parent=parent)
+    def __init__(
+        self, parent: Gtk.Widget | None = None, edit_mode=RunnerConfigEditMode.CREATE, runner: Optional[Runner] = None
+    ):
+        super().__init__(_("Create New Runner Config"), parent=parent)  # type:ignore[arg-type]
 
         label = Label(_("Runner File Prefix"))
         self._create_runner_box = CreateRunnerBox()
@@ -317,22 +319,20 @@ class EditRunnerConfigDialog(SavableModelessDialog, DialogInstallUIDelegate):  #
 
         validate_result = validate(runner_dict)
         if validate_result.get_errors():
+            error_string = "\n".join([f"{error.key_path}: {error.message}" for error in validate_result.get_errors()])
             ErrorDialog(
-                error=_(
-                    "Cannot save new runner '%s'\n" % runner_name
-                    + "\n".join([f"{error.key_path}: {error.message}" for error in validate_result.get_errors()])
-                ),
+                error=_("Cannot save new runner '%s'\n%s") % (runner_name, error_string),
                 parent=self,
             )
             return
 
         runner_name_validate_result = validate_runner_name(runner_name)
         if runner_name_validate_result.get_errors():
+            error_string = "\n".join(
+                [f"{error.key_path}: {error.message}" for error in runner_name_validate_result.get_errors()]
+            )
             ErrorDialog(
-                error=_(
-                    "Cannot save new runner '%s'\n" % runner_name
-                    + "\n".join([f"{error.key_path}: {error.message}" for error in validate_result.get_errors()])
-                ),
+                error=_("Cannot save new runner '%s'\n%s") % (runner_name, error_string),
                 parent=self,
             )
             return
@@ -344,8 +344,8 @@ class EditRunnerConfigDialog(SavableModelessDialog, DialogInstallUIDelegate):  #
                     error=_(
                         "Cannot save new runner '%s' to path '%s'\n"
                         "Runner name cannot contain '.' and the path must be relative to '%s'"
-                        % (runner_name, runner_config_path, SETTING_JSON_RUNNER_DIR)
-                    ),
+                    )
+                    % (runner_name, runner_config_path, SETTING_JSON_RUNNER_DIR),
                     parent=self,
                 )
                 return
