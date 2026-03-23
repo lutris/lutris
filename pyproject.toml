@@ -40,6 +40,7 @@ module = [
     "lutris.api",
     "lutris.cache",
     "lutris.config",
+    "lutris.database.*",
     "lutris.exception_backstops",
     "lutris.exceptions",
     "lutris.runners",

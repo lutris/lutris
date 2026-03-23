@@ -1,6 +1,7 @@
 from lutris import settings
 from lutris.api import get_api_games
-from lutris.database.games import get_games, sql
+from lutris.database import sql
+from lutris.database.games import get_games
 from lutris.util.log import logger
 
 

@@ -45,7 +45,7 @@ def _create_search(row: Dict[str, Any]) -> "SavedSearch":
     return SavedSearch(row["id"], row["name"], row["search"])
 
 
-def strip_saved_search_name(name):
+def strip_saved_search_name(name: str) -> str:
     """This strips the name given, and also removes extra internal whitespace."""
     name = (name or "").strip()
     name = re.sub(" +", " ", name)  # Remove excessive whitespaces

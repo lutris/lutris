@@ -1,8 +1,12 @@
+from typing import Any, Dict, List, TypeAlias
+
 from lutris import settings
 from lutris.database import sql
 from lutris.util.log import logger
 
-DATABASE = {
+DBSchema: TypeAlias = List[Dict[str, Any]]
+
+DATABASE: Dict[str, DBSchema] = {
     "games": [
         {"name": "id", "type": "INTEGER", "indexed": True},
         {"name": "name", "type": "TEXT"},
@@ -66,7 +70,7 @@ DATABASE = {
 }
 
 
-def get_schema(tablename):
+def get_schema(tablename: str) -> DBSchema:
     """
     Fields:
         - position
@@ -91,7 +95,7 @@ def get_schema(tablename):
     return tables
 
 
-def field_to_string(name="", type="", indexed=False, unique=False):  # pylint: disable=redefined-builtin
+def field_to_string(name: str = "", type: str = "", indexed: bool = False, unique: bool = False) -> str:  # pylint: disable=redefined-builtin
     """Converts a python based table definition to it's SQL statement"""
     field_query = "%s %s" % (name, type)
     if indexed:
@@ -101,7 +105,7 @@ def field_to_string(name="", type="", indexed=False, unique=False):  # pylint: d
     return field_query
 
 
-def create_table(name, schema):
+def create_table(name: str, schema: DBSchema) -> None:
     """Creates a new table in the database"""
     fields = ", ".join([field_to_string(**f) for f in schema])
     query = "CREATE TABLE IF NOT EXISTS %s (%s)" % (name, fields)
@@ -110,7 +114,7 @@ def create_table(name, schema):
         cursor.execute(query)
 
 
-def migrate(table, schema):
+def migrate(table: str, schema: DBSchema) -> List[str]:
     """Compare a database table with the reference model and make necessary changes
 
     This is very basic and only the needed features have been implemented (adding columns)
@@ -137,7 +141,7 @@ def migrate(table, schema):
     return migrated_fields
 
 
-def syncdb():
+def syncdb() -> None:
     """Update the database to the current version, making necessary changes
     for backwards compatibility."""
     for table_name, table_data in DATABASE.items():

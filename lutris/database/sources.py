@@ -1,4 +1,5 @@
 import os
+from typing import List, Union
 
 from lutris import settings
 from lutris.database import sql
@@ -6,22 +7,22 @@ from lutris.util import system
 from lutris.util.log import logger
 
 
-def add_source(uri):
+def add_source(uri: str) -> None:
     sql.db_insert(settings.DB_PATH, "sources", {"uri": uri})
 
 
-def delete_source(uri):
+def delete_source(uri: str) -> None:
     sql.db_delete(settings.DB_PATH, "sources", "uri", uri)
 
 
-def read_sources():
+def read_sources() -> List[str]:
     with sql.db_cursor(settings.DB_PATH) as cursor:
         rows = cursor.execute("select uri from sources")
         results = rows.fetchall()
     return [row[0] for row in results]
 
 
-def write_sources(sources):
+def write_sources(sources: List[str]) -> None:
     db_sources = read_sources()
     for uri in db_sources:
         if uri not in sources:
@@ -31,7 +32,7 @@ def write_sources(sources):
             sql.db_insert(settings.DB_PATH, "sources", {"uri": uri})
 
 
-def check_for_file(game, file_id):
+def check_for_file(game: str, file_id: str) -> Union[str, bool]:
     for source in read_sources():
         if source.startswith("file://"):
             source = source[7:]
