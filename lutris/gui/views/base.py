@@ -105,9 +105,9 @@ class GameView:
                     if db_game["id"]:
                         games.append(_get_game_by_id(str(db_game["id"])))
                 else:
-                    db_game = ServiceGameCollection.get_game(self.service.id, game_id)
-                    if db_game:
-                        games.append(Game.create_empty_service_game(db_game, self.service))
+                    service_game = ServiceGameCollection.get_game(self.service.id, game_id)
+                    if service_game:
+                        games.append(Game.create_empty_service_game(service_game, self.service))
             elif game_id:
                 games.append(_get_game_by_id(game_id))
 
