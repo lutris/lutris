@@ -14,14 +14,33 @@ _SERVICE_CACHE_ACCESSED = False  # Keep time of last access to have a self degra
 DbGameDict: TypeAlias = Dict[str, Any]
 
 
+def _stringify_game_id(game: DbGameDict) -> DbGameDict:
+    """Convert the 'id' field from int to str.
+
+    SQLite returns ids as int, but game IDs are str throughout Lutris
+    because they share data structures with string-typed service IDs
+    in the UI layer.
+    """
+    if "id" in game:
+        game["id"] = str(game["id"])
+    return game
+
+
+def _stringify_game_ids(games: List[DbGameDict]) -> List[DbGameDict]:
+    """Apply _stringify_game_id to a list of game rows."""
+    return [_stringify_game_id(row) for row in games]
+
+
 def get_games(
     searches: Dict[str, str] = None,
     filters: sql.DBConditionsDict = None,
     excludes: sql.DBConditionsDict = None,
     sorts: Sequence[str] = None,
 ) -> List[DbGameDict]:
-    return sql.filtered_query(
-        settings.DB_PATH, "games", searches=searches, filters=filters, excludes=excludes, sorts=sorts
+    return _stringify_game_ids(
+        sql.filtered_query(
+            settings.DB_PATH, "games", searches=searches, filters=filters, excludes=excludes, sorts=sorts
+        )
     )
 
 
@@ -74,7 +93,7 @@ def get_games_where(**conditions: Any) -> List[DbGameDict]:
         # Inspect and document why we should return
         # an empty list when no condition is present.
         return []
-    return sql.db_query(settings.DB_PATH, query, tuple(condition_values))
+    return _stringify_game_ids(sql.db_query(settings.DB_PATH, query, tuple(condition_values)))
 
 
 def get_games_by_ids(game_ids: Collection[str]) -> List[DbGameDict]:
@@ -132,18 +151,18 @@ def get_game_by_field(value: Any, field: str = "slug") -> Optional[DbGameDict]:
         raise ValueError("Can't query by field '%s'" % field)
     game_result = sql.db_select(settings.DB_PATH, "games", condition=(field, value))
     if game_result:
-        return game_result[0]
+        return _stringify_game_id(game_result[0])
     return None
 
 
 def get_games_by_runner(runner: str) -> List[DbGameDict]:
     """Return all games using a specific runner"""
-    return sql.db_select(settings.DB_PATH, "games", condition=("runner", runner))
+    return _stringify_game_ids(sql.db_select(settings.DB_PATH, "games", condition=("runner", runner)))
 
 
 def get_games_by_slug(slug: str) -> List[DbGameDict]:
     """Return all games using a specific slug"""
-    return sql.db_select(settings.DB_PATH, "games", condition=("slug", slug))
+    return _stringify_game_ids(sql.db_select(settings.DB_PATH, "games", condition=("slug", slug)))
 
 
 def add_game(**game_data: Any) -> str:
@@ -198,18 +217,20 @@ def get_matching_game(params: Dict[str, Any]) -> Optional[str]:
     if params.get("id"):
         game = get_game_by_field(params["id"], "id")
         if game:
-            return str(game["id"])
+            game_id: str = game["id"]
+            return game_id
         logger.warning("Game ID %s provided but couldn't be matched", params["id"])
     slug = params.get("slug") or slugify(cast(str, params.get("name")))
     if not slug:
         raise ValueError("Can't add or update without an identifier")
     for game in get_games_by_slug(slug):
+        game_id = game["id"]
         if game["installed"]:
             if game["configpath"] == params.get("configpath"):
-                return str(game["id"])
+                return game_id
         else:
             if game["runner"] == params.get("runner") or not all([params.get("runner"), game["runner"]]):
-                return str(game["id"])
+                return game_id
     return None
 
 
