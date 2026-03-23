@@ -93,7 +93,7 @@ class GameActions:
             if game and game.is_db_stored:
                 ids = self.application.get_running_game_ids()
                 for game_id in ids:
-                    if str(game_id) == game.id:
+                    if game_id == game.id:
                         running_games.append(game)
         return running_games
 

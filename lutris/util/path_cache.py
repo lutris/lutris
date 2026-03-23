@@ -21,7 +21,7 @@ def get_game_paths():
     for db_game in all_games:
         if db_game.get("runner") in ("steam", "web"):
             continue
-        game = Game(str(db_game["id"]))
+        game = Game(db_game["id"])
         path = game.get_path_from_config()
         if not path:
             continue

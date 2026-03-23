@@ -33,7 +33,7 @@ class TestPersonnalGameArchive(DatabaseTester):
     def test_get_game_list(self):
         self.game_id = games_db.add_game(name="LutrisTest", runner="Linux")
         game_list = games_db.get_games()
-        self.assertEqual(str(game_list[0]["id"]), self.game_id)
+        self.assertEqual(game_list[0]["id"], self.game_id)
         self.assertEqual(game_list[0]["slug"], "lutristest")
         self.assertEqual(game_list[0]["name"], "LutrisTest")
         self.assertEqual(game_list[0]["runner"], "Linux")

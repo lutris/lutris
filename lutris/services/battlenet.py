@@ -210,7 +210,7 @@ class BattleNetService(BaseService):
         ]
 
     def generate_installer(self, db_game, bnet_db_game):
-        bnet_app = Game(str(bnet_db_game["id"]))
+        bnet_app = Game(bnet_db_game["id"])
         bnet_exe = bnet_app.config.game_config["exe"]
         if not os.path.isabs(bnet_exe):
             bnet_exe = os.path.join(bnet_app.config.game_config["prefix"], bnet_exe)

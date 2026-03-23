@@ -367,7 +367,7 @@ class GameSearch(BaseSearch):
         category_game_ids = set(get_game_ids_for_categories(names))
 
         def match_category(db_game):
-            game_id = str(db_game["id"])
+            game_id = db_game["id"]
             return game_id in category_game_ids
 
         text = f"category:{self.quote_token(category)}"
@@ -378,7 +378,7 @@ class GameSearch(BaseSearch):
         category_game_ids = set(get_game_ids_for_categories(names))
 
         def is_in_category(db_game):
-            game_id = str(db_game["id"])
+            game_id = db_game["id"]
             return game_id in category_game_ids
 
         return FlagPredicate(in_category, is_in_category, tag=tag)

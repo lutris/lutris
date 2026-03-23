@@ -42,7 +42,7 @@ def get_usage_stats(runner_name):
     for db_game in runner_games:
         if not db_game["installed"]:
             continue
-        game = Game(str(db_game["id"]))
+        game = Game(db_game["id"])
         version = game.config.runner_config["version"]
         version_usage[version].append(db_game["id"])
     return version_usage
@@ -73,7 +73,7 @@ class ShowAppsDialog(ModelessDialog):
         for db_game in runner_games:
             if not db_game["installed"]:
                 continue
-            game = Game(str(db_game["id"]))
+            game = Game(db_game["id"])
             version = game.config.runner_config["version"]
             if version != self.runner_version:
                 continue

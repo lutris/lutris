@@ -23,7 +23,7 @@ class _SmartCategory(abc.ABC):
         pass
 
     def get_game_ids(self) -> Set[str]:
-        return set(str(game["id"]) for game in self.get_games())
+        return set(game["id"] for game in self.get_games())
 
     @abc.abstractmethod
     def get_games(self) -> List[Any]:

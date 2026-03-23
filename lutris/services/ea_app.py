@@ -529,7 +529,7 @@ class EAAppService(OnlineService):
         return slug
 
     def generate_installer(self, db_game, ea_db_game):
-        ea_game = Game(str(ea_db_game["id"]))
+        ea_game = Game(ea_db_game["id"])
         ea_exe = ea_game.config.game_config["exe"]
         if not os.path.isabs(ea_exe):
             ea_exe = os.path.join(ea_game.config.game_config["prefix"], ea_exe)
