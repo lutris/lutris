@@ -2,7 +2,7 @@ import json
 import os
 import random
 import time
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Tuple, cast
 
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
@@ -147,11 +147,11 @@ class ServiceMedia:
         for game in service_games:
             if not game["details"]:
                 continue
-            details = json.loads(game["details"])
+            details = json.loads(cast(str, game["details"]))
             media_url = self.get_media_url(details)
             if not media_url:
                 continue
-            medias[game["slug"]] = media_url
+            medias[cast(str, game["slug"])] = media_url
         return medias
 
     def download(self, slug, url):

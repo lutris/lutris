@@ -1,7 +1,8 @@
 """Set service ID for Steam games"""
 
 from lutris import settings
-from lutris.database.games import get_games, sql
+from lutris.database import sql
+from lutris.database.games import get_games
 
 
 def migrate():
