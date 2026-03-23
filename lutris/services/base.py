@@ -124,7 +124,7 @@ class BaseService:
             return None
         db_launcher = get_game_by_field(self.client_installer, "slug")
         if db_launcher:
-            return Game(db_launcher["id"])
+            return Game(str(db_launcher["id"]))
 
     def is_launcher_installed(self):
         launcher = self.get_launcher()
@@ -272,7 +272,7 @@ class BaseService:
         """Checks if a game is already installed and populates the service info"""
         for _game in db_games:
             logger.debug("Matching %s with existing install: %s", appid, _game)
-            game = Game(_game["id"])
+            game = Game(str(_game["id"]))
             game.appid = appid
             game.service = self.id
             game.save(no_signal=no_signal)

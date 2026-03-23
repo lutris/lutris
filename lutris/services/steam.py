@@ -194,7 +194,7 @@ class SteamService(BaseService):
 
         db_games = get_games(filters={"runner": "steam"})
         for db_game in db_games:
-            steam_game = Game(db_game["id"])
+            steam_game = Game(str(db_game["id"]))
             if steam_game.config is None:
                 logger.warning("Steam game %s has no config", db_game["id"])
                 continue

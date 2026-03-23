@@ -52,7 +52,7 @@ class SteamWindowsService(SteamService):
     def get_steam(self):
         db_entry = get_game_by_field(self.client_installer, "installer_slug")
         if db_entry:
-            return Game(db_entry["id"])
+            return Game(str(db_entry["id"]))
 
     def install(self, db_game):
         steam_game = self.get_steam()

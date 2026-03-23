@@ -7,7 +7,7 @@ from lutris.game import Game
 def migrate():
     """Run migration"""
     for pga_game in get_games():
-        game = Game(pga_game["id"])
+        game = Game(str(pga_game["id"]))
         if game.runner_name != "mess":
             continue
         if "mess" in game.config.game_level:

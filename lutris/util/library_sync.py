@@ -83,7 +83,7 @@ class LibrarySyncer:
             logger.error("More than one game found for %s", remote_game["slug"])
             return None
         pga_game = pga_game[0]
-        return Game(pga_game["id"])
+        return Game(str(pga_game["id"]))
 
     def _create_new_game(self, remote_game):
         """Create a new local game from a remote record"""

@@ -1191,7 +1191,7 @@ def export_game(slug: str, dest_dir: str) -> None:
     if not db_game["directory"]:
         raise RuntimeError("No game directory set. Could we guess it?")
 
-    game = Game(db_game["id"])
+    game = Game(str(db_game["id"]))
     if game.config:
         db_game["config"] = game.config.game_level
     else:
