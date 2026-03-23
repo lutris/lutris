@@ -20,7 +20,8 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         self.category = category["name"]
         self.category_id = category["id"]
         self.available_games = sorted(
-            [Game(x["id"]) for x in games_db.get_games()], key=lambda g: (g.is_installed, get_natural_sort_key(g.name))
+            [Game(str(x["id"])) for x in games_db.get_games()],
+            key=lambda g: (g.is_installed, get_natural_sort_key(g.name)),
         )
         self.category_games = {
             game_id: Game(game_id) for game_id in categories_db.get_game_ids_for_categories([self.category])
@@ -98,7 +99,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
 
         for game_checkbox in self.grid.get_children():
             label = game_checkbox.get_label()
-            game_id = games_db.get_game_by_field(label, "name")["id"]
+            game_id = str(games_db.get_game_by_field(label, "name")["id"])
             if game_checkbox.get_active():
                 checked_game_ids.add(game_id)
             else:

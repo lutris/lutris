@@ -758,7 +758,7 @@ class LutrisApplication(Gtk.Application):
             def on_error(error: BaseException) -> None:
                 logger.exception("Unable to launch game: %s", error)
 
-            game = Game(db_game["id"])
+            game = Game(str(db_game["id"]))
             game.game_error.register(on_error)
             game.launch(self.launch_ui_delegate)
 

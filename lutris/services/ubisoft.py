@@ -289,7 +289,7 @@ class UbisoftConnectService(OnlineService):
         sync_media(installed_slugs)
 
     def generate_installer(self, db_game, ubi_db_game):
-        ubisoft_connect = Game(ubi_db_game["id"])
+        ubisoft_connect = Game(str(ubi_db_game["id"]))
         uc_exe = ubisoft_connect.config.game_config["exe"]
         if not os.path.isabs(uc_exe):
             uc_exe = os.path.join(ubisoft_connect.config.game_config["prefix"], uc_exe)

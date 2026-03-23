@@ -103,7 +103,7 @@ class GameView:
 
                 if db_game:
                     if db_game["id"]:
-                        games.append(_get_game_by_id(db_game["id"]))
+                        games.append(_get_game_by_id(str(db_game["id"])))
                 else:
                     db_game = ServiceGameCollection.get_game(self.service.id, game_id)
                     if db_game:
