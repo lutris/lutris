@@ -55,9 +55,11 @@ class TestPersonnalGameArchive(DatabaseTester):
     def test_game_with_same_slug_is_updated(self):
         games_db.add_game(name="some game", runner="linux")
         game = games_db.get_game_by_field("some-game", "slug")
+        self.assertIsNotNone(game)
         self.assertFalse(game["directory"])
         games_db.add_or_update(name="some game", runner="linux", directory="/foo")
         game = games_db.get_game_by_field("some-game", "slug")
+        self.assertIsNotNone(game)
         self.assertEqual(game["directory"], "/foo")
 
 

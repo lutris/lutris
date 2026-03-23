@@ -126,14 +126,14 @@ def get_service_games(service: str) -> List[str]:
     return _SERVICE_CACHE[service]
 
 
-def get_game_by_field(value: Any, field: str = "slug") -> DbGameDict:
-    """Query a game based on a database field"""
+def get_game_by_field(value: Any, field: str = "slug") -> Optional[DbGameDict]:
+    """Query a game based on a database field, or None if not found."""
     if field not in ("slug", "installer_slug", "id", "configpath", "name"):
         raise ValueError("Can't query by field '%s'" % field)
     game_result = sql.db_select(settings.DB_PATH, "games", condition=(field, value))
     if game_result:
         return game_result[0]
-    return {}
+    return None
 
 
 def get_games_by_runner(runner: str) -> List[DbGameDict]:
@@ -178,7 +178,7 @@ def add_or_update(**params: Any) -> str:
     if game_id:
         return game_id
 
-    return str(add_game(**params))
+    return add_game(**params)
 
 
 def update_existing(**params: Any) -> Optional[str]:
@@ -192,7 +192,7 @@ def update_existing(**params: Any) -> Optional[str]:
     return None
 
 
-def get_matching_game(params: DbGameDict) -> Optional[str]:
+def get_matching_game(params: Dict[str, Any]) -> Optional[str]:
     """Tries to match given parameters with an existing game"""
     # Always match by ID if provided
     if params.get("id"):

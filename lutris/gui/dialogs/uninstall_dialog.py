@@ -297,7 +297,9 @@ class UninstallDialog(Gtk.Dialog):
 
         for row in rows:
             if library_syncer and row.remove_from_library:
-                games_removed_from_library.append(get_game_by_field(row.game._id, "id"))
+                db_game = get_game_by_field(row.game._id, "id")
+                if db_game:
+                    games_removed_from_library.append(db_game)
             row.perform_removal()
 
         if library_syncer and games_removed_from_library:
