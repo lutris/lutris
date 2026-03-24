@@ -4,6 +4,7 @@ import json
 import os
 import sys
 from gettext import gettext as _
+from tempfile import TemporaryDirectory
 from typing import Dict, cast
 
 from gi.repository import GLib
@@ -42,10 +43,15 @@ COVERART_PATH = os.path.join(DATA_DIR, "coverart")
 RUNTIME_VERSIONS_PATH = os.path.join(CACHE_DIR, "versions.json")
 ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128", "apps")
 
-if "nosetests" in sys.argv[0] or "nose2" in sys.argv[0] or "pytest" in sys.argv[0]:
-    DB_PATH = "/tmp/pga.db"
-else:
-    DB_PATH = sio.read_setting("pga_path") or os.path.join(DATA_DIR, "pga.db")
+DB_PATH = sio.read_setting("pga_path") or os.path.join(DATA_DIR, "pga.db")
+
+TEST_TEMP_DIR = TemporaryDirectory()
+test_modules = ["unittest", "nosetests", "nose2", "nose", "pytest"]
+for test_module in test_modules:
+    if test_module in sys.modules.keys():
+        DB_PATH = os.path.join(TEST_TEMP_DIR.name, "pga.db")
+        break
+
 
 SITE_URL = sio.read_setting("website") or "https://lutris.net"
 
