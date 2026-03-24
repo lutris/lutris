@@ -218,9 +218,9 @@ def _extract_exe(path: str, dest: str) -> None:
         _decompress_gog(path, dest)
     else:
         # use 7za to check if exe is an archive
-        _7zip_path = os.path.join(settings.RUNTIME_DIR, "p7zip/7za")
+        _7zip_path = os.path.join(settings.RUNTIME_DIR, "p7zip/7z")
         if not system.path_exists(_7zip_path):
-            _7zip_path = system.find_required_executable("7za")
+            _7zip_path = system.find_required_executable("7z")
         command = [_7zip_path, "t", path]
         return_code = subprocess.call(command)
         if return_code == 0:
