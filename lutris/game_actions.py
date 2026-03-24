@@ -4,11 +4,11 @@
 # pylint: disable=too-many-public-methods
 import os
 from gettext import gettext as _
-from pathlib import Path
 from typing import List
 
 from gi.repository import Gio, Gtk
 
+from lutris import settings
 from lutris.config import duplicate_game_config
 from lutris.database import games
 from lutris.database.games import add_game, get_game_by_field
@@ -402,7 +402,7 @@ class SingleGameActions(GameActions):
             steam_shortcut.create_shortcut(game, launch_config_name, True)
             db_game = games.get_game_by_field(game.id, "id")
             if db_game:
-                gamepath = f"{Path.home()!s}/.local/share/applications/lutris-{game.slug}.sh"
+                gamepath = f"{settings.XDG_DATA_DIR}/applications/lutris-{game.slug}.sh"
                 generate_script(logger, LaunchUIDelegate(), db_game, gamepath)
 
     def on_create_desktop_shortcut(self, *_args):

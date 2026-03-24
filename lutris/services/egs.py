@@ -23,11 +23,11 @@ from lutris.util.egs.egs_launcher import EGSLauncher
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
-EGS_GAME_ART_PATH = os.path.expanduser("~/.cache/lutris/egs/game_box")
-EGS_GAME_BOX_PATH = os.path.expanduser("~/.cache/lutris/egs/game_box_tall")
-EGS_LOGO_PATH = os.path.expanduser("~/.cache/lutris/egs/game_logo")
-EGS_BANNERS_PATH = os.path.expanduser("~/.cache/lutris/egs/banners")
-EGS_BOX_ART_PATH = os.path.expanduser("~/.cache/lutris/egs/boxart")
+EGS_GAME_ART_PATH = os.path.join(settings.XDG_CACHE_DIR, "/lutris/egs/game_box")
+EGS_GAME_BOX_PATH = os.path.join(settings.XDG_CACHE_DIR, "/lutris/egs/game_box_tall")
+EGS_LOGO_PATH = os.path.join(settings.XDG_CACHE_DIR, "/lutris/egs/game_logo")
+EGS_BANNERS_PATH = os.path.join(settings.XDG_CACHE_DIR, "/lutris/egs/banners")
+EGS_BOX_ART_PATH = os.path.join(settings.XDG_CACHE_DIR, "/lutris/egs/boxart")
 BANNER_SIZE = (316, 178)
 BOX_ART_SIZE = (200, 267)
 

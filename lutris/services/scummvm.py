@@ -11,7 +11,7 @@ from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.strings import slugify
 
-SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~/.config/scummvm"), "scummvm.ini")
+SCUMMVM_CONFIG_FILE = os.path.join(settings.XDG_CONFIG_DIR, "scummvm", "scummvm.ini")
 
 
 # Dummy banner. Maybe the download from lutris should be implemented at this place

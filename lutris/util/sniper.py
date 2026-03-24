@@ -4,11 +4,12 @@ import os
 from functools import lru_cache
 from typing import List, Optional
 
+from lutris import settings
 from lutris.util.log import logger
 
 _SNIPER_SEARCH_PATHS = [
-    os.path.expanduser("~/.local/share/umu/run-in-sniper"),
-    os.path.expanduser("~/.local/share/Steam/steamapps/common/SteamLinuxRuntime_sniper/run-in-sniper"),
+    os.path.join(settings.XDG_DATA_DIR, "umu/run-in-sniper"),
+    os.path.join(settings.XDG_DATA_DIR, "Steam/steamapps/common/SteamLinuxRuntime_sniper/run-in-sniper"),
 ]
 
 # Host library base directories. Inside the Sniper container, the host
@@ -31,8 +32,8 @@ def get_sniper_run_command() -> Optional[str]:
     """Return the path to the run-in-sniper script, or None if not found.
 
     Searches in order:
-      1. umu-launcher installation (~/.local/share/umu/)
-      2. Steam installation (~/.local/share/Steam/)
+      1. umu-launcher installation ($XDG_DATA_HOME/umu/)
+      2. Steam installation ($XDG_DATA_HOME/Steam/)
     """
     for path in _SNIPER_SEARCH_PATHS:
         if os.path.isfile(path) and os.access(path, os.X_OK):

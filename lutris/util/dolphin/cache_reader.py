@@ -2,9 +2,10 @@
 
 import os
 
+from lutris import settings
 from lutris.util.log import logger
 
-DOLPHIN_GAME_CACHE_FILE = os.path.expanduser("~/.cache/dolphin-emu/gamelist.cache")
+DOLPHIN_GAME_CACHE_FILE = os.path.join(settings.XDG_CACHE_DIR, "dolphin-emu/gamelist.cache")
 SUPPORTED_CACHE_VERSION = 24
 
 

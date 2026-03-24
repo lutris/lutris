@@ -3,6 +3,7 @@ import os
 from gettext import gettext as _
 from shutil import copyfile
 
+from lutris import settings
 from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -50,7 +51,7 @@ class ryujinx(Runner):
     @property
     def ryujinx_data_dir(self):
         """Return dir where Ryujinx files lie."""
-        candidates = ("~/.local/share/ryujinx",)
+        candidates = (os.path.join(settings.XDG_DATA_DIR, "ryujinx"),)
         for candidate in candidates:
             path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "nand"))
             if system.path_exists(path):

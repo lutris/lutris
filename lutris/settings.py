@@ -19,17 +19,20 @@ COPYRIGHT = _("(c) 2009 Lutris Team")
 AUTHORS = [_("The Lutris team")]
 
 # Paths
-CONFIG_DIR = os.path.join(GLib.get_user_config_dir(), "lutris")
-DATA_DIR = os.path.join(GLib.get_user_data_dir(), "lutris")
+XDG_CONFIG_DIR = GLib.get_user_config_dir()
+CONFIG_DIR = os.path.join(XDG_CONFIG_DIR, "lutris")
+XDG_DATA_DIR = GLib.get_user_data_dir()
+DATA_DIR = os.path.join(XDG_DATA_DIR, "lutris")
 if not os.path.exists(CONFIG_DIR):
-    # Set the config dir to ~/.local/share/lutris as we're deprecating ~/.config/lutris
+    # Set the config dir to $XDG_DATA_HOME/lutris as we're deprecating $XDG_CONFIG_HOME/lutris
     CONFIG_DIR = DATA_DIR
 CONFIG_FILE = os.path.join(CONFIG_DIR, "lutris.conf")
 sio = SettingsIO(CONFIG_FILE)
 
 RUNNER_DIR = sio.read_setting("runner_dir") or os.path.join(DATA_DIR, "runners")
 RUNTIME_DIR = sio.read_setting("runtime_dir") or os.path.join(DATA_DIR, "runtime")
-CACHE_DIR = sio.read_setting("cache_dir") or os.path.join(GLib.get_user_cache_dir(), "lutris")
+XDG_CACHE_DIR = GLib.get_user_cache_dir()
+CACHE_DIR = sio.read_setting("cache_dir") or os.path.join(XDG_CACHE_DIR, "lutris")
 TMP_DIR = os.path.join(CACHE_DIR, "tmp")
 GAME_CONFIG_DIR = os.path.join(CONFIG_DIR, "games")
 RUNNERS_CONFIG_DIR = os.path.join(CONFIG_DIR, "runners")

@@ -3,6 +3,7 @@ import os
 from gettext import gettext as _
 from shutil import copyfile
 
+from lutris import settings
 from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -51,7 +52,7 @@ class yuzu(Runner):
     @property
     def yuzu_data_dir(self):
         """Return dir where Yuzu files lie."""
-        candidates = ("~/.local/share/yuzu",)
+        candidates = (os.path.join(settings.XDG_DATA_DIR, "yuzu"),)
         for candidate in candidates:
             path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "nand"))
             if system.path_exists(path):

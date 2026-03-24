@@ -26,6 +26,7 @@ from gettext import gettext as _
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+from lutris import settings
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 
@@ -596,10 +597,10 @@ def get_cloud_save_locations(access_token: str, client_id: str, platform: str = 
 GOG_VARIABLE_MAP_LINUX_NATIVE = {
     "INSTALL": "",  # Will be set per-game
     "DOCUMENTS": str(Path.home() / "Documents"),
-    "APPLICATION_DATA_LOCAL": str(Path.home() / ".local" / "share"),
-    "APPLICATION_DATA_LOCAL_LOW": str(Path.home() / ".local" / "share"),
-    "APPLICATION_DATA_ROAMING": str(Path.home() / ".config"),
-    "SAVED_GAMES": str(Path.home() / ".local" / "share"),
+    "APPLICATION_DATA_LOCAL": str(settings.XDG_DATA_DIR),
+    "APPLICATION_DATA_LOCAL_LOW": str(settings.XDG_DATA_DIR),
+    "APPLICATION_DATA_ROAMING": str(settings.XDG_CONFIG_DIR),
+    "SAVED_GAMES": str(settings.XDG_DATA_DIR),
     "APPLICATION_SUPPORT": "",  # Not applicable on Linux
 }
 

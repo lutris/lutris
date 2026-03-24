@@ -14,8 +14,8 @@ from lutris.util.steam.vdfutils import vdf_parse
 STEAM_DATA_DIRS = (
     "~/.steam/debian-installation",
     "~/.steam",
-    "~/.local/share/steam",
-    "~/.local/share/Steam",
+    f"{settings.XDG_DATA_DIR}/steam",
+    f"{settings.XDG_DATA_DIR}/Steam",
     "~/snap/steam/common/.local/share/Steam",
     "~/.steam/steam",
     "~/.var/app/com.valvesoftware.Steam/data/steam",

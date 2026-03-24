@@ -50,6 +50,7 @@ get_game_scoped_token = _mod.get_game_scoped_token
 get_relative_path = _mod.get_relative_path
 resolve_save_path = _mod.resolve_save_path
 
+from lutris import settings
 from lutris.util.http import HTTPError
 
 
@@ -629,7 +630,7 @@ class TestResolveSavePath(unittest.TestCase):
     def test_native_linux_appdata_local(self):
         loc = CloudSaveLocation(name="saves", location="<?APPLICATION_DATA_LOCAL?>/TestGame")
         result = resolve_save_path(loc, "/opt/games/mygame", is_native=True)
-        expected = os.path.normpath(str(Path.home() / ".local" / "share" / "TestGame"))
+        expected = os.path.normpath(str(Path(settings.XDG_DATA_DIR) / "TestGame"))
         self.assertEqual(result, expected)
 
     def test_wine_userprofile_documents(self):

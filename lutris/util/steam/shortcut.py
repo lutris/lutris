@@ -7,6 +7,7 @@ import shlex
 import shutil
 from pathlib import Path
 
+from lutris import settings
 from lutris.api import format_installer_url
 from lutris.util import resources, system
 from lutris.util.log import logger
@@ -180,8 +181,8 @@ def generate_standalone_shortcut(game, launch_config_name):
     return {
         "appid": generate_shortcut_id(game),
         "AppName": game.name,
-        "Exe": f'"{Path.home()!s}/.local/share/applications/lutris-{game.slug}.sh"',
-        "StartDir": f'"{Path.home()!s}/.local/share/applications/"',
+        "Exe": f'"{settings.DATA_DIR}/applications/lutris-{game.slug}.sh"',
+        "StartDir": f'"{settings.DATA_DIR}/applications/"',
         "icon": resources.get_icon_path(game.slug),
         "LaunchOptions": launch_options,
         "IsHidden": 0,

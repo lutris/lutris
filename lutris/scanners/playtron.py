@@ -4,6 +4,7 @@ import json
 import os
 from typing import Dict, List, Optional, Tuple
 
+from lutris import settings
 from lutris.api import get_api_games
 from lutris.config import write_game_config
 from lutris.database import sql
@@ -63,8 +64,8 @@ def _get_library_paths() -> List[str]:
     """Return all potential Playtron library paths (home + mounted drives)"""
     paths = []
 
-    # Home directory
-    home_data = os.path.expanduser("~/.local/share")
+    # $XDG_DATA_HOME directory
+    home_data = settings.XDG_DATA_DIR
     if os.path.isdir(os.path.join(home_data, DEFAULT_APPS_DIR)):
         paths.append(home_data)
 
