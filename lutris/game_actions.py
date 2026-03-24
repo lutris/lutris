@@ -5,7 +5,7 @@
 import os
 from gettext import gettext as _
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, cast
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gi.repository import Gio, Gtk
 
@@ -36,6 +36,7 @@ from lutris.util.system import path_exists
 
 if TYPE_CHECKING:
     from lutris.gui.application import LutrisApplication
+    from lutris.gui.lutriswindow import LutrisWindow
 
 
 class GameActions:
@@ -44,9 +45,9 @@ class GameActions:
     it also includes the code for actions that are shared between the subclasses. It also has methods for
     actions that are invokes externally by the GameBar."""
 
-    def __init__(self, window: Gtk.Window, application: "LutrisApplication" = None):
+    def __init__(self, window: "LutrisWindow", application: "LutrisApplication" = None) -> None:
         self.application: "LutrisApplication" = application or Gio.Application.get_default()
-        self.window = window  # also used as a LaunchUIDelegate and InstallUIDelegate
+        self.window = window
 
     def get_games(self) -> List[Game]:
         """Return the list of games that the actions apply to."""
@@ -115,7 +116,7 @@ class GameActions:
             if not game.slug:
                 game_id = game.id if game.is_db_stored else game.name
                 raise RuntimeError("No game to install: %s" % game_id)
-            game.install(launch_ui_delegate=cast(LaunchUIDelegate, self.window))
+            game.install(launch_ui_delegate=self.window)
 
     def on_add_favorite_game(self, _widget: Gtk.Widget) -> None:
         """Add to favorite Games list"""
@@ -208,7 +209,7 @@ class MultiGameActions(GameActions):
     are 'db stored' games, not service games. This supports a subset of the actions
     of SingleGameActions."""
 
-    def __init__(self, games: List[Game], window: Gtk.Window, application: "LutrisApplication" = None):
+    def __init__(self, games: List[Game], window: "LutrisWindow", application: "LutrisApplication" = None):
         super().__init__(window, application)
         self.games = games
 
@@ -245,7 +246,7 @@ class SingleGameActions(GameActions):
     not a service game. This provides the largest selection of actions, including many
     that are unique to it."""
 
-    def __init__(self, game: Game, window: Gtk.Window, application: "LutrisApplication" = None):
+    def __init__(self, game: Game, window: "LutrisWindow", application: "LutrisApplication" = None):
         super().__init__(window, application)
         self.game = game
 
@@ -377,10 +378,10 @@ class SingleGameActions(GameActions):
             dialogs.NoticeDialog(_("Can't open %s \nThe folder doesn't exist.") % path)
 
     def on_install_dlc_clicked(self, _widget: Gtk.Widget) -> None:
-        self.game.install_dlc(install_ui_delegate=cast(LaunchUIDelegate, self.window))
+        self.game.install_dlc(install_ui_delegate=self.window)
 
     def on_update_clicked(self, _widget: Gtk.Widget) -> None:
-        self.game.install_updates(install_ui_delegate=cast(LaunchUIDelegate, self.window))
+        self.game.install_updates(install_ui_delegate=self.window)
 
     def on_create_menu_shortcut(self, *_args: Any) -> None:
         """Add the selected game to the system's Games menu."""
@@ -509,7 +510,7 @@ class ServiceGameActions(GameActions):
     """This actions class supports a single service game, which has an idiosyncratic set of
     actions."""
 
-    def __init__(self, game: Game, window: Gtk.Window, application: "LutrisApplication" = None):
+    def __init__(self, game: Game, window: "LutrisWindow", application: "LutrisApplication" = None):
         super().__init__(window, application)
         self.game = game
 
@@ -534,7 +535,7 @@ class ServiceGameActions(GameActions):
         }
 
 
-def get_game_actions(games: List[Game], window: Gtk.Window, application: "LutrisApplication" = None) -> GameActions:
+def get_game_actions(games: List[Game], window: "LutrisWindow", application: "LutrisApplication" = None) -> GameActions:
     """Creates a GameActions instance (which may be a subclass) for the list of games given. If
     it can't figure out a suitable class, it falls back to the base GameActions class, which
     provides no actions."""

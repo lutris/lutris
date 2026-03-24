@@ -82,11 +82,15 @@ class GameView:
         return self.get_game_actions_for_paths(self.get_selected())
 
     def get_game_actions_for_paths(self, paths) -> GameActions:
-        game_ids = []
-        for path in paths:
-            game_ids.append(self.get_game_id_for_path(path))
+        from lutris.gui.lutriswindow import LutrisWindow  # avoid circular import at module level
+
+        game_ids = [self.get_game_id_for_path(path) for path in paths]
         games = self._get_games_by_ids(game_ids)
-        return get_game_actions(games, window=self.get_toplevel())
+
+        window = self.get_toplevel()
+        if not isinstance(window, LutrisWindow):
+            raise TypeError("GameView must be contained in a LutrisWindow, not %s" % type(window).__name__)
+        return get_game_actions(games, window=window)
 
     def _get_games_by_ids(self, game_ids: List[str]) -> List[Game]:
         """Resolves a list of game-ids to a list of game objects,

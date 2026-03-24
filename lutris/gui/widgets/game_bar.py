@@ -1,5 +1,6 @@
 from datetime import datetime
 from gettext import gettext as _
+from typing import TYPE_CHECKING
 
 from gi.repository import Gtk, Pango
 
@@ -10,10 +11,15 @@ from lutris.game_actions import get_game_actions
 from lutris.gui.widgets.contextual_menu import update_action_widget_visibility
 from lutris.util.strings import gtk_safe
 
+if TYPE_CHECKING:
+    from lutris.gui.application import LutrisApplication
+    from lutris.gui.lutriswindow import LutrisWindow
+
 
 class GameBar(Gtk.Box):
-    def __init__(self, db_game, application, window):
-        """Create the game bar with a database row"""
+    def __init__(self, db_game: dict, application: "LutrisApplication", window: "LutrisWindow"):
+        """Create the game bar with a database row; db_game may be a DbGameDict
+        from the games DB or a DBServiceGame from the service games DB."""
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
             visible=True,
