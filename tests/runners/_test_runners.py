@@ -1,11 +1,10 @@
 import logging
 from unittest.mock import patch
 
-from _test_pga import DatabaseTester
-
 from lutris import runners
 from lutris.config import LutrisConfig
 from lutris.util.test_config import setup_test_environment
+from tests._test_pga import DatabaseTester
 
 LOGGER = logging.getLogger(__name__)
 setup_test_environment()
