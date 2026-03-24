@@ -1,6 +1,7 @@
 """Service package"""
 
 import os
+from typing import TYPE_CHECKING, Dict, Type
 
 from lutris import settings
 from lutris.services.amazon import AmazonService
@@ -26,10 +27,13 @@ from lutris.util import system
 from lutris.util.dolphin.cache_reader import DOLPHIN_GAME_CACHE_FILE
 from lutris.util.linux import LINUX_SYSTEM
 
+if TYPE_CHECKING:
+    from lutris.services.base import BaseService
+
 DEFAULT_SERVICES = ["gog", "egs", "ea_app", "ubisoft", "steam"]
 
 
-def get_services():
+def get_services() -> Dict[str, Type["BaseService"]]:
     """Return a mapping of available services"""
     _services = {
         "gog": GOGService,

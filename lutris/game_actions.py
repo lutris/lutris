@@ -5,7 +5,7 @@
 import os
 from gettext import gettext as _
 from pathlib import Path
-from typing import List
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, cast
 
 from gi.repository import Gio, Gtk
 
@@ -34,6 +34,9 @@ from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, slugify
 from lutris.util.system import path_exists
 
+if TYPE_CHECKING:
+    from lutris.gui.application import LutrisApplication
+
 
 class GameActions:
     """These classes provide a set of action to apply to a game or list of games, and can be used
@@ -41,15 +44,15 @@ class GameActions:
     it also includes the code for actions that are shared between the subclasses. It also has methods for
     actions that are invokes externally by the GameBar."""
 
-    def __init__(self, window: Gtk.Window, application=None):
-        self.application = application or Gio.Application.get_default()
+    def __init__(self, window: Gtk.Window, application: "LutrisApplication" = None):
+        self.application: "LutrisApplication" = application or Gio.Application.get_default()
         self.window = window  # also used as a LaunchUIDelegate and InstallUIDelegate
 
-    def get_games(self):
+    def get_games(self) -> List[Game]:
         """Return the list of games that the actions apply to."""
         return []
 
-    def get_game_actions(self):
+    def get_game_actions(self) -> List[Tuple[Optional[str], str, Optional[Callable[..., None]]]]:
         """Return a list of game actions and their callbacks, Each item is a tuple
         of two strs and a callable, the action ID, it's human-readable name, and
         a callback to invoke to perform it. Menu separators are represented hre
@@ -57,40 +60,40 @@ class GameActions:
         """
         return []
 
-    def get_displayed_entries(self):
+    def get_displayed_entries(self) -> Dict[str, bool]:
         """Return a dictionary of flags indicating which actions are visible; the keys
         are the action ids from get_game_actions(), and the values are booleans indicating
         the action's visibility."""
         return {}
 
     @property
-    def is_game_launchable(self):
+    def is_game_launchable(self) -> bool:
         for game in self.get_games():
             if game.is_installed and not self.is_game_running:
                 return True
 
         return False
 
-    def on_game_launch(self, *_args):
+    def on_game_launch(self, *_args: Any) -> None:
         """Launch a game"""
 
     @property
-    def is_game_running(self):
+    def is_game_running(self) -> bool:
         for game in self.get_games():
-            if game.is_db_stored and self.application.is_game_running_by_id(game.id):
+            if game.is_db_stored and self.application and self.application.is_game_running_by_id(game.id):
                 return True
         return False
 
-    def on_game_stop(self, *_args):
+    def on_game_stop(self, *_args: Any) -> None:
         """Stops the game"""
         games = self.get_running_games()
         for game in games:
             game.force_stop()
 
-    def get_running_games(self):
+    def get_running_games(self) -> List[Game]:
         running_games = []
         for game in self.get_games():
-            if game and game.is_db_stored:
+            if game and game.is_db_stored and self.application:
                 ids = self.application.get_running_game_ids()
                 for game_id in ids:
                     if game_id == game.id:
@@ -98,43 +101,43 @@ class GameActions:
         return running_games
 
     @property
-    def is_installable(self):
+    def is_installable(self) -> bool:
         for game in self.get_games():
             if not game.is_installed:
                 return True
 
         return False
 
-    def on_install_clicked(self, *_args):
+    def on_install_clicked(self, *_args: Any) -> None:
         """Install a game"""
         # Install the currently selected game in the UI
         for game in self.get_games():
             if not game.slug:
                 game_id = game.id if game.is_db_stored else game.name
                 raise RuntimeError("No game to install: %s" % game_id)
-            game.install(launch_ui_delegate=self.window)
+            game.install(launch_ui_delegate=cast(LaunchUIDelegate, self.window))
 
-    def on_add_favorite_game(self, _widget):
+    def on_add_favorite_game(self, _widget: Gtk.Widget) -> None:
         """Add to favorite Games list"""
         for game in self.get_games():
             game.mark_as_favorite(True)
 
-    def on_delete_favorite_game(self, _widget):
+    def on_delete_favorite_game(self, _widget: Gtk.Widget) -> None:
         """delete from favorites"""
         for game in self.get_games():
             game.mark_as_favorite(False)
 
-    def on_hide_game(self, _widget):
+    def on_hide_game(self, _widget: Gtk.Widget) -> None:
         """Add a game to the list of hidden games"""
         for game in self.get_games():
             game.mark_as_hidden(True)
 
-    def on_unhide_game(self, _widget):
+    def on_unhide_game(self, _widget: Gtk.Widget) -> None:
         """Removes a game from the list of hidden games"""
         for game in self.get_games():
             game.mark_as_hidden(False)
 
-    def on_locate_installed_game(self, *_args):
+    def on_locate_installed_game(self, *_args: Any) -> None:
         """Show the user a dialog to import an existing install to a DRM free service
 
         Params:
@@ -143,19 +146,19 @@ class GameActions:
         for game in self.get_games():
             AddGameDialog(self.window, game=game, runner=game.runner_name)
 
-    def on_view_game(self, _widget):
+    def on_view_game(self, _widget: Gtk.Widget) -> None:
         """Callback to open a game on lutris.net"""
         for game in self.get_games():
             open_uri("https://lutris.net/games/%s" % game.slug.replace("_", "-"))
 
-    def on_view_store(self, _widget):
+    def on_view_store(self, _widget: Gtk.Widget) -> None:
         """Callback to open a game's store page on the service"""
         for game in self.get_games():
             url = self._get_store_url(game)
             if url:
                 open_uri(url)
 
-    def _get_store_url(self, game):
+    def _get_store_url(self, game: Game) -> str:
         """Get the store URL for a game from its service"""
         service_name = game.service
         if not service_name or service_name not in SERVICES:
@@ -170,21 +173,21 @@ class GameActions:
         return ""
 
     @property
-    def is_game_removable(self):
+    def is_game_removable(self) -> bool:
         for game in self.get_games():
             if game.is_installed or game.is_db_stored:
                 return True
 
         return False
 
-    def on_remove_game(self, *_args):
+    def on_remove_game(self, *_args: Any) -> None:
         """Callback that present the uninstall dialog to the user"""
         game_ids = [g.id for g in self.get_games() if g.is_installed or g.is_db_stored]
-        application = Gio.Application.get_default()
+        application: "LutrisApplication" = Gio.Application.get_default()
         dlg = application.show_window(UninstallDialog, parent=self.window)
         dlg.add_games(game_ids)
 
-    def on_edit_game_categories(self, _widget):
+    def on_edit_game_categories(self, _widget: Gtk.Widget) -> None:
         """Edit game categories"""
         games = self.get_games()
         if len(games) == 1:
@@ -192,7 +195,7 @@ class GameActions:
             self.application.show_window(EditGameCategoriesDialog, game=games[0], parent=self.window)
         else:
 
-            def add_games(window):
+            def add_games(window: EditGameCategoriesDialog) -> None:
                 window.add_games(self.get_games())
 
             # Multi-select means a common categories window for all of them; we can wind
@@ -205,14 +208,14 @@ class MultiGameActions(GameActions):
     are 'db stored' games, not service games. This supports a subset of the actions
     of SingleGameActions."""
 
-    def __init__(self, games: List[Game], window: Gtk.Window, application=None):
+    def __init__(self, games: List[Game], window: Gtk.Window, application: "LutrisApplication" = None):
         super().__init__(window, application)
         self.games = games
 
-    def get_games(self):
+    def get_games(self) -> List[Game]:
         return self.games
 
-    def get_game_actions(self):
+    def get_game_actions(self) -> List[Tuple[Optional[str], str, Optional[Callable[..., None]]]]:
         return [
             ("stop", _("Stop"), self.on_game_stop),
             (None, "-", None),
@@ -225,7 +228,7 @@ class MultiGameActions(GameActions):
             ("remove", _("Remove"), self.on_remove_game),
         ]
 
-    def get_displayed_entries(self):
+    def get_displayed_entries(self) -> Dict[str, bool]:
         return {
             "stop": self.is_game_running,
             "category": True,
@@ -242,14 +245,14 @@ class SingleGameActions(GameActions):
     not a service game. This provides the largest selection of actions, including many
     that are unique to it."""
 
-    def __init__(self, game: Game, window: Gtk.Window, application=None):
+    def __init__(self, game: Game, window: Gtk.Window, application: "LutrisApplication" = None):
         super().__init__(window, application)
         self.game = game
 
-    def get_games(self):
+    def get_games(self) -> List[Game]:
         return [self.game]
 
-    def get_game_actions(self):
+    def get_game_actions(self) -> List[Tuple[Optional[str], str, Optional[Callable[..., None]]]]:
         return [
             ("play", _("Play"), self.on_game_launch),
             ("stop", _("Stop"), self.on_game_stop),
@@ -287,7 +290,7 @@ class SingleGameActions(GameActions):
             ("remove", _("Remove"), self.on_remove_game),
         ]
 
-    def get_displayed_entries(self):
+    def get_displayed_entries(self) -> Dict[str, bool]:
         """Return a dictionary of actions that should be shown for a game"""
 
         game = self.game
@@ -332,17 +335,17 @@ class SingleGameActions(GameActions):
             "unhide": game.is_hidden,
         }
 
-    def on_game_launch(self, *_args):
+    def on_game_launch(self, *_args: Any) -> None:
         """Launch a game"""
         game = self.game
         if game.is_installed and game.is_db_stored:
             if not self.application.is_game_running_by_id(game.id):
                 game.launch(launch_ui_delegate=self.window)
 
-    def on_execute_script_clicked(self, _widget):
+    def on_execute_script_clicked(self, _widget: Gtk.Widget) -> None:
         """Execute the game's associated script"""
         game = self.game
-        manual_command = game.runner.system_config.get("manual_command")
+        manual_command: str = game.runner.system_config.get("manual_command")
         if path_exists(manual_command):
             runner = game.runner
             env = runner.get_env()
@@ -351,19 +354,19 @@ class SingleGameActions(GameActions):
             ).start()
             logger.info("Running %s in the background", manual_command)
 
-    def on_show_logs(self, _widget):
+    def on_show_logs(self, _widget: Gtk.Widget) -> None:
         """Display game log"""
         game = self.game
         _buffer = game.log_buffer
         if not _buffer:
             logger.info("No log for game %s", game)
-        return LogWindow(game=game, buffer=_buffer, application=self.application)
+        LogWindow(game=game, buffer=_buffer, application=self.application)
 
-    def on_edit_game_configuration(self, _widget):
+    def on_edit_game_configuration(self, _widget: Gtk.Widget) -> None:
         """Edit game preferences"""
         self.application.show_window(EditGameConfigDialog, game=self.game, parent=self.window)
 
-    def on_browse_files(self, _widget):
+    def on_browse_files(self, _widget: Gtk.Widget) -> None:
         """Callback to open a game folder in the file browser"""
         path = self.game.get_browse_dir()
         if not path:
@@ -373,27 +376,27 @@ class SingleGameActions(GameActions):
         else:
             dialogs.NoticeDialog(_("Can't open %s \nThe folder doesn't exist.") % path)
 
-    def on_install_dlc_clicked(self, _widget):
-        self.game.install_dlc(install_ui_delegate=self.window)
+    def on_install_dlc_clicked(self, _widget: Gtk.Widget) -> None:
+        self.game.install_dlc(install_ui_delegate=cast(LaunchUIDelegate, self.window))
 
-    def on_update_clicked(self, _widget):
-        self.game.install_updates(install_ui_delegate=self.window)
+    def on_update_clicked(self, _widget: Gtk.Widget) -> None:
+        self.game.install_updates(install_ui_delegate=cast(LaunchUIDelegate, self.window))
 
-    def on_create_menu_shortcut(self, *_args):
+    def on_create_menu_shortcut(self, *_args: Any) -> None:
         """Add the selected game to the system's Games menu."""
         game = self.game
         launch_config_name = self._select_game_launch_config_name(game)
         if launch_config_name is not None:
             xdgshortcuts.create_launcher(game.slug, game.id, game.name, launch_config_name, menu=True)
 
-    def on_create_steam_shortcut(self, *_args):
+    def on_create_steam_shortcut(self, *_args: Any) -> None:
         """Add the selected game to steam as a nonsteam-game."""
         game = self.game
         launch_config_name = self._select_game_launch_config_name(game)
         if launch_config_name is not None:
             steam_shortcut.create_shortcut(game, launch_config_name)
 
-    def on_create_steam_bigpicture_shortcut(self, *_args):
+    def on_create_steam_bigpicture_shortcut(self, *_args: Any) -> None:
         """Add the selected game to steam as a nonsteam-game."""
         game = self.game
         launch_config_name = self._select_game_launch_config_name(game)
@@ -405,28 +408,28 @@ class SingleGameActions(GameActions):
                 gamepath = f"{Path.home()!s}/.local/share/applications/lutris-{game.slug}.sh"
                 generate_script(logger, LaunchUIDelegate(), db_game, gamepath)
 
-    def on_create_desktop_shortcut(self, *_args):
+    def on_create_desktop_shortcut(self, *_args: Any) -> None:
         """Create a desktop launcher for the selected game."""
         game = self.game
         launch_config_name = self._select_game_launch_config_name(game)
         if launch_config_name is not None:
             xdgshortcuts.create_launcher(game.slug, game.id, game.name, launch_config_name, desktop=True)
 
-    def on_remove_menu_shortcut(self, *_args):
+    def on_remove_menu_shortcut(self, *_args: Any) -> None:
         """Remove an XDG menu shortcut"""
         game = self.game
         xdgshortcuts.remove_launcher(game.slug, game.id, menu=True)
 
-    def on_remove_steam_shortcut(self, *_args):
+    def on_remove_steam_shortcut(self, *_args: Any) -> None:
         """Remove the selected game from list of non-steam apps."""
         steam_shortcut.remove_shortcut(self.game)
 
-    def on_remove_desktop_shortcut(self, *_args):
+    def on_remove_desktop_shortcut(self, *_args: Any) -> None:
         """Remove a .desktop shortcut"""
         game = self.game
         xdgshortcuts.remove_launcher(game.slug, game.id, desktop=True)
 
-    def on_game_duplicate(self, _widget):
+    def on_game_duplicate(self, _widget: Gtk.Widget) -> None:
         game = self.game
 
         duplicate_game_dialog = InputDialog(
@@ -484,7 +487,10 @@ class SingleGameActions(GameActions):
         # completes, no need to wait for it.
         AsyncCall(download_lutris_media, None, db_game["slug"])
 
-    def _select_game_launch_config_name(self, game):
+    def _select_game_launch_config_name(self, game: Game) -> Optional[str]:
+        if not game.config:
+            return None
+
         game_config = game.config.game_level.get("game", {})
         configs = game_config.get("launch_configs")
 
@@ -503,14 +509,14 @@ class ServiceGameActions(GameActions):
     """This actions class supports a single service game, which has an idiosyncratic set of
     actions."""
 
-    def __init__(self, game: Game, window: Gtk.Window, application=None):
+    def __init__(self, game: Game, window: Gtk.Window, application: "LutrisApplication" = None):
         super().__init__(window, application)
         self.game = game
 
-    def get_games(self):
+    def get_games(self) -> List[Game]:
         return [self.game]
 
-    def get_game_actions(self):
+    def get_game_actions(self) -> List[Tuple[Optional[str], str, Optional[Callable[..., None]]]]:
         return [
             ("install", _("Install"), self.on_install_clicked),
             ("add", _("Locate installed game"), self.on_locate_installed_game),
@@ -518,7 +524,7 @@ class ServiceGameActions(GameActions):
             ("view-store", _("View on store page"), self.on_view_store),
         ]
 
-    def get_displayed_entries(self):
+    def get_displayed_entries(self) -> Dict[str, bool]:
         """Return a dictionary of actions that should be shown for a game"""
         return {
             "install": self.is_installable,
@@ -528,7 +534,7 @@ class ServiceGameActions(GameActions):
         }
 
 
-def get_game_actions(games: List[Game], window: Gtk.Window, application=None) -> GameActions:
+def get_game_actions(games: List[Game], window: Gtk.Window, application: "LutrisApplication" = None) -> GameActions:
     """Creates a GameActions instance (which may be a subclass) for the list of games given. If
     it can't figure out a suitable class, it falls back to the base GameActions class, which
     provides no actions."""
