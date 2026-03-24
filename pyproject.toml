@@ -1,3 +1,51 @@
+[project]
+name = "lutris"
+version = "0.5.23"
+authors = [
+    {name = "Mathieu Comandon", email = "strider@strycore.com"}
+]
+description = """
+Lutris is a video game preservation platform that helps you install and play video games from all eras and from most gaming systems.
+By leveraging and combining existing emulators, engine re-implementations and compatibility layers, it gives you a central interface to launch all your games.
+"""
+readme = "README.md"
+requires-python = ">=3.10"
+
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+dependencies = [
+    "PyYAML",
+    "lxml",
+    "requests",
+    "Pillow",
+    "setproctitle",
+    "python-magic",
+    "distro",
+    "dbus-python",
+    "types-requests",
+    "types-PyYAML",
+    "evdev",
+    "PyGObject",
+    "pypresence",
+    "protobuf",
+    "moddb"
+]
+
+[project.urls]
+Homepage = "https://lutris.net/"
+Repository = "https://github.com/lutris/lutris"
+Issues = "https://github.com/lutris/lutris/issues"
+
+[dependency-groups]
+dev = [
+    "ruff==0.12.1",
+    "mypy==1.16.1",
+    "mypy-baseline",
+    "nose2",
+    "pygobject-stubs>=2.17.0"
+]
+
+
 [tool.mypy]
 python_version = "3.12"
 packages = [
