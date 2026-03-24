@@ -90,3 +90,24 @@ jobs:
         run: ruff check .
       - name: Check format
         run: ruff format . --check
+
+  unit-test:
+    name: UnitTest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Ubuntu dependencies
+        run: |
+          sudo apt update
+          sudo apt-get install libdbus-1-dev pkg-config libgirepository-2.0-dev python3-gi-cairo libcairo2-dev libgtk-3-dev libgdk-pixbuf-2.0-dev libgnome-desktop-3-dev libwebkit2gtk-4.1-dev
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          make req-python
+          make dev
+      - name: Run Unit Test
+        run: nose2 --exclude-ci
