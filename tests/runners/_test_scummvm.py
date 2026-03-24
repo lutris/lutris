@@ -4,6 +4,9 @@ from unittest.mock import patch
 from lutris.config import LutrisConfig
 from lutris.runners.runner import Runner
 from lutris.runners.scummvm import scummvm
+from lutris.util.test_config import setup_test_environment
+
+setup_test_environment()
 
 
 class TestScummvm(TestCase):
