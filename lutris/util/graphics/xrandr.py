@@ -15,9 +15,11 @@ Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary"
 
 def _get_vidmodes() -> List[str]:
     """Return video modes from XrandR"""
-    xrandr_output = read_process_output([LINUX_SYSTEM.get("xrandr")]).split("\n")
-    logger.debug("Retrieving %s video modes from XrandR", len(xrandr_output))
-    return xrandr_output
+    if xrandr_command := LINUX_SYSTEM.get("xrandr"):
+        xrandr_output = read_process_output([xrandr_command]).split("\n")
+        logger.debug("Retrieving %s video modes from XrandR", len(xrandr_output))
+        return xrandr_output
+    return []
 
 
 def get_outputs() -> List[Output]:

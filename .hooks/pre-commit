@@ -40,7 +40,7 @@ def main():
 
         if modified_python_files:
             # Run command existence checks
-            for command in ["mypy", "ruff"]:
+            for command in ["mypy", "ruff", "nose2"]:
                 command_path = shutil.which(command)
                 if not command_path:
                     error_list.append(
@@ -52,6 +52,7 @@ def main():
                 [sys.executable, "utils/check_annotations.py"],
                 ["ruff", "check"] + [str(f) for f in modified_python_files],
                 ["ruff", "format", "--check"] + [str(f) for f in modified_python_files],
+                ["nose2"]
             ]
             for check in checks_to_run:
                 comp_process = subprocess.run(check, capture_output=True)
