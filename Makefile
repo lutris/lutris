@@ -133,7 +133,7 @@ mypy:
 	mypy . --python-version 3.10 --install-types --non-interactive 2>&1 | mypy-baseline filter
 
 mypy-reset-baseline:  # Add new typing errors to mypy. Use sparingly.
-	mypy . --python-version 3.10--install-types --non-interactive 2>&1 | mypy-baseline sync
+	mypy . --python-version 3.10 --install-types --non-interactive 2>&1 | mypy-baseline sync
 
 # =============
 # Abbreviations
