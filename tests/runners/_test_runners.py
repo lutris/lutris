@@ -1,7 +1,7 @@
 import logging
 from unittest.mock import patch
 
-from test_pga import DatabaseTester
+from _test_pga import DatabaseTester
 
 from lutris import runners
 from lutris.config import LutrisConfig

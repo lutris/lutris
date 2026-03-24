@@ -2,6 +2,9 @@ from unittest import TestCase
 
 from lutris.installer.errors import ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
+from lutris.util.test_config import setup_test_environment
+
+setup_test_environment()
 
 TEST_INSTALLER = {
     "script": {"game": {"exe": "test"}},

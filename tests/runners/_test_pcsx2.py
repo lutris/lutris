@@ -3,6 +3,9 @@ from unittest.mock import MagicMock, patch
 
 from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.pcsx2 import pcsx2
+from lutris.util.test_config import setup_test_environment
+
+setup_test_environment()
 
 
 class TestPCSX2Runner(unittest.TestCase):

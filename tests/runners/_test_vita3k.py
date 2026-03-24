@@ -2,6 +2,9 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from lutris.runners.vita3k import MissingVitaTitleIDError, vita3k
+from lutris.util.test_config import setup_test_environment
+
+setup_test_environment()
 
 
 class TestVita3kRunner(unittest.TestCase):
