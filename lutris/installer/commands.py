@@ -124,6 +124,8 @@ class CommandsMixin:
                 args.append(self._substitute(arg))
             terminal = data.get("terminal")
             working_dir = data.get("working_dir")
+            if working_dir:
+                working_dir = self._substitute(working_dir)
             if not data.get("disable_runtime"):
                 # Possibly need to handle prefer_system_libs here
                 env.update(runtime.get_env())
@@ -161,8 +163,10 @@ class CommandsMixin:
 
         if terminal:
             terminal = linux.get_default_terminal()
-
-        if not working_dir or not os.path.exists(working_dir):
+        if working_dir and not os.path.isdir(working_dir):
+            logger.warning("Working directory %s doesn't exist or is not a directory, using target path instead", working_dir)
+            working_dir = None
+        if not working_dir:
             working_dir = self.target_path
 
         command = MonitoredCommand(
