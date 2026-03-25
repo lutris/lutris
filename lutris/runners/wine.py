@@ -708,10 +708,19 @@ class wine(Runner):
             # Find prefix from game if we have one
             _prefix_path = find_prefix(self.game_exe)
         game_slug = self.game_data.get("slug") if self.game_data else None
-        if not _prefix_path and game_slug:
-            # Fall back to per-profile Wine prefix directory
+        if game_slug:
             from lutris.profile import get_profile_manager
-            _prefix_path = get_profile_manager().get_wine_prefix_path(game_slug)
+            from lutris import settings as lutris_settings
+            pm = get_profile_manager()
+            if pm.current_profile_id:
+                profiles_dir = os.path.expanduser(lutris_settings.PROFILES_DIR)
+                current_profile_dir = pm.get_profile_dir()
+                # If the stored prefix belongs to a different profile, redirect to the current one
+                if _prefix_path and _prefix_path.startswith(profiles_dir) and not _prefix_path.startswith(current_profile_dir):
+                    _prefix_path = pm.get_wine_prefix_path(game_slug)
+            if not _prefix_path:
+                # Fall back to per-profile Wine prefix directory
+                _prefix_path = pm.get_wine_prefix_path(game_slug)
         if _prefix_path:
             _prefix_path = os.path.expanduser(_prefix_path)  # just in case!
         return _prefix_path
