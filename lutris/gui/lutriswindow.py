@@ -134,13 +134,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "recent": self.get_recent_games,
             "missing": self.get_missing_games,
             "running": self.get_running_games,
+            ".uncategorized": self.get_uncategorized_games,
         }
-
-        for smart_category in categories_db._SMART_CATEGORIES:
-            if smart_category.get_name() not in self.dynamic_categories_game_factories:
-                self.dynamic_categories_game_factories[smart_category.get_name()] = (
-                    lambda c=smart_category: self.filter_games(c.get_games())  # type: ignore
-                )
+        self.sortable_dynamic_categories: Set[str] = {".uncategorized", "missing", "running"}
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
@@ -434,8 +430,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     @property
     def is_view_sort_sensitive(self):
-        """True if the view sorting options will be effective; dynamic categories ignore them."""
-        return self.filters.get("dynamic_category") not in self.dynamic_categories_game_factories
+        """True if the view sorting options will be effective; most dynamic categories ignore them."""
+        dynamic = self.filters.get("dynamic_category")
+        return dynamic not in self.dynamic_categories_game_factories or dynamic in self.sortable_dynamic_categories
 
     def get_sort_sensitive_columns(self) -> Set[int]:
         if self.is_view_sort_sensitive:
@@ -556,11 +553,17 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def get_running_games(self):
         """Return a list of currently running games"""
-        return games_db.get_games_by_ids(self.application.get_running_game_ids())
+        games = games_db.get_games_by_ids(self.application.get_running_game_ids())
+        return self.apply_view_sort(self.filter_games(games))
+
+    def get_uncategorized_games(self):
+        """Return a list of games not in any category"""
+        games = self.filter_games(categories_db.get_uncategorized_games())
+        return self.apply_view_sort(games)
 
     def get_missing_games(self):
         games = games_db.get_games_by_ids(MISSING_GAMES.missing_game_ids)
-        return self.filter_games(games)
+        return self.apply_view_sort(self.filter_games(games))
 
     def update_missing_games_sidebar_row(self) -> None:
         missing_games = self.get_missing_games()

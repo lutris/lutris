@@ -1,51 +1,16 @@
-import abc
 import re
 from collections import defaultdict
 from itertools import repeat
-from typing import Any, Dict, List, Optional, Set, Tuple, TypeAlias, Union
+from typing import Any, Dict, List, Optional, Set, TypeAlias, Union
 
 from lutris import settings
 from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.gui.widgets import NotificationSource
-from lutris.util.strings import get_natural_sort_key
 
 CATEGORIES_UPDATED = NotificationSource()
 
 DbCategoryDict: TypeAlias = Dict[str, Any]
-
-
-class _SmartCategory(abc.ABC):
-    """Abstract class to define smart categories. Smart categories are automatically defined based on a rule."""
-
-    @abc.abstractmethod
-    def get_name(self) -> str:
-        pass
-
-    def get_game_ids(self) -> Set[str]:
-        return set(game["id"] for game in self.get_games())
-
-    @abc.abstractmethod
-    def get_games(self) -> List[Any]:
-        pass
-
-
-class _SmartUncategorizedCategory(_SmartCategory):
-    """A SmartCategory that resolves to all uncategorized games."""
-
-    def get_name(self) -> str:
-        return ".uncategorized"
-
-    def get_game_ids(self) -> Set[str]:
-        return get_uncategorized_game_ids()
-
-    def get_games(self) -> List[Any]:
-        return get_uncategorized_games()
-
-
-# All smart categories should be added to this variable.
-# TODO: Expose a way for the users to define new smart categories.
-_SMART_CATEGORIES: List[_SmartCategory] = [_SmartUncategorizedCategory()]
 
 
 def strip_category_name(name: str) -> str:
@@ -145,12 +110,10 @@ def get_game_ids_for_categories(
         query += " WHERE %s" % " AND ".join(filters)
 
     result = set(str(game["id"]) for game in sql.db_query(settings.DB_PATH, query, tuple(parameters)))
-    for smart_cat in _SMART_CATEGORIES:
-        if excluded_category_names is not None and smart_cat.get_name() in excluded_category_names:
-            continue
-        if included_category_names is not None and smart_cat.get_name() not in included_category_names:
-            continue
-        result |= smart_cat.get_game_ids()
+
+    if included_category_names is None or ".uncategorized" in included_category_names:
+        if excluded_category_names is None or ".uncategorized" not in excluded_category_names:
+            result |= get_uncategorized_game_ids()
 
     return list(sorted(result))
 
@@ -171,17 +134,8 @@ def get_uncategorized_game_ids() -> Set[str]:
 
 
 def get_uncategorized_games() -> List[Any]:
-    """Return a list of currently running games"""
-    games = games_db.get_games_by_ids(get_uncategorized_game_ids())
-
-    def get_key(g: Dict[str, Any]) -> Tuple[bool, str]:
-        """Sort in the default order for Lutris- installed games first, then by name."""
-        name = str(g.get("name") or "")
-        installed = bool(g.get("installed"))
-        return not installed, get_natural_sort_key(name)
-
-    games.sort(key=get_key)
-    return games
+    """Return all games that are in no categories (excluding 'all' and 'favorite')."""
+    return games_db.get_games_by_ids(get_uncategorized_game_ids())
 
 
 def get_categories_in_game(game_id: str) -> list[str]:
