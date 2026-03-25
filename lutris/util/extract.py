@@ -210,6 +210,7 @@ def _extract_7zip(path: str, dest: str, archive_type: str = None) -> None:
         command.append("-t{}".format(archive_type))
     subprocess.call(command)
 
+
 def _get_7zip_path() -> str:
     """Return the path where 7zip is installed"""
     for bin_name in ["7z", "7za"]:
@@ -221,6 +222,7 @@ def _get_7zip_path() -> str:
         return system.find_required_executable("7z")
     except MissingExecutableError:
         return system.find_required_executable("7za")
+
 
 def _extract_exe(path: str, dest: str) -> None:
     if _check_inno_exe(path):
