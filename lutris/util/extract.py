@@ -204,23 +204,30 @@ def _decompress_gz(file_path: str, dest_path: str):
 
 
 def _extract_7zip(path: str, dest: str, archive_type: str = None) -> None:
-    _7zip_path = os.path.join(settings.RUNTIME_DIR, "p7zip/7z")
-    if not system.path_exists(_7zip_path):
-        _7zip_path = system.find_required_executable("7z")
+    _7zip_path = _get_7zip_path()
     command = [_7zip_path, "x", path, "-o{}".format(dest), "-aoa"]
     if archive_type and archive_type != "auto":
         command.append("-t{}".format(archive_type))
     subprocess.call(command)
 
+def _get_7zip_path() -> str:
+    """Return the path where 7zip is installed"""
+    for bin_name in ["7z", "7za"]:
+        _7zip_path = os.path.join(settings.RUNTIME_DIR, f"p7zip/{bin_name}")
+        if system.path_exists(_7zip_path):
+            return _7zip_path
+    logger.warning("7z/7za not available in the runtime folder, using system version")
+    try:
+        return system.find_required_executable("7z")
+    except MissingExecutableError:
+        return system.find_required_executable("7za")
 
 def _extract_exe(path: str, dest: str) -> None:
     if _check_inno_exe(path):
         _decompress_gog(path, dest)
     else:
         # use 7za to check if exe is an archive
-        _7zip_path = os.path.join(settings.RUNTIME_DIR, "p7zip/7z")
-        if not system.path_exists(_7zip_path):
-            _7zip_path = system.find_required_executable("7z")
+        _7zip_path = _get_7zip_path()
         command = [_7zip_path, "t", path]
         return_code = subprocess.call(command)
         if return_code == 0:
