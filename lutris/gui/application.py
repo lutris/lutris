@@ -342,8 +342,41 @@ class LutrisApplication(Gtk.Application):
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
 
+    def _should_show_profile_selector(self) -> bool:
+        """Return True if the startup profile selector should be displayed.
+
+        - "0"  in settings → always skip
+        - "1"  in settings → always show
+        - absent           → show automatically when more than one profile exists
+        """
+        from lutris.gui.dialogs.profile_selector import SETTING_KEY
+        from lutris.profile import get_profile_manager
+
+        setting = settings.read_setting(SETTING_KEY)
+        if setting == "0":
+            return False
+        if setting == "1":
+            return True
+        return len(get_profile_manager().get_all_profiles()) > 1
+
     def do_activate(self):  # pylint: disable=arguments-differ
         if not self.window:
+            if self._should_show_profile_selector():
+                # Apply app CSS to the default screen so the selector can use
+                # .profile-card styles before LutrisWindow is created.
+                from gi.repository import Gdk
+
+                default_screen = Gdk.Screen.get_default()
+                if default_screen:
+                    Gtk.StyleContext.add_provider_for_screen(
+                        default_screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+                    )
+                from lutris.gui.dialogs.profile_selector import ProfileSelectorDialog
+
+                dialog = ProfileSelectorDialog()
+                dialog.run()
+                dialog.destroy()
+
             self.window = LutrisWindow(application=self)
             screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
