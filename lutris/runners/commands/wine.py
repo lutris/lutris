@@ -146,7 +146,7 @@ def create_prefix(
     # exist. For example, if the prefix is /mnt/a/b/c/d but the parent directory
     # /mnt/a/b/c does not exist, it is not allowed.
     if not os.path.exists(os.path.dirname(prefix)):
-        raise RuntimeError(_("Can't create prefix: Directory '%s' not found.") % os.path.dirname(prefix))
+        os.makedirs(os.path.dirname(prefix), exist_ok=True)
 
     if not os.path.exists(prefix):
         _stat = os.lstat(os.path.dirname(prefix))
@@ -420,6 +420,10 @@ def wineexec(
     else:
         command_parameters.append(wine_path)
     if executable:
+        if proton.is_proton_path(wine_path) and executable.startswith("/"):
+            # Convert Unix path to Windows Z: path to prevent UMU from using
+            # "start /unix" (ShellExecuteEx), which fails on some paths (ISOs, etc.)
+            executable = "Z:" + executable.replace("/", "\\")
         command_parameters.append(executable)
     command_parameters += split_arguments(args)
 
