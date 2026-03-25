@@ -164,7 +164,9 @@ class CommandsMixin:
         if terminal:
             terminal = linux.get_default_terminal()
         if working_dir and not os.path.isdir(working_dir):
-            logger.warning("Working directory %s doesn't exist or is not a directory, using target path instead", working_dir)
+            logger.warning(
+                "Working directory %s doesn't exist or is not a directory, using target path instead", working_dir
+            )
             working_dir = None
         if not working_dir:
             working_dir = self.target_path
