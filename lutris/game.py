@@ -18,6 +18,7 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
+from lutris.database.profiles import get_profile_game_stats, update_profile_game_stats
 from lutris.exception_backstops import watch_game_errors
 from lutris.exceptions import GameConfigError, InvalidGameMoveError, MissingExecutableError
 from lutris.gui.widgets import NotificationSource
@@ -102,6 +103,7 @@ class Game:
         self.is_installed = bool(game_data.get("installed") and self.game_config_id)
         self.platform = game_data.get("platform") or ""
         self.year = game_data.get("year") or ""
+        # Load base stats from the shared games table (used as fallback)
         self.lastplayed = game_data.get("lastplayed") or 0
         self.custom_images = set()
         if game_data.get("has_custom_banner"):
@@ -117,6 +119,10 @@ class Game:
         except ValueError as ex:
             logger.exception("Unable to parse playtime '%s' for game %s: %s", game_data.get("playtime"), self.slug, ex)
             self.playtime = 0.0
+
+        # Override with per-profile stats if available
+        if self.id:
+            self._load_profile_stats()
 
         self.discord_id = game_data.get("discord_id")  # Discord App ID for RPC
 
@@ -325,7 +331,16 @@ class Game:
         if not self.is_installed or not self.game_config_id:
             return None
         if not self._config:
-            self._config = LutrisConfig(runner_slug=self.runner_name, game_config_id=self.game_config_id)
+            try:
+                from lutris.profile import get_profile_manager
+                profile_id = get_profile_manager().current_profile_id
+            except Exception:
+                profile_id = None
+            self._config = LutrisConfig(
+                runner_slug=self.runner_name,
+                game_config_id=self.game_config_id,
+                profile_id=profile_id,
+            )
         return self._config
 
     @config.setter
@@ -539,10 +554,28 @@ class Game:
         games_db.update_existing(id=self.id, slug=self.slug, platform=self.platform)
         GAME_UPDATED.fire(self)
 
+    def _load_profile_stats(self) -> None:
+        """Override playtime/lastplayed with per-profile values if they exist."""
+        try:
+            from lutris.profile import get_profile_manager
+            profile_id = get_profile_manager().current_profile_id
+            stats = get_profile_game_stats(profile_id, int(self.id))
+            if stats:
+                self.playtime = stats["playtime"]
+                self.lastplayed = stats["lastplayed"]
+        except Exception as ex:
+            logger.debug("Could not load profile stats for %s: %s", self, ex)
+
     def save_lastplayed(self) -> None:
-        """Save only the lastplayed field- do not restore any other values the user may have changed
-        in another window."""
+        """Save lastplayed and playtime: writes to both the shared games table and
+        the per-profile stats table so that each profile tracks its own history."""
         games_db.update_existing(id=self.id, slug=self.slug, lastplayed=self.lastplayed, playtime=self.playtime)
+        try:
+            from lutris.profile import get_profile_manager
+            profile_id = get_profile_manager().current_profile_id
+            update_profile_game_stats(profile_id, int(self.id), self.playtime, self.lastplayed)
+        except Exception as ex:
+            logger.debug("Could not save profile stats for %s: %s", self, ex)
         GAME_UPDATED.fire(self)
 
     def check_launchable(self) -> bool:
