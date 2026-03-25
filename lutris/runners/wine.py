@@ -699,29 +699,26 @@ class wine(Runner):
 
         Resolution order (first non-empty wins):
         1. Explicitly provided via constructor (_prefix)
-        2. Game config YAML ("prefix" key)
-        3. WINEPREFIX environment variable
-        4. Auto-detection from the game executable path
-        5. Per-profile default path  (~/.local/share/lutris/profiles/{id}/wine-prefixes/{slug}/)
+        2. Per-profile path (~/.local/share/lutris/profiles/{id}/wine-prefixes/{slug}/)
+        3. Game config YAML ("prefix" key)
+        4. WINEPREFIX environment variable
+        5. Auto-detection from the game executable path
         """
-        _prefix_path = self._prefix or self.game_config.get("prefix") or os.environ.get("WINEPREFIX")
-        if not _prefix_path and self.game_config.get("exe"):
-            # Find prefix from game if we have one
-            _prefix_path = find_prefix(self.game_exe)
+        # Explicit constructor override wins over everything
+        _prefix_path = self._prefix
         game_slug = self.game_data.get("slug") if self.game_data else None
-        if game_slug:
+        if game_slug and not _prefix_path:
+            # Per-profile prefix takes priority over game config to ensure
+            # each profile gets its own isolated Wine prefix (saves, etc.)
             from lutris.profile import get_profile_manager
-            from lutris import settings as lutris_settings
             pm = get_profile_manager()
-            if pm.current_profile_id:
-                profiles_dir = os.path.expanduser(lutris_settings.PROFILES_DIR)
-                current_profile_dir = pm.get_profile_dir()
-                # If the stored prefix belongs to a different profile, redirect to the current one
-                if _prefix_path and _prefix_path.startswith(profiles_dir) and not _prefix_path.startswith(current_profile_dir):
-                    _prefix_path = pm.get_wine_prefix_path(game_slug)
-            if not _prefix_path:
-                # Fall back to per-profile Wine prefix directory
-                _prefix_path = pm.get_wine_prefix_path(game_slug)
+            _prefix_path = pm.get_wine_prefix_path(game_slug)
+        if not _prefix_path:
+            # No profile system or no slug: fall back to game config / env
+            _prefix_path = self.game_config.get("prefix") or os.environ.get("WINEPREFIX")
+            if not _prefix_path and self.game_config.get("exe"):
+                # Find prefix from game if we have one
+                _prefix_path = find_prefix(self.game_exe)
         if _prefix_path:
             _prefix_path = os.path.expanduser(_prefix_path)  # just in case!
         return _prefix_path
