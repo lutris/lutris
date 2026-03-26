@@ -1,5 +1,5 @@
 import os
-from typing import Callable, Iterable, Optional
+from collections.abc import Callable, Iterable
 
 from gi.repository import Gio, GLib, GObject
 
@@ -20,8 +20,8 @@ class TrashPortal(GObject.Object):
     def __init__(
         self,
         file_paths: Iterable[str],
-        completion_function: Optional[CompletionFunction] = None,
-        error_function: Optional[ErrorFunction] = None,
+        completion_function: CompletionFunction | None = None,
+        error_function: ErrorFunction | None = None,
     ):
         super().__init__()
         self.file_paths = list(file_paths)

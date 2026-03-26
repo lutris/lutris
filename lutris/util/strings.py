@@ -8,7 +8,6 @@ import unicodedata
 import uuid
 from dataclasses import dataclass
 from gettext import gettext as _
-from typing import List, Optional, Tuple, Union
 
 from gi.repository import GLib
 
@@ -87,13 +86,13 @@ def get_natural_sort_key(value: str, number_width: int = 16) -> str:
     return "".join(runs)
 
 
-def lookup_strings_in_text(string: str, text: str) -> List[str]:
+def lookup_strings_in_text(string: str, text: str) -> list[str]:
     """Return each full line where a string was found in the multi-line text."""
     input_lines = text.split("\n")
     return [line for line in input_lines if string in line]
 
 
-def parse_version(version: str) -> Tuple[List[int], str, str]:
+def parse_version(version: str) -> tuple[list[int], str, str]:
     """Parse a version string
 
     Return a 3 element tuple containing:
@@ -118,7 +117,7 @@ def parse_version(version: str) -> Tuple[List[int], str, str]:
     return [int(p) for p in version_number.split(".")], suffix, prefix
 
 
-def unpack_dependencies(string: str) -> List[Union[str, Tuple[str, ...]]]:
+def unpack_dependencies(string: str) -> list[str | tuple[str, ...]]:
     """Parse a string to allow for complex dependencies
     Works in a similar fashion as Debian dependencies, separate dependencies
     are comma separated and multiple choices for satisfying a dependency are
@@ -128,7 +127,7 @@ def unpack_dependencies(string: str) -> List[Union[str, Tuple[str, ...]]]:
         [('quake-steam', 'quake-gog'), 'some-quake-mod']
     """
 
-    def _expand_dep(dep: str) -> Union[str, Tuple[str, ...]]:
+    def _expand_dep(dep: str) -> str | tuple[str, ...]:
         if "|" in dep:
             return tuple(option.strip() for option in dep.split("|") if option.strip())
         return dep.strip()
@@ -357,7 +356,7 @@ def parse_playtime_parts(text: str) -> PlaytimeParts:
     return playtime
 
 
-def _split_arguments(args: str, closing_quot: str = "", quotations: Optional[List[str]] = None) -> List[str]:
+def _split_arguments(args: str, closing_quot: str = "", quotations: list[str] | None = None) -> list[str]:
     if quotations is None:
         quotations = ["'", '"']
     try:
@@ -370,7 +369,7 @@ def _split_arguments(args: str, closing_quot: str = "", quotations: Optional[Lis
         return []
 
 
-def split_arguments(args: str) -> List[str]:
+def split_arguments(args: str) -> list[str]:
     """Wrapper around shlex.split that is more tolerant of errors"""
     if not args:
         # shlex.split seems to hangs when passed the None value

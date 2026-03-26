@@ -1,7 +1,7 @@
 import sys
 import threading
 import traceback
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from gi.repository import GLib  # type: ignore
 
@@ -80,7 +80,7 @@ class IdleTask:
     def __init__(self) -> None:
         """Initializes a task with no connection to a source, but also not completed; this can be
         connected to a source via the connect() method, unless it is completed first."""
-        self.source_id: Optional[int] = None
+        self.source_id: int | None = None
         self._is_completed = False
 
     def unschedule(self) -> None:

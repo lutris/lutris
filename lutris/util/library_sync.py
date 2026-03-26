@@ -1,6 +1,5 @@
 import json
 import time
-from typing import List, Optional
 
 from lutris import settings
 from lutris.api import read_api_key
@@ -69,7 +68,7 @@ class LibrarySyncer:
             game["service"] or "",
         )
 
-    def _get_game(self, remote_game) -> Optional[Game]:
+    def _get_game(self, remote_game) -> Game | None:
         """Return a Game instance from a remote API record"""
         conditions = {"slug": remote_game["slug"]}
         for cond_key in ("runner", "platform", "service"):
@@ -112,8 +111,8 @@ class LibrarySyncer:
 
     def _update_categories(self, game: Game, remote_game: dict):
         """Update the categories of a local game"""
-        game_categories: List[str] = game.get_categories()
-        remote_categories: List[str] = remote_game["categories"]
+        game_categories: list[str] = game.get_categories()
+        remote_categories: list[str] = remote_game["categories"]
         for category in game_categories:
             if category not in remote_categories and category in self.category_ids:
                 remove_category_from_game(game.id, self.category_ids[category], no_signal=True)

@@ -2,7 +2,6 @@
 
 import os
 from functools import lru_cache
-from typing import List, Optional
 
 from lutris.util.log import logger
 
@@ -27,7 +26,7 @@ _SNIPER_RUNTIME_LIB_DIRS = [
 ]
 
 
-def get_sniper_run_command() -> Optional[str]:
+def get_sniper_run_command() -> str | None:
     """Return the path to the run-in-sniper script, or None if not found.
 
     Searches in order:
@@ -44,7 +43,7 @@ def get_sniper_run_command() -> Optional[str]:
 
 
 @lru_cache(maxsize=1)
-def get_sniper_host_lib_paths() -> List[str]:
+def get_sniper_host_lib_paths() -> list[str]:
     """Discover host library directories and return them as /run/host/ paths
     for use inside the Sniper container.
 

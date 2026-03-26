@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Callable, Iterable, List, Optional
+from collections.abc import Callable, Iterable
 
 
-def clean_token(to_clean: Optional[str]) -> str:
+def clean_token(to_clean: str | None) -> str:
     """Removes quotes from a token, if they are present; if they are not, this strips whitespace
     off the token."""
     if to_clean is None:
@@ -15,7 +15,7 @@ def clean_token(to_clean: Optional[str]) -> str:
     return to_clean.strip()
 
 
-def tokenize_search(text: str, isolated_tokens: Iterable[str]) -> List[str]:
+def tokenize_search(text: str, isolated_tokens: Iterable[str]) -> list[str]:
     """Iterates through a text and breaks in into tokens. Every character of the text is present
     in exactly one token returned, all in order, so the original text can be reconstructed by concatenating the
     tokens.
@@ -61,7 +61,7 @@ def tokenize_search(text: str, isolated_tokens: Iterable[str]) -> List[str]:
         tokens.append(buffer)
         return tokens
 
-    def split_isolated_tokens(tokens: List[str]) -> None:
+    def split_isolated_tokens(tokens: list[str]) -> None:
         token_index = 0
         while token_index < len(tokens):
             token = tokens[token_index]
@@ -92,7 +92,7 @@ class TokenReader:
     """TokenReader reads through a list of tokens, like an iterator. But it can also peek ahead, and you
     can save and store your 'place' in the token list via the 'index' member."""
 
-    def __init__(self, tokens: List[str]) -> None:
+    def __init__(self, tokens: list[str]) -> None:
         self.tokens = tokens
         self.index = 0
 
@@ -100,7 +100,7 @@ class TokenReader:
         """True if get_token() and peek_token() will return None."""
         return self.index >= len(self.tokens)
 
-    def get_token(self, skip_space: bool = True) -> Optional[str]:
+    def get_token(self, skip_space: bool = True) -> str | None:
         """Returns the next token, and advances one token in the list. Returns None if
         the end of tokens has been reached. If 'skip_space' is true, this skips over
         whitespace tokens first (which means it can consume multiple tokens!)"""
@@ -116,7 +116,7 @@ class TokenReader:
         self.index += 1
         return token
 
-    def get_cleaned_token(self) -> Optional[str]:
+    def get_cleaned_token(self) -> str | None:
         """Returns the next token, skipping whitespace tokens. This method cleans the token
         with clean_token() if it is not None."""
 
@@ -126,7 +126,7 @@ class TokenReader:
 
         return None
 
-    def get_cleaned_token_sequence(self, stop_function: Callable[[TokenReader], bool]) -> Optional[str]:
+    def get_cleaned_token_sequence(self, stop_function: Callable[[TokenReader], bool]) -> str | None:
         """This reads token until the end of tokens, or until a stop token is reached;
         that stop token is not consumed. The tokens are concatenated, including white-space
         between them, and returns. Whitespace around the tokens is stripped.
@@ -156,7 +156,7 @@ class TokenReader:
             buffer += self.get_token(skip_space=False) or ""
         return clean_token(buffer) if buffer else None
 
-    def peek_token(self) -> Optional[str]:
+    def peek_token(self) -> str | None:
         """Returns the next token, or None if the end of tokens has been reached. However,
         will not advance - repeated calls return the same token."""
 
@@ -165,7 +165,7 @@ class TokenReader:
         self.index = saved_index
         return token
 
-    def peek_tokens(self, count: int) -> List[str]:
+    def peek_tokens(self, count: int) -> list[str]:
         """Returns the next 'count' tokens, or as many as are present before
         the end of tokens has been reached. However, this will not advance - repeated calls
         return the same tokens."""
