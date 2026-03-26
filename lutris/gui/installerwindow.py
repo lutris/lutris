@@ -444,7 +444,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         for script in installers:
             for item in ["description", "notes"]:
                 script[item] = script.get(item) or ""
-            for item in ["name", "runner", "version"]:
+            for item in ["name", "runner", "version", "script"]:
                 if item not in script:
                     raise ScriptingError(_('Missing field "%s" in install script') % item)
             for file_desc in script["script"].get("files", {}):

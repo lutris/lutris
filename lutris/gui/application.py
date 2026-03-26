@@ -363,7 +363,7 @@ class LutrisApplication(Gtk.Application):
             return kwargs["runner"].name
         if kwargs.get("installers"):
             installer = kwargs["installers"][0]
-            return installer.get("slug") or installer.get("game_slug")
+            return installer.get("slug") or installer.get("game_slug") or "Malformed script"
         if kwargs.get("game"):
             return kwargs["game"].id
         return str(kwargs)
