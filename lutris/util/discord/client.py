@@ -18,8 +18,8 @@ class DiscordRichPresenceClient(DiscordRichPresenceBase):
             self.clear()
 
         # Create a new Presence object with the desired app id
-        self.rpc = Presence(discord_id)
         try:
+            self.rpc = Presence(discord_id)
             self.rpc.connect()
         except DiscordNotFound:
             return
