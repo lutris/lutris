@@ -2,7 +2,7 @@ import bisect
 import os
 import threading
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 import requests
 
@@ -57,10 +57,10 @@ class Downloader:
         url: str,
         dest: str,
         overwrite: bool = False,
-        referer: Optional[str] = None,
+        referer: str | None = None,
         cookies: Any = None,
-        headers: Dict[str, str] = None,
-        session: Optional[requests.Session] = None,
+        headers: dict[str, str] | None = None,
+        session: requests.Session | None = None,
         chunk_size: int = DEFAULT_CHUNK_SIZE,
     ) -> None:
         self.url: str = url
@@ -92,7 +92,7 @@ class Downloader:
         self.progress_event = threading.Event()
 
         # Stall detection state
-        self._stall_start: Optional[float] = None  # monotonic time when speed first dropped
+        self._stall_start: float | None = None  # monotonic time when speed first dropped
         self._stall_bytes_at_start: int = 0  # downloaded_size when stall window started
 
     def _reset_stall_state(self) -> None:

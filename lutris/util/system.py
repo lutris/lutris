@@ -8,9 +8,10 @@ import stat
 import string
 import subprocess
 import zipfile
+from collections.abc import Iterable, Mapping, Sequence
 from gettext import gettext as _
 from pathlib import Path
-from typing import IO, Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple, Union
+from typing import IO
 
 from gi.repository import Gio, GLib
 
@@ -31,19 +32,19 @@ PROTECTED_HOME_FOLDERS = (
 )
 
 
-def get_environment() -> Dict[str, str]:
+def get_environment() -> dict[str, str]:
     """Return a safe to use copy of the system's environment.
     Values starting with BASH_FUNC can cause issues when written in a text file."""
     return {key: value for key, value in os.environ.items() if not key.startswith("BASH_FUNC")}
 
 
 def execute(
-    command: List[str],
-    env: Optional[Dict[str, str]] = None,
-    cwd: Optional[str] = None,
+    command: list[str],
+    env: dict[str, str] | None = None,
+    cwd: str | None = None,
     quiet: bool = False,
     shell: bool = False,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
 ) -> str:
     """
     Execute a system command and return its standard output; standard error is discarded.
@@ -63,13 +64,13 @@ def execute(
 
 
 def execute_with_error(
-    command: List[str],
-    env: Optional[Dict[str, str]] = None,
-    cwd: Optional[str] = None,
+    command: list[str],
+    env: dict[str, str] | None = None,
+    cwd: str | None = None,
     quiet: bool = False,
     shell: bool = False,
-    timeout: Optional[float] = None,
-) -> Tuple[str, str]:
+    timeout: float | None = None,
+) -> tuple[str, str]:
     """
     Execute a system command and return its standard output and; standard error in a tuple.
 
@@ -87,14 +88,14 @@ def execute_with_error(
 
 
 def _execute(
-    command: List[str],
-    env: Optional[Dict[str, str]] = None,
-    cwd: Optional[str] = None,
+    command: list[str],
+    env: dict[str, str] | None = None,
+    cwd: str | None = None,
     capture_stderr: bool = False,
     quiet: bool = False,
     shell: bool = False,
-    timeout: Optional[float] = None,
-) -> Tuple[str, str]:
+    timeout: float | None = None,
+) -> tuple[str, str]:
     # Check if the executable exists
     if not command:
         logger.error("No executable provided!")
@@ -138,7 +139,11 @@ def _execute(
 
 
 def spawn(
-    command: Sequence[str], env: Dict[str, str] = None, cwd: str = None, quiet: bool = False, shell: bool = False
+    command: Sequence[str],
+    env: dict[str, str] | None = None,
+    cwd: str | None = None,
+    quiet: bool = False,
+    shell: bool = False,
 ) -> None:
     """
     Execute a system command but discard its results and do not wait
@@ -181,7 +186,7 @@ def spawn(
 
 
 def read_process_output(
-    command: Sequence[str], timeout: int = 5, env: Mapping[str, str] = None, error_result: Optional[str] = ""
+    command: Sequence[str], timeout: int = 5, env: Mapping[str, str] | None = None, error_result: str | None = ""
 ) -> str:
     """Return the output of a command as a string; if 'error_result' is not None,
     returns that on errors. If it is, raises an exception instead."""
@@ -205,7 +210,7 @@ def get_md5_in_zip(filename: str) -> str:
     return _hash
 
 
-def get_md5_hash(filename: str) -> Union[bool, str]:
+def get_md5_hash(filename: str) -> bool | str:
     """Return the md5 hash of a file."""
     try:
         with open(filename, "rb") as _file:
@@ -249,7 +254,7 @@ def can_find_executable(exec_name: str) -> bool:
     return bool(find_executable(exec_name))
 
 
-def find_executable(exec_name: str) -> Optional[str]:
+def find_executable(exec_name: str) -> str | None:
     """Return the absolute path of an executable, or None if
     it could not be found."""
     if not exec_name:
@@ -274,7 +279,7 @@ def find_required_executable(exec_name: str) -> str:
     return exe
 
 
-def get_pid(program: str, multiple: bool = False) -> Optional[Union[str, List[str]]]:
+def get_pid(program: str, multiple: bool = False) -> str | list[str] | None:
     """Return pid of process.
 
     :param str program: Name of the process.
@@ -290,7 +295,7 @@ def get_pid(program: str, multiple: bool = False) -> Optional[Union[str, List[st
     return pids[0]
 
 
-def is_process_running(pattern: str, filter_string: Optional[str] = None) -> bool:
+def is_process_running(pattern: str, filter_string: str | None = None) -> bool:
     """Check if a process matching a pattern is running.
 
     Uses pgrep -f to match against the full command line.
@@ -323,7 +328,7 @@ def python_identifier(unsafe_string: str) -> str:
     return re.sub(r"(\${)([\w-]*)(})", _dashrepl, unsafe_string)
 
 
-def substitute(string_template: str, variables: Dict[str, str]) -> str:
+def substitute(string_template: str, variables: dict[str, str]) -> str:
     """Expand variables on a string template
 
     Args:
@@ -374,8 +379,8 @@ def merge_folders(source: str, destination: str) -> None:
 
 def remove_folder(
     path: str,
-    completion_function: Optional[TrashPortal.CompletionFunction] = None,
-    error_function: Optional[TrashPortal.ErrorFunction] = None,
+    completion_function: TrashPortal.CompletionFunction | None = None,
+    error_function: TrashPortal.ErrorFunction | None = None,
 ) -> None:
     """Trashes a folder specified by path, asynchronously. The folder
     likely exists after this returns, since it's using DBus to ask
@@ -415,7 +420,7 @@ def delete_folder(path: str) -> bool:
     return True
 
 
-def create_folder(path: str) -> Optional[str]:
+def create_folder(path: str) -> str | None:
     """Creates a folder specified by path"""
     if not path:
         return None
@@ -435,7 +440,7 @@ def list_unique_folders(folders: Iterable[str]) -> Iterable[str]:
     return unique_dirs.values()
 
 
-def is_removeable(path: str, system_config: Dict[str, str]) -> bool:
+def is_removeable(path: str, system_config: dict[str, str]) -> bool:
     """Check if a folder is safe to remove (not system or home, ...). This needs the
     system config dict so it can check the default game path, too."""
     if not path_exists(path):
@@ -500,7 +505,7 @@ def fix_path_case(path: str) -> str:
     return path
 
 
-def get_pids_using_file(path: str) -> Set[str]:
+def get_pids_using_file(path: str) -> set[str]:
     """Return a set of pids using file `path`."""
     if not os.path.exists(path):
         logger.error("Can't return PIDs using non existing file: %s", path)
@@ -525,7 +530,7 @@ def reverse_expanduser(path: str) -> str:
     return path
 
 
-def path_contains(parent: Optional[str], child: Optional[str], resolve_symlinks: bool = False) -> bool:
+def path_contains(parent: str | None, child: str | None, resolve_symlinks: bool = False) -> bool:
     """Tests if a child path is actually within a parent directory
     or a subdirectory of it. Resolves relative paths, and ~, and
     optionally symlinks."""
@@ -543,7 +548,7 @@ def path_contains(parent: Optional[str], child: Optional[str], resolve_symlinks:
     return resolved_child == resolved_parent or resolved_parent in resolved_child.parents
 
 
-def path_exists(path: Optional[str], check_symlinks: bool = False, exclude_empty: bool = False) -> bool:
+def path_exists(path: str | None, check_symlinks: bool = False, exclude_empty: bool = False) -> bool:
     """Wrapper around system.path_exists that doesn't crash with empty values
 
     Params:
@@ -588,7 +593,7 @@ def reset_library_preloads() -> None:
                 logger.error("Failed to delete environment variable %s", key)
 
 
-def get_existing_parent(path: str) -> Optional[str]:
+def get_existing_parent(path: str) -> str | None:
     """Return the 1st existing parent for a folder (or itself if the path
     exists and is a directory). returns None, when none of the parents exists.
     """
@@ -624,7 +629,7 @@ def get_disk_size(path: str) -> int:
     return total_size
 
 
-def get_locale_list() -> List[str]:
+def get_locale_list() -> list[str]:
     """Return list of available locales"""
     try:
         with subprocess.Popen(["locale", "-a"], stdout=subprocess.PIPE) as locale_getter:
@@ -639,12 +644,12 @@ def get_locale_list() -> List[str]:
     return locales
 
 
-def get_running_pid_list() -> List[int]:
+def get_running_pid_list() -> list[int]:
     """Return the list of PIDs from processes currently running"""
     return [int(p) for p in os.listdir("/proc") if p[0].isdigit()]
 
 
-def get_mounted_discs() -> List[Optional[str]]:
+def get_mounted_discs() -> list[str | None]:
     """Return a list of mounted discs and ISOs
 
     :rtype: list of Gio.Mount

@@ -14,7 +14,7 @@ import queue
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -48,10 +48,10 @@ class GOGDownloader(Downloader):
         url: str,
         dest: str,
         overwrite: bool = False,
-        referer: Optional[str] = None,
+        referer: str | None = None,
         cookies: Any = None,
-        headers: Dict[str, str] = None,
-        session: Optional[requests.Session] = None,
+        headers: dict[str, str] | None = None,
+        session: requests.Session | None = None,
         chunk_size: int = DEFAULT_CHUNK_SIZE,
         num_workers: int = DEFAULT_WORKERS,
     ) -> None:
@@ -67,10 +67,10 @@ class GOGDownloader(Downloader):
         )
         self.num_workers = max(1, num_workers)
         self._download_lock = threading.Lock()
-        self._progress: Optional[DownloadProgress] = None
+        self._progress: DownloadProgress | None = None
         # Pipelining: bounded queue decouples download I/O from disk writes
         self._write_queue: queue.Queue = queue.Queue(maxsize=64)
-        self._writer_error: Optional[Exception] = None
+        self._writer_error: Exception | None = None
         self._writer_error_event = threading.Event()
         # Create a dedicated session with connection pooling sized for our workers
         self._parallel_session = requests.Session()
@@ -156,9 +156,9 @@ class GOGDownloader(Downloader):
             self._progress.cleanup()
             self._progress = None
 
-    def _build_request_headers(self) -> Dict[str, str]:
+    def _build_request_headers(self) -> dict[str, str]:
         """Build HTTP headers for download requests."""
-        headers: Dict[str, str] = dict(requests.utils.default_headers())
+        headers: dict[str, str] = dict(requests.utils.default_headers())
         headers["User-Agent"] = "Lutris/%s" % __version__
         if self.referer:
             headers["Referer"] = self.referer
@@ -166,7 +166,7 @@ class GOGDownloader(Downloader):
             headers.update(self.headers)
         return headers
 
-    def _calculate_ranges(self, file_size: int) -> List[Tuple[int, int]]:
+    def _calculate_ranges(self, file_size: int) -> list[tuple[int, int]]:
         """Split file into byte ranges for parallel download.
 
         Returns a list of (start, end) tuples representing inclusive byte ranges.
@@ -356,7 +356,7 @@ class GOGDownloader(Downloader):
             logger.exception("GOG parallel download failed: %s", ex)
             self.on_download_failed(ex)
 
-    def _probe_server(self, headers: dict) -> Tuple[str, int, bool]:
+    def _probe_server(self, headers: dict) -> tuple[str, int, bool]:
         """Probe the server to determine final URL, file size, and Range support.
 
         Uses a HEAD request to follow redirects (e.g., GOG API → CDN URL),

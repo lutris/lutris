@@ -1,7 +1,8 @@
 """Misc common functions"""
 
 import functools
-from typing import Any, Callable, Generic, Mapping, Optional, TypeVar, cast
+from collections.abc import Callable, Mapping
+from typing import Any, Generic, TypeVar, cast
 
 AnyCallable = Callable[..., Any]
 DecoratedResult = TypeVar("DecoratedResult")
@@ -50,7 +51,7 @@ class cache_single(Generic[DecoratedResult]):
 def async_choices(
     generate: AnyCallable,
     ready: Callable[[], bool],
-    invalidate: Optional[Callable[[], None]] = None,
+    invalidate: Callable[[], None] | None = None,
     error_message: str = "Failed to load choices",
 ) -> Callable[[AnyCallable], AnyCallable]:
     """Decorator that wraps a choices callable with async background loading support.

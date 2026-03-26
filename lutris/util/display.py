@@ -6,7 +6,8 @@ from __future__ import annotations
 import enum
 import os
 import subprocess
-from typing import Any, Dict, Optional, List, Tuple, Union, Iterable, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 import gi
 
@@ -66,11 +67,11 @@ class DisplayManager:
         self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
         self.rr_config.load_current()
 
-    def get_display_names(self) -> List[str]:
+    def get_display_names(self) -> list[str]:
         """Return names of connected displays"""
         return [output_info.get_display_name() for output_info in self.rr_config.get_outputs()]
 
-    def get_resolutions(self) -> List[str]:
+    def get_resolutions(self) -> list[str]:
         """Return available resolutions"""
         resolutions = ["%sx%s" % (mode.get_width(), mode.get_height()) for mode in self.rr_screen.list_modes()]
         if not resolutions:
@@ -78,14 +79,14 @@ class DisplayManager:
             return ["%sx%s" % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
         return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
 
-    def _get_primary_output(self) -> Optional[GnomeDesktop.RROutput]:
+    def _get_primary_output(self) -> GnomeDesktop.RROutput | None:
         """Return the RROutput used as a primary display"""
         for output in self.rr_screen.list_outputs():
             if output.get_is_primary():
                 return output
         return None
 
-    def get_current_resolution(self) -> Tuple[str, str]:
+    def get_current_resolution(self) -> tuple[str, str]:
         """Return the current resolution for the primary display"""
         output = self._get_primary_output()
         if not output:
@@ -95,7 +96,7 @@ class DisplayManager:
         return str(current_mode.get_width()), str(current_mode.get_height())
 
     @staticmethod
-    def set_resolution(resolution: Union[str, Iterable[Output]]) -> None:
+    def set_resolution(resolution: str | Iterable[Output]) -> None:
         """Set the resolution of one or more displays.
         The resolution can either be a string, which will be applied to the
         primary display or a list of configurations as returned by `get_config`.
@@ -104,7 +105,7 @@ class DisplayManager:
         return change_resolution(resolution)
 
     @staticmethod
-    def get_config() -> List[Output]:
+    def get_config() -> list[Output]:
         """Return the current display resolution
         This method uses XrandR and will not work on wayland
         The output can be fed in `set_resolution`
@@ -112,7 +113,7 @@ class DisplayManager:
         return get_outputs()
 
 
-def get_display_manager() -> Union[MutterDisplayManager, DisplayManager, LegacyDisplayManager]:
+def get_display_manager() -> MutterDisplayManager | DisplayManager | LegacyDisplayManager:
     """Return the appropriate display manager instance.
     Defaults to Mutter if available. This is the only one to support Wayland.
     """
@@ -212,7 +213,7 @@ _non_de_compositor_commands = [
 ]
 
 
-def get_desktop_environment() -> Optional[DesktopEnvironment]:
+def get_desktop_environment() -> DesktopEnvironment | None:
     """Converts the value of the DESKTOP_SESSION environment variable
     to one of the constants in the DesktopEnvironment class.
     Returns None if DESKTOP_SESSION is empty or unset.
@@ -231,7 +232,7 @@ def get_desktop_environment() -> Optional[DesktopEnvironment]:
     return DesktopEnvironment.UNKNOWN
 
 
-def _get_command_output(command: List[str]) -> Optional[bytes]:
+def _get_command_output(command: list[str]) -> bytes | None:
     """Some rogue function that gives no shit about residing in the correct module"""
     try:
         return subprocess.Popen(  # pylint: disable=consider-using-with
@@ -262,7 +263,7 @@ def is_compositing_enabled() -> bool:
     return False
 
 
-def _check_compositor_active(command_set: Dict[str, Any]) -> bool:
+def _check_compositor_active(command_set: dict[str, Any]) -> bool:
     """Applies the 'check' command; and returns whether the result
     was the desired 'active_result'; if that is omitted, we check for
     any result at all."""
@@ -283,7 +284,7 @@ _COMPOSITING_DISABLED_STACK = []
 
 
 @cache_single
-def _get_compositor_commands() -> Tuple[Optional[List[str]], Optional[List[str]], bool]:
+def _get_compositor_commands() -> tuple[list[str] | None, list[str] | None, bool]:
     """Returns the commands to enable/disable compositing on the current
     desktop environment as a 3-tuple: start command, stop-command and
     a flag to indicate if we need to run the commands in the background.
@@ -300,15 +301,15 @@ def _get_compositor_commands() -> Tuple[Optional[List[str]], Optional[List[str]]
                 break
 
     if command_set:
-        start_compositor: List[str] = command_set["start_compositor"]
-        stop_compositor: List[str] = command_set["stop_compositor"]
+        start_compositor: list[str] = command_set["start_compositor"]
+        stop_compositor: list[str] = command_set["stop_compositor"]
         run_in_background = bool(command_set.get("run_in_background"))
         return start_compositor, stop_compositor, run_in_background
 
     return None, None, False
 
 
-def _run_command(*command: str, run_in_background: bool = False) -> Optional[subprocess.Popen[bytes]]:
+def _run_command(*command: str, run_in_background: bool = False) -> subprocess.Popen[bytes] | None:
     """Random _run_command lost in the middle of the project,
     are you lost little _run_command?
     """
@@ -375,7 +376,7 @@ class DBusScreenSaverInhibitor:
             bus_type, Gio.DBusProxyFlags.NONE, None, name, path, interface, None
         )
 
-    def inhibit(self, game_name: str) -> Optional[int]:
+    def inhibit(self, game_name: str) -> int | None:
         """Inhibit suspend.
         Returns a cookie that must be passed to the corresponding uninhibit() call.
         If an error occurs, None is returned instead."""
@@ -406,7 +407,7 @@ class DBusScreenSaverInhibitor:
         self._used_gtk_fallback = True
         return cookie
 
-    def uninhibit(self, cookie: Optional[int]) -> None:
+    def uninhibit(self, cookie: int | None) -> None:
         """Uninhibit suspend.
         Takes a cookie as returned by inhibit. If cookie is None, no action is taken."""
         if not cookie:

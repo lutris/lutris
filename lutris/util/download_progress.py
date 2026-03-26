@@ -17,7 +17,7 @@ import json
 import os
 import tempfile
 import time
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from lutris.util.log import logger
 
@@ -42,7 +42,7 @@ class DownloadProgress:
     def __init__(self, dest_path: str) -> None:
         self.dest_path: str = dest_path
         self.progress_path: str = dest_path + self.PROGRESS_SUFFIX
-        self._data: Dict[str, Any] = {}
+        self._data: dict[str, Any] = {}
 
     # ------------------------------------------------------------------
     # Factory / lifecycle
@@ -57,7 +57,7 @@ class DownloadProgress:
         self,
         url: str,
         file_size: int,
-        ranges: List[Tuple[int, int]],
+        ranges: list[tuple[int, int]],
     ) -> None:
         """Create a fresh progress file for a new download.
 
@@ -132,7 +132,7 @@ class DownloadProgress:
     # Query helpers
     # ------------------------------------------------------------------
 
-    def get_remaining_ranges(self) -> List[Tuple[int, int]]:
+    def get_remaining_ranges(self) -> list[tuple[int, int]]:
         """Return byte ranges that have not yet been downloaded.
 
         Returns:
@@ -160,12 +160,12 @@ class DownloadProgress:
         return self._data.get("file_size", 0)
 
     @property
-    def completed_ranges(self) -> List[Tuple[int, int]]:
+    def completed_ranges(self) -> list[tuple[int, int]]:
         """List of completed ``(start, end)`` range tuples."""
         return [tuple(r) for r in self._data.get("completed_ranges", [])]
 
     @property
-    def total_ranges(self) -> List[Tuple[int, int]]:
+    def total_ranges(self) -> list[tuple[int, int]]:
         """List of all planned ``(start, end)`` range tuples."""
         return [tuple(r) for r in self._data.get("total_ranges", [])]
 
