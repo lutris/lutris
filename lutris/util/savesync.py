@@ -67,6 +67,7 @@ class SaveInfo:
         # Per-profile save directory variables (available for all runner types)
         if "$PROFILEDIR" in basedir or "$PROFILEUSERDIR" in basedir:
             from lutris.profile import get_profile_manager
+
             pm = get_profile_manager()
             profile_dir = pm.get_saves_path(self.game.slug)
             basedir = basedir.replace("$PROFILEDIR", profile_dir)

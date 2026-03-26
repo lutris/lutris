@@ -5,6 +5,7 @@ choose their own profile before the main window appears.
 """
 
 from gettext import gettext as _
+from typing import cast
 
 from gi.repository import Gtk, Pango
 
@@ -184,15 +185,15 @@ class ProfileSelectorDialog(Gtk.Dialog):
     def _on_add(self, _btn) -> None:
         dlg = Gtk.MessageDialog(
             transient_for=self,
-            flags=Gtk.DialogFlags.MODAL,
             message_type=Gtk.MessageType.QUESTION,
             buttons=Gtk.ButtonsType.OK_CANCEL,
             text=_("New profile"),
         )
+        dlg.set_modal(True)
         dlg.format_secondary_text(_("Enter a name for the new profile:"))
         entry = Gtk.Entry()
         entry.set_activates_default(True)
-        dlg.get_message_area().pack_start(entry, False, False, 0)
+        cast(Gtk.Box, dlg.get_message_area()).pack_start(entry, False, False, 0)
         dlg.show_all()
         resp = dlg.run()
         name = entry.get_text().strip()

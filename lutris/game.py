@@ -333,6 +333,7 @@ class Game:
         if not self._config:
             try:
                 from lutris.profile import get_profile_manager
+
                 profile_id = get_profile_manager().current_profile_id
             except Exception:
                 profile_id = None
@@ -558,6 +559,7 @@ class Game:
         """Override playtime/lastplayed with per-profile values if they exist."""
         try:
             from lutris.profile import get_profile_manager
+
             profile_id = get_profile_manager().current_profile_id
             stats = get_profile_game_stats(profile_id, int(self.id))
             if stats:
@@ -572,6 +574,7 @@ class Game:
         games_db.update_existing(id=self.id, slug=self.slug, lastplayed=self.lastplayed, playtime=self.playtime)
         try:
             from lutris.profile import get_profile_manager
+
             profile_id = get_profile_manager().current_profile_id
             update_profile_game_stats(profile_id, int(self.id), self.playtime, self.lastplayed)
         except Exception as ex:

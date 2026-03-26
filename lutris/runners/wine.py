@@ -710,6 +710,7 @@ class wine(Runner):
             # Per-profile prefix takes priority over game config to ensure
             # each profile gets its own isolated Wine prefix (saves, etc.)
             from lutris.profile import get_profile_manager
+
             pm = get_profile_manager()
             _prefix_path = pm.get_wine_prefix_path(game_slug)
         if not _prefix_path:
