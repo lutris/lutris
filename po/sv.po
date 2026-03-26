@@ -2,6 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
+"PO-Revision-Date: 2026-03-26 06:56+0100\n"
 "Last-Translator: Daniel Nylander <yeager@ubuntu.com>\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -25,7 +26,7 @@ msgstr "Plattform för bevarande av videospel"
 
 #: share/applications/net.lutris.Lutris.desktop:6
 msgid "gaming;wine;emulator;"
-msgstr "spel;vin;emulator;"
+msgstr "spel;vin;emulator; "
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:8
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:10
@@ -144,7 +145,7 @@ msgstr "Ytterligare alternativ för Ruffle-bordlöpare"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:49
 msgid "Updated download links for the Atari800 and MicroM8 runners"
-msgstr "Uppdaterade nedladdningslänkar för Atari800- och MicroM8-runners"
+msgstr "Uppdaterade nedladdningslänkar för Atari800- och MicroM8-körmotorer"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:50
 msgid ""
@@ -200,7 +201,7 @@ msgstr ""
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:65
 msgid "time and categories to multiple devices."
-msgstr "tid och kategorier till flera enheter."
+msgstr "tid och kategorier till flera enheter. "
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:66
 msgid ""
@@ -250,7 +251,7 @@ msgstr "Meddelandefältet när Lutris inte längre stöds"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:73
 msgid "Improved error dialog."
-msgstr "Förbättrad felruta."
+msgstr "Förbättrad felruta. "
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:74
 msgid "Add Vita3k runner (thanks @ItsAllAboutTheCode)"
@@ -279,12 +280,12 @@ msgstr ""
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:79
 msgid "Images are now downloaded for manually added games."
-msgstr "Bilder hämtas nu för spel som lagts till manuellt."
+msgstr "Bilder hämtas nu för spel som lagts till manuellt. "
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:80
 msgid ""
 "Deprecate 'exe', 'main_file' or 'iso' placed at the root of the script,"
-msgstr "Avskaffa \"exe\", \"main_file\" eller \"iso\" som placeras i skriptets rot,"
+msgstr "Avskaffa \"exe\", \"main_file\" eller \"iso\" som placeras i skriptets rot, "
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:81
 msgid "all lutris.net installers have been updated accordingly."
@@ -294,7 +295,7 @@ msgstr ""
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:82
 msgid "Deprecate libstrangle and xgamma support."
-msgstr "Avveckla stödet för libstrangle och xgamma."
+msgstr "Avveckla stödet för libstrangle och xgamma. "
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:83
 msgid ""
@@ -341,7 +342,7 @@ msgstr "Åtgärda att Lutris inte utökar \"~\" i sökvägar"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:103
 msgid "Download runtime components from the main window,"
-msgstr "Ladda ner körningskomponenter från huvudfönstret,"
+msgstr "Ladda ner körningskomponenter från huvudfönstret, "
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:104
 msgid ""
@@ -412,7 +413,7 @@ msgstr ""
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:114
 msgid "in the 'Games' view."
-msgstr "i vyn ”Spel”."
+msgstr "i vyn ”Spel”. "
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:115
 msgid ""
@@ -436,7 +437,7 @@ msgstr "Lägg till kommandot \"Kör Aktivitetshanteraren\" för Wine-spel"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:118
 msgid "Add two new, smaller banner sizes for itch.io games."
-msgstr "Lägg till två nya, mindre bannerstorlekar för spel på itch.io."
+msgstr "Lägg till två nya, mindre bannerstorlekar för spel på itch.io. "
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:119
 msgid ""
@@ -463,7 +464,7 @@ msgstr ""
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:129
 msgid "on the same device."
-msgstr "på samma enhet."
+msgstr "på samma enhet. "
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:130
 msgid "Add user defined tags / categories"
@@ -490,7 +491,7 @@ msgstr ""
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:135
 msgid "from your Origin prefix."
-msgstr "från ditt Origin-prefix."
+msgstr "från ditt Origin-prefix. "
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:136
 msgid "Add integration with ScummVM local library"
@@ -580,15 +581,15 @@ msgstr "Anslut till lutris.net"
 
 #: share/lutris/ui/dialog-lutris-login.ui:26
 msgid "Forgot password?"
-msgstr "Har du glömt lösenordet?"
+msgstr "Har du glömt lösenordet? "
 
 #: share/lutris/ui/dialog-lutris-login.ui:43 lutris/gui/dialogs/issue.py:51
 msgid "C_ancel"
-msgstr "Avbryt"
+msgstr "_Avbryt"
 
 #: share/lutris/ui/dialog-lutris-login.ui:57
 msgid "_Connect"
-msgstr "Anslut"
+msgstr "_Anslut"
 
 #: share/lutris/ui/dialog-lutris-login.ui:96
 msgid "Password"
@@ -600,7 +601,7 @@ msgstr "Användarnamn"
 
 #: share/lutris/ui/log-window.ui:36
 msgid "Search..."
-msgstr "Sök..."
+msgstr "Sök... "
 
 #: share/lutris/ui/log-window.ui:48
 msgid "Decrease text size"
@@ -707,7 +708,7 @@ msgstr "_Endast installerade spel"
 
 #: share/lutris/ui/lutris-window.ui:662
 msgid "Show Side _Panel"
-msgstr "Visa sidopanel"
+msgstr "Visa _sidopanel"
 
 #: share/lutris/ui/lutris-window.ui:677
 msgid "Show _Hidden Games"
@@ -788,7 +789,7 @@ msgstr "Mappen {} kunde inte hittas"
 
 #: lutris/exceptions.py:50
 msgid "A bios file is required to run this game"
-msgstr "En BIOS-fil krävs för att kunna spela detta spel"
+msgstr "En BIOS-fil krävs för att kunna spela det här spelet"
 
 #: lutris/exceptions.py:63
 #, python-brace-format
@@ -813,7 +814,7 @@ msgstr ""
 
 #: lutris/exceptions.py:116
 msgid "Your ESYNC limits are not set correctly."
-msgstr "Dina ESYNC-gränsvärden är inte korrekt inställda."
+msgstr "Dina ESYNC-gränsvärden är inte korrekt inställda. "
 
 #: lutris/exceptions.py:126
 msgid ""
@@ -953,7 +954,7 @@ msgstr ""
 
 #: lutris/game_actions.py:395
 msgid "Duplicate game?"
-msgstr "Ett dubblettspel?"
+msgstr "Ett dubblettspel? "
 
 #. use primary configuration
 #: lutris/game_actions.py:446
@@ -978,7 +979,7 @@ msgstr "Avinstallera spelet innan du tar bort det"
 
 #: lutris/game.py:506
 msgid "Tried to launch a game that isn't installed."
-msgstr "Jag försökte starta ett spel som inte är installerat."
+msgstr "Jag försökte starta ett spel som inte är installerat. "
 
 #: lutris/game.py:540
 msgid "Unable to find Xephyr, install it or disable the Xephyr option"
@@ -1025,7 +1026,7 @@ msgstr "<b>Fel: En annan Wine-version använder redan samma Wine-prefix.</b>"
 #: lutris/game.py:1026
 #, python-format
 msgid "Lutris can't move '%s' to a location inside of itself, '%s'."
-msgstr "Lutris kan inte flytta ”%s” till en plats inom sig själv, ”%s”."
+msgstr "Lutris kan inte flytta ”%s” till en plats inom sig själv, ”%s”. "
 
 #: lutris/gui/addgameswindow.py:24
 msgid "Search the Lutris website for installers"
@@ -1080,7 +1081,7 @@ msgstr "Tillbaka"
 #: lutris/gui/addgameswindow.py:88 lutris/gui/addgameswindow.py:525
 #: lutris/gui/installerwindow.py:106 lutris/gui/installerwindow.py:1035
 msgid "_Continue"
-msgstr "Fortsätt"
+msgstr "_Fortsätt"
 
 #: lutris/gui/addgameswindow.py:111 lutris/gui/config/storage_box.py:72
 #: lutris/gui/config/widget_generator.py:655
@@ -1151,7 +1152,7 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:314
 msgid "Installer preset:"
-msgstr "Installera förinställning:"
+msgstr "Installera förinställning: "
 
 #: lutris/gui/addgameswindow.py:317
 msgid "Windows 11 64-bit"
@@ -1183,7 +1184,7 @@ msgstr "Windows 98 + 3DFX 32-bitars"
 
 #: lutris/gui/addgameswindow.py:334
 msgid "Locale:"
-msgstr "Plats:"
+msgstr "Plats: "
 
 #: lutris/gui/addgameswindow.py:359
 msgid "<b>Select setup file</b>"
@@ -1192,11 +1193,11 @@ msgstr "<b>Välj installationsfil</b>"
 #: lutris/gui/addgameswindow.py:361 lutris/gui/addgameswindow.py:443
 #: lutris/gui/addgameswindow.py:484 lutris/gui/installerwindow.py:1070
 msgid "_Install"
-msgstr "Installera"
+msgstr "_Installera"
 
 #: lutris/gui/addgameswindow.py:377
 msgid "You must provide a name for the game you are installing."
-msgstr "Du måste ange ett namn på det spel du installerar."
+msgstr "Du måste ange ett namn på det spel du installerar. "
 
 #: lutris/gui/addgameswindow.py:397
 msgid "Setup file"
@@ -1230,12 +1231,12 @@ msgstr "<b>Välj ett Lutris-installationsprogram</b>"
 
 #: lutris/gui/addgameswindow.py:448
 msgid "You must select a script file to install."
-msgstr "Du måste välja en skriptfil som ska installeras."
+msgstr "Du måste välja en skriptfil som ska installeras. "
 
 #: lutris/gui/addgameswindow.py:450
 #, python-format
 msgid "No file exists at '%s'."
-msgstr "Det finns ingen fil på '%s'."
+msgstr "Det finns ingen fil på '%s'. "
 
 #: lutris/gui/addgameswindow.py:465 lutris/runners/atari800.py:37
 #: lutris/runners/duckstation.py:27 lutris/runners/jzintv.py:21
@@ -1267,11 +1268,11 @@ msgstr "<b>Välj ROM-filer</b>"
 
 #: lutris/gui/addgameswindow.py:493
 msgid "You must select ROMs to install."
-msgstr "Du måste välja vilka ROM-filer du vill installera."
+msgstr "Du måste välja vilka ROM-filer du vill installera. "
 
 #: lutris/gui/application.py:102
 msgid "Do not run Lutris as root."
-msgstr "Kör inte Lutris som root."
+msgstr "Kör inte Lutris som root. "
 
 #: lutris/gui/application.py:113
 msgid "Your Linux distribution is too old. Lutris won't function properly."
@@ -1394,7 +1395,7 @@ msgstr "URI ska öppnas"
 
 #: lutris/gui/application.py:413
 msgid "No installer available."
-msgstr "Det finns ingen installationsprogram."
+msgstr "Det finns ingen installationsprogram. "
 
 #: lutris/gui/application.py:628
 #, python-format
@@ -1478,7 +1479,7 @@ msgstr "<i>Senast synkroniserad %s.</i>"
 
 #: lutris/gui/config/accounts_box.py:201
 msgid "Synchronize library?"
-msgstr "Synkronisera biblioteket?"
+msgstr "Synkronisera biblioteket? "
 
 #: lutris/gui/config/accounts_box.py:202
 msgid "Enable library sync and run a full sync with lutris.net?"
@@ -1535,7 +1536,7 @@ msgstr "Inga alternativ matchar \"%s\""
 #. type:ignore[attr-defined]
 #: lutris/gui/config/boxes.py:338
 msgid "Only advanced options available"
-msgstr "Endast avancerade alternativ är tillgängliga"
+msgstr "Endast avancerade alternativ finns tillgängliga"
 
 #: lutris/gui/config/boxes.py:340
 msgid "No options available"
@@ -1551,7 +1552,7 @@ msgstr "Konfigurera %s"
 #: lutris/gui/config/edit_category_games.py:69
 #, python-format
 msgid "Do you want to delete the category '%s'?"
-msgstr "Vill du ta bort kategorin ”%s”?"
+msgstr "Vill du ta bort kategorin ”%s”? "
 
 #: lutris/gui/config/edit_category_games.py:71
 msgid ""
@@ -1564,12 +1565,12 @@ msgstr ""
 #: lutris/gui/config/edit_category_games.py:113
 #, python-format
 msgid "'%s' is a reserved category name."
-msgstr "\"%s\" är ett reserverat kategorinamn."
+msgstr "\"%s\" är ett reserverat kategorinamn. "
 
 #: lutris/gui/config/edit_category_games.py:118
 #, python-format
 msgid "Merge the category '%s' into '%s'?"
-msgstr "Ska kategorin ”%s” slås samman med ”%s”?"
+msgstr "Ska kategorin ”%s” slås samman med ”%s”? "
 
 #: lutris/gui/config/edit_category_games.py:120
 #, python-format
@@ -1591,7 +1592,7 @@ msgstr "Lägg till kategori"
 
 #: lutris/gui/config/edit_game_categories.py:119
 msgid "Adds the category to the list."
-msgstr "Lägger till kategorin i listan."
+msgstr "Lägger till kategorin i listan. "
 
 #: lutris/gui/config/edit_game_categories.py:154
 msgid ""
@@ -1669,12 +1670,12 @@ msgstr "Plattform"
 #: lutris/gui/config/edit_saved_search.py:292
 #, python-format
 msgid "'%s' is already a saved search."
-msgstr "\"%s\" är redan en sparad sökning."
+msgstr "\"%s\" är redan en sparad sökning. "
 
 #: lutris/gui/config/edit_saved_search.py:336
 #, python-format
 msgid "Do you want to delete the saved search '%s'?"
-msgstr "Vill du ta bort den sparade sökningen ”%s”?"
+msgstr "Vill du ta bort den sparade sökningen ”%s”? "
 
 #: lutris/gui/config/edit_saved_search.py:338
 msgid ""
@@ -1728,7 +1729,7 @@ msgstr "Flytta"
 
 #: lutris/gui/config/game_common.py:249
 msgid "The default launch option will be used for this game"
-msgstr "Standardstartalternativet kommer att användas för detta spel"
+msgstr "Standardstartalternativet kommer att användas för det här spelet"
 
 #: lutris/gui/config/game_common.py:251
 #, python-format
@@ -1830,7 +1831,7 @@ msgstr "Följande fält innehåller ogiltiga värden: "
 
 #: lutris/gui/config/game_common.py:661
 msgid "Current configuration is not valid, ignoring save request"
-msgstr "Den aktuella konfigurationen är ogiltig. Spara-begäran ignoreras."
+msgstr "Den aktuella konfigurationen är ogiltig. Spara-begäran ignoreras. "
 
 #: lutris/gui/config/game_common.py:705
 msgid "Please choose a custom image"
@@ -1910,7 +1911,7 @@ msgstr "Mörk"
 
 #: lutris/gui/config/preferences_box.py:64
 msgid "Overrides Lutris's appearance to be light or dark."
-msgstr "Ställer in Lutris utseende till ljust eller mörkt."
+msgstr "Ställer in Lutris utseende till ljust eller mörkt. "
 
 #: lutris/gui/config/preferences_box.py:72
 msgid "Interface options"
@@ -1966,12 +1967,12 @@ msgstr "Hantera versioner av %s"
 #: lutris/gui/config/runner_box.py:109
 #, python-format
 msgid "Do you want to uninstall %s?"
-msgstr "Vill du avinstallera %s?"
+msgstr "Vill du avinstallera %s? "
 
 #: lutris/gui/config/runner_box.py:110
 #, python-format
 msgid "This will remove <b>%s</b> and all associated data."
-msgstr "Detta kommer att ta bort <b>%s</b> och all tillhörande data."
+msgstr "Detta kommer att ta bort <b>%s</b> och all tillhörande data. "
 
 #: lutris/gui/config/runners_box.py:22
 msgid "Add, remove or configure runners"
@@ -2017,7 +2018,7 @@ msgstr "Spelbibliotek"
 
 #: lutris/gui/config/storage_box.py:40 lutris/sysoptions.py:87
 msgid "The default folder where you install your games."
-msgstr "Standardmappen där du installerar dina spel."
+msgstr "Standardmappen där du installerar dina spel. "
 
 #: lutris/gui/config/storage_box.py:43
 msgid "Installer cache"
@@ -2125,7 +2126,7 @@ msgstr "Uppdateringar under körning"
 
 #: lutris/gui/config/updates_box.py:21
 msgid "Runtime components include DXVK, VKD3D and Winetricks."
-msgstr "Körningskomponenterna omfattar DXVK, VKD3D och Winetricks."
+msgstr "Körningskomponenterna omfattar DXVK, VKD3D och Winetricks. "
 
 #: lutris/gui/config/updates_box.py:22
 msgid "Check for Updates"
@@ -2181,17 +2182,17 @@ msgstr "omslag"
 
 #: lutris/gui/config/updates_box.py:81
 msgid "No new media found."
-msgstr "Inga nya medier hittades."
+msgstr "Inga nya medier hittades. "
 
 #: lutris/gui/config/updates_box.py:110
 #, python-format
 msgid "%s has been updated."
-msgstr "%s har uppdaterats."
+msgstr "%s har uppdaterats. "
 
 #: lutris/gui/config/updates_box.py:112
 #, python-format
 msgid "%s have been updated."
-msgstr "%s har uppdaterats."
+msgstr "%s har uppdaterats. "
 
 #: lutris/gui/config/updates_box.py:119
 msgid "<i>Checking for updates...</i>"
@@ -2199,11 +2200,11 @@ msgstr "<i>Söker efter uppdateringar...</i>"
 
 #: lutris/gui/config/updates_box.py:121
 msgid "Updates are already being downloaded and installed."
-msgstr "Uppdateringarna håller redan på att laddas ner och installeras."
+msgstr "Uppdateringarna håller redan på att laddas ner och installeras. "
 
 #: lutris/gui/config/updates_box.py:123
 msgid "No updates are required at this time."
-msgstr "Det behövs inga uppdateringar just nu."
+msgstr "Det behövs inga uppdateringar just nu. "
 
 #: lutris/gui/config/widget_generator.py:215
 msgid "<b>Default</b>: "
@@ -2241,7 +2242,7 @@ msgstr "Välj filer"
 
 #: lutris/gui/config/widget_generator.py:570
 msgid "_Add"
-msgstr "Lägg till"
+msgstr "_Lägg till"
 
 #: lutris/gui/config/widget_generator.py:571
 #: lutris/gui/dialogs/__init__.py:446 lutris/gui/dialogs/__init__.py:472
@@ -2249,7 +2250,7 @@ msgstr "Lägg till"
 #: lutris/gui/widgets/download_collection_progress_box.py:56
 #: lutris/gui/widgets/download_progress_box.py:64
 msgid "_Cancel"
-msgstr "Avbryt"
+msgstr "_Avbryt"
 
 #: lutris/gui/config/widget_generator.py:606
 msgid "Add Files"
@@ -2283,7 +2284,7 @@ msgstr ""
 #: lutris/gui/dialogs/delegates.py:41
 #, python-format
 msgid "The required runner '%s' is not installed."
-msgstr "Det nödvändiga programmet ”%s” är inte installerat."
+msgstr "Det nödvändiga programmet ”%s” är inte installerat. "
 
 #: lutris/gui/dialogs/delegates.py:207
 msgid "Select game to launch"
@@ -2304,19 +2305,19 @@ msgstr "Lansering"
 
 #: lutris/gui/dialogs/game_import.py:129
 msgid "Calculating checksum..."
-msgstr "Beräknar kontrollsumma..."
+msgstr "Beräknar kontrollsumma... "
 
 #: lutris/gui/dialogs/game_import.py:138
 msgid "Looking up checksum on Lutris.net..."
-msgstr "Söker efter kontrollsumma på Lutris.net..."
+msgstr "Söker efter kontrollsumma på Lutris.net... "
 
 #: lutris/gui/dialogs/game_import.py:141
 msgid "This ROM could not be identified."
-msgstr "Denna ROM-fil kunde inte identifieras."
+msgstr "Denna ROM-fil kunde inte identifieras. "
 
 #: lutris/gui/dialogs/game_import.py:150
 msgid "Looking for installed game..."
-msgstr "Letar efter ett installerat spel..."
+msgstr "Letar efter ett installerat spel... "
 
 #: lutris/gui/dialogs/game_import.py:199
 #, python-format
@@ -2330,12 +2331,12 @@ msgstr "Spelet är redan installerat i Lutris"
 #: lutris/gui/dialogs/game_import.py:242
 #, python-format
 msgid "The platform '%s' is unknown to Lutris."
-msgstr "Plattformen ”%s” är okänd för Lutris."
+msgstr "Plattformen ”%s” är okänd för Lutris. "
 
 #: lutris/gui/dialogs/game_import.py:252
 #, python-format
 msgid "Lutris does not have a default installer for the '%s' platform."
-msgstr "Lutris har inget standardinstallationsprogram för plattformen '%s'."
+msgstr "Lutris har inget standardinstallationsprogram för plattformen '%s'. "
 
 #: lutris/gui/dialogs/__init__.py:175
 msgid "Save"
@@ -2364,7 +2365,7 @@ msgstr "Felinformation"
 #: lutris/gui/dialogs/__init__.py:445 lutris/gui/dialogs/__init__.py:471
 #: lutris/gui/dialogs/issue.py:73 lutris/gui/widgets/common.py:170
 msgid "_OK"
-msgstr "Okej"
+msgstr "_OK"
 
 #: lutris/gui/dialogs/__init__.py:462
 msgid "Please choose a file"
@@ -2385,7 +2386,7 @@ msgstr "Installera spelet på nytt"
 
 #: lutris/gui/dialogs/__init__.py:539
 msgid "Do not ask again for this game."
-msgstr "Fråga inte om det här spelet igen."
+msgstr "Fråga inte om det här spelet igen. "
 
 #: lutris/gui/dialogs/__init__.py:594
 msgid "Login failed"
@@ -2427,7 +2428,7 @@ msgstr ""
 #: lutris/gui/dialogs/__init__.py:723
 #, python-format
 msgid "The key '%s' could not be found."
-msgstr "Nyckeln ”%s” kunde inte hittas."
+msgstr "Nyckeln ”%s” kunde inte hittas. "
 
 #: lutris/gui/dialogs/issue.py:24
 msgid "<b>Submit an issue</b>"
@@ -2445,7 +2446,7 @@ msgstr ""
 
 #: lutris/gui/dialogs/issue.py:54
 msgid "_Save"
-msgstr "Spara"
+msgstr "_Spara"
 
 #: lutris/gui/dialogs/issue.py:70
 msgid "Select a location to save the issue"
@@ -2464,7 +2465,7 @@ msgstr "Logga för {}"
 #: lutris/gui/dialogs/move_game.py:28
 #, python-format
 msgid "Moving %s to %s..."
-msgstr "Flyttar %s till %s..."
+msgstr "Flyttar %s till %s... "
 
 #: lutris/gui/dialogs/move_game.py:57
 msgid ""
@@ -2590,7 +2591,7 @@ msgstr ""
 #: lutris/gui/dialogs/uninstall_dialog.py:168
 msgid ""
 "Some of the game directories cannot be removed because they are protected."
-msgstr "Vissa av spelkatalogerna kan inte tas bort eftersom de är skyddade."
+msgstr "Vissa av spelkatalogerna kan inte tas bort eftersom de är skyddade. "
 
 #: lutris/gui/dialogs/uninstall_dialog.py:265
 #, python-format
@@ -2614,7 +2615,7 @@ msgstr ""
 
 #: lutris/gui/dialogs/uninstall_dialog.py:277
 msgid "Permanently delete files?"
-msgstr "Vill du radera filerna permanent?"
+msgstr "Vill du radera filerna permanent? "
 
 #: lutris/gui/dialogs/uninstall_dialog.py:360
 msgid "Remove from Library"
@@ -2626,7 +2627,7 @@ msgstr "Ta bort filer"
 
 #: lutris/gui/dialogs/webconnect_dialog.py:149
 msgid "Loading..."
-msgstr "Laddar..."
+msgstr "Laddar... "
 
 #: lutris/gui/installer/file_box.py:84
 #, python-brace-format
@@ -2651,7 +2652,7 @@ msgstr "Cachefil för framtida installationer"
 
 #: lutris/gui/installer/file_box.py:178
 msgid "Source:"
-msgstr "Källa:"
+msgstr "Källa: "
 
 #: lutris/gui/installerwindow.py:128
 msgid "Configure download cache"
@@ -2659,7 +2660,7 @@ msgstr "Konfigurera nedladdningscachen"
 
 #: lutris/gui/installerwindow.py:130
 msgid "Change where Lutris downloads game installer files."
-msgstr "Ändra var Lutris sparar installationsfilerna för spelet."
+msgstr "Ändra var Lutris sparar installationsfilerna för spelet. "
 
 #: lutris/gui/installerwindow.py:133
 msgid "View installer source"
@@ -2671,11 +2672,11 @@ msgstr "Ta bort spelfiler"
 
 #: lutris/gui/installerwindow.py:256
 msgid "Are you sure you want to cancel the installation?"
-msgstr "Är du säker på att du vill avbryta installationen?"
+msgstr "Är du säker på att du vill avbryta installationen? "
 
 #: lutris/gui/installerwindow.py:257
 msgid "Cancel installation?"
-msgstr "Avbryta installationen?"
+msgstr "Avbryta installationen? "
 
 #: lutris/gui/installerwindow.py:332
 msgid ""
@@ -2693,7 +2694,7 @@ msgstr "Installera %s"
 #: lutris/gui/installerwindow.py:411
 #, python-format
 msgid "This game requires %s. Do you want to install it?"
-msgstr "Det här spelet kräver %s. Vill du installera det?"
+msgstr "Det här spelet kräver %s. Vill du installera det? "
 
 #: lutris/gui/installerwindow.py:412
 msgid "Missing dependency"
@@ -2799,7 +2800,7 @@ msgstr "Avbryt och återställ installationen"
 
 #: lutris/gui/installerwindow.py:1087
 msgid "_Close"
-msgstr "Stäng"
+msgstr "_Stäng"
 
 #: lutris/gui/lutriswindow.py:654
 #, python-format
@@ -2815,7 +2816,7 @@ msgstr ""
 #: lutris/gui/lutriswindow.py:737
 #, python-format
 msgid "No hidden games matching '%s' found."
-msgstr "Inga dolda spel som matchar ”%s” hittades."
+msgstr "Inga dolda spel som matchar ”%s” hittades. "
 
 #: lutris/gui/lutriswindow.py:740
 #, python-format
@@ -2833,11 +2834,11 @@ msgstr "Inga spel som matchar ”%s” hittades "
 
 #: lutris/gui/lutriswindow.py:746
 msgid "Add games to your favorites to see them here."
-msgstr "Lägg till spel i dina favoriter så att du kan se dem här."
+msgstr "Lägg till spel i dina favoriter så att du kan se dem här. "
 
 #: lutris/gui/lutriswindow.py:748
 msgid "No games are hidden."
-msgstr "Inga spel är dolda."
+msgstr "Inga spel är dolda. "
 
 #: lutris/gui/lutriswindow.py:750
 msgid "No installed games found. Press Ctrl+I to show uninstalled games."
@@ -2952,7 +2953,7 @@ msgstr "Nedladdningen avbröts"
 #: lutris/gui/widgets/download_progress_box.py:144
 #, python-brace-format
 msgid "{downloaded} / {size} ({speed:0.2f}MB/s), {time} remaining"
-msgstr "{downloaded} / {size} ({speed:0.2f} MB/s), {time} kvar"
+msgstr "{downloaded} / {size} ({speed:0.2f}MB/s), {time} kvar"
 
 #: lutris/gui/widgets/game_bar.py:174
 #, python-format
@@ -3089,7 +3090,7 @@ msgstr ""
 
 #: lutris/installer/commands.py:142
 msgid "No parameters supplied to execute command."
-msgstr "Inga parametrar angivna för att köra kommandot."
+msgstr "Inga parametrar angivna för att köra kommandot. "
 
 #: lutris/installer/commands.py:158
 #, python-format
@@ -3132,7 +3133,7 @@ msgstr ""
 #: lutris/installer/commands.py:261
 #, python-format
 msgid "The required file '%s' could not be located."
-msgstr "Filen ”%s” kunde inte hittas."
+msgstr "Filen ”%s” kunde inte hittas. "
 
 #: lutris/installer/commands.py:282
 #, python-format
@@ -3187,12 +3188,12 @@ msgstr "Felaktigt värde för läget write_file: '%s'"
 
 #: lutris/installer/commands.py:651
 msgid "install_or_extract only works with wine!"
-msgstr "install_or_extract fungerar endast med Wine!"
+msgstr "install_or_extract fungerar endast med Wine! "
 
 #: lutris/installer/errors.py:49
 #, python-format
 msgid "This game requires %s."
-msgstr "Det här spelet kräver %s."
+msgstr "Det här spelet kräver %s. "
 
 #: lutris/installer/installer_file_collection.py:86
 msgid "File"
@@ -3224,7 +3225,7 @@ msgstr " fel i kontrollsumman "
 #: lutris/installer/installer.py:38
 #, python-format
 msgid "The script was missing the '%s' key, which is required."
-msgstr "Det saknades nyckeln ”%s” i skriptet, vilket är ett krav."
+msgstr "Det saknades nyckeln ”%s” i skriptet, vilket är ett krav. "
 
 #: lutris/installer/installer.py:218
 msgid "Game config key must be a string"
@@ -3276,7 +3277,7 @@ msgstr "Installationskommandona är inte korrekt formaterade"
 #: lutris/installer/interpreter.py:364
 #, python-format
 msgid "The command \"%s\" does not exist."
-msgstr "Kommandot \"%s\" finns inte."
+msgstr "Kommandot \"%s\" finns inte. "
 
 #: lutris/installer/interpreter.py:374
 #, python-format
@@ -3289,7 +3290,7 @@ msgstr ""
 
 #: lutris/installer/interpreter.py:381
 msgid "Installation completed!"
-msgstr "Installationen är klar!"
+msgstr "Installationen är klar! "
 
 #: lutris/installer/steam_installer.py:43
 #, python-format
@@ -3492,7 +3493,7 @@ msgstr "Sats"
 
 #: lutris/runners/dolphin.py:45
 msgid "Exit Dolphin with emulator."
-msgstr "Avsluta Dolphin med emulatorn."
+msgstr "Avsluta Dolphin med emulatorn. "
 
 #: lutris/runners/dolphin.py:52
 msgid "Custom Global User Directory"
@@ -3562,7 +3563,7 @@ msgstr "Öppna spelet i helskärmsläge"
 
 #: lutris/runners/dosbox.py:69
 msgid "Tells DOSBox to launch the game in fullscreen."
-msgstr "Anger att DOSBox ska starta spelet i helskärmsläge."
+msgstr "Anger att DOSBox ska starta spelet i helskärmsläge. "
 
 #: lutris/runners/dosbox.py:73
 msgid "Exit DOSBox with the game"
@@ -3570,7 +3571,7 @@ msgstr "Avsluta DOSBox med spelet"
 
 #: lutris/runners/dosbox.py:76
 msgid "Shut down DOSBox when the game is quit."
-msgstr "Stäng DOSBox när spelet avslutas."
+msgstr "Stäng DOSBox när spelet avslutas. "
 
 #: lutris/runners/duckstation.py:13
 msgid "DuckStation"
@@ -3586,7 +3587,7 @@ msgstr "Sony PlayStation"
 
 #: lutris/runners/duckstation.py:37
 msgid "Enters fullscreen mode immediately after starting."
-msgstr "Går över till helskärmsläge direkt efter start."
+msgstr "Går över till helskärmsläge direkt efter start. "
 
 #: lutris/runners/duckstation.py:43
 msgid "No Fullscreen"
@@ -3608,7 +3609,7 @@ msgstr "Båt"
 
 #: lutris/runners/duckstation.py:53
 msgid "Enables batch mode (exits after powering off)."
-msgstr "Aktiverar batchläge (avslutas när strömmen stängs av)."
+msgstr "Aktiverar batchläge (avslutas när strömmen stängs av). "
 
 #: lutris/runners/duckstation.py:60
 msgid "Force Fastboot"
@@ -3616,7 +3617,7 @@ msgstr "Tvinga Fastboot"
 
 #: lutris/runners/duckstation.py:62
 msgid "Force fast boot."
-msgstr "Tvinga snabbstart."
+msgstr "Tvinga snabbstart. "
 
 #: lutris/runners/duckstation.py:68
 msgid "Force Slowboot"
@@ -3624,7 +3625,7 @@ msgstr "Tvinga långsam uppstart"
 
 #: lutris/runners/duckstation.py:70
 msgid "Force slow boot."
-msgstr "Tvinga en långsam uppstart."
+msgstr "Tvinga en långsam uppstart. "
 
 #: lutris/runners/duckstation.py:76
 msgid "No Controllers"
@@ -3759,7 +3760,7 @@ msgstr "Motor"
 
 #: lutris/runners/easyrpg.py:59
 msgid "Disable auto detection of the simulated engine."
-msgstr "Inaktivera automatisk identifiering av den simulerade motorn."
+msgstr "Inaktivera automatisk identifiering av den simulerade motorn. "
 
 #: lutris/runners/easyrpg.py:62
 msgid "RPG Maker 2000 engine (v1.00 - v1.10)"
@@ -3811,7 +3812,7 @@ msgstr "Språk"
 
 #: lutris/runners/easyrpg.py:93
 msgid "Load the game translation in the language/LANG directory."
-msgstr "Ladda upp spelöversättningen till katalogen language/LANG."
+msgstr "Ladda upp spelöversättningen till katalogen language/LANG. "
 
 #: lutris/runners/easyrpg.py:98 lutris/runners/zdoom.py:46
 msgid "Save path"
@@ -3831,7 +3832,7 @@ msgstr "Nytt spel"
 
 #: lutris/runners/easyrpg.py:109
 msgid "Skip the title scene and start a new game directly."
-msgstr "Hoppa över inledningsscenen och starta ett nytt spel direkt."
+msgstr "Hoppa över inledningsscenen och starta ett nytt spel direkt. "
 
 #: lutris/runners/easyrpg.py:115
 msgid "Load game ID"
@@ -3851,7 +3852,7 @@ msgstr "Spara inmatningen"
 
 #: lutris/runners/easyrpg.py:126
 msgid "Records all button input to the specified log file."
-msgstr "Spelar in alla knapptryckningar i den angivna loggfilen."
+msgstr "Spelar in alla knapptryckningar i den angivna loggfilen. "
 
 #: lutris/runners/easyrpg.py:132
 msgid "Replay input"
@@ -3877,7 +3878,7 @@ msgstr "Testspel"
 
 #: lutris/runners/easyrpg.py:145
 msgid "Enable TestPlay (debug) mode."
-msgstr "Aktivera TestPlay-läget (felsökningsläge)."
+msgstr "Aktivera TestPlay-läget (felsökningsläge). "
 
 #: lutris/runners/easyrpg.py:153
 msgid "Hide title"
@@ -3885,7 +3886,7 @@ msgstr "Dölj rubrik"
 
 #: lutris/runners/easyrpg.py:154
 msgid "Hide the title background image and center the command menu."
-msgstr "Dölj bakgrundsbilden för rubriken och centrera kommandomenyn."
+msgstr "Dölj bakgrundsbilden för rubriken och centrera kommandomenyn. "
 
 #: lutris/runners/easyrpg.py:162
 msgid "Start map ID"
@@ -3941,7 +3942,7 @@ msgstr "Stridstest"
 
 #: lutris/runners/easyrpg.py:202
 msgid "Start a battle test with the specified monster party."
-msgstr "Starta ett stridstest med den angivna monstergruppen."
+msgstr "Starta ett stridstest med den angivna monstergruppen. "
 
 #: lutris/runners/easyrpg.py:212
 msgid "AutoBattle algorithm"
@@ -3957,7 +3958,7 @@ msgid ""
 msgstr ""
 "Vilken AutoBattle-algoritm som ska användas.\n"
 "\n"
-"<b>RPG_RT</b>: Den RPG_RT-kompatibla standardalgoritmen, inklusive RPG_RT-buggar.\n"
+"<b>RPG_RT</b>: Standardalgoritmen för RPG_RT-kompatibel, inklusive RPG_RT-buggar.\n"
 "<b>RPG_RT+</b>: Den RPG_RT-kompatibla standardalgoritmen, med buggfixar.\n"
 "<b>ATTACK</b>: Som RPG_RT+ men bara fysiska attacker, inga färdigheter."
 
@@ -4020,7 +4021,7 @@ msgstr "Aktivera ljud"
 
 #: lutris/runners/easyrpg.py:261
 msgid "Switch off to disable audio."
-msgstr "Stäng av för att inaktivera ljudet."
+msgstr "Stäng av för att inaktivera ljudet. "
 
 #: lutris/runners/easyrpg.py:268
 msgid "BGM volume"
@@ -4028,7 +4029,7 @@ msgstr "Volym på bakgrundsmusiken"
 
 #: lutris/runners/easyrpg.py:269
 msgid "Volume of the background music."
-msgstr "Volym på bakgrundsmusiken."
+msgstr "Volym på bakgrundsmusiken. "
 
 #: lutris/runners/easyrpg.py:278 lutris/runners/scummvm.py:379
 msgid "SFX volume"
@@ -4036,7 +4037,7 @@ msgstr "SFX-volym"
 
 #: lutris/runners/easyrpg.py:279
 msgid "Volume of the sound effects."
-msgstr "Ljudnivån på ljudeffekterna."
+msgstr "Ljudnivån på ljudeffekterna. "
 
 #: lutris/runners/easyrpg.py:289 lutris/runners/scummvm.py:403
 msgid "Soundfont"
@@ -4044,11 +4045,11 @@ msgstr "Soundfont"
 
 #: lutris/runners/easyrpg.py:290
 msgid "Soundfont in sf2 format to use when playing MIDI files."
-msgstr "En Soundfont i sf2-format som används vid uppspelning av MIDI-filer."
+msgstr "En Soundfont i sf2-format som används vid uppspelning av MIDI-filer. "
 
 #: lutris/runners/easyrpg.py:297
 msgid "Start in fullscreen mode."
-msgstr "Starta i helskärmsläge."
+msgstr "Starta i helskärmsläge. "
 
 #: lutris/runners/easyrpg.py:305
 msgid "Game resolution"
@@ -4125,7 +4126,7 @@ msgstr "Aktivera VSync"
 
 #: lutris/runners/easyrpg.py:347
 msgid "Switch off to disable VSync and use the FPS limit."
-msgstr "Stäng av för att inaktivera VSync och använda FPS-begränsningen."
+msgstr "Stäng av för att inaktivera VSync och använda FPS-begränsningen. "
 
 #: lutris/runners/easyrpg.py:354
 msgid "FPS limit"
@@ -4147,7 +4148,7 @@ msgstr "Visa FPS"
 
 #: lutris/runners/easyrpg.py:369
 msgid "Enable frames per second counter."
-msgstr "Aktivera räknaren för bilder per sekund."
+msgstr "Aktivera räknaren för bilder per sekund. "
 
 #: lutris/runners/easyrpg.py:372
 msgid "Fullscreen & title bar"
@@ -4168,7 +4169,7 @@ msgstr "Aktivera RTP"
 
 #: lutris/runners/easyrpg.py:382
 msgid "Switch off to disable support for the Runtime Package (RTP)."
-msgstr "Stäng av för att inaktivera stödet för Runtime Package (RTP)."
+msgstr "Stäng av för att inaktivera stödet för Runtime Package (RTP). "
 
 #: lutris/runners/easyrpg.py:389
 msgid "RPG2000 RTP location"
@@ -4200,7 +4201,7 @@ msgstr "Alternativ RTP-plats"
 
 #: lutris/runners/easyrpg.py:404
 msgid "Full path to a directory containing a combined RTP."
-msgstr "Fullständig sökväg till en katalog som innehåller en kombinerad RTP."
+msgstr "Fullständig sökväg till en katalog som innehåller en kombinerad RTP. "
 
 #: lutris/runners/easyrpg.py:517
 msgid "No game directory provided"
@@ -4220,7 +4221,7 @@ msgstr "Applikations-ID"
 
 #: lutris/runners/flatpak.py:34
 msgid "The application's unique three-part identifier (tld.domain.app)."
-msgstr "Applikationens unika tredelade identifierare (tld.domän.app)."
+msgstr "Applikationens unika tredelade identifierare (tld.domän.app). "
 
 #: lutris/runners/flatpak.py:39
 msgid "Architecture"
@@ -4240,7 +4241,7 @@ msgstr "Filial"
 
 #: lutris/runners/flatpak.py:45
 msgid "The branch to use."
-msgstr "Den gren som ska användas."
+msgstr "Den gren som ska användas. "
 
 #: lutris/runners/flatpak.py:49
 msgid "Install type"
@@ -4248,7 +4249,7 @@ msgstr "Installationstyp"
 
 #: lutris/runners/flatpak.py:50
 msgid "Can be system or user."
-msgstr "Kan vara systemet eller användaren."
+msgstr "Kan vara systemet eller användaren. "
 
 #: lutris/runners/flatpak.py:56
 msgid "Args"
@@ -4256,7 +4257,7 @@ msgstr "Args"
 
 #: lutris/runners/flatpak.py:57
 msgid "Arguments to be passed to the application."
-msgstr "Argument som ska skickas till applikationen."
+msgstr "Argument som ska skickas till applikationen. "
 
 #: lutris/runners/flatpak.py:62
 msgid "Command"
@@ -4291,7 +4292,7 @@ msgstr ""
 
 #: lutris/runners/flatpak.py:92
 msgid "The Flatpak executable could not be found."
-msgstr "Det gick inte att hitta Flatpak-programmet."
+msgstr "Det gick inte att hitta Flatpak-programmet. "
 
 #: lutris/runners/flatpak.py:98
 msgid ""
@@ -4303,7 +4304,7 @@ msgstr ""
 
 #: lutris/runners/flatpak.py:140
 msgid "No application specified."
-msgstr "Ingen applikation angiven."
+msgstr "Ingen applikation angiven. "
 
 #: lutris/runners/flatpak.py:144
 msgid ""
@@ -4315,7 +4316,7 @@ msgstr ""
 
 #: lutris/runners/flatpak.py:148
 msgid "Application ID field must not contain options or arguments."
-msgstr "Fältet ”Application ID” får inte innehålla alternativ eller argument."
+msgstr "Fältet ”Application ID” får inte innehålla alternativ eller argument. "
 
 #: lutris/runners/fsuae.py:12
 msgid "Amiga 500"
@@ -4507,7 +4508,7 @@ msgstr "Ytterligare disketter"
 
 #: lutris/runners/fsuae.py:207
 msgid "The additional floppy disk image(s)."
-msgstr "De ytterligare diskettavbildningarna."
+msgstr "De ytterligare diskettavbildningarna. "
 
 #: lutris/runners/fsuae.py:212
 msgid "CD-ROM image"
@@ -4524,7 +4525,7 @@ msgstr "Modellvän"
 
 #: lutris/runners/fsuae.py:225
 msgid "Specify the Amiga model you want to emulate."
-msgstr "Ange vilken Amiga-modell du vill emulera."
+msgstr "Ange vilken Amiga-modell du vill emulera. "
 
 #: lutris/runners/fsuae.py:229 lutris/runners/fsuae.py:242
 msgid "Kickstart"
@@ -4615,7 +4616,7 @@ msgstr "Snabbt minne"
 
 #: lutris/runners/fsuae.py:308
 msgid "Specify how much Fast Memory the Amiga model should have."
-msgstr "Ange hur mycket snabbt minne Amiga-modellen ska ha."
+msgstr "Ange hur mycket snabbt minne Amiga-modellen ska ha. "
 
 #: lutris/runners/fsuae.py:312
 msgid "Zorro III RAM"
@@ -4753,7 +4754,7 @@ msgstr "Förstora skärmen med 2 (Atari ST/STE)"
 
 #: lutris/runners/hatari.py:74
 msgid "Double the screen size in windowed mode."
-msgstr "Fördubbla skärmstorleken i fönsterläge."
+msgstr "Fördubbla skärmstorleken i fönsterläge. "
 
 #: lutris/runners/hatari.py:80
 msgid "Add borders to display"
@@ -4797,11 +4798,11 @@ msgstr "Joystick 1"
 
 #: lutris/runners/hatari.py:126
 msgid "Do you want to select an Atari ST BIOS file?"
-msgstr "Vill du välja en BIOS-fil för Atari ST?"
+msgstr "Vill du välja en BIOS-fil för Atari ST? "
 
 #: lutris/runners/hatari.py:127
 msgid "Use BIOS file?"
-msgstr "Använda BIOS-filen?"
+msgstr "Använda BIOS-filen? "
 
 #: lutris/runners/hatari.py:128
 msgid "Select a BIOS file"
@@ -4916,7 +4917,7 @@ msgstr "Förladda biblioteket"
 
 #: lutris/runners/linux.py:49
 msgid "A library to load before running the game's executable."
-msgstr "Ett bibliotek som ska laddas innan spelets körbara fil startas."
+msgstr "Ett bibliotek som ska laddas innan spelets körbara fil startas. "
 
 #: lutris/runners/linux.py:54
 msgid "Add directory to LD_LIBRARY_PATH"
@@ -4954,7 +4955,7 @@ msgstr "Emulator för arkadspel"
 
 #: lutris/runners/mame.py:87 lutris/runners/mednafen.py:67
 msgid "The emulated machine."
-msgstr "Den emulerade maskinen."
+msgstr "Den emulerade maskinen. "
 
 #: lutris/runners/mame.py:92
 msgid "Storage type"
@@ -5106,7 +5107,7 @@ msgstr "CRT-effekten ()"
 
 #: lutris/runners/mame.py:175
 msgid "Applies a CRT effect to the screen.Requires OpenGL renderer."
-msgstr "Tillämpar en CRT-effekt på skärmen. Kräver OpenGL-renderare."
+msgstr "Tillämpar en CRT-effekt på skärmen. Kräver OpenGL-renderare. "
 
 #: lutris/runners/mame.py:181 lutris/runners/scummvm.py:464
 #: lutris/runners/scummvm.py:472
@@ -5119,7 +5120,7 @@ msgstr "Detaljerad"
 
 #: lutris/runners/mame.py:183
 msgid "display additional diagnostic information."
-msgstr "visa ytterligare diagnostisk information."
+msgstr "visa ytterligare diagnostisk information. "
 
 #: lutris/runners/mame.py:191
 msgid "Video backend"
@@ -5210,7 +5211,7 @@ msgstr "Ingen enhet är inställd för maskinen %s"
 #: lutris/runners/mame.py:347
 #, python-format
 msgid "The path '%s' is not set. please set it in the options."
-msgstr "Sökvägen ”%s” är inte angiven. Ange den i inställningarna."
+msgstr "Sökvägen ”%s” är inte angiven. Ange den i inställningarna. "
 
 #: lutris/runners/mednafen.py:18
 msgid "Mednafen"
@@ -5404,7 +5405,7 @@ msgstr "Nintendo 64"
 #: lutris/runners/openmsx.py:21 lutris/runners/ryujinx.py:26
 #: lutris/runners/snes9x.py:30 lutris/runners/yuzu.py:24
 msgid "The game data, commonly called a ROM image."
-msgstr "Speldata, ofta kallat en ROM-bild."
+msgstr "Speldata, ofta kallat en ROM-bild. "
 
 #: lutris/runners/mupen64plus.py:32
 msgid "Hide OSD"
@@ -5526,7 +5527,7 @@ msgstr ""
 
 #: lutris/runners/pico8.py:41
 msgid "Launch in fullscreen."
-msgstr "Starta i helskärmsläge."
+msgstr "Starta i helskärmsläge. "
 
 #: lutris/runners/pico8.py:46 lutris/runners/web.py:47
 msgid "Window size"
@@ -5534,7 +5535,7 @@ msgstr "Fönstrets storlek"
 
 #: lutris/runners/pico8.py:49
 msgid "The initial size of the game window."
-msgstr "Spelfönstrets startstorlek."
+msgstr "Spelfönstrets startstorlek. "
 
 #: lutris/runners/pico8.py:54
 msgid "Start in splore mode"
@@ -5662,15 +5663,15 @@ msgstr "Skala för intern videoupplösning"
 
 #: lutris/runners/redream.py:95
 msgid "Only available in premium version."
-msgstr "Finns endast i premiumversionen."
+msgstr "Finns endast i premiumversionen. "
 
 #: lutris/runners/redream.py:102
 msgid "Do you want to select a premium license file?"
-msgstr "Vill du välja en premiumlicensfil?"
+msgstr "Vill du välja en premiumlicensfil? "
 
 #: lutris/runners/redream.py:103 lutris/runners/redream.py:104
 msgid "Use premium version?"
-msgstr "Vill du använda premiumversionen?"
+msgstr "Vill du använda premiumversionen? "
 
 #: lutris/runners/reicast.py:16
 msgid "Reicast"
@@ -5745,7 +5746,7 @@ msgstr ""
 #: lutris/runners/vice.py:115 lutris/util/system.py:261
 #, python-format
 msgid "The executable '%s' could not be found."
-msgstr "Det gick inte att hitta den körbara filen '%s'."
+msgstr "Det gick inte att hitta den körbara filen '%s'. "
 
 #: lutris/runners/runner.py:452
 msgid ""
@@ -5767,12 +5768,12 @@ msgstr "Det gick inte att hämta informationen om {} ({})"
 #: lutris/runners/runner.py:513
 #, python-format
 msgid "The '%s' version of the '%s' runner can't be downloaded."
-msgstr "Versionen ”%s” av programmet ”%s” går inte att ladda ner."
+msgstr "Versionen ”%s” av programmet ”%s” går inte att ladda ner. "
 
 #: lutris/runners/runner.py:516
 #, python-format
 msgid "The the '%s' runner can't be downloaded."
-msgstr "Programmet ”%s” går inte att ladda ner."
+msgstr "Programmet ”%s” går inte att ladda ner. "
 
 #: lutris/runners/runner.py:545
 #, python-brace-format
@@ -5806,7 +5807,7 @@ msgstr "Krypteringsnycklar"
 
 #: lutris/runners/ryujinx.py:34 lutris/runners/yuzu.py:32
 msgid "File containing the encryption keys."
-msgstr "Fil som innehåller krypteringsnycklarna."
+msgstr "Fil som innehåller krypteringsnycklarna. "
 
 #: lutris/runners/ryujinx.py:38 lutris/runners/yuzu.py:36
 msgid "Title keys"
@@ -5814,7 +5815,7 @@ msgstr "Titelnycklar"
 
 #: lutris/runners/ryujinx.py:40 lutris/runners/yuzu.py:38
 msgid "File containing the title keys."
-msgstr "Fil som innehåller titelnycklarna."
+msgstr "Fil som innehåller titelnycklarna. "
 
 #: lutris/runners/scummvm.py:32
 msgid "<b>Warning</b> Scalers may not work with OpenGL rendering."
@@ -5825,11 +5826,11 @@ msgstr ""
 #, python-format
 msgid ""
 "<b>Warning</b> The '%s' scaler does not work with a scale factor of %s."
-msgstr "<b>Varning</b> Skalaren \"%s\" fungerar inte med en skalfaktor på %s."
+msgstr "<b>Varning</b> Skalaren \"%s\" fungerar inte med en skalfaktor på %s. "
 
 #: lutris/runners/scummvm.py:54
 msgid "Engine for point-and-click games."
-msgstr "Motor för peka-och-klicka-spel."
+msgstr "Motor för peka-och-klicka-spel. "
 
 #: lutris/runners/scummvm.py:55 lutris/services/scummvm.py:29
 msgid "ScummVM"
@@ -5899,7 +5900,7 @@ msgstr "OpenGL (med shaders)"
 
 #: lutris/runners/scummvm.py:193
 msgid "Changes the rendering method used for 3D games."
-msgstr "Ändrar den renderingsmetod som används för 3D-spel."
+msgstr "Ändrar den renderingsmetod som används för 3D-spel. "
 
 #: lutris/runners/scummvm.py:198
 msgid "Render mode"
@@ -5983,7 +5984,7 @@ msgstr "Passform (kraftförhållande)"
 
 #: lutris/runners/scummvm.py:235
 msgid "Changes how the game is placed when the window is resized."
-msgstr "Ändrar hur spelet placeras när fönstrets storlek ändras."
+msgstr "Ändrar hur spelet placeras när fönstrets storlek ändras. "
 
 #: lutris/runners/scummvm.py:240
 msgid "Filtering"
@@ -6003,7 +6004,7 @@ msgstr "Datakatalog"
 
 #: lutris/runners/scummvm.py:253
 msgid "Defaults to share/scummvm if unspecified."
-msgstr "Om inget anges används standardvärdet share/scummvm."
+msgstr "Om inget anges används standardvärdet share/scummvm. "
 
 #: lutris/runners/scummvm.py:261
 msgid ""
@@ -6067,7 +6068,7 @@ msgstr "Musikdrivrutin"
 
 #: lutris/runners/scummvm.py:331
 msgid "Specifies the device ScummVM uses to output audio."
-msgstr "Anger vilken enhet ScummVM använder för ljudutmatning."
+msgstr "Anger vilken enhet ScummVM använder för ljudutmatning. "
 
 #: lutris/runners/scummvm.py:337
 msgid "Output rate"
@@ -6075,7 +6076,7 @@ msgstr "Produktionshastighet"
 
 #: lutris/runners/scummvm.py:344
 msgid "Selects output sample rate in Hz."
-msgstr "Väljer utgångens samplingsfrekvens i Hz."
+msgstr "Väljer utgångens samplingsfrekvens i Hz. "
 
 #: lutris/runners/scummvm.py:350
 msgid "OPL driver"
@@ -6120,7 +6121,7 @@ msgstr ""
 
 #: lutris/runners/scummvm.py:404
 msgid "Specifies the path to a soundfont file."
-msgstr "Anger sökvägen till en SoundFont-fil."
+msgstr "Anger sökvägen till en SoundFont-fil. "
 
 #: lutris/runners/scummvm.py:410
 msgid "Mixed AdLib/MIDI mode"
@@ -6128,7 +6129,7 @@ msgstr "Blandat AdLib/MIDI-läge"
 
 #: lutris/runners/scummvm.py:413
 msgid "Combines MIDI music with AdLib sound effects."
-msgstr "Kombinerar MIDI-musik med AdLib-ljudeffekter."
+msgstr "Kombinerar MIDI-musik med AdLib-ljudeffekter. "
 
 #: lutris/runners/scummvm.py:419
 msgid "True Roland MT-32"
@@ -6279,7 +6280,7 @@ msgstr "Ytterligare kommandoradsargument som används vid start av Steam"
 
 #: lutris/runners/steam.py:170
 msgid "Steam for Linux installation is not handled by Lutris."
-msgstr "Installationen av Steam för Linux hanteras inte av Lutris."
+msgstr "Installationen av Steam för Linux hanteras inte av Lutris. "
 
 #: lutris/runners/steam.py:172
 msgid ""
@@ -6291,7 +6292,7 @@ msgstr ""
 
 #: lutris/runners/steam.py:186
 msgid "Could not find Steam path, is Steam installed?"
-msgstr "Det gick inte att hitta sökvägen till Steam. Är Steam installerat?"
+msgstr "Det gick inte att hitta sökvägen till Steam. Är Steam installerat? "
 
 #: lutris/runners/vice.py:14
 msgid "Commodore Emulator"
@@ -6383,7 +6384,7 @@ msgstr ""
 
 #: lutris/runners/vita3k.py:44
 msgid "Start the emulator in fullscreen mode."
-msgstr "Starta emulatorn i helskärmsläge."
+msgstr "Starta emulatorn i helskärmsläge. "
 
 #: lutris/runners/vita3k.py:49
 msgid "Config location"
@@ -6433,7 +6434,7 @@ msgstr "Öppna i helskärmsläge"
 
 #: lutris/runners/web.py:36
 msgid "Launch the game in fullscreen."
-msgstr "Starta spelet i helskärmsläge."
+msgstr "Starta spelet i helskärmsläge. "
 
 #: lutris/runners/web.py:40
 msgid "Open window maximized"
@@ -6441,11 +6442,11 @@ msgstr "Öppet fönster i maximerat läge"
 
 #: lutris/runners/web.py:43
 msgid "Maximizes the window when game starts."
-msgstr "Maximerar fönstret när spelet startar."
+msgstr "Maximerar fönstret när spelet startar. "
 
 #: lutris/runners/web.py:58
 msgid "The initial size of the game window when not opened."
-msgstr "Spelfönstrets storlek när det inte är öppet."
+msgstr "Spelfönstrets storlek när det inte är öppet. "
 
 #: lutris/runners/web.py:62
 msgid "Disable window resizing (disables fullscreen and maximize)"
@@ -6455,7 +6456,7 @@ msgstr ""
 
 #: lutris/runners/web.py:65
 msgid "You can't resize this window."
-msgstr "Du kan inte ändra storleken på det här fönstret."
+msgstr "Du kan inte ändra storleken på det här fönstret. "
 
 #: lutris/runners/web.py:69
 msgid "Borderless window"
@@ -6463,7 +6464,7 @@ msgstr "Fönster utan ram"
 
 #: lutris/runners/web.py:72
 msgid "The window has no borders/frame."
-msgstr "Fönstret har inga kanter eller ram."
+msgstr "Fönstret har inga kanter eller ram. "
 
 #: lutris/runners/web.py:76
 msgid "Disable menu bar and default shortcuts"
@@ -6483,7 +6484,7 @@ msgstr "Inaktivera sidorullning och dölj rullningslistor"
 
 #: lutris/runners/web.py:86
 msgid "Disables scrolling on the page."
-msgstr "Inaktiverar rullning på sidan."
+msgstr "Inaktiverar rullning på sidan. "
 
 #: lutris/runners/web.py:90
 msgid "Hide mouse cursor"
@@ -6523,7 +6524,7 @@ msgstr "Aktivera Adobe Flash Player"
 
 #: lutris/runners/web.py:117
 msgid "Enable Adobe Flash Player."
-msgstr "Aktivera Adobe Flash Player."
+msgstr "Aktivera Adobe Flash Player. "
 
 #: lutris/runners/web.py:121
 msgid "Custom User-Agent"
@@ -6531,7 +6532,7 @@ msgstr "Anpassad User-Agent"
 
 #: lutris/runners/web.py:124
 msgid "Overrides the default User-Agent header used by the runner."
-msgstr "Åsidosätter den standard-User-Agent-rubrik som används av köraren."
+msgstr "Åsidosätter den standard-User-Agent-rubrik som används av köraren. "
 
 #: lutris/runners/web.py:129
 msgid "Debug with Developer Tools"
@@ -6539,7 +6540,7 @@ msgstr "Felsök med utvecklarverktyg"
 
 #: lutris/runners/web.py:132
 msgid "Let's you debug the page."
-msgstr "Gör det möjligt att felsöka sidan."
+msgstr "Gör det möjligt att felsöka sidan. "
 
 #: lutris/runners/web.py:137
 msgid "Open in web browser (old behavior)"
@@ -6547,7 +6548,7 @@ msgstr "Öppna i webbläsaren (tidigare funktion)"
 
 #: lutris/runners/web.py:140
 msgid "Launch the game in a web browser."
-msgstr "Starta spelet i en webbläsare."
+msgstr "Starta spelet i en webbläsare. "
 
 #: lutris/runners/web.py:144
 msgid "Custom web browser executable"
@@ -6596,7 +6597,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:78 lutris/runners/wine.py:775
 msgid "Proton is not compatible with 32-bit prefixes."
-msgstr "Proton är inte kompatibelt med 32-bitars prefix."
+msgstr "Proton är inte kompatibelt med 32-bitars prefix. "
 
 #: lutris/runners/wine.py:92
 msgid ""
@@ -6784,7 +6785,7 @@ msgstr "Använd systemet winetricks"
 
 #: lutris/runners/wine.py:286
 msgid "Switch on to use /usr/bin/winetricks for winetricks."
-msgstr "Aktivera /usr/bin/winetricks för att använda winetricks."
+msgstr "Aktivera /usr/bin/winetricks för att använda winetricks. "
 
 #: lutris/runners/wine.py:291
 msgid "Enable DXVK"
@@ -6967,7 +6968,7 @@ msgstr "Upplösning för virtuellt skrivbord"
 
 #: lutris/runners/wine.py:488
 msgid "The size of the virtual desktop in pixels."
-msgstr "Storleken på det virtuella skrivbordet i pixlar."
+msgstr "Storleken på det virtuella skrivbordet i pixlar. "
 
 #: lutris/runners/wine.py:492 lutris/runners/wine.py:504
 #: lutris/runners/wine.py:505
@@ -7034,7 +7035,7 @@ msgstr "DLL-överskrivningar"
 
 #: lutris/runners/wine.py:551
 msgid "Sets WINEDLLOVERRIDES when launching the game."
-msgstr "Ställer in WINEDLLOVERRIDES när spelet startas."
+msgstr "Ställer in WINEDLLOVERRIDES när spelet startas. "
 
 #: lutris/runners/wine.py:555
 msgid "Output debugging info"
@@ -7105,16 +7106,16 @@ msgstr "Vintips"
 #: lutris/runners/wine.py:750 lutris/runners/wine.py:756
 #, python-format
 msgid "The Wine executable at '%s' is missing."
-msgstr "Det saknas ett körbart Wine-program i '%s'."
+msgstr "Det saknas ett körbart Wine-program i '%s'. "
 
 #: lutris/runners/wine.py:814
 #, python-format
 msgid "The required game '%s' could not be found."
-msgstr "Det sökta spelet ”%s” kunde inte hittas."
+msgstr "Det sökta spelet ”%s” kunde inte hittas. "
 
 #: lutris/runners/wine.py:847
 msgid "The runner configuration does not specify a Wine version."
-msgstr "I körkonfigurationen anges ingen Wine-version."
+msgstr "I körkonfigurationen anges ingen Wine-version. "
 
 #: lutris/runners/wine.py:885
 msgid "Select an EXE or MSI file"
@@ -7122,7 +7123,7 @@ msgstr "Välj en EXE- eller MSI-fil"
 
 #: lutris/runners/xemu.py:9
 msgid "xemu"
-msgstr "Vad är det?"
+msgstr "Vad är det? "
 
 #: lutris/runners/xemu.py:10
 msgid "Xbox"
@@ -7151,15 +7152,15 @@ msgstr "GZDoom"
 
 #: lutris/runners/zdoom.py:22
 msgid "WAD file"
-msgstr "Var finns filerna?"
+msgstr "Var finns filerna? "
 
 #: lutris/runners/zdoom.py:23
 msgid "The game data, commonly called a WAD file."
-msgstr "Speldata, ofta kallade WAD-filer."
+msgstr "Speldata, ofta kallade WAD-filer. "
 
 #: lutris/runners/zdoom.py:29
 msgid "Command line arguments used when launching the game."
-msgstr "Kommandoradsargument som används vid start av spelet."
+msgstr "Kommandoradsargument som används vid start av spelet. "
 
 #: lutris/runners/zdoom.py:34
 msgid "PWAD files"
@@ -7179,11 +7180,11 @@ msgstr "Förflytta dig till kartan"
 
 #: lutris/runners/zdoom.py:41
 msgid "Starts the game on the given map."
-msgstr "Startar spelet på den angivna kartan."
+msgstr "Startar spelet på den angivna kartan. "
 
 #: lutris/runners/zdoom.py:48
 msgid "User-specified path where save files should be located."
-msgstr "Den sökväg som användaren anger där filerna ska sparas."
+msgstr "Den sökväg som användaren anger där filerna ska sparas. "
 
 #: lutris/runners/zdoom.py:52
 msgid "Pixel Doubling"
@@ -7250,15 +7251,15 @@ msgstr ""
 
 #: lutris/services/amazon.py:244
 msgid "Unable to register device, please log in again"
-msgstr "Det gick inte att registrera enheten. Logga in igen."
+msgstr "Det gick inte att registrera enheten. Logga in igen. "
 
 #: lutris/services/amazon.py:259
 msgid "Invalid token info found, please log in again"
-msgstr "Ogiltig inloggningsinformation upptäckt. Logga in igen."
+msgstr "Ogiltig inloggningsinformation upptäckt. Logga in igen. "
 
 #: lutris/services/amazon.py:293
 msgid "Unable to refresh token, please log in again"
-msgstr "Det gick inte att uppdatera token. Logga in igen."
+msgstr "Det gick inte att uppdatera token. Logga in igen. "
 
 #: lutris/services/amazon.py:465
 msgid "Unable to get game manifest info"
@@ -7279,7 +7280,7 @@ msgstr "Det går inte att hämta uppdateringarna till spelet ”%s”"
 
 #: lutris/services/amazon.py:603
 msgid "Unable to get fuel.json file."
-msgstr "Det går inte att hämta filen fuel.json."
+msgstr "Det går inte att hämta filen fuel.json. "
 
 #: lutris/services/amazon.py:614
 msgid "Invalid response from Amazon APIs"
@@ -7364,7 +7365,7 @@ msgstr ""
 
 #: lutris/services/humblebundle.py:235
 msgid "The download URL for the game could not be determined."
-msgstr "Det gick inte att fastställa nedladdningsadressen för spelet."
+msgstr "Det gick inte att fastställa nedladdningsadressen för spelet. "
 
 #: lutris/services/humblebundle.py:237
 msgid "No game found on Humble Bundle"
@@ -7516,7 +7517,7 @@ msgstr "grafikprocessor"
 
 #: lutris/sysoptions.py:117
 msgid "GPU to use to run games"
-msgstr "Vilken GPU ska man använda för att köra spel?"
+msgstr "Vilken GPU ska man använda för att köra spel? "
 
 #: lutris/sysoptions.py:123
 msgid "FPS counter (MangoHud)"
@@ -7561,7 +7562,7 @@ msgstr "Förhindra sömn"
 
 #: lutris/sysoptions.py:161
 msgid "Prevents the computer from suspending when a game is running."
-msgstr "Förhindrar att datorn går i viloläge när ett spel körs."
+msgstr "Förhindrar att datorn går i viloläge när ett spel körs. "
 
 #: lutris/sysoptions.py:167
 msgid "SDL 1.2 Fullscreen Monitor"
@@ -7595,7 +7596,7 @@ msgstr "Ändra upplösningen till"
 
 #: lutris/sysoptions.py:203
 msgid "Switch to this screen resolution while the game is running."
-msgstr "Byt till den här skärmupplösningen medan spelet är igång."
+msgstr "Byt till den här skärmupplösningen medan spelet är igång. "
 
 #: lutris/sysoptions.py:209
 msgid "Enable Gamescope"
@@ -7703,7 +7704,7 @@ msgstr "Bildfrekvensbegränsare"
 
 #: lutris/sysoptions.py:301
 msgid "Set a frame-rate limit for gamescope specified in frames per second."
-msgstr "Ange en gräns för bildfrekvensen för gamescope i bilder per sekund."
+msgstr "Ange en gräns för bildfrekvensen för gamescope i bilder per sekund. "
 
 #: lutris/sysoptions.py:306
 msgid "Custom Settings"
@@ -7723,7 +7724,7 @@ msgstr "Begränsa antalet använda kärnor"
 
 #: lutris/sysoptions.py:321
 msgid "Restrict the game to a maximum number of CPU cores."
-msgstr "Begränsa spelet till ett maximalt antal CPU-kärnor."
+msgstr "Begränsa spelet till ett maximalt antal CPU-kärnor. "
 
 #: lutris/sysoptions.py:327
 msgid "Restrict number of cores to"
@@ -7967,7 +7968,7 @@ msgstr "Flatpak är inte installerat"
 
 #: lutris/util/linux.py:547
 msgid "No terminal emulator could be detected."
-msgstr "Ingen terminalemulator kunde hittas."
+msgstr "Ingen terminalemulator kunde hittas. "
 
 #: lutris/util/portals.py:83
 #, python-format
@@ -8046,7 +8047,7 @@ msgstr "år"
 #: lutris/util/strings.py:310
 #, python-format
 msgid "'%s' is not a valid playtime."
-msgstr "\"%s\" är inte en giltig uppspelningstid."
+msgstr "\"%s\" är inte en giltig uppspelningstid. "
 
 #: lutris/util/strings.py:395
 msgid "in the future"
@@ -8133,11 +8134,11 @@ msgstr "Handbok"
 #: lutris/util/wine/proton.py:98
 #, python-format
 msgid "Proton version '%s' is missing its wine executable and can't be used."
-msgstr "Proton-versionen ”%s” saknar sitt Wine-program och kan inte användas."
+msgstr "Proton-versionen ”%s” saknar sitt Wine-program och kan inte användas. "
 
 #: lutris/util/wine/wine.py:173
 msgid "The Wine version must be specified."
-msgstr "Man måste ange vilken version av Wine som ska användas."
+msgstr "Man måste ange vilken version av Wine som ska användas. "
 
 msgid "Sort Ascending"
 msgstr "Sortera i stigande ordning"
@@ -8177,7 +8178,7 @@ msgstr ""
 "Klicka på \"Fortsätt\" för att börja skanna och importera spel"
 
 msgid "You must select a folder to scan for games."
-msgstr "Du måste välja en mapp där du vill söka efter spel."
+msgstr "Du måste välja en mapp där du vill söka efter spel. "
 
 msgid "<b>Games found</b>"
 msgstr "<b>Hittade spel</b>"
@@ -8187,7 +8188,7 @@ msgstr "<b>Inga spel hittades</b>"
 
 #, python-format
 msgid "There is no installer available for %s."
-msgstr "Det finns inget installationsprogram tillgängligt för %s."
+msgstr "Det finns inget installationsprogram tillgängligt för %s. "
 
 #, python-format
 msgid "Categories - %s"
@@ -8203,10 +8204,10 @@ msgid "Hide badges on icons"
 msgstr "Dölj märken på ikonerna"
 
 msgid "Checking for runtime updates, please wait…"
-msgstr "Söker efter uppdateringar under körning, vänligen vänta…"
+msgstr "Söker efter uppdateringar under körning, vänta…"
 
 msgid "Wine is not installed on your system."
-msgstr "Wine är inte installerat på din dator."
+msgstr "Wine är inte installerat på din dator. "
 
 msgid ""
 "Having Wine installed on your system guarantees that Wine builds from Lutris will have all required dependencies.\n"
@@ -8226,18 +8227,18 @@ msgstr "Ingen fil kommer att raderas"
 
 #, python-format
 msgid "The folder %s is used by other games and will be kept."
-msgstr "Mappen %s används av andra spel och kommer att behållas."
+msgstr "Mappen %s används av andra spel och kommer att behållas. "
 
 msgid "<i>Calculating size…</i>"
 msgstr "<i>Beräknar storlek…</i>"
 
 #, python-format
 msgid "%s does not exist."
-msgstr "%s finns inte."
+msgstr "%s finns inte. "
 
 #, python-format
 msgid "Content of %s are protected and will not be deleted."
-msgstr "Innehållet i %s är skyddat och kommer inte att raderas."
+msgstr "Innehållet i %s är skyddat och kommer inte att raderas. "
 
 #, python-format
 msgid "Delete %s (%s)"
@@ -8263,10 +8264,10 @@ msgstr ""
 " spel."
 
 msgid "No visible games found. Press Ctrl+H to show hidden games."
-msgstr "Inga synliga spel hittades. Tryck på Ctrl+H för att visa dolda spel."
+msgstr "Inga synliga spel hittades. Tryck på Ctrl+H för att visa dolda spel. "
 
 msgid "Browse..."
-msgstr "Bläddra..."
+msgstr "Bläddra... "
 
 msgid "none"
 msgstr "ingen"
@@ -8320,7 +8321,7 @@ msgstr "<b>Varning</b>: Den Wine-version du har valt stöder inte Esync"
 
 msgid ""
 "<b>Warning</b> The Wine build you have selected does not support Fsync."
-msgstr "<b>Varning</b> Den Wine-version du har valt har inte stöd för Fsync."
+msgstr "<b>Varning</b> Den Wine-version du har valt har inte stöd för Fsync. "
 
 msgid "Sandbox"
 msgstr "Sandlåda"
@@ -8339,23 +8340,23 @@ msgid "Sandbox directory"
 msgstr "Sandbox-katalogen"
 
 msgid "Custom directory for desktop integration folders."
-msgstr "Anpassad katalog för mappar för skrivbordsintegration."
+msgstr "Anpassad katalog för mappar för skrivbordsintegration. "
 
 msgid "The Wine build you have selected does not support Esync."
-msgstr "Den Wine-version du har valt stöder inte Esync."
+msgstr "Den Wine-version du har valt stöder inte Esync. "
 
 msgid "Your kernel is not patched for fsync."
-msgstr "Din kärna har inte uppdaterats för fsync."
+msgstr "Din kärna har inte uppdaterats för fsync. "
 
 msgid "The Wine build you have selected does not support Fsync."
-msgstr "Den Wine-version du har valt stöder inte Fsync."
+msgstr "Den Wine-version du har valt stöder inte Fsync. "
 
 msgid ""
 "Unable to get the patches of game, please check your Amazon credentials and "
 "internet connectivity"
 msgstr ""
-"Det går inte att få patchar för spelet, kontrollera dina Amazon-uppgifter "
-"och internetanslutning"
+"Kan inte få patchar av spelet, kontrollera dina Amazon-referenser och "
+"internetanslutning"
 
 msgid "Unable to get fuel.json file, please check your Amazon credentials"
 msgstr ""
@@ -8364,7 +8365,7 @@ msgstr ""
 
 #, python-format
 msgid "The download of '%s' failed."
-msgstr "Nedladdningen av ”%s” misslyckades."
+msgstr "Nedladdningen av ”%s” misslyckades. "
 
 msgid "(recommended)"
 msgstr "(rekommenderas)"
@@ -8396,7 +8397,7 @@ msgid "Reset PulseAudio"
 msgstr "Återställ PulseAudio"
 
 msgid "Restart PulseAudio before launching the game."
-msgstr "Starta om PulseAudio innan du startar spelet."
+msgstr "Starta om PulseAudio innan du startar spelet. "
 
 msgid "Enable NVIDIA Prime Render Offload"
 msgstr "Aktivera NVIDIA Prime Render Offload"
@@ -8471,4 +8472,4 @@ msgid ""
 "Please switch to an Fsync-capable version."
 msgstr ""
 "Den Wine-version du har valt har inte stöd för Fsync.\n"
-"Vänligen byt till en Fsync-kompatibel version."
+"Vänligen byt till en version som stöder Fsync."
