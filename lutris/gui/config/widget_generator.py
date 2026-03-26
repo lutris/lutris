@@ -2,10 +2,10 @@
 
 import os
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from gettext import gettext as _
 from inspect import Parameter, signature
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NamedTuple, TypeAlias
 
 from gi.repository import Gdk, Gtk  # type: ignore
 
@@ -18,6 +18,15 @@ from lutris.util.strings import gtk_safe
 
 if TYPE_CHECKING:
     from lutris.gui.config.boxes import ConfigBox
+
+WidgetSetter: TypeAlias = Callable[[Any], None]
+
+
+class WidgetSetterTuple(NamedTuple):
+    """A tuple containing a widget and a functor to set the value for the widget"""
+
+    widget: Gtk.Widget
+    widget_setter: WidgetSetter
 
 
 class WidgetGenerator(ABC):
@@ -40,10 +49,13 @@ class WidgetGenerator(ABC):
     inside the wrapper as a way to force it to update.
     """
 
-    GeneratorFunction = Callable[[dict[str, Any], Any, Any], Gtk.Widget | None]
+    GeneratorFunction = Callable[[dict[str, Any], Any, Any], WidgetSetterTuple]
 
-    def __init__(self, parent: "ConfigBox", *callback_args, **callback_kwargs) -> None:
+    def __init__(
+        self, parent: "ConfigBox", widget_container: Gtk.Box | None = None, *callback_args, **callback_kwargs
+    ) -> None:
         self.parent = parent
+        self.widget_container: Gtk.Box = widget_container or parent
         self.callback_args = callback_args
         self.callback_kwargs = callback_kwargs
         self.changed = NotificationSource()  # takes option_key, new_value
@@ -66,6 +78,7 @@ class WidgetGenerator(ABC):
         self.wrappers: dict[str, Gtk.Container] = {}
         self.section_frames: list[SectionFrame] = []
         self.option_containers: dict[str, Gtk.Container] = {}
+        self.option_setters: dict[str, WidgetSetter] = {}
 
         self._generators: dict[str, WidgetGenerator.GeneratorFunction] = {
             "label": self._generate_label,
@@ -88,6 +101,12 @@ class WidgetGenerator(ABC):
         widgets."""
         self.update_widgets()
 
+    def update_widget_values(self) -> None:
+        """Can overriden to update the widget values from a data model
+        Base implementation is a no-op
+        """
+        raise NotImplementedError
+
     @property
     def default_directory(self) -> str:
         """This is the directory selected by default by file and directory choosers."""
@@ -108,10 +127,10 @@ class WidgetGenerator(ABC):
         or in the previous frame if it is for the same section."""
         option_container = self.generate_container(option, wrapper)
 
-        if option_container and self.parent:
+        if option_container and self.widget_container:
             # Switch to new section if required
             if not self._current_parent:
-                self._current_parent = self.parent
+                self._current_parent = self.widget_container
 
             if option.get("section") != self._current_section:
                 self._current_section = option.get("section")
@@ -119,9 +138,9 @@ class WidgetGenerator(ABC):
                     frame = SectionFrame(self._current_section, visible=True)
                     self.section_frames.append(frame)
                     self._current_parent = frame.vbox
-                    self.parent.pack_start(frame, False, False, 0)
+                    self.widget_container.pack_start(frame, False, False, 0)
                 else:
-                    self._current_parent = self.parent
+                    self._current_parent = self.widget_container
 
             self._current_parent.pack_start(option_container, False, False, 0)
         return option_container
@@ -184,11 +203,12 @@ class WidgetGenerator(ABC):
         func = self._generators.get(option_type)
 
         if func:
-            option_widget = func(option, value, default)
+            option_widget, option_setter = func(option, value, default)
         else:
             raise ValueError("Unknown widget type %s" % option_type)
 
         self.wrappers[option_key] = self.wrapper
+        self.option_setters[option_key] = option_setter
         self.option_widget = option_widget
         self.tooltip_default = self.tooltip_default or (default if isinstance(default, str) else None)
 
@@ -253,8 +273,8 @@ class WidgetGenerator(ABC):
             return wrapper
 
     def build_option_widget(
-        self, option: dict[str, Any], widget: Gtk.Widget | None, no_label: bool = False, expand: bool = True
-    ) -> Gtk.Widget | None:
+        self, option: dict[str, Any], widget: Gtk.Widget, no_label: bool = False, expand: bool = True
+    ) -> Gtk.Widget:
         """This is called by the generator methods to place their widget into the wrapper, usually with
         a label taken from 'option'.
 
@@ -318,17 +338,21 @@ class WidgetGenerator(ABC):
     # Widget factories
 
     # Label
-    def _generate_label(self, option, value, default):
+    def _generate_label(self, option, value, default) -> WidgetSetterTuple:
         """Generate a simple label."""
         text = option["label"]
         label = Label(text)
         label.set_use_markup(True)
         label.set_halign(Gtk.Align.START)
         label.set_valign(Gtk.Align.CENTER)
-        return self.build_option_widget(option, label, no_label=True)
+
+        def set_label(text: str):
+            label.set_text(text)
+
+        return WidgetSetterTuple(self.build_option_widget(option, label, no_label=True), set_label)
 
     # Entry
-    def _generate_string(self, option, value, default):
+    def _generate_string(self, option, value, default) -> WidgetSetterTuple:
         """Generate an entry box."""
 
         def on_changed(entry):
@@ -340,10 +364,14 @@ class WidgetGenerator(ABC):
         entry = Gtk.Entry()
         entry.set_text(value or default or "")
         entry.connect("changed", on_changed)
-        return self.build_option_widget(option, entry)
+
+        def set_string(text: str):
+            entry.set_text(text)
+
+        return WidgetSetterTuple(self.build_option_widget(option, entry), set_string)
 
     # Switch
-    def _generate_bool(self, option, value, default):
+    def _generate_bool(self, option, value, default) -> WidgetSetterTuple:
         """Generate a switch."""
 
         def on_notify_active(widget, _gparam):
@@ -376,10 +404,14 @@ class WidgetGenerator(ABC):
         switch.connect("notify::active", on_notify_active)
 
         self.tooltip_default = _("Enabled") if to_bool(default) else _("Disabled")
-        return self.build_option_widget(option, switch, expand=False)
+
+        def set_bool(active: bool):
+            switch.set_active(active)
+
+        return WidgetSetterTuple(self.build_option_widget(option, switch, expand=False), set_bool)
 
     # SpinButton
-    def _generate_range(self, option, value, default):
+    def _generate_range(self, option, value, default) -> WidgetSetterTuple:
         """Generate a ranged spin button."""
 
         def on_changed(widget):
@@ -396,10 +428,14 @@ class WidgetGenerator(ABC):
         spin_button.set_adjustment(adjustment)
         spin_button.set_value(value if value is not None else (default if default is not None else 0))
         spin_button.connect("changed", on_changed)
-        return self.build_option_widget(option, spin_button)
+
+        def set_range(value: int | float):
+            spin_button.set_value(value)
+
+        return WidgetSetterTuple(self.build_option_widget(option, spin_button), set_range)
 
     # ComboBox
-    def _generate_choice(self, option, value, default, has_entry=False):
+    def _generate_choice(self, option, value, default, has_entry=False) -> WidgetSetterTuple:
         """Generate a combobox (drop-down menu)."""
 
         def populate_combobox_choices():
@@ -510,14 +546,17 @@ class WidgetGenerator(ABC):
 
             choices_src.register_reload_callback(reload_choices)
 
-        return self.build_option_widget(option, combobox)
+        def set_choice(choice: str):
+            combobox.set_active_id(choice)
+
+        return WidgetSetterTuple(self.build_option_widget(option, combobox), set_choice)
 
     # ComboBox
-    def _generate_choice_with_entry(self, option, value, default):
+    def _generate_choice_with_entry(self, option, value, default) -> WidgetSetterTuple:
         return self._generate_choice(option, value, default, has_entry=True)
 
     # Searchable Entry
-    def _generate_choice_with_search(self, option, value, default):
+    def _generate_choice_with_search(self, option, value, default) -> WidgetSetterTuple:
         """Generate a searchable combo box"""
 
         def on_changed(_widget, new_value):
@@ -531,10 +570,13 @@ class WidgetGenerator(ABC):
         if callable(choices_src) and hasattr(choices_src, "register_reload_callback"):
             choices_src.register_reload_callback(entrybox.repopulate)
 
-        return self.build_option_widget(option, entrybox)
+        def set_choice(choice: str):
+            entrybox.entry.set_text(choice)
+
+        return WidgetSetterTuple(self.build_option_widget(option, entrybox), set_choice)
 
     # FileChooserEntry
-    def _generate_file(self, option, value, default, shell_quoting=False):
+    def _generate_file(self, option, value, default, shell_quoting=False) -> WidgetSetterTuple:
         """Generate a file chooser button to select a file."""
 
         def on_changed(entry):
@@ -574,14 +616,17 @@ class WidgetGenerator(ABC):
         file_chooser.set_valign(Gtk.Align.CENTER)
         file_chooser.connect("changed", on_changed)
 
-        return self.build_option_widget(option, file_chooser)
+        def set_file_entry(file_path: str):
+            file_chooser.entry.set_text(file_path)
+
+        return WidgetSetterTuple(self.build_option_widget(option, file_chooser), set_file_entry)
 
     # FileChooserEntry
-    def _generate_command_line(self, option, value, default):
+    def _generate_command_line(self, option, value, default) -> WidgetSetterTuple:
         return self._generate_file(option, value, default, shell_quoting=True)
 
     # TreeView
-    def _generate_multiple_file(self, option, value, default):
+    def _generate_multiple_file(self, option, value, default) -> WidgetSetterTuple:
         """Generate a multiple file selector."""
 
         def on_add_files_clicked(_widget):
@@ -658,10 +703,15 @@ class WidgetGenerator(ABC):
         treeview_scroll.add(files_treeview)
 
         vbox.pack_start(treeview_scroll, True, True, 0)
-        return self.build_option_widget(option, vbox, no_label=True)
+
+        def set_multi_file_entry(filenames: Iterable[str]):
+            for filename in filenames:
+                files_list_store.append([filename])
+
+        return WidgetSetterTuple(self.build_option_widget(option, vbox, no_label=True), set_multi_file_entry)
 
     # FileChooserEntry
-    def _generate_directory(self, option, value, default):
+    def _generate_directory(self, option, value, default) -> WidgetSetterTuple:
         """Generate a file chooser button to select a directory."""
 
         def on_changed(entry):
@@ -684,10 +734,14 @@ class WidgetGenerator(ABC):
         )
         directory_chooser.connect("changed", on_changed)
         directory_chooser.set_valign(Gtk.Align.CENTER)
-        return self.build_option_widget(option, directory_chooser)
+
+        def set_directory_entry(directory: str):
+            directory_chooser.entry.set_text(directory)
+
+        return WidgetSetterTuple(self.build_option_widget(option, directory_chooser), set_directory_entry)
 
     # EditableGrid
-    def _generate_mapping(self, option, value, default):
+    def _generate_mapping(self, option, value, default) -> WidgetSetterTuple:
         """Adds an editable grid widget"""
 
         def on_changed(widget):
@@ -704,7 +758,13 @@ class WidgetGenerator(ABC):
 
         grid = EditableGrid(value, columns=["Key", "Value"])
         grid.connect("changed", on_changed)
-        return self.build_option_widget(option, grid)
+
+        def set_grid_values(value_dict: dict[Any, Any]):
+            grid.liststore.clear()
+            for item in value_dict.items():
+                grid.liststore.append(item)
+
+        return WidgetSetterTuple(self.build_option_widget(option, grid), set_grid_values)
 
     @staticmethod
     def on_query_tooltip(_widget, _x, _y, _keybmode, tooltip, text):  # pylint: disable=unused-argument
