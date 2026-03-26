@@ -662,12 +662,24 @@ class Game:
             gameplay_info["working_dir"] = self.runner.working_dir
 
         config = launch_ui_delegate.select_game_launch_config(self)
+        if "prepend_args" not in gameplay_info:
+            gameplay_info["prepend_args"] = launch_ui_delegate.get_extra_game_launch_prepend_args()
+        if "append_args" not in gameplay_info:
+            gameplay_info["append_args"] = launch_ui_delegate.get_extra_game_launch_append_args()
 
         if config is None:
             return {}  # no error here- the user cancelled out
 
         if config:  # empty dict for primary configuration
             self.runner.apply_launch_config(gameplay_info, config)
+        elif command := gameplay_info.get("command", []):
+            # For primary configuration splice the prepend after argument 0
+            # The append_args are added to the end of the command
+            if command:
+                gameplay_info["command"] = command[:1]
+                gameplay_info["command"] += gameplay_info["prepend_args"]
+                gameplay_info["command"] += command[1:]
+                gameplay_info["command"] += gameplay_info["append_args"]
 
         return gameplay_info
 

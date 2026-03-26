@@ -323,6 +323,30 @@ class LutrisApplication(Gtk.Application):
         )
         self.add_main_option("submit-issue", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE, _("Submit an issue"), None)
         self.add_main_option(
+            "launch-config-name",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Specify launch config to use for lutris:rungame/game-identifier and lutris:rungameid/numerical-id."),
+            None,
+        )
+        self.add_main_option(
+            "launch-args-prepend",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING_ARRAY,
+            _("Launch Arguments to forward to game. Arguments are prepended before regular args"),
+            None,
+        )
+        self.add_main_option(
+            "launch-args-append",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING_ARRAY,
+            _("Launch Arguments to forward to game. Arguments are appended after regular args"),
+            None,
+        )
+        self.add_main_option(
             GLib.OPTION_REMAINING,
             0,
             GLib.OptionFlags.NONE,
@@ -642,7 +666,14 @@ class LutrisApplication(Gtk.Application):
         appid = installer_info["appid"]
         launch_config_name = installer_info["launch_config_name"]
 
-        self.launch_ui_delegate = CommandLineUIDelegate(launch_config_name)
+        if launch_config_var := options.lookup_value("launch-config-name"):
+            launch_config_name = launch_config_var.get_string()
+
+        prepend_args_var = options.lookup_value("launch-args-prepend")
+        launch_prepend_args = prepend_args_var.get_strv() if prepend_args_var else []
+        append_args_var = options.lookup_value("launch-args-append")
+        launch_append_args = append_args_var.get_strv() if append_args_var else []
+        self.launch_ui_delegate = CommandLineUIDelegate(launch_config_name, launch_prepend_args, launch_append_args)
 
         revision = installer_info["revision"]
 
