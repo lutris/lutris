@@ -4,11 +4,12 @@ import logging
 import logging.handlers
 import os
 import sys
+from typing import Dict
 
-from gi.repository import GLib
+from gi.repository import GLib, Gtk
 
 # Used to store log buffers for games.
-LOG_BUFFERS = {}
+LOG_BUFFERS: Dict[str, Gtk.TextBuffer] = {}
 
 CACHE_DIR = os.path.realpath(os.path.join(GLib.get_user_cache_dir(), "lutris"))
 if not os.path.isdir(CACHE_DIR):
