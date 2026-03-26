@@ -11,7 +11,8 @@ from lutris import settings
 from lutris.config import LutrisConfig, make_game_config_id, rename_config
 from lutris.game import Game
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
-from lutris.gui.config.boxes import GameBox, RunnerBox, SystemConfigBox
+from lutris.gui.config.boxes import RunnerBox, SystemConfigBox
+from lutris.gui.config.game_config_box import GameBox
 from lutris.gui.config.game_info_box import GameInfoBox
 from lutris.gui.config.widget_generator import WidgetWarningMessageBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog, display_error
