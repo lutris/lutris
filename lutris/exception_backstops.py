@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, cast
 
