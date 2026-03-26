@@ -170,9 +170,8 @@ class LutrisConfig:
         if not self.profile_id or not self.game_config_id:
             return None
         from lutris.profile import get_profile_manager
-        return get_profile_manager().get_profile_game_config_path(
-            self.game_config_id, self.profile_id
-        )
+
+        return get_profile_manager().get_profile_game_config_path(self.game_config_id, self.profile_id)
 
     def initialize_config(self) -> None:
         """Init and load config files"""

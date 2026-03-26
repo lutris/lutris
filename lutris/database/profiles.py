@@ -1,7 +1,7 @@
 """Database operations for user profiles and per-profile game statistics."""
 
 import time
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from lutris import settings
 from lutris.database import sql
@@ -10,21 +10,17 @@ DEFAULT_PROFILE_ID = "default"
 DEFAULT_PROFILE_NAME = "Default"
 
 
-def get_all_profiles() -> List[Dict]:
+def get_all_profiles() -> List[Dict[str, Any]]:
     """Return all profiles ordered by creation date."""
     with sql.db_cursor(settings.DB_PATH) as cursor:
-        rows = cursor.execute(
-            "SELECT id, name, icon, created_at FROM profiles ORDER BY created_at ASC"
-        ).fetchall()
+        rows = cursor.execute("SELECT id, name, icon, created_at FROM profiles ORDER BY created_at ASC").fetchall()
     return [{"id": r[0], "name": r[1], "icon": r[2], "created_at": r[3]} for r in rows]
 
 
-def get_profile(profile_id: str) -> Optional[Dict]:
+def get_profile(profile_id: str) -> Optional[Dict[str, Any]]:
     """Return a single profile by id, or None if not found."""
     with sql.db_cursor(settings.DB_PATH) as cursor:
-        row = cursor.execute(
-            "SELECT id, name, icon, created_at FROM profiles WHERE id = ?", (profile_id,)
-        ).fetchone()
+        row = cursor.execute("SELECT id, name, icon, created_at FROM profiles WHERE id = ?", (profile_id,)).fetchone()
     if not row:
         return None
     return {"id": row[0], "name": row[1], "icon": row[2], "created_at": row[3]}
@@ -76,7 +72,7 @@ def ensure_default_profile() -> None:
 # --- Per-profile game statistics ---
 
 
-def get_profile_game_stats(profile_id: str, game_id: int) -> Optional[Dict]:
+def get_profile_game_stats(profile_id: str, game_id: int) -> Optional[Dict[str, Any]]:
     """Return the playtime/lastplayed for a game under a specific profile."""
     with sql.db_cursor(settings.DB_PATH) as cursor:
         row = cursor.execute(
@@ -107,7 +103,7 @@ def update_profile_game_stats(profile_id: str, game_id: int, playtime: float, la
             )
 
 
-def get_all_profile_stats_for_game(game_id: int) -> List[Dict]:
+def get_all_profile_stats_for_game(game_id: int) -> List[Dict[str, Any]]:
     """Return all per-profile stats for a given game (useful for debugging/admin)."""
     with sql.db_cursor(settings.DB_PATH) as cursor:
         rows = cursor.execute(

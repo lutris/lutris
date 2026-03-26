@@ -3,7 +3,7 @@
 import os
 import shutil
 from gettext import gettext as _
-from typing import Optional
+from typing import Optional, cast
 
 from gi.repository import Gtk
 
@@ -31,7 +31,7 @@ def _get_profile_disk_usage(profile_dir: str) -> int:
 class ProfileDialog(Dialog):
     """Modal dialog that lets the user create, rename, switch and delete profiles."""
 
-    def __init__(self, parent: Optional[Gtk.Widget] = None):
+    def __init__(self, parent: Gtk.Widget = None):
         super().__init__(
             title=_("Manage Profiles"),
             parent=parent,
@@ -154,15 +154,15 @@ class ProfileDialog(Dialog):
             return
         dialog = Gtk.MessageDialog(
             transient_for=self,
-            flags=Gtk.DialogFlags.MODAL,
             message_type=Gtk.MessageType.QUESTION,
             buttons=Gtk.ButtonsType.OK_CANCEL,
             text=_("Rename profile"),
         )
+        dialog.set_modal(True)
         dialog.format_secondary_text(_("Enter a new name for the profile:"))
         entry = Gtk.Entry()
         entry.set_activates_default(True)
-        dialog.get_message_area().pack_start(entry, False, False, 0)
+        cast(Gtk.Box, dialog.get_message_area()).pack_start(entry, False, False, 0)
         dialog.show_all()
         response = dialog.run()
         new_name = entry.get_text().strip()
@@ -177,11 +177,11 @@ class ProfileDialog(Dialog):
             return
         confirm = Gtk.MessageDialog(
             transient_for=self,
-            flags=Gtk.DialogFlags.MODAL,
             message_type=Gtk.MessageType.WARNING,
             buttons=Gtk.ButtonsType.YES_NO,
             text=_("Delete profile?"),
         )
+        confirm.set_modal(True)
         confirm.format_secondary_text(
             _(
                 "This will permanently delete all Wine prefixes and saves stored "

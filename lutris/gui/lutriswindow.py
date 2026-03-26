@@ -1210,6 +1210,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def on_manage_profiles_activate(self, *_args):
         """Open the profile management dialog."""
         from lutris.gui.dialogs.profile_dialog import ProfileDialog
+
         dialog = ProfileDialog(parent=self)
         dialog.run()
         dialog.destroy()
