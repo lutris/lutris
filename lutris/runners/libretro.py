@@ -18,6 +18,128 @@ from lutris.util.retroarch.firmware import get_firmware, scan_firmware_directory
 
 RETROARCH_DIR = os.path.join(settings.RUNNER_DIR, "retroarch")
 
+RETROARCH_TO_LUTRIS_PLATFORM_MAP = {
+    "2048 Game Clone": "",
+    "3D Engine": "",
+    "3DO": "",
+    "3DS": "Nintendo 3DS",
+    "Advanced Test Core": "",
+    "Amiga": "",
+    "Arcade (various)": "Arcade",
+    "Atari 2600": "Atari 2600",
+    "Atari 5200": "",
+    "Atari 7800": "",
+    "Atari ST/STE/TT/Falcon": "",
+    "BK-0010/BK-0011(M)": "",
+    "C128": "",
+    "C64": "",
+    "C64 SuperCPU": "",
+    "Cave Story Game Engine": "",
+    "CBM-5x0": "",
+    "CBM-II": "",
+    "ChaiLove": "",
+    "CHIP-8": "",
+    "Classic Tomb Raider engine": "",
+    "ColecoVision": "",
+    "Commodore Amiga": "",
+    "CPC": "",
+    "CP System I": "",
+    "CP System II": "",
+    "CP System III": "",
+    "Cruzes": "",
+    "Dinothawr Game Engine": "",
+    "Doom 3 Game Engine": "",
+    "Doom 3 XP Game Engine": "",
+    "DOOM Game Engine": "",
+    "DOS": "",
+    "DS": "",
+    "FFmpeg": "",
+    "Flashback Game Engine": "",
+    "FreeChaF": "",
+    "Game Boy Advance": "Nintendo Game Boy Advance",
+    "Game Boy/Game Boy Color": "intendo Game Boy (Color)",
+    "Game Boy/Game Boy Color/Game Boy Advance": "Nintendo Game Boy Advance",
+    "GameCube / Wii": "Nintendo Wii",
+    "Game engine": "",
+    "Handheld Electronic": "",
+    "Intellivision": "",
+    "J2ME": "",
+    "Jaguar": "",
+    "Java ME": "",
+    "LowRes NX": "",
+    "Lutro": "",
+    "Lynx": "",
+    "Magnavox Odyssey2 / Phillips Videopac+": "",
+    "Mega Duck": "",
+    "Minecraft Game Clone": "",
+    "Moonlight": "",
+    "MPV": "",
+    "Mr.Boom": "",
+    "MSX": "Microsoft MSX",
+    "MSX/SVI/ColecoVision/SG-1000": "",
+    "Multi (various)": "",
+    "Music": "",
+    "Neo Geo": "",
+    "Neo Geo Pocket (Color)": "SNK Neo Geo Pocket (Color)",
+    "Nintendo 64": "Nintendo 64",
+    "Nintendo DS": "Nintendo DS",
+    "Nintendo Entertainment System": "Nintendo NES",
+    "Oberon RISC machine": "",
+    "Outrun Game Engine": "",
+    "Palm OS": "",
+    "PC": "",
+    "PC-8000 / PC-8800 series": "",
+    "PC-98": "",
+    "PC Engine/PCE-CD": "",
+    "PC Engine SuperGrafx": "",
+    "PC Engine/SuperGrafx/CD": "",
+    "PC-FX": "",
+    "PET": "",
+    "Physics Toy": "",
+    "PICO8": "",
+    "PlayStation": "Sony PlayStation",
+    "PLUS/4": "",
+    "Pokemon Mini": "",
+    "Pong Game Clone": "",
+    "PSP": "Sony Playstation Portable",
+    "Quake 3 Game Engine": "",
+    "Quake Game Engine": "",
+    "Quake II Game Engine": "",
+    "Redbook": "",
+    "Rick Dangerous Game Engine": "",
+    "RPG Maker 2000/2003 Game Engine": "",
+    "SAM coupe": "",
+    "Saturn": "Sega Saturn",
+    "Sega 8/16-bit + 32X (Various)": "",
+    "Sega 8/16-bit (Various)": "",
+    "Sega 8-bit": "",
+    "Sega 8-bit (MS/GG/SG-1000)": "",
+    "Sega Dreamcast": "Sega Dreamcast",
+    "Sega Genesis": "Sega Genesis/Mega Drive",
+    "Sega Master System": "Sega Master System",
+    "SEGA Visual Memory Unit": "",
+    "Sharp X1": "",
+    "Sharp X68000": "",
+    "SNK Neo Geo CD": "",
+    "Sony PlayStation 2": "",
+    "Super Nintendo Entertainment System": "Nintendo SNES",
+    "Super Nintendo Entertainment System / Game Boy / Game Boy Color": "",
+    "Supervision": "",
+    "Test for netplay": "",
+    "Thomson MO/TO": "",
+    "TIC-80": "",
+    "Tyrian Game Engine": "",
+    "Uzebox": "",
+    "Vectrex": "",
+    "VIC-20": "",
+    "Virtual Boy": "Nintendo Virtual Boy",
+    "Wolfenstein 3D Game Engine": "",
+    "WonderSwan/Color": "Bandai WonderSwan Color",
+    "Xbox": "",
+    "ZX81": "",
+    "ZX Spectrum (various)": "",
+}
+
 
 def get_default_config_path(path):
     return os.path.join(RETROARCH_DIR, path)
@@ -28,6 +150,7 @@ def _download_libretro_info():
     info_path = os.path.join(RETROARCH_DIR, "info")
     req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True, timeout=5)
     if req.status_code == requests.codes.ok:  # pylint: disable=no-member
+        os.makedirs(RETROARCH_DIR, exist_ok=True)
         with open(os.path.join(RETROARCH_DIR, "info.zip"), "wb") as info_zip:
             info_zip.write(req.content)
         with ZipFile(os.path.join(RETROARCH_DIR, "info.zip"), "r") as info_zip:
@@ -118,13 +241,22 @@ class libretro(Runner):
         },
     ]
 
+    def __init__(self, config: LutrisConfig | None = None) -> None:
+        super().__init__(config)
+        for core in get_libretro_cores():
+            platform = core[2]
+            if lutris_platform := RETROARCH_TO_LUTRIS_PLATFORM_MAP.get(platform):
+                self.platform_dict[platform] = lutris_platform
+            else:
+                self.platform_dict[platform] = platform
+
     @property
     def directory(self):
         return os.path.join(settings.RUNNER_DIR, "retroarch")
 
     @property
     def platforms(self):
-        return [core[2] for core in get_libretro_cores()]
+        return list(self.platform_dict.values())
 
     @platforms.setter
     def platforms(self, platform_list: list[str]):
@@ -136,8 +268,8 @@ class libretro(Runner):
             logger.warning("Game don't have a core set")
             return
         for core in get_libretro_cores():
-            if core[1] == game_core:
-                return core[2]
+            if core[1] == game_core and core[2] in self.platform_dict:
+                return self.platform_dict[core[2]]
         logger.warning("'%s' not found in Libretro cores", game_core)
         return ""
 
