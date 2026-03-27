@@ -26,7 +26,7 @@ BANNER_SIZE = (184, 69)
 MEDIA_CACHE_INVALIDATED = NotificationSource()
 
 
-def get_application() -> "LutrisApplication" | None:
+def get_application() -> "LutrisApplication | None":
     return cast("LutrisApplication", Gio.Application.get_default())
 
 
@@ -37,7 +37,7 @@ def get_required_application() -> "LutrisApplication":
     return application
 
 
-def get_main_window() -> "LutrisWindow" | None:
+def get_main_window() -> "LutrisWindow | None":
     """Return the application's main window, or None if it doesn't exist
     (though it almost alway does exist)"""
     application = get_application()
