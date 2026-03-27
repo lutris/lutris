@@ -353,6 +353,7 @@ def substitute(string_template: str, variables: dict[str, str]) -> str:
         return variables[string_template]
     return template.safe_substitute(variables)
 
+
 def _match_regex(regex: re.Pattern[str] | None, path: str) -> bool:
     if not regex:
         return True
@@ -360,6 +361,7 @@ def _match_regex(regex: re.Pattern[str] | None, path: str) -> bool:
     if match:
         logger.debug("Path %s matches regex, copying", path)
     return bool(match)
+
 
 def merge_folders(source: str, destination: str, regex: re.Pattern[str] | None = None) -> None:
     """Merges the content of source to destination"""
