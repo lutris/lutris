@@ -45,15 +45,15 @@ class GameInfoBox(AdvancedSettingsBox):
         self.slug = game.slug if game else None
         self.initial_slug = game.slug if game else None
 
-        self.name_entry = None
-        self.sortname_entry = None
+        self.name_entry: Gtk.Entry = None
+        self.sortname_entry: Gtk.Entry = None
         self.runner_dropdown = None
         self.runner_index = None
         self.slug_entry = None
         self.slug_change_button = None
         self.directory_entry = None
-        self.year_entry = None
-        self.playtime_entry = None
+        self.year_entry: NumberEntry = None
+        self.playtime_entry: Gtk.Entry = None
         self.service_medias = {ICON_KEY: LutrisIcon(), BANNER_KEY: LutrisBanner(), COVERART_KEY: LutrisCoverart()}
 
         self.image_buttons = {}
