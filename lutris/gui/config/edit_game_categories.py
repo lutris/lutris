@@ -1,6 +1,6 @@
 # pylint: disable=no-member
+from collections.abc import Sequence
 from gettext import gettext as _
-from typing import Sequence
 
 from gi.repository import Gtk
 

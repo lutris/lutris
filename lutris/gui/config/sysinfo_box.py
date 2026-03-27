@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 from gettext import gettext as _
-from typing import Dict, Iterable, List, Tuple, Union
 
 from gi.repository import Gdk, Gtk
 
@@ -81,7 +81,7 @@ class SystemBox(BaseConfigBox):
         """Assembles a list of items to display; most items are name-value tuples
         giving various bits of information, section headers appear also, as plain strings."""
         features = self.get_features()
-        items: List[Union[str, Tuple[str, str]]] = [(f["name"], f["available_text"]) for f in features]
+        items: list[str | tuple[str, str]] = [(f["name"], f["available_text"]) for f in features]
 
         system_info_readable = gather_system_info_dict()
         for section, dictionary in system_info_readable.items():
@@ -127,7 +127,7 @@ class SystemBox(BaseConfigBox):
                 lines.append(f"{name}: {text}")
         return "\n".join(lines)
 
-    def get_features(self) -> List[Dict[str, str]]:
+    def get_features(self) -> list[dict[str, str]]:
         """Provides a list of features that may be present in your system; each
         is given as a dict, which hase 'name' and 'available_text' keys."""
         yes = _("YES")

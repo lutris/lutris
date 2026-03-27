@@ -1,6 +1,6 @@
 import os
+from collections.abc import Callable
 from gettext import gettext as _
-from typing import Callable, Optional
 
 from gi.repository import Gio, Gtk
 
@@ -44,7 +44,7 @@ class UpdatesBox(BaseConfigBox):
         radio_button.set_visible(True)
 
         radio_button.set_label("")  # creates Gtk.Label child
-        label: Optional[Gtk.Label] = radio_button.get_child()
+        label: Gtk.Label | None = radio_button.get_child()
 
         if label:
             label.set_markup(label_markup)

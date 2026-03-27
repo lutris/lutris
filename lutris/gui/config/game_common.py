@@ -1,8 +1,9 @@
 """Shared config dialog stuff"""
 
 # pylint: disable=not-an-iterable
+from collections.abc import Callable
 from gettext import gettext as _
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from gi.repository import Gtk
 
@@ -33,7 +34,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
 
     no_runner_label = _("Select a runner in the Game Info tab")
 
-    def __init__(self, title: str, config_level: str, parent: Gtk.Widget = None):
+    def __init__(self, title: str, config_level: str, parent: Gtk.Widget | None = None):
         super().__init__(title, parent=parent, border_width=0)
         self.config_level = config_level
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
@@ -117,7 +118,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.set_search_entry_visibility(show_search)
 
     def set_search_entry_visibility(
-        self, show_search: bool, placeholder_text: str = None, tooltip_markup: str = None
+        self, show_search: bool, placeholder_text: str | None = None, tooltip_markup: str | None = None
     ) -> None:
         """Explicitly shows or hides the search entry; can also update the placeholder text."""
         header_bar = self.get_header_bar()
