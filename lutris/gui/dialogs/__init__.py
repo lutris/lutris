@@ -31,6 +31,8 @@ class Dialog(Gtk.Dialog):
     the response for you via 'response_type' or 'confirmed' and destory this
     dialog if it isn't NONE."""
 
+    vbox: Gtk.VBox
+
     def __init__(
         self,
         title: str = None,
