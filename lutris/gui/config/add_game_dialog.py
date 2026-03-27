@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class AddGameDialog(GameDialogCommon):
     """Add game dialog class."""
 
-    def __init__(self, parent: "Gtk.Widget", game: "Game" = None, runner: str = None):
+    def __init__(self, parent: "Gtk.Widget", game: "Game | None" = None, runner: str | None = None):
         super().__init__(_("Add a new game"), config_level="game", parent=parent)
         self.game = game
         self.saved = False

@@ -1,5 +1,5 @@
 from gettext import gettext as _
-from typing import Any, Dict, Optional
+from typing import Any
 
 from gi.repository import Gio, Gtk  # type: ignore
 
@@ -102,7 +102,7 @@ class PreferencesWidgetGenerator(WidgetGenerator):
     def get_setting(self, option_key: str, default: Any) -> Any:
         return read_setting(option_key, default=default)
 
-    def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
+    def create_wrapper_box(self, option: dict[str, Any], value: Any, default: Any) -> Gtk.Box | None:
         box = super().create_wrapper_box(option, value, default)
         if box:
             box.set_margin_top(12)
@@ -112,8 +112,8 @@ class PreferencesWidgetGenerator(WidgetGenerator):
         return box
 
     def build_option_widget(
-        self, option: Dict[str, Any], widget: Optional[Gtk.Widget], no_label: bool = False, expand: bool = False
-    ) -> Optional[Gtk.Widget]:
+        self, option: dict[str, Any], widget: Gtk.Widget | None, no_label: bool = False, expand: bool = False
+    ) -> Gtk.Widget | None:
         if no_label:
             return super().build_option_widget(option, widget, no_label=no_label, expand=expand)
 

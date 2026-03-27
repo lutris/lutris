@@ -36,9 +36,9 @@ class Dialog(Gtk.Dialog):
     def __init__(
         self,
         title: str = None,
-        parent: Gtk.Widget = None,
+        parent: Gtk.Widget | None = None,
         flags: Gtk.DialogFlags = 0,
-        buttons: Gtk.ButtonsType = None,
+        buttons: Gtk.ButtonsType | None = None,
         **kwargs,
     ):
         # MyPy can't see it, but __init__ can handle the new_with_buttons arguments for us
@@ -133,9 +133,9 @@ class ModelessDialog(Dialog):
     def __init__(
         self,
         title: str = None,
-        parent: Gtk.Widget = None,
+        parent: Gtk.Widget | None = None,
         flags: Gtk.DialogFlags = 0,
-        buttons: Gtk.ButtonsType = None,
+        buttons: Gtk.ButtonsType | None = None,
         **kwargs,
     ):
         super().__init__(title, parent, flags, buttons, **kwargs)
@@ -168,7 +168,7 @@ class SavableModelessDialog(ModelessDialog):
     """This is a modeless dialog that has a Cancel and a Save button in the header-bar,
     with a ctrl-S keyboard shortcut to save."""
 
-    def __init__(self, title: str, parent: Gtk.Widget = None, **kwargs):
+    def __init__(self, title: str, parent: Gtk.Widget | None = None, **kwargs):
         super().__init__(title, parent=parent, use_header_bar=True, **kwargs)
 
         self.cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)

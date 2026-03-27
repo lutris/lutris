@@ -2,9 +2,10 @@
 
 import os
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from gettext import gettext as _
 from inspect import Parameter, signature
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from gi.repository import Gdk, Gtk  # type: ignore
 
@@ -39,7 +40,7 @@ class WidgetGenerator(ABC):
     inside the wrapper as a way to force it to update.
     """
 
-    GeneratorFunction = Callable[[Dict[str, Any], Any, Any], Optional[Gtk.Widget]]
+    GeneratorFunction = Callable[[dict[str, Any], Any, Any], Gtk.Widget | None]
 
     def __init__(self, parent: "ConfigBox", *callback_args, **callback_kwargs) -> None:
         self.parent = parent
@@ -47,26 +48,26 @@ class WidgetGenerator(ABC):
         self.callback_kwargs = callback_kwargs
         self.changed = NotificationSource()  # takes option_key, new_value
         self.changed.register(self.on_changed, priority=1000)
-        self._default_directory: Optional[str] = None
-        self._current_parent: Optional[Gtk.Box] = None
-        self._current_section: Optional[str] = None
+        self._default_directory: str | None = None
+        self._current_parent: Gtk.Box | None = None
+        self._current_section: str | None = None
 
         # These are outputs set by generate_widget() or generate_container()
         # and they are reset on each call.
-        self.wrapper: Optional[Gtk.Box] = None
+        self.wrapper: Gtk.Box | None = None
         self.default_value = None
-        self.tooltip_default: Optional[str] = None
-        self.options: Dict[str, Dict[str, Any]] = {}
-        self.option_widget: Optional[Gtk.Widget] = None
-        self.option_container: Optional[Gtk.Widget] = None
-        self.warning_messages: List[Gtk.Widget] = []
+        self.tooltip_default: str | None = None
+        self.options: dict[str, dict[str, Any]] = {}
+        self.option_widget: Gtk.Widget | None = None
+        self.option_container: Gtk.Widget | None = None
+        self.warning_messages: list[Gtk.Widget] = []
 
         # These accumulate results across all widgets
-        self.wrappers: Dict[str, Gtk.Container] = {}
-        self.section_frames: List[SectionFrame] = []
-        self.option_containers: Dict[str, Gtk.Container] = {}
+        self.wrappers: dict[str, Gtk.Container] = {}
+        self.section_frames: list[SectionFrame] = []
+        self.option_containers: dict[str, Gtk.Container] = {}
 
-        self._generators: Dict[str, WidgetGenerator.GeneratorFunction] = {
+        self._generators: dict[str, WidgetGenerator.GeneratorFunction] = {
             "label": self._generate_label,
             "string": self._generate_string,
             "bool": self._generate_bool,
@@ -101,7 +102,7 @@ class WidgetGenerator(ABC):
 
     # Widget Construction
 
-    def add_container(self, option: Dict[str, Any], wrapper: Optional[Gtk.Box] = None) -> Optional[Gtk.Widget]:
+    def add_container(self, option: dict[str, Any], wrapper: Gtk.Box | None = None) -> Gtk.Widget | None:
         """Generates the option's widget, wrapper and container, and adds the container to the parent;
         if the option uses 'section', then the container is actually placed inside a SectionFrame,
         or in the previous frame if it is for the same section."""
@@ -125,7 +126,7 @@ class WidgetGenerator(ABC):
             self._current_parent.pack_start(option_container, False, False, 0)
         return option_container
 
-    def generate_container(self, option: Dict[str, Any], wrapper: Optional[Gtk.Box] = None) -> Optional[Gtk.Widget]:
+    def generate_container(self, option: dict[str, Any], wrapper: Gtk.Box | None = None) -> Gtk.Widget | None:
         """Creates the widget, wrapper, and container; this returns the container
         (or the wrapper if there's no container)."""
         option_widget = self.generate_widget(option, wrapper)
@@ -148,7 +149,7 @@ class WidgetGenerator(ABC):
         else:
             return None
 
-    def generate_widget(self, option: Dict[str, Any], wrapper: Optional[Gtk.Box] = None) -> Optional[Gtk.Widget]:
+    def generate_widget(self, option: dict[str, Any], wrapper: Gtk.Box | None = None) -> Gtk.Widget | None:
         """This creates a wrapper box and a label and widget within it according to the options dict
         given. The option widget itself, is returned, but this method also sets attributes on the
         generator. You get 'wrapper', 'default_value', 'tooltip_default' and 'option_widget' which restates
@@ -198,7 +199,7 @@ class WidgetGenerator(ABC):
         self.configure_warning_messages(option)
         return option_widget
 
-    def configure_wrapper_box(self, wrapper: Gtk.Widget, option: Dict[str, Any], value: Any, default: Any) -> None:
+    def configure_wrapper_box(self, wrapper: Gtk.Widget, option: dict[str, Any], value: Any, default: Any) -> None:
         """Configures the wrapper box after it is created; this sets its tooltip, sensitivity, and
         creates warning message boxes."""
 
@@ -208,14 +209,14 @@ class WidgetGenerator(ABC):
             wrapper.props.has_tooltip = True
             wrapper.connect("query-tooltip", self.on_query_tooltip, tooltip)
 
-    def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
+    def get_tooltip(self, option: dict[str, Any], value: Any, default: Any):
         tooltip = option.get("help")
         if self.tooltip_default:
             tooltip = tooltip + "\n\n" if tooltip else ""
             tooltip += _("<b>Default</b>: ") + self.tooltip_default
         return tooltip
 
-    def configure_warning_messages(self, option: Dict[str, Any]):
+    def configure_warning_messages(self, option: dict[str, Any]):
         # Add message boxes under the widget
         if "error" in option:
             self.warning_messages.append(ConfigErrorBox(option["error"]))
@@ -223,7 +224,7 @@ class WidgetGenerator(ABC):
         if "warning" in option:
             self.warning_messages.append(ConfigWarningBox(option["warning"]))
 
-    def create_wrapper_box(self, option: Dict[str, Any], value: Any, default: Any) -> Optional[Gtk.Box]:
+    def create_wrapper_box(self, option: dict[str, Any], value: Any, default: Any) -> Gtk.Box | None:
         """This creates the wrapper, which becomes the 'wrapper' attribute and which build_option_widget()
         populates. Returns None if the option is not visible; in that case no widget is generated either."""
 
@@ -235,7 +236,7 @@ class WidgetGenerator(ABC):
 
         return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin_bottom=6, visible=True)
 
-    def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Container) -> Gtk.Container:
+    def create_option_container(self, option: dict[str, Any], wrapper: Gtk.Container) -> Gtk.Container:
         """This creates a wrapper box around the widget wrapper, to support additional controls. The
         base implementation wraps 'wrapper' in a Box with the error and warning widgets; if
         there are none it just returns 'wrapper'."""
@@ -252,8 +253,8 @@ class WidgetGenerator(ABC):
             return wrapper
 
     def build_option_widget(
-        self, option: Dict[str, Any], widget: Optional[Gtk.Widget], no_label: bool = False, expand: bool = True
-    ) -> Optional[Gtk.Widget]:
+        self, option: dict[str, Any], widget: Gtk.Widget | None, no_label: bool = False, expand: bool = True
+    ) -> Gtk.Widget | None:
         """This is called by the generator methods to place their widget into the wrapper, usually with
         a label taken from 'option'.
 
@@ -725,17 +726,17 @@ class WidgetGenerator(ABC):
         implemented by a subclass."""
         raise NotImplementedError()
 
-    def get_default(self, option: Dict[str, Any]) -> Any:
+    def get_default(self, option: dict[str, Any]) -> Any:
         """Returns the default value from the option; if it is callable, this calls
         it to get the actual default."""
         return self._evaluate_option("default", default=None, option=option)
 
-    def get_visibility(self, option: Dict[str, Any]) -> bool:
+    def get_visibility(self, option: dict[str, Any]) -> bool:
         """Extracts the 'visible' option; if the option is missing this returns
         True, and if it is callable this calls it. Subclasses can add further conditions."""
         return self._evaluate_flag_option("visible", option)
 
-    def get_condition(self, option: Dict[str, Any]) -> bool:
+    def get_condition(self, option: dict[str, Any]) -> bool:
         """Extracts the 'condition' option; but also the 'conditional_on' option, and if both
         are present, then if either indicates the control should be disabled this will be false.."""
         condition = self._evaluate_flag_option("condition", option)
@@ -754,14 +755,14 @@ class WidgetGenerator(ABC):
 
         return condition
 
-    def _evaluate_flag_option(self, key: str, option: Dict[str, Any]) -> bool:
+    def _evaluate_flag_option(self, key: str, option: dict[str, Any]) -> bool:
         """Evaluates a flag option; if is None or missing this returns True, and if
         it is callable this calls it (as with _evaluate_option) and converts
         the result to a bool."""
         flag = self._evaluate_option(key, default=True, option=option)
         return bool(flag) if flag is not None else True
 
-    def _evaluate_option(self, key: str, default: Any, option: Dict[str, Any]) -> Any:
+    def _evaluate_option(self, key: str, default: Any, option: dict[str, Any]) -> Any:
         """Evaluates an option; if is missing, then function returns 'default', and
         if it is callable this calls it, passing the option key, generator's args and kwargs.
 
@@ -774,7 +775,7 @@ class WidgetGenerator(ABC):
         value = option[key]
         return self.evaluate_option_value(value, option=option)
 
-    def evaluate_option_value(self, value: Any, option: Dict[str, Any]) -> Any:
+    def evaluate_option_value(self, value: Any, option: dict[str, Any]) -> Any:
         """Evaluates the 'value' given, if it is callable. If not, this method just
         returns the 'value'.
 
@@ -862,7 +863,7 @@ class ConfigMessageBox(WidgetWarningMessageBox):
             if text:
                 self.label.set_markup(str(text))
 
-    def update_message(self, option: Dict[str, Any], generator: WidgetGenerator) -> bool:
+    def update_message(self, option: dict[str, Any], generator: WidgetGenerator) -> bool:
         try:
             text = generator.evaluate_option_value(self.message, option)
         except Exception as err:

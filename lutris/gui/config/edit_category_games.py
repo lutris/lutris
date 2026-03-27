@@ -1,6 +1,5 @@
 # pylint: disable=no-member
 from gettext import gettext as _
-from typing import Dict, Set
 
 from gi.repository import Gtk
 
@@ -90,12 +89,12 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         """Save game info and destroy widget."""
         old_name: str = self.category
         new_name: str = categories_db.strip_category_name(self.name_entry.get_text())
-        category_games_ids: Set[str] = set(self.category_games.keys())
+        category_games_ids: set[str] = set(self.category_games.keys())
 
         # Work out which games hae been added or removed from the category
-        unchecked_game_ids: Set[str] = set()
-        checked_game_ids: Set[str] = set()
-        updated_games: Dict[str, Game] = {}
+        unchecked_game_ids: set[str] = set()
+        checked_game_ids: set[str] = set()
+        updated_games: dict[str, Game] = {}
 
         for game_checkbox in self.grid.get_children():
             label = game_checkbox.get_label()

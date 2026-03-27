@@ -6,7 +6,7 @@ from abc import abstractmethod
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 from gettext import gettext as _
-from typing import Any, Dict, Optional
+from typing import Any
 
 # Third Party Libraries
 from gi.repository import Gtk, Pango
@@ -22,7 +22,7 @@ from lutris.util.log import logger
 from lutris.util.wine.wine import clear_wine_version_cache
 
 
-def set_option_wrapper_style_class(wrapper: Gtk.Widget, class_name: Optional[str]):
+def set_option_wrapper_style_class(wrapper: Gtk.Widget, class_name: str | None):
     """Sets a particular CSS class on a wrapper, and removes any other classes that start
     with 'option-wrapper-' so there's only one o these classes."""
     style_context = wrapper.get_style_context()
@@ -65,7 +65,7 @@ class ConfigBox(AdvancedSettingsBox):
 
     config_section = NotImplemented
 
-    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game = None, **kwargs) -> None:
+    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game | None = None, **kwargs) -> None:
         super().__init__(**kwargs)
         self.options = []
         self.config_level = config_level
@@ -210,7 +210,7 @@ class RunnerBox(ConfigBox):
 
     config_section = "runner"
 
-    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game = None, **kwargs):
+    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game | None = None, **kwargs):
         ConfigBox.__init__(self, config_level, lutris_config, game, **kwargs)
 
         try:
@@ -269,7 +269,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
         self.config = parent.config
         self.raw_config = parent.raw_config
         self.lutris_config = parent.lutris_config
-        self.reset_buttons: Dict[str, Gtk.Button] = {}
+        self.reset_buttons: dict[str, Gtk.Button] = {}
 
     def get_setting(self, option_key: str, default: Any) -> Any:
         if option_key in self.config:
@@ -292,7 +292,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
             else:
                 set_option_wrapper_style_class(wrapper, None)
 
-    def create_option_container(self, option: Dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Container:
+    def create_option_container(self, option: dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Container:
         option_key = option["option"]
         reset_container = Gtk.Box(visible=True)
         reset_container.set_margin_left(18)
@@ -319,7 +319,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
         reset_container.pack_end(placeholder, False, False, 5)
         return super().create_option_container(option, reset_container)
 
-    def get_visibility(self, option: Dict[str, Any]) -> bool:
+    def get_visibility(self, option: dict[str, Any]) -> bool:
         option_container = self.option_containers[option["option"]]
         option_container.lutris_advanced_hidden = False  # type:ignore[attr-defined]
         option_visibility = super().get_visibility(option)
@@ -329,7 +329,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
         return self.parent.filter_widget(option_container)
 
-    def get_tooltip(self, option: Dict[str, Any], value: Any, default: Any):
+    def get_tooltip(self, option: dict[str, Any], value: Any, default: Any):
         tooltip = super().get_tooltip(option, value, default)
         option_key = option["option"]
         if value != default and option_key not in self.raw_config:
@@ -340,7 +340,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
     def update_widgets(self):
         super().update_widgets()
 
-        def get_no_options_message() -> Optional[str]:
+        def get_no_options_message() -> str | None:
             if self.option_containers:
                 for container in self.option_containers.values():
                     if container.get_visible():
