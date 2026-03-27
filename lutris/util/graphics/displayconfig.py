@@ -1,7 +1,7 @@
 """DBus backed display management for Mutter"""
 
 from collections import namedtuple
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import dbus
 
@@ -38,7 +38,7 @@ class Output:
         return int(self._output[2])
 
     @property
-    def crtcs(self) -> List[int]:
+    def crtcs(self) -> list[int]:
         """All CRTCs that can control this output"""
         return [int(crtc) for crtc in self._output[3]]
 
@@ -48,12 +48,12 @@ class Output:
         return str(self._output[4])
 
     @property
-    def modes(self) -> List[int]:
+    def modes(self) -> list[int]:
         """Valid modes for this output"""
         return [int(mode_id) for mode_id in self._output[5]]
 
     @property
-    def clones(self) -> List[int]:
+    def clones(self) -> list[int]:
         """Valid clones for this output, ie other outputs that can be assigned
         the same CRTC as this one; if you want to mirror two outputs that don't
         have each other in the clone list, you must configure two different
@@ -62,7 +62,7 @@ class Output:
         return [int(clone) for clone in self._output[6]]
 
     @property
-    def properties(self) -> Dict[str, Any]:
+    def properties(self) -> dict[str, Any]:
         """Other high-level properties that affect this output; they are not
         necessarily reflected in the hardware.
         """
@@ -169,7 +169,7 @@ class CRTC:
         )
 
     @property
-    def geometry(self) -> Tuple[int, int, int, int]:
+    def geometry(self) -> tuple[int, int, int, int]:
         """The geometry of this CRTC
         (might be invalid if the CRTC is not in use)
         """
@@ -228,12 +228,12 @@ class MonitorMode(DisplayMode):
         return float(self.mode_info[4])
 
     @property
-    def supported_scale(self) -> List[float]:
+    def supported_scale(self) -> list[float]:
         """scales supported by this mode"""
         return [float(scale) for scale in self.mode_info[5]]
 
     @property
-    def properties(self) -> Dict[str, Any]:
+    def properties(self) -> dict[str, Any]:
         """Additional properties"""
         return dict(self.mode_info[6])
 
@@ -249,18 +249,18 @@ class Monitor:
     def __init__(self, monitor: dbus.Struct):
         self._monitor = monitor
 
-    def get_current_mode(self) -> Optional[MonitorMode]:
+    def get_current_mode(self) -> MonitorMode | None:
         """Return the current mode"""
         for mode in self.get_modes():
             if mode.is_current:
                 return mode
         return None
 
-    def get_modes(self) -> List[MonitorMode]:
+    def get_modes(self) -> list[MonitorMode]:
         """Return available modes"""
         return [MonitorMode(mode) for mode in self._monitor[1]]
 
-    def get_mode_for_resolution(self, resolution: str) -> Optional[MonitorMode]:
+    def get_mode_for_resolution(self, resolution: str) -> MonitorMode | None:
         """Return an appropriate mode for a given resolution"""
         width, height = [int(i) for i in resolution.split("x")]
         for mode in self.get_modes():
@@ -309,12 +309,12 @@ class LogicalMonitor:
     scaling information.
     """
 
-    def __init__(self, lm_info: dbus.Struct, monitors: List[Monitor]):
+    def __init__(self, lm_info: dbus.Struct, monitors: list[Monitor]):
         self._lm = lm_info
         self._monitors = monitors
 
     @property
-    def position(self) -> Tuple[int, int]:
+    def position(self) -> tuple[int, int]:
         """Return the position of the monitor"""
         return int(self._lm[0]), int(self._lm[1])
 
@@ -344,7 +344,7 @@ class LogicalMonitor:
         """True if this is the primary logical monitor"""
         return bool(self._lm[4])
 
-    def _get_monitor_for_connector(self, connector: str) -> Optional[Monitor]:
+    def _get_monitor_for_connector(self, connector: str) -> Monitor | None:
         """Return a Monitor instance from its connector name"""
         for monitor in self._monitors:
             if monitor.name == str(connector):
@@ -352,20 +352,20 @@ class LogicalMonitor:
         return None
 
     @property
-    def monitors(self) -> List[Monitor]:
+    def monitors(self) -> list[Monitor]:
         """Monitors displaying that logical monitor"""
         monitors = [self._get_monitor_for_connector(m[0]) for m in self._lm[5]]
         return [monitor for monitor in monitors if monitor]
 
     @property
-    def properties(self) -> Dict[str, Any]:
+    def properties(self) -> dict[str, Any]:
         """Possibly other properties"""
         return dict(self._lm[6])
 
     def get_config(self) -> DisplayConfig:
         """Export the current configuration so it can be stored then reapplied later"""
 
-        def monitor_config(monitor: Monitor) -> Tuple[str, str]:
+        def monitor_config(monitor: Monitor) -> tuple[str, str]:
             current_mode = monitor.get_current_mode()
             if not current_mode:
                 raise RuntimeError(f"Invalid mode for monitor {monitor.name}")
@@ -392,21 +392,21 @@ class DisplayState:
         return int(self._state[0])
 
     @property
-    def monitors(self) -> List[Monitor]:
+    def monitors(self) -> list[Monitor]:
         """Available monitors"""
         return [Monitor(monitor) for monitor in self._state[1]]
 
     @property
-    def logical_monitors(self) -> List[LogicalMonitor]:
+    def logical_monitors(self) -> list[LogicalMonitor]:
         """Current logical monitor configuration"""
         return [LogicalMonitor(l_m, self.monitors) for l_m in self._state[2]]
 
     @property
-    def properties(self) -> Dict[str, Any]:
+    def properties(self) -> dict[str, Any]:
         """Display configuration properties"""
         return dict(self._state[3])
 
-    def get_primary_logical_monitor(self) -> Optional[LogicalMonitor]:
+    def get_primary_logical_monitor(self) -> LogicalMonitor | None:
         """Return the primary logical monitor"""
         for lm in self.logical_monitors:
             if lm.primary:
@@ -420,7 +420,7 @@ class DisplayState:
             return lm.monitors[0]
         return self.monitors[0]
 
-    def get_current_mode(self) -> Optional[MonitorMode]:
+    def get_current_mode(self) -> MonitorMode | None:
         """Return the current mode"""
         return self.get_primary_monitor().get_current_mode()
 
@@ -455,7 +455,7 @@ class MutterDisplayConfig:
         return int(self.resources[0])
 
     @property
-    def crtcs(self) -> List[CRTC]:
+    def crtcs(self) -> list[CRTC]:
         """
         A CRTC (CRT controller) is a logical monitor, ie a portion
         of the compositor coordinate space. It might correspond
@@ -497,7 +497,7 @@ class MutterDisplayConfig:
         return [CRTC(crtc) for crtc in self.resources[1]]
 
     @property
-    def outputs(self) -> List[Output]:
+    def outputs(self) -> list[Output]:
         """
         An output represents a physical screen, connected somewhere to
         the computer. Floating connectors are not exposed in the API.
@@ -542,7 +542,7 @@ class MutterDisplayConfig:
         return [Output(output) for output in self.resources[2]]
 
     @property
-    def modes(self) -> List[DisplayMode]:
+    def modes(self) -> list[DisplayMode]:
         """
         A mode represents a set of parameters that are applied to
         each output, such as resolution and refresh rate. It is a separate
@@ -580,7 +580,7 @@ class MutterDisplayConfig:
         """Maximum height supported"""
         return int(self.resources[5])
 
-    def get_mode_for_resolution(self, resolution: str) -> Optional[DisplayMode]:
+    def get_mode_for_resolution(self, resolution: str) -> DisplayMode | None:
         """Return an appropriate mode for a given resolution"""
         width, height = [int(i) for i in resolution.split("x")]
         for mode in self.modes:
@@ -588,7 +588,7 @@ class MutterDisplayConfig:
                 return mode
         return None
 
-    def get_primary_logical_monitor(self) -> Optional[LogicalMonitor]:
+    def get_primary_logical_monitor(self) -> LogicalMonitor | None:
         """Return the primary logical monitor"""
         return self.current_state.get_primary_logical_monitor()
 
@@ -596,7 +596,7 @@ class MutterDisplayConfig:
         """Returns the first physical monitor on the primary logical monitor."""
         return self.current_state.get_primary_monitor()
 
-    def apply_monitors_config(self, display_configs: List[DisplayConfig]) -> None:
+    def apply_monitors_config(self, display_configs: list[DisplayConfig]) -> None:
         """Set the selected display to the desired resolution"""
         # Reload resources
         if not display_configs:
@@ -627,15 +627,15 @@ class MutterDisplayManager:
     def __init__(self) -> None:
         self.display_config = MutterDisplayConfig()
 
-    def get_config(self) -> List[DisplayConfig]:
+    def get_config(self) -> list[DisplayConfig]:
         """Return the current configuration for each logical monitor"""
         return [logical_monitor.get_config() for logical_monitor in self.display_config.current_state.logical_monitors]
 
-    def get_display_names(self) -> List[str]:
+    def get_display_names(self) -> list[str]:
         """Return display names of connected displays"""
         return [output.display_name for output in self.display_config.outputs]
 
-    def get_resolutions(self) -> List[str]:
+    def get_resolutions(self) -> list[str]:
         """Return available resolutions"""
         resolutions = ["%sx%s" % (mode.width, mode.height) for mode in self.display_config.modes]
         if not resolutions:
@@ -643,7 +643,7 @@ class MutterDisplayManager:
             return ["%sx%s" % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
         return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
 
-    def get_current_resolution(self) -> Tuple[str, str]:
+    def get_current_resolution(self) -> tuple[str, str]:
         """Return the current resolution for the primary display"""
         logger.debug("Retrieving current resolution")
         current_mode = self.display_config.current_state.get_current_mode()
@@ -652,7 +652,7 @@ class MutterDisplayManager:
             return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
         return str(current_mode.width), str(current_mode.height)
 
-    def set_resolution(self, resolution: Union[str, List[DisplayConfig]]) -> None:
+    def set_resolution(self, resolution: str | list[DisplayConfig]) -> None:
         """Change the current resolution"""
         if isinstance(resolution, str):
             monitor = self.display_config.get_primary_monitor()

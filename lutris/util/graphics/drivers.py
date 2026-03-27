@@ -6,7 +6,8 @@ Everything in this module should rely on /proc or /sys only, no executable calls
 
 import os
 import re
-from typing import Dict, Iterable, List, TypeAlias
+from collections.abc import Iterable
+from typing import TypeAlias
 
 from lutris.util import cache_single
 from lutris.util.graphics.glxinfo import GlxInfo
@@ -16,8 +17,8 @@ from lutris.util.system import read_process_output
 MIN_RECOMMENDED_NVIDIA_DRIVER = 515
 
 
-DriverGpuInfoDict: TypeAlias = Dict[str, str]
-DriverInfoDict: TypeAlias = Dict[str, str]
+DriverGpuInfoDict: TypeAlias = dict[str, str]
+DriverInfoDict: TypeAlias = dict[str, str]
 
 
 @cache_single
@@ -25,7 +26,7 @@ def get_nvidia_driver_info() -> DriverInfoDict:
     """Return information about Nvidia drivers"""
     version_file_path = "/proc/driver/nvidia/version"
 
-    def read_from_proc() -> Dict[str, str]:
+    def read_from_proc() -> dict[str, str]:
         try:
             if not os.path.exists(version_file_path):
                 return {}
@@ -65,7 +66,7 @@ def get_nvidia_driver_info() -> DriverInfoDict:
             logger.warning("Unable to parse %s. Falling back to glxinfo: %s", version_file_path, ex)
             return {}
 
-    def invoke_glxinfo() -> Dict[str, str]:
+    def invoke_glxinfo() -> dict[str, str]:
         glx_info = GlxInfo()
         platform = read_process_output(["uname", "-s"])
         arch = read_process_output(["uname", "-m"])
@@ -89,7 +90,7 @@ def get_nvidia_driver_info() -> DriverInfoDict:
     return invoke_glxinfo()
 
 
-def get_nvidia_gpu_ids() -> List[str]:
+def get_nvidia_gpu_ids() -> list[str]:
     """Return the list of Nvidia GPUs"""
     gpus_dir = "/proc/driver/nvidia/gpus"
     try:
@@ -191,7 +192,7 @@ def get_gpu_cards() -> Iterable[str]:
             yield cardname
 
 
-def get_gpu_info(card: str) -> Dict[str, str]:
+def get_gpu_info(card: str) -> dict[str, str]:
     """Return information about a GPU"""
     infos = {"DRIVER": "", "PCI_ID": "", "PCI_SUBSYS_ID": ""}
     try:
