@@ -10,7 +10,8 @@ When a conflict is detected the user is prompted via a GTK dialog.
 
 import os
 import threading
-from typing import TYPE_CHECKING, Any, Callable, List, Optional
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from lutris.services.gog_cloud import (
     GOGCloudSync,
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
     from lutris.game import Game
 
 
-def _get_gog_service() -> Optional[Any]:
+def _get_gog_service() -> Any | None:
     """Return an authenticated GOGService instance, or None if unavailable."""
     try:
         from lutris.services.gog import GOGService  # noqa: PLC0415
@@ -80,7 +81,7 @@ def _get_game_runner_info(game: "Game") -> dict:
 def _resolve_save_locations(
     game: "Game",
     service: Any,
-) -> List[dict]:
+) -> list[dict]:
     """Resolve all cloud save locations for a GOG game.
 
     Returns a list of dicts with 'name' and 'save_path' keys.
@@ -143,7 +144,7 @@ def _resolve_save_locations(
     return result
 
 
-def _show_conflict_dialog(game_name: str, location_name: str) -> Optional[str]:
+def _show_conflict_dialog(game_name: str, location_name: str) -> str | None:
     """Show a GTK conflict resolution dialog and return the user's choice.
 
     This function is safe to call from any thread.  The GTK dialog is
@@ -154,7 +155,7 @@ def _show_conflict_dialog(game_name: str, location_name: str) -> Optional[str]:
     Returns:
         ``"download"``, ``"upload"``, or ``None`` (skip).
     """
-    result_holder: List[Optional[str]] = [None]
+    result_holder: list[str | None] = [None]
     event = threading.Event()
 
     def _create_dialog() -> bool:
@@ -183,7 +184,7 @@ def _sync_location(
     loc: dict,
     preferred_action: str,
     direction_label: str,
-    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    progress_callback: Callable[[int, int, str], None] | None = None,
     auto_resolve_upload: bool = False,
 ) -> SyncResult:
     """Sync a single save location, handling conflicts via dialog.
@@ -241,8 +242,8 @@ def _sync_location(
 
 def sync_before_launch(
     game: "Game",
-    progress_callback: Optional[Callable[[int, int, str], None]] = None,
-) -> List[SyncResult]:
+    progress_callback: Callable[[int, int, str], None] | None = None,
+) -> list[SyncResult]:
     """Sync cloud saves before launching a GOG game (download direction).
 
     This fetches any newer saves from GOG cloud storage to the local
@@ -288,8 +289,8 @@ def sync_before_launch(
 
 def sync_after_quit(
     game: "Game",
-    progress_callback: Optional[Callable[[int, int, str], None]] = None,
-) -> List[SyncResult]:
+    progress_callback: Callable[[int, int, str], None] | None = None,
+) -> list[SyncResult]:
     """Sync cloud saves after a GOG game quits (upload direction).
 
     This uploads any newer local saves to GOG cloud storage after

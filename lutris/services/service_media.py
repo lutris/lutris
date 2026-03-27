@@ -2,7 +2,8 @@ import json
 import os
 import random
 import time
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Tuple, cast
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING, Any, cast
 
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
@@ -19,7 +20,7 @@ class MediaPath:
     is defined by Lutris, not the size of the image in the file. Note that
     the file may not exist."""
 
-    def __init__(self, path: str, service_media: "ServiceMedia", size: Optional[Tuple[int, int]] = None):
+    def __init__(self, path: str, service_media: "ServiceMedia", size: tuple[int, int] | None = None):
         self.path = path
         self.service_media = service_media
         self.size = size or service_media.size
@@ -36,7 +37,7 @@ class MediaPath:
     def exists(self) -> bool:
         return system.path_exists(self.path, exclude_empty=True) and os.path.isfile(self.path)
 
-    def scale_to_fit(self, max_size: Tuple[int, int]) -> "MediaPath":
+    def scale_to_fit(self, max_size: tuple[int, int]) -> "MediaPath":
         if max_size != self.size:
             x_factor = max_size[0] / self.width
             y_factor = max_size[1] / self.height
@@ -50,7 +51,7 @@ class MediaPath:
         return self.path
 
 
-def resolve_media_path(possible_paths: List[MediaPath]) -> MediaPath:
+def resolve_media_path(possible_paths: list[MediaPath]) -> MediaPath:
     """Selects the best path from a list of paths to media. This will take the first
     one that exists and has contents, or the just first one if none are usable."""
     if len(possible_paths) > 1:
@@ -83,14 +84,12 @@ class ServiceMedia:
     def get_filename(self, slug):
         return self.file_patterns[0] % slug
 
-    def get_possible_media_paths(self, slug: str) -> List[MediaPath]:
+    def get_possible_media_paths(self, slug: str) -> list[MediaPath]:
         """Returns a list of each path where the media might be found. At most one of these should
         be found, but they are in a priority order - the first is in the preferred format."""
         return [MediaPath(os.path.join(self.dest_path, pattern % slug), self) for pattern in self.file_patterns]
 
-    def get_fallback_media_path(
-        self, services: Iterable[Tuple["BaseService", Callable[[], str]]]
-    ) -> Optional[MediaPath]:
+    def get_fallback_media_path(self, services: Iterable[tuple["BaseService", Callable[[], str]]]) -> MediaPath | None:
         """Returns the media path to use when none of the possible paths (above) actually exist.
         This may be scaled down so it no taller than this media's height.
 
@@ -102,7 +101,7 @@ class ServiceMedia:
 
         medias = [(mt(), t[1]) for t in services for mt in t[0].medias.values()]
 
-        def similarity(media: Tuple[ServiceMedia, Callable[[], str]]) -> int:
+        def similarity(media: tuple[ServiceMedia, Callable[[], str]]) -> int:
             diff = abs(media[0].size[1] - self.size[1])
             return diff if media[0].size[1] >= self.size[1] else diff + 1000
 
@@ -119,8 +118,8 @@ class ServiceMedia:
     def trash_media(
         self,
         slug: str,
-        completion_function: Optional[TrashPortal.CompletionFunction] = None,
-        error_function: Optional[TrashPortal.ErrorFunction] = None,
+        completion_function: TrashPortal.CompletionFunction | None = None,
+        error_function: TrashPortal.ErrorFunction | None = None,
     ) -> None:
         """Sends each media file for a game to the trash, and invokes callsbacks when this
         has been completed or has failed."""
@@ -130,7 +129,7 @@ class ServiceMedia:
         elif completion_function:
             completion_function()
 
-    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
+    def get_media_url(self, details: dict[str, Any]) -> str | None:
         if self.api_field not in details:
             logger.warning("No field '%s' in API game %s", self.api_field, details)
             return None
@@ -138,12 +137,12 @@ class ServiceMedia:
             return None
         return self.url_pattern % details[self.api_field]
 
-    def get_media_urls(self) -> Dict[str, str]:
+    def get_media_urls(self) -> dict[str, str]:
         """Return URLs for icons and logos from a service"""
         if self.source == "local":
             return {}
         service_games = ServiceGameCollection.get_for_service(self.service)
-        medias: Dict[str, str] = {}
+        medias: dict[str, str] = {}
         for game in service_games:
             if not game["details"]:
                 continue

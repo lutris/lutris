@@ -1,7 +1,7 @@
 """Service package"""
 
 import os
-from typing import TYPE_CHECKING, Dict, Type
+from typing import TYPE_CHECKING
 
 from lutris import settings
 from lutris.services.amazon import AmazonService
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 DEFAULT_SERVICES = ["gog", "egs", "ea_app", "ubisoft", "steam"]
 
 
-def get_services() -> Dict[str, Type["BaseService"]]:
+def get_services() -> dict[str, "type[BaseService]"]:
     """Return a mapping of available services"""
     _services = {
         "gog": GOGService,

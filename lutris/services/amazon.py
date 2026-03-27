@@ -12,7 +12,7 @@ import urllib
 import uuid
 from collections import defaultdict
 from gettext import gettext as _
-from typing import Any, Dict, Optional
+from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import yaml
@@ -42,7 +42,7 @@ class AmazonBanner(ServiceMedia):
     api_field = "image"
     url_pattern = "%s"
 
-    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
+    def get_media_url(self, details: dict[str, Any]) -> str | None:
         return details["product"]["productDetail"]["details"]["logoUrl"]
 
 
