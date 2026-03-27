@@ -1,13 +1,19 @@
 from gettext import gettext as _
+from typing import TYPE_CHECKING
 
 from lutris.config import LutrisConfig
 from lutris.gui.config.game_common import GameDialogCommon
+
+if TYPE_CHECKING:
+    from gi.repository import Gtk
+
+    from lutris.game import Game
 
 
 class AddGameDialog(GameDialogCommon):
     """Add game dialog class."""
 
-    def __init__(self, parent, game=None, runner=None):
+    def __init__(self, parent: "Gtk.Widget", game: "Game" = None, runner: str = None):
         super().__init__(_("Add a new game"), config_level="game", parent=parent)
         self.game = game
         self.saved = False

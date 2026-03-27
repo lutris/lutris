@@ -101,7 +101,7 @@ class LutrisConfig:
         level: Optional[str] = None,
         options_supported: Optional[Set[str]] = None,
     ):
-        self.game_config_id = game_config_id
+        self.game_config_id: str = game_config_id
         if runner_slug:
             self.runner_slug: Optional[str] = str(runner_slug)
         else:
