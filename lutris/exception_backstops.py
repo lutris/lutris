@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, cast
+from typing import TYPE_CHECKING, Any, Callable, Iterable, cast
 
 from gi.repository import GLib, GObject, Gtk
 
@@ -48,7 +48,7 @@ def watch_game_errors(game_stop_result: Any, game: "Game" = None) -> Callable[[A
     return inner_decorator
 
 
-def _get_error_parent(error_objects: Iterable[Optional[GObject.Object]]) -> Gtk.Window:
+def _get_error_parent(error_objects: Iterable[GObject.Object | None]) -> Gtk.Window:
     """Obtains a top-level window to use as the parent of an
     error, by examining s list of objects. Any that are None
     are skipped; we call get_toplevel() on each object that has

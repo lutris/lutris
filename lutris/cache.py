@@ -3,7 +3,6 @@
 import os
 import shutil
 from gettext import gettext as _
-from typing import Optional, Tuple
 from urllib.parse import urlparse
 
 from lutris import settings
@@ -48,7 +47,7 @@ def get_url_cache_path(url: str, file_id: str, game_slug: str, prepare: bool = F
     return path
 
 
-def get_custom_cache_path() -> Optional[str]:
+def get_custom_cache_path() -> str | None:
     """Returns the custom path, whether it is usable or not. Returns
     None if the path is not set, so that the default INSTALLER_CACHE_DIR
     should be used."""
@@ -72,7 +71,7 @@ def has_valid_custom_cache_path() -> bool:
     return valid
 
 
-def validate_custom_cache_path(cache_path: str) -> Tuple[bool, Optional[str]]:
+def validate_custom_cache_path(cache_path: str) -> tuple[bool, str | None]:
     """Checks the validity of a given path; returns a flag for whether
     it can be used, and an optional message for what's wrong with it,
     if anything is."""

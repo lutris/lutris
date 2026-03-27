@@ -2,7 +2,7 @@
 
 from collections.abc import Iterable
 from gettext import gettext as _
-from typing import Any, Optional
+from typing import Any
 
 
 class LutrisError(Exception):
@@ -71,7 +71,7 @@ class UnavailableGameError(LutrisError):
 
 
 class UnavailableLibrariesError(MisconfigurationError):
-    def __init__(self, libraries: Iterable[str], arch: Optional[str] = None):
+    def __init__(self, libraries: Iterable[str], arch: str | None = None) -> None:
         message = _("The following {arch} libraries are required but are not installed on your system:\n{libs}").format(
             arch=arch if arch else "", libs=", ".join(libraries)
         )
