@@ -36,7 +36,7 @@ def set_option_wrapper_style_class(wrapper: Gtk.Widget, class_name: str | None):
 
 
 class AdvancedSettingsBox(VBox):
-    """Intermediate vbox class for expsoing the Advanced Visibility options"""
+    """Intermediate vbox class for exposing the Advanced Visibility options"""
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -197,8 +197,7 @@ class ConfigBox(AdvancedSettingsBox):
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
 
         show_advanced = settings.read_setting("show_advanced_options") == "True"
-        self._advanced_visibility = show_advanced
-        gen.update_widgets()
+        self.advanced_visibility = show_advanced
 
     def update_widgets(self):
         if self._widget_generator:

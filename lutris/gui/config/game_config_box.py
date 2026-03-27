@@ -45,7 +45,7 @@ LAUNCH_CONFIG_GAME_OPTIONS: list[dict[str, Any]] = [
         "option": "args",
         "type": "string",
         "label": _("Arguments"),
-        "help": _("The argumetns for the launch config"),
+        "help": _("The arguments for the launch config"),
         "validator": shlex.split,
     },
     {
@@ -53,15 +53,12 @@ LAUNCH_CONFIG_GAME_OPTIONS: list[dict[str, Any]] = [
         "type": "directory",
         "label": _("Working directory"),
         "help": _(
-            "The location where the executable is run from.\nBy default, Lutris uses the directory of the executable."
+            "The directory where the executable is run from.\nBy default, Lutris uses the directory of the executable."
         ),
     },
 ]
 
-
 NEW_LAUNCH_CONFIG_FMT = _("New Launch Config %d")
-
-
 new_config_index = 0
 
 
@@ -113,7 +110,7 @@ class GameBox(ConfigBox):
         self.options = self.runner.game_options
 
         self._launch_config_dropdown_index = 0
-        self._launch_config_box = self._get_launch_config_box()
+        self._launch_config_box: Gtk.Box = self._get_launch_config_box()
 
         action_id = "remove"
         remove_action = Gio.SimpleAction.new(name=action_id)
@@ -169,7 +166,7 @@ class GameBox(ConfigBox):
         cell_renderer = Gtk.CellRendererText()
         self._launch_config_dropdown.pack_start(cell_renderer, True)
         self._launch_config_dropdown.add_attribute(cell_renderer, "text", 0)
-        config_liststore.connect("row_changed", self._launch_config_liststore_changed)
+        config_liststore.connect("row_changed", self._on_launch_config_liststore_changed)
 
         event_box = Gtk.EventBox(visible=True)
         event_box.connect("button-press-event", self._launch_config_dropdown_popup_menu)
@@ -188,7 +185,7 @@ class GameBox(ConfigBox):
 
         active_entry_changed = self._update_active_launch_config()
         if active_entry_changed:
-            # Update the widget values with the launch config if the drop selection changes
+            # Update the widget values with the launch config if the dropdown selection changes
             self.update_launch_config_widget_values()
         self.update_widgets()
 
@@ -271,7 +268,7 @@ class GameBox(ConfigBox):
 
     def _update_active_launch_config(self) -> bool:
         """Update the launch config entries being shown in the Config Generator
-        Returns true when the selected item changes
+        Return true when the selected item changes
         """
         # Update the launch config index member
         if self._launch_config_dropdown.get_active() == -1:
@@ -288,6 +285,33 @@ class GameBox(ConfigBox):
 
         return True
 
+    @property
+    def advanced_visibility(self):
+        return self._advanced_visibility
+
+    @advanced_visibility.setter
+    def advanced_visibility(self, value):
+        """When the advanced setting is turned off, set the box that contains
+        the Launch Config drop down widgets to hidden.
+        Afterwards show the primary launch config
+
+        When the setting is turned back on, the containing box visibility
+        will be reset to true
+        """
+
+        if value:
+            self._launch_config_box.set_visible(True)
+        else:
+            # Set the combobox active ID to the Primary Launch Config name
+            # to trigger the event to show the primary launch config again
+            # Aftewards hiden the launch config dropdown
+            self._launch_config_dropdown.set_active_id(Game.PRIMARY_LAUNCH_CONFIG_NAME)
+            self._launch_config_box.set_visible(False)
+
+        # Call the normal base class advanced functionality
+        self._advanced_visibility = value
+        self.update_widgets()
+
     def generate_widgets(self) -> None:
         """Generate the Launch Config widgets, with the normal widgets"""
         super().generate_widgets()
@@ -303,7 +327,7 @@ class GameBox(ConfigBox):
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
 
-        self.update_launch_config_widgets()
+        self.update_widgets()
 
     def get_launch_config_widget_generator(self) -> ConfigWidgetGenerator:
         """Returns a generator for creating widgets for the launch config"""
@@ -320,7 +344,9 @@ class GameBox(ConfigBox):
 
         return self._launch_config_widget_generator
 
-    def update_launch_config_widgets(self) -> None:
+    def update_widgets(self):
+        """Update both the primary game config and launch config widgets"""
+        super().update_widgets()
         if self._launch_config_widget_generator:
             self._launch_config_widget_generator.update_widgets()
 
@@ -356,5 +382,5 @@ class GameBox(ConfigBox):
             if config_iter:
                 config_liststore.set(config_iter, 0, new_value)
 
-    def _launch_config_liststore_changed(self, _tree_model, _path, iter):
+    def _on_launch_config_liststore_changed(self, _tree_model, _path, iter):
         self._launch_config_dropdown.set_active_iter(iter)

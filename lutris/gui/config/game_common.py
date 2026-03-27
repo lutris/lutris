@@ -181,7 +181,8 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.game_box = self._build_options_tab(
                 _("Game options"),
                 lambda: GameBox(self.config_level, self.lutris_config, self.game),
-                advanced=has_advanced(self.game),
+                # Override advanced visibility to True, since the Launch Configs will be editable by this tab
+                advanced=True,
                 searchable=is_searchable(self.game),
             )
         elif self.runner_name:
