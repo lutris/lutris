@@ -3,7 +3,7 @@
 import re
 import subprocess
 from collections import namedtuple
-from typing import Iterable, List, Tuple, Union
+from collections.abc import Iterable
 
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
 from lutris.util.linux import LINUX_SYSTEM
@@ -13,7 +13,7 @@ from lutris.util.system import read_process_output
 Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate", "preferred_mode"))
 
 
-def _get_vidmodes() -> List[str]:
+def _get_vidmodes() -> list[str]:
     """Return video modes from XrandR"""
     if xrandr_command := LINUX_SYSTEM.get("xrandr"):
         xrandr_output = read_process_output([xrandr_command]).split("\n")
@@ -22,7 +22,7 @@ def _get_vidmodes() -> List[str]:
     return []
 
 
-def get_outputs() -> List[Output]:
+def get_outputs() -> list[Output]:
     """Parse xrandr output and return one Output per active connected display.
 
     Each Output captures the connector name, current mode (resolution), position,
@@ -106,7 +106,7 @@ def turn_off_except(display: str) -> None:
                 xrandr.communicate()
 
 
-def get_resolutions() -> List[str]:
+def get_resolutions() -> list[str]:
     """Return the list of supported screen resolutions."""
     resolution_list = []
     logger.debug("Retrieving resolution list")
@@ -121,7 +121,7 @@ def get_resolutions() -> List[str]:
     return sorted(set(resolution_list), key=lambda x: int(x.split("x")[0]), reverse=True)
 
 
-def change_resolution(resolution: Union[str, Iterable[Output]]) -> None:
+def change_resolution(resolution: str | Iterable[Output]) -> None:
     """Change display resolution.
 
     Takes a string for single monitors or a list of displays as returned
@@ -179,17 +179,17 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
     """
 
     @staticmethod
-    def get_display_names() -> List[str]:
+    def get_display_names() -> list[str]:
         """Return output names from XrandR"""
         return [output.name for output in get_outputs()]
 
     @staticmethod
-    def get_resolutions() -> List[str]:
+    def get_resolutions() -> list[str]:
         """Return available resolutions"""
         return get_resolutions()
 
     @staticmethod
-    def get_current_resolution() -> Tuple[str, str]:
+    def get_current_resolution() -> tuple[str, str]:
         """Return the current resolution for the desktop"""
         outputs = get_outputs()
         if not outputs:
@@ -208,11 +208,11 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
         return tuple(mode.split("x"))
 
     @staticmethod
-    def set_resolution(resolution: Union[str, Iterable[Output]]) -> None:
+    def set_resolution(resolution: str | Iterable[Output]) -> None:
         """Change the current resolution"""
         change_resolution(resolution)
 
     @staticmethod
-    def get_config() -> List[Output]:
+    def get_config() -> list[Output]:
         """Return the current display configuration"""
         return get_outputs()

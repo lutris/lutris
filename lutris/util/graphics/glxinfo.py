@@ -1,6 +1,6 @@
 """Parser for the glxinfo utility"""
 
-from typing import Any, Dict
+from typing import Any
 
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
@@ -13,7 +13,7 @@ class Container:  # pylint: disable=too-few-public-methods
 class GlxInfo:
     """Give access to the glxinfo information"""
 
-    def __init__(self, output: str = None):
+    def __init__(self, output: str | None = None):
         """Creates a new GlxInfo object
 
         Params:
@@ -29,7 +29,7 @@ class GlxInfo:
         """Return the glxinfo -B output"""
         return read_process_output(["glxinfo", "-B"])
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """Return the attributes as a dict"""
         return {attr: getattr(self, attr) for attr in self._attrs}
 

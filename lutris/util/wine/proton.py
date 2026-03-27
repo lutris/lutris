@@ -2,8 +2,8 @@
 
 import json
 import os
+from collections.abc import Generator
 from gettext import gettext as _
-from typing import Dict, Generator, List, Optional
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
@@ -15,14 +15,14 @@ from lutris.util.strings import get_natural_sort_key
 DEFAULT_GAMEID = "umu-default"
 
 
-def is_proton_version(version: Optional[str]) -> bool:
+def is_proton_version(version: str | None) -> bool:
     """True if the version indicated specifies a Proton version of Wine; these
     require special handling. This does not recognize the special 'ge-proton' version
     found in configurations; this must be specially  handled elsewhere."""
     return version in get_proton_versions()
 
 
-def is_umu_path(path: Optional[str]) -> bool:
+def is_umu_path(path: str | None) -> bool:
     """True if the path given actually runs Umu; this will run Proton-Wine in turn,
     but can be directed to particular Proton implementation by setting the env-var
     PROTONPATH, but if this is omitted it will default to the latest Proton it
@@ -30,7 +30,7 @@ def is_umu_path(path: Optional[str]) -> bool:
     return bool(path and (path.endswith("/umu_run.py") or path.endswith("/umu-run")))
 
 
-def is_proton_path(wine_path: Optional[str]) -> bool:
+def is_proton_path(wine_path: str | None) -> bool:
     """True if the path given actually runs Umu; this will run Proton-Wine in turn,
     but can be directed to particular Proton implementation by setting the env-var
     PROTONPATH, but if this is omitted it will default to the latest Proton it
@@ -111,13 +111,13 @@ def get_proton_path_by_path(wine_path: str) -> str:
     return version_directory
 
 
-def list_proton_versions() -> List[str]:
+def list_proton_versions() -> list[str]:
     """Return the list of Proton versions installed in Steam, in sorted order."""
     return sorted(get_proton_versions().keys(), key=get_natural_sort_key, reverse=True)
 
 
 @cache_single
-def get_proton_versions() -> Dict[str, str]:
+def get_proton_versions() -> dict[str, str]:
     """Return the dict of Proton versions installed in Steam, which is cached.
     The keys are the versions, and the values are the paths to those versions,
     which are their wine-paths."""
@@ -154,7 +154,7 @@ def _iter_proton_locations() -> Generator[str, None, None]:
         yield path
 
 
-def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = "") -> None:
+def update_proton_env(wine_path: str, env: dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = "") -> None:
     """Add various env-vars to an 'env' dict for use by Proton and Umu; this won't replace env-vars, so they can still
     be pre-set before we get here. This sets the PROTONPATH so the Umu launcher will know what Proton to use,
     and the WINEARCH to win64, which is what we expect Proton to always be. GAMEID is required, but we'll use a default

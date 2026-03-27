@@ -8,6 +8,7 @@
 """Query Vulkan capabilities"""
 
 # Standard Library
+from collections.abc import Sequence
 from ctypes import (
     CDLL,
     POINTER,
@@ -24,7 +25,7 @@ from ctypes import (
     c_void_p,
     pointer,
 )
-from typing import List, NamedTuple, Optional, Sequence
+from typing import NamedTuple
 
 from lutris.util import cache_single
 
@@ -279,7 +280,7 @@ def is_vulkan_supported() -> bool:
 
 
 @cache_single
-def get_vulkan_api_version() -> Optional[int]:
+def get_vulkan_api_version() -> int | None:
     """
     Queries libvulkan to get the API version; if this library is missing
     it returns None. Returns an encoded Vulkan version integer; use
@@ -301,7 +302,7 @@ def get_vulkan_api_version() -> Optional[int]:
     return version.value if result == VK_SUCCESS else None
 
 
-def get_device_info() -> List[DeviceInfo]:
+def get_device_info() -> list[DeviceInfo]:
     """
     Returns a list of the physical devices known to Vulkan, represented as
     (name, api_version) named-tuples and the api_version numbers are encoded, so
@@ -338,7 +339,7 @@ def get_device_info() -> List[DeviceInfo]:
 
 
 @cache_single
-def get_expected_api_version() -> Optional[int]:
+def get_expected_api_version() -> int | None:
     """Returns the version tuple of the API version we expect
     to have; it is the least of the Vulkan library API version, and
     the best device's API version."""
@@ -354,7 +355,7 @@ def get_expected_api_version() -> Optional[int]:
     return api_version
 
 
-def format_version(version: Optional[int]) -> str:
+def format_version(version: int | None) -> str:
     if version:
         major = vk_api_version_major(version)
         minor = vk_api_version_minor(version)
@@ -365,7 +366,7 @@ def format_version(version: Optional[int]) -> str:
 
 
 @cache_single
-def _get_vk_instance() -> Optional[VkInstance]:
+def _get_vk_instance() -> VkInstance | None:
     """Returns our VKInstance, or None if it can't be obtained.
 
     We've had user see crashes when destroying this, so we don't- we

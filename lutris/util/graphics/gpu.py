@@ -2,7 +2,7 @@ import glob
 import os
 import re
 import subprocess
-from typing import Dict, List, Optional, TypeAlias
+from typing import TypeAlias
 
 from lutris.util import system
 from lutris.util.graphics import drivers
@@ -22,10 +22,10 @@ VULKAN_DATA_DIRS = [
 
 GPUS = {}
 
-GpuInfoDict: TypeAlias = Dict[str, str]
+GpuInfoDict: TypeAlias = dict[str, str]
 
 
-def get_gpus_info() -> Dict[str, drivers.DriverGpuInfoDict]:
+def get_gpus_info() -> dict[str, drivers.DriverGpuInfoDict]:
     """Return the information related to each GPU on the system"""
     return {card: drivers.get_gpu_info(card) for card in drivers.get_gpu_cards()}
 
@@ -39,7 +39,7 @@ def display_gpu_info(gpu_id: str, gpu_info: drivers.DriverGpuInfoDict) -> None:
         logger.error("Unable to get GPU information from '%s'", gpu_id)
 
 
-def add_icd_search_path(paths: str) -> List[str]:
+def add_icd_search_path(paths: str) -> list[str]:
     icd_paths = []
     if paths:
         # unixy env vars with multiple paths are : delimited
@@ -50,7 +50,7 @@ def add_icd_search_path(paths: str) -> List[str]:
     return icd_paths
 
 
-def get_vk_icd_files() -> List[str]:
+def get_vk_icd_files() -> list[str]:
     """Returns available vulkan ICD files in the same search order as vulkan-loader,
     but in a single list"""
     icd_search_paths = []
@@ -119,7 +119,7 @@ class GPU:
             infos[key] = value.strip()
         return infos
 
-    def get_vulkaninfo(self) -> Dict[str, Dict[str, str]]:
+    def get_vulkaninfo(self) -> dict[str, dict[str, str]]:
         """Runs vulkaninfo to find the GPU name"""
         if not VULKANINFO_PATH:
             raise RuntimeError("vulkaninfo is not available")
@@ -157,7 +157,7 @@ class GPU:
             return {}
         return result
 
-    def get_vulkaninfo_name(self) -> Optional[str]:
+    def get_vulkaninfo_name(self) -> str | None:
         vulkaninfo = self.get_vulkaninfo()
         best_name = None
         for gpu_index in vulkaninfo:
@@ -171,7 +171,7 @@ class GPU:
                     best_name = name
         return best_name
 
-    def get_vulkaninfo_device_uuid(self) -> Optional[str]:
+    def get_vulkaninfo_device_uuid(self) -> str | None:
         vulkaninfo = self.get_vulkaninfo()
         for gpu_index in vulkaninfo:
             pci_id = "%s:%s" % (
