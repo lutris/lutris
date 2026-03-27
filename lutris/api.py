@@ -501,9 +501,11 @@ def parse_installer_url(url: str) -> InstallerInfoDict:
         service, appid = "", ""
 
     revision = None
+    profile = None
     if parsed_url.query:
         query = dict(urllib.parse.parse_qsl(parsed_url.query))
         revision = query.get("revision")
+        profile = query.get("profile")
     return {
         "game_slug": game_slug,
         "revision": revision,
@@ -511,6 +513,7 @@ def parse_installer_url(url: str) -> InstallerInfoDict:
         "service": service,
         "appid": appid,
         "launch_config_name": launch_config_name,
+        "profile": profile,
     }
 
 

@@ -858,6 +858,12 @@ class Game:
 
         GAME_START.fire(self)
 
+        # Clone Wine prefix for new profile if needed (before prelaunch so the
+        # background thread sees an already-initialised prefix).
+        clone_source = getattr(self.runner, "get_prefix_clone_source", lambda: None)()
+        if clone_source:
+            launch_ui_delegate.clone_wine_prefix(clone_source, self.runner.prefix_path, self.name)
+
         @watch_game_errors(game_stop_result=False, game=self)
         def configure_game(_ignored: Any, error: BaseException) -> None:
             if error:

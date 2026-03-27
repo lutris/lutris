@@ -3,6 +3,7 @@
 # pylint: disable=too-many-lines
 import os
 import shlex
+import shutil
 from collections.abc import Iterable
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any
@@ -1136,6 +1137,42 @@ class wine(Runner):
                 return get_default_dpi()
         return get_default_dpi()
 
+    def _find_original_prefix(self) -> Optional[str]:
+        """Return the original Wine prefix for this game (before profile isolation).
+
+        Checks the shared game config's "prefix" key first, then auto-detects
+        from the game executable path.  Used to clone an existing prefix into a
+        new per-profile prefix on first launch instead of starting with a blank one.
+        """
+        configured = self.game_config.get("prefix")
+        if configured:
+            return os.path.expanduser(configured)
+        if self.game_exe:
+            return find_prefix(self.game_exe)
+        return None
+
+    def get_prefix_clone_source(self) -> Optional[str]:
+        """Return the source prefix path to clone into the profile prefix, or None.
+
+        Returns a path only when all of the following are true:
+        - The active prefix is a per-profile prefix (profile system is in use)
+        - That prefix is not yet initialised (no user.reg)
+        - An original prefix with a valid user.reg exists at a different location
+        """
+        prefix_path = self.prefix_path
+        if not prefix_path:
+            return None
+        if system.path_exists(os.path.join(prefix_path, "user.reg")):
+            return None  # already initialised — nothing to clone
+        original = self._find_original_prefix()
+        if (
+            original
+            and os.path.realpath(original) != os.path.realpath(prefix_path)
+            and system.path_exists(os.path.join(original, "user.reg"))
+        ):
+            return original
+        return None
+
     def prelaunch(self):
         prefix_path = self.prefix_path
         if prefix_path:
@@ -1145,8 +1182,17 @@ class wine(Runner):
                     link=prefix_path,
                 )
             if not system.path_exists(os.path.join(prefix_path, "user.reg")):
-                logger.warning("No valid prefix detected in %s, creating one...", prefix_path)
-                create_prefix(prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
+                original_prefix = self._find_original_prefix()
+                if (
+                    original_prefix
+                    and os.path.realpath(original_prefix) != os.path.realpath(prefix_path)
+                    and system.path_exists(os.path.join(original_prefix, "user.reg"))
+                ):
+                    logger.info("Cloning Wine prefix %s → %s for new profile", original_prefix, prefix_path)
+                    shutil.copytree(original_prefix, prefix_path, symlinks=True)
+                else:
+                    logger.warning("No valid prefix detected in %s, creating one...", prefix_path)
+                    create_prefix(prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
 
             prefix_manager = WinePrefixManager(prefix_path)
             prefix_manager.cleanup_broken_symlinks()

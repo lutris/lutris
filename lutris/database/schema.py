@@ -72,6 +72,7 @@ DATABASE: dict[str, DBSchema] = {
         {"name": "name", "type": "TEXT"},
         {"name": "icon", "type": "TEXT"},
         {"name": "created_at", "type": "INTEGER"},
+        {"name": "steam_id", "type": "TEXT"},
     ],
     "profile_game_stats": [
         {"name": "id", "type": "INTEGER", "indexed": True},

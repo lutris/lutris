@@ -327,6 +327,22 @@ class LutrisApplication(Gtk.Application):
         )
         self.add_main_option("submit-issue", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE, _("Submit an issue"), None)
         self.add_main_option(
+            "list-profiles",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            _("List user profiles (use with --json for machine-readable output)"),
+            None,
+        )
+        self.add_main_option(
+            "profile",
+            ord("p"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Select the user profile by name or id (overrides saved preference)"),
+            _("PROFILE"),
+        )
+        self.add_main_option(
             GLib.OPTION_REMAINING,
             0,
             GLib.OptionFlags.NONE,
@@ -365,7 +381,7 @@ class LutrisApplication(Gtk.Application):
 
     def do_activate(self) -> None:  # pylint: disable=arguments-differ
         if not self.window:
-            if self._should_show_profile_selector():
+            if not getattr(self, "_profile_auto_switched", False) and self._should_show_profile_selector():
                 # Apply app CSS to the default screen so the selector can use
                 # .profile-card styles before LutrisWindow is created.
                 from gi.repository import Gdk
@@ -543,6 +559,18 @@ class LutrisApplication(Gtk.Application):
             generate_script(logger, self.launch_ui_delegate, export_script_game, f"{export_script_game['slug']}.sh")
             return 0
 
+        # List profiles
+        if options.contains("list-profiles"):
+            from lutris.database.profiles import get_all_profiles  # noqa: PLC0415
+            from lutris.profile import get_profile_manager  # noqa: PLC0415
+
+            profiles = get_all_profiles()
+            if options.contains("json"):
+                self.print_profiles_json(command_line, profiles, get_profile_manager().current_profile_id)
+            else:
+                self.print_profile_list(command_line, profiles, get_profile_manager().current_profile_id)
+            return 0
+
         # List game
         if options.contains("list-games"):
             game_list = games_db.get_games(filters=({"installed": 1} if options.contains("installed") else None))
@@ -692,6 +720,21 @@ class LutrisApplication(Gtk.Application):
         launch_config_name = installer_info["launch_config_name"]
 
         self.launch_ui_delegate = CommandLineUIDelegate(launch_config_name)
+
+        # Profile selection priority:
+        #   1. --profile CLI flag
+        #   2. ?profile= URL param (e.g. from Cartridges)
+        #   3. Steam active user linked to a Lutris profile (auto-detect)
+        profile_arg = None
+        if options.contains("profile"):
+            profile_arg = options.lookup_value("profile").get_string()
+        if not profile_arg:
+            profile_arg = installer_info.get("profile")
+        if profile_arg:
+            self._switch_profile_by_name_or_id(profile_arg)
+            self._profile_auto_switched = True
+        else:
+            self._profile_auto_switched = self._maybe_switch_profile_for_steam_user()
 
         revision = installer_info["revision"]
 
@@ -916,6 +959,61 @@ class LutrisApplication(Gtk.Application):
 
         return Game(game_id)
 
+    def _switch_profile_by_name_or_id(self, name_or_id: str) -> None:
+        """Switch the active profile to the one matching *name_or_id*.
+
+        Accepts either the profile id (UUID slug) or the profile display name
+        (case-insensitive).  Logs a warning and keeps the current profile if
+        no match is found.
+        """
+        from lutris.database.profiles import get_profile, get_profile_by_name  # noqa: PLC0415
+        from lutris.profile import get_profile_manager  # noqa: PLC0415
+
+        profile = get_profile(name_or_id) or get_profile_by_name(name_or_id)
+        if not profile:
+            logger.warning("Profile '%s' not found — keeping current profile", name_or_id)
+            return
+        try:
+            get_profile_manager().switch(profile["id"])
+            logger.info("Switched to profile '%s' (%s)", profile["name"], profile["id"])
+        except Exception as ex:
+            logger.warning("Could not switch to profile '%s': %s", name_or_id, ex)
+
+    def _maybe_switch_profile_for_steam_user(self) -> bool:
+        """Auto-switch to the Lutris profile linked to the active Steam account.
+
+        Returns True if a switch was made (so the caller can skip the
+        interactive profile selector).  Silent no-op — returns False — if
+        Steam is not running or no link is configured.
+        """
+        from lutris.database.profiles import get_profile_by_steam_id  # noqa: PLC0415
+        from lutris.profile import get_profile_manager  # noqa: PLC0415
+        from lutris.util.steam.config import get_steam_users  # noqa: PLC0415
+
+        users = get_steam_users()
+        if not users:
+            return False
+        active_steam_id = users[0].get("steamid64")
+        if not active_steam_id:
+            return False
+        profile = get_profile_by_steam_id(active_steam_id)
+        if not profile:
+            return False
+        pm = get_profile_manager()
+        if pm.current_profile_id == profile["id"]:
+            return True  # already on the right profile — still suppress the dialog
+        try:
+            pm.switch(profile["id"])
+            logger.info(
+                "Auto-switched to profile '%s' for Steam user %s",
+                profile["name"],
+                active_steam_id,
+            )
+            return True
+        except Exception as ex:
+            logger.warning("Could not auto-switch profile for Steam user %s: %s", active_steam_id, ex)
+            return False
+
     @staticmethod
     def get_lutris_action(url: GLib.Variant | None) -> "InstallerInfoDict | dict[str, None]":
         installer_info = {
@@ -925,6 +1023,7 @@ class LutrisApplication(Gtk.Application):
             "service": None,
             "appid": None,
             "launch_config_name": None,
+            "profile": None,
         }
 
         if url:
@@ -934,6 +1033,22 @@ class LutrisApplication(Gtk.Application):
                 url_str = urls[0]
                 installer_info = parse_installer_url(url_str)
         return installer_info
+
+    def print_profile_list(self, command_line: Gio.ApplicationCommandLine, profiles: list, current_id: str) -> None:
+        for profile in profiles:
+            marker = "*" if profile["id"] == current_id else " "
+            self._print(command_line, "{} {:32} {}".format(marker, profile["id"], profile["name"]))
+
+    def print_profiles_json(self, command_line: Gio.ApplicationCommandLine, profiles: list, current_id: str) -> None:
+        data = [
+            {
+                "id": p["id"],
+                "name": p["name"],
+                "current": p["id"] == current_id,
+            }
+            for p in profiles
+        ]
+        self._print(command_line, json.dumps(data, indent=2))
 
     def print_game_list(self, command_line: Gio.ApplicationCommandLine, game_list: list["DbGameDict"]) -> None:
         for game in game_list:

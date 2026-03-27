@@ -7,11 +7,12 @@ from typing import Optional, cast
 
 from gi.repository import Gtk
 
-from lutris.database.profiles import DEFAULT_PROFILE_ID, delete_profile, update_profile
+from lutris.database.profiles import DEFAULT_PROFILE_ID, delete_profile, set_profile_steam_id, update_profile
 from lutris.gui.dialogs import Dialog
 from lutris.profile import get_profile_manager
 from lutris.util import strings
 from lutris.util.log import logger
+from lutris.util.steam.config import get_steam_users
 
 
 def _get_profile_disk_usage(profile_dir: str) -> int:
@@ -52,7 +53,9 @@ class ProfileDialog(Dialog):
         list_label.set_halign(Gtk.Align.START)
         content.pack_start(list_label, False, False, 0)
 
-        self.store = Gtk.ListStore(str, str, str)  # id, display name, disk usage
+        self._steam_users = get_steam_users()  # [{steamid64, AccountName, PersonaName}, ...]
+
+        self.store = Gtk.ListStore(str, str, str, str)  # id, display name, disk usage, steam label
         self.tree = Gtk.TreeView(model=self.store)
         self.tree.set_headers_visible(True)
 
@@ -62,6 +65,10 @@ class ProfileDialog(Dialog):
 
         col_size = Gtk.TreeViewColumn(_("Disk usage"), Gtk.CellRendererText(), text=2)
         self.tree.append_column(col_size)
+
+        col_steam = Gtk.TreeViewColumn(_("Steam account"), Gtk.CellRendererText(), text=3)
+        col_steam.set_expand(True)
+        self.tree.append_column(col_steam)
 
         scroll = Gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -79,6 +86,10 @@ class ProfileDialog(Dialog):
         self.btn_rename = Gtk.Button(label=_("Rename…"))
         self.btn_rename.connect("clicked", self.on_rename_clicked)
         btn_box.pack_start(self.btn_rename, False, False, 0)
+
+        self.btn_steam = Gtk.Button(label=_("Link Steam…"))
+        self.btn_steam.connect("clicked", self.on_link_steam_clicked)
+        btn_box.pack_start(self.btn_steam, False, False, 0)
 
         self.btn_delete = Gtk.Button(label=_("Delete"))
         self.btn_delete.connect("clicked", self.on_delete_clicked)
@@ -115,6 +126,15 @@ class ProfileDialog(Dialog):
     # Helpers
     # ------------------------------------------------------------------
 
+    def _steam_label(self, steam_id: Optional[str]) -> str:
+        """Return a human-readable label for a Steam account ID."""
+        if not steam_id:
+            return ""
+        for u in self._steam_users:
+            if u.get("steamid64") == steam_id:
+                return u.get("PersonaName") or u.get("AccountName") or steam_id
+        return steam_id  # fallback: show raw ID if account not found locally
+
     def refresh_list(self) -> None:
         self.store.clear()
         active = self.pm.current_profile_id
@@ -125,7 +145,8 @@ class ProfileDialog(Dialog):
                 display_name += _(" (active)")
             profile_dir = self.pm.get_profile_dir(pid)
             usage = strings.human_size(_get_profile_disk_usage(profile_dir))
-            self.store.append([pid, display_name, usage])
+            steam_label = self._steam_label(profile.get("steam_id"))
+            self.store.append([pid, display_name, usage, steam_label])
 
     def _get_selected_id(self) -> Optional[str]:
         selection = self.tree.get_selection()
@@ -208,6 +229,75 @@ class ProfileDialog(Dialog):
         if self.pm.current_profile_id == pid:
             self.pm.switch(DEFAULT_PROFILE_ID)
         self.refresh_list()
+
+    def on_link_steam_clicked(self, _btn) -> None:
+        pid = self._get_selected_id()
+        if not pid:
+            return
+
+        profile = next((p for p in self.pm.get_all_profiles() if p["id"] == pid), None)
+        if not profile:
+            return
+
+        dialog = Gtk.Dialog(
+            title=_("Link Steam account"),
+            transient_for=self,
+            flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+        )
+        dialog.set_default_size(360, -1)
+        dialog.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
+        dialog.add_button(_("Unlink"), Gtk.ResponseType.REJECT)
+        dialog.add_button(_("Link"), Gtk.ResponseType.OK)
+        dialog.set_default_response(Gtk.ResponseType.OK)
+
+        area = dialog.get_content_area()
+        area.set_spacing(8)
+        area.set_margin_top(12)
+        area.set_margin_bottom(12)
+        area.set_margin_start(12)
+        area.set_margin_end(12)
+
+        label = Gtk.Label(label=_('Select the Steam account to link to "{}":').format(profile["name"]))
+        label.set_line_wrap(True)
+        label.set_halign(Gtk.Align.START)
+        area.pack_start(label, False, False, 0)
+
+        # ComboBox with available Steam accounts
+        steam_store = Gtk.ListStore(str, str)  # steam_id, display label
+        for u in self._steam_users:
+            sid = u.get("steamid64", "")
+            display = u.get("PersonaName") or u.get("AccountName") or sid
+            steam_store.append([sid, display])
+
+        combo = Gtk.ComboBox.new_with_model(steam_store)
+        renderer = Gtk.CellRendererText()
+        combo.pack_start(renderer, True)
+        combo.add_attribute(renderer, "text", 1)
+
+        # Pre-select currently linked account
+        current_steam_id = profile.get("steam_id")
+        if current_steam_id:
+            for i, row in enumerate(steam_store):
+                if row[0] == current_steam_id:
+                    combo.set_active(i)
+                    break
+        else:
+            combo.set_active(0)
+
+        area.pack_start(combo, False, False, 0)
+        dialog.show_all()
+        response = dialog.run()
+        dialog.destroy()
+
+        if response == Gtk.ResponseType.OK:
+            tree_iter = combo.get_active_iter()
+            if tree_iter:
+                new_steam_id = steam_store[tree_iter][0]
+                set_profile_steam_id(pid, new_steam_id)
+                self.refresh_list()
+        elif response == Gtk.ResponseType.REJECT:
+            set_profile_steam_id(pid, None)
+            self.refresh_list()
 
     def on_create_clicked(self, _btn) -> None:
         name = self.new_name_entry.get_text().strip()
