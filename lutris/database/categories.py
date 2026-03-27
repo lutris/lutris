@@ -1,7 +1,7 @@
 import re
 from collections import defaultdict
 from itertools import repeat
-from typing import Any, Dict, List, Optional, Set, TypeAlias, Union
+from typing import Any, TypeAlias
 
 from lutris import settings
 from lutris.database import games as games_db
@@ -10,7 +10,7 @@ from lutris.gui.widgets import NotificationSource
 
 CATEGORIES_UPDATED = NotificationSource()
 
-DbCategoryDict: TypeAlias = Dict[str, Any]
+DbCategoryDict: TypeAlias = dict[str, Any]
 
 
 def strip_category_name(name: str) -> str:
@@ -27,20 +27,20 @@ def is_reserved_category(name: str) -> bool:
     return not name or name[0] == "." or name in ["all", "favorite"]
 
 
-def get_categories() -> List[Dict[str, Union[int, str]]]:
+def get_categories() -> list[dict[str, int | str]]:
     """Get the list of every category in database."""
     # Categories look like [{"id": 1, "name": "My Category"}, ...]
     return sql.db_select(settings.DB_PATH, "categories")
 
 
-def get_all_games_categories() -> Dict[str, List[int]]:
+def get_all_games_categories() -> dict[str, list[int]]:
     games_categories = defaultdict(list)
     for row in sql.db_select(settings.DB_PATH, "games_categories"):
         games_categories[str(row["game_id"])].append(row["category_id"])
     return games_categories
 
 
-def get_category_by_name(name: str) -> Optional[DbCategoryDict]:
+def get_category_by_name(name: str) -> DbCategoryDict | None:
     """Return a category by name"""
     categories = sql.db_select(settings.DB_PATH, "categories", condition=("name", name))
     if categories:
@@ -48,7 +48,7 @@ def get_category_by_name(name: str) -> Optional[DbCategoryDict]:
     return None
 
 
-def get_category_by_id(category_id: int) -> Optional[DbCategoryDict]:
+def get_category_by_id(category_id: int) -> DbCategoryDict | None:
     """Return a category by name"""
     categories = sql.db_select(settings.DB_PATH, "categories", condition=("id", category_id))
     if categories:
@@ -56,7 +56,7 @@ def get_category_by_id(category_id: int) -> Optional[DbCategoryDict]:
     return None
 
 
-def normalized_category_names(name: str, subname_allowed: bool = False) -> List[str]:
+def normalized_category_names(name: str, subname_allowed: bool = False) -> list[str]:
     """Searches for a category name case-insensitively and returns all matching names;
     if none match, it just returns 'name' as is.
 
@@ -76,8 +76,8 @@ def normalized_category_names(name: str, subname_allowed: bool = False) -> List[
 
 
 def get_game_ids_for_categories(
-    included_category_names: List[str] = None, excluded_category_names: List[str] = None
-) -> List[str]:
+    included_category_names: list[str] | None = None, excluded_category_names: list[str] | None = None
+) -> list[str]:
     """Get the ids of games in database."""
     filters = []
     parameters = []
@@ -118,7 +118,7 @@ def get_game_ids_for_categories(
     return list(sorted(result))
 
 
-def get_uncategorized_game_ids() -> Set[str]:
+def get_uncategorized_game_ids() -> set[str]:
     """Returns the ids of games that are in no categories. We do not count
     the 'favorites' category, but we do count '.hidden'- hidden games are hidden
     from this too."""
@@ -133,7 +133,7 @@ def get_uncategorized_game_ids() -> Set[str]:
     return set(str(row["id"]) for row in uncategorized)
 
 
-def get_uncategorized_games() -> List[Any]:
+def get_uncategorized_games() -> list[Any]:
     """Return all games that are in no categories (excluding 'all' and 'favorite')."""
     return games_db.get_games_by_ids(get_uncategorized_game_ids())
 

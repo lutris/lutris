@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from lutris import settings
 from lutris.database import sql
@@ -41,7 +41,7 @@ class SavedSearch:
             SAVED_SEARCHES_UPDATED.fire()
 
 
-def _create_search(row: Dict[str, Any]) -> "SavedSearch":
+def _create_search(row: dict[str, Any]) -> "SavedSearch":
     return SavedSearch(row["id"], row["name"], row["search"])
 
 
@@ -52,13 +52,13 @@ def strip_saved_search_name(name: str) -> str:
     return name
 
 
-def get_saved_searches() -> List[SavedSearch]:
+def get_saved_searches() -> list[SavedSearch]:
     """Get the list of every search in database."""
     rows = sql.db_select(settings.DB_PATH, "saved_searches")
     return [_create_search(row) for row in rows]
 
 
-def get_saved_search_by_name(name: str) -> Optional[SavedSearch]:
+def get_saved_search_by_name(name: str) -> SavedSearch | None:
     """Return a category by name"""
     categories = sql.db_select(settings.DB_PATH, "saved_searches", condition=("name", name))
     if categories:
@@ -67,7 +67,7 @@ def get_saved_search_by_name(name: str) -> Optional[SavedSearch]:
     return None
 
 
-def get_saved_search_by_id(saved_search_id: int) -> Optional[SavedSearch]:
+def get_saved_search_by_id(saved_search_id: int) -> SavedSearch | None:
     """Return a category by name"""
     categories = sql.db_select(settings.DB_PATH, "saved_searches", condition=("id", saved_search_id))
     if categories:
