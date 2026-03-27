@@ -275,8 +275,8 @@ class ProfileDialog(Dialog):
         # Pre-select currently linked account
         current_steam_id = profile.get("steam_id")
         if current_steam_id:
-            for i, row in enumerate(list(steam_store)):  # type: ignore[arg-type]
-                if row[0] == current_steam_id:
+            for i, u in enumerate(self._steam_users):
+                if u.get("steamid64", "") == current_steam_id:
                     combo.set_active(i)
                     break
         else:
