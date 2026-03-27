@@ -1137,7 +1137,7 @@ class wine(Runner):
                 return get_default_dpi()
         return get_default_dpi()
 
-    def _find_original_prefix(self) -> Optional[str]:
+    def _find_original_prefix(self) -> str | None:
         """Return the original Wine prefix for this game (before profile isolation).
 
         Checks the shared game config's "prefix" key first, then auto-detects
@@ -1151,7 +1151,7 @@ class wine(Runner):
             return find_prefix(self.game_exe)
         return None
 
-    def get_prefix_clone_source(self) -> Optional[str]:
+    def get_prefix_clone_source(self) -> str | None:
         """Return the source prefix path to clone into the profile prefix, or None.
 
         Returns a path only when all of the following are true:
