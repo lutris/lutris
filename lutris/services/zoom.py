@@ -5,7 +5,7 @@ import os
 import time
 import typing
 from gettext import gettext as _
-from typing import Any, Dict, List
+from typing import Any
 
 from lutris import settings
 from lutris.exceptions import AuthenticationError
@@ -85,7 +85,7 @@ class ZoomService(OnlineService):
         return f"{self.embed_url}/login?li=lutris&return_li_token=true"
 
     @property
-    def credential_files(self) -> List[str]:
+    def credential_files(self) -> list[str]:
         return [self.cookies_path, self.token_path]
 
     def is_connected(self) -> bool:
@@ -103,7 +103,7 @@ class ZoomService(OnlineService):
     def is_authenticated(self):
         return self.is_connected()
 
-    def load(self) -> List[ZoomGame]:
+    def load(self) -> list[ZoomGame]:
         """Load the user game library from the Zoom API"""
         if not self.is_connected():
             logger.error("User not connected to Zoom")
@@ -149,7 +149,7 @@ class ZoomService(OnlineService):
         request.get()
         return request.json
 
-    def get_library(self) -> List[Dict]:
+    def get_library(self) -> list[dict]:
         """Return the user's library of Zoom games"""
         if system.path_exists(self.cache_path):
             logger.debug("Returning cached Zoom library")
@@ -176,12 +176,12 @@ class ZoomService(OnlineService):
 
         return games
 
-    def get_extras(self, appid: str) -> Dict[str, List[dict]]:
+    def get_extras(self, appid: str) -> dict[str, list[dict]]:
         """Return a list of bonus content available for a Zoom ID and its DLCs"""
         logger.debug("Download extras for Zoom ID %s and its DLCs", appid)
         return {"extras": self._get_extra(appid)}
 
-    def _get_extra(self, appid: str) -> List[dict]:
+    def _get_extra(self, appid: str) -> list[dict]:
         # fetch the extra files urls and then parse the response to get the download url
 
         files_request = self.make_request(f"{self.api_url}/li/game/{appid}/files")
@@ -206,7 +206,7 @@ class ZoomService(OnlineService):
                 all_extras.append(extra_file_dict)
         return all_extras
 
-    def generate_installer(self, db_game: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_installer(self, db_game: dict[str, Any]) -> dict[str, Any]:
         logger.debug("Generating installer for %s", db_game)
         details = json.loads(db_game["details"])
         platforms = details["operating_systems"]
@@ -215,7 +215,7 @@ class ZoomService(OnlineService):
         else:
             return self._generate_installer("wine", db_game)
 
-    def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
+    def generate_installers(self, db_game: dict[str, Any]) -> list[dict]:
         details = json.loads(db_game["details"])
         platforms = details["operating_systems"]
 
@@ -234,7 +234,7 @@ class ZoomService(OnlineService):
 
         return installers
 
-    def _generate_installer(self, runner: str, db_game: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_installer(self, runner: str, db_game: dict[str, Any]) -> dict[str, Any]:
         slug = db_game["slug"]
         system_config = {}
         if runner == "linux":
@@ -265,7 +265,7 @@ class ZoomService(OnlineService):
 
     def get_installer_files(
         self, installer: "LutrisInstaller", installer_file_id: str
-    ) -> List[InstallerFileCollection]:
+    ) -> list[InstallerFileCollection]:
         logger.debug("Getting installer files for %s", installer_file_id)
         platform = installer.runner
         if platform == "wine":
@@ -274,13 +274,13 @@ class ZoomService(OnlineService):
         installer_files = self._get_installers(platform, installer.game_slug, installer.service_appid)
         return [InstallerFileCollection(installer.game_slug, installer_file_id, installer_files)]
 
-    def get_extras_files(self, installer: "LutrisInstaller", selected_extras: List[dict]) -> List[InstallerFile]:
+    def get_extras_files(self, installer: "LutrisInstaller", selected_extras: list[dict]) -> list[InstallerFile]:
         extras = []
         for selected_extra in selected_extras:
             extras.append(InstallerFile(installer.game_slug, selected_extra["name"], selected_extra))
         return extras
 
-    def _get_installers(self, platform: str, game_slug: str, appid: str) -> List[InstallerFile]:
+    def _get_installers(self, platform: str, game_slug: str, appid: str) -> list[InstallerFile]:
         # fetch the installer url and then parse the response to get the download url
 
         files_request = self.make_request(f"{self.api_url}/li/game/{appid}/files")
@@ -317,7 +317,7 @@ class ZoomService(OnlineService):
                 return f"https://www.zoom-platform.com/product/{slug}"
         return ""
 
-    def get_game_platforms(self, db_game: dict) -> List[str]:
+    def get_game_platforms(self, db_game: dict) -> list[str]:
         details = db_game.get("details")
         if details:
             operating_systems = json.loads(details).get("operating_systems", [])

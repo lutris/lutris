@@ -20,11 +20,12 @@ import os
 import urllib.parse
 import urllib.request
 import zlib
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from gettext import gettext as _
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
@@ -86,9 +87,9 @@ class SyncFile:
 
     relative_path: str
     absolute_path: str
-    md5: Optional[str] = None
-    update_time: Optional[str] = None
-    update_ts: Optional[float] = None
+    md5: str | None = None
+    update_time: str | None = None
+    update_ts: float | None = None
 
     def compute_metadata(self) -> None:
         """Compute md5 and update_time from the local file."""
@@ -123,13 +124,13 @@ class SyncResult:
     """
 
     action: SyncAction = SyncAction.NONE
-    uploaded: List[str] = field(default_factory=list)
-    downloaded: List[str] = field(default_factory=list)
-    deleted_local: List[str] = field(default_factory=list)
-    deleted_cloud: List[str] = field(default_factory=list)
-    cloud_only_files: List[str] = field(default_factory=list)
+    uploaded: list[str] = field(default_factory=list)
+    downloaded: list[str] = field(default_factory=list)
+    deleted_local: list[str] = field(default_factory=list)
+    deleted_cloud: list[str] = field(default_factory=list)
+    cloud_only_files: list[str] = field(default_factory=list)
     timestamp: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class GOGCloudStorageClient:
@@ -148,9 +149,9 @@ class GOGCloudStorageClient:
         self,
         method: str,
         path: str,
-        data: Optional[bytes] = None,
-        extra_headers: Optional[Dict[str, str]] = None,
-    ) -> Tuple[bytes, Dict[str, str]]:
+        data: bytes | None = None,
+        extra_headers: dict[str, str] | None = None,
+    ) -> tuple[bytes, dict[str, str]]:
         """Make an authenticated request to the cloud storage API.
 
         Args:
@@ -191,7 +192,7 @@ class GOGCloudStorageClient:
         except (urllib.error.URLError, OSError) as error:
             raise HTTPError("Cloud storage connection error: %s" % error) from error
 
-    def list_files(self, dir_name: str) -> List[SyncFile]:
+    def list_files(self, dir_name: str) -> list[SyncFile]:
         """List all files in cloud storage under a given directory.
 
         Args:
@@ -379,11 +380,11 @@ class SyncClassifier:
     """
 
     def __init__(self) -> None:
-        self.action: Optional[SyncAction] = None
-        self.updated_local: List[SyncFile] = []
-        self.updated_cloud: List[SyncFile] = []
-        self.not_existing_locally: List[SyncFile] = []
-        self.not_existing_remotely: List[SyncFile] = []
+        self.action: SyncAction | None = None
+        self.updated_local: list[SyncFile] = []
+        self.updated_cloud: list[SyncFile] = []
+        self.not_existing_locally: list[SyncFile] = []
+        self.not_existing_remotely: list[SyncFile] = []
 
     def get_action(self) -> SyncAction:
         """Determine the sync action based on classified files."""
@@ -400,8 +401,8 @@ class SyncClassifier:
     @classmethod
     def classify(
         cls,
-        local_files: List[SyncFile],
-        cloud_files: List[SyncFile],
+        local_files: list[SyncFile],
+        cloud_files: list[SyncFile],
         timestamp: float,
     ) -> "SyncClassifier":
         """Classify files based on last sync timestamp.
@@ -435,7 +436,7 @@ class SyncClassifier:
         return classifier
 
 
-def get_game_client_credentials(gog_token: dict, game_id: str, platform: str = "windows") -> Tuple[str, str]:
+def get_game_client_credentials(gog_token: dict, game_id: str, platform: str = "windows") -> tuple[str, str]:
     """Get the game-specific clientId and clientSecret from the build manifest.
 
     GOG cloud storage requires game-scoped credentials obtained from the
@@ -521,7 +522,7 @@ def get_game_scoped_token(refresh_token: str, client_id: str, client_secret: str
     return request.json
 
 
-def get_cloud_save_locations(access_token: str, client_id: str, platform: str = "windows") -> List[CloudSaveLocation]:
+def get_cloud_save_locations(access_token: str, client_id: str, platform: str = "windows") -> list[CloudSaveLocation]:
     """Fetch cloud save locations from GOG's remote config API.
 
     Args:
@@ -620,9 +621,9 @@ def resolve_save_path(
     location: CloudSaveLocation,
     install_path: str,
     is_native: bool = False,
-    wine_prefix: Optional[str] = None,
-    wine_user: Optional[str] = None,
-) -> Optional[str]:
+    wine_prefix: str | None = None,
+    wine_user: str | None = None,
+) -> str | None:
     """Resolve a GOG cloud save location to an absolute filesystem path.
 
     Replaces GOG variables (<?INSTALL?>, <?DOCUMENTS?>, etc.) with
@@ -684,7 +685,7 @@ def resolve_save_path(
     return os.path.normpath(resolved)
 
 
-def create_directory_map(path: str) -> List[str]:
+def create_directory_map(path: str) -> list[str]:
     """Recursively list all files in a directory.
 
     Args:
@@ -734,7 +735,7 @@ class GOGCloudSync:
             gog_service: An instance of GOGService with active authentication.
         """
         self.gog_service = gog_service
-        self._sync_timestamps: Dict[str, Dict[str, float]] = {}
+        self._sync_timestamps: dict[str, dict[str, float]] = {}
         self._load_sync_timestamps()
 
     def _get_timestamp_path(self) -> str:
@@ -795,8 +796,8 @@ class GOGCloudSync:
         save_path: str,
         location_name: str,
         platform: str = "windows",
-        preferred_action: Optional[str] = None,
-        progress_callback: Optional[Callable[[int, int, str], None]] = None,
+        preferred_action: str | None = None,
+        progress_callback: Callable[[int, int, str], None] | None = None,
     ) -> SyncResult:
         """Synchronize saves for a specific game and save location.
 

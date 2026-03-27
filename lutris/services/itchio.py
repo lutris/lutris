@@ -4,7 +4,7 @@ import datetime
 import json
 import os
 from gettext import gettext as _
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import quote_plus, urlencode
 
 from gi.repository import Gtk
@@ -34,7 +34,7 @@ class ItchIoCoverart(ServiceMedia):
     dest_path = os.path.join(settings.CACHE_DIR, "itchio/cover")
     file_patterns = ["%s.png"]
 
-    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
+    def get_media_url(self, details: dict[str, Any]) -> str | None:
         """Extract cover from API"""
         # Animated (gif) covers have an extra field with a png version of the cover
         if "still_cover_url" in details:
@@ -160,7 +160,7 @@ class ItchIoService(OnlineService):
         """Return a list of all files used for authentication"""
         return [self.api_key_path]
 
-    def load_api_key(self) -> Optional[str]:
+    def load_api_key(self) -> str | None:
         if not os.path.exists(self.api_key_path):
             return None
 
@@ -502,7 +502,7 @@ class ItchIoService(OnlineService):
         return all_extras
 
     @staticmethod
-    def _get_detail_runners(details: Dict[str, Any], fix_missing_platforms: bool = True) -> List[str]:
+    def _get_detail_runners(details: dict[str, Any], fix_missing_platforms: bool = True) -> list[str]:
         """Extracts the runners available for a given game, given its details.
         This test the traits for specific platforms, and returns the runners
         in a priority order- Linux is first, which occasionally matters.
@@ -532,7 +532,7 @@ class ItchIoService(OnlineService):
     def get_installed_slug(self, db_game):
         return db_game["slug"]
 
-    def generate_installer(self, db_game: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_installer(self, db_game: dict[str, Any]) -> dict[str, Any]:
         """Auto generate installer for itch.io game"""
         details = json.loads(db_game["details"])
         runners = self._get_detail_runners(details)
@@ -543,7 +543,7 @@ class ItchIoService(OnlineService):
         logger.warning("No supported platforms found")
         return {}
 
-    def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
+    def generate_installers(self, db_game: dict[str, Any]) -> list[dict]:
         """Auto generate installer for itch.io game"""
         details = json.loads(db_game["details"])
 
@@ -557,7 +557,7 @@ class ItchIoService(OnlineService):
 
         return installers
 
-    def _generate_installer(self, runner, db_game: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_installer(self, runner, db_game: dict[str, Any]) -> dict[str, Any]:
         if runner == "linux":
             game_config = {"exe": AUTO_ELF_EXE}
             script = [
@@ -585,12 +585,12 @@ class ItchIoService(OnlineService):
             },
         }
 
-    def get_installed_runner_name(self, db_game: Dict[str, Any]) -> str:
+    def get_installed_runner_name(self, db_game: dict[str, Any]) -> str:
         details = json.loads(db_game["details"])
         runners = self._get_detail_runners(details)
         return runners[0] if runners else ""
 
-    def get_game_platforms(self, db_game: dict) -> List[str]:
+    def get_game_platforms(self, db_game: dict) -> list[str]:
         details = json.loads(db_game["details"])
 
         runners = self._get_detail_runners(details, fix_missing_platforms=False)

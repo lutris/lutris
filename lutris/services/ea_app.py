@@ -4,7 +4,7 @@ import json
 import os
 import ssl
 from gettext import gettext as _
-from typing import Any, Dict, Optional
+from typing import Any
 from xml.etree import ElementTree
 
 import requests
@@ -71,7 +71,7 @@ class EAAppMedia(ServiceMedia):
     def dest_path(self):
         return os.path.join(settings.CACHE_DIR, self.service, self.name)
 
-    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
+    def get_media_url(self, details: dict[str, Any]) -> str | None:
         base_item = details.get("baseItem")
         if not base_item:
             return None
@@ -283,7 +283,7 @@ class EAAppService(OnlineService):
             token_data = json.load(token_file)
             return token_data.get("access_token", "")
 
-    def fetch_api(self, query, params: dict = None):
+    def fetch_api(self, query, params: dict | None = None):
         result = self.session.post(
             self.api_url, headers=self.api_headers, json={"query": query, "variables": params or {}}
         ).json()

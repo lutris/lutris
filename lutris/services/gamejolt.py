@@ -3,7 +3,7 @@
 import json
 import os
 from gettext import gettext as _
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 from lutris import settings
@@ -30,7 +30,7 @@ class GameJoltCoverart(ServiceMedia):
     dest_path = os.path.join(settings.CACHE_DIR, "gamejolt/coverart")
     file_patterns = ["%s.webp"]
 
-    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
+    def get_media_url(self, details: dict[str, Any]) -> str | None:
         return details.get("img_thumbnail") or None
 
 
@@ -266,7 +266,7 @@ class GameJoltService(OnlineService):
             runners.append("wine")
         return runners
 
-    def generate_installer(self, db_game: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_installer(self, db_game: dict[str, Any]) -> dict[str, Any]:
         details = json.loads(db_game["details"])
         compatibility = details.get("compatibility", {})
         runners = self._get_runners_from_compatibility(compatibility)
@@ -274,7 +274,7 @@ class GameJoltService(OnlineService):
             return self._generate_installer(runners[0], db_game)
         return {}
 
-    def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
+    def generate_installers(self, db_game: dict[str, Any]) -> list[dict]:
         details = json.loads(db_game["details"])
         compatibility = details.get("compatibility", {})
         runners = self._get_runners_from_compatibility(compatibility)
@@ -287,7 +287,7 @@ class GameJoltService(OnlineService):
 
         return installers
 
-    def _generate_installer(self, runner, db_game: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_installer(self, runner, db_game: dict[str, Any]) -> dict[str, Any]:
         if runner == "linux":
             game_config = {"exe": AUTO_ELF_EXE}
             script = [
@@ -324,13 +324,13 @@ class GameJoltService(OnlineService):
             },
         }
 
-    def get_installed_runner_name(self, db_game: Dict[str, Any]) -> str:
+    def get_installed_runner_name(self, db_game: dict[str, Any]) -> str:
         details = json.loads(db_game["details"])
         compatibility = details.get("compatibility", {})
         runners = self._get_runners_from_compatibility(compatibility)
         return runners[0] if runners else ""
 
-    def get_game_platforms(self, db_game: dict) -> List[str]:
+    def get_game_platforms(self, db_game: dict) -> list[str]:
         details = db_game.get("details")
         if not details:
             return []

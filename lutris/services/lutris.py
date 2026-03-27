@@ -1,7 +1,8 @@
 import json
 import os
+from collections.abc import Iterable
 from gettext import gettext as _
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any
 
 from gi.repository import Gio
 
@@ -152,7 +153,7 @@ class LutrisService(OnlineService):
 
         return ""
 
-    def get_game_platforms(self, db_game: dict) -> List[str]:
+    def get_game_platforms(self, db_game: dict) -> list[str]:
         details = db_game.get("details")
         if details:
             platforms = json.loads(details).get("platforms")
@@ -189,7 +190,7 @@ def download_lutris_media(slug):
         download_media({slug: coverart_url}, LutrisCoverart())
 
 
-def sync_media(slugs: Optional[Iterable[str]] = None) -> Dict[str, int]:
+def sync_media(slugs: Iterable[str] | None = None) -> dict[str, int]:
     """Download missing media for Lutris games; if a set of slugs
     is not provided, downloads them for all games in the PGA."""
     if slugs is None:
@@ -252,13 +253,13 @@ def sync_media(slugs: Optional[Iterable[str]] = None) -> Dict[str, int]:
     }
 
 
-def _get_response_game_coverart(api_game: Dict[str, Any]) -> Optional[str]:
+def _get_response_game_coverart(api_game: dict[str, Any]) -> str | None:
     return api_game.get("coverart")
 
 
-def _get_response_game_banner(api_game: Dict[str, Any]) -> Optional[str]:
+def _get_response_game_banner(api_game: dict[str, Any]) -> str | None:
     return api_game.get("banner_url") or api_game.get("banner")
 
 
-def _get_response_game_icon(api_game: Dict[str, Any]) -> Optional[str]:
+def _get_response_game_icon(api_game: dict[str, Any]) -> str | None:
     return api_game.get("icon_url") or api_game.get("icon")

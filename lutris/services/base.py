@@ -4,7 +4,7 @@ import os
 import shutil
 from gettext import gettext as _
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from gi.repository import Gio
 
@@ -188,11 +188,11 @@ class BaseService:
     def get_update_installers(self, db_game):
         return []
 
-    def generate_installer(self, db_game: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_installer(self, db_game: dict[str, Any]) -> dict[str, Any]:
         """Used to generate an installer from the data returned from the services"""
         return {}
 
-    def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
+    def generate_installers(self, db_game: dict[str, Any]) -> list[dict]:
         """Used to generate a list of installers to choose from, from the data returned from the services
         By default this is just the installer from generate_installer(), and if overridden to return
         more than one, then generate_installer must be overridden ti pick a default installer."""
@@ -400,7 +400,7 @@ class BaseService:
         """Specific services should implement this"""
         return ""
 
-    def get_game_platforms(self, db_game: dict) -> List[str]:
+    def get_game_platforms(self, db_game: dict) -> list[str]:
         """Interprets the database record for this game from this service
         to extract its platform, or returns an empty list if this is not available."""
         return []
