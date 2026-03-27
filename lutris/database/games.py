@@ -1,7 +1,8 @@
 import math
 import time
+from collections.abc import Collection, Sequence
 from itertools import chain
-from typing import Any, Collection, Dict, List, Optional, Sequence, TypeAlias, cast
+from typing import Any, TypeAlias, cast
 
 from lutris import settings
 from lutris.database import sql
@@ -11,7 +12,7 @@ from lutris.util.strings import slugify
 _SERVICE_CACHE = {}
 _SERVICE_CACHE_ACCESSED = False  # Keep time of last access to have a self degrading cache
 
-DbGameDict: TypeAlias = Dict[str, Any]
+DbGameDict: TypeAlias = dict[str, Any]
 
 
 def _stringify_game_id(game: DbGameDict) -> DbGameDict:
@@ -26,17 +27,17 @@ def _stringify_game_id(game: DbGameDict) -> DbGameDict:
     return game
 
 
-def _stringify_game_ids(games: List[DbGameDict]) -> List[DbGameDict]:
+def _stringify_game_ids(games: list[DbGameDict]) -> list[DbGameDict]:
     """Apply _stringify_game_id to a list of game rows."""
     return [_stringify_game_id(row) for row in games]
 
 
 def get_games(
-    searches: Dict[str, str] = None,
-    filters: sql.DBConditionsDict = None,
-    excludes: sql.DBConditionsDict = None,
-    sorts: Sequence[str] = None,
-) -> List[DbGameDict]:
+    searches: dict[str, str] | None = None,
+    filters: sql.DBConditionsDict | None = None,
+    excludes: sql.DBConditionsDict | None = None,
+    sorts: Sequence[str] | None = None,
+) -> list[DbGameDict]:
     return _stringify_game_ids(
         sql.filtered_query(
             settings.DB_PATH, "games", searches=searches, filters=filters, excludes=excludes, sorts=sorts
@@ -44,7 +45,7 @@ def get_games(
     )
 
 
-def get_games_where(**conditions: Any) -> List[DbGameDict]:
+def get_games_where(**conditions: Any) -> list[DbGameDict]:
     """
     Query games table based on conditions
 
@@ -96,7 +97,7 @@ def get_games_where(**conditions: Any) -> List[DbGameDict]:
     return _stringify_game_ids(sql.db_query(settings.DB_PATH, query, tuple(condition_values)))
 
 
-def get_games_by_ids(game_ids: Collection[str]) -> List[DbGameDict]:
+def get_games_by_ids(game_ids: Collection[str]) -> list[DbGameDict]:
     # sqlite limits the number of query parameters to 999, to
     # bypass that limitation, divide the query in chunks
     size = 999
@@ -110,7 +111,7 @@ def get_games_by_ids(game_ids: Collection[str]) -> List[DbGameDict]:
     )
 
 
-def get_game_for_service(service: str, appid: str) -> Optional[DbGameDict]:
+def get_game_for_service(service: str, appid: str) -> DbGameDict | None:
     if service == "lutris":
         return get_game_by_field(appid, field="slug")
 
@@ -121,7 +122,7 @@ def get_game_for_service(service: str, appid: str) -> Optional[DbGameDict]:
     return None
 
 
-def get_all_installed_game_for_service(service: str) -> Dict[str, DbGameDict]:
+def get_all_installed_game_for_service(service: str) -> dict[str, DbGameDict]:
     if service == "lutris":
         db_games = get_games(filters={"installed": 1})
         return {g["slug"]: g for g in db_games}
@@ -130,7 +131,7 @@ def get_all_installed_game_for_service(service: str) -> Dict[str, DbGameDict]:
     return {g["service_id"]: g for g in db_games}
 
 
-def get_service_games(service: str) -> List[str]:
+def get_service_games(service: str) -> list[str]:
     """Return the list of all installed games for a service"""
     global _SERVICE_CACHE_ACCESSED
     previous_cache_accessed = _SERVICE_CACHE_ACCESSED or 0
@@ -145,7 +146,7 @@ def get_service_games(service: str) -> List[str]:
     return _SERVICE_CACHE[service]
 
 
-def get_game_by_field(value: Any, field: str = "slug") -> Optional[DbGameDict]:
+def get_game_by_field(value: Any, field: str = "slug") -> DbGameDict | None:
     """Query a game based on a database field, or None if not found."""
     if field not in ("slug", "installer_slug", "id", "configpath", "name"):
         raise ValueError("Can't query by field '%s'" % field)
@@ -155,12 +156,12 @@ def get_game_by_field(value: Any, field: str = "slug") -> Optional[DbGameDict]:
     return None
 
 
-def get_games_by_runner(runner: str) -> List[DbGameDict]:
+def get_games_by_runner(runner: str) -> list[DbGameDict]:
     """Return all games using a specific runner"""
     return _stringify_game_ids(sql.db_select(settings.DB_PATH, "games", condition=("runner", runner)))
 
 
-def get_games_by_slug(slug: str) -> List[DbGameDict]:
+def get_games_by_slug(slug: str) -> list[DbGameDict]:
     """Return all games using a specific slug"""
     return _stringify_game_ids(sql.db_select(settings.DB_PATH, "games", condition=("slug", slug)))
 
@@ -173,7 +174,7 @@ def add_game(**game_data: Any) -> str:
     return str(sql.db_insert(settings.DB_PATH, "games", game_data))
 
 
-def add_games_bulk(games: List[DbGameDict]) -> List[str]:
+def add_games_bulk(games: list[DbGameDict]) -> list[str]:
     """
     Add a list of games to the database.
     The dicts must have an identical set of keys.
@@ -200,7 +201,7 @@ def add_or_update(**params: Any) -> str:
     return add_game(**params)
 
 
-def update_existing(**params: Any) -> Optional[str]:
+def update_existing(**params: Any) -> str | None:
     """Updates a game, but do not add one. If the game exists, this returns its ID;
     if not it returns None and makes no changes."""
     game_id = get_matching_game(params)
@@ -211,7 +212,7 @@ def update_existing(**params: Any) -> Optional[str]:
     return None
 
 
-def get_matching_game(params: Dict[str, Any]) -> Optional[str]:
+def get_matching_game(params: dict[str, Any]) -> str | None:
     """Tries to match given parameters with an existing game"""
     # Always match by ID if provided
     if params.get("id"):
@@ -239,7 +240,7 @@ def delete_game(game_id: str) -> None:
     sql.db_delete(settings.DB_PATH, "games", "id", game_id)
 
 
-def get_used_runners() -> List[str]:
+def get_used_runners() -> list[str]:
     """Return a list of the runners in use by installed games."""
     with sql.db_cursor(settings.DB_PATH) as cursor:
         query = "select distinct runner from games where runner is not null order by runner"
@@ -248,7 +249,7 @@ def get_used_runners() -> List[str]:
     return [result[0] for result in results if result[0]]
 
 
-def get_used_platforms() -> List[str]:
+def get_used_platforms() -> list[str]:
     """Return a list of platforms currently in use"""
     with sql.db_cursor(settings.DB_PATH) as cursor:
         query = (
@@ -259,7 +260,7 @@ def get_used_platforms() -> List[str]:
     return [result[0] for result in results if result[0]]
 
 
-def get_game_count(param: str, value: Any) -> Optional[int]:
+def get_game_count(param: str, value: Any) -> int | None:
     res = sql.db_select(settings.DB_PATH, "games", fields=("COUNT(id)",), condition=(param, value))
     if res:
         return cast(int, res[0]["COUNT(id)"])

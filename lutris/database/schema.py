@@ -1,12 +1,12 @@
-from typing import Any, Dict, List, TypeAlias
+from typing import Any, TypeAlias
 
 from lutris import settings
 from lutris.database import sql
 from lutris.util.log import logger
 
-DBSchema: TypeAlias = List[Dict[str, Any]]
+DBSchema: TypeAlias = list[dict[str, Any]]
 
-DATABASE: Dict[str, DBSchema] = {
+DATABASE: dict[str, DBSchema] = {
     "games": [
         {"name": "id", "type": "INTEGER", "indexed": True},
         {"name": "name", "type": "TEXT"},
@@ -114,7 +114,7 @@ def create_table(name: str, schema: DBSchema) -> None:
         cursor.execute(query)
 
 
-def migrate(table: str, schema: DBSchema) -> List[str]:
+def migrate(table: str, schema: DBSchema) -> list[str]:
     """Compare a database table with the reference model and make necessary changes
 
     This is very basic and only the needed features have been implemented (adding columns)

@@ -1,16 +1,17 @@
 import sqlite3
 import threading
+from collections.abc import Sequence
 from types import TracebackType
-from typing import Any, Dict, List, Sequence, Tuple, Type, TypeAlias, cast
+from typing import Any, TypeAlias, cast
 
 # Prevent multiple access to the database (SQLite limitation)
 DB_LOCK = threading.RLock()
 
-DBResult: TypeAlias = Dict[str, Any]
-DBResults: TypeAlias = List[DBResult]
-DBCondition: TypeAlias = Tuple[str, Any]
-DBConditionsDict: TypeAlias = Dict[str, Any]
-DBUpdateDict: TypeAlias = Dict[str, Any]
+DBResult: TypeAlias = dict[str, Any]
+DBResults: TypeAlias = list[DBResult]
+DBCondition: TypeAlias = tuple[str, Any]
+DBConditionsDict: TypeAlias = dict[str, Any]
+DBUpdateDict: TypeAlias = dict[str, Any]
 DBParams: TypeAlias = Sequence[Any]
 
 
@@ -24,12 +25,12 @@ class db_cursor(object):
         cursor = self.db_conn.cursor()
         return cursor
 
-    def __exit__(self, _type: Type[BaseException], value: BaseException, traceback: TracebackType) -> None:
+    def __exit__(self, _type: type[BaseException], value: BaseException, traceback: TracebackType) -> None:
         self.db_conn.commit()
         self.db_conn.close()
 
 
-def cursor_execute(cursor: sqlite3.Cursor, query: str, params: DBParams = None) -> sqlite3.Cursor:
+def cursor_execute(cursor: sqlite3.Cursor, query: str, params: DBParams | None = None) -> sqlite3.Cursor:
     """Execute a SQL query, run it in a lock block"""
     params = params or ()
     lock = DB_LOCK.acquire(timeout=5)  # pylint: disable=consider-using-with
@@ -77,7 +78,9 @@ def db_delete(db_path: str, table: str, field: str, value: Any) -> None:
         cursor_execute(cursor, "delete from {0} where {1}=?".format(table, field), (value,))
 
 
-def db_select(db_path: str, table: str, fields: Sequence[str] = None, condition: DBCondition = None) -> DBResults:
+def db_select(
+    db_path: str, table: str, fields: Sequence[str] | None = None, condition: DBCondition | None = None
+) -> DBResults:
     if fields:
         columns = ", ".join(fields)
     else:
@@ -125,7 +128,7 @@ def db_query(db_path: str, query: str, params: DBParams = ()) -> DBResults:
     return results
 
 
-def add_field(db_path: str, tablename: str, field: Dict[str, str]) -> None:
+def add_field(db_path: str, tablename: str, field: dict[str, str]) -> None:
     query = "ALTER TABLE %s ADD COLUMN %s %s" % (
         tablename,
         field["name"],
@@ -135,7 +138,7 @@ def add_field(db_path: str, tablename: str, field: Dict[str, str]) -> None:
         cursor.execute(query)
 
 
-def _create_filter(field: str, value: Any, params: List[Any], negate: bool = False) -> str:
+def _create_filter(field: str, value: Any, params: list[Any], negate: bool = False) -> str:
     """Creates a filter to match a field to a value, or to a list of
     values. None can be used as well, to make NULL."""
     also_null = False
@@ -187,10 +190,10 @@ def _create_filter(field: str, value: Any, params: List[Any], negate: bool = Fal
 def filtered_query(
     db_path: str,
     table: str,
-    searches: Dict[str, str] = None,
-    filters: DBConditionsDict = None,
-    excludes: DBConditionsDict = None,
-    sorts: Sequence[str] = None,
+    searches: dict[str, str] | None = None,
+    filters: DBConditionsDict | None = None,
+    excludes: DBConditionsDict | None = None,
+    sorts: Sequence[str] | None = None,
 ) -> DBResults:
     searches = searches or {}
     filters = filters or {}
