@@ -113,7 +113,7 @@ class GameBox(ConfigBox):
         self.options = self.runner.game_options
 
         self._launch_config_dropdown_index = 0
-        self._launch_config_box = self._get_launch_config_box()
+        self._launch_config_box: Gtk.Box = self._get_launch_config_box()
 
         action_id = "remove"
         remove_action = Gio.SimpleAction.new(name=action_id)
@@ -188,7 +188,7 @@ class GameBox(ConfigBox):
 
         active_entry_changed = self._update_active_launch_config()
         if active_entry_changed:
-            # Update the widget values with the launch config if the drop selection changes
+            # Update the widget values with the launch config if the dropdown selection changes
             self.update_launch_config_widget_values()
         self.update_widgets()
 
@@ -288,6 +288,33 @@ class GameBox(ConfigBox):
 
         return True
 
+    @property
+    def advanced_visibility(self):
+        return self._advanced_visibility
+
+    @advanced_visibility.setter
+    def advanced_visibility(self, value):
+        """When the advanced setting is turned off, set the box that contains
+        the Launch Config drop down widgets to hidden.
+        Afterwards alway show the primary launch config
+
+        When the setting is turned back on, the containing box visibality
+        will be reset to true
+        """
+
+        if value:
+            self._launch_config_box.set_visible(True)
+        else:
+            # Set the combobox active ID to the Primary Launch Config name
+            # to trigger the event to show the primary launch config again
+            # Aftewards hiden the launch config dropdown
+            self._launch_config_dropdown.set_active_id(Game.PRIMARY_LAUNCH_CONFIG_NAME)
+            self._launch_config_box.set_visible(False)
+
+        # Call the normal base class advanced functionality
+        self._advanced_visibility = value
+        self.update_widgets()
+
     def generate_widgets(self) -> None:
         """Generate the Launch Config widgets, with the normal widgets"""
         super().generate_widgets()
@@ -303,7 +330,7 @@ class GameBox(ConfigBox):
             except Exception as ex:
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
 
-        self.update_launch_config_widgets()
+        self.update_widgets()
 
     def get_launch_config_widget_generator(self) -> ConfigWidgetGenerator:
         """Returns a generator for creating widgets for the launch config"""
@@ -320,7 +347,9 @@ class GameBox(ConfigBox):
 
         return self._launch_config_widget_generator
 
-    def update_launch_config_widgets(self) -> None:
+    def update_widgets(self):
+        """Update both the primary game config and launch config widgets"""
+        super().update_widgets()
         if self._launch_config_widget_generator:
             self._launch_config_widget_generator.update_widgets()
 
