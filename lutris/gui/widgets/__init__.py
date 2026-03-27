@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable
 
 from lutris.util.jobs import schedule_at_idle
 
@@ -8,15 +8,15 @@ class NotificationRegistration:
     by calling NotificationSource.register; a null-object that represent no registration
     can be obtained via EMPTY_NOTIFICATION_REGISTRATION."""
 
-    def __init__(self, notification_source: Optional["NotificationSource"], callback_id: int) -> None:
+    def __init__(self, notification_source: "NotificationSource | None", callback_id: int) -> None:
         self.notification_source = notification_source
         self.callback_id = callback_id
 
     @property
-    def is_registered(self):
+    def is_registered(self) -> bool:
         """True if this registration is still registered; if false it has been unregistered and
         won't fire anymore."""
-        return self.notification_source and self.callback_id in self.notification_source._callbacks
+        return bool(self.notification_source and self.callback_id in self.notification_source._callbacks)
 
     def unregister(self) -> None:
         """Unregisters a callback that register() had registered."""
@@ -40,9 +40,9 @@ class NotificationSource:
     """
 
     def __init__(self) -> None:
-        self._callbacks: Dict[int, Tuple[Callable, int]] = {}
+        self._callbacks: dict[int, tuple[Callable, int]] = {}
         self._next_callback_id = 1
-        self._scheduled_callbacks: List[Tuple[Callable, Tuple, Dict]] = []
+        self._scheduled_callbacks: list[tuple[Callable, tuple, dict]] = []
 
     @property
     def has_handlers(self) -> bool:

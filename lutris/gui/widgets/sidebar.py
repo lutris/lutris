@@ -2,7 +2,7 @@
 
 import locale
 from gettext import gettext as _
-from typing import Callable, List, Optional, Set, Tuple, Union
+from typing import Callable
 
 from gi.repository import Gdk, GObject, Gtk, Pango
 
@@ -91,7 +91,7 @@ class SidebarRow(Gtk.ListBoxRow):
         self.box.pack_end(self.spinner, False, False, 0)
 
     @property
-    def sort_key(self) -> Union[int, str]:
+    def sort_key(self) -> int | str:
         """An index indicate the place this row has within its type. The id is used
         as a tie-breaker. Can be int or str depending on row type."""
         return 0
@@ -345,7 +345,7 @@ class SidebarHeader(Gtk.ListBoxRow):
         header_index: int,
         section_id: str,
         collapsible: bool = True,
-        on_toggle: Optional[Callable[[str, bool], None]] = None,
+        on_toggle: Callable[[str, bool], None] | None = None,
     ) -> None:
         super().__init__()
         self.set_selectable(False)
@@ -355,7 +355,7 @@ class SidebarHeader(Gtk.ListBoxRow):
         self.type: str = "header"
         self.id: str = section_id
         self.collapsible: bool = collapsible
-        self.on_toggle: Optional[Callable[[str, bool], None]] = on_toggle
+        self.on_toggle: Callable[[str, bool], None] | None = on_toggle
         self._collapsed: bool = False
 
         outer_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -418,7 +418,7 @@ class SidebarHeader(Gtk.ListBoxRow):
             window.set_cursor(None)
 
     @property
-    def sort_key(self) -> Union[int, str]:
+    def sort_key(self) -> int | str:
         # Headers sort before all rows in their section (not used directly in sorting)
         return 0
 
@@ -509,7 +509,7 @@ class LutrisSidebar(Gtk.ListBox):
         self.show_all()
 
     @staticmethod
-    def get_sidebar_icon(icon_name: str, fallback_icon_names: List[str] = None) -> Gtk.Image:
+    def get_sidebar_icon(icon_name: str, fallback_icon_names: list[str] = None) -> Gtk.Image:
         candidate_names = [icon_name] + (fallback_icon_names or [])
         icon_name = pick_stock_icon(candidate_names, fallback_name="package-x-generic-symbolic")
         icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
@@ -522,7 +522,7 @@ class LutrisSidebar(Gtk.ListBox):
 
         return icon
 
-    def _load_collapsed_sections(self) -> Set[str]:
+    def _load_collapsed_sections(self) -> set[str]:
         """Load collapsed sections state from settings."""
         collapsed_str = settings.read_setting("sidebar_collapsed_sections", default="")
         if collapsed_str:
@@ -713,7 +713,7 @@ class LutrisSidebar(Gtk.ListBox):
         rows, so this will have to do. This keeps the total row count down reasonably well."""
 
         # Type alias for sort key: (header_index, is_header, sort_key, id)
-        SortKey = Tuple[int, bool, Union[int, str], str]
+        SortKey = tuple[int, bool, int | str, str]
 
         def get_sort_key(row: Gtk.ListBoxRow) -> SortKey:
             """Returns a key used to sort the rows. This keeps rows for a header

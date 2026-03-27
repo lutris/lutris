@@ -7,7 +7,7 @@ from collections import namedtuple
 from datetime import datetime
 from gettext import gettext as _
 from gettext import ngettext
-from typing import Callable, Dict, Iterable, List, Optional, Set, cast
+from typing import Callable, Iterable, cast
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, Gtk
@@ -130,13 +130,13 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.current_view = Gtk.Box()
         self.views = {}
 
-        self.dynamic_categories_game_factories: Dict[str, Callable[[], list]] = {
+        self.dynamic_categories_game_factories: dict[str, Callable[[], list]] = {
             "recent": self.get_recent_games,
             "missing": self.get_missing_games,
             "running": self.get_running_games,
             ".uncategorized": self.get_uncategorized_games,
         }
-        self.sortable_dynamic_categories: Set[str] = {".uncategorized", "missing", "running"}
+        self.sortable_dynamic_categories = {".uncategorized", "missing", "running"}
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
@@ -434,7 +434,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         dynamic = self.filters.get("dynamic_category")
         return dynamic not in self.dynamic_categories_game_factories or dynamic in self.sortable_dynamic_categories
 
-    def get_sort_sensitive_columns(self) -> Set[int]:
+    def get_sort_sensitive_columns(self) -> set[int]:
         if self.is_view_sort_sensitive:
             if self.view_sorting == "name":
                 return {COL_NAME, COL_SORTNAME}
@@ -708,7 +708,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         games = self.filter_games([game for game in games if game["id"] in category_game_ids], searches=searches)
         return self.apply_view_sort(games)
 
-    def get_sql_filters(self) -> Dict[str, str]:
+    def get_sql_filters(self) -> dict[str, str]:
         """Return the current filters for the view"""
         sql_filters = {}
         if self.filters.get("runner"):
@@ -1435,7 +1435,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     @property
     def is_download_queue_empty(self) -> bool:
         """True if the download queue has no active operations, or has not been created yet."""
-        queue = cast(Optional[DownloadQueue], self.download_revealer.get_child())
+        queue = cast(DownloadQueue | None, self.download_revealer.get_child())
         return not queue or queue.is_empty
 
     @property
@@ -1486,7 +1486,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def install_runtime_component_updates(
         self,
-        updaters: List[ComponentUpdater],
+        updaters: list[ComponentUpdater],
         runtime_updater: RuntimeUpdater,
         completion_function: DownloadQueue.CompletionFunction = None,
         error_function: DownloadQueue.ErrorFunction = None,

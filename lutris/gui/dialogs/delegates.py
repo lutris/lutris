@@ -1,5 +1,4 @@
 from gettext import gettext as _
-from typing import Optional
 
 from gi.repository import Gdk, Gtk  # type: ignore
 
@@ -66,7 +65,7 @@ class InstallUIDelegate(Delegate):
         The default is 'yes'."""
         return True
 
-    def show_install_file_inquiry(self, question: str, title: str, message: str) -> Optional[str]:
+    def show_install_file_inquiry(self, question: str, title: str, message: str) -> str | None:
         """Called to ask the user for a file.
 
         Lutris first asks the user the question given (showing the title);

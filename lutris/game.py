@@ -9,7 +9,7 @@ import signal
 import subprocess
 import time
 from gettext import gettext as _
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from gi.repository import Gio, GLib, Gtk
 
@@ -79,7 +79,7 @@ class Game:
 
     PRIMARY_LAUNCH_CONFIG_NAME = "(primary)"
 
-    def __init__(self, game_id: Optional[str] = None):
+    def __init__(self, game_id: str | None = None):
         super().__init__()
 
         self.game_error = NotificationSource()
@@ -140,7 +140,7 @@ class Game:
         self.skip_cloud_sync = False
 
     @staticmethod
-    def create_empty_service_game(db_game: Dict[str, Union[str, int]], service: Any) -> Any:
+    def create_empty_service_game(db_game: dict[str, str | int], service: Any) -> Any:
         """Creates a Game from the database data from ServiceGameCollection, which is
         not a real game, but which can be used to install. Such a game has no ID, but
         has an 'appid' and slug."""
@@ -191,7 +191,7 @@ class Game:
             self._categories_cache_generation = _categories_generation
         return self._categories_cache
 
-    def update_game_categories(self, added_category_names: List[str], removed_category_names: List[str]) -> None:
+    def update_game_categories(self, added_category_names: list[str], removed_category_names: list[str]) -> None:
         """add to / remove from categories"""
         for added_category_name in added_category_names:
             self.add_category(added_category_name, no_signal=True)
@@ -321,7 +321,7 @@ class Game:
             self._config.game_config_id = value
 
     @property
-    def config(self) -> Union[LutrisConfig, None]:
+    def config(self) -> LutrisConfig | None:
         if not self.is_installed or not self.game_config_id:
             return None
         if not self._config:
@@ -422,7 +422,7 @@ class Game:
             logger.error("Game %s not found in database", self.id)
             return False
 
-        def on_installers_ready(installers: Dict[str, Any], error: BaseException) -> None:
+        def on_installers_ready(installers: dict[str, Any], error: BaseException) -> None:
             if error:
                 raise error  # bounce errors off the backstop
 
@@ -444,7 +444,7 @@ class Game:
             logger.error("Game %s not found in database", self.id)
             return False
 
-        def on_installers_ready(installers: List[Dict[str, Any]], error: BaseException) -> None:
+        def on_installers_ready(installers: list[dict[str, Any]], error: BaseException) -> None:
             if error:
                 raise error  # bounce errors off the backstop
 
@@ -646,7 +646,7 @@ class Game:
             return killswitch
         return ""
 
-    def get_gameplay_info(self, launch_ui_delegate: "LaunchUIDelegate") -> Dict[str, Any]:
+    def get_gameplay_info(self, launch_ui_delegate: "LaunchUIDelegate") -> dict[str, Any]:
         """Return the information provided by a runner's play method.
         It checks for possible errors and raises exceptions if they occur.
 
@@ -908,7 +908,7 @@ class Game:
 
         busy.BusyAsyncCall(death_watch, death_watch_cb)
 
-    def get_stop_pids(self) -> Set[int]:
+    def get_stop_pids(self) -> set[int]:
         """Finds the PIDs of processes that need killin'!"""
         pids = self.get_game_pids()
         if self.game_thread and self.game_thread.game_process:
@@ -916,7 +916,7 @@ class Game:
                 pids.add(self.game_thread.game_process.pid)
         return pids
 
-    def get_game_pids(self) -> Set[int]:
+    def get_game_pids(self) -> set[int]:
         """Return a list of processes belonging to the Lutris game"""
         if not self.game_uuid:
             logger.error("No LUTRIS_GAME_UUID recorded. The game's PIDs cannot be computed.")
@@ -926,7 +926,7 @@ class Game:
         game_folder = self.resolve_game_path()
         return self.runner.filter_game_pids(new_pids, self.game_uuid, game_folder)
 
-    def get_new_pids(self) -> Set[int]:
+    def get_new_pids(self) -> set[int]:
         """Return list of PIDs started since the game was launched"""
         if self.prelaunch_pids:
             return set(system.get_running_pid_list()) - set(self.prelaunch_pids)

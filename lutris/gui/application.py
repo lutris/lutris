@@ -24,7 +24,6 @@ import sys
 import tempfile
 from datetime import datetime, timedelta
 from gettext import gettext as _
-from typing import List, Optional
 
 import gi
 
@@ -89,7 +88,7 @@ class LutrisApplication(Gtk.Application):
         GLib.set_prgname("net.lutris.Lutris")
         self.force_updates = False
         self.css_provider = Gtk.CssProvider.new()
-        self.window: Optional[LutrisWindow] = None
+        self.window: LutrisWindow | None = None
         self.launch_ui_delegate = LaunchUIDelegate()
         self.install_ui_delegate = InstallUIDelegate()
 
@@ -841,7 +840,7 @@ class LutrisApplication(Gtk.Application):
     def get_launch_ui_delegate(self):
         return self.launch_ui_delegate
 
-    def get_running_games(self) -> List[Game]:
+    def get_running_games(self) -> list[Game]:
         # This method reflects games that have stopped even if the 'game-stopped' signal
         # has not been handled yet; that handler will still clean up the list though.
         return [g for g in self._running_games if g.state != g.STATE_STOPPED]
@@ -850,7 +849,7 @@ class LutrisApplication(Gtk.Application):
     def has_running_games(self):
         return bool(self.get_running_games())
 
-    def get_running_game_ids(self) -> List[str]:
+    def get_running_game_ids(self) -> list[str]:
         """Returns the ids of the games presently running."""
         return [game.id for game in self.get_running_games()]
 

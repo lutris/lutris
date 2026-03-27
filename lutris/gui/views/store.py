@@ -1,7 +1,7 @@
 """Store object for a list of games"""
 
 # pylint: disable=not-an-iterable
-from typing import TYPE_CHECKING, Optional, Set, Union
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from lutris.services.base import BaseService
@@ -72,7 +72,7 @@ def sort_func(model, row1, row2, sort_col):
 
 
 class GameStore(GObject.Object):
-    def __init__(self, service: Optional["BaseService"], service_media: "ServiceMedia") -> None:
+    def __init__(self, service: "BaseService | None", service_media: "ServiceMedia") -> None:
         super().__init__()
         self.service = service
         self.service_media = service_media
@@ -120,7 +120,7 @@ class GameStore(GObject.Object):
             self._rows_by_id.pop(str(game_id), None)
             self.store.remove(row.iter)
 
-    def update(self, db_game: dict) -> Union[Set[int], None]:
+    def update(self, db_game: dict) -> set[int] | None:
         """Update game information
         Return the indices of the row that were updated, or an empty set if no change
         was made, or None if the game could not be found.
