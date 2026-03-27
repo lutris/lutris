@@ -1,14 +1,14 @@
 import os
 from collections import defaultdict
 from gettext import gettext as _
-from typing import Any, Dict
+from typing import Any
 
 from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
 
-AMIGAS: Dict[str, Any] = {
+AMIGAS: dict[str, Any] = {
     "A500": {
         "name": _("Amiga 500"),
         "bios_sha1": [

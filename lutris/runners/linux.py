@@ -3,8 +3,8 @@
 # Standard Library
 import os
 import stat
+from collections.abc import Callable
 from gettext import gettext as _
-from typing import Callable
 
 # Lutris Modules
 from lutris.exceptions import GameConfigError, MissingGameExecutableError

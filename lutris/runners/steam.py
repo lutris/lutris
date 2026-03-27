@@ -2,7 +2,6 @@
 
 import os
 from gettext import gettext as _
-from typing import Optional
 
 from lutris.exceptions import MissingGameExecutableError, UnavailableRunnerError
 from lutris.monitored_command import MonitoredCommand
@@ -143,7 +142,7 @@ class steam(Runner):
         """Return the working directory to use when running the game."""
         return self._get_steamless_working_dir() or super().working_dir
 
-    def _get_steamless_working_dir(self) -> Optional[str]:
+    def _get_steamless_working_dir(self) -> str | None:
         """Return the working directory to use when running the game."""
         if self.game_config.get("run_without_steam"):
             steamless_binary = self.game_config.get("steamless_binary")

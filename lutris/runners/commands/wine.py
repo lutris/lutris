@@ -6,7 +6,7 @@ import os
 import shlex
 import time
 from gettext import gettext as _
-from typing import TYPE_CHECKING, Dict, Optional, Tuple, Type, cast
+from typing import TYPE_CHECKING, cast
 
 from lutris import runtime, settings
 from lutris.config import LutrisConfig
@@ -301,19 +301,19 @@ def wineexec(
     executable: str,
     prefix: str,
     args: str = "",
-    wine_path: Optional[str] = None,
+    wine_path: str | None = None,
     arch: str = WINE_DEFAULT_ARCH,
-    working_dir: Optional[str] = None,
+    working_dir: str | None = None,
     winetricks_wine: str = "",
     blocking: bool = False,
-    config: Optional[LutrisConfig] = None,
-    include_processes: Optional[list] = None,
-    exclude_processes: Optional[list] = None,
+    config: LutrisConfig | None = None,
+    include_processes: list | None = None,
+    exclude_processes: list | None = None,
     disable_runtime: bool = False,
-    env: Optional[dict] = None,
+    env: dict | None = None,
     overrides=None,
-    runner: Optional["wine"] = None,
-    proton_verb: Optional[str] = None,
+    runner: "wine | None" = None,
+    proton_verb: str | None = None,
 ):
     """
     Execute a Wine command.
@@ -345,7 +345,7 @@ def wineexec(
         exclude_processes = shlex.split(exclude_processes)
 
     if not runner:
-        runner = cast(Type["wine"], import_runner("wine"))(prefix=prefix, working_dir=working_dir, wine_arch=arch)
+        runner = cast(type["wine"], import_runner("wine"))(prefix=prefix, working_dir=working_dir, wine_arch=arch)
 
     if not wine_path:
         wine_path = runner.get_executable()
@@ -444,8 +444,8 @@ def wineexec(
 
 
 def find_winetricks(
-    env: Optional[Dict[str, str]] = None, system_winetricks: bool = False
-) -> Tuple[str, Optional[str], Dict[str, str]]:
+    env: dict[str, str] | None = None, system_winetricks: bool = False
+) -> tuple[str, str | None, dict[str, str]]:
     """Find winetricks path."""
     env = env or {}
     winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
@@ -465,11 +465,11 @@ def find_winetricks(
 
 
 def winetricks(
-    app: Optional[str],
+    app: str | None,
     prefix: str,
     arch: str = WINE_DEFAULT_ARCH,
     silent: bool = True,
-    wine_path: Optional[str] = None,
+    wine_path: str | None = None,
     config=None,
     env=None,
     disable_runtime=False,
@@ -577,7 +577,7 @@ def install_cab_component(cabfile, component, wine_path: str, prefix=None, arch=
 
 
 def open_wine_terminal(
-    terminal: Optional[str], wine_path: str, prefix: str, env: Optional[Dict[str, str]], system_winetricks: bool
+    terminal: str | None, wine_path: str, prefix: str, env: dict[str, str] | None, system_winetricks: bool
 ):
     winetricks_path, _working_dir, env = find_winetricks(env, system_winetricks)
     path_paths = [os.path.dirname(wine_path)]

@@ -3,8 +3,9 @@
 # pylint: disable=too-many-lines
 import os
 import shlex
+from collections.abc import Iterable
 from gettext import gettext as _
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
@@ -89,7 +90,7 @@ def _is_proton_hdr_available(_option_key: str, config: LutrisConfig) -> bool:
     return False
 
 
-def _get_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_version_warning(_option_key: str, config: LutrisConfig) -> str | None:
     arch = config.game_config.get("arch")
     if arch == "win32" and _is_proton_config(config):
         return _("Proton is not compatible with 32-bit prefixes.")
@@ -97,7 +98,7 @@ def _get_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str
     return None
 
 
-def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> str | None:
     game_config = config.game_config
     if game_config.get("prefix"):
         return None
@@ -109,7 +110,7 @@ def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> Optional[str]
     return _("<b>Warning</b> Some Wine configuration options cannot be applied, if no prefix can be found.")
 
 
-def _get_exe_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_exe_warning(_option_key: str, config: LutrisConfig) -> str | None:
     exe = config.game_config.get("exe") or ""
     stripped_exe = exe.strip()
 
@@ -132,7 +133,7 @@ def _get_exe_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     return None
 
 
-def _get_dxvk_warning() -> Optional[str]:
+def _get_dxvk_warning() -> str | None:
     if drivers.is_outdated():
         driver_info = drivers.get_nvidia_driver_info()
         return _(
@@ -144,7 +145,7 @@ def _get_dxvk_warning() -> Optional[str]:
     return None
 
 
-def _get_simple_vulkan_support_error(option_key: str, config: LutrisConfig, feature: str) -> Optional[str]:
+def _get_simple_vulkan_support_error(option_key: str, config: LutrisConfig, feature: str) -> str | None:
     if os.environ.get("LUTRIS_NO_VKQUERY"):
         return None
     if config.runner_config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
@@ -154,7 +155,7 @@ def _get_simple_vulkan_support_error(option_key: str, config: LutrisConfig, feat
     return None
 
 
-def _get_dxvk_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_dxvk_version_warning(_option_key: str, config: LutrisConfig) -> str | None:
     if os.environ.get("LUTRIS_NO_VKQUERY"):
         return None
     runner_config = config.runner_config
@@ -183,7 +184,7 @@ def _get_dxvk_version_warning(_option_key: str, config: LutrisConfig) -> Optiona
     return None
 
 
-def _get_esync_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_esync_warning(_option_key: str, config: LutrisConfig) -> str | None:
     if config.runner_config.get("esync"):
         limits_set = is_esync_limit_set()
         if not limits_set:
@@ -195,7 +196,7 @@ def _get_esync_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     return ""
 
 
-def _get_fsync_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_fsync_warning(_option_key: str, config: LutrisConfig) -> str | None:
     if config.runner_config.get("fsync"):
         fsync_supported = is_fsync_supported()
         if not fsync_supported:
@@ -203,7 +204,7 @@ def _get_fsync_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     return None
 
 
-def _get_virtual_desktop_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_virtual_desktop_warning(_option_key: str, config: LutrisConfig) -> str | None:
     message = _("Wine virtual desktop is no longer supported")
     runner_config = config.runner_config
     if runner_config.get("Desktop"):
@@ -214,7 +215,7 @@ def _get_virtual_desktop_warning(_option_key: str, config: LutrisConfig) -> Opti
     return message
 
 
-def _get_wine_wayland_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_wine_wayland_warning(_option_key: str, config: LutrisConfig) -> str | None:
     runner_config = config.runner_config
     if runner_config.get("Graphics") == "wayland":
         runner_version = runner_config.get("version")
@@ -757,13 +758,13 @@ class wine(Runner):
                 arch = WINE_DEFAULT_ARCH
         return arch
 
-    def get_runner_version(self, version: Optional[str] = None) -> Optional["RunnerVersionDict"]:
+    def get_runner_version(self, version: str | None = None) -> "RunnerVersionDict | None":
         if version in WINE_PATHS:
             return {"version": version}
 
         return super().get_runner_version(version)
 
-    def read_version_from_config(self, default: Optional[str] = None) -> str:
+    def read_version_from_config(self, default: str | None = None) -> str:
         """Return the Wine version to use. use_default can be set to false to
         force the installation of a specific wine version. If no version is configured,
         we return the default supplied, or the4 global Wine default if none is."""
@@ -854,7 +855,7 @@ class wine(Runner):
             # which one to get the correct LutrisConfig object.
         return wine_path
 
-    def get_command(self) -> List[str]:
+    def get_command(self) -> list[str]:
         command = super().get_command()
         if command:
             if proton.is_proton_path(command[0]) and not proton.is_umu_path(command[0]):
@@ -865,7 +866,7 @@ class wine(Runner):
 
         return command
 
-    def is_installed(self, flatpak_allowed: bool = True, version: str = None, fallback: bool = True) -> bool:
+    def is_installed(self, flatpak_allowed: bool = True, version: str | None = None, fallback: bool = True) -> bool:
         """Check if Wine is installed.
         If no version is passed, checks if any version of wine is available
         """
@@ -888,7 +889,7 @@ class wine(Runner):
 
     def get_installer_runner_version(
         self, installer, use_runner_config: bool = True, use_api: bool = False
-    ) -> Optional[str]:
+    ) -> str | None:
         # If a version is specified in the script choose this one
         version = None
         if installer.script.get(installer.runner):
@@ -923,13 +924,13 @@ class wine(Runner):
 
         return version
 
-    def adjust_installer_runner_config(self, installer_runner_config: Dict[str, Any]) -> None:
+    def adjust_installer_runner_config(self, installer_runner_config: dict[str, Any]) -> None:
         version = installer_runner_config.get("version")
         if version:
             installer_runner_config["version"] = normalize_version_architecture(version)
 
     @classmethod
-    def get_runner_version_and_config(cls) -> Tuple[str, LutrisConfig]:
+    def get_runner_version_and_config(cls) -> tuple[str, LutrisConfig]:
         runner_config = LutrisConfig(runner_slug="wine")
         if "wine" in runner_config.runner_level:
             config_version = runner_config.runner_level["wine"].get("version")
@@ -1316,7 +1317,7 @@ class wine(Runner):
 
         return env
 
-    def finish_env(self, env: Dict[str, str], game) -> None:
+    def finish_env(self, env: dict[str, str], game) -> None:
         super().finish_env(env, game)
 
         wine_exe = self.get_executable()
@@ -1368,7 +1369,7 @@ class wine(Runner):
         except Exception as ex:
             logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
 
-    def play(self) -> Dict[str, Any]:  # pylint: disable=too-many-return-statements
+    def play(self) -> dict[str, Any]:  # pylint: disable=too-many-return-statements
         game_exe = self.game_exe
         arguments: str = self.game_config.get("args", "")
         launch_info: dict = {"env": self.get_env(os_env=False)}
@@ -1406,7 +1407,7 @@ class wine(Runner):
         launch_info["command"] = command
         return launch_info
 
-    def filter_game_pids(self, candidate_pids: Iterable[int], game_uuid: str, game_folder: str) -> Set[int]:
+    def filter_game_pids(self, candidate_pids: Iterable[int], game_uuid: str, game_folder: str) -> set[int]:
         """Checks the pids given and returns a set containing only those that are part of the running game,
         identified by its UUID and directory."""
 

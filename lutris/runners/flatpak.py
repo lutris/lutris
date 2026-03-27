@@ -1,8 +1,8 @@
 import os
 import shutil
+from collections.abc import Callable
 from gettext import gettext as _
 from pathlib import Path
-from typing import Callable
 
 from lutris.exceptions import GameConfigError, MissingExecutableError
 from lutris.monitored_command import MonitoredCommand

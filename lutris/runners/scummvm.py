@@ -1,7 +1,7 @@
 import os
 import subprocess
 from gettext import gettext as _
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from lutris import settings
 from lutris.config import LutrisConfig
@@ -22,7 +22,7 @@ _supported_scale_factors = {
 }
 
 
-def _get_opengl_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_opengl_warning(_option_key: str, config: LutrisConfig) -> str | None:
     runner_config = config.runner_config
     if "scaler" in runner_config and "renderer" in runner_config:
         renderer = runner_config["renderer"]
@@ -34,7 +34,7 @@ def _get_opengl_warning(_option_key: str, config: LutrisConfig) -> Optional[str]
     return None
 
 
-def _get_scale_factor_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_scale_factor_warning(_option_key: str, config: LutrisConfig) -> str | None:
     """Generate a warning message for when the scaler and scale-factor can't be used together."""
     runner_config = config.runner_config
     if "scaler" in runner_config and "scale-factor" in runner_config:
@@ -480,7 +480,7 @@ class scummvm(Runner):
     def game_path(self):
         return self.game_config.get("path")
 
-    def get_extra_libs(self) -> List[str]:
+    def get_extra_libs(self) -> list[str]:
         """Scummvm runner ships additional libraries, they may be removed in a future version."""
         try:
             base_runner_path = os.path.join(settings.RUNNER_DIR, "scummvm")
@@ -493,7 +493,7 @@ class scummvm(Runner):
 
         return []
 
-    def get_command(self) -> List[str]:
+    def get_command(self) -> list[str]:
         command = super().get_command()
         if not command:
             return []
@@ -516,7 +516,7 @@ class scummvm(Runner):
 
         return data_dir
 
-    def get_run_data(self) -> Dict[str, Any]:
+    def get_run_data(self) -> dict[str, Any]:
         env = self.get_env()
         lib_paths = filter(None, self.get_extra_libs() + [env.get("LD_LIBRARY_PATH")])
         if lib_paths:
@@ -552,7 +552,7 @@ class scummvm(Runner):
 
         return output
 
-    def get_game_list(self) -> List[List[str]]:
+    def get_game_list(self) -> list[list[str]]:
         """Return the entire list of games supported by ScummVM."""
         with subprocess.Popen(
             self.get_command() + ["--list-games"], stdout=subprocess.PIPE, encoding="utf-8", universal_newlines=True
