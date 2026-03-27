@@ -724,7 +724,8 @@ class LutrisApplication(Gtk.Application):
         # Profile selection priority:
         #   1. --profile CLI flag
         #   2. ?profile= URL param (e.g. from Cartridges)
-        #   3. Steam active user linked to a Lutris profile (auto-detect)
+        #   3. Steam active user linked to a Lutris profile (auto-detect,
+        #      only when a game URL is present — i.e. launched from Steam)
         profile_arg = None
         if options.contains("profile"):
             profile_arg = options.lookup_value("profile").get_string()
@@ -733,8 +734,11 @@ class LutrisApplication(Gtk.Application):
         if profile_arg:
             self._switch_profile_by_name_or_id(profile_arg)
             self._profile_auto_switched = True
-        else:
+        elif game_slug:
+            # Only auto-detect from Steam when a game is being launched via URL
             self._profile_auto_switched = self._maybe_switch_profile_for_steam_user()
+        else:
+            self._profile_auto_switched = False
 
         revision = installer_info["revision"]
 
