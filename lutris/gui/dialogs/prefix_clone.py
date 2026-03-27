@@ -28,7 +28,7 @@ class PrefixCloneDialog(ModalDialog):
         game_name: str = "",
         parent: Optional[Gtk.Window] = None,
     ) -> None:
-        super().__init__(title=_("Setting up Wine prefix"), parent=parent, border_width=16)
+        super().__init__(title=_("Setting up Wine prefix"), parent=parent, border_width=16)  # type: ignore[arg-type]
         self.set_size_request(440, -1)
         self.set_resizable(False)
 

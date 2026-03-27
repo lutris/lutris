@@ -239,11 +239,9 @@ class ProfileDialog(Dialog):
         if not profile:
             return
 
-        dialog = Gtk.Dialog(
-            title=_("Link Steam account"),
-            transient_for=self,
-            flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-        )
+        dialog = Gtk.Dialog(title=_("Link Steam account"), transient_for=self)
+        dialog.set_modal(True)
+        dialog.set_destroy_with_parent(True)
         dialog.set_default_size(360, -1)
         dialog.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
         dialog.add_button(_("Unlink"), Gtk.ResponseType.REJECT)
@@ -277,7 +275,7 @@ class ProfileDialog(Dialog):
         # Pre-select currently linked account
         current_steam_id = profile.get("steam_id")
         if current_steam_id:
-            for i, row in enumerate(steam_store):
+            for i, row in enumerate(list(steam_store)):  # type: ignore[arg-type]
                 if row[0] == current_steam_id:
                     combo.set_active(i)
                     break

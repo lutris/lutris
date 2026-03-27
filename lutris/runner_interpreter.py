@@ -163,7 +163,7 @@ def _make_dynamic_wineprefix(prefix_path: str) -> str:
         return f'"{prefix_path}"'
 
     # Extract game slug: profiles/{profile_id}/wine-prefixes/{slug}
-    rest = prefix_path[len(profiles_root):]
+    rest = prefix_path[len(profiles_root) :]
     m = re.match(r"[^/]+/wine-prefixes/(.+)$", rest)
     if not m:
         return f'"{prefix_path}"'
@@ -181,7 +181,7 @@ def _make_dynamic_wineprefix(prefix_path: str) -> str:
         "    p = get_profile_by_steam_id(users[0].get('steamid64', ''))\n"
         "    if p:\n"
         "        profile_id = p['id']\n"
-        f'print(os.path.expanduser(f\'~/.local/share/lutris/profiles/{{profile_id}}/wine-prefixes/{game_slug}\'))\n'
+        f"print(os.path.expanduser(f'~/.local/share/lutris/profiles/{{profile_id}}/wine-prefixes/{game_slug}'))\n"
         f'" 2>/dev/null || echo "{fallback}")"'
     )
 
