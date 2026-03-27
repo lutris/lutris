@@ -63,6 +63,24 @@ class SaveInfo:
                 basedir = basedir.replace("$GAMEDIR", self.game.directory)
             if "$USERDIR" in basedir:
                 basedir = os.path.expanduser(basedir.replace("$USERDIR", "~"))
+
+        # Per-profile save directory variables (available for all runner types)
+        if "$PROFILEDIR" in basedir or "$PROFILEUSERDIR" in basedir:
+            from lutris.profile import get_profile_manager
+
+            pm = get_profile_manager()
+            profile_dir = pm.get_saves_path(self.game.slug)
+            basedir = basedir.replace("$PROFILEDIR", profile_dir)
+            if "$PROFILEUSERDIR" in basedir:
+                # Wine-style users dir inside the profile's Wine prefix
+                if self.game.runner_name == "wine":
+                    username = os.getenv("USER") or "steamuser"
+                    wine_prefix = pm.get_wine_prefix_path(self.game.slug)
+                    profile_user_dir = os.path.join(wine_prefix, "drive_c", "users", username)
+                else:
+                    profile_user_dir = profile_dir
+                basedir = basedir.replace("$PROFILEUSERDIR", profile_user_dir)
+
         return basedir
 
     @staticmethod

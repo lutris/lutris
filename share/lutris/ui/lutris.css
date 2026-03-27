@@ -93,3 +93,20 @@
 .cuddledcheckbox label {
   margin-right: 0px
 }
+
+/* ── Profile selector cards ───────────────────────────────────────── */
+
+.profile-card {
+    border-radius: 12px;
+    border: 2px solid transparent;
+    transition: background-color 150ms, border-color 150ms;
+}
+
+.profile-card:hover {
+    background-color: alpha(@theme_selected_bg_color, 0.12);
+    border-color: alpha(@theme_selected_bg_color, 0.4);
+}
+
+.profile-card-active {
+    border-color: @theme_selected_bg_color;
+}

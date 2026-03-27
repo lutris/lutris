@@ -690,6 +690,20 @@
           <placeholder/>
         </child>
         <child>
+          <object class="GtkModelButton" id="manage_profiles">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="action-name">win.manage-profiles</property>
+            <property name="text" translatable="yes">Manage Profiles</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">7</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkModelButton" id="preferences">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
@@ -700,7 +714,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">7</property>
+            <property name="position">8</property>
           </packing>
         </child>
         <child>
