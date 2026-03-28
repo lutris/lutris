@@ -476,9 +476,23 @@ class TestModelRunner(unittest.TestCase):
         self.assertEqual(self.runner.entry_point_option, DEFAULT_ENTRY_POINT_OPTION)
 
     def test_init_from_dict(self):
-        self.runner.from_dict(TEST_RUNNER_DICT)
+        test_dict_with_array_platforms = TEST_RUNNER_DICT
+        test_dict_with_dict_platforms = TEST_RUNNER_DICT.copy()
+        test_dict_with_dict_platforms["platforms"] = {
+            platform: platform for platform in TEST_RUNNER_DICT.get("platforms", [])
+        }
+        # The runner dict should be saved out with the "platforms" key pointing to a dict
+        expected_dict = test_dict_with_dict_platforms
+
+        # Test with the "platforms" key set to an array
+        self.runner.from_dict(test_dict_with_array_platforms)
         output_dict = self.runner.to_dict()
-        self.assertDictEqual(output_dict, TEST_RUNNER_DICT)
+        self.assertDictEqual(output_dict, expected_dict)
+
+        # Test with the "platforms" key set to a dict
+        self.runner.from_dict(test_dict_with_dict_platforms)
+        output_dict = self.runner.to_dict()
+        self.assertDictEqual(output_dict, expected_dict)
 
     # model.play test
     @patch("lutris.runners.runner.Runner.get_executable")

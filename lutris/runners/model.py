@@ -127,7 +127,7 @@ class ModelRunner(Runner):
         output_dict_data: Dict[str, Any] = {}
         output_dict_data["human_name"] = self.human_name
         output_dict_data["description"] = self.description
-        output_dict_data["platforms"] = self.platforms
+        output_dict_data["platforms"] = self.platform_dict
         output_dict_data["runner_executable"] = self.runner_executable
         output_dict_data["runnable_alone"] = self.runnable_alone
         output_dict_data["flatpak_id"] = self.flatpak_id
