@@ -33,9 +33,12 @@ class MisconfigurationError(LutrisError):
 class DirectoryNotFoundError(MisconfigurationError):
     """Raise this error if a directory that is required is not present."""
 
-    def __init__(self, message: str = None, directory: str = None, *args: Any, **kwargs: Any):
-        if not message and directory:
-            message = _("The directory {} could not be found").format(directory)
+    def __init__(self, message: str | None = None, directory: str | None = None, *args: Any, **kwargs: Any):
+        if not message:
+            if directory:
+                message = _("The directory {} could not be found").format(directory)
+            else:
+                message = _("Directory not found")
         super().__init__(message, *args, **kwargs)
         self.directory = directory
 
@@ -43,9 +46,12 @@ class DirectoryNotFoundError(MisconfigurationError):
 class SymlinkNotUsableError(MisconfigurationError):
     """Raise this error if a symlink that is required is not usable."""
 
-    def __init__(self, message: str = None, link: str = None, *args: Any, **kwarg: Any):
-        if not message and link:
-            message = message or _("The link {} could not be used.").format(link)
+    def __init__(self, message: str | None = None, link: str | None = None, *args: Any, **kwarg: Any):
+        if not message:
+            if link:
+                message = _("The link {} could not be used.").format(link)
+            else:
+                message = _("Symlink not usable")
         super().__init__(message, *args, **kwarg)
         self.link = link
 
@@ -58,7 +64,7 @@ class GameConfigError(MisconfigurationError):
 class MissingBiosError(GameConfigError):
     """Throw this error when the game requires a BIOS, but none is configured."""
 
-    def __init__(self, message: str = None, *args: Any, **kwargs: Any):
+    def __init__(self, message: str | None = None, *args: Any, **kwargs: Any):
         super().__init__(message or _("A bios file is required to run this game"), *args, **kwargs)
 
 
@@ -94,9 +100,12 @@ class MissingExecutableError(MisconfigurationError):
 class MissingMediaError(LutrisError):
     """Raised when an image file could not be found."""
 
-    def __init__(self, message: str = None, filename: str = None, *args: Any, **kwargs: Any):
-        if not message and filename:
-            message = _("The file {} could not be found").format(filename)
+    def __init__(self, message: str | None = None, filename: str | None = None, *args: Any, **kwargs: Any):
+        if not message:
+            if filename:
+                message = _("The file {} could not be found").format(filename)
+            else:
+                message = _("Media file not found")
 
         super().__init__(message, *args, **kwargs)
         self.filename = filename
@@ -105,7 +114,7 @@ class MissingMediaError(LutrisError):
 class MissingGameExecutableError(MissingExecutableError):
     """Raise when a game's executable can't be found is not specified."""
 
-    def __init__(self, message: str = None, filename: str = None, *args: Any, **kwargs: Any):
+    def __init__(self, message: str | None = None, filename: str | None = None, *args: Any, **kwargs: Any):
         if not message:
             if filename:
                 message = _("The file {} could not be found").format(filename)
