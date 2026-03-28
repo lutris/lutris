@@ -320,13 +320,6 @@ def paste_overlay(base_image: "Image.Image", overlay_image: "Image.Image", posit
     return base_image
 
 
-def image2pixbuf(image: "Image.Image") -> GdkPixbuf.Pixbuf:
-    """Converts a PIL Image to a GDK Pixbuf"""
-    image_bytes = GLib.Bytes.new(image.tobytes())
-    width, height = image.size
-    return GdkPixbuf.Pixbuf.new_from_bytes(image_bytes, GdkPixbuf.Colorspace.RGB, True, 8, width, height, width * 4)
-
-
 def load_icon_theme() -> None:
     """Add the lutris icon folder to the default theme"""
     icon_theme = Gtk.IconTheme.get_default()
