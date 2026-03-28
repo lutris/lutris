@@ -5,7 +5,7 @@ import shlex
 import stat
 
 from lutris.util import cache_single, system
-from lutris.util.graphics.gpu import GPUS
+from lutris.util.graphics.gpu import get_gpus
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -118,8 +118,9 @@ def get_gamescope_args(launch_arguments, system_config):
         launch_arguments.insert(0, "-h")
         launch_arguments.insert(0, game_width)
         launch_arguments.insert(0, "-w")
-    if len(GPUS) > 1 and system_config.get("gpu") in GPUS:
-        gpu = GPUS[system_config["gpu"]]
+    gpus = get_gpus()
+    if len(gpus) > 1 and system_config.get("gpu") in gpus:
+        gpu = gpus[system_config["gpu"]]
         launch_arguments.insert(0, gpu.pci_id)
         launch_arguments.insert(0, "--prefer-vk-device")
     if system_config.get("gamescope_hdr"):

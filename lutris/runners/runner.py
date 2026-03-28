@@ -17,7 +17,7 @@ from lutris.monitored_command import MonitoredCommand
 from lutris.runners import RunnerInstallationError
 from lutris.util import flatpak, strings, system
 from lutris.util.extract import ExtractError, extract_archive
-from lutris.util.graphics.gpu import GPUS
+from lutris.util.graphics.gpu import get_gpus
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.process import Process
@@ -287,8 +287,9 @@ class Runner:  # pylint: disable=too-many-public-methods
         if sdl_video_fullscreen and sdl_video_fullscreen != "off":
             env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = sdl_video_fullscreen
 
-        if len(GPUS) > 1 and self.system_config.get("gpu") in GPUS:
-            gpu = GPUS[self.system_config["gpu"]]
+        gpus = get_gpus()
+        if len(gpus) > 1 and self.system_config.get("gpu") in gpus:
+            gpu = gpus[self.system_config["gpu"]]
             if gpu.driver == "nvidia":
                 env["DRI_PRIME"] = "1"
                 env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
