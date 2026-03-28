@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-"""Check that annotations referencing conditional imports are quoted.
+"""Check for annotation syntax that crashes on Python < 3.14.
 
-Without `from __future__ import annotations`, Python 3.10 evaluates annotations
-eagerly at class/function definition time.  Any import that lives under an `if`
-or `try` block is conditional — the name may not exist or may be None at runtime.
-Using such a name unquoted in a type annotation will crash at import time.
+Without `from __future__ import annotations`, Python 3.10-3.13 evaluates
+annotations eagerly at class/function definition time.  This catches two
+classes of errors:
 
-See https://github.com/lutris/lutris/issues/6552 for an example.
+1. Unquoted references to conditional imports — the name may not exist at
+   runtime.  See https://github.com/lutris/lutris/issues/6552.
+
+2. String literals used as operands in | unions (e.g. `"Foo" | None`) —
+   str.__or__ doesn't exist, so this raises TypeError.  Works on 3.14+
+   (PEP 749 defers annotation evaluation) but crashes on earlier versions.
+   See https://github.com/lutris/lutris/pull/6595.
 """
 
 import ast
@@ -73,6 +78,55 @@ def find_unquoted_refs(annotation, names, modules):
             return []
 
 
+def find_string_in_union(annotation):
+    """Return list of string values that appear as operands in | union annotations.
+
+    `"Foo" | None` crashes on Python <3.14 because str doesn't implement __or__.
+    The entire union must be quoted instead: `"Foo | None"`.
+    """
+    match annotation:
+        case None | ast.Constant() | ast.Name():
+            # A standalone string constant is a valid forward ref;
+            # only problematic when used as an operand of |.
+            return []
+        case ast.BinOp(op=ast.BitOr(), left=left, right=right):
+            results = []
+            for side in (left, right):
+                if isinstance(side, ast.Constant) and isinstance(side.value, str):
+                    results.append(side.value)
+            # Recurse for nested unions like "A" | "B" | None
+            results.extend(find_string_in_union(left))
+            results.extend(find_string_in_union(right))
+            return results
+        case ast.Subscript(value=value, slice=ast.Tuple(elts=elts)):
+            return find_string_in_union(value) + [ref for elt in elts for ref in find_string_in_union(elt)]
+        case ast.Subscript(value=value, slice=slc):
+            return find_string_in_union(value) + find_string_in_union(slc)
+        case _:
+            return []
+
+
+def iter_string_union_errors(node):
+    """Yield (lineno, name) for string literals used in | unions in annotations."""
+    match node:
+        case ast.FunctionDef(args=args, returns=returns) | ast.AsyncFunctionDef(args=args, returns=returns):
+            all_args = (
+                args.posonlyargs
+                + args.args
+                + args.kwonlyargs
+                + ((args.vararg and [args.vararg]) or [])
+                + ((args.kwarg and [args.kwarg]) or [])
+            )
+            for arg in all_args:
+                for name in find_string_in_union(arg.annotation):
+                    yield arg.annotation.lineno, name
+            for name in find_string_in_union(returns):
+                yield returns.lineno, name
+        case ast.AnnAssign(annotation=annotation):
+            for name in find_string_in_union(annotation):
+                yield annotation.lineno, name
+
+
 def iter_annotation_errors(node, names, modules):
     """Yield (lineno, ref) for each unquoted conditional import ref in annotations."""
     match node:
@@ -104,14 +158,25 @@ def check_file(path):
     if has_future_annotations(tree):
         return []
 
-    modules, names = get_conditional_imports(tree)
-    if not modules and not names:
-        return []
-
     errors = set()
+
+    # Check for unquoted references to conditional imports
+    modules, names = get_conditional_imports(tree)
+    if modules or names:
+        for node in ast.walk(tree):
+            for lineno, ref in iter_annotation_errors(node, names, modules):
+                errors.add((lineno, f"unquoted annotation '{ref}' references a conditional import"))
+
+    # Check for string literals used as operands in | union annotations
     for node in ast.walk(tree):
-        for lineno, ref in iter_annotation_errors(node, names, modules):
-            errors.add((lineno, ref))
+        for lineno, ref in iter_string_union_errors(node):
+            errors.add(
+                (
+                    lineno,
+                    f'string literal "{ref}" used in | union (crashes on Python <3.14); quote the entire union instead',
+                )
+            )
+
     return sorted(errors)
 
 
@@ -124,8 +189,8 @@ def main():
 
     found_errors = False
     for path in paths:
-        for lineno, ref in check_file(path):
-            print(f"{path}:{lineno}: unquoted annotation '{ref}' references a conditional import")
+        for lineno, message in check_file(path):
+            print(f"{path}:{lineno}: {message}")
             found_errors = True
 
     return 1 if found_errors else 0
