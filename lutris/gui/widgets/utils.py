@@ -1,8 +1,7 @@
 """Various utilities using the GObject framework"""
 
-import array
 import os
-from typing import TYPE_CHECKING, Iterable, List, Optional, Type, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Iterable, List, Type, TypeVar, cast
 
 import cairo
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
@@ -27,7 +26,7 @@ BANNER_SIZE = (184, 69)
 MEDIA_CACHE_INVALIDATED = NotificationSource()
 
 
-def get_application() -> Optional["LutrisApplication"]:
+def get_application() -> "LutrisApplication | None":
     return cast("LutrisApplication", Gio.Application.get_default())
 
 
@@ -38,7 +37,7 @@ def get_required_application() -> "LutrisApplication":
     return application
 
 
-def get_main_window() -> Optional["LutrisWindow"]:
+def get_main_window() -> "LutrisWindow | None":
     """Return the application's main window, or None if it doesn't exist
     (though it almost alway does exist)"""
     application = get_application()
@@ -55,12 +54,12 @@ def get_required_main_window() -> "LutrisWindow":
     return window
 
 
-def get_widget_window(widget: Optional[Gtk.Widget]) -> Optional[Gtk.Window]:
+def get_widget_window(widget: Gtk.Widget | None) -> Gtk.Window | None:
     """Returns the window that contains a widget, if any. This wll return None
     for a widget that is not in a window, rather than returning the widget itself
     like get_toplevel()."""
     if widget:
-        return cast(Optional[Gtk.Window], widget.get_ancestor(Gtk.Window))
+        return cast(Gtk.Window, widget.get_ancestor(Gtk.Window))
     else:
         return None
 
@@ -68,27 +67,25 @@ def get_widget_window(widget: Optional[Gtk.Widget]) -> Optional[Gtk.Window]:
 TChildWidget = TypeVar("TChildWidget", bound=Gtk.Widget)
 
 
-def get_widget_children(
-    widget: Optional[Gtk.Widget], child_type: Optional[Type[TChildWidget]] = None
-) -> List[TChildWidget]:
+def get_widget_children(widget: Gtk.Widget | None, child_type: Type[TChildWidget] = None) -> List[TChildWidget]:
     """Returns the children of any widget; non-containers have no children
     and returns an empty list. This can filter out a specific type of child widget if child_type
     is not None, but otherwise it returns all children."""
     if isinstance(widget, Gtk.Container):
         if child_type:
-            return [cast(TChildWidget, w) for w in widget.get_children() if isinstance(w, child_type)]
+            return [w for w in widget.get_children() if isinstance(w, child_type)]
         else:
             return list(cast(Iterable[TChildWidget], widget.get_children()))
     else:
         return []
 
 
-def open_uri(uri):
+def open_uri(uri: str) -> None:
     """Opens a local or remote URI with the default application"""
     system.spawn(["xdg-open", uri])
 
 
-def get_image_file_extension(path: str) -> Optional[str]:
+def get_image_file_extension(path: str) -> str | None:
     """Returns the canonical file extension for an image,
     either 'jpg' or 'png'; we deduce this from the file extension, or if that fails the
     file's 'magic' prefix bytes."""
@@ -111,7 +108,7 @@ def get_image_file_extension(path: str) -> Optional[str]:
     return None
 
 
-def get_surface_size(surface):
+def get_surface_size(surface: cairo.ImageSurface) -> tuple[float, float]:
     """Returns the size of a surface, accounting for the device scale;
     the surface's get_width() and get_height() are in physical pixels."""
     device_scale_x, device_scale_y = surface.get_device_scale()
@@ -120,7 +117,9 @@ def get_surface_size(surface):
     return width, height
 
 
-def get_scaled_surface_by_path(path, size, device_scale, preserve_aspect_ratio=True):
+def get_scaled_surface_by_path(
+    path: str, size: tuple[float, float], device_scale: float, preserve_aspect_ratio: bool = True
+) -> cairo.ImageSurface | None:
     """Returns a Cairo surface containing the image at the path given. It has the size indicated.
 
     You specify the device_scale, and the bitmap is generated at an enlarged size accordingly,
@@ -159,7 +158,7 @@ def get_scaled_surface_by_path(path, size, device_scale, preserve_aspect_ratio=T
     return surface
 
 
-def get_default_icon_path(size):
+def get_default_icon_path(size: tuple[int, int]) -> str:
     """Returns the path to the default icon for the size given; it's
     a Lutris icon for a square size, and a gradient for other sizes."""
     if not size or size[0] == size[1]:
@@ -169,7 +168,9 @@ def get_default_icon_path(size):
     return os.path.join(datapath.get(), filename)
 
 
-def get_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
+def get_pixbuf_by_path(
+    path: str, size: tuple[int, int] = None, preserve_aspect_ratio: bool = True
+) -> GdkPixbuf.Pixbuf | None:
     """Reads an image file and returns the pixbuf. If you provide a size, this scales
     the file to fit that size, preserving the aspect ratio if preserve_aspect_ratio is
     True. If the file is missing or empty, or if 'path' is None or empty,
@@ -188,7 +189,9 @@ def get_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
     return GdkPixbuf.Pixbuf.new_from_file(path)
 
 
-def get_required_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
+def get_required_pixbuf_by_path(
+    path: str, size: tuple[int, int] = None, preserve_aspect_ratio: bool = True
+) -> GdkPixbuf.Pixbuf:
     """Reads an image file and returns the pixbuf. If you provide a size, this scales
     the file to fit that size, preserving the aspect ratio if preserve_aspect_ratio is
     True. If the file is missing or unreadable, or if 'path' is None or empty, this raises
@@ -203,7 +206,7 @@ def get_required_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
         raise MissingMediaError(message=str(ex), filename=path) from ex
 
 
-def has_stock_icon(name):
+def has_stock_icon(name: str) -> bool:
     """This tests if a GTK stock icon is known; if not we can try a fallback."""
     if not name:
         return False
@@ -212,7 +215,7 @@ def has_stock_icon(name):
     return theme.has_icon(name)
 
 
-def pick_stock_icon(names: Union[str, Iterable[str]], fallback_name: str = "package-x-generic-symbolic") -> str:
+def pick_stock_icon(names: str | Iterable[str], fallback_name: str = "package-x-generic-symbolic") -> str:
     """Used to select a stock icon that actually exists in the icon set; it tries all the names given,
     and returns the first where has_stock_icon is true. If none pass the test, returns fallback_name instead."""
     if isinstance(names, str):
@@ -225,7 +228,7 @@ def pick_stock_icon(names: Union[str, Iterable[str]], fallback_name: str = "pack
     return fallback_name
 
 
-def get_runtime_icon_path(icon_name):
+def get_runtime_icon_path(icon_name: str) -> str | None:
     """Finds the icon file for an icon whose name is given; this searches the icons
     in Lutris's runtime directory. The name is normalized by removing spaces
     and lower-casing it, and both .png and .svg files with the name can be found.
@@ -255,7 +258,7 @@ def get_runtime_icon_path(icon_name):
     return None
 
 
-def convert_to_background(background_path, target_size=(320, 1080)):
+def convert_to_background(background_path: str, target_size: tuple[int, int] = (320, 1080)) -> "Image.Image":
     """Converts an image to a pane background"""
     coverart = Image.open(background_path)
     coverart = coverart.convert("RGBA")
@@ -286,7 +289,7 @@ def convert_to_background(background_path, target_size=(320, 1080)):
     return background
 
 
-def thumbnail_image(base_image, target_size):
+def thumbnail_image(base_image: "Image.Image", target_size: tuple[int, int]) -> "Image.Image":
     base_width, base_height = base_image.size
     base_ratio = base_width / base_height
     target_width, target_height = target_size
@@ -306,7 +309,7 @@ def thumbnail_image(base_image, target_size):
     return base_image
 
 
-def paste_overlay(base_image, overlay_image, position=0.7):
+def paste_overlay(base_image: "Image.Image", overlay_image: "Image.Image", position: float = 0.7) -> "Image.Image":
     base_width, base_height = base_image.size
     overlay_width, overlay_height = overlay_image.size
     offset_x = int((base_width - overlay_width) / 2)
@@ -317,14 +320,7 @@ def paste_overlay(base_image, overlay_image, position=0.7):
     return base_image
 
 
-def image2pixbuf(image):
-    """Converts a PIL Image to a GDK Pixbuf"""
-    image_array = array.array("B", image.tobytes())
-    width, height = image.size
-    return GdkPixbuf.Pixbuf.new_from_data(image_array, GdkPixbuf.Colorspace.RGB, True, 8, width, height, width * 4)
-
-
-def load_icon_theme():
+def load_icon_theme() -> None:
     """Add the lutris icon folder to the default theme"""
     icon_theme = Gtk.IconTheme.get_default()
     local_theme_path = os.path.join(settings.RUNTIME_DIR, "icons")
