@@ -1,7 +1,8 @@
 from abc import abstractmethod
+from collections.abc import Iterable
 from gettext import gettext as _
 from sys import float_info
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any
 
 from gi.repository import Gdk, Gio, GObject, Gtk
 
@@ -70,17 +71,20 @@ class IconToggleButton(Gtk.Button):
 
 class BaseRunnerConfigBox(VBox):
     __gsignals__ = {"changed": (GObject.SIGNAL_RUN_FIRST, None, ())}
+    # Dictionary key where settings should be saved to
+    dict_key: str
 
-    def __init__(self, **kwargs):
+    def __init__(self, *, dict_key: str, **kwargs) -> None:
         super().__init__(**kwargs)
+        self.dict_key = dict_key
 
     @abstractmethod
-    def to_dict(self):
+    def to_dict(self, output_dict: dict[str, Any]) -> bool:
         """Serialize Box fields to dict for use with saving to a file"""
         raise NotImplementedError()
 
     @abstractmethod
-    def from_dict(self, value: Any):
+    def from_dict(self, input_dict: dict[str, Any]) -> bool:
         """Read Box fields from dict for use with loading config settings"""
         raise NotImplementedError()
 
@@ -90,8 +94,8 @@ class OptionBox(BaseRunnerConfigBox):
     DEFAULT_VISIBLE_STATE = True
     DEFAULT_WARN_IF_NON_WRITABLE_PARENT = True
 
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, *, dict_key: str, **kwargs) -> None:
+        super().__init__(dict_key=dict_key, **kwargs)
         self.set_margin_top(0)
 
         self._option_entry = Gtk.Entry()
@@ -164,31 +168,31 @@ class OptionBox(BaseRunnerConfigBox):
         self.show_all()
         self.update_widgets()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self, output_dict: dict[str, Any]) -> bool:
         """Convert the contents of the widget to a dictionary for serialization"""
-        output_dict: Dict[str, Any] = {}
+        options_dict: dict[str, Any] = {}
         if option := self._option_entry.get_text():
-            output_dict["option"] = option
+            options_dict["option"] = option
         if type_val := self._type_dropdown.get_active_id():
-            output_dict["type"] = type_val
+            options_dict["type"] = type_val
         if section := self._section_entry.get_text():
-            output_dict["section"] = section
+            options_dict["section"] = section
         if label := self._label_entry.get_text():
-            output_dict["label"] = label
+            options_dict["label"] = label
         if argument := self._argument_entry.get_text():
-            output_dict["argument"] = argument
+            options_dict["argument"] = argument
         if help_val := self._help_entry.get_text():
-            output_dict["help"] = help_val
+            options_dict["help"] = help_val
 
         default = self._default_entry
         if isinstance(default, Gtk.Entry):
-            output_dict["default"] = default.get_text()
+            options_dict["default"] = default.get_text()
         elif isinstance(default, Gtk.Switch):
-            output_dict["default"] = default.get_active()
+            options_dict["default"] = default.get_active()
 
         # Editable Grid should return a list of tuples of size 2
         if (choices := self._choice_grid.get_data()) and self._type_dropdown.get_active_id() in CHOICE_WIDGET_TYPES:
-            output_dict["choices"] = [{choice[0]: choice[1]} for choice in choices]
+            options_dict["choices"] = [{choice[0]: choice[1]} for choice in choices]
 
         # Serialize the "advanced" value if either the enabled button is active
         # or the state is different than the default
@@ -196,13 +200,13 @@ class OptionBox(BaseRunnerConfigBox):
             self._advanced_enabled_button.get_active()
             or self._advanced_entry.get_active() != OptionBox.DEFAULT_ADVANCED_STATE
         ):
-            output_dict["advanced"] = self._advanced_entry.get_active()
+            options_dict["advanced"] = self._advanced_entry.get_active()
 
         if (min_val := self._min_entry.get_text()) and self._type_dropdown.get_active_id() in RANGE_WIDGET_TYPES:
-            output_dict["min"] = float(min_val)
+            options_dict["min"] = float(min_val)
 
         if (max_val := self._max_entry.get_text()) and self._type_dropdown.get_active_id() in RANGE_WIDGET_TYPES:
-            output_dict["max"] = float(max_val)
+            options_dict["max"] = float(max_val)
 
         # Serialize the "visible" value if either the enabled button is active
         # or the state is different than the default
@@ -210,10 +214,10 @@ class OptionBox(BaseRunnerConfigBox):
             self._visible_enabled_button.get_active()
             or self._visible_entry.get_active() != OptionBox.DEFAULT_VISIBLE_STATE
         ):
-            output_dict["visible"] = self._visible_entry.get_active()
+            options_dict["visible"] = self._visible_entry.get_active()
 
         if conditional_on := self._conditional_on_entry.get_text():
-            output_dict["conditional_on"] = conditional_on
+            options_dict["conditional_on"] = conditional_on
 
         # Serialize the "warn if parent directory is not writable" value if either the enabled button is active
         # or the state is different than the default
@@ -221,15 +225,18 @@ class OptionBox(BaseRunnerConfigBox):
             self._warn_if_non_writable_parent_enabled_button.get_active()
             or self._warn_if_non_writable_parent_entry.get_active() != OptionBox.DEFAULT_WARN_IF_NON_WRITABLE_PARENT
         ):
-            output_dict["warn_if_non_writable_parent"] = self._warn_if_non_writable_parent_entry.get_active()
+            options_dict["warn_if_non_writable_parent"] = self._warn_if_non_writable_parent_entry.get_active()
 
-        return output_dict
+        output_dict[self.dict_key] = options_dict
+        return True
 
-    def from_dict(self, option_dict: Optional[Dict[str, Any]]) -> bool:
+    def from_dict(self, input_dict: dict[str, Any]) -> bool:
+        """Populate widget entries from dictionary"""
+
+        option_dict: dict[str, Any] | None = input_dict
         if not option_dict:
             return False
 
-        """Populate widget entries from dictionary"""
         self._option_entry.set_text(option_dict.get("option", ""))
         self._type_dropdown.set_active_id(option_dict.get("type", DEFAULT_WIDGET_TYPE))
         self._section_entry.set_text(option_dict.get("section", ""))
@@ -283,7 +290,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "option" methods
     def _get_option_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Option"))
         box.pack_start(label, False, False, 0)
 
@@ -298,7 +305,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "type" methods
     def _get_type_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Type"))
 
         self._type_dropdown.set_id_column(1)  # Contains the widget_type key used to create UI elements
@@ -335,7 +342,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "section" methods
     def _get_section_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Section"))
         box.pack_start(label, False, False, 0)
 
@@ -350,12 +357,12 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "label" methods
     def _get_label_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Label"))
         box.pack_start(label, False, False, 0)
 
         self._label_entry.set_max_length(150)
-        self._label_entry.set_tooltip_text(_("Human readable label to for option"))
+        self._label_entry.set_tooltip_text(_("Human readable label for option"))
         self._label_entry.connect("changed", self._on_label_changed)
         box.pack_start(self._label_entry, True, True, 0)
         return box
@@ -365,7 +372,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "argument" methods
     def _get_argument_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Argument"))
         box.pack_start(label, False, False, 0)
 
@@ -382,7 +389,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "help" methods
     def _get_help_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Help"))
         box.pack_start(label, False, False, 0)
 
@@ -397,7 +404,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "default" methods
     def _get_default_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Default"))
         self._default_entry.set_tooltip_text(_("Default value for this option"))
         self._default_entry.connect("changed", self._on_default_changed)
@@ -435,7 +442,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "Advanced" methods
     def _get_advanced_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Advanced"))
 
         self._advanced_entry.connect("notify::active", self._on_advanced_changed)
@@ -456,7 +463,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "choices" methods
     def _get_choices_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Choices"))
 
         # Add placeholder text for the key value columns
@@ -486,7 +493,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "min" methods
     def _get_min_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Min"))
         box.pack_start(label, False, False, 0)
 
@@ -504,7 +511,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "max" methods
     def _get_max_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Max"))
         box.pack_start(label, False, False, 0)
 
@@ -539,7 +546,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "visible" methods
     def _get_visible_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Visible"))
 
         self._visible_entry.connect("notify::active", self._on_visible_changed)
@@ -560,7 +567,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "conditional_on" methods
     def _get_conditional_on_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Conditional On"))
         box.pack_start(label, False, False, 0)
 
@@ -580,7 +587,7 @@ class OptionBox(BaseRunnerConfigBox):
 
     # "Warn if non writable parent" methods
     def _get_warn_if_non_writable_parent_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_("Warn if non-writable parent"))
 
         self._warn_if_non_writable_parent_entry.connect("notify::active", self._on_warn_if_non_writable_parent_changed)
@@ -604,8 +611,8 @@ class OptionBox(BaseRunnerConfigBox):
 
 
 class BaseConfigListBox(BaseRunnerConfigBox):
-    def __init__(self, data, derived_widget_type: type[OptionBox]):
-        super().__init__()
+    def __init__(self, data, derived_widget_type: type[OptionBox], *, dict_key: str, **kwargs):
+        super().__init__(dict_key=dict_key, **kwargs)
 
         self._widget_type = derived_widget_type
 
@@ -643,7 +650,7 @@ class BaseConfigListBox(BaseRunnerConfigBox):
 
         self.show_all()
 
-    def to_dict(self) -> List[Any]:
+    def to_dict(self, output_dict: dict[str, Any]) -> bool:
         """Convert the contents of the widget to a list for serialization"""
 
         # Hierarchy layout for the list box is as follows
@@ -657,26 +664,33 @@ class BaseConfigListBox(BaseRunnerConfigBox):
         #   <list_row 2>
         #   ...
         #   <list_row N>
-        output_list = []
+        convert_no_errors = True
+        output_list: list[Any] = []
         for list_box_row in self._list_box.get_children():
             hbox = list_box_row.get_children()[0]  # type: ignore
             event_box = hbox.get_children()[1]
             expander = event_box.get_children()[0]
-            option_widget = expander.get_children()[0]
-            output_list.append(option_widget.to_dict())
+            option_widget: OptionBox = expander.get_children()[0]
+            option_entry: dict[str, Any] = {}
+            if option_widget.to_dict(option_entry):
+                output_list.append(option_entry[option_widget.dict_key])
+            else:
+                convert_no_errors = False
 
-        return output_list
+        output_dict[self.dict_key] = output_list
+        return convert_no_errors
 
-    def from_dict(self, values: Optional[List[Any]]) -> bool:
+    def from_dict(self, input_dict: dict[str, Any]) -> bool:
         """Populate widget entry from list"""
+        values: list[Any] | None = input_dict.get(self.dict_key)
         if values is None:
             return False
 
         # Clear out any existing row widgets from the list before populating
         self._list_box.foreach(lambda row: self._list_box.remove(row))
 
-        for value in values:
-            option_widget = self._widget_type()
+        for i, value in enumerate(values):
+            option_widget = self._widget_type(dict_key=f"{self.dict_key}.{i}")
             if option_widget.from_dict(value):
                 self.add_widget(option_widget)
 
@@ -712,7 +726,8 @@ class BaseConfigListBox(BaseRunnerConfigBox):
         return expander
 
     def _on_add(self, widget):
-        self.add_widget(self._widget_type())
+        dict_key_name = f"{self.dict_key}.{len(self._list_box.get_children())}"
+        self.add_widget(self._widget_type(dict_key=dict_key_name))
         self.emit("changed")
 
     def _on_delete(self, widget, list_bow_row):
@@ -744,10 +759,10 @@ class BaseConfigListBox(BaseRunnerConfigBox):
 class EditableOptionList(BaseConfigListBox):
     """Override of BaseConfigListBox which adds support for listening
     for the 'changed' signal of the UI element representing the "option" key
-    The "option" key is the required key for game_option, runner_option, system_option elements
+    The "option" key is the required key for game_options, runner_options, system_options_override elements
     """
 
-    def add_widget(self, new_widget: OptionBox):
+    def add_widget(self, new_widget: OptionBox) -> Gtk.Expander:
         expander = super().add_widget(new_widget)
 
         def on_option_name_changed(option_name_widget):
@@ -755,17 +770,19 @@ class EditableOptionList(BaseConfigListBox):
 
         new_widget.connect_option_name_changed(on_option_name_changed)
 
+        return expander
+
 
 class GameOptionsBox(EditableOptionList):
     """Stores list of Game Options UI elements"""
 
-    def __init__(self):
-        super().__init__(data={}, derived_widget_type=OptionBox)
+    def __init__(self, *, dict_key: str = "game_options", **kwargs) -> None:
+        super().__init__(data={}, derived_widget_type=OptionBox, dict_key=dict_key, **kwargs)
 
         # Add a row for the DEFAULT_ENTRY_POINT_OPTION on initialization of the game options.
         # The game options requires at an option that matches the "entry_point_option" field
         # so it is added to reduce the boilerplate user
-        entry_point_widget = self._widget_type()
+        entry_point_widget = self._widget_type(dict_key=f"{dict_key}.0")
         self.add_widget(entry_point_widget)
         entry_point_widget._option_entry.set_text(DEFAULT_ENTRY_POINT_OPTION)
         entry_point_widget._type_dropdown.set_active_id("file")
@@ -775,27 +792,27 @@ class GameOptionsBox(EditableOptionList):
 class RunnerOptionsBox(EditableOptionList):
     """Stores list of Runner Options UI elements"""
 
-    def __init__(self):
-        super().__init__(data={}, derived_widget_type=OptionBox)
+    def __init__(self, *, dict_key: str = "runner_options", **kwargs) -> None:
+        super().__init__(data={}, derived_widget_type=OptionBox, dict_key=dict_key, **kwargs)
 
 
 class SystemOptionsOverrideBox(EditableOptionList):
     """Stores list of System Options Overrides"""
 
-    def __init__(self):
-        super().__init__(data={}, derived_widget_type=OptionBox)
+    def __init__(self, *, dict_key: str = "system_options_override", **kwargs) -> None:
+        super().__init__(data={}, derived_widget_type=OptionBox, dict_key=dict_key, **kwargs)
 
 
 class BaseConfigTextBox(BaseRunnerConfigBox):
-    def __init__(self, label, tooltip="", **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *, dict_key: str, label: str, tooltip: str = "", **kwargs) -> None:
+        super().__init__(dict_key=dict_key, **kwargs)
         self._text_entry = Gtk.Entry()
         self._text_box = self._get_text_box(label, tooltip)
         self.pack_start(self._text_box, False, False, 0)
         self.show_all()
 
     def _get_text_box(self, label, tooltip=""):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
         label = Label(_(label))
         box.pack_start(label, False, False, 0)
 
@@ -808,16 +825,18 @@ class BaseConfigTextBox(BaseRunnerConfigBox):
     def _on_text_changed(self, widget):
         self.emit("changed")
 
-    def to_dict(self) -> str:
+    def to_dict(self, output_dict: dict[str, Any]) -> bool:
         """Convert the contents of the widget to a string for serialization"""
         output_string = ""
         if _text := self._text_entry.get_text():
             output_string = _text
 
-        return output_string
+        output_dict[self.dict_key] = output_string
+        return True
 
-    def from_dict(self, text_string: Optional[str]) -> bool:
+    def from_dict(self, input_dict: dict[str, Any]) -> bool:
         """Populate widget entry from string"""
+        text_string: str | None = input_dict.get(self.dict_key)
         if text_string is None:
             return False
         self._text_entry.set_text(text_string)
@@ -825,38 +844,60 @@ class BaseConfigTextBox(BaseRunnerConfigBox):
 
 
 class HumanNameBox(BaseConfigTextBox):
-    def __init__(self, **kwargs):
-        super().__init__(label=_("Human Name"), tooltip=_("Human readable name for the runner"), **kwargs)
+    def __init__(self, *, dict_key: str = "human_name", **kwargs) -> None:
+        super().__init__(
+            dict_key=dict_key,
+            label=_("Human Name"),
+            tooltip=_("(Required) Human readable name for the runner"),
+            **kwargs,
+        )
 
 
 class DescriptionBox(BaseConfigTextBox):
-    def __init__(self, **kwargs):
-        super().__init__(label=_("Description"), tooltip=("Description of the runner"), **kwargs)
+    def __init__(self, *, dict_key: str = "description", **kwargs) -> None:
+        super().__init__(
+            dict_key=dict_key, label=_("Description"), tooltip=_("(Optional) Description of the runner"), **kwargs
+        )
 
 
 class RunnerExecutableBox(BaseConfigTextBox):
-    def __init__(self, **kwargs):
-        super().__init__(label=_("Runner Executable"), tooltip=_("Path to the runner executable"), **kwargs)
+    def __init__(self, *, dict_key: str = "runner_executable", **kwargs) -> None:
+        super().__init__(
+            dict_key=dict_key,
+            label=_("Runner Executable"),
+            tooltip=_("(Required) Path to the runner executable"),
+            **kwargs,
+        )
 
 
 class FlatpakIdBox(BaseConfigTextBox):
-    def __init__(self, **kwargs):
+    def __init__(self, *, dict_key: str = "flatpak_id", **kwargs) -> None:
         super().__init__(
-            label=_("Flatpak ID"), tooltip=_("ID of flatpak app which can be used to install the runner"), **kwargs
+            dict_key=dict_key,
+            label=_("Flatpak ID"),
+            tooltip=_("(Optional) ID of flatpak app which can be used to install the runner"),
+            **kwargs,
         )
 
 
 class DownloadUrlBox(BaseConfigTextBox):
-    def __init__(self, **kwargs):
-        super().__init__(label=_("Download URL"), tooltip=_("Url where runner can be downloaded by Lutris"), **kwargs)
+    def __init__(self, *, dict_key: str = "download_url", **kwargs) -> None:
+        super().__init__(
+            dict_key=dict_key,
+            label=_("Download URL"),
+            tooltip=_("(Optional) URL where runner can be downloaded by Lutris"),
+            **kwargs,
+        )
 
 
 class EntryPointOptionBox(BaseConfigTextBox):
-    def __init__(self, **kwargs):
+    def __init__(self, *, dict_key: str = "entry_point_option", **kwargs) -> None:
         super().__init__(
+            dict_key=dict_key,
             label=_("Entry Point Option"),
             tooltip=_(
-                "Name for the primary field in the 'game_options' that is passed to the runner arguments for execution"
+                "(Required) Name for the primary field in the 'game_options'"
+                + " that is passed to the runner arguments for execution"
             ),
             **kwargs,
         )
@@ -864,32 +905,34 @@ class EntryPointOptionBox(BaseConfigTextBox):
 
 
 class BaseConfigSwitchBox(BaseRunnerConfigBox):
-    def __init__(self, label, tooltip="", initial_value=False, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *, dict_key: str, label: str, tooltip: str = "", initial_value: bool = False, **kwargs) -> None:
+        super().__init__(dict_key=dict_key, **kwargs)
         self._switch_entry = Gtk.Switch(active=initial_value)
         self._switch_box = self._get_switch_box(label, tooltip)
         self.pack_start(self._switch_box, False, False, 0)
         self.show_all()
 
-    def _get_switch_box(self, label, tooltip=""):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
-        label = Label(_(label))
-        box.pack_start(label, False, False, 0)
+    def _get_switch_box(self, label: str, tooltip: str = ""):
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
+        label_widget = Label(_(label))
+        box.pack_start(label_widget, False, False, 0)
 
         self._switch_entry.set_tooltip_text(_(tooltip))
         self._switch_entry.connect("notify::active", self._on_switch_active)
         box.pack_start(self._switch_entry, False, False, 0)
         return box
 
-    def _on_switch_active(self, widget, gparam):
+    def _on_switch_active(self, widget: Gtk.Widget, gparam):
         self.emit("changed")
 
-    def to_dict(self) -> bool:
+    def to_dict(self, output_dict: dict[str, Any]) -> bool:
         """Convert the contents of the widget to a boolean for serialization"""
-        return self._switch_entry.get_active()
+        output_dict[self.dict_key] = self._switch_entry.get_active()
+        return True
 
-    def from_dict(self, switch_state: Optional[bool]) -> bool:
+    def from_dict(self, input_dict: dict[str, Any]) -> bool:
         """Populate widget entries from a boolean"""
+        switch_state: bool | None = input_dict.get(self.dict_key)
         if switch_state is None:
             return False
         self._switch_entry.set_active(switch_state)
@@ -897,8 +940,9 @@ class BaseConfigSwitchBox(BaseRunnerConfigBox):
 
 
 class RunnableAloneBox(BaseConfigSwitchBox):
-    def __init__(self, **kwargs):
+    def __init__(self, *, dict_key: str = "runnable_alone", **kwargs):
         super().__init__(
+            dict_key=dict_key,
             label=_("Runnable Alone"),
             tooltip=_("If set, the runner can be opened standalone in the sidebar"),
             initial_value=True,
@@ -907,17 +951,17 @@ class RunnableAloneBox(BaseConfigSwitchBox):
 
 
 class BaseConfigGridBox(BaseRunnerConfigBox):
-    def __init__(self, label, tooltip="", **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *, dict_key: str, label: str, tooltip: str = "", **kwargs):
+        super().__init__(dict_key=dict_key, **kwargs)
         self._grid_entry = EditableGrid(data={}, columns=("key", "value"))
         self._grid_box = self._get_grid_box(label, tooltip)
         self.pack_start(self._grid_box, False, False, 0)
         self.show_all()
 
-    def _get_grid_box(self, label, tooltip=""):
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, margin_end=12, margin_start=12)
-        label = Label(_(label))
-        box.pack_start(label, False, False, 0)
+    def _get_grid_box(self, label: str, tooltip: str = ""):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, margin_end=12, margin_start=12)
+        label_widget = Label(_(label))
+        box.pack_start(label_widget, False, False, 0)
 
         self._grid_entry.set_tooltip_text(_(tooltip))
         for i, treeview_column in enumerate(self._grid_entry.treeview.get_columns()):
@@ -928,18 +972,22 @@ class BaseConfigGridBox(BaseRunnerConfigBox):
         box.pack_start(self._grid_entry, True, True, 0)
         return box
 
-    def _on_cell_edited(self, widget, path, _text, field):
+    def _on_cell_edited(self, widget: Gtk.Widget, path, _text, field):
         self.emit("changed")
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self, output_dict: dict[str, Any]) -> bool:
         """Convert the contents of the widget to a list of dict for serialization"""
-        output_dict = {}
+        grid_dict: dict[str, Any] = {}
         if grid_rows := self._grid_entry.get_data():
-            output_dict = dict(grid_rows)
-        return output_dict
+            grid_dict = dict(grid_rows)
 
-    def from_dict(self, grid_values: Optional[Dict[str, str] | List[str] | str]) -> bool:
+        output_dict[self.dict_key] = grid_dict
+
+        return True
+
+    def from_dict(self, input_dict: dict[str, Any]) -> bool:
         """Populate widget entry from dict"""
+        grid_values: dict[str, str] | list[str] | str | None = input_dict.get(self.dict_key)
         if not isinstance(grid_values, Iterable):
             return False
 
@@ -957,10 +1005,15 @@ class BaseConfigGridBox(BaseRunnerConfigBox):
 
 
 class PlatformsBox(BaseConfigGridBox):
-    def __init__(self, **kwargs):
-        super().__init__(label=_("Platforms"), tooltip=_("Platforms supported by runner"), **kwargs)
+    def __init__(self, *, dict_key: str = "platforms", **kwargs) -> None:
+        super().__init__(
+            dict_key=dict_key,
+            label=_("Platforms"),
+            tooltip=_("(Required at least 1) Platforms supported by the runner"),
+            **kwargs,
+        )
 
-    def _on_cell_edited(self, widget, path, _text, field):
+    def _on_cell_edited(self, widget: Gtk.Widget, path, _text, field):
         # Default the second column to the same as the first column if empty
         if field == 0 and not self._grid_entry.liststore[path][1]:
             self._grid_entry.liststore[path][1] = self._grid_entry.liststore[path][0].strip()
@@ -968,23 +1021,26 @@ class PlatformsBox(BaseConfigGridBox):
 
 
 class EnvBox(BaseConfigGridBox):
-    def __init__(self, **kwargs):
+    def __init__(self, *, dict_key="env", **kwargs):
         super().__init__(
-            label=_("Environment Variables"), tooltip=_("Environment Variables to set when invoking runner"), **kwargs
+            dict_key=dict_key,
+            label=_("Environment Variables"),
+            tooltip=_("(Optional) Environment Variables to set when invoking the runner"),
+            **kwargs,
         )
 
 
 class BaseConfigComboBox(BaseRunnerConfigBox):
-    def __init__(self, label, tooltip="", **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *, dict_key: str, label: str, tooltip: str = "", **kwargs):
+        super().__init__(dict_key=dict_key, **kwargs)
         self._combo_dropdown = Gtk.ComboBox.new_with_model(self._get_combo_liststore())
         self._combo_box = self._get_combo_box(label, tooltip)
         self.pack_start(self._combo_box, False, False, 0)
         self.show_all()
 
-    def _get_combo_box(self, label, tooltip):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
-        label = Label(_(label))
+    def _get_combo_box(self, label: str, tooltip: str):
+        box = Gtk.Box(spacing=6, margin_end=12, margin_start=12)
+        label_widget = Label(_(label))
 
         self._combo_dropdown.set_id_column(1)
         self._combo_dropdown.set_tooltip_text(_(tooltip))
@@ -994,7 +1050,7 @@ class BaseConfigComboBox(BaseRunnerConfigBox):
         cell = Gtk.CellRendererText()
         self._combo_dropdown.pack_start(cell, True)
         self._combo_dropdown.add_attribute(cell, "text", 0)
-        box.pack_start(label, False, False, 0)
+        box.pack_start(label_widget, False, False, 0)
         box.pack_start(self._combo_dropdown, True, True, 0)
         return box
 
@@ -1016,16 +1072,18 @@ class BaseConfigComboBox(BaseRunnerConfigBox):
         """
         self._combo_dropdown.set_active(0)
 
-    def to_dict(self) -> str:
+    def to_dict(self, output_dict: dict[str, Any]) -> bool:
         """Convert the contents of the widget to a string for serialization"""
         output_string = ""
         if combo_val := self._combo_dropdown.get_active_id():
             output_string = combo_val
 
-        return output_string
+        output_dict[self.dict_key] = output_string
+        return True
 
-    def from_dict(self, text_string: Optional[str]) -> bool:
+    def from_dict(self, input_dict: dict[str, Any]) -> bool:
         """Populate widget entry from string if is an available option in the combo box"""
+        text_string: str | None = input_dict.get(self.dict_key)
         if text_string is None:
             return False
 
@@ -1033,11 +1091,12 @@ class BaseConfigComboBox(BaseRunnerConfigBox):
 
 
 class WorkingDirectoryBox(BaseConfigComboBox):
-    def __init__(self, **kwargs):
+    def __init__(self, *, dict_key: str = "working_dir", **kwargs):
         super().__init__(
+            dict_key=dict_key,
             label=_("Working Directory"),
-            tooltip=(
-                "Default working directory when launching runner.\n"
+            tooltip=_(
+                "(Optional) Default working directory when launching runner.\n"
                 'Only value supported at this time "runner"\n"runner" -> Set the working directory to the directory'
                 "of the runner executable"
             ),
@@ -1054,3 +1113,61 @@ class WorkingDirectoryBox(BaseConfigComboBox):
         combo_liststore.append((_("Use the runner executable directory as the default working directory"), "runner"))
 
         return combo_liststore
+
+
+class RunnerGeneralBox(BaseRunnerConfigBox):
+    """
+    Box which aggregates the widgets for the runner config text and switch widgets
+    """
+
+    def __init__(self, *, dict_key: str = "general_settings", **kwargs):
+        super().__init__(
+            dict_key=dict_key,
+            **kwargs,
+        )
+        self.set_tooltip_text(_("General Settings for configuring a runner"))
+
+        scroll_box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=6, margin_start=12, margin_end=12, margin_top=12
+        )
+        scrollable_window = Gtk.ScrolledWindow(visible=True)
+        scrollable_window.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        scrollable_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scrollable_window.set_size_request(400, 720)
+        scrollable_window.add(scroll_box)
+
+        label_widget = Label(_("General Settings"))
+        scroll_box.pack_start(label_widget, False, False, 0)
+
+        self._child_config_boxes: list[BaseRunnerConfigBox] = [
+            HumanNameBox(),
+            DescriptionBox(),
+            PlatformsBox(),
+            EntryPointOptionBox(),
+            RunnerExecutableBox(),
+            DownloadUrlBox(),
+            FlatpakIdBox(),
+            RunnableAloneBox(),
+            EnvBox(),
+            WorkingDirectoryBox(),
+        ]
+        for config_box in self._child_config_boxes:
+            scroll_box.pack_start(config_box, False, False, 0)
+
+        self.pack_start(scrollable_window, False, False, 0)
+
+    def to_dict(self, output_dict: dict[str, Any]) -> bool:
+        convert_no_errors = True
+        for config_box in self._child_config_boxes:
+            if not config_box.to_dict(output_dict):
+                convert_no_errors = False
+
+        return convert_no_errors
+
+    def from_dict(self, input_dict: dict[str, Any]) -> bool:
+        convert_no_errors = True
+        for config_box in self._child_config_boxes:
+            if not config_box.from_dict(input_dict):
+                convert_no_errors = False
+
+        return convert_no_errors

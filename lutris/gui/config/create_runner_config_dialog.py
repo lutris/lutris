@@ -1,25 +1,17 @@
 import json
+from collections.abc import Callable
 from enum import Enum
 from gettext import gettext as _
-from typing import Any, Dict, Optional, Type
+from typing import Any, Type
 
 from gi.repository import GObject, Gtk
 
 from lutris.gui.config.runner_config_boxes import (
     BaseRunnerConfigBox,
-    DescriptionBox,
-    DownloadUrlBox,
-    EntryPointOptionBox,
-    EnvBox,
-    FlatpakIdBox,
     GameOptionsBox,
-    HumanNameBox,
-    PlatformsBox,
-    RunnableAloneBox,
-    RunnerExecutableBox,
+    RunnerGeneralBox,
     RunnerOptionsBox,
     SystemOptionsOverrideBox,
-    WorkingDirectoryBox,
 )
 from lutris.gui.dialogs import ErrorDialog, SavableModelessDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
@@ -34,63 +26,54 @@ from lutris.util.yaml import write_yaml_to_file
 
 
 class RunnerConfigCreator:
-    def __init__(self, label="", tooltip="", widget_class=None, icon_name="") -> None:
+    def __init__(
+        self,
+        label: str = "",
+        tooltip: str = "",
+        widget_class: Type[BaseRunnerConfigBox] | None = None,
+        icon_name: str = "",
+        from_dict_override: Callable[[BaseRunnerConfigBox, dict[str, Any]], bool] | None = None,
+        to_dict_override: Callable[[BaseRunnerConfigBox, dict[str, Any]], bool] | None = None,
+    ) -> None:
         self.label: str = label
         self.tooltip: str = tooltip
-        self.widget_class: Optional[Type[BaseRunnerConfigBox]] = widget_class
         self.icon_name: str = icon_name
+        self.widget_class: Type[BaseRunnerConfigBox] | None = widget_class
+
+        from_dict_functor: Callable[[BaseRunnerConfigBox, dict[str, Any]], bool] | None = None
+        if from_dict_override:
+            from_dict_functor = from_dict_override
+        elif self.widget_class:
+            # extract the from_dict callable from the base widget class
+            from_dict_functor = self.widget_class.from_dict
+
+        to_dict_functor: Callable[[BaseRunnerConfigBox, dict[str, Any]], bool] | None = None
+        if to_dict_override:
+            to_dict_functor = to_dict_override
+        elif self.widget_class:
+            # extract the to_dict callable to the base widget class
+            to_dict_functor = self.widget_class.to_dict
+
+        def to_dict_wrapper(output_dict: dict[str, Any], input_config_box: BaseRunnerConfigBox) -> bool:
+            if to_dict_functor:
+                return to_dict_functor(input_config_box, output_dict)
+            return True
+
+        def from_dict_wrapper(output_config_box: BaseRunnerConfigBox, input_dict: dict[str, Any]) -> bool:
+            if from_dict_functor:
+                return from_dict_functor(output_config_box, input_dict)
+            return True
+
+        self.to_dict: Callable[[dict[str, Any], BaseRunnerConfigBox], bool] = to_dict_wrapper
+        self.from_dict: Callable[[BaseRunnerConfigBox, dict[str, Any]], bool] = from_dict_wrapper
 
 
 RUNNER_CONFIG_SCHEMA = {
-    "human_name": RunnerConfigCreator(
-        label=_("Display Name"),
-        tooltip=_("Human readable name for the runner"),
-        widget_class=HumanNameBox,
-        icon_name="insert-text-symbolic",
-    ),
-    "description": RunnerConfigCreator(
-        label=_("Description"),
-        tooltip=_("Description of the runner"),
-        widget_class=DescriptionBox,
-        icon_name="insert-text-symbolic",
-    ),
-    "platforms": RunnerConfigCreator(
-        label=_("Platforms"),
-        tooltip=_("List of platforms the runner may invoke"),
-        widget_class=PlatformsBox,
-        icon_name="list-add-symbolic",
-    ),
-    "runner_executable": RunnerConfigCreator(
-        label=_("Runner Executable"),
-        tooltip=_("Path to the runner executable"),
-        widget_class=RunnerExecutableBox,
-        icon_name="applications-game-symbolic",
-    ),
-    "runnable_alone": RunnerConfigCreator(
-        label=_("Runnable Alone"),
-        tooltip=_("If set, the runner can be opened standalone in the sidebar"),
-        widget_class=RunnableAloneBox,
-        icon_name="application-x-executable-symbolic",
-    ),
-    "flatpak_id": RunnerConfigCreator(
-        label=_("Flatpak ID"),
-        tooltip=_("ID of flatpak app which can be used to install the runner"),
-        widget_class=FlatpakIdBox,
-        icon_name="insert-text-symbolic",
-    ),
-    "download_url": RunnerConfigCreator(
-        label=_("Download URL"),
-        tooltip=_("Url where runner can be downloaded by Lutris"),
-        widget_class=DownloadUrlBox,
-        icon_name="insert-text-symbolic",
-    ),
-    "entry_point_option": RunnerConfigCreator(
-        label=_("Entry Point Option"),
-        tooltip=_(
-            "Name for the primary field in the 'game_options' that is passed to the runner arguments for execution"
-        ),
-        widget_class=EntryPointOptionBox,
-        icon_name="insert-text-symbolic",
+    "general": RunnerConfigCreator(
+        label=_("General Settings"),
+        tooltip=_("General settings for the runner"),
+        widget_class=RunnerGeneralBox,
+        icon_name="emblem-system-symbolic",
     ),
     "game_options": RunnerConfigCreator(
         label=_("Game Options"),
@@ -110,21 +93,6 @@ RUNNER_CONFIG_SCHEMA = {
         widget_class=SystemOptionsOverrideBox,
         icon_name="emblem-system-symbolic",
     ),
-    "env": RunnerConfigCreator(
-        label=_("Environment Variables"),
-        tooltip=_("Environment Variable to always set when launching runner"),
-        widget_class=EnvBox,
-        icon_name="list-add-symbolic",
-    ),
-    "working_dir": RunnerConfigCreator(
-        label=_("Working Directory"),
-        tooltip=_(
-            'Default working directory when launching the runner. Supported value is "runner",'
-            " which means to set the working directory to the directory containing the runner executable"
-        ),
-        widget_class=WorkingDirectoryBox,
-        icon_name="insert-text-symbolic",
-    ),
 }
 
 
@@ -137,7 +105,7 @@ class CreateRunnerBox(VBox):
         super().__init__(**kwargs)
 
         sidebar = Gtk.ListBox(visible=True)
-        sidebar.connect("row-selected", self._on_sidebar_activated)
+        sidebar.connect("row-activated", self._on_sidebar_activated)
 
         self.stack = Gtk.Stack(visible=True)
         self.stack.set_vhomogeneous(False)
@@ -147,17 +115,16 @@ class CreateRunnerBox(VBox):
         toplevel_box.pack_start(sidebar, False, False, 0)
         toplevel_box.add(self.stack)
 
-        self.config_boxes: Dict[str, BaseRunnerConfigBox] = {}
+        self.config_boxes: dict[str, BaseRunnerConfigBox] = {}
         for runner_field, config_creator in RUNNER_CONFIG_SCHEMA.items():
             if not callable(config_creator.widget_class):
                 continue
 
             stack_id = f"{runner_field}-stack"
-            self.config_boxes[runner_field] = config_creator.widget_class()
+            self.config_boxes[runner_field] = config_creator.widget_class(dict_key=runner_field, visible=True)
             self.stack.add_named(self.config_boxes[runner_field], stack_id)
             sidebar.add(
                 self._get_sidebar_button(
-                    stack_id=stack_id,
                     text=_(config_creator.label),
                     tooltip=config_creator.tooltip,
                     icon_name=config_creator.icon_name,
@@ -166,38 +133,34 @@ class CreateRunnerBox(VBox):
 
         self.pack_start(toplevel_box, True, True, 0)
 
-    def to_dict(self) -> Dict[str, Any]:
-        runner_dict = {}
-        for runner_field in RUNNER_CONFIG_SCHEMA.keys():
-            field_value = self.config_boxes[runner_field].to_dict()
-            if field_value is not None:
-                runner_dict[runner_field] = field_value
+    def to_dict(self) -> dict[str, Any]:
+        """Populate the runner dict with the values from each runner config widget"""
+        runner_dict: dict[Any, Any] = {}
+        for runner_field, runner_schema in RUNNER_CONFIG_SCHEMA.items():
+            runner_schema.to_dict(runner_dict, self.config_boxes[runner_field])
 
         return runner_dict
 
-    def from_dict(self, runner_dict: Dict[str, Any]) -> bool:
+    def from_dict(self, runner_dict: dict[str, Any]) -> bool:
+        """Update the widget values using the runner config dict"""
         loaded_no_errors = True
-        for runner_field, runner_box_widgets in self.config_boxes.items():
-            if not runner_box_widgets.from_dict(runner_dict.get(runner_field, {})):
+        for runner_field, runner_schema in RUNNER_CONFIG_SCHEMA.items():
+            runner_box_widget = self.config_boxes.get(runner_field)
+            if not runner_box_widget:
+                continue
+            if not runner_schema.from_dict(runner_box_widget, runner_dict):
                 # Continue loading the other fields into the UI even if a previous field
                 # has failed
                 loaded_no_errors = False
 
         return loaded_no_errors
 
-    def _on_sidebar_activated(self, _sidebar, row):
-        row_widgets = row.get_children()
-        if not row_widgets:
-            return
+    def _on_sidebar_activated(self, _sidebar, row: Gtk.ListBoxRow) -> None:
+        row_index = row.get_index()
+        self.stack.set_visible_child(self.stack.get_children()[row_index])
 
-        sidebar_row_button_box = row_widgets[CreateRunnerBox.COL_SIDEBAR_BUTTON]
-        if hasattr(sidebar_row_button_box, "stack_id"):
-            stack_id = sidebar_row_button_box.stack_id
-            self.stack.set_visible_child_name(stack_id)
-
-    def _get_sidebar_button(self, stack_id, text, tooltip, icon_name):
+    def _get_sidebar_button(self, text: str, tooltip: str, icon_name: str) -> Gtk.HBox:
         hbox = Gtk.HBox(visible=True)
-        hbox.stack_id = stack_id
         hbox.set_margin_top(12)
         hbox.set_margin_bottom(12)
         hbox.set_tooltip_text(tooltip)
@@ -206,7 +169,7 @@ class CreateRunnerBox(VBox):
         icon.show()
         hbox.pack_start(icon, False, False, 6)
 
-        label = Gtk.Label(text, visible=True)
+        label = Gtk.Label(label=text, visible=True)
         label.set_yalign(0.5)
         hbox.pack_start(label, False, False, 0)
         return hbox
@@ -239,7 +202,7 @@ class EditRunnerConfigDialog(SavableModelessDialog, DialogInstallUIDelegate):  #
     __gsignals__ = {"runner-saved": (GObject.SIGNAL_RUN_FIRST, None, (str,))}
 
     def __init__(
-        self, parent: Gtk.Widget | None = None, edit_mode=RunnerConfigEditMode.CREATE, runner: Optional[Runner] = None
+        self, parent: Gtk.Widget | None = None, edit_mode=RunnerConfigEditMode.CREATE, runner: Runner | None = None
     ):
         super().__init__(_("Create New Runner Config"), parent=parent)  # type:ignore[arg-type]
 
@@ -262,6 +225,9 @@ class EditRunnerConfigDialog(SavableModelessDialog, DialogInstallUIDelegate):  #
                 self._runner_name_entry.set_sensitive(False)
                 self._runner_name_entry.set_text(runner.name)
                 self._create_runner_box.from_dict(runner.to_dict())
+                self._runner_format_dropdown.set_active_id(
+                    RunnerConfigFileFormats.JSON if isinstance(runner, JsonRunner) else RunnerConfigFileFormats.YAML
+                )
                 self._runner_format_dropdown.set_sensitive(False)
 
         self.save_button.set_sensitive(bool(self._runner_name_entry.get_text()))
