@@ -2,6 +2,7 @@ import glob
 import os
 import re
 import subprocess
+import threading
 from typing import TypeAlias
 
 from lutris.util import system
@@ -20,7 +21,30 @@ VULKAN_DATA_DIRS = [
     "/opt/amdgpu-pro/etc",  # AMD GPU Pro - TkG
 ]
 
-GPUS = {}
+_gpus: dict[str, "GPU"] | None = None
+_gpus_lock = threading.Lock()
+
+
+def get_gpus() -> dict[str, "GPU"]:
+    """Return a dict of GPU objects, keyed by card name. Populated on first call."""
+    global _gpus
+    with _gpus_lock:
+        if _gpus is None:
+            gpus = {}
+            for card in drivers.get_gpu_cards():
+                gpu = GPU(card)
+                driver_info = gpu.get_driver_info()
+                logger.info('"%s" is %s Driver %s', card, gpu, driver_info.get("version"))
+                gpus[card] = gpu
+            _gpus = gpus
+    return _gpus
+
+
+def preload_gpus() -> None:
+    """Kick off GPU detection in a background thread so it's
+    likely ready by the time the user opens system configuration."""
+    threading.Thread(target=get_gpus, daemon=True).start()
+
 
 GpuInfoDict: TypeAlias = dict[str, str]
 

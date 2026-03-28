@@ -20,8 +20,7 @@ from lutris.game import Game
 from lutris.runners.json import load_json_runners
 from lutris.services import DEFAULT_SERVICES
 from lutris.util.graphics import vkquery
-from lutris.util.graphics.drivers import get_gpu_cards
-from lutris.util.graphics.gpu import GPU, GPUS
+from lutris.util.graphics.gpu import preload_gpus
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.path_cache import build_path_cache
@@ -139,12 +138,7 @@ def fill_missing_platforms():
 
 def run_all_checks() -> None:
     """Run all startup checks"""
-    for card in get_gpu_cards():
-        gpu = GPU(card)
-        driver_info = gpu.get_driver_info()
-        logger.info('"%s" is %s Driver %s', card, gpu, driver_info.get("version"))
-        GPUS[card] = gpu
-
+    preload_gpus()
     check_libs()
     check_vulkan()
     check_gnome()

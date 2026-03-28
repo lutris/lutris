@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, cast
 from lutris import runners
 from lutris.util import linux, system
 from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, is_compositing_enabled, is_display_x11
-from lutris.util.graphics.gpu import GPUS
+from lutris.util.graphics.gpu import get_gpus
 from lutris.util.sniper import get_sniper_run_command
 
 if TYPE_CHECKING:
@@ -54,7 +54,7 @@ def get_locale_choices() -> list[tuple[str, str]]:
 
 def get_gpu_list() -> list[tuple[str, str]]:
     choices = [(_("Auto"), "")]
-    for card, gpu in GPUS.items():
+    for card, gpu in get_gpus().items():
         choices.append((gpu.short_name, card))
     return choices
 
@@ -164,7 +164,7 @@ system_options: list[dict[str, Any]] = [  # pylint: disable=invalid-name
         "label": _("GPU"),
         "choices": get_gpu_list,
         "default": "",
-        "condition": lambda: len(GPUS) > 1,
+        "condition": lambda: len(get_gpus()) > 1,
         "help": _("GPU to use to run games"),
     },
     {
