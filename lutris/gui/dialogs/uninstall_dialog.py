@@ -358,9 +358,9 @@ class GameRemovalRow(Gtk.ListBoxRow):
         super().__init__(activatable=False)
         self.game = game
         self._can_delete_files = False
-        self.delete_files_checkbox: Gtk.CheckButton = None  # set in _build_delete_option
-        self.folder_size_spinner: Gtk.Spinner = None  # set in _build_delete_option
-        self.directory_label: Gtk.Label = None  # set in _build_delete_option
+        self.delete_files_checkbox: Gtk.CheckButton | None = None
+        self.folder_size_spinner: Gtk.Spinner | None = None
+        self.directory_label: Gtk.Label | None = None
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -438,7 +438,8 @@ class GameRemovalRow(Gtk.ListBoxRow):
 
     @delete_files.setter
     def delete_files(self, active: bool) -> None:
-        self.delete_files_checkbox.set_active(active)
+        if self.delete_files_checkbox:
+            self.delete_files_checkbox.set_active(active)
 
     @property
     def can_delete_files(self):
