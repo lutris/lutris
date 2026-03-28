@@ -15,7 +15,7 @@ class MoveDialog(ModelessDialog):
         "game-moved": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, game, destination: str, parent: Gtk.Window = None) -> None:
+    def __init__(self, game, destination: str, parent: Gtk.Window | None = None) -> None:
         super().__init__(parent=parent, border_width=24)
 
         self.game = game

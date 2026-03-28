@@ -1,7 +1,8 @@
 """Various utilities using the GObject framework"""
 
 import os
-from typing import TYPE_CHECKING, Iterable, List, Type, TypeVar, cast
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, TypeVar, cast
 
 import cairo
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
@@ -67,7 +68,7 @@ def get_widget_window(widget: Gtk.Widget | None) -> Gtk.Window | None:
 TChildWidget = TypeVar("TChildWidget", bound=Gtk.Widget)
 
 
-def get_widget_children(widget: Gtk.Widget | None, child_type: Type[TChildWidget] = None) -> List[TChildWidget]:
+def get_widget_children(widget: Gtk.Widget | None, child_type: type[TChildWidget] | None = None) -> list[TChildWidget]:
     """Returns the children of any widget; non-containers have no children
     and returns an empty list. This can filter out a specific type of child widget if child_type
     is not None, but otherwise it returns all children."""
@@ -169,7 +170,7 @@ def get_default_icon_path(size: tuple[int, int]) -> str:
 
 
 def get_pixbuf_by_path(
-    path: str, size: tuple[int, int] = None, preserve_aspect_ratio: bool = True
+    path: str, size: tuple[int, int] | None = None, preserve_aspect_ratio: bool = True
 ) -> GdkPixbuf.Pixbuf | None:
     """Reads an image file and returns the pixbuf. If you provide a size, this scales
     the file to fit that size, preserving the aspect ratio if preserve_aspect_ratio is
@@ -190,7 +191,7 @@ def get_pixbuf_by_path(
 
 
 def get_required_pixbuf_by_path(
-    path: str, size: tuple[int, int] = None, preserve_aspect_ratio: bool = True
+    path: str, size: tuple[int, int] | None = None, preserve_aspect_ratio: bool = True
 ) -> GdkPixbuf.Pixbuf:
     """Reads an image file and returns the pixbuf. If you provide a size, this scales
     the file to fit that size, preserving the aspect ratio if preserve_aspect_ratio is

@@ -6,8 +6,9 @@ polling used by ProgressBox in the sidebar download queue.
 """
 
 import threading
+from collections.abc import Callable
 from gettext import gettext as _
-from typing import TYPE_CHECKING, Callable, List, Optional
+from typing import TYPE_CHECKING
 
 from lutris.gui.widgets.progress_box import ProgressInfo
 from lutris.services.gog_cloud import SyncResult
@@ -46,13 +47,13 @@ class CloudSyncProgressAdapter:
     def __init__(
         self,
         game: "Game",
-        sync_func: Callable[["Game", Optional[Callable[[int, int, str], None]]], List[SyncResult]],
+        sync_func: Callable[["Game", Callable[[int, int, str], None] | None], list[SyncResult]],
         direction: str = "pre-launch",
     ) -> None:
         self.game = game
         self._sync_func = sync_func
         self._direction = direction
-        self.results: List[SyncResult] = []
+        self.results: list[SyncResult] = []
 
         self._lock = threading.Lock()
         self._current = 0
@@ -60,7 +61,7 @@ class CloudSyncProgressAdapter:
         self._filename = ""
         self._finished = False
         self._cancelled = False
-        self._error: Optional[str] = None
+        self._error: str | None = None
 
         if direction == "pre-launch":
             self._label = _("Syncing cloud saves for %s") % gtk_safe(game.name)
@@ -106,7 +107,7 @@ class CloudSyncProgressAdapter:
 
         return ProgressInfo(fraction, label, stop_fn)
 
-    def run(self) -> List[SyncResult]:
+    def run(self) -> list[SyncResult]:
         """Run on a worker thread — performs the actual sync."""
         try:
             self.results = self._sync_func(self.game, self.progress_callback)

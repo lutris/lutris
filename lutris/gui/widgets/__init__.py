@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 from lutris.util.jobs import schedule_at_idle
 

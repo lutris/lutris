@@ -1,6 +1,7 @@
 # pylint: disable=no-member
 import os
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set
+from collections.abc import Callable, Iterable
+from typing import Any
 
 from gi.repository import Gtk  # type: ignore
 
@@ -31,8 +32,8 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self.revealer = revealer
         self.init_template()
 
-        self.running_operation_names: Set[str] = set()
-        self.progress_boxes: Dict[ProgressBox.ProgressFunction, ProgressBox] = {}
+        self.running_operation_names: set[str] = set()
+        self.progress_boxes: dict[ProgressBox.ProgressFunction, ProgressBox] = {}
 
         try:
             # GTK 3.22 is required for this, but if this fails we can still run.
@@ -95,10 +96,10 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self,
         operation: Callable[[], Any],
         progress_function: ProgressBox.ProgressFunction,
-        completion_function: Optional[CompletionFunction] = None,
-        error_function: Optional[ErrorFunction] = None,
-        operation_name: Optional[str] = None,
-        wait_for: Optional[Set[str]] = None,
+        completion_function: CompletionFunction | None = None,
+        error_function: ErrorFunction | None = None,
+        operation_name: str | None = None,
+        wait_for: set[str] | None = None,
     ) -> bool:
         """Runs 'operation' on a thread, while displaying a progress bar. The 'progress_function'
         controls this progress bar, and it is removed when the 'operation' completes.
@@ -148,9 +149,9 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self,
         operation: Callable[[], Any],
         progress_functions: Iterable[ProgressBox.ProgressFunction],
-        completion_function: Optional[CompletionFunction] = None,
-        error_function: Optional[ErrorFunction] = None,
-        operation_names: Optional[List[str]] = None,
+        completion_function: CompletionFunction | None = None,
+        error_function: ErrorFunction | None = None,
+        operation_names: list[str] | None = None,
     ) -> bool:
         """Runs 'operation' on a thread, while displaying a set of progress bars. The
         'progress_functions' control these progress bars, and they are removed when the

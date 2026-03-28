@@ -4,7 +4,6 @@
 import os
 import traceback
 from gettext import gettext as _
-from typing import List
 
 from gi.repository import Gdk, Gio, GLib, Gtk
 
@@ -748,7 +747,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     # Provides a generic progress spinner and displays a status. The back button
     # is disabled for this page.
 
-    def load_spinner_page(self, status: str, cancellable: bool = True, extra_buttons: List[Gtk.Button] = None) -> None:
+    def load_spinner_page(
+        self, status: str, cancellable: bool = True, extra_buttons: list[Gtk.Button] | None = None
+    ) -> None:
         def present_spinner_page():
             """Show a spinner in the middle of the view"""
 
