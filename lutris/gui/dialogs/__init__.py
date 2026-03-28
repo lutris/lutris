@@ -133,7 +133,7 @@ class ModelessDialog(Dialog):
 
     def __init__(
         self,
-        title: str = None,
+        title: str | None = None,
         parent: Gtk.Widget | None = None,
         flags: Gtk.DialogFlags = 0,
         buttons: Gtk.ButtonsType | None = None,
