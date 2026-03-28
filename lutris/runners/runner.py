@@ -187,18 +187,6 @@ class Runner:  # pylint: disable=too-many-public-methods
                 }
             )
 
-        runner_options.append(
-            {
-                "section": _("Side Panel"),
-                "option": "visible_in_side_panel",
-                "type": "bool",
-                "label": _("Visible in Side Panel"),
-                "default": True,
-                "advanced": True,
-                "scope": ["runner"],
-                "help": _("Show this runner in the side panel if it is installed or available through Flatpak."),
-            }
-        )
         return runner_options
 
     def play(self) -> dict[str, Any]:
@@ -456,7 +444,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Run the runner alone."""
         if not self.runnable_alone:
             return
-        if not self.is_installed():
+        if not self.is_installed(suppress_allowed=False):
             if not self.install_dialog(ui_delegate):
                 logger.info("Runner install cancelled")
                 return
@@ -527,25 +515,46 @@ class Runner:  # pylint: disable=too-many-public-methods
         ):
             version = self.get_version(use_default=False)
             self.install(ui_delegate, version=version)
-            return self.is_installed()
+            return self.is_installed(suppress_allowed=False)
         return False
 
-    def is_installed(self, flatpak_allowed: bool = True) -> bool:
-        """Return whether the runner is installed"""
-        try:
-            # Don't care where the exe is, only if we can find it.
-            exe = self.get_executable()
-            if system.path_exists(exe):
-                return True
-        except MisconfigurationError:
-            pass  # We can still try flatpak even if 'which' fails us!
+    def is_installed(self, flatpak_allowed: bool = True, suppress_allowed: bool = True, **kwargs) -> bool:
+        """Return whether the runner is installed.
 
+        If flatpak_allowed is True (the default), a runner that provides a flatpak_id will
+        fall back to checking whether that Flatpak app is installed when check_installed()
+        returns False.
+
+        If suppress_allowed is True (the default), a runner that has been suppressed by the user
+        is treated as not installed. Pass suppress_allowed=False to check only whether the runner
+        is physically present on the system.
+
+        Subclasses should override check_installed() for runner-specific detection logic
+        rather than overriding this method directly. Any extra keyword arguments are forwarded
+        to check_installed()."""
+        if suppress_allowed and self.is_suppressed():
+            return False
+        if self.check_installed(**kwargs):
+            return True
         return bool(flatpak_allowed and self.flatpak_id and flatpak.is_app_installed(self.flatpak_id))
+
+    def check_installed(self, **kwargs) -> bool:
+        """Return whether the runner is physically present on the system.
+
+        Some runners are not installed by Lutris but are provided by the system or installed
+        externally (e.g. the Flatpak runner, the Linux runner, or Wine from system packages).
+        Subclasses should override this method to detect such installations. This is called by
+        is_installed() which handles the suppress_allowed and flatpak_allowed flags."""
+        try:
+            exe = self.get_executable()
+            return system.path_exists(exe)
+        except MisconfigurationError:
+            return False
 
     def is_installed_for(self, interpreter: ScriptInterpreter) -> bool:
         """Returns whether the runner is installed. Specific runners can extract additional
         script settings, to determine more precisely what must be installed."""
-        return self.is_installed()
+        return self.is_installed(suppress_allowed=False)
 
     def get_installer_runner_version(self, installer: LutrisInstaller, use_runner_config: bool = True) -> str | None:
         return None
@@ -648,6 +657,34 @@ class Runner:  # pylint: disable=too-many-public-methods
     def remove_game_data(self, app_id: str | None = None, game_path: str | None = None) -> None:
         if game_path:
             system.remove_folder(game_path)
+
+    def is_suppressed(self) -> bool:
+        """Return True if this runner should be treated as uninstalled even though
+        it is installed outside of Lutris. Externally-installed runners are suppressed
+        by default; the user can unsuppress them to make them visible."""
+        setting = self.runner_config.get("suppressed")
+        if setting is not None:
+            return bool(setting)
+        # No explicit setting: suppress if externally installed (detectable but not Lutris-managed)
+        if self.can_uninstall():
+            return False
+        return self.check_installed() or bool(self.flatpak_id and flatpak.is_app_installed(self.flatpak_id))
+
+    def suppress(self) -> None:
+        """Mark this externally-installed runner as suppressed so Lutris treats it as not installed."""
+        config = LutrisConfig(runner_slug=self.name)
+        config.raw_runner_config["suppressed"] = True
+        config.save()
+        if not self.has_explicit_config:
+            self._config = None  # force re-read from disk on next access
+
+    def unsuppress(self) -> None:
+        """Remove the suppressed mark so Lutris treats this runner as installed again."""
+        config = LutrisConfig(runner_slug=self.name)
+        config.raw_runner_config["suppressed"] = False
+        config.save()
+        if not self.has_explicit_config:
+            self._config = None  # force re-read from disk on next access
 
     def can_uninstall(self) -> bool:
         return os.path.isdir(self.directory)

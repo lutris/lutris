@@ -83,7 +83,7 @@ class flatpak(Runner):
         },
     ]
 
-    def is_installed(self, flatpak_allowed: bool = True) -> bool:
+    def check_installed(self, **kwargs) -> bool:
         return _flatpak.is_installed()
 
     def get_executable(self) -> str:
@@ -116,7 +116,7 @@ class flatpak(Runner):
         return os.path.join(self.install_locations[install_type or "user"], application, arch, fcommand, branch)
 
     def remove_game_data(self, app_id=None, game_path=None, **kwargs):
-        if not self.is_installed():
+        if not self.is_installed(suppress_allowed=False):
             return False
         command = MonitoredCommand(
             [self.get_executable(), f"uninstall --app --noninteractive {app_id}"],

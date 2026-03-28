@@ -237,7 +237,7 @@ class steam(Runner):
         }
 
     def remove_game_data(self, app_id=None, **kwargs):
-        if not self.is_installed():
+        if not self.is_installed(suppress_allowed=False):
             return False
         app_id = app_id or self.appid
         command = MonitoredCommand(

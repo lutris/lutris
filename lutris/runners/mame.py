@@ -18,7 +18,7 @@ MAME_SYSTEMS_PATH = os.path.join(MAME_CACHE_DIR, "systems.json")
 
 def build_mame_systems_cache(force=False):
     mame_inst = mame()
-    if not mame_inst.is_installed():
+    if not mame_inst.is_installed(suppress_allowed=False):
         logger.warning("MAME is not installed, cannot write XML list")
         return False
     if not system.path_exists(MAME_CACHE_DIR):
