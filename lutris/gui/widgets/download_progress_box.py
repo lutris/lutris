@@ -1,6 +1,5 @@
 import os
 from gettext import gettext as _
-from typing import Optional
 from urllib.parse import urlparse
 
 from gi.repository import GObject, Gtk, Pango
@@ -26,11 +25,11 @@ class DownloadProgressBox(Gtk.Box):
         self,
         url: str,
         dest: str,
-        temp: str = None,
-        referer: Optional[str] = None,
-        title: Optional[str] = None,
+        temp: str | None = None,
+        referer: str | None = None,
+        title: str | None = None,
         cancelable: bool = True,
-        downloader: Optional[Downloader] = None,
+        downloader: Downloader | None = None,
     ) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
 

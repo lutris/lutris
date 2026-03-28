@@ -1,5 +1,4 @@
 import time
-from typing import List
 
 from gi.repository import Gdk, GObject, Gtk
 
@@ -92,7 +91,7 @@ class GameView:
             raise TypeError("GameView must be contained in a LutrisWindow, not %s" % type(window).__name__)
         return get_game_actions(games, window=window)
 
-    def _get_games_by_ids(self, game_ids: List[str]) -> List[Game]:
+    def _get_games_by_ids(self, game_ids: list[str]) -> list[Game]:
         """Resolves a list of game-ids to a list of game objects,
         looking up running games, service games and all that."""
 

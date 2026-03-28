@@ -1,7 +1,6 @@
 """Game representation for views"""
 
 import time
-from typing import List
 
 from lutris.database import games
 from lutris.database.services import ServiceGameCollection
@@ -143,7 +142,7 @@ class StoreItem:
 
         return check_data(self._installed_game_data)
 
-    def get_media_paths(self) -> List[MediaPath]:
+    def get_media_paths(self) -> list[MediaPath]:
         """Returns the path to the image file for this item"""
         if self._game_data.get("icon"):
             icon = self._game_data["icon"]

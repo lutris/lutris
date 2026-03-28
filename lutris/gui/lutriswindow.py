@@ -4,10 +4,11 @@
 # pylint: disable=no-member
 import os
 from collections import namedtuple
+from collections.abc import Callable, Iterable
 from datetime import datetime
 from gettext import gettext as _
 from gettext import ngettext
-from typing import Callable, Iterable, cast
+from typing import cast
 from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, Gtk
@@ -591,7 +592,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.game_search = GameSearch(text, self.service)
         return self.game_search
 
-    def filter_games(self, games, searches: Iterable[GameSearch] = None):
+    def filter_games(self, games, searches: Iterable[GameSearch] | None = None):
         """Filters a list of games according to the 'installed' and 'text' filters, if those are
         set. But if not, can just return games unchanged."""
 

@@ -1,8 +1,8 @@
 # pylint: disable=no-member
 import os
+from collections.abc import Callable, Iterable
 from gettext import gettext as _
 from gettext import ngettext
-from typing import Callable, Iterable, List
 
 from gi.repository import GObject, Gtk
 
@@ -40,13 +40,13 @@ class UninstallDialog(Gtk.Dialog):
         super().__init__(parent=parent, **kwargs)
         self.parent = parent
         self._setting_all_checkboxes = False
-        self.games: List[Game] = []
+        self.games: list[Game] = []
         self.any_shared = False
         self.any_protected = False
         self.init_template()
         self.show_all()
 
-    def get_game_removal_rows(self) -> List["GameRemovalRow"]:
+    def get_game_removal_rows(self) -> list["GameRemovalRow"]:
         return get_widget_children(self.uninstall_game_list, GameRemovalRow)
 
     def add_games(self, game_ids: Iterable[str]) -> None:
@@ -99,7 +99,7 @@ class UninstallDialog(Gtk.Dialog):
             else:
                 row.can_delete_files = False
 
-    def update_folder_sizes(self, new_games: List[Game]) -> None:
+    def update_folder_sizes(self, new_games: list[Game]) -> None:
         """Starts fetching folder sizes for new games added to the dialog; we only
         do this for the games given in 'new_games', however."""
         folders_to_size = []
@@ -358,9 +358,9 @@ class GameRemovalRow(Gtk.ListBoxRow):
         super().__init__(activatable=False)
         self.game = game
         self._can_delete_files = False
-        self.delete_files_checkbox: Gtk.CheckButton = None
-        self.folder_size_spinner: Gtk.Spinner = None
-        self.directory_label: Gtk.Label = None
+        self.delete_files_checkbox: Gtk.CheckButton = None  # set in _build_delete_option
+        self.folder_size_spinner: Gtk.Spinner = None  # set in _build_delete_option
+        self.directory_label: Gtk.Label = None  # set in _build_delete_option
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)

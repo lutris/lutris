@@ -1,8 +1,8 @@
 """Sidebar for the main window"""
 
 import locale
+from collections.abc import Callable
 from gettext import gettext as _
-from typing import Callable
 
 from gi.repository import Gdk, GObject, Gtk, Pango
 
@@ -509,7 +509,7 @@ class LutrisSidebar(Gtk.ListBox):
         self.show_all()
 
     @staticmethod
-    def get_sidebar_icon(icon_name: str, fallback_icon_names: list[str] = None) -> Gtk.Image:
+    def get_sidebar_icon(icon_name: str, fallback_icon_names: list[str] | None = None) -> Gtk.Image:
         candidate_names = [icon_name] + (fallback_icon_names or [])
         icon_name = pick_stock_icon(candidate_names, fallback_name="package-x-generic-symbolic")
         icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
