@@ -2,7 +2,6 @@
 
 import json
 import os
-from typing import Dict, List, Optional, Tuple
 
 from lutris.api import get_api_games
 from lutris.config import write_game_config
@@ -39,7 +38,7 @@ DATA_FILESYSTEMS = {"ext4", "ext3", "xfs", "btrfs", "ntfs", "vfat", "exfat", "fu
 SKIP_MOUNT_PREFIXES = ("/sys", "/proc", "/dev", "/run/user", "/boot", "/snap", "/var/lib")
 
 
-def scan_all_libraries() -> List[str]:
+def scan_all_libraries() -> list[str]:
     """Scan all detected Playtron libraries and import games"""
     added_games = []
     library_paths = _get_library_paths()
@@ -59,7 +58,7 @@ def scan_all_libraries() -> List[str]:
     return added_games
 
 
-def _get_library_paths() -> List[str]:
+def _get_library_paths() -> list[str]:
     """Return all potential Playtron library paths (home + mounted drives)"""
     paths = []
 
@@ -75,7 +74,7 @@ def _get_library_paths() -> List[str]:
     return paths
 
 
-def _get_mount_points() -> List[str]:
+def _get_mount_points() -> list[str]:
     """Get user-accessible mount points from /proc/mounts"""
     mount_points = []
 
@@ -102,7 +101,7 @@ def _get_mount_points() -> List[str]:
     return mount_points
 
 
-def _check_path_for_playtron(path: str, paths: List[str]) -> None:
+def _check_path_for_playtron(path: str, paths: list[str]) -> None:
     """Check a path for Playtron libraries (standard and GameOS layouts)"""
     if not os.path.isdir(path):
         return
@@ -118,7 +117,7 @@ def _check_path_for_playtron(path: str, paths: List[str]) -> None:
         paths.append(gameos_data)
 
 
-def _import_games_from_library(install_root: str) -> List[str]:
+def _import_games_from_library(install_root: str) -> list[str]:
     """Scan a Playtron library and import games to Lutris"""
     added_games = []
     apps_base = os.path.join(install_root, DEFAULT_APPS_DIR)
@@ -134,7 +133,7 @@ def _import_games_from_library(install_root: str) -> List[str]:
     return added_games
 
 
-def _scan_library(install_root: str) -> List[Tuple[str, str, Dict]]:
+def _scan_library(install_root: str) -> list[tuple[str, str, dict]]:
     """Scan a Playtron library for games.
 
     Returns a list of (install_root, game_path, info) tuples. game_path is
@@ -167,7 +166,7 @@ def _scan_library(install_root: str) -> List[Tuple[str, str, Dict]]:
     return games
 
 
-def _import_game(install_root: str, game_path: str, info: Dict) -> Optional[str]:
+def _import_game(install_root: str, game_path: str, info: dict) -> str | None:
     """Import a single game to Lutris, returns game ID or None"""
     game_data = _create_game_config(install_root, info, game_path)
     if not game_data:
@@ -222,7 +221,7 @@ def _import_game(install_root: str, game_path: str, info: Dict) -> Optional[str]
     return game_id
 
 
-def _create_game_config(install_root: str, info: Dict, game_path: str = "") -> Optional[Dict]:
+def _create_game_config(install_root: str, info: dict, game_path: str = "") -> dict | None:
     """Create a Lutris game config from Playtron info"""
     owned_app = info.get("owned_app", {})
     install_config = info.get("install_config", {})
@@ -311,7 +310,7 @@ def _get_wine_prefix_path(install_root: str, provider: str, provider_id: str) ->
     return pfx_path if os.path.isdir(pfx_path) else prefix_base
 
 
-def _get_gog_game_info(install_folder: str, provider_id: str) -> Optional[Dict]:
+def _get_gog_game_info(install_folder: str, provider_id: str) -> dict | None:
     """Parse GOG game info file to get executable details.
 
     Tries the exact goggame-{provider_id}.info first, then falls back to
@@ -335,7 +334,7 @@ def _get_gog_game_info(install_folder: str, provider_id: str) -> Optional[Dict]:
     return _extract_gog_primary_task(info)
 
 
-def _load_gog_info_file(info_file: str) -> Optional[Dict]:
+def _load_gog_info_file(info_file: str) -> dict | None:
     """Load and parse a goggame-*.info JSON file"""
     try:
         with open(info_file, "r", encoding="utf-8") as f:
@@ -344,7 +343,7 @@ def _load_gog_info_file(info_file: str) -> Optional[Dict]:
         return None
 
 
-def _extract_gog_primary_task(info: Dict) -> Optional[Dict]:
+def _extract_gog_primary_task(info: dict) -> dict | None:
     """Extract executable info from GOG playTasks.
 
     Prefers the task marked isPrimary, falls back to the first FileTask.
@@ -367,7 +366,7 @@ def _extract_gog_primary_task(info: Dict) -> Optional[Dict]:
     return first_file_task
 
 
-def _parse_playtron_info(filepath: str) -> Optional[Dict]:
+def _parse_playtron_info(filepath: str) -> dict | None:
     """Parse a playtron_info_v3.json file"""
     try:
         with open(filepath, "r", encoding="utf-8") as f:
@@ -377,7 +376,7 @@ def _parse_playtron_info(filepath: str) -> Optional[Dict]:
         return None
 
 
-def _sync_media_for_games(game_ids: List[str]) -> None:
+def _sync_media_for_games(game_ids: list[str]) -> None:
     """Resolve canonical Lutris slugs via service appids and download media.
 
     The locally generated slug (from slugify) may not match the Lutris API due
@@ -388,7 +387,7 @@ def _sync_media_for_games(game_ids: List[str]) -> None:
     from lutris import settings
 
     # Group games by service
-    games_by_service: Dict[str, List[Tuple[str, str, str]]] = {}
+    games_by_service: dict[str, list[tuple[str, str, str]]] = {}
     for game_id in game_ids:
         game = get_game_by_field(game_id, "id")
         if not game or not game.get("service") or not game.get("service_id"):

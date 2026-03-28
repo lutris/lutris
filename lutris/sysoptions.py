@@ -4,7 +4,7 @@ import os
 from collections import OrderedDict
 from gettext import gettext as _
 from gettext import pgettext as C_
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from lutris import runners
 from lutris.util import linux, system
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from lutris.config import LutrisConfig
 
 
-def get_resolution_choices() -> List[Tuple[str, str]]:
+def get_resolution_choices() -> list[tuple[str, str]]:
     """Return list of available resolutions as label, value tuples
     suitable for inclusion in drop-downs.
     """
@@ -26,7 +26,7 @@ def get_resolution_choices() -> List[Tuple[str, str]]:
     return resolution_choices
 
 
-def get_locale_choices() -> List[Tuple[str, str]]:
+def get_locale_choices() -> list[tuple[str, str]]:
     """Return list of available locales as label, value tuples
     suitable for inclusion in drop-downs.
     """
@@ -52,14 +52,14 @@ def get_locale_choices() -> List[Tuple[str, str]]:
     ]
 
 
-def get_gpu_list() -> List[Tuple[str, str]]:
+def get_gpu_list() -> list[tuple[str, str]]:
     choices = [(_("Auto"), "")]
     for card, gpu in GPUS.items():
         choices.append((gpu.short_name, card))
     return choices
 
 
-def get_output_choices() -> List[Tuple[str, str]]:
+def get_output_choices() -> list[tuple[str, str]]:
     """Return list of outputs for drop-downs"""
     displays = DISPLAY_MANAGER.get_display_names()
     output_choices = list(zip(displays, displays))
@@ -68,7 +68,7 @@ def get_output_choices() -> List[Tuple[str, str]]:
     return output_choices
 
 
-def get_output_list() -> List[Tuple[str, str]]:
+def get_output_list() -> list[tuple[str, str]]:
     """Return a list of output with their index.
     This is used to indicate to SDL 1.2 which monitor to use.
     """
@@ -102,7 +102,7 @@ def _is_cloud_sync_game(_option_key: str, config: "LutrisConfig") -> bool:
     return cast(str, config.game_level.get("service")) == "gog"
 
 
-system_options: List[Dict[str, Any]] = [  # pylint: disable=invalid-name
+system_options: list[dict[str, Any]] = [  # pylint: disable=invalid-name
     {
         "section": _("Lutris"),
         "option": "game_path",
@@ -554,7 +554,7 @@ system_options: List[Dict[str, Any]] = [  # pylint: disable=invalid-name
 ]
 
 
-def with_runner_overrides(runner_slug: str) -> List[Dict[str, Any]]:
+def with_runner_overrides(runner_slug: str) -> list[dict[str, Any]]:
     """Return system options updated with overrides from given runner."""
     options = system_options
     try:

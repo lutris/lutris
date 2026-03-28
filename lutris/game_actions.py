@@ -3,9 +3,10 @@
 # Standard Library
 # pylint: disable=too-many-public-methods
 import os
+from collections.abc import Callable
 from gettext import gettext as _
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any
 
 from gi.repository import Gio, Gtk
 
@@ -45,15 +46,15 @@ class GameActions:
     it also includes the code for actions that are shared between the subclasses. It also has methods for
     actions that are invokes externally by the GameBar."""
 
-    def __init__(self, window: "LutrisWindow", application: "LutrisApplication" = None) -> None:
+    def __init__(self, window: "LutrisWindow", application: "LutrisApplication | None" = None) -> None:
         self.application: "LutrisApplication" = application or Gio.Application.get_default()
         self.window = window
 
-    def get_games(self) -> List[Game]:
+    def get_games(self) -> list[Game]:
         """Return the list of games that the actions apply to."""
         return []
 
-    def get_game_actions(self) -> List[Tuple[Optional[str], str, Optional[Callable[..., None]]]]:
+    def get_game_actions(self) -> list[tuple[str | None, str, Callable[..., None] | None]]:
         """Return a list of game actions and their callbacks, Each item is a tuple
         of two strs and a callable, the action ID, it's human-readable name, and
         a callback to invoke to perform it. Menu separators are represented hre
@@ -61,7 +62,7 @@ class GameActions:
         """
         return []
 
-    def get_displayed_entries(self) -> Dict[str, bool]:
+    def get_displayed_entries(self) -> dict[str, bool]:
         """Return a dictionary of flags indicating which actions are visible; the keys
         are the action ids from get_game_actions(), and the values are booleans indicating
         the action's visibility."""
@@ -91,7 +92,7 @@ class GameActions:
         for game in games:
             game.force_stop()
 
-    def get_running_games(self) -> List[Game]:
+    def get_running_games(self) -> list[Game]:
         running_games = []
         for game in self.get_games():
             if game and game.is_db_stored and self.application:
@@ -209,14 +210,14 @@ class MultiGameActions(GameActions):
     are 'db stored' games, not service games. This supports a subset of the actions
     of SingleGameActions."""
 
-    def __init__(self, games: List[Game], window: "LutrisWindow", application: "LutrisApplication" = None):
+    def __init__(self, games: list[Game], window: "LutrisWindow", application: "LutrisApplication | None" = None):
         super().__init__(window, application)
         self.games = games
 
-    def get_games(self) -> List[Game]:
+    def get_games(self) -> list[Game]:
         return self.games
 
-    def get_game_actions(self) -> List[Tuple[Optional[str], str, Optional[Callable[..., None]]]]:
+    def get_game_actions(self) -> list[tuple[str | None, str, Callable[..., None] | None]]:
         return [
             ("stop", _("Stop"), self.on_game_stop),
             (None, "-", None),
@@ -229,7 +230,7 @@ class MultiGameActions(GameActions):
             ("remove", _("Remove"), self.on_remove_game),
         ]
 
-    def get_displayed_entries(self) -> Dict[str, bool]:
+    def get_displayed_entries(self) -> dict[str, bool]:
         return {
             "stop": self.is_game_running,
             "category": True,
@@ -246,14 +247,14 @@ class SingleGameActions(GameActions):
     not a service game. This provides the largest selection of actions, including many
     that are unique to it."""
 
-    def __init__(self, game: Game, window: "LutrisWindow", application: "LutrisApplication" = None):
+    def __init__(self, game: Game, window: "LutrisWindow", application: "LutrisApplication | None" = None):
         super().__init__(window, application)
         self.game = game
 
-    def get_games(self) -> List[Game]:
+    def get_games(self) -> list[Game]:
         return [self.game]
 
-    def get_game_actions(self) -> List[Tuple[Optional[str], str, Optional[Callable[..., None]]]]:
+    def get_game_actions(self) -> list[tuple[str | None, str, Callable[..., None] | None]]:
         return [
             ("play", _("Play"), self.on_game_launch),
             ("stop", _("Stop"), self.on_game_stop),
@@ -291,7 +292,7 @@ class SingleGameActions(GameActions):
             ("remove", _("Remove"), self.on_remove_game),
         ]
 
-    def get_displayed_entries(self) -> Dict[str, bool]:
+    def get_displayed_entries(self) -> dict[str, bool]:
         """Return a dictionary of actions that should be shown for a game"""
 
         game = self.game
@@ -488,7 +489,7 @@ class SingleGameActions(GameActions):
         # completes, no need to wait for it.
         AsyncCall(download_lutris_media, None, db_game["slug"])
 
-    def _select_game_launch_config_name(self, game: Game) -> Optional[str]:
+    def _select_game_launch_config_name(self, game: Game) -> str | None:
         if not game.config:
             return None
 
@@ -510,14 +511,14 @@ class ServiceGameActions(GameActions):
     """This actions class supports a single service game, which has an idiosyncratic set of
     actions."""
 
-    def __init__(self, game: Game, window: "LutrisWindow", application: "LutrisApplication" = None):
+    def __init__(self, game: Game, window: "LutrisWindow", application: "LutrisApplication | None" = None):
         super().__init__(window, application)
         self.game = game
 
-    def get_games(self) -> List[Game]:
+    def get_games(self) -> list[Game]:
         return [self.game]
 
-    def get_game_actions(self) -> List[Tuple[Optional[str], str, Optional[Callable[..., None]]]]:
+    def get_game_actions(self) -> list[tuple[str | None, str, Callable[..., None] | None]]:
         return [
             ("install", _("Install"), self.on_install_clicked),
             ("add", _("Locate installed game"), self.on_locate_installed_game),
@@ -525,7 +526,7 @@ class ServiceGameActions(GameActions):
             ("view-store", _("View on store page"), self.on_view_store),
         ]
 
-    def get_displayed_entries(self) -> Dict[str, bool]:
+    def get_displayed_entries(self) -> dict[str, bool]:
         """Return a dictionary of actions that should be shown for a game"""
         return {
             "install": self.is_installable,
@@ -535,7 +536,9 @@ class ServiceGameActions(GameActions):
         }
 
 
-def get_game_actions(games: List[Game], window: "LutrisWindow", application: "LutrisApplication" = None) -> GameActions:
+def get_game_actions(
+    games: list[Game], window: "LutrisWindow", application: "LutrisApplication | None" = None
+) -> GameActions:
     """Creates a GameActions instance (which may be a subclass) for the list of games given. If
     it can't figure out a suitable class, it falls back to the base GameActions class, which
     provides no actions."""

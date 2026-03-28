@@ -9,7 +9,6 @@ import subprocess
 import sys
 import uuid
 from copy import copy
-from typing import List
 
 from gi.repository import GLib
 
@@ -89,7 +88,7 @@ class MonitoredCommand:
     def stdout(self):
         return self._stdout.getvalue()
 
-    def get_wrapper_command(self) -> List[str]:
+    def get_wrapper_command(self) -> list[str]:
         """Return launch arguments for the wrapper script"""
         wrapper_command = (
             [

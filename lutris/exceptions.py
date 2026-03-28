@@ -8,7 +8,7 @@ from typing import Any
 class LutrisError(Exception):
     """Base exception for Lutris related errors"""
 
-    def __init__(self, message: str, message_markup: str = None, *args: Any, **kwargs: Any):
+    def __init__(self, message: str, message_markup: str | None = None, *args: Any, **kwargs: Any):
         super().__init__(message, *args, **kwargs)
         self.message = message
         self.message_markup = message_markup
@@ -123,7 +123,7 @@ class InvalidGameMoveError(LutrisError):
 class EsyncLimitError(Exception):
     """Raised when the ESYNC limit is not set correctly."""
 
-    def __init__(self, message: str = None, *args: Any, **kwargs: Any):
+    def __init__(self, message: str | None = None, *args: Any, **kwargs: Any):
         if not message:
             message = _("Your ESYNC limits are not set correctly.")
 
@@ -133,7 +133,7 @@ class EsyncLimitError(Exception):
 class FsyncUnsupportedError(Exception):
     """Raised when FSYNC is enabled, but is not supported by the kernel."""
 
-    def __init__(self, message: str = None, *args: Any, **kwargs: Any):
+    def __init__(self, message: str | None = None, *args: Any, **kwargs: Any):
         if not message:
             message = _("Your kernel is not patched for fsync. Please get a patched kernel to use fsync.")
 

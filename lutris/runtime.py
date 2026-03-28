@@ -5,7 +5,7 @@ import os
 import threading
 import time
 from gettext import gettext as _
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from lutris import settings
 from lutris.api import (
@@ -41,8 +41,8 @@ DLL_MANAGERS = {
 
 
 def get_env(
-    version: Optional[str] = None, prefer_system_libs: bool = False, wine_path: Optional[str] = None
-) -> Dict[str, str]:
+    version: str | None = None, prefer_system_libs: bool = False, wine_path: str | None = None
+) -> dict[str, str]:
     """Return a dict containing LD_LIBRARY_PATH env var
 
     Params:
@@ -61,7 +61,7 @@ def get_env(
     return env
 
 
-def get_winelib_paths(wine_path: str) -> List[str]:
+def get_winelib_paths(wine_path: str) -> list[str]:
     """Return wine libraries path for a Lutris wine build"""
     paths = []
     # Prioritize libwine.so.1 for lutris builds
@@ -73,8 +73,8 @@ def get_winelib_paths(wine_path: str) -> List[str]:
 
 
 def get_runtime_paths(
-    version: Optional[str] = None, prefer_system_libs: bool = True, wine_path: Optional[str] = None
-) -> List[str]:
+    version: str | None = None, prefer_system_libs: bool = True, wine_path: str | None = None
+) -> list[str]:
     """Return Lutris runtime paths"""
     version = version or DEFAULT_RUNTIME
     lutris_runtime_path = "%s-i686" % version
@@ -106,9 +106,7 @@ def get_runtime_paths(
     return paths
 
 
-def get_paths(
-    version: Optional[str] = None, prefer_system_libs: bool = True, wine_path: Optional[str] = None
-) -> List[str]:
+def get_paths(version: str | None = None, prefer_system_libs: bool = True, wine_path: str | None = None) -> list[str]:
     """Return a list of paths containing the runtime libraries."""
     if not RUNTIME_DISABLED:
         paths = get_runtime_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path)
@@ -181,7 +179,7 @@ class RuntimeUpdater:
     def has_updates(self):
         return self.update_runtime
 
-    def create_component_updaters(self) -> List[ComponentUpdater]:
+    def create_component_updaters(self) -> list[ComponentUpdater]:
         """Creates the component updaters that need to be applied and returns them in a list.
 
         This tests each to see if it should be used and returns only those you should install.
@@ -192,14 +190,14 @@ class RuntimeUpdater:
         if not self.runtime_versions:
             return []
 
-        updaters: List[ComponentUpdater] = []
+        updaters: list[ComponentUpdater] = []
 
         if self.update_runtime:
             updaters += self._get_runtime_updaters(self.runtime_versions)
 
         return [u for u in updaters if u.should_update]
 
-    def check_client_versions(self) -> Optional[str]:
+    def check_client_versions(self) -> str | None:
         """Checks if the client is of an old version and no longer supported; this can be blocked
         with an env-var, and can be temporarily ignored as well, but if we're out of date, then
         this method returns the version of Lutris that is required. If we're good, or we are ignoring
@@ -218,9 +216,9 @@ class RuntimeUpdater:
         return None
 
     @staticmethod
-    def _get_runtime_updaters(runtime_versions: Dict[str, Any]) -> List[ComponentUpdater]:
+    def _get_runtime_updaters(runtime_versions: dict[str, Any]) -> list[ComponentUpdater]:
         """Launch the update process"""
-        updaters: List[ComponentUpdater] = []
+        updaters: list[ComponentUpdater] = []
         for name, remote_runtime in runtime_versions.get("runtimes", {}).items():
             if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
                 logger.debug("Skipping runtime %s for %s", name, remote_runtime["architecture"])
@@ -248,7 +246,7 @@ class RuntimeComponentUpdater(ComponentUpdater):
     date-time of the component, and we compare it to the mtime of the relevant directory.
     """
 
-    def __init__(self, remote_runtime_info: Dict[str, Any]) -> None:
+    def __init__(self, remote_runtime_info: dict[str, Any]) -> None:
         self.remote_runtime_info = remote_runtime_info
         self.state = ComponentUpdater.PENDING
         # Versioned runtimes keep 1 version per folder
@@ -318,10 +316,10 @@ class RuntimeComponentUpdater(ComponentUpdater):
 class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
     """Component updater that downloads and extracts an archive."""
 
-    def __init__(self, remote_runtime_info: Dict[str, Any]) -> None:
+    def __init__(self, remote_runtime_info: dict[str, Any]) -> None:
         super().__init__(remote_runtime_info)
         self.url = remote_runtime_info["url"]
-        self.downloader: Downloader = None
+        self.downloader: Downloader | None = None
         self.complete_event = threading.Event()
 
     def get_progress(self) -> ProgressInfo:
@@ -439,7 +437,7 @@ class RuntimeFilesComponentUpdater(RuntimeComponentUpdater):
             return False
         return True
 
-    def _get_runtime_components(self) -> List[Dict[str, Any]]:
+    def _get_runtime_components(self) -> list[dict[str, Any]]:
         """Fetch individual runtime files for a component"""
         request = http.Request(settings.RUNTIME_URL + "/" + self.name)
         try:
@@ -451,7 +449,7 @@ class RuntimeFilesComponentUpdater(RuntimeComponentUpdater):
             return []
         return response.json.get("components", [])
 
-    def _download_component(self, component: Dict[str, Any]) -> None:
+    def _download_component(self, component: dict[str, Any]) -> None:
         """Download an individual file from a runtime item"""
         file_path = os.path.join(self.local_runtime_path, component["filename"])
         http.download_file(component["url"], file_path)
