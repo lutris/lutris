@@ -24,5 +24,6 @@ class AddGameDialog(GameDialogCommon):
         )
         self.build_notebook()
         self.build_tabs()
-        self.info_box.grab_focus()
+        if self.info_box:
+            self.info_box.grab_focus()
         self.show_all()
