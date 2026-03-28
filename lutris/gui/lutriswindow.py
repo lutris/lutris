@@ -737,7 +737,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 self.game_bar.destroy()
             if len(games) == 1 and games[0]:
                 self.game_bar = GameBar(games[0], self.application, self)
-                self.game_bar.connect("category-selected", self.on_game_bar_category_selected)
                 self.revealer_box.pack_start(self.game_bar, True, True, 0)
             else:
                 self.game_bar = None
@@ -751,9 +750,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.game_revealer.set_reveal_child(True)
         else:
             self.game_revealer.set_reveal_child(False)
-
-    def on_game_bar_category_selected(self, _game_bar, category_name):
-        self.sidebar.selected_category = ("user_category", category_name)
 
     def show_empty_label(self):
         """Display a label when the view is empty"""
