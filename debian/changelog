@@ -9,7 +9,9 @@ lutris (0.5.23) jammy; urgency=medium
   * Replace google-protobuf dependency with custom decoder for Battle.net
   * Improve Humble Bundle authentication and error handling
   * Improve EA App auth handling and logo compositing
+  * Add sorting and filtering to Uncategorized, Missing, and Running views
   * Lazy-load libretro cores and MAME systems to avoid UI stalls
+  * Defer GPU detection and library checks to speed up application startup
   * Fix itch.io ARM vs x86 upload selection
   * Fix $RESOLUTION on KDE/Wayland with fractional scaling
   * Fix GPU detection in Flatpak
@@ -18,6 +20,7 @@ lutris (0.5.23) jammy; urgency=medium
   * Fix favorites view not updating when removing a game from favorites
   * Use cover art for grid view and banners for list view by default
   * Performance improvements for large game libraries
+  * Added Swedish (sv) translation
   * Updated pt_BR translation
 
  -- Mathieu Comandon <mathieucomandon@gmail.com>  Sat, 15 Mar 2026 21:00:00 -0800
