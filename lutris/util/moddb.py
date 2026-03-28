@@ -26,7 +26,9 @@ def _try_import_moddb_library():
 
 class ModDB:
     def __init__(
-        self, moddb_lib: types.ModuleType = _try_import_moddb_library(), parse_page_method: types.MethodType = None
+        self,
+        moddb_lib: types.ModuleType = _try_import_moddb_library(),
+        parse_page_method: types.MethodType | None = None,
     ):
         if moddb_lib is None:
             logger.warning(
