@@ -97,7 +97,7 @@ class vice(Runner):
                     return self.platforms[index]
         return self.platforms[0]  # Default to C64
 
-    def get_executable(self, machine: str = None) -> str:
+    def get_executable(self, machine: str | None = None) -> str:
         if not machine:
             machine = "c64"
         executables = {

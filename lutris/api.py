@@ -9,9 +9,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections import OrderedDict
+from collections.abc import Callable, Collection, Iterable, Iterator
 from datetime import datetime
 from gettext import gettext as _
-from typing import Any, Callable, Collection, Dict, Iterable, Iterator, List, Optional, Tuple, TypeAlias, Union, cast
+from typing import Any, TypeAlias, cast
 
 import requests
 
@@ -27,14 +28,14 @@ from lutris.util.strings import time_ago
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
 USER_INFO_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.json")
 
-ApiGameDict: TypeAlias = Dict[str, Any]
-GamesPageDict: TypeAlias = Dict[str, Any]
-InstallerDict: TypeAlias = Dict[str, Any]
-InstallerInfoDict: TypeAlias = Dict[str, str]
-RunnerDict: TypeAlias = Dict[str, Any]
-RunnerVersionDict: TypeAlias = Dict[str, Union[str, bool]]
-RuntimeVersionsDict: TypeAlias = Dict[str, Any]
-UserInfoDict: TypeAlias = Dict[str, Any]
+ApiGameDict: TypeAlias = dict[str, Any]
+GamesPageDict: TypeAlias = dict[str, Any]
+InstallerDict: TypeAlias = dict[str, Any]
+InstallerInfoDict: TypeAlias = dict[str, str]
+RunnerDict: TypeAlias = dict[str, Any]
+RunnerVersionDict: TypeAlias = dict[str, str | bool]
+RuntimeVersionsDict: TypeAlias = dict[str, Any]
+UserInfoDict: TypeAlias = dict[str, Any]
 
 
 def get_time_from_api_date(date_string: str) -> time.struct_time:
@@ -96,7 +97,7 @@ def get_runtime_versions() -> RuntimeVersionsDict:
         return cast(RuntimeVersionsDict, json.load(runtime_file))
 
 
-def read_api_key() -> Optional[Dict[str, str]]:
+def read_api_key() -> dict[str, str] | None:
     """Read the API token from disk"""
     if not system.path_exists(API_KEY_FILE_PATH):
         return None
@@ -114,7 +115,7 @@ LUTRIS_ACCOUNT_CONNECTED = NotificationSource()
 LUTRIS_ACCOUNT_DISCONNECTED = NotificationSource()
 
 
-def connect(username: str, password: str) -> Optional[Union[str, bool]]:
+def connect(username: str, password: str) -> str | bool | None:
     """Connect to the Lutris API"""
     login_url = settings.SITE_URL + "/api/accounts/token"
     credentials = {"username": username, "password": password}
@@ -155,7 +156,7 @@ def disconnect() -> None:
     LUTRIS_ACCOUNT_DISCONNECTED.fire()
 
 
-def fetch_user_info() -> Optional[UserInfoDict]:
+def fetch_user_info() -> UserInfoDict | None:
     """Retrieves the user info to cache it locally"""
     credentials = read_api_key()
     if not credentials:
@@ -189,7 +190,7 @@ def get_runners(runner_name: str) -> RunnerDict:
     return cast(RunnerDict, response.json())
 
 
-def download_runner_versions(runner_name: str) -> List[RunnerVersionDict]:
+def download_runner_versions(runner_name: str) -> list[RunnerVersionDict]:
     try:
         request = Request("{}/api/runners/{}".format(settings.SITE_URL, runner_name))
         runner_info = request.get().json
@@ -216,7 +217,7 @@ def normalize_version_architecture(version_name: str) -> str:
     return format_version_architecture(base_version, arch) if base_version else ""
 
 
-def format_version_architecture(base_version: str, arch: Optional[str] = None) -> str:
+def format_version_architecture(base_version: str, arch: str | None = None) -> str:
     """Assembles a version with architecture from the version and architecture."""
     if not base_version:
         return ""
@@ -233,7 +234,7 @@ def format_version_architecture(base_version: str, arch: Optional[str] = None) -
     return base_version
 
 
-def parse_version_architecture(version_name: str) -> Tuple[str, Optional[str]]:
+def parse_version_architecture(version_name: str) -> tuple[str, str | None]:
     """Splits a version that ends with an architecture into the plain version and
     architecture, as a tuple. If the version has no architecture, this provides
     the system's architecture instead."""
@@ -244,14 +245,14 @@ def parse_version_architecture(version_name: str) -> Tuple[str, Optional[str]]:
     return version_name, LINUX_SYSTEM.arch
 
 
-def get_runner_version_from_cache(runner_name: str, version: Optional[str]) -> Optional[RunnerVersionDict]:
+def get_runner_version_from_cache(runner_name: str, version: str | None) -> RunnerVersionDict | None:
     # Prefer to provide the info from our local cache if we can; if this can't find
     # an unambiguous result, we'll fall back on the API which should know what the default is.
     version, _arch = parse_version_architecture(version or "")
     runtime_versions = get_runtime_versions()
     if runtime_versions:
         try:
-            runner_versions: List[RunnerVersionDict] = runtime_versions["runners"][runner_name]
+            runner_versions: list[RunnerVersionDict] = runtime_versions["runners"][runner_name]
             runner_versions = [r for r in runner_versions if r["architecture"] in (LINUX_SYSTEM.arch, "all")]
             if version:
                 runner_versions = [r for r in runner_versions if r["version"] == version]
@@ -263,14 +264,14 @@ def get_runner_version_from_cache(runner_name: str, version: Optional[str]) -> O
 
 
 def iter_get_from_api_candidates(
-    versions: Iterable[RunnerVersionDict], version: Optional[str], arch: Optional[str]
-) -> Iterator[Optional[RunnerVersionDict]]:
+    versions: Iterable[RunnerVersionDict], version: str | None, arch: str | None
+) -> Iterator[RunnerVersionDict | None]:
     """A generator yielding possible version infos, or None for those that are available;
     we pick the first non-None value yielded."""
 
     def select_info(
-        predicate: Callable[[RunnerVersionDict], bool] = None, accept_ambiguous: bool = False
-    ) -> Optional[RunnerVersionDict]:
+        predicate: Callable[[RunnerVersionDict], bool], accept_ambiguous: bool = False
+    ) -> RunnerVersionDict | None:
         candidates = [v for v in versions if predicate(v)]
 
         if candidates and (accept_ambiguous or len(candidates) == 1):
@@ -295,7 +296,7 @@ def iter_get_from_api_candidates(
     yield select_info(lambda v: v["architecture"] == arch, accept_ambiguous=True)
 
 
-def get_runner_version_from_api(runner_name: str, version: Optional[str]) -> Optional[RunnerVersionDict]:
+def get_runner_version_from_api(runner_name: str, version: str | None) -> RunnerVersionDict | None:
     version, arch = parse_version_architecture(version or "")
     versions = download_runner_versions(runner_name)
     for candidate in iter_get_from_api_candidates(versions, version, arch):
@@ -307,7 +308,7 @@ def get_runner_version_from_api(runner_name: str, version: Optional[str]) -> Opt
     return None
 
 
-def get_default_runner_version_info(runner_name: str, version: Optional[str] = None) -> Optional[RunnerVersionDict]:
+def get_default_runner_version_info(runner_name: str, version: str | None = None) -> RunnerVersionDict | None:
     """Get the appropriate version for a runner
 
     Params:
@@ -334,7 +335,7 @@ def get_http_post_response(url: str, payload: bytes) -> Any:
     return response.json
 
 
-def get_game_api_page(game_slugs: Optional[Collection[str]], page: Union[int, str] = 1) -> GamesPageDict:
+def get_game_api_page(game_slugs: Collection[str] | None, page: int | str = 1) -> GamesPageDict:
     """Read a single page of games from the API and return the response
 
     Args:
@@ -350,9 +351,7 @@ def get_game_api_page(game_slugs: Optional[Collection[str]], page: Union[int, st
     return cast(GamesPageDict, get_http_post_response(url, payload))
 
 
-def get_game_service_api_page(
-    service: str, appids: Optional[Collection[str]], page: Union[int, str] = 1
-) -> GamesPageDict:
+def get_game_service_api_page(service: str, appids: Collection[str] | None, page: int | str = 1) -> GamesPageDict:
     """Get matching Lutris games from a list of appids from a given service"""
     url = settings.SITE_URL + "/api/games/service/%s" % service
     if int(page) > 1:
@@ -364,8 +363,8 @@ def get_game_service_api_page(
 
 
 def get_api_games(
-    game_slugs: Optional[Collection[str]] = None, page: int = 1, service: Optional[str] = None
-) -> List[ApiGameDict]:
+    game_slugs: Collection[str] | None = None, page: int = 1, service: str | None = None
+) -> list[ApiGameDict]:
     """Return all games from the Lutris API matching the given game slugs"""
     if service:
         response_data = get_game_service_api_page(service, game_slugs)
@@ -374,7 +373,7 @@ def get_api_games(
 
     if not response_data:
         return []
-    results: List[ApiGameDict] = response_data.get("results", [])
+    results: list[ApiGameDict] = response_data.get("results", [])
     while response_data.get("next"):
         page_match = re.search(r"page=(\d+)", response_data["next"])
         if page_match:
@@ -389,11 +388,11 @@ def get_api_games(
         if not response_data:
             logger.warning("Unable to get response for page %s", next_page)
             break
-        results += cast(List[ApiGameDict], response_data.get("results"))
+        results += cast(list[ApiGameDict], response_data.get("results"))
     return results
 
 
-def get_game_installers(game_slug: str, revision: Optional[str] = None) -> List[InstallerDict]:
+def get_game_installers(game_slug: str, revision: str | None = None) -> list[InstallerDict]:
     """Get installers for a single game"""
     if not game_slug:
         raise ValueError("No game_slug provided. Can't query an installer")
