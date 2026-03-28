@@ -16,6 +16,7 @@ from lutris import settings
 from lutris.exceptions import MisconfigurationError
 from lutris.util import cache_single, flatpak, system
 from lutris.util.graphics import drivers, glxinfo, vkquery
+from lutris.util.graphics.glxinfo import GlxInfo
 from lutris.util.log import logger
 
 try:
@@ -116,6 +117,8 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     required_components = ["OPENGL", "VULKAN", "GNUTLS"]
     optional_components = ["WINE", "GAMEMODE"]
 
+    _glxinfo_unset = object()
+
     def __init__(self) -> None:
         for key in ("COMMANDS", "OPTIONAL_COMMANDS", "TERMINALS"):
             self._cache[key] = {}
@@ -131,11 +134,30 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         # Detect if system is 64bit capable
         self.is_64_bit = sys.maxsize > 2**32
         self.arch = self.get_arch()
-        self.shared_libraries = self.get_shared_libraries()
-        self.populate_libraries()
         self.populate_sound_fonts()
         self.soft_limit, self.hard_limit = self.get_file_limits()
-        self.glxinfo = self.get_glxinfo()
+
+        # Expensive fields are lazy; see properties below.
+        self._shared_libraries: dict[str, list[SharedLibrary]] | None = None
+        self._glxinfo: GlxInfo | None | object = self._glxinfo_unset
+
+    @property
+    def shared_libraries(self) -> dict[str, list["SharedLibrary"]]:
+        if self._shared_libraries is None:
+            self._shared_libraries = self.get_shared_libraries()
+            self.populate_libraries()
+        return self._shared_libraries
+
+    @property
+    def glxinfo(self) -> GlxInfo | None:
+        match self._glxinfo:
+            case GlxInfo() as glx:
+                return glx
+            case None:
+                return None
+            case _:
+                result = self._glxinfo = self.get_glxinfo()
+                return result
 
     @staticmethod
     def get_sbin_path(command: str) -> str | None:
@@ -292,7 +314,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                 return cast(str, device["fstype"])
         return None
 
-    def get_glxinfo(self) -> glxinfo.GlxInfo | None:
+    def get_glxinfo(self) -> GlxInfo | None:
         """Return a GlxInfo instance if the gfxinfo tool is available"""
         if not self.get("glxinfo"):
             return None
@@ -400,6 +422,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
     def get_missing_requirement_libs(self, req: str) -> list[list[str]]:
         """Return a list of sets of missing libraries for each supported architecture"""
+        _ = self.shared_libraries  # ensure LIBRARIES cache is populated
         required_libs = set(SYSTEM_COMPONENTS["LIBRARIES"][req])  # type: ignore
         return [list(required_libs - set(self._cache["LIBRARIES"][arch][req])) for arch in self.runtime_architectures]
 

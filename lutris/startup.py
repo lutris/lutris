@@ -3,6 +3,7 @@
 import os
 import shutil
 import sqlite3
+import threading
 from gettext import gettext as _
 
 import gi
@@ -73,17 +74,24 @@ def _clear_tmp_dir():
 
 
 def check_libs(all_components=False):
-    """Checks that required libraries are installed on the system"""
-    missing_libs = LINUX_SYSTEM.get_missing_libs()
-    if all_components:
-        components = LINUX_SYSTEM.requirements
-    else:
-        components = LINUX_SYSTEM.critical_requirements
+    """Checks that required libraries are installed on the system.
 
-    for req in components:
-        for index, arch in enumerate(LINUX_SYSTEM.runtime_architectures):
-            for lib in missing_libs[req][index]:
-                logger.error("%s %s missing (needed by %s)", arch, lib, req.lower())
+    This is purely diagnostic logging and is run on a background thread
+    at startup so the expensive ldconfig parse doesn't block the UI.
+    """
+    try:
+        missing_libs = LINUX_SYSTEM.get_missing_libs()
+        if all_components:
+            components = LINUX_SYSTEM.requirements
+        else:
+            components = LINUX_SYSTEM.critical_requirements
+
+        for req in components:
+            for index, arch in enumerate(LINUX_SYSTEM.runtime_architectures):
+                for lib in missing_libs[req][index]:
+                    logger.error("%s %s missing (needed by %s)", arch, lib, req.lower())
+    except Exception:
+        logger.exception("Library check failed")
 
 
 def check_vulkan():
@@ -139,7 +147,9 @@ def fill_missing_platforms():
 def run_all_checks() -> None:
     """Run all startup checks"""
     preload_gpus()
-    check_libs()
+    # check_libs is purely diagnostic logging; run it in the background
+    # so the expensive ldconfig parse doesn't block startup.
+    threading.Thread(target=check_libs, daemon=True).start()
     check_vulkan()
     check_gnome()
     fill_missing_platforms()
