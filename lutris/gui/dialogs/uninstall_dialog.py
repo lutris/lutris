@@ -400,7 +400,7 @@ class GameRemovalRow(Gtk.ListBoxRow):
             vbox.pack_start(dir_box, False, False, 0)
         self.add(vbox)
 
-    def _get_directory_markup(self, folder_size: int = None):
+    def _get_directory_markup(self, folder_size: int | None = None):
         if not self.game.directory or not self.game.is_installed:
             return ""
 

@@ -121,7 +121,7 @@ class Request:
 
         return self.url
 
-    def _request(self, method: str, data: bytes = None) -> "Request":
+    def _request(self, method: str, data: bytes | None = None) -> "Request":
         logger.debug("%s %s", method, self.redacted_url)
         try:
             req = urllib.request.Request(url=self.url, data=data, headers=self.headers, method=method)
@@ -170,13 +170,13 @@ class Request:
                 return b""
             yield chunk
 
-    def get(self, data: bytes = None) -> "Request":
+    def get(self, data: bytes | None = None) -> "Request":
         return self._request("GET", data)
 
-    def post(self, data: bytes = None) -> "Request":
+    def post(self, data: bytes | None = None) -> "Request":
         return self._request("POST", data)
 
-    def delete(self, data: bytes = None) -> "Request":
+    def delete(self, data: bytes | None = None) -> "Request":
         return self._request("DELETE", data)
 
     def write_to_file(self, path: str) -> None:
