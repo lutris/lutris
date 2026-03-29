@@ -69,8 +69,7 @@ LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATU
 if TYPE_CHECKING:
     from lutris.api import InstallerInfoDict
     from lutris.database.games import DbGameDict
-    from lutris.database.service import DBServiceGame
-    from lutris.installers import Installer
+    from lutris.database.services import DBServiceGame
     from lutris.services.base import BaseService
 
     GtkWindowType = TypeVar("GtkWindowType", bound=Gtk.Window)
@@ -372,7 +371,7 @@ class LutrisApplication(Gtk.Application):
         if kwargs.get("runner"):
             return str(kwargs["runner"].name)
         if kwargs.get("installers"):
-            installer: "Installer" = kwargs["installers"][0]
+            installer: dict[str, Any] = kwargs["installers"][0]
             return installer.get("slug") or installer.get("game_slug") or "Malformed script"
         if kwargs.get("game"):
             return str(kwargs["game"].id)
@@ -969,9 +968,9 @@ class LutrisApplication(Gtk.Application):
                 command_line,
                 "{:4} | {:<40} | {:<40} | {:<15} | {:<15}".format(
                     game["id"],
-                    game["name"][:40],
-                    game["slug"][:40],
-                    game["service"][:15],
+                    str(game["name"])[:40],
+                    str(game["slug"])[:40],
+                    str(game["service"])[:15],
                     "true" if game["installed"] else "false"[:15],
                 ),
             )
