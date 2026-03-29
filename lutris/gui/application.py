@@ -493,14 +493,12 @@ class LutrisApplication(Gtk.Application):
         migrate()
 
         run_all_checks()
-        if options.contains("dest"):
-            option: GLib.Variant = options.lookup_value("dest")
+        if option := options.lookup_value("dest"):
             dest_dir = option.get_string()
         else:
             dest_dir = None
 
-        if options.contains("output-script"):
-            option: GLib.Variant = options.lookup_value("output-script")
+        if option := options.lookup_value("output-script"):
             searchstring = option.get_string()
             export_script_game = (
                 games_db.get_game_by_field(searchstring, "id")
@@ -527,8 +525,7 @@ class LutrisApplication(Gtk.Application):
             return 0
 
         # List specified service games
-        if options.contains("list-service-games"):
-            option: GLib.Variant = options.lookup_value("list-service-games")
+        if option := options.lookup_value("list-service-games"):
             service = option.get_string()
             game_list = games_db.get_games(filters={"installed": 1, "service": service})
             service_game_list = ServiceGameCollection.get_for_service(service)
@@ -581,21 +578,18 @@ class LutrisApplication(Gtk.Application):
             return 0
 
         # install Runner
-        if options.contains("install-runner"):
-            option: GLib.Variant = options.lookup_value("install-runner")
+        if option := options.lookup_value("install-runner"):
             runner = option.get_string()
             self.install_runner(runner)
             return 0
 
         # Uninstall Runner
-        if options.contains("uninstall-runner"):
-            option: GLib.Variant = options.lookup_value("uninstall-runner")
+        if option := options.lookup_value("uninstall-runner"):
             runner = option.get_string()
             self.uninstall_runner(runner)
             return 0
 
-        if options.contains("export"):
-            option: GLib.Variant = options.lookup_value("export")
+        if option := options.lookup_value("export"):
             slug = option.get_string()
             if not dest_dir:
                 print("No destination dir given")
@@ -603,8 +597,7 @@ class LutrisApplication(Gtk.Application):
                 export_game(slug, dest_dir)
             return 0
 
-        if options.contains("import"):
-            option: GLib.Variant = options.lookup_value("import")
+        if option := options.lookup_value("import"):
             filepath = option.get_string()
             if not dest_dir:
                 print("No destination dir given")
@@ -631,28 +624,24 @@ class LutrisApplication(Gtk.Application):
                     return None
                 return Game(games[0]["id"])
 
-            if options.contains("save-stats"):
-                option: GLib.Variant = options.lookup_value("save-stats")
+            if option := options.lookup_value("save-stats"):
                 game = get_game_match(option.get_string())
                 if game:
                     show_save_stats(game, output_format="json" if options.contains("json") else "text")
                 return 0
-            if options.contains("save-upload"):
-                option: GLib.Variant = options.lookup_value("save-upload")
+            if option := options.lookup_value("save-upload"):
                 game = get_game_match(option.get_string())
                 if game:
                     upload_save(game)
                 return 0
-            if options.contains("save-check"):
-                option: GLib.Variant = options.lookup_value("save-check")
+            if option := options.lookup_value("save-check"):
                 game = get_game_match(option.get_string())
                 if game:
                     save_check(game)
                 return 0
 
         # Execute command in Lutris context
-        if options.contains("exec"):
-            option: GLib.Variant = options.lookup_value("exec")
+        if option := options.lookup_value("exec"):
             command = option.get_string()
             self.execute_command(command)
             return 0
@@ -679,8 +668,7 @@ class LutrisApplication(Gtk.Application):
         revision = installer_info["revision"]
 
         installer_file = None
-        if options.contains("install"):
-            option: GLib.Variant = options.lookup_value("install")
+        if option := options.lookup_value("install"):
             installer_file = option.get_string()
             if installer_file.startswith(("http:", "https:")):
                 try:
