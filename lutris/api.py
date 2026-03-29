@@ -347,7 +347,7 @@ def get_game_api_page(game_slugs: Collection[str] | None, page: int | str = 1) -
         url += "?page={}".format(page)
     if not game_slugs:
         return {}
-    payload = json.dumps({"games": game_slugs, "page": page}).encode("utf-8")
+    payload = json.dumps({"games": list(game_slugs), "page": page}).encode("utf-8")
     return cast(GamesPageDict, get_http_post_response(url, payload))
 
 
