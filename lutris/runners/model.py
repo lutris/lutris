@@ -111,10 +111,9 @@ class ModelRunner(Runner):
         self.description = dict_data.get("description", "")
         dict_platforms = dict_data.get("platforms", {})
         # Support existing platforms that were are list
-        if isinstance(dict_platforms, dict):
-            self.platform_dict = dict_platforms
-        else:
-            self.platforms = dict_platforms
+        self.platform_dict = (
+            dict_platforms if isinstance(dict_platforms, dict) else Runner.to_platform_dict(dict_platforms)
+        )
         self.runner_executable = dict_data.get("runner_executable", "")
         self.system_options_override = dict_data.get("system_options_override", [])
         self.entry_point_option = dict_data.get("entry_point_option", DEFAULT_ENTRY_POINT_OPTION)

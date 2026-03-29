@@ -11,7 +11,7 @@ from lutris.util import system
 class pcsx2(Runner):
     human_name = _("PCSX2")
     description = _("PlayStation 2 emulator")
-    platforms = [_("Sony PlayStation 2")]
+    platform_dict = Runner.to_platform_dict([_("Sony PlayStation 2")])
     runnable_alone = True
     runner_executable = "pcsx2/PCSX2"
     flatpak_id = "net.pcsx2.PCSX2"

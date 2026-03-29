@@ -16,7 +16,7 @@ from lutris.util.strings import split_arguments
 class linux(Runner):
     human_name = _("Linux")
     description = _("Runs native games")
-    platforms = [_("Linux")]
+    platform_dict = Runner.to_platform_dict([_("Linux")])
     entry_point_option = "exe"
 
     game_options = [

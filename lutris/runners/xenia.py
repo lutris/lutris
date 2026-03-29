@@ -5,6 +5,7 @@ from gettext import gettext as _
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError, MissingGameExecutableError
+from lutris.runners.runner import Runner
 from lutris.runners.wine import wine
 from lutris.util import system
 from lutris.util.wine.wine import get_default_wine_version
@@ -13,7 +14,7 @@ from lutris.util.wine.wine import get_default_wine_version
 class xenia(wine):
     human_name = _("Xenia")
     description = _("Xbox 360 Emulator")
-    platforms = [_("Microsoft Xbox 360")]
+    platform_dict = Runner.to_platform_dict([_("Microsoft Xbox 360")])
     runnable_alone = True
     multiple_versions = False
     runner_executable = "xenia/xenia_canary.exe"

@@ -17,23 +17,25 @@ DEFAULT_MEDNAFEN_SCALER = "nn4x"
 class mednafen(Runner):
     human_name = _("Mednafen")
     description = _("Multi-system emulator: NES, PC Engine, PSX…")
-    platforms = [
-        _("Nintendo Game Boy (Color)"),
-        _("Nintendo Game Boy Advance"),
-        _("Sega Game Gear"),
-        _("Sega Genesis/Mega Drive"),
-        _("Atari Lynx"),
-        _("Sega Master System"),
-        _("SNK Neo Geo Pocket (Color)"),
-        _("Nintendo NES"),
-        _("NEC PC Engine TurboGrafx-16"),
-        _("NEC PC-FX"),
-        _("Sony PlayStation"),
-        _("Sega Saturn"),
-        _("Nintendo SNES"),
-        _("Bandai WonderSwan"),
-        _("Nintendo Virtual Boy"),
-    ]
+    platform_dict = Runner.to_platform_dict(
+        [
+            _("Nintendo Game Boy (Color)"),
+            _("Nintendo Game Boy Advance"),
+            _("Sega Game Gear"),
+            _("Sega Genesis/Mega Drive"),
+            _("Atari Lynx"),
+            _("Sega Master System"),
+            _("SNK Neo Geo Pocket (Color)"),
+            _("Nintendo NES"),
+            _("NEC PC Engine TurboGrafx-16"),
+            _("NEC PC-FX"),
+            _("Sony PlayStation"),
+            _("Sega Saturn"),
+            _("Nintendo SNES"),
+            _("Bandai WonderSwan"),
+            _("Nintendo Virtual Boy"),
+        ]
+    )
     machine_choices = (
         (_("Game Boy (Color)"), "gb"),
         (_("Game Boy Advance"), "gba"),
