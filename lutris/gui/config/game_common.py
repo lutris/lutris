@@ -400,7 +400,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             return False
         return True
 
-    def on_save(self, _button: Gtk.Button) -> None:
+    def on_save(self, _button: Gtk.Button) -> bool | None:
         """Save game info and destroy widget."""
         if not self.is_valid():
             logger.warning(_("Current configuration is not valid, ignoring save request"))
@@ -449,6 +449,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.game.save()
         self.destroy()
         self.saved = True
+        return True  # stop signal propagation
 
 
 class RunnerMessageBox(WidgetWarningMessageBox):

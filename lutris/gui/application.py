@@ -439,7 +439,7 @@ class LutrisApplication(Gtk.Application):
 
         BusyAsyncCall(get_installers, on_installers_ready, game_slug=game_slug)
 
-    def on_app_window_destroyed(self, app_window: Gtk.Window, window_key: str) -> None:
+    def on_app_window_destroyed(self, app_window: Gtk.Window, window_key: str) -> bool:
         """Remove the reference to the window when it has been destroyed"""
         window_key = str(app_window.__class__.__name__) + window_key
         try:
@@ -447,6 +447,8 @@ class LutrisApplication(Gtk.Application):
         except KeyError:
             logger.warning("Failed to remove window %s", window_key)
             logger.info("Available windows: %s", ", ".join(self.app_windows.keys()))
+
+        return True  # stop signal propagation
 
     @staticmethod
     def _print(command_line: Gio.ApplicationCommandLine, string: str) -> None:
@@ -816,13 +818,14 @@ class LutrisApplication(Gtk.Application):
             self.quit_on_game_exit = False
         return 0
 
-    def on_settings_changed(self, setting_key: str, new_value: Any, section: str) -> None:
+    def on_settings_changed(self, setting_key: str, new_value: Any, section: str) -> bool:
         if section == "lutris":
             if setting_key == "preferred_theme":
                 self.style_manager.preferred_theme = new_value
             elif setting_key == "show_tray_icon" and self.window:
                 if self.window.get_visible():
                     self.set_tray_icon()
+        return True  # stop signal propagation
 
     def on_game_start(self, game: Game) -> None:
         self._running_games.append(game)
