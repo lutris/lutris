@@ -14,14 +14,16 @@ class vice(Runner):
     description = _("Commodore Emulator")
     human_name = _("Vice")
     # flatpak_id = "net.sf.VICE"  # needs adjustments
-    platforms = [
-        _("Commodore 64"),
-        _("Commodore 128"),
-        _("Commodore VIC20"),
-        _("Commodore PET"),
-        _("Commodore Plus/4"),
-        _("Commodore CBM II"),
-    ]
+    platform_dict = Runner.to_platform_dict(
+        [
+            _("Commodore 64"),
+            _("Commodore 128"),
+            _("Commodore VIC20"),
+            _("Commodore PET"),
+            _("Commodore Plus/4"),
+            _("Commodore CBM II"),
+        ]
+    )
     machine_choices = [
         ("C64", "c64"),
         ("C128", "c128"),

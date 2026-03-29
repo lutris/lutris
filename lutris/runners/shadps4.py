@@ -11,7 +11,7 @@ from lutris.util import system
 class shadps4(Runner):
     human_name = _("ShadPS4")
     description = _("PlayStation 4 Emulator")
-    platforms = [_("Sony PlayStation 4")]
+    platform_dict = Runner.to_platform_dict([_("Sony PlayStation 4")])
     runnable_alone = True
     runner_executable = "shadps4/shadPS4QtLauncher-qt.AppImage"
 

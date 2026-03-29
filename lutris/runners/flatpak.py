@@ -19,7 +19,7 @@ class flatpak(Runner):
     """
 
     description = _("Runs Flatpak applications")
-    platforms = [_("Linux")]
+    platform_dict = Runner.to_platform_dict([_("Linux")])
     entry_point_option = "application"
     human_name = _("Flatpak")
     runnable_alone = False

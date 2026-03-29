@@ -9,7 +9,7 @@ from lutris.runners.runner import Runner
 class redream(Runner):
     human_name = _("Redream")
     description = _("Sega Dreamcast emulator")
-    platforms = [_("Sega Dreamcast")]
+    platform_dict = Runner.to_platform_dict([_("Sega Dreamcast")])
     runner_executable = "redream/redream"
     download_url = "https://redream.io/download/redream.x86_64-linux-v1.5.0.tar.gz"
     game_options = [

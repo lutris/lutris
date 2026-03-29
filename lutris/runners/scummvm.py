@@ -53,7 +53,7 @@ def _get_scale_factor_warning(_option_key: str, config: LutrisConfig) -> str | N
 class scummvm(Runner):
     description = _("Engine for point-and-click games.")
     human_name = _("ScummVM")
-    platforms = [_("Linux")]
+    platform_dict = Runner.to_platform_dict([_("Linux")])
     runnable_alone = True
     runner_executable = "scummvm/bin/scummvm"
     flatpak_id = "org.scummvm.ScummVM"

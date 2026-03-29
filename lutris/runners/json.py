@@ -82,42 +82,22 @@ class JsonRunner(Runner):
 
         self._json_data = data
 
-        self.game_options = data.game_options
-        self.runner_options = data.runner_options
-        self.human_name = data.human_name
-        self.description = data.description
-        self.platforms = data.platforms
-        self.runner_executable = data.runner_executable
-        self.system_options_override = data.system_options_override
-        self.entry_point_option = data.entry_point_option
-        self.download_url = data.download_url
-        self.runnable_alone = data.runnable_alone
-        self.flatpak_id = data.flatpak_id
-
-    def _opt_bool(self, opt, args):
-        if self.runner_config.get(opt["option"]):
-            args.append(opt["argument"])
-
-    def _opt_choice(self, opt, args):
-        val = self.runner_config.get(opt["option"])
-        if val != "off":
-            args.extend((opt["argument"], val))
-
-    def _opt_string(self, opt, args):
-        args.extend((opt["argument"], self.runner_config.get(opt["option"])))
-
-    def _opt_cmd(self, opt, args):
-        arg = opt.get("argument")
-        if arg:
-            args.append(arg)
-        args.extend(shlex.split(self.runner_config.get(opt["option"])))
-
-    _OPTION_HANDLERS = {
-        "bool": _opt_bool,
-        "choice": _opt_choice,
-        "string": _opt_string,
-        "command_line": _opt_cmd,
-    }
+        self.game_options = self._json_data["game_options"]
+        self.runner_options = self._json_data.get("runner_options", [])
+        self.human_name = self._json_data["human_name"]
+        self.description = self._json_data["description"]
+        platforms = self._json_data.get("platforms", {})
+        self.platform_dict = (
+            self._json_data["platforms"]
+            if isinstance(platforms, dict)
+            else {platform: platform for platform in platforms}
+        )
+        self.runner_executable = self._json_data["runner_executable"]
+        self.system_options_override = self._json_data.get("system_options_override", [])
+        self.entry_point_option = self._json_data.get("entry_point_option", "main_file")
+        self.download_url = self._json_data.get("download_url")
+        self.runnable_alone = self._json_data.get("runnable_alone")
+        self.flatpak_id = self._json_data.get("flatpak_id")
 
     def play(self):
         """Return a launchable command constructed from the options"""

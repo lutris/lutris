@@ -259,7 +259,7 @@ def _get_wine_version_choices():
 class wine(Runner):
     description: str = _("Runs Windows games")
     human_name = _("Wine")
-    platforms = [_("Windows")]
+    platform_dict = Runner.to_platform_dict([_("Windows")])
     multiple_versions = True
     entry_point_option = "exe"
 

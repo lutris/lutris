@@ -15,7 +15,7 @@ from lutris.util import joypad, system
 class reicast(Runner):
     human_name = _("Reicast")
     description = _("Sega Dreamcast emulator")
-    platforms = [_("Sega Dreamcast")]
+    platform_dict = Runner.to_platform_dict([_("Sega Dreamcast")])
     runner_executable = "reicast/reicast.elf"
     entry_point_option = "iso"
     flatpak_id = "org.flycast.Flycast"

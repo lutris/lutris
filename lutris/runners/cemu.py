@@ -10,7 +10,7 @@ from lutris.util import system
 
 class cemu(Runner):
     human_name = _("Cemu")
-    platforms = [_("Wii U")]
+    platform_dict = Runner.to_platform_dict([_("Wii U")])
     description = _("Wii U emulator")
     runnable_alone = True
     runner_executable = "cemu/Cemu"

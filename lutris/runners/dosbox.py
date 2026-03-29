@@ -15,7 +15,7 @@ from lutris.util import system
 class dosbox(Runner):
     human_name = _("DOSBox")
     description = _("MS-DOS emulator")
-    platforms = [_("MS-DOS")]
+    platform_dict = Runner.to_platform_dict([_("MS-DOS")])
     runnable_alone = True
     runner_executable = "dosbox/dosbox"
     flatpak_id = "io.github.dosbox-staging"

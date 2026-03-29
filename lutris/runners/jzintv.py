@@ -12,7 +12,7 @@ from lutris.util import system
 class jzintv(Runner):
     human_name = _("jzIntv")
     description = _("Intellivision Emulator")
-    platforms = [_("Intellivision")]
+    platform_dict = Runner.to_platform_dict([_("Intellivision")])
     runner_executable = "jzintv/bin/jzintv"
     game_options = [
         {

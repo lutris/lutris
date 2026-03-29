@@ -7,7 +7,7 @@ from lutris.util import system
 
 class xemu(Runner):
     human_name = _("xemu")
-    platforms = [_("Xbox")]
+    platform_dict = Runner.to_platform_dict([_("Xbox")])
     description = _("Xbox emulator")
     runnable_alone = True
     runner_executable = "xemu/xemu"
