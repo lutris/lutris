@@ -2,6 +2,7 @@ import json
 from collections.abc import Callable
 from enum import Enum
 from gettext import gettext as _
+from pathlib import Path
 from typing import Any, Type
 
 from gi.repository import GObject, Gtk
@@ -16,6 +17,7 @@ from lutris.gui.config.runner_config_boxes import (
 from lutris.gui.dialogs import ErrorDialog, SavableModelessDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.widgets.common import Label, VBox
+from lutris.gui.widgets.utils import open_uri
 from lutris.runners import inject_runners
 from lutris.runners.json import SETTING_JSON_RUNNER_DIR, JsonRunner
 from lutris.runners.model import ModelRunner
@@ -259,15 +261,34 @@ class EditRunnerConfigDialog(SavableModelessDialog, DialogInstallUIDelegate):  #
         cell = Gtk.CellRendererText()
         self._runner_format_dropdown.pack_start(cell, True)
         self._runner_format_dropdown.add_attribute(cell, "text", 0)
+
+        open_dir_button = Gtk.Button.new_from_icon_name(
+            "folder-symbolic",
+            Gtk.IconSize.BUTTON,
+        )
+        open_dir_button.show()
+        open_dir_button.set_tooltip_text(_("Open runner location in file browser"))
+
+        open_dir_button.connect("clicked", self._open_in_file_browser, self)
+
         box.pack_start(label, False, False, 0)
         box.pack_start(self._runner_format_dropdown, True, True, 0)
+        box.pack_start(open_dir_button, False, False, 0)
 
         return box
 
-    def _on_runner_name_changed(self, widget):
+    def _open_in_file_browser(self, _open_dir_button: Gtk.Button, _gparam):
+        if self._runner_format_dropdown.get_active_id() == RunnerConfigFileFormats.YAML:
+            SETTING_YAML_RUNNER_DIR.mkdir(parents=True, exist_ok=True)
+            open_uri(str(SETTING_YAML_RUNNER_DIR))
+        elif self._runner_format_dropdown.get_active_id() == RunnerConfigFileFormats.JSON:
+            SETTING_JSON_RUNNER_DIR.mkdir(parents=True, exist_ok=True)
+            open_uri(str(SETTING_JSON_RUNNER_DIR))
+
+    def _on_runner_name_changed(self, _format_dropdown: Gtk.ComboBox):
         self.save_button.set_sensitive(bool(self._runner_name_entry.get_text()))
 
-    def _inject_runner(self, runner_config_path):
+    def _inject_runner(self, runner_config_path: Path):
         runner_name = self._runner_name_entry.get_text()
 
         runner_format = self._runner_format_dropdown.get_active_id()
@@ -278,7 +299,7 @@ class EditRunnerConfigDialog(SavableModelessDialog, DialogInstallUIDelegate):  #
         inject_runners(runners={runner_name: new_runner})
         return new_runner
 
-    def on_save(self, _widget):
+    def on_save(self, _save_button: Gtk.Button):
         runner_dict = self._create_runner_box.to_dict()
         runner_name = self._runner_name_entry.get_text()
         runner_format = self._runner_format_dropdown.get_active_id()
@@ -329,6 +350,7 @@ class EditRunnerConfigDialog(SavableModelessDialog, DialogInstallUIDelegate):  #
                 )
                 return
 
+        runner_config_path = Path()
         if runner_format == RunnerConfigFileFormats.JSON:
             # Make json directory runner directory if it doesn't exist
             SETTING_JSON_RUNNER_DIR.mkdir(parents=True, exist_ok=True)
