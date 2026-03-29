@@ -63,9 +63,10 @@ class DisplayManager:
     """Get display and resolution using GnomeDesktop"""
 
     def __init__(self, screen: Gdk.Screen):
-        self.rr_screen = GnomeDesktop.RRScreen.new(screen)
-        self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
-        self.rr_config.load_current()
+        if GnomeDesktop:
+            self.rr_screen = GnomeDesktop.RRScreen.new(screen)
+            self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
+            self.rr_config.load_current()
 
     def get_display_names(self) -> list[str]:
         """Return names of connected displays"""
