@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from lutris.api import RunnerVersionDict
     from lutris.config import GameConfigDict, LaunchConfigDict, RunnerConfigDict, SystemConfigDict
     from lutris.game import Game
-    from lutris.gui.dialogs.delegate import InstallUIDelegate
+    from lutris.gui.dialogs.delegates import InstallUIDelegate
     from lutris.installer.installer import LutrisInstaller
     from lutris.installer.interpreter import ScriptInterpreter
 
@@ -605,7 +605,8 @@ class Runner:  # pylint: disable=too-many-public-methods
         url: str = runner_version_info["url"]
         self.download_and_extract(url, **opts)
 
-    def download_and_extract(self, url: str, dest: str | None = None, **opts: Any) -> None:
+    def download_and_extract(self, url: str, **opts: Any) -> None:
+        dest = opts.get("dest")
         install_ui_delegate = opts["install_ui_delegate"]
         merge_single = opts.get("merge_single", False)
         callback = opts.get("callback")
