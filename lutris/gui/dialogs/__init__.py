@@ -8,16 +8,10 @@ from collections.abc import Callable
 from gettext import gettext as _
 from typing import Any, TypeVar, cast
 
-import gi
-
-from lutris.exceptions import LutrisError
-
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
-
 from gi.repository import Gdk, GObject, Gtk
 
 from lutris import api, settings
+from lutris.exceptions import LutrisError
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.utils import get_widget_children, get_widget_window
 from lutris.util import datapath
