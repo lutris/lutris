@@ -897,9 +897,9 @@ class LutrisApplication(Gtk.Application):
         if url:
             urls = url.get_strv()
 
-        if urls:
-            url_str = urls[0]
-            installer_info = parse_installer_url(url_str)
+            if urls:
+                url_str = urls[0]
+                installer_info = parse_installer_url(url_str)
         return installer_info
 
     def print_game_list(self, command_line: Gio.ApplicationCommandLine, game_list: list["DbGameDict"]) -> None:
