@@ -49,7 +49,7 @@ if TYPE_CHECKING:
     from lutris.runners.runner import Runner
 
 ADDON_RUNNERS: dict[str, type["Runner"]] = {}
-_cached_runner_human_names = {}
+_cached_runner_human_names: dict[str, str] = {}
 
 
 class InvalidRunnerError(MisconfigurationError):

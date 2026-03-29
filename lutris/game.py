@@ -422,7 +422,7 @@ class Game:
             logger.error("Game %s not found in database", self.id)
             return False
 
-        def on_installers_ready(installers: dict[str, Any], error: BaseException) -> None:
+        def on_installers_ready(installers: list[dict[str, Any]], error: BaseException) -> None:
             if error:
                 raise error  # bounce errors off the backstop
 

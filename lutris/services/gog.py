@@ -576,7 +576,7 @@ class GOGService(OnlineService):
         with open(file_path, encoding="utf-8") as checksum_file:
             checksum_content = checksum_file.read()
         root_elem = etree.fromstring(checksum_content)
-        return root_elem.attrib["name"], root_elem.attrib["md5"]
+        return str(root_elem.attrib["name"]), str(root_elem.attrib["md5"])
 
     def generate_installer(self, db_game: dict[str, Any]) -> dict[str, Any]:
         details = json.loads(db_game["details"])
