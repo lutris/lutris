@@ -13,7 +13,7 @@ from lutris.util import system
 class hatari(Runner):
     human_name = _("Hatari")
     description = _("Atari ST computers emulator")
-    platforms = [_("Atari ST")]
+    platform_dict = Runner.to_platform_dict([_("Atari ST")])
     runnable_alone = True
     flatpak_id = "org.tuxfamily.hatari"
     runner_executable = "hatari/bin/hatari"

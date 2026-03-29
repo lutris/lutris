@@ -11,7 +11,7 @@ from lutris.util import system
 class osmose(Runner):
     human_name = _("Osmose")
     description = _("Sega Master System Emulator")
-    platforms = [_("Sega Master System")]
+    platform_dict = Runner.to_platform_dict([_("Sega Master System")])
     runner_executable = "osmose/osmose"
     game_options = [
         {

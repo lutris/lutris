@@ -92,17 +92,19 @@ class fsuae(Runner):
     human_name = _("FS-UAE")
     description = _("Amiga emulator")
     flatpak_id = "net.fsuae.FS-UAE"
-    platforms = [
-        AMIGAS["A500"]["name"],
-        AMIGAS["A500+"]["name"],
-        AMIGAS["A600"]["name"],
-        AMIGAS["A1200"]["name"],
-        AMIGAS["A3000"]["name"],
-        AMIGAS["A4000"]["name"],
-        AMIGAS["A1000"]["name"],
-        AMIGAS["CD32"]["name"],
-        AMIGAS["CDTV"]["name"],
-    ]
+    platform_dict = Runner.to_platform_dict(
+        [
+            AMIGAS["A500"]["name"],
+            AMIGAS["A500+"]["name"],
+            AMIGAS["A600"]["name"],
+            AMIGAS["A1200"]["name"],
+            AMIGAS["A3000"]["name"],
+            AMIGAS["A4000"]["name"],
+            AMIGAS["A1000"]["name"],
+            AMIGAS["CD32"]["name"],
+            AMIGAS["CDTV"]["name"],
+        ]
+    )
 
     model_choices = [(model["name"], key) for key, model in AMIGAS.items()]
 

@@ -9,7 +9,7 @@ VER_STR = "2123.2"
 
 class azahar(Runner):
     human_name = _("Azahar")
-    platforms = [_("Nintendo 3DS")]
+    platform_dict = Runner.to_platform_dict([_("Nintendo 3DS")])
     description = _("Nintendo 3DS Emulator")
     runnable_alone = True
     runner_executable = "azahar/azahar.AppImage"

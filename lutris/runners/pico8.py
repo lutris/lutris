@@ -21,7 +21,7 @@ class pico8(Runner):
     description = _("Runs PICO-8 fantasy console cartridges")
     multiple_versions = False
     human_name = _("PICO-8")
-    platforms = [_("PICO-8")]
+    platform_dict = Runner.to_platform_dict([_("PICO-8")])
     game_options = [
         {
             "option": "main_file",

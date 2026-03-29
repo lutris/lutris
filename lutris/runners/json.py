@@ -29,7 +29,12 @@ class JsonRunner(Runner):
         self.runner_options = self._json_data.get("runner_options", [])
         self.human_name = self._json_data["human_name"]
         self.description = self._json_data["description"]
-        self.platforms = self._json_data["platforms"]
+        platforms = self._json_data.get("platforms", {})
+        self.platform_dict = (
+            self._json_data["platforms"]
+            if isinstance(platforms, dict)
+            else {platform: platform for platform in platforms}
+        )
         self.runner_executable = self._json_data["runner_executable"]
         self.system_options_override = self._json_data.get("system_options_override", [])
         self.entry_point_option = self._json_data.get("entry_point_option", "main_file")
