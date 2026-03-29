@@ -531,8 +531,8 @@ class LutrisApplication(Gtk.Application):
             service = option.get_string()
             game_list = games_db.get_games(filters={"installed": 1, "service": service})
             service_game_list = ServiceGameCollection.get_for_service(service)
-            for game in service_game_list:
-                game["installed"] = any(("service_id", game["appid"]) in item.items() for item in game_list)
+            for db_game in service_game_list:
+                db_game["installed"] = any(("service_id", db_game["appid"]) in item.items() for item in game_list)
             if options.contains("installed"):
                 service_game_list = [d for d in service_game_list if d["installed"]]
             if options.contains("json"):
@@ -545,11 +545,11 @@ class LutrisApplication(Gtk.Application):
         if options.contains("list-all-service-games"):
             game_list = games_db.get_games(filters={"installed": 1})
             service_game_list = ServiceGameCollection.get_service_games()
-            for game in service_game_list:
-                game["installed"] = any(
-                    ("service_id", game["appid"]) in item.items()
+            for db_game in service_game_list:
+                db_game["installed"] = any(
+                    ("service_id", db_game["appid"]) in item.items()
                     for item in game_list
-                    if item["service"] == game["service"]
+                    if item["service"] == db_game["service"]
                 )
             if options.contains("installed"):
                 service_game_list = [d for d in service_game_list if d["installed"]]
@@ -790,7 +790,7 @@ class LutrisApplication(Gtk.Application):
             def on_error(error: BaseException) -> None:
                 logger.exception("Unable to launch game: %s", error)
 
-            game = Game(db_game["id"])
+            game = Game(str(db_game["id"]))
             game.game_error.register(on_error)
             game.launch(self.launch_ui_delegate)
 
