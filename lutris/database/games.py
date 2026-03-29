@@ -9,7 +9,7 @@ from lutris.database import sql
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
-_SERVICE_CACHE = {}
+_SERVICE_CACHE: dict[str, list[str]] = {}
 _SERVICE_CACHE_ACCESSED = False  # Keep time of last access to have a self degrading cache
 
 DbGameDict: TypeAlias = dict[str, Any]

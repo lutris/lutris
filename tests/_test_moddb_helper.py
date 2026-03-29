@@ -1,4 +1,5 @@
 import unittest
+from typing import Any
 
 from lutris.util.log import logger
 
@@ -7,7 +8,7 @@ try:
 
     SKIP_TESTS = False
 except ImportError:
-    moddb = object
+    moddb: Any = object
     logger.error("ModDB tests skipped")
     SKIP_TESTS = True
 from lutris.util.log import logger

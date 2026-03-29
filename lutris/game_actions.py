@@ -186,7 +186,7 @@ class GameActions:
         """Callback that present the uninstall dialog to the user"""
         game_ids = [g.id for g in self.get_games() if g.is_installed or g.is_db_stored]
         application: "LutrisApplication" = Gio.Application.get_default()
-        dlg = application.show_window(UninstallDialog, parent=self.window)
+        dlg: UninstallDialog = application.show_window(UninstallDialog, parent=self.window)
         dlg.add_games(game_ids)
 
     def on_edit_game_categories(self, _widget: Gtk.Widget) -> None:

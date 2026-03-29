@@ -16,6 +16,8 @@ disable_error_code = [
     "assignment",  # Allow incompatible types in assignment (used heavily in lutris class structure).
 ]
 allow_redefinition = true
+allow_redefinition_new = true
+local_partial_types = true
 follow_imports = "silent"
 ignore_missing_imports = true
 
