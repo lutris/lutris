@@ -14,7 +14,7 @@ import re
 import struct
 from binascii import crc32
 from io import StringIO as unicodeIO
-from typing import IO, Any, Iterator, Type
+from typing import IO, Any, Iterator
 
 string_type = str
 int_type = int
@@ -62,7 +62,7 @@ def _unescape(text: str) -> str:
 
 
 def parse(
-    fp: IO[str], mapper: Type[dict[str, Any]] = dict, merge_duplicate_keys: bool = True, escaped: bool = True
+    fp: IO[str], mapper: type[dict[str, Any]] = dict, merge_duplicate_keys: bool = True, escaped: bool = True
 ) -> dict[str, Any]:
     """
     Deserialize ``s`` (a ``str`` or ``unicode`` instance containing a VDF)
@@ -295,7 +295,7 @@ BIN_END_ALT = b"\x0b"
 
 
 def binary_loads(
-    s: bytes, mapper: Type[dict[str, Any]] = dict, merge_duplicate_keys: bool = True, alt_format: bool = False
+    s: bytes, mapper: type[dict[str, Any]] = dict, merge_duplicate_keys: bool = True, alt_format: bool = False
 ) -> dict[str, Any]:
     """
     Deserialize ``s`` (``bytes`` containing a VDF in "binary form")
@@ -401,7 +401,7 @@ def binary_dumps(obj: dict[str, Any], alt_format: bool = False) -> bytes:
 
 def _binary_dump_gen(obj: dict[str, Any], level: int = 0, alt_format: bool = False) -> Iterator[bytes]:
     if level == 0 and len(obj) == 0:
-        yield b""
+        return
 
     int32 = struct.Struct("<i")
     uint64 = struct.Struct("<Q")
@@ -447,7 +447,7 @@ def _binary_dump_gen(obj: dict[str, Any], level: int = 0, alt_format: bool = Fal
     yield BIN_END if not alt_format else BIN_END_ALT
 
 
-def vbkv_loads(s: bytes, mapper: Type[dict[str, Any]] = dict, merge_duplicate_keys: bool = True) -> dict[str, Any]:
+def vbkv_loads(s: bytes, mapper: type[dict[str, Any]] = dict, merge_duplicate_keys: bool = True) -> dict[str, Any]:
     """
     Deserialize ``s`` (``bytes`` containing a VBKV to a Python object.
 

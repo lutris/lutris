@@ -167,7 +167,7 @@ class SteamID:
                 )
             steamid = int(match.group("steamid"))
             instance = steamid & 1
-            account_number = int((steamid - instance) / 2)
+            account_number = (steamid - instance) // 2
             return cls(account_number, instance, LETTER_TYPE_MAP[match.group("type")], universe)
         match = COMMUNITY64_REGEX.match(url.path)
         if match:
@@ -195,7 +195,7 @@ class SteamID:
     def get_account_number_from_steamid(steamid: int) -> int:
         """Return account number from 64bit SteamID. For individuals only."""
         instance = steamid & 1
-        return int((steamid - instance - 0x0110000100000000) / 2)
+        return (steamid - instance - 0x0110000100000000) // 2
 
     @classmethod
     def from_text(cls, steam_id: str, account_type: int = TYPE_INDIVIDUAL) -> "SteamID":
