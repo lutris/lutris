@@ -8,6 +8,7 @@ See: https://developer.valvesoftware.com/wiki/SteamID
 import re
 import urllib.parse
 import warnings
+from types import NotImplementedType
 
 UNIVERSE_INDIVIDUAL = 0  #:
 UNIVERSE_PUBLIC = 1  #:
@@ -141,7 +142,7 @@ class SteamID:
     base_community_url = "http://steamcommunity.com/"
 
     @classmethod
-    def from_community_url(cls, steam_id, universe=UNIVERSE_INDIVIDUAL):
+    def from_community_url(cls, steam_id: str, universe: int = UNIVERSE_INDIVIDUAL) -> "SteamID":
         """Parse a Steam community URL into a :class:`.SteamID` instance
 
         This takes a Steam community URL for a profile or group and converts
@@ -166,7 +167,7 @@ class SteamID:
                 )
             steamid = int(match.group("steamid"))
             instance = steamid & 1
-            account_number = (steamid - instance) / 2
+            account_number = int((steamid - instance) / 2)
             return cls(account_number, instance, LETTER_TYPE_MAP[match.group("type")], universe)
         match = COMMUNITY64_REGEX.match(url.path)
         if match:
@@ -182,20 +183,22 @@ class SteamID:
         raise SteamIDError("Invalid Steam community URL ({})".format(url))
 
     @classmethod
-    def from_steamid64(cls, steamid, account_type=TYPE_INDIVIDUAL, universe=UNIVERSE_INDIVIDUAL):
+    def from_steamid64(
+        cls, steamid: int, account_type: int = TYPE_INDIVIDUAL, universe: int = UNIVERSE_INDIVIDUAL
+    ) -> "SteamID":
         """Create an instance of SteamID from a SteamID64. Only for normal user accounts."""
         instance = steamid & 1
         account_number = cls.get_account_number_from_steamid(steamid)
         return cls(account_number, instance, account_type, universe)
 
     @staticmethod
-    def get_account_number_from_steamid(steamid):
+    def get_account_number_from_steamid(steamid: int) -> int:
         """Return account number from 64bit SteamID. For individuals only."""
         instance = steamid & 1
-        return (steamid - instance - 0x0110000100000000) / 2
+        return int((steamid - instance - 0x0110000100000000) / 2)
 
     @classmethod
-    def from_text(cls, steam_id, account_type=TYPE_INDIVIDUAL):
+    def from_text(cls, steam_id: str, account_type: int = TYPE_INDIVIDUAL) -> "SteamID":
         """Parse a SteamID in the STEAM_X:Y:Z form
 
         Takes a teaxtual SteamID in the form STEAM_X:Y:Z and returns
@@ -220,7 +223,7 @@ class SteamID:
             raise SteamIDError("ID '{}' doesn't match format {}".format(steam_id, TEXTUAL_ID_REGEX.pattern))
         return cls(int(match.group("Z")), int(match.group("Y")), account_type, int(match.group("X")))
 
-    def __init__(self, account_number, instance, account_type, universe):
+    def __init__(self, account_number: int, instance: int, account_type: int, universe: int):
         if universe not in UNIVERSES:
             raise SteamIDError("Invalid universe {}".format(universe))
         if account_type not in ACCOUNT_TYPES:
@@ -235,14 +238,14 @@ class SteamID:
         self.universe = universe  # X
 
     @property
-    def type_name(self):
+    def type_name(self) -> str:
         """The account type as a string"""
 
-        return {v: k for k, v in globals().iteritems() if k.startswith("TYPE_")}.get(
-            self.account_type, self.account_type
+        return str(
+            {v: k for k, v in globals().items() if k.startswith("TYPE_")}.get(self.account_type, self.account_type)
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         """The textual representation of the SteamID
 
         This is in the STEAM_X:Y:Z form and can be parsed by :meth:`.from_text`
@@ -261,7 +264,7 @@ class SteamID:
             return "UNKNOWN"
         return "STEAM_{}:{}:{}".format(self.universe, self.instance, self.account_number)
 
-    def __int__(self):
+    def __int__(self) -> int:
         """The 64 bit representation of the SteamID
 
         64 bit SteamIDs are only valid for those with the type
@@ -282,21 +285,25 @@ class SteamID:
             return (self.account_number * 2) + 0x0170000000000000 + self.instance
         raise SteamIDError("Cannot create 64-bit identifier for SteamID with type {}".format(self.type_name))
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool | NotImplementedType:
+        if not isinstance(other, SteamID):
+            return NotImplemented
         try:
             return (
                 self.account_number == other.account_number
                 and self.instance == other.instance
-                and self.account_type == other.type
+                and self.account_type == other.account_type
                 and self.universe == other.universe
             )
         except AttributeError:
             return False  # Should probably raise TypeError
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool | NotImplementedType:
+        if not isinstance(other, SteamID):
+            return NotImplemented
         return not self == other
 
-    def as_32(self):
+    def as_32(self) -> str:
         """Returns the 32 bit community ID as a string
 
         This is only applicable for :data:`TYPE_INDIVIDUAL`,
@@ -312,10 +319,10 @@ class SteamID:
                 "Cannot create 32-bit indentifier for SteamID with type {}".format(self.type_name)
             ) from ex
 
-    def get_32_bit_community_id(self):
+    def get_32_bit_community_id(self) -> int:
         return (self.account_number * 2) + self.instance
 
-    def as_64(self):
+    def as_64(self) -> str:
         """Returns the 64 bit representation as a string
 
         This is only possible if the ID type is :data:`TYPE_INDIVIDUAL` or
@@ -324,7 +331,7 @@ class SteamID:
 
         return str(int(self))
 
-    def community_url(self, id64=True):
+    def community_url(self, id64: bool = True) -> str:
         """Returns the full URL to the Steam Community page for the SteamID
 
         This can either be generate a URL from the 64 bit representation

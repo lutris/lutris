@@ -14,13 +14,14 @@ import re
 import struct
 from binascii import crc32
 from io import StringIO as unicodeIO
+from typing import IO, Any, Iterator, Type
 
 string_type = str
 int_type = int
 BOMS = "\ufffe\ufeff"
 
 
-def strip_bom(line):
+def strip_bom(line: str) -> str:
     return line.lstrip(BOMS)
 
 
@@ -41,26 +42,28 @@ _unescape_char_map = {
 _escape_char_map = {v: k for k, v in _unescape_char_map.items()}
 
 
-def _re_escape_match(m):
+def _re_escape_match(m: re.Match[str]) -> str:
     return _escape_char_map[m.group()]
 
 
-def _re_unescape_match(m):
+def _re_unescape_match(m: re.Match[str]) -> str:
     return _unescape_char_map[m.group()]
 
 
-def _escape(text):
+def _escape(text: str) -> str:
     return re.sub(r"[\n\t\v\b\r\f\a\\\?\"']", _re_escape_match, text)
 
 
-def _unescape(text):
+def _unescape(text: str) -> str:
     return re.sub(r"(\\n|\\t|\\v|\\b|\\r|\\f|\\a|\\\\|\\\?|\\\"|\\')", _re_unescape_match, text)
 
 
 # parsing and dumping for KV1
 
 
-def parse(fp, mapper=dict, merge_duplicate_keys=True, escaped=True):
+def parse(
+    fp: IO[str], mapper: Type[dict[str, Any]] = dict, merge_duplicate_keys: bool = True, escaped: bool = True
+) -> dict[str, Any]:
     """
     Deserialize ``s`` (a ``str`` or ``unicode`` instance containing a VDF)
     to a Python object.
@@ -182,7 +185,7 @@ def parse(fp, mapper=dict, merge_duplicate_keys=True, escaped=True):
     return stack.pop()
 
 
-def loads(s, **kwargs):
+def loads(s: str, **kwargs: Any) -> dict[str, Any]:
     """
     Deserialize ``s`` (a ``str`` or ``unicode`` instance containing a JSON
     document) to a Python object.
@@ -193,7 +196,7 @@ def loads(s, **kwargs):
     return parse(fp, **kwargs)
 
 
-def load(fp, **kwargs):
+def load(fp: IO[str], **kwargs: Any) -> dict[str, Any]:
     """
     Deserialize ``fp`` (a ``.readline()``-supporting file-like object containing
     a JSON document) to a Python object.
@@ -201,7 +204,7 @@ def load(fp, **kwargs):
     return parse(fp, **kwargs)
 
 
-def dumps(obj, pretty=False, escaped=True):
+def dumps(obj: dict[str, Any], pretty: bool = False, escaped: bool = True) -> str:
     """
     Serialize ``obj`` to a VDF formatted ``str``.
     """
@@ -215,7 +218,7 @@ def dumps(obj, pretty=False, escaped=True):
     return "".join(_dump_gen(obj, pretty, escaped))
 
 
-def dump(obj, fp, pretty=False, escaped=True):
+def dump(obj: dict[str, Any], fp: IO[str], pretty: bool = False, escaped: bool = True) -> None:
     """
     Serialize ``obj`` as a VDF formatted stream to ``fp`` (a
     ``.write()``-supporting file-like object).
@@ -233,7 +236,7 @@ def dump(obj, fp, pretty=False, escaped=True):
         fp.write(chunk)
 
 
-def _dump_gen(data, pretty=False, escaped=True, level=0):
+def _dump_gen(data: dict[str, Any], pretty: bool = False, escaped: bool = True, level: int = 0) -> Iterator[str]:
     indent = "\t"
     line_indent = ""
 
@@ -258,7 +261,7 @@ def _dump_gen(data, pretty=False, escaped=True, level=0):
 
 # binary VDF
 class BASE_INT(int_type):
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s(%s)" % (self.__class__.__name__, self)
 
 
@@ -291,7 +294,9 @@ BIN_INT64 = b"\x0a"
 BIN_END_ALT = b"\x0b"
 
 
-def binary_loads(s, mapper=dict, merge_duplicate_keys=True, alt_format=False):
+def binary_loads(
+    s: bytes, mapper: Type[dict[str, Any]] = dict, merge_duplicate_keys: bool = True, alt_format: bool = False
+) -> dict[str, Any]:
     """
     Deserialize ``s`` (``bytes`` containing a VDF in "binary form")
     to a Python object.
@@ -315,7 +320,7 @@ def binary_loads(s, mapper=dict, merge_duplicate_keys=True, alt_format=False):
     int64 = struct.Struct("<q")
     float32 = struct.Struct("<f")
 
-    def read_string(s, idx, wide=False):
+    def read_string(s: bytes, idx: int, wide: bool = False) -> tuple[str, int]:
         if wide:
             end = s.find(b"\x00\x00", idx)
             if (end - idx) % 2 != 0:
@@ -325,16 +330,11 @@ def binary_loads(s, mapper=dict, merge_duplicate_keys=True, alt_format=False):
 
         if end == -1:
             raise SyntaxError("Unterminated cstring (offset: %d)" % idx)
-        result = s[idx:end]
+        bytes_slice = s[idx:end]
         if wide:
-            result = result.decode("utf-16")
-        elif bytes is not str:
-            result = result.decode("utf-8", "replace")
+            result = bytes_slice.decode("utf-16")
         else:
-            try:
-                result.decode("ascii")
-            except:
-                result = result.decode("utf-8", "replace")
+            result = bytes_slice.decode("utf-8", "replace")
         return result, end + (2 if wide else 1)
 
     stack = [mapper()]
@@ -392,25 +392,25 @@ def binary_loads(s, mapper=dict, merge_duplicate_keys=True, alt_format=False):
     return stack.pop()
 
 
-def binary_dumps(obj, alt_format=False):
+def binary_dumps(obj: dict[str, Any], alt_format: bool = False) -> bytes:
     """
     Serialize ``obj`` to a binary VDF formatted ``bytes``.
     """
     return b"".join(_binary_dump_gen(obj, alt_format=alt_format))
 
 
-def _binary_dump_gen(obj, level=0, alt_format=False):
+def _binary_dump_gen(obj: dict[str, Any], level: int = 0, alt_format: bool = False) -> Iterator[bytes]:
     if level == 0 and len(obj) == 0:
-        return
+        yield b""
 
     int32 = struct.Struct("<i")
     uint64 = struct.Struct("<Q")
     int64 = struct.Struct("<q")
     float32 = struct.Struct("<f")
 
-    for key, value in obj.items():
-        if isinstance(key, string_type):
-            key = key.encode("utf-8")
+    for key_str, value in obj.items():
+        if isinstance(key_str, string_type):
+            key = key_str.encode("utf-8")
         else:
             raise TypeError("dict keys must be of type str, got %s" % type(key))
 
@@ -447,7 +447,7 @@ def _binary_dump_gen(obj, level=0, alt_format=False):
     yield BIN_END if not alt_format else BIN_END_ALT
 
 
-def vbkv_loads(s, mapper=dict, merge_duplicate_keys=True):
+def vbkv_loads(s: bytes, mapper: Type[dict[str, Any]] = dict, merge_duplicate_keys: bool = True) -> dict[str, Any]:
     """
     Deserialize ``s`` (``bytes`` containing a VBKV to a Python object.
 
@@ -470,7 +470,7 @@ def vbkv_loads(s, mapper=dict, merge_duplicate_keys=True):
     return binary_loads(s[8:], mapper, merge_duplicate_keys, alt_format=True)
 
 
-def vbkv_dumps(obj):
+def vbkv_dumps(obj: dict[str, Any]) -> bytes:
     """
     Serialize ``obj`` to a VBKV formatted ``bytes``.
     """

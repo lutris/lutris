@@ -2,6 +2,7 @@
 
 import os
 from collections import OrderedDict
+from typing import Any, Iterable
 
 import requests
 
@@ -26,22 +27,24 @@ STEAM_DATA_DIRS = (
 STEAM_ACCOUNT_SETTING = "active_steam_account"
 
 
-def get_steam_dir():
+def get_steam_dir() -> str | None:
     """Main installation directory for Steam"""
     steam_dir = search_in_steam_dirs("steamapps")
     if steam_dir:
         return steam_dir[: -len("steamapps")]
+    return None
 
 
-def search_in_steam_dirs(file):
+def search_in_steam_dirs(file: str) -> str | None:
     """Find the (last) file/dir in all the Steam directories"""
     for candidate in STEAM_DATA_DIRS:
         path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), file))
         if path and system.path_exists(path):
             return path
+    return None
 
 
-def get_default_acf(appid, name):
+def get_default_acf(appid: str, name: str) -> dict[str, Any]:
     """Return a default configuration usable to
     create a runnable game in Steam"""
 
@@ -58,16 +61,16 @@ def get_default_acf(appid, name):
     return {"AppState": appstate}
 
 
-def read_user_config():
+def read_user_config() -> dict[str, Any] | None:
     config_filename = search_in_steam_dirs("config/loginusers.vdf")
-    if not system.path_exists(config_filename):
+    if not config_filename or not system.path_exists(config_filename):
         return None
     with open(config_filename, "r", encoding="utf-8") as steam_config_file:
-        config = vdf_parse(steam_config_file, {})
+        config: dict[str, Any] = vdf_parse(steam_config_file, {})
     return config
 
 
-def get_config_value(config: dict, key: str):
+def get_config_value(config: dict[str, Any], key: str) -> Any:
     """Fetch a value from a configuration in a case insensitive way"""
     keymap = {k.lower(): k for k in config.keys()}
     if key not in keymap:
@@ -76,7 +79,7 @@ def get_config_value(config: dict, key: str):
     return config[keymap[key.lower()]]
 
 
-def get_user_data_dirs():
+def get_user_data_dirs() -> tuple[str, list[str]]:
     """Return the list of available Steam user config directories (using a SteamID32)
     and the base path where the settings are located (Returns the 1st location found)
     """
@@ -90,7 +93,7 @@ def get_user_data_dirs():
     return "", []
 
 
-def get_steam_users() -> list:
+def get_steam_users() -> list[dict[str, Any]]:
     """Return a list of available Steam users.
     Most recently used account is 1st in the list."""
     steam_users = []
@@ -116,7 +119,7 @@ def get_active_steamid64() -> str:
     if active_steam_id in steam_ids:
         return active_steam_id
     if steam_ids:
-        return steam_ids[0]
+        return str(steam_ids[0])
     return ""
 
 
@@ -128,7 +131,7 @@ def convert_steamid64_to_steamid32(steamid64: str) -> str:
     return str(steam_id.get_32_bit_community_id())
 
 
-def get_steam_library(steamid):
+def get_steam_library(steamid: str) -> list[dict[str, Any]]:
     """Return the list of games owned by a SteamID"""
     if not steamid:
         raise ValueError("Missing SteamID")
@@ -148,17 +151,18 @@ def get_steam_library(steamid):
         logger.info("No games in response of %s", steam_games_url)
         return []
     if "games" in response:
-        return response["games"]
+        games: list[dict[str, Any]] = response["games"]
+        return games
     if "game_count" in response and response["game_count"] == 0:
         return []
     logger.error("Weird response: %s", json_data)
     return []
 
 
-def read_config(steam_data_dir):
+def read_config(steam_data_dir: str | None) -> dict[str, Any] | None:
     """Read the Steam configuration and return it as an object"""
 
-    def get_entry_case_insensitive(config_dict, path):
+    def get_entry_case_insensitive(config_dict: dict[str, Any], path: list[str]) -> Any:
         for key, _value in config_dict.items():
             if key.lower() == path[0].lower():
                 if len(path) <= 1:
@@ -175,15 +179,16 @@ def read_config(steam_data_dir):
     with open(config_filename, "r", encoding="utf-8") as steam_config_file:
         config = vdf_parse(steam_config_file, {})
     try:
-        return get_entry_case_insensitive(config, ["InstallConfigStore", "Software", "Valve", "Steam"])
+        return dict(get_entry_case_insensitive(config, ["InstallConfigStore", "Software", "Valve", "Steam"]))
     except KeyError as ex:
         logger.error("Steam config %s is empty: %s", config_filename, ex)
+        return None
 
 
-def read_library_folders(steam_data_dir):
+def read_library_folders(steam_data_dir: str | None) -> dict[str, Any] | None:
     """Read the Steam Library Folders config and return it as an object"""
 
-    def get_entry_case_insensitive(library_dict, path):
+    def get_entry_case_insensitive(library_dict: dict[str, Any], path: list[str]) -> Any:
         for key, value in library_dict.items():
             if key.lower() == path[0].lower():
                 if len(path) <= 1:
@@ -201,27 +206,28 @@ def read_library_folders(steam_data_dir):
         # The contentstatsid key is unused and causes problems when looking for library paths.
         library["libraryfolders"].pop("contentstatsid", None)
     try:
-        return get_entry_case_insensitive(library, ["libraryfolders"])
+        return dict(get_entry_case_insensitive(library, ["libraryfolders"]))
     except KeyError as ex:
         logger.error("Steam libraryfolders %s is empty: %s", library_filename, ex)
+        return None
 
 
-def get_steam_config():
+def get_steam_config() -> dict[str, Any] | None:
     """Return the "Steam" part of Steam's config.vdf as a dict."""
     return read_config(get_steam_dir())
 
 
-def get_library_config():
+def get_library_config() -> dict[str, Any] | None:
     """Return the "libraryfolders" part of Steam's libraryfolders.vdf as a dict"""
     return read_library_folders(get_steam_dir())
 
 
-def get_steamapps_dirs():
+def get_steamapps_dirs() -> Iterable[str]:
     """Return a list of the Steam library main + custom folders."""
     dirs = []
     # Extra colon-separated compatibility tools dirs environment variable
-    if "STEAM_EXTRA_COMPAT_TOOLS_PATHS" in os.environ:
-        dirs += os.getenv("STEAM_EXTRA_COMPAT_TOOLS_PATHS").split(":")
+    if compat_tool_paths := os.getenv("STEAM_EXTRA_COMPAT_TOOLS_PATHS"):
+        dirs += compat_tool_paths.split(":")
     # Main steamapps dir and compatibilitytools.d dir
     for data_dir in STEAM_DATA_DIRS:
         for _dir in ["steamapps", "compatibilitytools.d"]:
