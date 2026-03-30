@@ -387,6 +387,7 @@ class SingleGameActions(GameActions):
             return False
         from lutris.database.profiles import DEFAULT_PROFILE_ID
         from lutris.profile import get_profile_manager
+
         return get_profile_manager().current_profile_id != DEFAULT_PROFILE_ID
 
     def on_verify_prefix(self, _widget: Gtk.Widget) -> None:
@@ -418,6 +419,7 @@ class SingleGameActions(GameActions):
                 source_prefix = game.runner._find_original_prefix()  # type: ignore[attr-defined]
 
             if source_prefix and os.path.isdir(source_prefix) and source_prefix != prefix_path:
+
                 def _dir_size(path: str) -> int:
                     total = 0
                     for dirpath, _dirnames, filenames in os.walk(path):
@@ -432,9 +434,11 @@ class SingleGameActions(GameActions):
                 source_mb = _dir_size(source_prefix) // (1024 * 1024)
                 ratio = profile_mb / source_mb if source_mb else 1.0
                 if ratio < 0.90:
-                    status = _(
-                        "⚠ Prefix may be incomplete: %d MB (source: %d MB, %.0f%% present)."
-                    ) % (profile_mb, source_mb, ratio * 100)
+                    status = _("⚠ Prefix may be incomplete: %d MB (source: %d MB, %.0f%% present).") % (
+                        profile_mb,
+                        source_mb,
+                        ratio * 100,
+                    )
                 else:
                     status = _("✓ Prefix OK: %d MB (source: %d MB).") % (profile_mb, source_mb)
             else:
