@@ -68,7 +68,7 @@ class DolphinService(BaseService):
                 if platform_value.isdigit():
                     platform_number = int(details["platform"])
                     if 0 <= platform_number < len(PLATFORMS):
-                        platform = PLATFORMS[platform_number]
+                        platform = list(PLATFORMS.values())[platform_number]
                         return [platform]
 
                 return [platform_value]

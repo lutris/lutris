@@ -8,13 +8,13 @@ from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 
-PLATFORMS = [_("Nintendo GameCube"), _("Nintendo Wii")]
+PLATFORMS = Runner.to_platform_dict([_("Nintendo GameCube"), _("Nintendo Wii")])
 
 
 class dolphin(Runner):
     description = _("GameCube and Wii emulator")
     human_name = _("Dolphin")
-    platforms = PLATFORMS
+    platform_dict = PLATFORMS
     require_libs = [
         "libOpenGL.so.0",
     ]

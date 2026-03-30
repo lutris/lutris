@@ -1,6 +1,7 @@
 """libretro runner"""
 
 import os
+from collections.abc import Iterable
 from gettext import gettext as _
 from operator import itemgetter
 from zipfile import ZipFile
@@ -125,6 +126,10 @@ class libretro(Runner):
     @property
     def platforms(self):
         return [core[2] for core in get_libretro_cores()]
+
+    @platforms.setter
+    def platforms(self, platform_list: Iterable[str]):
+        self.platform_dict = {platform: platform for platform in platform_list}
 
     def get_platform(self):
         game_core = self.game_config.get("core")

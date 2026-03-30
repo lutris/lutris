@@ -69,7 +69,6 @@ class mame(Runner):  # pylint: disable=invalid-name
     config_dir = os.path.expanduser("~/.mame")
     cache_dir = os.path.join(settings.CACHE_DIR, "mame")
     xml_path = os.path.join(cache_dir, "mame.xml")
-    _platforms = []
 
     game_options = [
         {
@@ -246,14 +245,6 @@ class mame(Runner):  # pylint: disable=invalid-name
         return os.path.join(settings.RUNNER_DIR, "mame")
 
     @property
-    def platforms(self):
-        if self._platforms:
-            return self.platforms
-        self._platforms = [choice[0] for choice in get_system_choices(include_year=False)]
-        self._platforms += [_("Arcade"), _("Nintendo Game & Watch")]
-        return self._platforms
-
-    @property
     def default_path(self):
         """Return the default path, use the runner's rompath"""
         main_file = self.game_config.get("main_file")
@@ -275,9 +266,6 @@ class mame(Runner):  # pylint: disable=invalid-name
             logger.warning("Couldn't get any output for mame -listxml: %s", error_output)
 
     def get_platform(self):
-        selected_platform = self.game_config.get("platform")
-        if selected_platform:
-            return self.platforms[int(selected_platform)]
         if self.game_config.get("machine"):
             machine_mapping = {choice[1]: choice[0] for choice in get_system_choices(include_year=False)}
             # get_system_choices() can return [] if not yet ready, so we'll return

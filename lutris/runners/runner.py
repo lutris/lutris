@@ -52,7 +52,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     """Generic runner (base class for other runners)."""
 
     multiple_versions = False
-    platforms: list[str] = []
+    platform_dict: dict[str, str] = {}
     runnable_alone = False
     game_options = []
     runner_options = []
@@ -172,8 +172,33 @@ class Runner:  # pylint: disable=too-many-public-methods
             return cast(str, self.game_data.get("discord_client_id"))
         return None
 
+    @classmethod
+    def to_platform_dict(cls, platform_list: list[str]) -> dict[str, str]:
+        """
+        Convert a platform list to a dictionary
+        """
+        return {platform: platform for platform in platform_list}
+
+    @property
+    def platforms(self) -> list[str]:
+        """
+        Retrieve the platform as list using the values
+        """
+        return list(self.platform_dict.values())
+
+    @platforms.setter
+    def platforms(self, platform_list: list[str]) -> None:
+        """
+        Setter for platform dictionary, set the platform from a list
+        """
+        self.platform_dict = {platform: platform for platform in platform_list}
+
     def get_platform(self) -> str:
-        return self.platforms[0]
+        selected_platform = self.game_config.get("platform")
+        if selected_platform in self.platform_dict:
+            return self.platform_dict[selected_platform]
+        else:
+            return next(iter(self.platform_dict.values()))
 
     def get_runner_options(self) -> list[RunnerOptionDict]:
         runner_options = self.runner_options[:]
@@ -215,6 +240,20 @@ class Runner:  # pylint: disable=too-many-public-methods
             raise MisconfigurationError("runner_executable not set for {}".format(self.name))
 
         exe = os.path.join(settings.RUNNER_DIR, self.runner_executable)
+        if os.path.isfile(exe):
+            return exe
+        # There is an inconsistency between self.directory and self.is_installed
+        # The self.is_installed() method checks the self.directory property
+        # which is set as <runner-name>/<name-of-runner.json-or-py>/
+        # i.e that means the directory where the runner is saved to is **dependent** on the name
+        # of the file where the runner configuration resides.
+        # However the self.get_executable() method doesn't take into account the
+        # <name-of-runner.json-or-py> directory.
+        # Therefore if the "runner_executable" field property isn't in the form of
+        # <name-of-runner.json-or-py>/<exe-name> then the above check will fail
+        #
+        # To correct this issue, the path of self.directory / self.runner_executable
+        exe = os.path.join(self.directory, self.runner_executable)
         if not os.path.isfile(exe):
             raise MissingExecutableError(_("The executable '%s' could not be found.") % exe)
         return exe
@@ -640,7 +679,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             clear_wine_version_cache()
 
         if self.runner_executable:
-            runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable)
+            runner_executable = self.get_executable()
             if os.path.isfile(runner_executable):
                 system.make_executable(runner_executable)
 
