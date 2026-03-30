@@ -12,11 +12,13 @@ from lutris.util import system
 class o2em(Runner):
     human_name = _("O2EM")
     description = _("Magnavox Odyssey² Emulator")
-    platforms = (
-        _("Magnavox Odyssey²"),
-        _("Phillips C52"),
-        _("Phillips Videopac+"),
-        _("Brandt Jopac"),
+    platform_dict = Runner.to_platform_dict(
+        [
+            _("Magnavox Odyssey²"),
+            _("Phillips C52"),
+            _("Phillips Videopac+"),
+            _("Brandt Jopac"),
+        ]
     )
     bios_path = os.path.expanduser("~/.o2em/bios")
     runner_executable = "o2em/o2em"

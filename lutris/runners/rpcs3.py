@@ -11,7 +11,7 @@ from lutris.util import system
 class rpcs3(Runner):
     human_name = _("RPCS3")
     description = _("PlayStation 3 emulator")
-    platforms = [_("Sony PlayStation 3")]
+    platform_dict = Runner.to_platform_dict([_("Sony PlayStation 3")])
     runnable_alone = True
     runner_executable = "rpcs3/rpcs3"
     flatpak_id = "net.rpcs3.RPCS3"

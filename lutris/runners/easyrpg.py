@@ -11,7 +11,7 @@ from lutris.runners.runner import Runner
 class easyrpg(Runner):
     human_name = _("EasyRPG Player")
     description = _("Runs RPG Maker 2000/2003 games")
-    platforms = [_("Linux")]
+    platform_dict = Runner.to_platform_dict([_("Linux")])
     runnable_alone = True
     entry_point_option = "project_path"
     runner_executable = "easyrpg/easyrpg-player"

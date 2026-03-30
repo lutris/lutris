@@ -28,7 +28,7 @@ def is_running():
 class steam(Runner):
     description = _("Runs Steam for Linux games")
     human_name = _("Steam")
-    platforms = [_("Linux")]
+    platform_dict = Runner.to_platform_dict([_("Linux")])
     runner_executable = "steam"
     flatpak_id = "com.valvesoftware.Steam"
     game_options = [

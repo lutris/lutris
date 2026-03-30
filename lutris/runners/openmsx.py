@@ -11,7 +11,7 @@ from lutris.util import system
 class openmsx(Runner):
     human_name = _("openMSX")
     description = _("MSX computer emulator")
-    platforms = [_("MSX, MSX2, MSX2+, MSX turboR")]
+    platform_dict = Runner.to_platform_dict([_("MSX, MSX2, MSX2+, MSX turboR")])
     flatpak_id = "org.openmsx.openMSX"
     game_options = [
         {
