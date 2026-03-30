@@ -728,7 +728,8 @@ class LutrisApplication(Gtk.Application):
         #      only when a game URL is present — i.e. launched from Steam)
         profile_arg = None
         if options.contains("profile"):
-            profile_arg = options.lookup_value("profile").get_string()
+            variant = options.lookup_value("profile")
+            profile_arg = variant.get_string() if variant else None
         if not profile_arg:
             profile_arg = installer_info.get("profile")
         if profile_arg:

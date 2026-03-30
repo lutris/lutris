@@ -264,6 +264,7 @@ class SingleGameActions(GameActions):
             ("configure", _("Configure"), self.on_edit_game_configuration),
             ("category", _("Categories"), self.on_edit_game_categories),
             ("browse", _("Browse files"), self.on_browse_files),
+            ("verify-prefix", _("Verify Wine prefix"), self.on_verify_prefix),
             ("favorite", _("Add to favorites"), self.on_add_favorite_game),
             ("deletefavorite", _("Remove from favorites"), self.on_delete_favorite_game),
             ("hide", _("Hide game from library"), self.on_hide_game),
@@ -314,6 +315,7 @@ class SingleGameActions(GameActions):
             "stop": self.is_game_running,
             "configure": bool(game.is_installed),
             "browse": game.is_installed and game.runner_name != "browser",
+            "verify-prefix": self._is_wine_profile_prefix_game(game),
             "show_logs": game.is_installed,
             "category": True,
             "favorite": not game.is_favorite,
@@ -377,6 +379,85 @@ class SingleGameActions(GameActions):
             open_uri("file://%s" % path)
         else:
             dialogs.NoticeDialog(_("Can't open %s \nThe folder doesn't exist.") % path)
+
+    @staticmethod
+    def _is_wine_profile_prefix_game(game: "Game") -> bool:
+        """True when the game uses a per-profile Wine prefix (non-default profile, Wine runner)."""
+        if not game.is_installed or game.runner_name != "wine":
+            return False
+        from lutris.database.profiles import DEFAULT_PROFILE_ID
+        from lutris.profile import get_profile_manager
+        return get_profile_manager().current_profile_id != DEFAULT_PROFILE_ID
+
+    def on_verify_prefix(self, _widget: Gtk.Widget) -> None:
+        """Check the integrity of the Wine prefix for the current profile and offer to repair it."""
+        import shutil
+
+        from lutris.profile import get_profile_manager
+
+        game = self.game
+        pm = get_profile_manager()
+        prefix_path = pm.get_wine_prefix_path(game.slug)
+
+        # Structural check — key files that must exist in a valid Wine prefix
+        required = [
+            os.path.join(prefix_path, "user.reg"),
+            os.path.join(prefix_path, "system.reg"),
+            os.path.join(prefix_path, "drive_c", "windows"),
+        ]
+        missing = [p for p in required if not os.path.exists(p)]
+
+        if missing:
+            status = _("⚠ Prefix is incomplete or corrupted:\n") + "\n".join(
+                "  • missing: %s" % os.path.relpath(p, prefix_path) for p in missing
+            )
+        else:
+            # Quick size comparison against the source prefix
+            source_prefix = None
+            if game.has_runner:
+                source_prefix = game.runner._find_original_prefix()  # type: ignore[attr-defined]
+
+            if source_prefix and os.path.isdir(source_prefix) and source_prefix != prefix_path:
+                def _dir_size(path: str) -> int:
+                    total = 0
+                    for dirpath, _dirnames, filenames in os.walk(path):
+                        for f in filenames:
+                            try:
+                                total += os.path.getsize(os.path.join(dirpath, f))
+                            except OSError:
+                                pass
+                    return total
+
+                profile_mb = _dir_size(prefix_path) // (1024 * 1024)
+                source_mb = _dir_size(source_prefix) // (1024 * 1024)
+                ratio = profile_mb / source_mb if source_mb else 1.0
+                if ratio < 0.90:
+                    status = _(
+                        "⚠ Prefix may be incomplete: %d MB (source: %d MB, %.0f%% present)."
+                    ) % (profile_mb, source_mb, ratio * 100)
+                else:
+                    status = _("✓ Prefix OK: %d MB (source: %d MB).") % (profile_mb, source_mb)
+            else:
+                status = _("✓ Basic structure OK.")
+
+        profile_id = pm.current_profile_id
+        question = _(
+            "Profile: <b>%s</b>\n"
+            "Prefix: <tt>%s</tt>\n\n"
+            "%s\n\n"
+            "Reset this prefix? It will be re-cloned from the source on the next launch."
+        ) % (profile_id, prefix_path, status)
+
+        dlg = dialogs.QuestionDialog(
+            {"title": _("Wine Prefix Verification"), "question": question, "parent": self.window}
+        )
+        if dlg.result == dialogs.QuestionDialog.YES:
+            if os.path.isdir(prefix_path):
+                shutil.rmtree(prefix_path)
+            dialogs.NoticeDialog(
+                _("Prefix deleted. It will be re-cloned on the next launch."),
+                parent=self.window,
+            )
 
     def on_install_dlc_clicked(self, _widget: Gtk.Widget) -> None:
         self.game.install_dlc(install_ui_delegate=self.window)

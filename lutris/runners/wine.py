@@ -1189,7 +1189,15 @@ class wine(Runner):
                     and system.path_exists(os.path.join(original_prefix, "user.reg"))
                 ):
                     logger.info("Cloning Wine prefix %s → %s for new profile", original_prefix, prefix_path)
-                    shutil.copytree(original_prefix, prefix_path, symlinks=True)
+                    tmp_path = prefix_path + ".tmp"
+                    if os.path.exists(tmp_path):
+                        shutil.rmtree(tmp_path)
+                    try:
+                        shutil.copytree(original_prefix, tmp_path, symlinks=True)
+                        os.rename(tmp_path, prefix_path)
+                    except Exception:
+                        shutil.rmtree(tmp_path, ignore_errors=True)
+                        raise
                 else:
                     logger.warning("No valid prefix detected in %s, creating one...", prefix_path)
                     create_prefix(prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
