@@ -2,6 +2,7 @@
 import os
 from gettext import gettext as _
 
+from lutris.config import LutrisConfig
 from lutris.exceptions import MissingGameExecutableError
 
 # Lutris Modules
@@ -12,14 +13,13 @@ from lutris.util import system
 class o2em(Runner):
     human_name = _("O2EM")
     description = _("Magnavox Odyssey² Emulator")
-    platform_dict = Runner.to_platform_dict(
-        [
-            _("Magnavox Odyssey²"),
-            _("Phillips C52"),
-            _("Phillips Videopac+"),
-            _("Brandt Jopac"),
-        ]
-    )
+    platform_dict: dict[str, str] = {
+        _("Magnavox Odyssey²"): "o2rom",
+        _("Phillips C52"): "c52",
+        _("Phillips Videopac+"): "g7400",
+        _("Brandt Jopac"): "jopac",
+    }
+
     bios_path = os.path.expanduser("~/.o2em/bios")
     runner_executable = "o2em/o2em"
 
@@ -30,12 +30,6 @@ class o2em(Runner):
         "g7400": "79008e4a0db2dc5f1c048853b033828",
     }
 
-    bios_choices = [
-        (_("Magnavox Odyssey²"), "o2rom"),
-        (_("Phillips C52"), "c52"),
-        (_("Phillips Videopac+"), "g7400"),
-        (_("Brandt Jopac"), "jopac"),
-    ]
     controller_choices = [
         (_("Disable"), "0"),
         (_("Arrow Keys and Right Shift"), "1"),
@@ -52,11 +46,11 @@ class o2em(Runner):
     ]
     runner_options = [
         {
-            "option": "bios",
+            "option": "platform",
             "type": "choice",
-            "choices": bios_choices,
+            "choices": platform_dict,
             "label": _("BIOS"),
-            "default": "o2rom",
+            "default": next(iter(platform_dict.values())),
         },
         {
             "option": "controller1",
@@ -91,13 +85,15 @@ class o2em(Runner):
         },
     ]
 
-    def get_platform(self):
-        bios = self.runner_config.get("bios")
-        if bios:
-            for i, b in enumerate(self.bios_choices):
-                if b[1] == bios:
-                    return self.platforms[i]
-        return ""
+    def __init__(self, config: LutrisConfig | None = None) -> None:
+        if config and config.level == "game":
+            # Migrate the "bios" setting to "platform"
+            if bios := config.raw_game_config.get("bios"):
+                config.raw_game_config["platform"] = bios
+                config.game_config["platform"] = bios
+                del config.raw_game_config["bios"]
+                del config.game_config["bios"]
+        super().__init__(config)
 
     def install(self, install_ui_delegate, version=None, callback=None):
         def on_runner_installed(*args):

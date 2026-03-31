@@ -215,7 +215,7 @@ class libretro(Runner):
         {
             "option": "core",
             "type": "choice",
-            "label": _("Core"),
+            "label": _(message="Core"),
             "choices": get_core_choices,
         },
     ]
@@ -247,21 +247,13 @@ class libretro(Runner):
         for core in get_libretro_cores():
             platform = core[2]
             if lutris_platform := RETROARCH_TO_LUTRIS_PLATFORM_MAP.get(platform):
-                self.platform_dict[platform] = lutris_platform
+                self.platform_dict[lutris_platform] = platform
             else:
                 self.platform_dict[platform] = platform
 
     @property
     def directory(self):
         return os.path.join(settings.RUNNER_DIR, "retroarch")
-
-    @property
-    def platforms(self):
-        return list(self.platform_dict.values())
-
-    @platforms.setter
-    def platforms(self, platform_list: list[str]):
-        self.platform_dict = {platform: platform for platform in platform_list}
 
     def get_platform(self):
         game_core = self.game_config.get("core")
