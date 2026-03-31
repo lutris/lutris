@@ -2,7 +2,6 @@
 import os
 from gettext import gettext as _
 
-from lutris.config import LutrisConfig
 from lutris.exceptions import MissingGameExecutableError
 
 # Lutris Modules
@@ -84,16 +83,6 @@ class o2em(Runner):
             "help": _("Activates a display filter adding scanlines to imitate the displays of yesteryear."),
         },
     ]
-
-    def __init__(self, config: LutrisConfig | None = None) -> None:
-        if config and config.level == "game":
-            # Migrate the "bios" setting to "platform"
-            if bios := config.raw_game_config.get("bios"):
-                config.raw_game_config["platform"] = bios
-                config.game_config["platform"] = bios
-                del config.raw_game_config["bios"]
-                del config.game_config["bios"]
-        super().__init__(config)
 
     def install(self, install_ui_delegate, version=None, callback=None):
         def on_runner_installed(*args):

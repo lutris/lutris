@@ -2,7 +2,6 @@
 import subprocess
 from gettext import gettext as _
 
-from lutris.config import LutrisConfig
 from lutris.exceptions import MissingGameExecutableError
 
 # Lutris Modules
@@ -113,16 +112,6 @@ class mednafen(Runner):
             "default": False,
         },
     ]
-
-    def __init__(self, config: LutrisConfig | None = None) -> None:
-        if config and config.level == "game":
-            # Migrate the "machine" setting to "platform"
-            if machine := config.raw_game_config.get("machine"):
-                config.raw_game_config["platform"] = machine
-                config.game_config["platform"] = machine
-                del config.raw_game_config["machine"]
-                del config.game_config["machine"]
-        super().__init__(config)
 
     def find_joysticks(self):
         """Detect connected joysticks and return their ids"""
@@ -463,7 +452,7 @@ class mednafen(Runner):
     def play(self):
         """Runs the game"""
         rom = self.game_config.get("main_file") or ""
-        machine = self.game_config.get("platform") or ""
+        machine = self.game_config.get("platform") or self.game_config.get("machine") or ""
 
         fullscreen = self.runner_config.get("fs") or "0"
         if fullscreen is True:

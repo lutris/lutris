@@ -4,7 +4,6 @@ from gettext import gettext as _
 from typing import Any
 
 from lutris import settings
-from lutris.config import LutrisConfig
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
@@ -367,16 +366,6 @@ class fsuae(Runner):
         },
     ]
 
-    def __init__(self, config: LutrisConfig | None = None) -> None:
-        if config and config.level == "game":
-            # Migrate the "model" setting to "platform"
-            if model := config.raw_game_config.get("model"):
-                config.raw_game_config["platform"] = model
-                config.game_config["platform"] = model
-                del config.raw_game_config["model"]
-                del config.game_config["model"]
-        super().__init__(config)
-
     @property
     def directory(self):
         return os.path.join(settings.RUNNER_DIR, "fs-uae")
@@ -410,7 +399,7 @@ class fsuae(Runner):
         return drives + floppy_images
 
     def get_disk_param(self, disk_path):
-        amiga_model = self.runner_config.get("platform")
+        amiga_model = self.runner_config.get("platform") or self.runner_config.get("model")
         if amiga_model in ("CD32", "CDTV"):
             return "cdrom_drive"
         if disk_path.lower().endswith(".hdf"):

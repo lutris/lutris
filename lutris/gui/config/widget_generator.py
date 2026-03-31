@@ -2,7 +2,7 @@
 
 import os
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from gettext import gettext as _
 from inspect import Parameter, signature
 from typing import TYPE_CHECKING, Any
@@ -420,11 +420,9 @@ class WidgetGenerator(ABC):
             # list[tuple[str, str]]
             # tuple[tuple[str, str]]
             # list[str]
-            # tuple[str]
-            # list[dict[str]]
-            # dict[str, str] - New code should use a dictionary
+            # Mapping[str, str]
             choice_iterable = None
-            if isinstance(choices, dict):
+            if isinstance(choices, Mapping):
                 choice_iterable = choices.items()
             if not choice_iterable:
                 if isinstance(choices, (list, tuple)) and choices:

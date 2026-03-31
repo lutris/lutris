@@ -4,7 +4,6 @@ from gettext import gettext as _
 
 # Lutris Modules
 from lutris import settings
-from lutris.config import LutrisConfig
 from lutris.exceptions import GameConfigError, MisconfigurationError, MissingExecutableError, MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -82,16 +81,6 @@ class vice(Runner):
             "default": next(iter(platform_dict.values())),
         },
     ]
-
-    def __init__(self, config: LutrisConfig | None = None) -> None:
-        if config and config.level == "game":
-            # Migrate the "machine" setting to "platform"
-            if machine := config.raw_game_config.get("machine"):
-                config.raw_game_config["platform"] = machine
-                config.game_config["platform"] = machine
-                del config.raw_game_config["machine"]
-                del config.game_config["machine"]
-        super().__init__(config)
 
     def get_executable(self, machine: str | None = None) -> str:
         if not machine:
@@ -179,7 +168,7 @@ class vice(Runner):
         return args
 
     def play(self):
-        machine = self.runner_config.get("platform")
+        machine = self.runner_config.get("platform") or self.runner_config.get("machine")
 
         rom = self.game_config.get("main_file")
         if not rom:
