@@ -57,7 +57,7 @@ RETROARCH_TO_LUTRIS_PLATFORM_MAP = {
     "Flashback Game Engine": "",
     "FreeChaF": "",
     "Game Boy Advance": "Nintendo Game Boy Advance",
-    "Game Boy/Game Boy Color": "intendo Game Boy (Color)",
+    "Game Boy/Game Boy Color": "Nintendo Game Boy (Color)",
     "Game Boy/Game Boy Color/Game Boy Advance": "Nintendo Game Boy Advance",
     "GameCube / Wii": "Nintendo Wii",
     "Game engine": "",
