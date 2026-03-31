@@ -17,42 +17,23 @@ DEFAULT_MEDNAFEN_SCALER = "nn4x"
 class mednafen(Runner):
     human_name = _("Mednafen")
     description = _("Multi-system emulator: NES, PC Engine, PSX…")
-    platform_dict = Runner.to_platform_dict(
-        [
-            _("Nintendo Game Boy (Color)"),
-            _("Nintendo Game Boy Advance"),
-            _("Sega Game Gear"),
-            _("Sega Genesis/Mega Drive"),
-            _("Atari Lynx"),
-            _("Sega Master System"),
-            _("SNK Neo Geo Pocket (Color)"),
-            _("Nintendo NES"),
-            _("NEC PC Engine TurboGrafx-16"),
-            _("NEC PC-FX"),
-            _("Sony PlayStation"),
-            _("Sega Saturn"),
-            _("Nintendo SNES"),
-            _("Bandai WonderSwan"),
-            _("Nintendo Virtual Boy"),
-        ]
-    )
-    machine_choices = (
-        (_("Game Boy (Color)"), "gb"),
-        (_("Game Boy Advance"), "gba"),
-        (_("Game Gear"), "gg"),
-        (_("Genesis/Mega Drive"), "md"),
-        (_("Lynx"), "lynx"),
-        (_("Master System"), "sms"),
-        (_("Neo Geo Pocket (Color)"), "gnp"),
-        (_("NES"), "nes"),
-        (_("PC Engine"), "pce_fast"),
-        (_("PC-FX"), "pcfx"),
-        (_("PlayStation"), "psx"),
-        (_("Saturn"), "ss"),
-        (_("SNES"), "snes"),
-        (_("WonderSwan"), "wswan"),
-        (_("Virtual Boy"), "vb"),
-    )
+    platform_dict = {
+        _("Nintendo Game Boy (Color)"): "gb",
+        _("Nintendo Game Boy Advance"): "gba",
+        _("Sega Game Gear"): "gg",
+        _("Sega Genesis/Mega Drive"): "md",
+        _("Atari Lynx"): "lynx",
+        _("Sega Master System"): "sms",
+        _("SNK Neo Geo Pocket (Color)"): "gnp",
+        _("Nintendo NES"): "nes",
+        _("NEC PC Engine TurboGrafx-16"): "pce_fast",
+        _("NEC PC-FX"): "pcfx",
+        _("Sony PlayStation"): "psx",
+        _("Sega Saturn"): "ss",
+        _("Nintendo SNES"): "snes",
+        _("Bandai WonderSwan"): "wswan",
+        _("Nintendo Virtual Boy"): "vb",
+    }
     runner_executable = "mednafen/bin/mednafen"
     game_options = [
         {
@@ -62,10 +43,11 @@ class mednafen(Runner):
             "help": _("The game data, commonly called a ROM image. \nMednafen supports GZIP and ZIP compressed ROMs."),
         },
         {
-            "option": "machine",
+            "option": "platform",
             "type": "choice",
             "label": _("Machine type"),
-            "choices": machine_choices,
+            "choices": platform_dict,
+            "default": next(iter(platform_dict.values())),
             "help": _("The emulated machine."),
         },
     ]
@@ -130,14 +112,6 @@ class mednafen(Runner):
             "default": False,
         },
     ]
-
-    def get_platform(self):
-        machine = self.game_config.get("machine")
-        if machine:
-            for index, choice in enumerate(self.machine_choices):
-                if choice[1] == machine:
-                    return self.platforms[index]
-        return ""
 
     def find_joysticks(self):
         """Detect connected joysticks and return their ids"""
@@ -478,7 +452,7 @@ class mednafen(Runner):
     def play(self):
         """Runs the game"""
         rom = self.game_config.get("main_file") or ""
-        machine = self.game_config.get("machine") or ""
+        machine = self.game_config.get("platform") or self.game_config.get("machine") or ""
 
         fullscreen = self.runner_config.get("fs") or "0"
         if fullscreen is True:

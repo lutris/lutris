@@ -3,7 +3,7 @@ import importlib
 from lutris import settings
 from lutris.util.log import logger
 
-MIGRATION_VERSION = 18  # Never decrease this number
+MIGRATION_VERSION = 19  # Never decrease this number
 
 # Replace deprecated migrations with empty lists
 MIGRATIONS = [
@@ -25,6 +25,7 @@ MIGRATIONS = [
     ["migrate_banners_back"],
     ["migrate_proton_to_wine_dir"],
     ["retrieve_discord_appids"],
+    ["migrate_multi_system_runners_to_use_platform_dict"],
 ]
 
 

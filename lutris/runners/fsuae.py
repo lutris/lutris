@@ -92,21 +92,7 @@ class fsuae(Runner):
     human_name = _("FS-UAE")
     description = _("Amiga emulator")
     flatpak_id = "net.fsuae.FS-UAE"
-    platform_dict = Runner.to_platform_dict(
-        [
-            AMIGAS["A500"]["name"],
-            AMIGAS["A500+"]["name"],
-            AMIGAS["A600"]["name"],
-            AMIGAS["A1200"]["name"],
-            AMIGAS["A3000"]["name"],
-            AMIGAS["A4000"]["name"],
-            AMIGAS["A1000"]["name"],
-            AMIGAS["CD32"]["name"],
-            AMIGAS["CDTV"]["name"],
-        ]
-    )
-
-    model_choices = [(model["name"], key) for key, model in AMIGAS.items()]
+    platform_dict = {model["name"]: key for key, model in AMIGAS.items()}
 
     cpumodel_choices = [
         (_("68000"), "68000"),
@@ -218,11 +204,11 @@ class fsuae(Runner):
 
     runner_options = [
         {
-            "option": "model",
+            "option": "platform",
             "label": _("Amiga model"),
             "type": "choice",
-            "choices": model_choices,
-            "default": "A500",
+            "choices": platform_dict,
+            "default": next(iter(platform_dict.values())),
             "help": _("Specify the Amiga model you want to emulate."),
         },
         {
@@ -384,14 +370,6 @@ class fsuae(Runner):
     def directory(self):
         return os.path.join(settings.RUNNER_DIR, "fs-uae")
 
-    def get_platform(self):
-        model = self.runner_config.get("model")
-        if model:
-            for index, machine in enumerate(self.model_choices):
-                if machine[1] == model:
-                    return self.platforms[index]
-        return ""
-
     def get_absolute_path(self, path):
         """Return the absolute path for a file"""
         return path if os.path.isabs(path) else os.path.join(self.game_path, path)
@@ -421,7 +399,7 @@ class fsuae(Runner):
         return drives + floppy_images
 
     def get_disk_param(self, disk_path):
-        amiga_model = self.runner_config.get("model")
+        amiga_model = self.runner_config.get("platform") or self.runner_config.get("model")
         if amiga_model in ("CD32", "CDTV"):
             return "cdrom_drive"
         if disk_path.lower().endswith(".hdf"):
@@ -433,7 +411,7 @@ class fsuae(Runner):
         option_params = {
             "kickstart_file": "--kickstart_file=%s",
             "kickstart_ext_file": "--kickstart_ext_file=%s",
-            "model": "--amiga_model=%s",
+            "platform": "--amiga_model=%s",
             "cpumodel": "--cpu=%s",
             "fmemory": "--fast_memory=%s",
             "ziiimem": "--zorro_iii_memory=%s",

@@ -14,24 +14,15 @@ class vice(Runner):
     description = _("Commodore Emulator")
     human_name = _("Vice")
     # flatpak_id = "net.sf.VICE"  # needs adjustments
-    platform_dict = Runner.to_platform_dict(
-        [
-            _("Commodore 64"),
-            _("Commodore 128"),
-            _("Commodore VIC20"),
-            _("Commodore PET"),
-            _("Commodore Plus/4"),
-            _("Commodore CBM II"),
-        ]
-    )
-    machine_choices = [
-        ("C64", "c64"),
-        ("C128", "c128"),
-        ("vic20", "vic20"),
-        ("PET", "pet"),
-        ("Plus/4", "plus4"),
-        ("CBM-II", "cbmii"),
-    ]
+    platform_dict: dict[str, str] = {
+        _("Commodore 64"): "c64",
+        _("Commodore 128"): "c128",
+        _("Commodore VIC20"): "vic20",
+        _("Commodore PET"): "pet",
+        _("Commodore Plus/4"): "plus4",
+        _("Commodore CBM II"): "cbmii",
+    }
+
     game_options = [
         {
             "option": "main_file",
@@ -83,21 +74,13 @@ class vice(Runner):
             "default": False,
         },
         {
-            "option": "machine",
+            "option": "platform",
             "type": "choice",
             "label": _("Machine"),
-            "choices": machine_choices,
-            "default": "c64",
+            "choices": platform_dict,
+            "default": next(iter(platform_dict.values())),
         },
     ]
-
-    def get_platform(self):
-        machine = self.game_config.get("machine")
-        if machine:
-            for index, choice in enumerate(self.machine_choices):
-                if choice[1] == machine:
-                    return self.platforms[index]
-        return self.platforms[0]  # Default to C64
 
     def get_executable(self, machine: str | None = None) -> str:
         if not machine:
@@ -185,7 +168,7 @@ class vice(Runner):
         return args
 
     def play(self):
-        machine = self.runner_config.get("machine")
+        machine = self.runner_config.get("platform") or self.runner_config.get("machine")
 
         rom = self.game_config.get("main_file")
         if not rom:

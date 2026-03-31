@@ -2,7 +2,7 @@
 
 import os
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from gettext import gettext as _
 from inspect import Parameter, signature
 from typing import TYPE_CHECKING, Any
@@ -415,16 +415,35 @@ class WidgetGenerator(ABC):
             tooltip_default = None
             valid = []
             has_value = False
-            for choice in choices:
-                if isinstance(choice, str):
-                    choice = (choice, choice)
-                if choice[1] == value:
+            # The following types are supported as combobox choices
+            # list[list[str] where length = 2]
+            # list[tuple[str, str]]
+            # tuple[tuple[str, str]]
+            # list[str]
+            # Mapping[str, str]
+            choice_iterable = None
+            if isinstance(choices, Mapping):
+                choice_iterable = choices.items()
+            if not choice_iterable:
+                if isinstance(choices, (list, tuple)) and choices:
+                    if isinstance(choices[0], str):
+                        choice_iterable = zip(choices, choices)
+                    elif isinstance(choices[0], (list, tuple)) and len(choices[0]) == 2:
+                        choice_iterable = choices
+            if not choice_iterable:
+                raise ValueError(
+                    "Choice entries must be list of strings, list of tuple of strings or a dict of strings\n"
+                    "Type is %s" % type(choices)
+                )
+
+            for choice_ui, choice_value in choice_iterable:
+                if choice_value == value:
                     has_value = True
-                if choice[1] == default:
-                    tooltip_default = choice[0]
-                    choice = (_("%s (default)") % choice[0], choice[1])
-                valid.append(choice[1])
-                expanded.append(choice)
+                if choice_value == default:
+                    tooltip_default = choice_ui
+                    choice_ui = _("%s (default)") % tooltip_default
+                valid.append(choice_value)
+                expanded.append((choice_ui, choice_value))
             if not has_value and value:
                 expanded.insert(0, (value, value))
             return expanded, tooltip_default, valid
