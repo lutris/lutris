@@ -182,9 +182,9 @@ class Runner:  # pylint: disable=too-many-public-methods
     @property
     def platforms(self) -> list[str]:
         """
-        Retrieve the platform as list using the values
+        Retrieve the Lutris platform names as list using the keys
         """
-        return list(self.platform_dict.values())
+        return list(self.platform_dict.keys())
 
     @platforms.setter
     def platforms(self, platform_list: list[str]) -> None:
@@ -194,12 +194,16 @@ class Runner:  # pylint: disable=too-many-public-methods
         self.platform_dict = {platform: platform for platform in platform_list}
 
     def get_platform(self) -> str:
+        """
+        Retrieve the Lutris Platform name from the keys of the platform dictionary
+        """
         if not self.platform_dict:
             return ""
-        selected_platform = self.game_config.get("platform")
-        if selected_platform in self.platform_dict:
-            return self.platform_dict[selected_platform]
-        return next(iter(self.platform_dict.values()))
+        selected_runner_platform = self.game_config.get("platform")
+        for lutris_platform, runner_platform in self.platform_dict.items():
+            if selected_runner_platform == runner_platform:
+                return lutris_platform
+        return next(iter(self.platform_dict.keys()))
 
     def get_runner_options(self) -> list[RunnerOptionDict]:
         runner_options = self.runner_options[:]

@@ -14,7 +14,7 @@ PLATFORMS = [_("Nintendo GameCube"), _("Nintendo Wii")]
 class dolphin(Runner):
     description = _("GameCube and Wii emulator")
     human_name = _("Dolphin")
-    platform_dict = Runner.to_platform_dict(PLATFORMS)
+    platform_dict = {"Nintendo GameCube": "0", "Nintendo Wii": "1"}
     require_libs = [
         "libOpenGL.so.0",
     ]
@@ -32,7 +32,8 @@ class dolphin(Runner):
             "option": "platform",
             "type": "choice",
             "label": _("Platform"),
-            "choices": ((_("Nintendo GameCube"), "0"), (_("Nintendo Wii"), "1")),
+            "choices": platform_dict,
+            "default": next(iter(platform_dict.values())),
         },
     ]
     runner_options = [
@@ -52,12 +53,6 @@ class dolphin(Runner):
             "label": _("Custom Global User Directory"),
         },
     ]
-
-    def get_platform(self):
-        selected_platform = self.game_config.get("platform")
-        if selected_platform:
-            return self.platforms[int(selected_platform)]
-        return ""
 
     def play(self):
         command = self.get_command()
