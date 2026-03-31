@@ -215,7 +215,7 @@ class libretro(Runner):
         {
             "option": "core",
             "type": "choice",
-            "label": _(message="Core"),
+            "label": _("Core"),
             "choices": get_core_choices,
         },
     ]
