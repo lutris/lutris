@@ -243,6 +243,7 @@ class libretro(Runner):
 
     def __init__(self, config: LutrisConfig | None = None) -> None:
         super().__init__(config)
+        self.platform_dict = {}
         for core in get_libretro_cores():
             platform = core[2]
             if lutris_platform := RETROARCH_TO_LUTRIS_PLATFORM_MAP.get(platform):
