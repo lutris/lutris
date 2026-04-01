@@ -1,5 +1,7 @@
 """Steam game library watcher"""
 
+from typing import Callable, Iterable
+
 # Third Party Libraries
 # pylint: disable=too-few-public-methods
 from gi.repository import Gio, GLib
@@ -11,7 +13,9 @@ from lutris.util.log import logger
 class SteamWatcher:
     """Watches a Steam library folder and notify changes"""
 
-    def __init__(self, steamapps_paths, callback=None):
+    def __init__(
+        self, steamapps_paths: Iterable[str], callback: Callable[[Gio.FileMonitorEvent, str], None] | None = None
+    ):
         self.monitors = []
         self.callback = callback
         for steam_path in steamapps_paths:
@@ -24,9 +28,11 @@ class SteamWatcher:
             except GLib.Error as ex:
                 logger.exception("Failed to monitor Steam folder %s: %s", steam_path, ex)
 
-    def _on_directory_changed(self, _monitor, _file, _other_file, event_type):
+    def _on_directory_changed(
+        self, _monitor: Gio.FileMonitor, _file: Gio.File, _other_file: Gio.File, event_type: Gio.FileMonitorEvent
+    ) -> None:
         path = _file.get_path()
         if path is None or not path.endswith(".acf"):
-            return
+            return None
         if self.callback:
             self.callback(event_type, path)

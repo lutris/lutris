@@ -56,6 +56,7 @@ module = [
     "lutris.util.flatpak",
     "lutris.util.retroarch.core_config",
     "lutris.util.settings",
+    "lutris.util.steam.*",
     "lutris.util.system",
     "lutris.util.ubisoft.consts",
     "lutris.util.wine.d3d_extras",
