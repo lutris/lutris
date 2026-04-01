@@ -1,29 +1,32 @@
 # pylint: disable=no-member,unnecessary-dunder-call
 from collections import Counter
+from typing import Any, Iterator, TypeAlias
 
 _iter_values = "values"
 _range = range
 _string_type = str
 import collections as _c
 
+VDFDictKey: TypeAlias = tuple[int, str]
+
 
 class _kView(_c.KeysView):  # type: ignore
-    def __iter__(self):
+    def __iter__(self) -> Any:
         return self._mapping.iterkeys()
 
 
 class _vView(_c.ValuesView):  # type: ignore
-    def __iter__(self):
+    def __iter__(self) -> Any:
         return self._mapping.itervalues()
 
 
 class _iView(_c.ItemsView):  # type: ignore
-    def __iter__(self):
+    def __iter__(self) -> Any:
         return self._mapping.iteritems()
 
 
-class VDFDict(dict):
-    def __init__(self, data=None):
+class VDFDict(dict[str | VDFDictKey, Any]):
+    def __init__(self, data: dict[str, Any] | list[tuple[str, Any]] | None = None):
         """
         This is a dictionary that supports duplicate keys and preserves insert order
 
@@ -42,17 +45,17 @@ class VDFDict(dict):
         if data is not None:
             if not isinstance(data, (list, dict)):
                 raise ValueError("Expected data to be list of pairs or dict, got %s" % type(data))
-            self.update(data)
+            self.update(data)  # type: ignore
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         out = "%s(" % self.__class__.__name__
         out += "%s)" % repr(list(self.iteritems()))
         return out
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.__omap)
 
-    def _verify_key_tuple(self, key):
+    def _verify_key_tuple(self, key: VDFDictKey) -> None:
         if len(key) != 2:
             raise ValueError("Expected key tuple length to be 2, got %d" % len(key))
         if not isinstance(key[0], int):
@@ -60,7 +63,7 @@ class VDFDict(dict):
         if not isinstance(key[1], _string_type):
             raise TypeError("Key value should be a str")
 
-    def _normalize_key(self, key):
+    def _normalize_key(self, key: object) -> VDFDictKey:
         if isinstance(key, _string_type):
             key = (0, key)
         elif isinstance(key, tuple):
@@ -69,7 +72,7 @@ class VDFDict(dict):
             raise TypeError("Expected key to be a str or tuple, got %s" % type(key))
         return key
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str | VDFDictKey, value: Any) -> None:
         if isinstance(key, _string_type):
             key = (self.__kcount[key], key)
             self.__omap.append(key)
@@ -82,10 +85,10 @@ class VDFDict(dict):
         super().__setitem__(key, value)
         self.__kcount[key[1]] += 1
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str | VDFDictKey) -> Any:
         return super().__getitem__(self._normalize_key(key))
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: str | VDFDictKey) -> Any:
         key = self._normalize_key(key)
         result = super().__delitem__(key)
 
@@ -115,79 +118,79 @@ class VDFDict(dict):
 
         return result
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         return iter(self.iterkeys())
 
-    def __contains__(self, key):
+    def __contains__(self, key: object) -> bool:
         return super().__contains__(self._normalize_key(key))
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, VDFDict):
             return list(self.items()) == list(other.items())
         return False
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def clear(self):
+    def clear(self) -> None:
         super().clear()
         self.__kcount.clear()
         self.__omap = []
 
-    def get(self, key, *args):
+    def get(self, key: str | VDFDictKey, *args: Any) -> Any:
         return super().get(self._normalize_key(key), *args)
 
-    def setdefault(self, key, default=None):
+    def setdefault(self, key: str | VDFDictKey, default: Any = None) -> Any:
         if key not in self:
             self.__setitem__(key, default)
         return self.__getitem__(key)
 
-    def pop(self, key):
+    def pop(self, key: str | VDFDictKey) -> Any:  # type: ignore
         key = self._normalize_key(key)
         value = self.__getitem__(key)
         self.__delitem__(key)
         return value
 
-    def popitem(self):
+    def popitem(self) -> tuple[str, Any]:
         if not self.__omap:
             raise KeyError("VDFDict is empty")
         key = self.__omap[-1]
         return key[1], self.pop(key)
 
-    def update(self, data=None, **kwargs):
+    def update(self, data: dict[str | VDFDictKey, Any] | list[tuple[str, Any]] | None = None, **kwargs: Any) -> None:  # type: ignore
         if isinstance(data, dict):
-            data = data.items()
+            data_list = data.items()
         elif not isinstance(data, list):
             raise TypeError("Expected data to be a list or dict, got %s" % type(data))
 
-        for key, value in data:
+        for key, value in data_list:
             self.__setitem__(key, value)
 
-    def iterkeys(self):
+    def iterkeys(self) -> Iterator[str]:
         return (key[1] for key in self.__omap)
 
-    def keys(self):
+    def keys(self) -> _c.KeysView:  # type: ignore
         return _kView(self)
 
-    def itervalues(self):
+    def itervalues(self) -> Iterator[Any]:
         return (self[key] for key in self.__omap)
 
-    def values(self):
+    def values(self) -> _c.ValuesView:  # type: ignore
         return _vView(self)
 
-    def iteritems(self):
+    def iteritems(self) -> Iterator[tuple[str, Any]]:
         return ((key[1], self[key]) for key in self.__omap)
 
-    def items(self):
+    def items(self) -> _c.ItemsView:  # type: ignore
         return _iView(self)
 
-    def get_all_for(self, key):
+    def get_all_for(self, key: str) -> list[Any]:
         """Returns all values of the given key"""
         if not isinstance(key, _string_type):
             raise TypeError("Key needs to be a string.")
         return [self[(idx, key)] for idx in _range(self.__kcount[key])]
 
-    def remove_all_for(self, key):
+    def remove_all_for(self, key: str) -> None:
         """Removes all items with the given key"""
         if not isinstance(key, _string_type):
             raise TypeError("Key need to be a string.")
@@ -199,7 +202,7 @@ class VDFDict(dict):
 
         del self.__kcount[key]
 
-    def has_duplicates(self):
+    def has_duplicates(self) -> bool:
         """
         Returns ``True`` if the dict contains keys with duplicates.
         Recurses through any all keys with value that is ``VDFDict``.
@@ -208,7 +211,7 @@ class VDFDict(dict):
             if n != 1:
                 return True
 
-        def dict_recurse(obj):
+        def dict_recurse(obj: VDFDict | dict[str, Any]) -> bool:
             for v in getattr(obj, _iter_values)():
                 if isinstance(v, VDFDict) and v.has_duplicates():
                     return True
