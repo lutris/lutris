@@ -5,7 +5,7 @@ import os
 import time
 
 
-def _get_last_content_log(steam_data_dir):
+def _get_last_content_log(steam_data_dir: str) -> list[str]:
     """Return the last block from content_log.txt"""
     if not steam_data_dir:
         return []
@@ -27,24 +27,24 @@ def _get_last_content_log(steam_data_dir):
     return log
 
 
-def get_app_log(steam_data_dir, appid, start_time=None):
+def get_app_log(steam_data_dir: str, appid: str, start_time: time.struct_time | None = None) -> list[str]:
     """Return all log entries related to appid from the latest Steam run.
 
     :param start_time: Time tuple, log entries older than this are dumped.
     """
     if start_time:
-        start_time = time.strftime("%Y-%m-%d %T", start_time)
+        start_time_str = time.strftime("%Y-%m-%d %T", start_time)
 
     app_log = []
     for line in _get_last_content_log(steam_data_dir):
-        if start_time and line[1:20] < start_time:
+        if start_time and line[1:20] < start_time_str:
             continue
         if " %s " % appid in line[22:]:
             app_log.append(line)
     return app_log
 
 
-def get_app_state_log(steam_data_dir, appid, start_time=None):
+def get_app_state_log(steam_data_dir: str, appid: str, start_time: time.struct_time | None = None) -> list[str]:
     """Return state entries for appid from latest block in content_log.txt.
 
     "Fully Installed, Running" means running.

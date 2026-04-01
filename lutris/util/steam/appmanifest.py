@@ -2,9 +2,9 @@
 
 import os
 import re
+from typing import Any
 
 from lutris.util.log import logger
-from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.steam.vdfutils import vdf_parse
 from lutris.util.strings import slugify
 from lutris.util.system import fix_path_case, path_exists
@@ -38,7 +38,7 @@ APP_STATE_FLAGS = [
 class AppManifest:
     """Representation of an AppManifest file from Steam"""
 
-    def __init__(self, appmanifest_path):
+    def __init__(self, appmanifest_path: str):
         self.appmanifest_path = appmanifest_path
         self.steamapps_path, filename = os.path.split(appmanifest_path)
         self.steamid = re.findall(r"(\d+)", filename)[-1]
@@ -50,39 +50,39 @@ class AppManifest:
         else:
             logger.error("Path to AppManifest file %s doesn't exist", appmanifest_path)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<AppManifest: %s>" % self.appmanifest_path
 
     @property
-    def app_state(self):
+    def app_state(self) -> dict[str, Any]:
         """State of the app (dictionary containing game specific info)"""
         return self.appmanifest_data.get("AppState") or {}
 
     @property
-    def user_config(self):
+    def user_config(self) -> dict[str, Any]:
         """Return the user configuration part"""
         return self.app_state.get("UserConfig") or {}
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the game name from either the state or the user config"""
-        _name = self.app_state.get("name")
+        _name = str(self.app_state.get("name"))
         if not _name:
-            _name = self.user_config.get("name")
+            _name = str(self.user_config.get("name"))
         return _name
 
     @property
-    def slug(self):
+    def slug(self) -> str:
         """Return a slugified version of the name"""
         return slugify(self.name)
 
     @property
-    def installdir(self):
+    def installdir(self) -> str:
         """Path where the game is installed"""
-        return self.app_state.get("installdir")
+        return str(self.app_state.get("installdir"))
 
     @property
-    def states(self):
+    def states(self) -> list[str]:
         """Return the states of a Steam game."""
         states = []
         state_flags = self.app_state.get("StateFlags", 0)
@@ -92,11 +92,11 @@ class AppManifest:
                 states.append(APP_STATE_FLAGS[index + 1])
         return states
 
-    def is_installed(self):
+    def is_installed(self) -> bool:
         """True if the game is fully installed"""
         return "Fully Installed" in self.states
 
-    def get_install_path(self):
+    def get_install_path(self) -> str | None:
         """Absolute path of the installation directory"""
         if not self.installdir:
             return None
@@ -105,17 +105,8 @@ class AppManifest:
             return install_path
         return None
 
-    def get_platform(self):
-        """Platform the game uses (linux or windows)"""
-        steamapps_paths = get_steamapps_dirs()
-        if self.steamapps_path in steamapps_paths["linux"]:
-            return "linux"
-        if self.steamapps_path in steamapps_paths["windows"]:
-            return "windows"
-        raise ValueError("Can't find %s in %s" % (self.steamapps_path, steamapps_paths))
 
-
-def get_appmanifest_from_appid(steamapps_path, appid):
+def get_appmanifest_from_appid(steamapps_path: str, appid: str) -> AppManifest | None:
     """Given the steam apps path and appid, return the corresponding appmanifest"""
     if not steamapps_path:
         raise ValueError("steamapps_path is mandatory")
@@ -129,7 +120,7 @@ def get_appmanifest_from_appid(steamapps_path, appid):
     return AppManifest(appmanifest_path)
 
 
-def get_path_from_appmanifest(steamapps_path, appid):
+def get_path_from_appmanifest(steamapps_path: str, appid: str) -> str | None:
     """Return the path where a Steam game is installed."""
     appmanifest = get_appmanifest_from_appid(steamapps_path, appid)
     if not appmanifest:
@@ -137,6 +128,6 @@ def get_path_from_appmanifest(steamapps_path, appid):
     return appmanifest.get_install_path()
 
 
-def get_appmanifests(steamapps_path):
+def get_appmanifests(steamapps_path: str) -> list[str]:
     """Return the list for all appmanifest files in a Steam library folder"""
     return [f for f in os.listdir(steamapps_path) if re.match(r"^appmanifest_\d+.acf$", f)]
