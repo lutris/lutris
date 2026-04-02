@@ -1,10 +1,11 @@
 {
+    "name": "vita3k",
     "human_name": "Vita3K",
     "description": "Sony PlayStation Vita emulator",
     "platforms": {
         "Sony PlayStation Vita": "Sony PlayStation Vita"
     },
-    "runner_executable": "vita3k/Vita3K-x86_64.AppImage",
+    "runner_executable": "Vita3K-x86_64.AppImage",
     "runnable_alone": true,
     "download_url": "https://github.com/Vita3K/Vita3K/releases/download/continuous/Vita3K-x86_64.AppImage",
     "entry_point_option": "title_id",
