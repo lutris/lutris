@@ -3,7 +3,7 @@
 # pylint: disable=too-many-lines
 import os
 import shlex
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any
 
@@ -67,6 +67,7 @@ from lutris.util.wine.wine import (
     is_fsync_supported,
     is_gstreamer_build,
     is_winewayland_available,
+    list_lutris_wine_versions,
 )
 
 if TYPE_CHECKING:
@@ -879,6 +880,21 @@ class wine(Runner):
             return bool(get_installed_wine_versions())
         except MisconfigurationError:
             return False
+
+    def uninstall(self, uninstall_callback: Callable[[], None] | None = None, version: str | None = None) -> None:
+        def error_func(ex: Exception):
+            logger.error(_("Uninstall of wine has failed with error: %s") % str(ex))
+
+        if version:
+            lutris_wine_versions = list_lutris_wine_versions()
+            for lutris_wine_version in lutris_wine_versions:
+                if not lutris_wine_version.startswith(version):
+                    continue
+                runner_path = os.path.join(settings.WINE_DIR, lutris_wine_version)
+                if os.path.isdir(runner_path):
+                    system.remove_folder(runner_path, completion_function=uninstall_callback, error_function=error_func)
+            return
+        super().uninstall(uninstall_callback, version)
 
     def is_installed_for(self, interpreter):
         try:

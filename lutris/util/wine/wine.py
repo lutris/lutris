@@ -204,6 +204,9 @@ def get_wine_path_for_version(version: str, config: dict | None = None) -> str:
         if not wine_path:
             raise RuntimeError("The 'custom' Wine version can be used only if the custom wine path is set.")
         return wine_path
+    for wine_version_path in os.listdir(WINE_DIR):
+        if wine_version_path.startswith(version):
+            return os.path.join(WINE_DIR, wine_version_path, "bin/wine")
     return os.path.join(WINE_DIR, version, "bin/wine")
 
 
