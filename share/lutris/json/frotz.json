@@ -1,8 +1,9 @@
 {
+    "name": "frotz",
     "human_name": "Frotz",
     "description": "Z-code emulator (Zork, etc.)",
     "platforms": ["Z-Machine"],
-    "runner_executable": "frotz/frotz",
+    "runner_executable": "frotz",
     "entry_point_option": "story",
     "game_options": [
         {

@@ -27,6 +27,7 @@ class JsonRunner(Runner):
 
         self.game_options = self._json_data["game_options"]
         self.runner_options = self._json_data.get("runner_options", [])
+        self.runner_name = self._json_data.get("name", "")
         self.human_name = self._json_data["human_name"]
         self.description = self._json_data["description"]
         platforms = self._json_data.get("platforms", {})
@@ -81,7 +82,7 @@ class JsonRunner(Runner):
         if self._json_data.get("env"):
             result["env"] = self._json_data["env"]
         if self._json_data.get("working_dir") == "runner":
-            result["working_dir"] = os.path.dirname(os.path.join(settings.RUNNER_DIR, self.runner_executable))
+            result["working_dir"] = os.path.dirname(os.path.join(settings.RUNNER_DIR, self.runner_executable_path))
         return result
 
 
@@ -93,7 +94,11 @@ def load_json_runners():
         for json_path in os.listdir(json_dir):
             if not json_path.endswith(".json"):
                 continue
-            runner_name = json_path[:-5]
-            runner_class = type(runner_name, (JsonRunner,), {"json_path": os.path.join(json_dir, json_path)})
+            json_full_path = os.path.join(json_dir, json_path)
+            json_data = {}
+            with open(json_full_path, encoding="utf-8") as json_file:
+                json_data = json.load(json_file)
+            runner_name = json_data.get("name") or json_path[:-5]
+            runner_class = type(runner_name, (JsonRunner,), {"json_path": json_full_path})
             json_runners[runner_name] = runner_class
     return json_runners

@@ -1,8 +1,9 @@
 {
+    "name": "melonds",
     "human_name": "melonDS",
     "description": "Nintendo DS emulator",
     "platforms": ["Nintendo DS"],
-    "runner_executable": "melonds/melonDS-x86_64.AppImage",
+    "runner_executable": "melonDS-x86_64.AppImage",
     "runnable_alone": true,
     "flatpak_id": "net.kuribo64.melonDS",
     "download_url": "https://melonds.kuribo64.net/downloads/melonDS-appimage-x86_64.zip",
