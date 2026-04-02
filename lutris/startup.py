@@ -142,12 +142,16 @@ def fill_missing_platforms():
             game.save_platform()
 
 
-def run_all_checks() -> None:
-    """Run all startup checks"""
-    preload_gpus()
-    # check_libs is purely diagnostic logging; run it in the background
-    # so the expensive ldconfig parse doesn't block startup.
-    threading.Thread(target=check_libs, daemon=True).start()
+def run_all_checks(async_ops: bool = True) -> None:
+    """Run all startup checks. When async_ops is True, expensive checks like
+    check_libs run on a background thread to avoid blocking the UI. When False,
+    everything runs synchronously on the calling thread so that log output
+    stays predictable (useful for CLI paths with no main loop)."""
+    preload_gpus(async_ops=async_ops)
+    if async_ops:
+        threading.Thread(target=check_libs, daemon=True).start()
+    else:
+        check_libs()
     check_vulkan()
     check_gnome()
     fill_missing_platforms()

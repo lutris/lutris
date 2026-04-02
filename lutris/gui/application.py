@@ -487,7 +487,7 @@ class LutrisApplication(Gtk.Application):
         init_lutris()
         migrate()
 
-        run_all_checks()
+        run_all_checks(async_ops=not argc)
         if option := options.lookup_value("dest"):
             dest_dir = option.get_string()
         else:
