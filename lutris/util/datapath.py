@@ -8,7 +8,7 @@ import sys
 from lutris.util import system
 
 
-def get():
+def get() -> str:
     """Return the path for the resources."""
     launch_path = os.path.realpath(sys.path[0])
     if launch_path.startswith("/usr/local") and os.path.isdir("/usr/local/share/lutris"):

@@ -12,7 +12,7 @@ from gi.repository import Gio
 from lutris.util.log import logger
 
 
-def register_url_handler():
+def register_url_handler() -> None:
     """Register the lutris: protocol to open with the application."""
     executable = os.path.abspath(sys.argv[0])
     base_key = "desktop.gnome.url-handlers.lutris"

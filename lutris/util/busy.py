@@ -1,3 +1,5 @@
+from typing import Any, Callable, TypeVar
+
 from lutris.gui.widgets import NotificationSource
 from lutris.util.jobs import AsyncCall
 
@@ -5,8 +7,10 @@ BUSY_STARTED = NotificationSource()
 BUSY_STOPPED = NotificationSource()
 _busy_count = 0
 
+ResultType = TypeVar("ResultType")
 
-def start_busy():
+
+def start_busy() -> None:
     """Put Lutris into the 'busy' state, which causes BUSY_STARTED to fire; LutrisWindow
     will display a 'progress' cursor."""
     global _busy_count
@@ -15,7 +19,7 @@ def start_busy():
         BUSY_STARTED.fire()
 
 
-def stop_busy():
+def stop_busy() -> None:
     """Takes Lutris out of the 'busy' state', which causes BUSY_STOPPED to fire. Note
     that busy states can be nested or overlapped; business must be stopped as many times
     as it is started."""
@@ -29,8 +33,14 @@ class BusyAsyncCall(AsyncCall):
     """This is a version of AsyncCall that calls start_busy() and stop_busy(), which
     will cause the LutrisWindow to show a progress cursor while the task runs."""
 
-    def __init__(self, func, callback, *args, **kwargs):
-        def on_completion(*a, **kw):
+    def __init__(
+        self,
+        func: Callable[..., ResultType],
+        callback: Callable[[ResultType, Exception], None] | None,
+        *args: Any,
+        **kwargs: Any,
+    ):
+        def on_completion(*a: Any, **kw: Any) -> None:
             stop_busy()
             if callback:
                 callback(*a, **kw)

@@ -7,24 +7,24 @@ import time
 class Timer:
     """Simple Timer class to time code"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._start = None
         self._end = None
         self.finished = False
 
-    def start(self):
+    def start(self) -> None:
         """Starts the timer"""
         self._end = None
         self._start = time.monotonic()
         self.finished = False
 
-    def end(self):
+    def end(self) -> None:
         """Ends the timer"""
         self._end = time.monotonic()
         self.finished = True
 
     @property
-    def duration(self):
+    def duration(self) -> int:
         """Return the total duration of the timer"""
         if not self._start:
             return 0

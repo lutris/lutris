@@ -156,8 +156,8 @@ class LutrisConfig:
 
     def initialize_config(self) -> None:
         """Init and load config files"""
-        self.game_level = {"system": {}, self.runner_slug: {}, "game": {}}
-        self.runner_level = {"system": {}, self.runner_slug: {}}
+        self.game_level: dict[str, Any] = {"system": {}, self.runner_slug: {}, "game": {}}
+        self.runner_level: dict[str, Any] = {"system": {}, self.runner_slug: {}}
         self.system_level = {"system": {}}
         if self.game_config_path:
             self.game_level.update(read_yaml_from_file(self.game_config_path))
