@@ -142,6 +142,43 @@ def schedule_at_idle(func: Callable[..., None], *args, delay_seconds: float = 0.
     return task
 
 
+def run_until_complete(async_func: Callable[..., None], *args, timeout_seconds: float = 30.0, **kwargs) -> None:
+    """Iterate the GLib main context until an async operation completes.
+
+    This is intended for CLI code paths where no main loop is running, or
+    where nesting a second GLib.MainLoop would interfere with the
+    Gtk.Application lifecycle. The async_func receives two extra keyword
+    arguments — ``completion_function`` and ``error_function`` — which it
+    must call when the operation finishes.
+
+    Raises whatever exception is passed to error_function, or TimeoutError
+    if timeout_seconds elapses first.
+    """
+    context = GLib.MainContext.default()
+    done = False
+    error_holder: list[Exception | None] = [None]
+
+    def on_complete() -> None:
+        nonlocal done
+        done = True
+
+    def on_error(ex: Exception) -> None:
+        nonlocal done
+        error_holder[0] = ex
+        done = True
+
+    deadline = GLib.get_monotonic_time() + int(timeout_seconds * 1_000_000)
+    async_func(*args, completion_function=on_complete, error_function=on_error, **kwargs)
+
+    while not done:
+        if GLib.get_monotonic_time() >= deadline:
+            raise TimeoutError(f"Async operation timed out after {timeout_seconds}s")
+        context.iteration(True)
+
+    if error_holder[0]:
+        raise error_holder[0]
+
+
 def schedule_repeating_at_idle(
     func: Callable[..., bool],
     *args,
