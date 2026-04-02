@@ -1,8 +1,9 @@
 {
+    "name": "desmume",
     "human_name": "Desmume",
     "description": "Nintendo DS emulator",
     "platforms": ["Nintendo DS"],
-    "runner_executable": "desmume/bin/desmume",
+    "runner_executable": "bin/desmume",
     "flatpak_id": "org.desmume.DeSmuME",
     "game_options": [
         {

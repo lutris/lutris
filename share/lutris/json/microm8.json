@@ -1,8 +1,9 @@
 {
+    "name": "microm8",
     "human_name": "MicroM8",
     "description": "microM8 is an Apple II emulator",
     "platforms": ["Apple IIe"],
-    "runner_executable": "microm8/microm8",
+    "runner_executable": "microm8",
     "download_url": "https://github.com/paleotronic/microm8-gui/releases/download/v1.1/microm8-gui-linux.zip",
     "game_options": [
         {

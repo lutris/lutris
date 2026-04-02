@@ -1,8 +1,9 @@
 {
+    "name": "dgen",
     "human_name": "DGen",
     "description": "Sega Genesis emulator",
     "platforms": ["Sega Genesis"],
-    "runner_executable": "dgen/bin/dgen",
+    "runner_executable": "bin/dgen",
     "game_options": [
         {
             "option": "main_file",

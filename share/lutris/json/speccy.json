@@ -1,8 +1,9 @@
 {
+    "name": "speccy",
     "human_name": "Speccy",
     "description": "Sinclair ZX Spectrum emulator",
     "platforms": ["ZX Spectrum"],
-    "runner_executable": "speccy/speccy",
+    "runner_executable": "speccy",
     "download_url": "https://fms.komkon.org/Speccy/Speccy59-Ubuntu-x86-bin.tgz",
     "game_options": [
         {

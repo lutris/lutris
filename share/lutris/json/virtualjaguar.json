@@ -1,8 +1,9 @@
 {
+    "name": "virtualjaguar",
     "human_name": "Virtual Jaguar",
     "description": "Atari Jaguar emulator",
     "platforms": ["Atari Jaguar"],
-    "runner_executable": "virtualjaguar/virtualjaguar",
+    "runner_executable": "virtualjaguar",
     "game_options": [
         {
             "option": "main_file",
