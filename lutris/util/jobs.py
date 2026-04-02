@@ -2,14 +2,27 @@ import sys
 import threading
 import traceback
 from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, TypeVar
 
-from gi.repository import GLib  # type: ignore
+from gi.repository import GLib
 
 from lutris.util.log import logger
 
+if TYPE_CHECKING:
+    from gi.repository import Gtk
+
+ResultType = TypeVar("ResultType")
+
 
 class AsyncCall(threading.Thread):
-    def __init__(self, func, callback, *args, callback_target=None, **kwargs):
+    def __init__(
+        self,
+        func: Callable[..., ResultType],
+        callback: Callable[[ResultType, Exception], None] | None,
+        *args: Any,
+        callback_target: "Gtk.Widget | None" = None,
+        **kwargs: Any,
+    ):
         """Execute `function` in a new thread then schedule `callback` for
         execution in the main loop. If 'callback_target' is a widget and it is destroyed
         in the meantime, the callback is cancelled.
@@ -26,7 +39,9 @@ class AsyncCall(threading.Thread):
         self.daemon = kwargs.pop("daemon", True)
         self.start()
 
-    def _protect_callback(self, callback, callback_target=None):
+    def _protect_callback(
+        self, callback: Callable[[Any, Exception], None], callback_target: "Gtk.Widget | None" = None
+    ) -> Callable[[Any, Exception], None]:
         """Wraps and hooks up an on-destroyed handler on the callback_target that
         removes the callback; this prevents an AsyncJob from completing on a
         destroyed widget, which can cause a crash.
@@ -38,12 +53,12 @@ class AsyncCall(threading.Thread):
 
         if callback_target and hasattr(callback_target, "call_when_destroyed"):
 
-            def unhook():
+            def unhook() -> None:
                 # If the target is destroyed, block the callback; no need to disconnect
                 # from a dead object.
                 self.callback = lambda r, e: None
 
-            def fire(r, e):
+            def fire(r: Any, e: Exception) -> None:
                 # Before starting the callback, unhook the on-destroyed callback
                 # so we don't leak it.
                 disconnecter()
@@ -54,7 +69,7 @@ class AsyncCall(threading.Thread):
         else:
             return callback
 
-    def target(self, *a, **kw):
+    def target(self, *a: Any, **kw: Any) -> None:
         result = None
         error = None
 
@@ -93,7 +108,7 @@ class IdleTask:
         """True if the idle task has completed; that is, if mark_completed() was called on it."""
         return self._is_completed
 
-    def connect(self, source_id) -> None:
+    def connect(self, source_id: int) -> None:
         """Connects this task to a source to be unscheduled; but if the task is already
         completed, this does nothing."""
         if not self._is_completed:
@@ -114,14 +129,14 @@ COMPLETED_IDLE_TASK = IdleTask()
 COMPLETED_IDLE_TASK.mark_completed()
 
 
-def schedule_at_idle(func: Callable[..., None], *args, delay_seconds: float = 0.0) -> IdleTask:
+def schedule_at_idle(func: Callable[..., None], *args: Any, delay_seconds: float = 0.0) -> IdleTask:
     """Schedules a function to run at idle time, once. You can specify a delay in seconds
     before it runs.
     Returns an object to prevent it running."""
 
     task = IdleTask()
 
-    def wrapper(*a, **kw) -> bool:
+    def wrapper(*a: Any, **kw: Any) -> bool:
         try:
             func(*a, **kw)
             return False
@@ -144,7 +159,7 @@ def schedule_at_idle(func: Callable[..., None], *args, delay_seconds: float = 0.
 
 def schedule_repeating_at_idle(
     func: Callable[..., bool],
-    *args,
+    *args: Any,
     interval_seconds: float = 0.0,
 ) -> IdleTask:
     """Schedules a function to run at idle time, over and over until it returns False.
@@ -153,7 +168,7 @@ def schedule_repeating_at_idle(
 
     task = IdleTask()
 
-    def wrapper(*a, **kw) -> bool:
+    def wrapper(*a: Any, **kw: Any) -> bool:
         repeat = False
         try:
             repeat = func(*a, **kw)

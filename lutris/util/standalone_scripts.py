@@ -1,9 +1,17 @@
+import logging
 import os
+from typing import TYPE_CHECKING
 
 from lutris.game import Game
 
+if TYPE_CHECKING:
+    from lutris.database.games import DbGameDict
+    from lutris.gui.dialogs.delegates import LaunchUIDelegate
 
-def generate_script(logger, launch_ui_delegate, db_game, script_path):
+
+def generate_script(
+    logger: logging.Logger, launch_ui_delegate: "LaunchUIDelegate", db_game: "DbGameDict", script_path: str
+) -> None:
     """Output a script to a file.
     The script is capable of launching a game without the client
     """

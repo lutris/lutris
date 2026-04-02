@@ -73,7 +73,7 @@ def async_choices(
             if not ready():
                 from lutris.util.jobs import AsyncCall
 
-                AsyncCall(generate, _on_loaded)  # type: ignore[no-untyped-call]
+                AsyncCall(generate, _on_loaded)
                 return []
             return choices_func(*args, **kwargs)
 
