@@ -382,9 +382,10 @@ def remove_folder(
     completion_function: TrashPortal.CompletionFunction | None = None,
     error_function: TrashPortal.ErrorFunction | None = None,
 ) -> None:
-    """Trashes a folder specified by path, asynchronously. The folder
-    likely exists after this returns, since it's using DBus to ask
-    for the entrashification.
+    """Trashes a folder specified by path. When a GLib main loop is running
+    (GUI mode) this operates asynchronously via the Trash portal. When no
+    main loop is running (CLI mode) this iterates the GLib main context
+    until the trash operation completes, so the folder is gone on return.
     """
     if not os.path.exists(path):
         logger.warning("Non existent path: %s", path)
@@ -396,8 +397,30 @@ def remove_folder(
             error_function(RuntimeError("Lutris tried to trash home directory!"))
         return
 
-    logger.debug("Trashing folder %s", path)
-    TrashPortal([path], completion_function=completion_function, error_function=error_function)
+    if GLib.main_depth() > 0:
+        logger.debug("Trashing folder %s", path)
+        TrashPortal([path], completion_function=completion_function, error_function=error_function)
+    else:
+        from lutris.util.jobs import run_until_complete
+
+        logger.debug("Trashing folder %s (sync)", path)
+
+        def _start_trash(
+            completion_function: TrashPortal.CompletionFunction | None = None,
+            error_function: TrashPortal.ErrorFunction | None = None,
+        ) -> None:
+            TrashPortal([path], completion_function=completion_function, error_function=error_function)
+
+        try:
+            run_until_complete(_start_trash)
+        except Exception as ex:
+            if error_function:
+                error_function(ex)
+            else:
+                raise
+        else:
+            if completion_function:
+                completion_function()
 
 
 def delete_folder(path: str) -> bool:
