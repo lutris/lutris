@@ -1,11 +1,12 @@
 {
+    "name": "mgba",
     "human_name": "mGBA",
     "description": "Multi-system emulator: GBA & GB(C)",
     "platforms": [
         "Nintendo Game Boy Advance",
         "Nintendo Game Boy (Color)"
     ],
-    "runner_executable": "mgba/mGBA-0.10.5-appimage-x64.appimage",
+    "runner_executable": "mGBA-0.10.5-appimage-x64.appimage",
     "flatpak_id": "io.mgba.mGBA",
     "runnable_alone": true,
     "download_url": "https://github.com/mgba-emu/mgba/releases/download/0.10.5/mGBA-0.10.5-appimage-x64.appimage",

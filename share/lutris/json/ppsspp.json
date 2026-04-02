@@ -1,8 +1,9 @@
 {
+    "name": "ppsspp",
     "human_name": "PPSSPP",
     "description": "Sony PSP emulator",
     "platforms": ["Sony PlayStation Portable"],
-    "runner_executable": "ppsspp/PPSSPPSDL",
+    "runner_executable": "PPSSPPSDL",
     "runnable_alone": true,
     "flatpak_id": "org.ppsspp.PPSSPP",
     "game_options": [

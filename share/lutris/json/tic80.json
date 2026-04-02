@@ -1,8 +1,9 @@
 {
+    "name": "tic80",
     "human_name": "TIC-80",
     "description": "TIC-80 tiny computer",
     "platforms": ["TIC-80"],
-    "runner_executable": "tic80/tic80",
+    "runner_executable": "tic80",
     "flatpak_id": "com.tic80.TIC_80",
     "game_options": [
         {
@@ -18,7 +19,7 @@
             "label": "Start in fullscreen",
             "default": false,
             "argument": "--fullscreen"
-        },    
+        },
         {
             "option": "software_rendering",
             "type": "bool",

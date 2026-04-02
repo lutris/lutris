@@ -1,8 +1,9 @@
 {
+    "name": "colem",
     "human_name": "Colem",
     "description": "ColecoVision / Coleco Adam emulator",
     "platforms": ["ColecoVision"],
-    "runner_executable": "colem/colem",
+    "runner_executable": "colem",
     "download_url": "https://fms.komkon.org/ColEm/ColEm56-Ubuntu-x86-bin.tgz",
     "game_options": [
         {

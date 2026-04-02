@@ -1,9 +1,10 @@
 {
+    "name": "sheepshaver",
     "human_name": "SheepShaver",
     "description": "SheepShaver emulates a PowerMacintosh computer",
     "platforms": ["Macintosh"],
     "runnable_alone": "True",
-    "runner_executable": "sheepshaver/SheepShaver-x86_64.AppImage",
+    "runner_executable": "SheepShaver-x86_64.AppImage",
     "download_url": "https://github.com/Korkman/macemu-appimage-builder/releases/download/continuous/SheepShaver-x86_64.AppImage",
     "game_options": [
         {
