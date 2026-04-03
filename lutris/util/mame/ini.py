@@ -29,7 +29,6 @@ class MameIni:
         with open(self.ini_path, "r", encoding="utf-8") as ini_file:
             for line in ini_file.readlines():
                 self.lines.append(line)
-                print(line)
                 config_key, config_value = self.parse(line)
                 if config_key:
                     self.config[config_key] = config_value
