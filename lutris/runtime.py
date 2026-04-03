@@ -368,7 +368,7 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
         finally:
             self._complete()
 
-    def _install_cb(self, _completed: bool, error: Exception):
+    def _install_cb(self, _completed: bool, error: Exception) -> None:
         if error:
             logger.error("Runtime update failed: %s", error)
 
