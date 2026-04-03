@@ -157,7 +157,9 @@ def schedule_at_idle(func: Callable[..., None], *args: Any, delay_seconds: float
     return task
 
 
-def run_until_complete(async_func: Callable[..., None], *args, timeout_seconds: float = 30.0, **kwargs) -> None:
+def run_until_complete(
+    async_func: Callable[..., None], *args: Any, timeout_seconds: float = 30.0, **kwargs: Any
+) -> None:
     """Iterate the GLib main context until an async operation completes.
 
     This is intended for CLI code paths where no main loop is running, or
