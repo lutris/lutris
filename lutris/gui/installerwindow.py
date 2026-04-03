@@ -265,6 +265,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
             self.installer_files_box.stop_all()
             if self.interpreter:
+                self.load_spinner_page(_("Cancelling installation…"), cancellable=False)
                 self.interpreter.revert(
                     remove_game_dir=remove_checkbox.get_active(),
                     completion_function=on_cancelled,
