@@ -1029,15 +1029,36 @@ class CommandsMixin:
     def _check_path_within_target(self, path, command_name="command"):
         """Check that a resolved path is within the game's target directory.
 
-        Logs a warning if target_path is not set (can't validate), or raises
-        ScriptingError if the path escapes the target directory.
+        Logs a warning if target_path is not set (can't validate).  If the path
+        is outside the game directory the user is prompted to allow or deny the
+        operation.  Allowed parent directories are cached so the user is not
+        asked repeatedly for the same location.
         """
         if not self.target_path:
             logger.warning("No target path set, cannot validate path for '%s': %s", command_name, path)
             return
-        if not system.path_contains(self.target_path, path):
+        if system.path_contains(self.target_path, path):
+            return
+
+        resolved = os.path.realpath(path)
+
+        # Check if this path falls under a directory the user already allowed.
+        if not hasattr(self, "_allowed_external_paths"):
+            self._allowed_external_paths = set()
+        for allowed in self._allowed_external_paths:
+            if system.path_contains(allowed, resolved):
+                return
+
+        # Ask the user via the UI delegate (blocks in the background thread
+        # until the user responds).
+        allowed = self.interpreter_ui_delegate.prompt_for_external_path(command_name, path, self.target_path)
+        if allowed:
+            # Cache the parent directory so sibling writes are auto-allowed.
+            self._allowed_external_paths.add(os.path.dirname(resolved))
+            logger.info("User allowed %s to write outside game directory: %s", command_name, path)
+        else:
             raise ScriptingError(
-                _("The {cmd} command references a path outside the game directory: {path}").format(
+                _("The {cmd} command was denied access to a path outside the game directory: {path}").format(
                     cmd=command_name, path=path
                 )
             )
