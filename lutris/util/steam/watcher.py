@@ -1,6 +1,7 @@
 """Steam game library watcher"""
 
-from typing import Callable, Iterable
+from collections.abc import Callable
+from typing import Iterable
 
 # Third Party Libraries
 # pylint: disable=too-few-public-methods
