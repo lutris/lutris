@@ -73,7 +73,9 @@ class DownloadQueue(Gtk.ScrolledWindow):
             progress_box.update_progress()
             return progress_box
 
-        progress_box = ProgressBox(check_progress, visible=False, margin=6)
+        progress_box = ProgressBox(
+            check_progress, visible=False, margin_top=6, margin_bottom=6, margin_start=6, margin_end=6
+        )
         progress_box.update_progress()
 
         self.progress_boxes[progress_function] = progress_box

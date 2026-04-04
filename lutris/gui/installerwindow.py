@@ -98,7 +98,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.back_button.set_visible(False)
 
         self.cancel_button = self.add_start_button(_("Cancel"), self.on_cancel_clicked)
-        self.get_header_bar().set_show_close_button(False)
+        self.get_header_bar().set_show_title_buttons(False)
 
         self.continue_button = self.add_end_button(_("_Continue"))
 
@@ -191,7 +191,12 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def add_menu_button(self, label, handler=None, tooltip=None, sensitive=True):
         """Add a button to the menu in the header bar"""
-        button = Gtk.ModelButton(label=label, visible=True, xalign=0.0)
+        button = Gtk.Button(label=label)
+        button.add_css_class("flat")
+        button.set_halign(Gtk.Align.FILL)
+        child = button.get_child()
+        if child and isinstance(child, Gtk.Label):
+            child.set_xalign(0.0)
         button.set_sensitive(sensitive)
         if tooltip:
             button.set_tooltip_text(tooltip)
@@ -469,14 +474,14 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         desktop_shortcut_button = Gtk.CheckButton(label=_("Create desktop shortcut"), visible=True)
         desktop_shortcut_button.set_active(installer_create_desktop_shortcut)
-        desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
+        desktop_shortcut_button.connect("toggled", self.on_create_desktop_shortcut_clicked)
         self.config["create_desktop_shortcut"] = installer_create_desktop_shortcut
 
         vbox.append(desktop_shortcut_button)
 
         menu_shortcut_button = Gtk.CheckButton(label=_("Create application menu shortcut"), visible=True)
         menu_shortcut_button.set_active(installer_create_menu_shortcut)
-        menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
+        menu_shortcut_button.connect("toggled", self.on_create_menu_shortcut_clicked)
         self.config["create_menu_shortcut"] = installer_create_menu_shortcut
 
         vbox.append(menu_shortcut_button)
@@ -484,7 +489,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         if steam_shortcut.vdf_file_exists():
             steam_shortcut_button = Gtk.CheckButton(label=_("Create Steam shortcut"), visible=True)
             steam_shortcut_button.set_active(settings.read_bool_setting("installer_create_steam_shortcut", False))
-            steam_shortcut_button.connect("clicked", self.on_create_steam_shortcut_clicked)
+            steam_shortcut_button.connect("toggled", self.on_create_steam_shortcut_clicked)
             vbox.append(steam_shortcut_button)
         return vbox
 
@@ -688,7 +693,6 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             vexpand=True,
             child=self.installer_files_box,
             visible=True,
-            shadow_type=Gtk.ShadowType.ETCHED_IN,
         )
 
     def present_installer_files_page(self):
@@ -790,7 +794,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def create_log_page(self):
         log_textview = LogTextView(self.log_buffer)
-        return Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=log_textview, shadow_type=Gtk.ShadowType.ETCHED_IN)
+        return Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=log_textview)
 
     def present_log_page(self):
         """Creates a TextBuffer and attach it to a command"""

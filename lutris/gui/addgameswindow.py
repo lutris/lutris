@@ -102,7 +102,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.cancel_button = Gtk.Button(label=_("Cancel"), use_underline=True)
         self.cancel_button.connect("clicked", self.on_cancel_clicked)
         header_bar.pack_start(self.cancel_button)
-        header_bar.set_show_close_button(False)
+        header_bar.set_show_title_buttons(False)
 
         content_area.set_margin_top(18)
         content_area.set_margin_bottom(18)
@@ -165,7 +165,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.navigate_to_page(self.present_inital_page)
 
     def create_initial_page(self):
-        frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
+        frame = Gtk.Frame()
         listbox = Gtk.ListBox()
         listbox.set_activate_on_single_click(True)
         for icon, next_icon, text, subtext, callback_name in self.sections:
