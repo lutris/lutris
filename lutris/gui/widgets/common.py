@@ -77,7 +77,6 @@ class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
         self.entry.set_activates_default(activates_default)
         self.entry.connect("changed", self.on_entry_changed)
         self.entry.connect("activate", self.on_activate)
-        self.entry.connect("backspace", self.on_backspace)
 
         focus_controller = Gtk.EventControllerFocus()
         focus_controller.connect("leave", self.on_focus_out)
@@ -283,9 +282,6 @@ class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
         self.normalize_path()
         self.detect_changes()
 
-    def on_backspace(self, _widget):
-        GLib.idle_add(self.detect_changes)
-
     def detect_changes(self):
         """Detects if the text has changed and updates self.original_text and fires
         the changed signal. Lame, but Gtk.Entry does not always fire its
@@ -351,9 +347,9 @@ class Label(Gtk.Label):
     def __init__(self, message=None, width_request=230, max_width_chars=22, visible=True):
         """Custom init of label."""
         super().__init__(label=message, visible=visible)
-        self.set_line_wrap(True)
+        self.set_wrap(True)
         self.set_max_width_chars(max_width_chars)
-        self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        self.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.set_size_request(width_request, -1)
         self.set_xalign(0)
         self.set_justify(Gtk.Justification.LEFT)
@@ -389,11 +385,11 @@ class EditableGrid(Gtk.Box):
             self.treeview.append_column(column)
 
         self.buttons = []
-        self.add_button = Gtk.Button(_("Add"))
+        self.add_button = Gtk.Button(label=_("Add"))
         self.buttons.append(self.add_button)
         self.add_button.connect("clicked", self.on_add)
 
-        self.delete_button = Gtk.Button(_("Delete"))
+        self.delete_button = Gtk.Button(label=_("Delete"))
         self.buttons.append(self.delete_button)
         self.delete_button.connect("clicked", self.on_delete)
 

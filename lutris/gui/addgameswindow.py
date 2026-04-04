@@ -194,9 +194,9 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         if self.search_entry:
             self.search_entry.set_text("")
             self.search_result_label.set_text("")
-            self.search_result_label.hide()
-            self.search_frame.hide()
-            self.search_explanation_label.show()
+            self.search_result_label.set_visible(False)
+            self.search_frame.set_visible(False)
+            self.search_explanation_label.set_visible(True)
         self.stack.navigate_to_page(self.present_search_installers_page)
 
     def create_search_installers_page(self):
@@ -254,7 +254,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             return
 
         if self.text_query:
-            self.search_spinner.show()
+            self.search_spinner.set_visible(True)
             self.search_spinner.start()
             AsyncCall(api.search_games, self.update_search_results_cb, self.text_query)
 
@@ -263,7 +263,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             raise error
 
         self.search_spinner.stop()
-        self.search_spinner.hide()
+        self.search_spinner.set_visible(False)
         total_count = api_games.get("count", 0)
         count = len(api_games.get("results", []))
 
@@ -288,9 +288,9 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             row = self._get_listbox_row("", gtk_safe(game["name"]), f"{year}{platforms}")
             row.api_info = game
             self.search_listbox.append(row)
-        self.search_result_label.show()
-        self.search_frame.show()
-        self.search_explanation_label.hide()
+        self.search_result_label.set_visible(True)
+        self.search_frame.set_visible(True)
+        self.search_explanation_label.set_visible(False)
 
     def _on_game_selected(self, listbox, row):
         game_slug = row.api_info["slug"]
@@ -330,7 +330,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         grid.attach(self._get_explanation_label(explanation), 0, 2, 2, 1)
 
-        preset_label = Gtk.Label(_("Installer preset:"), visible=True)
+        preset_label = Gtk.Label(label=_("Installer preset:"), visible=True)
         grid.attach(preset_label, 0, 3, 1, 1)
 
         self.installer_presets.append(["win11", _("Windows 11 64-bit")])
@@ -351,7 +351,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         grid.attach(self.install_preset_dropdown, 1, 3, 1, 1)
         self.install_preset_dropdown.set_halign(Gtk.Align.START)
 
-        locale_label = Gtk.Label(_("Locale:"), visible=True)
+        locale_label = Gtk.Label(label=_("Locale:"), visible=True)
         locale_label.set_xalign(0)
         grid.attach(locale_label, 0, 4, 1, 1)
 
@@ -512,7 +512,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         else:
             application = Gio.Application.get_default()
             dialog = ImportGameDialog(paths, parent=application.window)
-            dialog.show()
+            dialog.set_visible(True)
             self.destroy()
 
     # Import Playtron Page
@@ -595,9 +595,9 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         """Places some text at the top of the page; set markup to 'None' to remove it."""
         if markup:
             self.page_title_label.set_markup(markup)
-            self.page_title_label.show()
+            self.page_title_label.set_visible(True)
         else:
-            self.page_title_label.hide()
+            self.page_title_label.set_visible(False)
 
     # Continue Button
 
@@ -614,17 +614,17 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         self.continue_handler = self.continue_button.connect("clicked", handler)
 
-        self.continue_button.show()
+        self.continue_button.set_visible(True)
         self.cancel_button.set_label(_("Cancel"))
         self.stack.set_cancel_allowed(True)
 
     def display_cancel_button(self, label=_("Cancel")):
         self.cancel_button.set_label(label)
         self.stack.set_cancel_allowed(True)
-        self.continue_button.hide()
+        self.continue_button.set_visible(False)
 
     def display_no_continue_button(self):
-        self.continue_button.hide()
+        self.continue_button.set_visible(False)
         self.stack.set_cancel_allowed(False)
 
         if self.continue_handler:
@@ -653,7 +653,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             if os.path.exists(icon_path):
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, pixel_size, pixel_size)
                 icon = Gtk.Image.new_from_pixbuf(pixbuf)
-                icon.show()
+                icon.set_visible(True)
                 return icon
 
         icon = Gtk.Image.new_from_icon_name(name)
@@ -671,7 +671,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
     def _get_explanation_label(self, markup):
         label = Gtk.Label(visible=True, margin_end=12, margin_start=12, margin_top=12, margin_bottom=12)
         label.set_markup(markup)
-        label.set_line_wrap(True)
+        label.set_wrap(True)
         return label
 
     def _get_listbox_row(self, left_icon_name, text, subtext, right_icon_name=""):

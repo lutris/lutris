@@ -177,7 +177,7 @@ class GameInfoBox(AdvancedSettingsBox):
         self.slug_entry.set_vexpand(True)
         slug_entry_box.append(self.slug_entry)
 
-        self.slug_change_button = Gtk.Button(_("Change"))
+        self.slug_change_button = Gtk.Button(label=_("Change"))
         self.slug_change_button.connect("clicked", self.on_slug_change_clicked)
         slug_entry_box.append(self.slug_change_button)
 
@@ -199,7 +199,7 @@ class GameInfoBox(AdvancedSettingsBox):
         self.directory_entry.set_hexpand(True)
         self.directory_entry.set_vexpand(True)
         box.append(self.directory_entry)
-        move_button = Gtk.Button(_("Move"), visible=True)
+        move_button = Gtk.Button(label=_("Move"), visible=True)
         move_button.connect("clicked", self.parent_widget.on_move_clicked)
         box.append(move_button)
         return box
@@ -222,15 +222,15 @@ class GameInfoBox(AdvancedSettingsBox):
                 text = _("The default launch option will be used for this game")
             else:
                 text = _("The '%s' launch option will be used for this game") % preferred_name
-            label = Gtk.Label(text)
-            label.set_line_wrap(True)
+            label = Gtk.Label(label=text)
+            label.set_wrap(True)
             label.set_halign(Gtk.Align.START)
             label.set_xalign(0.0)
             label.set_valign(Gtk.Align.CENTER)
             label.set_hexpand(True)
             label.set_vexpand(True)
             box.append(label)
-            button = Gtk.Button(_("Reset"))
+            button = Gtk.Button(label=_("Reset"))
             button.connect("clicked", self.on_reset_preferred_launch_config_clicked, box)
             button.set_valign(Gtk.Align.CENTER)
             box.append(button)
@@ -402,7 +402,7 @@ class GameInfoBox(AdvancedSettingsBox):
         media_path = resolve_media_path(service_media.get_possible_media_paths(game_slug)).path
         try:
             image = ScaledImage.new_from_media_path(media_path, service_media.config_ui_size, scale_factor)
-            image_button.set_image(image)
+            image_button.set_child(image)
         except Exception as ex:
             # We need to survive nasty data in the media files, so the user can replace
             # them.
@@ -482,10 +482,16 @@ class GameInfoBox(AdvancedSettingsBox):
             open_uri(str(path.parent))
 
     def refresh_image_path_entry(self, image_type):
-        image_path = str(self.get_image_path(image_type) or "")
-        if image_path_entry := self.image_path_entries.get(image_type):
-            image_path_entry.set_text(image_path)
-            self.image_path_open_button[image_type].set_sensitive(bool(image_path))
+        if getattr(self, "_refreshing_image_path", False):
+            return
+        self._refreshing_image_path = True
+        try:
+            image_path = str(self.get_image_path(image_type) or "")
+            if image_path_entry := self.image_path_entries.get(image_type):
+                image_path_entry.set_text(image_path)
+                self.image_path_open_button[image_type].set_sensitive(bool(image_path))
+        finally:
+            self._refreshing_image_path = False
 
     def on_custom_image_select(self, _widget, image_type):
         dialog = Gtk.FileDialog()

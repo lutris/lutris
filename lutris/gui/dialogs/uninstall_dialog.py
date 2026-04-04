@@ -177,9 +177,9 @@ class UninstallDialog(Gtk.Dialog):
 
         if messages:
             self.message_label.set_markup("\n\n".join(messages))
-            self.message_label.show()
+            self.message_label.set_visible(True)
         else:
-            self.message_label.hide()
+            self.message_label.set_visible(False)
 
     def on_row_updated(self, row) -> None:
         directory = row.game.directory
@@ -413,7 +413,7 @@ class GameRemovalRow(Gtk.ListBoxRow):
     def show_folder_size_spinner(self):
         if self.folder_size_spinner:
             self.folder_size_spinner.start()
-            self.folder_size_spinner.show()
+            self.folder_size_spinner.set_visible(True)
 
     def show_folder_size(self, folder_size: int) -> None:
         """Called to stop the spinner and show the size of the game folder."""
@@ -422,7 +422,7 @@ class GameRemovalRow(Gtk.ListBoxRow):
 
         if self.folder_size_spinner:
             self.folder_size_spinner.stop()
-            self.folder_size_spinner.hide()
+            self.folder_size_spinner.set_visible(False)
 
     @property
     def delete_files(self) -> bool:

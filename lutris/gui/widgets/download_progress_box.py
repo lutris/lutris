@@ -99,7 +99,7 @@ class DownloadProgressBox(Gtk.Box):
 
         create_cache_lock(self.dest, CacheState.DOWNLOADING)
         schedule_repeating_at_idle(self._progress, interval_seconds=0.5)
-        self.cancel_button.show()
+        self.cancel_button.set_visible(True)
         self.cancel_button.set_sensitive(True)
         if not downloader.state == downloader.DOWNLOADING:
             downloader.start()

@@ -130,8 +130,12 @@ class UpdateButtonBox(Gtk.Box):
     def __init__(self, label: str, button_label: str, clicked: Callable[[Gtk.Widget], None]):
         super().__init__(
             orientation=Gtk.Orientation.HORIZONTAL,
-            margin_top=12, margin_bottom=12, margin_start=12, margin_end=12,
-            spacing=6, visible=True,
+            margin_top=12,
+            margin_bottom=12,
+            margin_start=12,
+            margin_end=12,
+            spacing=6,
+            visible=True,
         )
 
         self.label = Gtk.Label(visible=True, xalign=0)
