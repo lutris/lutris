@@ -654,8 +654,8 @@ class GameInfoBox(AdvancedSettingsBox):
 
 class UrlDialog(Gtk.Dialog):
     def __init__(self, parent):
-        super().__init__(title=_("Enter URL"), transient_for=parent, flags=0)
-        self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        super().__init__(title=_("Enter URL"), transient_for=parent)
+        self.add_buttons(_("_Cancel"), Gtk.ResponseType.CANCEL, _("_OK"), Gtk.ResponseType.OK)
 
         self.set_default_size(300, 100)
 

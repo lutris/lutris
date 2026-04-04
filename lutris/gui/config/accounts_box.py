@@ -100,7 +100,7 @@ class AccountsBox(BaseConfigBox):
         else:
             button_text = _("Login")
             button_handler = self.on_login_clicked
-        button = Gtk.Button(button_text, visible=True)
+        button = Gtk.Button(label=button_text, visible=True)
         button.connect("clicked", button_handler)
         self.space_widget(button)
         user_box.append(button)
