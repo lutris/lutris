@@ -157,6 +157,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         if filter_button_image:
             filter_button_image.set_from_icon_name(icon_name)
         self.filter_box_search_name = ""
+        self._filter_popover = None
 
         # Setup Drag and drop (GTK 4 style)
         drop_target = Gtk.DropTarget.new(Gio.File, Gdk.DragAction.COPY)
@@ -381,10 +382,13 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         is_active = value.get_boolean()
 
         if not is_active:
+            if self._filter_popover:
+                self._filter_popover.popdown()
             return
 
         def on_filter_popover_closed(_popover):
             self.filter_box_search_name = filter_box.search_name
+            self._filter_popover = None
             action.set_state(GLib.Variant("b", False))
 
         def on_saved(_box, search_name):
@@ -392,7 +396,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 self.sidebar.selected_category = "saved_search", search_name
                 self.search_entry.set_text("")
 
-            filter_popover.popdown()
+            if self._filter_popover:
+                self._filter_popover.popdown()
             schedule_at_idle(switch_to_saved_search)
 
         try:
@@ -407,10 +412,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         if self.filter_box_search_name:
             filter_box.search_name = self.filter_box_search_name
         filter_box.connect("saved", on_saved)
-        filter_popover = Gtk.Popover(child=filter_box)
-        filter_popover.set_parent(self.search_filters_button)
-        filter_popover.connect("closed", on_filter_popover_closed)
-        filter_popover.popup()
+        self._filter_popover = Gtk.Popover(child=filter_box)
+        self._filter_popover.set_parent(self.search_filters_button)
+        self._filter_popover.connect("closed", on_filter_popover_closed)
+        self._filter_popover.popup()
 
     @property
     def current_view_type(self):
