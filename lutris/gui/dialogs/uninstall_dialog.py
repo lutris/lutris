@@ -37,7 +37,8 @@ class UninstallDialog(Gtk.Dialog):
     remove_all_games_checkbox: Gtk.CheckButton = GtkTemplate.Child()
 
     def __init__(self, parent: Gtk.Window, **kwargs):
-        super().__init__(parent=parent, **kwargs)
+        super().__init__(**kwargs)
+        self.set_transient_for(parent)
         self.parent = parent
         self._setting_all_checkboxes = False
         self.games: list[Game] = []
@@ -311,6 +312,7 @@ class UninstallDialog(Gtk.Dialog):
         get_required_main_window().on_game_removed()
         self.destroy()
 
+    @GtkTemplate.Callback
     def on_response(self, _dialog, response: Gtk.ResponseType) -> None:
         if response in (
             Gtk.ResponseType.DELETE_EVENT,
