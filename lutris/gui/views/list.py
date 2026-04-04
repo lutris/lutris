@@ -108,6 +108,14 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         return column
 
     def get_path_at(self, x, y):
+        # In GTK 4, gesture coordinates are viewport-relative, but
+        # get_path_at_pos() expects content-relative coordinates.
+        hadj = self.get_hadjustment()
+        vadj = self.get_vadjustment()
+        if hadj:
+            x += hadj.get_value()
+        if vadj:
+            y += vadj.get_value()
         path_at = self.get_path_at_pos(x, y)
         if path_at is None:
             return None
