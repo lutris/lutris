@@ -20,7 +20,7 @@ class LogTextView(Gtk.TextView):
         self.set_left_margin(10)
         self.scroll_max = 0
         self.set_wrap_mode(wrap_mode)
-        self.get_style_context().add_class("lutris-logview")
+        self.add_css_class("lutris-logview")
 
         self.mark = self.create_new_mark(self.props.buffer.get_start_iter())
 

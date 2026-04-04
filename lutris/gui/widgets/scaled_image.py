@@ -13,7 +13,11 @@ from lutris.gui.widgets.utils import (
 class ScaledImage(Gtk.Image):
     """This class provides a rather basic feature the GtkImage doesn't offer - the ability
     to scale the image rendered. Scaling a pixbuf is not the same thing - that discards
-    pixel data. This will preserve it on high-DPI displays by scaling only at drawing time."""
+    pixel data. This will preserve it on high-DPI displays by scaling only at drawing time.
+
+    In GTK4, we rely on the paintable/texture pipeline for scaling, so we scale the pixbuf
+    at load time to the desired display size. The scale_factor is used to load a higher-res
+    pixbuf and let GTK4's rendering handle the rest."""
 
     __gtype_name__ = "ScaledImage"
 
@@ -32,6 +36,8 @@ class ScaledImage(Gtk.Image):
         pixbuf = get_required_pixbuf_by_path(path, pixbuf_size)
         image = ScaledImage(1 / scale_factor)
         image.set_from_pixbuf(pixbuf)
+        if size:
+            image.set_size_request(size[0], size[1])
         return image
 
     @staticmethod
@@ -52,6 +58,8 @@ class ScaledImage(Gtk.Image):
 
         image = ScaledImage(1 / scale_factor)
         image.set_from_pixbuf(pixbuf)
+        if size:
+            image.set_size_request(size[0], size[1])
         return image
 
     @staticmethod
@@ -68,29 +76,7 @@ class ScaledImage(Gtk.Image):
             if not has_stock_icon(fallback_stock_icon_name):
                 fallback_stock_icon_name = "package-x-generic-symbolic"
 
-            icon = Gtk.Image.new_from_icon_name(fallback_stock_icon_name, Gtk.IconSize.DND)
+            icon = Gtk.Image.new_from_icon_name(fallback_stock_icon_name)
+            icon.set_icon_size(Gtk.IconSize.LARGE)
         icon.set_visible(visible)
         return icon
-
-    def do_get_preferred_width(self):
-        minimum, natural = Gtk.Image.do_get_preferred_width(self)
-        return minimum * self.scale_factor, natural * self.scale_factor
-
-    def do_get_preferred_height(self):
-        minimum, natural = Gtk.Image.do_get_preferred_height(self)
-        return minimum * self.scale_factor, natural * self.scale_factor
-
-    def do_draw(self, cr):
-        if self.scale_factor != 1:
-            # we need to scale around the center of the image,
-            # but cr.scale() scales around (0, 0). So we move
-            # the co-ordinates before scaling.
-            allocation = self.get_allocation()
-            center_x = allocation.width / 2
-            center_y = allocation.height / 2
-
-            cr.translate(center_x, center_y)
-            cr.scale(self.scale_factor, self.scale_factor)
-            cr.translate(-center_x, -center_y)
-
-        Gtk.Image.do_draw(self, cr)

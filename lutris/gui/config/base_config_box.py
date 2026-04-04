@@ -15,30 +15,30 @@ class BaseConfigBox(VBox):
         self.accelerators = None
         self.set_margin_top(50)
         self.set_margin_bottom(50)
-        self.set_margin_right(80)
-        self.set_margin_left(80)
+        self.set_margin_end(80)
+        self.set_margin_start(80)
 
     def get_section_label(self, text: str) -> Gtk.Label:
         label = Gtk.Label(visible=True)
         label.set_markup("<b>%s</b>" % text)
-        label.set_alignment(0, 0.5)
+        label.set_halign(Gtk.Align.START)
         return label
 
     def get_description_label(self, text: str) -> Gtk.Label:
         label = Gtk.Label(visible=True)
         label.set_markup("%s" % text)
         label.set_line_wrap(True)
-        label.set_alignment(0, 0.5)
+        label.set_halign(Gtk.Align.START)
         return label
 
     def _get_framed_options_list_box(self, items):
-        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
+        frame = Gtk.Frame(visible=True)
 
         list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
-        frame.add(list_box)
+        frame.set_child(list_box)
 
         for item in items:
-            list_box.add(Gtk.ListBoxRow(child=item, visible=True, activatable=False))
+            list_box.append(Gtk.ListBoxRow(child=item, visible=True, activatable=False))
         return frame
 
     def get_setting_box(
@@ -62,7 +62,7 @@ class BaseConfigBox(VBox):
                     visible = warning_condition(active) if bool(warning_condition) else active
                     warning_box.show_markup(warning_markup if visible else None)
 
-                warning_box = WidgetWarningMessageBox("dialog-warning", margin_left=0, margin_right=0, margin_bottom=0)
+                warning_box = WidgetWarningMessageBox("dialog-warning", margin_start=0, margin_end=0, margin_bottom=0)
                 update_warning(setting_value)
                 inner_box = self._get_inner_settings_box(
                     setting_key, setting_value, label, accelerator, margin=0, when_setting_changed=update_warning
@@ -78,16 +78,16 @@ class BaseConfigBox(VBox):
                 )
 
             box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
-            box.pack_start(inner_box, False, False, 0)
+            box.append(inner_box)
             if warning_box:
-                box.pack_start(warning_box, False, False, 0)
+                box.append(warning_box)
             if extra_widget:
-                box.pack_start(extra_widget, False, False, 0)
+                box.append(extra_widget)
 
         box.set_margin_top(12)
         box.set_margin_bottom(12)
-        box.set_margin_left(12)
-        box.set_margin_right(12)
+        box.set_margin_start(12)
+        box.set_margin_end(12)
         return box
 
     def _get_inner_settings_box(
@@ -110,11 +110,17 @@ class BaseConfigBox(VBox):
         return self.get_listed_widget_box(label, checkbox, margin=margin)
 
     def get_listed_widget_box(self, label: str, widget: Gtk.Widget, margin: int = 12) -> Gtk.Box:
-        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin=margin, visible=True)
+        box = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL, spacing=12,
+            margin_top=margin, margin_bottom=margin, margin_start=margin, margin_end=margin,
+            visible=True,
+        )
         label = Gtk.Label(label=label, visible=True, wrap=True)
-        label.set_alignment(0, 0.5)
-        box.pack_start(label, True, True, 0)
-        box.pack_end(widget, False, False, 0)
+        label.set_halign(Gtk.Align.START)
+        label.set_hexpand(True)
+        label.set_vexpand(True)
+        box.append(label)
+        box.append(widget)
         return box
 
     def on_setting_change(

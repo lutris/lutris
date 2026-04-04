@@ -13,4 +13,3 @@ class EditGameConfigDialog(GameDialogCommon):
         self.runner_name = game.runner_name
         self.build_notebook()
         self.build_tabs()
-        self.show_all()

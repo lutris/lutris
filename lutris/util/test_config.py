@@ -2,8 +2,8 @@ import os
 
 import gi
 
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "4.0")
+gi.require_version("Gtk", "4.0")
 
 from lutris.database import schema
 from lutris.startup import init_lutris
