@@ -500,7 +500,7 @@ class Runner:  # pylint: disable=too-many-public-methods
                 return
 
         command_data = self.get_run_data()
-        command = command_data.get("command")
+        command: list[str] = command_data.get("command")
         env = (command_data.get("env") or {}).copy()
 
         self.prelaunch()
