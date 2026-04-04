@@ -105,7 +105,7 @@ class WebConnectDialog(ModalDialog):
         # The inspector shows ups but it's impossible to interact with it
         # All inputs are blocked by the the webkit dialog.
         inspector = self.webview.get_inspector()
-        inspector.show()
+        inspector.present()
 
     def on_decide_policy(self, webview, decision, decision_type):
         if decision_type == WebKit.PolicyDecisionType.NAVIGATION_ACTION:
@@ -140,7 +140,7 @@ class WebConnectDialog(ModalDialog):
         uri = navigation_action.get_request().get_uri()
         view = WebKit.WebView.new_with_related_view(widget)
         popup_dialog = WebPopupDialog(view, uri, parent=self)
-        popup_dialog.show()
+        popup_dialog.present()
         return view
 
 
@@ -174,7 +174,7 @@ class WebPopupDialog(ModalDialog):
         view = WebKit.WebView.new_with_related_view(webview)
         view.load_uri(uri)
         dialog = WebPopupDialog(view, uri, parent=self)
-        dialog.show()
+        dialog.present()
         return view
 
     def on_webview_close(self, webview):

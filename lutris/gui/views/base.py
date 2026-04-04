@@ -67,11 +67,9 @@ class GameView:
         self.missing_games_updated_registration.unregister()
         self.game_start_registration.unregister()
 
-    def popup_contextual_menu(self, view, event):
+    def popup_contextual_menu(self, gesture, _n_press, x, y):
         """Contextual menu."""
-        if event.button != Gdk.BUTTON_SECONDARY:
-            return
-        current_path = self.get_path_at(event.x, event.y)
+        current_path = self.get_path_at(x, y)
         if current_path:
             selection = self.get_selected()
             if current_path not in selection:
@@ -80,7 +78,7 @@ class GameView:
 
             game_actions = self.get_game_actions_for_paths(selection)
             contextual_menu = ContextualMenu(game_actions.get_game_actions())
-            contextual_menu.popup(event, game_actions)
+            contextual_menu.popup_at(self, x, y, game_actions)
             return True
 
     def get_selected_game_actions(self) -> GameActions:
@@ -130,9 +128,9 @@ class GameView:
             return self.get_game_id_for_path(selected[0])
         return None
 
-    def handle_key_press(self, widget, event):  # pylint: disable=unused-argument
+    def handle_key_press(self, _controller, keyval, _keycode, _state):  # pylint: disable=unused-argument
         try:
-            key = event.keyval
+            key = keyval
             if key == Gdk.KEY_Delete:
                 game_actions = self.get_selected_game_actions()
                 if game_actions.is_game_removable:

@@ -120,6 +120,6 @@ class ProgressBox(Gtk.Box):
             if markup != self.label.get_text():
                 self.label.set_markup(markup)
                 self.label.set_tooltip_markup(markup)
-            self.label.show()
+            self.label.set_visible(True)
         else:
-            self.label.hide()
+            self.label.set_visible(False)

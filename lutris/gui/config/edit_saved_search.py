@@ -169,7 +169,7 @@ class SearchFiltersBox(Gtk.Box):
             else:
                 combobox.set_active_id("")
 
-        label = Gtk.Label(caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
+        label = Gtk.Label(label=caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
         label.set_halign(Gtk.Align.START)
         label.set_size_request(120, -1)
         self.flags_grid.attach(label, 0, row, 1, 1)

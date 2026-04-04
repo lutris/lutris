@@ -111,7 +111,7 @@ class AccountsBox(BaseConfigBox):
         box.append(self.get_user_box())
 
         sync_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, visible=True)
-        sync_label = Gtk.Label(_("Keep your game library synced with Lutris.net"), visible=True)
+        sync_label = Gtk.Label(label=_("Keep your game library synced with Lutris.net"), visible=True)
         sync_switch = Gtk.Switch(visible=True)
         sync_switch.set_active(settings.read_bool_setting("library_sync_enabled", default=True))
         sync_switch.connect("state-set", self.on_sync_state_set)
@@ -152,14 +152,13 @@ class AccountsBox(BaseConfigBox):
             if not main_radio_button:
                 main_radio_button = radio_button
         if not steam_users:
-            no_account_label = self.space_widget(Gtk.Label(_("No Steam account found"), visible=True))
+            no_account_label = self.space_widget(Gtk.Label(label=_("No Steam account found"), visible=True))
             no_account_label.set_hexpand(True)
             no_account_label.set_vexpand(True)
             self.accounts_box.append(no_account_label)
 
     def rebuild_lutris_options(self):
-        self.bullshit_box.remove(self.lutris_options)
-        self.lutris_options.destroy()
+        self.lutris_options.unparent()
         self.lutris_options = self.get_lutris_options()
         self.bullshit_box.append(self.lutris_options)
 

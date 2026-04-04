@@ -112,16 +112,16 @@ class SidebarRow(Gtk.ListBoxRow):
 
     def update_buttons(self):
         if self.is_updating:
-            self.btn_box.hide()
-            self.spinner.show()
+            self.btn_box.set_visible(False)
+            self.spinner.set_visible(True)
             self.spinner.start()
             return
         self.spinner.stop()
-        self.spinner.hide()
+        self.spinner.set_visible(False)
         if self.is_row_active():
-            self.btn_box.show()
+            self.btn_box.set_visible(True)
         elif self.btn_box.get_visible():
-            self.btn_box.hide()
+            self.btn_box.set_visible(False)
 
     def create_button_box(self):
         """Adds buttons in the button box based on the row's actions"""
@@ -617,9 +617,9 @@ class LutrisSidebar(Gtk.ListBox):
         # I wanted this to be on top but it really messes with the headers when showing/hiding the row.
         self.append(self.running_row)
         self.set_visible(True)
-        self.hidden_row.hide()
-        self.missing_row.hide()
-        self.running_row.hide()
+        self.hidden_row.set_visible(False)
+        self.missing_row.set_visible(False)
+        self.running_row.set_visible(False)
 
         # Create the dynamic rows that are initially needed
         self.update_rows()
@@ -797,7 +797,7 @@ class LutrisSidebar(Gtk.ListBox):
         stale_categories = set(self.category_rows.keys()) - self.used_categories
         for stale_name in stale_categories:
             stale_row = self.category_rows.pop(stale_name)
-            stale_row.destroy()
+            stale_row.unparent()
 
         for category in categories:
             if category["name"] not in self.category_rows:
@@ -816,12 +816,12 @@ class LutrisSidebar(Gtk.ListBox):
 
     def on_game_start(self, _game: Game) -> None:
         """Show the "running" section when a game start"""
-        self.running_row.show()
+        self.running_row.set_visible(True)
 
     def on_game_stopped(self, _game: Game) -> None:
         """Hide the "running" section when no games are running"""
         if not self.application.has_running_games:
-            self.running_row.hide()
+            self.running_row.set_visible(False)
 
             if self.get_selected_row() == self.running_row:
                 self.select_row(get_widget_children(self, SidebarRow)[0])

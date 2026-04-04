@@ -117,7 +117,7 @@ class PreferencesWidgetGenerator(WidgetGenerator):
         if no_label:
             return super().build_option_widget(option, widget, no_label=no_label, expand=expand)
 
-        label = Gtk.Label(option["label"], visible=True, wrap=True)
+        label = Gtk.Label(label=option["label"], visible=True, wrap=True)
         label.set_halign(Gtk.Align.START)
         if self.wrapper and widget:
             label.set_hexpand(True)
