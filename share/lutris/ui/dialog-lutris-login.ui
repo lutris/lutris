@@ -1,50 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk" version="4.0"/>
   <object class="GtkDialog" id="lutris-login">
-    <property name="margin-top">5</property>
-    <property name="margin-bottom">5</property>
-    <property name="margin-start">5</property>
-    <property name="margin-end">5</property>
     <property name="title" translatable="yes">Connect to lutris.net</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
     <property name="destroy-with-parent">True</property>
-    <child internal-child="vbox">
+    <child>
       <object class="GtkBox" id="dialog-vbox1">
         <property name="orientation">vertical</property>
         <property name="spacing">15</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="dialog-action_area1">
-            <property name="homogeneous">True</property>
-            <property name="layout-style">center</property>
-            <child>
-              <object class="GtkLinkButton" id="linkbutton1">
-                <property name="label" translatable="yes">Forgot password?</property>
-                <property name="has-tooltip">True</property>
-                <property name="valign">center</property>
-                <property name="has-frame">False</property>
-                <property name="uri">https://lutris.net/user/password/reset</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkButton" id="cancel_button">
-                <property name="label" translatable="yes">C_ancel</property>
-                <property name="use-underline">True</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkButton" id="connect_button">
-                <property name="label" translatable="yes">_Connect</property>
-                <property name="use-underline">True</property>
-                <style>
-                  <class name="suggested-action"/>
-                </style>
-              </object>
-            </child>
-          </object>
-        </child>
+        <property name="margin-top">5</property>
+        <property name="margin-bottom">5</property>
+        <property name="margin-start">5</property>
+        <property name="margin-end">5</property>
         <child>
           <!-- n-columns=3 n-rows=3 -->
           <object class="GtkGrid" id="login-grid">
@@ -81,10 +50,9 @@
                 <property name="hexpand">True</property>
                 <property name="max-length">1024</property>
                 <property name="visibility">False</property>
-                <property name="invisible-char">•</property>
+                <property name="invisible-char">&#x2022;</property>
                 <property name="width-chars">36</property>
                 <property name="input-purpose">password</property>
-                <signal name="activate" handler="on_password_entry_activate" swapped="no"/>
                 <layout>
                   <property name="column">1</property>
                   <property name="row">1</property>
@@ -96,38 +64,48 @@
                 <property name="halign">start</property>
                 <property name="hexpand">True</property>
                 <property name="max-length">30</property>
-                <property name="invisible-char">•</property>
+                <property name="invisible-char">&#x2022;</property>
                 <property name="width-chars">36</property>
-                <signal name="activate" handler="on_username_entry_activate" swapped="no"/>
                 <layout>
                   <property name="column">1</property>
                   <property name="row">0</property>
                 </layout>
               </object>
             </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">horizontal</property>
+            <property name="spacing">6</property>
+            <property name="halign">center</property>
             <child>
-              <placeholder/>
+              <object class="GtkLinkButton" id="linkbutton1">
+                <property name="label" translatable="yes">Forgot password?</property>
+                <property name="has-tooltip">True</property>
+                <property name="valign">center</property>
+                <property name="has-frame">False</property>
+                <property name="uri">https://lutris.net/user/password/reset</property>
+              </object>
             </child>
             <child>
-              <placeholder/>
+              <object class="GtkButton" id="cancel_button">
+                <property name="label" translatable="yes">C_ancel</property>
+                <property name="use-underline">True</property>
+              </object>
             </child>
             <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
+              <object class="GtkButton" id="connect_button">
+                <property name="label" translatable="yes">_Connect</property>
+                <property name="use-underline">True</property>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+              </object>
             </child>
           </object>
         </child>
       </object>
     </child>
-    <action-widgets>
-      <action-widget response="0">linkbutton1</action-widget>
-      <action-widget response="0">cancel_button</action-widget>
-      <action-widget response="4">connect_button</action-widget>
-    </action-widgets>
   </object>
 </interface>

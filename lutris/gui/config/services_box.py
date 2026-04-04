@@ -66,7 +66,7 @@ class ServicesBox(BaseConfigBox):
             service_label_box.append(desc_label)
 
         include_in_games_checkbox = Gtk.CheckButton(
-            _("Show games from this source in the games view"),
+            label=_("Show games from this source in the games view"),
             visible=is_active,
             active=is_in_games_view,
             halign=Gtk.Align.START,

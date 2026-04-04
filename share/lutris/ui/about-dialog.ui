@@ -1,16 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.0 -->
 <interface>
   <requires lib="gtk" version="4.0"/>
   <object class="GtkAboutDialog" id="about_dialog">
-    <property name="margin-top">5</property>
-    <property name="margin-bottom">5</property>
-    <property name="margin-start">5</property>
-    <property name="margin-end">5</property>
     <property name="title" translatable="yes">About Lutris</property>
     <property name="modal">True</property>
     <property name="destroy_with_parent">True</property>
-    <property name="icon_name">net.lutris.Lutris</property>
     <property name="program_name">Lutris</property>
     <property name="copyright">© 2009 Mathieu Comandon</property>
     <property name="comments" translatable="yes">Video game preservation platform</property>
@@ -30,21 +24,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 </property>
     <property name="authors" translatable="yes">The Lutris team</property>
-    <property name="logo">../media/logo.svg</property>
+    <property name="logo-icon-name">net.lutris.Lutris</property>
     <property name="wrap_license">True</property>
     <property name="license_type">gpl-3-0</property>
-    <signal name="close" handler="on_close" swapped="no"/>
-    <signal name="response" handler="on_response" swapped="no"/>
-    <child internal-child="vbox">
-      <object class="GtkBox" id="aboutdialog-vbox1">
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="aboutdialog-action_area1">
-          </object>
-        </child>
-      </object>
-    </child>
-    <child type="titlebar">
-      <placeholder/>
-    </child>
   </object>
 </interface>
