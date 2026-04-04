@@ -107,7 +107,7 @@ class PreferencesDialog(GameDialogCommon):
         else:
             self.set_search_entry_visibility(False)
 
-        self.get_header_bar().set_show_close_button(not show_actions)
+        self.get_header_bar().set_show_title_buttons(not show_actions)
         self.stack.set_visible_child_name(row.get_child().stack_id)
 
     def get_search_entry_placeholder(self):
