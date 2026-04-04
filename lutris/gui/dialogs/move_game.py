@@ -26,14 +26,13 @@ class MoveDialog(ModelessDialog):
         self.set_decorated(False)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 12)
         label = Gtk.Label(label=_("Moving %s to %s..." % (game, destination)))
-        vbox.add(label)
+        vbox.append(label)
         self.progress = Gtk.ProgressBar(visible=True)
         self.progress.set_pulse_step(0.1)
-        vbox.add(self.progress)
-        self.get_content_area().add(vbox)
+        vbox.append(self.progress)
+        self.get_content_area().append(vbox)
         self.progress_source_task = schedule_repeating_at_idle(self.show_progress, interval_seconds=0.125)
         self.connect("destroy", self.on_destroy)
-        self.show_all()
 
     def on_destroy(self, _dialog):
         self.progress_source_task.unschedule()

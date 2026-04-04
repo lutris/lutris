@@ -43,7 +43,7 @@ class GameGridView(Gtk.IconView, GameView):  # type:ignore[misc]
         self.connect_signals()
         self.connect("item-activated", self.on_item_activated)
         self.connect("selection-changed", self.on_selection_changed)
-        self.connect("style-updated", self.on_style_updated)
+        self.connect("notify::css-classes", self.on_style_updated)
 
     def set_game_store(self, game_store):
         super().set_game_store(game_store)

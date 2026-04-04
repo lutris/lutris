@@ -77,8 +77,8 @@ class DownloadQueue(Gtk.ScrolledWindow):
         progress_box.update_progress()
 
         self.progress_boxes[progress_function] = progress_box
-        self.download_box.pack_start(progress_box, False, False, 0)
-        progress_box.show()
+        self.download_box.append(progress_box)
+        progress_box.set_visible(True)
         self.revealer.set_reveal_child(True)
         return progress_box
 

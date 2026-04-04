@@ -15,30 +15,30 @@ class ServicesBox(BaseConfigBox):
 
     def __init__(self):
         super().__init__()
-        self.add(self.get_section_label(_("Enable integrations with game sources")))
-        self.add(
+        self.append(self.get_section_label(_("Enable integrations with game sources")))
+        self.append(
             self.get_description_label(
                 _("Access your game libraries from various sources. Changes require a restart to take effect.")
             )
         )
-        self.frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
+        self.frame = Gtk.Frame(visible=True)
         self.listbox = Gtk.ListBox(visible=True)
-        self.frame.add(self.listbox)
-        self.pack_start(self.frame, False, False, 0)
+        self.frame.set_child(self.listbox)
+        self.append(self.frame)
 
     def populate_services(self):
         for service_key in SERVICES:
             list_box_row = Gtk.ListBoxRow(visible=True)
             list_box_row.set_selectable(False)
             list_box_row.set_activatable(False)
-            list_box_row.add(self._get_service_box(service_key))
-            self.listbox.add(list_box_row)
+            list_box_row.set_child(self._get_service_box(service_key))
+            self.listbox.append(list_box_row)
 
     def _get_service_box(self, service_key):
         box = Gtk.Box(
             spacing=12,
-            margin_right=12,
-            margin_left=12,
+            margin_end=12,
+            margin_start=12,
             margin_top=12,
             margin_bottom=12,
             height_request=32,
@@ -52,18 +52,18 @@ class ServicesBox(BaseConfigBox):
         icon = ScaledImage.get_runtime_icon_image(
             service.icon, service.id, scale_factor=self.get_scale_factor(), visible=True
         )
-        box.pack_start(icon, False, False, 0)
-        service_label_box = Gtk.VBox(visible=True)
+        box.append(icon)
+        service_label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
         label = Gtk.Label(visible=True)
         label.set_markup(f"<b>{service.name}</b>")
-        label.set_alignment(0, 0.5)
-        service_label_box.pack_start(label, False, False, 0)
+        label.set_halign(Gtk.Align.START)
+        service_label_box.append(label)
 
         if service.description:
             desc_label = Gtk.Label(visible=True, wrap=True)
-            desc_label.set_alignment(0, 0.5)
+            desc_label.set_halign(Gtk.Align.START)
             desc_label.set_text(service.description)
-            service_label_box.pack_start(desc_label, False, False, 0)
+            service_label_box.append(desc_label)
 
         include_in_games_checkbox = Gtk.CheckButton(
             _("Show games from this source in the games view"),
@@ -71,21 +71,23 @@ class ServicesBox(BaseConfigBox):
             active=is_in_games_view,
             halign=Gtk.Align.START,
         )
-        style_context = include_in_games_checkbox.get_style_context()
-        style_context.add_class("smallcheckbox")  # teeny tiny!
-        style_context.add_class("cuddledcheckbox")  # remove spacing around the checkbox
+        include_in_games_checkbox.add_css_class("smallcheckbox")  # teeny tiny!
+        include_in_games_checkbox.add_css_class("cuddledcheckbox")  # remove spacing around the checkbox
         include_in_games_checkbox.connect("toggled", self._on_include_in_games_change, in_games_view_key)
-        service_label_box.pack_start(include_in_games_checkbox, False, False, 0)
+        service_label_box.append(include_in_games_checkbox)
 
-        box.pack_start(service_label_box, True, True, 0)
+        service_label_box.set_hexpand(True)
+        service_label_box.set_vexpand(True)
+        box.append(service_label_box)
 
         checkbox = Gtk.Switch(visible=True)
         checkbox.set_active(is_active)
         checkbox.connect("state-set", self._on_service_change, service_key, include_in_games_checkbox)
-        alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
-        alignment.show()
-        alignment.add(checkbox)
-        box.pack_start(alignment, False, False, 6)
+        checkbox.set_halign(Gtk.Align.CENTER)
+        checkbox.set_valign(Gtk.Align.CENTER)
+        checkbox.set_margin_start(6)
+        checkbox.set_margin_end(6)
+        box.append(checkbox)
 
         return box
 
