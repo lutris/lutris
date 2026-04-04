@@ -278,7 +278,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 enabled=lambda: self.is_show_hidden_sensitive,
                 accel="<Primary>h",
             ),
-            "open-search-filters": Action(self.on_open_search_filters),
+            "open-search-filters": Action(self.on_open_search_filters, type="b", default=False),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
@@ -376,10 +376,16 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.sidebar.hidden_row.set_visible(True)
             self.sidebar.selected_category = hidden_category
 
-    def on_open_search_filters(self, _action, _value):
+    def on_open_search_filters(self, action, value):
+        action.set_state(value)
+        is_active = value.get_boolean()
+
+        if not is_active:
+            return
+
         def on_filter_popover_closed(_popover):
             self.filter_box_search_name = filter_box.search_name
-            self.search_filters_button.set_active(False)
+            action.set_state(GLib.Variant("b", False))
 
         def on_saved(_box, search_name):
             def switch_to_saved_search():
@@ -389,18 +395,22 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             filter_popover.popdown()
             schedule_at_idle(switch_to_saved_search)
 
-        if self.search_filters_button.get_active():
+        try:
             search = self.get_game_search()
             new_search = saved_searches_db.SavedSearch(0, "", str(search))
             filter_box = SearchFiltersBox(saved_search=new_search, search_entry=self.search_entry)
             filter_box.set_size_request(600, -1)
-            if self.filter_box_search_name:
-                filter_box.search_name = self.filter_box_search_name
-            filter_box.connect("saved", on_saved)
-            filter_popover = Gtk.Popover(child=filter_box, can_focus=False)
-            filter_popover.set_parent(self.search_filters_button)
-            filter_popover.connect("closed", on_filter_popover_closed)
-            filter_popover.popup()
+        except Exception:
+            logger.exception("Error creating SearchFiltersBox")
+            action.set_state(GLib.Variant("b", False))
+            return
+        if self.filter_box_search_name:
+            filter_box.search_name = self.filter_box_search_name
+        filter_box.connect("saved", on_saved)
+        filter_popover = Gtk.Popover(child=filter_box)
+        filter_popover.set_parent(self.search_filters_button)
+        filter_popover.connect("closed", on_filter_popover_closed)
+        filter_popover.popup()
 
     @property
     def current_view_type(self):
