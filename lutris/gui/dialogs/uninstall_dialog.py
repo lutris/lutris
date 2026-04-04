@@ -121,7 +121,7 @@ class UninstallDialog(Gtk.Dialog):
     def update_subtitle(self) -> None:
         subtitle = self.build_subtitle()
 
-        self.header_bar.set_subtitle(subtitle)
+        self.set_title(subtitle)
 
     def build_subtitle(self) -> str:
         """Updates the dialog subtitle according to what games are being removed."""

@@ -24,16 +24,26 @@ class LogTextView(Gtk.TextView):
 
         self.mark = self.create_new_mark(self.props.buffer.get_start_iter())
 
+        self._autoscroll_adj_handler = None
         if autoscroll:
-            self.connect("size-allocate", self.autoscroll)
+            self.connect("notify::vadjustment", self._on_vadjustment_changed)
+            adj = self.get_vadjustment()
+            if adj:
+                self._autoscroll_adj_handler = adj.connect("changed", self.autoscroll)
+
+    def _on_vadjustment_changed(self, *_args):
+        adj = self.get_vadjustment()
+        if adj and not self._autoscroll_adj_handler:
+            self._autoscroll_adj_handler = adj.connect("changed", self.autoscroll)
 
     def autoscroll(self, *args: Any) -> None:  # pylint: disable=unused-argument
         adj = self.get_vadjustment()
-        if adj.get_value() == self.scroll_max or self.scroll_max == 0:
-            adj.set_value(adj.get_upper() - adj.get_page_size())
-            self.scroll_max = adj.get_value()
-        else:
-            self.scroll_max = adj.get_upper() - adj.get_page_size()
+        if adj:
+            if adj.get_value() == self.scroll_max or self.scroll_max == 0:
+                adj.set_value(adj.get_upper() - adj.get_page_size())
+                self.scroll_max = adj.get_value()
+            else:
+                self.scroll_max = adj.get_upper() - adj.get_page_size()
 
     def create_new_mark(self, buffer_iter: Gtk.TextIter) -> Gtk.TextMark:
         return self.props.buffer.create_mark(None, buffer_iter, True)
