@@ -14,8 +14,9 @@ class InstallerLabel(Gtk.Label):
             self.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
         else:
             self.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
-        self.set_alignment(0, 0.5)
-        self.set_margin_right(12)
+        self.set_xalign(0)
+        self.set_yalign(0.5)
+        self.set_margin_end(12)
 
         if is_valid_pango_markup(text):
             self.set_markup(text)
