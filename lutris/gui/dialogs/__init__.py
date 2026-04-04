@@ -188,20 +188,26 @@ class ModelessDialog(Dialog):
         if not getattr(self, "_closing", False):
             self.set_transient_for(None)
 
+    def _remove_from_app_windows(self):
+        """Remove this dialog from the application's window cache so
+        show_window() won't reuse a destroyed instance. In GTK 4,
+        Gtk.Dialog's destroy signal is unreliable for this cleanup."""
+        app = self.get_application()
+        if app and hasattr(app, "app_windows"):
+            keys_to_remove = [k for k, v in app.app_windows.items() if v is self]
+            for k in keys_to_remove:
+                del app.app_windows[k]
+
+    def destroy(self):
+        self._remove_from_app_windows()
+        super().destroy()
+
     def on_response(self, dialog, response: Gtk.ResponseType) -> None:
         super().on_response(dialog, response)
         # Modal dialogs self-destruct, but modeless ones must commit
-        # suicide more explicitly. In GTK 4, Gtk.Dialog's destroy signal
-        # is unreliable, so we remove ourselves from the application's
-        # window cache directly to prevent zombie reuse.
+        # suicide more explicitly.
         if response != Gtk.ResponseType.NONE and not getattr(self, "_closing", False):
             self._closing = True
-            app = self.get_application()
-            if app and hasattr(app, "app_windows"):
-                # Remove from app_windows so show_window won't reuse this instance
-                keys_to_remove = [k for k, v in app.app_windows.items() if v is self]
-                for k in keys_to_remove:
-                    del app.app_windows[k]
             self.set_visible(False)
             GLib.idle_add(self.destroy)
 

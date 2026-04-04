@@ -244,7 +244,7 @@ class SearchFiltersBox(Gtk.Box):
                 self._add_category_widget(category_name, category_name)
 
     def _add_category_widget(self, caption, category_name):
-        checkbox = Gtk.CheckButton(caption)
+        checkbox = Gtk.CheckButton(label=caption)
 
         def on_checkbox_toggled(_widget):
             if not self.updating_predicate_widgets:
