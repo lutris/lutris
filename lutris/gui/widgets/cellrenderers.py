@@ -12,7 +12,7 @@ from lutris.util.log import logger
 gi.require_version("PangoCairo", "1.0")
 
 import cairo
-from gi.repository import Gdk, GObject, Gtk, Pango, PangoCairo
+from gi.repository import Gdk, GObject, Graphene, Gtk, Pango, PangoCairo
 
 from lutris.gui.widgets.utils import (
     MEDIA_CACHE_INVALIDATED,
@@ -228,6 +228,13 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             return self._expected_height, self._expected_height
         size = self._get_preferred_size()
         return size[1], size[1]
+
+    def do_snapshot(self, snapshot, widget, background_area, cell_area, flags):
+        """GTK 4 snapshot method - delegates to do_render via Cairo compatibility."""
+        bounds = Graphene.Rect()
+        bounds.init(cell_area.x, cell_area.y, cell_area.width, cell_area.height)
+        cr = snapshot.append_cairo(bounds)
+        self.do_render(cr, widget, background_area, cell_area, flags)
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
         media_path = resolve_media_path(self.media_paths) if self.media_paths else None

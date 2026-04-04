@@ -31,13 +31,15 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
         self.vbox.set_homogeneous(False)
         self.vbox.set_spacing(10)
-        self.vbox.pack_start(self._create_category_checkboxes(), True, True, 0)
-        self.vbox.pack_start(self._create_add_category(), False, False, 0)
+        category_checkboxes = self._create_category_checkboxes()
+        category_checkboxes.set_hexpand(True)
+        category_checkboxes.set_vexpand(True)
+        self.vbox.append(category_checkboxes)
+        self.vbox.append(self._create_add_category())
 
         if game:
             self.add_games([game])
 
-        self.vbox.show_all()
 
     def add_games(self, games: Sequence[Game]) -> None:
         """Adds games to the dialog; this is intended to be used when the dialog is for multiple games,
@@ -92,8 +94,8 @@ class EditGameCategoriesDialog(SavableModelessDialog):
             self.checkbox_grid.attach_next_to(checkbutton, None, Gtk.PositionType.BOTTOM, 3, 1)
             self.category_checkboxes[category] = checkbutton
 
-        scrolledwindow.add(self.checkbox_grid)
-        frame.add(scrolledwindow)
+        scrolledwindow.set_child(self.checkbox_grid)
+        frame.set_child(scrolledwindow)
         return frame
 
     def _create_add_category(self):
@@ -112,12 +114,14 @@ class EditGameCategoriesDialog(SavableModelessDialog):
 
         category_entry = Gtk.Entry()
         category_entry.connect("activate", on_add_category)
-        hbox.pack_start(category_entry, True, True, 0)
+        category_entry.set_hexpand(True)
+        category_entry.set_vexpand(True)
+        hbox.append(category_entry)
 
         button = Gtk.Button.new_with_label(_("Add Category"))
         button.connect("clicked", on_add_category)
         button.set_tooltip_text(_("Adds the category to the list."))
-        hbox.pack_end(button, False, False, 0)
+        hbox.append(button)
 
         return hbox
 

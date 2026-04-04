@@ -1,4 +1,4 @@
-from gi.repository import Gtk
+from gi.repository import Gdk, Gio, GLib, Gtk
 
 
 def update_action_widget_visibility(widgets, visible_predicate):
@@ -28,52 +28,62 @@ def update_action_widget_visibility(widgets, visible_predicate):
     return visible_count
 
 
-class ContextualMenu(Gtk.Menu):
+class ContextualMenu:
+    """Context menu using Gtk.PopoverMenu with Gio.Menu model for GTK4 compatibility."""
+
     def __init__(self, main_entries):
-        super().__init__()
         self.main_entries = main_entries
-
-    def add_menuitem(self, entry):
-        """Add a menu item to the current menu
-
-        Params:
-            entry (tuple): tuple containing name, label and callback
-
-        Returns:
-            Gtk.MenuItem
-        """
-        name, label, callback = entry
-        if label == "-":
-            separator = Gtk.SeparatorMenuItem()
-            self.append(separator)
-            return separator
-
-        action = Gtk.Action(name=name, label=label)
-        action.connect("activate", callback)
-
-        menu_item = action.create_menu_item()
-        menu_item.action_id = name
-        self.append(menu_item)
-        return menu_item
+        self._action_group = Gio.SimpleActionGroup()
+        self._actions = {}
 
     def popup(self, event, game_actions):
-        for item in self.get_children():
-            self.remove(item)
-
-        for entry in self.main_entries:
-            self.add_menuitem(entry)
-
-        self.show_all()
-
         displayed = game_actions.get_displayed_entries()
 
-        def is_visible(w):
-            if isinstance(w, Gtk.SeparatorMenuItem):
-                return None
+        menu = Gio.Menu()
+        section = Gio.Menu()
+        visible_count = 0
 
-            return displayed.get(w.action_id, True)
+        for name, label, callback in self.main_entries:
+            if label == "-":
+                # Separator: start a new section
+                if section.get_n_items() > 0:
+                    menu.append_section(None, section)
+                    section = Gio.Menu()
+                continue
 
-        visible_count = update_action_widget_visibility(self.get_children(), is_visible)
+            is_visible = displayed.get(name, True)
+            if not is_visible:
+                continue
+
+            # Create a unique action name
+            action_name = name.replace("-", "_")
+            action = Gio.SimpleAction.new(action_name, None)
+            action.connect("activate", lambda _action, _param, cb=callback: cb(None))
+            self._action_group.add_action(action)
+            self._actions[action_name] = action
+
+            menu_item = Gio.MenuItem.new(label, "context." + action_name)
+            section.append_item(menu_item)
+            visible_count += 1
+
+        if section.get_n_items() > 0:
+            menu.append_section(None, section)
 
         if visible_count > 0:
-            self.popup_at_pointer(event)
+            popover = Gtk.PopoverMenu.new_from_model(menu)
+            popover.insert_action_group("context", self._action_group)
+
+            # Attach to the widget that was clicked
+            widget = event.get_widget() if hasattr(event, "get_widget") else None
+            if widget:
+                popover.set_parent(widget)
+                # Position at click coordinates
+                x, y = event.x, event.y
+                rect = Gdk.Rectangle()
+                rect.x = int(x)
+                rect.y = int(y)
+                rect.width = 1
+                rect.height = 1
+                popover.set_pointing_to(rect)
+            popover.set_has_arrow(False)
+            popover.popup()

@@ -143,15 +143,12 @@ class NavigationStack(Gtk.Stack):
         self._update_back_button()
 
     def present_page(self, name):
-        """This displays the page names, creating it if required. It
-        also calls show_all() on newly created pages.
+        """This displays the page named, creating it if required.
 
         This should be called by your presenter functions."""
         if name not in self.stack_pages:
             factory = self.page_factories[name]
             page = factory()
-            page.show_all()
-
             self.add_named(page, name)
             self.stack_pages[name] = page
 
@@ -171,8 +168,6 @@ class NavigationStack(Gtk.Stack):
         if old_page != page:
             if old_page:
                 self.remove(old_page)
-
-            page.show_all()
 
             self.add_named(page, name)
             self.stack_pages[name] = page

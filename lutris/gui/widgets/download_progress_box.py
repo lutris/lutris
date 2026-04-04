@@ -45,36 +45,35 @@ class DownloadProgressBox(Gtk.Box):
             title = "%s%s" % (parsed_url.netloc, parsed_url.path)
 
         self.main_label = Gtk.Label(label=title)
-        self.main_label.set_alignment(0, 0)
-        self.main_label.set_property("wrap", True)
+        self.main_label.set_xalign(0)
+        self.main_label.set_wrap(True)
         self.main_label.set_margin_bottom(10)
-        # self.main_label.set_max_width_chars(70)
         self.main_label.set_selectable(True)
-        self.main_label.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
-        self.pack_start(self.main_label, True, True, 0)
+        self.main_label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
+        self.append(self.main_label)
 
         progress_box = Gtk.Box()
 
         self.progressbar = Gtk.ProgressBar()
         self.progressbar.set_margin_top(5)
         self.progressbar.set_margin_bottom(5)
-        self.progressbar.set_margin_right(10)
-        progress_box.pack_start(self.progressbar, True, True, 0)
+        self.progressbar.set_margin_end(10)
+        self.progressbar.set_hexpand(True)
+        progress_box.append(self.progressbar)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_("_Cancel"))
         self.cancel_cb_id = self.cancel_button.connect("clicked", self.on_cancel_clicked)
         if not cancelable:
             self.cancel_button.set_sensitive(False)
-        progress_box.pack_end(self.cancel_button, False, False, 0)
+        progress_box.append(self.cancel_button)
 
-        self.pack_start(progress_box, False, False, 0)
+        self.append(progress_box)
 
         self.progress_label = Gtk.Label()
-        self.progress_label.set_alignment(0, 0)
-        self.pack_start(self.progress_label, True, True, 0)
+        self.progress_label.set_xalign(0)
+        self.append(self.progress_label)
 
-        self.show_all()
-        self.cancel_button.hide()
+        self.cancel_button.set_visible(False)
 
         if os.path.exists(self.temp):
             os.remove(self.temp)
@@ -94,7 +93,7 @@ class DownloadProgressBox(Gtk.Box):
         try:
             downloader = self.downloader
         except RuntimeError as ex:
-            display_error(ex, parent=self.get_toplevel())
+            display_error(ex, parent=self.get_root())
             self.emit("cancel")
             return None
 

@@ -22,7 +22,6 @@ from lutris.gui.config.updates_box import UpdatesBox
 class PreferencesDialog(GameDialogCommon):
     def __init__(self, parent=None):
         super().__init__(_("Lutris settings"), config_level="system", parent=parent)
-        self.set_border_width(0)
         self.set_default_size(1010, 600)
         self.lutris_config = LutrisConfig()
         self.page_generators = {}
@@ -30,24 +29,27 @@ class PreferencesDialog(GameDialogCommon):
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
 
-        hbox = Gtk.HBox(visible=True)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
         sidebar = Gtk.ListBox(visible=True)
         sidebar.connect("row-selected", self.on_sidebar_activated)
-        sidebar.add(self.get_sidebar_button("prefs-stack", _("Interface"), "view-grid-symbolic"))
-        sidebar.add(self.get_sidebar_button("runners-stack", _("Runners"), "applications-utilities-symbolic"))
-        sidebar.add(self.get_sidebar_button("services-stack", _("Sources"), "application-x-addon-symbolic"))
-        sidebar.add(self.get_sidebar_button("accounts-stack", _("Accounts"), "system-users-symbolic"))
-        sidebar.add(self.get_sidebar_button("updates-stack", _("Updates"), "system-software-install-symbolic"))
-        sidebar.add(self.get_sidebar_button("sysinfo-stack", C_("preferences", "System"), "computer-symbolic"))
-        sidebar.add(self.get_sidebar_button("storage-stack", _("Storage"), "drive-harddisk-symbolic"))
-        sidebar.add(self.get_sidebar_button("system-stack", _("Global options"), "emblem-system-symbolic"))
-        hbox.pack_start(sidebar, False, False, 0)
+        sidebar.append(self.get_sidebar_button("prefs-stack", _("Interface"), "view-grid-symbolic"))
+        sidebar.append(self.get_sidebar_button("runners-stack", _("Runners"), "applications-utilities-symbolic"))
+        sidebar.append(self.get_sidebar_button("services-stack", _("Sources"), "application-x-addon-symbolic"))
+        sidebar.append(self.get_sidebar_button("accounts-stack", _("Accounts"), "system-users-symbolic"))
+        sidebar.append(self.get_sidebar_button("updates-stack", _("Updates"), "system-software-install-symbolic"))
+        sidebar.append(self.get_sidebar_button("sysinfo-stack", C_("preferences", "System"), "computer-symbolic"))
+        sidebar.append(self.get_sidebar_button("storage-stack", _("Storage"), "drive-harddisk-symbolic"))
+        sidebar.append(self.get_sidebar_button("system-stack", _("Global options"), "emblem-system-symbolic"))
+        hbox.append(sidebar)
         self.stack = Gtk.Stack(visible=True)
         self.stack.set_vhomogeneous(False)
         self.stack.set_interpolate_size(True)
-        hbox.add(self.stack)
-        self.vbox.pack_start(hbox, True, True, 0)
-        self.vbox.set_border_width(0)  # keep everything flush with the window edge
+        self.stack.set_hexpand(True)
+        self.stack.set_vexpand(True)
+        hbox.append(self.stack)
+        hbox.set_hexpand(True)
+        hbox.set_vexpand(True)
+        self.vbox.append(hbox)
         self.stack.add_named(self.build_scrolled_window(InterfacePreferencesBox(self.accelerators)), "prefs-stack")
 
         self.runners_box = RunnersBox()
@@ -79,7 +81,7 @@ class PreferencesDialog(GameDialogCommon):
         self.stack.add_named(self.build_scrolled_window(self.system_box), "system-stack")
 
     def on_sidebar_activated(self, _listbox, row):
-        stack_id = row.get_children()[0].stack_id
+        stack_id = row.get_child().stack_id
 
         generator = self.page_generators.get(stack_id)
 
@@ -106,25 +108,28 @@ class PreferencesDialog(GameDialogCommon):
             self.set_search_entry_visibility(False)
 
         self.get_header_bar().set_show_close_button(not show_actions)
-        self.stack.set_visible_child_name(row.get_children()[0].stack_id)
+        self.stack.set_visible_child_name(row.get_child().stack_id)
 
     def get_search_entry_placeholder(self):
         return _("Search global options")
 
     def get_sidebar_button(self, stack_id, text, icon_name):
-        hbox = Gtk.HBox(visible=True)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
         hbox.stack_id = stack_id
         hbox.set_margin_top(12)
         hbox.set_margin_bottom(12)
-        hbox.set_margin_right(40)
+        hbox.set_margin_end(40)
 
-        icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
-        icon.show()
-        hbox.pack_start(icon, False, False, 6)
+        icon = Gtk.Image.new_from_icon_name(icon_name)
+        icon.set_margin_start(6)
+        icon.set_margin_end(6)
+        hbox.append(icon)
 
         label = Gtk.Label(text, visible=True)
-        label.set_alignment(0, 0.5)
-        hbox.pack_start(label, False, False, 6)
+        label.set_halign(Gtk.Align.START)
+        label.set_margin_start(6)
+        label.set_margin_end(6)
+        hbox.append(label)
         return hbox
 
     def on_save(self, _widget):

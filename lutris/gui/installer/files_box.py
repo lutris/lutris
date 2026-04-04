@@ -31,8 +31,11 @@ class InstallerFilesBox(Gtk.ListBox):
         self.installer_files_boxes.clear()
         self._file_queue.clear()
 
-        for child in self.get_children():
-            child.destroy()
+        while True:
+            child = self.get_first_child()
+            if child is None:
+                break
+            self.remove(child)
 
         for installer_file in installer.files:
             installer_file_box = InstallerFileBox(installer_file)
@@ -40,10 +43,9 @@ class InstallerFilesBox(Gtk.ListBox):
             installer_file_box.connect("file-unready", self.on_file_unready)
             installer_file_box.connect("file-available", self.on_file_available)
             self.installer_files_boxes[installer_file.id] = installer_file_box
-            self.add(installer_file_box)
+            self.append(installer_file_box)
             if installer_file_box.is_ready:
                 self.ready_files.add(installer_file.id)
-        self.show_all()
         self.check_files_ready()
 
     def start_all(self):

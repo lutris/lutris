@@ -25,14 +25,12 @@ from lutris.util.wine.wine import clear_wine_version_cache
 def set_option_wrapper_style_class(wrapper: Gtk.Widget, class_name: str | None):
     """Sets a particular CSS class on a wrapper, and removes any other classes that start
     with 'option-wrapper-' so there's only one o these classes."""
-    style_context = wrapper.get_style_context()
-
-    for cls in style_context.list_classes():
+    for cls in wrapper.get_css_classes():
         if cls.startswith("option-wrapper-") and cls != class_name:
-            style_context.remove_class(cls)
+            wrapper.remove_css_class(cls)
 
     if class_name:
-        style_context.add_class(class_name)
+        wrapper.add_css_class(class_name)
 
 
 class AdvancedSettingsBox(VBox):
@@ -82,7 +80,9 @@ class ConfigBox(AdvancedSettingsBox):
         self.no_options_label = Gtk.Label(halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
         self.no_options_label.set_line_wrap(True)
         self.no_options_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        self.pack_end(self.no_options_label, True, True, 0)
+        self.no_options_label.set_hexpand(True)
+        self.no_options_label.set_vexpand(True)
+        self.append(self.no_options_label)
 
     @property
     def filter(self) -> str:
@@ -99,23 +99,25 @@ class ConfigBox(AdvancedSettingsBox):
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
         help_box = Gtk.Box()
-        help_box.set_margin_left(15)
-        help_box.set_margin_right(15)
+        help_box.set_margin_start(15)
+        help_box.set_margin_end(15)
         help_box.set_margin_bottom(5)
 
-        icon = Gtk.Image.new_from_icon_name("dialog-information", Gtk.IconSize.MENU)
-        help_box.pack_start(icon, False, False, 5)
+        icon = Gtk.Image.new_from_icon_name("dialog-information")
+        icon.set_margin_start(5)
+        icon.set_margin_end(5)
+        help_box.append(icon)
 
         title_label = Gtk.Label("<i>%s</i>" % text)
         title_label.set_line_wrap(True)
-        title_label.set_alignment(0, 0.5)
+        title_label.set_halign(Gtk.Align.START)
         title_label.set_use_markup(True)
-        help_box.pack_start(title_label, False, False, 5)
+        title_label.set_margin_start(5)
+        title_label.set_margin_end(5)
+        help_box.append(title_label)
 
-        self.pack_start(help_box, False, False, 0)
-        self.pack_start(Gtk.HSeparator(), False, False, 12)
-
-        help_box.show_all()
+        self.append(help_box)
+        self.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
 
     def get_widget_generator(self) -> "ConfigWidgetGenerator":
         """Returns an object that creates option widgets and tracks them; this is
@@ -295,28 +297,31 @@ class ConfigWidgetGenerator(WidgetGenerator):
     def create_option_container(self, option: dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Container:
         option_key = option["option"]
         reset_container = Gtk.Box(visible=True)
-        reset_container.set_margin_left(18)
-        reset_container.pack_start(wrapper, True, True, 0)
+        reset_container.set_margin_start(18)
+        wrapper.set_hexpand(True)
+        wrapper.set_vexpand(True)
+        reset_container.append(wrapper)
 
-        reset_button = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
-        reset_button.get_style_context().add_class("reset-button")
+        reset_button = Gtk.Button.new_from_icon_name("edit-undo-symbolic")
+        reset_button.add_css_class("reset-button")
         reset_button.set_valign(Gtk.Align.CENTER)
         reset_button.set_halign(Gtk.Align.CENTER)
         reset_button.set_margin_bottom(6)
-        reset_button.set_relief(Gtk.ReliefStyle.NONE)
+        reset_button.set_has_frame(False)
         reset_button.set_tooltip_text(_("Reset option to global or default config"))
         reset_button.connect("clicked", self.on_reset_button_clicked, option)
         self.reset_buttons[option_key] = reset_button
 
         if option_key not in self.raw_config:
             reset_button.set_visible(False)
-            reset_button.set_no_show_all(True)
 
         placeholder = Gtk.Box()
         placeholder.set_size_request(28, -1)
 
-        placeholder.pack_start(reset_button, False, False, 0)
-        reset_container.pack_end(placeholder, False, False, 5)
+        placeholder.append(reset_button)
+        placeholder.set_margin_start(5)
+        placeholder.set_margin_end(5)
+        reset_container.append(placeholder)
         return super().create_option_container(option, reset_container)
 
     def get_visibility(self, option: dict[str, Any]) -> bool:
@@ -356,9 +361,9 @@ class ConfigWidgetGenerator(WidgetGenerator):
         message = get_no_options_message()
         if message:
             self.parent.no_options_label.set_text(message)
-            self.parent.no_options_label.show()
+            self.parent.no_options_label.set_visible(True)
         else:
-            self.parent.no_options_label.hide()
+            self.parent.no_options_label.set_visible(False)
 
     def on_reset_button_clicked(self, btn, option):
         """Clear option (remove from config, reset option widget)."""

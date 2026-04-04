@@ -35,21 +35,25 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         name_label = Gtk.Label(_("Name"))
         self.name_entry = Gtk.Entry()
         self.name_entry.set_text(self.category)
-        name_box.pack_start(name_label, False, False, 0)
-        name_box.pack_start(self.name_entry, True, True, 0)
+        name_box.append(name_label)
+        self.name_entry.set_hexpand(True)
+        self.name_entry.set_vexpand(True)
+        name_box.append(self.name_entry)
 
-        self.vbox.pack_start(name_box, False, False, 0)
-        self.vbox.pack_start(self._create_games_checkboxes(), True, True, 0)
+        self.vbox.append(name_box)
+        games_checkboxes = self._create_games_checkboxes()
+        games_checkboxes.set_hexpand(True)
+        games_checkboxes.set_vexpand(True)
+        self.vbox.append(games_checkboxes)
 
         delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
         delete_button.connect("clicked", self.on_delete_clicked)
 
-        self.show_all()
 
     def _create_games_checkboxes(self):
         frame = Gtk.Frame()
         sw = Gtk.ScrolledWindow()
-        row = Gtk.VBox()
+        row = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         category_games_names = sorted([x.name for x in self.category_games.values()])
         for game in self.available_games:
             label = game.name
@@ -58,9 +62,11 @@ class EditCategoryGamesDialog(SavableModelessDialog):
                 checkbutton_option.set_active(True)
             self.grid.attach_next_to(checkbutton_option, None, Gtk.PositionType.BOTTOM, 3, 1)
 
-        row.pack_start(self.grid, True, True, 0)
-        sw.add_with_viewport(row)
-        frame.add(sw)
+        self.grid.set_hexpand(True)
+        self.grid.set_vexpand(True)
+        row.append(self.grid)
+        sw.set_child(row)
+        frame.set_child(sw)
         return frame
 
     def on_delete_clicked(self, _button):
@@ -96,7 +102,8 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         checked_game_ids: set[str] = set()
         updated_games: dict[str, Game] = {}
 
-        for game_checkbox in self.grid.get_children():
+        game_checkbox = self.grid.get_first_child()
+        while game_checkbox:
             label = game_checkbox.get_label()
             db_game = games_db.get_game_by_field(label, "name")
             if not db_game:
@@ -106,6 +113,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
                 checked_game_ids.add(game_id)
             else:
                 unchecked_game_ids.add(game_id)
+            game_checkbox = game_checkbox.get_next_sibling()
 
         added_game_ids = checked_game_ids - category_games_ids
         removed_game_ids = unchecked_game_ids & category_games_ids

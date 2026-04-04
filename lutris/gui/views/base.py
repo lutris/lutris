@@ -36,8 +36,14 @@ class GameView:
         self.missing_games_updated_registration = MISSING_GAMES.updated.register(self.on_missing_games_updated)
 
         self.connect("destroy", self.on_destroy)
-        self.connect("button-press-event", self.popup_contextual_menu)
-        self.connect("key-press-event", self.handle_key_press)
+
+        click_gesture = Gtk.GestureClick(button=Gdk.BUTTON_SECONDARY)
+        click_gesture.connect("pressed", self.popup_contextual_menu)
+        self.add_controller(click_gesture)
+
+        key_controller = Gtk.EventControllerKey()
+        key_controller.connect("key-pressed", self.handle_key_press)
+        self.add_controller(key_controller)
 
         self.game_start_registration = GAME_START.register(self.on_game_start)
 
@@ -86,7 +92,7 @@ class GameView:
         game_ids = [self.get_game_id_for_path(path) for path in paths]
         games = self._get_games_by_ids(game_ids)
 
-        window = self.get_toplevel()
+        window = self.get_root()
         if not isinstance(window, LutrisWindow):
             raise TypeError("GameView must be contained in a LutrisWindow, not %s" % type(window).__name__)
         return get_game_actions(games, window=window)
@@ -164,13 +170,14 @@ class GameView:
         start_time = time.monotonic()
         cycle_time = 0.375
         max_indent = 0.1
-        toplevel = self.get_toplevel()
+        toplevel = self.get_root()
         paused = False
 
         def is_modally_blocked():
             # Is there a modal dialog that is blocking our top-level parent?
             # if so we want to pause the animation.
-            for w in Gtk.Window.list_toplevels():
+            for i in range(Gtk.Window.get_toplevels().get_n_items()):
+                w = Gtk.Window.get_toplevels().get_item(i)
                 if w != toplevel and isinstance(w, Gtk.Dialog):
                     if w.get_modal() and w.get_transient_for() == toplevel:
                         return True

@@ -5,7 +5,7 @@ from datetime import datetime
 from gettext import gettext as _
 from typing import TYPE_CHECKING
 
-from gi.repository import Gdk, GObject, Gtk, Pango
+from gi.repository import GObject, Gtk
 
 from lutris.gui.dialogs import FileDialog
 from lutris.gui.widgets.log_text_view import LogTextView
@@ -32,7 +32,7 @@ class LogWindow(GObject.Object):
         self.logtextview = LogTextView(self.buffer)
 
         scrolled_window: Gtk.ScrolledWindow = builder.get_object("scrolled_window")
-        scrolled_window.add(self.logtextview)
+        scrolled_window.set_child(self.logtextview)
 
         self.search_entry: Gtk.SearchEntry = builder.get_object("search_entry")
         self.search_entry.connect("search-changed", self.logtextview.find_first)
@@ -48,16 +48,8 @@ class LogWindow(GObject.Object):
         zoom_in_button.connect("clicked", self.on_zoom_in_clicked)
         zoom_out_button.connect("clicked", self.on_zoom_out_clicked)
 
-        self.window.connect("key-press-event", self.on_key_press_event)
-        self.window.show_all()
-
-    def on_key_press_event(self, widget: Gtk.ApplicationWindow, event: Gdk.EventKey) -> None:
-        shift = event.state & Gdk.ModifierType.SHIFT_MASK
-        if event.keyval == Gdk.KEY_Return:
-            if shift:
-                self.search_entry.emit("previous-match")
-            else:
-                self.search_entry.emit("next-match")
+        # TODO: key-press-event removed in GTK4; need EventControllerKey
+        # self.window.connect("key-press-event", self.on_key_press_event)
 
     def on_save_clicked(self, _button: Gtk.Button) -> None:
         """Handler to save log to a file"""
@@ -76,14 +68,10 @@ class LogWindow(GObject.Object):
 
     def on_zoom_in_clicked(self, _button: Gtk.Button) -> None:
         """Increase font size"""
-        font = self.logtextview.get_style_context().get_font(Gtk.StateFlags.NORMAL)
-        size = font.get_size() / Pango.SCALE
-        if size < 48:  # Maximum size
-            self.logtextview.override_font(Pango.FontDescription.from_string(f"monospace {size + 1}"))
+        # TODO: override_font removed in GTK4; need CSS provider approach
+        pass
 
     def on_zoom_out_clicked(self, _button: Gtk.Button) -> None:
         """Decrease font size"""
-        font = self.logtextview.get_style_context().get_font(Gtk.StateFlags.NORMAL)
-        size = font.get_size() / Pango.SCALE
-        if size > 6:  # Minimum size
-            self.logtextview.override_font(Pango.FontDescription.from_string(f"monospace {size - 1}"))
+        # TODO: override_font removed in GTK4; need CSS provider approach
+        pass

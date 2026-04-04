@@ -14,12 +14,11 @@ class CacheConfigurationDialog(ModalDialog):
         self.set_size_request(480, 150)
 
         self.cache_path = get_custom_cache_path() or ""
-        self.get_content_area().add(self.get_cache_config())
+        self.get_content_area().append(self.get_cache_config())
 
-        self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
-        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
+        self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
 
-        self.show_all()
         result = self.run()
 
         if result == Gtk.ResponseType.OK:
@@ -29,11 +28,11 @@ class CacheConfigurationDialog(ModalDialog):
 
     def get_cache_config(self):
         """Return the widgets for the cache configuration"""
-        prefs_box = Gtk.VBox()
+        prefs_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-        label = Gtk.Label(_("Cache path"))
-        box.pack_start(label, False, False, 0)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
+        label = Gtk.Label(label=_("Cache path"))
+        box.append(label)
         path_chooser = FileChooserEntry(
             title=_("Set the folder for the cache path"),
             action=Gtk.FileChooserAction.SELECT_FOLDER,
@@ -42,10 +41,14 @@ class CacheConfigurationDialog(ModalDialog):
             activates_default=True,
         )
         path_chooser.connect("changed", self._on_cache_path_set)
-        box.pack_start(path_chooser, True, True, 0)
+        path_chooser.set_hexpand(True)
+        path_chooser.set_vexpand(True)
+        box.append(path_chooser)
 
-        prefs_box.pack_start(box, False, False, 6)
-        cache_help_label = Gtk.Label(visible=True)
+        box.set_margin_top(6)
+        box.set_margin_bottom(6)
+        prefs_box.append(box)
+        cache_help_label = Gtk.Label()
         cache_help_label.set_size_request(400, -1)
         cache_help_label.set_markup(
             _(
@@ -54,7 +57,9 @@ class CacheConfigurationDialog(ModalDialog):
                 "installer files are discarded after the install completion."
             )
         )
-        prefs_box.pack_start(cache_help_label, False, False, 6)
+        cache_help_label.set_margin_top(6)
+        cache_help_label.set_margin_bottom(6)
+        prefs_box.append(cache_help_label)
         return prefs_box
 
     def _on_cache_path_set(self, entry):
