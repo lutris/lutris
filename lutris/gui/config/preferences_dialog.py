@@ -26,8 +26,9 @@ class PreferencesDialog(GameDialogCommon):
         self.lutris_config = LutrisConfig()
         self.page_generators = {}
 
-        self.accelerators = Gtk.AccelGroup()
-        self.add_accel_group(self.accelerators)
+        self.shortcut_controller = Gtk.ShortcutController()
+        self.shortcut_controller.set_scope(Gtk.ShortcutScope.MANAGED)
+        self.add_controller(self.shortcut_controller)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
         sidebar = Gtk.ListBox(visible=True)
@@ -50,7 +51,7 @@ class PreferencesDialog(GameDialogCommon):
         hbox.set_hexpand(True)
         hbox.set_vexpand(True)
         self.vbox.append(hbox)
-        self.stack.add_named(self.build_scrolled_window(InterfacePreferencesBox(self.accelerators)), "prefs-stack")
+        self.stack.add_named(self.build_scrolled_window(InterfacePreferencesBox(self.shortcut_controller)), "prefs-stack")
 
         self.runners_box = RunnersBox()
         self.page_generators["runners-stack"] = self.runners_box.populate_runners
