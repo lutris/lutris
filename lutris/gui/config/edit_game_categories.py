@@ -76,10 +76,7 @@ class EditGameCategoriesDialog(SavableModelessDialog):
                 add_game(g)
 
         if len(self.games) > 1:
-            subtitle = _("%d games") % len(self.games)
-            header_bar = self.get_header_bar()
-            if header_bar:
-                header_bar.set_subtitle(subtitle)
+            self.set_title(_("%d games") % len(self.games))
 
     def _create_category_checkboxes(self):
         """Constructs a frame containing checkboxes for all known (non-special) categories."""

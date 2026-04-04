@@ -12,7 +12,7 @@ class BaseConfigBox(VBox):
 
     def __init__(self):
         super().__init__(visible=True, spacing=12)
-        self.accelerators = None
+        self.shortcut_controller = None
         self.set_margin_top(50)
         self.set_margin_bottom(50)
         self.set_margin_end(80)
@@ -103,9 +103,11 @@ class BaseConfigBox(VBox):
         checkbox.set_active(setting_value)
         checkbox.connect("state-set", self.on_setting_change, setting_key, when_setting_changed)
 
-        if accelerator:
-            key, mod = Gtk.accelerator_parse(accelerator)
-            checkbox.add_accelerator("activate", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+        if accelerator and self.shortcut_controller:
+            trigger = Gtk.ShortcutTrigger.parse_string(accelerator)
+            if trigger:
+                action = Gtk.CallbackAction.new(lambda _w, _a, cb=checkbox: cb.activate() or True)
+                self.shortcut_controller.add_shortcut(Gtk.Shortcut(trigger=trigger, action=action))
 
         return self.get_listed_widget_box(label, checkbox, margin=margin)
 
