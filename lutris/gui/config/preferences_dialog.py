@@ -125,7 +125,7 @@ class PreferencesDialog(GameDialogCommon):
         icon.set_margin_end(6)
         hbox.append(icon)
 
-        label = Gtk.Label(text, visible=True)
+        label = Gtk.Label(label=text, visible=True)
         label.set_halign(Gtk.Align.START)
         label.set_margin_start(6)
         label.set_margin_end(6)

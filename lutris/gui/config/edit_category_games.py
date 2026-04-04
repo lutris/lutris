@@ -32,7 +32,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         self.vbox.set_homogeneous(False)
         self.vbox.set_spacing(10)
         name_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        name_label = Gtk.Label(_("Name"))
+        name_label = Gtk.Label(label=_("Name"))
         self.name_entry = Gtk.Entry()
         self.name_entry.set_text(self.category)
         name_box.append(name_label)
@@ -48,7 +48,6 @@ class EditCategoryGamesDialog(SavableModelessDialog):
 
         delete_button = self.add_styled_button(Gtk.STOCK_DELETE, Gtk.ResponseType.NONE, css_class="destructive-action")
         delete_button.connect("clicked", self.on_delete_clicked)
-
 
     def _create_games_checkboxes(self):
         frame = Gtk.Frame()

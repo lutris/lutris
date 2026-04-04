@@ -223,7 +223,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
             self._update_active_file_labels()
             create_cache_lock(file.dest_file, CacheState.DOWNLOADING)
             schedule_repeating_at_idle(self._progress, interval_seconds=0.5)
-            self.cancel_button.show()
+            self.cancel_button.set_visible(True)
             self.cancel_button.set_sensitive(True)
             if self.downloader.state != self.downloader.DOWNLOADING:
                 self.downloader.start()
@@ -244,7 +244,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
 
         self._update_active_file_labels()
         schedule_repeating_at_idle(self._progress, interval_seconds=0.5)
-        self.cancel_button.show()
+        self.cancel_button.set_visible(True)
         self.cancel_button.set_sensitive(True)
 
         # Prefetch the next file immediately
