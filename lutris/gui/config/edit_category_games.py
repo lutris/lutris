@@ -56,7 +56,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         category_games_names = sorted([x.name for x in self.category_games.values()])
         for game in self.available_games:
             label = game.name
-            checkbutton_option = Gtk.CheckButton(label)
+            checkbutton_option = Gtk.CheckButton(label=label)
             if label in category_games_names:
                 checkbutton_option.set_active(True)
             self.grid.attach_next_to(checkbutton_option, None, Gtk.PositionType.BOTTOM, 3, 1)
