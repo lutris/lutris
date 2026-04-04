@@ -23,9 +23,10 @@ import signal
 import sys
 import tempfile
 import types
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from gettext import gettext as _
-from typing import TYPE_CHECKING, Any, Callable, Type, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Type, TypeVar, cast
 
 from gi.repository import Gio, GLib, Gtk
 

@@ -8,8 +8,9 @@ import shlex
 import subprocess
 import sys
 import uuid
+from collections.abc import Callable
 from copy import copy
-from typing import IO, TYPE_CHECKING, Callable
+from typing import IO, TYPE_CHECKING
 
 from gi.repository import GLib
 
