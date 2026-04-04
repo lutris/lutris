@@ -83,40 +83,36 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         content_area = self.get_content_area()
 
         self.page_title_label = Gtk.Label(visible=True)
-        content_area.pack_start(self.page_title_label, False, False, 0)
+        content_area.append(self.page_title_label)
 
-        self.accelerators = Gtk.AccelGroup()
-        self.add_accel_group(self.accelerators)
+        # TODO: AccelGroup removed in GTK4, need Gtk.ShortcutController
+        # self.accelerators = Gtk.AccelGroup()
+        # self.add_accel_group(self.accelerators)
 
         header_bar = self.get_header_bar()
 
-        self.back_button = Gtk.Button(_("Back"), no_show_all=True)
+        self.back_button = Gtk.Button(label=_("Back"), visible=False)
         self.back_button.connect("clicked", self.on_back_clicked)
-        key, mod = Gtk.accelerator_parse("<Alt>Left")
-        self.back_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
-        key, mod = Gtk.accelerator_parse("<Alt>Home")
-        self.accelerators.connect(key, mod, Gtk.AccelFlags.VISIBLE, self.on_navigate_home)
         header_bar.pack_start(self.back_button)
 
-        self.continue_button = Gtk.Button(_("_Continue"), no_show_all=True, use_underline=True)
+        self.continue_button = Gtk.Button(label=_("_Continue"), visible=False, use_underline=True)
         header_bar.pack_end(self.continue_button)
         self.continue_handler = None
 
-        self.cancel_button = Gtk.Button(_("Cancel"), use_underline=True)
+        self.cancel_button = Gtk.Button(label=_("Cancel"), use_underline=True)
         self.cancel_button.connect("clicked", self.on_cancel_clicked)
-        key, mod = Gtk.accelerator_parse("Escape")
-        self.cancel_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
         header_bar.pack_start(self.cancel_button)
         header_bar.set_show_close_button(False)
 
         content_area.set_margin_top(18)
         content_area.set_margin_bottom(18)
-        content_area.set_margin_right(18)
-        content_area.set_margin_left(18)
+        content_area.set_margin_end(18)
+        content_area.set_margin_start(18)
         content_area.set_spacing(12)
 
         self.stack = NavigationStack(self.back_button, cancel_button=self.cancel_button)
-        content_area.pack_start(self.stack, True, True, 0)
+        self.stack.set_vexpand(True)
+        content_area.append(self.stack)
 
         # Pre-create some controls so they can be used in signal handlers
 
@@ -127,9 +123,9 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.install_from_setup_game_name_entry = Gtk.Entry()
         self.install_from_setup_game_slug_checkbox = Gtk.CheckButton(label=_("Identifier"))
         self.install_from_setup_game_slug_entry = Gtk.Entry(sensitive=False)
-        self.install_from_setup_game_slug_entry.connect(
-            "focus-out-event", self.on_install_from_setup_game_slug_entry_focus_out
-        )
+        focus_controller = Gtk.EventControllerFocus()
+        focus_controller.connect("leave", self.on_install_from_setup_game_slug_entry_focus_out)
+        self.install_from_setup_game_slug_entry.add_controller(focus_controller)
         self.installer_presets = Gtk.ListStore(str, str)
         self.install_preset_dropdown = Gtk.ComboBox.new_with_model(self.installer_presets)
         self.installer_locale = Gtk.ListStore(str, str)
@@ -150,7 +146,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.add_named_factory("import_rom", self.create_import_rom_page)
         self.stack.add_named_factory("import_playtron", self.create_import_playtron_page)
 
-        self.show_all()
+        self.present()
 
         self.load_initial_page()
 
@@ -176,9 +172,9 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             row = self._get_listbox_row(icon, text, subtext, next_icon)
             row.callback_name = callback_name
 
-            listbox.add(row)
+            listbox.append(row)
         listbox.connect("row-activated", self.on_row_activated)
-        frame.add(listbox)
+        frame.set_child(listbox)
         return frame
 
     def present_inital_page(self):
@@ -204,16 +200,18 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.navigate_to_page(self.present_search_installers_page)
 
     def create_search_installers_page(self):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, no_show_all=True, spacing=6, visible=True)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
         self.search_entry = Gtk.SearchEntry(visible=True)
-        hbox.pack_start(self.search_entry, True, True, 0)
+        self.search_entry.set_hexpand(True)
+        hbox.append(self.search_entry)
         self.search_spinner = Gtk.Spinner(visible=False)
-        hbox.pack_end(self.search_spinner, False, False, 6)
-        vbox.pack_start(hbox, False, False, 0)
+        self.search_spinner.set_margin_start(6)
+        hbox.append(self.search_spinner)
+        vbox.append(hbox)
         self.search_result_label = self._get_label("")
-        self.search_result_label.hide()
-        vbox.pack_start(self.search_result_label, False, False, 0)
+        self.search_result_label.set_visible(False)
+        vbox.append(self.search_result_label)
         self.search_entry.connect("changed", self._on_search_updated)
 
         explanation = _(
@@ -224,17 +222,18 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         )
 
         self.search_explanation_label = self._get_explanation_label(explanation)
-        vbox.add(self.search_explanation_label)
+        vbox.append(self.search_explanation_label)
 
-        self.search_frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
+        self.search_frame = Gtk.Frame()
         self.search_listbox = Gtk.ListBox(visible=True)
         self.search_listbox.connect("row-activated", self._on_game_selected)
         scroll = Gtk.ScrolledWindow(visible=True)
         scroll.set_vexpand(True)
-        scroll.add(self.search_listbox)
-        self.search_frame.add(scroll)
+        scroll.set_child(self.search_listbox)
+        self.search_frame.set_child(scroll)
 
-        vbox.pack_start(self.search_frame, True, True, 0)
+        self.search_frame.set_vexpand(True)
+        vbox.append(self.search_frame)
         return vbox
 
     def present_search_installers_page(self):
@@ -275,8 +274,11 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             self.search_result_label.set_markup(text)
         else:
             self.search_result_label.set_markup(_("<b>%s</b> results, only displaying first %s") % (total_count, count))
-        for row in self.search_listbox.get_children():
-            row.destroy()
+        child = self.search_listbox.get_first_child()
+        while child is not None:
+            next_child = child.get_next_sibling()
+            self.search_listbox.remove(child)
+            child = next_child
         for game in api_games.get("results", []):
             platforms = ",".join(gtk_safe(platform["name"]) for platform in game["platforms"])
             year = game["year"] or ""
@@ -285,7 +287,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
             row = self._get_listbox_row("", gtk_safe(game["name"]), f"{year}{platforms}")
             row.api_info = game
-            self.search_listbox.add(row)
+            self.search_listbox.append(row)
         self.search_result_label.show()
         self.search_frame.show()
         self.search_explanation_label.hide()
@@ -601,12 +603,11 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
     def display_continue_button(self, handler, label=_("_Continue"), suggested_action=True):
         self.continue_button.set_label(label)
-        style_context = self.continue_button.get_style_context()
 
         if suggested_action:
-            style_context.add_class("suggested-action")
+            self.continue_button.add_css_class("suggested-action")
         else:
-            style_context.remove_class("suggested-action")
+            self.continue_button.remove_css_class("suggested-action")
 
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
@@ -634,10 +635,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
     def _get_icon(self, name, small=False):
         if small:
-            size = Gtk.IconSize.MENU
             pixel_size = 16
         else:
-            size = Gtk.IconSize.DND
             pixel_size = 32
 
         # Check if it's a media file reference (e.g., "media:playtron")
@@ -657,18 +656,20 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
                 icon.show()
                 return icon
 
-        icon = Gtk.Image.new_from_icon_name(name, size)
-        icon.show()
+        icon = Gtk.Image.new_from_icon_name(name)
+        if not small:
+            icon.set_icon_size(Gtk.IconSize.LARGE)
+        icon.set_pixel_size(pixel_size)
         return icon
 
     def _get_label(self, text):
         label = Gtk.Label(visible=True)
         label.set_markup(text)
-        label.set_alignment(0, 0.5)
+        label.set_xalign(0)
         return label
 
     def _get_explanation_label(self, markup):
-        label = Gtk.Label(visible=True, margin_right=12, margin_left=12, margin_top=12, margin_bottom=12)
+        label = Gtk.Label(visible=True, margin_end=12, margin_start=12, margin_top=12, margin_bottom=12)
         label.set_markup(markup)
         label.set_line_wrap(True)
         return label
@@ -678,15 +679,16 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         row.set_selectable(False)
         row.set_activatable(True)
 
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12, margin_top=12, margin_bottom=12, visible=True)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12, margin_top=12, margin_bottom=12, visible=True)
 
         if left_icon_name:
             icon = self._get_icon(left_icon_name)
-            box.pack_start(icon, False, False, 0)
+            box.append(icon)
         label = self._get_label(f"<b>{text}</b>\n{subtext}")
-        box.pack_start(label, True, True, 0)
+        label.set_hexpand(True)
+        box.append(label)
         if left_icon_name:
             next_icon = self._get_icon(right_icon_name, small=True)
-            box.pack_start(next_icon, False, False, 0)
-        row.add(box)
+            box.append(next_icon)
+        row.set_child(box)
         return row

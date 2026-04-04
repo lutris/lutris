@@ -79,45 +79,47 @@ class DownloadCollectionProgressBox(Gtk.Box):
         self.num_retries = 0
 
         top_box = Gtk.Box()
-        self.main_label = Gtk.Label(self.title)
-        self.main_label.set_alignment(0, 0)
-        self.main_label.set_property("wrap", True)
+        self.main_label = Gtk.Label(label=self.title)
+        self.main_label.set_xalign(0)
+        self.main_label.set_wrap(True)
         self.main_label.set_margin_bottom(10)
         self.main_label.set_selectable(True)
-        self.main_label.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
-        top_box.pack_start(self.main_label, False, False, 0)
+        self.main_label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
+        top_box.append(self.main_label)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_("_Cancel"))
         self.cancel_cb_id = self.cancel_button.connect("clicked", self.on_cancel_clicked)
         if not cancelable:
             self.cancel_button.set_sensitive(False)
-        top_box.pack_end(self.cancel_button, False, False, 0)
+        self.cancel_button.set_hexpand(True)
+        self.cancel_button.set_halign(Gtk.Align.END)
+        top_box.append(self.cancel_button)
 
-        self.pack_start(top_box, True, True, 0)
+        self.append(top_box)
 
         self.file_name_label = Gtk.Label()
-        self.file_name_label.set_alignment(0, 0)
-        self.file_name_label.set_property("wrap", True)
+        self.file_name_label.set_xalign(0)
+        self.file_name_label.set_wrap(True)
         self.file_name_label.set_margin_bottom(10)
         self.file_name_label.set_selectable(True)
-        self.file_name_label.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
-        self.pack_start(self.file_name_label, True, True, 0)
+        self.file_name_label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
+        self.append(self.file_name_label)
 
         progress_box = Gtk.Box()
         self.progressbar = Gtk.ProgressBar()
         self.progressbar.set_margin_top(5)
         self.progressbar.set_margin_bottom(5)
-        self.progressbar.set_margin_right(10)
-        progress_box.pack_start(self.progressbar, True, True, 0)
+        self.progressbar.set_margin_end(10)
+        self.progressbar.set_hexpand(True)
+        progress_box.append(self.progressbar)
 
-        self.pack_start(progress_box, False, False, 0)
+        self.append(progress_box)
 
         self.progress_label = Gtk.Label()
-        self.progress_label.set_alignment(0, 0)
-        self.pack_start(self.progress_label, True, True, 0)
+        self.progress_label.set_xalign(0)
+        self.append(self.progress_label)
 
-        self.show_all()
-        self.cancel_button.hide()
+        self.cancel_button.set_visible(False)
 
     # ------------------------------------------------------------------
     # Downloader creation helper
@@ -138,7 +140,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
             downloader_cls = getattr(file, "downloader_class", None) or Downloader
             dl = downloader_cls(file.url, file.tmp_file, referer=file.referer, overwrite=True)
         except RuntimeError as ex:
-            display_error(ex, parent=self.get_toplevel())
+            display_error(ex, parent=self.get_root())
             return None
 
         create_cache_lock(file.dest_file, CacheState.DOWNLOADING)

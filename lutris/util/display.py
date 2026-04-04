@@ -11,14 +11,11 @@ from typing import TYPE_CHECKING, Any
 
 import gi
 
-try:
-    gi.require_version("GnomeDesktop", "3.0")
-    from gi.repository import GnomeDesktop  # type: ignore
-
-    LIB_GNOME_DESKTOP_AVAILABLE = True
-except ValueError:
-    LIB_GNOME_DESKTOP_AVAILABLE = False
-    GnomeDesktop = None
+# GnomeDesktop 3.0 requires GTK 3 and cannot coexist with GTK 4.
+# The GnomeDesktop-based DisplayManager is no longer available;
+# we fall through to MutterDisplayManager or LegacyDisplayManager instead.
+LIB_GNOME_DESKTOP_AVAILABLE = False
+GnomeDesktop = None
 
 try:
     from dbus.exceptions import DBusException
@@ -44,8 +41,9 @@ def get_default_dpi() -> int:
     which we pass to WINE."""
     display = Gdk.Display.get_default()
     if display:
-        monitor = display.get_primary_monitor()
-        if monitor:
+        monitors = display.get_monitors()
+        if monitors.get_n_items() > 0:
+            monitor = monitors.get_item(0)
             scale = monitor.get_scale_factor()
             dpi = 96 * scale
             return int(dpi)
@@ -60,57 +58,44 @@ def is_display_x11() -> bool:
 
 
 class DisplayManager:
-    """Get display and resolution using GnomeDesktop"""
+    """Get display and resolution using XRandR (GnomeDesktop no longer available with GTK 4)"""
 
-    def __init__(self, screen: Gdk.Screen):
-        if GnomeDesktop:
-            self.rr_screen = GnomeDesktop.RRScreen.new(screen)
-            self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
-            self.rr_config.load_current()
-
-    def get_display_names(self) -> list[str]:
+    @staticmethod
+    def get_display_names() -> list[str]:
         """Return names of connected displays"""
-        return [output_info.get_display_name() for output_info in self.rr_config.get_outputs()]
+        return [output.name for output in get_outputs()]
 
-    def get_resolutions(self) -> list[str]:
+    @staticmethod
+    def get_resolutions() -> list[str]:
         """Return available resolutions"""
-        resolutions = ["%sx%s" % (mode.get_width(), mode.get_height()) for mode in self.rr_screen.list_modes()]
+        resolutions = []
+        for output in get_outputs():
+            for mode in output.modes:
+                resolutions.append(mode)
         if not resolutions:
-            logger.error("Failed to generate resolution list from default GdkScreen")
+            logger.error("Failed to generate resolution list")
             return ["%sx%s" % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
         return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
 
-    def _get_primary_output(self) -> GnomeDesktop.RROutput | None:
-        """Return the RROutput used as a primary display"""
-        for output in self.rr_screen.list_outputs():
-            if output.get_is_primary():
-                return output
-        return None
-
-    def get_current_resolution(self) -> tuple[str, str]:
+    @staticmethod
+    def get_current_resolution() -> tuple[str, str]:
         """Return the current resolution for the primary display"""
-        output = self._get_primary_output()
-        if not output:
-            logger.error("Failed to get a default output")
-            return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
-        current_mode = output.get_current_mode()
-        return str(current_mode.get_width()), str(current_mode.get_height())
+        outputs = get_outputs()
+        primary = next((o for o in outputs if o.primary), None) or (outputs[0] if outputs else None)
+        if primary and primary.current_mode:
+            parts = primary.current_mode.split("x")
+            if len(parts) == 2:
+                return parts[0], parts[1]
+        return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
 
     @staticmethod
     def set_resolution(resolution: str | Iterable[Output]) -> None:
-        """Set the resolution of one or more displays.
-        The resolution can either be a string, which will be applied to the
-        primary display or a list of configurations as returned by `get_config`.
-        This method uses XrandR and will not work on Wayland.
-        """
+        """Set the resolution of one or more displays."""
         return change_resolution(resolution)
 
     @staticmethod
     def get_config() -> list[Output]:
-        """Return the current display resolution
-        This method uses XrandR and will not work on wayland
-        The output can be fed in `set_resolution`
-        """
+        """Return the current display configuration."""
         return get_outputs()
 
 
@@ -128,13 +113,6 @@ def get_display_manager() -> MutterDisplayManager | DisplayManager | LegacyDispl
     else:
         logger.error("DBus is not available, Lutris was not properly installed.")
 
-    if LIB_GNOME_DESKTOP_AVAILABLE:
-        try:
-            screen = Gdk.Screen.get_default()
-            if screen:
-                return DisplayManager(screen)
-        except GLib.Error:
-            pass
     return LegacyDisplayManager()
 
 

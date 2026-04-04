@@ -23,15 +23,15 @@ from lutris.util.strings import time_ago
 class AccountsBox(BaseConfigBox):
     def __init__(self):
         super().__init__()
-        self.add(self.get_section_label(_("Lutris")))
-        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
-        frame.get_style_context().add_class("info-frame")
+        self.append(self.get_section_label(_("Lutris")))
+        frame = Gtk.Frame(visible=True)
+        frame.add_css_class("info-frame")
         self.bullshit_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
-        self.pack_start(frame, False, False, 0)
+        self.append(frame)
 
         self.lutris_options = self.get_lutris_options()
-        self.bullshit_box.add(self.lutris_options)
-        frame.add(self.bullshit_box)
+        self.bullshit_box.append(self.lutris_options)
+        frame.set_child(self.bullshit_box)
 
         self.library_syncing_registration = EMPTY_NOTIFICATION_REGISTRATION
         self.library_synced_registration = EMPTY_NOTIFICATION_REGISTRATION
@@ -44,20 +44,20 @@ class AccountsBox(BaseConfigBox):
         self.sync_frame = self._get_framed_options_list_box([self.sync_box])
         self.sync_frame.set_visible(settings.read_bool_setting("library_sync_enabled", True))
 
-        self.pack_start(self.sync_frame, False, False, 0)
+        self.append(self.sync_frame)
 
-        self.add(self.get_section_label(_("Steam accounts")))
-        self.add(
+        self.append(self.get_section_label(_("Steam accounts")))
+        self.append(
             self.get_description_label(
                 _("Select which Steam account is used for Lutris integration and creating Steam shortcuts.")
             )
         )
-        self.frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
-        self.frame.get_style_context().add_class("info-frame")
-        self.pack_start(self.frame, False, False, 0)
+        self.frame = Gtk.Frame(visible=True)
+        self.frame.add_css_class("info-frame")
+        self.append(self.frame)
 
         self.accounts_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
-        self.frame.add(self.accounts_box)
+        self.frame.set_child(self.accounts_box)
 
     def on_realize(self, _widget):
         self.library_syncing_registration = LOCAL_LIBRARY_SYNCING.register(self.on_local_library_syncing)
@@ -84,13 +84,15 @@ class AccountsBox(BaseConfigBox):
         user_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, visible=True)
 
         label = Gtk.Label(visible=True)
-        label.set_alignment(0, 0.5)
+        label.set_halign(Gtk.Align.START)
         if user_info:
             label.set_markup(_("Connected as <b>%s</b>") % user_info["username"])
         else:
             label.set_markup(_("Not connected"))
         self.space_widget(label)
-        user_box.pack_start(label, True, True, 0)
+        label.set_hexpand(True)
+        label.set_vexpand(True)
+        user_box.append(label)
 
         if user_info:
             button_text = _("Logout")
@@ -101,25 +103,25 @@ class AccountsBox(BaseConfigBox):
         button = Gtk.Button(button_text, visible=True)
         button.connect("clicked", button_handler)
         self.space_widget(button)
-        user_box.pack_start(button, False, False, 0)
+        user_box.append(button)
         return user_box
 
     def get_lutris_options(self):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
-        box.add(self.get_user_box())
+        box.append(self.get_user_box())
 
         sync_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, visible=True)
         sync_label = Gtk.Label(_("Keep your game library synced with Lutris.net"), visible=True)
         sync_switch = Gtk.Switch(visible=True)
         sync_switch.set_active(settings.read_bool_setting("library_sync_enabled", default=True))
         sync_switch.connect("state-set", self.on_sync_state_set)
-        sync_box.pack_start(sync_label, False, False, 0)
-        sync_box.pack_end(sync_switch, False, False, 0)
+        sync_box.append(sync_label)
+        sync_box.append(sync_switch)
         self.space_widget(sync_box, bottom=0)
-        box.add(sync_box)
+        box.append(sync_box)
 
         label = Gtk.Label(visible=True)
-        label.set_alignment(0, 0.5)
+        label.set_halign(Gtk.Align.START)
         label.set_markup(
             _(
                 "<i>This will send play time, last played, runner, platform \n"
@@ -128,7 +130,7 @@ class AccountsBox(BaseConfigBox):
             )
         )
         self.space_widget(label, top=0)
-        box.add(label)
+        box.append(label)
 
         return box
 
@@ -142,32 +144,31 @@ class AccountsBox(BaseConfigBox):
             name = account.get("PersonaName") or f"#{steamid64}"
             radio_button = Gtk.RadioButton.new_with_label_from_widget(main_radio_button, name)
             self.space_widget(radio_button)
-            radio_button.show()
             radio_button.set_active(active_steam_account == steamid64)
             radio_button.connect("toggled", self.on_steam_account_toggled, steamid64)
-            self.accounts_box.pack_start(radio_button, True, True, 0)
+            radio_button.set_hexpand(True)
+            radio_button.set_vexpand(True)
+            self.accounts_box.append(radio_button)
             if not main_radio_button:
                 main_radio_button = radio_button
         if not steam_users:
-            self.accounts_box.pack_start(
-                self.space_widget(Gtk.Label(_("No Steam account found"), visible=True)),
-                True,
-                True,
-                0,
-            )
+            no_account_label = self.space_widget(Gtk.Label(_("No Steam account found"), visible=True))
+            no_account_label.set_hexpand(True)
+            no_account_label.set_vexpand(True)
+            self.accounts_box.append(no_account_label)
 
     def rebuild_lutris_options(self):
         self.bullshit_box.remove(self.lutris_options)
         self.lutris_options.destroy()
         self.lutris_options = self.get_lutris_options()
-        self.bullshit_box.add(self.lutris_options)
+        self.bullshit_box.append(self.lutris_options)
 
     def on_logout_clicked(self, _widget):
         disconnect()
         self.rebuild_lutris_options()
 
     def on_login_clicked(self, _widget):
-        login_dialog = ClientLoginDialog(parent=self.get_toplevel())
+        login_dialog = ClientLoginDialog(parent=self.get_root())
         login_dialog.connect("connected", self.on_connect_response)
 
     def on_connect_response(self, _dialog, bliblu):

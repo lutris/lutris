@@ -44,7 +44,6 @@ class UninstallDialog(Gtk.Dialog):
         self.any_shared = False
         self.any_protected = False
         self.init_template()
-        self.show_all()
 
     def get_game_removal_rows(self) -> list["GameRemovalRow"]:
         return get_widget_children(self.uninstall_game_list, GameRemovalRow)
@@ -58,7 +57,7 @@ class UninstallDialog(Gtk.Dialog):
         new_rows = []
         for game in new_games:
             row = GameRemovalRow(game)
-            self.uninstall_game_list.add(row)
+            self.uninstall_game_list.append(row)
             new_rows.append(row)
 
         self.update_deletability()
@@ -67,7 +66,6 @@ class UninstallDialog(Gtk.Dialog):
         self.update_message()
         self.update_all_checkboxes()
         self.update_uninstall_button()
-        self.uninstall_game_list.show_all()
 
         # Defer the connection until all checkboxes are updated
         for row in new_rows:
@@ -364,15 +362,15 @@ class GameRemovalRow(Gtk.ListBoxRow):
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vbox.pack_start(hbox, False, False, 0)
+        vbox.append(hbox)
 
         label = Gtk.Label(label=game.name, selectable=True)
-        hbox.pack_start(label, False, False, 0)
+        hbox.append(label)
 
         self.remove_from_library_checkbox = Gtk.CheckButton(label=_("Remove from Library"), halign=Gtk.Align.START)
         self.remove_from_library_checkbox.set_active(False)
         self.remove_from_library_checkbox.connect("toggled", self.on_checkbox_toggled)
-        hbox.pack_end(self.remove_from_library_checkbox, False, False, 0)
+        hbox.append(self.remove_from_library_checkbox)
 
         if game.is_installed and self.game.directory:
             self.delete_files_checkbox = Gtk.CheckButton(label=_("Delete Files"))
@@ -381,24 +379,24 @@ class GameRemovalRow(Gtk.ListBoxRow):
             self.delete_files_checkbox.set_tooltip_text(self.game.directory)
             self.delete_files_checkbox.connect("toggled", self.on_checkbox_toggled)
 
-            hbox.pack_end(self.delete_files_checkbox, False, False, 0)
+            hbox.append(self.delete_files_checkbox)
 
             dir_box = Gtk.Box(
                 orientation=Gtk.Orientation.HORIZONTAL,
                 spacing=6,
-                margin_left=6,
-                margin_right=6,
+                margin_start=6,
+                margin_end=6,
                 height_request=16,
             )
             self.directory_label = Gtk.Label(halign=Gtk.Align.START, selectable=True, valign=Gtk.Align.START)
             self.directory_label.set_markup(self._get_directory_markup())
-            dir_box.pack_start(self.directory_label, False, False, 0)
+            dir_box.append(self.directory_label)
 
-            self.folder_size_spinner = Gtk.Spinner(visible=False, no_show_all=True)
-            dir_box.pack_start(self.folder_size_spinner, False, False, 0)
+            self.folder_size_spinner = Gtk.Spinner(visible=False)
+            dir_box.append(self.folder_size_spinner)
 
-            vbox.pack_start(dir_box, False, False, 0)
-        self.add(vbox)
+            vbox.append(dir_box)
+        self.set_child(vbox)
 
     def _get_directory_markup(self, folder_size: int | None = None):
         if not self.game.directory or not self.game.is_installed:
