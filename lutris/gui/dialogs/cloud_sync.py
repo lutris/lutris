@@ -39,7 +39,7 @@ class CloudSyncConflictDialog(ModalDialog):
         # Header
         header = Gtk.Label()
         header.set_markup(_("<b>Cloud save conflict for <i>%s</i></b>") % game_name)
-        header.set_line_wrap(True)
+        header.set_wrap(True)
         header.set_margin_top(6)
         header.set_margin_bottom(6)
         content.append(header)
@@ -54,7 +54,7 @@ class CloudSyncConflictDialog(ModalDialog):
             )
             % location_name
         )
-        desc.set_line_wrap(True)
+        desc.set_wrap(True)
         desc.set_margin_top(12)
         desc.set_margin_bottom(12)
         content.append(desc)

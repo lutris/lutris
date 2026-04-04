@@ -269,8 +269,9 @@ class GameBar(Gtk.Box):
 
     def on_link_button_clicked(self, button, callback):
         """Callback for link buttons. Closes the popover then runs the actual action"""
-        popover = button.get_parent().get_parent()
-        popover.popdown()
+        popover = button.get_ancestor(Gtk.Popover)
+        if popover:
+            popover.popdown()
         callback(button)
 
     def on_install_clicked(self, button):

@@ -105,6 +105,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     lutris_log_in_label: Gtk.Label = GtkTemplate.Child()
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     version_notification_label: Gtk.Label = GtkTemplate.Child()
+
     def __init__(self, application=None, **kwargs) -> None:
         width = int(settings.read_setting("width") or self.default_width)
         height = int(settings.read_setting("height") or self.default_height)
@@ -366,7 +367,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         file_path = value.get_path()
         if file_path:
             dialog = ImportGameDialog([file_path], parent=self)
-            dialog.show()
+            dialog.present()
         return True
 
     def load_filters(self):
@@ -389,7 +390,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             if self.sidebar.previous_category:
                 self.sidebar.selected_category = self.sidebar.previous_category
         else:
-            self.sidebar.hidden_row.show()
+            self.sidebar.hidden_row.set_visible(True)
             self.sidebar.selected_category = hidden_category
 
     def on_open_search_filters(self, _action, _value):
@@ -595,14 +596,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def update_missing_games_sidebar_row(self) -> None:
         missing_games = self.get_missing_games()
         if missing_games:
-            self.sidebar.missing_row.show()
+            self.sidebar.missing_row.set_visible(True)
             if self.selected_category == ("dynamic_category", "missing"):
                 self.update_store()
         else:
             missing_ids = MISSING_GAMES.missing_game_ids
             if missing_ids:
                 logger.warning("Path cache out of date? (%s IDs missing)", len(missing_ids))
-            self.sidebar.missing_row.hide()
+            self.sidebar.missing_row.set_visible(False)
 
     def get_recent_games(self):
         """Return a list of recently played games"""
@@ -1120,7 +1121,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def update_notification(self):
         show_notification = self.is_showing_splash() and not read_api_key()
         if show_notification:
-            self.lutris_log_in_label.show()
+            self.lutris_log_in_label.set_visible(True)
         self.login_notification_revealer.set_reveal_child(show_notification)
 
     @GtkTemplate.Callback
@@ -1212,13 +1213,13 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def on_window_delete(self, *_args):
         app = self.application
         if app.has_running_games:
-            self.hide()
+            self.set_visible(False)
             return True
         if not self.is_download_queue_empty:
-            self.hide()
+            self.set_visible(False)
             return True
         if app.has_tray_icon():
-            self.hide()
+            self.set_visible(False)
             return True
 
     def on_visible_changed(self, window, param):
@@ -1362,7 +1363,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.redraw_view()
 
         if row_type != "category" or row_id != ".hidden":
-            self.sidebar.hidden_row.hide()
+            self.sidebar.hidden_row.set_visible(False)
 
         if not MISSING_GAMES.is_initialized or (row_type == "dynamic_category" and row_id == "missing"):
             MISSING_GAMES.update_all_missing()

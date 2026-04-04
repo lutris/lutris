@@ -351,7 +351,9 @@ class LutrisApplication(Gtk.Application):
         if not self.window:
             self.window = LutrisWindow(application=self)
             display = Gdk.Display.get_default()
-            Gtk.StyleContext.add_provider_for_display(display, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            Gtk.StyleContext.add_provider_for_display(
+                display, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            )
 
     def start_runtime_updates(self) -> None:
         if os.environ.get("LUTRIS_SKIP_INIT"):
@@ -408,7 +410,6 @@ class LutrisApplication(Gtk.Application):
         if update_function:
             update_function(window_inst)
         self.app_windows[window_key] = window_inst
-        window_inst.show()
         window_inst.present()
         return window_inst
 
@@ -813,7 +814,7 @@ class LutrisApplication(Gtk.Application):
     def on_game_start(self, game: Game) -> None:
         self._running_games.append(game)
         if self.window and settings.read_bool_setting("hide_client_on_game_start"):
-            self.window.hide()  # Hide launcher window
+            self.window.set_visible(False)  # Hide launcher window
 
     def on_game_stopped(self, game: Game) -> None:
         """Callback to quit Lutris is last game stops while the window is hidden."""
@@ -830,7 +831,7 @@ class LutrisApplication(Gtk.Application):
             logger.debug("Game has already been removed from running IDs?")
 
         if self.window and settings.read_bool_setting("hide_client_on_game_start") and not self.quit_on_game_exit:
-            self.window.show()  # Show launcher window
+            self.window.present()  # Show launcher window
         else:
             self._quit_if_hidden_and_idle()
 

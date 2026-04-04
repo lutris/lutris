@@ -174,8 +174,7 @@ class WidgetGenerator(ABC):
             child = wrapper.get_first_child()
             while child:
                 next_child = child.get_next_sibling()
-                wrapper.remove(child)
-                child.destroy()
+                child.unparent()
                 child = next_child
             self.wrapper = wrapper
         else:
@@ -503,7 +502,7 @@ class WidgetGenerator(ABC):
             combobox.set_active_id(default)
 
         combobox.connect("changed", on_combobox_change)
-        combobox.connect("scroll-event", on_combobox_scroll)
+        # scroll-event removed in GTK 4; scroll handling is built-in
         combobox.set_valign(Gtk.Align.CENTER)
 
         def get_invalidity_error(key: str):
@@ -858,8 +857,7 @@ class SectionFrame(Gtk.Frame):
 class WidgetWarningMessageBox(Gtk.Box):
     """A box to display a message with an icon inside the configuration dialog."""
 
-    def __init__(self, icon_name, margin_start=18, margin_end=18, margin_bottom=6,
-                 margin_left=None, margin_right=None):
+    def __init__(self, icon_name, margin_start=18, margin_end=18, margin_bottom=6, margin_left=None, margin_right=None):
         # Accept legacy margin_left/margin_right kwargs for compatibility
         if margin_left is not None:
             margin_start = margin_left
@@ -878,7 +876,7 @@ class WidgetWarningMessageBox(Gtk.Box):
         image.set_icon_size(Gtk.IconSize.LARGE)
         self.append(image)
         self.label = Gtk.Label(visible=True, xalign=0)
-        self.label.set_line_wrap(True)
+        self.label.set_wrap(True)
         self.append(self.label)
 
     def show_markup(self, markup) -> bool:
