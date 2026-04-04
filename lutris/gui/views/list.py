@@ -1,12 +1,9 @@
-"""TreeView based game list"""
+"""TreeView based game list - GTK 4 stub for ColumnView migration"""
 
 from gettext import gettext as _
 
-# Third Party Libraries
-# pylint: disable=no-member
-from gi.repository import Gdk, Gtk, Pango
+from gi.repository import Gdk, Gio, GObject, Gtk, Pango
 
-# Lutris Modules
 from lutris import settings
 from lutris.gui.views import (
     COL_ID,
@@ -26,11 +23,14 @@ from lutris.gui.views import (
     COLUMN_NAMES,
 )
 from lutris.gui.views.base import GameView
-from lutris.gui.widgets.cellrenderers import GridViewCellRendererImage
 
 
 class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
-    """Show the main list of games."""
+    """Show the main list of games.
+
+    TODO: This still uses deprecated Gtk.TreeView. Will be rewritten to use
+    Gtk.ColumnView in a subsequent phase.
+    """
 
     __gsignals__ = GameView.__gsignals__
 
@@ -38,10 +38,10 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         Gtk.TreeView.__init__(self)
         GameView.__init__(self)
 
-        self.set_rules_hint(True)
-
         # Image column
         if settings.SHOW_MEDIA:
+            from lutris.gui.widgets.cellrenderers import GridViewCellRendererImage
+
             self.image_renderer = GridViewCellRendererImage()
             self.media_column = Gtk.TreeViewColumn(
                 "", self.image_renderer, media_paths=COL_MEDIA_PATHS, is_installed=COL_INSTALLED, game_id=COL_ID
@@ -105,7 +105,6 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         column.set_visible(is_visible == "True" or always_visible if is_visible else True)
         self.append_column(column)
         column.connect("notify::width", self.on_column_width_changed)
-        column.get_button().connect("button-press-event", self.on_column_header_button_pressed)
         return column
 
     def get_path_at(self, x, y):
@@ -145,13 +144,6 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         if row:
             self.set_cursor(row.path)
 
-    def on_column_header_button_pressed(self, button, event):
-        """Handles column header button press events"""
-        if event.button == Gdk.BUTTON_SECONDARY:
-            menu = GameListColumnToggleMenu(self.get_columns())
-            menu.popup_at_pointer(None)
-            return True
-
     def on_row_activated(self, widget, line=None, column=None):
         """Handles double clicks"""
         selected_id = self.get_selected_game_id()
@@ -173,31 +165,38 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
             )
 
 
-class GameListColumnToggleMenu(Gtk.Menu):
+class GameListColumnToggleMenu(Gtk.Popover):
+    """Column visibility toggle menu - converted from Gtk.Menu to Gtk.Popover for GTK 4."""
+
     def __init__(self, columns):
         super().__init__()
         self.columns = columns
         self.column_map = {}
-        self.create_menuitems()
-        self.show_all()
 
-    def create_menuitems(self):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        box.set_margin_top(6)
+        box.set_margin_bottom(6)
+        box.set_margin_start(6)
+        box.set_margin_end(6)
+
         for column in self.columns:
             title = column.get_title()
             if title == "":
                 continue
-            checkbox = Gtk.CheckMenuItem(title)
+            checkbox = Gtk.CheckButton(label=title)
             checkbox.set_active(column.get_visible())
             if title == _("Name"):
                 checkbox.set_sensitive(False)
             else:
                 checkbox.connect("toggled", self.on_toggle_column)
             self.column_map[checkbox] = column
-            self.append(checkbox)
+            box.append(checkbox)
 
-    def on_toggle_column(self, check_menu_item):
-        column = self.column_map[check_menu_item]
-        is_visible = check_menu_item.get_active()
+        self.set_child(box)
+
+    def on_toggle_column(self, check_button):
+        column = self.column_map[check_button]
+        is_visible = check_button.get_active()
         column.set_visible(is_visible)
         settings.write_setting(
             column.get_title().replace(" ", "") + "_visible",

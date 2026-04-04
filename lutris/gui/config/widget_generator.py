@@ -7,7 +7,7 @@ from gettext import gettext as _
 from inspect import Parameter, signature
 from typing import TYPE_CHECKING, Any
 
-from gi.repository import Gdk, Gtk  # type: ignore
+from gi.repository import Gdk, Gio, GLib, Gtk  # type: ignore
 
 from lutris.config import LutrisConfig
 from lutris.gui.widgets import NotificationSource
@@ -119,11 +119,11 @@ class WidgetGenerator(ABC):
                     frame = SectionFrame(self._current_section, visible=True)
                     self.section_frames.append(frame)
                     self._current_parent = frame.vbox
-                    self.parent.pack_start(frame, False, False, 0)
+                    self.parent.append(frame)
                 else:
                     self._current_parent = self.parent
 
-            self._current_parent.pack_start(option_container, False, False, 0)
+            self._current_parent.append(option_container)
         return option_container
 
     def generate_container(self, option: dict[str, Any], wrapper: Gtk.Box | None = None) -> Gtk.Widget | None:
@@ -134,7 +134,7 @@ class WidgetGenerator(ABC):
             option_key = option["option"]
             option_container = self.create_option_container(option, self.wrapper)
             self.option_containers[option_key] = option_container
-            option_container.show_all()
+            pass  # Widgets are visible by default in GTK 4
 
             option_container.lutris_option_key = option_key  # type:ignore[attr-defined]
             option_container.lutris_option_label = option["label"]  # type:ignore[attr-defined]
@@ -171,9 +171,12 @@ class WidgetGenerator(ABC):
 
         if wrapper:
             # Destroy and recreate option widget
-            children = wrapper.get_children()
-            for child in children:
+            child = wrapper.get_first_child()
+            while child:
+                next_child = child.get_next_sibling()
+                wrapper.remove(child)
                 child.destroy()
+                child = next_child
             self.wrapper = wrapper
         else:
             self.wrapper = self.create_wrapper_box(option, value, default)
@@ -193,7 +196,7 @@ class WidgetGenerator(ABC):
         self.tooltip_default = self.tooltip_default or (default if isinstance(default, str) else None)
 
         if option_widget:
-            option_widget.show_all()
+            pass  # Widgets are visible by default in GTK 4
 
         self.configure_wrapper_box(self.wrapper, option, value, default)
         self.configure_warning_messages(option)
@@ -243,10 +246,10 @@ class WidgetGenerator(ABC):
 
         if self.warning_messages:
             option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
-            option_container.pack_start(wrapper, False, False, 0)
+            option_container.append(wrapper)
 
             for widget in self.warning_messages:
-                option_container.pack_start(widget, False, False, 0)
+                option_container.append(widget)
 
             return option_container
         else:
@@ -269,14 +272,17 @@ class WidgetGenerator(ABC):
             if not no_label and "label" in option:
                 label = option["label"]
                 label = Label(label)
-                self.wrapper.pack_start(label, False, False, 0)
+                self.wrapper.append(label)
 
             if widget:
                 option_size = option.get("size", None)
                 if option_size:
                     expand = option_size != "small"
 
-                self.wrapper.pack_start(widget, expand, expand, 0)
+                if expand:
+                    widget.set_hexpand(True)
+                    widget.set_vexpand(True)
+                self.wrapper.append(widget)
         return widget
 
     # Dynamic Widget Updates
@@ -294,7 +300,6 @@ class WidgetGenerator(ABC):
         for frame in self.section_frames:
             visible = frame.has_visible_children()
             frame.set_visible(visible)
-            frame.set_no_show_all(not visible)
 
     def update_option_container(self, option, container: Gtk.Container, wrapper: Gtk.Container):
         """This method updates an option container and its wrapper; this re-evaluates the
@@ -302,14 +307,15 @@ class WidgetGenerator(ABC):
         results."""
 
         # Update messages in message boxes that support it
-        for child in container.get_children():
+        child = container.get_first_child()
+        while child:
             if hasattr(child, "update_message"):
                 child.update_message(option, self)
+            child = child.get_next_sibling()
 
         # Hide entire container if the option is not visible
         visible = self.get_visibility(option)
         container.set_visible(visible)
-        container.set_no_show_all(not visible)
 
         # Grey out option if condition unmet, or if a second setting is False
         condition: bool = self.get_condition(option)
@@ -490,10 +496,9 @@ class WidgetGenerator(ABC):
         if value in [v for _k, v in expanded_choices]:
             combobox.set_active_id(value)
         elif has_entry:
-            for ch in combobox.get_children():
-                if isinstance(ch, Gtk.Entry):
-                    ch.set_text(value or "")
-                    break
+            entry_child = combobox.get_child()
+            if isinstance(entry_child, Gtk.Entry):
+                entry_child.set_text(value or "")
         else:
             combobox.set_active_id(default)
 
@@ -605,31 +610,34 @@ class WidgetGenerator(ABC):
 
         def on_add_files_clicked(_widget):
             """Create and run multi-file chooser dialog."""
-
-            dialog = Gtk.FileChooserNative.new(
-                _("Select files"),
-                None,
-                Gtk.FileChooserAction.OPEN,
-                _("_Add"),
-                _("_Cancel"),
-            )
-            dialog.set_select_multiple(True)
+            dialog = Gtk.FileDialog()
+            dialog.set_title(_("Select files"))
 
             files = [row[0] for row in files_list_store]
             first_file_dir = os.path.dirname(files[0]) if files else None
-            dialog.set_current_folder(first_file_dir or self.default_directory)
-            response = dialog.run()
-            if response == Gtk.ResponseType.ACCEPT:
-                for filename in dialog.get_filenames():
-                    if filename not in files:
+            initial = first_file_dir or self.default_directory
+            if initial:
+                dialog.set_initial_folder(Gio.File.new_for_path(initial))
+
+            def on_finish(_dialog, async_result):
+                try:
+                    gfiles = _dialog.open_multiple_finish(async_result)
+                except GLib.Error:
+                    return
+                for i in range(gfiles.get_n_items()):
+                    gfile = gfiles.get_item(i)
+                    filename = gfile.get_path()
+                    if filename and filename not in files:
                         files_list_store.append([filename])
                         files.append(filename)
                 self.changed.fire(option_key, files)
-            dialog.destroy()
 
-        def on_files_treeview_keypress(treeview, event):
+            dialog.open_multiple(None, None, on_finish)
+
+        def on_files_treeview_keypress(_controller, keyval, _keycode, _state):
             """Action triggered when a row is deleted from the filechooser."""
-            if event.keyval == Gdk.KEY_Delete:
+            if keyval == Gdk.KEY_Delete:
+                treeview = _controller.get_widget()
                 selection = treeview.get_selection()
                 (model, treepaths) = selection.get_selected_rows()
                 for treepath in treepaths:
@@ -646,11 +654,10 @@ class WidgetGenerator(ABC):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         label = Label(label + ":")
         label.set_halign(Gtk.Align.START)
+        label.set_margin_bottom(5)
         button = Gtk.Button(label=_("Add Files"))
         button.connect("clicked", on_add_files_clicked)
-        button.set_margin_left(10)
-        vbox.pack_start(label, False, False, 5)
-        vbox.pack_end(button, False, False, 0)
+        button.set_margin_start(10)
 
         if not value:
             value = default
@@ -668,15 +675,20 @@ class WidgetGenerator(ABC):
         files_treeview = Gtk.TreeView(model=files_list_store)
         files_column = Gtk.TreeViewColumn(_("Files"), cell_renderer, text=0)
         files_treeview.append_column(files_column)
-        files_treeview.connect("key-press-event", on_files_treeview_keypress)
+        key_controller = Gtk.EventControllerKey()
+        key_controller.connect("key-pressed", on_files_treeview_keypress)
+        files_treeview.add_controller(key_controller)
         treeview_scroll = Gtk.ScrolledWindow()
         treeview_scroll.set_min_content_height(130)
-        treeview_scroll.set_margin_left(10)
-        treeview_scroll.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        treeview_scroll.set_margin_start(10)
         treeview_scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        treeview_scroll.add(files_treeview)
+        treeview_scroll.set_child(files_treeview)
 
-        vbox.pack_start(treeview_scroll, True, True, 0)
+        vbox.append(label)
+        treeview_scroll.set_hexpand(True)
+        treeview_scroll.set_vexpand(True)
+        vbox.append(treeview_scroll)
+        vbox.append(button)
         return self.build_option_widget(option, vbox, no_label=True)
 
     # FileChooserEntry
@@ -731,10 +743,7 @@ class WidgetGenerator(ABC):
         label = Label(text)
         label.set_use_markup(True)
         label.set_max_width_chars(60)
-        event_box = Gtk.EventBox()
-        event_box.add(label)
-        event_box.show_all()
-        tooltip.set_custom(event_box)
+        tooltip.set_custom(label)
         return True
 
     # Option access
@@ -768,9 +777,11 @@ class WidgetGenerator(ABC):
 
         container = self.option_containers[option["option"]]
 
-        for child in container.get_children():
+        child = container.get_first_child()
+        while child:
             if hasattr(child, "blocks_sensitivity") and child.blocks_sensitivity:
                 return False
+            child = child.get_next_sibling()
 
         return condition
 
@@ -832,32 +843,43 @@ class SectionFrame(Gtk.Frame):
         super().__init__(label=section, **kwargs)
         self.section = section
         self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
-        self.add(self.vbox)
-        self.get_style_context().add_class("section-frame")
+        self.set_child(self.vbox)
+        self.add_css_class("section-frame")
 
     def has_visible_children(self):
-        return any(w for w in self.vbox.get_children() if w.get_visible())
+        child = self.vbox.get_first_child()
+        while child:
+            if child.get_visible():
+                return True
+            child = child.get_next_sibling()
+        return False
 
 
 class WidgetWarningMessageBox(Gtk.Box):
     """A box to display a message with an icon inside the configuration dialog."""
 
-    def __init__(self, icon_name, margin_left=18, margin_right=18, margin_bottom=6):
+    def __init__(self, icon_name, margin_start=18, margin_end=18, margin_bottom=6,
+                 margin_left=None, margin_right=None):
+        # Accept legacy margin_left/margin_right kwargs for compatibility
+        if margin_left is not None:
+            margin_start = margin_left
+        if margin_right is not None:
+            margin_end = margin_right
         super().__init__(
             spacing=6,
             visible=False,
-            margin_left=margin_left,
-            margin_right=margin_right,
+            margin_start=margin_start,
+            margin_end=margin_end,
             margin_bottom=margin_bottom,
-            no_show_all=True,
         )
 
         image = Gtk.Image(visible=True)
-        image.set_from_icon_name(icon_name, Gtk.IconSize.DND)
-        self.pack_start(image, False, False, 0)
+        image.set_from_icon_name(icon_name)
+        image.set_icon_size(Gtk.IconSize.LARGE)
+        self.append(image)
         self.label = Gtk.Label(visible=True, xalign=0)
         self.label.set_line_wrap(True)
-        self.pack_start(self.label, False, False, 0)
+        self.append(self.label)
 
     def show_markup(self, markup) -> bool:
         """Displays the markup given, and shows this box. If markup is empty or None,

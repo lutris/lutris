@@ -39,38 +39,42 @@ class SystemBox(BaseConfigBox):
 
     def __init__(self):
         super().__init__()
-        self.pack_start(self.get_section_label(_("System information")), False, False, 0)
+        self.append(self.get_section_label(_("System information")))
 
         self.scrolled_window = Gtk.ScrolledWindow(visible=True)
         self.scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         sysinfo_frame = Gtk.Frame(visible=True)
-        sysinfo_frame.get_style_context().add_class("info-frame")
-        sysinfo_frame.add(self.scrolled_window)
-        self.pack_start(sysinfo_frame, True, True, 0)
+        sysinfo_frame.add_css_class("info-frame")
+        sysinfo_frame.set_child(self.scrolled_window)
+        sysinfo_frame.set_hexpand(True)
+        sysinfo_frame.set_vexpand(True)
+        self.append(sysinfo_frame)
 
         button_copy = Gtk.Button(_("Copy system info to Clipboard"), halign=Gtk.Align.START, visible=True)
         button_copy.connect("clicked", self.on_copy_clicked)
 
-        self.pack_start(button_copy, False, False, 0)
+        self.append(button_copy)
 
-        self.pack_start(self.get_section_label(_("Lutris logs")), False, False, 0)
+        self.append(self.get_section_label(_("Lutris logs")))
 
         self.log_scrolled_window = Gtk.ScrolledWindow(visible=True)
         self.log_scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         log_frame = Gtk.Frame(visible=True)
-        log_frame.get_style_context().add_class("info-frame")
-        log_frame.add(self.log_scrolled_window)
-        self.pack_start(log_frame, True, True, 0)
+        log_frame.add_css_class("info-frame")
+        log_frame.set_child(self.log_scrolled_window)
+        log_frame.set_hexpand(True)
+        log_frame.set_vexpand(True)
+        self.append(log_frame)
 
         button_log_copy = Gtk.Button(_("Copy logs to Clipboard"), halign=Gtk.Align.START, visible=True)
         button_log_copy.connect("clicked", self.on_copy_log_clicked)
 
-        self.pack_start(button_log_copy, False, False, 0)
+        self.append(button_log_copy)
 
     def populate(self):
         items = self.get_items()
-        self.scrolled_window.add(self.get_grid(items))
-        self.log_scrolled_window.add(self.get_log_view())
+        self.scrolled_window.set_child(self.get_grid(items))
+        self.log_scrolled_window.set_child(self.get_log_view())
 
     def get_log_view(self):
         log_buffer = Gtk.TextBuffer()
@@ -95,7 +99,7 @@ class SystemBox(BaseConfigBox):
         """Constructs a Gtk.Grid containing labels for each item given; each item
         may be a name-value tuple, producing two labels, or just a string, giving one
         that covers two columns; this later is used for section headers."""
-        grid = Gtk.Grid(visible=True, row_spacing=6, margin=16)
+        grid = Gtk.Grid(visible=True, row_spacing=6, margin_top=16, margin_bottom=16, margin_start=16, margin_end=16)
         row = 0
         for item in items:
             if isinstance(item, str):
@@ -106,7 +110,7 @@ class SystemBox(BaseConfigBox):
                 grid.attach(header_label, 0, row, 2, 1)
             else:
                 name, text = item
-                name_label = Gtk.Label(name + ":", visible=True, xalign=0, yalign=0, margin_right=30)
+                name_label = Gtk.Label(name + ":", visible=True, xalign=0, yalign=0, margin_end=30)
                 grid.attach(name_label, 0, row, 1, 1)
 
                 markup_label = Gtk.Label(visible=True, xalign=0, selectable=True)
@@ -146,11 +150,8 @@ class SystemBox(BaseConfigBox):
     def on_copy_clicked(self, _widget) -> None:
         items = self.get_items()
         text = self.get_text(items)
-
-        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-        clipboard.set_text(text.strip(), -1)
+        self.get_clipboard().set(text.strip())
 
     def on_copy_log_clicked(self, _widget) -> None:
         text = get_log_contents()
-        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-        clipboard.set_text(text.strip(), -1)
+        self.get_clipboard().set(text.strip())

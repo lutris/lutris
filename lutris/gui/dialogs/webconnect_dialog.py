@@ -9,11 +9,8 @@ import gi
 if TYPE_CHECKING:
     from lutris.services.base import OnlineService
 
-try:
-    gi.require_version("WebKit2", "4.1")
-except ValueError:
-    gi.require_version("WebKit2", "4.0")
-from gi.repository import WebKit2  # type: ignore[attr-defined]
+gi.require_version("WebKit", "6.0")
+from gi.repository import WebKit  # type: ignore[attr-defined]
 
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import ModalDialog
@@ -33,7 +30,11 @@ class WebConnectDialog(ModalDialog):
 
         service.is_login_in_progress = True
 
-        self.context: WebKit2.WebContext = WebKit2.WebContext.new()
+        # In WebKitGTK 6.0, WebContext is replaced by NetworkSession
+        self.network_session: WebKit.NetworkSession = WebKit.NetworkSession.new(
+            os.path.join(os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")), "lutris", "webkitgtk"),
+            os.path.join(os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")), "lutris", "webkitgtk"),
+        )
 
         # Set locale
         # Locale fallback routine:
@@ -52,15 +53,14 @@ class WebConnectDialog(ModalDialog):
             f"[env: LANG]: '{environment_locale_lang}' -> "
             f"[Default]: '{webview_locales[-1]}'"
         )
-        self.context.set_preferred_languages(webview_locales)
 
         if "http_proxy" in os.environ:
-            proxy = WebKit2.NetworkProxySettings.new(os.environ["http_proxy"])
-            self.context.set_network_proxy_settings(WebKit2.NetworkProxyMode.CUSTOM, proxy)
-        WebKit2.CookieManager.set_persistent_storage(
-            self.context.get_cookie_manager(),
+            proxy = WebKit.NetworkProxySettings.new(os.environ["http_proxy"])
+            self.network_session.set_proxy_settings(WebKit.NetworkProxyMode.CUSTOM, proxy)
+        cookie_manager = self.network_session.get_cookie_manager()
+        cookie_manager.set_persistent_storage(
             service.cookies_path,
-            WebKit2.CookiePersistentStorage(0),
+            WebKit.CookiePersistentStorage(0),
         )
         self.service = service
 
@@ -70,13 +70,14 @@ class WebConnectDialog(ModalDialog):
 
         self.set_default_size(self.service.login_window_width, self.service.login_window_height)
 
-        self.webview = WebKit2.WebView.new_with_context(self.context)
+        self.webview = WebKit.WebView(network_session=self.network_session)
         self.webview.load_uri(service.login_url)
         self.webview.connect("load-changed", self.on_navigation)
         self.webview.connect("create", self.on_webview_popup)
         self.webview.connect("decide-policy", self.on_decide_policy)
-        content_area.set_border_width(0)
-        content_area.pack_start(self.webview, True, True, 0)
+        self.webview.set_hexpand(True)
+        self.webview.set_vexpand(True)
+        content_area.append(self.webview)
         self.connect("destroy", self.on_destroy)
 
         webkit_settings = self.webview.get_settings()
@@ -84,8 +85,8 @@ class WebConnectDialog(ModalDialog):
         # Set a User Agent
         webkit_settings.set_user_agent(service.login_user_agent)
 
-        # Allow popups (Doesn't work...)
-        webkit_settings.set_allow_modal_dialogs(True)
+        # Set preferred languages on the WebView
+        webkit_settings.set_property("accept-language-list", ",".join(webview_locales))
 
         # Enable developer options for troubleshooting (Can be disabled in
         # releases)
@@ -94,7 +95,6 @@ class WebConnectDialog(ModalDialog):
         webkit_settings.set_enable_developer_extras(True)
         webkit_settings.set_enable_webgl(False)
         # self.enable_inspector()
-        self.show_all()
 
     def on_destroy(self, _widget):
         self.service.is_login_in_progress = False
@@ -108,12 +108,12 @@ class WebConnectDialog(ModalDialog):
         inspector.show()
 
     def on_decide_policy(self, webview, decision, decision_type):
-        if decision_type == WebKit2.PolicyDecisionType.NAVIGATION_ACTION:
+        if decision_type == WebKit.PolicyDecisionType.NAVIGATION_ACTION:
             decision.use()
         return True
 
     def on_navigation(self, widget, load_event):
-        if load_event == WebKit2.LoadEvent.FINISHED:
+        if load_event == WebKit.LoadEvent.FINISHED:
             url = widget.get_uri()
             if url in self.service.scripts:
                 script = self.service.scripts[url]
@@ -138,7 +138,7 @@ class WebConnectDialog(ModalDialog):
     def on_webview_popup(self, widget, navigation_action):
         """Handles web popups created by this dialog's webview"""
         uri = navigation_action.get_request().get_uri()
-        view = WebKit2.WebView.new_with_related_view(widget)
+        view = WebKit.WebView.new_with_related_view(widget)
         popup_dialog = WebPopupDialog(view, uri, parent=self)
         popup_dialog.show()
         return view
@@ -157,12 +157,13 @@ class WebPopupDialog(ModalDialog):
         self.webview.connect("create", self.on_new_webview_popup)
         self.webview.connect("close", self.on_webview_close)
         self.webview.load_uri(uri)
-        self.vbox.pack_start(self.webview, True, True, 0)
-        self.vbox.set_border_width(0)
+        self.webview.set_hexpand(True)
+        self.webview.set_vexpand(True)
+        self.vbox.append(self.webview)
         self.set_default_size(390, 500)
 
     def on_ready_webview(self, webview):
-        self.show_all()
+        pass
 
     def on_available_webview_title(self, webview, gparamstring):
         self.set_title(webview.get_title())
@@ -170,7 +171,7 @@ class WebPopupDialog(ModalDialog):
     def on_new_webview_popup(self, webview, navigation_action):
         """Handles web popups created by this dialog's webview"""
         uri = navigation_action.get_request().get_uri()
-        view = WebKit2.WebView.new_with_related_view(webview)
+        view = WebKit.WebView.new_with_related_view(webview)
         view.load_uri(uri)
         dialog = WebPopupDialog(view, uri, parent=self)
         dialog.show()

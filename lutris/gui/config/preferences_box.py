@@ -69,11 +69,11 @@ class InterfacePreferencesBox(BaseConfigBox):
         super().__init__()
         self.accelerators = accelerators
 
-        self.add(self.get_section_label(_("Interface options")))
-        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
+        self.append(self.get_section_label(_("Interface options")))
+        frame = Gtk.Frame(visible=True)
         listbox = Gtk.ListBox(visible=True)
-        frame.add(listbox)
-        self.pack_start(frame, False, False, 0)
+        frame.set_child(listbox)
+        self.append(frame)
 
         gen = PreferencesWidgetGenerator(listbox)
         gen.changed.register(self.on_setting_changed)
@@ -86,8 +86,8 @@ class InterfacePreferencesBox(BaseConfigBox):
                 list_box_row = Gtk.ListBoxRow(visible=True)
                 list_box_row.set_selectable(False)
                 list_box_row.set_activatable(False)
-                list_box_row.add(gen.option_container)
-                listbox.add(list_box_row)
+                list_box_row.set_child(gen.option_container)
+                listbox.append(list_box_row)
 
         gen.update_widgets()
 
@@ -107,8 +107,8 @@ class PreferencesWidgetGenerator(WidgetGenerator):
         if box:
             box.set_margin_top(12)
             box.set_margin_bottom(12)
-            box.set_margin_right(12)
-            box.set_margin_left(12)
+            box.set_margin_end(12)
+            box.set_margin_start(12)
         return box
 
     def build_option_widget(
@@ -118,8 +118,13 @@ class PreferencesWidgetGenerator(WidgetGenerator):
             return super().build_option_widget(option, widget, no_label=no_label, expand=expand)
 
         label = Gtk.Label(option["label"], visible=True, wrap=True)
-        label.set_alignment(0, 0.5)
+        label.set_halign(Gtk.Align.START)
         if self.wrapper and widget:
-            self.wrapper.pack_start(label, True, True, 0)
-            self.wrapper.pack_end(widget, expand, expand, 0)
+            label.set_hexpand(True)
+            label.set_vexpand(True)
+            self.wrapper.append(label)
+            if expand:
+                widget.set_hexpand(True)
+                widget.set_vexpand(True)
+            self.wrapper.append(widget)
         return widget
