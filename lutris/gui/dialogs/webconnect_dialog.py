@@ -85,8 +85,8 @@ class WebConnectDialog(ModalDialog):
         # Set a User Agent
         webkit_settings.set_user_agent(service.login_user_agent)
 
-        # Set preferred languages on the WebView
-        webkit_settings.set_property("accept-language-list", ",".join(webview_locales))
+        # In WebKitGTK 6.0, accept-language-list was removed;
+        # the system locale is used automatically.
 
         # Enable developer options for troubleshooting (Can be disabled in
         # releases)
