@@ -21,9 +21,9 @@ class StorageBox(BaseConfigBox):
             "pga_cache_path": StoragePathMessageBox(),
         }
 
-        self.add(self.get_section_label(_("Paths")))
+        self.append(self.get_section_label(_("Paths")))
         path_widgets = self.get_path_widgets()
-        self.pack_start(self._get_framed_options_list_box(path_widgets), False, False, 0)
+        self.append(self._get_framed_options_list_box(path_widgets))
         self.update_pga_cache_path_warning()
 
     def get_path_widgets(self):
@@ -76,22 +76,24 @@ class StorageBox(BaseConfigBox):
             default_path=default_path,
         )
         directory_chooser.connect("changed", self.on_file_chooser_changed, path_setting)
-        wrapper.pack_start(label, False, False, 0)
-        wrapper.pack_start(directory_chooser, True, True, 0)
+        wrapper.append(label)
+        directory_chooser.set_hexpand(True)
+        directory_chooser.set_vexpand(True)
+        wrapper.append(directory_chooser)
         if path_setting["help"]:
             help_wrapper = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, visible=True)
-            help_wrapper.add(wrapper)
+            help_wrapper.append(wrapper)
             help_label = Label()
             help_label.set_markup("<i>%s</i>" % path_setting["help"])
-            help_wrapper.add(help_label)
+            help_wrapper.append(help_label)
             wrapper = help_wrapper
 
         if path_setting["setting"] in self.error_boxes:
             warning = self.error_boxes[path_setting["setting"]]
-            wrapper.add(warning)
+            wrapper.append(warning)
 
         wrapper.set_margin_end(16)
-        wrapper.set_margin_left(16)
+        wrapper.set_margin_start(16)
         wrapper.set_margin_bottom(16)
 
         return wrapper

@@ -1,6 +1,6 @@
 """Entry box with popup list and search"""
 
-from gi.repository import Gdk, GLib, GObject, Gtk
+from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris.gui.dialogs import display_error
 
@@ -21,17 +21,15 @@ class SearchableEntrybox(Gtk.Box):
         self.liststore = Gtk.ListStore(str, str)
         self.entry = Gtk.Entry()
 
-        self.completion = Gtk.EntryCompletion()
-        self.completion.set_model(self.liststore)
-        self.completion.set_text_column(0)
-        self.completion.set_match_func(self.search_store)
-        self.entry.set_completion(self.completion)
-        self.popup_menu = Gtk.Menu()
+        # Popover menu for the choice list
+        self._popup_menu_model = Gio.Menu()
+        self._popup_action_group = Gio.SimpleActionGroup()
+        self._popup_popover = None
 
         self.entry.connect("changed", self.on_entrybox_change)
-        self.entry.connect("scroll-event", self._on_entrybox_scroll)
         self.entry.connect("icon-press", self.on_entrybox_icon_press)
-        self.pack_start(self.entry, True, True, 0)  # Deprecated in Gtk4, use append instead
+        self.entry.set_hexpand(True)
+        self.append(self.entry)
         GLib.idle_add(self._populate_entrybox_choices, choice_func)
 
     def get_model(self):
@@ -60,11 +58,18 @@ class SearchableEntrybox(Gtk.Box):
         """Populate the liststore and popup menu with choices."""
         try:
             choices = choice_func()
-            for choice in choices:
+            self._popup_menu_model = Gio.Menu()
+            self._popup_action_group = Gio.SimpleActionGroup()
+
+            for idx, choice in enumerate(choices):
                 self.liststore.append(choice)
-                menu_item = Gtk.MenuItem(label=choice[0])
-                menu_item.connect("activate", self.on_menu_item_activate, choice[1])
-                self.popup_menu.append(menu_item)
+                action_name = "choice_%d" % idx
+                action = Gio.SimpleAction.new(action_name, None)
+                active_id = choice[1]
+                label = choice[0]
+                action.connect("activate", lambda _a, _p, aid=active_id, lbl=label: self._on_popup_choice(lbl, aid))
+                self._popup_action_group.add_action(action)
+                self._popup_menu_model.append(label, "popup." + action_name)
 
             if self.initial:
                 self._set_initial_text()
@@ -72,25 +77,28 @@ class SearchableEntrybox(Gtk.Box):
             else:
                 self.entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "system-search-symbolic")
 
-            self.popup_menu.show_all()
         except Exception as ex:
             self.entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "error-symbolic")
-            display_error(ex, parent=self.get_toplevel())  # Deprecated in Gtk4, use get_root instead
+            display_error(ex, parent=self.get_root())
+
+    def _on_popup_choice(self, label, active_id):
+        """Handle selection from the popover menu."""
+        self.entry.set_text(label)
+        self.emit("changed", active_id)
+        if self._popup_popover:
+            self._popup_popover.popdown()
 
     def repopulate(self):
         """Clear and repopulate choices; used when an async choices load completes."""
         self.liststore.clear()
-        self.popup_menu = Gtk.Menu()
         self._populate_entrybox_choices(self.choice_func)
 
-    def on_entrybox_icon_press(self, _entry, _icon_pos, _event):
+    def on_entrybox_icon_press(self, _entry, _icon_pos):
         """Show popup menu when the primary icon is pressed."""
-        self.popup_menu.popup_at_widget(self.entry, Gdk.Gravity.SOUTH, Gdk.Gravity.NORTH, None)
-
-    def on_menu_item_activate(self, menu_item, active_id):
-        """Set the selected item text in the entry and emit the changed signal."""
-        self.entry.set_text(menu_item.get_label())
-        self.emit("changed", active_id)
+        self._popup_popover = Gtk.PopoverMenu.new_from_model(self._popup_menu_model)
+        self._popup_popover.insert_action_group("popup", self._popup_action_group)
+        self._popup_popover.set_parent(self.entry)
+        self._popup_popover.popup()
 
     def _set_initial_text(self):
         """Set the initial text in the entry if it matches an item."""
@@ -98,12 +106,6 @@ class SearchableEntrybox(Gtk.Box):
             if row[1] == self.initial:
                 self.entry.set_text(row[0])
                 break
-
-    @staticmethod
-    def _on_entrybox_scroll(entrybox, _event):
-        """Prevents users from accidentally changing configuration values while scrolling down dialogs."""
-        entrybox.stop_emission_by_name("scroll-event")
-        return False
 
     def on_entrybox_change(self, _widget):
         """Action triggered on entrybox 'changed' signal."""

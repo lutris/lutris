@@ -20,8 +20,7 @@ class DownloadDialog(ModalDialog):
         self.dialog_progress_box.connect("complete", self.download_complete)
         self.dialog_progress_box.connect("cancel", self.download_cancelled)
 
-        self.get_content_area().add(self.dialog_progress_box)
-        self.show_all()
+        self.get_content_area().append(self.dialog_progress_box)
         self.dialog_progress_box.start()
 
     @property

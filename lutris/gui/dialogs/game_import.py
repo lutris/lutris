@@ -32,19 +32,20 @@ class ImportGameDialog(ModelessDialog):
         self.search_call = None
         self.set_size_request(500, 560)
 
-        self.accelerators = Gtk.AccelGroup()
-        self.add_accel_group(self.accelerators)
+        # TODO: AccelGroup removed in GTK4; need to use Gtk.ShortcutController
+        # self.accelerators = Gtk.AccelGroup()
+        # self.add_accel_group(self.accelerators)
 
         scrolledwindow = Gtk.ScrolledWindow(child=self.get_file_labels_listbox(files))
         scrolledwindow.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN, child=scrolledwindow)
-        self.get_content_area().pack_start(frame, True, True, 6)
+        frame = Gtk.Frame(child=scrolledwindow)
+        frame.set_hexpand(True)
+        frame.set_vexpand(True)
+        frame.set_margin_top(6)
+        frame.set_margin_bottom(6)
+        self.get_content_area().append(frame)
 
-        self.close_button = self.add_button(Gtk.STOCK_STOP, Gtk.ResponseType.CANCEL)
-        key, mod = Gtk.accelerator_parse("Escape")
-        self.close_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
-
-        self.show_all()
+        self.close_button = self.add_button(_("_Stop"), Gtk.ResponseType.CANCEL)
         self.search_call = AsyncCall(self.search_checksums, self.search_result_finished)
 
     def on_response(self, dialog, response: Gtk.ResponseType) -> None:
@@ -61,44 +62,70 @@ class ImportGameDialog(ModelessDialog):
         for file_path in files:
             row = Gtk.ListBoxRow()
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-            hbox.set_margin_left(12)
-            hbox.set_margin_right(12)
+            hbox.set_margin_start(12)
+            hbox.set_margin_end(12)
 
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
             description_label = Gtk.Label(halign=Gtk.Align.START)
-            vbox.pack_start(description_label, True, True, 5)
+            description_label.set_hexpand(True)
+            description_label.set_vexpand(True)
+            description_label.set_margin_top(5)
+            description_label.set_margin_bottom(5)
+            vbox.append(description_label)
             self.description_labels[file_path] = description_label
 
-            file_path_label = Gtk.Label(file_path, halign=Gtk.Align.START, xalign=0)
+            file_path_label = Gtk.Label(label=file_path, halign=Gtk.Align.START, xalign=0)
             file_path_label.set_line_wrap(True)
-            vbox.pack_start(file_path_label, True, True, 5)
+            file_path_label.set_hexpand(True)
+            file_path_label.set_vexpand(True)
+            file_path_label.set_margin_top(5)
+            file_path_label.set_margin_bottom(5)
+            vbox.append(file_path_label)
 
             progress_label = Gtk.Label(halign=Gtk.Align.START)
-            vbox.pack_start(progress_label, True, True, 5)
+            progress_label.set_hexpand(True)
+            progress_label.set_vexpand(True)
+            progress_label.set_margin_top(5)
+            progress_label.set_margin_bottom(5)
+            vbox.append(progress_label)
             self.progress_labels[file_path] = progress_label
 
-            checksum_label = Gtk.Label(no_show_all=True, halign=Gtk.Align.START)
-            vbox.pack_start(checksum_label, True, True, 5)
+            checksum_label = Gtk.Label(halign=Gtk.Align.START, visible=False)
+            checksum_label.set_hexpand(True)
+            checksum_label.set_vexpand(True)
+            checksum_label.set_margin_top(5)
+            checksum_label.set_margin_bottom(5)
+            vbox.append(checksum_label)
             self.checksum_labels[file_path] = checksum_label
 
-            category_label = Gtk.Label(no_show_all=True, halign=Gtk.Align.START)
-            vbox.pack_start(category_label, True, True, 5)
+            category_label = Gtk.Label(halign=Gtk.Align.START, visible=False)
+            category_label.set_hexpand(True)
+            category_label.set_vexpand(True)
+            category_label.set_margin_top(5)
+            category_label.set_margin_bottom(5)
+            vbox.append(category_label)
             self.category_labels[file_path] = category_label
 
-            error_label = Gtk.Label(no_show_all=True, halign=Gtk.Align.START, xalign=0)
+            error_label = Gtk.Label(halign=Gtk.Align.START, xalign=0, visible=False)
             error_label.set_line_wrap(True)
-            vbox.pack_start(error_label, True, True, 5)
+            error_label.set_hexpand(True)
+            error_label.set_vexpand(True)
+            error_label.set_margin_top(5)
+            error_label.set_margin_bottom(5)
+            vbox.append(error_label)
             self.error_labels[file_path] = error_label
 
-            hbox.pack_start(vbox, True, True, 0)
+            vbox.set_hexpand(True)
+            vbox.set_vexpand(True)
+            hbox.append(vbox)
 
-            launch_button = Gtk.Button(_("Launch"), valign=Gtk.Align.CENTER, sensitive=False)
-            hbox.pack_end(launch_button, False, False, 0)
+            launch_button = Gtk.Button(label=_("Launch"), valign=Gtk.Align.CENTER, sensitive=False)
+            hbox.append(launch_button)
             self.launch_buttons[file_path] = launch_button
 
-            row.add(hbox)
-            listbox.add(row)
+            row.set_child(hbox)
+            listbox.append(row)
         return listbox
 
     @property
@@ -161,7 +188,7 @@ class ImportGameDialog(ModelessDialog):
 
     def search_result_finished(self, results, error):
         self.search_call = None
-        self.close_button.set_label(Gtk.STOCK_CLOSE)
+        self.close_button.set_label(_("_Close"))
 
         if error:
             logger.error(error)
