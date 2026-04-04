@@ -26,4 +26,4 @@ class AddGameDialog(GameDialogCommon):
         self.build_tabs()
         if self.info_box:
             self.info_box.grab_focus()
-        self.show_all()
+

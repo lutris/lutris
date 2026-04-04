@@ -28,7 +28,7 @@ from datetime import datetime, timedelta
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any, Type, TypeVar, cast
 
-from gi.repository import Gio, GLib, Gtk
+from gi.repository import Gdk, Gio, GLib, Gtk
 
 from lutris import settings
 from lutris.api import get_runners, parse_installer_url
@@ -345,13 +345,13 @@ class LutrisApplication(Gtk.Application):
         action = Gio.SimpleAction.new("quit")
         action.connect("activate", lambda *x: self.quit())
         self.add_action(action)
-        self.add_accelerator("<Primary>q", "app.quit")
+        self.set_accels_for_action("app.quit", ["<Primary>q"])
 
     def do_activate(self) -> None:  # pylint: disable=arguments-differ
         if not self.window:
             self.window = LutrisWindow(application=self)
-            screen = self.window.props.screen  # pylint: disable=no-member
-            Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            display = Gdk.Display.get_default()
+            Gtk.StyleContext.add_provider_for_display(display, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
     def start_runtime_updates(self) -> None:
         if os.environ.get("LUTRIS_SKIP_INIT"):
