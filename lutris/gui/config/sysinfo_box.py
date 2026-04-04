@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from gettext import gettext as _
 
-from gi.repository import Gdk, Gtk
+from gi.repository import Gtk
 
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.log_text_view import LogTextView
@@ -50,7 +50,7 @@ class SystemBox(BaseConfigBox):
         sysinfo_frame.set_vexpand(True)
         self.append(sysinfo_frame)
 
-        button_copy = Gtk.Button(_("Copy system info to Clipboard"), halign=Gtk.Align.START, visible=True)
+        button_copy = Gtk.Button(label=_("Copy system info to Clipboard"), halign=Gtk.Align.START, visible=True)
         button_copy.connect("clicked", self.on_copy_clicked)
 
         self.append(button_copy)
@@ -66,7 +66,7 @@ class SystemBox(BaseConfigBox):
         log_frame.set_vexpand(True)
         self.append(log_frame)
 
-        button_log_copy = Gtk.Button(_("Copy logs to Clipboard"), halign=Gtk.Align.START, visible=True)
+        button_log_copy = Gtk.Button(label=_("Copy logs to Clipboard"), halign=Gtk.Align.START, visible=True)
         button_log_copy.connect("clicked", self.on_copy_log_clicked)
 
         self.append(button_log_copy)

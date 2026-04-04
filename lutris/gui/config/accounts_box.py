@@ -158,8 +158,7 @@ class AccountsBox(BaseConfigBox):
             self.accounts_box.append(no_account_label)
 
     def rebuild_lutris_options(self):
-        self.bullshit_box.remove(self.lutris_options)
-        self.lutris_options.destroy()
+        self.lutris_options.unparent()
         self.lutris_options = self.get_lutris_options()
         self.bullshit_box.append(self.lutris_options)
 
