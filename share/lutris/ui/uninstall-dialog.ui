@@ -1,81 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk" version="4.0"/>
   <template class="UninstallDialog" parent="GtkDialog">
     <property name="default-width">800</property>
     <property name="default-height">600</property>
     <signal name="response" handler="on_response" swapped="no"/>
-    <child internal-child="vbox">
+    <child>
       <object class="GtkBox">
         <property name="margin-start">6</property>
         <property name="margin-end">6</property>
         <property name="margin-top">6</property>
         <property name="margin-bottom">6</property>
         <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox">
-            <property name="layout-style">end</property>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
+        <property name="spacing">6</property>
+        <property name="vexpand">True</property>
+        <child>
+          <object class="GtkLabel" id="message_label">
+            <property name="label" translatable="yes">Uninstalling games</property>
+            <property name="wrap">True</property>
+            <property name="selectable">True</property>
+            <property name="xalign">0</property>
           </object>
         </child>
         <child>
-          <object class="GtkBox">
-            <property name="margin-start">6</property>
-            <property name="margin-end">6</property>
-            <property name="margin-top">6</property>
-            <property name="margin-bottom">6</property>
-            <property name="orientation">vertical</property>
-            <property name="spacing">6</property>
+          <object class="GtkScrolledWindow">
+            <property name="hscrollbar-policy">never</property>
             <property name="vexpand">True</property>
             <child>
-              <object class="GtkLabel" id="message_label">
-                <property name="label" translatable="yes">Uninstalling games</property>
-                <property name="wrap">True</property>
-                <property name="selectable">True</property>
-                <property name="xalign">0</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkScrolledWindow">
-                <property name="hscrollbar-policy">never</property>
-                <property name="vexpand">True</property>
+              <object class="GtkViewport">
                 <child>
-                  <object class="GtkViewport">
-                    <child>
-                      <object class="GtkListBox" id="uninstall_game_list">
-                        <property name="selection-mode">none</property>
-                      </object>
-                    </child>
+                  <object class="GtkListBox" id="uninstall_game_list">
+                    <property name="selection-mode">none</property>
                   </object>
                 </child>
               </object>
             </child>
-            <child>
-              <object class="GtkCheckButton" id="delete_all_files_checkbox">
-                <property name="label" translatable="yes">Delete All Files	</property>
-                <signal name="toggled" handler="on_delete_all_files_checkbox_toggled" swapped="no"/>
-              </object>
-            </child>
-            <child>
-              <object class="GtkCheckButton" id="remove_all_games_checkbox">
-                <property name="label" translatable="yes">Remove All Games from Library</property>
-                <signal name="toggled" handler="on_remove_all_games_checkbox_toggled" swapped="no"/>
-              </object>
-            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="delete_all_files_checkbox">
+            <property name="label" translatable="yes">Delete All Files</property>
+            <signal name="toggled" handler="on_delete_all_files_checkbox_toggled" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="remove_all_games_checkbox">
+            <property name="label" translatable="yes">Remove All Games from Library</property>
+            <signal name="toggled" handler="on_remove_all_games_checkbox_toggled" swapped="no"/>
           </object>
         </child>
       </object>
     </child>
     <child type="titlebar">
       <object class="GtkHeaderBar" id="header_bar">
-        <property name="title" translatable="yes">Remove Games</property>
         <child>
           <object class="GtkButton" id="cancel_button">
             <property name="label" translatable="yes">Cancel</property>

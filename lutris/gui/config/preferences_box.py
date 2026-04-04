@@ -65,9 +65,9 @@ class InterfacePreferencesBox(BaseConfigBox):
         },
     ]
 
-    def __init__(self, accelerators):
+    def __init__(self, shortcut_controller):
         super().__init__()
-        self.accelerators = accelerators
+        self.shortcut_controller = shortcut_controller
 
         self.append(self.get_section_label(_("Interface options")))
         frame = Gtk.Frame(visible=True)
