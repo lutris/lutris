@@ -71,11 +71,11 @@ class SidebarRow(Gtk.ListBoxRow):
         self.buttons = {}
         self.box = Gtk.Box(spacing=self.SPACING, margin_start=self.MARGIN, margin_end=self.MARGIN)
         self.connect("realize", self.on_realize)
-        self.add(self.box)
+        self.set_child(self.box)
 
         if not icon:
             icon = Gtk.Box(spacing=self.SPACING, margin_start=self.MARGIN, margin_end=self.MARGIN)
-        self.box.add(icon)
+        self.box.append(icon)
         label = Gtk.Label(
             label=name,
             halign=Gtk.Align.START,
@@ -84,11 +84,11 @@ class SidebarRow(Gtk.ListBoxRow):
             margin_bottom=self.SPACING,
             ellipsize=Pango.EllipsizeMode.END,
         )
-        self.box.pack_start(label, True, True, 0)
-        self.btn_box = Gtk.Box(spacing=3, no_show_all=True, valign=Gtk.Align.CENTER, homogeneous=True)
-        self.box.pack_end(self.btn_box, False, False, 0)
-        self.spinner = Gtk.Spinner(visible=False, no_show_all=True)
-        self.box.pack_end(self.spinner, False, False, 0)
+        self.box.append(label)
+        self.btn_box = Gtk.Box(spacing=3, visible=False, valign=Gtk.Align.CENTER, homogeneous=True)
+        self.box.append(self.btn_box)
+        self.spinner = Gtk.Spinner(visible=False)
+        self.box.append(self.spinner)
 
     @property
     def sort_key(self) -> int | str:
@@ -125,17 +125,19 @@ class SidebarRow(Gtk.ListBoxRow):
 
     def create_button_box(self):
         """Adds buttons in the button box based on the row's actions"""
-        for child in self.btn_box.get_children():
-            child.destroy()
+        child = self.btn_box.get_first_child()
+        while child is not None:
+            next_child = child.get_next_sibling()
+            self.btn_box.remove(child)
+            child = next_child
         for icon_name, text, clicked, key in self.get_actions():
             icon_name = pick_stock_icon(icon_name, fallback_name="preferences-system-symbolic")
-            btn = Gtk.Button(tooltip_text=text, relief=Gtk.ReliefStyle.NONE, visible=True)
-            image = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
-            image.show()
-            btn.add(image)
+            btn = Gtk.Button(tooltip_text=text, visible=True, has_frame=False)
+            image = Gtk.Image.new_from_icon_name(icon_name)
+            btn.set_child(image)
             btn.connect("clicked", clicked)
             self.buttons[key] = btn
-            self.btn_box.add(btn)
+            self.btn_box.append(btn)
 
     def on_realize(self, widget):
         self.create_button_box()
@@ -160,14 +162,14 @@ class ServiceSidebarRow(SidebarRow):
 
     def on_service_run(self, button):
         """Run a launcher associated with a service"""
-        self.service.run(self.get_toplevel())
+        self.service.run(self.get_root())
 
     def on_refresh_clicked(self, button):
         """Reload the service games"""
         button.set_sensitive(False)
         if self.service.online and not self.service.is_connected():
             self.service.logout()
-            self.service.login(parent=self.get_toplevel())  # login will trigger reload if successful
+            self.service.login(parent=self.get_root())  # login will trigger reload if successful
             return
         self.service.start_reload(self.service_reloaded_cb)
 
@@ -175,9 +177,9 @@ class ServiceSidebarRow(SidebarRow):
         if error:
             if isinstance(error, AuthTokenExpiredError):
                 self.service.logout()
-                self.service.login(parent=self.get_toplevel())  # login will trigger reload if successful
+                self.service.login(parent=self.get_root())  # login will trigger reload if successful
             else:
-                display_error(error, parent=self.get_toplevel())
+                display_error(error, parent=self.get_root())
         schedule_at_idle(self.enable_refresh_button, delay_seconds=2.0)
 
     def enable_refresh_button(self) -> None:
@@ -209,7 +211,7 @@ class OnlineServiceSidebarRow(ServiceSidebarRow):
         if self.service.is_authenticated():
             self.service.logout()
         else:
-            self.service.login(parent=self.get_toplevel())
+            self.service.login(parent=self.get_root())
         self.create_button_box()
 
 
@@ -242,18 +244,18 @@ class RunnerSidebarRow(SidebarRow):
     def on_run_runner(self, *_args):
         """Runs the runner without no game."""
         runner = self.get_runner()
-        runner.run(self.get_toplevel())
+        runner.run(self.get_root())
 
     def on_configure_runner(self, *_args):
         """Show runner configuration"""
         runner = self.get_runner()
-        self.application.show_window(RunnerConfigDialog, runner=runner, parent=self.get_toplevel())
+        self.application.show_window(RunnerConfigDialog, runner=runner, parent=self.get_root())
 
     def on_manage_versions(self, *_args):
         """Manage runner versions"""
         runner = self.get_runner()
         dlg_title = _("Manage %s versions") % runner.human_name
-        self.application.show_window(RunnerInstallDialog, title=dlg_title, runner=runner, parent=self.get_toplevel())
+        self.application.show_window(RunnerInstallDialog, title=dlg_title, runner=runner, parent=self.get_root())
 
 
 class CategorySidebarRow(SidebarRow):
@@ -279,7 +281,7 @@ class CategorySidebarRow(SidebarRow):
 
     def on_category_clicked(self, button):
         category = categories_db.get_category_by_id(self.category["id"]) or self.category
-        self.application.show_window(EditCategoryGamesDialog, category=category, parent=self.get_toplevel())
+        self.application.show_window(EditCategoryGamesDialog, category=category, parent=self.get_root())
         return True
 
     def __lt__(self, other):
@@ -320,7 +322,7 @@ class SavedSearchSidebarRow(SidebarRow):
 
     def on_saved_search_clicked(self, button):
         saved_search = saved_search_db.get_saved_search_by_id(self.saved_search.saved_search_id) or self.saved_search
-        self.application.show_window(EditSavedSearchDialog, saved_search=saved_search, parent=self.get_toplevel())
+        self.application.show_window(EditSavedSearchDialog, saved_search=saved_search, parent=self.get_root())
         return True
 
     def __lt__(self, other):
@@ -367,27 +369,31 @@ class SidebarHeader(Gtk.ListBoxRow):
             label="<b>{}</b>".format(name),
         )
 
-        self.arrow = Gtk.Image.new_from_icon_name("pan-down-symbolic", Gtk.IconSize.MENU)
+        self.arrow = Gtk.Image.new_from_icon_name("pan-down-symbolic")
+        self.arrow.set_pixel_size(16)
         self.arrow.set_margin_end(6)
 
         box = Gtk.Box(margin_start=9, margin_top=6, margin_bottom=6, margin_end=9)
         if collapsible:
-            box.pack_start(self.arrow, False, False, 0)
-        box.pack_start(label, True, True, 0)
+            box.append(self.arrow)
+        label.set_hexpand(True)
+        box.append(label)
 
         if collapsible:
-            event_box = Gtk.EventBox()
-            event_box.add(box)
-            event_box.connect("button-press-event", self._on_click)
-            event_box.connect("enter-notify-event", self._on_enter)
-            event_box.connect("leave-notify-event", self._on_leave)
-            outer_box.add(event_box)
-        else:
-            outer_box.add(box)
+            click_gesture = Gtk.GestureClick()
+            click_gesture.connect("pressed", self._on_click)
+            box.add_controller(click_gesture)
 
-        outer_box.add(Gtk.Separator())
-        self.add(outer_box)
-        self.show_all()
+            motion_controller = Gtk.EventControllerMotion()
+            motion_controller.connect("enter", self._on_enter)
+            motion_controller.connect("leave", self._on_leave)
+            box.add_controller(motion_controller)
+            outer_box.append(box)
+        else:
+            outer_box.append(box)
+
+        outer_box.append(Gtk.Separator())
+        self.set_child(outer_box)
 
     @property
     def collapsed(self) -> bool:
@@ -398,24 +404,21 @@ class SidebarHeader(Gtk.ListBoxRow):
         self._collapsed = value
         if self.collapsible:
             icon_name = "pan-end-symbolic" if value else "pan-down-symbolic"
-            self.arrow.set_from_icon_name(icon_name, Gtk.IconSize.MENU)
+            self.arrow.set_from_icon_name(icon_name)
 
-    def _on_click(self, widget: Gtk.EventBox, event: Gdk.EventButton) -> bool:
-        if event.button == 1:  # Left click
+    def _on_click(self, gesture: Gtk.GestureClick, n_press: int, x: float, y: float) -> None:
+        if gesture.get_current_button() == 1:  # Left click
             self.collapsed = not self.collapsed
             if self.on_toggle:
                 self.on_toggle(self.section_id, self.collapsed)
-        return True
 
-    def _on_enter(self, widget: Gtk.EventBox, event: Gdk.EventCrossing) -> None:
-        window = widget.get_window()
-        if window:
-            window.set_cursor(Gdk.Cursor.new_from_name(widget.get_display(), "pointer"))
+    def _on_enter(self, controller: Gtk.EventControllerMotion, x: float, y: float) -> None:
+        widget = controller.get_widget()
+        widget.set_cursor(Gdk.Cursor.new_from_name("pointer"))
 
-    def _on_leave(self, widget: Gtk.EventBox, event: Gdk.EventCrossing) -> None:
-        window = widget.get_window()
-        if window:
-            window.set_cursor(None)
+    def _on_leave(self, controller: Gtk.EventControllerMotion) -> None:
+        widget = controller.get_widget()
+        widget.set_cursor(None)
 
     @property
     def sort_key(self) -> int | str:
@@ -441,7 +444,7 @@ class LutrisSidebar(Gtk.ListBox):
         self.set_size_request(200, -1)
         self.application = application
         self.previous_category = None
-        self.get_style_context().add_class("lutris-sidebar")
+        self.add_css_class("lutris-sidebar")
 
         # Empty values until LutrisWindow explicitly initializes the rows
         # at the right time.
@@ -506,19 +509,14 @@ class LutrisSidebar(Gtk.ListBox):
         LOCAL_LIBRARY_SYNCING.register(self.on_local_library_syncing)
         LOCAL_LIBRARY_SYNCED.register(self.on_local_library_synced)
         self.set_filter_func(self._filter_func)
-        self.show_all()
+        self.set_visible(True)
 
     @staticmethod
     def get_sidebar_icon(icon_name: str, fallback_icon_names: list[str] | None = None) -> Gtk.Image:
         candidate_names = [icon_name] + (fallback_icon_names or [])
         icon_name = pick_stock_icon(candidate_names, fallback_name="package-x-generic-symbolic")
-        icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
-
-        # We can wind up with an icon of the wrong size, if that's what is
-        # available. So we'll fix that.
-        icon_size = Gtk.IconSize.lookup(Gtk.IconSize.MENU)
-        if icon_size[0]:
-            icon.set_pixel_size(icon_size[2])
+        icon = Gtk.Image.new_from_icon_name(icon_name)
+        icon.set_pixel_size(16)
 
         return icon
 
@@ -555,7 +553,7 @@ class LutrisSidebar(Gtk.ListBox):
         """
 
         # Add the Library header first
-        self.add(self.row_headers["library"])
+        self.append(self.row_headers["library"])
 
         # Create the basic rows that are not data dependant
 
@@ -565,9 +563,9 @@ class LutrisSidebar(Gtk.ListBox):
             _("Games"),
             self.get_sidebar_icon("applications-games-symbolic"),
         )
-        self.add(self.games_row)
+        self.append(self.games_row)
 
-        self.add(
+        self.append(
             SidebarRow(
                 "recent",
                 "dynamic_category",
@@ -576,7 +574,7 @@ class LutrisSidebar(Gtk.ListBox):
             )
         )
 
-        self.add(
+        self.append(
             SidebarRow(
                 "favorite",
                 "category",
@@ -585,7 +583,7 @@ class LutrisSidebar(Gtk.ListBox):
             )
         )
 
-        self.add(
+        self.append(
             SidebarRow(
                 ".uncategorized",
                 "dynamic_category",
@@ -600,7 +598,7 @@ class LutrisSidebar(Gtk.ListBox):
             _("Hidden"),
             self.get_sidebar_icon("action-unavailable-symbolic"),
         )
-        self.add(self.hidden_row)
+        self.append(self.hidden_row)
 
         self.missing_row = SidebarRow(
             "missing",
@@ -608,7 +606,7 @@ class LutrisSidebar(Gtk.ListBox):
             _("Missing"),
             self.get_sidebar_icon("dialog-warning-symbolic"),
         )
-        self.add(self.missing_row)
+        self.append(self.missing_row)
 
         self.running_row = SidebarRow(
             "running",
@@ -617,8 +615,8 @@ class LutrisSidebar(Gtk.ListBox):
             self.get_sidebar_icon("media-playback-start-symbolic"),
         )
         # I wanted this to be on top but it really messes with the headers when showing/hiding the row.
-        self.add(self.running_row)
-        self.show_all()
+        self.append(self.running_row)
+        self.set_visible(True)
         self.hidden_row.hide()
         self.missing_row.hide()
         self.running_row.hide()
@@ -740,7 +738,7 @@ class LutrisSidebar(Gtk.ListBox):
                     break
                 index += 1
 
-            row.show_all()
+            row.set_visible(True)
             self.insert(row, index)
 
         categories_db.remove_unused_categories()

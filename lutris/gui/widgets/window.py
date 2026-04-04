@@ -10,16 +10,14 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
         self.application = application
         self.set_show_menubar(False)
 
-        self.set_position(Gtk.WindowPosition.CENTER)
-
         self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, visible=True)
         self.vbox.set_margin_top(18)
         self.vbox.set_margin_bottom(18)
-        self.vbox.set_margin_right(18)
-        self.vbox.set_margin_left(18)
-        self.add(self.vbox)
+        self.vbox.set_margin_end(18)
+        self.vbox.set_margin_start(18)
+        self.set_child(self.vbox)
         self.action_buttons = Gtk.Box(spacing=6)
-        self.vbox.pack_end(self.action_buttons, False, False, 0)
+        self.vbox.append(self.action_buttons)
 
     def get_action_button(self, label, handler=None, tooltip=None):
         """Returns a button that can be used for the action bar"""

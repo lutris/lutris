@@ -38,7 +38,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         super().__init__(title, parent=parent, border_width=0)
         self.config_level = config_level
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
-        self.vbox.set_border_width(0)
+        # GTK 4: set_border_width removed; border_width=0 in super() is a no-op anyway
 
         self.notebook: Gtk.Notebook = None
 
@@ -66,7 +66,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         """Return a scrolled window containing config widgets"""
         scrolled_window = Gtk.ScrolledWindow(visible=True)
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        scrolled_window.add(widget)
+        scrolled_window.set_child(widget)
         return scrolled_window
 
     def build_notebook(self) -> None:
@@ -244,14 +244,13 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     def build_header_bar(self) -> None:
         self.search_entry = Gtk.SearchEntry(width_chars=30, placeholder_text=_("Search options"))
         self.search_entry.connect("search-changed", self.on_search_entry_changed)
-        self.search_entry.show_all()
 
         # Advanced settings toggle
-        switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5, no_show_all=True, visible=True)
+        switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         switch_box.set_tooltip_text(_("Show advanced options"))
 
-        switch_label = Gtk.Label(label=_("Advanced"), no_show_all=True, visible=True)
-        switch = Gtk.Switch(no_show_all=True, visible=True, valign=Gtk.Align.CENTER)
+        switch_label = Gtk.Label(label=_("Advanced"))
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         switch.set_state(settings.read_setting("show_advanced_options") == "True")
         switch.connect("state-set", lambda _w, s: self.on_show_advanced_options_toggled(bool(s)))
 
@@ -352,7 +351,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self._build_game_tab()
         self._build_runner_tab()
         self._build_system_tab()
-        self.show_all()
 
     def on_response(self, _widget: Gtk.Widget, response: Gtk.ResponseType) -> None:
         if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):

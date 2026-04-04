@@ -13,7 +13,7 @@ from typing import Any
 import requests
 
 # Third Party Libraries
-from gi.repository import GdkPixbuf, Gtk, Pango
+from gi.repository import GdkPixbuf, Gio, GLib, Gtk, Pango
 
 # Lutris Modules
 from lutris import settings
@@ -62,27 +62,28 @@ class GameInfoBox(AdvancedSettingsBox):
         self._game_config_location_entry = None
 
         if self.game:
-            centering_container = Gtk.HBox()
+            centering_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
             banner_box = self._get_banner_box()
-            centering_container.pack_start(banner_box, True, False, 0)
-            self.pack_start(centering_container, False, False, 0)  # Banner
+            banner_box.set_hexpand(True)
+            centering_container.append(banner_box)
+            self.append(centering_container)  # Banner
             self._get_banner_entries()  # Cover Browse, Banner Browse, Icon Browse
 
-        self.pack_start(self._get_name_box(), False, False, 6)  # Game name
-        self.pack_start(self._get_sortname_box(), False, False, 6)  # Game sort name
+        self.append(self._get_name_box())  # Game name
+        self.append(self._get_sortname_box())  # Game sort name
 
-        self.pack_start(self._get_runner_box(), False, False, 6)  # Runner
+        self.append(self._get_runner_box())  # Runner
 
-        self.pack_start(self._get_year_box(), False, False, 6)  # Year
+        self.append(self._get_year_box())  # Year
 
-        self.pack_start(self._get_playtime_box(), False, False, 6)  # Playtime
+        self.append(self._get_playtime_box())  # Playtime
 
         if self.game:
-            self.pack_start(self._get_slug_box(), False, False, 6)
-            self.pack_start(self._get_directory_box(), False, False, 6)
-            self.pack_start(self._get_launch_config_box(), False, False, 6)
+            self.append(self._get_slug_box())
+            self.append(self._get_directory_box())
+            self.append(self._get_launch_config_box())
             self._game_config_location_entry = self._get_game_config_location_box()
-            self.pack_start(self._game_config_location_entry, False, False, 6)
+            self.append(self._game_config_location_entry)
 
         # Read the show advanced options from the settings before updating the widget to have
         # it show correctly
@@ -93,108 +94,118 @@ class GameInfoBox(AdvancedSettingsBox):
     def update_widgets(self):
         if self.game:
             self._cover_entry.set_visible(self._advanced_visibility)
-            self._cover_entry.set_no_show_all(not self._advanced_visibility)
             self._banner_entry.set_visible(self._advanced_visibility)
-            self._banner_entry.set_no_show_all(not self._advanced_visibility)
             self._icon_entry.set_visible(self._advanced_visibility)
-            self._icon_entry.set_no_show_all(not self._advanced_visibility)
 
         if self._game_config_location_entry:
             self._game_config_location_entry.set_visible(self._advanced_visibility)
-            self._game_config_location_entry.set_no_show_all(not self._advanced_visibility)
 
     def _get_name_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Name"))
-        box.pack_start(label, False, False, 0)
+        box.append(label)
         self.name_entry = Gtk.Entry()
         self.name_entry.set_max_length(150)
         if self.game:
             self.name_entry.set_text(self.game.name)
-        box.pack_start(self.name_entry, True, True, 0)
+        self.name_entry.set_hexpand(True)
+        self.name_entry.set_vexpand(True)
+        box.append(self.name_entry)
         return box
 
     def _get_sortname_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Sort name"))
-        box.pack_start(label, False, False, 0)
+        box.append(label)
         self.sortname_entry = Gtk.Entry()
         self.sortname_entry.set_max_length(150)
         if self.game:
             self.sortname_entry.set_placeholder_text(self.game.name)
             if self.game.sortname:
                 self.sortname_entry.set_text(self.game.sortname)
-        box.pack_start(self.sortname_entry, True, True, 0)
+        self.sortname_entry.set_hexpand(True)
+        self.sortname_entry.set_vexpand(True)
+        box.append(self.sortname_entry)
         return box
 
     def _get_year_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
 
         label = Label(_("Release year"))
-        box.pack_start(label, False, False, 0)
+        box.append(label)
         self.year_entry = NumberEntry()
         self.year_entry.set_max_length(10)
         if self.game:
             self.year_entry.set_text(str(self.game.year or ""))
-        box.pack_start(self.year_entry, True, True, 0)
+        self.year_entry.set_hexpand(True)
+        self.year_entry.set_vexpand(True)
+        box.append(self.year_entry)
 
         return box
 
     def _get_playtime_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
 
         label = Label(_("Playtime"))
-        box.pack_start(label, False, False, 0)
+        box.append(label)
         self.playtime_entry = Gtk.Entry()
 
         if self.game:
             self.playtime_entry.set_text(self.game.formatted_playtime)
-        box.pack_start(self.playtime_entry, True, True, 0)
+        self.playtime_entry.set_hexpand(True)
+        self.playtime_entry.set_vexpand(True)
+        box.append(self.playtime_entry)
 
         return box
 
     def _get_slug_box(self):
-        slug_box = Gtk.VBox(spacing=12, margin_right=12, margin_left=12)
+        slug_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, margin_end=12, margin_start=12)
 
-        slug_entry_box = Gtk.Box(spacing=12, margin_right=0, margin_left=0)
+        slug_entry_box = Gtk.Box(spacing=12)
         slug_label = Label()
         slug_label.set_markup(
             _(f"""Identifier\n<span size='x-small'>(Internal ID: {self.game.id if self.game else '""'})</span>""")
         )
-        slug_entry_box.pack_start(slug_label, False, False, 0)
+        slug_entry_box.append(slug_label)
 
         self.slug_entry = SlugEntry()
         if self.game:
             self.slug_entry.set_text(self.game.slug)
         self.slug_entry.set_sensitive(False)
         self.slug_entry.connect("activate", self.on_slug_entry_activate)
-        slug_entry_box.pack_start(self.slug_entry, True, True, 0)
+        self.slug_entry.set_hexpand(True)
+        self.slug_entry.set_vexpand(True)
+        slug_entry_box.append(self.slug_entry)
 
         self.slug_change_button = Gtk.Button(_("Change"))
         self.slug_change_button.connect("clicked", self.on_slug_change_clicked)
-        slug_entry_box.pack_start(self.slug_change_button, False, False, 0)
+        slug_entry_box.append(self.slug_change_button)
 
-        slug_box.pack_start(slug_entry_box, True, True, 0)
+        slug_entry_box.set_hexpand(True)
+        slug_entry_box.set_vexpand(True)
+        slug_box.append(slug_entry_box)
 
         return slug_box
 
     def _get_directory_box(self):
         """Return widget displaying the location of the game and allowing to move it"""
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12, visible=True)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12, visible=True)
         label = Label(_("Directory"))
-        box.pack_start(label, False, False, 0)
+        box.append(label)
         self.directory_entry = Gtk.Entry(visible=True)
         if self.game:
             self.directory_entry.set_text(self.game.directory)
         self.directory_entry.set_sensitive(False)
-        box.pack_start(self.directory_entry, True, True, 0)
+        self.directory_entry.set_hexpand(True)
+        self.directory_entry.set_vexpand(True)
+        box.append(self.directory_entry)
         move_button = Gtk.Button(_("Move"), visible=True)
         move_button.connect("clicked", self.parent_widget.on_move_clicked)
-        box.pack_start(move_button, False, False, 0)
+        box.append(move_button)
         return box
 
     def _get_launch_config_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12, visible=True)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12, visible=True)
 
         if self.game and self.game.config:
             game_config = self.game.config.game_level.get("game", {})
@@ -205,7 +216,7 @@ class GameInfoBox(AdvancedSettingsBox):
         if preferred_name:
             spacer = Gtk.Box()
             spacer.set_size_request(230, -1)
-            box.pack_start(spacer, False, False, 0)
+            box.append(spacer)
 
             if preferred_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
                 text = _("The default launch option will be used for this game")
@@ -216,36 +227,39 @@ class GameInfoBox(AdvancedSettingsBox):
             label.set_halign(Gtk.Align.START)
             label.set_xalign(0.0)
             label.set_valign(Gtk.Align.CENTER)
-            box.pack_start(label, True, True, 0)
+            label.set_hexpand(True)
+            label.set_vexpand(True)
+            box.append(label)
             button = Gtk.Button(_("Reset"))
             button.connect("clicked", self.on_reset_preferred_launch_config_clicked, box)
             button.set_valign(Gtk.Align.CENTER)
-            box.pack_start(button, False, False, 0)
+            box.append(button)
         else:
-            box.hide()
+            box.set_visible(False)
         return box
 
     def _get_game_config_location_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12, visible=True)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12, visible=True)
 
         game_config_path = ""
         if self.game and self.game.config and isinstance(self.game.config.game_config_path, str):
             game_config_path = self.game.config.game_config_path
 
         label = Label(_("Game Config"))
-        box.pack_start(label, False, False, 0)
+        box.append(label)
 
         # Get the current entry path for the image type and set it as the text
         path_entry = Gtk.Entry(visible=True)
         path_entry.set_text(game_config_path)
         path_entry.set_tooltip_text(_("Path to the game config file (readonly)"))
         path_entry.set_sensitive(False)
-        box.pack_start(path_entry, True, True, 0)
+        path_entry.set_hexpand(True)
+        path_entry.set_vexpand(True)
+        box.append(path_entry)
 
-        open_dir_button = Gtk.Button.new_from_icon_name("folder-symbolic", Gtk.IconSize.BUTTON)
-        open_dir_button.show()
+        open_dir_button = Gtk.Button.new_from_icon_name("folder-symbolic")
         open_dir_button.set_tooltip_text(_("Open in file browser"))
-        open_dir_button.get_style_context().add_class("circular")
+        open_dir_button.add_css_class("circular")
 
         def open_in_file_browser(_widget, game_info_box):
             if (
@@ -257,23 +271,25 @@ class GameInfoBox(AdvancedSettingsBox):
                 open_uri(str(game_config_dir))
 
         open_dir_button.connect("clicked", open_in_file_browser, self)
-        box.pack_start(open_dir_button, False, False, 0)
+        box.append(open_dir_button)
         return box
 
     def on_reset_preferred_launch_config_clicked(self, _button, launch_config_box):
         game_config = self.game.config.game_level.get("game", {}) if self.game and self.game.config else {}
         game_config.pop("preferred_launch_config_name", None)
         game_config.pop("preferred_launch_config_index", None)
-        launch_config_box.hide()
+        launch_config_box.set_visible(False)
 
     def _get_runner_box(self):
-        runner_box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        runner_box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
 
         runner_label = Label(_("Runner"))
-        runner_box.pack_start(runner_label, False, False, 0)
+        runner_box.append(runner_label)
 
         self.runner_dropdown = self._get_runner_dropdown()
-        runner_box.pack_start(self.runner_dropdown, True, True, 0)
+        self.runner_dropdown.set_hexpand(True)
+        self.runner_dropdown.set_vexpand(True)
+        runner_box.append(self.runner_dropdown)
 
         return runner_box
 
@@ -282,6 +298,7 @@ class GameInfoBox(AdvancedSettingsBox):
         banner_box.set_margin_top(12)
         banner_box.set_column_spacing(12)
         banner_box.set_row_spacing(4)
+        self._banner_column = 0
 
         self._create_image_button(
             banner_box,
@@ -301,37 +318,38 @@ class GameInfoBox(AdvancedSettingsBox):
 
     def _get_banner_entries(self):
         self._cover_entry = self._create_image_entry(COVERART_KEY, _("Cover"), _("Location of custom cover art"))
-        self.pack_start(self._cover_entry, False, False, 6)  # Cover
+        self.append(self._cover_entry)  # Cover
 
         self._banner_entry = self._create_image_entry(BANNER_KEY, _("Banner"), _("Location of custom banner"))
-        self.pack_start(self._banner_entry, False, False, 6)  # Banner
+        self.append(self._banner_entry)  # Banner
 
         self._icon_entry = self._create_image_entry(ICON_KEY, _("Icon"), _("Location of custom icon"))
-        self.pack_start(self._icon_entry, False, False, 6)  # Icon
+        self.append(self._icon_entry)  # Icon
 
     def _create_image_entry(self, image_type, image_label, image_entry_tooltip):
         """Return widget displaying the location of the coverart, banner or icon image"""
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12, visible=True)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12, visible=True)
         label = Label(image_label)
-        box.pack_start(label, False, False, 0)
+        box.append(label)
 
         # Get the current entry path for the image type and set it as the text
         path_entry = Gtk.Entry(visible=True)
         path_entry.set_tooltip_text(image_entry_tooltip)
         path_entry.set_sensitive(False)
 
-        box.pack_start(path_entry, True, True, 0)
+        path_entry.set_hexpand(True)
+        path_entry.set_vexpand(True)
+        box.append(path_entry)
 
-        open_button = Gtk.Button.new_from_icon_name("folder-symbolic", Gtk.IconSize.BUTTON)
-        open_button.show()
+        open_button = Gtk.Button.new_from_icon_name("folder-symbolic")
         open_button.set_tooltip_text(_("Open in file browser"))
-        open_button.get_style_context().add_class("circular")
+        open_button.add_css_class("circular")
         open_button.connect("clicked", self.on_open_image_location_in_file_browser_clicked, image_type)
         self.image_path_open_button[image_type] = open_button
 
         path_entry.connect("changed", lambda _: self.refresh_image_path_entry(image_type))
 
-        box.pack_start(open_button, False, False, 0)
+        box.append(open_button)
 
         self.image_path_entries[image_type] = path_entry
         # Refresh the path entry in the image text entry after it has been added to the image_path_entries dict
@@ -342,32 +360,38 @@ class GameInfoBox(AdvancedSettingsBox):
         """This adds an image button and its reset button to the box given,
         and adds the image button to self.image_buttons for future reference."""
 
-        image_button_container = Gtk.VBox()
-        button_container = Gtk.HBox()
+        image_button_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        button_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
         image_button = Gtk.Button()
         self._set_image(image_type, image_button)
         image_button.set_valign(Gtk.Align.CENTER)
         image_button.set_tooltip_text(image_tooltip)
         image_button.connect("clicked", self.on_custom_image_select, image_type)
-        image_button_container.pack_start(image_button, True, True, 0)
+        image_button.set_hexpand(True)
+        image_button.set_vexpand(True)
+        image_button_container.append(image_button)
 
-        reset_button = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
-        reset_button.set_relief(Gtk.ReliefStyle.NONE)
+        reset_button = Gtk.Button.new_from_icon_name("edit-undo-symbolic")
+        reset_button.set_has_frame(False)
         reset_button.set_tooltip_text(reset_tooltip)
         reset_button.connect("clicked", self.on_custom_image_reset_clicked, image_type)
         reset_button.set_valign(Gtk.Align.CENTER)
-        button_container.pack_start(reset_button, True, False, 0)
+        reset_button.set_hexpand(True)
+        button_container.append(reset_button)
 
-        download_button = Gtk.Button.new_from_icon_name("web-browser-symbolic", Gtk.IconSize.MENU)
-        download_button.set_relief(Gtk.ReliefStyle.NONE)
+        download_button = Gtk.Button.new_from_icon_name("web-browser-symbolic")
+        download_button.set_has_frame(False)
         download_button.set_tooltip_text(download_tooltip)
         download_button.connect("clicked", self.on_custom_image_download_clicked, image_type)
         download_button.set_valign(Gtk.Align.CENTER)
-        button_container.pack_end(download_button, True, False, 0)
+        download_button.set_hexpand(True)
+        button_container.append(download_button)
 
-        banner_box.add(image_button_container)
-        banner_box.attach_next_to(button_container, image_button_container, Gtk.PositionType.BOTTOM, 1, 1)
+        col = self._banner_column
+        self._banner_column += 1
+        banner_box.attach(image_button_container, col, 0, 1, 1)
+        banner_box.attach(button_container, col, 1, 1, 1)
 
         self.image_buttons[image_type] = image_button
 
@@ -464,23 +488,25 @@ class GameInfoBox(AdvancedSettingsBox):
             self.image_path_open_button[image_type].set_sensitive(bool(image_path))
 
     def on_custom_image_select(self, _widget, image_type):
-        dialog = Gtk.FileChooserNative.new(
-            _("Please choose a custom image"),
-            self.parent_widget,
-            Gtk.FileChooserAction.OPEN,
-            None,
-            None,
-        )
+        dialog = Gtk.FileDialog()
+        dialog.set_title(_("Please choose a custom image"))
 
         image_filter = Gtk.FileFilter()
         image_filter.set_name(_("Images"))
         image_filter.add_pixbuf_formats()
-        dialog.add_filter(image_filter)
-        response = dialog.run()
-        if response == Gtk.ResponseType.ACCEPT:
-            image_path = dialog.get_filename()
+        filters = Gio.ListStore.new(Gtk.FileFilter)
+        filters.append(image_filter)
+        dialog.set_filters(filters)
+
+        def on_finish(_dialog, async_result):
+            try:
+                gfile = _dialog.open_finish(async_result)
+            except GLib.Error:
+                return
+            image_path = gfile.get_path()
             self.save_custom_media(image_type, image_path)
-        dialog.destroy()
+
+        dialog.open(self.parent_widget, None, on_finish)
 
     def on_custom_image_reset_clicked(self, _widget, image_type):
         self.refresh_image(image_type)
@@ -630,9 +656,7 @@ class UrlDialog(Gtk.Dialog):
         box = self.get_content_area()
         self.entry = Gtk.Entry()
         self.entry.set_placeholder_text("https://example.com/image.png")
-        box.add(self.entry)
-
-        self.show_all()
+        box.append(self.entry)
 
     def get_url(self):
         return self.entry.get_text()

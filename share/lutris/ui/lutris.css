@@ -48,13 +48,13 @@
 }
 
 .info-frame {
-  color: @theme_text_color;
-  background-color: @theme_base_color;
+  color: @theme_fg_color;
+  background-color: @theme_bg_color;
 }
 
 .in-app-notification {
     padding: 5px;
-    border-radius: 0
+    border-radius: 0;
 }
 
 .in-app-notification label link {
@@ -69,7 +69,7 @@
 }
 
 .smallcheckbox label {
-   font-size: 10px
+   font-size: 10px;
 }
 
 .smallcheckbox check {
@@ -79,11 +79,11 @@
   border-bottom-right-radius: 2px;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
-  margin-right: 2px
+  margin-right: 2px;
 }
 
 .cuddledcheckbox {
-  padding: 0px
+  padding: 0px;
 }
 
 .cuddledcheckbox check {
@@ -91,5 +91,5 @@
 }
 
 .cuddledcheckbox label {
-  margin-right: 0px
+  margin-right: 0px;
 }

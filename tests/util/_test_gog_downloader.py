@@ -481,10 +481,10 @@ class TestInstallerFileIntegration:
         try:
             import gi
 
-            gi.require_version("Gtk", "3.0")
-            gi.require_version("Gdk", "3.0")
+            gi.require_version("Gtk", "4.0")
+            gi.require_version("Gdk", "4.0")
         except (ValueError, ImportError):
-            pytest.skip("GTK 3.0 not available")
+            pytest.skip("GTK 4.0 not available")
 
     def test_installer_file_downloader_class(self):
         """InstallerFile should expose downloader_class from file_meta."""
@@ -536,10 +536,10 @@ class TestGOGServiceIntegration:
         try:
             import gi
 
-            gi.require_version("Gtk", "3.0")
-            gi.require_version("Gdk", "3.0")
+            gi.require_version("Gtk", "4.0")
+            gi.require_version("Gdk", "4.0")
         except (ValueError, ImportError):
-            pytest.skip("GTK 3.0 not available")
+            pytest.skip("GTK 4.0 not available")
 
     def test_gog_format_links_includes_downloader_class(self):
         """_format_links should inject GOGDownloader as downloader_class."""

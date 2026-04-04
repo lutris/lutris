@@ -1,6 +1,6 @@
 from gettext import gettext as _
 
-from gi.repository import Gdk, Gtk  # type: ignore
+from gi.repository import Gtk  # type: ignore
 
 from lutris.exceptions import UnavailableRunnerError
 from lutris.game import Game
@@ -196,11 +196,8 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
         if not configs:
             return {}  # use primary configuration
 
-        keymap = Gdk.Keymap.get_default()
-        if keymap.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK:
-            config_index = None
-        else:
-            config_index = get_preferred_config_index()
+        # TODO: Gdk.Keymap removed in GTK4; shift-to-force-selection not available for now
+        config_index = get_preferred_config_index()
 
         if config_index is None:
             dlg = dialogs.LaunchConfigSelectDialog(game, configs, title=_("Select game to launch"), parent=self)

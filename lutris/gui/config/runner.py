@@ -21,7 +21,6 @@ class RunnerConfigDialog(GameDialogCommon):
         self.lutris_config = LutrisConfig(runner_slug=self.runner_name)
         self.build_notebook()
         self.build_tabs()
-        self.show_all()
 
     def get_search_entry_placeholder(self):
         return _("Search %s options") % get_runner_human_name(self.runner_name)

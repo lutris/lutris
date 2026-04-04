@@ -14,7 +14,7 @@ from lutris.api import format_runner_version, parse_version_architecture
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog, ModelessDialog, display_error
-from lutris.gui.widgets.utils import has_stock_icon
+from lutris.gui.widgets.utils import get_widget_children, has_stock_icon
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -53,19 +53,21 @@ class ShowAppsDialog(ModelessDialog):
         super().__init__(title, parent, border_width=10)
         self.runner_name = runner_name
         self.runner_version = runner_version
-        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
         self.set_default_size(600, 400)
         self.apps = []
         label = Gtk.Label.new(_("Showing games using %s") % runner_version)
-        self.vbox.add(label)
+        self.vbox.append(label)
         scrolled_listbox = Gtk.ScrolledWindow()
         self.listbox = Gtk.ListBox()
         self.listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         scrolled_listbox.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        scrolled_listbox.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
-        scrolled_listbox.add(self.listbox)
-        self.vbox.pack_start(scrolled_listbox, True, True, 14)
-        self.show_all()
+        scrolled_listbox.set_child(self.listbox)
+        scrolled_listbox.set_hexpand(True)
+        scrolled_listbox.set_vexpand(True)
+        scrolled_listbox.set_margin_top(14)
+        scrolled_listbox.set_margin_bottom(14)
+        self.vbox.append(scrolled_listbox)
         jobs.AsyncCall(self.load_apps, self.on_apps_loaded)
 
     def load_apps(self):
@@ -81,13 +83,17 @@ class ShowAppsDialog(ModelessDialog):
 
     def on_apps_loaded(self, _result, _error):
         for app in self.apps:
-            row = Gtk.ListBoxRow(visible=True)
-            hbox = Gtk.Box(visible=True, orientation=Gtk.Orientation.HORIZONTAL)
-            lbl_game = Gtk.Label(app.name, visible=True)
+            row = Gtk.ListBoxRow()
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            lbl_game = Gtk.Label(label=app.name)
             lbl_game.set_halign(Gtk.Align.START)
-            hbox.pack_start(lbl_game, True, True, 5)
-            row.add(hbox)
-            self.listbox.add(row)
+            lbl_game.set_hexpand(True)
+            lbl_game.set_vexpand(True)
+            lbl_game.set_margin_start(5)
+            lbl_game.set_margin_end(5)
+            hbox.append(lbl_game)
+            row.set_child(hbox)
+            self.listbox.append(row)
 
 
 class RunnerInstallDialog(ModelessDialog):
@@ -102,7 +108,7 @@ class RunnerInstallDialog(ModelessDialog):
 
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, 0, border_width=10)
-        self.ok_button = self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.ok_button = self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
         self.runner_name = runner.name
         self.runner_directory = runner.directory
         self.runner_info = {}
@@ -113,13 +119,15 @@ class RunnerInstallDialog(ModelessDialog):
         self.listbox = None
 
         label = Gtk.Label.new(_("Waiting for response from %s") % settings.SITE_URL)
-        self.vbox.pack_start(label, False, False, 18)
+        label.set_margin_top(18)
+        label.set_margin_bottom(18)
+        self.vbox.append(label)
 
-        spinner = Gtk.Spinner(visible=True)
+        spinner = Gtk.Spinner()
         spinner.start()
-        self.vbox.pack_start(spinner, False, False, 18)
-
-        self.show_all()
+        spinner.set_margin_top(18)
+        spinner.set_margin_bottom(18)
+        self.vbox.append(spinner)
 
         jobs.AsyncCall(self.fetch_runner_versions, self.runner_fetch_cb, self.runner_name, self.runner_directory)
 
@@ -182,22 +190,24 @@ class RunnerInstallDialog(ModelessDialog):
             ErrorDialog(_("Unable to get runner versions from lutris.net"), parent=self)
             return
 
-        for child_widget in self.vbox.get_children():
+        for child_widget in get_widget_children(self.vbox):
             if child_widget.get_name() not in "GtkBox":
-                child_widget.destroy()
+                self.vbox.remove(child_widget)
 
         label = Gtk.Label.new(_("%s version management") % self.runner_info["name"])
-        self.vbox.add(label)
+        self.vbox.append(label)
         self.installing = {}
 
         scrolled_listbox = Gtk.ScrolledWindow()
         self.listbox = Gtk.ListBox()
         self.listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         scrolled_listbox.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        scrolled_listbox.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
-        scrolled_listbox.add(self.listbox)
-        self.vbox.pack_start(scrolled_listbox, True, True, 14)
-        self.show_all()
+        scrolled_listbox.set_child(self.listbox)
+        scrolled_listbox.set_hexpand(True)
+        scrolled_listbox.set_vexpand(True)
+        scrolled_listbox.set_margin_top(14)
+        scrolled_listbox.set_margin_bottom(14)
+        self.vbox.append(scrolled_listbox)
         self.populate_listboxrows()
 
     def populate_listboxrows(self):
@@ -209,29 +219,42 @@ class RunnerInstallDialog(ModelessDialog):
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
             row.hbox = hbox
 
-            icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
+            icon = Gtk.Image.new_from_icon_name(icon_name)
             icon.set_visible(runner["is_installed"])
             icon_container = Gtk.Box()
             icon_container.set_size_request(16, 16)
-            icon_container.pack_start(icon, False, False, 0)
+            icon_container.append(icon)
 
-            hbox.pack_start(icon_container, False, True, 0)
+            hbox.append(icon_container)
             row.icon = icon
 
-            lbl_version = Gtk.Label(runner["version"])
+            lbl_version = Gtk.Label(label=runner["version"])
             lbl_version.set_max_width_chars(20)
             lbl_version.set_property("width-chars", 20)
             lbl_version.set_halign(Gtk.Align.START)
-            hbox.pack_start(lbl_version, False, False, 5)
+            lbl_version.set_margin_start(5)
+            lbl_version.set_margin_end(5)
+            hbox.append(lbl_version)
 
-            arch_label = Gtk.Label(runner["architecture"])
+            arch_label = Gtk.Label(label=runner["architecture"])
             arch_label.set_max_width_chars(8)
             arch_label.set_halign(Gtk.Align.START)
-            hbox.pack_start(arch_label, False, True, 5)
+            arch_label.set_margin_start(5)
+            arch_label.set_margin_end(5)
+            hbox.append(arch_label)
+
+            # Button comes first visually (was reorder_child(button, 0) before)
+            button = Gtk.Button()
+            button.set_size_request(100, -1)
+            row.install_uninstall_cancel_button = button
+            row.handler_id = None
 
             install_progress = Gtk.ProgressBar()
             install_progress.set_show_text(True)
-            hbox.pack_end(install_progress, True, True, 5)
+            install_progress.set_hexpand(True)
+            install_progress.set_vexpand(True)
+            install_progress.set_margin_start(5)
+            install_progress.set_margin_end(5)
             row.install_progress = install_progress
 
             if runner["is_installed"]:
@@ -243,18 +266,13 @@ class RunnerInstallDialog(ModelessDialog):
                     usage_button = Gtk.LinkButton.new_with_label(usage_button_text)
                     usage_button.set_valign(Gtk.Align.CENTER)
                     usage_button.connect("clicked", self.on_show_apps_usage, row)
-                    hbox.pack_end(usage_button, False, True, 2)
+                    hbox.append(usage_button)
 
-            button = Gtk.Button()
-            button.set_size_request(100, -1)
-            hbox.pack_end(button, False, True, 0)
-            hbox.reorder_child(button, 0)
-            row.install_uninstall_cancel_button = button
-            row.handler_id = None
+            hbox.append(install_progress)
+            hbox.append(button)
 
-            row.add(hbox)
-            self.listbox.add(row)
-            row.show_all()
+            row.set_child(hbox)
+            self.listbox.append(row)
             self.update_listboxrow(row)
 
     def update_listboxrow(self, row):
@@ -266,27 +284,26 @@ class RunnerInstallDialog(ModelessDialog):
         icon.set_visible(runner["is_installed"])
 
         button = row.install_uninstall_cancel_button
-        style_context = button.get_style_context()
         if row.handler_id is not None:
             button.disconnect(row.handler_id)
             row.handler_id = None
         if runner["version"] in self.installing:
-            style_context.remove_class("destructive-action")
+            button.remove_css_class("destructive-action")
             button.set_label(_("Cancel"))
             handler_id = button.connect("clicked", self.on_cancel_install, row)
         else:
             if runner["is_installed"]:
-                style_context.add_class("destructive-action")
+                button.add_css_class("destructive-action")
                 button.set_label(_("Uninstall"))
                 handler_id = button.connect("clicked", self.on_uninstall_runner, row)
             elif not runner["url"]:
                 # Local-only version without download URL
-                style_context.remove_class("destructive-action")
+                button.remove_css_class("destructive-action")
                 button.set_label(_("Unavailable"))
                 button.set_sensitive(False)
                 handler_id = None
             else:
-                style_context.remove_class("destructive-action")
+                button.remove_css_class("destructive-action")
                 button.set_label(_("Install"))
                 button.set_sensitive(True)
                 handler_id = button.connect("clicked", self.on_install_runner, row)
@@ -298,7 +315,7 @@ class RunnerInstallDialog(ModelessDialog):
         """Return grid with games that uses this wine version"""
         runner = row.runner
         runner_version = "%s-%s" % (runner["version"], runner["architecture"])
-        dialog = ShowAppsDialog(_("Wine version usage"), self.get_toplevel(), self.runner_name, runner_version)
+        dialog = ShowAppsDialog(_("Wine version usage"), self.get_root(), self.runner_name, runner_version)
         dialog.run()
 
     @staticmethod
