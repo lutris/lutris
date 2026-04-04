@@ -401,7 +401,7 @@ class RunnerInstallDialog(ModelessDialog):
         if downloader.state == downloader.ERROR:
             self.cancel_install(row)
             return False
-        row.install_progress.show()
+        row.install_progress.set_visible(True)
         downloader.check_progress()
         percent_downloaded = downloader.progress_percentage
         if percent_downloaded >= 1:
@@ -453,7 +453,7 @@ class RunnerInstallDialog(ModelessDialog):
         self.installing.pop(runner["version"])
         row.install_progress.set_text("")
         row.install_progress.set_fraction(0.0)
-        row.install_progress.hide()
+        row.install_progress.set_visible(False)
         self.update_listboxrow(row)
         if self.runner_name == "wine":
             logger.debug("Clearing wine version cache")

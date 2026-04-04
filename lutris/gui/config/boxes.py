@@ -78,8 +78,8 @@ class ConfigBox(AdvancedSettingsBox):
         self._filter_text = ""
 
         self.no_options_label = Gtk.Label(halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
-        self.no_options_label.set_line_wrap(True)
-        self.no_options_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        self.no_options_label.set_wrap(True)
+        self.no_options_label.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.no_options_label.set_hexpand(True)
         self.no_options_label.set_vexpand(True)
         self.append(self.no_options_label)
@@ -109,7 +109,7 @@ class ConfigBox(AdvancedSettingsBox):
         help_box.append(icon)
 
         title_label = Gtk.Label(label="<i>%s</i>" % text)
-        title_label.set_line_wrap(True)
+        title_label.set_wrap(True)
         title_label.set_halign(Gtk.Align.START)
         title_label.set_use_markup(True)
         title_label.set_margin_start(5)

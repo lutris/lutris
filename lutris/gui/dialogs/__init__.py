@@ -43,6 +43,7 @@ class Dialog(Gtk.Dialog):
         # border_width was removed in GTK 4; convert to margins on content area
         border_width = kwargs.pop("border_width", None)
         super().__init__(**kwargs)
+        self.vbox = self.get_content_area()  # GTK 3 compat alias
         if title:
             self.set_title(title)
         if parent:
@@ -116,7 +117,7 @@ class Dialog(Gtk.Dialog):
             self.disconnect(on_destroy_id)
             idle_destroy_task.unschedule()
 
-        self.hide()
+        self.set_visible(False)
         idle_destroy_task = schedule_at_idle(idle_destroy)
         on_destroy_id = self.connect("destroy", on_destroy)
 
@@ -159,7 +160,7 @@ class ModalDialog(Dialog):
         # dialog is visible and locks out its parent. So we hide it. Watch out-
         # self.destroy() changes the run() result to NONE.
         if response != Gtk.ResponseType.NONE:
-            self.hide()
+            self.set_visible(False)
             self.destroy_at_idle(condition=lambda: not self.get_visible())
 
 
@@ -182,42 +183,69 @@ class ModelessDialog(Dialog):
         # a parent like a dialog. Not modal, not really transient,
         # and does not share modality with other windows - so it
         # needs its own window group.
-        Gtk.WindowGroup().add_window(self)
+        self._window_group = Gtk.WindowGroup()
+        self._window_group.add_window(self)
         schedule_at_idle(self._clear_transient_for)
 
     def _clear_transient_for(self) -> None:
         # we need the parent set to be centered over the parent, but
         # we don't want to be transient really - we want other windows
         # able to come to the front.
-        self.set_transient_for(None)
+        if not getattr(self, "_closing", False):
+            self.set_transient_for(None)
 
     def on_response(self, dialog: Gtk.Dialog, response: Gtk.ResponseType) -> None:
         super().on_response(dialog, response)
         # Modal dialogs self-destruct, but modeless ones must commit
-        # suicide more explicitly.
-        if response != Gtk.ResponseType.NONE:
-            self.destroy()
+        # suicide more explicitly. In GTK 4, Gtk.Dialog's destroy signal
+        # is unreliable, so we remove ourselves from the application's
+        # window cache directly to prevent zombie reuse.
+        if response != Gtk.ResponseType.NONE and not getattr(self, "_closing", False):
+            self._closing = True
+            app = self.get_application()
+            if app and hasattr(app, "app_windows"):
+                # Remove from app_windows so show_window won't reuse this instance
+                keys_to_remove = [k for k, v in app.app_windows.items() if v is self]
+                for k in keys_to_remove:
+                    del app.app_windows[k]
+            self.set_visible(False)
+            GLib.idle_add(self.destroy)
 
 
 class SavableModelessDialog(ModelessDialog):
     """This is a modeless dialog that has a Cancel and a Save button in the header-bar,
-    with a ctrl-S keyboard shortcut to save."""
+    with a ctrl-S keyboard shortcut to save.
+
+    In GTK 4, Gtk.Dialog with use_header_bar is deprecated and broken, so we
+    manually create a Gtk.HeaderBar with buttons instead."""
 
     def __init__(self, title: str, parent: Gtk.Widget | None = None, **kwargs: Any):
-        super().__init__(title, parent=parent, use_header_bar=True, **kwargs)
+        super().__init__(title, parent=parent, **kwargs)
 
-        self.cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
+        self._header_bar = Gtk.HeaderBar()
+        self.set_titlebar(self._header_bar)
+
+        self.cancel_button = Gtk.Button(label=_("Cancel"))
         self.cancel_button.set_valign(Gtk.Align.CENTER)
+        self.cancel_button.connect("clicked", lambda _b: self.response(Gtk.ResponseType.CANCEL))
+        self._header_bar.pack_start(self.cancel_button)
 
-        self.save_button = self.add_styled_button(_("Save"), Gtk.ResponseType.NONE, css_class="suggested-action")
+        self.save_button = Gtk.Button(label=_("Save"))
         self.save_button.set_valign(Gtk.Align.CENTER)
+        self.save_button.add_css_class("suggested-action")
         self.save_button.connect("clicked", self.on_save)
+        self._header_bar.pack_end(self.save_button)
 
-        # TODO: AccelGroup removed in GTK4; need to use Gtk.ShortcutController
-        # self.accelerators = Gtk.AccelGroup()
-        # self.add_accel_group(self.accelerators)
-        # key, mod = Gtk.accelerator_parse("<Primary>s")
-        # self.save_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+        # Ctrl+S shortcut for save
+        controller = Gtk.ShortcutController()
+        controller.set_scope(Gtk.ShortcutScope.LOCAL)
+        trigger = Gtk.ShortcutTrigger.parse_string("<Primary>s")
+        action = Gtk.CallbackAction.new(lambda _widget, _args: self.save_button.activate())
+        controller.add_shortcut(Gtk.Shortcut(trigger=trigger, action=action))
+        self.add_controller(controller)
+
+    def get_header_bar(self):
+        return self._header_bar
 
     def on_save(self, _button: Gtk.Button) -> bool | None:
         pass
@@ -260,7 +288,7 @@ class GtkBuilderDialog(GObject.Object):
     def on_response(self, _widget: Gtk.Dialog, response: Gtk.ResponseType) -> None:
         if response == Gtk.ResponseType.DELETE_EVENT:
             try:
-                self.dialog.hide()
+                self.dialog.set_visible(False)
             except AttributeError:
                 pass
 

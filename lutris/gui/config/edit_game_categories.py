@@ -40,7 +40,6 @@ class EditGameCategoriesDialog(SavableModelessDialog):
         if game:
             self.add_games([game])
 
-
     def add_games(self, games: Sequence[Game]) -> None:
         """Adds games to the dialog; this is intended to be used when the dialog is for multiple games,
         and can be used more than once to accumulate games."""

@@ -45,7 +45,7 @@ class RunnerBox(Gtk.Box):
         self.runner_label_box.append(runner_label)
 
         desc_label = Gtk.Label(visible=True)
-        desc_label.set_line_wrap(True)
+        desc_label.set_wrap(True)
         desc_label.set_halign(Gtk.Align.START)
         desc_label.set_text(self.runner.description)
         self.runner_label_box.append(desc_label)
@@ -125,8 +125,7 @@ class RunnerBox(Gtk.Box):
         self.runner_label_box.set_sensitive(True)
         child = self.action_button_box.get_first_child()
         if child:
-            self.action_button_box.remove(child)
-            child.destroy()
+            child.unparent()
         self.action_button_box.append(self.get_action_button())
 
     def on_runner_removed(self, widget):
@@ -134,6 +133,5 @@ class RunnerBox(Gtk.Box):
         self.runner_label_box.set_sensitive(False)
         child = self.action_button_box.get_first_child()
         if child:
-            self.action_button_box.remove(child)
-            child.destroy()
+            child.unparent()
         self.action_button_box.append(self.get_action_button())

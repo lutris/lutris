@@ -76,7 +76,7 @@ class ImportGameDialog(ModelessDialog):
             self.description_labels[file_path] = description_label
 
             file_path_label = Gtk.Label(label=file_path, halign=Gtk.Align.START, xalign=0)
-            file_path_label.set_line_wrap(True)
+            file_path_label.set_wrap(True)
             file_path_label.set_hexpand(True)
             file_path_label.set_vexpand(True)
             file_path_label.set_margin_top(5)
@@ -108,7 +108,7 @@ class ImportGameDialog(ModelessDialog):
             self.category_labels[file_path] = category_label
 
             error_label = Gtk.Label(halign=Gtk.Align.START, xalign=0, visible=False)
-            error_label.set_line_wrap(True)
+            error_label.set_wrap(True)
             error_label.set_hexpand(True)
             error_label.set_vexpand(True)
             error_label.set_margin_top(5)
@@ -203,7 +203,7 @@ class ImportGameDialog(ModelessDialog):
         """Tries to install a specific ROM, or reports failure. Returns True if
         successful, False if not."""
         try:
-            self.progress_labels[filename].hide()
+            self.progress_labels[filename].set_visible(False)
 
             if "error" in rom_set:
                 raise rom_set["error"]
@@ -226,7 +226,7 @@ class ImportGameDialog(ModelessDialog):
             logger.exception(_("Failed to import a ROM: %s"), ex)
             error_label = self.error_labels[filename]
             error_label.set_markup('<span style="italic" foreground="red">%s</span>' % gtk_safe(str(ex)))
-            error_label.show()
+            error_label.set_visible(True)
 
         return False
 
@@ -245,24 +245,24 @@ class ImportGameDialog(ModelessDialog):
     def display_existing_game_info(self, filename, game):
         label = self.checksum_labels[filename]
         label.set_markup("<i>%s</i>" % _("Game already installed in Lutris"))
-        label.show()
+        label.set_visible(True)
         label = self.description_labels[filename]
         label.set_markup("<b>%s</b>" % game.name)
         category = game.platform
         label = self.category_labels[filename]
         label.set_text(category)
-        label.show()
+        label.set_visible(True)
 
     def display_new_game_info(self, filename, rom_set, checksum):
         label = self.checksum_labels[filename]
         label.set_text(checksum)
-        label.show()
+        label.set_visible(True)
         label = self.description_labels[filename]
         label.set_markup("<b>%s</b>" % rom_set["name"])
         category = rom_set["category"]["name"]
         label = self.category_labels[filename]
         label.set_text(category)
-        label.show()
+        label.set_visible(True)
         self.platform = guess_platform(rom_set)
 
         if not self.platform:
