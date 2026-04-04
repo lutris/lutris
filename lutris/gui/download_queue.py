@@ -88,7 +88,7 @@ class DownloadQueue(Gtk.ScrolledWindow):
         progress_box = self.progress_boxes.get(progress_function)
         if progress_box:
             del self.progress_boxes[progress_function]
-            progress_box.destroy()
+            progress_box.unparent()
             if not self.progress_boxes:
                 self.revealer.set_reveal_child(False)
 

@@ -73,7 +73,9 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.notebook = Gtk.Notebook(visible=True)
         self.notebook.set_show_border(False)
         self.notebook.connect("switch-page", self.on_notebook_switch_page)
-        self.vbox.pack_start(self.notebook, True, True, 0)
+        self.notebook.set_hexpand(True)
+        self.notebook.set_vexpand(True)
+        self.vbox.append(self.notebook)
 
     def on_notebook_switch_page(self, notebook: Gtk.Notebook, page: Gtk.Widget, index: int) -> None:
         generator = self.notebook_page_generators.get(index)
@@ -123,11 +125,11 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         """Explicitly shows or hides the search entry; can also update the placeholder text."""
         header_bar = self.get_header_bar()
         if show_search and self.search_entry:
-            header_bar.set_custom_title(self.search_entry)
+            header_bar.set_title_widget(self.search_entry)
             self.search_entry.set_placeholder_text(placeholder_text or self.get_search_entry_placeholder())
             self.search_entry.set_tooltip_markup(tooltip_markup)
         else:
-            header_bar.set_custom_title(None)
+            header_bar.set_title_widget(None)
 
     def get_search_entry_placeholder(self) -> str:
         if self.game and self.game.name:
@@ -254,8 +256,8 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         switch.set_state(settings.read_setting("show_advanced_options") == "True")
         switch.connect("state-set", lambda _w, s: self.on_show_advanced_options_toggled(bool(s)))
 
-        switch_box.pack_start(switch_label, False, False, 0)
-        switch_box.pack_end(switch, False, False, 0)
+        switch_box.append(switch_label)
+        switch_box.append(switch)
 
         header_bar = self.get_header_bar()
 
@@ -445,8 +447,8 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.game.runner.extract_icon(game_info_box.slug)
 
         self.game.save()
-        self.destroy()
         self.saved = True
+        self.response(Gtk.ResponseType.OK)
         return True  # stop signal propagation
 
 
