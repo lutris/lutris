@@ -25,7 +25,7 @@ class RunnersBox(BaseConfigBox):
                 _("Runners are programs such as emulators, engines or translation layers capable of running games.")
             )
         )
-        self.search_failed_label = Gtk.Label(_("No runners matched the search"))
+        self.search_failed_label = Gtk.Label(label=_("No runners matched the search"))
         self.append(self.search_failed_label)
         self.runner_list_frame = Gtk.Frame(visible=True)
         self.runner_listbox = Gtk.ListBox(visible=True)

@@ -27,7 +27,7 @@ class BaseConfigBox(VBox):
     def get_description_label(self, text: str) -> Gtk.Label:
         label = Gtk.Label(visible=True)
         label.set_markup("%s" % text)
-        label.set_line_wrap(True)
+        label.set_wrap(True)
         label.set_halign(Gtk.Align.START)
         return label
 
@@ -111,8 +111,12 @@ class BaseConfigBox(VBox):
 
     def get_listed_widget_box(self, label: str, widget: Gtk.Widget, margin: int = 12) -> Gtk.Box:
         box = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL, spacing=12,
-            margin_top=margin, margin_bottom=margin, margin_start=margin, margin_end=margin,
+            orientation=Gtk.Orientation.HORIZONTAL,
+            spacing=12,
+            margin_top=margin,
+            margin_bottom=margin,
+            margin_start=margin,
+            margin_end=margin,
             visible=True,
         )
         label = Gtk.Label(label=label, visible=True, wrap=True)

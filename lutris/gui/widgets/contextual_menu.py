@@ -1,4 +1,4 @@
-from gi.repository import Gdk, Gio, GLib, Gtk
+from gi.repository import Gdk, Gio, Gtk
 
 
 def update_action_widget_visibility(widgets, visible_predicate):
@@ -36,7 +36,8 @@ class ContextualMenu:
         self._action_group = Gio.SimpleActionGroup()
         self._actions = {}
 
-    def popup(self, event, game_actions):
+    def popup_at(self, widget, x, y, game_actions):
+        """Show the context menu as a popover attached to widget at (x, y)."""
         displayed = game_actions.get_displayed_entries()
 
         menu = Gio.Menu()
@@ -45,7 +46,6 @@ class ContextualMenu:
 
         for name, label, callback in self.main_entries:
             if label == "-":
-                # Separator: start a new section
                 if section.get_n_items() > 0:
                     menu.append_section(None, section)
                     section = Gio.Menu()
@@ -55,7 +55,6 @@ class ContextualMenu:
             if not is_visible:
                 continue
 
-            # Create a unique action name
             action_name = name.replace("-", "_")
             action = Gio.SimpleAction.new(action_name, None)
             action.connect("activate", lambda _action, _param, cb=callback: cb(None))
@@ -72,18 +71,12 @@ class ContextualMenu:
         if visible_count > 0:
             popover = Gtk.PopoverMenu.new_from_model(menu)
             popover.insert_action_group("context", self._action_group)
-
-            # Attach to the widget that was clicked
-            widget = event.get_widget() if hasattr(event, "get_widget") else None
-            if widget:
-                popover.set_parent(widget)
-                # Position at click coordinates
-                x, y = event.x, event.y
-                rect = Gdk.Rectangle()
-                rect.x = int(x)
-                rect.y = int(y)
-                rect.width = 1
-                rect.height = 1
-                popover.set_pointing_to(rect)
+            popover.set_parent(widget)
+            rect = Gdk.Rectangle()
+            rect.x = int(x)
+            rect.y = int(y)
+            rect.width = 1
+            rect.height = 1
+            popover.set_pointing_to(rect)
             popover.set_has_arrow(False)
             popover.popup()

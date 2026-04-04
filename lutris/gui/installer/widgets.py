@@ -10,8 +10,8 @@ class InstallerLabel(Gtk.Label):
         super().__init__()
 
         if wrap:
-            self.set_line_wrap(True)
-            self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            self.set_wrap(True)
+            self.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
         else:
             self.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
         self.set_alignment(0, 0.5)

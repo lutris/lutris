@@ -5,7 +5,7 @@ import os
 import traceback
 from gettext import gettext as _
 
-from gi.repository import Gdk, Gio, GLib, Gtk
+from gi.repository import Gio, GLib, Gtk
 
 from lutris import settings
 from lutris.config import LutrisConfig
@@ -350,13 +350,13 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         if not hasattr(self, "install_progress_bar"):
             return
         if fraction is None:
-            self.install_progress_bar.hide()
+            self.install_progress_bar.set_visible(False)
             return
         self.install_progress_bar.set_fraction(fraction)
         if text:
             self.install_progress_bar.set_text(text)
             self.install_progress_bar.set_show_text(True)
-        self.install_progress_bar.show()
+        self.install_progress_bar.set_visible(True)
 
     def attach_log(self, command):
         # Hook the log buffer right now, lest we miss updates.
@@ -389,9 +389,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def create_choose_installer_page(self):
         installer_picker = InstallerPicker(self.installers)
         installer_picker.connect("installer-selected", self.on_installer_selected)
-        return Gtk.ScrolledWindow(
-            hexpand=True, vexpand=True, child=installer_picker
-        )
+        return Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=installer_picker)
 
     def present_choose_installer_page(self):
         """Stage where we choose an install script."""
@@ -585,7 +583,11 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         treeview.append_column(label_column)
 
         return Gtk.ScrolledWindow(
-            hexpand=True, vexpand=True, child=treeview, visible=True,         )
+            hexpand=True,
+            vexpand=True,
+            child=treeview,
+            visible=True,
+        )
 
     def present_extras_page(self):
         """Show installer screen with the extras picker"""

@@ -115,13 +115,13 @@ class InstallerFileBox(Gtk.Box):
 
     def replace_file_provider_widget(self):
         """Replace the file provider label and the source button with the actual widget"""
-        self.file_provider_widget.destroy()
+        self.file_provider_widget.unparent()
         widget_box = self.get_first_child()
         if self.started:
             self.file_provider_widget = self.get_file_provider_widget()
             # Also remove the the source button
             for child in get_widget_children(widget_box):
-                child.destroy()
+                child.unparent()
         else:
             self.file_provider_widget = self.get_file_provider_label()
         self.file_provider_widget.set_hexpand(True)
