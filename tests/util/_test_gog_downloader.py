@@ -492,6 +492,18 @@ class TestCancelAndStates(TestCase):
 class TestInstallerFileIntegration(TestCase):
     """Test GOGDownloader integration with InstallerFile."""
 
+    @pytest.fixture(autouse=True)
+    def _setup_gi(self):
+        """Ensure GTK version is required before importing InstallerFile."""
+        try:
+            import gi
+
+            gi.require_version("Gtk", "4.0")
+            gi.require_version("Gdk", "4.0")
+        except (ValueError, ImportError):
+            pytest.skip("GTK 4.0 not available")
+
+
     def test_installer_file_downloader_class(self):
         """InstallerFile should expose downloader_class from file_meta."""
         from lutris.installer.installer_file import InstallerFile
@@ -535,6 +547,17 @@ class TestInstallerFileIntegration(TestCase):
 
 class TestGOGServiceIntegration(TestCase):
     """Test that the GOG service injects GOGDownloader into InstallerFile."""
+
+    @pytest.fixture(autouse=True)
+    def _setup_gi(self):
+        """Ensure GTK version is required before importing GOG service."""
+        try:
+            import gi
+
+            gi.require_version("Gtk", "4.0")
+            gi.require_version("Gdk", "4.0")
+        except (ValueError, ImportError):
+            pytest.skip("GTK 4.0 not available")
 
     def test_gog_format_links_includes_downloader_class(self):
         """_format_links should inject GOGDownloader as downloader_class."""

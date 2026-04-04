@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.40.0 -->
 <interface>
-  <requires lib="gtk+" version="3.24"/>
+  <requires lib="gtk" version="4.0"/>
   <template class="UninstallDialog" parent="GtkDialog">
-    <property name="can-focus">False</property>
-    <property name="window-position">center-on-parent</property>
     <property name="default-width">800</property>
     <property name="default-height">600</property>
-    <property name="type-hint">dialog</property>
     <signal name="response" handler="on_response" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkBox">
-        <property name="can-focus">False</property>
         <property name="margin-start">6</property>
         <property name="margin-end">6</property>
         <property name="margin-top">6</property>
@@ -20,7 +16,6 @@
         <property name="spacing">2</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox">
-            <property name="can-focus">False</property>
             <property name="layout-style">end</property>
             <child>
               <placeholder/>
@@ -29,134 +24,72 @@
               <placeholder/>
             </child>
           </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">0</property>
-          </packing>
         </child>
         <child>
           <object class="GtkBox">
-            <property name="visible">True</property>
-            <property name="can-focus">False</property>
             <property name="margin-start">6</property>
             <property name="margin-end">6</property>
             <property name="margin-top">6</property>
             <property name="margin-bottom">6</property>
             <property name="orientation">vertical</property>
             <property name="spacing">6</property>
+            <property name="vexpand">True</property>
             <child>
               <object class="GtkLabel" id="message_label">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="no-show-all">True</property>
                 <property name="label" translatable="yes">Uninstalling games</property>
                 <property name="wrap">True</property>
                 <property name="selectable">True</property>
                 <property name="xalign">0</property>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
             </child>
             <child>
               <object class="GtkScrolledWindow">
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
                 <property name="hscrollbar-policy">never</property>
-                <property name="shadow-type">in</property>
+                <property name="vexpand">True</property>
                 <child>
                   <object class="GtkViewport">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
                     <child>
                       <object class="GtkListBox" id="uninstall_game_list">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
                         <property name="selection-mode">none</property>
                       </object>
                     </child>
                   </object>
                 </child>
               </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="delete_all_files_checkbox">
                 <property name="label" translatable="yes">Delete All Files	</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">False</property>
-                <property name="no-show-all">True</property>
-                <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="on_delete_all_files_checkbox_toggled" swapped="no"/>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
-              </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="remove_all_games_checkbox">
                 <property name="label" translatable="yes">Remove All Games from Library</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">False</property>
-                <property name="no-show-all">True</property>
-                <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="on_remove_all_games_checkbox_toggled" swapped="no"/>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">3</property>
-              </packing>
             </child>
           </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
-          </packing>
         </child>
       </object>
     </child>
     <child type="titlebar">
       <object class="GtkHeaderBar" id="header_bar">
-        <property name="visible">True</property>
-        <property name="can-focus">False</property>
         <property name="title" translatable="yes">Remove Games</property>
         <child>
           <object class="GtkButton" id="cancel_button">
             <property name="label" translatable="yes">Cancel</property>
-            <property name="visible">True</property>
-            <property name="can-focus">True</property>
-            <property name="receives-default">True</property>
             <signal name="clicked" handler="on_cancel_button_clicked" swapped="no"/>
           </object>
         </child>
-        <child>
+        <child type="end">
           <object class="GtkButton" id="uninstall_button">
             <property name="label" translatable="yes">Remove</property>
-            <property name="visible">True</property>
-            <property name="can-focus">True</property>
-            <property name="receives-default">True</property>
             <signal name="clicked" handler="on_remove_button_clicked" swapped="no"/>
             <style>
               <class name="destructive-action"/>
             </style>
           </object>
-          <packing>
-            <property name="pack-type">end</property>
-            <property name="position">1</property>
-          </packing>
         </child>
       </object>
     </child>

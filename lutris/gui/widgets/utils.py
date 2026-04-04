@@ -67,38 +67,39 @@ def get_widget_window(widget: Gtk.Widget | None) -> Gtk.Window | None:
 
 def set_cursor_by_name(widget: Gtk.Widget, name: str | None) -> None:
     """Applies the named cursor to a widget; if 'name' is None the widget reverts to
-    its default cursor. Does nothing if the widget has not been realized, or if the cursor
-    theme in use has no cursor of that name; Gdk.Cursor.new_from_name() returns NULL then,
-    which PyGObject reports as a TypeError."""
-    gdk_window = widget.get_window()
-    if not gdk_window:
-        return
-
+    its default cursor. Does nothing if the cursor theme in use has no cursor of that name;
+    Gdk.Cursor.new_from_name() returns NULL then, which PyGObject reports either as None or
+    as a TypeError depending on how the constructor is bound."""
     cursor = None
     if name:
         try:
-            cursor = Gdk.Cursor.new_from_name(widget.get_display(), name)
+            cursor = Gdk.Cursor.new_from_name(name)
         except TypeError:
+            cursor = None
+
+        if cursor is None:
             logger.warning("The cursor '%s' is not available in the current cursor theme.", name)
             return
 
-    gdk_window.set_cursor(cursor)
+    widget.set_cursor(cursor)
 
 
 TChildWidget = TypeVar("TChildWidget", bound=Gtk.Widget)
 
 
 def get_widget_children(widget: Gtk.Widget | None, child_type: type[TChildWidget] | None = None) -> list[TChildWidget]:
-    """Returns the children of any widget; non-containers have no children
-    and returns an empty list. This can filter out a specific type of child widget if child_type
+    """Returns the children of any widget by iterating with get_first_child()/get_next_sibling().
+    This can filter out a specific type of child widget if child_type
     is not None, but otherwise it returns all children."""
-    if isinstance(widget, Gtk.Container):
-        if child_type:
-            return [w for w in widget.get_children() if isinstance(w, child_type)]
-        else:
-            return list(cast(Iterable[TChildWidget], widget.get_children()))
-    else:
+    if widget is None:
         return []
+    children: list[TChildWidget] = []
+    child = widget.get_first_child()
+    while child is not None:
+        if child_type is None or isinstance(child, child_type):
+            children.append(cast(TChildWidget, child))
+        child = child.get_next_sibling()
+    return children
 
 
 def open_uri(uri: str) -> None:
@@ -232,7 +233,7 @@ def has_stock_icon(name: str) -> bool:
     if not name:
         return False
 
-    theme = Gtk.IconTheme.get_default()
+    theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
     return theme.has_icon(name)
 
 
@@ -343,7 +344,8 @@ def paste_overlay(base_image: "Image.Image", overlay_image: "Image.Image", posit
 
 def load_icon_theme() -> None:
     """Add the lutris icon folder to the default theme"""
-    icon_theme = Gtk.IconTheme.get_default()
+    icon_theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
     local_theme_path = os.path.join(settings.RUNTIME_DIR, "icons")
-    if local_theme_path not in icon_theme.get_search_path():
-        icon_theme.prepend_search_path(local_theme_path)
+    search_path = icon_theme.get_search_path()
+    if local_theme_path not in search_path:
+        icon_theme.add_search_path(local_theme_path)

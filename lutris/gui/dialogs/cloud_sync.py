@@ -28,19 +28,24 @@ class CloudSyncConflictDialog(ModalDialog):
     def __init__(self, game_name: str, location_name: str, parent=None):
         super().__init__(title=_("Cloud Save Conflict"), parent=parent)
         self.action = None
-        self.set_border_width(12)
+        self.set_margin_top(12)
+        self.set_margin_bottom(12)
+        self.set_margin_start(12)
+        self.set_margin_end(12)
         self.set_default_size(420, -1)
 
         content = self.get_content_area()
 
         # Header
-        header = Gtk.Label(visible=True)
+        header = Gtk.Label()
         header.set_markup(_("<b>Cloud save conflict for <i>%s</i></b>") % game_name)
         header.set_line_wrap(True)
-        content.pack_start(header, False, False, 6)
+        header.set_margin_top(6)
+        header.set_margin_bottom(6)
+        content.append(header)
 
         # Description
-        desc = Gtk.Label(visible=True)
+        desc = Gtk.Label()
         desc.set_markup(
             _(
                 "Both local and cloud saves for <b>%s</b> have been modified "
@@ -50,13 +55,15 @@ class CloudSyncConflictDialog(ModalDialog):
             % location_name
         )
         desc.set_line_wrap(True)
-        content.pack_start(desc, False, False, 12)
+        desc.set_margin_top(12)
+        desc.set_margin_bottom(12)
+        content.append(desc)
 
         # Buttons
         self.add_button(_("Skip Sync"), Gtk.ResponseType.CANCEL)
         upload_btn = self.add_button(_("Use Local Saves"), Gtk.ResponseType.NO)
         download_btn = self.add_button(_("Use Cloud Saves"), Gtk.ResponseType.YES)
-        download_btn.get_style_context().add_class("suggested-action")
+        download_btn.add_css_class("suggested-action")
 
         # Tooltips
         upload_btn.set_tooltip_text(_("Upload your local saves to the cloud, overwriting the cloud version"))
