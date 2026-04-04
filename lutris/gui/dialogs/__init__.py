@@ -185,7 +185,18 @@ class ModelessDialog(Dialog):
         # needs its own window group.
         self._window_group = Gtk.WindowGroup()
         self._window_group.add_window(self)
+        self.connect("close-request", self._on_close_request)
         schedule_at_idle(self._clear_transient_for)
+
+    def _on_close_request(self, _window):
+        """Handle close-request (ESC key, window close button) by destroying
+        properly. In GTK 4, Gtk.Dialog may not reliably convert close-request
+        into response(DELETE_EVENT), so we handle it explicitly."""
+        if not getattr(self, "_closing", False):
+            self._closing = True
+            self.set_visible(False)
+            GLib.idle_add(self.destroy)
+        return True  # prevent default close handling
 
     def _clear_transient_for(self) -> None:
         # we need the parent set to be centered over the parent, but
