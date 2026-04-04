@@ -705,6 +705,9 @@ class ClientLoginDialog(GtkBuilderDialog):
         self.username_entry: Gtk.Entry = self.builder.get_object("username_entry")
         self.password_entry: Gtk.Entry = self.builder.get_object("password_entry")
 
+        self.username_entry.connect("activate", self.on_username_entry_activate)
+        self.password_entry.connect("activate", self.on_password_entry_activate)
+
         cancel_button: Gtk.Button = self.builder.get_object("cancel_button")
         cancel_button.connect("clicked", self.on_close)
         connect_button: Gtk.Button = self.builder.get_object("connect_button")
