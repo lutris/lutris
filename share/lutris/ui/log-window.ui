@@ -22,10 +22,8 @@
       <object class="GtkHeaderBar" id="header_bar">
         <child>
           <object class="GtkSearchEntry" id="search_entry">
-            <property name="primary-icon-name">edit-find-symbolic</property>
-            <property name="primary-icon-activatable">False</property>
-            <property name="primary-icon-sensitive">False</property>
             <property name="placeholder-text" translatable="yes">Search...</property>
+            <property name="hexpand">True</property>
           </object>
         </child>
         <child>
@@ -48,7 +46,8 @@
         </child>
         <child type="end">
           <object class="GtkButton" id="save_button">
-            <property name="label">gtk-save</property>
+            <property name="icon-name">document-save-symbolic</property>
+            <property name="tooltip_text" translatable="yes">Save log</property>
           </object>
         </child>
       </object>
