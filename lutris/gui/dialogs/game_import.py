@@ -32,10 +32,6 @@ class ImportGameDialog(ModelessDialog):
         self.search_call = None
         self.set_size_request(500, 560)
 
-        # TODO: AccelGroup removed in GTK4; need to use Gtk.ShortcutController
-        # self.accelerators = Gtk.AccelGroup()
-        # self.add_accel_group(self.accelerators)
-
         scrolledwindow = Gtk.ScrolledWindow(child=self.get_file_labels_listbox(files))
         scrolledwindow.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         frame = Gtk.Frame(child=scrolledwindow)
