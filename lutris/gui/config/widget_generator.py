@@ -280,7 +280,6 @@ class WidgetGenerator(ABC):
 
                 if expand:
                     widget.set_hexpand(True)
-                    widget.set_vexpand(True)
                 self.wrapper.append(widget)
         return widget
 
