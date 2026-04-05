@@ -266,16 +266,14 @@
           </object>
         </child>
         <child>
-          <object class="GtkToggleButton">
+          <object class="GtkCheckButton">
             <property name="label" translatable="yes">Sort Installed First</property>
-            <property name="has-frame">False</property>
             <property name="action-name">win.view-sorting-installed-first</property>
           </object>
         </child>
         <child>
-          <object class="GtkToggleButton">
+          <object class="GtkCheckButton">
             <property name="label" translatable="yes">Reverse order</property>
-            <property name="has-frame">False</property>
             <property name="action-name">win.view-reverse-order</property>
           </object>
         </child>
@@ -283,41 +281,40 @@
           <object class="GtkSeparator"/>
         </child>
         <child>
-          <object class="GtkToggleButton">
+          <object class="GtkCheckButton" id="sort_by_name">
             <property name="label" translatable="yes">Name</property>
-            <property name="has-frame">False</property>
             <property name="action-name">win.view-sorting</property>
             <property name="action-target">'name'</property>
           </object>
         </child>
         <child>
-          <object class="GtkToggleButton">
+          <object class="GtkCheckButton">
             <property name="label" translatable="yes">Year</property>
-            <property name="has-frame">False</property>
+            <property name="group">sort_by_name</property>
             <property name="action-name">win.view-sorting</property>
             <property name="action-target">'year'</property>
           </object>
         </child>
         <child>
-          <object class="GtkToggleButton">
+          <object class="GtkCheckButton">
             <property name="label" translatable="yes">Last Played</property>
-            <property name="has-frame">False</property>
+            <property name="group">sort_by_name</property>
             <property name="action-name">win.view-sorting</property>
             <property name="action-target">'lastplayed'</property>
           </object>
         </child>
         <child>
-          <object class="GtkToggleButton">
+          <object class="GtkCheckButton">
             <property name="label" translatable="yes">Installed At</property>
-            <property name="has-frame">False</property>
+            <property name="group">sort_by_name</property>
             <property name="action-name">win.view-sorting</property>
             <property name="action-target">'installed_at'</property>
           </object>
         </child>
         <child>
-          <object class="GtkToggleButton">
+          <object class="GtkCheckButton">
             <property name="label" translatable="yes">Play Time</property>
-            <property name="has-frame">False</property>
+            <property name="group">sort_by_name</property>
             <property name="action-name">win.view-sorting</property>
             <property name="action-target">'playtime'</property>
           </object>
