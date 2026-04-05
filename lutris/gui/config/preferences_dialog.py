@@ -51,7 +51,9 @@ class PreferencesDialog(GameDialogCommon):
         hbox.set_hexpand(True)
         hbox.set_vexpand(True)
         self.vbox.append(hbox)
-        self.stack.add_named(self.build_scrolled_window(InterfacePreferencesBox(self.shortcut_controller)), "prefs-stack")
+        self.stack.add_named(
+            self.build_scrolled_window(InterfacePreferencesBox(self.shortcut_controller)), "prefs-stack"
+        )
 
         self.runners_box = RunnersBox()
         self.page_generators["runners-stack"] = self.runners_box.populate_runners
