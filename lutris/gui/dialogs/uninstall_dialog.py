@@ -366,16 +366,16 @@ class GameRemovalRow(Gtk.ListBoxRow):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox.append(hbox)
 
-        label = Gtk.Label(label=game.name, selectable=True)
+        label = Gtk.Label(label=game.name, selectable=True, hexpand=True, halign=Gtk.Align.START)
         hbox.append(label)
 
-        self.remove_from_library_checkbox = Gtk.CheckButton(label=_("Remove from Library"), halign=Gtk.Align.START)
+        self.remove_from_library_checkbox = Gtk.CheckButton(label=_("Remove from Library"), halign=Gtk.Align.END)
         self.remove_from_library_checkbox.set_active(False)
         self.remove_from_library_checkbox.connect("toggled", self.on_checkbox_toggled)
         hbox.append(self.remove_from_library_checkbox)
 
         if game.is_installed and self.game.directory:
-            self.delete_files_checkbox = Gtk.CheckButton(label=_("Delete Files"))
+            self.delete_files_checkbox = Gtk.CheckButton(label=_("Delete Files"), halign=Gtk.Align.END)
             self.delete_files_checkbox.set_sensitive(False)
             self.delete_files_checkbox.set_active(False)
             self.delete_files_checkbox.set_tooltip_text(self.game.directory)
