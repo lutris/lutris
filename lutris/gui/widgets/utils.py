@@ -261,6 +261,32 @@ def get_runtime_icon_path(icon_name: str) -> str | None:
     return None
 
 
+def get_runtime_icon_image(
+    icon_name: str, fallback_stock_icon_name: str | None = None, visible: bool = False
+) -> Gtk.Widget:
+    """Returns a Gtk.Picture or Gtk.Image of an icon for a runtime or service; the image has the
+    default icon size. If the icon can't be found, we'll fall back onto another,
+    stock icon. If you don't supply one (or it's not available) we'll fall back
+    further to 'package-x-generic-symbolic'; we always give you something."""
+    path = get_runtime_icon_path(icon_name)
+    if path:
+        pixbuf = get_pixbuf_by_path(path, ICON_SIZE)
+        if pixbuf:
+            texture = Gdk.Texture.new_for_pixbuf(pixbuf)
+            icon = Gtk.Image.new_from_paintable(texture)
+            icon.set_pixel_size(ICON_SIZE[0])
+            icon.set_visible(visible)
+            return icon
+
+    if not has_stock_icon(fallback_stock_icon_name):
+        fallback_stock_icon_name = "package-x-generic-symbolic"
+
+    icon = Gtk.Image.new_from_icon_name(fallback_stock_icon_name)
+    icon.set_icon_size(Gtk.IconSize.LARGE)
+    icon.set_visible(visible)
+    return icon
+
+
 def convert_to_background(background_path: str, target_size: tuple[int, int] = (320, 1080)) -> "Image.Image":
     """Converts an image to a pane background"""
     coverart = Image.open(background_path)
