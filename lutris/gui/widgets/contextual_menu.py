@@ -72,6 +72,7 @@ class ContextualMenu:
             popover = Gtk.PopoverMenu.new_from_model(menu)
             popover.insert_action_group("context", self._action_group)
             popover.set_parent(widget)
+            popover.connect("closed", lambda p: p.unparent())
             rect = Gdk.Rectangle()
             rect.x = int(x)
             rect.y = int(y)
