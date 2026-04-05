@@ -272,6 +272,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             on_cancelled()
 
     def on_source_clicked(self, _button):
+        popover = self.menu_button.get_popover()
+        if popover:
+            popover.popdown()
         dialog = InstallerSourceDialog(
             self.interpreter.installer.script_pretty, self.interpreter.installer.game_name, self
         )
