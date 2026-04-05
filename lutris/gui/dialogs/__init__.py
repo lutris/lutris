@@ -178,14 +178,9 @@ class ModelessDialog(Dialog):
         **kwargs,
     ):
         super().__init__(title, parent, flags, buttons, **kwargs)
-        # These are independent windows, but start centered over
-        # a parent like a dialog. Not modal, not really transient,
-        # and does not share modality with other windows - so it
-        # needs its own window group.
         self._window_group = Gtk.WindowGroup()
         self._window_group.add_window(self)
         self.connect("close-request", self._on_close_request)
-        schedule_at_idle(self._clear_transient_for)
 
     def _on_close_request(self, _window):
         """Handle close-request (ESC key, window close button) by destroying
@@ -196,13 +191,6 @@ class ModelessDialog(Dialog):
             self.set_visible(False)
             GLib.idle_add(self.destroy)
         return True  # prevent default close handling
-
-    def _clear_transient_for(self) -> None:
-        # we need the parent set to be centered over the parent, but
-        # we don't want to be transient really - we want other windows
-        # able to come to the front.
-        if not getattr(self, "_closing", False):
-            self.set_transient_for(None)
 
     def _remove_from_app_windows(self):
         """Remove this dialog from the application's window cache so
