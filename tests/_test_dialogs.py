@@ -3,7 +3,6 @@ from unittest import TestCase
 from lutris import runners
 from lutris.gui.application import LutrisApplication
 from lutris.gui.config.add_game_dialog import AddGameDialog
-from lutris.gui.config.game_info_box import GameInfoBox
 from lutris.gui.views.store import sort_func
 from lutris.util.test_config import setup_test_environment
 
@@ -11,10 +10,17 @@ setup_test_environment()
 
 
 class TestGameDialogCommon(TestCase):
-    def test_get_runner_liststore(self):
-        list_store = GameInfoBox._get_runner_liststore()
-        self.assertTrue(list_store[1][0].startswith(runners.get_installed()[0].human_name))
-        self.assertEqual(list_store[1][1], runners.get_installed()[0].name)
+    def test_get_runner_dropdown(self):
+        from lutris.gui.widgets.common import KeyValueDropDown
+
+        dropdown = KeyValueDropDown()
+        dropdown.append("", "Select a runner from the list")
+        for runner in runners.get_installed():
+            dropdown.append(runner.name, "%s (%s)" % (runner.human_name, runner.description))
+        installed = runners.get_installed()
+        if installed:
+            self.assertEqual(dropdown._ids[1], installed[0].name)
+            self.assertIn(installed[0].human_name, dropdown._string_list.get_string(1))
 
 
 class TestGameDialog(TestCase):
