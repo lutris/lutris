@@ -214,7 +214,10 @@ def has_stock_icon(name: str) -> bool:
     if not name:
         return False
 
-    theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
+    display = Gdk.Display.get_default()
+    if not display:
+        return False
+    theme = Gtk.IconTheme.get_for_display(display)
     return theme.has_icon(name)
 
 
@@ -278,7 +281,7 @@ def get_runtime_icon_image(
             icon.set_visible(visible)
             return icon
 
-    if not has_stock_icon(fallback_stock_icon_name):
+    if not fallback_stock_icon_name or not has_stock_icon(fallback_stock_icon_name):
         fallback_stock_icon_name = "package-x-generic-symbolic"
 
     icon = Gtk.Image.new_from_icon_name(fallback_stock_icon_name)
@@ -351,8 +354,11 @@ def paste_overlay(base_image: "Image.Image", overlay_image: "Image.Image", posit
 
 def load_icon_theme() -> None:
     """Add the lutris icon folder to the default theme"""
-    icon_theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
+    display = Gdk.Display.get_default()
+    if not display:
+        return
+    icon_theme = Gtk.IconTheme.get_for_display(display)
     local_theme_path = os.path.join(settings.RUNTIME_DIR, "icons")
     search_path = icon_theme.get_search_path()
-    if local_theme_path not in search_path:
+    if not search_path or local_theme_path not in search_path:
         icon_theme.add_search_path(local_theme_path)

@@ -9,8 +9,6 @@ import subprocess
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
-import gi
-
 # GnomeDesktop 3.0 requires GTK 3 and cannot coexist with GTK 4.
 # The GnomeDesktop-based DisplayManager is no longer available;
 # we fall through to MutterDisplayManager or LegacyDisplayManager instead.
@@ -44,6 +42,8 @@ def get_default_dpi() -> int:
         monitors = display.get_monitors()
         if monitors.get_n_items() > 0:
             monitor = monitors.get_item(0)
+            if not monitor:
+                return 96
             scale = monitor.get_scale_factor()
             dpi = 96 * scale
             return int(dpi)
@@ -70,8 +70,7 @@ class DisplayManager:
         """Return available resolutions"""
         resolutions = []
         for output in get_outputs():
-            for mode in output.modes:
-                resolutions.append(mode)
+            resolutions.append(output.mode)
         if not resolutions:
             logger.error("Failed to generate resolution list")
             return ["%sx%s" % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
@@ -82,8 +81,8 @@ class DisplayManager:
         """Return the current resolution for the primary display"""
         outputs = get_outputs()
         primary = next((o for o in outputs if o.primary), None) or (outputs[0] if outputs else None)
-        if primary and primary.current_mode:
-            parts = primary.current_mode.split("x")
+        if primary and primary.mode:
+            parts = primary.mode.split("x")
             if len(parts) == 2:
                 return parts[0], parts[1]
         return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
