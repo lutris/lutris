@@ -288,6 +288,7 @@ class GtkBuilderDialog(GObject.Object):
             self.dialog.set_transient_for(parent)
         self.dialog.connect("close-request", self.on_close)
         self.initialize(**kwargs)
+        self.dialog.present()
 
     def initialize(self, **kwargs):
         """Implement further customizations in subclasses"""

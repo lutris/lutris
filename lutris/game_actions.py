@@ -146,7 +146,7 @@ class GameActions:
             games ([Game]): List of Game instances without a database ID, populated with fields the service can provides
         """
         for game in self.get_games():
-            AddGameDialog(self.window, game=game, runner=game.runner_name)
+            AddGameDialog(self.window, game=game, runner=game.runner_name).present()
 
     def on_view_game(self, _widget: Gtk.Widget) -> None:
         """Callback to open a game on lutris.net"""
