@@ -85,9 +85,17 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.page_title_label = Gtk.Label(visible=True)
         content_area.append(self.page_title_label)
 
-        # TODO: AccelGroup removed in GTK4, need Gtk.ShortcutController
-        # self.accelerators = Gtk.AccelGroup()
-        # self.add_accel_group(self.accelerators)
+        shortcut_controller = Gtk.ShortcutController()
+        shortcut_controller.set_scope(Gtk.ShortcutScope.LOCAL)
+        shortcut_controller.add_shortcut(Gtk.Shortcut(
+            trigger=Gtk.ShortcutTrigger.parse_string("<Alt>Left"),
+            action=Gtk.CallbackAction.new(lambda w, _: self.on_back_clicked(None)),
+        ))
+        shortcut_controller.add_shortcut(Gtk.Shortcut(
+            trigger=Gtk.ShortcutTrigger.parse_string("<Alt>Home"),
+            action=Gtk.CallbackAction.new(lambda w, _: self.on_navigate_home()),
+        ))
+        self.add_controller(shortcut_controller)
 
         header_bar = self.get_header_bar()
 
@@ -151,7 +159,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
     def on_back_clicked(self, _widget):
         self.stack.navigate_back()
 
-    def on_navigate_home(self, _accel_group, _window, _keyval, _modifier):
+    def on_navigate_home(self):
         self.stack.navigate_home()
 
     def on_cancel_clicked(self, _widget):
