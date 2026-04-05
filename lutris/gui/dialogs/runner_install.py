@@ -14,7 +14,7 @@ from lutris.api import format_runner_version, parse_version_architecture
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog, ModelessDialog, display_error
-from lutris.gui.widgets.utils import get_widget_children, has_stock_icon
+from lutris.gui.widgets.utils import get_application, get_widget_children, has_stock_icon
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -49,11 +49,16 @@ def get_usage_stats(runner_name):
 
 
 class ShowAppsDialog(ModelessDialog):
-    def __init__(self, title, parent, runner_name, runner_version):
-        super().__init__(title, parent, border_width=10)
+    def __init__(self, runner_name, runner_version, appid=None, **kwargs):
+        title = _("Wine version usage")
+        super().__init__(title, border_width=10, **kwargs)
         self.runner_name = runner_name
         self.runner_version = runner_version
-        self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
+        ok_button = self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
+        ok_button.set_size_request(100, -1)
+        ok_button.set_margin_top(6)
+        ok_button.set_margin_bottom(6)
+        ok_button.set_margin_end(10)
         self.set_default_size(600, 400)
         self.apps = []
         label = Gtk.Label.new(_("Showing games using %s") % runner_version)
@@ -65,9 +70,12 @@ class ShowAppsDialog(ModelessDialog):
         scrolled_listbox.set_child(self.listbox)
         scrolled_listbox.set_hexpand(True)
         scrolled_listbox.set_vexpand(True)
-        scrolled_listbox.set_margin_top(14)
-        scrolled_listbox.set_margin_bottom(14)
-        self.vbox.append(scrolled_listbox)
+
+        frame = Gtk.Frame()
+        frame.set_child(scrolled_listbox)
+        frame.set_margin_top(10)
+        frame.set_margin_bottom(10)
+        self.vbox.append(frame)
         jobs.AsyncCall(self.load_apps, self.on_apps_loaded)
 
     def load_apps(self):
@@ -109,6 +117,10 @@ class RunnerInstallDialog(ModelessDialog):
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, 0, border_width=10)
         self.ok_button = self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
+        self.ok_button.set_size_request(100, -1)
+        self.ok_button.set_margin_top(6)
+        self.ok_button.set_margin_bottom(6)
+        self.ok_button.set_margin_end(10)
         self.runner_name = runner.name
         self.runner_directory = runner.directory
         self.runner_info = {}
@@ -205,9 +217,12 @@ class RunnerInstallDialog(ModelessDialog):
         scrolled_listbox.set_child(self.listbox)
         scrolled_listbox.set_hexpand(True)
         scrolled_listbox.set_vexpand(True)
-        scrolled_listbox.set_margin_top(14)
-        scrolled_listbox.set_margin_bottom(14)
-        self.vbox.append(scrolled_listbox)
+
+        frame = Gtk.Frame()
+        frame.set_child(scrolled_listbox)
+        frame.set_margin_top(10)
+        frame.set_margin_bottom(10)
+        self.vbox.append(frame)
         self.populate_listboxrows()
 
     def populate_listboxrows(self):
@@ -216,7 +231,7 @@ class RunnerInstallDialog(ModelessDialog):
         for runner in self.runner_store:
             row = Gtk.ListBoxRow()
             row.runner = runner
-            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
             row.hbox = hbox
 
             icon = Gtk.Image.new_from_icon_name(icon_name)
@@ -232,15 +247,12 @@ class RunnerInstallDialog(ModelessDialog):
             lbl_version.set_max_width_chars(20)
             lbl_version.set_property("width-chars", 20)
             lbl_version.set_halign(Gtk.Align.START)
-            lbl_version.set_margin_start(5)
-            lbl_version.set_margin_end(5)
             hbox.append(lbl_version)
 
             arch_label = Gtk.Label(label=runner["architecture"])
             arch_label.set_max_width_chars(8)
             arch_label.set_halign(Gtk.Align.START)
-            arch_label.set_margin_start(5)
-            arch_label.set_margin_end(5)
+            arch_label.set_hexpand(True)
             hbox.append(arch_label)
 
             # Button comes first visually (was reorder_child(button, 0) before)
@@ -252,9 +264,7 @@ class RunnerInstallDialog(ModelessDialog):
             install_progress = Gtk.ProgressBar()
             install_progress.set_show_text(True)
             install_progress.set_hexpand(True)
-            install_progress.set_vexpand(True)
-            install_progress.set_margin_start(5)
-            install_progress.set_margin_end(5)
+            install_progress.set_valign(Gtk.Align.CENTER)
             row.install_progress = install_progress
 
             if runner["is_installed"]:
@@ -263,7 +273,8 @@ class RunnerInstallDialog(ModelessDialog):
                 if app_count > 0:
                     usage_button_text = gettext.ngettext("View %d game", "View %d games", app_count) % app_count
 
-                    usage_button = Gtk.LinkButton.new_with_label(usage_button_text)
+                    usage_button = Gtk.Button(label=usage_button_text)
+                    usage_button.add_css_class("link")
                     usage_button.set_valign(Gtk.Align.CENTER)
                     usage_button.connect("clicked", self.on_show_apps_usage, row)
                     hbox.append(usage_button)
@@ -315,8 +326,14 @@ class RunnerInstallDialog(ModelessDialog):
         """Return grid with games that uses this wine version"""
         runner = row.runner
         runner_version = "%s-%s" % (runner["version"], runner["architecture"])
-        dialog = ShowAppsDialog(_("Wine version usage"), self.get_root(), self.runner_name, runner_version)
-        dialog.run()
+        application = get_application()
+        if application:
+            application.show_window(
+                ShowAppsDialog,
+                runner_name=self.runner_name,
+                runner_version=runner_version,
+                appid=runner_version,
+            )
 
     @staticmethod
     def get_version_sort_key(version):
