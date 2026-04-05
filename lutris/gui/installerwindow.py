@@ -78,9 +78,17 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.continue_handler = None
         self._progress_pulse_task = None
 
-        # TODO: AccelGroup removed in GTK4
-        # self.accelerators = Gtk.AccelGroup()
-        # self.add_accel_group(self.accelerators)
+        shortcut_controller = Gtk.ShortcutController()
+        shortcut_controller.set_scope(Gtk.ShortcutScope.LOCAL)
+        shortcut_controller.add_shortcut(Gtk.Shortcut(
+            trigger=Gtk.ShortcutTrigger.parse_string("<Alt>Left"),
+            action=Gtk.CallbackAction.new(lambda w, _: self.on_back_clicked(None)),
+        ))
+        shortcut_controller.add_shortcut(Gtk.Shortcut(
+            trigger=Gtk.ShortcutTrigger.parse_string("<Alt>Home"),
+            action=Gtk.CallbackAction.new(lambda w, _: self.on_navigate_home()),
+        ))
+        self.add_controller(shortcut_controller)
 
         content_area = self.get_content_area()
 
@@ -218,7 +226,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def on_back_clicked(self, _button):
         self.stack.navigate_back()
 
-    def on_navigate_home(self, _accel_group, _window, _keyval, _modifier):
+    def on_navigate_home(self):
         self.stack.navigate_home()
 
     def on_cancel_clicked(self, _button=None):
