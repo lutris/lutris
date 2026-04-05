@@ -11,7 +11,7 @@ from gi.repository import Gdk, Gio, GLib, Gtk  # type: ignore
 
 from lutris.config import LutrisConfig
 from lutris.gui.widgets import NotificationSource
-from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label
+from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, KeyValueDropDown, Label
 from lutris.gui.widgets.searchable_entrybox import SearchableEntrybox
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
@@ -402,24 +402,16 @@ class WidgetGenerator(ABC):
         spin_button.connect("changed", on_changed)
         return self.build_option_widget(option, spin_button)
 
-    # ComboBox
+    # DropDown
     def _generate_choice(self, option, value, default, has_entry=False):
-        """Generate a combobox (drop-down menu)."""
+        """Generate a dropdown (drop-down menu)."""
 
-        def populate_combobox_choices():
-            expanded, tooltip_default, _valid_choices = expand_combobox_choices()
-            for choice in expanded:
-                liststore.append(choice)
-
-            if tooltip_default:
-                self.tooltip_default = str(tooltip_default)
-
-        def expand_combobox_choices():
+        def expand_dropdown_choices():
             expanded = []
             tooltip_default = None
             valid = []
             has_value = False
-            # The following types are supported as combobox choices
+            # The following types are supported as dropdown choices
             # list[list[str] where length = 2]
             # list[tuple[str, str]]
             # tuple[tuple[str, str]]
@@ -452,62 +444,73 @@ class WidgetGenerator(ABC):
                 expanded.insert(0, (value, value))
             return expanded, tooltip_default, valid
 
-        def on_combobox_scroll(widget, _event):
-            """Prevents users from accidentally changing configuration values
-            while scrolling down dialogs.
-            """
-            widget.stop_emission_by_name("scroll-event")
-            return False
+        def populate_dropdown():
+            expanded, tooltip_default, _valid_choices = expand_dropdown_choices()
+            dropdown.clear()
+            for label, item_id in expanded:
+                dropdown.append(item_id, label)
 
-        def on_combobox_change(widget):
-            """Action triggered on combobox 'changed' signal."""
-            list_store = widget.get_model()
-            active = widget.get_active()
-            option_value = None
-            if active < 0:
-                if widget.get_has_entry():
-                    option_value = widget.get_child().get_text()
+            if tooltip_default:
+                self.tooltip_default = str(tooltip_default)
+
+        def on_dropdown_change(_widget):
+            """Action triggered on dropdown 'changed' signal."""
+            if has_entry:
+                # Sync entry with dropdown selection
+                label = dropdown.get_active_label()
+                if label and entry:
+                    entry.set_text(label)
+                option_value = dropdown.get_active_id()
             else:
-                option_value = list_store[active][1]
+                option_value = dropdown.get_active_id()
             self.changed.fire(option_key, option_value)
+
+        def on_entry_change(_widget):
+            """Action triggered on entry text change for choice_with_entry."""
+            text = entry.get_text()
+            # If the text matches a known choice label, select it in the dropdown
+            # Otherwise, fire the raw text as the value
+            active_label = dropdown.get_active_label()
+            if text != active_label:
+                self.changed.fire(option_key, text)
 
         option_key = option["option"]
         choices_src = option.get("choices")  # raw value before evaluation, for reload hook
         choices = self._evaluate_option("choices", None, option)
 
-        liststore = Gtk.ListStore(str, str)
-        populate_combobox_choices()
-        # With entry ("choice_with_entry" type)
-        if has_entry:
-            combobox = Gtk.ComboBox.new_with_model_and_entry(liststore)
-            combobox.set_entry_text_column(0)
-        # No entry ("choice" type)
-        else:
-            combobox = Gtk.ComboBox.new_with_model(liststore)
-            cell = Gtk.CellRendererText()
-            combobox.pack_start(cell, True)
-            combobox.add_attribute(cell, "text", 0)
+        dropdown = KeyValueDropDown()
+        dropdown.set_size_request(240, -1)
+        entry = None
+        populate_dropdown()
 
-        combobox.set_id_column(1)
-
-        expanded_choices, _tooltip_default, valid_choices = expand_combobox_choices()
+        expanded_choices, _tooltip_default, valid_choices = expand_dropdown_choices()
         if value in [v for _k, v in expanded_choices]:
-            if not combobox.set_active_id(value):
-                # set_active_id can fail in GTK 4; fall back to index-based selection
-                for i, (_k, v) in enumerate(expanded_choices):
-                    if v == value:
-                        combobox.set_active(i)
-                        break
+            dropdown.set_active_id(value)
         elif has_entry:
-            entry_child = combobox.get_child()
-            if isinstance(entry_child, Gtk.Entry):
-                entry_child.set_text(value or "")
+            pass  # entry text will be set below
         else:
-            combobox.set_active_id(default)
+            dropdown.set_active_id(default)
 
-        combobox.connect("changed", on_combobox_change)
-        # scroll-event removed in GTK 4; scroll handling is built-in
-        combobox.set_valign(Gtk.Align.CENTER)
+        dropdown.connect("changed", on_dropdown_change)
+        dropdown.set_valign(Gtk.Align.CENTER)
+
+        # With entry ("choice_with_entry" type): wrap dropdown + entry in a box
+        if has_entry:
+            entry = Gtk.Entry()
+            entry.set_hexpand(True)
+            if value and not dropdown.get_active_id():
+                entry.set_text(value or "")
+            elif dropdown.get_active_label():
+                entry.set_text(dropdown.get_active_label() or "")
+            entry.connect("changed", on_entry_change)
+
+            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+            box.append(dropdown)
+            box.append(entry)
+            box.set_valign(Gtk.Align.CENTER)
+            widget = box
+        else:
+            widget = dropdown
 
         def get_invalidity_error(key: str):
             v = self.get_setting(key, self.get_default(option))
@@ -522,24 +525,23 @@ class WidgetGenerator(ABC):
         # Async choices protocol: if the choices callable has a register_reload_callback attribute,
         # it supports background loading. The callable returns [] immediately when data isn't ready
         # yet and kicks off a background fetch; callers register a callback to be invoked on the
-        # UI thread when loading completes, at which point the combobox is repopulated in place.
+        # UI thread when loading completes, at which point the dropdown is repopulated in place.
         if callable(choices_src) and hasattr(choices_src, "register_reload_callback"):
 
             def reload_choices():
                 nonlocal choices
                 choices = self.evaluate_option_value(choices_src, option=option)
-                liststore.clear()
-                populate_combobox_choices()
+                populate_dropdown()
                 # The initial set_active_id() will have failed if the value wasn't in the empty
                 # list; try again now that the choices are populated.
-                if value and not combobox.get_active_id():
-                    combobox.set_active_id(value)
+                if value and not dropdown.get_active_id():
+                    dropdown.set_active_id(value)
 
             choices_src.register_reload_callback(reload_choices)
 
-        return self.build_option_widget(option, combobox)
+        return self.build_option_widget(option, widget)
 
-    # ComboBox
+    # DropDown with entry
     def _generate_choice_with_entry(self, option, value, default):
         return self._generate_choice(option, value, default, has_entry=True)
 
