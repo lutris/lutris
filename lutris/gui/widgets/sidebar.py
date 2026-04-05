@@ -417,11 +417,13 @@ class SidebarHeader(Gtk.ListBoxRow):
 
     def _on_enter(self, controller: Gtk.EventControllerMotion, x: float, y: float) -> None:
         widget = controller.get_widget()
-        widget.set_cursor(Gdk.Cursor.new_from_name("pointer"))
+        if widget:
+            widget.set_cursor(Gdk.Cursor.new_from_name("pointer"))
 
     def _on_leave(self, controller: Gtk.EventControllerMotion) -> None:
         widget = controller.get_widget()
-        widget.set_cursor(None)
+        if widget:
+            widget.set_cursor(None)
 
     @property
     def sort_key(self) -> int | str:

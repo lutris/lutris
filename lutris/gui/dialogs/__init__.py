@@ -43,7 +43,12 @@ class Dialog(Gtk.Dialog):
         if title:
             self.set_title(title)
         if parent:
-            self.set_transient_for(parent)
+            if isinstance(parent, Gtk.Window):
+                self.set_transient_for(parent)
+            elif isinstance(parent, Gtk.Widget):
+                root = parent.get_root()
+                if isinstance(root, Gtk.Window):
+                    self.set_transient_for(root)
         if flags & Gtk.DialogFlags.MODAL:
             self.set_modal(True)
         if flags & Gtk.DialogFlags.DESTROY_WITH_PARENT:
