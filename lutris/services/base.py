@@ -221,6 +221,11 @@ class BaseService:
         for the game content files."""
         return []
 
+    def get_dlc_installers_runner(self, db_game, runner, only_owned=True) -> list[dict[str, Any]]:
+        """Return DLC installers for requested runner
+        only_owned=True only return installers for owned DLC (default)"""
+        return []
+
     def get_extras_files(self, installer, selected_extras):
         """Download the selected extras for a game. Returns a list of InstallerFile objects.
 

@@ -2,6 +2,7 @@ import bisect
 import os
 import threading
 import time
+from collections.abc import Callable
 from typing import Any
 
 import requests
@@ -181,7 +182,7 @@ class Downloader:
             self.get_stats()
         return self.progress_fraction
 
-    def join(self, progress_callback=None):
+    def join(self, progress_callback: Callable[["Downloader"], None] | None = None) -> bool:
         """Blocks waiting for the download to complete.
 
         'progress_callback' is invoked repeatedly as the download
