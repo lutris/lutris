@@ -91,7 +91,6 @@ class AccountsBox(BaseConfigBox):
             label.set_markup(_("Not connected"))
         self.space_widget(label)
         label.set_hexpand(True)
-        label.set_vexpand(True)
         user_box.append(label)
 
         if user_info:
@@ -147,14 +146,12 @@ class AccountsBox(BaseConfigBox):
             radio_button.set_active(active_steam_account == steamid64)
             radio_button.connect("toggled", self.on_steam_account_toggled, steamid64)
             radio_button.set_hexpand(True)
-            radio_button.set_vexpand(True)
             self.accounts_box.append(radio_button)
             if not main_radio_button:
                 main_radio_button = radio_button
         if not steam_users:
             no_account_label = self.space_widget(Gtk.Label(label=_("No Steam account found"), visible=True))
             no_account_label.set_hexpand(True)
-            no_account_label.set_vexpand(True)
             self.accounts_box.append(no_account_label)
 
     def rebuild_lutris_options(self):
