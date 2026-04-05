@@ -85,7 +85,8 @@ class SidebarRow(Gtk.ListBoxRow):
             ellipsize=Pango.EllipsizeMode.END,
         )
         self.box.append(label)
-        self.btn_box = Gtk.Box(spacing=3, visible=False, valign=Gtk.Align.CENTER, homogeneous=True)
+        self.btn_box = Gtk.Box(spacing=3, valign=Gtk.Align.CENTER, homogeneous=True)
+        self.btn_box.set_opacity(0)
         self.box.append(self.btn_box)
         self.spinner = Gtk.Spinner(visible=False)
         self.box.append(self.spinner)
@@ -112,16 +113,16 @@ class SidebarRow(Gtk.ListBoxRow):
 
     def update_buttons(self):
         if self.is_updating:
-            self.btn_box.set_visible(False)
+            self.btn_box.set_opacity(0)
             self.spinner.set_visible(True)
             self.spinner.start()
             return
         self.spinner.stop()
         self.spinner.set_visible(False)
         if self.is_row_active():
-            self.btn_box.set_visible(True)
-        elif self.btn_box.get_visible():
-            self.btn_box.set_visible(False)
+            self.btn_box.set_opacity(1)
+        else:
+            self.btn_box.set_opacity(0)
 
     def create_button_box(self):
         """Adds buttons in the button box based on the row's actions"""
@@ -133,7 +134,9 @@ class SidebarRow(Gtk.ListBoxRow):
         for icon_name, text, clicked, key in self.get_actions():
             icon_name = pick_stock_icon(icon_name, fallback_name="preferences-system-symbolic")
             btn = Gtk.Button(tooltip_text=text, visible=True, has_frame=False)
+            btn.add_css_class("sidebar-btn")
             image = Gtk.Image.new_from_icon_name(icon_name)
+            image.set_pixel_size(16)
             btn.set_child(image)
             btn.connect("clicked", clicked)
             self.buttons[key] = btn
