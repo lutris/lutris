@@ -1,4 +1,5 @@
 import time
+from typing import TYPE_CHECKING
 
 from gi.repository import Gdk, GObject, Gtk
 
@@ -16,6 +17,12 @@ from lutris.util.path_cache import MISSING_GAMES
 
 class GameView:
     # pylint: disable=no-member
+
+    if TYPE_CHECKING:
+        # GameView is a mixin always used with Gtk.Widget subclasses;
+        # declare get_root so mypy can resolve it.
+        def get_root(self) -> Gtk.Root | None: ...
+
     __gsignals__ = {
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, (object,)),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
