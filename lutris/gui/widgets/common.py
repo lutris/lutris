@@ -19,6 +19,58 @@ from lutris.util.linux import LINUX_SYSTEM
 # we don't control this, so we'll suppress type checking.
 
 
+class KeyValueDropDown(Gtk.DropDown):
+    """A Gtk.DropDown that maps display labels to string IDs.
+
+    Replaces Gtk.ComboBox + Gtk.ListStore(str, str) + CellRendererText pattern.
+    Supports get_active_id()/set_active_id() for compatibility with existing code."""
+
+    __gsignals__ = {
+        "changed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
+
+    def __init__(self, **kwargs) -> None:
+        self._ids: list[str] = []
+        self._string_list = Gtk.StringList()
+        super().__init__(model=self._string_list, **kwargs)
+        self.connect("notify::selected", self._on_selected_changed)
+
+    def append(self, item_id: str, label: str) -> None:
+        self._ids.append(item_id)
+        self._string_list.append(label)
+
+    def clear(self) -> None:
+        self._ids.clear()
+        self._string_list.splice(0, self._string_list.get_n_items(), [])
+
+    def get_active_id(self) -> str | None:
+        pos = self.get_selected()
+        if pos == Gtk.INVALID_LIST_POSITION or pos >= len(self._ids):
+            return None
+        return self._ids[pos]
+
+    def set_active_id(self, item_id: str | None) -> bool:
+        if item_id is None:
+            self.set_selected(Gtk.INVALID_LIST_POSITION)
+            return True
+        try:
+            pos = self._ids.index(item_id)
+        except ValueError:
+            return False
+        self.set_selected(pos)
+        return True
+
+    def get_active_label(self) -> str | None:
+        pos = self.get_selected()
+        if pos == Gtk.INVALID_LIST_POSITION:
+            return None
+        item = self._string_list.get_string(pos)
+        return item
+
+    def _on_selected_changed(self, *_args):
+        self.emit("changed")
+
+
 class SlugEntry(Gtk.Entry, Gtk.Editable):  # type:ignore[misc]
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept alphanumeric and dashes"""
