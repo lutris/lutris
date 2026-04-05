@@ -33,9 +33,11 @@ class UpdatesBox(BaseConfigBox):
         self.append(self._get_framed_options_list_box([self.update_media_box]))
 
     def _get_radio_button(
-        self, label_markup: str, active: bool, group: Gtk.RadioButton, margin: int = 12
-    ) -> Gtk.RadioButton:
-        radio_button = Gtk.RadioButton.new_from_widget(group)
+        self, label_markup: str, active: bool, group: Gtk.CheckButton | None, margin: int = 12
+    ) -> Gtk.CheckButton:
+        radio_button = Gtk.CheckButton()
+        if group:
+            radio_button.set_group(group)
         radio_button.set_active(active)
         radio_button.set_margin_start(margin)
         radio_button.set_margin_end(margin)
@@ -118,7 +120,9 @@ class UpdatesBox(BaseConfigBox):
             if started:
                 update_box.show_running_markup(_("<i>Checking for updates...</i>"))
             else:
-                NoticeDialog(_("Updates are already being downloaded and installed."), parent=self.get_root())
+                root = self.get_root()
+                parent = root if isinstance(root, Gtk.Widget) else self
+                NoticeDialog(_("Updates are already being downloaded and installed."), parent=parent)
         else:
             update_box.show_completion_markup("", _("No updates are required at this time."))
 

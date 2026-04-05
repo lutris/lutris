@@ -281,7 +281,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
         else:
             return default
 
-    def update_option_container(self, option, container: Gtk.Container, wrapper: Gtk.Container) -> None:
+    def update_option_container(self, option, container: Gtk.Widget, wrapper: Gtk.Widget) -> None:
         super().update_option_container(option, container, wrapper)
         option_key = option["option"]
 
@@ -296,7 +296,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
             else:
                 set_option_wrapper_style_class(wrapper, None)
 
-    def create_option_container(self, option: dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Container:
+    def create_option_container(self, option: dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Widget:
         option_key = option["option"]
         reset_container = Gtk.Box(visible=True)
         reset_container.set_margin_start(18)
