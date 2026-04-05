@@ -645,7 +645,7 @@ class LutrisApplication(Gtk.Application):
             return 0
 
         if options.contains("submit-issue"):
-            IssueReportWindow(application=self)
+            IssueReportWindow(application=self).present()
             return 0
 
         url = options.lookup_value(GLib.OPTION_REMAINING)

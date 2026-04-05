@@ -152,6 +152,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             return
         move_dialog = MoveDialog(self.game, new_location.folder, parent=self)
         move_dialog.connect("game-moved", self.on_game_moved)
+        move_dialog.present()
         move_dialog.move()
 
     def on_game_moved(self, dialog: MoveDialog) -> None:

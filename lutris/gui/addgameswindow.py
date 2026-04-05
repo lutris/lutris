@@ -502,7 +502,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         else:
             application = Gio.Application.get_default()
             dialog = ImportGameDialog(paths, parent=application.window)
-            dialog.set_visible(True)
+            dialog.present()
             self.destroy()
 
     # Import Playtron Page
@@ -576,7 +576,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         # This does center the AddGameDialog over the main window, which
         # isn't terrible.
         application = Gio.Application.get_default()
-        AddGameDialog(parent=application.window)
+        AddGameDialog(parent=application.window).present()
         self.destroy()
 
     # Subtitle Label
