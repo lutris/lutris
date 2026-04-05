@@ -13,15 +13,21 @@ from typing import Any
 import requests
 
 # Third Party Libraries
-from gi.repository import GdkPixbuf, Gio, GLib, Gtk, Pango
+from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk, Pango
 
 # Lutris Modules
 from lutris import settings
 from lutris.game import Game
 from lutris.gui.config.boxes import AdvancedSettingsBox
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
-from lutris.gui.widgets.scaled_image import ScaledImage
-from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED, get_image_file_extension, open_uri
+from lutris.gui.widgets.utils import (
+    MEDIA_CACHE_INVALIDATED,
+    get_default_icon_path,
+    get_image_file_extension,
+    get_pixbuf_by_path,
+    get_required_pixbuf_by_path,
+    open_uri,
+)
 from lutris.runners import get_installed
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.services.service_media import resolve_media_path
@@ -37,7 +43,7 @@ class GameInfoBox(AdvancedSettingsBox):
     """Generate a vbox for the Game Info tab."""
 
     def __init__(self, parent_widget: Any, game: Game | None, **kwargs) -> None:
-        super().__init__(**kwargs)
+        super().__init__(spacing=6, margin_bottom=9, **kwargs)
         self.parent_widget = parent_widget
 
         self.game = game
@@ -63,8 +69,8 @@ class GameInfoBox(AdvancedSettingsBox):
 
         if self.game:
             centering_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            centering_container.set_halign(Gtk.Align.CENTER)
             banner_box = self._get_banner_box()
-            banner_box.set_hexpand(True)
             centering_container.append(banner_box)
             self.append(centering_container)  # Banner
             self._get_banner_entries()  # Cover Browse, Banner Browse, Icon Browse
@@ -109,7 +115,6 @@ class GameInfoBox(AdvancedSettingsBox):
         if self.game:
             self.name_entry.set_text(self.game.name)
         self.name_entry.set_hexpand(True)
-        self.name_entry.set_vexpand(True)
         box.append(self.name_entry)
         return box
 
@@ -124,7 +129,6 @@ class GameInfoBox(AdvancedSettingsBox):
             if self.game.sortname:
                 self.sortname_entry.set_text(self.game.sortname)
         self.sortname_entry.set_hexpand(True)
-        self.sortname_entry.set_vexpand(True)
         box.append(self.sortname_entry)
         return box
 
@@ -138,7 +142,6 @@ class GameInfoBox(AdvancedSettingsBox):
         if self.game:
             self.year_entry.set_text(str(self.game.year or ""))
         self.year_entry.set_hexpand(True)
-        self.year_entry.set_vexpand(True)
         box.append(self.year_entry)
 
         return box
@@ -153,7 +156,6 @@ class GameInfoBox(AdvancedSettingsBox):
         if self.game:
             self.playtime_entry.set_text(self.game.formatted_playtime)
         self.playtime_entry.set_hexpand(True)
-        self.playtime_entry.set_vexpand(True)
         box.append(self.playtime_entry)
 
         return box
@@ -174,7 +176,6 @@ class GameInfoBox(AdvancedSettingsBox):
         self.slug_entry.set_sensitive(False)
         self.slug_entry.connect("activate", self.on_slug_entry_activate)
         self.slug_entry.set_hexpand(True)
-        self.slug_entry.set_vexpand(True)
         slug_entry_box.append(self.slug_entry)
 
         self.slug_change_button = Gtk.Button(label=_("Change"))
@@ -182,7 +183,6 @@ class GameInfoBox(AdvancedSettingsBox):
         slug_entry_box.append(self.slug_change_button)
 
         slug_entry_box.set_hexpand(True)
-        slug_entry_box.set_vexpand(True)
         slug_box.append(slug_entry_box)
 
         return slug_box
@@ -197,7 +197,6 @@ class GameInfoBox(AdvancedSettingsBox):
             self.directory_entry.set_text(self.game.directory)
         self.directory_entry.set_sensitive(False)
         self.directory_entry.set_hexpand(True)
-        self.directory_entry.set_vexpand(True)
         box.append(self.directory_entry)
         move_button = Gtk.Button(label=_("Move"), visible=True)
         move_button.connect("clicked", self.parent_widget.on_move_clicked)
@@ -228,7 +227,6 @@ class GameInfoBox(AdvancedSettingsBox):
             label.set_xalign(0.0)
             label.set_valign(Gtk.Align.CENTER)
             label.set_hexpand(True)
-            label.set_vexpand(True)
             box.append(label)
             button = Gtk.Button(label=_("Reset"))
             button.connect("clicked", self.on_reset_preferred_launch_config_clicked, box)
@@ -254,7 +252,6 @@ class GameInfoBox(AdvancedSettingsBox):
         path_entry.set_tooltip_text(_("Path to the game config file (readonly)"))
         path_entry.set_sensitive(False)
         path_entry.set_hexpand(True)
-        path_entry.set_vexpand(True)
         box.append(path_entry)
 
         open_dir_button = Gtk.Button.new_from_icon_name("folder-symbolic")
@@ -288,7 +285,6 @@ class GameInfoBox(AdvancedSettingsBox):
 
         self.runner_dropdown = self._get_runner_dropdown()
         self.runner_dropdown.set_hexpand(True)
-        self.runner_dropdown.set_vexpand(True)
         runner_box.append(self.runner_dropdown)
 
         return runner_box
@@ -338,7 +334,6 @@ class GameInfoBox(AdvancedSettingsBox):
         path_entry.set_sensitive(False)
 
         path_entry.set_hexpand(True)
-        path_entry.set_vexpand(True)
         box.append(path_entry)
 
         open_button = Gtk.Button.new_from_icon_name("folder-symbolic")
@@ -360,16 +355,16 @@ class GameInfoBox(AdvancedSettingsBox):
         """This adds an image button and its reset button to the box given,
         and adds the image button to self.image_buttons for future reference."""
 
-        image_button_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        button_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        image_button_container = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER
+        )
+        button_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, halign=Gtk.Align.CENTER)
 
         image_button = Gtk.Button()
         self._set_image(image_type, image_button)
         image_button.set_valign(Gtk.Align.CENTER)
         image_button.set_tooltip_text(image_tooltip)
         image_button.connect("clicked", self.on_custom_image_select, image_type)
-        image_button.set_hexpand(True)
-        image_button.set_vexpand(True)
         image_button_container.append(image_button)
 
         reset_button = Gtk.Button.new_from_icon_name("edit-undo-symbolic")
@@ -377,7 +372,6 @@ class GameInfoBox(AdvancedSettingsBox):
         reset_button.set_tooltip_text(reset_tooltip)
         reset_button.connect("clicked", self.on_custom_image_reset_clicked, image_type)
         reset_button.set_valign(Gtk.Align.CENTER)
-        reset_button.set_hexpand(True)
         button_container.append(reset_button)
 
         download_button = Gtk.Button.new_from_icon_name("web-browser-symbolic")
@@ -385,7 +379,6 @@ class GameInfoBox(AdvancedSettingsBox):
         download_button.set_tooltip_text(download_tooltip)
         download_button.connect("clicked", self.on_custom_image_download_clicked, image_type)
         download_button.set_valign(Gtk.Align.CENTER)
-        download_button.set_hexpand(True)
         button_container.append(download_button)
 
         col = self._banner_column
@@ -396,13 +389,20 @@ class GameInfoBox(AdvancedSettingsBox):
         self.image_buttons[image_type] = image_button
 
     def _set_image(self, image_format, image_button):
-        scale_factor = self.get_scale_factor()
         service_media = self.service_medias[image_format]
         game_slug = self.slug or (self.game.slug if self.game else "")
         media_path = resolve_media_path(service_media.get_possible_media_paths(game_slug)).path
+        size = service_media.config_ui_size
         try:
-            image = ScaledImage.new_from_media_path(media_path, service_media.config_ui_size, scale_factor)
-            image_button.set_child(image)
+            pixbuf = get_pixbuf_by_path(media_path, size)
+            if not pixbuf:
+                default_icon = get_default_icon_path(size)
+                pixbuf = get_required_pixbuf_by_path(default_icon, size, preserve_aspect_ratio=False)
+            texture = Gdk.Texture.new_for_pixbuf(pixbuf)
+            picture = Gtk.Picture.new_for_paintable(texture)
+            picture.set_size_request(size[0], size[1])
+            picture.set_can_shrink(False)
+            image_button.set_child(picture)
         except Exception as ex:
             # We need to survive nasty data in the media files, so the user can replace
             # them.
