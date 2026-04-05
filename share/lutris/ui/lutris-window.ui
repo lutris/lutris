@@ -52,7 +52,7 @@
                 <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkRevealer" id="login_notification_revealer">
-                    <property name="transition-type">none</property>
+                    <property name="transition-type">slide-down</property>
                     <child>
                       <object class="GtkBox">
                         <child>
@@ -71,7 +71,7 @@
                 </child>
                 <child>
                   <object class="GtkRevealer" id="version_notification_revealer">
-                    <property name="transition-type">none</property>
+                    <property name="transition-type">slide-down</property>
                     <child>
                       <object class="GtkBox">
                         <property name="spacing">6</property>
