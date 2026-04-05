@@ -101,7 +101,7 @@ class ConfigBox(AdvancedSettingsBox):
         help_box = Gtk.Box()
         help_box.set_margin_start(15)
         help_box.set_margin_end(15)
-        help_box.set_margin_bottom(5)
+        help_box.set_margin_bottom(12)
 
         icon = Gtk.Image.new_from_icon_name("dialog-information")
         icon.set_margin_start(5)
@@ -117,7 +117,9 @@ class ConfigBox(AdvancedSettingsBox):
         help_box.append(title_label)
 
         self.append(help_box)
-        self.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
+        separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        separator.set_margin_bottom(6)
+        self.append(separator)
 
     def get_widget_generator(self) -> "ConfigWidgetGenerator":
         """Returns an object that creates option widgets and tracks them; this is
@@ -299,7 +301,6 @@ class ConfigWidgetGenerator(WidgetGenerator):
         reset_container = Gtk.Box(visible=True)
         reset_container.set_margin_start(18)
         wrapper.set_hexpand(True)
-        wrapper.set_vexpand(True)
         reset_container.append(wrapper)
 
         reset_button = Gtk.Button.new_from_icon_name("edit-undo-symbolic")
