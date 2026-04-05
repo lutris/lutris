@@ -72,6 +72,7 @@ button.sidebar-btn {
 .smallcheckbox check {
   min-width: 8px;
   min-height: 8px;
+  -gtk-icon-size: 8px;
   border-bottom-left-radius: 2px;
   border-bottom-right-radius: 2px;
   border-top-left-radius: 2px;
@@ -84,9 +85,12 @@ button.sidebar-btn {
 }
 
 .cuddledcheckbox check {
-  margin-left: 0px;
+  margin: 0px;
+  margin-right: -2px;
+  padding: 0px;
 }
 
 .cuddledcheckbox label {
-  margin-right: 0px;
+  margin: 0px;
+  padding: 0px;
 }
