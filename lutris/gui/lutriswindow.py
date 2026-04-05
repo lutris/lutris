@@ -225,6 +225,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         actions = {
             "add-game": Action(self.on_add_game_button_clicked),
+            "manage-profiles": Action(self.on_manage_profiles_activate),
             "preferences": Action(self.on_preferences_activate),
             "about": Action(self.on_about_clicked),
             "show-installed-only": Action(  # delete?
@@ -1205,6 +1206,16 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     @GtkTemplate.Callback
     def on_show(self, *_args):
         self.restore_window_position()
+
+    def on_manage_profiles_activate(self, *_args):
+        """Open the profile management dialog."""
+        from lutris.gui.dialogs.profile_dialog import ProfileDialog
+
+        dialog = ProfileDialog(parent=self)
+        dialog.run()
+        dialog.destroy()
+        # Reload the game list so that playtime/lastplayed reflect the new profile
+        self.refresh_view()
 
     @GtkTemplate.Callback
     def on_preferences_activate(self, *_args):

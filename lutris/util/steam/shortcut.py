@@ -89,38 +89,52 @@ def create_shortcut(game: "Game", launch_config_name: str, standalone: bool = Fa
         logger.warning("Not updating shortcut for Steam game")
         return None
     logger.info("Creating Steam shortcut for %s", game)
-    shortcut_path = get_shortcuts_vdf_path()
-    if os.path.exists(shortcut_path):
-        with open(shortcut_path, "rb") as shortcut_file:
-            shortcuts = vdf.binary_loads(shortcut_file.read())["shortcuts"].values()
-    else:
-        shortcuts = []
+    userdatapath, user_ids = get_user_data_dirs()
+    if not user_ids:
+        logger.warning("No Steam user data dirs found, cannot create shortcut")
+        return
 
     if standalone:
-        shortcuts = list(shortcuts) + [generate_standalone_shortcut(game, launch_config_name)]
+        new_entry = generate_standalone_shortcut(game, launch_config_name)
     else:
-        shortcuts = list(shortcuts) + [generate_shortcut(game, launch_config_name)]
+        new_entry = generate_shortcut(game, launch_config_name)
 
-    updated_shortcuts = {"shortcuts": {str(index): elem for index, elem in enumerate(shortcuts)}}
-    with open(shortcut_path, "wb") as shortcut_file:
-        shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
-    set_artwork(game)
+    for user_id in user_ids:
+        config_path = os.path.join(userdatapath, user_id, "config")
+        shortcut_path = os.path.join(config_path, "shortcuts.vdf")
+        if os.path.exists(shortcut_path):
+            with open(shortcut_path, "rb") as shortcut_file:
+                shortcuts = list(vdf.binary_loads(shortcut_file.read())["shortcuts"].values())
+            if any(matches_id(s, game) for s in shortcuts):
+                logger.debug("Shortcut for %s already exists for Steam user %s", game, user_id)
+                continue
+        else:
+            shortcuts = []
+        shortcuts.append(new_entry)
+        os.makedirs(config_path, exist_ok=True)
+        updated_shortcuts = {"shortcuts": {str(i): s for i, s in enumerate(shortcuts)}}
+        with open(shortcut_path, "wb") as shortcut_file:
+            shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
+        logger.info("Added shortcut for %s to Steam user %s", game, user_id)
+        _set_artwork_for_user(game, config_path)
 
 
 def remove_shortcut(game: "Game") -> None:
     logger.info("Removing Steam shortcut for %s", game)
-    shortcut_path = get_shortcuts_vdf_path()
-    if not shortcut_path or not os.path.exists(shortcut_path):
-        return None
-    with open(shortcut_path, "rb") as shortcut_file:
-        shortcuts = vdf.binary_loads(shortcut_file.read())["shortcuts"].values()
-    other_shortcuts = [s for s in shortcuts if not matches_id(s, game)]
-    # Quit early if no shortcut is removed
-    if len(shortcuts) == len(other_shortcuts):
-        return None
-    updated_shortcuts = {"shortcuts": {str(index): elem for index, elem in enumerate(other_shortcuts)}}
-    with open(shortcut_path, "wb") as shortcut_file:
-        shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
+    userdatapath, user_ids = get_user_data_dirs()
+    for user_id in user_ids:
+        shortcut_path = os.path.join(userdatapath, user_id, "config", "shortcuts.vdf")
+        if not os.path.exists(shortcut_path):
+            continue
+        with open(shortcut_path, "rb") as shortcut_file:
+            shortcuts = list(vdf.binary_loads(shortcut_file.read())["shortcuts"].values())
+        other_shortcuts = [s for s in shortcuts if not matches_id(s, game)]
+        if len(shortcuts) == len(other_shortcuts):
+            continue
+        updated_shortcuts = {"shortcuts": {str(i): s for i, s in enumerate(other_shortcuts)}}
+        with open(shortcut_path, "wb") as shortcut_file:
+            shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
+        logger.info("Removed shortcut for %s from Steam user %s", game, user_id)
 
 
 def generate_preliminary_id(game: "Game") -> int:
@@ -204,13 +218,10 @@ def is_flatpak_lutris() -> bool:
     return shutil.which("lutris") == "/app/bin/lutris"
 
 
-def set_artwork(game: "Game") -> None:
-    config_path = get_config_path()
-    if not config_path:
-        return None
+def _set_artwork_for_user(game: "Game", config_path: str) -> None:
+    """Copy game artwork into a specific Steam user's grid directory."""
     artwork_path = os.path.join(config_path, "grid")
-    if not os.path.exists(artwork_path):
-        os.makedirs(artwork_path)
+    os.makedirs(artwork_path, exist_ok=True)
     shortcut_id = generate_appid(game)
     source_cover = resources.get_cover_path(game.slug)
     source_banner = resources.get_banner_path(game.slug)
@@ -228,3 +239,10 @@ def set_artwork(game: "Game") -> None:
                 logger.debug("Copied %s %s asset to %s", game, name, target)
             except FileNotFoundError as ex:
                 logger.error("Failed to copy %s %s asset to %s: %s", game, name, target, ex)
+
+
+def set_artwork(game: "Game") -> None:
+    config_path = get_config_path()
+    if not config_path:
+        return
+    _set_artwork_for_user(game, config_path)

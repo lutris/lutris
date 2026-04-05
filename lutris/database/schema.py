@@ -67,6 +67,20 @@ DATABASE: dict[str, DBSchema] = {
         {"name": "name", "type": "TEXT", "unique": True},
         {"name": "search", "type": "TEXT", "unique": False},
     ],
+    "profiles": [
+        {"name": "id", "type": "TEXT", "indexed": True},
+        {"name": "name", "type": "TEXT"},
+        {"name": "icon", "type": "TEXT"},
+        {"name": "created_at", "type": "INTEGER"},
+        {"name": "steam_id", "type": "TEXT"},
+    ],
+    "profile_game_stats": [
+        {"name": "id", "type": "INTEGER", "indexed": True},
+        {"name": "profile_id", "type": "TEXT"},
+        {"name": "game_id", "type": "INTEGER"},
+        {"name": "playtime", "type": "REAL"},
+        {"name": "lastplayed", "type": "INTEGER"},
+    ],
 }
 
 

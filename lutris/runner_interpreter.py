@@ -147,6 +147,45 @@ def _get_gamescope_fsr_option():
     return ["-U"]
 
 
+def _make_dynamic_wineprefix(prefix_path: str) -> str:
+    """Return a shell expression that resolves WINEPREFIX at runtime.
+
+    When *prefix_path* is inside a Lutris profile directory, replace the
+    hardcoded profile id with a Python one-liner that reads loginusers.vdf
+    and picks the profile linked to the active Steam account.  This makes
+    the generated script work correctly for all users without needing to be
+    regenerated.
+    """
+    import re
+
+    profiles_root = os.path.expanduser("~/.local/share/lutris/profiles/")
+    if not prefix_path.startswith(profiles_root):
+        return f'"{prefix_path}"'
+
+    # Extract game slug: profiles/{profile_id}/wine-prefixes/{slug}
+    rest = prefix_path[len(profiles_root) :]
+    m = re.match(r"[^/]+/wine-prefixes/(.+)$", rest)
+    if not m:
+        return f'"{prefix_path}"'
+
+    game_slug = m.group(1)
+    fallback = f"{profiles_root}default/wine-prefixes/{game_slug}"
+    return (
+        '"$(python3 -c "\n'
+        "from lutris.util.steam.config import get_steam_users\n"
+        "from lutris.database.profiles import get_profile_by_steam_id\n"
+        "import os\n"
+        "users = get_steam_users()\n"
+        "profile_id = 'default'\n"
+        "if users:\n"
+        "    p = get_profile_by_steam_id(users[0].get('steamid64', ''))\n"
+        "    if p:\n"
+        "        profile_id = p['id']\n"
+        f"print(os.path.expanduser(f'~/.local/share/lutris/profiles/{{profile_id}}/wine-prefixes/{game_slug}'))\n"
+        f'" 2>/dev/null || echo "{fallback}")"'
+    )
+
+
 def export_bash_script(runner, gameplay_info, script_path):
     """Convert runner configuration into a bash script"""
     runner.prelaunch()
@@ -158,7 +197,10 @@ def export_bash_script(runner, gameplay_info, script_path):
     script_content += "# Environment variables\n"
 
     for name, value in env.items():
-        script_content += 'export %s="%s"\n' % (name, value)
+        if name == "WINEPREFIX":
+            script_content += "export %s=%s\n" % (name, _make_dynamic_wineprefix(value))
+        else:
+            script_content += 'export %s="%s"\n' % (name, value)
 
     if "working_dir" in gameplay_info:
         script_content += "\n# Working Directory\n"
