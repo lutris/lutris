@@ -9,7 +9,7 @@ from lutris.config import LutrisConfig
 from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.dialogs import ErrorDialog, ModelessDialog
 from lutris.gui.dialogs.game_import import ImportGameDialog
-from lutris.gui.widgets.common import FileChooserEntry
+from lutris.gui.widgets.common import FileChooserEntry, KeyValueDropDown
 from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.installer import AUTO_WIN32_EXE, get_installers
 from lutris.scanners import playtron as playtron_scanner
@@ -126,10 +126,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         focus_controller = Gtk.EventControllerFocus()
         focus_controller.connect("leave", self.on_install_from_setup_game_slug_entry_focus_out)
         self.install_from_setup_game_slug_entry.add_controller(focus_controller)
-        self.installer_presets = Gtk.ListStore(str, str)
-        self.install_preset_dropdown = Gtk.ComboBox.new_with_model(self.installer_presets)
-        self.installer_locale = Gtk.ListStore(str, str)
-        self.install_locale_dropdown = Gtk.ComboBox.new_with_model(self.installer_locale)
+        self.install_preset_dropdown = KeyValueDropDown()
+        self.install_locale_dropdown = KeyValueDropDown()
 
         self.install_script_file_chooser = FileChooserEntry(title=_("Select script"), action=Gtk.FileChooserAction.OPEN)
 
@@ -333,19 +331,15 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         preset_label = Gtk.Label(label=_("Installer preset:"), visible=True)
         grid.attach(preset_label, 0, 3, 1, 1)
 
-        self.installer_presets.append(["win11", _("Windows 11 64-bit")])
-        self.installer_presets.append(["win10", _("Windows 10 64-bit (Default)")])
-        self.installer_presets.append(["win7", _("Windows 7 64-bit")])
+        self.install_preset_dropdown.append("win11", _("Windows 11 64-bit"))
+        self.install_preset_dropdown.append("win10", _("Windows 10 64-bit (Default)"))
+        self.install_preset_dropdown.append("win7", _("Windows 7 64-bit"))
 
         wine_version = LutrisConfig(runner_slug="wine").runner_config.get("version")
         if wine_version != GE_PROTON_LATEST and not is_proton_version(wine_version):
-            self.installer_presets.append(["winxp", _("Windows XP 32-bit")])
-            self.installer_presets.append(["win98", _("Windows 98 32-bit")])
+            self.install_preset_dropdown.append("winxp", _("Windows XP 32-bit"))
+            self.install_preset_dropdown.append("win98", _("Windows 98 32-bit"))
 
-        renderer_text = Gtk.CellRendererText()
-        self.install_preset_dropdown.pack_start(renderer_text, True)
-        self.install_preset_dropdown.add_attribute(renderer_text, "text", 1)
-        self.install_preset_dropdown.set_id_column(0)
         self.install_preset_dropdown.set_active_id("win10")
 
         grid.attach(self.install_preset_dropdown, 1, 3, 1, 1)
@@ -357,13 +351,9 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         locale_list = sysoptions.get_locale_choices()
         for locale_humanized, locale in locale_list:
-            self.installer_locale.append([locale, _(locale_humanized)])
+            self.install_locale_dropdown.append(locale, _(locale_humanized))
 
-        locale_renderer_text = Gtk.CellRendererText()
-        self.install_locale_dropdown.pack_start(locale_renderer_text, True)
-        self.install_locale_dropdown.add_attribute(locale_renderer_text, "text", 1)
-        self.install_locale_dropdown.set_id_column(0)
-        self.install_locale_dropdown.set_active(0)
+        self.install_locale_dropdown.set_selected(0)
 
         grid.attach(self.install_locale_dropdown, 1, 4, 1, 1)
         self.install_locale_dropdown.set_halign(Gtk.Align.START)
@@ -402,7 +392,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         else:
             game_slug = slugify(name)
 
-        installer_preset = self.installer_presets[self.install_preset_dropdown.get_active()][0]
+        installer_preset = self.install_preset_dropdown.get_active_id() or "win10"
         arch = "win32" if installer_preset.startswith(("win98", "winxp")) else "win64"
         win_ver = installer_preset.split("-")[0]
         if win_ver != "win10":
@@ -410,7 +400,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         else:
             win_ver_task = None
 
-        locale_selected = self.installer_locale[self.install_locale_dropdown.get_active()][0]
+        locale_selected = self.install_locale_dropdown.get_active_id() or ""
 
         installer = {
             "name": name,
