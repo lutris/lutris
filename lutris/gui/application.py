@@ -352,7 +352,7 @@ class LutrisApplication(Gtk.Application):
             self.window = LutrisWindow(application=self)
             display = Gdk.Display.get_default()
             Gtk.StyleContext.add_provider_for_display(
-                display, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+                display, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER
             )
 
     def start_runtime_updates(self) -> None:
