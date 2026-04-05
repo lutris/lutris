@@ -13,13 +13,13 @@ from typing import Any
 import requests
 
 # Third Party Libraries
-from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk, Pango
+from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
 
 # Lutris Modules
 from lutris import settings
 from lutris.game import Game
 from lutris.gui.config.boxes import AdvancedSettingsBox
-from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
+from lutris.gui.widgets.common import KeyValueDropDown, Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.utils import (
     MEDIA_CACHE_INVALIDATED,
     get_default_icon_path,
@@ -54,7 +54,7 @@ class GameInfoBox(AdvancedSettingsBox):
         self.name_entry: Gtk.Entry = None
         self.sortname_entry: Gtk.Entry = None
         self.runner_dropdown = None
-        self.runner_index = None
+        self.runner_id: str | None = None
         self.slug_entry = None
         self.slug_change_button = None
         self.directory_entry = None
@@ -409,33 +409,15 @@ class GameInfoBox(AdvancedSettingsBox):
             logger.exception("Unable to load media '%s': %s", image_format, ex)
 
     def _get_runner_dropdown(self):
-        runner_liststore = self._get_runner_liststore()
-        runner_dropdown = Gtk.ComboBox.new_with_model(runner_liststore)
-        runner_dropdown.set_id_column(1)
-        runner_index = 0
-        if self.parent_widget.runner_name:
-            for runner in runner_liststore:
-                if self.parent_widget.runner_name == str(runner[1]):
-                    break
-                runner_index += 1
-        self.runner_index = runner_index
-        runner_dropdown.set_active(self.runner_index)
-        runner_dropdown.connect("changed", self.parent_widget.on_runner_changed)
-        cell = Gtk.CellRendererText()
-        cell.props.ellipsize = Pango.EllipsizeMode.END
-        runner_dropdown.pack_start(cell, True)
-        runner_dropdown.add_attribute(cell, "text", 0)
-        return runner_dropdown
-
-    @staticmethod
-    def _get_runner_liststore():
-        """Build a ListStore with available runners."""
-        runner_liststore = Gtk.ListStore(str, str)
-        runner_liststore.append((_("Select a runner from the list"), ""))
+        runner_dropdown = KeyValueDropDown()
+        runner_dropdown.append("", _("Select a runner from the list"))
         for runner in get_installed():
-            description = runner.description
-            runner_liststore.append(("%s (%s)" % (runner.human_name, description), runner.name))
-        return runner_liststore
+            runner_dropdown.append(runner.name, "%s (%s)" % (runner.human_name, runner.description))
+
+        self.runner_id = self.parent_widget.runner_name or ""
+        runner_dropdown.set_active_id(self.runner_id)
+        runner_dropdown.connect("changed", self.parent_widget.on_runner_changed)
+        return runner_dropdown
 
     def on_slug_change_clicked(self, widget):
         if not self.slug_entry:

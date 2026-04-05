@@ -12,6 +12,7 @@ from lutris.database import saved_searches
 from lutris.database.saved_searches import SavedSearch
 from lutris.exceptions import InvalidSearchTermError
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
+from lutris.gui.widgets.common import KeyValueDropDown
 from lutris.gui.widgets.utils import has_stock_icon
 from lutris.search import FLAG_TEXTS, GameSearch
 from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
@@ -264,21 +265,13 @@ class SearchFiltersBox(Gtk.Box):
         checkbox.connect("toggled", on_checkbox_toggled)
 
     def _create_combobox(self, options):
-        liststore = Gtk.ListStore(str, str)
-
-        for option in options:
-            liststore.append(option)
-
-        combobox = Gtk.ComboBox.new_with_model(liststore)
-        combobox.set_entry_text_column(0)
-        combobox.set_id_column(1)
-        combobox.set_halign(Gtk.Align.START)
-        combobox.set_valign(Gtk.Align.CENTER)
-        combobox.set_size_request(240, -1)
-        renderer_text = Gtk.CellRendererText()
-        combobox.pack_start(renderer_text, True)
-        combobox.add_attribute(renderer_text, "text", 0)
-        return combobox
+        dropdown = KeyValueDropDown()
+        dropdown.set_halign(Gtk.Align.START)
+        dropdown.set_valign(Gtk.Align.CENTER)
+        dropdown.set_size_request(240, -1)
+        for label, item_id in options:
+            dropdown.append(item_id, label)
+        return dropdown
 
     @property
     def search_name(self):
