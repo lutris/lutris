@@ -63,9 +63,9 @@ class WidgetGenerator(ABC):
         self.warning_messages: list[Gtk.Widget] = []
 
         # These accumulate results across all widgets
-        self.wrappers: dict[str, Gtk.Container] = {}
+        self.wrappers: dict[str, Gtk.Widget] = {}
         self.section_frames: list[SectionFrame] = []
-        self.option_containers: dict[str, Gtk.Container] = {}
+        self.option_containers: dict[str, Gtk.Widget] = {}
 
         self._generators: dict[str, WidgetGenerator.GeneratorFunction] = {
             "label": self._generate_label,
@@ -238,7 +238,7 @@ class WidgetGenerator(ABC):
 
         return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin_bottom=6, visible=True)
 
-    def create_option_container(self, option: dict[str, Any], wrapper: Gtk.Container) -> Gtk.Container:
+    def create_option_container(self, option: dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Widget:
         """This creates a wrapper box around the widget wrapper, to support additional controls. The
         base implementation wraps 'wrapper' in a Box with the error and warning widgets; if
         there are none it just returns 'wrapper'."""
@@ -299,7 +299,7 @@ class WidgetGenerator(ABC):
             visible = frame.has_visible_children()
             frame.set_visible(visible)
 
-    def update_option_container(self, option, container: Gtk.Container, wrapper: Gtk.Container):
+    def update_option_container(self, option, container: Gtk.Widget, wrapper: Gtk.Widget):
         """This method updates an option container and its wrapper; this re-evaluates the
         relevant options in case they contain callables and those callables return different
         results."""

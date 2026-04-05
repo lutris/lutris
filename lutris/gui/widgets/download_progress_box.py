@@ -93,7 +93,8 @@ class DownloadProgressBox(Gtk.Box):
         try:
             downloader = self.downloader
         except RuntimeError as ex:
-            display_error(ex, parent=self.get_root())
+            root = self.get_root()
+            display_error(ex, parent=root if isinstance(root, Gtk.Widget) else self)
             self.emit("cancel")
             return None
 

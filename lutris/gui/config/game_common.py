@@ -334,7 +334,10 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.runner_name = None
             self.lutris_config = None
         else:
-            runner_name = widget.get_model()[new_runner_index][1]
+            model = widget.get_model()
+            if not model:
+                return
+            runner_name = model[new_runner_index][1]
             if runner_name == self.runner_name:
                 logger.debug("Runner unchanged, not creating a new config")
                 return
