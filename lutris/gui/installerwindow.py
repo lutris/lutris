@@ -111,14 +111,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         # Menu buttons
         menu_icon = Gtk.Image.new_from_icon_name("open-menu-symbolic")
         self.menu_button = Gtk.MenuButton(child=menu_icon)
-        self.menu_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True, halign=Gtk.Align.END)
-        self.menu_box.set_margin_top(9)
-        self.menu_box.set_margin_bottom(9)
-        self.menu_box.set_margin_start(9)
-        self.menu_box.set_margin_end(9)
-        self.menu_box.set_spacing(3)
-        self.menu_box.set_can_focus(False)
-        self.menu_button.set_popover(Gtk.Popover(child=self.menu_box, can_focus=False))
+        self.menu_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+        self.menu_button.set_popover(Gtk.Popover(child=self.menu_box))
         self.get_header_bar().pack_end(self.menu_button)
 
         self.cache_button = self.add_menu_button(
@@ -192,11 +186,12 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def add_menu_button(self, label, handler=None, tooltip=None, sensitive=True):
         """Add a button to the menu in the header bar"""
         button = Gtk.Button(label=label)
-        button.add_css_class("flat")
+        button.set_has_frame(False)
         button.set_halign(Gtk.Align.FILL)
+        button.add_css_class("popover-menu-button")
         child = button.get_child()
         if child and isinstance(child, Gtk.Label):
-            child.set_xalign(0.0)
+            child.set_halign(Gtk.Align.START)
         button.set_sensitive(sensitive)
         if tooltip:
             button.set_tooltip_text(tooltip)
@@ -575,7 +570,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self.on_extras_ready()
 
     def create_extras_page(self):
-        treeview = Gtk.TreeView(self.extras_tree_store)
+        treeview = Gtk.TreeView(model=self.extras_tree_store)
         treeview.set_headers_visible(False)
         treeview.expand_all()
         renderer_toggle = Gtk.CellRendererToggle()
