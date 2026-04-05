@@ -518,30 +518,38 @@ class InputDialog(ModalDialog):
 
     def __init__(self, dialog_settings):
         super().__init__(parent=dialog_settings["parent"])
-        self.set_margin_top(12)
-        self.set_margin_bottom(12)
-        self.set_margin_start(12)
-        self.set_margin_end(12)
         self.user_value = ""
-        self.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
+        cancel_button = self.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
+        cancel_button.set_size_request(100, -1)
         self.ok_button = self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
+        self.ok_button.set_size_request(100, -1)
         self.set_default_response(Gtk.ResponseType.OK)
         self.ok_button.set_sensitive(False)
+
+        action_area = cancel_button.get_parent()
+        action_area.set_spacing(6)
+        action_area.set_margin_top(6)
+        action_area.set_margin_bottom(6)
+        action_area.set_margin_start(12)
+        action_area.set_margin_end(12)
         self.set_title(dialog_settings["title"])
+
+        content = self.get_content_area()
+        content.set_margin_top(12)
+        content.set_margin_bottom(12)
+        content.set_margin_start(12)
+        content.set_margin_end(12)
+        content.set_spacing(12)
+
         label = Gtk.Label()
         label.set_markup(dialog_settings["question"])
         label.set_hexpand(True)
-        label.set_vexpand(True)
-        label.set_margin_top(12)
-        label.set_margin_bottom(12)
-        self.get_content_area().append(label)
+        content.append(label)
+
         self.entry = Gtk.Entry(activates_default=True)
         self.entry.connect("changed", self.on_entry_changed)
         self.entry.set_hexpand(True)
-        self.entry.set_vexpand(True)
-        self.entry.set_margin_top(12)
-        self.entry.set_margin_bottom(12)
-        self.get_content_area().append(self.entry)
+        content.append(self.entry)
         self.entry.set_text(dialog_settings.get("initial_value") or "")
 
     def on_entry_changed(self, widget):
