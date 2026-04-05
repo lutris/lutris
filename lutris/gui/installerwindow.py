@@ -277,7 +277,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             on_cancelled()
 
     def on_source_clicked(self, _button):
-        InstallerSourceDialog(self.interpreter.installer.script_pretty, self.interpreter.installer.game_name, self)
+        dialog = InstallerSourceDialog(
+            self.interpreter.installer.script_pretty, self.interpreter.installer.game_name, self
+        )
+        dialog.present()
 
     def on_signal_error(self, error):
         self._handle_callback_error(error)
