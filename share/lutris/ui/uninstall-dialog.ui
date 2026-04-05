@@ -23,14 +23,19 @@
           </object>
         </child>
         <child>
-          <object class="GtkScrolledWindow">
-            <property name="hscrollbar-policy">never</property>
+          <object class="GtkFrame">
             <property name="vexpand">True</property>
             <child>
-              <object class="GtkViewport">
+              <object class="GtkScrolledWindow">
+                <property name="hscrollbar-policy">never</property>
+                <property name="vexpand">True</property>
                 <child>
-                  <object class="GtkListBox" id="uninstall_game_list">
-                    <property name="selection-mode">none</property>
+                  <object class="GtkViewport">
+                    <child>
+                      <object class="GtkListBox" id="uninstall_game_list">
+                        <property name="selection-mode">none</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
