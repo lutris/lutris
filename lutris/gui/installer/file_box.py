@@ -6,7 +6,7 @@ from gettext import gettext as _
 from gi.repository import GObject, Gtk
 
 from lutris.gui.installer.widgets import InstallerLabel
-from lutris.gui.widgets.common import FileChooserEntry
+from lutris.gui.widgets.common import FileChooserEntry, KeyValueDropDown
 from lutris.gui.widgets.utils import get_widget_children
 from lutris.installer.installer_file_collection import InstallerFileCollection
 from lutris.installer.steam_installer import SteamInstaller
@@ -89,29 +89,20 @@ class InstallerFileBox(Gtk.Box):
             return steam_box
         raise ValueError("Invalid provider %s" % self.provider)
 
-    def get_combobox_model(self):
-        """ "Return the combobox's model"""
-        model = Gtk.ListStore(str, str)
-        if "download" in self.installer_file.providers:
-            model.append(["download", _("Download")])
-        if "pga" in self.installer_file.providers:
-            model.append(["pga", _("Use Cache")])
-        if "steam" in self.installer_file.providers:
-            model.append(["steam", _("Steam")])
-        if not (isinstance(self.installer_file, InstallerFileCollection) and self.installer_file.service == "amazon"):
-            model.append(["user", _("Select File")])
-        return model
-
     def get_combobox(self):
-        """Return the combobox widget to select file source"""
-        combobox = Gtk.ComboBox.new_with_model(self.get_combobox_model())
-        combobox.set_id_column(0)
-        renderer_text = Gtk.CellRendererText()
-        combobox.pack_start(renderer_text, True)
-        combobox.add_attribute(renderer_text, "text", 1)
-        combobox.connect("changed", self.on_source_changed)
-        combobox.set_active_id(self.provider)
-        return combobox
+        """Return the dropdown widget to select file source"""
+        dropdown = KeyValueDropDown()
+        if "download" in self.installer_file.providers:
+            dropdown.append("download", _("Download"))
+        if "pga" in self.installer_file.providers:
+            dropdown.append("pga", _("Use Cache"))
+        if "steam" in self.installer_file.providers:
+            dropdown.append("steam", _("Steam"))
+        if not (isinstance(self.installer_file, InstallerFileCollection) and self.installer_file.service == "amazon"):
+            dropdown.append("user", _("Select File"))
+        dropdown.connect("changed", self.on_source_changed)
+        dropdown.set_active_id(self.provider)
+        return dropdown
 
     def replace_file_provider_widget(self):
         """Replace the file provider label and the source button with the actual widget"""
@@ -127,13 +118,11 @@ class InstallerFileBox(Gtk.Box):
         self.file_provider_widget.set_hexpand(True)
         widget_box.prepend(self.file_provider_widget)
 
-    def on_source_changed(self, combobox):
+    def on_source_changed(self, dropdown):
         """Change the source to a new provider, emit a new state"""
-        tree_iter = combobox.get_active_iter()
-        if tree_iter is None:
+        source = dropdown.get_active_id()
+        if source is None:
             return
-        model = combobox.get_model()
-        source = model[tree_iter][0]
         if source == self.provider:
             return
         self.provider = source

@@ -23,7 +23,7 @@ from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED
 from lutris.gui.installer.files_box import InstallerFilesBox
 from lutris.gui.installer.script_picker import InstallerPicker
 from lutris.gui.widgets import NotificationSource
-from lutris.gui.widgets.common import FileChooserEntry
+from lutris.gui.widgets.common import FileChooserEntry, KeyValueDropDown
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.gui.widgets.utils import get_main_window
@@ -830,17 +830,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
                     # to run, so we'll go to error page.
                     self.load_error_page(err)
 
-            model = Gtk.ListStore(str, str)
-
+            combobox = KeyValueDropDown()
             for option in options:
                 key, label = option.popitem()
-                model.append([key, label])
-
-            combobox = Gtk.ComboBox.new_with_model(model)
-            renderer_text = Gtk.CellRendererText()
-            combobox.pack_start(renderer_text, True)
-            combobox.add_attribute(renderer_text, "text", 1)
-            combobox.set_id_column(0)
+                combobox.append(key, label)
             combobox.set_halign(Gtk.Align.CENTER)
             combobox.set_valign(Gtk.Align.START)
             combobox.set_active_id(preselect)
