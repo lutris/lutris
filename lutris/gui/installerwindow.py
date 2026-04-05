@@ -406,7 +406,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def create_choose_installer_page(self):
         installer_picker = InstallerPicker(self.installers)
         installer_picker.connect("installer-selected", self.on_installer_selected)
-        return Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=installer_picker)
+        scrolled = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=installer_picker)
+        frame = Gtk.Frame(child=scrolled)
+        return frame
 
     def present_choose_installer_page(self):
         """Stage where we choose an install script."""
@@ -599,12 +601,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         label_column.set_property("min-width", 80)
         treeview.append_column(label_column)
 
-        return Gtk.ScrolledWindow(
-            hexpand=True,
-            vexpand=True,
-            child=treeview,
-            visible=True,
-        )
+        scrolled = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=treeview)
+        frame = Gtk.Frame(child=scrolled)
+        return frame
 
     def present_extras_page(self):
         """Show installer screen with the extras picker"""
@@ -700,12 +699,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.stack.navigate_to_page(self.present_installer_files_page)
 
     def create_installer_files_page(self):
-        return Gtk.ScrolledWindow(
-            hexpand=True,
-            vexpand=True,
-            child=self.installer_files_box,
-            visible=True,
-        )
+        scrolled = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=self.installer_files_box)
+        frame = Gtk.Frame(child=scrolled)
+        return frame
 
     def present_installer_files_page(self):
         """Show installer screen with the file picker / downloader"""
@@ -806,7 +802,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def create_log_page(self):
         log_textview = LogTextView(self.log_buffer)
-        return Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=log_textview)
+        scrolled = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=log_textview)
+        frame = Gtk.Frame(child=scrolled)
+        return frame
 
     def present_log_page(self):
         """Creates a TextBuffer and attach it to a command"""
