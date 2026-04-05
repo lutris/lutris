@@ -203,6 +203,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def on_cache_clicked(self, _button):
         """Open the cache configuration dialog"""
+        popover = self.menu_button.get_popover()
+        if popover:
+            popover.popdown()
         CacheConfigurationDialog(parent=self)
 
     def on_response(self, dialog, response: Gtk.ResponseType) -> None:
