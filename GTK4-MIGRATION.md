@@ -31,6 +31,7 @@ make mypy-reset-baseline
 |---|---|---|
 | `Gtk.Container` | `Gtk.Widget` | All container methods moved to `Gtk.Widget` |
 | `Gtk.RadioButton` | `Gtk.CheckButton` + `set_group()` | Create with `Gtk.CheckButton()`, then call `set_group(other)` to link |
+| `Gtk.ComboBox` | `Gtk.DropDown` / `KeyValueDropDown` | See section below |
 
 ## Removed APIs (common patterns)
 
@@ -52,6 +53,47 @@ make mypy-reset-baseline
 | `Gtk.Menu` | `Gtk.PopoverMenu` + `Gio.Menu` |
 | Stock labels (`gtk-save`) | Named icons (`document-save-symbolic`) |
 | `Gtk.Dialog(parent=window)` | `Gtk.Dialog()` + `set_transient_for(window)` |
+
+## ComboBox to DropDown
+
+`Gtk.ComboBox` is deprecated in GTK 4. It still works but relies on the old
+`Gtk.ListStore` + `Gtk.CellRendererText` pattern which is also deprecated.
+The replacement is `Gtk.DropDown`, which uses `Gtk.StringList` or `Gio.ListStore`.
+
+### KeyValueDropDown helper
+
+Most Lutris ComboBoxes used a `ListStore(str, str)` with a display column and an ID column.
+`Gtk.DropDown` has no built-in concept of an ID column — it works with position indices only.
+
+`KeyValueDropDown` (in `lutris/gui/widgets/common.py`) wraps `Gtk.DropDown` with a
+`Gtk.StringList` and a parallel list of IDs, providing a familiar interface:
+
+```python
+from lutris.gui.widgets.common import KeyValueDropDown
+
+dropdown = KeyValueDropDown()
+dropdown.append("wine", "Wine (Wine Is Not an Emulator)")
+dropdown.append("proton", "Proton")
+dropdown.set_active_id("wine")
+
+selected_id = dropdown.get_active_id()     # "wine"
+selected_label = dropdown.get_active_label()  # "Wine (Wine Is Not an Emulator)"
+dropdown.connect("changed", on_changed)    # emitted on selection change
+dropdown.clear()                           # remove all items
+```
+
+Use `set_size_request(240, -1)` if the dropdown would otherwise be too narrow.
+
+### choice_with_entry (editable dropdowns)
+
+`Gtk.DropDown` has no editable entry mode — there is no equivalent of
+`Gtk.ComboBox.new_with_model_and_entry()`. GTK 4 does not provide a built-in
+widget that combines a dropdown with free-text entry.
+
+The workaround is a `Gtk.Box` containing a `KeyValueDropDown` and a `Gtk.Entry`.
+Selecting from the dropdown populates the entry; the entry also accepts free text.
+This is implemented in `widget_generator.py`'s `_generate_choice()` method when
+`has_entry=True`.
 
 ## Nullability Changes
 
@@ -117,6 +159,15 @@ classes are unavailable; display resolution queries fall through to xrandr parsi
 ## Changes Made
 
 Summary of files changed during the migration (most recent first):
+
+### ComboBox to DropDown conversion
+- `lutris/gui/widgets/common.py` — Added `KeyValueDropDown` helper widget
+- `lutris/gui/config/edit_saved_search.py` — Search filter dropdowns
+- `lutris/gui/config/game_info_box.py`, `lutris/gui/config/game_common.py` — Runner selector
+- `lutris/gui/addgameswindow.py` — Installer preset and locale dropdowns
+- `lutris/gui/installerwindow.py` — Installer input menu
+- `lutris/gui/installer/file_box.py` — File source provider dropdown
+- `lutris/gui/config/widget_generator.py` — `choice` and `choice_with_entry` config options
 
 ### mypy type fixes (all files)
 - `lutris/gui/config/widget_generator.py`, `lutris/gui/config/boxes.py` — `Gtk.Container` to `Gtk.Widget`
