@@ -1562,6 +1562,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             else:
                 component_updaters, runtime_updater, supported_client_version = result
 
+                # TODO: The notification is too big, too low contrast, rounded corners.
                 if supported_client_version and not LINUX_SYSTEM.is_flatpak():
                     markup = _(
                         "Lutris %s is no longer supported. "
