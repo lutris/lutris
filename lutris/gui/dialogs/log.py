@@ -17,7 +17,6 @@ class LogWindow(GObject.Object):
         ui_filename = os.path.join(datapath.get(), "ui/log-window.ui")
         builder = Gtk.Builder()
         builder.add_from_file(ui_filename)
-        builder.connect_signals(self)
         self.window = builder.get_object("log_window")
 
         self.title = _("Log for {}").format(game)
@@ -25,6 +24,11 @@ class LogWindow(GObject.Object):
 
         self.buffer = buffer
         self.logtextview = LogTextView(self.buffer)
+        self.font_size = 10
+        self.font_css_provider = Gtk.CssProvider()
+        self.logtextview.get_style_context().add_provider(
+            self.font_css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
 
         scrolled_window = builder.get_object("scrolled_window")
         scrolled_window.set_child(self.logtextview)
@@ -46,6 +50,10 @@ class LogWindow(GObject.Object):
         # TODO: key-press-event removed in GTK4; need EventControllerKey
         # self.window.connect("key-press-event", self.on_key_press_event)
 
+        if application:
+            self.window.set_application(application)
+        self.window.present()
+
     def on_save_clicked(self, _button):
         """Handler to save log to a file"""
         now = datetime.now()
@@ -61,12 +69,16 @@ class LogWindow(GObject.Object):
         with open(log_path, "w", encoding="utf-8") as log_file:
             log_file.write(text)
 
+    def _update_font_size(self):
+        css = "textview { font-size: %dpt; }" % self.font_size
+        self.font_css_provider.load_from_string(css)
+
     def on_zoom_in_clicked(self, _button):
         """Increase font size"""
-        # TODO: override_font removed in GTK4; need CSS provider approach
-        pass
+        self.font_size = min(self.font_size + 1, 36)
+        self._update_font_size()
 
     def on_zoom_out_clicked(self, _button):
         """Decrease font size"""
-        # TODO: override_font removed in GTK4; need CSS provider approach
-        pass
+        self.font_size = max(self.font_size - 1, 6)
+        self._update_font_size()
