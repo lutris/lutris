@@ -39,11 +39,11 @@ class SearchFiltersBox(Gtk.Box):
         self.search = self.saved_search.search
 
         self.set_homogeneous(False)
-        self.set_margin_top(20)
-        self.set_margin_bottom(20)
-        self.set_margin_start(20)
-        self.set_margin_end(20)
-        self.set_spacing(10)
+        self.set_margin_top(12)
+        self.set_margin_bottom(12)
+        self.set_margin_start(12)
+        self.set_margin_end(12)
+        self.set_spacing(4)
 
         self.name_entry = self._add_entry_box(
             _("Name"),
@@ -58,9 +58,9 @@ class SearchFiltersBox(Gtk.Box):
         self.predicate_widget_functions: dict[str, Callable[[SearchPredicate], None]] = {}
         self.updating_predicate_widgets = False
 
-        predicates_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        predicates_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
 
-        self.flags_grid = Gtk.Grid(row_spacing=6, column_spacing=6)
+        self.flags_grid = Gtk.Grid(row_spacing=2, column_spacing=6)
         self._add_flag_widgets()
 
         categories_scrolled_window = Gtk.ScrolledWindow(visible=True)
@@ -92,7 +92,7 @@ class SearchFiltersBox(Gtk.Box):
         self, label: str, text: str, button_icon_names: list[str] | None = None, clicked: Callable | None = None
     ) -> Gtk.Entry:
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        entry_label = Gtk.Label(label=label)
+        entry_label = Gtk.Label(label=label, xalign=0)
         entry_label.set_halign(Gtk.Align.START)
         entry_label.set_size_request(120, -1)
         entry = Gtk.Entry()
@@ -169,8 +169,7 @@ class SearchFiltersBox(Gtk.Box):
             else:
                 combobox.set_active_id("")
 
-        label = Gtk.Label(label=caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
-        label.set_halign(Gtk.Align.START)
+        label = Gtk.Label(label=caption, halign=Gtk.Align.START, valign=Gtk.Align.CENTER, xalign=0)
         label.set_size_request(120, -1)
         self.flags_grid.attach(label, 0, row, 1, 1)
 
