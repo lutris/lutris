@@ -87,7 +87,6 @@ lutris/gui/widgets/log_text_view.py
 lutris/gui/widgets/navigation_stack.py
 lutris/gui/widgets/notifications.py
 lutris/gui/widgets/progress_box.py
-lutris/gui/widgets/scaled_image.py
 lutris/gui/widgets/searchable_entrybox.py
 lutris/gui/widgets/sidebar.py
 lutris/gui/widgets/status_icon.py
