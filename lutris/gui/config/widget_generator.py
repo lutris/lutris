@@ -493,7 +493,12 @@ class WidgetGenerator(ABC):
 
         expanded_choices, _tooltip_default, valid_choices = expand_combobox_choices()
         if value in [v for _k, v in expanded_choices]:
-            combobox.set_active_id(value)
+            if not combobox.set_active_id(value):
+                # set_active_id can fail in GTK 4; fall back to index-based selection
+                for i, (_k, v) in enumerate(expanded_choices):
+                    if v == value:
+                        combobox.set_active(i)
+                        break
         elif has_entry:
             entry_child = combobox.get_child()
             if isinstance(entry_child, Gtk.Entry):
