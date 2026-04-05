@@ -1,3 +1,5 @@
+from typing import Any
+
 # Third Party Libraries
 from gi.repository import Gtk
 
@@ -5,7 +7,9 @@ from gi.repository import Gtk
 class LogTextView(Gtk.TextView):
     # pylint: disable=no-member
 
-    def __init__(self, buffer=None, autoscroll=True, wrap_mode=Gtk.WrapMode.CHAR):
+    def __init__(
+        self, buffer: Gtk.TextBuffer | None = None, autoscroll: bool = True, wrap_mode: Gtk.WrapMode = Gtk.WrapMode.CHAR
+    ):
         super().__init__(visible=True)
 
         if buffer:
@@ -23,7 +27,7 @@ class LogTextView(Gtk.TextView):
         if autoscroll:
             self.connect("size-allocate", self.autoscroll)
 
-    def autoscroll(self, *args):  # pylint: disable=unused-argument
+    def autoscroll(self, *args: Any) -> None:  # pylint: disable=unused-argument
         adj = self.get_vadjustment()
         if adj.get_value() == self.scroll_max or self.scroll_max == 0:
             adj.set_value(adj.get_upper() - adj.get_page_size())
@@ -31,19 +35,19 @@ class LogTextView(Gtk.TextView):
         else:
             self.scroll_max = adj.get_upper() - adj.get_page_size()
 
-    def create_new_mark(self, buffer_iter):
+    def create_new_mark(self, buffer_iter: Gtk.TextIter) -> Gtk.TextMark:
         return self.props.buffer.create_mark(None, buffer_iter, True)
 
-    def reset_search(self):
+    def reset_search(self) -> None:
         self.props.buffer.delete_mark(self.mark)
         self.mark = self.create_new_mark(self.props.buffer.get_start_iter())
         self.props.buffer.place_cursor(self.props.buffer.get_iter_at_mark(self.mark))
 
-    def find_first(self, searched_entry):
+    def find_first(self, searched_entry: Gtk.SearchEntry) -> None:
         self.reset_search()
         self.find_next(searched_entry)
 
-    def find_next(self, searched_entry):
+    def find_next(self, searched_entry: Gtk.SearchEntry) -> None:
         buffer_iter = self.props.buffer.get_iter_at_mark(self.mark)
         next_occurence = buffer_iter.forward_search(
             searched_entry.get_text(), Gtk.TextSearchFlags.CASE_INSENSITIVE, None
@@ -61,7 +65,7 @@ class LogTextView(Gtk.TextView):
             self.props.buffer.delete_mark(self.mark)
             self.mark = self.create_new_mark(next_occurence[1])
 
-    def find_previous(self, searched_entry):
+    def find_previous(self, searched_entry: Gtk.SearchEntry) -> None:
         # First go to the beginning of searched_entry string
         buffer_iter = self.props.buffer.get_iter_at_mark(self.mark)
         buffer_iter.backward_chars(len(searched_entry.get_text()))
@@ -82,7 +86,7 @@ class LogTextView(Gtk.TextView):
             self.props.buffer.delete_mark(self.mark)
             self.mark = self.create_new_mark(previous_occurence[1])
 
-    def highlight(self, range_start, range_end):
+    def highlight(self, range_start: Gtk.TextIter, range_end: Gtk.TextIter) -> None:
         self.props.buffer.select_range(range_start, range_end)
         # Focus
         self.scroll_mark_onscreen(self.mark)
