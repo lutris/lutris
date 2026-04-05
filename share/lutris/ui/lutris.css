@@ -94,3 +94,8 @@ button.sidebar-btn {
   margin: 0px;
   padding: 0px;
 }
+
+popover button.popover-menu-button {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
