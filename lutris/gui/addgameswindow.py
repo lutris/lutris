@@ -2,7 +2,7 @@ import os
 from gettext import gettext as _
 from gettext import ngettext
 
-from gi.repository import GdkPixbuf, Gio, Gtk
+from gi.repository import Gdk, Gio, Gtk
 
 from lutris import api, sysoptions
 from lutris.config import LutrisConfig
@@ -651,8 +651,9 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             if not os.path.exists(icon_path):
                 icon_path = os.path.join(datapath.get(), "media", f"{media_name}.svg")
             if os.path.exists(icon_path):
-                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, pixel_size, pixel_size)
-                icon = Gtk.Image.new_from_pixbuf(pixbuf)
+                texture = Gdk.Texture.new_from_filename(icon_path)
+                icon = Gtk.Image.new_from_paintable(texture)
+                icon.set_pixel_size(pixel_size)
                 icon.set_visible(True)
                 return icon
 
