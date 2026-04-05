@@ -105,11 +105,7 @@ class GameBar(Gtk.Box):
         def get_popover(parent):
             # Creates the popover widget containing the list of link buttons
             pop = Gtk.Popover()
-            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True, spacing=3)
-            vbox.set_margin_top(9)
-            vbox.set_margin_bottom(9)
-            vbox.set_margin_start(9)
-            vbox.set_margin_end(9)
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
 
             for button in popover_buttons:
                 vbox.append(button)
@@ -143,6 +139,7 @@ class GameBar(Gtk.Box):
         button = Gtk.Button(label=text)
         button.set_has_frame(False)
         button.set_halign(Gtk.Align.FILL)
+        button.add_css_class("popover-menu-button")
         child = button.get_child()
         if child and isinstance(child, Gtk.Label):
             child.set_halign(Gtk.Align.START)
