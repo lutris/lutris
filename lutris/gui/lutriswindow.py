@@ -924,28 +924,29 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def show_label(self, message):
         """Display a label in the middle of the UI"""
-        self.show_overlay(Gtk.Label(label=message))
+        self.show_overlay(Gtk.Label(label=message, hexpand=True))
 
     def show_splash(self):
         theme = "dark" if self.application.style_manager.is_dark else "light"
-        side_splash = Gtk.Image()
-        side_splash.set_from_filename(os.path.join(datapath.get(), "media/side-%s.svg" % theme))
+        side_splash = Gtk.Picture.new_for_filename(os.path.join(datapath.get(), "media/side-%s.svg" % theme))
         side_splash.set_halign(Gtk.Align.START)
         side_splash.set_valign(Gtk.Align.START)
+        side_splash.set_can_shrink(False)
 
-        center_splash = Gtk.Image()
+        center_splash = Gtk.Picture.new_for_filename(os.path.join(datapath.get(), "media/splash-%s.svg" % theme))
         center_splash.set_halign(Gtk.Align.CENTER)
         center_splash.set_valign(Gtk.Align.CENTER)
-        center_splash.set_from_filename(os.path.join(datapath.get(), "media/splash-%s.svg" % theme))
+        center_splash.set_can_shrink(False)
 
-        splash_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, margin_top=24)
-        side_splash.set_margin_end(12)
-        splash_box.append(side_splash)
-        center_splash.set_hexpand(True)
-        center_splash.set_halign(Gtk.Align.CENTER)
-        splash_box.append(center_splash)
-        splash_box.is_splash = True
-        self.show_overlay(splash_box, Gtk.Align.FILL, Gtk.Align.FILL)
+        splash_overlay = Gtk.Overlay()
+        splash_overlay.set_overflow(Gtk.Overflow.HIDDEN)
+        splash_overlay.set_hexpand(True)
+        splash_overlay.set_vexpand(True)
+        splash_overlay.set_child(Gtk.Box(hexpand=True, vexpand=True))
+        splash_overlay.add_overlay(side_splash)
+        splash_overlay.add_overlay(center_splash)
+        splash_overlay.is_splash = True
+        self.show_overlay(splash_overlay, Gtk.Align.FILL, Gtk.Align.FILL)
 
     def is_showing_splash(self):
         if self.blank_overlay.get_visible():
