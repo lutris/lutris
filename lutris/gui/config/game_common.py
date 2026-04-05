@@ -17,6 +17,7 @@ from lutris.gui.config.widget_generator import WidgetWarningMessageBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog, display_error
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.dialogs.move_game import MoveDialog
+from lutris.gui.widgets.common import KeyValueDropDown
 from lutris.gui.widgets.notifications import send_notification
 from lutris.runners import import_runner
 from lutris.services.lutris import download_lutris_media
@@ -299,11 +300,11 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if self.game_box:
             self.game_box.filter = value
 
-    def on_runner_changed(self, widget: Gtk.ComboBox) -> None:
+    def on_runner_changed(self, widget: KeyValueDropDown) -> None:
         """Action called when runner drop down is changed."""
-        new_runner_index = widget.get_active()
+        new_runner_id = widget.get_active_id() or ""
         game_info_box = self.info_box
-        if game_info_box.runner_index and new_runner_index != game_info_box.runner_index:
+        if game_info_box.runner_id and new_runner_id != game_info_box.runner_id:
             dlg = QuestionDialog(
                 {
                     "parent": self,
@@ -317,32 +318,28 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             )
 
             if dlg.result == Gtk.ResponseType.YES:
-                self._switch_runner(widget, new_runner_index)
+                self._switch_runner(widget, new_runner_id)
             else:
                 # Revert the dropdown menu to the previously selected runner
-                widget.set_active(game_info_box.runner_index)
+                widget.set_active_id(game_info_box.runner_id)
         else:
-            self._switch_runner(widget, new_runner_index)
+            self._switch_runner(widget, new_runner_id)
 
-    def _switch_runner(self, widget: Gtk.ComboBox, new_runner_index: int) -> None:
+    def _switch_runner(self, widget: KeyValueDropDown, new_runner_id: str) -> None:
         """Rebuilds the UI on runner change"""
         current_page = self.notebook.get_current_page()
         game_info_box = self.info_box
-        game_info_box.runner_index = new_runner_index
-        if new_runner_index == 0:
+        game_info_box.runner_id = new_runner_id
+        if not new_runner_id:
             logger.info("No runner selected, resetting configuration")
             self.runner_name = None
             self.lutris_config = None
         else:
-            model = widget.get_model()
-            if not model:
-                return
-            runner_name = model[new_runner_index][1]
-            if runner_name == self.runner_name:
+            if new_runner_id == self.runner_name:
                 logger.debug("Runner unchanged, not creating a new config")
                 return
-            logger.info("Creating new configuration with runner %s", runner_name)
-            self.runner_name = runner_name
+            logger.info("Creating new configuration with runner %s", new_runner_id)
+            self.runner_name = new_runner_id
             self.lutris_config = LutrisConfig(runner_slug=self.runner_name, level="game")
         self._rebuild_tabs()
         self.notebook.set_current_page(current_page)
