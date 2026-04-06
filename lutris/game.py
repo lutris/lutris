@@ -54,6 +54,9 @@ GAME_STOPPED = NotificationSource()
 GAME_UPDATED = NotificationSource()
 GAME_INSTALLED = NotificationSource()
 GAME_UNHANDLED_ERROR = NotificationSource()
+# Fired when a Game's launch_status changes (e.g., a runner is downloading a
+# runtime component before the game actually starts). The payload is the Game.
+GAME_LAUNCH_STATUS = NotificationSource()
 
 _categories_generation: int = 0
 
@@ -130,6 +133,7 @@ class Game:
         self.heartbeat = None
         self.killswitch = None
         self.state = self.STATE_STOPPED
+        self._launch_status = ""
         self.game_runtime_config = {}
         self.resolution_changed = False
         self.compositor_disabled = False
@@ -850,6 +854,10 @@ class Game:
 
         if self.game_thread:
             self.game_uuid = self.game_thread.env["LUTRIS_GAME_UUID"]
+            # Let the runner install any launch-status log handlers it wants
+            # (e.g. the wine runner parses umu's output for runtime download
+            # progress) before the process actually starts.
+            self.runner.attach_log_handlers(self.game_thread, self)
             self.game_thread.start()
 
         self.timer.start()
@@ -866,6 +874,21 @@ class Game:
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
         with open(self.now_playing_path, "w", encoding="utf-8") as np_file:
             np_file.write(self.name)
+
+    @property
+    def launch_status(self) -> str:
+        """Short human-readable description of what the game is doing while
+        it starts up (e.g. 'Downloading GE-Proton10-34.tar.gz...'). Runners
+        update this from their log handlers to surface runtime setup progress
+        to the UI; assigning to it fires GAME_LAUNCH_STATUS."""
+        return self._launch_status
+
+    @launch_status.setter
+    def launch_status(self, status: str) -> None:
+        if status == self._launch_status:
+            return
+        self._launch_status = status
+        GAME_LAUNCH_STATUS.fire(self)
 
     def force_stop(self) -> None:
         # If force_stop_game fails, wait a few seconds and try SIGKILL on any survivors
@@ -943,6 +966,7 @@ class Game:
             # Inspect why it could have crashed
 
         self.state = self.STATE_STOPPED
+        self.launch_status = ""
         GAME_STOPPED.fire(self)
         if os.path.exists(self.now_playing_path):
             os.unlink(self.now_playing_path)
