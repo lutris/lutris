@@ -4,6 +4,7 @@ import glob
 import json
 import multiprocessing
 import os
+import re
 import shlex
 import shutil
 from gettext import gettext as _
@@ -298,7 +299,15 @@ class CommandsMixin:
             if params["src"] in self.game_files.keys():
                 self.game_files[params["src"]] = os.path.join(dst, os.path.basename(src))
             return
-        self._killable_process(system.merge_folders, src, dst)
+        if params.get("regex"):
+            try:
+                regex = re.compile(params["regex"])
+                logger.debug("Using regex %s to filter files to merge", params["regex"])
+            except re.PatternError as err:
+                raise ScriptingError(_("Invalid regex provided for merge command: %s") % err.msg) from err
+        else:
+            regex = None
+        self._killable_process(system.merge_folders, src, dst, regex=regex)
 
     def copy(self, params):
         """Alias for merge"""
