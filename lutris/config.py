@@ -100,6 +100,7 @@ class LutrisConfig:
         game_config_id: str | None = None,
         level: str | None = None,
         options_supported: set[str] | None = None,
+        profile_id: str | None = None,
     ):
         self.game_config_id: str = game_config_id
         if runner_slug:
@@ -108,6 +109,10 @@ class LutrisConfig:
             self.runner_slug: str | None = runner_slug
 
         self.options_supported = options_supported
+
+        # Per-profile config override (highest priority, applied on top of game config)
+        self.profile_id = profile_id
+
         # Cascaded config sections (for reading)
         self.game_config = {}
         self.runner_config = {}
@@ -154,6 +159,20 @@ class LutrisConfig:
             return None
         return os.path.join(settings.CONFIG_DIR, "games/%s.yml" % self.game_config_id)
 
+    @property
+    def profile_config_path(self) -> str | None:
+        """Path to the profile-level config override for this game.
+
+        This file lives in  ~/.local/share/lutris/profiles/{id}/games/{configpath}.yml
+        and its game-section keys take precedence over the shared game config.
+        Returns None when no profile_id or game_config_id is set.
+        """
+        if not self.profile_id or not self.game_config_id:
+            return None
+        from lutris.profile import get_profile_manager
+
+        return get_profile_manager().get_profile_game_config_path(self.game_config_id, self.profile_id)
+
     def initialize_config(self) -> None:
         """Init and load config files"""
         self.game_level: dict[str, Any] = {"system": {}, self.runner_slug: {}, "game": {}}
@@ -164,6 +183,15 @@ class LutrisConfig:
         if self.runner_config_path:
             self.runner_level.update(read_yaml_from_file(self.runner_config_path))
         self.system_level.update(read_yaml_from_file(self.system_config_path))
+
+        # Overlay profile-level overrides on top of the shared game config
+        if self.profile_config_path:
+            profile_data = read_yaml_from_file(self.profile_config_path)
+            for section, values in profile_data.items():
+                if isinstance(values, dict) and isinstance(self.game_level.get(section), dict):
+                    self.game_level[section].update(values)
+                elif values:
+                    self.game_level[section] = values
 
         self.update_cascaded_config()
         self.update_raw_config()
@@ -240,10 +268,28 @@ class LutrisConfig:
         logger.debug("Removed config %s", self.game_config_path)
 
     def save(self) -> None:
-        """Save configuration file according to its type"""
+        """Save configuration file according to its type.
+
+        When a profile_id is set and the level is "game", game-section keys are
+        written to the profile-specific override file instead of the shared game
+        config, keeping the shared config intact for other profiles.
+        """
 
         if self.options_supported is not None:
             raise RuntimeError("LutrisConfig instances that are restricted to only some options can't be saved.")
+
+        if self.profile_id and self.level == "game" and self.profile_config_path:
+            # Split: shared game config gets non-game sections; profile file gets the "game" section
+            shared_config = {k: v for k, v in self.game_level.items() if k != "game" and v}
+            profile_config = {}
+            if self.game_level.get("game"):
+                profile_config["game"] = self.game_level["game"]
+            if self.game_config_path:
+                write_yaml_to_file(shared_config, self.game_config_path)
+            os.makedirs(os.path.dirname(self.profile_config_path), exist_ok=True)
+            write_yaml_to_file(profile_config, self.profile_config_path)
+            self.initialize_config()
+            return
 
         if self.level == "system":
             config = self.system_level

@@ -49,6 +49,17 @@ class LaunchUIDelegate(Delegate):
         """
         return {}  # primary game
 
+    def clone_wine_prefix(self, source: str, dest: str, game_name: str = "") -> None:
+        """Clone a Wine prefix from *source* to *dest* before the game launches.
+
+        Called when a new per-profile prefix needs to be initialised from an
+        existing one.  The default implementation copies the tree silently;
+        DialogLaunchUIDelegate overrides this to show a progress dialog.
+        """
+        import shutil  # noqa: PLC0415
+
+        shutil.copytree(source, dest, symlinks=True)
+
 
 class InstallUIDelegate(Delegate):
     """These objects provide UI for a runner as it is installing itself.
@@ -144,6 +155,12 @@ class DialogInstallUIDelegate(InstallUIDelegate):
 
 class DialogLaunchUIDelegate(LaunchUIDelegate):
     """This provides UI for game launch via dialogs."""
+
+    def clone_wine_prefix(self, source: str, dest: str, game_name: str = "") -> None:
+        from lutris.gui.dialogs.prefix_clone import PrefixCloneDialog  # noqa: PLC0415
+
+        parent = self if isinstance(self, Gtk.Window) else None
+        PrefixCloneDialog(source, dest, game_name=game_name, parent=parent).run_clone()
 
     def check_game_launchable(self, game):
         if not game.runner.is_installed():
