@@ -73,7 +73,6 @@ module = [
     "lutris.util.yaml",
     "setup",
     "utils.bios_format",
-    "utils.issuelocker",
     "utils.meson_post_install",
 ]
 # Equivalent to strict = true for per-module config
