@@ -405,8 +405,12 @@ class Runner:  # pylint: disable=too-many-public-methods
         if exe:
             command.append(exe)
 
-        if launch_config.get("args"):
-            command += strings.split_arguments(launch_config["args"])
+        if prepend_args := gameplay_info.get("prepend_args"):
+            command += prepend_args
+        if args := launch_config.get("args"):
+            command += strings.split_arguments(args)
+        if append_args := gameplay_info.get("append_args"):
+            command += append_args
 
         return command
 
