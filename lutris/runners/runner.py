@@ -465,6 +465,13 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         return path
 
+    def attach_log_handlers(self, monitored_command: MonitoredCommand, game: "Game") -> None:
+        """Hook for runners to install extra log handlers on the game's
+        MonitoredCommand just before it starts. The default implementation
+        does nothing; subclasses may append callables to
+        monitored_command.log_handlers (e.g. to parse runner-specific output
+        and update game.launch_status)."""
+
     def prelaunch(self) -> None:
         """Run actions before running the game, override this method in runners; raise an
         exception if prelaunch fails, and it will be reported to the user, and

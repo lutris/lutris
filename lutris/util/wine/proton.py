@@ -2,8 +2,10 @@
 
 import json
 import os
+import re
 from collections.abc import Generator
 from gettext import gettext as _
+from typing import TYPE_CHECKING
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
@@ -12,7 +14,50 @@ from lutris.util import cache_single, system
 from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import get_natural_sort_key
 
+if TYPE_CHECKING:
+    from lutris.game import Game
+
 DEFAULT_GAMEID = "umu-default"
+
+# Matches a umu log line such as
+#   [umu.umu_proton:348] INFO: Downloading GE-Proton10-34.tar.gz...
+_UMU_LOG_LINE_RE = re.compile(r"\[umu\.[\w_]+:\d+\]\s+(?:INFO|WARNING|ERROR):\s+(.+)")
+
+
+class UmuLaunchStatusParser:
+    """Scans umu's stdout for runtime setup progress and pushes it onto a
+    Game's launch_status. The game appears frozen on 'Launching' while umu
+    fetches GE-Proton / the sniper runtime; this surfaces the current step
+    to the UI. MonitoredCommand delivers raw read chunks rather than whole
+    lines, so the parser buffers partial lines across calls."""
+
+    def __init__(self, game: "Game"):
+        self.game = game
+        self._buffer = ""
+
+    def __call__(self, line: str) -> None:
+        # MonitoredCommand delivers raw read chunks, not individual lines,
+        # so this may contain zero, one, or many newlines.
+        data = self._buffer + line
+        lines = data.split("\n")
+        self._buffer = lines[-1]
+        for complete_line in lines[:-1]:
+            self._process_line(complete_line)
+
+    def _process_line(self, line: str) -> None:
+        match = _UMU_LOG_LINE_RE.search(line)
+        if not match:
+            return
+        message = match.group(1).strip()
+        # "Using <Proton>" is logged at the end of umu's setup phase, right
+        # before it hands off to Proton — clear any pending status then.
+        if message.startswith("Using "):
+            self.game.launch_status = ""
+            return
+        # Only the user-meaningful progress messages — skip lock acquisition,
+        # version chatter, env dumps, etc.
+        if message.startswith(("Downloading ", "Extracting ", "Checking updates")):
+            self.game.launch_status = message
 
 
 def is_proton_version(version: str | None) -> bool:

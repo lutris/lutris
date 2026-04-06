@@ -27,7 +27,14 @@ from lutris.database.categories import CATEGORIES_UPDATED
 from lutris.database.saved_searches import SAVED_SEARCHES_UPDATED
 from lutris.database.services import ServiceGameCollection
 from lutris.exceptions import EsyncLimitError, InvalidSearchTermError
-from lutris.game import GAME_INSTALLED, GAME_STOPPED, GAME_UNHANDLED_ERROR, GAME_UPDATED, Game
+from lutris.game import (
+    GAME_INSTALLED,
+    GAME_LAUNCH_STATUS,
+    GAME_STOPPED,
+    GAME_UNHANDLED_ERROR,
+    GAME_UPDATED,
+    Game,
+)
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.edit_saved_search import SearchFiltersBox
@@ -52,6 +59,7 @@ from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
+from lutris.gui.widgets.progress_box import ProgressBox, ProgressInfo
 from lutris.gui.widgets.sidebar import LutrisSidebar, SidebarRow
 from lutris.gui.widgets.utils import load_icon_theme, open_uri, pick_stock_icon
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
@@ -67,7 +75,7 @@ from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, LibrarySyncer
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
-from lutris.util.strings import get_natural_sort_key
+from lutris.util.strings import get_natural_sort_key, gtk_safe
 from lutris.util.system import update_desktop_icons
 from lutris.util.wine.wine import clear_wine_version_cache
 
@@ -152,6 +160,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.init_template()
         self._init_actions()
 
+        # Per-game progress functions for launch-status (e.g. umu runtime
+        # downloads). Keyed by game id so we can retrieve the same function
+        # across multiple status updates — DownloadQueue uses the function
+        # object itself as the progress box key.
+        self._launch_progress_functions: dict[str, ProgressBox.ProgressFunction] = {}
+
         # Since system-search-symbolic is already *right there* we'll try to pick some
         # other icon for the button that shows the search popover.
         fallback_filter_icons_names = ["filter-symbolic", "edit-find-replace-symbolic"]
@@ -199,6 +213,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         GAME_STOPPED.register(self.on_game_stopped)
         GAME_INSTALLED.register(self.on_game_installed)
         GAME_UNHANDLED_ERROR.register(self.on_game_unhandled_error)
+        GAME_LAUNCH_STATUS.register(self.on_game_launch_status)
         settings.SETTINGS_CHANGED.register(self.on_settings_changed)
         MISSING_GAMES.updated.register(self.update_missing_games_sidebar_row)
         LUTRIS_ACCOUNT_CONNECTED.register(self.on_lutris_account_connected)
@@ -1406,6 +1421,33 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         # but on the running page this is okay.
         if isinstance(selected_row, SidebarRow) and selected_row.id == "running":
             self.game_store.remove_game(game.id)
+        self._launch_progress_functions.pop(game.id, None)
+
+    def on_game_launch_status(self, game: Game) -> None:
+        """Mirror a game's launch_status into the download queue as a pulsing
+        progress box — used for umu runtime setup (GE-Proton downloads, etc.)
+        so the user has feedback while the game appears stuck in 'Launching'."""
+        if not game.launch_status:
+            # The progress function will return ProgressInfo.ended() on its
+            # next poll, which removes the box; nothing to do here beyond
+            # dropping our reference so we don't hang on to stopped games.
+            self._launch_progress_functions.pop(game.id, None)
+            return
+
+        progress_function = self._launch_progress_functions.get(game.id)
+        if progress_function is None:
+
+            def progress_function() -> ProgressInfo:
+                if not game.launch_status:
+                    return ProgressInfo.ended()
+                return ProgressInfo(progress=None, label_markup=gtk_safe(game.launch_status))
+
+            self._launch_progress_functions[game.id] = progress_function
+
+        box = self.download_queue.add_progress_box(progress_function)
+        # Force an immediate repaint so the user sees the latest umu message
+        # instead of waiting up to 0.5s for the next poll.
+        box.update_progress()
 
     def on_game_installed(self, game):
         self.sync_library()

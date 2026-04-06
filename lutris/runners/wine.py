@@ -71,6 +71,7 @@ from lutris.util.wine.wine import (
 
 if TYPE_CHECKING:
     from lutris.api import RunnerVersionDict
+    from lutris.monitored_command import MonitoredCommand
 
 
 def _is_proton_config(config: LutrisConfig) -> bool:
@@ -1115,6 +1116,17 @@ class wine(Runner):
             except:
                 return get_default_dpi()
         return get_default_dpi()
+
+    def attach_log_handlers(self, monitored_command: "MonitoredCommand", game: Game) -> None:
+        """Install a umu launch-status parser when the wine executable is
+        actually umu — umu's runtime/Proton setup can take a long time on the
+        first launch and there's no other indication of progress."""
+        try:
+            wine_exe = self.get_executable()
+        except MissingExecutableError:
+            return
+        if proton.is_umu_path(wine_exe):
+            monitored_command.log_handlers.append(proton.UmuLaunchStatusParser(game))
 
     def prelaunch(self):
         prefix_path = self.prefix_path

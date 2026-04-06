@@ -13,7 +13,7 @@ class ProgressInfo:
     Processes sometimes cannot be stopped after a certain point; at that point they start
     providing Progress objects with no stop-function."""
 
-    def __init__(self, progress: float = 0, label_markup: str = "", stop_function: Callable | None = None):
+    def __init__(self, progress: float | None = 0, label_markup: str = "", stop_function: Callable | None = None):
         self.progress = progress
         self.label_markup = label_markup
         self.stop_function = stop_function
