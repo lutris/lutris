@@ -1,5 +1,5 @@
 # Standard Library
-from mmap import mmap
+from mmap import ACCESS_READ, mmap
 
 
 def scan_to_00(mm, start):
@@ -30,8 +30,8 @@ def rom_read_data(location):
     return a dict with "data" and "config", to be applied to a game in Lutris"""
     # TODO: extract the image of the rom
     data = {}
-    with open(location, "r+", encoding="utf-8") as rom:
-        mm = mmap(rom.fileno(), 0)
+    with open(location, "rb") as rom:
+        mm = mmap(rom.fileno(), 0, access=ACCESS_READ)
         # the most of the scan of the game
         if mm[0:4] == b"WBFS":  # wii WBFS file
             data["name"] = bytes_to_str(scan_to_00(mm, 0x220))
