@@ -29,12 +29,3 @@ def get_lang():
     if not user_locale:
         return ""
     return user_locale[:2]
-
-
-def get_lang_and_country():
-    """Return language code and country for the current user"""
-    user_locale = get_user_locale()
-    if not user_locale:
-        return "", ""
-    lang_code, country = user_locale.split("-" if "-" in user_locale else "_")
-    return lang_code, country
