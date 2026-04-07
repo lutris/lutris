@@ -36,5 +36,5 @@ def get_lang_and_country():
     user_locale = get_user_locale()
     if not user_locale:
         return "", ""
-    lang_code, country = user_locale.split("-" if "-" in locale else "_")
+    lang_code, country = user_locale.split("-" if "-" in user_locale else "_")
     return lang_code, country
