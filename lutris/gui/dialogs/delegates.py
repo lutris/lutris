@@ -192,14 +192,12 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
             name = configs[index - 1].get("name") if index > 0 else Game.PRIMARY_LAUNCH_CONFIG_NAME
             game_config["preferred_launch_config_index"] = index
             game_config["preferred_launch_config_name"] = name
-            if game.config:
-                game.config.save()
+            game.config.save()  # type: ignore
 
         def reset_preferred_config() -> None:
             game_config.pop("preferred_launch_config_index", None)
             game_config.pop("preferred_launch_config_name", None)
-            if game.config:
-                game.config.save()
+            game.config.save()  # type: ignore
 
         if not configs:
             return {}  # use primary configuration
