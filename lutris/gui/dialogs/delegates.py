@@ -127,7 +127,7 @@ class DialogInstallUIDelegate(InstallUIDelegate):
                 "title": title,
             }
         )
-        return bool(Gtk.ResponseType.YES == dialog.result)
+        return Gtk.ResponseType.YES == dialog.result
 
     def show_install_file_inquiry(self, question: str, title: str, message: str) -> str | None:
         dlg = dialogs.QuestionDialog(
@@ -139,7 +139,7 @@ class DialogInstallUIDelegate(InstallUIDelegate):
         )
         if dlg.result == dlg.YES:
             file_dlg = dialogs.FileDialog(message)
-            return str(file_dlg.filename)
+            return file_dlg.filename
         return None
 
     def download_install_file(self, url: str, destination: str) -> bool:
