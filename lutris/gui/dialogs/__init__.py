@@ -6,7 +6,7 @@ import os
 import traceback
 from collections.abc import Callable
 from gettext import gettext as _
-from typing import Any, TypeVar, cast
+from typing import Any, Dict, TypeVar, cast
 
 from gi.repository import Gdk, GObject, Gtk
 
@@ -392,15 +392,16 @@ class QuestionDialog(Gtk.MessageDialog):
     YES = Gtk.ResponseType.YES
     NO = Gtk.ResponseType.NO
 
-    def __init__(self, dialog_settings):
+    def __init__(self, dialog_settings: Dict[str, Any]) -> None:
         super().__init__(message_type=Gtk.MessageType.QUESTION, buttons=Gtk.ButtonsType.YES_NO)
         self.set_markup(dialog_settings["question"])
         self.set_title(dialog_settings["title"])
         if "parent" in dialog_settings:
             self.set_transient_for(dialog_settings["parent"])
         if "widgets" in dialog_settings:
+            message_area: Gtk.Box = self.get_message_area()
             for widget in dialog_settings["widgets"]:
-                self.get_message_area().add(widget)
+                message_area.add(widget)
         self.result: Gtk.ResponseType = self.run()
         self.destroy()
 

@@ -160,8 +160,16 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
         return True
 
     def select_game_launch_config(self, game: Game) -> "LaunchConfigDict | None":
-        game_config = game.config.game_level.get("game", {}) if game.config else {}
+        config = game.config
+
+        if not config:
+            return {}  # use primary configuration
+
+        game_config = config.game_level.get("game", {})
         configs: list["LaunchConfigDict"] = game_config.get("launch_configs")
+
+        if not configs:
+            return {}  # use primary configuration
 
         def get_preferred_config_index() -> int | None:
             # Validate that the settings are still valid; we need the index to
@@ -192,15 +200,12 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
             name = configs[index - 1].get("name") if index > 0 else Game.PRIMARY_LAUNCH_CONFIG_NAME
             game_config["preferred_launch_config_index"] = index
             game_config["preferred_launch_config_name"] = name
-            game.config.save()  # type: ignore
+            config.save()
 
         def reset_preferred_config() -> None:
             game_config.pop("preferred_launch_config_index", None)
             game_config.pop("preferred_launch_config_name", None)
-            game.config.save()  # type: ignore
-
-        if not configs:
-            return {}  # use primary configuration
+            config.save()
 
         keymap = Gdk.Keymap.get_default()
         if keymap.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK:
