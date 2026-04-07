@@ -1,6 +1,5 @@
 from gi.repository import Gtk, Pango
 
-from lutris.util.strings import is_valid_pango_markup
 
 
 class InstallerLabel(Gtk.Label):
@@ -17,10 +16,7 @@ class InstallerLabel(Gtk.Label):
         self.set_alignment(0, 0.5)
         self.set_margin_right(12)
 
-        if is_valid_pango_markup(text):
-            self.set_markup(text)
-        else:
-            self.set_text(text)
+        self.set_text(text)
 
         self.props.can_focus = False
         self.set_tooltip_text(text)
