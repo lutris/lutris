@@ -354,7 +354,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self._build_system_tab()
         self.show_all()
 
-    def on_response(self, _widget: Gtk.Widget, response: Gtk.ResponseType) -> None:
+    def on_response(self, _widget: Gtk.Dialog, response: Gtk.ResponseType) -> None:
         if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
             # Reload the config to clean out any changes we may have made
             if self.game:
