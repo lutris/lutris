@@ -1,4 +1,4 @@
-from gi.repository import Gdk, Gio, Gtk
+from gi.repository import Gdk, Gio, GLib, Gtk
 
 
 def update_action_widget_visibility(widgets, visible_predicate):
@@ -72,7 +72,7 @@ class ContextualMenu:
             popover = Gtk.PopoverMenu.new_from_model(menu)
             popover.insert_action_group("context", self._action_group)
             popover.set_parent(widget)
-            popover.connect("closed", lambda p: p.unparent())
+            popover.connect("closed", lambda p: GLib.idle_add(p.unparent))
             rect = Gdk.Rectangle()
             rect.x = int(x)
             rect.y = int(y)
