@@ -43,6 +43,7 @@ module = [
     "lutris.database.*",
     "lutris.exception_backstops",
     "lutris.exceptions",
+    "lutris.gui.dialogs",
     "lutris.monitored_command",
     "lutris.runners",
     "lutris.scanners.default_installers",

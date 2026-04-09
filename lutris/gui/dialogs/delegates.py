@@ -12,6 +12,7 @@ from lutris.util.downloader import Downloader
 
 if TYPE_CHECKING:
     from lutris.config import LaunchConfigDict
+    from lutris.gui.lutriswindow import LutrisWindow
     from lutris.services.base import BaseService
 
 
@@ -214,7 +215,9 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
             config_index = get_preferred_config_index()
 
         if config_index is None:
-            dlg = dialogs.LaunchConfigSelectDialog(game, configs, title=_("Select game to launch"), parent=self)
+            dlg = dialogs.LaunchConfigSelectDialog(
+                game, configs, title=_("Select game to launch"), parent=cast("LutrisWindow", self)
+            )
             if not dlg.confirmed:
                 return None  # no error here- the user cancelled out
 

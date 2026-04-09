@@ -733,7 +733,7 @@ class LutrisApplication(Gtk.Application):
         if not action:
             if db_game and db_game["installed"]:
                 # Game found but no action provided, ask what to do
-                dlg = InstallOrPlayDialog(db_game["name"])
+                dlg = InstallOrPlayDialog(str(db_game["name"]))
                 if not dlg.action:
                     action = "cancel"
                 elif dlg.action == "play":
