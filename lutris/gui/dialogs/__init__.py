@@ -13,7 +13,7 @@ from gi.repository import Gio, GLib, GObject, Gtk
 from lutris import api, settings
 from lutris.exceptions import LutrisError
 from lutris.gui.widgets.log_text_view import LogTextView
-from lutris.gui.widgets.utils import get_widget_children, get_widget_window
+from lutris.gui.widgets.utils import get_widget_window
 from lutris.util import datapath
 from lutris.util.jobs import schedule_at_idle
 from lutris.util.log import get_log_contents, logger
@@ -24,11 +24,16 @@ if TYPE_CHECKING:
     from lutris.game import Game
 
 
-class Dialog(Gtk.Dialog):
-    """A base class for dialogs that provides handling for the response signal;
-    you can override its on_response() methods, but that method will record
-    the response for you via 'response_type' or 'confirmed' and destory this
-    dialog if it isn't NONE."""
+class Dialog(Gtk.Window):
+    """Base dialog class that reimplements the useful parts of GtkDialog
+    (deprecated in GTK 4) on top of Gtk.Window.
+
+    Subclasses can override on_response() to react to button presses; the
+    base implementation records the response on 'response_type'."""
+
+    __gsignals__ = {
+        "response": (GObject.SignalFlags.RUN_LAST, None, (int,)),
+    }
 
     vbox: Gtk.Box
 
@@ -36,40 +41,74 @@ class Dialog(Gtk.Dialog):
         self,
         title: str | None = None,
         parent: Gtk.Widget | None = None,
-        flags: Gtk.DialogFlags = 0,
-        buttons: Gtk.ButtonsType | None = None,
         **kwargs: Any,
     ):
-        # border_width was removed in GTK 4; convert to margins on content area
         border_width = kwargs.pop("border_width", None)
         super().__init__(**kwargs)
-        self.vbox = self.get_content_area()  # GTK 3 compat alias
+
+        # Root layout: content area + action area
+        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.set_child(root)
+
+        self._content_area = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self._content_area.set_hexpand(True)
+        self._content_area.set_vexpand(True)
+        root.append(self._content_area)
+
+        self._action_area = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        self._action_area.set_halign(Gtk.Align.END)
+        self._action_area.set_margin_top(6)
+        self._action_area.set_margin_bottom(6)
+        self._action_area.set_margin_start(6)
+        self._action_area.set_margin_end(6)
+        root.append(self._action_area)
+
+        self.vbox = self._content_area
+
         if title:
             self.set_title(title)
         if parent:
             if isinstance(parent, Gtk.Window):
                 self.set_transient_for(parent)
             elif isinstance(parent, Gtk.Widget):
-                root = parent.get_root()
-                if isinstance(root, Gtk.Window):
-                    self.set_transient_for(root)
-        if flags & Gtk.DialogFlags.MODAL:
-            self.set_modal(True)
-        if flags & Gtk.DialogFlags.DESTROY_WITH_PARENT:
-            self.set_destroy_with_parent(True)
+                root_widget = parent.get_root()
+                if isinstance(root_widget, Gtk.Window):
+                    self.set_transient_for(root_widget)
         if border_width:
-            content = self.get_content_area()
-            content.set_margin_top(border_width)
-            content.set_margin_bottom(border_width)
-            content.set_margin_start(border_width)
-            content.set_margin_end(border_width)
+            self._content_area.set_margin_top(border_width)
+            self._content_area.set_margin_bottom(border_width)
+            self._content_area.set_margin_start(border_width)
+            self._content_area.set_margin_end(border_width)
+
+        self._response_buttons: dict[int, Gtk.Button] = {}
         self._response_type = Gtk.ResponseType.NONE
         self.connect("response", self.on_response)
+        self.connect("close-request", self._on_close_request)
+
+        # Escape closes the dialog (GtkDialog did this implicitly in GTK 3)
+        escape_controller = Gtk.ShortcutController()
+        escape_controller.set_scope(Gtk.ShortcutScope.LOCAL)
+        escape_controller.add_shortcut(
+            Gtk.Shortcut(
+                trigger=Gtk.ShortcutTrigger.parse_string("Escape"),
+                action=Gtk.CallbackAction.new(lambda w, _: w.close() or True),
+            )
+        )
+        self.add_controller(escape_controller)
+
+    def _on_close_request(self, _window):
+        # Prevent the default close handler from running. In GTK 4 that would
+        # call gtk_window_destroy from C, bypassing our Python destroy()
+        # override — which is where modeless dialogs clean themselves out of
+        # the application's window cache. Instead, emit our response signal
+        # and let subclasses hide/destroy via on_response.
+        self.emit("response", int(Gtk.ResponseType.DELETE_EVENT))
+        return True
 
     @property
     def response_type(self) -> Gtk.ResponseType:
         """The response type of the response that occurred; initially this is NONE.
-        Use the GTK response() method to artificially generate a response, rather than
+        Use the response() method to artificially generate a response, rather than
         setting this."""
         return self._response_type
 
@@ -81,7 +120,43 @@ class Dialog(Gtk.Dialog):
     def on_response(self, _dialog: Gtk.Dialog, response: Gtk.ResponseType) -> None:
         """Handles the dialog response; you can override this but by default
         this records the response for 'response_type'."""
-        self._response_type = response
+        self._response_type = Gtk.ResponseType(response)
+
+    def response(self, response_id: int) -> None:
+        """Programmatically emit the response signal, like GtkDialog.response()."""
+        self.emit("response", int(response_id))
+
+    def get_content_area(self) -> Gtk.Box:
+        return self._content_area
+
+    def get_action_area(self) -> Gtk.Box:
+        return self._action_area
+
+    def add_button(self, button_text: str, response_id: int) -> Gtk.Button:
+        button = Gtk.Button(label=button_text)
+        button.set_use_underline(True)
+        button.connect("clicked", lambda _b: self.response(response_id))
+        self._response_buttons[int(response_id)] = button
+        self._action_area.append(button)
+        return button
+
+    def add_styled_button(self, button_text: str, response_id: int, css_class: str) -> Gtk.Button:
+        button = self.add_button(button_text, response_id)
+        if css_class:
+            button.add_css_class(css_class)
+        return button
+
+    def add_default_button(self, button_text: str, response_id: int, css_class: str = "suggested-action") -> Gtk.Button:
+        """Adds a button to the dialog with a particular response id, but
+        also makes it the default and styles it as the suggested action."""
+        button = self.add_styled_button(button_text, response_id, css_class)
+        self.set_default_response(response_id)
+        return button
+
+    def set_default_response(self, response_id: int) -> None:
+        button = self._response_buttons.get(int(response_id))
+        if button is not None:
+            self.set_default_widget(button)
 
     def run(self) -> Gtk.ResponseType:
         """Compatibility method for Gtk.Dialog.run() which was removed in GTK 4.
@@ -90,29 +165,23 @@ class Dialog(Gtk.Dialog):
         loop = GLib.MainLoop()
         response: list[Gtk.ResponseType] = [Gtk.ResponseType.NONE]
 
-        def on_run_response(_dialog: Gtk.Dialog, resp: Gtk.ResponseType) -> None:
-            response[0] = resp
-            loop.quit()
-
-        def on_run_close(_dialog: Gtk.Dialog) -> None:
-            response[0] = Gtk.ResponseType.DELETE_EVENT
-            loop.quit()
+        def on_run_response(_dialog: "Dialog", resp: int) -> None:
+            response[0] = Gtk.ResponseType(resp)
+            if loop.is_running():
+                loop.quit()
 
         handler_id = self.connect("response", on_run_response)
-        close_id = self.connect("close-request", on_run_close)
         self.set_modal(True)
         self.present()
         loop.run()
         self.disconnect(handler_id)
-        self.disconnect(close_id)
         return response[0]
 
     def destroy_at_idle(self, condition: Callable[[], bool] | None = None) -> None:
         """Adds as idle task to destroy this window at idle time;
         it can do so conditionally if you provide a callable to check,
         but it checks only once. You can still explicitly destroy the
-        dialog after calling this. This is used to ensure destruction of
-        ModalDialog after run()."""
+        dialog after calling this."""
 
         def idle_destroy() -> None:
             if not condition or condition():
@@ -126,44 +195,23 @@ class Dialog(Gtk.Dialog):
         idle_destroy_task = schedule_at_idle(idle_destroy)
         on_destroy_id = self.connect("destroy", on_destroy)
 
-    def add_styled_button(self, button_text: str, response_id: Gtk.ResponseType, css_class: str) -> Gtk.Button:
-        button: Gtk.Button = self.add_button(button_text, response_id)
-        if css_class:
-            button.add_css_class(css_class)
-        return button
-
-    def add_default_button(
-        self, button_text: str, response_id: Gtk.ResponseType, css_class: str = "suggested-action"
-    ) -> Gtk.Button:
-        """Adds a button to the dialog with a particular response id, but
-        also makes it the default and styles it as the suggested action."""
-        button = self.add_styled_button(button_text, response_id, css_class)
-        self.set_default_response(response_id)
-        return button
-
 
 class ModalDialog(Dialog):
-    """A base class of modal dialogs, which sets the flag for you.
+    """A base class of modal dialogs, which sets modal and destroy-with-parent.
 
-    Unlike plain Gtk.Dialog, these destroy themselves (at idle-time) after
-    you call run(), even if you forget to. They aren't meant to be reused."""
+    These destroy themselves (at idle-time) after you call run(), even if you
+    forget to. They aren't meant to be reused."""
 
-    def __init__(
-        self,
-        title: str | None = None,
-        parent: Gtk.Widget | None = None,
-        flags: Gtk.DialogFlags = 0,
-        buttons: Gtk.ButtonsType | None = None,
-        **kwargs: Any,
-    ):
-        super().__init__(title, parent, flags | Gtk.DialogFlags.MODAL, buttons, **kwargs)
+    def __init__(self, title: str | None = None, parent: Gtk.Widget | None = None, **kwargs: Any):
+        super().__init__(title, parent, **kwargs)
+        self.set_modal(True)
         self.set_destroy_with_parent(True)
 
     def on_response(self, dialog: Gtk.Dialog, response: Gtk.ResponseType) -> None:
         super().on_response(dialog, response)
-        # Model dialogs do return from run() in response from respose() but the
-        # dialog is visible and locks out its parent. So we hide it. Watch out-
-        # self.destroy() changes the run() result to NONE.
+        # Modal dialogs return from run() on response() but the dialog is
+        # still visible and locks out its parent. Hide it; then destroy at idle.
+        # (destroy() changes the run() result to NONE, so we defer it.)
         if response != Gtk.ResponseType.NONE:
             self.set_visible(False)
             self.destroy_at_idle(condition=lambda: not self.get_visible())
@@ -171,37 +219,17 @@ class ModalDialog(Dialog):
 
 class ModelessDialog(Dialog):
     """A base class for modeless dialogs. They have a parent only temporarily, so
-    they can be centered over it during creation. But each modeless dialog gets
-    its own window group, so it treats its own modal dialogs separately, and it resets
-    its transient-for after being created."""
+    they can be centered over it during creation. Each modeless dialog gets its
+    own window group so its modal children don't block unrelated windows."""
 
-    def __init__(
-        self,
-        title: str | None = None,
-        parent: Gtk.Widget | None = None,
-        flags: Gtk.DialogFlags = 0,
-        buttons: Gtk.ButtonsType | None = None,
-        **kwargs: Any,
-    ):
-        super().__init__(title, parent, flags, buttons, **kwargs)
+    def __init__(self, title: str | None = None, parent: Gtk.Widget | None = None, **kwargs: Any):
+        super().__init__(title, parent, **kwargs)
         self._window_group = Gtk.WindowGroup()
         self._window_group.add_window(self)
-        self.connect("close-request", self._on_close_request)
-
-    def _on_close_request(self, _window):
-        """Handle close-request (ESC key, window close button) by destroying
-        properly. In GTK 4, Gtk.Dialog may not reliably convert close-request
-        into response(DELETE_EVENT), so we handle it explicitly."""
-        if not getattr(self, "_closing", False):
-            self._closing = True
-            self.set_visible(False)
-            GLib.idle_add(self.destroy)
-        return True  # prevent default close handling
 
     def _remove_from_app_windows(self) -> None:
         """Remove this dialog from the application's window cache so
-        show_window() won't reuse a destroyed instance. In GTK 4,
-        Gtk.Dialog's destroy signal is unreliable for this cleanup."""
+        show_window() won't reuse a destroyed instance."""
         app = self.get_application()
         if app and hasattr(app, "app_windows"):
             keys_to_remove = [k for k, v in app.app_windows.items() if v is self]
@@ -214,8 +242,6 @@ class ModelessDialog(Dialog):
 
     def on_response(self, dialog: Gtk.Dialog, response: Gtk.ResponseType) -> None:
         super().on_response(dialog, response)
-        # Modal dialogs self-destruct, but modeless ones must commit
-        # suicide more explicitly.
         if response != Gtk.ResponseType.NONE and not getattr(self, "_closing", False):
             self._closing = True
             self.set_visible(False)
@@ -223,11 +249,8 @@ class ModelessDialog(Dialog):
 
 
 class SavableModelessDialog(ModelessDialog):
-    """This is a modeless dialog that has a Cancel and a Save button in the header-bar,
-    with a ctrl-S keyboard shortcut to save.
-
-    In GTK 4, Gtk.Dialog with use_header_bar is deprecated and broken, so we
-    manually create a Gtk.HeaderBar with buttons instead."""
+    """A modeless dialog with Cancel and Save buttons in the header bar,
+    plus a ctrl-S shortcut to save."""
 
     def __init__(self, title: str, parent: Gtk.Widget | None = None, **kwargs: Any):
         super().__init__(title, parent=parent, **kwargs)
@@ -296,13 +319,6 @@ class GtkBuilderDialog(GObject.Object):
         self.dialog.destroy()
         self.emit("destroy")
 
-    def on_response(self, _widget: Gtk.Dialog, response: Gtk.ResponseType) -> None:
-        if response == Gtk.ResponseType.DELETE_EVENT:
-            try:
-                self.dialog.set_visible(False)
-            except AttributeError:
-                pass
-
 
 class AboutDialog(GtkBuilderDialog):
     glade_file = "about-dialog.ui"
@@ -313,51 +329,96 @@ class AboutDialog(GtkBuilderDialog):
         self.dialog.set_version(settings.VERSION)
 
 
-class NoticeDialog(Gtk.MessageDialog):
+class MessageBox(ModalDialog):
+    """Plain-GTK replacement for Gtk.MessageDialog (deprecated in GTK 4.10)."""
+
+    _ICON_NAMES = {
+        "info": "dialog-information-symbolic",
+        "warning": "dialog-warning-symbolic",
+        "error": "dialog-error-symbolic",
+        "question": "dialog-question-symbolic",
+    }
+
+    def __init__(
+        self,
+        message_type: str,
+        message_markup: str,
+        secondary_markup: str | None = None,
+        parent: Gtk.Widget | None = None,
+    ):
+        parent_window = get_widget_window(parent)
+        super().__init__(parent=parent_window)
+        self.set_resizable(False)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        hbox.set_margin_top(18)
+        hbox.set_margin_bottom(12)
+        hbox.set_margin_start(18)
+        hbox.set_margin_end(18)
+
+        icon_name = self._ICON_NAMES.get(message_type, "dialog-information-symbolic")
+        icon = Gtk.Image.new_from_icon_name(icon_name)
+        icon.set_pixel_size(48)
+        icon.set_valign(Gtk.Align.START)
+        hbox.append(icon)
+
+        self._message_area = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, hexpand=True)
+        self._primary_label = Gtk.Label(xalign=0, wrap=True, selectable=True, use_markup=True)
+        self._primary_label.add_css_class("title-3")
+        self._message_area.append(self._primary_label)
+
+        self._secondary_label: Gtk.Label | None = None
+        if secondary_markup:
+            self._secondary_label = Gtk.Label(xalign=0, wrap=True, selectable=True, use_markup=True)
+            self._secondary_label.set_markup(secondary_markup)
+            self._message_area.append(self._secondary_label)
+
+        hbox.append(self._message_area)
+        self.get_content_area().append(hbox)
+
+        if message_markup:
+            self._primary_label.set_markup(message_markup)
+
+    def set_markup(self, markup: str) -> None:
+        self._primary_label.set_markup(markup)
+
+    def get_message_area(self) -> Gtk.Box:
+        return self._message_area
+
+
+def _truncate(markup: str, limit: int = 256) -> str:
+    """Limit the length of a markup string to avoid display issues."""
+    return markup[:limit] if markup else markup
+
+
+class NoticeDialog(MessageBox):
     """Display a message to the user."""
 
     def __init__(self, message_markup: str, secondary: str | None = None, parent: Gtk.Widget | None = None):
-        parent_window: Gtk.Window = get_widget_window(parent)
-        super().__init__(message_type=Gtk.MessageType.INFO, buttons=Gtk.ButtonsType.OK)
-        if parent_window:
-            self.set_transient_for(parent_window)
-        self.set_modal(True)
-        markup = message_markup
+        markup = _truncate(message_markup)
         if secondary:
-            markup += "\n\n" + secondary[:256]
-        self.set_markup(markup)
-
-        # So you can copy notice text
-        for child in get_widget_children(self.get_message_area(), child_type=Gtk.Label):
-            child.set_selectable(True)
-
+            markup += "\n\n" + _truncate(secondary)
+        super().__init__("info", markup, parent=parent)
+        self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
         self.connect("response", lambda d, r: d.destroy())
         self.present()
 
 
-class WarningDialog(Gtk.MessageDialog):
-    """Display a warning to the user, who responds with whether to proceed, like
-    a QuestionDialog."""
+class WarningDialog(MessageBox):
+    """Display a warning to the user, who responds with whether to proceed."""
 
     def __init__(self, message_markup: str, secondary: str | None = None, parent: Gtk.Widget | None = None):
-        parent_window: Gtk.Window = get_widget_window(parent)
-        super().__init__(message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK_CANCEL)
-        if parent_window:
-            self.set_transient_for(parent_window)
-        markup = message_markup
+        markup = _truncate(message_markup)
         if secondary:
-            markup += "\n\n" + secondary[:256]
-        self.set_markup(markup)
-
-        # So you can copy warning text
-        for child in get_widget_children(self.get_message_area(), child_type=Gtk.Label):
-            child.set_selectable(True)
-
-        self.result = _dialog_run(self)
+            markup += "\n\n" + _truncate(secondary)
+        super().__init__("warning", markup, parent=parent)
+        self.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
+        self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
+        self.result = self.run()
         self.destroy()
 
 
-class ErrorDialog(Gtk.MessageDialog):
+class ErrorDialog(MessageBox):
     """Display an error message."""
 
     def __init__(
@@ -367,16 +428,10 @@ class ErrorDialog(Gtk.MessageDialog):
         secondary_markup: str | None = None,
         parent: Gtk.Widget | None = None,
     ):
-        parent_window: Gtk.Window = get_widget_window(parent)
-        super().__init__(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK)
-        if parent_window:
-            self.set_transient_for(parent_window)
-
         def get_message_markup(err: BaseException | str) -> str:
             if isinstance(err, LutrisError):
                 return err.message_markup or gtk_safe(str(err))
-            else:
-                return gtk_safe(str(err))
+            return gtk_safe(str(err))
 
         if isinstance(error, builtins.BaseException):
             if secondary_markup:
@@ -387,33 +442,26 @@ class ErrorDialog(Gtk.MessageDialog):
         elif not message_markup:
             message_markup = get_message_markup(error)
 
-        # Gtk doesn't wrap long labels containing no space correctly
-        # the length of the message is limited to avoid display issues
-        full_markup = ""
-        if message_markup:
-            full_markup = message_markup[:256]
-        if secondary_markup:
-            if full_markup:
-                full_markup += "\n\n" + secondary_markup[:256]
-            else:
-                full_markup = secondary_markup[:256]
-        if full_markup:
-            self.set_markup(full_markup)
+        super().__init__(
+            "error",
+            _truncate(message_markup or ""),
+            _truncate(secondary_markup) if secondary_markup else None,
+            parent=parent,
+        )
 
-        # So you can copy error text
-        for child in get_widget_children(self.get_message_area(), child_type=Gtk.Label):
-            child.set_selectable(True)
+        self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
 
         if isinstance(error, BaseException):
             content_area = self.get_content_area()
-            spacing = content_area.get_spacing()
-            content_area.set_spacing(0)
-
             details_expander = self.get_details_expander(error)
-            details_expander.set_margin_top(spacing)
+            details_expander.set_margin_top(6)
             content_area.append(details_expander)
 
             copy_button = Gtk.Button(label=_("Copy Details to Clipboard"))
+            copy_button.set_margin_top(6)
+            copy_button.set_margin_bottom(6)
+            copy_button.set_margin_start(18)
+            copy_button.set_margin_end(18)
             copy_button.connect("clicked", self.on_copy_clicked, error)
             content_area.append(copy_button)
 
@@ -428,7 +476,7 @@ class ErrorDialog(Gtk.MessageDialog):
         details = self.format_error(error, include_message=False)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        label = Gtk.Label(xalign=0.0, wrap=True, margin_start=6, margin_end=6, margin_bottom=6)
+        label = Gtk.Label(xalign=0.0, wrap=True, margin_start=18, margin_end=18, margin_bottom=6)
         label.set_markup(
             _(
                 "You can get support from "
@@ -441,9 +489,10 @@ class ErrorDialog(Gtk.MessageDialog):
         box.append(label)
 
         expander = Gtk.Expander.new(_("Error details"))
+        expander.set_margin_start(18)
+        expander.set_margin_end(18)
 
         details_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-
         details_box.append(Gtk.Separator())
 
         details_textview = Gtk.TextView(editable=False)
@@ -473,50 +522,25 @@ class ErrorDialog(Gtk.MessageDialog):
         return text
 
 
-def _dialog_run(dialog):
-    """Run a dialog synchronously using a nested GLib.MainLoop.
-    Works with any dialog that emits 'response' (Gtk.Dialog, Gtk.MessageDialog, etc.).
-    Returns the Gtk.ResponseType."""
-    loop = GLib.MainLoop()
-    response = [Gtk.ResponseType.NONE]
-
-    def on_response(_dialog, resp):
-        response[0] = resp
-        loop.quit()
-
-    def on_close(_dialog):
-        response[0] = Gtk.ResponseType.DELETE_EVENT
-        if loop.is_running():
-            loop.quit()
-        return False
-
-    handler_id = dialog.connect("response", on_response)
-    close_id = dialog.connect("close-request", on_close)
-    dialog.set_modal(True)
-    dialog.present()
-    loop.run()
-    dialog.disconnect(handler_id)
-    dialog.disconnect(close_id)
-    return response[0]
-
-
-class QuestionDialog(Gtk.MessageDialog):
+class QuestionDialog(MessageBox):
     """Ask the user a yes or no question."""
 
     YES = Gtk.ResponseType.YES
     NO = Gtk.ResponseType.NO
 
     def __init__(self, dialog_settings: Dict[str, Any]) -> None:
-        super().__init__(message_type=Gtk.MessageType.QUESTION, buttons=Gtk.ButtonsType.YES_NO)
-        self.set_markup(dialog_settings["question"])
+        super().__init__(
+            "question",
+            dialog_settings["question"],
+            parent=dialog_settings.get("parent"),
+        )
         self.set_title(dialog_settings["title"])
-        if "parent" in dialog_settings:
-            self.set_transient_for(dialog_settings["parent"])
         if "widgets" in dialog_settings:
-            message_area: Gtk.Box = self.get_message_area()
             for widget in dialog_settings["widgets"]:
-                message_area.append(widget)
-        self.result = _dialog_run(self)
+                self.get_message_area().append(widget)
+        self.add_button(_("_No"), Gtk.ResponseType.NO)
+        self.add_default_button(_("_Yes"), Gtk.ResponseType.YES)
+        self.result = self.run()
         self.destroy()
 
 
@@ -530,11 +554,9 @@ class InputDialog(ModalDialog):
         cancel_button.set_size_request(100, -1)
         self.ok_button = self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
         self.ok_button.set_size_request(100, -1)
-        self.set_default_response(Gtk.ResponseType.OK)
         self.ok_button.set_sensitive(False)
 
-        action_area = cancel_button.get_parent()
-        action_area.set_spacing(6)
+        action_area = self.get_action_area()
         action_area.set_margin_top(6)
         action_area.set_margin_bottom(6)
         action_area.set_margin_start(12)

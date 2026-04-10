@@ -19,6 +19,7 @@ from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
 from lutris import settings
 from lutris.game import Game
 from lutris.gui.config.boxes import AdvancedSettingsBox
+from lutris.gui.dialogs import ModalDialog
 from lutris.gui.widgets.common import KeyValueDropDown, Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.utils import (
     MEDIA_CACHE_INVALIDATED,
@@ -634,15 +635,20 @@ class GameInfoBox(AdvancedSettingsBox):
             self.refresh_image_path_entry(image_type)
 
 
-class UrlDialog(Gtk.Dialog):
+class UrlDialog(ModalDialog):
     def __init__(self, parent):
-        super().__init__(title=_("Enter URL"), transient_for=parent)
-        self.add_buttons(_("_Cancel"), Gtk.ResponseType.CANCEL, _("_OK"), Gtk.ResponseType.OK)
+        super().__init__(title=_("Enter URL"), parent=parent)
+        self.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
+        self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
 
         self.set_default_size(300, 100)
 
         box = self.get_content_area()
-        self.entry = Gtk.Entry()
+        box.set_margin_top(12)
+        box.set_margin_bottom(12)
+        box.set_margin_start(12)
+        box.set_margin_end(12)
+        self.entry = Gtk.Entry(activates_default=True)
         self.entry.set_placeholder_text("https://example.com/image.png")
         box.append(self.entry)
 
