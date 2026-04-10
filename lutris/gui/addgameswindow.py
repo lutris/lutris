@@ -87,14 +87,18 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         shortcut_controller = Gtk.ShortcutController()
         shortcut_controller.set_scope(Gtk.ShortcutScope.LOCAL)
-        shortcut_controller.add_shortcut(Gtk.Shortcut(
-            trigger=Gtk.ShortcutTrigger.parse_string("<Alt>Left"),
-            action=Gtk.CallbackAction.new(lambda w, _: self.on_back_clicked(None)),
-        ))
-        shortcut_controller.add_shortcut(Gtk.Shortcut(
-            trigger=Gtk.ShortcutTrigger.parse_string("<Alt>Home"),
-            action=Gtk.CallbackAction.new(lambda w, _: self.on_navigate_home()),
-        ))
+        shortcut_controller.add_shortcut(
+            Gtk.Shortcut(
+                trigger=Gtk.ShortcutTrigger.parse_string("<Alt>Left"),
+                action=Gtk.CallbackAction.new(lambda w, _: self.on_back_clicked(None)),
+            )
+        )
+        shortcut_controller.add_shortcut(
+            Gtk.Shortcut(
+                trigger=Gtk.ShortcutTrigger.parse_string("<Alt>Home"),
+                action=Gtk.CallbackAction.new(lambda w, _: self.on_navigate_home()),
+            )
+        )
         self.add_controller(shortcut_controller)
 
         header_bar = self.get_header_bar()

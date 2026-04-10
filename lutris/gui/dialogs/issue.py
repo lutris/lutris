@@ -4,7 +4,7 @@ import json
 import os
 from gettext import gettext as _
 
-from gi.repository import Gio, GLib, Gtk
+from gi.repository import GLib, Gtk
 
 from lutris.gui.dialogs import NoticeDialog
 from lutris.gui.widgets.window import BaseApplicationWindow
