@@ -6,7 +6,6 @@ from typing import Any
 from gi.repository import Gtk  # type: ignore
 
 from lutris.gui.widgets import NotificationSource
-from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.progress_box import ProgressBox
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
@@ -15,14 +14,14 @@ from lutris.util.log import logger
 DOWNLOAD_QUEUE_COMPLETED = NotificationSource()
 
 
-@GtkTemplate(ui=os.path.join(datapath.get(), "ui", "download-queue.ui"))
+@Gtk.Template(filename=os.path.join(datapath.get(), "ui", "download-queue.ui"))
 class DownloadQueue(Gtk.ScrolledWindow):
     """This class is a widget that displays a stack of progress boxes, which you can create
     and destroy with its methods."""
 
     __gtype_name__ = "DownloadQueue"
 
-    download_box: Gtk.Box = GtkTemplate.Child()  # type: ignore
+    download_box: Gtk.Box = Gtk.Template.Child()  # type: ignore
 
     CompletionFunction = Callable[[Any], None]
     ErrorFunction = Callable[[Exception], None]
