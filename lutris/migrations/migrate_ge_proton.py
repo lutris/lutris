@@ -11,10 +11,19 @@ def migrate():
     """Run migration"""
     try:
         config_paths = [os.path.join(settings.CONFIG_DIR, "runners/wine.yml")]
+        games_dir = os.path.realpath(os.path.join(settings.CONFIG_DIR, "games"))
 
         for db_game in get_games_by_runner("wine"):
             config_filename = db_game.get("configpath")
-            config_paths.append(os.path.join(settings.CONFIG_DIR, "games/%s.yml" % config_filename))
+            if not config_filename:
+                continue
+            safe_filename = os.path.basename(config_filename)
+            if safe_filename != config_filename:
+                continue
+            config_path = os.path.realpath(os.path.join(games_dir, "%s.yml" % safe_filename))
+            if os.path.commonpath([games_dir, config_path]) != games_dir:
+                continue
+            config_paths.append(config_path)
 
         for config_path in config_paths:
             try:
