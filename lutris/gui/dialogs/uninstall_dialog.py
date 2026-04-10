@@ -10,7 +10,6 @@ from lutris import settings
 from lutris.database.games import get_game_by_field, get_games
 from lutris.game import Game
 from lutris.gui.dialogs import QuestionDialog
-from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.utils import get_required_main_window, get_widget_children
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
@@ -21,30 +20,38 @@ from lutris.util.strings import get_natural_sort_key, gtk_safe, human_size
 from lutris.util.system import get_disk_size, is_removeable
 
 
-@GtkTemplate(ui=os.path.join(datapath.get(), "ui", "uninstall-dialog.ui"))
+@Gtk.Template(filename=os.path.join(datapath.get(), "ui", "uninstall-dialog.ui"))
 class UninstallDialog(Gtk.Dialog):
     """A dialog to uninstall and remove games. It lists the games and offers checkboxes to delete
     the game files, and to remove from the library."""
 
     __gtype_name__ = "UninstallDialog"
 
-    header_bar: Gtk.HeaderBar = GtkTemplate.Child()
-    message_label: Gtk.Label = GtkTemplate.Child()
-    uninstall_game_list: Gtk.ListBox = GtkTemplate.Child()
-    cancel_button: Gtk.Button = GtkTemplate.Child()
-    uninstall_button: Gtk.Button = GtkTemplate.Child()
-    delete_all_files_checkbox: Gtk.CheckButton = GtkTemplate.Child()
-    remove_all_games_checkbox: Gtk.CheckButton = GtkTemplate.Child()
+    header_bar: Gtk.HeaderBar = Gtk.Template.Child()
+    message_label: Gtk.Label = Gtk.Template.Child()
+    uninstall_game_list: Gtk.ListBox = Gtk.Template.Child()
+    cancel_button: Gtk.Button = Gtk.Template.Child()
+    uninstall_button: Gtk.Button = Gtk.Template.Child()
+    delete_all_files_checkbox: Gtk.CheckButton = Gtk.Template.Child()
+    remove_all_games_checkbox: Gtk.CheckButton = Gtk.Template.Child()
 
     def __init__(self, parent: Gtk.Window, **kwargs):
+        # Defer template init to after super().__init__() returns.
+        # PyGObject's auto-init fires during GObject construction, which is
+        # too early for GtkDialog — <child type="titlebar"> is silently lost.
+        cls = type(self)
+        saved_init = cls.__dontuse_ginstance_init__  # type: ignore[attr-defined]
+        cls.__dontuse_ginstance_init__ = lambda s: None  # type: ignore[attr-defined]
         super().__init__(**kwargs)
+        cls.__dontuse_ginstance_init__ = saved_init  # type: ignore[attr-defined]
+        saved_init(self)
+
         self.set_transient_for(parent)
         self.parent = parent
         self._setting_all_checkboxes = False
         self.games: list[Game] = []
         self.any_shared = False
         self.any_protected = False
-        self.init_template()
 
     def get_game_removal_rows(self) -> list["GameRemovalRow"]:
         return get_widget_children(self.uninstall_game_list, GameRemovalRow)
@@ -231,7 +238,7 @@ class UninstallDialog(Gtk.Dialog):
         if any(g for g in self.games if g.is_installed):
             self.uninstall_button.set_label(_("Uninstall"))
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback()
     def on_delete_all_files_checkbox_toggled(self, _widget):
         def update_row(row, active):
             if row.can_delete_files:
@@ -239,7 +246,7 @@ class UninstallDialog(Gtk.Dialog):
 
         self._apply_all_checkbox(self.delete_all_files_checkbox, update_row)
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback()
     def on_remove_all_games_checkbox_toggled(self, _widget):
         def update_row(row, active):
             row.remove_from_library = active
@@ -260,11 +267,11 @@ class UninstallDialog(Gtk.Dialog):
             self._setting_all_checkboxes = False
             self.update_all_checkboxes()
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback()
     def on_cancel_button_clicked(self, _widget) -> None:
         self.destroy()
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback()
     def on_remove_button_clicked(self, _widget) -> None:
         rows = list(self.get_game_removal_rows())
         dirs_to_delete = list(set(row.game.directory for row in rows if row.delete_files))
@@ -312,7 +319,7 @@ class UninstallDialog(Gtk.Dialog):
         get_required_main_window().on_game_removed()
         self.destroy()
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback()
     def on_response(self, _dialog, response: Gtk.ResponseType) -> None:
         if response in (
             Gtk.ResponseType.DELETE_EVENT,
