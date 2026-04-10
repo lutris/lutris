@@ -46,6 +46,9 @@ class Dialog(Gtk.Window):
         border_width = kwargs.pop("border_width", None)
         super().__init__(**kwargs)
 
+        self._header_bar = Gtk.HeaderBar()
+        self.set_titlebar(self._header_bar)
+
         # Root layout: content area + action area
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.set_child(root)
@@ -125,6 +128,9 @@ class Dialog(Gtk.Window):
     def response(self, response_id: int) -> None:
         """Programmatically emit the response signal, like GtkDialog.response()."""
         self.emit("response", int(response_id))
+
+    def get_header_bar(self) -> Gtk.HeaderBar:
+        return self._header_bar
 
     def get_content_area(self) -> Gtk.Box:
         return self._content_area
@@ -254,9 +260,6 @@ class SavableModelessDialog(ModelessDialog):
 
     def __init__(self, title: str, parent: Gtk.Widget | None = None, **kwargs: Any):
         super().__init__(title, parent=parent, **kwargs)
-
-        self._header_bar = Gtk.HeaderBar()
-        self.set_titlebar(self._header_bar)
 
         self.cancel_button = Gtk.Button(label=_("Cancel"))
         self.cancel_button.set_valign(Gtk.Align.CENTER)
