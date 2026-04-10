@@ -5,7 +5,8 @@ import time
 from lutris.database import games
 from lutris.database.services import ServiceGameCollection
 from lutris.runners import get_runner_human_name
-from lutris.services import SERVICES, LutrisService
+from lutris.services import SERVICES
+from lutris.services.lutris import LutrisService
 from lutris.services.service_media import MediaPath
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe

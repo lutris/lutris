@@ -14,42 +14,32 @@ Tests the GOG cloud save synchronization implementation including:
 
 import gzip
 import hashlib
-import importlib.util
 import json
 import os
-import sys
 import tempfile
 import unittest
+import urllib
 import zlib
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-# Load gog_cloud directly from file to avoid lutris.services.__init__
-# which triggers GTK imports that conflict in test environments.
-_spec = importlib.util.spec_from_file_location(
-    "lutris.services.gog_cloud",
-    os.path.join(os.path.dirname(__file__), "..", "lutris", "services", "gog_cloud.py"),
+import lutris.services.gog_cloud as _mod
+from lutris.services.gog_cloud import (
+    EMPTY_GZIP_MD5,
+    CloudSaveLocation,
+    GOGCloudStorageClient,
+    GOGCloudSync,
+    SyncAction,
+    SyncClassifier,
+    SyncFile,
+    SyncResult,
+    create_directory_map,
+    get_cloud_save_locations,
+    get_game_client_credentials,
+    get_game_scoped_token,
+    get_relative_path,
+    resolve_save_path,
 )
-assert _spec is not None and _spec.loader is not None
-_mod = importlib.util.module_from_spec(_spec)
-sys.modules["lutris.services.gog_cloud"] = _mod
-_spec.loader.exec_module(_mod)
-
-EMPTY_GZIP_MD5 = _mod.EMPTY_GZIP_MD5
-CloudSaveLocation = _mod.CloudSaveLocation
-GOGCloudStorageClient = _mod.GOGCloudStorageClient
-GOGCloudSync = _mod.GOGCloudSync
-SyncAction = _mod.SyncAction
-SyncClassifier = _mod.SyncClassifier
-SyncFile = _mod.SyncFile
-SyncResult = _mod.SyncResult
-create_directory_map = _mod.create_directory_map
-get_cloud_save_locations = _mod.get_cloud_save_locations
-get_game_client_credentials = _mod.get_game_client_credentials
-get_game_scoped_token = _mod.get_game_scoped_token
-get_relative_path = _mod.get_relative_path
-resolve_save_path = _mod.resolve_save_path
-
 from lutris.util.http import HTTPError
 
 
@@ -155,7 +145,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
         mock_response.read.return_value = b'{"test": "data"}'
         mock_response.getheaders.return_value = [("Content-Type", "application/json")]
 
-        with patch.object(_mod.urllib.request, "urlopen", return_value=mock_response) as mock_urlopen:
+        with patch.object(urllib.request, "urlopen", return_value=mock_response) as mock_urlopen:
             body, headers = self.client._make_request("GET", "/v1/test")
 
         self.assertEqual(body, b'{"test": "data"}')
@@ -167,7 +157,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
 
         error = urllib.error.HTTPError(url="http://test", code=404, msg="Not Found", hdrs={}, fp=None)
 
-        with patch.object(_mod.urllib.request, "urlopen", side_effect=error):
+        with patch.object(urllib.request, "urlopen", side_effect=error):
             body, headers = self.client._make_request("GET", "/v1/missing")
         self.assertEqual(body, b"")
         self.assertEqual(headers, {})
@@ -177,7 +167,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
 
         error = urllib.error.HTTPError(url="http://test", code=500, msg="Server Error", hdrs={}, fp=None)
 
-        with patch.object(_mod.urllib.request, "urlopen", side_effect=error):
+        with patch.object(urllib.request, "urlopen", side_effect=error):
             with self.assertRaises(HTTPError):
                 self.client._make_request("GET", "/v1/test")
 
@@ -185,7 +175,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
         import urllib.error
 
         with patch.object(
-            _mod.urllib.request,
+            urllib.request,
             "urlopen",
             side_effect=urllib.error.URLError("Connection refused"),
         ):
@@ -214,7 +204,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
         mock_response.read.return_value = json.dumps(cloud_data).encode()
         mock_response.getheaders.return_value = []
 
-        with patch.object(_mod.urllib.request, "urlopen", return_value=mock_response):
+        with patch.object(urllib.request, "urlopen", return_value=mock_response):
             files = self.client.list_files("saves")
 
         self.assertEqual(len(files), 2)
@@ -227,7 +217,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
         mock_response.read.return_value = b""
         mock_response.getheaders.return_value = []
 
-        with patch.object(_mod.urllib.request, "urlopen", return_value=mock_response):
+        with patch.object(urllib.request, "urlopen", return_value=mock_response):
             files = self.client.list_files("saves")
         self.assertEqual(files, [])
 
@@ -236,7 +226,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
         mock_response.read.return_value = b"not json"
         mock_response.getheaders.return_value = []
 
-        with patch.object(_mod.urllib.request, "urlopen", return_value=mock_response):
+        with patch.object(urllib.request, "urlopen", return_value=mock_response):
             files = self.client.list_files("saves")
         self.assertEqual(files, [])
 
@@ -255,7 +245,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
                 absolute_path=tmp_path,
                 update_time="2024-01-15T10:00:00+00:00",
             )
-            with patch.object(_mod.urllib.request, "urlopen", return_value=mock_response) as mock_urlopen:
+            with patch.object(urllib.request, "urlopen", return_value=mock_response) as mock_urlopen:
                 result = self.client.upload_file(f, "saves")
             self.assertTrue(result)
 
@@ -290,7 +280,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
                 update_time="2024-01-15T10:00:00+00:00",
             )
             with patch.object(
-                _mod.urllib.request,
+                urllib.request,
                 "urlopen",
                 side_effect=urllib.error.HTTPError(url="http://test", code=500, msg="Error", hdrs={}, fp=None),
             ):
@@ -308,7 +298,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
             dest_path = os.path.join(tmpdir, "saves", "game.sav")
             f = SyncFile(relative_path="game.sav", absolute_path=dest_path)
 
-            with patch.object(_mod.urllib.request, "urlopen", return_value=mock_response):
+            with patch.object(urllib.request, "urlopen", return_value=mock_response):
                 result = self.client.download_file(f, "saves")
             self.assertTrue(result)
             self.assertTrue(os.path.exists(dest_path))
@@ -321,7 +311,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
         mock_response.getheaders.return_value = []
 
         f = SyncFile(relative_path="game.sav", absolute_path="/tmp/test.sav")
-        with patch.object(_mod.urllib.request, "urlopen", return_value=mock_response):
+        with patch.object(urllib.request, "urlopen", return_value=mock_response):
             result = self.client.download_file(f, "saves")
         self.assertFalse(result)
 
@@ -330,7 +320,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
 
         f = SyncFile(relative_path="game.sav", absolute_path="/tmp/test.sav")
         with patch.object(
-            _mod.urllib.request,
+            urllib.request,
             "urlopen",
             side_effect=urllib.error.HTTPError(url="http://test", code=403, msg="Forbidden", hdrs={}, fp=None),
         ):
@@ -346,7 +336,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
             dest_path = os.path.join(tmpdir, "game.sav")
             f = SyncFile(relative_path="game.sav", absolute_path=dest_path)
 
-            with patch.object(_mod.urllib.request, "urlopen", return_value=mock_response):
+            with patch.object(urllib.request, "urlopen", return_value=mock_response):
                 result = self.client.download_file(f, "saves")
             self.assertTrue(result)
 
@@ -356,7 +346,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
         mock_response.getheaders.return_value = []
 
         f = SyncFile(relative_path="old.sav", absolute_path="/tmp/old.sav")
-        with patch.object(_mod.urllib.request, "urlopen", return_value=mock_response):
+        with patch.object(urllib.request, "urlopen", return_value=mock_response):
             result = self.client.delete_file(f, "saves")
         self.assertTrue(result)
 
@@ -365,7 +355,7 @@ class TestGOGCloudStorageClient(unittest.TestCase):
 
         f = SyncFile(relative_path="old.sav", absolute_path="/tmp/old.sav")
         with patch.object(
-            _mod.urllib.request,
+            urllib.request,
             "urlopen",
             side_effect=urllib.error.HTTPError(url="http://test", code=500, msg="Error", hdrs={}, fp=None),
         ):
