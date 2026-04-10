@@ -399,14 +399,14 @@ class LutrisApplication(Gtk.Application):
             if update_function:
                 update_function(window_inst)
             return window_inst
-        if issubclass(window_class, Gtk.Dialog):
+        if issubclass(window_class, Gtk.ApplicationWindow):
+            window_inst = window_class(application=self, **kwargs)
+        else:
             if "parent" in kwargs or not self.window:
                 window_inst: "GtkWindowType" = window_class(**kwargs)
             else:
                 window_inst: "GtkWindowType" = window_class(parent=self.window, **kwargs)  # type: ignore[call-arg]
             window_inst.set_application(self)
-        else:
-            window_inst = window_class(application=self, **kwargs)
         window_inst.connect("destroy", self.on_app_window_destroyed, self.get_window_key(**kwargs))
         if update_function:
             update_function(window_inst)
