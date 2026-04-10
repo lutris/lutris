@@ -10,6 +10,8 @@
   <template class="LutrisWindow" parent="GtkApplicationWindow">
     <property name="title" translatable="yes">Lutris</property>
     <property name="icon-name">net.lutris.Lutris</property>
+    <signal name="hide" handler="on_hide" swapped="no"/>
+    <signal name="show" handler="on_show" swapped="no"/>
     <child>
       <object class="GtkStack">
         <child>
@@ -59,6 +61,7 @@
                           <object class="GtkLabel" id="lutris_log_in_label">
                             <property name="label" translatable="yes">&lt;a href=""&gt;Login&lt;/a&gt; to Lutris to sync your game library</property>
                             <property name="use-markup">True</property>
+                            <signal name="activate-link" handler="on_lutris_log_in_label_activate_link" swapped="no"/>
                           </object>
                         </child>
                         <style>
@@ -87,6 +90,7 @@
                             <property name="icon-name">window-close</property>
                             <property name="halign">end</property>
                             <property name="hexpand">True</property>
+                            <signal name="clicked" handler="on_version_notification_close_button_clicked" swapped="no"/>
                           </object>
                         </child>
                         <style>
@@ -164,6 +168,7 @@
                 <property name="hexpand">True</property>
                 <property name="width-chars">30</property>
                 <property name="placeholder-text" translatable="yes">Search games</property>
+                <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
               </object>
             </child>
             <child>
