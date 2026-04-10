@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk" version="4.0"/>
-  <template class="UninstallDialog" parent="GtkDialog">
+  <template class="UninstallDialog" parent="GtkWindow">
     <property name="default-width">800</property>
     <property name="default-height">600</property>
-    <signal name="response" handler="on_response" swapped="no"/>
+    <property name="destroy-with-parent">True</property>
     <child>
       <object class="GtkBox">
         <property name="margin-start">6</property>
