@@ -183,7 +183,7 @@ class GameView:
             # if so we want to pause the animation.
             for i in range(Gtk.Window.get_toplevels().get_n_items()):
                 w = Gtk.Window.get_toplevels().get_item(i)
-                if w != toplevel and isinstance(w, Gtk.Dialog):
+                if w != toplevel and isinstance(w, Gtk.Window) and not isinstance(w, Gtk.ApplicationWindow):
                     if w.get_modal() and w.get_transient_for() == toplevel:
                         return True
 

@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterable
 from gettext import gettext as _
 from gettext import ngettext
 
-from gi.repository import GObject, Gtk
+from gi.repository import GLib, GObject, Gtk
 
 from lutris import settings
 from lutris.database.games import get_game_by_field, get_games
@@ -21,7 +21,7 @@ from lutris.util.system import get_disk_size, is_removeable
 
 
 @Gtk.Template(filename=os.path.join(datapath.get(), "ui", "uninstall-dialog.ui"))
-class UninstallDialog(Gtk.Dialog):
+class UninstallDialog(Gtk.Window):
     """A dialog to uninstall and remove games. It lists the games and offers checkboxes to delete
     the game files, and to remove from the library."""
 
@@ -36,22 +36,37 @@ class UninstallDialog(Gtk.Dialog):
     remove_all_games_checkbox: Gtk.CheckButton = Gtk.Template.Child()
 
     def __init__(self, parent: Gtk.Window, **kwargs):
-        # Defer template init to after super().__init__() returns.
-        # PyGObject's auto-init fires during GObject construction, which is
-        # too early for GtkDialog — <child type="titlebar"> is silently lost.
-        cls = type(self)
-        saved_init = cls.__dontuse_ginstance_init__  # type: ignore[attr-defined]
-        cls.__dontuse_ginstance_init__ = lambda s: None  # type: ignore[attr-defined]
         super().__init__(**kwargs)
-        cls.__dontuse_ginstance_init__ = saved_init  # type: ignore[attr-defined]
-        saved_init(self)
-
         self.set_transient_for(parent)
         self.parent = parent
         self._setting_all_checkboxes = False
         self.games: list[Game] = []
         self.any_shared = False
         self.any_protected = False
+        self.connect("close-request", self._on_close_request)
+
+        escape_controller = Gtk.ShortcutController()
+        escape_controller.set_scope(Gtk.ShortcutScope.LOCAL)
+        escape_controller.add_shortcut(
+            Gtk.Shortcut(
+                trigger=Gtk.ShortcutTrigger.parse_string("Escape"),
+                action=Gtk.CallbackAction.new(lambda w, _: w.close() or True),
+            )
+        )
+        self.add_controller(escape_controller)
+
+    def _on_close_request(self, _window):
+        # Prevent GTK's default C-level destroy so our Python destroy()
+        # override runs and the dialog clears itself out of app_windows.
+        GLib.idle_add(self.destroy)
+        return True
+
+    def destroy(self):
+        app = self.get_application()
+        if app and hasattr(app, "app_windows"):
+            for key in [k for k, v in app.app_windows.items() if v is self]:
+                del app.app_windows[key]
+        super().destroy()
 
     def get_game_removal_rows(self) -> list["GameRemovalRow"]:
         return get_widget_children(self.uninstall_game_list, GameRemovalRow)
@@ -318,15 +333,6 @@ class UninstallDialog(Gtk.Dialog):
 
         get_required_main_window().on_game_removed()
         self.destroy()
-
-    @Gtk.Template.Callback()
-    def on_response(self, _dialog, response: Gtk.ResponseType) -> None:
-        if response in (
-            Gtk.ResponseType.DELETE_EVENT,
-            Gtk.ResponseType.CANCEL,
-            Gtk.ResponseType.OK,
-        ):
-            self.destroy()
 
     @staticmethod
     def _get_next_folder_size(directories):
