@@ -2,7 +2,7 @@
 
 from gettext import gettext as _
 
-from gi.repository import Gdk, Gio, GObject, Gtk, Pango
+from gi.repository import Gtk, Pango
 
 from lutris import settings
 from lutris.gui.views import (
