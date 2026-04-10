@@ -220,12 +220,12 @@ class GtkBuilderDialog(GObject.Object):
     def present(self) -> None:
         self.dialog.present()
 
-    def on_close(self, *args: Any) -> None:  # pylint: disable=unused-argument
+    def on_close(self, *args: Any) -> None:
         """Propagate the destroy event after closing the dialog"""
         self.dialog.destroy()
         self.emit("destroy")
 
-    def on_response(self, widget: Gtk.Dialog, response: Gtk.ResponseType) -> None:  # pylint: disable=unused-argument
+    def on_response(self, _widget: Gtk.Dialog, response: Gtk.ResponseType) -> None:
         if response == Gtk.ResponseType.DELETE_EVENT:
             try:
                 self.dialog.hide()
@@ -587,19 +587,19 @@ class ClientLoginDialog(GtkBuilderDialog):
         password = self.password_entry.get_text()
         return username, password
 
-    def on_username_entry_activate(self, widget: Gtk.Entry) -> None:  # pylint: disable=unused-argument
+    def on_username_entry_activate(self, _widget: Gtk.Entry) -> None:
         if all(self.get_credentials()):
             self.on_connect(None)
         else:
             self.password_entry.grab_focus()
 
-    def on_password_entry_activate(self, widget: Gtk.Entry) -> None:  # pylint: disable=unused-argument
+    def on_password_entry_activate(self, _widget: Gtk.Entry) -> None:
         if all(self.get_credentials()):
             self.on_connect(None)
         else:
             self.username_entry.grab_focus()
 
-    def on_connect(self, widget: Gtk.Button | None) -> None:  # pylint: disable=unused-argument
+    def on_connect(self, _widget: Gtk.Button | None) -> None:
         username, password = self.get_credentials()
         token = api.connect(username, password)
         if not token:
