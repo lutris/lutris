@@ -65,7 +65,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     """
 
     def __init__(self, installers, service=None, appid=None, installation_kind=InstallationKind.INSTALL, **kwargs):
-        ModelessDialog.__init__(self, use_header_bar=True, **kwargs)
+        ModelessDialog.__init__(self, **kwargs)
         ScriptInterpreter.InterpreterUIDelegate.__init__(self, service, appid)
         self.set_default_size(740, 460)
         self.installers = installers
