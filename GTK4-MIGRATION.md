@@ -4,22 +4,34 @@ This document tracks practical notes for the GTK 3 to GTK 4 migration on the `dj
 
 ## PyGObject Type Stubs
 
-The `PyGObject-stubs` package ships stubs for both GTK 3 and GTK 4, selected at install time.
-The `--no-cache-dir` flag is required to force a rebuild when switching versions.
+The `PyGObject-stubs` package ships stubs for both GTK 3 and GTK 4, selected at install time
+via `--config-settings=config=...`. Only one version can be installed at a time, so switching
+branches between `master` and `dj/gtk4` requires reinstalling the stubs to match.
 
-**Install GTK 4 stubs** (for the `dj/gtk4` branch):
+**Symptom of a mismatch**: `make mypy` floods with errors about GTK 4 methods that "don't exist" —
+`add_controller`, `set_child`, `Gtk.DropTarget`, `add_css_class`, etc. If you see ~180 new
+`attr-defined` errors after switching to `dj/gtk4`, the stubs are still the GTK 3 version.
+
+**Install GTK 4 stubs** (for the `dj/gtk4` branch — this is what `make dev` does):
 
 ```bash
-pip install PyGObject-stubs --no-cache-dir --force-reinstall --config-settings=config=Gtk4,Gdk4
+pip install 'pygobject-stubs>=2.17.0' --no-cache-dir --force-reinstall \
+    --config-settings=config=Gtk4,Gdk4,Soup2
 ```
 
 **Install GTK 3 stubs** (for `master`):
 
 ```bash
-pip install PyGObject-stubs --no-cache-dir --force-reinstall --config-settings=config=Gtk3,Gdk3
+pip install 'pygobject-stubs>=2.17.0' --no-cache-dir --force-reinstall \
+    --config-settings=config=Gtk3,Gdk3,Soup2
 ```
 
-After switching stubs, reset the mypy baseline:
+The `--no-cache-dir` flag is required to force pip to rebuild the wheel with the new config
+rather than reusing a cached build. After switching stubs, also clear the mypy cache
+(`rm -rf .mypy_cache`) since mypy caches the old type info.
+
+If switching stubs legitimately introduces new errors that won't be fixed immediately, reset
+the mypy baseline:
 
 ```bash
 make mypy-reset-baseline
