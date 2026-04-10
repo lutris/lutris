@@ -97,9 +97,6 @@ class Dialog(Gtk.Dialog):
         self.set_default_response(response_id)
         return button
 
-    # workaround missing typing stubs in Gtk
-    def run(self) -> Gtk.ResponseType: ...  # type: ignore
-
 
 class ModalDialog(Dialog):
     """A base class of modal dialogs, which sets the flag for you.
@@ -259,11 +256,8 @@ class NoticeDialog(Gtk.MessageDialog):
         for child in get_widget_children(self.get_message_area(), child_type=Gtk.Label):
             child.set_selectable(True)
 
-        self.run()
+        self.run()  # type: ignore
         self.destroy()
-
-    # workaround missing typing stubs in Gtk
-    def run(self) -> Gtk.ResponseType: ...  # type: ignore
 
 
 class WarningDialog(Gtk.MessageDialog):
@@ -281,11 +275,8 @@ class WarningDialog(Gtk.MessageDialog):
         for child in get_widget_children(self.get_message_area(), child_type=Gtk.Label):
             child.set_selectable(True)
 
-        self.result = self.run()
+        self.result = self.run()  # type: ignore
         self.destroy()
-
-    # workaround missing typing stubs in Gtk
-    def run(self) -> Gtk.ResponseType: ...  # type: ignore
 
 
 class ErrorDialog(Gtk.MessageDialog):
@@ -347,7 +338,7 @@ class ErrorDialog(Gtk.MessageDialog):
             action_area.set_child_secondary(copy_button, True)
             copy_button.connect("clicked", self.on_copy_clicked, error)
 
-        self.run()
+        self.run()  # type: ignore
         self.destroy()
 
     def on_copy_clicked(self, _button: Gtk.Button, error: BaseException) -> None:
@@ -402,9 +393,6 @@ class ErrorDialog(Gtk.MessageDialog):
 
         return text
 
-    # workaround missing typing stubs in Gtk
-    def run(self) -> None: ...
-
 
 class QuestionDialog(Gtk.MessageDialog):
     """Ask the user a yes or no question."""
@@ -422,11 +410,8 @@ class QuestionDialog(Gtk.MessageDialog):
             message_area: Gtk.Box = self.get_message_area()
             for widget in dialog_settings["widgets"]:
                 message_area.add(widget)
-        self.result = self.run()
+        self.result = self.run()  # type: ignore
         self.destroy()
-
-    # workaround missing typing stubs in Gtk
-    def run(self) -> Gtk.ResponseType: ...  # type: ignore
 
 
 class InputDialog(ModalDialog):
@@ -529,7 +514,7 @@ class InstallOrPlayDialog(ModalDialog):
         vbox.pack_start(install_button, False, False, 0)
 
         self.show_all()
-        self.run()
+        self.run()  # type: ignore
 
     def on_button_toggled(self, _button: Gtk.RadioButton, action: str) -> None:
         logger.debug("Action set to %s", action)
@@ -568,7 +553,7 @@ class LaunchConfigSelectDialog(ModalDialog):
         vbox.pack_end(dont_show_checkbutton, False, False, 6)
 
         self.show_all()
-        self.run()
+        self.run()  # type: ignore
 
     def on_button_toggled(self, _button: Gtk.RadioButton, index: int) -> None:
         self.config_index = index
@@ -690,7 +675,7 @@ class HumbleBundleCookiesDialog(ModalDialog):
         scrolledwindow.add(self.textview)
         vbox.pack_start(scrolledwindow, True, True, 24)
         self.show_all()
-        self.run()
+        self.run()  # type: ignore
 
     def on_response(self, dialog: Gtk.Dialog, response: Gtk.ResponseType) -> None:
         if response == Gtk.ResponseType.CANCEL:
