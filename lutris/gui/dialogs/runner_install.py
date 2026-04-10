@@ -116,7 +116,7 @@ class RunnerInstallDialog(ModelessDialog):
     COL_USAGE = 5
 
     def __init__(self, title, parent, runner):
-        super().__init__(title, parent, 0, border_width=10)
+        super().__init__(title, parent, border_width=10)
         self.ok_button = self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
         self.ok_button.set_size_request(100, -1)
         self.ok_button.set_margin_top(6)

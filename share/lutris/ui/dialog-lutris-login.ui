@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk" version="4.0"/>
-  <object class="GtkDialog" id="lutris-login">
+  <object class="GtkWindow" id="lutris-login">
     <property name="title" translatable="yes">Connect to lutris.net</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
