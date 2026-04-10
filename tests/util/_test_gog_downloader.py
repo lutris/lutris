@@ -530,17 +530,6 @@ class TestInstallerFileIntegration:
 class TestGOGServiceIntegration:
     """Test that the GOG service injects GOGDownloader into InstallerFile."""
 
-    @pytest.fixture(autouse=True)
-    def _setup_gi(self):
-        """Ensure GTK version is required before importing GOG service."""
-        try:
-            import gi
-
-            gi.require_version("Gtk", "3.0")
-            gi.require_version("Gdk", "3.0")
-        except (ValueError, ImportError):
-            pytest.skip("GTK 3.0 not available")
-
     def test_gog_format_links_includes_downloader_class(self):
         """_format_links should inject GOGDownloader as downloader_class."""
         from unittest.mock import MagicMock

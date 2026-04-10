@@ -67,9 +67,11 @@ SERVICES = get_services()
 
 
 # Those services are not yet ready to be used
-WIP_SERVICES = {
-    "mame": MAMEService,
-}
+def get_wip_services() -> dict[str, "type[BaseService]"]:
+    return {"mame": MAMEService}
+
+
+WIP_SERVICES = get_wip_services()
 
 if os.environ.get("LUTRIS_ENABLE_ALL_SERVICES"):
     SERVICES.update(WIP_SERVICES)
