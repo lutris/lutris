@@ -3,49 +3,24 @@
 Tests the game lifecycle integration hooks for GOG cloud sync.
 """
 
-import importlib.util
 import os
 import sys
-import types
 import unittest
 from unittest.mock import MagicMock, patch
 
-# ── Load gog_cloud first (no GTK dependency) ────────────────────────
-_cloud_spec = importlib.util.spec_from_file_location(
-    "lutris.services.gog_cloud",
-    os.path.join(os.path.dirname(__file__), "..", "lutris", "services", "gog_cloud.py"),
+import lutris.services.gog_cloud_hooks as _mod
+from lutris.services.gog_cloud import (
+    CloudSaveLocation,
+    SyncAction,
+    SyncResult,
 )
-assert _cloud_spec is not None and _cloud_spec.loader is not None
-_cloud_mod = importlib.util.module_from_spec(_cloud_spec)
-sys.modules["lutris.services.gog_cloud"] = _cloud_mod
-_cloud_spec.loader.exec_module(_cloud_mod)
-
-SyncAction = _cloud_mod.SyncAction
-SyncResult = _cloud_mod.SyncResult
-CloudSaveLocation = _cloud_mod.CloudSaveLocation
-
-# ── Stub lutris.services package to prevent __init__.py / GTK chain ─
-if "lutris.services" not in sys.modules:
-    _services_stub = types.ModuleType("lutris.services")
-    sys.modules["lutris.services"] = _services_stub
-sys.modules["lutris.services"].gog_cloud = _cloud_mod  # type: ignore[attr-defined]
-
-# ── Now load gog_cloud_hooks (its "from lutris.services.gog_cloud"
-#    will find the module we already placed in sys.modules) ──────────
-_spec = importlib.util.spec_from_file_location(
-    "lutris.services.gog_cloud_hooks",
-    os.path.join(os.path.dirname(__file__), "..", "lutris", "services", "gog_cloud_hooks.py"),
+from lutris.services.gog_cloud_hooks import (
+    _get_game_runner_info,
+    _get_gog_service,
+    _resolve_save_locations,
+    sync_after_quit,
+    sync_before_launch,
 )
-assert _spec is not None and _spec.loader is not None
-_mod = importlib.util.module_from_spec(_spec)
-sys.modules["lutris.services.gog_cloud_hooks"] = _mod
-_spec.loader.exec_module(_mod)
-
-sync_before_launch = _mod.sync_before_launch
-sync_after_quit = _mod.sync_after_quit
-_get_gog_service = _mod._get_gog_service
-_get_game_runner_info = _mod._get_game_runner_info
-_resolve_save_locations = _mod._resolve_save_locations
 
 
 class TestGetGogService(unittest.TestCase):
