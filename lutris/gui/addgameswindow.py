@@ -69,7 +69,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
     ]
 
     def __init__(self, **kwargs):
-        ModelessDialog.__init__(self, title=_("Add games to Lutris"), **kwargs)
+        ModelessDialog.__init__(self, title=_("Add games to Lutris"), use_header_bar=True, **kwargs)
         self.set_default_size(640, 450)
         self.search_entry = None
         self.search_frame = None
