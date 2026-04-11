@@ -264,9 +264,7 @@ def get_runtime_icon_path(icon_name: str) -> str | None:
     return None
 
 
-def get_runtime_icon_image(
-    icon_name: str, fallback_stock_icon_name: str | None = None, visible: bool = False
-) -> Gtk.Widget:
+def get_runtime_icon_image(icon_name: str, fallback_stock_icon_name: str | None = None) -> Gtk.Widget:
     """Returns a Gtk.Picture or Gtk.Image of an icon for a runtime or service; the image has the
     default icon size. If the icon can't be found, we'll fall back onto another,
     stock icon. If you don't supply one (or it's not available) we'll fall back
@@ -278,7 +276,6 @@ def get_runtime_icon_image(
             texture = Gdk.Texture.new_for_pixbuf(pixbuf)
             icon = Gtk.Image.new_from_paintable(texture)
             icon.set_pixel_size(ICON_SIZE[0])
-            icon.set_visible(visible)
             return icon
 
     if not fallback_stock_icon_name or not has_stock_icon(fallback_stock_icon_name):
@@ -286,7 +283,6 @@ def get_runtime_icon_image(
 
     icon = Gtk.Image.new_from_icon_name(fallback_stock_icon_name)
     icon.set_icon_size(Gtk.IconSize.LARGE)
-    icon.set_visible(visible)
     return icon
 
 

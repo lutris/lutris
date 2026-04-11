@@ -298,7 +298,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
     def create_option_container(self, option: dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Widget:
         option_key = option["option"]
-        reset_container = Gtk.Box(visible=True)
+        reset_container = Gtk.Box()
         reset_container.set_margin_start(18)
         wrapper.set_hexpand(True)
         reset_container.append(wrapper)

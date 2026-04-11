@@ -21,14 +21,14 @@ class ServicesBox(BaseConfigBox):
                 _("Access your game libraries from various sources. Changes require a restart to take effect.")
             )
         )
-        self.frame = Gtk.Frame(visible=True)
-        self.listbox = Gtk.ListBox(visible=True)
+        self.frame = Gtk.Frame()
+        self.listbox = Gtk.ListBox()
         self.frame.set_child(self.listbox)
         self.append(self.frame)
 
     def populate_services(self):
         for service_key in SERVICES:
-            list_box_row = Gtk.ListBoxRow(visible=True)
+            list_box_row = Gtk.ListBoxRow()
             list_box_row.set_selectable(False)
             list_box_row.set_activatable(False)
             list_box_row.set_child(self._get_service_box(service_key))
@@ -42,23 +42,22 @@ class ServicesBox(BaseConfigBox):
             margin_top=12,
             margin_bottom=12,
             height_request=32,
-            visible=True,
         )
         in_games_view_key = service_key + "_in_games_view"
         service = SERVICES[service_key]
         is_active = settings.read_bool_setting(service_key, section="services")
         is_in_games_view = settings.read_bool_setting(in_games_view_key, default=True, section="services")
 
-        icon = get_runtime_icon_image(service.icon, service.id, visible=True)
+        icon = get_runtime_icon_image(service.icon, service.id)
         box.append(icon)
-        service_label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
-        label = Gtk.Label(visible=True)
+        service_label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        label = Gtk.Label()
         label.set_markup(f"<b>{service.name}</b>")
         label.set_halign(Gtk.Align.START)
         service_label_box.append(label)
 
         if service.description:
-            desc_label = Gtk.Label(visible=True, wrap=True)
+            desc_label = Gtk.Label(wrap=True)
             desc_label.set_halign(Gtk.Align.START)
             desc_label.set_text(service.description)
             service_label_box.append(desc_label)
@@ -78,7 +77,7 @@ class ServicesBox(BaseConfigBox):
         service_label_box.set_vexpand(True)
         box.append(service_label_box)
 
-        checkbox = Gtk.Switch(visible=True)
+        checkbox = Gtk.Switch()
         checkbox.set_active(is_active)
         checkbox.connect("state-set", self._on_service_change, service_key, include_in_games_checkbox)
         checkbox.set_halign(Gtk.Align.CENTER)

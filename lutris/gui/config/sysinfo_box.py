@@ -41,32 +41,32 @@ class SystemBox(BaseConfigBox):
         super().__init__()
         self.append(self.get_section_label(_("System information")))
 
-        self.scrolled_window = Gtk.ScrolledWindow(visible=True)
+        self.scrolled_window = Gtk.ScrolledWindow()
         self.scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        sysinfo_frame = Gtk.Frame(visible=True)
+        sysinfo_frame = Gtk.Frame()
         sysinfo_frame.add_css_class("info-frame")
         sysinfo_frame.set_child(self.scrolled_window)
         sysinfo_frame.set_hexpand(True)
         sysinfo_frame.set_vexpand(True)
         self.append(sysinfo_frame)
 
-        button_copy = Gtk.Button(label=_("Copy system info to Clipboard"), halign=Gtk.Align.START, visible=True)
+        button_copy = Gtk.Button(label=_("Copy system info to Clipboard"), halign=Gtk.Align.START)
         button_copy.connect("clicked", self.on_copy_clicked)
 
         self.append(button_copy)
 
         self.append(self.get_section_label(_("Lutris logs")))
 
-        self.log_scrolled_window = Gtk.ScrolledWindow(visible=True)
+        self.log_scrolled_window = Gtk.ScrolledWindow()
         self.log_scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        log_frame = Gtk.Frame(visible=True)
+        log_frame = Gtk.Frame()
         log_frame.add_css_class("info-frame")
         log_frame.set_child(self.log_scrolled_window)
         log_frame.set_hexpand(True)
         log_frame.set_vexpand(True)
         self.append(log_frame)
 
-        button_log_copy = Gtk.Button(label=_("Copy logs to Clipboard"), halign=Gtk.Align.START, visible=True)
+        button_log_copy = Gtk.Button(label=_("Copy logs to Clipboard"), halign=Gtk.Align.START)
         button_log_copy.connect("clicked", self.on_copy_log_clicked)
 
         self.append(button_log_copy)
@@ -99,21 +99,21 @@ class SystemBox(BaseConfigBox):
         """Constructs a Gtk.Grid containing labels for each item given; each item
         may be a name-value tuple, producing two labels, or just a string, giving one
         that covers two columns; this later is used for section headers."""
-        grid = Gtk.Grid(visible=True, row_spacing=6, margin_top=16, margin_bottom=16, margin_start=16, margin_end=16)
+        grid = Gtk.Grid(row_spacing=6, margin_top=16, margin_bottom=16, margin_start=16, margin_end=16)
         row = 0
         for item in items:
             if isinstance(item, str):
-                header_label = Gtk.Label(visible=True, xalign=0, yalign=0, margin_top=16)
+                header_label = Gtk.Label(xalign=0, yalign=0, margin_top=16)
                 header_label.set_markup("<b>[%s]</b>" % gtk_safe(item))
                 if row == 0:
                     grid.set_margin_top(0)
                 grid.attach(header_label, 0, row, 2, 1)
             else:
                 name, text = item
-                name_label = Gtk.Label(label=name + ":", visible=True, xalign=0, yalign=0, margin_end=30)
+                name_label = Gtk.Label(label=name + ":", xalign=0, yalign=0, margin_end=30)
                 grid.attach(name_label, 0, row, 1, 1)
 
-                markup_label = Gtk.Label(visible=True, xalign=0, selectable=True)
+                markup_label = Gtk.Label(xalign=0, selectable=True)
                 markup_label.set_markup("<b>%s</b>" % gtk_safe(text))
                 grid.attach(markup_label, 1, row, 1, 1)
             row += 1

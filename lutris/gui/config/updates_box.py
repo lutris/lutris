@@ -139,10 +139,9 @@ class UpdateButtonBox(Gtk.Box):
             margin_start=12,
             margin_end=12,
             spacing=6,
-            visible=True,
         )
 
-        self.label = Gtk.Label(visible=True, xalign=0)
+        self.label = Gtk.Label(xalign=0)
         self.label.set_markup(label)
         self.label.set_hexpand(True)
         self.label.set_vexpand(True)
@@ -153,7 +152,7 @@ class UpdateButtonBox(Gtk.Box):
         self.spinner = Gtk.Spinner()
         self.append(self.spinner)
 
-        self.button = Gtk.Button(label=button_label, visible=True)
+        self.button = Gtk.Button(label=button_label)
         self.button.connect("clicked", clicked)
         self.append(self.button)
 
