@@ -161,6 +161,25 @@ and grid rows). Margins and spacing values that looked fine in GTK 3 may feel to
 The search filters panel needed margins reduced from 20px to 12px, box spacing from 10px
 to 4px, and grid row spacing from 6px to 2px to look comparable.
 
+## PopoverMenu Section Separators
+
+`GtkPopoverMenu` built from a `Gio.Menu` with `append_section()` inserts its section
+separators (and the 10px top-margin fallback used when a separator is suppressed) from a
+`G_PRIORITY_DEFAULT` idle callback in `gtk_menu_section_box_schedule_separator_sync()`. If
+you call `popover.popup()` synchronously right after `new_from_model()`, measurement happens
+*before* that idle runs, so the natural size undercounts all the separator overhead. The
+compositor sizes the xdg-popup at the undercounted value, the separators then appear, and
+the contents overflow into a scrolled view.
+
+Workaround: defer `popover.popup()` via `GLib.idle_add()`. Python's default priority is
+`G_PRIORITY_DEFAULT_IDLE` (200), which runs after GTK's `G_PRIORITY_DEFAULT` (0) separator
+sync, so measure happens with the separators in place. See
+`lutris/gui/widgets/contextual_menu.py`.
+
+A cleaner long-term approach is to build the menu model once at construction time and only
+call `popup()` on click, which gives GTK time to run the separator-sync idle between
+creation and presentation.
+
 ## GnomeDesktop / Display API
 
 GnomeDesktop 3.0 (`gi.require_version('GnomeDesktop', '3.0')`) requires GTK 3 and cannot
