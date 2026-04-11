@@ -80,4 +80,8 @@ class ContextualMenu:
             rect.height = 1
             popover.set_pointing_to(rect)
             popover.set_has_arrow(False)
-            popover.popup()
+            # GtkMenuSectionBox inserts section separators from a G_PRIORITY_DEFAULT
+            # idle, so measuring synchronously here undercounts the natural height
+            # and the compositor clamps the popup. Defer popup() to a lower-priority
+            # idle so the separator sync runs first.
+            GLib.idle_add(popover.popup)
