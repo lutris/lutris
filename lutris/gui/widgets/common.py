@@ -9,7 +9,7 @@ from gettext import gettext as _
 # Third Party Libraries
 from gi.repository import Gio, GLib, GObject, Gtk, Pango
 
-from lutris.gui.widgets.utils import open_uri
+from lutris.gui.widgets.utils import get_widget_children, open_uri
 
 # Lutris Modules
 from lutris.util import system
@@ -384,13 +384,8 @@ class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
 
     def clear_warnings(self):
         """Delete all the warning labels from the container"""
-        first_child = self.get_first_child()
-        if first_child:
-            child = first_child.get_next_sibling()
-            while child is not None:
-                next_child = child.get_next_sibling()
-                self.remove(child)
-                child = next_child
+        for child in get_widget_children(self)[1:]:
+            self.remove(child)
 
 
 class Label(Gtk.Label):
