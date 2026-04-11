@@ -173,15 +173,15 @@ def run_until_complete(
     """
     context = GLib.MainContext.default()
     done = False
-    error_holder: list[Exception | None] = [None]
+    error: Exception | None = None
 
     def on_complete() -> None:
         nonlocal done
         done = True
 
     def on_error(ex: Exception) -> None:
-        nonlocal done
-        error_holder[0] = ex
+        nonlocal done, error
+        error = ex
         done = True
 
     deadline = GLib.get_monotonic_time() + int(timeout_seconds * 1_000_000)
@@ -192,8 +192,8 @@ def run_until_complete(
             raise TimeoutError(f"Async operation timed out after {timeout_seconds}s")
         context.iteration(True)
 
-    if error_holder[0]:
-        raise error_holder[0]
+    if error:
+        raise error
 
 
 def schedule_repeating_at_idle(
