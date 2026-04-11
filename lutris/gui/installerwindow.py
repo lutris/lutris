@@ -26,7 +26,7 @@ from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.common import FileChooserEntry, KeyValueDropDown
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.navigation_stack import NavigationStack
-from lutris.gui.widgets.utils import get_main_window
+from lutris.gui.widgets.utils import get_main_window, get_widget_children
 from lutris.installer import InstallationKind, interpreter
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
@@ -1136,11 +1136,5 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             available = not hasattr(b, "is_available") or b.is_available()
             b.set_visible(b in buttons and available)
 
-        any_visible = False
-        child = self.menu_box.get_first_child()
-        while child:
-            if child.get_visible():
-                any_visible = True
-                break
-            child = child.get_next_sibling()
+        any_visible = any(c.get_visible() for c in get_widget_children(self.menu_box))
         self.menu_button.set_visible(any_visible)
