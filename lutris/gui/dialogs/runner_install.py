@@ -56,7 +56,6 @@ class ShowAppsDialog(ModelessDialog):
         self.runner_name = runner_name
         self.runner_version = runner_version
         ok_button = self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
-        ok_button.set_size_request(100, -1)
         ok_button.set_margin_top(6)
         ok_button.set_margin_bottom(6)
         ok_button.set_margin_end(10)
@@ -118,7 +117,6 @@ class RunnerInstallDialog(ModelessDialog):
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, border_width=10)
         self.ok_button = self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
-        self.ok_button.set_size_request(100, -1)
         self.ok_button.set_margin_top(6)
         self.ok_button.set_margin_bottom(6)
         self.ok_button.set_margin_end(10)
@@ -255,8 +253,7 @@ class RunnerInstallDialog(ModelessDialog):
             hbox.append(arch_label)
 
             # Button comes first visually (was reorder_child(button, 0) before)
-            button = Gtk.Button()
-            button.set_size_request(100, -1)
+            button = Gtk.Button(width_request=100)
             row.install_uninstall_cancel_button = button
             row.handler_id = None
 
