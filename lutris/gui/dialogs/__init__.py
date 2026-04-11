@@ -50,6 +50,7 @@ class Dialog(Gtk.Window):
         self._use_header_bar = use_header_bar
         if use_header_bar:
             self._header_bar: Gtk.HeaderBar | None = Gtk.HeaderBar()
+            self._header_bar.set_show_title_buttons(False)
             self.set_titlebar(self._header_bar)
         else:
             self._header_bar = None
