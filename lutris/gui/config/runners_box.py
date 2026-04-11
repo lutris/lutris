@@ -27,15 +27,15 @@ class RunnersBox(BaseConfigBox):
         )
         self.search_failed_label = Gtk.Label(label=_("No runners matched the search"))
         self.append(self.search_failed_label)
-        self.runner_list_frame = Gtk.Frame(visible=True)
-        self.runner_listbox = Gtk.ListBox(visible=True)
+        self.runner_list_frame = Gtk.Frame()
+        self.runner_listbox = Gtk.ListBox()
         self.runner_list_frame.set_child(self.runner_listbox)
         self.append(self.runner_list_frame)
 
     def populate_runners(self):
         runner_count = 0
         for runner_name in sorted(runners.__all__):
-            list_box_row = Gtk.ListBoxRow(visible=True)
+            list_box_row = Gtk.ListBoxRow()
             list_box_row.set_selectable(False)
             list_box_row.set_activatable(False)
             list_box_row.set_child(RunnerBox(runner_name))
