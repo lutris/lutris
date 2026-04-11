@@ -106,7 +106,7 @@ class EditGameCategoriesDialog(SavableModelessDialog):
                 self.checkbox_grid.attach_next_to(checkbutton, None, Gtk.PositionType.TOP, 3, 1)
                 categories_db.add_category(category)
 
-        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10, vexpand=False)
 
         category_entry = Gtk.Entry()
         category_entry.connect("activate", on_add_category)
@@ -114,7 +114,7 @@ class EditGameCategoriesDialog(SavableModelessDialog):
         category_entry.set_vexpand(True)
         hbox.append(category_entry)
 
-        button = Gtk.Button.new_with_label(_("Add Category"))
+        button = Gtk.Button(label=_("Add Category"), width_request=80)
         button.connect("clicked", on_add_category)
         button.set_tooltip_text(_("Adds the category to the list."))
         hbox.append(button)
