@@ -13,6 +13,7 @@ from lutris.config import LutrisConfig
 from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, KeyValueDropDown, Label
 from lutris.gui.widgets.searchable_entrybox import SearchableEntrybox
+from lutris.gui.widgets.utils import get_widget_children
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
@@ -171,11 +172,8 @@ class WidgetGenerator(ABC):
 
         if wrapper:
             # Destroy and recreate option widget
-            child = wrapper.get_first_child()
-            while child:
-                next_child = child.get_next_sibling()
+            for child in get_widget_children(wrapper):
                 child.unparent()
-                child = next_child
             self.wrapper = wrapper
         else:
             self.wrapper = self.create_wrapper_box(option, value, default)
@@ -305,11 +303,9 @@ class WidgetGenerator(ABC):
         results."""
 
         # Update messages in message boxes that support it
-        child = container.get_first_child()
-        while child:
+        for child in get_widget_children(container):
             if hasattr(child, "update_message"):
                 child.update_message(option, self)
-            child = child.get_next_sibling()
 
         # Hide entire container if the option is not visible
         visible = self.get_visibility(option)
@@ -782,11 +778,9 @@ class WidgetGenerator(ABC):
 
         container = self.option_containers[option["option"]]
 
-        child = container.get_first_child()
-        while child:
+        for child in get_widget_children(container):
             if hasattr(child, "blocks_sensitivity") and child.blocks_sensitivity:
                 return False
-            child = child.get_next_sibling()
 
         return condition
 
@@ -852,12 +846,7 @@ class SectionFrame(Gtk.Frame):
         self.add_css_class("section-frame")
 
     def has_visible_children(self):
-        child = self.vbox.get_first_child()
-        while child:
-            if child.get_visible():
-                return True
-            child = child.get_next_sibling()
-        return False
+        return any(c.get_visible() for c in get_widget_children(self.vbox))
 
 
 class WidgetWarningMessageBox(Gtk.Box):
