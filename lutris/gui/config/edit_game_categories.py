@@ -101,7 +101,7 @@ class EditGameCategoriesDialog(SavableModelessDialog):
             category = categories_db.strip_category_name(category_entry.get_text())
             if not categories_db.is_reserved_category(category) and category not in self.category_checkboxes:
                 category_entry.set_text("")
-                checkbutton = Gtk.CheckButton(label=category, visible=True, active=True)
+                checkbutton = Gtk.CheckButton(label=category, active=True)
                 self.category_checkboxes[category] = checkbutton
                 self.checkbox_grid.attach_next_to(checkbutton, None, Gtk.PositionType.TOP, 3, 1)
                 categories_db.add_category(category)

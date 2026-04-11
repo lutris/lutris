@@ -65,13 +65,13 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
     @staticmethod
     def build_scrolled_window(widget: Gtk.Widget) -> Gtk.ScrolledWindow:
         """Return a scrolled window containing config widgets"""
-        scrolled_window = Gtk.ScrolledWindow(visible=True)
+        scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_child(widget)
         return scrolled_window
 
     def build_notebook(self) -> None:
-        self.notebook = Gtk.Notebook(visible=True)
+        self.notebook = Gtk.Notebook()
         self.notebook.set_show_border(False)
         self.notebook.connect("switch-page", self.on_notebook_switch_page)
         self.notebook.set_hexpand(True)

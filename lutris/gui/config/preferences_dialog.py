@@ -30,8 +30,8 @@ class PreferencesDialog(GameDialogCommon):
         self.shortcut_controller.set_scope(Gtk.ShortcutScope.MANAGED)
         self.add_controller(self.shortcut_controller)
 
-        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
-        sidebar = Gtk.ListBox(visible=True)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        sidebar = Gtk.ListBox()
         sidebar.connect("row-selected", self.on_sidebar_activated)
         sidebar.append(self.get_sidebar_button("prefs-stack", _("Interface"), "view-grid-symbolic"))
         sidebar.append(self.get_sidebar_button("runners-stack", _("Runners"), "applications-utilities-symbolic"))
@@ -42,7 +42,7 @@ class PreferencesDialog(GameDialogCommon):
         sidebar.append(self.get_sidebar_button("storage-stack", _("Storage"), "drive-harddisk-symbolic"))
         sidebar.append(self.get_sidebar_button("system-stack", _("Global options"), "emblem-system-symbolic"))
         hbox.append(sidebar)
-        self.stack = Gtk.Stack(visible=True)
+        self.stack = Gtk.Stack()
         self.stack.set_vhomogeneous(False)
         self.stack.set_interpolate_size(True)
         self.stack.set_hexpand(True)
@@ -79,7 +79,7 @@ class PreferencesDialog(GameDialogCommon):
         self.page_generators["storage-stack"] = storage_box.populate
         self.stack.add_named(self.build_scrolled_window(storage_box), "storage-stack")
 
-        self.system_box = SystemConfigBox(self.config_level, self.lutris_config, visible=True)
+        self.system_box = SystemConfigBox(self.config_level, self.lutris_config)
         self.page_generators["system-stack"] = self.system_box.generate_widgets
         self.stack.add_named(self.build_scrolled_window(self.system_box), "system-stack")
 
@@ -117,7 +117,7 @@ class PreferencesDialog(GameDialogCommon):
         return _("Search global options")
 
     def get_sidebar_button(self, stack_id, text, icon_name):
-        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.stack_id = stack_id
         hbox.set_margin_top(12)
         hbox.set_margin_bottom(12)
@@ -128,7 +128,7 @@ class PreferencesDialog(GameDialogCommon):
         icon.set_margin_end(6)
         hbox.append(icon)
 
-        label = Gtk.Label(label=text, visible=True)
+        label = Gtk.Label(label=text)
         label.set_halign(Gtk.Align.START)
         label.set_margin_start(6)
         label.set_margin_end(6)

@@ -24,9 +24,9 @@ class AccountsBox(BaseConfigBox):
     def __init__(self):
         super().__init__()
         self.append(self.get_section_label(_("Lutris")))
-        frame = Gtk.Frame(visible=True)
+        frame = Gtk.Frame()
         frame.add_css_class("info-frame")
-        self.bullshit_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+        self.bullshit_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.append(frame)
 
         self.lutris_options = self.get_lutris_options()
@@ -52,11 +52,11 @@ class AccountsBox(BaseConfigBox):
                 _("Select which Steam account is used for Lutris integration and creating Steam shortcuts.")
             )
         )
-        self.frame = Gtk.Frame(visible=True)
+        self.frame = Gtk.Frame()
         self.frame.add_css_class("info-frame")
         self.append(self.frame)
 
-        self.accounts_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
+        self.accounts_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.frame.set_child(self.accounts_box)
 
     def on_realize(self, _widget):
@@ -81,9 +81,9 @@ class AccountsBox(BaseConfigBox):
     def get_user_box(self):
         user_info = read_user_info()
 
-        user_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, visible=True)
+        user_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
 
-        label = Gtk.Label(visible=True)
+        label = Gtk.Label()
         label.set_halign(Gtk.Align.START)
         if user_info:
             label.set_markup(_("Connected as <b>%s</b>") % user_info["username"])
@@ -99,19 +99,19 @@ class AccountsBox(BaseConfigBox):
         else:
             button_text = _("Login")
             button_handler = self.on_login_clicked
-        button = Gtk.Button(label=button_text, visible=True)
+        button = Gtk.Button(label=button_text)
         button.connect("clicked", button_handler)
         self.space_widget(button)
         user_box.append(button)
         return user_box
 
     def get_lutris_options(self):
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         box.append(self.get_user_box())
 
-        sync_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, visible=True)
-        sync_label = Gtk.Label(label=_("Keep your game library synced with Lutris.net"), visible=True)
-        sync_switch = Gtk.Switch(visible=True)
+        sync_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        sync_label = Gtk.Label(label=_("Keep your game library synced with Lutris.net"))
+        sync_switch = Gtk.Switch()
         sync_switch.set_active(settings.read_bool_setting("library_sync_enabled", default=True))
         sync_switch.connect("state-set", self.on_sync_state_set)
         sync_box.append(sync_label)
@@ -119,7 +119,7 @@ class AccountsBox(BaseConfigBox):
         self.space_widget(sync_box, bottom=0)
         box.append(sync_box)
 
-        label = Gtk.Label(visible=True)
+        label = Gtk.Label()
         label.set_halign(Gtk.Align.START)
         label.set_markup(
             _(
@@ -150,7 +150,7 @@ class AccountsBox(BaseConfigBox):
             if not main_radio_button:
                 main_radio_button = radio_button
         if not steam_users:
-            no_account_label = self.space_widget(Gtk.Label(label=_("No Steam account found"), visible=True))
+            no_account_label = self.space_widget(Gtk.Label(label=_("No Steam account found")))
             no_account_label.set_hexpand(True)
             self.accounts_box.append(no_account_label)
 

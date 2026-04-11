@@ -64,7 +64,7 @@ class StorageBox(BaseConfigBox):
     def get_directory_chooser(self, path_setting):
         label = Label()
         label.set_markup("<b>%s</b>" % path_setting["name"])
-        wrapper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4, visible=True)
+        wrapper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
         wrapper.set_margin_top(16)
 
         default_path = path_setting["default"]
@@ -81,7 +81,7 @@ class StorageBox(BaseConfigBox):
         directory_chooser.set_vexpand(True)
         wrapper.append(directory_chooser)
         if path_setting["help"]:
-            help_wrapper = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, visible=True)
+            help_wrapper = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
             help_wrapper.append(wrapper)
             help_label = Label()
             help_label.set_markup("<i>%s</i>" % path_setting["help"])

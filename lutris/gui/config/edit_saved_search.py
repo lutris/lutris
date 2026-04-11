@@ -64,9 +64,9 @@ class SearchFiltersBox(Gtk.Box):
         self.flags_grid = Gtk.Grid(row_spacing=2, column_spacing=6)
         self._add_flag_widgets()
 
-        categories_scrolled_window = Gtk.ScrolledWindow(visible=True)
+        categories_scrolled_window = Gtk.ScrolledWindow()
         categories_scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        categories_frame = Gtk.Frame(visible=True)
+        categories_frame = Gtk.Frame()
         categories_frame.add_css_class("info-frame")
         categories_frame.set_child(categories_scrolled_window)
         self.categories_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)

@@ -116,7 +116,7 @@ class WidgetGenerator(ABC):
             if option.get("section") != self._current_section:
                 self._current_section = option.get("section")
                 if self._current_section:
-                    frame = SectionFrame(self._current_section, visible=True)
+                    frame = SectionFrame(self._current_section)
                     self.section_frames.append(frame)
                     self._current_parent = frame.vbox
                     self.parent.append(frame)
@@ -236,7 +236,7 @@ class WidgetGenerator(ABC):
             # If not available, there's no wrapper, and no widget!
             return None
 
-        return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin_bottom=6, visible=True)
+        return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, margin_bottom=6)
 
     def create_option_container(self, option: dict[str, Any], wrapper: Gtk.Widget) -> Gtk.Widget:
         """This creates a wrapper box around the widget wrapper, to support additional controls. The
@@ -244,7 +244,7 @@ class WidgetGenerator(ABC):
         there are none it just returns 'wrapper'."""
 
         if self.warning_messages:
-            option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+            option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             option_container.append(wrapper)
 
             for widget in self.warning_messages:
@@ -847,7 +847,7 @@ class SectionFrame(Gtk.Frame):
     def __init__(self, section, **kwargs):
         super().__init__(label=section, **kwargs)
         self.section = section
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.set_child(self.vbox)
         self.add_css_class("section-frame")
 
@@ -877,11 +877,11 @@ class WidgetWarningMessageBox(Gtk.Box):
             margin_bottom=margin_bottom,
         )
 
-        image = Gtk.Image(visible=True)
+        image = Gtk.Image()
         image.set_from_icon_name(icon_name)
         image.set_icon_size(Gtk.IconSize.LARGE)
         self.append(image)
-        self.label = Gtk.Label(visible=True, xalign=0)
+        self.label = Gtk.Label(xalign=0)
         self.label.set_wrap(True)
         self.append(self.label)
 

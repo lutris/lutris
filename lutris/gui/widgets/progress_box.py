@@ -54,12 +54,12 @@ class ProgressBox(Gtk.Box):
         self.progress_function = progress_function
         self.progress = ProgressInfo(0.0)
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True, spacing=6, valign=Gtk.Align.CENTER)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, valign=Gtk.Align.CENTER)
 
         self.label = Gtk.Label(label="", visible=False, wrap=True, ellipsize=Pango.EllipsizeMode.MIDDLE, xalign=0)
         vbox.append(self.label)
 
-        self.progressbar = Gtk.ProgressBar(pulse_step=0.4, visible=True)
+        self.progressbar = Gtk.ProgressBar(pulse_step=0.4)
         self.progressbar.set_valign(Gtk.Align.CENTER)
         vbox.append(self.progressbar)
 

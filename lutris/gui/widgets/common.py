@@ -111,7 +111,7 @@ class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
         activates_default=False,
         shell_quoting=False,
     ):  # pylint: disable=too-many-arguments
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=0, visible=True)
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.title = title
         self.action = action
         self.warn_if_non_empty = warn_if_non_empty
@@ -121,7 +121,7 @@ class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
 
         self.path_completion = Gtk.ListStore(str)
 
-        self.entry = Gtk.Entry(visible=True)
+        self.entry = Gtk.Entry()
         self.set_text(text)  # do before set up signal handlers
         self.original_text = self.get_text()
         self.default_path = os.path.expanduser(default_path) if default_path else self.get_path()
@@ -148,7 +148,7 @@ class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
         self.open_button.connect("clicked", self.on_open_clicked)
         self.open_button.set_sensitive(bool(self.get_open_directory()))
 
-        box = Gtk.Box(spacing=6, visible=True)
+        box = Gtk.Box(spacing=6)
         self.entry.set_hexpand(True)
         box.append(self.entry)
         box.append(browse_button)
@@ -290,12 +290,12 @@ class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
         self.original_text = text
 
         if self.warn_if_ntfs and LINUX_SYSTEM.get_fs_type_for_path(path) == "ntfs":
-            ntfs_box = Gtk.Box(spacing=6, visible=True)
-            warning_image = Gtk.Image(visible=True)
+            ntfs_box = Gtk.Box(spacing=6)
+            warning_image = Gtk.Image()
             warning_image.set_from_icon_name("dialog-warning")
             warning_image.set_icon_size(Gtk.IconSize.LARGE)
             ntfs_box.append(warning_image)
-            ntfs_label = Gtk.Label(visible=True)
+            ntfs_label = Gtk.Label()
             ntfs_label.set_markup(
                 _(
                     "<b>Warning!</b> The selected path is located on a drive formatted by Windows.\n"
@@ -306,7 +306,7 @@ class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
             ntfs_box.set_margin_bottom(10)
             self.append(ntfs_box)
         if self.warn_if_non_empty and os.path.exists(path) and os.listdir(path):
-            non_empty_label = Gtk.Label(visible=True)
+            non_empty_label = Gtk.Label()
             non_empty_label.set_markup(
                 _("<b>Warning!</b> The selected path contains files. Installation will not work properly.")
             )
@@ -315,7 +315,7 @@ class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
         if self.warn_if_non_writable_parent:
             parent = system.get_existing_parent(path)
             if parent is not None and not os.access(parent, os.W_OK):
-                non_writable_destination_label = Gtk.Label(visible=True)
+                non_writable_destination_label = Gtk.Label()
                 non_writable_destination_label.set_markup(
                     _("<b>Warning</b> The destination folder is not writable by the current user.")
                 )
@@ -396,9 +396,9 @@ class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
 class Label(Gtk.Label):
     """Standardised label for config vboxes."""
 
-    def __init__(self, message=None, width_request=230, max_width_chars=22, visible=True):
+    def __init__(self, message=None, width_request=230, max_width_chars=22):
         """Custom init of label."""
-        super().__init__(label=message, visible=visible)
+        super().__init__(label=message)
         self.set_wrap(True)
         self.set_max_width_chars(max_width_chars)
         self.set_wrap_mode(Pango.WrapMode.WORD_CHAR)

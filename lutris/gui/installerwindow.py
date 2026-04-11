@@ -123,7 +123,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         # Menu buttons
         menu_icon = Gtk.Image.new_from_icon_name("open-menu-symbolic")
         self.menu_button = Gtk.MenuButton(child=menu_icon)
-        self.menu_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+        self.menu_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.menu_button.set_popover(Gtk.Popover(child=self.menu_box))
         self.get_header_bar().pack_end(self.menu_button)
 
@@ -490,14 +490,14 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         vbox.append(self.location_entry)
 
-        desktop_shortcut_button = Gtk.CheckButton(label=_("Create desktop shortcut"), visible=True)
+        desktop_shortcut_button = Gtk.CheckButton(label=_("Create desktop shortcut"))
         desktop_shortcut_button.set_active(installer_create_desktop_shortcut)
         desktop_shortcut_button.connect("toggled", self.on_create_desktop_shortcut_clicked)
         self.config["create_desktop_shortcut"] = installer_create_desktop_shortcut
 
         vbox.append(desktop_shortcut_button)
 
-        menu_shortcut_button = Gtk.CheckButton(label=_("Create application menu shortcut"), visible=True)
+        menu_shortcut_button = Gtk.CheckButton(label=_("Create application menu shortcut"))
         menu_shortcut_button.set_active(installer_create_menu_shortcut)
         menu_shortcut_button.connect("toggled", self.on_create_menu_shortcut_clicked)
         self.config["create_menu_shortcut"] = installer_create_menu_shortcut
@@ -505,7 +505,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         vbox.append(menu_shortcut_button)
 
         if steam_shortcut.vdf_file_exists():
-            steam_shortcut_button = Gtk.CheckButton(label=_("Create Steam shortcut"), visible=True)
+            steam_shortcut_button = Gtk.CheckButton(label=_("Create Steam shortcut"))
             steam_shortcut_button.set_active(settings.read_bool_setting("installer_create_steam_shortcut", False))
             steam_shortcut_button.connect("toggled", self.on_create_steam_shortcut_clicked)
             vbox.append(steam_shortcut_button)

@@ -17,7 +17,7 @@ class RunnerBox(Gtk.Box):
     }
 
     def __init__(self, runner_name):
-        super().__init__(visible=True)
+        super().__init__()
 
         self.connect("runner-installed", self.on_runner_installed)
         self.connect("runner-removed", self.on_runner_removed)
@@ -28,21 +28,21 @@ class RunnerBox(Gtk.Box):
         self.set_margin_end(12)
         self.runner = runners.import_runner(runner_name)()
 
-        runner_icon = get_runtime_icon_image(self.runner.name, visible=True)
+        runner_icon = get_runtime_icon_image(self.runner.name)
         runner_icon.set_margin_end(12)
         runner_icon.set_margin_start(6)
         runner_icon.set_margin_end(6)
         self.append(runner_icon)
 
-        self.runner_label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+        self.runner_label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.runner_label_box.set_margin_top(12)
 
-        runner_label = Gtk.Label(visible=True)
+        runner_label = Gtk.Label()
         runner_label.set_halign(Gtk.Align.START)
         runner_label.set_markup("<b>%s</b>" % self.runner.human_name)
         self.runner_label_box.append(runner_label)
 
-        desc_label = Gtk.Label(visible=True)
+        desc_label = Gtk.Label()
         desc_label.set_wrap(True)
         desc_label.set_halign(Gtk.Align.START)
         desc_label.set_text(self.runner.description)
@@ -59,7 +59,7 @@ class RunnerBox(Gtk.Box):
         self.append(self.configure_button)
         if not self.runner.is_installed():
             self.runner_label_box.set_sensitive(False)
-        self.action_button_box = Gtk.Box(visible=True)
+        self.action_button_box = Gtk.Box()
         self.action_button_box.set_halign(Gtk.Align.CENTER)
         self.action_button_box.set_valign(Gtk.Align.CENTER)
         self.action_button_box.append(self.get_action_button())

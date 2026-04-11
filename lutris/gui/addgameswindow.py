@@ -82,7 +82,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         content_area = self.get_content_area()
 
-        self.page_title_label = Gtk.Label(visible=True)
+        self.page_title_label = Gtk.Label()
         content_area.append(self.page_title_label)
 
         shortcut_controller = Gtk.ShortcutController()
@@ -210,9 +210,9 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.navigate_to_page(self.present_search_installers_page)
 
     def create_search_installers_page(self):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
-        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
-        self.search_entry = Gtk.SearchEntry(visible=True)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.search_entry = Gtk.SearchEntry()
         self.search_entry.set_hexpand(True)
         hbox.append(self.search_entry)
         self.search_spinner = Gtk.Spinner(visible=False)
@@ -235,9 +235,9 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         vbox.append(self.search_explanation_label)
 
         self.search_frame = Gtk.Frame()
-        self.search_listbox = Gtk.ListBox(visible=True)
+        self.search_listbox = Gtk.ListBox()
         self.search_listbox.connect("row-activated", self._on_game_selected)
-        scroll = Gtk.ScrolledWindow(visible=True)
+        scroll = Gtk.ScrolledWindow()
         scroll.set_vexpand(True)
         scroll.set_child(self.search_listbox)
         self.search_frame.set_child(scroll)
@@ -340,7 +340,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         grid.attach(self._get_explanation_label(explanation), 0, 2, 2, 1)
 
-        preset_label = Gtk.Label(label=_("Installer preset:"), visible=True)
+        preset_label = Gtk.Label(label=_("Installer preset:"))
         grid.attach(preset_label, 0, 3, 1, 1)
 
         self.install_preset_dropdown.append("win11", _("Windows 11 64-bit"))
@@ -357,7 +357,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         grid.attach(self.install_preset_dropdown, 1, 3, 1, 1)
         self.install_preset_dropdown.set_halign(Gtk.Align.START)
 
-        locale_label = Gtk.Label(label=_("Locale:"), visible=True)
+        locale_label = Gtk.Label(label=_("Locale:"))
         locale_label.set_xalign(0)
         grid.attach(locale_label, 0, 4, 1, 1)
 
@@ -666,23 +666,23 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         return icon
 
     def _get_label(self, text):
-        label = Gtk.Label(visible=True)
+        label = Gtk.Label()
         label.set_markup(text)
         label.set_xalign(0)
         return label
 
     def _get_explanation_label(self, markup):
-        label = Gtk.Label(visible=True, margin_end=12, margin_start=12, margin_top=12, margin_bottom=12)
+        label = Gtk.Label(margin_end=12, margin_start=12, margin_top=12, margin_bottom=12)
         label.set_markup(markup)
         label.set_wrap(True)
         return label
 
     def _get_listbox_row(self, left_icon_name, text, subtext, right_icon_name=""):
-        row = Gtk.ListBoxRow(visible=True)
+        row = Gtk.ListBoxRow()
         row.set_selectable(False)
         row.set_activatable(True)
 
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12, margin_top=12, margin_bottom=12, visible=True)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12, margin_top=12, margin_bottom=12)
 
         if left_icon_name:
             icon = self._get_icon(left_icon_name)
