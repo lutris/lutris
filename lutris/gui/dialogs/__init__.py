@@ -195,10 +195,11 @@ class Dialog(Gtk.Window):
         Runs a nested main loop until the dialog emits a response.
         Returns the response type."""
         loop = GLib.MainLoop()
-        response: list[Gtk.ResponseType] = [Gtk.ResponseType.NONE]
+        response: Gtk.ResponseType = Gtk.ResponseType.NONE
 
         def on_run_response(_dialog: "Dialog", resp: int) -> None:
-            response[0] = Gtk.ResponseType(resp)
+            nonlocal response
+            response = Gtk.ResponseType(resp)
             if loop.is_running():
                 loop.quit()
 
@@ -207,7 +208,7 @@ class Dialog(Gtk.Window):
         self.present()
         loop.run()
         self.disconnect(handler_id)
-        return response[0]
+        return response
 
     def destroy_at_idle(self, condition: Callable[[], bool] | None = None) -> None:
         """Adds as idle task to destroy this window at idle time;
@@ -624,21 +625,22 @@ def _file_dialog_run_sync(
     dialog_method should be a bound method like file_dialog.select_folder or file_dialog.open.
     Returns a Gio.File or None."""
     loop = GLib.MainLoop()
-    result: list[Gio.File | None] = [None]
+    result: Gio.File | None = None
 
     def on_finish(_dialog: Gtk.FileDialog, async_result: Gio.AsyncResult) -> None:
+        nonlocal result
         try:
             # The finish method name matches the start method
             finish_name = dialog_method.__name__ + "_finish"
             finish_func = getattr(_dialog, finish_name)
-            result[0] = finish_func(async_result)
+            result = finish_func(async_result)
         except GLib.Error:
             pass
         loop.quit()
 
     dialog_method(parent, None, on_finish)
     loop.run()
-    return result[0]
+    return result
 
 
 class DirectoryDialog:
