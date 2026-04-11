@@ -51,7 +51,7 @@ class InstallerScriptBox(Gtk.Box):
     def get_revealer(self, revealed):
         """Return the revelaer widget"""
         self.revealer = Gtk.Revealer()
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box.append(self.get_notes())
 
         self.revealer.set_child(box)

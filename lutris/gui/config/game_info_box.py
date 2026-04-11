@@ -190,22 +190,22 @@ class GameInfoBox(AdvancedSettingsBox):
 
     def _get_directory_box(self):
         """Return widget displaying the location of the game and allowing to move it"""
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12, visible=True)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(_("Directory"))
         box.append(label)
-        self.directory_entry = Gtk.Entry(visible=True)
+        self.directory_entry = Gtk.Entry()
         if self.game:
             self.directory_entry.set_text(self.game.directory)
         self.directory_entry.set_sensitive(False)
         self.directory_entry.set_hexpand(True)
         box.append(self.directory_entry)
-        move_button = Gtk.Button(label=_("Move"), visible=True)
+        move_button = Gtk.Button(label=_("Move"))
         move_button.connect("clicked", self.parent_widget.on_move_clicked)
         box.append(move_button)
         return box
 
     def _get_launch_config_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12, visible=True)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
 
         if self.game and self.game.config:
             game_config = self.game.config.game_level.get("game", {})
@@ -238,7 +238,7 @@ class GameInfoBox(AdvancedSettingsBox):
         return box
 
     def _get_game_config_location_box(self):
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12, visible=True)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
 
         game_config_path = ""
         if self.game and self.game.config and isinstance(self.game.config.game_config_path, str):
@@ -248,7 +248,7 @@ class GameInfoBox(AdvancedSettingsBox):
         box.append(label)
 
         # Get the current entry path for the image type and set it as the text
-        path_entry = Gtk.Entry(visible=True)
+        path_entry = Gtk.Entry()
         path_entry.set_text(game_config_path)
         path_entry.set_tooltip_text(_("Path to the game config file (readonly)"))
         path_entry.set_sensitive(False)
@@ -325,12 +325,12 @@ class GameInfoBox(AdvancedSettingsBox):
 
     def _create_image_entry(self, image_type, image_label, image_entry_tooltip):
         """Return widget displaying the location of the coverart, banner or icon image"""
-        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12, visible=True)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Label(image_label)
         box.append(label)
 
         # Get the current entry path for the image type and set it as the text
-        path_entry = Gtk.Entry(visible=True)
+        path_entry = Gtk.Entry()
         path_entry.set_tooltip_text(image_entry_tooltip)
         path_entry.set_sensitive(False)
 
