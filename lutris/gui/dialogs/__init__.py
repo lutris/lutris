@@ -105,7 +105,7 @@ class Dialog(Gtk.Window):
         )
         self.add_controller(escape_controller)
 
-    def _on_close_request(self, _window):
+    def _on_close_request(self, _window: Gtk.Window) -> bool:
         # Prevent the default close handler from running. In GTK 4 that would
         # call gtk_window_destroy from C, bypassing our Python destroy()
         # override — which is where modeless dialogs clean themselves out of
@@ -308,7 +308,8 @@ class SavableModelessDialog(ModelessDialog):
         controller.add_shortcut(Gtk.Shortcut(trigger=trigger, action=action))
         self.add_controller(controller)
 
-    def get_header_bar(self):
+    def get_header_bar(self) -> Gtk.HeaderBar:
+        assert self._header_bar is not None
         return self._header_bar
 
     def on_save(self, _button: Gtk.Button) -> bool | None:
@@ -615,14 +616,17 @@ class InputDialog(ModalDialog):
         self.ok_button.set_sensitive(bool(self.user_value))
 
 
-def _file_dialog_run_sync(dialog_method, parent, initial_folder=None, filters=None):
+def _file_dialog_run_sync(
+    dialog_method: Callable[..., Any],
+    parent: Gtk.Window | None,
+) -> Gio.File | None:
     """Run a Gtk.FileDialog method synchronously using a nested GLib.MainLoop.
     dialog_method should be a bound method like file_dialog.select_folder or file_dialog.open.
     Returns a Gio.File or None."""
     loop = GLib.MainLoop()
-    result = [None]
+    result: list[Gio.File | None] = [None]
 
-    def on_finish(_dialog, async_result):
+    def on_finish(_dialog: Gtk.FileDialog, async_result: Gio.AsyncResult) -> None:
         try:
             # The finish method name matches the start method
             finish_name = dialog_method.__name__ + "_finish"
@@ -706,7 +710,7 @@ class InstallOrPlayDialog(ModalDialog):
 
         self.run()
 
-    def on_button_toggled(self, _button: Gtk.RadioButton, action: str) -> None:
+    def on_button_toggled(self, _button: Gtk.CheckButton, action: str) -> None:
         logger.debug("Action set to %s", action)
         self.action = action
 
@@ -747,7 +751,7 @@ class LaunchConfigSelectDialog(ModalDialog):
 
         self.run()
 
-    def on_button_toggled(self, _button: Gtk.RadioButton, index: int) -> None:
+    def on_button_toggled(self, _button: Gtk.CheckButton, index: int) -> None:
         self.config_index = index
 
     def on_dont_show_checkbutton_toggled(self, _button: Gtk.CheckButton) -> None:
