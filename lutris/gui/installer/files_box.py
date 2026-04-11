@@ -31,11 +31,8 @@ class InstallerFilesBox(Gtk.ListBox):
         self.installer_files_boxes.clear()
         self._file_queue.clear()
 
-        while True:
-            child = self.get_first_child()
-            if child is None:
-                break
-            self.remove(child)
+        while (row := self.get_row_at_index(0)) is not None:
+            self.remove(row)
 
         for installer_file in installer.files:
             installer_file_box = InstallerFileBox(installer_file)
