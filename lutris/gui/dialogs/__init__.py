@@ -41,13 +41,18 @@ class Dialog(Gtk.Window):
         self,
         title: str | None = None,
         parent: Gtk.Widget | None = None,
+        use_header_bar: bool = False,
         **kwargs: Any,
     ):
         border_width = kwargs.pop("border_width", None)
         super().__init__(**kwargs)
 
-        self._header_bar = Gtk.HeaderBar()
-        self.set_titlebar(self._header_bar)
+        self._use_header_bar = use_header_bar
+        if use_header_bar:
+            self._header_bar: Gtk.HeaderBar | None = Gtk.HeaderBar()
+            self.set_titlebar(self._header_bar)
+        else:
+            self._header_bar = None
 
         # Root layout: content area + action area
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -58,7 +63,7 @@ class Dialog(Gtk.Window):
         self._content_area.set_vexpand(True)
         root.append(self._content_area)
 
-        self._action_area = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        self._action_area = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, visible=False)
         self._action_area.set_halign(Gtk.Align.END)
         self._action_area.set_margin_top(6)
         self._action_area.set_margin_bottom(6)
@@ -130,6 +135,8 @@ class Dialog(Gtk.Window):
         self.emit("response", int(response_id))
 
     def get_header_bar(self) -> Gtk.HeaderBar:
+        if self._header_bar is None:
+            raise RuntimeError("This dialog was not created with use_header_bar=True")
         return self._header_bar
 
     def get_content_area(self) -> Gtk.Box:
@@ -138,12 +145,30 @@ class Dialog(Gtk.Window):
     def get_action_area(self) -> Gtk.Box:
         return self._action_area
 
+    _NEGATIVE_RESPONSES = frozenset(
+        int(r)
+        for r in (
+            Gtk.ResponseType.CANCEL,
+            Gtk.ResponseType.CLOSE,
+            Gtk.ResponseType.NO,
+            Gtk.ResponseType.REJECT,
+            Gtk.ResponseType.DELETE_EVENT,
+        )
+    )
+
     def add_button(self, button_text: str, response_id: int) -> Gtk.Button:
-        button = Gtk.Button(label=button_text)
+        button = Gtk.Button(label=button_text, width_request=100)
         button.set_use_underline(True)
         button.connect("clicked", lambda _b: self.response(response_id))
         self._response_buttons[int(response_id)] = button
-        self._action_area.append(button)
+        if self._header_bar is not None:
+            if int(response_id) in self._NEGATIVE_RESPONSES:
+                self._header_bar.pack_start(button)
+            else:
+                self._header_bar.pack_end(button)
+        else:
+            self._action_area.append(button)
+            self._action_area.set_visible(True)
         return button
 
     def add_styled_button(self, button_text: str, response_id: int, css_class: str) -> Gtk.Button:
@@ -259,18 +284,20 @@ class SavableModelessDialog(ModelessDialog):
     plus a ctrl-S shortcut to save."""
 
     def __init__(self, title: str, parent: Gtk.Widget | None = None, **kwargs: Any):
-        super().__init__(title, parent=parent, **kwargs)
+        super().__init__(title, parent=parent, use_header_bar=True, **kwargs)
 
-        self.cancel_button = Gtk.Button(label=_("Cancel"))
+        header_bar = self.get_header_bar()
+
+        self.cancel_button = Gtk.Button(label=_("Cancel"), width_request=80)
         self.cancel_button.set_valign(Gtk.Align.CENTER)
         self.cancel_button.connect("clicked", lambda _b: self.response(Gtk.ResponseType.CANCEL))
-        self._header_bar.pack_start(self.cancel_button)
+        header_bar.pack_start(self.cancel_button)
 
-        self.save_button = Gtk.Button(label=_("Save"))
+        self.save_button = Gtk.Button(label=_("Save"), width_request=80)
         self.save_button.set_valign(Gtk.Align.CENTER)
         self.save_button.add_css_class("suggested-action")
         self.save_button.connect("clicked", self.on_save)
-        self._header_bar.pack_end(self.save_button)
+        header_bar.pack_end(self.save_button)
 
         # Ctrl+S shortcut for save
         controller = Gtk.ShortcutController()
