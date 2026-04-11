@@ -157,7 +157,7 @@ class Dialog(Gtk.Window):
     )
 
     def add_button(self, button_text: str, response_id: int) -> Gtk.Button:
-        button = Gtk.Button(label=button_text, width_request=100)
+        button = Gtk.Button(label=button_text, width_request=80)
         button.set_use_underline(True)
         button.connect("clicked", lambda _b: self.response(response_id))
         self._response_buttons[int(response_id)] = button
@@ -580,10 +580,8 @@ class InputDialog(ModalDialog):
     def __init__(self, dialog_settings: dict[str, Any]):
         super().__init__(parent=dialog_settings["parent"])
         self.user_value = ""
-        cancel_button = self.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
-        cancel_button.set_size_request(100, -1)
+        self.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
         self.ok_button = self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
-        self.ok_button.set_size_request(100, -1)
         self.ok_button.set_sensitive(False)
 
         action_area = self.get_action_area()
