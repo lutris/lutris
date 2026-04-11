@@ -9,6 +9,7 @@ from lutris.database.games import get_game_for_service
 from lutris.game import GAME_INSTALLED, GAME_START, GAME_STARTED, GAME_STOPPED, GAME_UPDATED, Game
 from lutris.game_actions import get_game_actions
 from lutris.gui.widgets.contextual_menu import update_action_widget_visibility
+from lutris.gui.widgets.utils import get_widget_children
 from lutris.util.strings import gtk_safe
 
 if TYPE_CHECKING:
@@ -281,9 +282,6 @@ class GameBar(Gtk.Box):
         elif self.game != game:
             return
 
-        child = self.get_first_child()
-        while child is not None:
-            next_child = child.get_next_sibling()
+        for child in get_widget_children(self):
             self.remove(child)
-            child = next_child
         self.update_view()
