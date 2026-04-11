@@ -70,8 +70,8 @@ class InterfacePreferencesBox(BaseConfigBox):
         self.shortcut_controller = shortcut_controller
 
         self.append(self.get_section_label(_("Interface options")))
-        frame = Gtk.Frame(visible=True)
-        listbox = Gtk.ListBox(visible=True)
+        frame = Gtk.Frame()
+        listbox = Gtk.ListBox()
         frame.set_child(listbox)
         self.append(frame)
 
@@ -83,7 +83,7 @@ class InterfacePreferencesBox(BaseConfigBox):
             gen.generate_container(option)
 
             if gen.option_container:
-                list_box_row = Gtk.ListBoxRow(visible=True)
+                list_box_row = Gtk.ListBoxRow()
                 list_box_row.set_selectable(False)
                 list_box_row.set_activatable(False)
                 list_box_row.set_child(gen.option_container)
@@ -117,7 +117,7 @@ class PreferencesWidgetGenerator(WidgetGenerator):
         if no_label:
             return super().build_option_widget(option, widget, no_label=no_label, expand=expand)
 
-        label = Gtk.Label(label=option["label"], visible=True, wrap=True)
+        label = Gtk.Label(label=option["label"], wrap=True)
         label.set_halign(Gtk.Align.START)
         if self.wrapper and widget:
             label.set_hexpand(True)

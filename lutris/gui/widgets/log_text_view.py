@@ -10,7 +10,7 @@ class LogTextView(Gtk.TextView):
     def __init__(
         self, buffer: Gtk.TextBuffer | None = None, autoscroll: bool = True, wrap_mode: Gtk.WrapMode = Gtk.WrapMode.CHAR
     ):
-        super().__init__(visible=True)
+        super().__init__()
 
         if buffer:
             self.set_buffer(buffer)
