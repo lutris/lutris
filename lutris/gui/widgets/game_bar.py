@@ -22,7 +22,6 @@ class GameBar(Gtk.Box):
         from the games DB or a DBServiceGame from the service games DB."""
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
-            visible=True,
             margin_top=12,
             margin_start=12,
             margin_bottom=12,
@@ -105,7 +104,7 @@ class GameBar(Gtk.Box):
         def get_popover(parent):
             # Creates the popover widget containing the list of link buttons
             pop = Gtk.Popover()
-            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
             for button in popover_buttons:
                 vbox.append(button)
@@ -114,13 +113,13 @@ class GameBar(Gtk.Box):
             pop.set_position(Gtk.PositionType.TOP)
             return pop
 
-        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         box.add_css_class("linked")
 
         box.append(primary_button)
 
         if popover_buttons:
-            popover_button = Gtk.MenuButton(direction=Gtk.ArrowType.UP, visible=True)
+            popover_button = Gtk.MenuButton(direction=Gtk.ArrowType.UP)
             popover_button.set_size_request(32, 32)
             popover = get_popover(popover_button)
             popover_button.set_popover(popover)
@@ -149,7 +148,7 @@ class GameBar(Gtk.Box):
 
     def get_game_name_label(self):
         """Return the label with the game's title"""
-        title_label = Gtk.Label(visible=True)
+        title_label = Gtk.Label()
         title_label.set_ellipsize(Pango.EllipsizeMode.END)
         title_label.set_markup("<span font_desc='16'><b>%s</b></span>" % gtk_safe(self.game.name))
         return title_label
@@ -161,7 +160,7 @@ class GameBar(Gtk.Box):
         runner_icon = Gtk.Image.new_from_icon_name(icon_name)
         runner_popover_buttons = self.get_runner_buttons()
         if runner_popover_buttons:
-            runner_button = Gtk.Button(child=runner_icon, visible=True)
+            runner_button = Gtk.Button(child=runner_icon)
             return GameBar.get_popover_box(runner_button, runner_popover_buttons, primary_opens_popover=True)
 
         runner_icon.set_margin_start(49)
@@ -169,7 +168,7 @@ class GameBar(Gtk.Box):
         return runner_icon
 
     def get_platform_label(self):
-        platform_label = Gtk.Label(visible=True)
+        platform_label = Gtk.Label()
         if not self.game.platform:
             return platform_label
         platform_label.set_size_request(120, -1)
@@ -182,7 +181,7 @@ class GameBar(Gtk.Box):
 
     def get_playtime_label(self):
         """Return the label containing the playtime info"""
-        playtime_label = Gtk.Label(visible=True)
+        playtime_label = Gtk.Label()
         playtime_label.set_size_request(120, -1)
         playtime_label.set_xalign(0)
         playtime_label.set_markup(_("Time played:\n<b>%s</b>") % self.game.formatted_playtime)
@@ -190,7 +189,7 @@ class GameBar(Gtk.Box):
 
     def get_last_played_label(self):
         """Return the label containing the last played info"""
-        last_played_label = Gtk.Label(visible=True)
+        last_played_label = Gtk.Label()
         last_played_label.set_size_request(120, -1)
         last_played_label.set_xalign(0)
         lastplayed = datetime.fromtimestamp(self.game.lastplayed)
@@ -205,7 +204,7 @@ class GameBar(Gtk.Box):
 
     def get_play_button(self, game_actions):
         """Return the widget for install/play/stop and game config"""
-        button = Gtk.Button(visible=True)
+        button = Gtk.Button()
         button.set_size_request(120, 32)
         game_buttons = None
 
