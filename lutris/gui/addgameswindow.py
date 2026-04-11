@@ -284,11 +284,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
             self.search_result_label.set_markup(text)
         else:
             self.search_result_label.set_markup(_("<b>%s</b> results, only displaying first %s") % (total_count, count))
-        child = self.search_listbox.get_first_child()
-        while child is not None:
-            next_child = child.get_next_sibling()
-            self.search_listbox.remove(child)
-            child = next_child
+        while (row := self.search_listbox.get_row_at_index(0)) is not None:
+            self.search_listbox.remove(row)
         for game in api_games.get("results", []):
             platforms = ",".join(gtk_safe(platform["name"]) for platform in game["platforms"])
             year = game["year"] or ""

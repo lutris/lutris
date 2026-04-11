@@ -63,16 +63,15 @@ class RunnersBox(BaseConfigBox):
         search = self._runner_search
 
         any_matches = False
-        row = self.runner_listbox.get_first_child()
-        while row:
-            next_row = row.get_next_sibling()
+        index = 0
+        while (row := self.runner_listbox.get_row_at_index(index)) is not None:
             runner_box = row.get_child()
             runner = runner_box.runner
             match = search.matches(runner)
             row.set_visible(match)
             if match:
                 any_matches = True
-            row = next_row
+            index += 1
 
         self.runner_list_frame.set_visible(any_matches)
         self.search_failed_label.set_visible(not any_matches)
