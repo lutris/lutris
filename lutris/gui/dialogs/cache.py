@@ -16,10 +16,8 @@ class CacheConfigurationDialog(ModalDialog):
         self.cache_path = get_custom_cache_path() or ""
         self.get_content_area().append(self.get_cache_config())
 
-        cancel_button = self.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
-        cancel_button.set_size_request(100, -1)
+        self.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
         ok_button = self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
-        ok_button.set_size_request(100, -1)
 
         action_area = ok_button.get_parent()
         action_area.set_spacing(6)
