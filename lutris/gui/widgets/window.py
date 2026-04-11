@@ -10,7 +10,7 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
         self.application = application
         self.set_show_menubar(False)
 
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, visible=True)
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.vbox.set_margin_top(18)
         self.vbox.set_margin_bottom(18)
         self.vbox.set_margin_end(18)

@@ -11,7 +11,7 @@ class BaseConfigBox(VBox):
     settings_accelerators = {}
 
     def __init__(self):
-        super().__init__(visible=True, spacing=12)
+        super().__init__(spacing=12)
         self.shortcut_controller = None
         self.set_margin_top(50)
         self.set_margin_bottom(50)
@@ -19,26 +19,26 @@ class BaseConfigBox(VBox):
         self.set_margin_start(80)
 
     def get_section_label(self, text: str) -> Gtk.Label:
-        label = Gtk.Label(visible=True)
+        label = Gtk.Label()
         label.set_markup("<b>%s</b>" % text)
         label.set_halign(Gtk.Align.START)
         return label
 
     def get_description_label(self, text: str) -> Gtk.Label:
-        label = Gtk.Label(visible=True)
+        label = Gtk.Label()
         label.set_markup("%s" % text)
         label.set_wrap(True)
         label.set_halign(Gtk.Align.START)
         return label
 
     def _get_framed_options_list_box(self, items):
-        frame = Gtk.Frame(visible=True)
+        frame = Gtk.Frame()
 
-        list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
+        list_box = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
         frame.set_child(list_box)
 
         for item in items:
-            list_box.append(Gtk.ListBoxRow(child=item, visible=True, activatable=False))
+            list_box.append(Gtk.ListBoxRow(child=item, activatable=False))
         return frame
 
     def get_setting_box(
@@ -77,7 +77,7 @@ class BaseConfigBox(VBox):
                     margin=0,
                 )
 
-            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
             box.append(inner_box)
             if warning_box:
                 box.append(warning_box)
@@ -99,7 +99,7 @@ class BaseConfigBox(VBox):
         margin: int = 12,
         when_setting_changed: Callable[[bool], None] | None = None,
     ):
-        checkbox = Gtk.Switch(visible=True, valign=Gtk.Align.CENTER)
+        checkbox = Gtk.Switch(valign=Gtk.Align.CENTER)
         checkbox.set_active(setting_value)
         checkbox.connect("state-set", self.on_setting_change, setting_key, when_setting_changed)
 
@@ -119,9 +119,8 @@ class BaseConfigBox(VBox):
             margin_bottom=margin,
             margin_start=margin,
             margin_end=margin,
-            visible=True,
         )
-        label = Gtk.Label(label=label, visible=True, wrap=True)
+        label = Gtk.Label(label=label, wrap=True)
         label.set_halign(Gtk.Align.START)
         label.set_hexpand(True)
         label.set_vexpand(True)

@@ -61,7 +61,7 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         name_cell = self.set_text_cell()
         name_cell.set_padding(5, 0)
 
-        self.set_column(name_cell, _("Name"), COL_NAME, 200, always_visible=True, sort_id=COL_SORTNAME)
+        self.set_column(name_cell, _("Name"), COL_NAME, 200, always_sort_id=COL_SORTNAME)
         self.set_column(default_text_cell, _("Year"), COL_YEAR, 60)
         self.set_column(default_text_cell, _("Runner"), COL_RUNNER_HUMAN_NAME, 120)
         self.set_column(default_text_cell, _("Platform"), COL_PLATFORM, 120)
