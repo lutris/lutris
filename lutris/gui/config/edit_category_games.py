@@ -7,6 +7,7 @@ from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.game import GAME_UPDATED, Game
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
+from lutris.gui.widgets.utils import get_widget_children
 from lutris.util.strings import get_natural_sort_key
 
 
@@ -25,7 +26,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         self.category_games = {
             game_id: Game(game_id) for game_id in categories_db.get_game_ids_for_categories([self.category])
         }
-        self.grid = Gtk.Grid()
+        self.checkbox_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
         self.set_default_size(500, 350)
 
@@ -52,19 +53,17 @@ class EditCategoryGamesDialog(SavableModelessDialog):
     def _create_games_checkboxes(self):
         frame = Gtk.Frame()
         sw = Gtk.ScrolledWindow()
-        row = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         category_games_names = sorted([x.name for x in self.category_games.values()])
         for game in self.available_games:
             label = game.name
             checkbutton_option = Gtk.CheckButton(label=label)
             if label in category_games_names:
                 checkbutton_option.set_active(True)
-            self.grid.attach_next_to(checkbutton_option, None, Gtk.PositionType.BOTTOM, 3, 1)
+            self.checkbox_box.append(checkbutton_option)
 
-        self.grid.set_hexpand(True)
-        self.grid.set_vexpand(True)
-        row.append(self.grid)
-        sw.set_child(row)
+        self.checkbox_box.set_hexpand(True)
+        self.checkbox_box.set_vexpand(True)
+        sw.set_child(self.checkbox_box)
         frame.set_child(sw)
         return frame
 
@@ -101,8 +100,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         checked_game_ids: set[str] = set()
         updated_games: dict[str, Game] = {}
 
-        game_checkbox = self.grid.get_first_child()
-        while game_checkbox:
+        for game_checkbox in get_widget_children(self.checkbox_box):
             label = game_checkbox.get_label()
             db_game = games_db.get_game_by_field(label, "name")
             if not db_game:
@@ -112,7 +110,6 @@ class EditCategoryGamesDialog(SavableModelessDialog):
                 checked_game_ids.add(game_id)
             else:
                 unchecked_game_ids.add(game_id)
-            game_checkbox = game_checkbox.get_next_sibling()
 
         added_game_ids = checked_game_ids - category_games_ids
         removed_game_ids = unchecked_game_ids & category_games_ids

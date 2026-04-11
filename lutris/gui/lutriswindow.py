@@ -60,7 +60,7 @@ from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.progress_box import ProgressBox, ProgressInfo
 from lutris.gui.widgets.sidebar import LutrisSidebar, SidebarRow
 from lutris.gui.widgets.stock_icon_image import StockIconImage
-from lutris.gui.widgets.utils import load_icon_theme, open_uri
+from lutris.gui.widgets.utils import get_widget_children, load_icon_theme, open_uri
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
 from lutris.search_predicate import NotPredicate
@@ -959,11 +959,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def is_showing_splash(self):
         if self.blank_overlay.get_visible():
-            child = self.blank_overlay.get_first_child()
-            while child:
-                if hasattr(child, "is_splash"):
-                    return True
-                child = child.get_next_sibling()
+            return any(hasattr(c, "is_splash") for c in get_widget_children(self.blank_overlay))
         return False
 
     def on_theme_changed(self):
@@ -982,11 +978,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def show_overlay(self, widget, halign=Gtk.Align.FILL, valign=Gtk.Align.FILL):
         """Display a widget in the blank overlay"""
-        child = self.blank_overlay.get_first_child()
-        while child:
-            next_child = child.get_next_sibling()
+        for child in get_widget_children(self.blank_overlay):
             self.blank_overlay.remove(child)
-            child = next_child
         self.blank_overlay.set_halign(halign)
         self.blank_overlay.set_valign(valign)
         self.blank_overlay.append(widget)
@@ -998,11 +991,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.blank_overlay.set_visible(False)
         self.game_view_spinner.set_visible(False)
         self.games_stack.set_visible(True)
-        child = self.blank_overlay.get_first_child()
-        while child:
-            next_child = child.get_next_sibling()
+        for child in get_widget_children(self.blank_overlay):
             self.blank_overlay.remove(child)
-            child = next_child
 
     @property
     def view_type(self):

@@ -127,11 +127,8 @@ class SidebarRow(Gtk.ListBoxRow):
 
     def create_button_box(self):
         """Adds buttons in the button box based on the row's actions"""
-        child = self.btn_box.get_first_child()
-        while child is not None:
-            next_child = child.get_next_sibling()
+        for child in get_widget_children(self.btn_box):
             self.btn_box.remove(child)
-            child = next_child
         for icon_name, text, clicked, key in self.get_actions():
             btn = Gtk.Button(tooltip_text=text, has_frame=False)
             btn.add_css_class("sidebar-btn")
