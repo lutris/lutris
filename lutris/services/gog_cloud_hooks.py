@@ -155,16 +155,17 @@ def _show_conflict_dialog(game_name: str, location_name: str) -> str | None:
     Returns:
         ``"download"``, ``"upload"``, or ``None`` (skip).
     """
-    result_holder: list[str | None] = [None]
+    result: str | None = None
     event = threading.Event()
 
     def _create_dialog() -> bool:
         """Run on the GTK main thread."""
+        nonlocal result
         try:
             from lutris.gui.dialogs.cloud_sync import CloudSyncConflictDialog  # noqa: PLC0415
 
             dialog = CloudSyncConflictDialog(game_name, location_name)
-            result_holder[0] = dialog.action
+            result = dialog.action
         except Exception as ex:
             logger.debug("Could not show conflict dialog: %s", ex)
         finally:
@@ -175,7 +176,7 @@ def _show_conflict_dialog(game_name: str, location_name: str) -> str | None:
 
     GLib.idle_add(_create_dialog)
     event.wait()
-    return result_holder[0]
+    return result
 
 
 def _sync_location(
