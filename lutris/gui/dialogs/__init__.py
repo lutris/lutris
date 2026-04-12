@@ -363,14 +363,9 @@ class AboutDialog(GtkBuilderDialog):
 
 
 class MessageBox(ModalDialog):
-    """Plain-GTK replacement for Gtk.MessageDialog (deprecated in GTK 4.10)."""
-
-    _ICON_NAMES = {
-        "info": "dialog-information-symbolic",
-        "warning": "dialog-warning-symbolic",
-        "error": "dialog-error-symbolic",
-        "question": "dialog-question-symbolic",
-    }
+    """Plain-GTK replacement for Gtk.MessageDialog (deprecated in GTK 4.10).
+    Styled to match Gtk.AlertDialog: no icon, minimal titlebar, 'message'
+    window class, and a 'title'-classed primary label."""
 
     def __init__(
         self,
@@ -381,36 +376,65 @@ class MessageBox(ModalDialog):
     ):
         parent_window = get_widget_window(parent)
         super().__init__(parent=parent_window)
+        self.add_css_class("message")
+        self.add_css_class("dialog")
         self.set_resizable(False)
 
-        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        hbox.set_margin_top(18)
-        hbox.set_margin_bottom(12)
-        hbox.set_margin_start(18)
-        hbox.set_margin_end(18)
+        # Hide the titlebar to match AlertDialog appearance
+        titlebar = Gtk.Box(css_classes=["titlebar"])
+        titlebar.set_visible(False)
+        self.set_titlebar(titlebar)
 
-        icon_name = self._ICON_NAMES.get(message_type, "dialog-information-symbolic")
-        icon = Gtk.Image.new_from_icon_name(icon_name)
-        icon.set_pixel_size(48)
-        icon.set_valign(Gtk.Align.START)
-        hbox.append(icon)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        vbox.set_margin_top(16)
+        vbox.set_margin_bottom(12)
+        vbox.set_margin_start(18)
+        vbox.set_margin_end(18)
 
-        self._message_area = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, hexpand=True)
-        self._primary_label = Gtk.Label(xalign=0, wrap=True, selectable=True, use_markup=True, focusable=False)
-        self._primary_label.add_css_class("title-3")
-        self._message_area.append(self._primary_label)
+        self._message_area = vbox
+        self._primary_label = Gtk.Label(
+            halign=Gtk.Align.CENTER, wrap=True, selectable=True, use_markup=True, focusable=False
+        )
+        self._primary_label.add_css_class("title")
+        vbox.append(self._primary_label)
 
         self._secondary_label: Gtk.Label | None = None
         if secondary_markup:
-            self._secondary_label = Gtk.Label(xalign=0, wrap=True, selectable=True, use_markup=True)
+            self._secondary_label = Gtk.Label(halign=Gtk.Align.CENTER, wrap=True, selectable=True, use_markup=True)
             self._secondary_label.set_markup(secondary_markup)
-            self._message_area.append(self._secondary_label)
+            vbox.append(self._secondary_label)
 
-        hbox.append(self._message_area)
-        self.get_content_area().append(hbox)
+        self.get_content_area().append(vbox)
 
         if message_markup:
             self._primary_label.set_markup(message_markup)
+
+        self._action_area_styled = False
+
+    def add_button(self, button_text: str, response_id: int) -> Gtk.Button:
+        button = super().add_button(button_text, response_id)
+        button.set_hexpand(True)
+        if not self._action_area_styled:
+            action_area = cast(Gtk.Box, button.get_parent())
+            if action_area:
+                action_area.add_css_class("dialog-action-area")
+                action_area.set_hexpand(True)
+                action_area.set_halign(Gtk.Align.FILL)
+                action_area.set_spacing(0)
+                action_area.set_margin_start(0)
+                action_area.set_margin_end(0)
+                action_area.set_margin_bottom(0)
+                # Also remove margins/spacing on the parent dialog-action-box
+                action_box = cast(Gtk.Box, action_area.get_parent())
+                if action_box:
+                    action_box.set_hexpand(True)
+                    action_box.set_halign(Gtk.Align.FILL)
+                    action_box.set_margin_start(0)
+                    action_box.set_margin_end(0)
+                    action_box.set_margin_bottom(0)
+                    action_box.set_spacing(0)
+            self._action_area_styled = True
+        return button
 
     def set_markup(self, markup: str) -> None:
         self._primary_label.set_markup(markup)
@@ -428,10 +452,12 @@ class NoticeDialog(MessageBox):
     """Display a message to the user."""
 
     def __init__(self, message_markup: str, secondary: str | None = None, parent: Gtk.Widget | None = None):
-        markup = _truncate(message_markup)
-        if secondary:
-            markup += "\n\n" + _truncate(secondary)
-        super().__init__("info", markup, parent=parent)
+        super().__init__(
+            "info",
+            _truncate(message_markup),
+            secondary_markup=_truncate(secondary) if secondary else None,
+            parent=parent,
+        )
         self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
         self.connect("response", lambda d, r: d.destroy())
         self.present()
@@ -441,10 +467,12 @@ class WarningDialog(MessageBox):
     """Display a warning to the user, who responds with whether to proceed."""
 
     def __init__(self, message_markup: str, secondary: str | None = None, parent: Gtk.Widget | None = None):
-        markup = _truncate(message_markup)
-        if secondary:
-            markup += "\n\n" + _truncate(secondary)
-        super().__init__("warning", markup, parent=parent)
+        super().__init__(
+            "warning",
+            _truncate(message_markup),
+            secondary_markup=_truncate(secondary) if secondary else None,
+            parent=parent,
+        )
         self.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
         self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
         self.result = self.run()
