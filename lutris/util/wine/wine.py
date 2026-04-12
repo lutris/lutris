@@ -1,6 +1,8 @@
 """Utilities for manipulating Wine"""
 
 import os
+import re
+import signal
 from collections import OrderedDict
 from gettext import gettext as _
 from typing import Any
@@ -9,6 +11,7 @@ from lutris.exceptions import MisconfigurationError, UnspecifiedVersionError
 from lutris.settings import WINE_DIR
 from lutris.util import cache_single, linux, system
 from lutris.util.log import logger
+from lutris.util.process import Process
 from lutris.util.strings import get_natural_sort_key, parse_version
 from lutris.util.wine import fsync, proton
 
@@ -308,3 +311,26 @@ def get_overrides_env(overrides: dict[str, str]) -> str:
             continue
         override_strings.append("{}={}".format(",".join(sorted(dlls)), value))
     return ";".join(override_strings)
+
+
+WINE_PROCESS_PATTERN = re.compile(r"(wine|processid|\.exe)", re.IGNORECASE)
+
+
+def kill_all_wine_processes():
+    """Kill all Wine-related processes on the system.
+
+    Returns the number of processes killed."""
+    killed = 0
+    for pid in system.get_running_pid_list():
+        try:
+            proc = Process(pid)
+            name = proc.name or ""
+            cmdline = proc.cmdline or ""
+            if WINE_PROCESS_PATTERN.search(name) or WINE_PROCESS_PATTERN.search(cmdline):
+                logger.info("Killing Wine process %s (%s)", pid, name)
+                os.kill(pid, signal.SIGKILL)
+                killed += 1
+        except (ProcessLookupError, PermissionError):
+            continue
+    logger.info("Killed %d Wine processes", killed)
+    return killed
