@@ -395,14 +395,21 @@ class MessageBox(ModalDialog):
 
         if message_markup:
             primary_label = Gtk.Label(
-                halign=Gtk.Align.CENTER, wrap=True, selectable=True, use_markup=True, focusable=False
+                halign=Gtk.Align.CENTER,
+                wrap=True,
+                max_width_chars=80,
+                selectable=True,
+                use_markup=True,
+                focusable=False,
             )
             primary_label.add_css_class("title")
             primary_label.set_markup(message_markup)
             vbox.append(primary_label)
 
         if secondary_markup:
-            secondary_label = Gtk.Label(halign=Gtk.Align.CENTER, wrap=True, selectable=True, use_markup=True)
+            secondary_label = Gtk.Label(
+                halign=Gtk.Align.CENTER, wrap=True, max_width_chars=80, selectable=True, use_markup=True
+            )
             secondary_label.set_markup(secondary_markup)
             vbox.append(secondary_label)
 
