@@ -396,7 +396,7 @@ class MessageBox(ModalDialog):
         hbox.append(icon)
 
         self._message_area = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, hexpand=True)
-        self._primary_label = Gtk.Label(xalign=0, wrap=True, selectable=True, use_markup=True)
+        self._primary_label = Gtk.Label(xalign=0, wrap=True, selectable=True, use_markup=True, focusable=False)
         self._primary_label.add_css_class("title-3")
         self._message_area.append(self._primary_label)
 
@@ -564,10 +564,10 @@ class QuestionDialog(MessageBox):
     def __init__(self, dialog_settings: Dict[str, Any]) -> None:
         super().__init__(
             "question",
-            dialog_settings["question"],
+            dialog_settings["title"],
+            secondary_markup=dialog_settings["question"],
             parent=dialog_settings.get("parent"),
         )
-        self.set_title(dialog_settings["title"])
         if "widgets" in dialog_settings:
             for widget in dialog_settings["widgets"]:
                 self.get_message_area().append(widget)
