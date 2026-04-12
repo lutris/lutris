@@ -289,6 +289,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
+            "kill-wine": Action(self.on_kill_wine),
         }
 
         self.actions = {}
@@ -1251,6 +1252,24 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                     self.game_bar.destroy()  # for gridview only
             self.current_view.set_cursor(Gtk.TreePath("0"), None, False)  # needed for both view types
             self.current_view.grab_focus()
+
+    def on_kill_wine(self, *_args):
+        """Callback to kill all Wine processes after confirmation."""
+        dlg = dialogs.QuestionDialog(
+            {
+                "title": _("Kill all Wine processes"),
+                "question": _(
+                    "This will kill <b>all</b> Wine processes on the system, "
+                    "including any not launched by Lutris.\n\n"
+                    "Are you sure you want to continue?"
+                ),
+                "parent": self,
+            }
+        )
+        if dlg.result == dlg.YES:
+            from lutris.util.wine.wine import kill_all_wine_processes  # noqa: PLC0415
+
+            kill_all_wine_processes()
 
     @GtkTemplate.Callback
     def on_about_clicked(self, *_args):
