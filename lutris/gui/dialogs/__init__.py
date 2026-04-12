@@ -200,7 +200,7 @@ class Dialog(Gtk.Window):
         def on_run_response(_dialog: "Dialog", resp: int) -> None:
             nonlocal response
             response = Gtk.ResponseType(resp)
-            if loop.is_running():
+            if loop.is_running() and response != Gtk.ResponseType.NONE:
                 loop.quit()
 
         handler_id = self.connect("response", on_run_response)
@@ -388,8 +388,8 @@ class MessageBox(ModalDialog):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         vbox.set_margin_top(16)
         vbox.set_margin_bottom(12)
-        vbox.set_margin_start(18)
-        vbox.set_margin_end(18)
+        vbox.set_margin_start(16)
+        vbox.set_margin_end(16)
 
         self._message_area = vbox
 
@@ -514,23 +514,17 @@ class ErrorDialog(MessageBox):
             parent=parent,
         )
 
-        self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
-
         if isinstance(error, BaseException):
             content_area = self.get_content_area()
             details_expander = self.get_details_expander(error)
             details_expander.set_margin_top(6)
             content_area.append(details_expander)
 
-            copy_button = Gtk.Button(label=_("Copy Details to Clipboard"))
-            copy_button.set_margin_top(6)
-            copy_button.set_margin_bottom(6)
-            copy_button.set_margin_start(18)
-            copy_button.set_margin_end(18)
+            copy_button = self.add_button(_("Copy Details to Clipboard"), Gtk.ResponseType.NONE)
             copy_button.connect("clicked", self.on_copy_clicked, error)
-            content_area.append(copy_button)
 
-        self.connect("response", lambda d, r: d.destroy())
+        self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
+
         self.run()
 
     def on_copy_clicked(self, _button: Gtk.Button, error: BaseException) -> None:
@@ -554,8 +548,6 @@ class ErrorDialog(MessageBox):
         box.append(label)
 
         expander = Gtk.Expander.new(_("Error details"))
-        expander.set_margin_start(18)
-        expander.set_margin_end(18)
 
         details_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         details_box.append(Gtk.Separator())
