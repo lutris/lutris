@@ -370,7 +370,7 @@ class MessageBox(ModalDialog):
     def __init__(
         self,
         message_type: str,
-        message_markup: str,
+        message_markup: str | None = None,
         secondary_markup: str | None = None,
         parent: Gtk.Widget | None = None,
     ):
@@ -392,23 +392,21 @@ class MessageBox(ModalDialog):
         vbox.set_margin_end(18)
 
         self._message_area = vbox
-        self._primary_label = Gtk.Label(
-            halign=Gtk.Align.CENTER, wrap=True, selectable=True, use_markup=True, focusable=False
-        )
-        self._primary_label.add_css_class("title")
-        vbox.append(self._primary_label)
-
-        self._secondary_label: Gtk.Label | None = None
-        if secondary_markup:
-            self._secondary_label = Gtk.Label(halign=Gtk.Align.CENTER, wrap=True, selectable=True, use_markup=True)
-            self._secondary_label.set_markup(secondary_markup)
-            vbox.append(self._secondary_label)
-
-        self.get_content_area().append(vbox)
 
         if message_markup:
-            self._primary_label.set_markup(message_markup)
+            primary_label = Gtk.Label(
+                halign=Gtk.Align.CENTER, wrap=True, selectable=True, use_markup=True, focusable=False
+            )
+            primary_label.add_css_class("title")
+            primary_label.set_markup(message_markup)
+            vbox.append(primary_label)
 
+        if secondary_markup:
+            secondary_label = Gtk.Label(halign=Gtk.Align.CENTER, wrap=True, selectable=True, use_markup=True)
+            secondary_label.set_markup(secondary_markup)
+            vbox.append(secondary_label)
+
+        self.get_content_area().append(vbox)
         self._action_area_styled = False
 
     def add_button(self, button_text: str, response_id: int) -> Gtk.Button:
@@ -436,9 +434,6 @@ class MessageBox(ModalDialog):
             self._action_area_styled = True
         return button
 
-    def set_markup(self, markup: str) -> None:
-        self._primary_label.set_markup(markup)
-
     def get_message_area(self) -> Gtk.Box:
         return self._message_area
 
@@ -451,16 +446,18 @@ def _truncate(markup: str, limit: int = 256) -> str:
 class NoticeDialog(MessageBox):
     """Display a message to the user."""
 
-    def __init__(self, message_markup: str, secondary: str | None = None, parent: Gtk.Widget | None = None):
+    def __init__(
+        self, secondary_markup: str | None = None, message_markup: str | None = None, parent: Gtk.Widget | None = None
+    ):
         super().__init__(
             "info",
-            _truncate(message_markup),
-            secondary_markup=_truncate(secondary) if secondary else None,
+            message_markup=_truncate(message_markup) if message_markup else None,
+            secondary_markup=_truncate(secondary_markup) if secondary_markup else None,
             parent=parent,
         )
         self.add_default_button(_("_OK"), Gtk.ResponseType.OK)
         self.connect("response", lambda d, r: d.destroy())
-        self.present()
+        self.run()
 
 
 class WarningDialog(MessageBox):
@@ -527,7 +524,7 @@ class ErrorDialog(MessageBox):
             content_area.append(copy_button)
 
         self.connect("response", lambda d, r: d.destroy())
-        self.present()
+        self.run()
 
     def on_copy_clicked(self, _button: Gtk.Button, error: BaseException) -> None:
         details = self.format_error(error)
