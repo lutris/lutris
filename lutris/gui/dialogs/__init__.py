@@ -402,7 +402,7 @@ class MessageBox(ModalDialog):
                 use_markup=True,
                 focusable=False,
             )
-            primary_label.add_css_class("title")
+            primary_label.add_css_class("title" if len(message_markup) <= 60 else "heading")
             primary_label.set_markup(message_markup)
             vbox.append(primary_label)
 
