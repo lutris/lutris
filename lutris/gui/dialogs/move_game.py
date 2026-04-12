@@ -52,11 +52,16 @@ class MoveDialog(ModelessDialog):
 
     def _move_game_cb(self, _result, error):
         if error and isinstance(error, InvalidGameMoveError):
-            secondary = _(
-                "Do you want to change the game location anyway? No files can be moved, "
-                "and the game configuration may need to be adjusted."
+            message = _("'%s' can't be safely moved.") % gtk_safe(self.game.name)
+            secondary = (
+                gtk_safe(error)
+                + "\n\n"
+                + _(
+                    "Do you want to change the game location anyway? No files can be moved, "
+                    "and the game configuration may need to be adjusted."
+                )
             )
-            dlg = WarningDialog(message_markup=gtk_safe(error), secondary=secondary, parent=self)
+            dlg = WarningDialog(message_markup=message, secondary=secondary, parent=self)
             if dlg.result == Gtk.ResponseType.OK:
                 self.new_directory = self.game.set_location(self.destination)
                 self.on_game_moved(None, None)
