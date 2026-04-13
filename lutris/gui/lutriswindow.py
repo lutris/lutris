@@ -1228,11 +1228,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         if self.application.tray:
             self.application.tray.update_present_menu()
 
-    def on_window_configure(self, *_args):
-        """Callback triggered when the window is moved, resized.
-        Window position is not available in GTK 4 (compositor-managed)."""
-        pass
-
     @Gtk.Template.Callback()
     def on_hide(self, *_args):
         self.save_window_state()
