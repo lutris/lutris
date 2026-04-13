@@ -8,6 +8,7 @@ from lutris.database import categories as categories_db
 from lutris.database.categories import is_reserved_category
 from lutris.game import Game
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
+from lutris.gui.widgets.common import WindowTitle
 from lutris.util.strings import get_natural_sort_key
 
 
@@ -76,7 +77,8 @@ class EditGameCategoriesDialog(SavableModelessDialog):
                 add_game(g)
 
         if len(self.games) > 1:
-            self.set_title(_("%d games") % len(self.games))
+            header_bar = self.get_header_bar()
+            header_bar.set_title_widget(WindowTitle(self.get_title(), _("%d games") % len(self.games)))
 
     def _create_category_checkboxes(self):
         """Constructs a frame containing checkboxes for all known (non-special) categories."""
