@@ -56,7 +56,9 @@ class AccountsBox(BaseConfigBox):
         self.frame.add_css_class("info-frame")
         self.append(self.frame)
 
-        self.accounts_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.accounts_box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=6, margin_top=6, margin_bottom=6, margin_start=6, margin_end=6
+        )
         self.frame.set_child(self.accounts_box)
 
     def on_realize(self, _widget):
@@ -134,25 +136,30 @@ class AccountsBox(BaseConfigBox):
         return box
 
     def populate_steam_accounts(self):
-        main_radio_button = None
         active_steam_account = settings.read_setting(STEAM_ACCOUNT_SETTING)
 
         steam_users = get_steam_users()
+        if not steam_users:
+            no_account_label = Gtk.Label(label=_("No Steam account found"))
+            no_account_label.set_hexpand(True)
+            self.accounts_box.append(no_account_label)
+            return
+
+        none_button = Gtk.CheckButton(label=_("None"), halign=Gtk.Align.START)
+        none_button.set_active(not active_steam_account)
+        none_button.connect("toggled", self.on_steam_account_toggled, "")
+        none_button.set_hexpand(True)
+        self.accounts_box.append(none_button)
+
         for account in steam_users:
             steamid64 = account["steamid64"]
             name = account.get("PersonaName") or f"#{steamid64}"
-            radio_button = Gtk.RadioButton.new_with_label_from_widget(main_radio_button, name)
-            self.space_widget(radio_button)
+            radio_button = Gtk.CheckButton(label=name, halign=Gtk.Align.START)
+            radio_button.set_group(none_button)
             radio_button.set_active(active_steam_account == steamid64)
             radio_button.connect("toggled", self.on_steam_account_toggled, steamid64)
             radio_button.set_hexpand(True)
             self.accounts_box.append(radio_button)
-            if not main_radio_button:
-                main_radio_button = radio_button
-        if not steam_users:
-            no_account_label = self.space_widget(Gtk.Label(label=_("No Steam account found")))
-            no_account_label.set_hexpand(True)
-            self.accounts_box.append(no_account_label)
 
     def rebuild_lutris_options(self):
         self.lutris_options.unparent()
@@ -189,7 +196,8 @@ class AccountsBox(BaseConfigBox):
 
     def on_steam_account_toggled(self, radio_button, steamid64):
         """Handler for switching the active Steam account."""
-        settings.write_setting(STEAM_ACCOUNT_SETTING, steamid64)
+        if radio_button.get_active():
+            settings.write_setting(STEAM_ACCOUNT_SETTING, steamid64)
 
     def on_sync_state_set(self, switch, state):
         if not settings.read_setting("last_library_sync_at"):
