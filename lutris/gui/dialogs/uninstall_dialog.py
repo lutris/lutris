@@ -10,6 +10,7 @@ from lutris import settings
 from lutris.database.games import get_game_by_field, get_games
 from lutris.game import Game
 from lutris.gui.dialogs import QuestionDialog
+from lutris.gui.widgets.common import WindowTitle
 from lutris.gui.widgets.utils import get_required_main_window, get_widget_children
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
@@ -144,7 +145,11 @@ class UninstallDialog(Gtk.Window):
     def update_subtitle(self) -> None:
         subtitle = self.build_subtitle()
 
-        self.set_title(subtitle)
+        title_widget = self.header_bar.get_title_widget()
+        if isinstance(title_widget, WindowTitle):
+            title_widget.set_subtitle(subtitle)
+        else:
+            self.header_bar.set_title_widget(WindowTitle(_("Remove Games"), subtitle))
 
     def build_subtitle(self) -> str:
         """Updates the dialog subtitle according to what games are being removed."""

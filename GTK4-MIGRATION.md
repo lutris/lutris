@@ -65,6 +65,25 @@ make mypy-reset-baseline
 | `Gtk.Menu` | `Gtk.PopoverMenu` + `Gio.Menu` |
 | Stock labels (`gtk-save`) | Named icons (`document-save-symbolic`) |
 | `Gtk.Dialog(parent=window)` | `Gtk.Dialog()` + `set_transient_for(window)` |
+| `HeaderBar.set_subtitle()` | `WindowTitle` widget (see below) |
+
+## HeaderBar Subtitle
+
+`Gtk.HeaderBar.set_subtitle()` was removed in GTK 4. The libadwaita replacement
+is `Adw.WindowTitle`, but since Lutris does not use libadwaita, we provide our own
+`WindowTitle` widget in `lutris/gui/widgets/common.py`:
+
+```python
+from lutris.gui.widgets.common import WindowTitle
+
+title_widget = WindowTitle(title="Remove Games", subtitle="Uninstall 3 games")
+header_bar.set_title_widget(title_widget)
+
+# Update subtitle later:
+title_widget.set_subtitle("Uninstall 2 games")
+```
+
+Uses the built-in `title` and `subtitle` CSS classes for correct header bar styling.
 
 ## ComboBox to DropDown
 
@@ -190,6 +209,11 @@ classes are unavailable; display resolution queries fall through to xrandr parsi
 ## Changes Made
 
 Summary of files changed during the migration (most recent first):
+
+### HeaderBar subtitle restoration
+- `lutris/gui/widgets/common.py` — Added `WindowTitle` widget (replaces `Adw.WindowTitle`)
+- `lutris/gui/config/edit_game_categories.py` — Subtitle showing game count
+- `lutris/gui/dialogs/uninstall_dialog.py` — Subtitle describing removal action
 
 ### ComboBox to DropDown conversion
 - `lutris/gui/widgets/common.py` — Added `KeyValueDropDown` helper widget
