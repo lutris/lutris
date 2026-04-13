@@ -39,7 +39,6 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         super().__init__(title, parent=parent, border_width=0)
         self.config_level = config_level
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
-        # GTK 4: set_border_width removed; border_width=0 in super() is a no-op anyway
 
         self.notebook: Gtk.Notebook = None
 
