@@ -407,6 +407,22 @@ class VBox(Gtk.Box):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, margin_top=18, **kwargs)
 
 
+class WindowTitle(Gtk.Box):
+    """A title + subtitle widget for use in a HeaderBar, replacing Adw.WindowTitle."""
+
+    def __init__(self, title="", subtitle=""):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER)
+        self._title_label = Gtk.Label(label=title, css_classes=["title"])
+        self._subtitle_label = Gtk.Label(label=subtitle, css_classes=["subtitle"])
+        self._subtitle_label.set_visible(bool(subtitle))
+        self.append(self._title_label)
+        self.append(self._subtitle_label)
+
+    def set_subtitle(self, subtitle):
+        self._subtitle_label.set_label(subtitle)
+        self._subtitle_label.set_visible(bool(subtitle))
+
+
 class EditableGrid(Gtk.Box):
     __gsignals__ = {"changed": (GObject.SIGNAL_RUN_FIRST, None, ())}
 
