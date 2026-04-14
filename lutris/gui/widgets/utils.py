@@ -4,7 +4,6 @@ import os
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, TypeVar, cast
 
-import cairo
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
 
 from lutris import settings
@@ -111,28 +110,25 @@ def get_image_file_extension(path: str) -> str | None:
     return None
 
 
-def get_surface_size(surface: cairo.ImageSurface) -> tuple[float, float]:
-    """Returns the size of a surface, accounting for the device scale;
-    the surface's get_width() and get_height() are in physical pixels."""
-    device_scale_x, device_scale_y = surface.get_device_scale()
-    width = surface.get_width() / device_scale_x
-    height = surface.get_height() / device_scale_y
-    return width, height
+def get_scaled_texture_by_path(
+    path: str,
+    size: tuple[float, float],
+    device_scale: float,
+    preserve_aspect_ratio: bool = True,
+    corner_size_physical: tuple[int, int] | None = None,
+) -> tuple[Gdk.Texture, tuple[float, float], bool] | None:
+    """Loads an image file and returns a GPU-uploadable Gdk.Texture scaled to fit 'size'
+    at the given device_scale.
 
+    Returns a tuple (texture, logical_size, corner_is_bright), where:
+      - texture is a Gdk.Texture suitable for snapshot.append_texture()
+      - logical_size is (width, height) in logical (unscaled) pixels
+      - corner_is_bright is True if the bottom-right corner region of the scaled
+        pixbuf has all four RGB (or RGBA) channels >= 128 at the sampled pixels; used
+        by the caller to decide badge coloring. Always False when corner_size_physical
+        is None or zero.
 
-def get_scaled_surface_by_path(
-    path: str, size: tuple[float, float], device_scale: float, preserve_aspect_ratio: bool = True
-) -> cairo.ImageSurface | None:
-    """Returns a Cairo surface containing the image at the path given. It has the size indicated.
-
-    You specify the device_scale, and the bitmap is generated at an enlarged size accordingly,
-    but with the device scale of the surface also set; in this way a high-DPI image can be
-    rendered conveniently.
-
-    If you pass True for preserve_aspect_ratio, the aspect ratio of the image is preserved,
-    but will be no larger than the size (times the device_scale).
-
-    If there's no file at the path, or it is empty, this function returns None.
+    Returns None if the file is missing or the pixbuf can't be loaded.
     """
     pixbuf = get_pixbuf_by_path(path)
     if not pixbuf:
@@ -148,17 +144,54 @@ def get_scaled_surface_by_path(
         scale_x = min(scale_x, scale_y)
         scale_y = scale_x
 
-    pixel_width = round(pixbuf_width * scale_x)
-    pixel_height = round(pixbuf_height * scale_y)
+    pixel_width = max(1, round(pixbuf_width * scale_x))
+    pixel_height = max(1, round(pixbuf_height * scale_y))
 
-    surface = cairo.ImageSurface(cairo.Format.ARGB32, pixel_width, pixel_height)  # pylint:disable=no-member
-    cr = cairo.Context(surface)  # pylint:disable=no-member
-    cr.scale(scale_x, scale_y)
-    Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
-    cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
-    cr.paint()
-    surface.set_device_scale(device_scale, device_scale)
-    return surface
+    if pixel_width != pixbuf_width or pixel_height != pixbuf_height:
+        scaled = pixbuf.scale_simple(pixel_width, pixel_height, GdkPixbuf.InterpType.BILINEAR)
+        if scaled is None:
+            return None
+    else:
+        scaled = pixbuf
+
+    corner_is_bright = False
+    if corner_size_physical and corner_size_physical[0] > 0 and corner_size_physical[1] > 0:
+        corner_is_bright = _is_bright_pixbuf_corner(scaled, corner_size_physical)
+
+    texture = Gdk.Texture.new_for_pixbuf(scaled)
+    logical_size = (pixel_width / device_scale, pixel_height / device_scale)
+    return texture, logical_size, corner_is_bright
+
+
+def _is_bright_pixbuf_corner(pixbuf: GdkPixbuf.Pixbuf, corner_size: tuple[int, int]) -> bool:
+    """Tests four pixels in the bottom-right corner region of the pixbuf. Returns True if
+    all sampled pixels have every colour channel (and alpha, if present) at 128 or above.
+    This matches the surface-based heuristic previously used for badge contrast."""
+    corner_w, corner_h = corner_size
+    pixel_w = pixbuf.get_width()
+    pixel_h = pixbuf.get_height()
+    n_channels = pixbuf.get_n_channels()
+    rowstride = pixbuf.get_rowstride()
+    data = pixbuf.get_pixels()
+
+    # Clamp number of channels to at most 4 (RGB or RGBA). Pixbufs are 8 bits per sample.
+    check_channels = min(n_channels, 4)
+
+    def is_bright(x: int, y: int) -> bool:
+        if not (0 <= x < pixel_w and 0 <= y < pixel_h):
+            return False
+        offset = y * rowstride + x * n_channels
+        for i in range(check_channels):
+            if data[offset + i] < 128:
+                return False
+        return True
+
+    return (
+        is_bright(pixel_w - 1, pixel_h - 1)
+        and is_bright(pixel_w - corner_w, pixel_h - 1)
+        and is_bright(pixel_w - 1, pixel_h - corner_h)
+        and is_bright(pixel_w - corner_w, pixel_h - corner_h)
+    )
 
 
 def get_default_icon_path(size: tuple[int, int]) -> str:
