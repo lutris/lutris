@@ -5,7 +5,7 @@ from datetime import datetime
 from gettext import gettext as _
 from typing import TYPE_CHECKING
 
-from gi.repository import GObject, Gtk
+from gi.repository import Gdk, GObject, Gtk
 
 from lutris.gui.dialogs import FileDialog
 from lutris.gui.widgets.log_text_view import LogTextView
@@ -42,6 +42,7 @@ class LogWindow(GObject.Object):
         self.search_entry.connect("search-changed", self.logtextview.find_first)
         self.search_entry.connect("next-match", self.logtextview.find_next)
         self.search_entry.connect("previous-match", self.logtextview.find_previous)
+        self.search_entry.connect("activate", self.on_search_entry_activate)
 
         save_button: Gtk.Button = builder.get_object("save_button")
         save_button.connect("clicked", self.on_save_clicked)
@@ -52,12 +53,24 @@ class LogWindow(GObject.Object):
         zoom_in_button.connect("clicked", self.on_zoom_in_clicked)
         zoom_out_button.connect("clicked", self.on_zoom_out_clicked)
 
-        # TODO: key-press-event removed in GTK4; need EventControllerKey
-        # self.window.connect("key-press-event", self.on_key_press_event)
+        key_controller = Gtk.EventControllerKey()
+        key_controller.connect("key-pressed", self.on_key_pressed)
+        self.search_entry.add_controller(key_controller)
 
         if application:
             self.window.set_application(application)
         self.window.present()
+
+    def on_search_entry_activate(self, entry: Gtk.SearchEntry) -> None:
+        entry.emit("next-match")
+
+    def on_key_pressed(
+        self, _controller: Gtk.EventControllerKey, keyval: int, _keycode: int, state: Gdk.ModifierType
+    ) -> bool:
+        if keyval == Gdk.KEY_Return and state & Gdk.ModifierType.SHIFT_MASK:
+            self.search_entry.emit("previous-match")
+            return True
+        return False
 
     def on_save_clicked(self, _button: Gtk.Button) -> None:
         """Handler to save log to a file"""
