@@ -206,9 +206,44 @@ be loaded alongside GTK 4. The `MutterDisplayManager` and `GnomeDesktopDisplayMa
 classes are unavailable; display resolution queries fall through to xrandr parsing via
 `LegacyDisplayManager` in `lutris/util/graphics/xrandr.py`.
 
+## SearchEntry Return Key Handling
+
+`Gtk.SearchEntry` consumes the Return key internally and emits `activate` rather
+than forwarding it to `key-press-event`. In GTK 4 there is no `key-press-event`
+signal at all — use `Gtk.EventControllerKey` for modifier combinations, but
+connect the plain `activate` signal for bare Return. Example in
+`lutris/gui/dialogs/log.py`: `activate` advances to the next search match;
+`EventControllerKey` handles Shift+Return for the previous match.
+
+## Tracking Application Windows
+
+`Gtk.Application` already tracks its attached windows — iterate with
+`self.get_windows()` instead of maintaining a parallel dict. Attach a key
+attribute to each window at creation time, then look it up with a linear scan:
+
+```python
+def _find_window(self, window_class, window_key):
+    for existing in self.get_windows():
+        if isinstance(existing, window_class) and getattr(existing, "_app_window_key", None) == window_key:
+            return existing
+    return None
+```
+
+This avoids the GTK 3 pattern of connecting to `destroy` on every window to
+remove stale dict entries, which is fragile under GTK 4 where windows
+participate in `Gtk.Application`'s lifecycle automatically.
+
 ## Changes Made
 
 Summary of files changed during the migration (most recent first):
+
+### Application window tracking
+- `lutris/gui/application.py` — Removed `app_windows` dict; `show_window()` now scans `get_windows()`
+- `lutris/gui/dialogs/__init__.py` — Removed `ModelessDialog._remove_from_app_windows` hack
+- `lutris/gui/dialogs/uninstall_dialog.py` — Removed `_on_close_request`/`destroy` override
+
+### Log window search navigation
+- `lutris/gui/dialogs/log.py` — `activate` signal for Return, `EventControllerKey` for Shift+Return
 
 ### HeaderBar subtitle restoration
 - `lutris/gui/widgets/common.py` — Added `WindowTitle` widget (replaces `Adw.WindowTitle`)
