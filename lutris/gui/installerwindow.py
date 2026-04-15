@@ -1035,9 +1035,6 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.stack.discard_navigation()
         self.cancel_button.grab_focus()
 
-        # TODO: set_urgency_hint removed in GTK4; no direct replacement
-        # TODO: focus-in-event removed in GTK4; would need EventControllerFocus
-
     def present_finished_page(self, game_id, status):
         self.set_status(status)
         self.stack.present_page("nothing")
@@ -1055,10 +1052,6 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         else:
             logger.error("Game has no ID, launch button should not be drawn")
         self.on_cancel_clicked(button)
-
-    def on_window_focus(self, _widget, *_args):
-        """Remove urgency hint (flashing indicator) when window receives focus"""
-        self.set_urgency_hint(False)
 
     def create_shortcut(self, desktop=False):
         """Create desktop or global menu shortcuts."""
