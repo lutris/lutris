@@ -260,19 +260,6 @@ class ModelessDialog(Dialog):
         self._window_group = Gtk.WindowGroup()
         self._window_group.add_window(self)
 
-    def _remove_from_app_windows(self) -> None:
-        """Remove this dialog from the application's window cache so
-        show_window() won't reuse a destroyed instance."""
-        app = self.get_application()
-        if app and hasattr(app, "app_windows"):
-            keys_to_remove = [k for k, v in app.app_windows.items() if v is self]
-            for k in keys_to_remove:
-                del app.app_windows[k]
-
-    def destroy(self) -> None:
-        self._remove_from_app_windows()
-        super().destroy()
-
     def on_response(self, dialog: Gtk.Dialog, response: Gtk.ResponseType) -> None:
         super().on_response(dialog, response)
         if response != Gtk.ResponseType.NONE and not getattr(self, "_closing", False):
