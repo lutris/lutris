@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterable
 from gettext import gettext as _
 from gettext import ngettext
 
-from gi.repository import GLib, GObject, Gtk
+from gi.repository import GObject, Gtk
 
 from lutris import settings
 from lutris.database.games import get_game_by_field, get_games
@@ -44,8 +44,6 @@ class UninstallDialog(Gtk.Window):
         self.games: list[Game] = []
         self.any_shared = False
         self.any_protected = False
-        self.connect("close-request", self._on_close_request)
-
         escape_controller = Gtk.ShortcutController()
         escape_controller.set_scope(Gtk.ShortcutScope.LOCAL)
         escape_controller.add_shortcut(
@@ -55,19 +53,6 @@ class UninstallDialog(Gtk.Window):
             )
         )
         self.add_controller(escape_controller)
-
-    def _on_close_request(self, _window):
-        # Prevent GTK's default C-level destroy so our Python destroy()
-        # override runs and the dialog clears itself out of app_windows.
-        GLib.idle_add(self.destroy)
-        return True
-
-    def destroy(self):
-        app = self.get_application()
-        if app and hasattr(app, "app_windows"):
-            for key in [k for k, v in app.app_windows.items() if v is self]:
-                del app.app_windows[key]
-        super().destroy()
 
     def get_game_removal_rows(self) -> list["GameRemovalRow"]:
         return get_widget_children(self.uninstall_game_list, GameRemovalRow)
