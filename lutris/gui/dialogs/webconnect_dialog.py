@@ -140,8 +140,7 @@ class WebConnectDialog(ModalDialog):
         """Handles web popups created by this dialog's webview"""
         uri = navigation_action.get_request().get_uri()
         view = WebKit.WebView.new_with_related_view(widget)
-        popup_dialog = WebPopupDialog(view, uri, parent=self)
-        popup_dialog.present()
+        WebPopupDialog(view, uri, parent=self)
         return view
 
 
@@ -164,7 +163,7 @@ class WebPopupDialog(ModalDialog):
         self.set_default_size(390, 500)
 
     def on_ready_webview(self, webview):
-        pass
+        self.present()
 
     def on_available_webview_title(self, webview, gparamstring):
         self.set_title(webview.get_title())
@@ -174,8 +173,7 @@ class WebPopupDialog(ModalDialog):
         uri = navigation_action.get_request().get_uri()
         view = WebKit.WebView.new_with_related_view(webview)
         view.load_uri(uri)
-        dialog = WebPopupDialog(view, uri, parent=self)
-        dialog.present()
+        WebPopupDialog(view, uri, parent=self)
         return view
 
     def on_webview_close(self, webview):
