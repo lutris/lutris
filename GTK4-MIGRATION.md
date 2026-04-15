@@ -237,6 +237,18 @@ before the `GAction` dispatches (e.g. via a `Gtk.GestureClick` on the menu
 item) and threading it to `present_with_time()`. Not yet done — affects only
 the re-raise path for already-open dialogs.
 
+## Window Urgency Hint Removed
+
+`Gtk.Window.set_urgency_hint()` was removed in GTK 4 with no direct replacement —
+the X11 urgency hint (used to flash the taskbar entry to draw attention to a
+window when a long-running operation finishes) has no Wayland equivalent and was
+dropped wholesale. The closest modern analog is a freedesktop notification via
+`Gio.Notification`, but that's a different UX (a popup, not a taskbar flash).
+
+The installer window previously called `set_urgency_hint(True)` when an install
+finished and cleared it on `focus-in-event`. Both signal and method are gone in
+GTK 4; the behavior is dropped rather than reimplemented.
+
 ## Tracking Application Windows
 
 `Gtk.Application` already tracks its attached windows — iterate with
