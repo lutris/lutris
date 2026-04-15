@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 gi.require_version("WebKit", "6.0")
 from gi.repository import WebKit  # type: ignore[attr-defined]
 
+from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import ModalDialog
 from lutris.util.log import logger
@@ -32,8 +33,8 @@ class WebConnectDialog(ModalDialog):
 
         # In WebKitGTK 6.0, WebContext is replaced by NetworkSession
         self.network_session: WebKit.NetworkSession = WebKit.NetworkSession.new(
-            os.path.join(os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")), "lutris", "webkitgtk"),
-            os.path.join(os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")), "lutris", "webkitgtk"),
+            os.path.join(settings.DATA_DIR, "webkitgtk"),
+            os.path.join(settings.CACHE_DIR, "webkitgtk"),
         )
 
         # Set locale
