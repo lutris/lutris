@@ -215,6 +215,28 @@ connect the plain `activate` signal for bare Return. Example in
 `lutris/gui/dialogs/log.py`: `activate` advances to the next search match;
 `EventControllerKey` handles Shift+Return for the previous match.
 
+## GAction and Focus-Stealing Prevention
+
+On Wayland (tested on GNOME/Mutter), calling `Gtk.Window.present()` on an
+already-open window from a handler invoked via `GAction` (menu items with
+`action-name`, keyboard shortcuts routed through `Gtk.Application` actions) does
+not raise the window — Mutter treats it as focus-stealing and either does
+nothing (if the window is frontmost) or shows a "Ready" notification.
+
+The same `present()` call from a plain `Gtk.Button.clicked` handler works
+correctly. The difference is that `GAction` activation is deliberately
+decoupled from its triggering event, so GTK has no xdg-activation token to
+forward to the compositor when `present()` runs.
+
+Tried and didn't help: `Gdk.Toplevel.focus(0)`,
+`present_with_time(GLib.get_monotonic_time() // 1000)`, re-calling
+`set_transient_for()`. The token truly isn't available at the callsite.
+
+Fixing this properly requires capturing the triggering event's timestamp
+before the `GAction` dispatches (e.g. via a `Gtk.GestureClick` on the menu
+item) and threading it to `present_with_time()`. Not yet done — affects only
+the re-raise path for already-open dialogs.
+
 ## Tracking Application Windows
 
 `Gtk.Application` already tracks its attached windows — iterate with
