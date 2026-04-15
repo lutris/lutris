@@ -26,7 +26,7 @@ import types
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from gettext import gettext as _
-from typing import TYPE_CHECKING, Any, Type, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Type, TypeVar
 
 from gi.repository import Gdk, Gio, GLib, Gtk
 
@@ -99,7 +99,6 @@ class LutrisApplication(Gtk.Application):
         self.install_ui_delegate = InstallUIDelegate()
 
         self._running_games = []
-        self.app_windows: dict[str, Gtk.Window] = {}
         self.tray = None
 
         self.quit_on_game_exit = False
@@ -376,6 +375,13 @@ class LutrisApplication(Gtk.Application):
             return str(kwargs["game"].id)
         return str(kwargs)
 
+    def _find_window(self, window_class: Type["GtkWindowType"], window_key: str) -> "GtkWindowType | None":
+        """Linear scan of application windows to find one that matches the given class and key."""
+        for existing in self.get_windows():
+            if isinstance(existing, window_class) and getattr(existing, "_app_window_key", None) == window_key:
+                return existing
+        return None
+
     def show_window(
         self,
         window_class: Type["GtkWindowType"],
@@ -392,25 +398,26 @@ class LutrisApplication(Gtk.Application):
         Returns:
             Gtk.Window: the existing window instance or a newly created one
         """
-        window_key = str(window_class.__name__) + self.get_window_key(**kwargs)
-        if self.app_windows.get(window_key):
-            self.app_windows[window_key].present()
-            window_inst = cast("GtkWindowType", self.app_windows[window_key])
+        window_key = self.get_window_key(**kwargs)
+        existing = self._find_window(window_class, window_key)
+        if existing:
+            existing.present()
             if update_function:
-                update_function(window_inst)
-            return window_inst
+                update_function(existing)
+            return existing
+
         if issubclass(window_class, Gtk.ApplicationWindow):
-            window_inst = window_class(application=self, **kwargs)
+            window_inst: "GtkWindowType" = window_class(application=self, **kwargs)
         else:
             if "parent" in kwargs or not self.window:
                 window_inst: "GtkWindowType" = window_class(**kwargs)
             else:
                 window_inst: "GtkWindowType" = window_class(parent=self.window, **kwargs)  # type: ignore[call-arg]
             window_inst.set_application(self)
-        window_inst.connect("destroy", self.on_app_window_destroyed, self.get_window_key(**kwargs))
+
+        window_inst._app_window_key = window_key  # type: ignore[attr-defined]
         if update_function:
             update_function(window_inst)
-        self.app_windows[window_key] = window_inst
         window_inst.present()
         return window_inst
 
@@ -435,17 +442,6 @@ class LutrisApplication(Gtk.Application):
                 ErrorDialog(_("No installer available."), parent=self.window)
 
         BusyAsyncCall(get_installers, on_installers_ready, game_slug=game_slug)
-
-    def on_app_window_destroyed(self, app_window: Gtk.Window, window_key: str) -> bool:
-        """Remove the reference to the window when it has been destroyed"""
-        window_key = str(app_window.__class__.__name__) + window_key
-        try:
-            del self.app_windows[window_key]
-        except KeyError:
-            logger.warning("Failed to remove window %s", window_key)
-            logger.info("Available windows: %s", ", ".join(self.app_windows.keys()))
-
-        return True  # stop signal propagation
 
     @staticmethod
     def _print(command_line: Gio.ApplicationCommandLine, string: str) -> None:
