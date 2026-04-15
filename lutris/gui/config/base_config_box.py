@@ -4,14 +4,13 @@ from gi.repository import Gtk
 
 from lutris import settings
 from lutris.gui.config.widget_generator import WidgetWarningMessageBox
-from lutris.gui.widgets.common import VBox
 
 
-class BaseConfigBox(VBox):
+class BaseConfigBox(Gtk.Box):
     settings_accelerators = {}
 
     def __init__(self):
-        super().__init__(spacing=12)
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.shortcut_controller = None
         self.set_margin_top(50)
         self.set_margin_bottom(50)
