@@ -402,11 +402,6 @@ class Label(Gtk.Label):
         self.set_justify(Gtk.Justification.LEFT)
 
 
-class VBox(Gtk.Box):
-    def __init__(self, **kwargs):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, margin_top=18, **kwargs)
-
-
 class WindowTitle(Gtk.Box):
     """A title + subtitle widget for use in a HeaderBar, replacing Adw.WindowTitle."""
 
