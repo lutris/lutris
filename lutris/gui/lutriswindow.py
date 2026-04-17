@@ -171,10 +171,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         drop_target.connect("drop", self.on_drag_drop)
         self.add_controller(drop_target)
 
-        # Window-level key press handler for search-on-type (GTK 4 style)
-        key_controller = Gtk.EventControllerKey()
-        key_controller.connect("key-pressed", self._on_key_pressed)
-        self.add_controller(key_controller)
+        # Route unhandled typing on the window into the search entry (search-on-type).
+        # Escape anywhere in the window clears the search via the entry's "stop-search" signal.
+        self.search_entry.set_key_capture_widget(self)
+        self.search_entry.connect("stop-search", self._on_search_stopped)
 
         # Search entry key press handler (GTK 4 style, replaces key-press-event signal)
         search_key_controller = Gtk.EventControllerKey()
@@ -1002,33 +1002,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             return view_type
         return self.default_view_type
 
-    def _on_key_pressed(self, controller, keyval, keycode, state):
-        """Key press handler for the window, enabling search-on-type.
-
-        Steals focus from the current view to the search entry when the user
-        starts typing alphanumeric keys without modifiers."""
-        # XXX: This block of code below is to enable searching on type.
-        # Enabling this feature steals focus from other entries so it needs
-        # some kind of focus detection before enabling library search.
-
-        # Probably not ideal for non-english, but we want to limit
-        # which keys actually start searching
-        if keyval == Gdk.KEY_Escape:
-            self.search_entry.set_text("")
-            self.current_view.grab_focus()
-            return False
-
-        if (  # pylint: disable=too-many-boolean-expressions
-            not Gdk.KEY_0 <= keyval <= Gdk.KEY_z
-            or state & Gdk.ModifierType.CONTROL_MASK
-            or state & Gdk.ModifierType.SHIFT_MASK
-            or state & Gdk.ModifierType.META_MASK
-            or state & Gdk.ModifierType.ALT_MASK
-            or self.search_entry.has_focus()
-        ):
-            return False
-        self.search_entry.grab_focus()
-        return False
+    def _on_search_stopped(self, _entry):
+        """Clear search and return focus to the view when Escape is pressed."""
+        self.search_entry.set_text("")
+        self.current_view.grab_focus()
 
     def load_icon_type(self):
         """Return the icon style depending on the type of view."""
@@ -1249,9 +1226,15 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     @Gtk.Template.Callback()
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
+        if not entry.has_focus():
+            GLib.idle_add(self._focus_search_entry)
         self.search_timer_task.unschedule()
         self.filters["text"] = entry.get_text().strip()
         self.search_timer_task = schedule_at_idle(self.update_store, delay_seconds=0.5)
+
+    def _focus_search_entry(self):
+        self.search_entry.grab_focus()
+        return False
 
     def on_search_entry_key_press(self, controller, keyval, keycode, state):
         if keyval == Gdk.KEY_Down:
