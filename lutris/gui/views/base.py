@@ -42,8 +42,6 @@ class GameView:
         self.cache_notification_registration = MEDIA_CACHE_INVALIDATED.register(self.on_media_cache_invalidated)
         self.missing_games_updated_registration = MISSING_GAMES.updated.register(self.on_missing_games_updated)
 
-        self.connect("destroy", self.on_destroy)
-
         click_gesture = Gtk.GestureClick(button=Gdk.BUTTON_SECONDARY)
         click_gesture.connect("pressed", self.popup_contextual_menu)
         self.add_controller(click_gesture)
@@ -69,7 +67,12 @@ class GameView:
         if self.image_renderer and self.image_renderer.show_badges:
             self.queue_draw()
 
-    def on_destroy(self, _widget) -> None:
+    def disconnect_notifications(self) -> None:
+        """Unregister the NotificationSource subscriptions this view holds.
+
+        Must be called before unparenting the view — otherwise the registrations
+        keep the view alive and its callbacks continue firing on a detached widget.
+        """
         self.cache_notification_registration.unregister()
         self.missing_games_updated_registration.unregister()
         self.game_start_registration.unregister()
