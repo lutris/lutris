@@ -1076,8 +1076,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             del self.views[view_type]
             if self.current_view_type == view_type:
                 self.redraw_view()
-            # Because the view has hooks and such hooked up, it must be explicitly
-            # unparented to disconnect everything.
+            # The view holds NotificationSource subscriptions that keep it alive;
+            # drop them before unparenting so it can be garbage-collected.
+            view.disconnect_notifications()
             view.unparent()
 
     def update_view_settings(self):
