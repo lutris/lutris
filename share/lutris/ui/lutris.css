@@ -110,3 +110,14 @@ popover button.popover-menu-button {
   padding: 0;
 }
 
+@keyframes lutris-launch-bounce {
+  0%   { transform: scale(1.0); }
+  50%  { transform: scale(0.9); }
+  100% { transform: scale(1.0); }
+}
+
+.lutris-game-list picture.launching {
+  animation: lutris-launch-bounce 0.375s ease-in-out infinite;
+  transform-origin: center center;
+}
+
