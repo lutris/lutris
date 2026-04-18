@@ -99,3 +99,14 @@ popover button.popover-menu-button {
   margin-top: 0px;
   margin-bottom: 0px;
 }
+
+.lutris-game-list row {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  min-height: 0;
+}
+
+.lutris-game-list row cell {
+  padding: 0;
+}
+

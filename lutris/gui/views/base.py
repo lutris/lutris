@@ -80,7 +80,7 @@ class GameView:
     def popup_contextual_menu(self, gesture, _n_press, x, y):
         """Contextual menu."""
         current_path = self.get_path_at(x, y)
-        if current_path:
+        if current_path is not None:
             selection = self.get_selected()
             if current_path not in selection:
                 selection = [current_path]
