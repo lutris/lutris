@@ -882,7 +882,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                     selected_ids = [view.get_game_id_for_path(p) for p in view.get_selected()]
                     view.set_game_store(self.game_store)
                     new_selection = [view.get_path_for_game_id(game_id) for game_id in selected_ids]
-                    view.set_selected(filter(None, new_selection), scroll_into_view=True)
+                    view.set_selected([p for p in new_selection if p is not None], scroll_into_view=True)
 
             if games:
                 self.hide_overlay()
