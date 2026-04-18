@@ -7,10 +7,11 @@ if TYPE_CHECKING:
     from lutris.services.base import BaseService
     from lutris.services.service_media import ServiceMedia
 
-from gi.repository import GObject, Gtk
+from gi.repository import Gio, GObject, Gtk
 
 from lutris import settings
 from lutris.database.games import get_all_installed_game_for_service
+from lutris.gui.views.game_item import GameItem
 from lutris.gui.views.store_item import StoreItem
 from lutris.util.strings import gtk_safe
 
@@ -78,6 +79,12 @@ class GameStore(GObject.Object):
         self.service_media = service_media
         self._rows_by_id: dict[str, Gtk.TreeRowReference] = {}
 
+        # Parallel Gio.ListStore for Gtk.ColumnView (GameListView). The legacy
+        # Gtk.ListStore below is still used by GameGridView until it is also
+        # migrated to a Gio.ListModel-based view.
+        self.list_store = Gio.ListStore.new(GameItem)
+        self._items_by_id: dict[str, GameItem] = {}
+
         self.store = Gtk.ListStore(
             str,
             str,
@@ -119,6 +126,12 @@ class GameStore(GObject.Object):
         if row:
             self._rows_by_id.pop(str(game_id), None)
             self.store.remove(row.iter)
+
+        item = self._items_by_id.pop(str(game_id), None)
+        if item is not None:
+            found, position = self.list_store.find(item)
+            if found:
+                self.list_store.remove(position)
 
     def update(self, db_game: dict) -> set[int] | None:
         """Update game information
@@ -164,6 +177,13 @@ class GameStore(GObject.Object):
             if row_ref is not None:
                 self._rows_by_id[new_id] = row_ref
 
+        item = self._items_by_id.get(old_id)
+        if item is not None:
+            item.update_from_store_item(store_item)
+            if old_id != new_id:
+                self._items_by_id.pop(old_id, None)
+                self._items_by_id[new_id] = item
+
         return changed_indices
 
     def add_game(self, db_game):
@@ -193,6 +213,10 @@ class GameStore(GObject.Object):
             )
         )
         self._rows_by_id[store_item.id] = Gtk.TreeRowReference(self.store, self.store.get_path(tree_iter))
+
+        game_item = GameItem.from_store_item(store_item)
+        self.list_store.append(game_item)
+        self._items_by_id[store_item.id] = game_item
 
     def add_preloaded_games(self, db_games, service_id):
         """Add games to the store, but preload their installed-game data
