@@ -10,6 +10,43 @@ from lutris.gui.widgets.utils import get_default_icon_path
 from lutris.services.service_media import resolve_media_path
 
 
+class _ListImageRenderer:
+    """Shim exposed as GameListView.image_renderer.
+
+    GameView.on_game_start drives the launch-bounce by calling inset_game()
+    with a 0.0-0.1 fraction each tick. In the list view the actual scaling
+    is done in CSS (see `.lutris-game-list picture.launching` keyframes),
+    because Gtk.Picture ignores set_size_request below its intrinsic size.
+    This shim collapses the fraction-based calls into a boolean "launching"
+    class toggled on the bound Picture widgets.
+
+    TODO: Once the grid view is also GTK 4 and no longer needs per-frame
+    fraction updates driven from base.py, drop the fraction plumbing and
+    let GameView.on_game_start just emit start/stop events.
+    """
+
+    show_badges = False
+
+    def __init__(self, view: "GameListView"):
+        self._view = view
+        self._launching_game_ids: set[str] = set()
+
+    def is_launching(self, game_id: str) -> bool:
+        return game_id in self._launching_game_ids
+
+    def inset_game(self, game_id: str, fraction: float) -> bool:
+        if fraction > 0.0:
+            if game_id not in self._launching_game_ids:
+                self._launching_game_ids.add(game_id)
+                self._view._apply_launching_for_game(game_id, True)
+                return True
+        elif game_id in self._launching_game_ids:
+            self._launching_game_ids.discard(game_id)
+            self._view._apply_launching_for_game(game_id, False)
+            return True
+        return False
+
+
 class GameListView(Gtk.ColumnView, GameView):  # type:ignore[misc]
     """Main games list as a Gtk.ColumnView."""
 
@@ -36,6 +73,13 @@ class GameListView(Gtk.ColumnView, GameView):  # type:ignore[misc]
         self.image_column: Gtk.ColumnViewColumn | None = None
         self.sort_model: Gtk.SortListModel | None = None
         self.selection: Gtk.MultiSelection | None = None
+
+        # Bound image widgets and per-game inset fractions are tracked here so
+        # the launch-bounce animation can scale in-place rows without walking
+        # ColumnView internals. self.image_renderer is the shim GameView's
+        # on_game_start drives via inset_game(); see _ListImageRenderer below.
+        self._bound_pictures: "set[Gtk.Picture]" = set()
+        self.image_renderer = _ListImageRenderer(self)
 
         # Stash the store on the base mixin before building columns, since
         # column construction reads service_media and the item type from it.
@@ -220,10 +264,14 @@ class GameListView(Gtk.ColumnView, GameView):  # type:ignore[misc]
             picture = list_item.get_child()
             item = list_item.get_item()
             picture._bound_item = item  # type: ignore[attr-defined]
+            self._bound_pictures.add(picture)
             # Size tracks the current service_media rather than being baked
             # into the factory, so zoom changes take effect on the next bind.
             size = self.game_store.service_media.size
             picture.set_size_request(size[0], size[1])
+            # Re-apply the launching CSS class if this game is mid-bounce and
+            # scrolled back into view.
+            self._apply_launching_to_picture(picture, self.image_renderer.is_launching(item.id))
             paths = item.media_paths or []
             if paths:
                 mp = resolve_media_path(paths)
@@ -242,12 +290,27 @@ class GameListView(Gtk.ColumnView, GameView):  # type:ignore[misc]
         def on_unbind(_factory, list_item):
             picture = list_item.get_child()
             picture._bound_item = None  # type: ignore[attr-defined]
+            self._bound_pictures.discard(picture)
+            self._apply_launching_to_picture(picture, False)
             picture.set_filename(None)
 
         factory.connect("setup", on_setup)
         factory.connect("bind", on_bind)
         factory.connect("unbind", on_unbind)
         return factory
+
+    @staticmethod
+    def _apply_launching_to_picture(picture, launching: bool) -> None:
+        if launching:
+            picture.add_css_class("launching")
+        else:
+            picture.remove_css_class("launching")
+
+    def _apply_launching_for_game(self, game_id: str, launching: bool) -> None:
+        for picture in self._bound_pictures:
+            item = getattr(picture, "_bound_item", None)
+            if item is not None and item.id == game_id:
+                self._apply_launching_to_picture(picture, launching)
 
     @staticmethod
     def _on_column_width_changed(column, _pspec, column_id):
