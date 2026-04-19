@@ -267,6 +267,96 @@ This avoids the GTK 3 pattern of connecting to `destroy` on every window to
 remove stale dict entries, which is fragile under GTK 4 where windows
 participate in `Gtk.Application`'s lifecycle automatically.
 
+## GridView Thumb-Drag Flicker (Unresolved)
+
+**Symptom**: In the games grid, holding the scrollbar thumb still — not moving
+the mouse, just keeping the button held — causes a visible flicker at the
+viewport edges, with one row of cells redrawing at ~15–22 Hz. Releasing the
+mouse settles it. Observed on KDE/Wayland with fractional scaling.
+
+**Investigation findings**:
+
+- The vertical adjustment's `value` oscillates by ±10–14 units at ~100 Hz
+  while the thumb is held. At the scrollbar track's ~21 units/pixel, that's
+  sub-pixel mouse jitter getting amplified into ~14 pixels of viewport shift
+  — plenty to push cells across visibility thresholds.
+- During the flicker, `GridView` emits 1 500–1 700 `bind`/`unbind` factory
+  calls per second, with the bound-position set spanning the *entire* model
+  range (0 to 274 for a 275-game library), not just the viewport-adjacent
+  cells. That looks like a full layout invalidation cycle, not a scroll-shift
+  rebinding.
+- The adjustment's `upper` (content height) also oscillated by 2–6 pixels
+  until overlay scrolling was disabled. Remaining oscillation may be
+  fractional-scaling rounding on KDE/Wayland.
+- Only five cells (one row) snapshot 15× per second during the flicker, which
+  is what the eye sees.
+
+**What measurably reduced frequency** (changes were subsequently reverted
+pending a real fix — record here so the next attempt starts informed):
+
+- `Gtk.ScrolledWindow.set_overlay_scrolling(False)` — stabilised `upper`.
+- `Gtk.ScrolledWindow.set_kinetic_scrolling(False)` — removed momentum
+  feedback.
+- Pinning the per-cell `Gtk.Box` to a fixed height via `set_size_request` in
+  the factory's `setup` — broke a feedback loop where labels with short
+  names measured at 1 line and long names at 2, so row height depended on
+  which cells GridView happened to sample, which depended on scroll
+  position. Pinning the box breaks that loop.
+- `GridView.set_focusable(False) / set_can_focus(False)` — defensive; no
+  direct evidence it helped.
+
+Together these reduced flicker from "constant while dragging" to "rare and
+hard to reproduce", but did not eliminate it.
+
+**What didn't help**:
+
+- `GTK_OVERLAY_SCROLLING=0` env var — ignored; overlay scrolling must be
+  disabled programmatically on each `Gtk.ScrolledWindow`.
+- Snapping `vadjustment.value` to multiples of 16 units in a
+  `value-changed` handler. Our handler is attached after GridView's
+  internal handler, so GridView reads and reacts to the raw value first,
+  then the snap sets a new value and re-emits — GridView sees *both*
+  values and queues two layouts. Adds churn, not reduces.
+- Removing diagnostic logging from the factory `bind`/`unbind` callbacks
+  and the `do_snapshot` of `GameCoverWidget`: while those probes were
+  attached, flicker was rare; after removal it became easy again. That
+  strongly implies the per-event work on the Python side was nudging GTK's
+  event timing enough to coalesce updates — not a principled fix, but a
+  data point about how close we are to a rate where GridView keeps up.
+
+**Theories for the root cause**:
+
+- `Gtk.GridView` invalidates and re-binds across its whole widget pool in
+  response to small `vadjustment` changes (or internal layout passes
+  triggered by them), rather than rebinding only cells that cross the
+  viewport boundary. The bind-position range covering the full model
+  during the flicker is consistent with this.
+- Fractional scaling + sub-pixel mouse motion produces sub-pixel changes
+  that round differently across frames, forcing relayout even when the
+  logical viewport shouldn't have moved.
+- There is no hook to debounce `vadjustment.value-changed` *before*
+  GridView's internal handler, because that handler is connected from C
+  at construction, ahead of anything we can connect from Python.
+
+**Possible next steps**:
+
+- Subclass or wrap `Gtk.ScrolledWindow` and replace the `vadjustment` with
+  one that coalesces rapid changes into a single `value-changed` dispatch
+  per tick. The trick is keeping the scrollbar thumb responsive — the
+  coalesced value has to be visible to the scrollbar's own handler
+  immediately, just not to GridView.
+- Hook into the scrollbar's drag gesture directly (`Gtk.Scrollbar`'s
+  internal gesture is not public, so this likely requires a custom
+  scrollbar) and round the resulting value to row-aligned steps during
+  the drag.
+- File upstream against `Gtk.GridView` with a reduced reproducer; the
+  full-model rebind on sub-row adjustments looks like a bug independent
+  of our code.
+
+**Relevant files**: `lutris/gui/views/grid.py`, `lutris/gui/lutriswindow.py`
+(ScrolledWindow construction), `lutris/gui/widgets/game_cover.py`
+(per-cell snapshot cost).
+
 ## Changes Made
 
 Summary of files changed during the migration (most recent first):
