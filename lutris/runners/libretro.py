@@ -1,6 +1,7 @@
 """libretro runner"""
 
 import os
+from collections.abc import Iterator
 from gettext import gettext as _
 from operator import itemgetter
 from zipfile import ZipFile
@@ -17,6 +18,12 @@ from lutris.util.log import logger
 from lutris.util.retroarch.firmware import get_firmware, scan_firmware_directory
 
 RETROARCH_DIR = os.path.join(settings.RUNNER_DIR, "retroarch")
+
+# RetroArch's own user-dir convention. System-installed cores (AUR, distro packages)
+# live at distro-specific paths, so for those we rely on whatever the user has set in
+# retroarch.cfg's libretro_directory / libretro_info_path rather than guessing.
+USER_RETROARCH_CORES_DIR = os.path.expanduser("~/.config/retroarch/cores")
+USER_RETROARCH_INFO_DIR = os.path.expanduser("~/.config/retroarch/info")
 
 RETROARCH_TO_LUTRIS_PLATFORM_MAP = {
     "2048 Game Clone": "",
@@ -145,6 +152,43 @@ def get_default_config_path(path):
     return os.path.join(RETROARCH_DIR, path)
 
 
+def _retroarch_config_dir(config_file: str | None, key: str) -> str | None:
+    """Read a directory path from a retroarch.cfg, expanding ``~``.
+
+    Returns None if the file is missing/unreadable, the key isn't set, or the value is
+    the literal ``"default"`` (which RetroArch treats as "use the built-in default").
+    """
+    if not config_file or not os.path.isfile(config_file):
+        return None
+    try:
+        value = RetroConfig(config_file).get(key)
+    except OSError:
+        return None
+    if not value or value == "default":
+        return None
+    return os.path.expanduser(value)
+
+
+def _info_dirs(config_file: str | None = None) -> Iterator[str]:
+    """Yield existing info-file directories in priority order.
+
+    Priority: ``libretro_info_path`` from the user's retroarch.cfg → the user's
+    standalone RetroArch info dir → the Lutris-managed ``RETROARCH_DIR/info``.
+    Duplicates and non-existent paths are skipped.
+    """
+    seen: set[str] = set()
+    candidates = []
+    cfg_dir = _retroarch_config_dir(config_file, "libretro_info_path")
+    if cfg_dir:
+        candidates.append(cfg_dir)
+    candidates.append(USER_RETROARCH_INFO_DIR)
+    candidates.append(os.path.join(RETROARCH_DIR, "info"))
+    for path in candidates:
+        if path and path not in seen and os.path.isdir(path):
+            seen.add(path)
+            yield path
+
+
 def _download_libretro_info():
     """Download the libretro core info archive from the buildbot. Run on a worker thread."""
     info_path = os.path.join(RETROARCH_DIR, "info")
@@ -164,31 +208,45 @@ def _download_libretro_info():
 def get_libretro_cores():
     """Return the list of available libretro cores by reading installed info files.
 
-    If the info archive hasn't been downloaded yet, performs a synchronous download. Callers on
-    the UI thread should prefer triggering the async download via get_core_choices() first, so
-    this fallback is rarely reached in practice.
+    Scans every info directory yielded by ``_info_dirs()`` so cores installed via the
+    user's RetroArch (``~/.config/retroarch/info``) or system packages
+    (e.g. ``/usr/lib/libretro/info`` on Arch/AUR) are surfaced alongside the
+    Lutris-managed ones. The first occurrence of a given core identifier wins so the
+    higher-priority sources (user config, then system) take precedence over the
+    Lutris fallback.
+
+    If no info directory exists anywhere, falls back to a synchronous download into
+    ``RETROARCH_DIR/info``. Callers on the UI thread should prefer triggering the
+    async download via ``get_core_choices()`` first, so this fallback is rarely
+    reached in practice.
     """
-    info_path = os.path.join(RETROARCH_DIR, "info")
-    if not os.path.exists(info_path):
+    info_dirs = list(_info_dirs())
+    if not info_dirs:
         if not _download_libretro_info():
             return []
+        info_dirs = [os.path.join(RETROARCH_DIR, "info")]
     cores = []
-    for info_file in os.listdir(info_path):
-        if "_libretro.info" not in info_file:
-            continue
-        core_identifier = info_file.replace("_libretro.info", "")
-        core_config = RetroConfig(os.path.join(info_path, info_file))
-        if "categories" in core_config.keys() and "Emulator" in core_config["categories"]:
-            core_label = core_config["display_name"] or ""
-            core_system = core_config["systemname"] or ""
-            cores.append((core_label, core_identifier, core_system))
+    seen = set()
+    for info_path in info_dirs:
+        for info_file in os.listdir(info_path):
+            if "_libretro.info" not in info_file:
+                continue
+            core_identifier = info_file.replace("_libretro.info", "")
+            if core_identifier in seen:
+                continue
+            seen.add(core_identifier)
+            core_config = RetroConfig(os.path.join(info_path, info_file))
+            if "categories" in core_config.keys() and "Emulator" in core_config["categories"]:
+                core_label = core_config["display_name"] or ""
+                core_system = core_config["systemname"] or ""
+                cores.append((core_label, core_identifier, core_system))
     cores.sort(key=itemgetter(0))
     return cores
 
 
 @async_choices(
     generate=_download_libretro_info,
-    ready=lambda: os.path.exists(os.path.join(RETROARCH_DIR, "info")),
+    ready=lambda: any(_info_dirs()),
     invalidate=get_libretro_cores.cache_clear,
     error_message="Failed to download libretro info archive",
 )
@@ -266,12 +324,42 @@ class libretro(Runner):
         logger.warning("'%s' not found in Libretro cores", game_core)
         return ""
 
-    def get_core_path(self, core):
-        """Return the path of a core from libretro's runner only"""
-        lutris_cores_folder = get_default_config_path("cores")
+    def _core_dirs(self) -> Iterator[str]:
+        """Yield existing core directories in priority order.
+
+        Mirrors ``_info_dirs()`` for the ``.so`` files: ``libretro_directory`` from
+        the user's retroarch.cfg → the user's standalone RetroArch cores dir → the
+        Lutris-managed ``cores`` directory.
+        """
+        seen: set[str] = set()
+        candidates = []
+        cfg_dir = _retroarch_config_dir(self.get_config_file(), "libretro_directory")
+        if cfg_dir:
+            candidates.append(cfg_dir)
+        candidates.append(USER_RETROARCH_CORES_DIR)
+        candidates.append(get_default_config_path("cores"))
+        for path in candidates:
+            if path and path not in seen and os.path.isdir(path):
+                seen.add(path)
+                yield path
+
+    def find_core_path(self, core: str) -> str | None:
+        """Return the path to an installed core ``.so``, or None if not found."""
         core_filename = "{}_libretro.so".format(core)
-        lutris_core = os.path.join(lutris_cores_folder, core_filename)
-        return lutris_core
+        for directory in self._core_dirs():
+            path = os.path.join(directory, core_filename)
+            if system.path_exists(path):
+                return path
+        return None
+
+    def find_info_path(self, core: str) -> str | None:
+        """Return the path to an installed core's ``.info`` file, or None if not found."""
+        info_filename = "{}_libretro.info".format(core)
+        for directory in _info_dirs(self.get_config_file()):
+            path = os.path.join(directory, info_filename)
+            if system.path_exists(path):
+                return path
+        return None
 
     def get_version(self, use_default=True):
         return self.game_config["core"]
@@ -281,7 +369,7 @@ class libretro(Runner):
             core = self.game_config["core"]
         if not core or self.runner_config.get("runner_executable"):
             return super().is_installed(flatpak_allowed=flatpak_allowed)
-        is_core_installed = system.path_exists(self.get_core_path(core))
+        is_core_installed = self.find_core_path(core) is not None
         return super().is_installed(flatpak_allowed=flatpak_allowed) and is_core_installed
 
     def is_installed_for(self, interpreter):
@@ -363,8 +451,8 @@ class libretro(Runner):
             retro_config = RetroConfig(config_file)
 
         core = self.game_config.get("core")
-        info_file = os.path.join(RETROARCH_DIR, f"info/{core}_libretro.info")
-        if system.path_exists(info_file):
+        info_file = self.find_info_path(core) if core else None
+        if info_file:
             retro_config = RetroConfig(info_file)
             try:
                 firmware_count = int(retro_config["firmware_count"])
@@ -443,7 +531,12 @@ class libretro(Runner):
         core = self.game_config.get("core")
         if not core:
             raise GameConfigError(_("No core has been selected for this game"))
-        command.append("--libretro={}".format(self.get_core_path(core)))
+        core_path = self.find_core_path(core)
+        if core_path:
+            command.append("--libretro={}".format(core_path))
+        # If we couldn't resolve a path, fall through and let RetroArch resolve the
+        # core via its own libretro_directory — covers users who manage cores entirely
+        # through retroarch.cfg (e.g. AUR packages installing to /usr/lib/libretro).
 
         # Main file
         file = self.game_config.get("main_file")
