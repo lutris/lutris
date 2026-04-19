@@ -1239,14 +1239,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_search_entry_key_press(self, controller, keyval, keycode, state):
         if keyval == Gdk.KEY_Down:
-            if self.current_view_type == "grid":
-                self.current_view.select_path(Gtk.TreePath("0"))  # needed for gridview only
-                # if game_bar is alive at this point it can mess grid item selection up
-                # for some unknown reason,
-                # it is safe to close it here, it will be reopened automatically.
-                if self.game_bar:
-                    self.game_bar.unparent()  # for gridview only
-            self.current_view.set_cursor(Gtk.TreePath("0"), None, False)  # needed for both view types
+            if self.current_view_type == "grid" and self.game_bar:
+                # The game_bar can otherwise snatch focus back and confuse
+                # grid selection. It's automatically reopened when needed.
+                self.game_bar.unparent()
+            self.current_view.set_selected([0], scroll_into_view=True)
             self.current_view.grab_focus()
 
     def on_kill_wine(self, *_args):
