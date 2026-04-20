@@ -145,7 +145,7 @@ def is_safe_to_delete(file_path: str) -> bool:
         return True
 
     # Active states - never delete
-    if state in (CacheState.DOWNLOADING, CacheState.DOWNLOADING, CacheState.INSTALLING):
+    if state in (CacheState.DOWNLOADING, CacheState.DOWNLOADED, CacheState.INSTALLING):
         logger.info(
             "Cache protection: preserving %s (state: %s)",
             os.path.basename(file_path),
