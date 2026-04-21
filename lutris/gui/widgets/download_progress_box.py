@@ -55,6 +55,7 @@ class DownloadProgressBox(Gtk.Box):
         progress_box = Gtk.Box()
 
         self.progressbar = Gtk.ProgressBar()
+        self.progressbar.set_valign(Gtk.Align.CENTER)
         self.progressbar.set_margin_top(5)
         self.progressbar.set_margin_bottom(5)
         self.progressbar.set_margin_end(10)
