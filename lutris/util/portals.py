@@ -42,16 +42,16 @@ class TrashPortal(GObject.Object):
         try:
             proxy = obj.new_for_bus_finish(result)
         except GLib.Error as ex:
-            logger.error("Could not connect to the Trash portal: %s", ex.message)
-            self.report_completion()
-            return
-
-        if proxy:
-            self._dbus_proxy = proxy
-            self._trash_next_file()
+            logger.warning(
+                "Could not connect to the Trash portal (%s); falling back to g_file_trash_async().",
+                ex.message,
+            )
         else:
-            logger.error("Could not connect to the Trash portal.")
-            self.report_completion()
+            if proxy:
+                self._dbus_proxy = proxy
+            else:
+                logger.warning("Could not connect to the Trash portal; falling back to g_file_trash_async().")
+        self._trash_next_file()
 
     def _trash_next_file(self):
         """Trash the next file in the list, then re-invoked from
@@ -61,6 +61,12 @@ class TrashPortal(GObject.Object):
             return
 
         file_path = self.file_paths[0]
+
+        if self._dbus_proxy is None:
+            self.file_paths.pop(0)
+            self._fallback_trash(file_path)
+            return
+
         try:
             fds_in = Gio.UnixFDList.new()
             flags = os.O_RDONLY | os.O_PATH | os.O_CLOEXEC
@@ -88,21 +94,38 @@ class TrashPortal(GObject.Object):
 
     def _call_cb(self, obj, result):
         file_path = self.file_paths.pop(0)
+        failure_reason = None
         try:
             values = obj.call_with_unix_fd_list_finish(result)
         except GLib.Error as ex:
-            logger.error("Failed to trash '%s': %s", file_path, ex.message)
+            failure_reason = ex.message
+        else:
+            if values and values[0][0] == 0:
+                failure_reason = "portal returned failure"
+
+        if failure_reason is not None:
+            logger.warning(
+                "Trash portal refused '%s' (%s); falling back to g_file_trash_async().",
+                file_path,
+                failure_reason,
+            )
+            self._fallback_trash(file_path)
+        else:
             self._trash_next_file()
-            return
 
-        if values:
-            trash_result = values[0][0]
-            if trash_result == 0:
-                logger.error(
-                    "'%s' could not be moved to the trash. You will need to delete it yourself.",
-                    file_path,
-                )
+    def _fallback_trash(self, file_path: str) -> None:
+        try:
+            gfile = Gio.File.new_for_path(file_path)
+            gfile.trash_async(GLib.PRIORITY_DEFAULT, None, self._fallback_cb)
+        except Exception as ex:
+            logger.error("Fallback trash of '%s' failed to start: %s", file_path, ex)
+            self._trash_next_file()
 
+    def _fallback_cb(self, obj, result):
+        try:
+            obj.trash_finish(result)
+        except GLib.Error as ex:
+            logger.error("Failed to trash '%s': %s", obj.get_path(), ex.message)
         self._trash_next_file()
 
     def report_error(self, error: Exception) -> None:
