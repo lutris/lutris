@@ -28,6 +28,7 @@ from datetime import datetime, timedelta
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any, Type, TypeVar, cast
 
+import yaml
 from gi.repository import Gio, GLib, Gtk
 
 from lutris import settings
@@ -64,6 +65,7 @@ LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATU
 
 if TYPE_CHECKING:
     from lutris.api import InstallerInfoDict
+    from lutris.config import GameConfigDict
     from lutris.database.games import DbGameDict
     from lutris.database.services import DBServiceGame
     from lutris.services.base import BaseService
@@ -259,6 +261,14 @@ class LutrisApplication(Gtk.Application):
             GLib.OptionArg.STRING,
             _("Uninstall a Runner"),
             None,
+        )
+        self.add_main_option(
+            "list-game-config",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Output a game config data as YAML. Use --json to output as JSON instead."),
+            "<game-id-or-slug>",
         )
         self.add_main_option(
             "export",
@@ -585,6 +595,23 @@ class LutrisApplication(Gtk.Application):
             self.uninstall_runner(runner)
             return 0
 
+        # List game config
+        if option := options.lookup_value("list-game-config"):
+            game_slug = option.get_string()
+            db_game = games_db.get_game_by_field(game_slug, "id") or games_db.get_game_by_field(game_slug, "slug")
+            if not db_game:
+                print(_('Game "%s" could not be found') % game_slug)
+                return 1
+
+            game = Game(str(db_game["id"]))
+            game_config = game.config.game_level.get("game", {}) if game.config else {}
+            if options.contains("json"):
+                self.print_game_config_json(command_line, game_config)
+            else:
+                self.print_game_config_yaml(command_line, game_config)
+            return 0
+
+        # Export game to script
         if option := options.lookup_value("export"):
             slug = option.get_string()
             if not dest_dir:
@@ -943,6 +970,12 @@ class LutrisApplication(Gtk.Application):
             games.append(game_obj)
 
         self._print(command_line, json.dumps(games, indent=2))
+
+    def print_game_config_yaml(self, command_line: Gio.ApplicationCommandLine, game_config: "GameConfigDict") -> None:
+        self._print(command_line, yaml.safe_dump(game_config, default_flow_style=False))
+
+    def print_game_config_json(self, command_line: Gio.ApplicationCommandLine, game_config: "GameConfigDict") -> None:
+        self._print(command_line, json.dumps(game_config, indent=2))
 
     def print_service_game_list(
         self, command_line: Gio.ApplicationCommandLine, game_list: list["DBServiceGame"]
