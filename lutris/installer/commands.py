@@ -93,6 +93,7 @@ class CommandsMixin:
     def chmodx(self, filename):
         """Make filename executable"""
         filename = self._substitute(filename)
+        self._check_path_within_target(filename, "chmodx")
         if not system.path_exists(filename):
             raise ScriptingError(_("Invalid file '%s'. Can't make it executable") % filename)
         system.make_executable(filename)
@@ -200,6 +201,7 @@ class CommandsMixin:
             raise ScriptingError(_("%s does not exist") % filespec)
         if "dst" in data:
             dest_path = self._substitute(data["dst"])
+            self._check_path_within_target(dest_path, "extract")
         else:
             dest_path = self.target_path
         for filename in filenames:
@@ -271,6 +273,7 @@ class CommandsMixin:
     def mkdir(self, directory):
         """Create directory"""
         directory = self._substitute(directory)
+        self._check_path_within_target(directory, "mkdir")
         try:
             os.makedirs(directory)
         except OSError:
@@ -370,12 +373,14 @@ class CommandsMixin:
         dst = self._substitute(dst_ref)
         if not dst:
             raise ScriptingError(_("Wrong value for 'dst' param"), dst_ref)
+        self._check_path_within_target(dst, "move/merge/rename")
         return src.rstrip("/"), dst.rstrip("/")
 
     def substitute_vars(self, data):
         """Substitute variable names found in given file."""
         self._check_required_params("file", data, "substitute_vars")
         filename = self._substitute(data["file"])
+        self._check_path_within_target(filename, "substitute_vars")
         logger.debug("Substituting variables for file %s", filename)
         tmp_filename = filename + ".tmp"
         with open(filename, "r", encoding="utf-8") as source_file:
@@ -460,6 +465,7 @@ class CommandsMixin:
 
         # Get file
         dest_file_path = self._get_file_path(params["file"])
+        self._check_path_within_target(dest_file_path, "write_file")
 
         # Create dir if necessary
         basedir = os.path.dirname(dest_file_path)
@@ -478,6 +484,7 @@ class CommandsMixin:
 
         # Get file
         filename = self._get_file_path(params["file"])
+        self._check_path_within_target(filename, "write_json")
 
         # Create dir if necessary
         basedir = os.path.dirname(filename)
@@ -509,6 +516,7 @@ class CommandsMixin:
             self._check_required_params(["file", "section", "key", "value"], params, "write_config")
         # Get file
         config_file_path = self._get_file_path(params["file"])
+        self._check_path_within_target(config_file_path, "write_config")
 
         # Create dir if necessary
         basedir = os.path.dirname(config_file_path)
@@ -1017,3 +1025,40 @@ class CommandsMixin:
         merge_dst = self._substitute(data.get("merge_dst", data.get("dst", "$GAMEDIR")))
         if merge_dst != dst:
             self.merge({"src": dst, "dst": merge_dst})
+
+    def _check_path_within_target(self, path, command_name="command"):
+        """Check that a resolved path is within the game's target directory.
+
+        Logs a warning if target_path is not set (can't validate).  If the path
+        is outside the game directory the user is prompted to allow or deny the
+        operation.  Allowed parent directories are cached so the user is not
+        asked repeatedly for the same location.
+        """
+        if not self.target_path:
+            logger.warning("No target path set, cannot validate path for '%s': %s", command_name, path)
+            return
+        if system.path_contains(self.target_path, path):
+            return
+
+        resolved = os.path.realpath(path)
+
+        # Check if this path falls under a directory the user already allowed.
+        if not hasattr(self, "_allowed_external_paths"):
+            self._allowed_external_paths = set()
+        for allowed in self._allowed_external_paths:
+            if system.path_contains(allowed, resolved):
+                return
+
+        # Ask the user via the UI delegate (blocks in the background thread
+        # until the user responds).
+        allowed = self.interpreter_ui_delegate.prompt_for_external_path(command_name, path, self.target_path)
+        if allowed:
+            # Cache the parent directory so sibling writes are auto-allowed.
+            self._allowed_external_paths.add(os.path.dirname(resolved))
+            logger.info("User allowed %s to write outside game directory: %s", command_name, path)
+        else:
+            raise ScriptingError(
+                _("The {cmd} command was denied access to a path outside the game directory: {path}").format(
+                    cmd=command_name, path=path
+                )
+            )
