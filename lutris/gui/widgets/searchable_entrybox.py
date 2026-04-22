@@ -21,6 +21,15 @@ class SearchableEntrybox(Gtk.Box):
         self.liststore = Gtk.ListStore(str, str)
         self.entry = Gtk.Entry()
 
+        # Gtk.EntryCompletion is deprecated in GTK 4 and the replacement
+        # (Gtk.SuggestionEntry) has not landed yet — we use it as-is until
+        # then. When it's removed, this is the thing to swap out.
+        self._completion = Gtk.EntryCompletion()
+        self._completion.set_model(self.liststore)
+        self._completion.set_text_column(0)
+        self._completion.set_match_func(self.search_store)
+        self.entry.set_completion(self._completion)
+
         # Popover menu for the choice list
         self._popup_menu_model = Gio.Menu()
         self._popup_action_group = Gio.SimpleActionGroup()

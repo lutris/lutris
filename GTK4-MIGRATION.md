@@ -267,6 +267,20 @@ This avoids the GTK 3 pattern of connecting to `destroy` on every window to
 remove stale dict entries, which is fragile under GTK 4 where windows
 participate in `Gtk.Application`'s lifecycle automatically.
 
+## Gtk.EntryCompletion
+
+`Gtk.EntryCompletion` is deprecated in GTK 4 but still ships and still
+works. Its intended replacement, `Gtk.SuggestionEntry`, has not yet
+landed — it is slated for GTK 5. Until then, widgets that need an
+autocomplete dropdown under a `Gtk.Entry` (we have one,
+`SearchableEntrybox`) keep using `Gtk.EntryCompletion` as-is.
+
+A hand-rolled replacement was attempted (non-autohiding `Gtk.Popover`
+with a `Gtk.FilterListModel`-backed `Gtk.ListView`); it works, but the
+focus dance required to keep typing alive while the popover is visible
+isn't worth carrying for the duration of the GTK 4 cycle. When
+`Gtk.SuggestionEntry` lands, swap `SearchableEntrybox` over to it.
+
 ## GridView Thumb-Drag Flicker (Unresolved)
 
 **Symptom**: In the games grid, holding the scrollbar thumb still — not moving
