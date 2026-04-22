@@ -5,7 +5,7 @@ import os
 import traceback
 from gettext import gettext as _
 
-from gi.repository import Gio, GLib, Gtk
+from gi.repository import Gio, GLib, GObject, Gtk, Pango
 
 from lutris import settings
 from lutris.config import LutrisConfig
@@ -48,6 +48,30 @@ class MarkupLabel(Gtk.Label):
     def __init__(self, markup=None, **kwargs):
         super().__init__(label=markup, use_markup=True, wrap=True, justify=Gtk.Justification.CENTER, **kwargs)
         self.set_xalign(0.5)
+
+
+def _iter_list_store(store):
+    """Iterate items of a Gio.ListStore — Python-for-loop convenience, since
+    the GTK 4 list-model API is index-based."""
+    for i in range(store.get_n_items()):
+        yield store.get_item(i)
+
+
+class ExtraNode(GObject.Object):
+    """One node in the extras tree — either a source (with ``children``) or a
+    leaf extra (``children is None``).
+
+    The extras UI is a two-level ``Gtk.TreeListModel``: the root holds one
+    ``ExtraNode`` per source, and each source's ``children`` Gio.ListStore holds
+    leaf nodes for its individual extras. The source's ``active`` mirrors
+    "all children checked" and ``inconsistent`` mirrors "some but not all".
+    """
+
+    label = GObject.Property(type=str, default="")
+    extra = GObject.Property(type=object)
+    children = GObject.Property(type=object)
+    active = GObject.Property(type=bool, default=False)
+    inconsistent = GObject.Property(type=bool, default=False)
 
 
 class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter.InterpreterUIDelegate):  # type:ignore[misc]
@@ -139,12 +163,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         # Pre-create some UI bits we need to refer to in several places.
         # (We lazy allocate more of it, but these are a pain.)
 
-        self.extras_tree_store = Gtk.TreeStore(
-            bool,  # is selected?
-            bool,  # is inconsistent?
-            object,  # extras dict
-            str,  # label
-        )
+        self.extras_root = Gio.ListStore.new(ExtraNode)
+        # Set True while we propagate a click across sibling rows so the
+        # cascading `toggled` signals don't re-enter the click handler.
+        self._extras_updating = False
 
         self.location_entry = FileChooserEntry(
             "Select folder",
@@ -579,42 +601,132 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             return
 
         if all_extras:
-            self.extras_tree_store.clear()
-            for extra_source, extras in all_extras.items():
-                parent = self.extras_tree_store.append(None, (None, None, None, extra_source))
+            self.extras_root.remove_all()
+            for source_name, extras in all_extras.items():
+                children = Gio.ListStore.new(ExtraNode)
                 for extra in extras:
-                    self.extras_tree_store.append(parent, (False, False, extra, self.get_extra_label(extra)))
+                    children.append(ExtraNode(label=self.get_extra_label(extra), extra=extra))
+                self.extras_root.append(ExtraNode(label=source_name, children=children))
 
             self.stack.navigate_to_page(self.present_extras_page)
         else:
             self.on_extras_ready()
 
     def create_extras_page(self):
-        treeview = Gtk.TreeView(model=self.extras_tree_store)
-        treeview.set_headers_visible(False)
-        treeview.expand_all()
-        renderer_toggle = Gtk.CellRendererToggle()
-        renderer_toggle.connect("toggled", self.on_extra_toggled, self.extras_tree_store)
-        renderer_text = Gtk.CellRendererText()
+        tree_model = Gtk.TreeListModel.new(
+            self.extras_root,
+            False,  # passthrough: keep Gtk.TreeListRow wrappers visible to the factory
+            True,  # autoexpand: open every source node on creation
+            self._make_extras_child_model,
+        )
+        selection = Gtk.NoSelection.new(tree_model)
 
-        installed_column = Gtk.TreeViewColumn(None, renderer_toggle, active=0, inconsistent=1)
-        treeview.append_column(installed_column)
+        factory = Gtk.SignalListItemFactory()
+        factory.connect("setup", self._on_extra_row_setup)
+        factory.connect("bind", self._on_extra_row_bind)
+        factory.connect("unbind", self._on_extra_row_unbind)
 
-        label_column = Gtk.TreeViewColumn(None, renderer_text)
-        label_column.add_attribute(renderer_text, "text", 3)
-        label_column.set_property("min-width", 80)
-        treeview.append_column(label_column)
+        list_view = Gtk.ListView.new(selection, factory)
 
-        scrolled = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=treeview)
+        scrolled = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=list_view)
         frame = Gtk.Frame(child=scrolled)
         return frame
+
+    @staticmethod
+    def _make_extras_child_model(item, _user_data=None):
+        """Called by Gtk.TreeListModel to materialise a node's children."""
+        return item.children
+
+    def _on_extra_row_setup(self, _factory, list_item):
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        check = Gtk.CheckButton()
+        expander = Gtk.TreeExpander()
+        label = Gtk.Label(xalign=0, use_markup=True, ellipsize=Pango.EllipsizeMode.END, hexpand=True)
+        expander.set_child(label)
+        box.append(check)
+        box.append(expander)
+        list_item.set_child(box)
+
+    def _on_extra_row_bind(self, _factory, list_item):
+        box = list_item.get_child()
+        check = box.get_first_child()
+        expander = check.get_next_sibling()
+        label = expander.get_child()
+
+        tree_row = list_item.get_item()
+        expander.set_list_row(tree_row)
+        node = tree_row.get_item()
+
+        escaped = GLib.markup_escape_text(node.label)
+        is_source = node.children is not None
+        label.set_markup(f"<b>{escaped}</b>" if is_source else escaped)
+
+        active_binding = node.bind_property("active", check, "active", GObject.BindingFlags.SYNC_CREATE)
+        inconsistent_binding = node.bind_property(
+            "inconsistent", check, "inconsistent", GObject.BindingFlags.SYNC_CREATE
+        )
+        toggled_handler = check.connect("toggled", self._on_extra_check_toggled, node)
+        list_item._bindings = (active_binding, inconsistent_binding, toggled_handler)  # type: ignore[attr-defined]
+
+    def _on_extra_row_unbind(self, _factory, list_item):
+        box = list_item.get_child()
+        check = box.get_first_child()
+        bindings = getattr(list_item, "_bindings", None)
+        if bindings is not None:
+            active_binding, inconsistent_binding, toggled_handler = bindings
+            active_binding.unbind()
+            inconsistent_binding.unbind()
+            check.disconnect(toggled_handler)
+            list_item._bindings = None  # type: ignore[attr-defined]
+
+    def _on_extra_check_toggled(self, check, node):
+        """Propagate a click to the rest of the section.
+
+        Fires both from user clicks and from our own programmatic updates to
+        sibling nodes (the node→check binding re-emits ``toggled`` when we sync
+        the view). ``_extras_updating`` suppresses the re-entry."""
+        if self._extras_updating:
+            return
+
+        self._extras_updating = True
+        try:
+            node.active = check.get_active()
+            node.inconsistent = False
+            if node.children is not None:
+                for child in _iter_list_store(node.children):
+                    child.active = node.active
+                    child.inconsistent = False
+            else:
+                parent = self._find_parent_extras_node(node)
+                if parent is not None:
+                    self._refresh_parent_extras_node(parent)
+        finally:
+            self._extras_updating = False
+
+    def _find_parent_extras_node(self, leaf):
+        for source in _iter_list_store(self.extras_root):
+            if source.children is None:
+                continue
+            for child in _iter_list_store(source.children):
+                if child is leaf:
+                    return source
+        return None
+
+    @staticmethod
+    def _refresh_parent_extras_node(parent):
+        all_active = True
+        any_active = False
+        for child in _iter_list_store(parent.children):
+            if child.active:
+                any_active = True
+            else:
+                all_active = False
+        parent.active = all_active
+        parent.inconsistent = any_active and not all_active
 
     def present_extras_page(self):
         """Show installer screen with the extras picker"""
         logger.debug("Showing extras page")
-
-        def on_continue(_button):
-            self.on_extras_confirmed(self.extras_tree_store)
 
         self.set_status(
             _(
@@ -624,47 +736,19 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             )
         )
         self.stack.present_page("extras")
-        self.display_continue_button(on_continue, extra_buttons=[self.cache_button, self.source_button])
+        self.display_continue_button(
+            lambda _b: self.on_extras_confirmed(), extra_buttons=[self.cache_button, self.source_button]
+        )
 
-    def on_extra_toggled(self, _widget, path, model):
-        toggled_row = model[path]
-        toggled_row_iter = model.get_iter(path)
-
-        toggled_row[0] = not toggled_row[0]
-        toggled_row[1] = False
-
-        if model.iter_has_child(toggled_row_iter):
-            extra_iter = model.iter_children(toggled_row_iter)
-            while extra_iter:
-                extra_row = model[extra_iter]
-                extra_row[0] = toggled_row[0]
-                extra_iter = model.iter_next(extra_iter)
-        else:
-            for heading_row in model:
-                all_extras_active = True
-                any_extras_active = False
-                extra_iter = model.iter_children(heading_row.iter)
-                while extra_iter:
-                    extra_row = model[extra_iter]
-                    if extra_row[0]:
-                        any_extras_active = True
-                    else:
-                        all_extras_active = False
-                    extra_iter = model.iter_next(extra_iter)
-
-                heading_row[0] = all_extras_active
-                heading_row[1] = any_extras_active
-
-    def on_extras_confirmed(self, extra_store):
-        """Resume install when user has selected extras to download"""
+    def on_extras_confirmed(self):
+        """Resume install with the user's extras selection."""
         selected_extras = []
-
-        def save_extra(model, path, iter_):
-            selected, _inconsistent, extra, _label = model[iter_]
-            if selected and extra:
-                selected_extras.append(extra)
-
-        extra_store.foreach(save_extra)
+        for source in _iter_list_store(self.extras_root):
+            if source.children is None:
+                continue
+            for child in _iter_list_store(source.children):
+                if child.active and child.extra is not None:
+                    selected_extras.append(child.extra)
 
         self.selected_extras = selected_extras
         GLib.idle_add(self.on_extras_ready)
