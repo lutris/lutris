@@ -55,6 +55,16 @@ class LaunchUIDelegate(Delegate):
         """
         return {}  # primary game
 
+    def get_extra_game_launch_prepend_args(self) -> list[str]:
+        """Specifies additional arguments to prepend to the argument list
+        for the game launch command"""
+        return []
+
+    def get_extra_game_launch_append_args(self) -> list[str]:
+        """Specifies additional arguments to append to the argument list
+        for the game launch command"""
+        return []
+
 
 class InstallUIDelegate(Delegate):
     """These objects provide UI for a runner as it is installing itself.
@@ -100,8 +110,15 @@ class InstallUIDelegate(Delegate):
 class CommandLineUIDelegate(LaunchUIDelegate):
     """This delegate can provide user selections that were provided on the command line."""
 
-    def __init__(self, launch_config_name: str | None):
+    def __init__(
+        self,
+        launch_config_name: str | None,
+        launch_args_prepend: list[str] | None = None,
+        launch_args_append: list[str] | None = None,
+    ) -> None:
         self.launch_config_name = launch_config_name
+        self.launch_args_extra_prepend = launch_args_prepend[:] if launch_args_prepend else []
+        self.launch_args_extra_append = launch_args_append[:] if launch_args_append else []
 
     def select_game_launch_config(self, game: Game) -> "LaunchConfigDict | None":
         if not self.launch_config_name:
@@ -115,6 +132,12 @@ class CommandLineUIDelegate(LaunchUIDelegate):
                 return config
 
         raise RuntimeError("The launch configuration '%s' could not be found." % self.launch_config_name)
+
+    def get_extra_game_launch_prepend_args(self) -> list[str]:
+        return self.launch_args_extra_prepend
+
+    def get_extra_game_launch_append_args(self) -> list[str]:
+        return self.launch_args_extra_append
 
 
 class DialogInstallUIDelegate(InstallUIDelegate):
