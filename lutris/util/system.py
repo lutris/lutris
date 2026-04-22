@@ -354,7 +354,16 @@ def substitute(string_template: str, variables: dict[str, str]) -> str:
     return template.safe_substitute(variables)
 
 
-def merge_folders(source: str, destination: str) -> None:
+def _match_regex(regex: re.Pattern[str] | None, path: str) -> bool:
+    if not regex:
+        return True
+    match = regex.match(path)
+    if match:
+        logger.debug("Path %s matches regex, copying", path)
+    return bool(match)
+
+
+def merge_folders(source: str, destination: str, regex: re.Pattern[str] | None = None) -> None:
     """Merges the content of source to destination"""
     logger.debug("Merging %s into %s", source, destination)
     # We do not use shutil.copytree() here because that would copy
@@ -364,6 +373,8 @@ def merge_folders(source: str, destination: str) -> None:
         source_relpath = dirpath[len(source) :].strip("/")
         dst_abspath = os.path.join(destination, source_relpath)
         for dirname in dirnames:
+            if not _match_regex(regex, os.path.join(source_relpath, dirname)):
+                continue
             new_dir = os.path.join(dst_abspath, dirname)
             logger.debug("creating dir: %s", new_dir)
             try:
@@ -372,6 +383,8 @@ def merge_folders(source: str, destination: str) -> None:
                 pass
         for filename in filenames:
             # logger.debug("Copying %s", filename)
+            if not _match_regex(regex, os.path.join(source_relpath, filename)):
+                continue
             if not os.path.exists(dst_abspath):
                 os.makedirs(dst_abspath)
             shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename), follow_symlinks=False)
