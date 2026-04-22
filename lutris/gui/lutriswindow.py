@@ -42,17 +42,6 @@ from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog, g
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
 from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.download_queue import DownloadQueue
-from lutris.gui.views import (
-    COL_INSTALLED_AT,
-    COL_INSTALLED_AT_TEXT,
-    COL_LASTPLAYED,
-    COL_LASTPLAYED_TEXT,
-    COL_NAME,
-    COL_PLAYTIME,
-    COL_PLAYTIME_TEXT,
-    COL_SORTNAME,
-    COL_YEAR,
-)
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
@@ -469,18 +458,19 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         dynamic = self.filters.get("dynamic_category")
         return dynamic not in self.dynamic_categories_game_factories or dynamic in self.sortable_dynamic_categories
 
-    def get_sort_sensitive_columns(self) -> set[int]:
+    def get_sort_sensitive_properties(self) -> set[str]:
+        """GameItem property names that, if changed, invalidate the current sort."""
         if self.is_view_sort_sensitive:
             if self.view_sorting == "name":
-                return {COL_NAME, COL_SORTNAME}
+                return {"name", "sortname"}
             elif self.view_sorting == "year":
-                return {COL_YEAR}
+                return {"year"}
             elif self.view_sorting == "lastplayed":
-                return {COL_LASTPLAYED, COL_LASTPLAYED_TEXT}
+                return {"lastplayed", "lastplayed_text"}
             elif self.view_sorting == "installed_at":
-                return {COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT}
+                return {"installed_at", "installed_at_text"}
             elif self.view_sorting == "playtime":
-                return {COL_PLAYTIME, COL_PLAYTIME_TEXT}
+                return {"playtime", "playtime_text"}
 
         return set()
 
@@ -1411,9 +1401,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 return True
 
         if db_game:
-            updated_columns = self.game_store.update(db_game)
-            sensitive_columns = self.get_sort_sensitive_columns()
-            if updated_columns is None or not sensitive_columns.isdisjoint(updated_columns):
+            updated_properties = self.game_store.update(db_game)
+            sensitive_properties = self.get_sort_sensitive_properties()
+            if updated_properties is None or not sensitive_properties.isdisjoint(updated_properties):
                 self.update_store()
 
         return True
