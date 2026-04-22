@@ -49,7 +49,7 @@ from lutris.runners import InvalidRunnerError, RunnerInstallationError, get_runn
 from lutris.services import get_enabled_services
 from lutris.startup import init_lutris, run_all_checks
 from lutris.style_manager import StyleManager
-from lutris.util import datapath, log, resources, system
+from lutris.util import datapath, log, resources
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
@@ -576,13 +576,17 @@ class LutrisApplication(Gtk.Application):
         # install Runner
         if option := options.lookup_value("install-runner"):
             runner = option.get_string()
-            self.install_runner(runner)
+            args_variant_array = options.lookup_value(GLib.OPTION_REMAINING, expected_type=GLib.VariantType("as"))
+            args: list[str] = args_variant_array.get_strv() if args_variant_array else []
+            self.install_runner(runner, version=args[0] if args else None)
             return 0
 
         # Uninstall Runner
         if option := options.lookup_value("uninstall-runner"):
             runner = option.get_string()
-            self.uninstall_runner(runner)
+            args_variant_array = options.lookup_value(GLib.OPTION_REMAINING, expected_type=GLib.VariantType("as"))
+            args = args_variant_array.get_strv() if args_variant_array else []
+            self.uninstall_runner(runner, version=args[0] if args else None)
             return 0
 
         if option := options.lookup_value("export"):
@@ -1021,74 +1025,47 @@ class LutrisApplication(Gtk.Application):
             if i["version"]:
                 print(i)
 
-    def install_runner(self, runner: str) -> None:
-        if runner.startswith("lutris"):
-            self.install_wine_cli(runner)
+    def install_runner(self, runner: str, version: str | None) -> None:
+        if runner == "wine":
+            self.install_wine_cli(version)
         else:
-            self.install_cli(runner)
+            self.install_cli(runner, version)
 
-    def uninstall_runner(self, runner: str) -> None:
-        if "wine" in runner:
-            print("Are sure you want to delete Wine and all of the installed runners?[Y/N]")
-            ans = input()
-            if ans.lower() in ("y", "yes"):
-                self.uninstall_runner_cli(runner)
-            else:
-                print("Not Removing Wine")
-        elif runner.startswith("lutris"):
-            self.wine_runner_uninstall(runner)
-        else:
-            self.uninstall_runner_cli(runner)
+    def uninstall_runner(self, runner: str, version: str | None = None) -> None:
+        self.uninstall_runner_cli(runner, version=version)
 
-    def install_wine_cli(self, version: str) -> None:
+    def install_wine_cli(self, version: str | None = None) -> None:
         """
         Downloads wine runner using lutris -r <runner>
         """
+        # Parse the latest version from the api if available
+        if version == "latest":
+            if wine_runners := get_runners("wine"):
+                wine_versions = wine_runners.get("versions", [])
+                if wine_versions:
+                    version = wine_versions[-1].get("version")
+        if version == "latest":
+            print(_("Unable to locate latest wine version, skipping installation."))
+            return
 
-        WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-        runner_path = os.path.join(WINE_DIR, f"{version}{'' if '-x86_64' in version else '-x86_64'}")
-        if os.path.isdir(runner_path):
-            print(f"Wine version '{version}' is already installed.")
-        else:
-            try:
-                runner = import_runner("wine")
-                runner().install(self.install_ui_delegate, version=version)
-                print(f"Wine version '{version}' has been installed.")
-            except (InvalidRunnerError, RunnerInstallationError) as ex:
-                print(ex.message)
+        self.install_cli("wine", version=version)
 
-    def wine_runner_uninstall(self, version: str) -> None:
-        version = f"{version}{'' if '-x86_64' in version else '-x86_64'}"
-        WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-        runner_path = os.path.join(WINE_DIR, version)
-        if os.path.isdir(runner_path):
-            system.remove_folder(runner_path)
-            print(f"Wine version '{version}' has been removed.")
-        else:
-            print(
-                f"""
-Specified version of Wine is not installed: {version}.
-Please check if the Wine Runner and specified version are installed (for that use --list-wine-versions).
-Also, check that the version specified is in the correct format.
-                """
-            )
-
-    def install_cli(self, runner_name: str) -> None:
+    def install_cli(self, runner_name: str, version: str | None = None) -> None:
         """
         install the runner provided in prepare_runner_cli()
         """
 
         try:
             runner = import_runner(runner_name)()
-            if runner.is_installed():
-                print(f"'{runner_name}' is already installed.")
+            if runner.is_installed(version=version, fallback=False):
+                print(_("'%s' is already installed.") % runner_name)
             else:
-                runner.install(self.install_ui_delegate, version=None, callback=None)
-                print(f"'{runner_name}' has been installed")
+                runner.install(self.install_ui_delegate, version=version, callback=None)
+                print(_("'%s' has been installed") % runner_name)
         except (InvalidRunnerError, RunnerInstallationError) as ex:
             print(ex.message)
 
-    def uninstall_runner_cli(self, runner_name: str) -> None:
+    def uninstall_runner_cli(self, runner_name: str, version: str | None = None) -> None:
         """
         uninstall the runner given in application file located in lutris/gui/application.py
         provided using lutris -u <runner>
@@ -1099,14 +1076,13 @@ Also, check that the version specified is in the correct format.
         except InvalidRunnerError:
             logger.error("Failed to import Runner: %s", runner_name)
             return
-        if not runner.is_installed():
-            print(f"Runner '{runner_name}' is not installed.")
+        if not runner.is_installed(version=version, fallback=False):
+            print(_("Runner '%s' is not installed.") % runner_name)
             return
         if runner.can_uninstall():
-            runner.uninstall()
-            print(f"'{runner_name}' has been uninstalled.")
+            runner.uninstall(lambda: print(_("'%s' has been uninstalled.") % runner_name), version=version)
         else:
-            print(f"Runner '{runner_name}' cannot be uninstalled.")
+            print(_("Runner '%s' cannot be uninstalled.") % runner_name)
 
     def do_shutdown(self) -> None:  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
