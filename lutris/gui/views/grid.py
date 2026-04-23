@@ -68,10 +68,10 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
         self.hide_text = hide_text
         self.add_css_class("lutris-game-grid")
 
-        self._bound_covers: "set[GameCoverWidget]" = set()
+        self._bound_covers: set[GameCoverWidget] = set()
         self.image_renderer = _GridImageRenderer(self)
-        self.sort_model: "Gtk.SortListModel | None" = None
-        self.selection: "Gtk.MultiSelection | None" = None
+        self.sort_model: Gtk.SortListModel | None = None
+        self.selection: Gtk.MultiSelection | None = None
 
         GameView.set_game_store(self, store)
         self.set_factory(self._make_factory())
