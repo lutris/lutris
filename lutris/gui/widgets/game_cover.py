@@ -13,10 +13,10 @@ from gi.repository import Gdk, Graphene, Gtk, Pango
 
 from lutris.gui.widgets.utils import (
     MEDIA_CACHE_INVALIDATED,
+    ScaledTexture,
     get_default_icon_path,
     get_pixbuf_by_path,
     get_runtime_icon_path,
-    get_scaled_texture_by_path,
 )
 from lutris.services.service_media import resolve_media_path
 from lutris.util.jobs import schedule_at_idle
@@ -26,9 +26,8 @@ from lutris.util.path_cache import MISSING_GAMES
 _MEDIA_CACHE_GENERATION_NUMBER = 0
 
 # (path, (width, height), preserve_aspect_ratio, corner_size_physical, scale_factor)
-_TextureCacheKey: TypeAlias = tuple[str, tuple[float, float], bool, "tuple[int, int] | None", int]
-# (texture, logical_size, corner_is_bright) — see get_scaled_texture_by_path.
-_TextureCacheEntry: TypeAlias = "tuple[Gdk.Texture, tuple[float, float], bool] | None"
+_TextureCacheKey: TypeAlias = tuple[str, tuple[float, float], bool, tuple[int, int] | None, int]
+_TextureCacheEntry: TypeAlias = ScaledTexture | None
 
 
 class GameCoverWidget(Gtk.Widget):
@@ -39,16 +38,16 @@ class GameCoverWidget(Gtk.Widget):
     during the launch-bounce animation.
     """
 
-    _platform_icon_paths: "dict[str, list[str]]" = {}
+    _platform_icon_paths: dict[str, list[str]] = {}
 
     # Texture caches are shared across all GameCoverWidget instances. Gtk.GridView
     # recycles widgets aggressively during scroll: a given widget gets rebound to
     # different games, so a per-instance cache would miss on every rebind. The old
     # GTK3 code used a single CellRenderer with one shared cache — this mirrors it.
-    _cached_textures_new: "dict[_TextureCacheKey, _TextureCacheEntry]" = {}
-    _cached_textures_old: "dict[_TextureCacheKey, _TextureCacheEntry]" = {}
-    _cached_badge_textures_new: "dict[str, Gdk.Texture | None]" = {}
-    _cached_badge_textures_old: "dict[str, Gdk.Texture | None]" = {}
+    _cached_textures_new: dict[_TextureCacheKey, _TextureCacheEntry] = {}
+    _cached_textures_old: dict[_TextureCacheKey, _TextureCacheEntry] = {}
+    _cached_badge_textures_new: dict[str, Gdk.Texture | None] = {}
+    _cached_badge_textures_old: dict[str, Gdk.Texture | None] = {}
     _cached_items_loaded: int = 0
     _cached_surface_generation: int = 0
 
@@ -57,29 +56,29 @@ class GameCoverWidget(Gtk.Widget):
         self.set_hexpand(False)
         self.set_vexpand(False)
 
-        self._game_id: "str | None" = None
+        self._game_id: str | None = None
         self._service = None
         self._media_paths: list = []
         self._show_badges = True
-        self._platform: "str | None" = None
+        self._platform: str | None = None
         self._is_installed = True
         self._inset_fraction = 0.0
         self._expected_width = 0
         self._expected_height = 0
 
-        self.badge_size: "tuple[int, int] | None" = None
+        self.badge_size: tuple[int, int] | None = None
         self.badge_alpha = 0.6
-        self.badge_fore_color: "tuple[float, float, float]" = (1.0, 1.0, 1.0)
-        self.badge_back_color: "tuple[float, float, float]" = (0.0, 0.0, 0.0)
+        self.badge_fore_color: tuple[float, float, float] = (1.0, 1.0, 1.0)
+        self.badge_back_color: tuple[float, float, float] = (0.0, 0.0, 0.0)
 
     # ---- Data binding ------------------------------------------------
 
     def set_data(
         self,
-        game_id: "str | None",
+        game_id: str | None,
         service,
         media_paths,
-        platform: "str | None",
+        platform: str | None,
         is_installed: bool,
         show_badges: bool,
     ) -> None:
@@ -102,7 +101,7 @@ class GameCoverWidget(Gtk.Widget):
         self.queue_resize()
 
     @property
-    def game_id(self) -> "str | None":
+    def game_id(self) -> str | None:
         return self._game_id
 
     def set_inset_fraction(self, fraction: float) -> None:
@@ -163,9 +162,8 @@ class GameCoverWidget(Gtk.Widget):
             schedule_at_idle(self.cycle_cache)
             return
 
-        texture, logical_size, corner_is_bright = entry
-        media_area = self._get_media_area(logical_size, cell_area)
-        self._select_badge_metrics(corner_is_bright, badge_size)
+        media_area = self._get_media_area(entry.logical_size, cell_area)
+        self._select_badge_metrics(entry.corner_is_bright, badge_size)
 
         inset_fraction = self._inset_fraction
         alpha = 1.0 if self._is_installed else 100 / 255
@@ -190,7 +188,7 @@ class GameCoverWidget(Gtk.Widget):
 
         texture_bounds = Graphene.Rect()
         texture_bounds.init(media_area.x, media_area.y, media_area.width, media_area.height)
-        snapshot.append_texture(texture, texture_bounds)
+        snapshot.append_texture(entry.texture, texture_bounds)
 
         if self._show_badges:
             self._snapshot_badges(snapshot, media_area)
@@ -213,7 +211,7 @@ class GameCoverWidget(Gtk.Widget):
     # ---- Badge helpers (ported) --------------------------------------
 
     @staticmethod
-    def _compute_badge_size(media_width: float, media_height: float) -> "tuple[int, int] | None":
+    def _compute_badge_size(media_width: float, media_height: float) -> tuple[int, int] | None:
         if media_width < 64:
             return None
         if media_height < 128:
@@ -222,7 +220,7 @@ class GameCoverWidget(Gtk.Widget):
             return 24, 24
         return 32, 32
 
-    def _select_badge_metrics(self, corner_is_bright: bool, badge_size: "tuple[int, int] | None") -> None:
+    def _select_badge_metrics(self, corner_is_bright: bool, badge_size: tuple[int, int] | None) -> None:
         self.badge_size = badge_size
         on_bright_surface = bool(badge_size) and corner_is_bright
 
@@ -321,7 +319,7 @@ class GameCoverWidget(Gtk.Widget):
         return layout, round(raw_width * text_scale), self.badge_size[1], text_scale
 
     @classmethod
-    def _get_platform_icon_paths(cls, platform: str) -> "list[str]":
+    def _get_platform_icon_paths(cls, platform: str) -> list[str]:
         cached = cls._platform_icon_paths.get(platform)
         if cached is not None:
             return cached
@@ -331,7 +329,7 @@ class GameCoverWidget(Gtk.Widget):
         else:
             platforms = [platform]
 
-        icon_paths: "list[str]" = []
+        icon_paths: list[str] = []
         for p in platforms:
             icon_path = get_runtime_icon_path(p + "-symbolic")
             if icon_path:
@@ -372,15 +370,15 @@ class GameCoverWidget(Gtk.Widget):
     def _get_cached_texture_by_path(
         self,
         path: str,
-        size: "tuple[float, float]",
+        size: tuple[float, float],
         preserve_aspect_ratio: bool = True,
-        corner_size_physical: "tuple[int, int] | None" = None,
-    ) -> "_TextureCacheEntry":
+        corner_size_physical: tuple[int, int] | None = None,
+    ) -> _TextureCacheEntry:
         cls = type(self)
         cls._check_cache_generation()
 
         scale_factor = self.get_scale_factor() or 1
-        key: "_TextureCacheKey" = (path, size, preserve_aspect_ratio, corner_size_physical, scale_factor)
+        key: _TextureCacheKey = (path, size, preserve_aspect_ratio, corner_size_physical, scale_factor)
 
         if key in cls._cached_textures_new:
             return cls._cached_textures_new[key]
@@ -398,13 +396,13 @@ class GameCoverWidget(Gtk.Widget):
     @staticmethod
     def _load_texture(
         path: str,
-        size: "tuple[float, float]",
+        size: tuple[float, float],
         preserve_aspect_ratio: bool,
-        corner_size_physical: "tuple[int, int] | None",
+        corner_size_physical: tuple[int, int] | None,
         scale_factor: int,
-    ) -> "_TextureCacheEntry":
+    ) -> _TextureCacheEntry:
         try:
-            return get_scaled_texture_by_path(
+            return ScaledTexture.from_path(
                 path,
                 size,
                 scale_factor,
@@ -415,14 +413,14 @@ class GameCoverWidget(Gtk.Widget):
             logger.exception("Unable to load media '%s': %s", path, ex)
             return None
 
-    def _get_cached_badge_texture(self, path: str) -> "Gdk.Texture | None":
+    def _get_cached_badge_texture(self, path: str) -> Gdk.Texture | None:
         cls = type(self)
         cls._check_cache_generation()
 
         if path in cls._cached_badge_textures_new:
             return cls._cached_badge_textures_new[path]
 
-        texture: "Gdk.Texture | None"
+        texture: Gdk.Texture | None
         if path in cls._cached_badge_textures_old:
             texture = cls._cached_badge_textures_old[path]
         else:
@@ -439,13 +437,13 @@ class GameCoverWidget(Gtk.Widget):
         return texture
 
 
-def _make_rgba(color: "tuple[float, float, float]", alpha: float) -> Gdk.RGBA:
+def _make_rgba(color: tuple[float, float, float], alpha: float) -> Gdk.RGBA:
     rgba = Gdk.RGBA()
     rgba.red, rgba.green, rgba.blue, rgba.alpha = color[0], color[1], color[2], alpha
     return rgba
 
 
-def _color_matrix_tint(color: "tuple[float, float, float]", alpha: float) -> "tuple[Graphene.Matrix, Graphene.Vec4]":
+def _color_matrix_tint(color: tuple[float, float, float], alpha: float) -> tuple[Graphene.Matrix, Graphene.Vec4]:
     """(matrix, offset) pair for snapshot.push_color_matrix() that tints an
     input texture so its RGB becomes `color` and its alpha is scaled by `alpha`.
 

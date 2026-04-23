@@ -2,6 +2,7 @@
 
 import os
 from collections.abc import Iterable
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypeVar, cast
 
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
@@ -110,88 +111,104 @@ def get_image_file_extension(path: str) -> str | None:
     return None
 
 
-def get_scaled_texture_by_path(
-    path: str,
-    size: tuple[float, float],
-    device_scale: float,
-    preserve_aspect_ratio: bool = True,
-    corner_size_physical: tuple[int, int] | None = None,
-) -> tuple[Gdk.Texture, tuple[float, float], bool] | None:
-    """Loads an image file and returns a GPU-uploadable Gdk.Texture scaled to fit 'size'
-    at the given device_scale.
+@dataclass(init=False, slots=True)
+class ScaledTexture:
+    """A pixbuf scaled to fit a target size at a given device scale, uploaded
+    to the GPU as a ``Gdk.Texture``.
 
-    Returns a tuple (texture, logical_size, corner_is_bright), where:
-      - texture is a Gdk.Texture suitable for snapshot.append_texture()
-      - logical_size is (width, height) in logical (unscaled) pixels
-      - corner_is_bright is True if the bottom-right corner region of the scaled
-        pixbuf has all four RGB (or RGBA) channels >= 128 at the sampled pixels; used
-        by the caller to decide badge coloring. Always False when corner_size_physical
-        is None or zero.
-
-    Returns None if the file is missing or the pixbuf can't be loaded.
+    ``corner_is_bright`` is True when the bottom-right corner region of the
+    scaled pixbuf has all RGB(A) channels at 128 or above at the sampled
+    pixels; callers use it to pick badge contrast colours. It is always False
+    when the caller does not supply a ``corner_size_physical``.
     """
-    pixbuf = get_pixbuf_by_path(path)
-    if not pixbuf:
-        return None
 
-    pixbuf_width = pixbuf.get_width()
-    pixbuf_height = pixbuf.get_height()
+    texture: Gdk.Texture
+    logical_size: tuple[float, float]
+    corner_is_bright: bool
 
-    scale_x = (size[0] / pixbuf_width) * device_scale
-    scale_y = (size[1] / pixbuf_height) * device_scale
+    def __init__(
+        self,
+        pixbuf: GdkPixbuf.Pixbuf,
+        size: tuple[float, float],
+        device_scale: float,
+        preserve_aspect_ratio: bool = True,
+        corner_size_physical: tuple[int, int] | None = None,
+    ) -> None:
+        pixbuf_width = pixbuf.get_width()
+        pixbuf_height = pixbuf.get_height()
 
-    if preserve_aspect_ratio:
-        scale_x = min(scale_x, scale_y)
-        scale_y = scale_x
+        scale_x = (size[0] / pixbuf_width) * device_scale
+        scale_y = (size[1] / pixbuf_height) * device_scale
 
-    pixel_width = max(1, round(pixbuf_width * scale_x))
-    pixel_height = max(1, round(pixbuf_height * scale_y))
+        if preserve_aspect_ratio:
+            scale_x = min(scale_x, scale_y)
+            scale_y = scale_x
 
-    if pixel_width != pixbuf_width or pixel_height != pixbuf_height:
-        scaled = pixbuf.scale_simple(pixel_width, pixel_height, GdkPixbuf.InterpType.BILINEAR)
-        if scaled is None:
+        pixel_width = max(1, round(pixbuf_width * scale_x))
+        pixel_height = max(1, round(pixbuf_height * scale_y))
+
+        if pixel_width != pixbuf_width or pixel_height != pixbuf_height:
+            scaled = pixbuf.scale_simple(pixel_width, pixel_height, GdkPixbuf.InterpType.BILINEAR)
+            if scaled is None:
+                raise RuntimeError(f"Unable to scale pixbuf to {pixel_width}x{pixel_height}")
+        else:
+            scaled = pixbuf
+
+        corner_is_bright = False
+        if corner_size_physical and corner_size_physical[0] > 0 and corner_size_physical[1] > 0:
+            corner_is_bright = self._is_bright_pixbuf_corner(scaled, corner_size_physical)
+
+        self.texture = Gdk.Texture.new_for_pixbuf(scaled)
+        self.logical_size = (pixel_width / device_scale, pixel_height / device_scale)
+        self.corner_is_bright = corner_is_bright
+
+    @classmethod
+    def from_path(
+        cls,
+        path: str,
+        size: tuple[float, float],
+        device_scale: float,
+        preserve_aspect_ratio: bool = True,
+        corner_size_physical: tuple[int, int] | None = None,
+    ) -> "ScaledTexture | None":
+        """Load an image file and return it as a ``ScaledTexture`` fitted to
+        ``size`` at ``device_scale``. Returns ``None`` if the file is missing or
+        the pixbuf can't be loaded; raises if scaling fails."""
+        pixbuf = get_pixbuf_by_path(path)
+        if not pixbuf:
             return None
-    else:
-        scaled = pixbuf
+        return cls(pixbuf, size, device_scale, preserve_aspect_ratio, corner_size_physical)
 
-    corner_is_bright = False
-    if corner_size_physical and corner_size_physical[0] > 0 and corner_size_physical[1] > 0:
-        corner_is_bright = _is_bright_pixbuf_corner(scaled, corner_size_physical)
+    @staticmethod
+    def _is_bright_pixbuf_corner(pixbuf: GdkPixbuf.Pixbuf, corner_size: tuple[int, int]) -> bool:
+        """Tests four pixels in the bottom-right corner region of the pixbuf. Returns True if
+        all sampled pixels have every colour channel (and alpha, if present) at 128 or above.
+        This matches the surface-based heuristic previously used for badge contrast."""
+        corner_w, corner_h = corner_size
+        pixel_w = pixbuf.get_width()
+        pixel_h = pixbuf.get_height()
+        n_channels = pixbuf.get_n_channels()
+        rowstride = pixbuf.get_rowstride()
+        data = pixbuf.get_pixels()
 
-    texture = Gdk.Texture.new_for_pixbuf(scaled)
-    logical_size = (pixel_width / device_scale, pixel_height / device_scale)
-    return texture, logical_size, corner_is_bright
+        # Clamp number of channels to at most 4 (RGB or RGBA). Pixbufs are 8 bits per sample.
+        check_channels = min(n_channels, 4)
 
-
-def _is_bright_pixbuf_corner(pixbuf: GdkPixbuf.Pixbuf, corner_size: tuple[int, int]) -> bool:
-    """Tests four pixels in the bottom-right corner region of the pixbuf. Returns True if
-    all sampled pixels have every colour channel (and alpha, if present) at 128 or above.
-    This matches the surface-based heuristic previously used for badge contrast."""
-    corner_w, corner_h = corner_size
-    pixel_w = pixbuf.get_width()
-    pixel_h = pixbuf.get_height()
-    n_channels = pixbuf.get_n_channels()
-    rowstride = pixbuf.get_rowstride()
-    data = pixbuf.get_pixels()
-
-    # Clamp number of channels to at most 4 (RGB or RGBA). Pixbufs are 8 bits per sample.
-    check_channels = min(n_channels, 4)
-
-    def is_bright(x: int, y: int) -> bool:
-        if not (0 <= x < pixel_w and 0 <= y < pixel_h):
-            return False
-        offset = y * rowstride + x * n_channels
-        for i in range(check_channels):
-            if data[offset + i] < 128:
+        def is_bright(x: int, y: int) -> bool:
+            if not (0 <= x < pixel_w and 0 <= y < pixel_h):
                 return False
-        return True
+            offset = y * rowstride + x * n_channels
+            for i in range(check_channels):
+                if data[offset + i] < 128:
+                    return False
+            return True
 
-    return (
-        is_bright(pixel_w - 1, pixel_h - 1)
-        and is_bright(pixel_w - corner_w, pixel_h - 1)
-        and is_bright(pixel_w - 1, pixel_h - corner_h)
-        and is_bright(pixel_w - corner_w, pixel_h - corner_h)
-    )
+        return (
+            is_bright(pixel_w - 1, pixel_h - 1)
+            and is_bright(pixel_w - corner_w, pixel_h - 1)
+            and is_bright(pixel_w - 1, pixel_h - corner_h)
+            and is_bright(pixel_w - corner_w, pixel_h - corner_h)
+        )
 
 
 def get_default_icon_path(size: tuple[int, int]) -> str:
