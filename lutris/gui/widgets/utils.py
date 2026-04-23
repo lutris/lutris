@@ -314,8 +314,8 @@ def get_runtime_icon_path(icon_name: str) -> str | None:
     return None
 
 
-def get_runtime_icon_image(icon_name: str, fallback_stock_icon_name: str | None = None) -> Gtk.Widget:
-    """Returns a Gtk.Picture or Gtk.Image of an icon for a runtime or service; the image has the
+def get_runtime_icon_image(icon_name: str, fallback_stock_icon_name: str | None = None) -> Gtk.Image:
+    """Returns a Gtk.Image of an icon for a runtime or service; the image has the
     default icon size. If the icon can't be found, we'll fall back onto another,
     stock icon. If you don't supply one (or it's not available) we'll fall back
     further to 'package-x-generic-symbolic'; we always give you something."""
@@ -334,37 +334,6 @@ def get_runtime_icon_image(icon_name: str, fallback_stock_icon_name: str | None 
     icon = Gtk.Image.new_from_icon_name(fallback_stock_icon_name)
     icon.set_icon_size(Gtk.IconSize.LARGE)
     return icon
-
-
-def convert_to_background(background_path: str, target_size: tuple[int, int] = (320, 1080)) -> "Image.Image":
-    """Converts an image to a pane background"""
-    coverart = Image.open(background_path)
-    coverart = coverart.convert("RGBA")
-
-    target_width, target_height = target_size
-    image_height = int(target_height * 0.80)  # 80% of the mask is visible
-    orig_width, orig_height = coverart.size
-
-    # Resize and crop coverart
-    width = int(orig_width * (image_height / orig_height))
-    offset = int((width - target_width) / 2)
-    coverart = coverart.resize((width, image_height), resample=Image.Resampling.BICUBIC)
-    coverart = coverart.crop((offset, 0, target_width + offset, image_height))
-
-    # Resize canvas of coverart by putting transparent pixels on the bottom
-    coverart_bg = Image.new("RGBA", (target_width, target_height), (0, 0, 0, 0))
-    coverart_bg.paste(coverart, (0, 0, target_width, image_height))
-
-    # Apply a tint to the base image
-    # tint = Image.new('RGBA', (target_width, target_height), (0, 0, 0, 255))
-    # coverart = Image.blend(coverart, tint, 0.6)
-
-    # Paste coverart on transparent image while applying a gradient mask
-    background = Image.new("RGBA", (target_width, target_height), (0, 0, 0, 0))
-    mask = Image.open(os.path.join(datapath.get(), "media/mask.png"))
-    background.paste(coverart_bg, mask=mask)
-
-    return background
 
 
 def thumbnail_image(base_image: "Image.Image", target_size: tuple[int, int]) -> "Image.Image":
