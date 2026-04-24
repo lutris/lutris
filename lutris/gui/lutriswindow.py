@@ -1572,10 +1572,18 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             # better safe than sorry - there are Proton builds outside our control
             clear_wine_version_cache()
 
+        def on_complete(result):
+            # Downloaded icons may have just landed in the icon theme search path;
+            # force a rescan so StockIconImage's "changed" handler re-runs and
+            # widgets showing fallbacks pick up the real icons.
+            Gtk.IconTheme.get_default().rescan_if_needed()
+            if completion_function is not None:
+                completion_function(result)
+
         return queue.start_multiple(
             install_updates,
             (u.get_progress for u in updaters),
-            completion_function=completion_function,
+            completion_function=on_complete,
             error_function=error_function,
             operation_names=operation_names,
         )
