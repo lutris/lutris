@@ -21,7 +21,8 @@ from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.dialogs import display_error
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
-from lutris.gui.widgets.utils import get_widget_children, pick_stock_icon
+from lutris.gui.widgets.stock_icon_image import StockIconImage
+from lutris.gui.widgets.utils import get_widget_children
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.runners import InvalidRunnerError
 from lutris.services import SERVICES
@@ -128,9 +129,8 @@ class SidebarRow(Gtk.ListBoxRow):
         for child in self.btn_box.get_children():
             child.destroy()
         for icon_name, text, clicked, key in self.get_actions():
-            icon_name = pick_stock_icon(icon_name, fallback_name="preferences-system-symbolic")
             btn = Gtk.Button(tooltip_text=text, relief=Gtk.ReliefStyle.NONE, visible=True)
-            image = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
+            image = StockIconImage([icon_name], fallback_name="preferences-system-symbolic")
             image.show()
             btn.add(image)
             btn.connect("clicked", clicked)
@@ -511,16 +511,7 @@ class LutrisSidebar(Gtk.ListBox):
     @staticmethod
     def get_sidebar_icon(icon_name: str, fallback_icon_names: list[str] | None = None) -> Gtk.Image:
         candidate_names = [icon_name] + (fallback_icon_names or [])
-        icon_name = pick_stock_icon(candidate_names, fallback_name="package-x-generic-symbolic")
-        icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
-
-        # We can wind up with an icon of the wrong size, if that's what is
-        # available. So we'll fix that.
-        icon_size = Gtk.IconSize.lookup(Gtk.IconSize.MENU)
-        if icon_size[0]:
-            icon.set_pixel_size(icon_size[2])
-
-        return icon
+        return StockIconImage(candidate_names)
 
     def _load_collapsed_sections(self) -> set[str]:
         """Load collapsed sections state from settings."""
