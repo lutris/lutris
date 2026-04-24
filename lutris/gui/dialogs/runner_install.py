@@ -14,7 +14,7 @@ from lutris.api import format_runner_version, parse_version_architecture
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog, ModelessDialog, display_error
-from lutris.gui.widgets.utils import has_stock_icon
+from lutris.gui.widgets.stock_icon_image import StockIconImage
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -201,15 +201,13 @@ class RunnerInstallDialog(ModelessDialog):
         self.populate_listboxrows()
 
     def populate_listboxrows(self):
-        icon_name = "software-installed-symbolic" if has_stock_icon("software-installed-symbolic") else "wine-symbolic"
-
         for runner in self.runner_store:
             row = Gtk.ListBoxRow()
             row.runner = runner
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
             row.hbox = hbox
 
-            icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
+            icon = StockIconImage(["software-installed-symbolic", "wine-symbolic"])
             icon.set_visible(runner["is_installed"])
             icon_container = Gtk.Box()
             icon_container.set_size_request(16, 16)

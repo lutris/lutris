@@ -12,7 +12,7 @@ from lutris.database import saved_searches
 from lutris.database.saved_searches import SavedSearch
 from lutris.exceptions import InvalidSearchTermError
 from lutris.gui.dialogs import QuestionDialog, SavableModelessDialog
-from lutris.gui.widgets.utils import has_stock_icon
+from lutris.gui.widgets.stock_icon_image import StockIconImage
 from lutris.search import FLAG_TEXTS, GameSearch
 from lutris.search_predicate import AndPredicate, SearchPredicate, format_flag
 
@@ -97,13 +97,12 @@ class SearchFiltersBox(Gtk.Box):
         hbox.pack_start(entry, True, True, 0)
 
         if button_icon_names:
-            button_icon_names = [name for name in button_icon_names if has_stock_icon(name)]
-            if button_icon_names:
-                button = Gtk.Button.new_from_icon_name(button_icon_names[0], Gtk.IconSize.BUTTON)
-                button.get_style_context().add_class("circular")
-                if clicked:
-                    button.connect("clicked", clicked)
-                hbox.pack_end(button, False, False, 0)
+            button = Gtk.Button()
+            button.set_image(StockIconImage(button_icon_names, icon_size=Gtk.IconSize.BUTTON))
+            button.get_style_context().add_class("circular")
+            if clicked:
+                button.connect("clicked", clicked)
+            hbox.pack_end(button, False, False, 0)
 
         self.pack_start(hbox, False, False, 0)
         return entry
