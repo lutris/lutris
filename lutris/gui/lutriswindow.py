@@ -1547,8 +1547,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         def on_complete(result):
             # Downloaded icons may have just landed in the icon theme search path;
             # force a rescan so StockIconImage's "changed" handler re-runs and
-            # widgets showing fallbacks pick up the real icons.
-            Gtk.IconTheme.get_default().rescan_if_needed()
+            # widgets showing fallbacks pick up the real icons. GTK 4 dropped
+            # Gtk.IconTheme.rescan_if_needed(); re-assigning the search path
+            # has the same effect (invalidates the lookup cache and emits
+            # "changed").
+            display = Gdk.Display.get_default()
+            if display is not None:
+                icon_theme = Gtk.IconTheme.get_for_display(display)
+                icon_theme.set_search_path(icon_theme.get_search_path())
             if completion_function is not None:
                 completion_function(result)
 
