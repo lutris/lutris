@@ -378,6 +378,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             callback,
         )
 
+    def begin_text_prompt(self, alias, message, callback):
+        GLib.idle_add(self.load_ask_for_text_page, alias, message, callback)
+
     def begin_input_menu(self, alias, options, preselect, callback):
         GLib.idle_add(self.load_input_menu_page, alias, options, preselect, callback)
 
@@ -860,6 +863,40 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def on_input_menu_changed(self, combobox):
         """Enable continue button if a non-empty choice is selected"""
         self.continue_button.set_sensitive(bool(combobox.get_active_id()))
+
+
+    # Ask for Text Page
+    #
+    # This page asks the user for a single line of text
+
+    def load_ask_for_text_page(self, alias, message, placeholder, callback):
+        def present_ask_for_text_page():
+            def wrapped_callback(*args):
+                try:
+                    callback(entry, alias)
+                    self.stack.restore_current_page(previous_page)
+                except Exception as err:
+                    # If the callback fails, the installation does not continue
+                    # to run, so we'll go to error page.
+                    self.load_error_page(err)
+
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+            label = Gtk.Label(wrap=True)
+            label.set_text(message)
+            vbox.pack_start(label)
+
+            entry = Gtk.Entry()
+            entry.set_placeholder_text(placeholder)
+            entry.set_max_length(0)
+            entry.set_margin_left(50)
+            entry.set_margin_right(50)
+            vbox.pack_start(entry)
+            vbox.show_all()
+            self.display_continue_button(wrapped_callback)
+
+
+        previous_page = self.stack.save_current_page()
+        self.stack.jump_to_page(present_ask_for_text_page)
 
     # Ask for Disc Page
     #
