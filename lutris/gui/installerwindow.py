@@ -870,7 +870,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def load_ask_for_text_page(self, alias, message, placeholder, callback):
         def present_ask_for_text_page():
-            def wrapped_callback(*args, **kwa):
+            def wrapped_callback(*a, **b):
                 try:
                     callback(entry, alias)
                     self.stack.restore_current_page(previous_page)
@@ -890,8 +890,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             entry.set_margin_left(50)
             entry.set_margin_right(50)
             vbox.pack_start(entry, False, False, 0)
+
+            self.stack.present_replacement_page("ask_for_text", vbox)
+
             vbox.show_all()
-            entry.grab_focus()
             self.display_continue_button(wrapped_callback)
 
         previous_page = self.stack.save_current_page()
