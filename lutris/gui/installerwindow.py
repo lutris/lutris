@@ -891,6 +891,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             entry.set_margin_right(50)
             vbox.pack_start(entry, False, False, 0)
             vbox.show_all()
+            entry.grab_focus()
             self.display_continue_button(wrapped_callback)
 
         previous_page = self.stack.save_current_page()

@@ -58,10 +58,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             does so, the callback is invoked. The method returns immediately, however."""
             raise NotImplementedError()
 
-        def begin_dir_prompt(self, alias, message, requires, callback):
-            """Called to prompt for a directory"""
-            raise NotImplementedError()
-
         def begin_text_prompt(self, alias, message, placeholder, callback):
             """Called to prompt for a line of text, like a CD-KEY."""
             raise NotImplementedError()

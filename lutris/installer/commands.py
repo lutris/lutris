@@ -235,10 +235,12 @@ class CommandsMixin:
         message = data.get("message", _("Type bellow:"))
         placeholder = data.get("placeholder", "...")
         self.interpreter_ui_delegate.begin_text_prompt(alias, message, placeholder, self._on_text_changed)
+        return "STOP"
 
     def _on_text_changed(self, entry, alias):
         text = entry.get_text()
         self.user_inputs.append({"alias": alias, "value": text.strip()})
+        self._iter_commands()
 
     def insert_disc(self, data):
         """Request user to insert an optical disc"""
