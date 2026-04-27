@@ -879,16 +879,21 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
                     # to run, so we'll go to error page.
                     self.load_error_page(err)
 
-            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+            vbox.set_valign(Gtk.Align.START)
+            vbox.set_margin_top(20)
+            vbox.set_margin_left(20)
+            vbox.set_margin_right(20)
+
             label = Gtk.Label(wrap=True)
             label.set_text(message)
+            label.set_halign(Gtk.Align.START)
             vbox.pack_start(label, False, False, 0)
 
             entry = Gtk.Entry()
             entry.set_placeholder_text(placeholder)
             entry.set_max_length(0)
-            entry.set_margin_left(50)
-            entry.set_margin_right(50)
+            entry.connect("activate", wrapped_callback)
             vbox.pack_start(entry, False, False, 0)
 
             self.stack.present_replacement_page("ask_for_text", vbox)

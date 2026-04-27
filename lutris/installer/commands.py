@@ -230,7 +230,7 @@ class CommandsMixin:
         else:
             raise RuntimeError("A required input option was not selected, so the installation can't continue.")
 
-    def insert_text(self, data):
+    def input_text(self, data):
         alias = f"INPUT_{data.get('id', 'TEXT')}"
         message = data.get("message", _("Type bellow:"))
         placeholder = data.get("placeholder", "...")
