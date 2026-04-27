@@ -993,11 +993,12 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             vbox.pack_start(label, False, False, 0)
 
             browse_button = Gtk.Button(label=_("Browse…"))
-            browse_button.set_margin_top(40)
-            browse_button.set_margin_bottom(40)
+            browse_button.set_size_request(200,35)
+            browse_button.set_halign(Gtk.Align.CENTER)
+            browse_button.set_valign(Gtk.Align.START)
             callback_data = {"callback": wrapped_callback, "requires": requires, "alias": alias}
             browse_button.connect("clicked", self.on_browse_clicked2, callback_data)
-            vbox.pack_start(browse_button, True, True, 40)
+            vbox.pack_start(browse_button, False, False, 40)
 
             self.stack.present_replacement_page("ask_for_dir", vbox)
 
