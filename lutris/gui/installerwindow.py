@@ -378,6 +378,12 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             callback,
         )
 
+    def begin_dir_prompt(self, alias, message, requires, callback):
+        GLib.idle_add(self.load_ask_for_dir_page, alias, message, requires, callback)
+
+    def begin_text_prompt(self, alias, message, placeholder, callback):
+        GLib.idle_add(self.load_ask_for_text_page, alias, message, placeholder, callback)
+
     def begin_input_menu(self, alias, options, preselect, callback):
         GLib.idle_add(self.load_input_menu_page, alias, options, preselect, callback)
 
@@ -861,6 +867,46 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         """Enable continue button if a non-empty choice is selected"""
         self.continue_button.set_sensitive(bool(combobox.get_active_id()))
 
+    # Ask for Text Page
+    #
+    # This page asks the user for a single line of text
+
+    def load_ask_for_text_page(self, alias, message, placeholder, callback):
+        def present_ask_for_text_page():
+            def wrapped_callback(*a, **b):
+                try:
+                    callback(entry, alias)
+                    self.stack.restore_current_page(previous_page)
+                except Exception as err:
+                    # If the callback fails, the installation does not continue
+                    # to run, so we'll go to error page.
+                    self.load_error_page(err)
+
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+            vbox.set_valign(Gtk.Align.START)
+            vbox.set_margin_top(20)
+            vbox.set_margin_left(20)
+            vbox.set_margin_right(20)
+
+            label = Gtk.Label(wrap=True)
+            label.set_text(message)
+            label.set_halign(Gtk.Align.START)
+            vbox.pack_start(label, False, False, 0)
+
+            entry = Gtk.Entry()
+            entry.set_placeholder_text(placeholder)
+            entry.set_max_length(0)
+            entry.connect("activate", wrapped_callback)
+            vbox.pack_start(entry, False, False, 0)
+
+            self.stack.present_replacement_page("ask_for_text", vbox)
+
+            vbox.show_all()
+            self.display_continue_button(wrapped_callback)
+
+        previous_page = self.stack.save_current_page()
+        self.stack.jump_to_page(present_ask_for_text_page)
+
     # Ask for Disc Page
     #
     # This page asks the user for a disc; it also has a callback used when
@@ -924,6 +970,51 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def on_eject_clicked(self, _widget, data=None):
         self.interpreter.eject_wine_disc()
+
+    # Ask for Dir Page
+    #
+    # This page asks the user for a directory.
+
+    def load_ask_for_dir_page(self, alias, message, requires, callback):
+        def present_ask_for_disc_page():
+            """Ask the user to do insert a CD-ROM."""
+
+            def wrapped_callback(*args, **kwargs):
+                try:
+                    callback(*args, **kwargs)
+                    self.stack.restore_current_page(previous_page)
+                except Exception as err:
+                    # If the callback fails, the installation does not continue
+                    # to run, so we'll go to error page.
+                    self.load_error_page(err)
+
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+            label = MarkupLabel(message)
+            vbox.pack_start(label, False, False, 0)
+
+            browse_button = Gtk.Button(label=_("Browse…"))
+            browse_button.set_size_request(200,35)
+            browse_button.set_halign(Gtk.Align.CENTER)
+            browse_button.set_valign(Gtk.Align.START)
+            callback_data = {"callback": wrapped_callback, "requires": requires, "alias": alias}
+            browse_button.connect("clicked", self.on_browse_clicked2, callback_data)
+            vbox.pack_start(browse_button, False, False, 40)
+
+            self.stack.present_replacement_page("ask_for_dir", vbox)
+
+            vbox.show_all()
+            self.display_cancel_button()
+
+        previous_page = self.stack.save_current_page()
+        self.stack.jump_to_page(present_ask_for_disc_page)
+
+    def on_browse_clicked2(self, btn, callback_data):
+        dialog = DirectoryDialog(_("Select directory"), parent=self)
+        folder = dialog.folder
+        callback = callback_data["callback"]
+        requires = callback_data["requires"]
+        alias = callback_data["alias"]
+        callback(btn, requires, folder, alias)
 
     # Error Message Page
     #

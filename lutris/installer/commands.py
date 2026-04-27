@@ -31,6 +31,7 @@ class CommandsMixin:
 
     # pylint: disable=no-member
     installer: LutrisInstaller = NotImplemented
+    user_inputs: list[dict]
 
     def get_wine_path(self) -> str:
         """Return absolute path of wine version used during the installation, but
@@ -229,6 +230,40 @@ class CommandsMixin:
             self._iter_commands()
         else:
             raise RuntimeError("A required input option was not selected, so the installation can't continue.")
+
+    def input_text(self, data):
+        alias = f"INPUT_{data.get('id', 'TEXT')}"
+        message = data.get("message", _("Type bellow:"))
+        placeholder = data.get("placeholder", "...")
+        self.interpreter_ui_delegate.begin_text_prompt(alias, message, placeholder, self._on_text)
+        return "STOP"
+
+    def _on_text(self, entry, alias):
+        text = entry.get_text()
+        self.user_inputs.append({"alias": alias, "value": text.strip()})
+        self._iter_commands()
+
+    def input_dir(self, data):
+        """Request user to provide a path to a directory"""
+        requires = data.get("requires")
+        alias = f"INPUT_{data.get('id', 'DIR')}"
+        message = data.get("message", _("Click Browse to select a directory."))
+        if requires:
+            message += _("\nIt must contain\nthe following file or folder:\n<i>%s</i>") % requires
+
+        self.interpreter_ui_delegate.begin_dir_prompt(alias, message, requires, self._on_dir_selected)
+        return "STOP"
+
+    def _on_dir_selected(self, _btn, requires, dir, alias):
+        if requires:
+            required_abspath = os.path.join(dir, requires)
+            if system.path_exists(required_abspath):
+                logger.debug("Found required file %s on %s", requires, dir)
+            else:
+                raise RuntimeError(f"The required file '{requires}' could not be located.")
+
+        self.user_inputs.append({"alias": alias, "value": dir})
+        self._iter_commands()
 
     def insert_disc(self, data):
         """Request user to insert an optical disc"""
