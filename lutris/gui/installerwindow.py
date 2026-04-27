@@ -378,6 +378,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             callback,
         )
 
+    def begin_dir_prompt(self, alias, message, requires, callback):
+        GLib.idle_add(self.load_ask_for_dir_page, alias, message, requires, callback)
+
     def begin_text_prompt(self, alias, message, placeholder, callback):
         GLib.idle_add(self.load_ask_for_text_page, alias, message, placeholder, callback)
 
@@ -967,6 +970,50 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def on_eject_clicked(self, _widget, data=None):
         self.interpreter.eject_wine_disc()
+
+    # Ask for Dir Page
+    #
+    # This page asks the user for a directory.
+
+    def load_ask_for_dir_page(self, alias, message, requires, callback):
+        def present_ask_for_disc_page():
+            """Ask the user to do insert a CD-ROM."""
+
+            def wrapped_callback(*args, **kwargs):
+                try:
+                    callback(*args, **kwargs)
+                    self.stack.restore_current_page(previous_page)
+                except Exception as err:
+                    # If the callback fails, the installation does not continue
+                    # to run, so we'll go to error page.
+                    self.load_error_page(err)
+
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+            label = MarkupLabel(message)
+            vbox.pack_start(label, False, False, 0)
+
+            browse_button = Gtk.Button(label=_("Browse…"))
+            browse_button.set_margin_top(40)
+            browse_button.set_margin_bottom(40)
+            callback_data = {"callback": wrapped_callback, "requires": requires, "alias": alias}
+            browse_button.connect("clicked", self.on_browse_clicked2, callback_data)
+            vbox.pack_start(browse_button, True, True, 40)
+
+            self.stack.present_replacement_page("ask_for_dir", vbox)
+
+            vbox.show_all()
+            self.display_cancel_button()
+
+        previous_page = self.stack.save_current_page()
+        self.stack.jump_to_page(present_ask_for_disc_page)
+
+    def on_browse_clicked2(self, btn, callback_data):
+        dialog = DirectoryDialog(_("Select directory"), parent=self)
+        folder = dialog.folder
+        callback = callback_data["callback"]
+        requires = callback_data["requires"]
+        alias = callback_data["alias"]
+        callback(btn, requires, folder, alias)
 
     # Error Message Page
     #
