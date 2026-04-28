@@ -25,7 +25,7 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
         self.add_css_class("lutris-game-grid")
 
         self._bound_covers: set[GameCoverWidget] = set()
-        self._inset_fractions: dict[str, float] = {}
+        self._launching_game_ids: set[str] = set()
         self._show_badges = True
         self.sort_model: Gtk.SortListModel | None = None
         self.selection: Gtk.MultiSelection | None = None
@@ -110,7 +110,9 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
                 is_installed=item.installed,
                 show_badges=self._show_badges,
             )
-            cover.set_inset_fraction(self.get_inset_fraction(item.id))
+            # Re-apply the launching CSS class if this game is mid-bounce and
+            # scrolled back into view.
+            self._apply_launching_to_cover(cover, self.is_launching(item.id))
 
             label = cover.get_next_sibling()
             if label is not None:
@@ -122,7 +124,7 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
             box._bound_item = None  # type: ignore[attr-defined]
             cover._bound_item = None  # type: ignore[attr-defined]
             self._bound_covers.discard(cover)
-            cover.set_inset_fraction(0.0)
+            self._apply_launching_to_cover(cover, False)
 
         factory.connect("setup", on_setup)
         factory.connect("bind", on_bind)
@@ -131,9 +133,10 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
 
     # ---- launch-bounce + badge state ---------------------------------
     #
-    # GameView.on_game_start calls inset_game(id, fraction) ~40x/s to drive
-    # the launch-bounce. Per-game fractions are tracked here and forwarded
-    # to any bound GameCoverWidget whose item id matches.
+    # GameView.on_game_start calls set_launching(id, True) when a game enters
+    # STATE_LAUNCHING and set_launching(id, False) once it leaves. The
+    # `.launching` CSS class drives the scale animation in CSS
+    # (see `.lutris-game-grid .launching` keyframes).
 
     @property
     def show_badges(self) -> bool:
@@ -155,25 +158,29 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
                 show_badges=self._show_badges,
             )
 
-    def get_inset_fraction(self, game_id: str) -> float:
-        return self._inset_fractions.get(game_id, 0.0)
+    @staticmethod
+    def _apply_launching_to_cover(cover, launching: bool) -> None:
+        if launching:
+            cover.add_css_class("launching")
+        else:
+            cover.remove_css_class("launching")
 
-    def inset_game(self, game_id: str, fraction: float) -> bool:
-        if fraction > 0.0:
-            if fraction != self._inset_fractions.get(game_id):
-                self._inset_fractions[game_id] = fraction
-                self._apply_inset_for_game(game_id, fraction)
-                return True
-        elif game_id in self._inset_fractions:
-            del self._inset_fractions[game_id]
-            self._apply_inset_for_game(game_id, 0.0)
-            return True
-        return False
-
-    def _apply_inset_for_game(self, game_id: str, fraction: float) -> None:
+    def _apply_launching_for_game(self, game_id: str, launching: bool) -> None:
         for cover in self._bound_covers:
             if cover.game_id == game_id:
-                cover.set_inset_fraction(fraction)
+                self._apply_launching_to_cover(cover, launching)
+
+    def is_launching(self, game_id: str) -> bool:
+        return game_id in self._launching_game_ids
+
+    def set_launching(self, game_id: str, launching: bool) -> None:
+        if launching:
+            if game_id not in self._launching_game_ids:
+                self._launching_game_ids.add(game_id)
+                self._apply_launching_for_game(game_id, True)
+        elif game_id in self._launching_game_ids:
+            self._launching_game_ids.discard(game_id)
+            self._apply_launching_for_game(game_id, False)
 
     # ---- GameView API ------------------------------------------------
 

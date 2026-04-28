@@ -46,7 +46,7 @@ class GameListView(Gtk.ColumnView, GameView):  # type:ignore[misc]
         # in-place rows without walking ColumnView internals. The actual scale
         # is done in CSS (see `.lutris-game-list picture.launching` keyframes),
         # because Gtk.Picture ignores set_size_request below its intrinsic size;
-        # the GameView mixin's on_game_start drives this by calling inset_game().
+        # the GameView mixin's on_game_start drives this by calling set_launching().
         self._bound_pictures: "set[Gtk.Picture]" = set()
         self._launching_game_ids: "set[str]" = set()
 
@@ -284,20 +284,16 @@ class GameListView(Gtk.ColumnView, GameView):  # type:ignore[misc]
     def is_launching(self, game_id: str) -> bool:
         return game_id in self._launching_game_ids
 
-    def inset_game(self, game_id: str, fraction: float) -> bool:
-        # GameView.on_game_start passes a 0.0-0.1 fraction at ~40Hz; the list
-        # view collapses that into a boolean "launching" class toggled on the
-        # bound Picture widgets, since the cell scale is driven by CSS.
-        if fraction > 0.0:
+    def set_launching(self, game_id: str, launching: bool) -> None:
+        # The "launching" class is toggled on the bound Picture widgets;
+        # the cell scale is driven by CSS keyframes.
+        if launching:
             if game_id not in self._launching_game_ids:
                 self._launching_game_ids.add(game_id)
                 self._apply_launching_for_game(game_id, True)
-                return True
         elif game_id in self._launching_game_ids:
             self._launching_game_ids.discard(game_id)
             self._apply_launching_for_game(game_id, False)
-            return True
-        return False
 
     @staticmethod
     def _on_column_width_changed(column, _pspec, column_id):
