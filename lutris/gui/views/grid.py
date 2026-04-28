@@ -8,50 +8,6 @@ from lutris.gui.widgets.game_cover import GameCoverWidget
 from lutris.util.log import logger
 
 
-class _GridImageRenderer:
-    """Shim exposed as GameGridView.image_renderer.
-
-    GameView.on_game_start calls inset_game(id, fraction) 40x/s to drive the
-    launch-bounce. We track the per-game fraction here and forward it to any
-    bound GameCoverWidget whose item id matches.
-
-    TODO: Once the bounce animation state is owned by each view directly
-    instead of flowing through GameView.on_game_start, drop this shim.
-    """
-
-    def __init__(self, view: "GameGridView"):
-        self._view = view
-        self._inset_fractions: dict[str, float] = {}
-        self._show_badges = True
-        # Set by GameView.set_game_store() so cellrenderer-era consumers can
-        # find the service; kept here for compatibility with the base mixin.
-        self.service = None
-
-    @property
-    def show_badges(self) -> bool:
-        return self._show_badges
-
-    @show_badges.setter
-    def show_badges(self, value: bool) -> None:
-        self._show_badges = bool(value)
-        self._view._apply_show_badges(self._show_badges)
-
-    def get_inset_fraction(self, game_id: str) -> float:
-        return self._inset_fractions.get(game_id, 0.0)
-
-    def inset_game(self, game_id: str, fraction: float) -> bool:
-        if fraction > 0.0:
-            if fraction != self._inset_fractions.get(game_id):
-                self._inset_fractions[game_id] = fraction
-                self._view._apply_inset_for_game(game_id, fraction)
-                return True
-        elif game_id in self._inset_fractions:
-            del self._inset_fractions[game_id]
-            self._view._apply_inset_for_game(game_id, 0.0)
-            return True
-        return False
-
-
 class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
     """Main games grid as a Gtk.GridView."""
 
@@ -69,7 +25,8 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
         self.add_css_class("lutris-game-grid")
 
         self._bound_covers: set[GameCoverWidget] = set()
-        self.image_renderer = _GridImageRenderer(self)
+        self._inset_fractions: dict[str, float] = {}
+        self._show_badges = True
         self.sort_model: Gtk.SortListModel | None = None
         self.selection: Gtk.MultiSelection | None = None
 
@@ -151,9 +108,9 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
                 media_paths=item.media_paths or [],
                 platform=item.platform,
                 is_installed=item.installed,
-                show_badges=self.image_renderer.show_badges,
+                show_badges=self._show_badges,
             )
-            cover.set_inset_fraction(self.image_renderer.get_inset_fraction(item.id))
+            cover.set_inset_fraction(self.get_inset_fraction(item.id))
 
             label = cover.get_next_sibling()
             if label is not None:
@@ -172,14 +129,19 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
         factory.connect("unbind", on_unbind)
         return factory
 
-    # ---- image_renderer shim callbacks -------------------------------
+    # ---- launch-bounce + badge state ---------------------------------
+    #
+    # GameView.on_game_start calls inset_game(id, fraction) ~40x/s to drive
+    # the launch-bounce. Per-game fractions are tracked here and forwarded
+    # to any bound GameCoverWidget whose item id matches.
 
-    def _apply_inset_for_game(self, game_id: str, fraction: float) -> None:
-        for cover in self._bound_covers:
-            if cover.game_id == game_id:
-                cover.set_inset_fraction(fraction)
+    @property
+    def show_badges(self) -> bool:
+        return self._show_badges
 
-    def _apply_show_badges(self, show_badges: bool) -> None:
+    @show_badges.setter
+    def show_badges(self, value: bool) -> None:
+        self._show_badges = bool(value)
         for cover in self._bound_covers:
             item = getattr(cover, "_bound_item", None)
             if item is None:
@@ -190,8 +152,28 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
                 media_paths=item.media_paths or [],
                 platform=item.platform,
                 is_installed=item.installed,
-                show_badges=show_badges,
+                show_badges=self._show_badges,
             )
+
+    def get_inset_fraction(self, game_id: str) -> float:
+        return self._inset_fractions.get(game_id, 0.0)
+
+    def inset_game(self, game_id: str, fraction: float) -> bool:
+        if fraction > 0.0:
+            if fraction != self._inset_fractions.get(game_id):
+                self._inset_fractions[game_id] = fraction
+                self._apply_inset_for_game(game_id, fraction)
+                return True
+        elif game_id in self._inset_fractions:
+            del self._inset_fractions[game_id]
+            self._apply_inset_for_game(game_id, 0.0)
+            return True
+        return False
+
+    def _apply_inset_for_game(self, game_id: str, fraction: float) -> None:
+        for cover in self._bound_covers:
+            if cover.game_id == game_id:
+                cover.set_inset_fraction(fraction)
 
     # ---- GameView API ------------------------------------------------
 
