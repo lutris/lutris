@@ -34,8 +34,8 @@ class GameCoverWidget(Gtk.Widget):
     """Snapshot-rendered game media tile with platform/missing badges.
 
     Layout is a single fixed rectangle at (0, 0, expected_w, expected_h).
-    The owner (GameGridView) calls set_data() on bind and set_inset_fraction()
-    during the launch-bounce animation.
+    The owner (GameGridView) calls set_data() on bind; the launch-bounce
+    animation is driven by toggling the `.launching` CSS class on the widget.
     """
 
     _platform_icon_paths: dict[str, list[str]] = {}
@@ -62,7 +62,6 @@ class GameCoverWidget(Gtk.Widget):
         self._show_badges = True
         self._platform: str | None = None
         self._is_installed = True
-        self._inset_fraction = 0.0
         self._expected_width = 0
         self._expected_height = 0
 
@@ -103,12 +102,6 @@ class GameCoverWidget(Gtk.Widget):
     @property
     def game_id(self) -> str | None:
         return self._game_id
-
-    def set_inset_fraction(self, fraction: float) -> None:
-        fraction = max(0.0, min(fraction, 1.0))
-        if fraction != self._inset_fraction:
-            self._inset_fraction = fraction
-            self.queue_draw()
 
     def is_library_view(self) -> bool:
         """True when drawing library tiles (no service attached).
@@ -165,26 +158,10 @@ class GameCoverWidget(Gtk.Widget):
         media_area = self._get_media_area(entry.logical_size, cell_area)
         self._select_badge_metrics(entry.corner_is_bright, badge_size)
 
-        inset_fraction = self._inset_fraction
         alpha = 1.0 if self._is_installed else 100 / 255
 
         if alpha < 1.0:
             snapshot.push_opacity(alpha)
-
-        # Inset animation: scale the whole subtree (media + badges) around the
-        # media centre so badges bounce along with the image.
-        if inset_fraction > 0:
-            scale = 1 - inset_fraction
-            cx = media_area.x + media_area.width / 2
-            cy = media_area.y + media_area.height / 2
-            snapshot.save()
-            forward = Graphene.Point()
-            forward.init(cx, cy)
-            snapshot.translate(forward)
-            snapshot.scale(scale, scale)
-            back = Graphene.Point()
-            back.init(-cx, -cy)
-            snapshot.translate(back)
 
         texture_bounds = Graphene.Rect()
         texture_bounds.init(media_area.x, media_area.y, media_area.width, media_area.height)
@@ -192,9 +169,6 @@ class GameCoverWidget(Gtk.Widget):
 
         if self._show_badges:
             self._snapshot_badges(snapshot, media_area)
-
-        if inset_fraction > 0:
-            snapshot.restore()
 
         if alpha < 1.0:
             snapshot.pop()

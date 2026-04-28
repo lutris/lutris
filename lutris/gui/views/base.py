@@ -1,16 +1,14 @@
-import time
 from typing import TYPE_CHECKING
 
 from gi.repository import Gdk, GObject, Gtk
 
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
-from lutris.game import GAME_START, Game
+from lutris.game import GAME_START, GAME_STARTED, GAME_STOPPED, Game
 from lutris.game_actions import GameActions, get_game_actions
 from lutris.gui.widgets import EMPTY_NOTIFICATION_REGISTRATION
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED, get_application
-from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES
 
@@ -35,7 +33,7 @@ class GameView:
     if TYPE_CHECKING:
         # Implemented by each concrete view; declared here so on_game_start
         # can call it via the mixin.
-        def inset_game(self, game_id: str, fraction: float) -> bool: ...
+        def set_launching(self, game_id: str, launching: bool) -> None: ...
 
     def __init__(self):
         self.game_store = None
@@ -44,6 +42,8 @@ class GameView:
         self.cache_notification_registration = EMPTY_NOTIFICATION_REGISTRATION
         self.missing_games_updated_registration = EMPTY_NOTIFICATION_REGISTRATION
         self.game_start_registration = EMPTY_NOTIFICATION_REGISTRATION
+        self.game_started_registration = EMPTY_NOTIFICATION_REGISTRATION
+        self.game_stopped_registration = EMPTY_NOTIFICATION_REGISTRATION
 
     def connect_signals(self):
         """Signal handlers common to all views"""
@@ -59,6 +59,8 @@ class GameView:
         self.add_controller(key_controller)
 
         self.game_start_registration = GAME_START.register(self.on_game_start)
+        self.game_started_registration = GAME_STARTED.register(self.on_game_finished_launching)
+        self.game_stopped_registration = GAME_STOPPED.register(self.on_game_finished_launching)
 
     def set_game_store(self, game_store):
         self.game_store = game_store
@@ -81,6 +83,8 @@ class GameView:
         self.cache_notification_registration.unregister()
         self.missing_games_updated_registration.unregister()
         self.game_start_registration.unregister()
+        self.game_started_registration.unregister()
+        self.game_stopped_registration.unregister()
 
     def popup_contextual_menu(self, gesture, _n_press, x, y):
         """Contextual menu."""
@@ -173,60 +177,12 @@ class GameView:
         raise NotImplementedError()
 
     def on_game_start(self, game: Game) -> None:
-        """On game start, we trigger an animation to show the game is starting; it runs at least
-        one cycle, but continues until the game exits the STATE_LAUNCHING state."""
+        """Turn on the launch-bounce animation for this game.
 
-        # We animate by looking at how long the animation has been running;
-        # This keeps things on track even if drawing is low or the timeout we use
-        # is not quite regular.
+        Cleared by GAME_STARTED (transition to STATE_RUNNING) or GAME_STOPPED.
+        The view drives the actual animation in CSS via the `.launching` class
+        toggled by set_launching()."""
+        self.set_launching(game.id, True)
 
-        start_time = time.monotonic()
-        cycle_time = 0.375
-        max_indent = 0.1
-        toplevel = self.get_root()
-        paused = False
-
-        def is_modally_blocked():
-            # Is there a modal dialog that is blocking our top-level parent?
-            # if so we want to pause the animation.
-            for i in range(Gtk.Window.get_toplevels().get_n_items()):
-                w = Gtk.Window.get_toplevels().get_item(i)
-                if w != toplevel and isinstance(w, Gtk.Window) and not isinstance(w, Gtk.ApplicationWindow):
-                    if w.get_modal() and w.get_transient_for() == toplevel:
-                        return True
-
-        def animate():
-            nonlocal paused, start_time
-
-            now = time.monotonic()
-            elapsed = now - start_time
-
-            if elapsed > cycle_time:
-                # Check for stopping and pausing only at cycle end, so we don't do it too often,
-                # and to avoid a janky looking visible snap-back to full size.
-                if game.state != game.STATE_LAUNCHING:
-                    if self.inset_game(game.id, 0.0):
-                        self.queue_draw()
-                    return False
-
-                start_time = now
-                paused = is_modally_blocked()
-
-            cycle = elapsed % cycle_time
-
-            # After 1/2 the cycle, start counting down instead of up
-            if cycle > cycle_time / 2:
-                cycle = cycle_time - cycle
-
-            # scale to achieve the max_indent at cycle_time/2.
-            if paused:
-                fraction = 0.0
-            else:
-                fraction = max_indent * (cycle * 2 / cycle_time)
-
-            if self.inset_game(game.id, fraction):
-                self.queue_draw()
-
-            return True  # Return True to call again after another timeout
-
-        schedule_repeating_at_idle(animate, interval_seconds=0.025)
+    def on_game_finished_launching(self, game: Game) -> None:
+        self.set_launching(game.id, False)
