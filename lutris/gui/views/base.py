@@ -28,6 +28,15 @@ class GameView:
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
     }
 
+    # Subclasses that paint platform/missing badges override this; the list
+    # view leaves it False because badges only make sense at cover sizes.
+    show_badges = False
+
+    if TYPE_CHECKING:
+        # Implemented by each concrete view; declared here so on_game_start
+        # can call it via the mixin.
+        def inset_game(self, game_id: str, fraction: float) -> bool: ...
+
     def __init__(self):
         self.game_store = None
         self.service = None
@@ -35,7 +44,6 @@ class GameView:
         self.cache_notification_registration = EMPTY_NOTIFICATION_REGISTRATION
         self.missing_games_updated_registration = EMPTY_NOTIFICATION_REGISTRATION
         self.game_start_registration = EMPTY_NOTIFICATION_REGISTRATION
-        self.image_renderer = None
 
     def connect_signals(self):
         """Signal handlers common to all views"""
@@ -57,14 +65,11 @@ class GameView:
         self.service = game_store.service
         self.service_media = game_store.service_media
 
-        if self.image_renderer:
-            self.image_renderer.service = self.service
-
     def on_media_cache_invalidated(self):
         self.queue_draw()
 
     def on_missing_games_updated(self):
-        if self.image_renderer and self.image_renderer.show_badges:
+        if self.show_badges:
             self.queue_draw()
 
     def disconnect_notifications(self) -> None:
@@ -200,7 +205,7 @@ class GameView:
                 # Check for stopping and pausing only at cycle end, so we don't do it too often,
                 # and to avoid a janky looking visible snap-back to full size.
                 if game.state != game.STATE_LAUNCHING:
-                    if self.image_renderer.inset_game(game.id, 0.0):
+                    if self.inset_game(game.id, 0.0):
                         self.queue_draw()
                     return False
 
@@ -219,10 +224,9 @@ class GameView:
             else:
                 fraction = max_indent * (cycle * 2 / cycle_time)
 
-            if self.image_renderer.inset_game(game.id, fraction):
+            if self.inset_game(game.id, fraction):
                 self.queue_draw()
 
             return True  # Return True to call again after another timeout
 
-        if self.image_renderer:
-            schedule_repeating_at_idle(animate, interval_seconds=0.025)
+        schedule_repeating_at_idle(animate, interval_seconds=0.025)
