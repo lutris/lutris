@@ -264,6 +264,11 @@ class EAAppService(OnlineService):
     def is_connected(self):
         return bool(self.access_token)
 
+    def is_login_complete(self, url):
+        if url.startswith(self.login_url):
+            return False
+        return super().is_login_complete(url)
+
     def login_callback(self, url):
         self.fetch_access_token()
         SERVICE_LOGIN.fire(self)
