@@ -34,6 +34,7 @@ Requires:       python3-evdev
 Requires:       python3-distro
 Requires:       python3-pillow
 Requires:       cabextract
+Requires:       glib-networking
 Requires:       mesa-vulkan-drivers
 Requires:       vulkan-loader
 Recommends:     wine-core
