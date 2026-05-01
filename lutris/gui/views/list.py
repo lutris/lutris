@@ -6,18 +6,13 @@ from gi.repository import GObject, Gtk, Pango
 
 from lutris import settings
 from lutris.gui.views.base import GameView
-from lutris.gui.widgets.utils import get_default_icon_path
-from lutris.services.service_media import resolve_media_path
+from lutris.gui.widgets.game_cover import GameCoverWidget
 
 
 class GameListView(Gtk.ColumnView, GameView):  # type:ignore[misc]
     """Main games list as a Gtk.ColumnView."""
 
     __gsignals__ = GameView.__gsignals__
-
-    # The list view never paints platform/missing badges — they only make
-    # sense at cover sizes. Read by the GameView mixin; never set externally.
-    show_badges = False
 
     # Column identifiers used as keys in settings.
     NAME_COLUMN = "name"
@@ -40,14 +35,17 @@ class GameListView(Gtk.ColumnView, GameView):  # type:ignore[misc]
         self.image_column: Gtk.ColumnViewColumn | None = None
         self.sort_model: Gtk.SortListModel | None = None
         self.selection: Gtk.MultiSelection | None = None
+        # Platform badges are always suppressed in the list view (the
+        # platform column does that work); the missing-game badge follows
+        # the user's "show badges" setting, set by lutriswindow.
+        self._show_badges = False
 
-        # Bound image widgets and per-game launch state are tracked here so
+        # Bound cover widgets and per-game launch state are tracked here so
         # the launch-bounce animation can toggle the `.launching` CSS class on
         # in-place rows without walking ColumnView internals. The actual scale
-        # is done in CSS (see `.lutris-game-list picture.launching` keyframes),
-        # because Gtk.Picture ignores set_size_request below its intrinsic size;
-        # the GameView mixin's on_game_start drives this by calling set_launching().
-        self._bound_pictures: "set[Gtk.Picture]" = set()
+        # is done in CSS (see `.lutris-game-list .launching` keyframes); the
+        # GameView mixin's on_game_start drives this by calling set_launching().
+        self._bound_covers: "set[GameCoverWidget]" = set()
         self._launching_game_ids: "set[str]" = set()
 
         # Stash the store on the base mixin before building columns, since
@@ -214,78 +212,91 @@ class GameListView(Gtk.ColumnView, GameView):  # type:ignore[misc]
         factory = Gtk.SignalListItemFactory()
 
         def on_setup(_factory, list_item):
-            picture = Gtk.Picture()
-            picture.set_content_fit(Gtk.ContentFit.SCALE_DOWN)
-            picture.set_can_shrink(True)
-            picture.set_halign(Gtk.Align.CENTER)
-            picture.set_valign(Gtk.Align.CENTER)
-            picture.set_hexpand(False)
-            picture.set_vexpand(False)
-            # size_request is set here (not just in on_bind) so widgets have a
-            # predictable size from creation — otherwise freshly-setup rows
-            # measure at 0x0 until bound, giving the ColumnView inconsistent
-            # row heights that corrupt its scroll adjustment during scrolling.
+            cover = GameCoverWidget()
+            cover.set_halign(Gtk.Align.CENTER)
+            cover.set_valign(Gtk.Align.CENTER)
+            # Sized here (not just in on_bind) so freshly-setup rows have a
+            # predictable size — otherwise blank rows measure at 0x0 and the
+            # ColumnView's scroll adjustment ends up inconsistent during
+            # scrolling.
             size = self.game_store.service_media.size
-            picture.set_size_request(size[0], size[1])
-            list_item.set_child(picture)
+            cover.set_expected_size(size[0], size[1])
+            list_item.set_child(cover)
 
         def on_bind(_factory, list_item):
-            picture = list_item.get_child()
+            cover = list_item.get_child()
             item = list_item.get_item()
-            picture._bound_item = item  # type: ignore[attr-defined]
-            self._bound_pictures.add(picture)
+            cover._bound_item = item  # type: ignore[attr-defined]
+            self._bound_covers.add(cover)
             # Size tracks the current service_media rather than being baked
             # into the factory, so zoom changes take effect on the next bind.
             size = self.game_store.service_media.size
-            picture.set_size_request(size[0], size[1])
+            cover.set_expected_size(size[0], size[1])
             # Re-apply the launching CSS class if this game is mid-bounce and
             # scrolled back into view.
-            self._apply_launching_to_picture(picture, self.is_launching(item.id))
-            paths = item.media_paths or []
-            if paths:
-                mp = resolve_media_path(paths)
-                if mp and mp.exists:
-                    picture.set_content_fit(Gtk.ContentFit.SCALE_DOWN)
-                    picture.set_filename(mp.path)
-                    return
-            # Fallback: Lutris glyph for square (icon) sizes, gradient banner
-            # for non-square sizes — same behavior as the grid view. The PNGs
-            # are stored square (256x256), so the non-square banner fallback
-            # needs FILL to stretch into the media's aspect ratio; the square
-            # icon fallback is fine with SCALE_DOWN.
-            picture.set_content_fit(Gtk.ContentFit.SCALE_DOWN if size[0] == size[1] else Gtk.ContentFit.FILL)
-            picture.set_filename(get_default_icon_path(size))
+            self._apply_launching_to_cover(cover, self.is_launching(item.id))
+            cover.set_data(
+                game_id=item.id,
+                service=self.service,
+                media_paths=item.media_paths or [],
+                platform=item.platform,
+                is_installed=item.installed,
+                show_platform_badges=False,
+                show_missing_badge=self._show_badges,
+            )
 
         def on_unbind(_factory, list_item):
-            picture = list_item.get_child()
-            picture._bound_item = None  # type: ignore[attr-defined]
-            self._bound_pictures.discard(picture)
-            self._apply_launching_to_picture(picture, False)
-            picture.set_filename(None)
+            cover = list_item.get_child()
+            cover._bound_item = None  # type: ignore[attr-defined]
+            self._bound_covers.discard(cover)
+            self._apply_launching_to_cover(cover, False)
 
         factory.connect("setup", on_setup)
         factory.connect("bind", on_bind)
         factory.connect("unbind", on_unbind)
         return factory
 
+    @property
+    def show_badges(self) -> bool:
+        return self._show_badges
+
+    @show_badges.setter
+    def show_badges(self, value: bool) -> None:
+        self._show_badges = bool(value)
+        # Push the new flag through to every bound cover so missing-badge
+        # visibility flips without waiting for a re-bind.
+        for cover in self._bound_covers:
+            item = getattr(cover, "_bound_item", None)
+            if item is None:
+                continue
+            cover.set_data(
+                game_id=item.id,
+                service=self.service,
+                media_paths=item.media_paths or [],
+                platform=item.platform,
+                is_installed=item.installed,
+                show_platform_badges=False,
+                show_missing_badge=self._show_badges,
+            )
+
     @staticmethod
-    def _apply_launching_to_picture(picture, launching: bool) -> None:
+    def _apply_launching_to_cover(cover, launching: bool) -> None:
         if launching:
-            picture.add_css_class("launching")
+            cover.add_css_class("launching")
         else:
-            picture.remove_css_class("launching")
+            cover.remove_css_class("launching")
 
     def _apply_launching_for_game(self, game_id: str, launching: bool) -> None:
-        for picture in self._bound_pictures:
-            item = getattr(picture, "_bound_item", None)
+        for cover in self._bound_covers:
+            item = getattr(cover, "_bound_item", None)
             if item is not None and item.id == game_id:
-                self._apply_launching_to_picture(picture, launching)
+                self._apply_launching_to_cover(cover, launching)
 
     def is_launching(self, game_id: str) -> bool:
         return game_id in self._launching_game_ids
 
     def set_launching(self, game_id: str, launching: bool) -> None:
-        # The "launching" class is toggled on the bound Picture widgets;
+        # The "launching" class is toggled on the bound cover widgets;
         # the cell scale is driven by CSS keyframes.
         if launching:
             if game_id not in self._launching_game_ids:
