@@ -1,5 +1,6 @@
 import os
 from gettext import gettext as _
+from typing import cast
 from urllib.parse import urlparse
 
 from gi.repository import GObject, Gtk, Pango
@@ -94,8 +95,10 @@ class DownloadProgressBox(Gtk.Box):
         try:
             downloader = self.downloader
         except RuntimeError as ex:
-            root = self.get_root()
-            display_error(ex, parent=root if isinstance(root, Gtk.Widget) else self)
+            # Gtk.Root is a Gtk.Widget at runtime, but the stubs declare it as
+            # a standalone interface — cast lets us pass it where a Widget
+            # parent is expected without an isinstance dance.
+            display_error(ex, parent=cast(Gtk.Widget, self.get_root()) or self)
             self.emit("cancel")
             return None
 
