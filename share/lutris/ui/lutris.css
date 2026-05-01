@@ -122,7 +122,7 @@ popover button.popover-menu-button {
   100% { transform: scale(1.0); }
 }
 
-.lutris-game-list picture.launching,
+.lutris-game-list .launching,
 .lutris-game-grid .launching {
   animation: lutris-launch-bounce 0.375s ease-in-out infinite;
   transform-origin: center center;

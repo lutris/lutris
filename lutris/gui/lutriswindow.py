@@ -1072,9 +1072,17 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             view.unparent()
 
     def update_view_settings(self):
-        if self.current_view and self.current_view_type == "grid":
-            show_badges = settings.read_setting("hide_badges_on_icons") != "True"
+        if not self.current_view:
+            return
+        show_badges = settings.read_setting("hide_badges_on_icons") != "True"
+        if self.current_view_type == "grid":
+            # Suppress platform-badge clutter when already filtering by platform.
             self.current_view.show_badges = show_badges and not bool(self.filters.get("platform"))
+        else:
+            # The list view never shows platform badges — the platform filter
+            # is irrelevant; just respect the user's preference for the
+            # missing-game badge.
+            self.current_view.show_badges = show_badges
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type)
