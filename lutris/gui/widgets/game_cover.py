@@ -59,7 +59,8 @@ class GameCoverWidget(Gtk.Widget):
         self._game_id: str | None = None
         self._service = None
         self._media_paths: list = []
-        self._show_badges = True
+        self._show_platform_badges = True
+        self._show_missing_badge = True
         self._platform: str | None = None
         self._is_installed = True
         self._expected_width = 0
@@ -79,14 +80,20 @@ class GameCoverWidget(Gtk.Widget):
         media_paths,
         platform: str | None,
         is_installed: bool,
-        show_badges: bool,
+        show_platform_badges: bool,
+        show_missing_badge: bool,
     ) -> None:
+        """Each badge type is gated independently: the list view always
+        suppresses platform badges (rendered as a separate column), while
+        both views respect the user's "show badges" setting for the
+        missing-game indicator."""
         self._game_id = game_id
         self._service = service
         self._media_paths = media_paths or []
         self._platform = platform
         self._is_installed = bool(is_installed)
-        self._show_badges = bool(show_badges)
+        self._show_platform_badges = bool(show_platform_badges)
+        self._show_missing_badge = bool(show_missing_badge)
         self.queue_draw()
 
     def set_expected_size(self, width: int, height: int) -> None:
@@ -102,13 +109,6 @@ class GameCoverWidget(Gtk.Widget):
     @property
     def game_id(self) -> str | None:
         return self._game_id
-
-    def is_library_view(self) -> bool:
-        """True when drawing library tiles (no service attached).
-
-        Library tiles center the media vertically in the cell; service tiles
-        align it to the bottom — matches the old cell renderer behaviour."""
-        return self._service is None
 
     # ---- Snapshot rendering (ported from GridViewCellRendererImage) --
 
@@ -167,8 +167,7 @@ class GameCoverWidget(Gtk.Widget):
         texture_bounds.init(media_area.x, media_area.y, media_area.width, media_area.height)
         snapshot.append_texture(entry.texture, texture_bounds)
 
-        if self._show_badges:
-            self._snapshot_badges(snapshot, media_area)
+        self._snapshot_badges(snapshot, media_area)
 
         if alpha < 1.0:
             snapshot.pop()
@@ -206,19 +205,16 @@ class GameCoverWidget(Gtk.Widget):
     def _get_media_area(self, logical_size, cell_area) -> Gdk.Rectangle:
         media_area = Gdk.Rectangle()
         width, height = logical_size
-
         media_area.x = round(cell_area.x + (cell_area.width - width) / 2)
-        if self.is_library_view():
-            media_area.y = round(cell_area.y + (cell_area.height - height) / 2)
-        else:
-            media_area.y = round(cell_area.y + cell_area.height - height)
-
+        media_area.y = round(cell_area.y + (cell_area.height - height) / 2)
         media_area.width, media_area.height = width, height
         return media_area
 
     def _snapshot_badges(self, snapshot, media_area) -> None:
-        self._snapshot_platform_badges(snapshot, media_area)
-        self._snapshot_missing_badge(snapshot, media_area)
+        if self._show_platform_badges:
+            self._snapshot_platform_badges(snapshot, media_area)
+        if self._show_missing_badge:
+            self._snapshot_missing_badge(snapshot, media_area)
 
     def _snapshot_platform_badges(self, snapshot, media_area) -> None:
         platform = self._platform
