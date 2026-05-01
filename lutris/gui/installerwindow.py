@@ -220,9 +220,11 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def add_menu_button(self, label, handler=None, tooltip=None, sensitive=True):
         """Add a button to the menu in the header bar"""
         button = Gtk.Button(label=label)
-        button.set_has_frame(False)
-        button.set_halign(Gtk.Align.FILL)
+        # `flat` is GTK's built-in equivalent of set_has_frame(False); using
+        # the class instead lets popover-menu-button compose with it via CSS.
+        # halign defaults to FILL on Gtk.Button, so no explicit call needed.
         button.add_css_class("popover-menu-button")
+        button.add_css_class("flat")
         child = button.get_child()
         if child and isinstance(child, Gtk.Label):
             child.set_halign(Gtk.Align.START)
