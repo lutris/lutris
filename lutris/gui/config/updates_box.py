@@ -1,6 +1,7 @@
 import os
 from collections.abc import Callable
 from gettext import gettext as _
+from typing import cast
 
 from gi.repository import Gio, Gtk
 
@@ -120,8 +121,10 @@ class UpdatesBox(BaseConfigBox):
             if started:
                 update_box.show_running_markup(_("<i>Checking for updates...</i>"))
             else:
-                root = self.get_root()
-                parent = root if isinstance(root, Gtk.Widget) else self
+                # Gtk.Root is a Gtk.Widget at runtime, but the stubs declare
+                # it as a standalone interface — cast lets us pass it where a
+                # Widget parent is expected without an isinstance dance.
+                parent = cast(Gtk.Widget, self.get_root()) or self
                 NoticeDialog(_("Updates are already being downloaded and installed."), parent=parent)
         else:
             update_box.show_completion_markup("", _("No updates are required at this time."))
