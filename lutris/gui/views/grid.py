@@ -108,7 +108,8 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
                 media_paths=item.media_paths or [],
                 platform=item.platform,
                 is_installed=item.installed,
-                show_badges=self._show_badges,
+                show_platform_badges=self._show_badges,
+                show_missing_badge=self._show_badges,
             )
             # Re-apply the launching CSS class if this game is mid-bounce and
             # scrolled back into view.
@@ -155,7 +156,8 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
                 media_paths=item.media_paths or [],
                 platform=item.platform,
                 is_installed=item.installed,
-                show_badges=self._show_badges,
+                show_platform_badges=self._show_badges,
+                show_missing_badge=self._show_badges,
             )
 
     @staticmethod
