@@ -137,9 +137,8 @@ class GameBar(Gtk.Box):
             return Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
 
         button = Gtk.Button(label=text)
-        button.set_has_frame(False)
-        button.set_halign(Gtk.Align.FILL)
         button.add_css_class("popover-menu-button")
+        button.add_css_class("flat")
         child = button.get_child()
         if child and isinstance(child, Gtk.Label):
             child.set_halign(Gtk.Align.START)
