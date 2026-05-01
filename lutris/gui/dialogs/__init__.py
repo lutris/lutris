@@ -77,12 +77,11 @@ class Dialog(Gtk.Window):
         if title:
             self.set_title(title)
         if parent:
-            if isinstance(parent, Gtk.Window):
-                self.set_transient_for(parent)
-            elif isinstance(parent, Gtk.Widget):
-                root_widget = parent.get_root()
-                if isinstance(root_widget, Gtk.Window):
-                    self.set_transient_for(root_widget)
+            # Window.get_root() returns the window itself, so this handles both
+            # "parent is a window" and "parent is some inner widget" cases.
+            root = parent.get_root()
+            if isinstance(root, Gtk.Window):
+                self.set_transient_for(root)
         if border_width:
             self._content_area.set_margin_top(border_width)
             self._content_area.set_margin_bottom(border_width)

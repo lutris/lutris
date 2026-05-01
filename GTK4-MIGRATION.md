@@ -138,8 +138,10 @@ These need `None` guards:
 - `Gtk.ComboBox.get_model()` returns `TreeModel | None`
 - `Gtk.IconTheme.get_search_path()` returns `list[str] | None`
 
-For `get_root()` used as a dialog parent, narrow with `isinstance(root, Gtk.Widget)` before
-passing to functions expecting `Widget`.
+For `get_root()` used as a dialog parent, narrow with `cast(Gtk.Widget, root)` before
+passing to functions expecting `Widget` — every `Gtk.Root` implementation is also a
+`Gtk.Widget` at runtime, so the cast is safe and reads more clearly than an
+`isinstance` runtime check that always passes.
 
 ## Mixin Classes and Type Checking
 
