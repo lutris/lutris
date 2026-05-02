@@ -283,6 +283,53 @@ focus dance required to keep typing alive while the popover is visible
 isn't worth carrying for the duration of the GTK 4 cycle. When
 `Gtk.SuggestionEntry` lands, swap `SearchableEntrybox` over to it.
 
+## Factory-Item Snapshot Caching
+
+`Gtk.Widget.queue_draw()` in GTK 4 invalidates a single widget's snapshot,
+not its descendants — each widget's snapshot is cached independently.
+For `Gtk.GridView` / `Gtk.ColumnView` cells (created by a
+`Gtk.SignalListItemFactory`), this means `queue_draw()` on the **view**
+won't re-snapshot the factory-created children. Refreshes that need to
+run inside the cell's `do_snapshot` (e.g. reloading a texture against
+new media) have to invalidate each cell widget directly.
+
+Two patterns we use:
+
+- **View walks its bound items.** Where the view tracks bound widgets
+  in a set (`_bound_covers`), an event handler can iterate and call
+  `queue_draw()` on each. Used for the `show_badges` setter, which also
+  has to push fresh data into each cell.
+- **Each cell registers itself.** Where the relevant lifecycle is per-
+  cell rather than per-event, the cell connects to `realize` and
+  `unrealize` to register / unregister a `NotificationSource`
+  subscription. That keeps the notification source from holding strong
+  references to dead pool widgets. `GameCoverWidget` does this for
+  `MEDIA_CACHE_INVALIDATED` so an updated media file repaints in place
+  rather than waiting for a scroll-induced rebind.
+
+## Class-level Image Caches and the Factory Pool
+
+The GTK 3 cell renderer used a single shared image cache because one
+`CellRenderer` instance painted every cell. In GTK 4, each cell is its
+own widget, so an instinct to keep a class-level image cache for cross-
+widget sharing carries over — but `Gtk.GridView` / `Gtk.ColumnView` pool
+their factory widgets to roughly the visible-cell count, and there's
+exactly one game per cell. Empirical measurement (per-widget miss vs.
+class-level hit, instrumented in `_get_cached_texture_by_path`) showed
+the cross-widget hit rate was effectively zero in real scroll patterns:
+the pool already covers the same ground a class-level cache would.
+
+So `GameCoverWidget` keeps the texture per-widget — a single
+`self._texture` refreshed when its `(path, size, scale)` key changes —
+and the only class-level cache left is the badge-icon dict, which has
+real reuse (every cover sharing a platform draws the same badge).
+
+`MEDIA_CACHE_INVALIDATED` invalidates per-widget textures via the
+realize/unrealize registration described above; the badge dict is
+cleared directly from a module-level handler on the same notification.
+There is no longer a generation-number indirection or a two-generation
+old/new cycle.
+
 ## GridView Thumb-Drag Flicker (Unresolved)
 
 **Symptom**: In the games grid, holding the scrollbar thumb still — not moving
