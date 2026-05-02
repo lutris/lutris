@@ -11,6 +11,7 @@ from typing import TypeAlias
 
 from gi.repository import Gdk, Graphene, Gtk, Pango
 
+from lutris.gui.widgets import NotificationRegistration
 from lutris.gui.widgets.utils import (
     MEDIA_CACHE_INVALIDATED,
     ScaledTexture,
@@ -19,15 +20,11 @@ from lutris.gui.widgets.utils import (
     get_runtime_icon_path,
 )
 from lutris.services.service_media import resolve_media_path
-from lutris.util.jobs import schedule_at_idle
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES
 
-_MEDIA_CACHE_GENERATION_NUMBER = 0
-
 # (path, (width, height), preserve_aspect_ratio, corner_size_physical, scale_factor)
 _TextureCacheKey: TypeAlias = tuple[str, tuple[float, float], bool, tuple[int, int] | None, int]
-_TextureCacheEntry: TypeAlias = ScaledTexture | None
 
 
 class GameCoverWidget(Gtk.Widget):
@@ -40,16 +37,13 @@ class GameCoverWidget(Gtk.Widget):
 
     _platform_icon_paths: dict[str, list[str]] = {}
 
-    # Texture caches are shared across all GameCoverWidget instances. Gtk.GridView
-    # recycles widgets aggressively during scroll: a given widget gets rebound to
-    # different games, so a per-instance cache would miss on every rebind. The old
-    # GTK3 code used a single CellRenderer with one shared cache — this mirrors it.
-    _cached_textures_new: dict[_TextureCacheKey, _TextureCacheEntry] = {}
-    _cached_textures_old: dict[_TextureCacheKey, _TextureCacheEntry] = {}
-    _cached_badge_textures_new: dict[str, Gdk.Texture | None] = {}
-    _cached_badge_textures_old: dict[str, Gdk.Texture | None] = {}
-    _cached_items_loaded: int = 0
-    _cached_surface_generation: int = 0
+    # Cover textures are cached per-widget (see _texture in __init__) — measurement
+    # showed that during normal scroll the GridView pool already covers the only
+    # reuse case the old class-level cache helped with, so a class-level cache was
+    # paying complexity for ~zero hit rate. Badge textures, on the other hand, are
+    # heavily shared (every cover for the same platform draws the same badge), so
+    # they keep a simple class-level memo.
+    _badge_cache: dict[str, Gdk.Texture | None] = {}
 
     def __init__(self) -> None:
         super().__init__()
@@ -65,6 +59,16 @@ class GameCoverWidget(Gtk.Widget):
         self._is_installed = True
         self._expected_width = 0
         self._expected_height = 0
+        # Per-widget texture cache: holds the most recent ScaledTexture this
+        # widget has rendered. Refreshed in _get_texture when the key changes
+        # (different game/size/scale) and cleared by _on_media_cache_invalidated
+        # while realized so an updated media file repaints without waiting
+        # for a scroll or rebind.
+        self._texture: ScaledTexture | None = None
+        self._texture_key: _TextureCacheKey | None = None
+        self._media_cache_registration: NotificationRegistration | None = None
+        self.connect("realize", self._on_realize)
+        self.connect("unrealize", self._on_unrealize)
 
         self.badge_size: tuple[int, int] | None = None
         self.badge_alpha = 0.6
@@ -140,19 +144,15 @@ class GameCoverWidget(Gtk.Widget):
             device_scale = self.get_scale_factor() or 1
             corner_physical = (int(badge_size[0] * device_scale), int(badge_size[1] * device_scale))
 
-        entry = self._get_cached_texture_by_path(
-            path, size=(media_width, media_height), corner_size_physical=corner_physical
-        )
+        entry = self._get_texture(path, size=(media_width, media_height), corner_size_physical=corner_physical)
         if not entry:
-            path = get_default_icon_path((media_width, media_height))
-            entry = self._get_cached_texture_by_path(
-                path,
+            entry = self._get_texture(
+                get_default_icon_path((media_width, media_height)),
                 size=(media_width, media_height),
                 preserve_aspect_ratio=False,
                 corner_size_physical=corner_physical,
             )
         if not entry:
-            schedule_at_idle(self.cycle_cache)
             return
 
         media_area = self._get_media_area(entry.logical_size, cell_area)
@@ -171,8 +171,6 @@ class GameCoverWidget(Gtk.Widget):
 
         if alpha < 1.0:
             snapshot.pop()
-
-        schedule_at_idle(self.cycle_cache)
 
     def do_measure(self, orientation, for_size):  # type: ignore[override]
         if orientation == Gtk.Orientation.HORIZONTAL:
@@ -240,7 +238,7 @@ class GameCoverWidget(Gtk.Widget):
             rect.init(x, y, badge_width, badge_height)
             snapshot.append_color(back_color, rect)
 
-            icon_texture = self._get_cached_badge_texture(icon_path)
+            icon_texture = self._get_badge_texture(icon_path)
             if icon_texture is not None:
                 snapshot.push_color_matrix(fore_matrix, fore_offset)
                 snapshot.append_texture(icon_texture, rect)
@@ -308,102 +306,64 @@ class GameCoverWidget(Gtk.Widget):
         cls._platform_icon_paths[platform] = icon_paths
         return icon_paths
 
-    # ---- Cache lifecycle (ported) ------------------------------------
+    # ---- Texture loading --------------------------------------------
 
-    @classmethod
-    def clear_cache(cls) -> None:
-        cls._cached_textures_old.clear()
-        cls._cached_textures_new.clear()
-        cls._cached_badge_textures_old.clear()
-        cls._cached_badge_textures_new.clear()
-
-    @classmethod
-    def cycle_cache(cls) -> None:
-        """Discard cached items not touched since the last cycle.
-
-        Called at idle time after rendering, so entries used during the frame
-        we just drew are preserved (smooth scrolling) and stale entries are
-        freed on the next idle tick. Operates on the class-level shared cache."""
-        if cls._cached_items_loaded > 0:
-            cls._cached_textures_old = cls._cached_textures_new
-            cls._cached_textures_new = {}
-            cls._cached_badge_textures_old = cls._cached_badge_textures_new
-            cls._cached_badge_textures_new = {}
-            cls._cached_items_loaded = 0
-
-    @classmethod
-    def _check_cache_generation(cls) -> None:
-        if cls._cached_surface_generation != _MEDIA_CACHE_GENERATION_NUMBER:
-            cls._cached_surface_generation = _MEDIA_CACHE_GENERATION_NUMBER
-            cls.clear_cache()
-
-    def _get_cached_texture_by_path(
+    def _get_texture(
         self,
         path: str,
         size: tuple[float, float],
         preserve_aspect_ratio: bool = True,
         corner_size_physical: tuple[int, int] | None = None,
-    ) -> _TextureCacheEntry:
-        cls = type(self)
-        cls._check_cache_generation()
-
+    ) -> ScaledTexture | None:
+        """Return this widget's ScaledTexture for ``path`` at ``size``,
+        reloading lazily when the cache key changes or the per-widget
+        cache has been invalidated."""
         scale_factor = self.get_scale_factor() or 1
         key: _TextureCacheKey = (path, size, preserve_aspect_ratio, corner_size_physical, scale_factor)
-
-        if key in cls._cached_textures_new:
-            return cls._cached_textures_new[key]
-
-        if key in cls._cached_textures_old:
-            entry = cls._cached_textures_old[key]
-        else:
-            entry = self._load_texture(path, size, preserve_aspect_ratio, corner_size_physical, scale_factor)
-            if entry:
-                cls._cached_items_loaded += 1
-
-        cls._cached_textures_new[key] = entry
-        return entry
-
-    @staticmethod
-    def _load_texture(
-        path: str,
-        size: tuple[float, float],
-        preserve_aspect_ratio: bool,
-        corner_size_physical: tuple[int, int] | None,
-        scale_factor: int,
-    ) -> _TextureCacheEntry:
-        try:
-            return ScaledTexture.from_path(
-                path,
-                size,
-                scale_factor,
-                preserve_aspect_ratio=preserve_aspect_ratio,
-                corner_size_physical=corner_size_physical,
-            )
-        except Exception as ex:
-            logger.exception("Unable to load media '%s': %s", path, ex)
-            return None
-
-    def _get_cached_badge_texture(self, path: str) -> Gdk.Texture | None:
-        cls = type(self)
-        cls._check_cache_generation()
-
-        if path in cls._cached_badge_textures_new:
-            return cls._cached_badge_textures_new[path]
-
-        texture: Gdk.Texture | None
-        if path in cls._cached_badge_textures_old:
-            texture = cls._cached_badge_textures_old[path]
-        else:
+        if self._texture is None or self._texture_key != key:
             try:
-                pixbuf = get_pixbuf_by_path(path)
-                texture = Gdk.Texture.new_for_pixbuf(pixbuf) if pixbuf else None
+                self._texture = ScaledTexture.from_path(
+                    path,
+                    size,
+                    scale_factor,
+                    preserve_aspect_ratio=preserve_aspect_ratio,
+                    corner_size_physical=corner_size_physical,
+                )
             except Exception as ex:
-                logger.exception("Unable to load badge icon '%s': %s", path, ex)
-                texture = None
-            if texture is not None:
-                cls._cached_items_loaded += 1
+                logger.exception("Unable to load media '%s': %s", path, ex)
+                self._texture = None
+            self._texture_key = key
+        return self._texture
 
-        cls._cached_badge_textures_new[path] = texture
+    # ---- MEDIA_CACHE_INVALIDATED lifecycle --------------------------
+
+    def _on_realize(self, _widget: Gtk.Widget) -> None:
+        # Register only while realized so the notification source doesn't
+        # keep an unrealized cover alive via its strong handler reference.
+        if self._media_cache_registration is None:
+            self._media_cache_registration = MEDIA_CACHE_INVALIDATED.register(self._on_media_cache_invalidated)
+
+    def _on_unrealize(self, _widget: Gtk.Widget) -> None:
+        if self._media_cache_registration is not None:
+            self._media_cache_registration.unregister()
+            self._media_cache_registration = None
+
+    def _on_media_cache_invalidated(self) -> None:
+        self._texture = None
+        self._texture_key = None
+        self.queue_draw()
+
+    @classmethod
+    def _get_badge_texture(cls, path: str) -> Gdk.Texture | None:
+        if path in cls._badge_cache:
+            return cls._badge_cache[path]
+        try:
+            pixbuf = get_pixbuf_by_path(path)
+            texture = Gdk.Texture.new_for_pixbuf(pixbuf) if pixbuf else None
+        except Exception as ex:
+            logger.exception("Unable to load badge icon '%s': %s", path, ex)
+            texture = None
+        cls._badge_cache[path] = texture
         return texture
 
 
@@ -447,9 +407,4 @@ def _color_matrix_tint(color: tuple[float, float, float], alpha: float) -> tuple
     return matrix, offset
 
 
-def _on_media_cached_invalidated() -> None:
-    global _MEDIA_CACHE_GENERATION_NUMBER
-    _MEDIA_CACHE_GENERATION_NUMBER += 1
-
-
-MEDIA_CACHE_INVALIDATED.register(_on_media_cached_invalidated)
+MEDIA_CACHE_INVALIDATED.register(GameCoverWidget._badge_cache.clear)
