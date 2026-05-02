@@ -441,7 +441,7 @@ class LutrisSidebar(Gtk.ListBox):
 
     def __init__(self, application):
         super().__init__()
-        self.set_size_request(200, -1)
+        self.set_size_request(210, -1)
         self.application = application
         self.previous_category = None
         self.add_css_class("lutris-sidebar")
