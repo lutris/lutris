@@ -6,6 +6,7 @@ from typing import Any
 import dbus
 
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
+from lutris.util.display import DisplayManager
 from lutris.util.log import logger
 
 DisplayConfig = namedtuple("DisplayConfig", ("monitors", "name", "position", "transform", "primary", "scale"))
@@ -621,7 +622,7 @@ class MutterDisplayConfig:
         self.interface.ApplyMonitorsConfig(self.current_state.serial, self.TEMPORARY_METHOD, monitors_config, {})
 
 
-class MutterDisplayManager:
+class MutterDisplayManager(DisplayManager):
     """Manage displays using the DBus Mutter interface"""
 
     def __init__(self) -> None:
