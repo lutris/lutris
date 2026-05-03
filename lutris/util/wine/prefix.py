@@ -4,7 +4,7 @@ import os
 
 from lutris.settings import get_lutris_directory_settings, set_lutris_directory_settings
 from lutris.util import joypad, system
-from lutris.util.display import DISPLAY_MANAGER
+from lutris.util.display import get_display_manager
 from lutris.util.log import logger
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.xdgshortcuts import get_xdg_entry
@@ -258,7 +258,7 @@ class WinePrefixManager:
         path = self.hkcu_prefix + "/Software/Wine/Explorer"
         if enabled:
             self.set_registry_key(path, "Desktop", "WineDesktop")
-            default_resolution = "x".join(DISPLAY_MANAGER.get_current_resolution())
+            default_resolution = "x".join(get_display_manager().get_current_resolution())
             logger.debug(
                 "Enabling wine virtual desktop with default resolution of %s",
                 default_resolution,

@@ -37,7 +37,7 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
 )
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.display import DISPLAY_MANAGER, get_default_dpi, is_display_x11
+from lutris.util.display import get_default_dpi, get_display_manager, is_display_x11
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -538,7 +538,7 @@ class wine(Runner):
             "visible": _is_pre_proton,
             "conditional_on": "Desktop",
             "advanced": True,
-            "choices": DISPLAY_MANAGER.get_resolutions,
+            "choices": get_display_manager().get_resolutions,
             "help": _("The size of the virtual desktop in pixels."),
         },
         {
