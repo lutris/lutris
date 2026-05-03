@@ -10,7 +10,9 @@ from lutris.util import display, extract, system
 
 def get_resolutions():
     try:
-        screen_resolutions = [(resolution, resolution) for resolution in display.DISPLAY_MANAGER.get_resolutions()]
+        screen_resolutions = [
+            (resolution, resolution) for resolution in display.get_display_manager().get_resolutions()
+        ]
     except OSError:
         screen_resolutions = []
     screen_resolutions.insert(0, (_("Desktop resolution"), "desktop"))
@@ -123,7 +125,7 @@ class atari800(Runner):
         resolution = self.runner_config.get("resolution")
         if resolution:
             if resolution == "desktop":
-                width, height = display.DISPLAY_MANAGER.get_current_resolution()
+                width, height = display.get_display_manager().get_current_resolution()
             else:
                 width, height = resolution.split("x")
             arguments += ["-fs-width", "%s" % width, "-fs-height", "%s" % height]
