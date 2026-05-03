@@ -7,6 +7,7 @@ from collections.abc import Iterable
 
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
 from lutris.util import cache_single
+from lutris.util.display import DisplayManager
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
@@ -201,23 +202,20 @@ def change_resolution(resolution: str | Iterable[Output]) -> None:
                 xrandr.communicate()
 
 
-class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
+class LegacyDisplayManager(DisplayManager):
     """Legacy XrandR based display manager.
     Does not work on Wayland.
     """
 
-    @staticmethod
-    def get_display_names() -> list[str]:
+    def get_display_names(self) -> list[str]:
         """Return output names from XrandR"""
         return [output.name for output in get_outputs()]
 
-    @staticmethod
-    def get_resolutions() -> list[str]:
+    def get_resolutions(self) -> list[str]:
         """Return available resolutions"""
         return get_resolutions()
 
-    @staticmethod
-    def get_current_resolution() -> tuple[str, str]:
+    def get_current_resolution(self) -> tuple[str, str]:
         """Return the current resolution for the desktop"""
         outputs = get_outputs()
         if not outputs:
@@ -235,12 +233,10 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
             mode = primary.preferred_mode
         return tuple(mode.split("x"))
 
-    @staticmethod
-    def set_resolution(resolution: str | Iterable[Output]) -> None:
+    def set_resolution(self, resolution: str | Iterable[Output]) -> None:
         """Change the current resolution"""
         change_resolution(resolution)
 
-    @staticmethod
-    def get_config() -> list[Output]:
+    def get_config(self) -> list[Output]:
         """Return the current display configuration"""
         return get_outputs()
