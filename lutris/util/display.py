@@ -9,11 +9,6 @@ import os
 import subprocess
 from typing import TYPE_CHECKING, Any
 
-# GnomeDesktop 3.0 requires GTK 3 and cannot coexist with GTK 4. The constants are
-# kept (always falsy) for callers that branched on them before the GTK 4 port.
-LIB_GNOME_DESKTOP_AVAILABLE = False
-GnomeDesktop = None
-
 try:
     from dbus.exceptions import DBusException
 
@@ -49,7 +44,7 @@ def get_default_dpi() -> int:
 
 @cache_single
 def is_display_x11() -> bool:
-    """True if"""
+    """True if the default GDK display is X11-based (native X11 or XWayland)."""
     display = Gdk.Display.get_default()
     return "x11" in type(display).__name__.casefold()
 
