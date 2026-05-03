@@ -28,10 +28,10 @@ from lutris.runners import import_runner, is_valid_runner_name
 from lutris.runners.runner import Runner, kill_processes
 from lutris.util import busy, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
-    DISPLAY_MANAGER,
     SCREEN_SAVER_INHIBITOR,
     disable_compositing,
     enable_compositing,
+    get_display_manager,
     is_display_x11,
 )
 from lutris.util.graphics.xrandr import turn_off_except
@@ -560,7 +560,7 @@ class Game:
         return True
 
     def restrict_to_display(self, display: str) -> bool:
-        outputs = DISPLAY_MANAGER.get_config()
+        outputs = get_display_manager().get_config()
         if display == "primary":
             display = ""
             for output in outputs:
@@ -746,7 +746,7 @@ class Game:
             system.set_keyboard_layout("us")
 
         # Display control
-        self.original_outputs = DISPLAY_MANAGER.get_config()
+        self.original_outputs = get_display_manager().get_config()
 
         if self.runner.system_config.get("disable_compositor"):
             self.set_desktop_compositing(False)
@@ -759,7 +759,7 @@ class Game:
 
         resolution: str = self.runner.system_config.get("resolution")
         if resolution != "off":
-            DISPLAY_MANAGER.set_resolution(resolution)
+            get_display_manager().set_resolution(resolution)
             time.sleep(3)
             self.resolution_changed = True
 
@@ -1104,7 +1104,7 @@ class Game:
 
         if self.resolution_changed or self.runner.system_config.get("reset_desktop"):
             if self.original_outputs:
-                DISPLAY_MANAGER.set_resolution(self.original_outputs)
+                get_display_manager().set_resolution(self.original_outputs)
 
         if self.compositor_disabled:
             self.set_desktop_compositing(True)

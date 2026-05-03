@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from lutris import runners
 from lutris.util import linux, system
-from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, is_compositing_enabled, is_display_x11
+from lutris.util.display import SCREEN_SAVER_INHIBITOR, get_display_manager, is_compositing_enabled, is_display_x11
 from lutris.util.graphics.gpu import get_gpus
 from lutris.util.sniper import get_sniper_run_command
 
@@ -20,7 +20,7 @@ def get_resolution_choices() -> list[tuple[str, str]]:
     """Return list of available resolutions as label, value tuples
     suitable for inclusion in drop-downs.
     """
-    resolutions = DISPLAY_MANAGER.get_resolutions()
+    resolutions = get_display_manager().get_resolutions()
     resolution_choices = list(zip(resolutions, resolutions))
     resolution_choices.insert(0, (_("Keep current"), "off"))
     return resolution_choices
@@ -61,7 +61,7 @@ def get_gpu_list() -> list[tuple[str, str]]:
 
 def get_output_choices() -> list[tuple[str, str]]:
     """Return list of outputs for drop-downs"""
-    displays = DISPLAY_MANAGER.get_display_names()
+    displays = get_display_manager().get_display_names()
     output_choices = list(zip(displays, displays))
     output_choices.insert(0, (_("Off"), "off"))
     output_choices.insert(1, (_("Primary"), "primary"))
@@ -73,7 +73,7 @@ def get_output_list() -> list[tuple[str, str]]:
     This is used to indicate to SDL 1.2 which monitor to use.
     """
     choices = [(_("Off"), "off")]
-    displays = DISPLAY_MANAGER.get_display_names()
+    displays = get_display_manager().get_display_names()
     for index, output in enumerate(displays):
         # Display name can't be used because they might not be in the right order
         # Using DISPLAYS to get the number of connected monitors
@@ -293,7 +293,7 @@ system_options: list[dict[str, Any]] = [  # pylint: disable=invalid-name
         "option": "gamescope_output_res",
         "type": "choice_with_entry",
         "label": _("Output Resolution"),
-        "choices": DISPLAY_MANAGER.get_resolutions,
+        "choices": get_display_manager().get_resolutions,
         "advanced": True,
         "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
@@ -309,7 +309,7 @@ system_options: list[dict[str, Any]] = [  # pylint: disable=invalid-name
         "option": "gamescope_game_res",
         "type": "choice_with_entry",
         "label": _("Game Resolution"),
-        "choices": DISPLAY_MANAGER.get_resolutions,
+        "choices": get_display_manager().get_resolutions,
         "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
         "help": _("Set the maximum resolution used by the game.\n\n<b>Custom Resolutions:</b> (width)x(height)"),
