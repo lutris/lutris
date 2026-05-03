@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 # isort:skip_file
+import abc
 import enum
 import os
 import subprocess
-from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
-# GnomeDesktop 3.0 requires GTK 3 and cannot coexist with GTK 4.
-# The GnomeDesktop-based DisplayManager is no longer available;
-# we fall through to MutterDisplayManager or LegacyDisplayManager instead.
+# GnomeDesktop 3.0 requires GTK 3 and cannot coexist with GTK 4. The constants are
+# kept (always falsy) for callers that branched on them before the GTK 4 port.
 LIB_GNOME_DESKTOP_AVAILABLE = False
 GnomeDesktop = None
 
@@ -26,8 +25,6 @@ from gi.repository import Gdk, GLib, Gio, Gtk
 
 from lutris.util import cache_single
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
-from lutris.util.graphics.displayconfig import MutterDisplayManager
-from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution, get_outputs, Output
 from lutris.util.log import logger
 
 if TYPE_CHECKING:
@@ -57,51 +54,76 @@ def is_display_x11() -> bool:
     return "x11" in type(display).__name__.casefold()
 
 
-class DisplayManager:
-    """Get display and resolution using XRandR (GnomeDesktop no longer available with GTK 4)"""
+class DisplayManager(abc.ABC):
+    """Abstract interface implemented by the supported display backends:
+    MutterDisplayManager (DBus, Wayland-aware) and LegacyDisplayManager (xrandr, X11).
 
-    @staticmethod
-    def get_display_names() -> list[str]:
-        """Return names of connected displays"""
-        return [output.name for output in get_outputs()]
+    Default implementations of get_display_names and get_current_resolution use
+    GDK; the concrete backends override both to stay self-consistent with the
+    same data source they use for the abstract methods below."""
 
-    @staticmethod
-    def get_resolutions() -> list[str]:
-        """Return available resolutions"""
-        resolutions = []
-        for output in get_outputs():
-            resolutions.append(output.mode)
-        if not resolutions:
-            logger.error("Failed to generate resolution list")
-            return ["%sx%s" % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
-        return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
+    def get_display_names(self) -> list[str]:
+        """Return connector names of connected displays."""
+        display = Gdk.Display.get_default()
+        if not display:
+            return []
+        monitors = display.get_monitors()
+        names: list[str] = []
+        for i in range(monitors.get_n_items()):
+            monitor = monitors.get_item(i)
+            if monitor and (connector := monitor.get_connector()):
+                names.append(connector)
+        return names
 
-    @staticmethod
-    def get_current_resolution() -> tuple[str, str]:
-        """Return the current resolution for the primary display"""
-        outputs = get_outputs()
-        primary = next((o for o in outputs if o.primary), None) or (outputs[0] if outputs else None)
-        if primary and primary.mode:
-            parts = primary.mode.split("x")
-            if len(parts) == 2:
-                return parts[0], parts[1]
+    @abc.abstractmethod
+    def get_resolutions(self) -> list[str]:
+        """Return available resolutions, formatted "WIDTHxHEIGHT"."""
+
+    def get_current_resolution(self) -> tuple[str, str]:
+        """Return the current resolution (width, height) of the primary display.
+
+        BUG: under fractional desktop scaling this reports the wrong number.
+        GDK 4.10 exposes only the integer scale_factor (Gdk.Monitor.get_scale,
+        a float, was added in GDK 4.14). For 125% scaling on a 1080p panel,
+        get_geometry returns a 1536x864 logical size and get_scale_factor
+        returns 1, so width*scale_factor = 1536x864 instead of the physical
+        1920x1080. KDE/Wayland exposes the same bug from the other side via
+        XWayland's upscaled virtual canvas. Both concrete subclasses override
+        this with backend-specific logic that recovers the physical mode
+        (xrandr uses XWayland's EDID preferred_mode; Mutter pulls the current
+        mode list from DBus)."""
+        display = Gdk.Display.get_default()
+        if display:
+            monitors = display.get_monitors()
+            if monitors.get_n_items() > 0:
+                monitor = monitors.get_item(0)
+                if monitor:
+                    geom = monitor.get_geometry()
+                    scale = monitor.get_scale_factor()
+                    return str(geom.width * scale), str(geom.height * scale)
         return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
 
-    @staticmethod
-    def set_resolution(resolution: str | Iterable[Output]) -> None:
-        """Set the resolution of one or more displays."""
-        return change_resolution(resolution)
+    @abc.abstractmethod
+    def set_resolution(self, resolution: Any) -> None:
+        """Apply a resolution string to the primary display, or a backend-specific
+        config list (as returned by get_config) to all displays."""
 
-    @staticmethod
-    def get_config() -> list[Output]:
-        """Return the current display configuration."""
-        return get_outputs()
+    @abc.abstractmethod
+    def get_config(self) -> list[Any]:
+        """Return the current display configuration; can be passed back to set_resolution."""
 
 
-def get_display_manager() -> MutterDisplayManager | DisplayManager | LegacyDisplayManager:
-    """Return the appropriate display manager instance.
-    Defaults to Mutter if available. This is the only one to support Wayland.
+@cache_single
+def get_display_manager() -> DisplayManager:
+    """Return the appropriate display manager instance, lazily constructed and
+    cached. Defaults to Mutter if available — this is the only backend that
+    supports Wayland.
     """
+    # Imported here to avoid a circular import: the concrete classes inherit from
+    # DisplayManager defined above, so they import this module at their top level.
+    from lutris.util.graphics.displayconfig import MutterDisplayManager
+    from lutris.util.graphics.xrandr import LegacyDisplayManager
+
     if DBUS_AVAILABLE:
         try:
             return MutterDisplayManager()
@@ -113,9 +135,6 @@ def get_display_manager() -> MutterDisplayManager | DisplayManager | LegacyDispl
         logger.error("DBus is not available, Lutris was not properly installed.")
 
     return LegacyDisplayManager()
-
-
-DISPLAY_MANAGER = get_display_manager()
 
 
 class DesktopEnvironment(enum.Enum):
