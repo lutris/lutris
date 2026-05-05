@@ -124,13 +124,13 @@ yourself to the AUTHORS file!
 Developer resources
 -------------------
 
-Lutris uses Python 3 and GObject / Gtk+ 3 as its core stack, here are some
+Lutris uses Python 3 and GObject / GTK 4 as its core stack, here are some
 links to some resources that can help you familiarize yourself with the
 project's code base.
 
 * [Python 3 documentation](https://docs.python.org/3/)
-* [PyGObject documentation](https://pygobject.readthedocs.io/en/latest/)
-* [Python Gtk 3 tutorial](https://python-gtk-3-tutorial.readthedocs.io/en/latest/objects.html)
+* [PyGObject documentation](https://pygobject.gnome.org/)
+* [GTK 4 Python tutorial](https://github.com/Taiko2k/GTK4PythonTutorial)
 
 Project structure
 -----------------
