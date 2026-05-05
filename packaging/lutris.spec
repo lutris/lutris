@@ -45,8 +45,8 @@ Requires:       vulkan-loader(x86-32)
 %endif
 
 %if 0%{?fedora}
-Requires:       gtk3, psmisc, xrandr
-Requires:       gnome-desktop3
+Requires:       gtk4, psmisc, xrandr
+Requires:       webkitgtk6.0
 Requires:       mesa-libGL
 %ifarch x86_64
 Requires:       mesa-libGL(x86-32)
@@ -54,13 +54,11 @@ Requires:       mesa-libGL(x86-32)
 %endif
 
 %if 0%{?suse_version}
-BuildRequires:  typelib-1_0-Gtk-3_0
+BuildRequires:  typelib-1_0-Gtk-4_0
 BuildRequires:  update-desktop-files
 BuildRequires:  hicolor-icon-theme
-Requires:       typelib-1_0-Gtk-3_0
-Requires:       typelib-1_0-GnomeDesktop-3_0
-Requires:       (typelib-1_0-WebKit2-4_0 or typelib-1_0-WebKit2-4_1)
-Requires:       typelib-1_0-Notify-0_7
+Requires:       typelib-1_0-Gtk-4_0
+Requires:       typelib-1_0-WebKit-6_0
 %endif
 
 
