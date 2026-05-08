@@ -4,7 +4,7 @@
     "description": "Emulates Flash games",
     "platforms": ["Flash"],
     "runner_executable": "ruffle",
-    "download_url": "https://github.com/ruffle-rs/ruffle/releases/download/nightly-2025-05-08/ruffle-nightly-2025_05_08-linux-x86_64.tar.gz",
+    "download_url": "https://github.com/ruffle-rs/ruffle/releases/download/nightly-2026-05-07/ruffle-nightly-2026_05_07-linux-x86_64.tar.gz",
     "game_options": [
         {
             "option": "main_file",
