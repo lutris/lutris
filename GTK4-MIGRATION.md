@@ -217,27 +217,67 @@ connect the plain `activate` signal for bare Return. Example in
 `lutris/gui/dialogs/log.py`: `activate` advances to the next search match;
 `EventControllerKey` handles Shift+Return for the previous match.
 
-## GAction and Focus-Stealing Prevention
+## Re-raising Already-Open Windows on Wayland
 
-On Wayland (tested on GNOME/Mutter), calling `Gtk.Window.present()` on an
-already-open window from a handler invoked via `GAction` (menu items with
-`action-name`, keyboard shortcuts routed through `Gtk.Application` actions) does
-not raise the window — Mutter treats it as focus-stealing and either does
-nothing (if the window is frontmost) or shows a "Ready" notification.
+`Gtk.Window.present()` on an already-open window often fails to take
+focus on Wayland/Mutter when called synchronously from the event
+handler that triggered us. Mutter raises the window's z-order
+(stacking) but refuses to give it keyboard focus — the dialog stays
+visible but with a dimmed title bar, and typing keeps going to whatever
+window had focus before. This is Mutter's focus-stealing prevention
+acting on a `present()` call it doesn't believe is user-initiated.
 
-The same `present()` call from a plain `Gtk.Button.clicked` handler works
-correctly. The difference is that `GAction` activation is deliberately
-decoupled from its triggering event, so GTK has no xdg-activation token to
-forward to the compositor when `present()` runs.
+We don't fully understand the heuristic. A plausible-but-incomplete
+sketch: GTK forwards an `xdg-activation` token to Mutter when calling
+`present()`; the token is delivered to the client over the Wayland
+socket *after* the input event itself, so calling `present()`
+synchronously runs without one. The GLib main loop only reads from the
+socket when it `poll()`s, and `idle_add()` / `timeout_add(0, …)` both
+dispatch without yielding to `poll()`. `timeout_add(1, …)` does — for
+that millisecond — so the deferred callback runs after the token has
+arrived.
 
-Tried and didn't help: `Gdk.Toplevel.focus(0)`,
+The deferral helps measurably:
+
+```python
+GLib.timeout_add(1, lambda: bool(existing.present()))
+```
+
+What we've observed empirically:
+
+- Synchronous, `idle_add`, `timeout_add(0)`: typically fail.
+- `timeout_add(1)`: typically works.
+- `time.sleep(0.001)` on the main thread: fails (blocks without
+  polling).
+- Async-via-thread (`AsyncCall`, `BusyAsyncCall`): works — and this is
+  what disguised the bug for a long time, because the install path goes
+  through `BusyAsyncCall` and worked, while the configure path was
+  synchronous.
+
+The pure "token in flight" theory doesn't explain everything though:
+
+- Some entry points re-raise fine *without* any deferral at all (the
+  toolbar `[+]` button being one).
+- Configure from the right-click context menu *still* doesn't reliably
+  reactivate even with the 1ms deferral, and the result depends on the
+  vertical position of the mouse pointer at click time — top half of
+  the screen tends to succeed, bottom half tends to fail. Proximity
+  between the click and the dialog isn't the variable; it really seems
+  to be raw screen geometry. There's no obvious GTK-side hook for
+  whatever Mutter is computing here.
+- The Preferences dialog raises most of the time but occasionally
+  refuses for a few seconds, hinting at a separate rate-limit
+  heuristic.
+
+Earlier dead-ends: `Gdk.Toplevel.focus(0)`,
 `present_with_time(GLib.get_monotonic_time() // 1000)`, re-calling
-`set_transient_for()`. The token truly isn't available at the callsite.
+`set_transient_for()`, rebuilding the context menu without GAction.
+None of those, on their own, helped.
 
-Fixing this properly requires capturing the triggering event's timestamp
-before the `GAction` dispatches (e.g. via a `Gtk.GestureClick` on the menu
-item) and threading it to `present_with_time()`. Not yet done — affects only
-the re-raise path for already-open dialogs.
+Net: the 1ms deferral is committed as a cheap improvement that is
+*usually* sufficient. The remaining gaps look like compositor-level
+heuristics outside our reach without dropping below GTK to raw
+`xdg-activation` protocol.
 
 ## Window Urgency Hint Removed
 
