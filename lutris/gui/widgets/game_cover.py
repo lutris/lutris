@@ -67,6 +67,7 @@ class GameCoverWidget(Gtk.Widget):
         self._texture: ScaledTexture | None = None
         self._texture_key: _TextureCacheKey | None = None
         self._media_cache_registration: NotificationRegistration | None = None
+        self._missing_games_registration: NotificationRegistration | None = None
         self.connect("realize", self._on_realize)
         self.connect("unrealize", self._on_unrealize)
 
@@ -335,23 +336,40 @@ class GameCoverWidget(Gtk.Widget):
             self._texture_key = key
         return self._texture
 
-    # ---- MEDIA_CACHE_INVALIDATED lifecycle --------------------------
+    # ---- Notification lifecycle -------------------------------------
+    #
+    # We register against MEDIA_CACHE_INVALIDATED and MISSING_GAMES.updated
+    # only while realized — both notification sources hold strong references
+    # to their handlers, so an always-on subscription would keep dead pool
+    # widgets alive. Both events translate to "queue a redraw on this cell"
+    # because GTK 4 caches per-widget snapshots, so the view-level
+    # queue_draw doesn't reach factory children.
 
     def _on_realize(self, _widget: Gtk.Widget) -> None:
-        # Register only while realized so the notification source doesn't
-        # keep an unrealized cover alive via its strong handler reference.
         if self._media_cache_registration is None:
             self._media_cache_registration = MEDIA_CACHE_INVALIDATED.register(self._on_media_cache_invalidated)
+        if self._missing_games_registration is None:
+            self._missing_games_registration = MISSING_GAMES.updated.register(self._on_missing_games_updated)
 
     def _on_unrealize(self, _widget: Gtk.Widget) -> None:
         if self._media_cache_registration is not None:
             self._media_cache_registration.unregister()
             self._media_cache_registration = None
+        if self._missing_games_registration is not None:
+            self._missing_games_registration.unregister()
+            self._missing_games_registration = None
 
     def _on_media_cache_invalidated(self) -> None:
         self._texture = None
         self._texture_key = None
         self.queue_draw()
+
+    def _on_missing_games_updated(self) -> None:
+        # No cached state to clear — _snapshot_missing_badge looks up
+        # MISSING_GAMES.missing_game_ids on every render. Just repaint, and
+        # only when this cover would actually paint a missing badge.
+        if self._show_missing_badge:
+            self.queue_draw()
 
     @classmethod
     def _get_badge_texture(cls, path: str) -> Gdk.Texture | None:
