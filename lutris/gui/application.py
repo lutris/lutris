@@ -401,7 +401,17 @@ class LutrisApplication(Gtk.Application):
         window_key = self.get_window_key(**kwargs)
         existing = self._find_window(window_class, window_key)
         if existing:
-            existing.present()
+            # On Wayland (Mutter), calling existing.present() synchronously
+            # from the event handler that triggered us often fails to
+            # activate the window — the dialog stays raised but doesn't
+            # take focus. Deferring via timeout_add(1) helps measurably:
+            # idle_add and timeout_add(0) don't, async-via-thread does.
+            # The popular hypothesis (xdg-activation token in flight on the
+            # Wayland socket; only timeout_add(1) yields to poll() to drain
+            # it) explains some of the data but not all — some entry points
+            # re-raise fine with no deferral at all. Whatever the exact
+            # cause, the 1ms deferral is a cheap improvement.
+            GLib.timeout_add(1, lambda: bool(existing.present()))
             if update_function:
                 update_function(existing)
             return existing
