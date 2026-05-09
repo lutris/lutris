@@ -316,9 +316,10 @@ Two patterns we use:
   cell rather than per-event, the cell connects to `realize` and
   `unrealize` to register / unregister a `NotificationSource`
   subscription. That keeps the notification source from holding strong
-  references to dead pool widgets. `GameCoverWidget` does this for
-  `MEDIA_CACHE_INVALIDATED` so an updated media file repaints in place
-  rather than waiting for a scroll-induced rebind.
+  references to dead pool widgets. `GameCoverWidget` does this for both
+  `MEDIA_CACHE_INVALIDATED` (texture reload) and `MISSING_GAMES.updated`
+  (missing-badge repaint), so updated media and changed install status
+  both repaint in place rather than waiting for a scroll-induced rebind.
 
 ## Class-level Image Caches and the Factory Pool
 
@@ -342,20 +343,6 @@ realize/unrealize registration described above; the badge dict is
 cleared directly from a module-level handler on the same notification.
 There is no longer a generation-number indirection or a two-generation
 old/new cycle.
-
-## Missing-Badge Refresh Delay (Unresolved)
-
-When `MISSING_GAMES.updated` fires (a game's installation status changes
-on disk), the missing-game badge does not appear or disappear in either
-view until the cell is rebound — typically by scrolling. The base view's
-`on_missing_games_updated` calls `queue_draw()` on the view itself, but
-per the per-widget snapshot caching described above that doesn't reach
-the factory children where the badge actually paints.
-
-The fix is the same shape as what we did for `MEDIA_CACHE_INVALIDATED`
-in `GameCoverWidget`: have each cover register a handler against
-`MISSING_GAMES.updated` on realize and call `queue_draw()` on itself.
-Not done yet.
 
 ## GridView Thumb-Drag Flicker (Unresolved)
 
