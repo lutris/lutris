@@ -251,6 +251,19 @@ The installer window previously called `set_urgency_hint(True)` when an install
 finished and cleared it on `focus-in-event`. Both signal and method are gone in
 GTK 4; the behavior is dropped rather than reimplemented.
 
+## Gdk.Keymap Removed
+
+`Gdk.Keymap` is gone in GTK 4 — there's no API to query the current modifier
+state outside of an active event. `lutris/gui/dialogs/delegates.py` previously
+used `Gdk.Keymap.get_default().get_modifier_state()` to detect a held Shift
+key when launching a game, forcing the launch-config picker to appear even
+when the user had a saved preferred config.
+
+The TODO at `delegates.py:211` marks the affordance as not implemented. To
+restore it, the caller would need to capture modifier state from the
+triggering event (gesture / key controller) and thread it down through
+`launch()`.
+
 ## Tracking Application Windows
 
 `Gtk.Application` already tracks its attached windows — iterate with
@@ -329,6 +342,20 @@ realize/unrealize registration described above; the badge dict is
 cleared directly from a module-level handler on the same notification.
 There is no longer a generation-number indirection or a two-generation
 old/new cycle.
+
+## Missing-Badge Refresh Delay (Unresolved)
+
+When `MISSING_GAMES.updated` fires (a game's installation status changes
+on disk), the missing-game badge does not appear or disappear in either
+view until the cell is rebound — typically by scrolling. The base view's
+`on_missing_games_updated` calls `queue_draw()` on the view itself, but
+per the per-widget snapshot caching described above that doesn't reach
+the factory children where the badge actually paints.
+
+The fix is the same shape as what we did for `MEDIA_CACHE_INVALIDATED`
+in `GameCoverWidget`: have each cover register a handler against
+`MISSING_GAMES.updated` on realize and call `queue_draw()` on itself.
+Not done yet.
 
 ## GridView Thumb-Drag Flicker (Unresolved)
 
