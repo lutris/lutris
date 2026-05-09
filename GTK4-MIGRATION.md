@@ -253,16 +253,25 @@ GTK 4; the behavior is dropped rather than reimplemented.
 
 ## Gdk.Keymap Removed
 
-`Gdk.Keymap` is gone in GTK 4 — there's no API to query the current modifier
-state outside of an active event. `lutris/gui/dialogs/delegates.py` previously
-used `Gdk.Keymap.get_default().get_modifier_state()` to detect a held Shift
-key when launching a game, forcing the launch-config picker to appear even
-when the user had a saved preferred config.
+`Gdk.Keymap` is gone in GTK 4 — there's no API to query *live* modifier
+state outside of an active event. `lutris/gui/dialogs/delegates.py`
+previously used `Gdk.Keymap.get_default().get_modifier_state()` to detect a
+held Shift key when launching a game, forcing the launch-config picker to
+appear even when the user had a saved preferred config.
 
-The TODO at `delegates.py:211` marks the affordance as not implemented. To
-restore it, the caller would need to capture modifier state from the
-triggering event (gesture / key controller) and thread it down through
-`launch()`.
+The closest GTK 4 equivalent is the modifier state attached to each input
+device, which reflects whatever modifiers were held at that device's most
+recent event:
+
+```python
+keyboard = Gdk.Display.get_default().get_default_seat().get_keyboard()
+shift_held = bool(keyboard.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK)
+```
+
+This is "best-effort" rather than truly live — if the user releases Shift
+between the click and the GAction handler firing, the state is stale —
+but the window between those events is small enough in practice that the
+shift-to-force-picker affordance still works as intended.
 
 ## Tracking Application Windows
 
