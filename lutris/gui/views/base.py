@@ -8,9 +8,8 @@ from lutris.game import GAME_START, GAME_STARTED, GAME_STOPPED, Game
 from lutris.game_actions import GameActions, get_game_actions
 from lutris.gui.widgets import EMPTY_NOTIFICATION_REGISTRATION
 from lutris.gui.widgets.contextual_menu import ContextualMenu
-from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED, get_application
+from lutris.gui.widgets.utils import get_application
 from lutris.util.log import logger
-from lutris.util.path_cache import MISSING_GAMES
 
 
 class GameView:
@@ -39,17 +38,16 @@ class GameView:
         self.game_store = None
         self.service = None
         self.service_media = None
-        self.cache_notification_registration = EMPTY_NOTIFICATION_REGISTRATION
-        self.missing_games_updated_registration = EMPTY_NOTIFICATION_REGISTRATION
         self.game_start_registration = EMPTY_NOTIFICATION_REGISTRATION
         self.game_started_registration = EMPTY_NOTIFICATION_REGISTRATION
         self.game_stopped_registration = EMPTY_NOTIFICATION_REGISTRATION
 
     def connect_signals(self):
-        """Signal handlers common to all views"""
-        self.cache_notification_registration = MEDIA_CACHE_INVALIDATED.register(self.on_media_cache_invalidated)
-        self.missing_games_updated_registration = MISSING_GAMES.updated.register(self.on_missing_games_updated)
+        """Signal handlers common to all views.
 
+        Cell-level concerns (MEDIA_CACHE_INVALIDATED, MISSING_GAMES.updated)
+        are registered per-cover in GameCoverWidget — a view-level
+        queue_draw doesn't reach factory children's snapshots in GTK 4."""
         click_gesture = Gtk.GestureClick(button=Gdk.BUTTON_SECONDARY)
         click_gesture.connect("pressed", self.popup_contextual_menu)
         self.add_controller(click_gesture)
@@ -67,21 +65,12 @@ class GameView:
         self.service = game_store.service
         self.service_media = game_store.service_media
 
-    def on_media_cache_invalidated(self):
-        self.queue_draw()
-
-    def on_missing_games_updated(self):
-        if self.show_badges:
-            self.queue_draw()
-
     def disconnect_notifications(self) -> None:
         """Unregister the NotificationSource subscriptions this view holds.
 
         Must be called before unparenting the view — otherwise the registrations
         keep the view alive and its callbacks continue firing on a detached widget.
         """
-        self.cache_notification_registration.unregister()
-        self.missing_games_updated_registration.unregister()
         self.game_start_registration.unregister()
         self.game_started_registration.unregister()
         self.game_stopped_registration.unregister()
