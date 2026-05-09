@@ -2,7 +2,7 @@ from collections.abc import Callable
 from gettext import gettext as _
 from typing import TYPE_CHECKING, cast
 
-from gi.repository import Gtk  # type: ignore
+from gi.repository import Gdk, Gtk
 
 from lutris.exceptions import UnavailableRunnerError
 from lutris.game import Game
@@ -240,8 +240,15 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
             game_config.pop("preferred_launch_config_name", None)
             config.save()
 
-        # TODO: Gdk.Keymap removed in GTK4; shift-to-force-selection not available for now
-        config_index = get_preferred_config_index()
+        # GTK 4 removed Gdk.Keymap; query the seat's keyboard for its
+        # most-recent modifier state instead. Reflects whatever modifiers
+        # were held at the last input event, which for a click on Play is
+        # the click itself — so holding Shift while clicking still forces
+        # the launch-config picker.
+        if _shift_held():
+            config_index = None
+        else:
+            config_index = get_preferred_config_index()
 
         if config_index is None:
             dlg = dialogs.LaunchConfigSelectDialog(
@@ -257,3 +264,20 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
                 reset_preferred_config()
 
         return configs[config_index - 1] if config_index > 0 else {}
+
+
+def _shift_held() -> bool:
+    """Best-effort check for "is Shift currently held?" via the default
+    seat's keyboard, which carries the modifier state from its most recent
+    event. There is no API in GTK 4 that queries live modifier state
+    outside an active event, so this is the GTK 3 Gdk.Keymap shim."""
+    display = Gdk.Display.get_default()
+    if not display:
+        return False
+    seat = display.get_default_seat()
+    if not seat:
+        return False
+    keyboard = seat.get_keyboard()
+    if not keyboard:
+        return False
+    return bool(keyboard.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK)
