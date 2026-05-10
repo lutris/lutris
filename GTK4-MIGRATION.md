@@ -393,95 +393,66 @@ cleared directly from a module-level handler on the same notification.
 There is no longer a generation-number indirection or a two-generation
 old/new cycle.
 
-## GridView Thumb-Drag Flicker (Unresolved)
+## GridView Thumb-Drag Flicker
 
-**Symptom**: In the games grid, holding the scrollbar thumb still — not moving
-the mouse, just keeping the button held — causes a visible flicker at the
-viewport edges, with one row of cells redrawing at ~15–22 Hz. Releasing the
-mouse settles it. Observed on KDE/Wayland with fractional scaling.
+**Symptom (now fixed)**: in the games grid, holding the scrollbar thumb
+still — not moving the mouse, just keeping the button held — used to
+cause a visible flicker at the viewport edges, with one row of cells
+redrawing at ~15–22 Hz. The fix: pin each cell's height with a
+`set_size_request` value that *exactly equals* the label's measured
+2-line natural height, so the cell box's reported `min` and `natural`
+heights are equal.
 
-**Investigation findings**:
+**The trap that took a while to find**: a 2-line label's measured
+natural height isn't quite `2 × font_metrics.get_height()` — Gtk.Label
+adds a couple of extra pixels (line padding or similar) that the font
+metric API doesn't report. Pinning the label's `set_size_request` to
+the underestimated value left a 2-pixel gap between the cell box's min
+and natural heights. That gap (within otherwise-stable cells) was
+enough to kick `Gtk.GridView` into a remeasure storm: ~1000 cell
+measurements per second instead of the ~250/s we get when min == nat,
+which manifested as the flicker.
 
-- The vertical adjustment's `value` oscillates by ±10–14 units at ~100 Hz
-  while the thumb is held. At the scrollbar track's ~21 units/pixel, that's
-  sub-pixel mouse jitter getting amplified into ~14 pixels of viewport shift
-  — plenty to push cells across visibility thresholds.
-- During the flicker, `GridView` emits 1 500–1 700 `bind`/`unbind` factory
-  calls per second, with the bound-position set spanning the *entire* model
-  range (0 to 274 for a 275-game library), not just the viewport-adjacent
-  cells. That looks like a full layout invalidation cycle, not a scroll-shift
-  rebinding.
-- The adjustment's `upper` (content height) also oscillated by 2–6 pixels
-  until overlay scrolling was disabled. Remaining oscillation may be
-  fractional-scaling rounding on KDE/Wayland.
-- Only five cells (one row) snapshot 15× per second during the flicker, which
-  is what the eye sees.
+The reliable way to compute the right value turned out to be: give a
+fresh label two lines of text, ask `label.measure(VERTICAL, -1)` for
+its natural size, and use that. See `_label_two_line_height` in
+[grid.py](lutris/gui/views/grid.py).
 
-**What measurably reduced frequency** (changes were subsequently reverted
-pending a real fix — record here so the next attempt starts informed):
+**Dead ends (worth recording so we don't redo them)**:
 
-- `Gtk.ScrolledWindow.set_overlay_scrolling(False)` — stabilised `upper`.
-- `Gtk.ScrolledWindow.set_kinetic_scrolling(False)` — removed momentum
-  feedback.
-- Pinning the per-cell `Gtk.Box` to a fixed height via `set_size_request` in
-  the factory's `setup` — broke a feedback loop where labels with short
-  names measured at 1 line and long names at 2, so row height depended on
-  which cells GridView happened to sample, which depended on scroll
-  position. Pinning the box breaks that loop.
-- `GridView.set_focusable(False) / set_can_focus(False)` — defensive; no
-  direct evidence it helped.
-
-Together these reduced flicker from "constant while dragging" to "rare and
-hard to reproduce", but did not eliminate it.
-
-**What didn't help**:
-
-- `GTK_OVERLAY_SCROLLING=0` env var — ignored; overlay scrolling must be
-  disabled programmatically on each `Gtk.ScrolledWindow`.
-- Snapping `vadjustment.value` to multiples of 16 units in a
+- `GTK_OVERLAY_SCROLLING=0` env var — ignored by GTK 4; overlay
+  scrolling must be turned off programmatically on each
+  `Gtk.ScrolledWindow`.
+- Snapping `vadjustment.value` to multiples of N units in a
   `value-changed` handler. Our handler is attached after GridView's
-  internal handler, so GridView reads and reacts to the raw value first,
-  then the snap sets a new value and re-emits — GridView sees *both*
-  values and queues two layouts. Adds churn, not reduces.
-- Removing diagnostic logging from the factory `bind`/`unbind` callbacks
-  and the `do_snapshot` of `GameCoverWidget`: while those probes were
-  attached, flicker was rare; after removal it became easy again. That
-  strongly implies the per-event work on the Python side was nudging GTK's
-  event timing enough to coalesce updates — not a principled fix, but a
-  data point about how close we are to a rate where GridView keeps up.
+  internal handler, so GridView reads and reacts to the raw value
+  before our snap fires — then we set a new value and re-emit, and
+  GridView sees *both*. Net result is more churn, not less.
+- Computing two-line height from `font_metrics.get_height() * 2` or
+  `(ascent + descent) * 2` — both come up a couple of pixels short of
+  what Gtk.Label actually reports.
 
-**Theories for the root cause**:
+**Relevant files**: [grid.py](lutris/gui/views/grid.py).
 
-- `Gtk.GridView` invalidates and re-binds across its whole widget pool in
-  response to small `vadjustment` changes (or internal layout passes
-  triggered by them), rather than rebinding only cells that cross the
-  viewport boundary. The bind-position range covering the full model
-  during the flicker is consistent with this.
-- Fractional scaling + sub-pixel mouse motion produces sub-pixel changes
-  that round differently across frames, forcing relayout even when the
-  logical viewport shouldn't have moved.
-- There is no hook to debounce `vadjustment.value-changed` *before*
-  GridView's internal handler, because that handler is connected from C
-  at construction, ahead of anything we can connect from Python.
+## Gtk.Box border-spacing surprise
 
-**Possible next steps**:
+`Gtk.Box`'s default GTK 4 theme (`Default-light.css` / `Default-dark.css`)
+sets `border-spacing: 8px 8px`, and `Gtk.BoxLayout` *adds* that to
+whatever you set via `box.set_spacing(n)`. So a box constructed with
+`spacing=2` actually renders with a 10-pixel gap between children, and
+`box.get_spacing()` still cheerfully returns 2.
 
-- Subclass or wrap `Gtk.ScrolledWindow` and replace the `vadjustment` with
-  one that coalesces rapid changes into a single `value-changed` dispatch
-  per tick. The trick is keeping the scrollbar thumb responsive — the
-  coalesced value has to be visible to the scrollbar's own handler
-  immediately, just not to GridView.
-- Hook into the scrollbar's drag gesture directly (`Gtk.Scrollbar`'s
-  internal gesture is not public, so this likely requires a custom
-  scrollbar) and round the resulting value to row-aligned steps during
-  the drag.
-- File upstream against `Gtk.GridView` with a reduced reproducer; the
-  full-model rebind on sub-row adjustments looks like a bug independent
-  of our code.
+In the games grid this showed up as an ~8-pixel gap between each cover
+and its caption that didn't correspond to any margin, padding, or
+spacing visible in the code. The flicker fix wasn't affected — the box's
+`min` still equalled its `natural` because both got floor-clamped up to
+the children's actual intrinsic layout — but the cell box was 8px
+taller than the cell_height we computed and asked for.
 
-**Relevant files**: `lutris/gui/views/grid.py`, `lutris/gui/lutriswindow.py`
-(ScrolledWindow construction), `lutris/gui/widgets/game_cover.py`
-(per-cell snapshot cost).
+Fix: zero `border-spacing` on the grid cell box in
+[lutris.css](share/lutris/ui/lutris.css) so only `box.set_spacing()`
+contributes, and the computed `cell_height` matches what GTK actually
+renders.
 
 ## Changes Made
 
