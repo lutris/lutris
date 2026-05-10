@@ -42,19 +42,49 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
         self._rebind_model(game_store)
         # Cell dimensions come from the current service_media, so every bound
         # cover widget needs to track it on zoom changes; the enclosing box
-        # also needs its min-width floor updated for the new cover size.
+        # also gets its size pinned to a fixed (width, height) so GridView's
+        # row measurement stays consistent regardless of which captions
+        # happen to be sampled.
         size = game_store.service_media.size
         cell_width = self._cell_width(size[0])
         for cover in self._bound_covers:
             cover.set_expected_size(size[0], size[1])
             box = cover.get_parent()
-            if box is not None:
-                box.set_size_request(cell_width, -1)
+            if box is None:
+                continue
+            label = cover.get_next_sibling()
+            cell_height = size[1]
+            if isinstance(label, Gtk.Label):
+                two_line_height = self._label_two_line_height(label)
+                label.set_size_request(-1, two_line_height)
+                cell_height += box.get_spacing() + two_line_height
+            box.set_size_request(cell_width, cell_height)
 
     def _cell_width(self, media_width: int) -> int:
         if self.hide_text:
             return media_width
         return max(media_width, self.MIN_CELL_WIDTH)
+
+    @staticmethod
+    def _label_two_line_height(label: Gtk.Label) -> int:
+        """Pixel height for two lines of this label's font as the label
+        itself would actually report it. We need this to match the
+        label's own natural-height measurement *exactly* — any
+        underestimate leaves a min/nat gap on the cell box, which kicks
+        GridView into a high-frequency remeasure loop that manifests as
+        flicker on scrollbar drag.
+
+        Computing from Pango font metrics (ascent+descent or get_height)
+        comes out a few pixels short of what Gtk.Label.measure()
+        actually returns, presumably because the label/Pango layout
+        adds line padding we don't account for. Easier to just give the
+        label two lines of text, ask it for its natural vertical size,
+        and use that."""
+        saved = label.get_label()
+        label.set_label("M\nM")
+        _, natural, _, _ = label.measure(Gtk.Orientation.VERTICAL, -1)
+        label.set_label(saved)
+        return natural
 
     def _rebind_model(self, game_store) -> None:
         self.sort_model = Gtk.SortListModel.new(game_store.list_store, None)
@@ -74,9 +104,10 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
             cover.set_halign(Gtk.Align.CENTER)
             size = self.game_store.service_media.size
             cover.set_expected_size(size[0], size[1])
-            box.set_size_request(self._cell_width(size[0]), -1)
             box.append(cover)
 
+            cell_width = self._cell_width(size[0])
+            cell_height = size[1]
             if not self.hide_text:
                 label = Gtk.Label(xalign=0.5, yalign=0, use_markup=True)
                 label.set_ellipsize(Pango.EllipsizeMode.END)
@@ -86,7 +117,16 @@ class GameGridView(Gtk.GridView, GameView):  # type:ignore[misc]
                 label.set_justify(Gtk.Justification.CENTER)
                 label.set_max_width_chars(1)
                 label.set_hexpand(True)
+                # Pin the label to a 2-line area: short titles render in
+                # line 1 with line 2 left empty, long titles wrap. Pinning
+                # to the label's own measured 2-line natural keeps min and
+                # natural equal — see _label_two_line_height for why that
+                # matters.
+                two_line_height = self._label_two_line_height(label)
+                label.set_size_request(-1, two_line_height)
                 box.append(label)
+                cell_height += box.get_spacing() + two_line_height
+            box.set_size_request(cell_width, cell_height)
 
             list_item.set_child(box)
 
