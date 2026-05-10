@@ -114,6 +114,10 @@ popover button.popover-menu-button {
   margin: 0;
   min-width: 0;
   min-height: 0;
+  /* GTK 4's default theme sets `border-spacing: 8px 8px` on Gtk.Box, which
+     gets added on top of our explicit set_spacing(2). Zero it so only our
+     2px spacing applies between the cover and the label. */
+  border-spacing: 0;
 }
 
 @keyframes lutris-launch-bounce {
