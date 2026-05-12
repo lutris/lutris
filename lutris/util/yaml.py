@@ -1,6 +1,7 @@
 """Utility functions for YAML handling"""
 
 import os
+import tempfile
 from typing import Any
 
 import yaml
@@ -27,11 +28,11 @@ def read_yaml_from_file(filename: str) -> dict[str, Any]:
 def write_yaml_to_file(config: dict[str, Any], filepath: str) -> None:
     yaml_config = yaml.safe_dump(config, default_flow_style=False)
 
-    temp_path = filepath + ".tmp"
+    fd, temp_path = tempfile.mkstemp(dir=os.path.dirname(filepath), suffix=".tmp")
     try:
-        with open(temp_path, "w", encoding="utf-8") as filehandler:
-            filehandler.write(yaml_config)
-        os.rename(temp_path, filepath)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(yaml_config)
+        os.replace(temp_path, filepath)
     finally:
         if os.path.isfile(temp_path):
             os.unlink(temp_path)
