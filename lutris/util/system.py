@@ -476,10 +476,14 @@ def is_removeable(path: str, system_config: dict[str, str]) -> bool:
 
     if parts[0] == "var":
         # Fedora Silverblue puts mount points under /var since they are mutable
-        # so we'll special case /var/mnt/<drive>/*.
+        # so we'll special case /var/mnt/<drive>/* and /var/media/<drive>/*,
+        # and /var/home/<user>/* (since /home is a symlink to /var/home).
         if len(parts) > 3 and parts[1] in ("mnt", "media"):
             return True
-        return False
+        if len(parts) > 1 and parts[1] == "home":
+            parts = parts[1:]
+        else:
+            return False
 
     if parts[0] in ("usr", "lib", "etc", "boot", "sbin", "bin"):
         # Path is part of the system folders
