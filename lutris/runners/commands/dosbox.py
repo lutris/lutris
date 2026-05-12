@@ -47,4 +47,5 @@ def makeconfig(path, drives, commands):
         for drive in drives:
             config_file.write('mount {} "{}"\n'.format(drive, drives[drive]))
         for command in commands:
-            config_file.write("{}\n".format(command))
+            sanitized = command.replace('\n', ' ')
+            config_file.write("{}\n".format(sanitized))
