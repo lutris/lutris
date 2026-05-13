@@ -1309,6 +1309,19 @@ class wine(Runner):
             env["PROTON_DXVK_D3D8"] = "1" if using_dxvk else "0"
 
         if (
+            using_dxvk
+            and is_proton_version
+            and "PROTON_DXVK_SAREK" not in env
+            and not os.environ.get("LUTRIS_NO_VKQUERY")
+        ):
+            lib_api_version = vkquery.get_vulkan_api_version()
+            devices = vkquery.get_device_info()
+            if (lib_api_version and lib_api_version < REQUIRED_VULKAN_API_VERSION) or (
+                devices and devices[0].api_version < REQUIRED_VULKAN_API_VERSION
+            ):
+                env["PROTON_DXVK_SAREK"] = "1"
+
+        if (
             self.runner_config.get("Graphics") == "wayland"
             and is_winewayland_available(wine_config_version)
             and is_proton_version
