@@ -282,10 +282,51 @@ class GOGService(OnlineService):
     def get_game_dlcs(self, product_id: str) -> list[dict]:
         """Return the list of DLC products for a game"""
         game_details = self.get_game_details(product_id)
+        unified_json = []
         if not game_details["dlcs"]:
             return []
+
+        ### FIXME: URL doesn't work with more than 50 product id's
         all_products_url = game_details["dlcs"]["expanded_all_products_url"]
-        return self.make_api_request(all_products_url)
+
+        # If ids greater than 50 split request
+        if game_details["dlcs"]["products"].size() > 50:
+            # Get url prefix and suffix, excluding product ids list
+            all_products_url_prefix = all_products_url[: (all_products_url.find("ids=") + 4)]
+            all_products_url_suffix = all_products_url[(all_products_url.find("\u0026")): -1]
+            # Get product ids only form json
+            product_ids = []
+            for product in game_details["dlcs"]["products"]:
+                product_ids.append(product["id"])
+            # Call make_api_request for each array
+            num_requests = len(product_ids) / 50
+            for i in range(int(num_requests + 1)):
+                try:
+                    start_index = 50 * i
+                    # Check if start index is out of bounds
+                    if start_index >= len(product_ids):
+                        break
+                    # Check if end index is out of bounds
+                    if start_index + 49 >= len(product_ids):
+                        end_index = -1
+                    else:
+                        end_index = start_index + 49
+                    # Build string of product ids
+                    product_ids_string = ",".join(product_ids[start_index: end_index])
+                    # Get JSONs from make_api_request
+                    request_json = self.make_api_request(all_products_url_prefix + product_ids_string + all_products_url_suffix)
+                    # Append all JSON objects into one
+                    for object in request_json:
+                        unified_json.append(object)
+                except:
+                    logger.info("Game details request index out of range.")
+                    break
+        else:
+            # Default logic
+            unified_json = self.make_api_request(all_products_url)
+
+        # Return uinified JSON object
+        return unified_json
 
     def get_game_details(self, product_id: str) -> dict:
         """Return game information for a given game"""
