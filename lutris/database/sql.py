@@ -25,7 +25,12 @@ class db_cursor(object):
         cursor = self.db_conn.cursor()
         return cursor
 
-    def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: TracebackType | None) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         try:
             if exc_type is None:
                 self.db_conn.commit()
