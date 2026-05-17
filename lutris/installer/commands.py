@@ -9,7 +9,7 @@ import shutil
 from gettext import gettext as _
 from pathlib import Path
 
-from lutris import runtime, settings
+from lutris import runtime
 from lutris.cache import is_file_in_custom_cache
 from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError
 from lutris.installer.errors import ScriptingError
@@ -20,7 +20,7 @@ from lutris.runners.wine import wine
 from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.gog import apply_gog_config
-from lutris.util.gogdl import run_gogdl
+from lutris.util.gogdl import clear_stale_manifest, run_gogdl
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_default_wine_version, get_wine_path_for_version
@@ -753,6 +753,10 @@ class CommandsMixin:
             platform: "windows" or "linux" (default: based on runner)
             lang: language code (default: system locale)
             dlcs: "all", "none", or comma-separated DLC IDs (optional)
+            preserve_manifest: True to keep an existing gogdl manifest (use when
+                adding DLCs to an installed base game, so gogdl diffs old→new
+                and only downloads the DLC files instead of treating the base
+                as missing)
             command: "download" | "update" | "repair" (default: "download")
         """
         self._check_required_params("game_id", data, "gogdl_setup")
@@ -762,6 +766,7 @@ class CommandsMixin:
         platform = data.get("platform")
         lang = data.get("lang")
         dlcs_param = data.get("dlcs")
+        preserve_manifest = bool(data.get("preserve_manifest"))
 
         if not platform:
             platform = "linux" if self.installer.runner == "linux" else "windows"
@@ -785,11 +790,8 @@ class CommandsMixin:
 
         # Clear stale manifest for fresh downloads so gogdl doesn't
         # think the game is already installed from a previous attempt.
-        if command == "download":
-            manifest_path = os.path.join(settings.CACHE_DIR, "gogdl", "heroic_gogdl", "manifests", game_id)
-            if os.path.exists(manifest_path):
-                os.remove(manifest_path)
-                logger.debug("Cleared stale gogdl manifest for %s", game_id)
+        if command == "download" and not preserve_manifest:
+            clear_stale_manifest(game_id, install_path, runner="linux" if platform == "linux" else "wine")
 
         msg = _("Downloading via GOG depot...")
         logger.info(msg)
@@ -823,9 +825,10 @@ class CommandsMixin:
         self.interpreter_ui_delegate.report_progress(None)
 
         # Post-install: find where gogdl actually put the files and apply config.
-        # For "download", gogdl appends installDirectory to the path, so we
-        # need to discover the actual game directory.
-        if command == "download":
+        # For a fresh "download", gogdl appends installDirectory to the path, so we
+        # need to discover the actual game directory. For updates and DLC adds
+        # against an existing install, we wrote into the install dir directly.
+        if command == "download" and not preserve_manifest:
             game_path = self._find_gogdl_game_path(install_path)
         else:
             game_path = install_path
@@ -849,13 +852,18 @@ class CommandsMixin:
         return parent_path
 
     def _find_gog_config_path(self, install_path):
-        """Find the directory containing goggame-*.info, searching subdirectories.
+        """Find the directory containing goggame-*.info.
 
-        Linux GOG games nest the info file under a 'game/' subdirectory,
-        while Windows games place it directly in the install path."""
-        matches = glob.glob(os.path.join(install_path, "**/goggame-*.info"), recursive=True)
-        if matches:
-            return os.path.dirname(matches[0])
+        Windows GOG games place the info file directly in the install path;
+        Linux GOG games nest it under a 'game/' subdirectory. We only check
+        those two locations rather than walking the tree recursively, which
+        would risk following symlink cycles inside any Wine prefix that
+        happens to live under the install dir."""
+        for candidate in (install_path, os.path.join(install_path, "game")):
+            if os.path.isdir(candidate) and any(
+                f.startswith("goggame-") and f.endswith(".info") for f in os.listdir(candidate)
+            ):
+                return candidate
         return install_path
 
     def _apply_gogdl_post_install(self, install_path, platform):
