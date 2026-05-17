@@ -138,7 +138,9 @@ def _build_command(command, game_id, path, platform="windows", lang=None, dlcs=N
     elif dlcs is False:
         cmd.append("--skip-dlcs")
     elif isinstance(dlcs, str) and dlcs:
-        cmd.extend(["--dlcs", dlcs])
+        # `--dlcs <ids>` only filters which DLCs to include; gogdl still gates
+        # on `--with-dlcs` before consulting ownership, so both must be passed.
+        cmd.extend(["--with-dlcs", "--dlcs", dlcs])
 
     return cmd
 
@@ -218,15 +220,20 @@ def run_gogdl(command, game_id, path, platform="windows", lang=None, dlcs=None, 
             line = line.rstrip()
             if not line:
                 continue
-            logger.debug("[gogdl] %s", line)
+            logger.debug("[gogdl stderr] %s", line)
             if progress.parse_line(line) and progress_callback:
                 progress_callback(progress)
             if "ERROR" in line:
                 error_lines.append(line)
 
     def read_stdout():
-        for _line in process.stdout:
-            pass
+        for line in process.stdout:
+            line = line.rstrip()
+            if not line:
+                continue
+            logger.debug("[gogdl stdout] %s", line)
+            if progress.parse_line(line) and progress_callback:
+                progress_callback(progress)
 
     stderr_thread = threading.Thread(target=read_stderr, daemon=True)
     stdout_thread = threading.Thread(target=read_stdout, daemon=True)
@@ -248,7 +255,44 @@ def run_gogdl(command, game_id, path, platform="windows", lang=None, dlcs=None, 
         raise RuntimeError(error_msg)
 
 
-def is_depot_installed(game_id):
-    """Check if a game was installed via gogdl depot by looking for its manifest."""
-    config_path = os.path.join(settings.CACHE_DIR, "gogdl", "heroic_gogdl", "manifests", str(game_id))
-    return os.path.exists(config_path)
+LINUX_MANIFEST_FILENAME = ".gogdl-linux-manifest"
+
+
+def _find_manifest(game_id, install_dir, runner):
+    """Return the on-disk path to the gogdl manifest for this install, or None.
+
+    The Linux native download manager writes `.gogdl-linux-manifest` inside
+    the install directory (nested one level under an installDirectory
+    subfolder named after the game's display name), while the v2 (Windows)
+    manager writes to a shared cache dir keyed by game id alone."""
+    if runner == "linux":
+        if not install_dir or not os.path.isdir(install_dir):
+            return None
+        direct = os.path.join(install_dir, LINUX_MANIFEST_FILENAME)
+        if os.path.exists(direct):
+            return direct
+        for entry in os.listdir(install_dir):
+            candidate = os.path.join(install_dir, entry, LINUX_MANIFEST_FILENAME)
+            if os.path.exists(candidate):
+                return candidate
+        return None
+    win_manifest = os.path.join(settings.CACHE_DIR, "gogdl", "heroic_gogdl", "manifests", str(game_id))
+    return win_manifest if os.path.exists(win_manifest) else None
+
+
+def is_depot_installed(game_id, install_dir, runner):
+    """Check if a game was installed via gogdl depot. Both install_dir and
+    runner are required: Linux native installs can only be detected from the
+    install directory, while Windows installs are tracked by game id."""
+    return _find_manifest(game_id, install_dir, runner) is not None
+
+
+def clear_stale_manifest(game_id, install_dir, runner):
+    """Remove any gogdl manifest associated with this install.
+
+    Used before a fresh `download` to ensure gogdl doesn't skip work because
+    a previous interrupted install left a manifest behind."""
+    manifest = _find_manifest(game_id, install_dir, runner)
+    if manifest:
+        os.remove(manifest)
+        logger.debug("Cleared stale gogdl manifest at %s", manifest)

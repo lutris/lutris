@@ -691,10 +691,20 @@ class GOGService(OnlineService):
         """Return all available DLC installers for game"""
         appid = db_game["service_id"]
         runner_name = db_game.get("runner")
+        install_dir = db_game.get("directory")
 
         filter_os = self.runner_to_os_dict.get(runner_name) if runner_name else None
 
         dlcs = self.get_game_dlcs(appid)
+
+        # For depot-installed games, delegate DLC installation to gogdl.
+        # The offline-installer path below assumes the base game's goginstaller
+        # files exist and registry state was set up by the offline installer,
+        # neither of which is true for depot installs.
+        from lutris.util.gogdl import is_depot_installed
+
+        if is_depot_installed(appid, install_dir=install_dir, runner=runner_name):
+            return self._get_depot_dlc_installers(db_game, dlcs, runner_name)
 
         installers = []
 
@@ -744,6 +754,44 @@ class GOGService(OnlineService):
 
         return installers
 
+    def _get_depot_dlc_installers(self, db_game: dict, dlcs: list[dict], runner_name: str | None) -> list[dict]:
+        """Generate depot-based DLC installers that delegate to gogdl.
+        gogdl operates on the base game's manifest and pulls in just the
+        requested DLC's files into the existing install directory."""
+        appid = db_game["service_id"]
+        runner = runner_name or "wine"
+        platform = "linux" if runner == "linux" else "windows"
+        installers = []
+        for dlc in dlcs:
+            installers.append(
+                {
+                    "name": db_game["name"],
+                    "version": f"{dlc['title']} (depot)",
+                    "slug": dlc["slug"],
+                    "description": _("DLC for %s (via GOG depot)") % db_game["name"],
+                    "game_slug": self.get_installed_slug(db_game),
+                    "runner": runner,
+                    "is_dlc": True,
+                    "dlcid": dlc["id"],
+                    "gogid": dlc["id"],
+                    "script": {
+                        "extends": db_game["installer_slug"],
+                        "installer": [
+                            {
+                                "gogdl_setup": {
+                                    "game_id": appid,
+                                    "platform": platform,
+                                    "command": "download",
+                                    "dlcs": str(dlc["id"]),
+                                    "preserve_manifest": True,
+                                }
+                            },
+                        ],
+                    },
+                }
+            )
+        return installers
+
     def get_dlc_installers_owned(self, db_game: dict) -> list[dict]:
         """Return DLC installers for owned DLC"""
 
@@ -773,11 +821,12 @@ class GOGService(OnlineService):
     def get_update_installers(self, db_game: dict) -> list[dict]:
         appid = db_game["service_id"]
         runner = db_game.get("runner")
+        install_dir = db_game.get("directory")
 
         # For depot-installed games, generate a depot update installer
         from lutris.util.gogdl import is_depot_installed
 
-        if is_depot_installed(appid):
+        if is_depot_installed(appid, install_dir=install_dir, runner=runner):
             platform = "linux" if runner == "linux" else "windows"
             return [
                 {
