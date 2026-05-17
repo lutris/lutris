@@ -19,7 +19,7 @@ from lutris.runners import InvalidRunnerError, import_runner, import_task
 from lutris.runners.wine import wine
 from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
-from lutris.util.gog import apply_gog_config
+from lutris.util.gog import apply_gog_config, find_gog_config_dir
 from lutris.util.gogdl import clear_stale_manifest, run_gogdl
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
@@ -851,26 +851,11 @@ class CommandsMixin:
                 return candidate
         return parent_path
 
-    def _find_gog_config_path(self, install_path):
-        """Find the directory containing goggame-*.info.
-
-        Windows GOG games place the info file directly in the install path;
-        Linux GOG games nest it under a 'game/' subdirectory. We only check
-        those two locations rather than walking the tree recursively, which
-        would risk following symlink cycles inside any Wine prefix that
-        happens to live under the install dir."""
-        for candidate in (install_path, os.path.join(install_path, "game")):
-            if os.path.isdir(candidate) and any(
-                f.startswith("goggame-") and f.endswith(".info") for f in os.listdir(candidate)
-            ):
-                return candidate
-        return install_path
-
     def _apply_gogdl_post_install(self, install_path, platform):
         """Detect game configuration from goggame-*.info after a depot download."""
         from lutris.util.gog import convert_gog_config_to_lutris, get_gog_config
 
-        config_path = self._find_gog_config_path(install_path)
+        config_path = find_gog_config_dir(install_path)
         if not config_path:
             return
 

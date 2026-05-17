@@ -828,6 +828,20 @@ class GOGService(OnlineService):
 
         if is_depot_installed(appid, install_dir=install_dir, runner=runner):
             platform = "linux" if runner == "linux" else "windows"
+            # Include currently-installed DLCs so they get updated alongside
+            # the base game. Without this gogdl only refreshes base files;
+            # passing "all" would surprise the user by installing every DLC
+            # they own but hadn't chosen to install.
+            from lutris.util.gog import find_installed_product_ids
+
+            installed_dlc_ids = find_installed_product_ids(install_dir) - {str(appid)}
+            gogdl_setup = {
+                "game_id": appid,
+                "platform": platform,
+                "command": "update",
+            }
+            if installed_dlc_ids:
+                gogdl_setup["dlcs"] = ",".join(sorted(installed_dlc_ids))
             return [
                 {
                     "name": db_game["name"],
@@ -838,15 +852,7 @@ class GOGService(OnlineService):
                     "runner": runner or "wine",
                     "script": {
                         "extends": db_game["installer_slug"],
-                        "installer": [
-                            {
-                                "gogdl_setup": {
-                                    "game_id": appid,
-                                    "platform": platform,
-                                    "command": "update",
-                                }
-                            },
-                        ],
+                        "installer": [{"gogdl_setup": gogdl_setup}],
                     },
                 }
             ]
