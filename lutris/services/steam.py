@@ -96,6 +96,57 @@ class SteamService(BaseService):
         steam_games = get_steam_library(steamid)
         if not steam_games:
             raise RuntimeError(_("Failed to load games. Check that your profile is set to public during the sync."))
+
+        # The Steam Web API omits free-to-play games that haven't been played.
+        # Supplement the library list from local Steam data.
+        api_appids = {str(game["appid"]) for game in steam_games}
+
+        # Build a name lookup from appmanifests for installed games
+        manifest_names: dict[str, str] = {}
+        for steamapps_path in self.steamapps_paths:
+            for appmanifest_file in get_appmanifests(steamapps_path):
+                try:
+                    app_manifest = AppManifest(os.path.join(steamapps_path, appmanifest_file))
+                    appid = str(app_manifest.steamid)
+                    if app_manifest.name:
+                        manifest_names[appid] = app_manifest.name
+                except Exception as ex:
+                    logger.error("Failed to read app manifest %s: %s", appmanifest_file, ex)
+
+        # Also read localconfig.vdf which lists all owned games (including uninstalled)
+        from lutris.util.steam.config import convert_steamid64_to_steamid32, get_steam_dir
+        from lutris.util.steam.vdfutils import vdf_parse
+
+        steam_dir = get_steam_dir()
+        steamid32 = convert_steamid64_to_steamid32(steamid)
+        if steam_dir and steamid32:
+            localconfig_path = os.path.join(steam_dir, "userdata", steamid32, "config", "localconfig.vdf")
+            if os.path.exists(localconfig_path):
+                try:
+                    with open(localconfig_path, "r", encoding="utf-8") as f:
+                        localconfig = vdf_parse(f, {})
+                    local_apps = (
+                        localconfig.get("UserLocalConfigStore", {})
+                        .get("Software", {})
+                        .get("Valve", {})
+                        .get("Steam", {})
+                        .get("apps", {})
+                    )
+                    for appid in local_apps:
+                        if appid not in api_appids and appid not in self.excluded_appids:
+                            name = manifest_names.get(appid, appid)
+                            steam_games.append(
+                                {
+                                    "appid": int(appid),
+                                    "name": name,
+                                    "playtime_forever": 0,
+                                }
+                            )
+                            api_appids.add(appid)
+                            logger.debug("Added local-only Steam game: %s (%s)", name, appid)
+                except Exception as ex:
+                    logger.error("Failed to read localconfig.vdf: %s", ex)
+
         for steam_game in steam_games:
             if steam_game["appid"] in self.excluded_appids:
                 continue
