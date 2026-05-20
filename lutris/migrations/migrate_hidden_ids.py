@@ -2,6 +2,7 @@
 
 from lutris import settings
 from lutris.game import Game
+from lutris.util.log import logger
 
 
 def get_hidden_ids():
@@ -15,8 +16,8 @@ def migrate():
     """Run migration"""
     try:
         game_ids = get_hidden_ids()
-    except Exception:
-        print("Failed to read hidden game IDs")
+    except Exception as ex:
+        logger.exception("Failed to read hidden game IDs: %s", ex)
         return []
     for game_id in game_ids:
         game = Game(game_id)

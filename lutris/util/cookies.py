@@ -71,7 +71,5 @@ class WebkitCookieJar(MozillaCookieJar):
                     continue
                 self.set_cookie(c)
 
-        except OSError:
-            raise
         except Exception as err:
             raise OSError("invalid Netscape format cookies file %r: %r" % (filename, line)) from err

@@ -54,7 +54,7 @@ def cursor_execute(cursor: sqlite3.Cursor, query: str, params: DBParams | None =
 
 
 def db_insert(db_path: str, table: str, fields: DBUpdateDict) -> int:
-    columns = ", ".join(list(fields.keys()))
+    columns = ", ".join(fields.keys())
     placeholders = ("?, " * len(fields))[:-2]
     field_values = tuple(fields.values())
     with db_cursor(db_path) as cursor:
@@ -71,7 +71,7 @@ def db_update(db_path: str, table: str, updated_fields: DBUpdateDict, conditions
     """Update `table` with the values given in the dict `values` on the
     condition given with the `row` tuple.
     """
-    columns = "=?, ".join(list(updated_fields.keys())) + "=?"
+    columns = "=?, ".join(updated_fields.keys()) + "=?"
     field_values = tuple(updated_fields.values())
 
     condition_field = " AND ".join(["%s=?" % field for field in conditions])

@@ -426,7 +426,7 @@ def _binary_dump_gen(obj: dict[str, Any], level: int = 0, alt_format: bool = Fal
             try:
                 value = value.encode("utf-8") + BIN_NONE
                 yield BIN_STRING
-            except:
+            except Exception:
                 value = value.encode("utf-16") + BIN_NONE * 2
                 yield BIN_WIDESTRING
             yield key + BIN_NONE + value

@@ -172,7 +172,7 @@ def get_proton_versions() -> dict[str, str]:
     except MissingExecutableError:
         return {}
 
-    versions = dict()
+    versions = {}
     for proton_path in _iter_proton_locations():
         if os.path.isdir(proton_path):
             for version in os.listdir(proton_path):

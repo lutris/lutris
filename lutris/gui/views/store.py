@@ -133,7 +133,7 @@ class GameStore(GObject.Object):
             return None
 
         old_id = row[COL_ID]
-        new_values = dict()
+        new_values = {}
 
         new_values[COL_ID] = store_item.id
         new_values[COL_SLUG] = store_item.slug
