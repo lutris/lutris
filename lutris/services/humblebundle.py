@@ -256,7 +256,10 @@ class HumbleBundleService(OnlineService):
 
     @staticmethod
     def get_filename_for_platform(downloads, platform):
-        download = [d for d in downloads if d["platform"] == platform][0]
+        download = [d for d in downloads if d["platform"] == platform]
+        if not download:
+            return
+        download = download[0]
         url = pick_download_url_from_download_info(download)
         if not url:
             return
