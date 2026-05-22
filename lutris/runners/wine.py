@@ -474,7 +474,7 @@ class wine(Runner):
             "option": "fsync",
             "label": _("Enable Fsync"),
             "type": "bool",
-            "default": is_fsync_supported(),
+            "default": is_fsync_supported,
             "warning": _get_fsync_warning,
             "active": True,
             "help": _(
