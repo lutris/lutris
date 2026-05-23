@@ -811,28 +811,32 @@ class Game:
         if not launch_ui_delegate.check_game_launchable(self):
             return False
 
-        self.reload_config()  # Reload the config before launching it.
-
-        if self.id in LOG_BUFFERS:  # Reset game logs on each launch
-            log_buffer = LOG_BUFFERS[self.id]
-            log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
-
-        self.state = self.STATE_LAUNCHING
-        self.prelaunch_pids = system.get_running_pid_list()
-
-        if not self.prelaunch_pids:
-            logger.error("No prelaunch PIDs could be obtained. Game stop may be ineffective.")
-            self.prelaunch_pids = None
-
-        GAME_START.fire(self)
-
         @watch_game_errors(game_stop_result=False, game=self)
-        def configure_game(_ignored: Any, error: BaseException) -> None:
-            if error:
-                raise error
-            self.configure_game(launch_ui_delegate)
+        def proceed() -> None:
+            self.reload_config()  # Reload the config before launching it.
 
-        jobs.AsyncCall(self.runner.prelaunch, configure_game)
+            if self.id in LOG_BUFFERS:  # Reset game logs on each launch
+                log_buffer = LOG_BUFFERS[self.id]
+                log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
+
+            self.state = self.STATE_LAUNCHING
+            self.prelaunch_pids = system.get_running_pid_list()
+
+            if not self.prelaunch_pids:
+                logger.error("No prelaunch PIDs could be obtained. Game stop may be ineffective.")
+                self.prelaunch_pids = None
+
+            GAME_START.fire(self)
+
+            @watch_game_errors(game_stop_result=False, game=self)
+            def configure_game(_ignored: Any, error: BaseException) -> None:
+                if error:
+                    raise error
+                self.configure_game(launch_ui_delegate)
+
+            jobs.AsyncCall(self.runner.prelaunch, configure_game)
+
+        launch_ui_delegate.wait_for_component_updates(self, proceed)
         return True
 
     def start_game(self) -> None:
