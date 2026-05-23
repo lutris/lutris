@@ -190,7 +190,7 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
                 on_ready()
 
         dialog.connect("response", on_response)
-        dialog.show()
+        dialog.present()
 
     def select_game_launch_config(self, game: Game) -> "LaunchConfigDict | None":
         config = game.config
