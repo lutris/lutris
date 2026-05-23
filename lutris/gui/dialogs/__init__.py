@@ -627,7 +627,7 @@ class InputDialog(ModalDialog):
         self.ok_button.set_sensitive(bool(self.user_value))
 
 
-class ComponentUpdateWaitDialog(ModalDialog):
+class ComponentUpdateWaitDialog(MessageBox):
     """Shown while in-progress Lutris component downloads (runtime, wine, etc.)
     finish before launching a game. Auto-resolves to OK once the download queue
     empties; the user can also override with 'Launch Anyway' or cancel."""
@@ -639,42 +639,30 @@ class ComponentUpdateWaitDialog(ModalDialog):
     ):
         from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED  # noqa: PLC0415
 
-        super().__init__(title=_("Waiting for Lutris components"), parent=parent)
-        self.set_default_size(420, -1)
-
-        content = self.get_content_area()
-        content.set_margin_top(12)
-        content.set_margin_bottom(12)
-        content.set_margin_start(18)
-        content.set_margin_end(18)
-
-        column = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-
-        heading_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        heading = Gtk.Label(
-            label=_("A Lutris component update is in progress."),
-            xalign=0,
-            wrap=True,
+        heading_text = _("A Lutris component update is in progress.")
+        super().__init__(
+            "info",
+            secondary_markup=_("Games can crash or corrupt their Wine prefix if launched before updates finish."),
+            parent=parent,
         )
-        heading.set_hexpand(True)
+
+        heading_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, halign=Gtk.Align.CENTER)
+        heading = Gtk.Label(label=heading_text, wrap=True, max_width_chars=80)
+        heading.add_css_class("title" if len(heading_text) <= 60 else "heading")
         heading_row.append(heading)
 
         spinner = Gtk.Spinner()
         spinner.start()
         heading_row.append(spinner)
-        column.append(heading_row)
 
-        detail = Gtk.Label(
-            label="<small>%s</small>"
-            % _("Games can crash or corrupt their Wine prefix if launched before updates finish."),
-            use_markup=True,
-            xalign=0,
-            wrap=True,
-        )
-        detail.add_css_class("dim-label")
-        column.append(detail)
+        message_area = self.get_message_area()
+        message_area.prepend(heading_row)
 
-        content.append(column)
+        # MessageBox creates the secondary label selectable; that gets focus
+        # and shows as highlighted on a wait dialog like this. Turn it off.
+        secondary_label = message_area.get_last_child()
+        if isinstance(secondary_label, Gtk.Label):
+            secondary_label.set_selectable(False)
 
         self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
         self.add_default_button(_("Launch Anyway"), Gtk.ResponseType.OK)
