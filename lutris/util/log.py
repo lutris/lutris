@@ -4,11 +4,16 @@ import logging
 import logging.handlers
 import os
 import sys
+from typing import TYPE_CHECKING
 
-from gi.repository import GLib, Gtk
+from gi.repository import GLib
 
-# Used to store log buffers for games.
-LOG_BUFFERS: dict[str, Gtk.TextBuffer] = {}
+if TYPE_CHECKING:
+    from gi.repository import Gtk
+
+# Used to store log buffers for games. Quoted so importers (notably the
+# lutris-wrapper subprocess) don't need to load the Gtk typelib just to log.
+LOG_BUFFERS: "dict[str, Gtk.TextBuffer]" = {}
 
 CACHE_DIR = os.path.realpath(os.path.join(GLib.get_user_cache_dir(), "lutris"))
 if not os.path.isdir(CACHE_DIR):

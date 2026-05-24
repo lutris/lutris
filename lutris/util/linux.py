@@ -337,9 +337,9 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                 _requirements.append("RADEON")
         return _requirements
 
-    def get(self, command: str) -> str:
+    def get(self, command: str) -> str | None:
         """Return a system command path if available"""
-        return cast(str, self._cache["COMMANDS"].get(command))
+        return self._cache["COMMANDS"].get(command)
 
     def get_terminals(self) -> list[str]:
         """Return list of installed terminals"""

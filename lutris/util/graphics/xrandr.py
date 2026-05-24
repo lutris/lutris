@@ -99,10 +99,13 @@ def turn_off_except(display: str) -> None:
     if not display:
         logger.error("No active display given, no turning off every display")
         return
+    xrandr_command = LINUX_SYSTEM.get("xrandr")
+    if not xrandr_command:
+        return
     for output in get_outputs():
         if output.name != display:
             logger.info("Turning off %s", output[0])
-            with subprocess.Popen([LINUX_SYSTEM.get("xrandr"), "--output", output.name, "--off"]) as xrandr:
+            with subprocess.Popen([xrandr_command, "--output", output.name, "--off"]) as xrandr:
                 xrandr.communicate()
 
 
@@ -130,6 +133,9 @@ def change_resolution(resolution: str | Iterable[Output]) -> None:
     if not resolution:
         logger.warning("No resolution provided")
         return
+    xrandr_command = LINUX_SYSTEM.get("xrandr")
+    if not xrandr_command:
+        return
     if isinstance(resolution, str):
         logger.debug("Switching resolution to %s", resolution)
 
@@ -138,7 +144,7 @@ def change_resolution(resolution: str | Iterable[Output]) -> None:
         else:
             output_name = get_outputs()[0].name
             logger.info("Changing resolution on %s to %s", output_name, resolution)
-            args = [LINUX_SYSTEM.get("xrandr"), "--output", output_name, "--mode", resolution]
+            args = [xrandr_command, "--output", output_name, "--mode", resolution]
             with subprocess.Popen(args) as xrandr:
                 xrandr.communicate()
     else:
@@ -157,7 +163,7 @@ def change_resolution(resolution: str | Iterable[Output]) -> None:
             logger.info("Switching resolution of %s to %s", display.name, display.mode)
             with subprocess.Popen(
                 [
-                    LINUX_SYSTEM.get("xrandr"),
+                    xrandr_command,
                     "--output",
                     display.name,
                     "--mode",
