@@ -59,6 +59,7 @@ BuildRequires:  update-desktop-files
 BuildRequires:  hicolor-icon-theme
 Requires:       typelib-1_0-Gtk-4_0
 Requires:       typelib-1_0-WebKit-6_0
+Requires:       xrandr
 %endif
 
 
