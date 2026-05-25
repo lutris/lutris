@@ -6,6 +6,7 @@ from collections import namedtuple
 from collections.abc import Iterable
 
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
+from lutris.util import cache_single
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
@@ -13,9 +14,31 @@ from lutris.util.system import read_process_output
 Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate", "preferred_mode"))
 
 
+@cache_single
+def _get_xrandr_command() -> str | None:
+    """Locate the xrandr binary, warning loudly if it's not installed.
+
+    xrandr is the legacy fallback used by `LegacyDisplayManager` when
+    `MutterDisplayManager` / `GnomeDesktopDisplayManager` are unavailable
+    (notably on KDE/Wayland, where Mutter's display config service isn't
+    present). Without xrandr the resolution dropdown collapses to a
+    single dummy entry — users have to hand-enter the value they want —
+    and per-monitor info is unavailable. The lookup result (and the
+    side-effect warning) are cached so the warning fires at most once
+    per session."""
+    xrandr_command = LINUX_SYSTEM.get("xrandr")
+    if not xrandr_command:
+        logger.warning(
+            "xrandr binary not found on PATH — display detection and resolution "
+            "switching will be disabled. Install it via your package manager "
+            "(Debian/Ubuntu: x11-xserver-utils; Fedora/openSUSE/Arch: xrandr)."
+        )
+    return xrandr_command
+
+
 def _get_vidmodes() -> list[str]:
     """Return video modes from XrandR"""
-    if xrandr_command := LINUX_SYSTEM.get("xrandr"):
+    if xrandr_command := _get_xrandr_command():
         xrandr_output = read_process_output([xrandr_command]).split("\n")
         logger.debug("Retrieving %s video modes from XrandR", len(xrandr_output))
         return xrandr_output
@@ -33,7 +56,6 @@ def get_outputs() -> list[Output]:
     logger.debug("Retrieving display outputs")
     vid_modes = _get_vidmodes()
     if not vid_modes:
-        logger.error("xrandr didn't return anything")
         return []
 
     name = position = rotate = current_mode = preferred_mode = rate = None
@@ -99,7 +121,7 @@ def turn_off_except(display: str) -> None:
     if not display:
         logger.error("No active display given, no turning off every display")
         return
-    xrandr_command = LINUX_SYSTEM.get("xrandr")
+    xrandr_command = _get_xrandr_command()
     if not xrandr_command:
         return
     for output in get_outputs():
@@ -133,7 +155,7 @@ def change_resolution(resolution: str | Iterable[Output]) -> None:
     if not resolution:
         logger.warning("No resolution provided")
         return
-    xrandr_command = LINUX_SYSTEM.get("xrandr")
+    xrandr_command = _get_xrandr_command()
     if not xrandr_command:
         return
     if isinstance(resolution, str):
