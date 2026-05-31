@@ -871,7 +871,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     #
     # This page asks the user for a single line of text
 
-    def load_ask_for_text_page(self, alias, message, placeholder, callback):
+    def load_ask_for_text_page(self, alias, label_text, placeholder, callback):
         def present_ask_for_text_page():
             def wrapped_callback(*a, **b):
                 try:
@@ -889,7 +889,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             vbox.set_margin_right(20)
 
             label = Gtk.Label(wrap=True)
-            label.set_text(message)
+            label.set_text(label_text)
             label.set_halign(Gtk.Align.START)
             vbox.pack_start(label, False, False, 0)
 

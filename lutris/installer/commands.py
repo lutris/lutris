@@ -233,9 +233,9 @@ class CommandsMixin:
 
     def input_text(self, data):
         alias = f"INPUT_{data.get('id', 'TEXT')}"
-        message = data.get("message", _("Type below:"))
+        label = data.get("label", _("Type below:"))
         placeholder = data.get("placeholder", "...")
-        self.interpreter_ui_delegate.begin_text_prompt(alias, message, placeholder, self._on_text)
+        self.interpreter_ui_delegate.begin_text_prompt(alias, label, placeholder, self._on_text)
         return "STOP"
 
     def _on_text(self, entry, alias):
@@ -275,7 +275,7 @@ class CommandsMixin:
         abspath = (target / requires).resolve()
         if not abspath.is_relative_to(target):
             raise RuntimeError("Illegal 'requires' reaches outside the target directory", requires)
-        return abspath
+        return str(abspath)  # cause most path helpers assume str
 
     def insert_disc(self, data):
         """Request user to insert an optical disc"""

@@ -829,7 +829,7 @@ The ``input_text`` directive allows the user to write a line of text that can be
 by the install script. This can be used for asking for a CD-KEY when a game's installer is
 uncooperative or other information that can't be known ahead of time.
 
-You can set the label above the input field using the `message` parameter, and the placeholder
+You can set the label above the input field using the `label` parameter, and the placeholder
 text with the `placeholder` paramenter.
 
 The resulting text will be available with the ``$INPUT_TEXT`` alias. If need be, you can
