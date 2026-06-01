@@ -8,10 +8,12 @@ Tests the ability to:
 4. Fetch DLC data in multiple requests when needed
 5. Merge results into unified JSON
 """
+
 import importlib.util
 import os
 import sys
 import types
+import unittest
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 GOG_PATH = os.path.join(REPO_ROOT, "lutris", "services", "gog.py")
@@ -157,10 +159,10 @@ GOG = _install_stubs()
 GOGService = GOG.GOGService
 
 
-class TestGOGDLCFetcher:
+class TestGOGDLCFetcher(unittest.TestCase):
     """Test suite for GOGService.get_game_dlcs() function."""
 
-    def setup_method(self):
+    def setUp(self):
         """Setup test fixtures before each test."""
         self.service = GOGService()
         self.requested_urls = []
@@ -203,7 +205,9 @@ class TestGOGDLCFetcher:
                         "language_full": "English",
                         "version": "1.0",
                         "total_size": 1024 * 1024 * (int(product_id) % 100),
-                        "files": [{"id": f"file_{product_id}", "size": 1024, "downlink": f"https://example.com/{product_id}"}],
+                        "files": [
+                            {"id": f"file_{product_id}", "size": 1024, "downlink": f"https://example.com/{product_id}"}
+                        ],
                     }
                 ],
                 "patches": [],
@@ -212,14 +216,16 @@ class TestGOGDLCFetcher:
             },
         }
 
-    def _create_game_details_response(self, product_id, dlc_ids, dlc_count=None):
+    def _create_game_details_response(self, product_id, dlc_ids):
         """Helper to create a game details response with DLC list."""
-        if dlc_count is None:
-            dlc_count = len(dlc_ids)
-
-        dlc_products = [{"id": int(pid), "link": f"https://api.gog.com/products/{pid}",
-                        "expanded_link": f"https://api.gog.com/products/{pid}?expand=downloads"}
-                       for pid in dlc_ids]
+        dlc_products = [
+            {
+                "id": int(pid),
+                "link": f"https://api.gog.com/products/{pid}",
+                "expanded_link": f"https://api.gog.com/products/{pid}?expand=downloads",
+            }
+            for pid in dlc_ids
+        ]
 
         base_ids = ",".join(str(pid) for pid in dlc_ids)
         all_products_url = f"https://api.gog.com/products?ids={base_ids}&expand=downloads"
@@ -295,7 +301,9 @@ class TestGOGDLCFetcher:
         assert isinstance(result, list), "Result should be a list"
         assert len(result) == 72, f"Expected 72 DLCs, got {len(result)}"
         # 72 DLCs should be split into 2 requests: 50 + 22
-        assert len(self.make_api_request_calls) == 2, f"Expected 2 API requests for 72 DLCs, got {len(self.make_api_request_calls)}"
+        assert len(self.make_api_request_calls) == 2, (
+            f"Expected 2 API requests for 72 DLCs, got {len(self.make_api_request_calls)}"
+        )
 
         # Verify all DLCs are present in result
         result_ids = {item["id"] for item in result}
@@ -409,7 +417,9 @@ class TestGOGDLCFetcher:
 
         # Verify required keys exist
         required_keys = {"id", "title", "slug", "downloads", "dlcs"}
-        assert required_keys.issubset(first_item_keys), f"Missing required keys. Expected {required_keys}, got {first_item_keys}"
+        assert required_keys.issubset(first_item_keys), (
+            f"Missing required keys. Expected {required_keys}, got {first_item_keys}"
+        )
 
     def test_product_ids_correctly_extracted(self):
         """Test that product IDs are correctly extracted from game details."""
@@ -506,40 +516,4 @@ class TestGOGDLCFetcher:
 
 
 if __name__ == "__main__":
-    # Run tests
-    test_suite = TestGOGDLCFetcher()
-
-    tests = [
-        ("Single request with few DLCs", test_suite.test_single_request_path_with_few_dlcs),
-        ("Multi-request with 72 DLCs", test_suite.test_multi_request_path_with_many_dlcs),
-        ("Batching exactly 100 DLCs", test_suite.test_multi_request_batching_exactly_100_dlcs),
-        ("Batching 151 DLCs", test_suite.test_multi_request_batching_151_dlcs),
-        ("Empty DLC list", test_suite.test_empty_dlc_list),
-        ("No DLCs key", test_suite.test_no_dlcs_key),
-        ("Unified JSON structure", test_suite.test_unified_json_structure),
-        ("Product IDs correctly extracted", test_suite.test_product_ids_correctly_extracted),
-        ("Exact 50 DLC boundary", test_suite.test_batching_with_exact_50_boundary),
-        ("Returns list of dicts", test_suite.test_returns_list_of_dicts),
-        ("API URL construction", test_suite.test_api_url_construction),
-        ("Deterministic output order", test_suite.test_deterministic_output_order),
-    ]
-
-    passed = 0
-    failed = 0
-    for name, test_func in tests:
-        test_suite.setup_method()
-        try:
-            test_func()
-            print(f"✓ {name}")
-            passed += 1
-        except AssertionError as e:
-            print(f"✗ {name}")
-            print(f"  Error: {e}")
-            failed += 1
-        except Exception as e:
-            print(f"✗ {name}")
-            print(f"  Exception: {e}")
-            failed += 1
-
-    print(f"\n{passed} passed, {failed} failed")
-    sys.exit(0 if failed == 0 else 1)
+    unittest.main()
