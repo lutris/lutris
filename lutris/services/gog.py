@@ -29,6 +29,9 @@ from lutris.util.strings import human_size, slugify
 if typing.TYPE_CHECKING:
     from lutris.installer.installer import LutrisInstaller
 
+### GOG Api limits requests to 50 comma-separated ids: https://gogapidocs.readthedocs.io/en/latest/galaxy.html#get--products
+MAX_PRODUCT_IDS_PER_REQUEST = 50
+
 
 class GogSmallBanner(ServiceMedia):
     """Small size game logo"""
@@ -83,8 +86,6 @@ class GOGService(OnlineService):
     drm_free = True
     medias = {"banner_small": GogSmallBanner, "banner": GogMediumBanner, "banner_large": GogLargeBanner}
     default_format = "banner"
-
-    MAX_PRODUCT_IDS_PER_REQUEST = 50
 
     embed_url = "https://embed.gog.com"
     api_url = "https://api.gog.com"
@@ -287,20 +288,19 @@ class GOGService(OnlineService):
         unified_json = []
         if not game_details.get("dlcs") or game_details.get("dlcs") == []:
             return []
-        ### GOG Api limits requests to 50 comma-separated ids: https://gogapidocs.readthedocs.io/en/latest/galaxy.html#get--products
         # If ids greater than 50 split request
         dlc_products = game_details["dlcs"].get("products")
         if not dlc_products:
             return []
-        if len(dlc_products) > self.MAX_PRODUCT_IDS_PER_REQUEST:
+        if len(dlc_products) > MAX_PRODUCT_IDS_PER_REQUEST:
             # Get product ids only form json
             product_ids = []
             for product in game_details["dlcs"]["products"]:
                 product_ids.append(product.get("id"))
             # Get number of requests by batches of 50
-            for start_index in range(0, len(product_ids), self.MAX_PRODUCT_IDS_PER_REQUEST):
+            for start_index in range(0, len(product_ids), MAX_PRODUCT_IDS_PER_REQUEST):
                 # Get last index of product list to query
-                end_index = start_index + self.MAX_PRODUCT_IDS_PER_REQUEST
+                end_index = start_index + MAX_PRODUCT_IDS_PER_REQUEST
                 if end_index > len(product_ids):
                     end_index = len(product_ids)
                 # Build string of product ids
