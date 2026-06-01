@@ -296,13 +296,17 @@ class GOGService(OnlineService):
             # Get product ids only form json
             product_ids = []
             for product in game_details["dlcs"]["products"]:
-                product_ids.append(product["id"])
+                product_ids.append(product.get("id"))
             # Get number of requests by batches of 50
             for start_index in range(0, len(product_ids), self.MAX_PRODUCT_IDS_PER_REQUEST):
                 # Get last index of product list to query
                 end_index = start_index + self.MAX_PRODUCT_IDS_PER_REQUEST
+                if end_index > len(product_ids):
+                    end_index = len(product_ids)
                 # Build string of product ids
-                product_ids_string = ",".join(str(pid) for pid in product_ids[start_index:end_index])
+                product_ids_subset = product_ids[start_index:end_index]
+                product_ids_string = ",".join(str(pid) for pid in product_ids_subset)
+                print("{} through {}".format(product_ids_subset[0], product_ids_subset[-1]))
                 # Send batched request
                 request_json = self.make_api_request(
                     "{}/products/?ids={}&expand=downloads".format(self.api_url, product_ids_string)
