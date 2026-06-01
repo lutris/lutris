@@ -3,7 +3,6 @@ import os
 import sys
 import types
 
-
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 GOG_PATH = os.path.join(REPO_ROOT, "lutris", "services", "gog.py")
 
@@ -216,7 +215,10 @@ def test_get_game_dlcs_splitting_and_merging(monkeypatch):
         if end == -1:
             end = len(url)
         ids_requested = [item for item in url[start:end].split(",") if item]
-        return [{"product_id": product_id, "downloads": {"installers": [], "bonus_content": [], "patches": []}} for product_id in ids_requested]
+        return [
+            {"product_id": pid, "downloads": {"installers": [], "bonus_content": [], "patches": []}}
+            for pid in ids_requested
+        ]
 
     monkeypatch.setattr(GOGService, "make_api_request", fake_make_api_request)
 

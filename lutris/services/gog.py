@@ -290,7 +290,9 @@ class GOGService(OnlineService):
         ### GOG Api limits requests to 50 comma-separated ids: https://gogapidocs.readthedocs.io/en/latest/galaxy.html#get--products
         # If ids greater than 50 split request
         dlc_products = game_details["dlcs"].get("products")
-        if dlc_products and dlc_products.size() > self.MAX_PRODUCT_IDS_PER_REQUEST:
+        if not dlc_products:
+            return []
+        if len(dlc_products) > self.MAX_PRODUCT_IDS_PER_REQUEST:
             # Get product ids only form json
             product_ids = []
             for product in game_details["dlcs"]["products"]:
@@ -298,9 +300,9 @@ class GOGService(OnlineService):
             # Get number of requests by batches of 50
             for start_index in range(0, len(product_ids), self.MAX_PRODUCT_IDS_PER_REQUEST):
                 # Get last index of product list to query
-                end_index = max(start_index + self.MAX_PRODUCT_IDS_PER_REQUEST - 1, len(product_ids))
+                end_index = start_index + self.MAX_PRODUCT_IDS_PER_REQUEST
                 # Build string of product ids
-                product_ids_string = ",".join(product_ids[start_index:end_index])
+                product_ids_string = ",".join(str(pid) for pid in product_ids[start_index:end_index])
                 # Send batched request
                 request_json = self.make_api_request(
                     "{}/products/?ids={}&expand=downloads".format(self.api_url, product_ids_string)
