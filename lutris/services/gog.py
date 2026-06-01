@@ -84,6 +84,8 @@ class GOGService(OnlineService):
     medias = {"banner_small": GogSmallBanner, "banner": GogMediumBanner, "banner_large": GogLargeBanner}
     default_format = "banner"
 
+    MAX_PRODUCT_IDS_PER_REQUEST = 50
+
     embed_url = "https://embed.gog.com"
     api_url = "https://api.gog.com"
 
@@ -283,49 +285,35 @@ class GOGService(OnlineService):
         """Return the list of DLC products for a game"""
         game_details = self.get_game_details(product_id)
         unified_json = []
-        if not game_details["dlcs"]:
+        if not game_details.get("dlcs") or game_details.get("dlcs") == []:
             return []
-
-        ### FIXME: URL doesn't work with more than 50 product id's
-        all_products_url = game_details["dlcs"]["expanded_all_products_url"]
-
+        ### GOG Api limits requests to 50 comma-separated ids: https://gogapidocs.readthedocs.io/en/latest/galaxy.html#get--products
         # If ids greater than 50 split request
-        if game_details["dlcs"]["products"].size() > 50:
-            # Get url prefix and suffix, excluding product ids list
-            all_products_url_prefix = all_products_url[: (all_products_url.find("ids=") + 4)]
-            all_products_url_suffix = all_products_url[(all_products_url.find("\u0026")): -1]
+        dlc_products = game_details["dlcs"].get("products")
+        if dlc_products and dlc_products.size() > self.MAX_PRODUCT_IDS_PER_REQUEST:
             # Get product ids only form json
             product_ids = []
             for product in game_details["dlcs"]["products"]:
                 product_ids.append(product["id"])
-            # Call make_api_request for each array
-            num_requests = len(product_ids) / 50
-            for i in range(int(num_requests + 1)):
-                try:
-                    start_index = 50 * i
-                    # Check if start index is out of bounds
-                    if start_index >= len(product_ids):
-                        break
-                    # Check if end index is out of bounds
-                    if start_index + 49 >= len(product_ids):
-                        end_index = -1
-                    else:
-                        end_index = start_index + 49
-                    # Build string of product ids
-                    product_ids_string = ",".join(product_ids[start_index: end_index])
-                    # Get JSONs from make_api_request
-                    request_json = self.make_api_request(all_products_url_prefix + product_ids_string + all_products_url_suffix)
-                    # Append all JSON objects into one
-                    for object in request_json:
-                        unified_json.append(object)
-                except:
-                    logger.info("Game details request index out of range.")
-                    break
+            # Get number of requests by batches of 50
+            for start_index in range(0, len(product_ids), self.MAX_PRODUCT_IDS_PER_REQUEST):
+                # Get last index of product list to query
+                end_index = max(start_index + self.MAX_PRODUCT_IDS_PER_REQUEST - 1, len(product_ids))
+                # Build string of product ids
+                product_ids_string = ",".join(product_ids[start_index:end_index])
+                # Send batched request
+                request_json = self.make_api_request(
+                    "{}/products/?ids={}&expand=downloads".format(self.api_url, product_ids_string)
+                )
+                # Append products from response to unified JSON
+                for product in request_json:
+                    unified_json.append(product)
         else:
             # Default logic
+            all_products_url = game_details["dlcs"]["expanded_all_products_url"]
             unified_json = self.make_api_request(all_products_url)
 
-        # Return uinified JSON object
+        # Return unified JSON object
         return unified_json
 
     def get_game_details(self, product_id: str) -> dict:
@@ -752,7 +740,7 @@ class GOGService(OnlineService):
         for dlc in dlcs:
             dlc_id = "gogdlc-%s" % dlc["slug"]
 
-            # remove mac installers for now
+            # remove Mac installers for now
             installfiles = [
                 installer for installer in dlc["downloads"].get("installers", []) if installer["os"] != "mac"
             ]
