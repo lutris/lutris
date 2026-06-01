@@ -484,7 +484,7 @@ class TestGOGDLCFetcher(unittest.TestCase):
         self.service.make_api_request = self._mock_make_api_request
 
         # Execute
-        result = self.service.get_game_dlcs(product_id)
+        self.service.get_game_dlcs(product_id)
 
         # Verify API URLs
         assert len(self.make_api_request_calls) > 0, "At least one API request should be made"
