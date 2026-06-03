@@ -558,6 +558,14 @@ class LutrisSidebar(Gtk.ListBox):
         )
         self.add(self.games_row)
 
+        self.all_sources_row = SidebarRow(
+            "all_sources",
+            "dynamic_category",
+            _("All Sources"),
+            self.get_sidebar_icon("folder-saved-search-symbolic"),
+        )
+        self.add(self.all_sources_row)
+
         self.add(
             SidebarRow(
                 "recent",

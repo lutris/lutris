@@ -64,6 +64,9 @@ class StoreItem:
     @property
     def id(self) -> str:  # pylint: disable=invalid-name
         """Game internal ID"""
+        if "_view_id" in self._game_data:
+            return str(self._game_data["_view_id"])
+
         # Return a unique identifier for the game.
         # Since service games are not related to lutris, use the appid
         if "service_id" not in self._game_data:
@@ -160,7 +163,7 @@ class StoreItem:
         services = [(service, lambda: self.slug)]
 
         game_service_name = self._game_data.get("service")
-        game_service_id = self._game_data.get("service_id")
+        game_service_id = self._game_data.get("service_id") or self._game_data.get("appid")
 
         if game_service_name and game_service_id and game_service_name in SERVICES:
 
