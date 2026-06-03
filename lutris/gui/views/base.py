@@ -4,6 +4,7 @@ from gi.repository import Gdk, GObject, Gtk
 
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
+from lutris.services import SERVICES
 from lutris.game import GAME_START, Game
 from lutris.game_actions import GameActions, get_game_actions
 from lutris.gui.widgets import EMPTY_NOTIFICATION_REGISTRATION
@@ -101,7 +102,19 @@ class GameView:
 
         games = []
         for game_id in game_ids:
-            if self.service:
+            parts = str(game_id).split(":", 2)
+            if len(parts) == 3 and parts[0] == "service":
+                service_id, appid = parts[1], parts[2]
+                db_game = get_game_for_service(service_id, appid)
+
+                if db_game and db_game["id"]:
+                    games.append(_get_game_by_id(db_game["id"]))
+                else:
+                    service_game = ServiceGameCollection.get_game(service_id, appid)
+                    service_class = SERVICES.get(service_id)
+                    if service_game and service_class:
+                        games.append(Game.create_empty_service_game(service_game, service_class()))
+            elif self.service:
                 db_game = get_game_for_service(self.service.id, game_id)
 
                 if db_game:
