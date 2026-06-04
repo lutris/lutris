@@ -202,7 +202,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.game_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
-
+        
         self.update_action_state()
         self.update_notification()
 
@@ -230,6 +230,56 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.sidebar.selected_category = selected_category.split(":", maxsplit=1) if selected_category else None
 
         schedule_at_idle(self.sync_library, delay_seconds=1.0)
+
+    def show_controller_input(self, action):
+        if not self.is_active():
+            return
+        if action == "a":
+            if self.application.has_running_games:
+                return
+            self._controller_activate()
+        elif action in ("up", "left"):
+            self._controller_move(-1)
+        elif action in ("down", "right"):
+            self._controller_move(1)
+
+    def _controller_move(self, direction):
+        """Move selection up (-1) or down (1) in the current game view."""
+        view = self.current_view
+        
+        if isinstance(view, GameListView):
+            view.move_cursor(Gtk.MovementStep.DISPLAY_LINES, direction)
+        
+        elif isinstance(view, GameGridView):
+            model = view.get_model()
+            if not model:
+                return
+            selected = view.get_selected_items()
+            current_row = selected[0].get_indices()[0] if selected else -1
+            next_row = current_row + direction
+            
+            n_items = model.iter_n_children(None)
+            if 0 <= next_row < n_items:
+                path = Gtk.TreePath(next_row)
+                view.unselect_all()
+                view.select_path(path)
+                view.scroll_to_path(path, False, 0.0, 0.0)
+        view.grab_focus()
+
+    def _controller_activate(self):
+        """Activate the currently selected game."""
+        if self.application.has_running_games:
+            return
+        view = self.current_view
+        if isinstance(view, GameListView):
+            path, col = view.get_cursor()
+            if path:
+                view.row_activated(path, col)
+        
+        elif isinstance(view, GameGridView):
+            selected = view.get_selected_items()
+            if selected:
+                view.item_activated(selected[0])
 
     def on_busy_started(self):
         display = Gdk.Display.get_default()
