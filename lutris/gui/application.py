@@ -108,7 +108,7 @@ class LutrisApplication(Gtk.Application):
         self.style_manager = StyleManager()
 
         # Setting up Controller Listener
-        self.controller_listener = None
+        self.controller_listener: ControllerListener | None = None
 
         if os.geteuid() == 0:
             NoticeDialog(_("Do not run Lutris as root."))

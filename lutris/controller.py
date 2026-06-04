@@ -33,7 +33,7 @@ TRIGGER_MAP = {
 }
 
 class ControllerListener(threading.Thread):
-    def __init__(self, callback):
+    def __init__(self, callback) -> None:
         super().__init__(daemon=True)
         self.callback = callback
         self._running = True
