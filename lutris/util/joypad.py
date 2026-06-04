@@ -2,13 +2,10 @@
 import binascii
 import struct
 
+# For Controller Listener
 # Lutris Modules
 from lutris.util.gamecontrollerdb import GameControllerDB
 from lutris.util.log import logger
-
-# For Controller Listener
-import threading
-from gi.repository import GLib
 
 try:
     import evdev
@@ -76,4 +73,3 @@ def get_controller_mappings():
             controllers.append((device, controller_db[guid]))
 
     return controllers
-

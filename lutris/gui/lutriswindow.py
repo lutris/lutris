@@ -202,7 +202,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.game_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
-        
+
         self.update_action_state()
         self.update_notification()
 
@@ -318,7 +318,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             path, col = view.get_cursor()
             if path:
                 view.row_activated(path, col)
-        
+
         elif isinstance(view, GameGridView):
             selected = view.get_selected_items()
             if selected:

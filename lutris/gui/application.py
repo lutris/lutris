@@ -32,6 +32,7 @@ from gi.repository import Gio, GLib, Gtk
 
 from lutris import settings
 from lutris.api import get_runners, parse_installer_url
+from lutris.controller import ControllerListener
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import init_exception_backstops
@@ -55,8 +56,6 @@ from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_dirs
-
-from lutris.controller import ControllerListener
 
 from ..util.busy import BusyAsyncCall
 from ..util.standalone_scripts import generate_script
@@ -362,6 +361,7 @@ class LutrisApplication(Gtk.Application):
         def show_button(name):
             if self.window:
                 self.window.show_controller_input(name)
+
         self.controller_listener = ControllerListener(show_button)
         self.controller_listener.start()
 
@@ -1122,7 +1122,7 @@ Also, check that the version specified is in the correct format.
 
     def do_shutdown(self) -> None:  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
-        
+
         # Close Controller Listener if it was started
         if self.controller_listener:
             self.controller_listener.stop()

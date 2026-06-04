@@ -1,10 +1,12 @@
 import threading
 import time
+
 from gi.repository import GLib
+
 from lutris.util.joypad import get_devices
 from lutris.util.log import logger
 
-# same as joypad.py 
+# same as joypad.py
 try:
     import evdev
 except ImportError:
@@ -17,20 +19,31 @@ except AttributeError as err:
 
 
 ACTION_MAP = {
-    304: "a", 305: "b", 307: "y", 308: "x",
-    310: "left_bumper", 311: "right_bumper",
-    544: "up", 545: "down", 546: "left", 547: "right",
+    304: "a",
+    305: "b",
+    307: "y",
+    308: "x",
+    310: "left_bumper",
+    311: "right_bumper",
+    544: "up",
+    545: "down",
+    546: "left",
+    547: "right",
 }
 
 
 HAT_MAP = {
-    (17, -1): "up", (17, 1): "down",
-    (16, -1): "left", (16, 1): "right",
+    (17, -1): "up",
+    (17, 1): "down",
+    (16, -1): "left",
+    (16, 1): "right",
 }
 
 TRIGGER_MAP = {
-    2: "left_trigger", 5: "right_trigger",
+    2: "left_trigger",
+    5: "right_trigger",
 }
+
 
 class ControllerListener(threading.Thread):
     def __init__(self, callback) -> None:
@@ -40,10 +53,13 @@ class ControllerListener(threading.Thread):
         self._trigger_states: dict[int, int] = {}
 
     def _find_device(self):
-        devices = [d for d in get_devices()
-                   if d.name.lower().find("pad") >= 0
-                   or d.name.lower().find("controller") >= 0
-                   or d.name.lower().find("joystick") >= 0]
+        devices = [
+            d
+            for d in get_devices()
+            if d.name.lower().find("pad") >= 0
+            or d.name.lower().find("controller") >= 0
+            or d.name.lower().find("joystick") >= 0
+        ]
         if not devices:
             devices = get_devices()
         return devices[0] if devices else None
@@ -53,7 +69,7 @@ class ControllerListener(threading.Thread):
             try:
                 device = self._find_device()
 
-                # If no device is found, wait and retry. 
+                # If no device is found, wait and retry.
                 # This can happen if the controller is unplugged or not yet connected.
                 if not device:
                     logger.debug("ControllerListener: no device found, retrying in 3s")
@@ -84,6 +100,6 @@ class ControllerListener(threading.Thread):
             except OSError:
                 logger.debug("ControllerListener: device disconnected, retrying in 3s")
                 time.sleep(3)
-    
+
     def stop(self):
         self._running = False
