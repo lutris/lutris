@@ -56,7 +56,7 @@ from lutris.util.savesync import save_check, show_save_stats, upload_save
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_dirs
 
-from lutris.util.joypad import ControllerListener, get_devices
+from lutris.controller import ControllerListener
 
 from ..util.busy import BusyAsyncCall
 from ..util.standalone_scripts import generate_script
@@ -358,15 +358,12 @@ class LutrisApplication(Gtk.Application):
             screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-        # Start the controller listener if there are any devices available, and set up the callback to show button presses in the UI
-        if get_devices():
-            def show_button(name):
-                if self.window:
-                    self.window.show_controller_input(name)
-            self.controller_listener = ControllerListener(show_button)
-            self.controller_listener.start()
-
-        
+        # Start the controller listener; it retries automatically if no device is connected
+        def show_button(name):
+            if self.window:
+                self.window.show_controller_input(name)
+        self.controller_listener = ControllerListener(show_button)
+        self.controller_listener.start()
 
     def start_runtime_updates(self) -> None:
         if os.environ.get("LUTRIS_SKIP_INIT"):

@@ -234,40 +234,83 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def show_controller_input(self, action):
         if not self.is_active():
             return
-        if action == "a":
-            if self.application.has_running_games:
-                return
-            self._controller_activate()
-        elif action in ("up", "left"):
-            self._controller_move(-1)
-        elif action in ("down", "right"):
-            self._controller_move(1)
 
-    def _controller_move(self, direction):
-        """Move selection up (-1) or down (1) in the current game view."""
+        # Mapping of controller event codes to actions
+        match action:
+            case "b":
+                for game in self.application.get_running_games():
+                    game.force_stop()
+            case "a":
+                if self.application.has_running_games:
+                    return
+                self._controller_activate()
+            case "left_trigger":
+                visible = self.sidebar_revealer.get_reveal_child()
+                self.sidebar_revealer.set_reveal_child(not visible)
+            case "left_bumper":
+                self.sidebar.select_adjacent_row(-1)
+            case "right_bumper":
+                self.sidebar.select_adjacent_row(1)
+            case "up":
+                self._controller_move(-1, vertical=True)
+            case "down":
+                self._controller_move(1, vertical=True)
+            case "left":
+                self._controller_move(-1)
+            case "right":
+                self._controller_move(1)
+
+    def _controller_move(self, direction, vertical=False):
         view = self.current_view
-        
         if isinstance(view, GameListView):
-            view.move_cursor(Gtk.MovementStep.DISPLAY_LINES, direction)
-        
+            model = view.get_model()
+            if not model:
+                return
+            cursor = view.get_cursor()
+            path = cursor and cursor[0]
+            if path is None:
+                if direction < 0:
+                    return
+                row = 0
+            else:
+                row = path.get_indices()[0] + direction
+            n = model.iter_n_children(None)
+            if row < 0 or row >= n:
+                return
+            path = Gtk.TreePath(row)
+            view.set_cursor(path)
         elif isinstance(view, GameGridView):
             model = view.get_model()
             if not model:
                 return
-            selected = view.get_selected_items()
-            current_row = selected[0].get_indices()[0] if selected else -1
-            next_row = current_row + direction
-            
-            n_items = model.iter_n_children(None)
-            if 0 <= next_row < n_items:
-                path = Gtk.TreePath(next_row)
+            n = model.iter_n_children(None)
+            cursor = view.get_cursor()
+            current_path = cursor and cursor[1]
+            if current_path:
+                idx = current_path.get_indices()[0]
+                if vertical:
+                    n_cols = 1
+                    for i in range(1, min(n, 100)):
+                        if view.get_item_column(Gtk.TreePath(i)) == 0:
+                            n_cols = i
+                            break
+                    row = idx + direction * n_cols
+                else:
+                    row = idx + direction
+            elif direction >= 0:
+                row = 0
+            else:
+                return
+            if 0 <= row < n:
+                path = Gtk.TreePath(row)
                 view.unselect_all()
+                view.set_cursor(path, None, False)
                 view.select_path(path)
                 view.scroll_to_path(path, False, 0.0, 0.0)
         view.grab_focus()
 
+    # Activate the currently selected game.
     def _controller_activate(self):
-        """Activate the currently selected game."""
         if self.application.has_running_games:
             return
         view = self.current_view
