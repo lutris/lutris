@@ -651,10 +651,13 @@ class LutrisSidebar(Gtk.ListBox):
         if not visible:
             return
         current = self.get_selected_row()
-        try:
-            idx = visible.index(current)
-        except ValueError:
+        if not isinstance(current, SidebarRow):
             idx = -1
+        else:
+            try:
+                idx = visible.index(current)
+            except ValueError:
+                idx = -1
         next_idx = (idx + direction) % len(visible)
         self.select_row(visible[next_idx])
 
