@@ -14,6 +14,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 IMAGE_TAG="lutris-appimage-builder:ubuntu22.04"
 
+# Default LUTRIS_VERSION to whatever lutris/__init__.py advertises so a
+# plain `make appimage` produces a sensibly-named artifact on a release
+# commit. Explicit env override still wins (e.g. for RC tags).
+if [ -z "${LUTRIS_VERSION:-}" ]; then
+    LUTRIS_VERSION="$(awk -F'"' '/^__version__/ { print $2; exit }' \
+        "$REPO_ROOT/lutris/__init__.py")"
+fi
+: "${LUTRIS_VERSION:=dev}"
+echo "Building Lutris AppImage version: $LUTRIS_VERSION"
+
 if command -v docker >/dev/null 2>&1; then
     OCI=docker
 elif command -v podman >/dev/null 2>&1; then
@@ -38,7 +48,7 @@ fi
 "$OCI" run --rm \
     --privileged \
     -v "$REPO_ROOT":/src${MOUNT_OPTS} \
-    -e LUTRIS_VERSION="${LUTRIS_VERSION:-dev}" \
+    -e LUTRIS_VERSION="$LUTRIS_VERSION" \
     "$IMAGE_TAG" \
     bash /src/utils/appimage/build-in-container.sh
 
