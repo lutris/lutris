@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# AppRun entry point for the Lutris AppImage.
+#
+# Two responsibilities:
+#   1. Source linuxdeploy-plugin-gtk's hook so GI_TYPELIB_PATH, GDK_PIXBUF_*,
+#      XDG_DATA_DIRS, etc. point inside the AppDir.
+#   2. Launch bin/lutris with the bundled Python interpreter, with PYTHONPATH
+#      pointing at the bundled site-packages.
+#
+# Lutris is intentionally NOT sandboxed: it must call host binaries (xrandr,
+# 7z, fuser, wine, the user's installed runners), read the user's $HOME,
+# and access mounted drives. We deliberately leave PATH intact so host
+# tools win, and only prepend AppDir paths for libraries / typelibs.
+set -e
+
+HERE="$(dirname "$(readlink -f "${0}")")"
+
+# linuxdeploy-plugin-gtk writes its environment setup into apprun-hooks/.
+# Source every hook it dropped so we inherit the GTK/Pixbuf/typelib paths.
+if [ -d "$HERE/apprun-hooks" ]; then
+    for hook in "$HERE"/apprun-hooks/*.sh; do
+        # shellcheck disable=SC1090
+        [ -r "$hook" ] && . "$hook"
+    done
+fi
+
+export APPDIR="$HERE"
+export PATH="$HERE/usr/bin:$PATH"
+
+# Intentionally do NOT export LD_LIBRARY_PATH. linuxdeploy already set
+# RPATH=$ORIGIN/.. on every bundled binary, so they find their sibling libs
+# without an env override. Exporting LD_LIBRARY_PATH here would leak into
+# subprocesses — and Lutris launches host binaries constantly (xrandr, 7z,
+# fuser, /usr/bin/flatpak, wine, etc.). Forcing them to load our older
+# bundled libssl/libcrypto/libstdc++ breaks any host tool whose own deps
+# were built against newer symbols. The cost of this discipline is that
+# anything we copied into the AppDir manually (PyGObject's _gi.so,
+# python3-dbus' bindings) must have its RPATH patched by the build script,
+# since linuxdeploy only patches files it deploys itself.
+unset LD_LIBRARY_PATH
+
+# Python: find the bundled interpreter and site-packages. We accept any
+# python3.X under usr/bin so this script doesn't need to be rev'd when the
+# build image's Python minor version changes.
+PYTHON_BIN=""
+for cand in "$HERE"/usr/bin/python3.* "$HERE"/usr/bin/python3; do
+    if [ -x "$cand" ] && [ ! -L "$cand" ]; then
+        PYTHON_BIN="$cand"
+        break
+    fi
+done
+if [ -z "$PYTHON_BIN" ]; then
+    # Fallback: host python3. The AppImage is less portable this way, but
+    # at least it boots so the user sees a real error rather than nothing.
+    PYTHON_BIN="$(command -v python3 || true)"
+fi
+if [ -z "$PYTHON_BIN" ]; then
+    echo "Lutris AppImage: no python3 interpreter found in AppDir or host" >&2
+    exit 1
+fi
+
+PY_VER="$("$PYTHON_BIN" -c 'import sys;print("%d.%d"%sys.version_info[:2])')"
+SITE="$HERE/usr/lib/python${PY_VER}/site-packages"
+DIST="$HERE/usr/lib/python3/dist-packages"
+export PYTHONPATH="$SITE:$DIST${PYTHONPATH:+:$PYTHONPATH}"
+
+# bin/lutris strips /home paths from sys.path unless this is set, which
+# would also drop our AppDir paths if they ever land under /home (e.g.
+# AppImages extracted to ~/Applications). Setting this lets bin/lutris
+# trust the PYTHONPATH we just built.
+export LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1
+
+exec "$PYTHON_BIN" "$HERE/usr/bin/lutris" "$@"
