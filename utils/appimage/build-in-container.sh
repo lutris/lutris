@@ -20,12 +20,19 @@ PY_VER="$(python3 -c 'import sys;print("%d.%d"%sys.version_info[:2])')"
 cp -a "$(readlink -f /usr/bin/python3)" "$APPDIR/usr/bin/python${PY_VER}"
 ln -sf "python${PY_VER}" "$APPDIR/usr/bin/python3"
 cp -a "/usr/lib/python${PY_VER}" "$APPDIR/usr/lib/"
-# Drop test/idle bloat that no end user needs from the AppImage.
+# Drop test/idle bloat that no end user needs from the AppImage. The
+# config-* directory holds link-time-only artifacts (Makefile, python.o
+# static wrapper, libpython symlinks) that are useful only when building
+# C extensions against this Python — never at runtime — and the python.o
+# in it makes linuxdeploy emit a spurious "patchelf: wrong ELF type"
+# warning every build because it's a relocatable object file, which
+# patchelf refuses to touch.
 rm -rf "$APPDIR/usr/lib/python${PY_VER}/test" \
        "$APPDIR/usr/lib/python${PY_VER}/idlelib" \
        "$APPDIR/usr/lib/python${PY_VER}/turtledemo" \
        "$APPDIR/usr/lib/python${PY_VER}/tkinter" \
-       "$APPDIR/usr/lib/python${PY_VER}/lib2to3"
+       "$APPDIR/usr/lib/python${PY_VER}/lib2to3" \
+       "$APPDIR/usr/lib/python${PY_VER}/config-"*
 
 # Install Lutris (Python package + bin/lutris + data files) into the AppDir.
 cd "$SRC"
