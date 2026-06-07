@@ -29,12 +29,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-wheel \
     pkg-config \
     build-essential \
+    ninja-build \
     libcairo2-dev \
     libgirepository1.0-dev \
     libdbus-1-dev \
+    libdbus-glib-1-dev \
     libsystemd-dev \
     python3-gi \
-    python3-gi-cairo \
     python3-dbus \
     gir1.2-gtk-3.0 \
     gir1.2-gdkpixbuf-2.0 \
@@ -51,6 +52,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgnome-desktop-3-19 \
     librsvg2-common \
  && rm -rf /var/lib/apt/lists/*
+
+# Jammy's apt meson (0.61) is older than meson-python requires (>=0.63),
+# so install a current meson from pip. ninja from apt is fine; pip's
+# meson invokes the apt-shipped ninja-build as its backend.
+#
+# pycairo is installed here too so PyGObject's meson build can find its
+# C headers (at /usr/local/lib/python3.10/dist-packages/cairo/include/);
+# apt's python3-cairo ships no headers, which is why python3-cairo /
+# python3-gi-cairo are deliberately not in the apt list above.
+RUN python3 -m pip install --no-cache-dir 'meson>=0.63.3'
+RUN python3 -m pip install --no-cache-dir pycairo
 
 # linuxdeploy + plugin-gtk handle library/typelib bundling and GTK env setup.
 WORKDIR /opt/tools

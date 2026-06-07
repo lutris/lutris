@@ -47,9 +47,12 @@ mkdir -p "$TARGET"
 # PyGObject is satisfied by the system python3-gi we bundle from apt; pip
 # rebuilds against the host gobject-introspection and we want the version
 # wired up to the bundled typelibs, so we leave it to apt + linuxdeploy.
-# dbus-python is intentionally excluded here — it switched to a meson-python
-# build backend that pulls in a heavy toolchain, and the apt-shipped
-# python3-dbus is a perfectly good prebuilt copy we already have.
+# PyGObject and dbus-python both ship as source-only distributions and
+# build via meson-python — that's why the Dockerfile pulls in meson +
+# ninja-build + libdbus-glib-1-dev. Building them through pip (rather
+# than copying apt's python3-gi / python3-dbus into the AppDir by hand)
+# keeps every runtime dep on a single, version-pinnable surface and
+# lets pycairo land naturally as a PyGObject dependency.
 python3 -m pip install --no-compile --target="$TARGET" \
     certifi \
     distro \
@@ -61,20 +64,10 @@ python3 -m pip install --no-compile --target="$TARGET" \
     requests \
     protobuf \
     'moddb>=0.8.1' \
-    setproctitle
-
-# Bundle the python3-gi / python3-dbus packages shipped by apt: their .so
-# extensions live outside the pip world, and we want PyGObject/dbus wired
-# up to the bundled typelibs and libdbus, not whatever the host has.
-for path in /usr/lib/python3/dist-packages/gi \
-            /usr/lib/python3/dist-packages/cairo \
-            /usr/lib/python3/dist-packages/dbus \
-            /usr/lib/python3/dist-packages/_dbus_bindings*.so \
-            /usr/lib/python3/dist-packages/_dbus_glib_bindings*.so; do
-    if compgen -G "$path" >/dev/null; then
-        cp -a $path "$TARGET/"
-    fi
-done
+    setproctitle \
+    pycairo \
+    'PyGObject<3.50' \
+    dbus-python
 
 # Stage desktop file + icon for linuxdeploy. It looks for them at the AppDir
 # root, so symlink from the canonical install locations.
