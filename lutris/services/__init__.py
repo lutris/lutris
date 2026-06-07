@@ -32,6 +32,10 @@ if TYPE_CHECKING:
 
 DEFAULT_SERVICES = ["gog", "egs", "ea_app", "ubisoft", "steam"]
 
+# Suffix of the per-service setting that controls whether the service's games
+# are shown in the games views (see is_service_in_games_view).
+IN_GAMES_VIEW_SETTING_SUFFIX = "_in_games_view"
+
 
 def get_services() -> dict[str, "type[BaseService]"]:
     """Return a mapping of available services"""
@@ -83,3 +87,13 @@ def get_enabled_services():
         for key, _class in SERVICES.items()
         if settings.read_setting(key, section="services").lower() == "true"
     }
+
+
+def is_service_in_games_view(service_id: str) -> bool:
+    """True if the user has not excluded this service's games from the games views."""
+    return settings.read_bool_setting(service_id + IN_GAMES_VIEW_SETTING_SUFFIX, default=True, section="services")
+
+
+def get_services_hidden_in_games_view() -> set[str]:
+    """Return the casefolded ids of the services whose games are excluded from the games views."""
+    return {key.casefold() for key in SERVICES if not is_service_in_games_view(key)}

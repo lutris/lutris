@@ -4,12 +4,13 @@ from gi.repository import Gdk, GObject, Gtk
 
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
-from lutris.services import SERVICES
 from lutris.game import GAME_START, Game
 from lutris.game_actions import GameActions, get_game_actions
+from lutris.gui.views.all_sources import parse_service_view_id
 from lutris.gui.widgets import EMPTY_NOTIFICATION_REGISTRATION
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED, get_application
+from lutris.services import SERVICES
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES
@@ -102,18 +103,20 @@ class GameView:
 
         games = []
         for game_id in game_ids:
-            parts = str(game_id).split(":", 2)
-            if len(parts) == 3 and parts[0] == "service":
-                service_id, appid = parts[1], parts[2]
-                db_game = get_game_for_service(service_id, appid)
+            service_id, appid = parse_service_view_id(game_id)
+            if service_id:
+                # All-sources view ids; ids naming an unknown service are
+                # dropped rather than misinterpreted as local game ids.
+                service_class = SERVICES.get(service_id)
+                if service_class:
+                    db_game = get_game_for_service(service_id, appid)
 
-                if db_game and db_game["id"]:
-                    games.append(_get_game_by_id(db_game["id"]))
-                else:
-                    service_game = ServiceGameCollection.get_game(service_id, appid)
-                    service_class = SERVICES.get(service_id)
-                    if service_game and service_class:
-                        games.append(Game.create_empty_service_game(service_game, service_class()))
+                    if db_game and db_game["id"]:
+                        games.append(_get_game_by_id(db_game["id"]))
+                    else:
+                        service_game = ServiceGameCollection.get_game(service_id, appid)
+                        if service_game:
+                            games.append(Game.create_empty_service_game(service_game, service_class()))
             elif self.service:
                 db_game = get_game_for_service(self.service.id, game_id)
 
