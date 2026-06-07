@@ -64,6 +64,10 @@ class StoreItem:
     @property
     def id(self) -> str:  # pylint: disable=invalid-name
         """Game internal ID"""
+        # '_view_id' is set only on rows built by LutrisWindow.get_all_source_games
+        # (via lutris.gui.views.all_sources.get_service_view_id); it overrides the
+        # appid/slug/id below so the All Sources view gets a unique, round-trippable
+        # 'service:<service_id>:<appid>' id even when services share appids.
         if "_view_id" in self._game_data:
             return str(self._game_data["_view_id"])
 
@@ -163,6 +167,9 @@ class StoreItem:
         services = [(service, lambda: self.slug)]
 
         game_service_name = self._game_data.get("service")
+        # Service-game dicts from ServiceGameCollection carry 'appid' but no
+        # 'service_id'; without the fallback the service-media lookup below
+        # silently failed for them.
         game_service_id = self._game_data.get("service_id") or self._game_data.get("appid")
 
         if game_service_name and game_service_id and game_service_name in SERVICES:
