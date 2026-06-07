@@ -35,8 +35,15 @@ rm -rf "$APPDIR/usr/lib/python${PY_VER}/test" \
        "$APPDIR/usr/lib/python${PY_VER}/config-"*
 
 # Install Lutris (Python package + bin/lutris + data files) into the AppDir.
+# --install-layout=deb is Debian's flag for "use dist-packages, not the
+# upstream-Python site-packages layout." This matters because the bundled
+# Python is Debian-patched (Ubuntu 22.04) and its default sys.path looks
+# for modules in dist-packages, not site-packages. Installing here means
+# AppRun does not need to advertise our location on PYTHONPATH, which in
+# turn keeps PYTHONPATH out of host subprocesses (umu-run's #!/usr/bin/env
+# python3 picks up the host interpreter, with its host site-packages).
 cd "$SRC"
-python3 setup.py install --root="$APPDIR" --prefix=/usr --no-compile
+python3 setup.py install --root="$APPDIR" --prefix=/usr --install-layout=deb --no-compile
 
 # Install runtime Python deps directly into the AppDir's site-packages.
 SITE_PACKAGES=$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
