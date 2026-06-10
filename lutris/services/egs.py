@@ -269,9 +269,7 @@ class EpicGamesStoreService(OnlineService):
     def is_editor_resource(item):
         """Return True for Epic/Fab/Unreal resources that are not launchable games."""
         category_paths = {
-            category.get("path", "")
-            for category in item.get("categories", [])
-            if isinstance(category, dict)
+            category.get("path", "") for category in item.get("categories", []) if isinstance(category, dict)
         }
 
         custom_attributes = item.get("customAttributes") or {}
@@ -282,10 +280,7 @@ class EpicGamesStoreService(OnlineService):
             or "type/format-item" in category_paths
             or any(path.startswith("asset-format") for path in category_paths)
             or "ListingIdentifier" in custom_attributes
-            or any(
-                isinstance(release, dict) and "compatibleApps" in release
-                for release in release_info
-            )
+            or any(isinstance(release, dict) and "compatibleApps" in release for release in release_info)
         )
 
     def get_library(self):
