@@ -265,6 +265,24 @@ class EpicGamesStoreService(OnlineService):
         asset.update(response.json()[catalog_item_id])
         return asset
 
+    @staticmethod
+    def is_editor_resource(item):
+        """Return True for Epic/Fab/Unreal resources that are not launchable games."""
+        category_paths = {
+            category.get("path", "") for category in item.get("categories", []) if isinstance(category, dict)
+        }
+
+        custom_attributes = item.get("customAttributes") or {}
+        release_info = item.get("releaseInfo") or []
+
+        return (
+            item.get("entitlementType") == "AUDIENCE"
+            or "type/format-item" in category_paths
+            or any(path.startswith("asset-format") for path in category_paths)
+            or "ListingIdentifier" in custom_attributes
+            or any(isinstance(release, dict) and "compatibleApps" in release for release in release_info)
+        )
+
     def get_library(self):
         self.resume_session()
         response = self.session.get(
@@ -287,7 +305,17 @@ class EpicGamesStoreService(OnlineService):
         for record in records:
             if record["namespace"] == "ue":
                 continue
+
             game_details = self.get_game_details(record)
+
+            if self.is_editor_resource(game_details):
+                logger.info(
+                    "Skipping Epic editor/resource entry: %s (%s)",
+                    game_details.get("title") or game_details.get("appName"),
+                    game_details.get("entitlementType"),
+                )
+                continue
+
             games.append(game_details)
         return games
 
