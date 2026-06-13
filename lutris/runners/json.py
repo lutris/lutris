@@ -4,7 +4,7 @@ import json
 import os
 import shlex
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 
 from lutris import settings
 from lutris.exceptions import MissingGameExecutableError
@@ -72,9 +72,7 @@ class JsonRunner(Runner):
         super().__init__(config)
         path = self.json_path
         if not path:
-            raise RuntimeError(
-                "Create subclasses of JsonRunner with the json_path attribute set"
-            )
+            raise RuntimeError("Create subclasses of JsonRunner with the json_path attribute set")
 
         data = self._json_cache.get(path)
         if data is None:
@@ -156,7 +154,7 @@ class JsonRunner(Runner):
             if key not in self.runner_config:
                 continue
             try:
-                _OPTION_HANDLERS[opt["type"]](self, opt, arguments)
+                self._OPTION_HANDLERS[opt["type"]](self, opt, arguments)
             except KeyError:
                 raise RuntimeError(f"Unhandled type {opt['type']}")
 
@@ -165,9 +163,7 @@ class JsonRunner(Runner):
         if self._json_data.get("env"):
             result["env"] = self._json_data["env"]
         if self._json_data.get("working_dir") == "runner":
-            result["working_dir"] = os.path.dirname(
-                os.path.join(settings.RUNNER_DIR, self.runner_executable_path)
-            )
+            result["working_dir"] = os.path.dirname(os.path.join(settings.RUNNER_DIR, self.runner_executable_path))
         return result
 
 
