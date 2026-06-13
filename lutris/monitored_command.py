@@ -97,8 +97,17 @@ class MonitoredCommand:
 
     def get_wrapper_command(self) -> list[str]:
         """Return launch arguments for the wrapper script"""
+        # Invoke the wrapper via the current Python explicitly rather than
+        # relying on its `#!/usr/bin/env python3` shebang. The shebang
+        # resolves through PATH at exec time, which silently picks up a
+        # different interpreter in distribution scenarios where the host
+        # Python doesn't match the one running Lutris (AppImage, venv
+        # launched from outside, etc.) — and a wrong-version Python
+        # crashes hard on Lutris's own stdlib via the inherited
+        # PYTHONPATH.
         wrapper_command = (
             [
+                sys.executable,
                 WRAPPER_SCRIPT,
                 self._title,
                 str(len(self.include_processes)),
@@ -133,8 +142,17 @@ class MonitoredCommand:
         """Process the user provided environment variables for use as self.env"""
         env = copy(user_env) if user_env else {}
 
-        # not clear why this needs to be added, the path is already added in
-        # the wrappper script.
+        # Defense-in-depth for lutris-wrapper subprocesses: the wrapper script
+        # bootstraps its own sys.path when run from a git checkout, but
+        # publishing PYTHONPATH here means any unusual layout the wrapper's
+        # own bootstrap doesn't recognise still resolves `from lutris...`
+        # imports. Safe because:
+        #   * The wrapper now runs on the same Python as Lutris (sys.executable
+        #     in get_wrapper_command), so an inherited PYTHONPATH pointing at
+        #     our stdlib is ABI-compatible.
+        #   * lutris-wrapper deletes PYTHONPATH from os.environ before
+        #     spawning the game, so the leak doesn't propagate to Wine,
+        #     umu-launcher, or any other runner subprocess.
         env["PYTHONPATH"] = ":".join(sys.path)
         # Drop bad values of environment keys, those will confuse the Python
         # interpreter.

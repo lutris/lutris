@@ -16,6 +16,7 @@ JSON_RUNNER_DIRS = [
     os.path.join(settings.RUNNER_DIR, "json"),
 ]
 
+
 @dataclass(frozen=True)
 class JsonRunnerSpec:
     game_options: list
@@ -29,6 +30,7 @@ class JsonRunnerSpec:
     download_url: Optional[str]
     runnable_alone: Optional[bool]
     flatpak_id: Optional[str]
+
 
 _REQUIRED_KEYS = {
     "game_options",
@@ -64,7 +66,6 @@ def _load_and_validate_json(path: str) -> JsonRunnerSpec:
 
 class JsonRunner(Runner):
     json_path = None
-    _json_cache = {}
     _json_cache = {}
 
     def __init__(self, config=None):
@@ -111,7 +112,7 @@ class JsonRunner(Runner):
         self.flatpak_id = spec.flatpak_id
 
     def _opt_bool(self, opt, args):
-        if self.runner_config.get(optp["option"]):
+        if self.runner_config.get(opt["option"]):
             args.append(opt["argument"])
 
     def _opt_choice(self, opt, args):
@@ -139,8 +140,14 @@ class JsonRunner(Runner):
         """Return a launchable command constructed from the options"""
         arguments = self.get_command()
 
+        # Prepend the option flag for entry_point_option value
+        for option in self.game_options:
+            if self.entry_point_option != option["option"]:
+                continue
+            if "argument" in option:
+                arguments.append(option["argument"])
+
         main_file = self.game_config.get(self.entry_point_option)
-        if not main_file or not system.path_exists(main_file):
         if not main_file or not system.path_exists(main_file):
             raise MissingGameExecutableError(filename=main_file)
 
@@ -158,7 +165,9 @@ class JsonRunner(Runner):
         if self._json_data.get("env"):
             result["env"] = self._json_data["env"]
         if self._json_data.get("working_dir") == "runner":
-            result["working_dir"] = os.path.dirname(os.path.join(settings.RUNNER_DIR, self.runner_executable_path))
+            result["working_dir"] = os.path.dirname(
+                os.path.join(settings.RUNNER_DIR, self.runner_executable_path)
+            )
         return result
 
 
@@ -166,13 +175,10 @@ def load_json_runners():
     runners = {}
     for base in JSON_RUNNER_DIRS:
         if not os.path.isdir(base):
-    runners = {}
-    for base in JSON_RUNNER_DIRS:
-        if not os.path.isdir(base):
             continue
-        for entry in os.scandir(json_dir):
-            if not json_path.endswith(".json"):
+        for entry in os.scandir(base):
+            if not entry.name.endswith(".json"):
                 continue
-            name = json_path[:-5]
-            runner[name] = type(name, (JsonRunner,), {"json_path": entry.path})
+            name = entry.name[:-5]
+            runners[name] = type(name, (JsonRunner,), {"json_path": entry.path})
     return runners
