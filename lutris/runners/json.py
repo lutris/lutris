@@ -138,7 +138,16 @@ class JsonRunner(Runner):
         """Return a launchable command constructed from the options"""
         arguments = self.get_command()
 
-        # Prepend the option flag for entry_point_option value
+        for opt in self.runner_options:
+            key = opt["option"]
+            if key not in self.runner_config:
+                continue
+            try:
+                self._OPTION_HANDLERS[opt["type"]](self, opt, arguments)
+            except KeyError:
+                raise RuntimeError(f"Unhandled type {opt['type']}")
+
+        # Prepend the option flag before for entry_point_option value
         for option in self.game_options:
             if self.entry_point_option != option["option"]:
                 continue
@@ -148,15 +157,6 @@ class JsonRunner(Runner):
         main_file = self.game_config.get(self.entry_point_option)
         if not main_file or not system.path_exists(main_file):
             raise MissingGameExecutableError(filename=main_file)
-
-        for opt in self.runner_options:
-            key = opt["option"]
-            if key not in self.runner_config:
-                continue
-            try:
-                self._OPTION_HANDLERS[opt["type"]](self, opt, arguments)
-            except KeyError:
-                raise RuntimeError(f"Unhandled type {opt['type']}")
 
         arguments.append(main_file)
         result = {"command": arguments}
