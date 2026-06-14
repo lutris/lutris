@@ -419,71 +419,110 @@ class WindowTitle(Gtk.Box):
 
 
 class EditableGrid(Gtk.Box):
+    """A small editable table of free-text columns. Each row shows one
+    Gtk.Entry per column plus a per-row delete button; an Add button at
+    the bottom appends an empty row. Emits 'changed' on any edit, add,
+    or delete; get_data() returns the current contents as
+    list[list[str]] with whitespace stripped."""
+
     __gsignals__ = {"changed": (GObject.SIGNAL_RUN_FIRST, None, ())}
 
-    def __init__(self, data, columns):
-        self.columns = columns
+    def __init__(self, data, columns) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.add_css_class("editable-grid")
+        self.columns = columns
+        self._rows: list[list[Gtk.Entry]] = []
 
-        self.liststore = Gtk.ListStore(str, str)
+        # Column headers above the rows; each header expands like its column
+        # so labels line up over their entries. The start/end margins line up
+        # with the row content's padding so headers sit over their entries.
+        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        header.set_margin_start(6)
+        header.set_margin_end(6)
+        for title in columns:
+            label = Gtk.Label(label=title, xalign=0)
+            label.set_hexpand(True)
+            label.add_css_class("heading")
+            header.append(label)
+        # Spacer that matches the per-row delete button's width so the
+        # final column header doesn't get pushed across by it.
+        spacer = Gtk.Box()
+        spacer.set_size_request(20, -1)
+        header.append(spacer)
+        self.append(header)
+
+        self._listbox = Gtk.ListBox()
+        self._listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        self._listbox.set_show_separators(True)
+
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_size_request(-1, 209)
+        scrolled.set_hexpand(True)
+        scrolled.set_vexpand(True)
+        scrolled.set_child(self._listbox)
+
+        # Frame gives the rows a visible border, especially when the grid
+        # is empty (otherwise it looks like a void gap above the Add button).
+        frame = Gtk.Frame()
+        frame.set_child(scrolled)
+        self.append(frame)
+
         for item in data:
-            self.liststore.append([str(value) for value in item])
+            self._append_row([str(value) for value in item], emit=False)
 
-        self.treeview = Gtk.TreeView.new_with_model(self.liststore)
-        self.treeview.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
-        for i, column_title in enumerate(self.columns):
-            renderer = Gtk.CellRendererText()
-            renderer.set_property("editable", True)
-            renderer.connect("edited", self.on_text_edited, i)
-
-            column = Gtk.TreeViewColumn(column_title, renderer, text=i)
-            column.set_resizable(True)
-            column.set_min_width(100)
-            column.set_sort_column_id(0)
-            self.treeview.append_column(column)
-
-        self.buttons = []
         self.add_button = Gtk.Button(label=_("Add"))
-        self.buttons.append(self.add_button)
-        self.add_button.connect("clicked", self.on_add)
+        self.add_button.set_size_request(80, -1)
+        self.add_button.connect("clicked", self._on_add_clicked)
 
-        self.delete_button = Gtk.Button(label=_("Delete"))
-        self.buttons.append(self.delete_button)
-        self.delete_button.connect("clicked", self.on_delete)
-
-        self.scrollable_treelist = Gtk.ScrolledWindow()
-        self.scrollable_treelist.set_size_request(-1, 209)
-        self.scrollable_treelist.set_child(self.treeview)
-
-        self.scrollable_treelist.set_hexpand(True)
-        self.scrollable_treelist.set_vexpand(True)
-        self.append(self.scrollable_treelist)
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        for button in reversed(self.buttons):
-            button.set_size_request(80, -1)
-            button_box.append(button)
+        button_box.set_halign(Gtk.Align.END)
+        button_box.append(self.add_button)
         self.append(button_box)
 
-    def on_add(self, widget):  # pylint: disable=unused-argument
-        self.liststore.append(["", ""])
-        row_position = len(self.liststore) - 1
-        self.treeview.set_cursor(row_position, None, False)
-        self.treeview.scroll_to_cell(row_position, None, False, 0.0, 0.0)
-        self.emit("changed")
+    def _append_row(self, values: list[str], emit: bool = True) -> Gtk.ListBoxRow:
+        row = Gtk.ListBoxRow()
+        row.set_activatable(False)
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        box.set_margin_top(2)
+        box.set_margin_bottom(2)
+        box.set_margin_start(6)
+        box.set_margin_end(6)
 
-    def on_delete(self, widget):  # pylint: disable=unused-argument
-        selection = self.treeview.get_selection()
-        _, iteration = selection.get_selected()
-        if iteration:
-            self.liststore.remove(iteration)
+        entries: list[Gtk.Entry] = []
+        for i in range(len(self.columns)):
+            entry = Gtk.Entry()
+            entry.set_text(values[i] if i < len(values) else "")
+            entry.set_hexpand(True)
+            entry.connect("changed", lambda _entry: self.emit("changed"))
+            box.append(entry)
+            entries.append(entry)
+
+        delete_button = Gtk.Button.new_from_icon_name("list-remove-symbolic")
+        delete_button.add_css_class("reset-button")
+        delete_button.set_valign(Gtk.Align.CENTER)
+        delete_button.set_halign(Gtk.Align.CENTER)
+        delete_button.set_has_frame(False)
+        delete_button.set_tooltip_text(_("Remove this row"))
+        delete_button.connect("clicked", lambda _b: self._remove_row(row, entries))
+        box.append(delete_button)
+
+        row.set_child(box)
+        self._listbox.append(row)
+        self._rows.append(entries)
+        if emit:
             self.emit("changed")
+        return row
 
-    def on_text_edited(self, widget, path, text, field):  # pylint: disable=unused-argument
-        self.liststore[path][field] = text.strip()  # pylint: disable=unsubscriptable-object
+    def _remove_row(self, row: Gtk.ListBoxRow, entries: list[Gtk.Entry]) -> None:
+        self._listbox.remove(row)
+        self._rows.remove(entries)
         self.emit("changed")
 
-    def get_data(self):  # pylint: disable=arguments-differ
-        model_data = []
-        for row in self.liststore:  # pylint: disable=not-an-iterable
-            model_data.append(row)
-        return model_data
+    def _on_add_clicked(self, _button: Gtk.Button) -> None:
+        self._append_row([""] * len(self.columns))
+        # Focus the new row's first entry so the user can type straight in.
+        if self._rows:
+            self._rows[-1][0].grab_focus()
+
+    def get_data(self) -> list[list[str]]:  # pylint: disable=arguments-differ
+        return [[entry.get_text().strip() for entry in entries] for entries in self._rows]
