@@ -54,6 +54,7 @@ from lutris.gui.views import (
     COL_SORTNAME,
     COL_YEAR,
 )
+from lutris.gui.views.all_sources import get_service_view_id, get_unmatched_local_games, parse_service_view_id
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
@@ -141,12 +142,13 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.views = {}
 
         self.dynamic_categories_game_factories: dict[str, Callable[[], list]] = {
+            "all_sources": self.get_all_source_games,
             "recent": self.get_recent_games,
             "missing": self.get_missing_games,
             "running": self.get_running_games,
             ".uncategorized": self.get_uncategorized_games,
         }
-        self.sortable_dynamic_categories = {".uncategorized", "missing", "running"}
+        self.sortable_dynamic_categories = {"all_sources", ".uncategorized", "missing", "running"}
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
@@ -586,6 +588,58 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         games = games_db.get_games_by_ids(MISSING_GAMES.missing_game_ids)
         return self.apply_view_sort(self.filter_games(games))
 
+    def get_all_source_games(self) -> list[dict]:
+        """Return games from all enabled sources, with local copies merged into their service rows."""
+        hidden_services = services.get_services_hidden_in_games_view()
+        excludes = {"service": hidden_services} if hidden_services else {}
+        local_games = games_db.get_games(excludes=excludes)
+
+        enabled_services = {
+            service_id: service_class
+            for service_id, service_class in services.get_enabled_services().items()
+            if service_id.casefold() not in hidden_services
+        }
+
+        # Fetch each service's games exactly once; both the dedup below and the
+        # row building reuse this. A service that fails to load contributes no
+        # rows, but its empty appid set keeps its local copies visible, so a
+        # broken service fails soft.
+        service_games_by_id: dict[str, list[dict]] = {}
+        for service_id in enabled_services:
+            try:
+                service_games_by_id[service_id] = ServiceGameCollection.get_for_service(service_id)
+            except Exception as ex:
+                logger.exception("Games from source '%s' could not be loaded: %s", service_id, ex)
+                service_games_by_id[service_id] = []
+
+        service_appids = {
+            service_id: {game["appid"] for game in service_games}
+            for service_id, service_games in service_games_by_id.items()
+        }
+        all_games = get_unmatched_local_games(local_games, service_appids)
+
+        for service_id, service_class in enabled_services.items():
+            try:
+                service = service_class()
+                if service_id == "lutris":
+                    lutris_games = {game["slug"]: game for game in games_db.get_games()}
+                else:
+                    lutris_games = {
+                        game["service_id"]: game for game in games_db.get_games(filters={"service": service_id})
+                    }
+
+                for game in service_games_by_id[service_id]:
+                    service_game = game.copy()
+                    service_game["year"] = service.get_game_release_year(service_game)
+                    self.combine_games(service_game, lutris_games.get(service_game["appid"]))
+                    service_game.setdefault("installed", False)
+                    service_game["_view_id"] = get_service_view_id(service_id, service_game["appid"])
+                    all_games.append(service_game)
+            except Exception as ex:
+                logger.exception("Games from source '%s' could not be loaded: %s", service_id, ex)
+
+        return self.apply_view_sort(self.filter_games(all_games))
+
     def update_missing_games_sidebar_row(self) -> None:
         missing_games = self.get_missing_games()
         if missing_games:
@@ -717,11 +771,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         excludes = {}
 
         if self.filters.get("category") == "all" and "service" not in self.filters:
-            excluded_services = set(
-                s.casefold()
-                for s in services.SERVICES.keys()
-                if not settings.read_bool_setting(s + "_in_games_view", default=True, section="services")
-            )
+            excluded_services = services.get_services_hidden_in_games_view()
             if excluded_services:
                 excludes["service"] = excluded_services
 
@@ -1129,7 +1179,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_service_games_loaded(self, service):
         """Request a view update when service games are loaded"""
-        if self.service and service.id == self.service.id:
+        if (self.service and service.id == self.service.id) or self.filters.get("dynamic_category") == "all_sources":
             self.update_store()
 
     def on_categories_updated(self):
@@ -1164,7 +1214,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_service_logout(self, service):
         self.update_notification()
-        if self.service and service.id == self.service.id:
+        if (self.service and service.id == self.service.id) or self.filters.get("dynamic_category") == "all_sources":
             self.update_store()
         return True
 
@@ -1363,7 +1413,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             if self.service:
                 game = ServiceGameCollection.get_game(self.service.id, game_id)
             else:
-                game = games_db.get_game_by_field(game_id, "id")
+                service_id, appid = parse_service_view_id(game_id)
+                if service_id and service_id in services.SERVICES:
+                    game = ServiceGameCollection.get_game(service_id, appid)
+                else:
+                    game = games_db.get_game_by_field(game_id, "id")
 
             # There can be no game found if you are removing a game; it will
             # still have a selected icon in the UI just long enough to get here.
@@ -1382,7 +1436,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def on_settings_changed(self, setting_key, new_value, section):
         if section == "lutris" and setting_key == "hide_text_under_icons":
             self.rebuild_view("grid")
-        elif section == "services" and setting_key.endswith("_in_games_view"):
+        elif section == "services" and setting_key.endswith(services.IN_GAMES_VIEW_SETTING_SUFFIX):
             self.update_store()
         else:
             self.update_view_settings()
@@ -1490,6 +1544,20 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 game_id = db_game["id"]
             else:
                 game_id = self.service.install_by_id(game_id)
+        else:
+            service_id, appid = parse_service_view_id(game_id)
+            if service_id:
+                logger.debug("Looking up %s game %s", service_id, appid)
+                service_class = services.SERVICES.get(service_id)
+                db_game = games_db.get_game_for_service(service_id, appid)
+
+                if db_game and db_game["installed"]:
+                    game_id = db_game["id"]
+                elif service_class:
+                    game_id = service_class().install_by_id(appid)
+                else:
+                    logger.error("Non existent service '%s'", service_id)
+                    game_id = None
 
         if game_id:
             game = Game(game_id)
