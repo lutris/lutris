@@ -194,6 +194,8 @@ def _create_filter(field: str, value: Any, params: list[Any], negate: bool = Fal
         else:
             return f"({field} IS NULL OR {sql})"
     else:
+        if negate:
+            return f"({field} IS NULL OR {sql})"
         return sql
 
 
