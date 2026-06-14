@@ -125,7 +125,7 @@ class Dialog(Gtk.Window):
         """True if 'response_type' is OK or YES."""
         return self.response_type in (Gtk.ResponseType.OK, Gtk.ResponseType.YES)
 
-    def on_response(self, _dialog: Gtk.Dialog, response: Gtk.ResponseType) -> None:
+    def on_response(self, _dialog: "Dialog", response: Gtk.ResponseType) -> None:
         """Handles the dialog response; you can override this but by default
         this records the response for 'response_type'."""
         self._response_type = Gtk.ResponseType(response)
@@ -239,7 +239,7 @@ class ModalDialog(Dialog):
         self.set_modal(True)
         self.set_destroy_with_parent(True)
 
-    def on_response(self, dialog: Gtk.Dialog, response: Gtk.ResponseType) -> None:
+    def on_response(self, dialog: Dialog, response: Gtk.ResponseType) -> None:
         super().on_response(dialog, response)
         # Modal dialogs return from run() on response() but the dialog is
         # still visible and locks out its parent. Hide it; then destroy at idle.
@@ -259,7 +259,7 @@ class ModelessDialog(Dialog):
         self._window_group = Gtk.WindowGroup()
         self._window_group.add_window(self)
 
-    def on_response(self, dialog: Gtk.Dialog, response: Gtk.ResponseType) -> None:
+    def on_response(self, dialog: Dialog, response: Gtk.ResponseType) -> None:
         super().on_response(dialog, response)
         if response != Gtk.ResponseType.NONE and not getattr(self, "_closing", False):
             self._closing = True
@@ -320,7 +320,7 @@ class GtkBuilderDialog(GObject.Object):
 
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
-        self.dialog: Gtk.Dialog = self.builder.get_object(self.dialog_object)
+        self.dialog: Gtk.Window = self.builder.get_object(self.dialog_object)
         if parent:
             self.dialog.set_transient_for(parent)
         self.dialog.connect("close-request", self.on_close)
@@ -674,7 +674,7 @@ class ComponentUpdateWaitDialog(MessageBox):
         if self._is_queue_empty():
             self.response(Gtk.ResponseType.OK)
 
-    def on_response(self, dialog: Gtk.Dialog, response: Gtk.ResponseType) -> None:
+    def on_response(self, dialog: Dialog, response: Gtk.ResponseType) -> None:
         self._registration.unregister()
         super().on_response(dialog, response)
 
@@ -778,7 +778,7 @@ class InstallOrPlayDialog(ModalDialog):
         logger.debug("Action set to %s", action)
         self.action = action
 
-    def on_response(self, _widget: Gtk.Dialog, response: Gtk.ResponseType) -> None:
+    def on_response(self, _widget: Dialog, response: Gtk.ResponseType) -> None:
         if response == Gtk.ResponseType.CANCEL:
             self.action = None
         super().on_response(_widget, response)
@@ -943,7 +943,7 @@ class HumbleBundleCookiesDialog(ModalDialog):
         vbox.append(scrolledwindow)
         self.run()
 
-    def on_response(self, dialog: Gtk.Dialog, response: Gtk.ResponseType) -> None:
+    def on_response(self, dialog: Dialog, response: Gtk.ResponseType) -> None:
         if response == Gtk.ResponseType.CANCEL:
             self.cookies_content = None
         else:
