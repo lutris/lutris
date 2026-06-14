@@ -104,7 +104,7 @@ class GameView:
         games = []
         for game_id in game_ids:
             service_id, appid = parse_service_view_id(game_id)
-            if service_id:
+            if service_id and appid:
                 # All-sources view ids; ids naming an unknown service are
                 # dropped rather than misinterpreted as local game ids.
                 service_class = SERVICES.get(service_id)
