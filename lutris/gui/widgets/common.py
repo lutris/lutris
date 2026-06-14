@@ -122,6 +122,15 @@ class FileChooserEntry(Gtk.Box):  # type:ignore[misc]
         self.path_completion = Gtk.ListStore(str)
 
         self.entry = Gtk.Entry()
+        # Gtk.EntryCompletion is deprecated in GTK 4 (the replacement
+        # Gtk.SuggestionEntry hasn't landed yet — see GTK4-MIGRATION.md);
+        # use it as-is until then. The model is updated as the user types
+        # in on_entry_changed -> update_completion().
+        self._completion = Gtk.EntryCompletion()
+        self._completion.set_model(self.path_completion)
+        self._completion.set_text_column(0)
+        self.entry.set_completion(self._completion)
+
         self.set_text(text)  # do before set up signal handlers
         self.original_text = self.get_text()
         self.default_path = os.path.expanduser(default_path) if default_path else self.get_path()
