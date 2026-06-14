@@ -120,6 +120,44 @@ popover button.popover-menu-button {
   border-spacing: 0;
 }
 
+/* The default theme pads each Gtk.ListBoxRow generously; for the
+   editable-grid (env-var table) widget the rows hold compact Gtk.Entry
+   widgets, so the extra padding leaves a lot of empty space. Zero it
+   out and let the inner box's margins drive vertical rhythm. */
+.editable-grid listview row,
+.editable-grid list row {
+  padding: 0;
+  min-height: 0;
+}
+
+/* Strip the per-entry border, shadow, and corner radius so each row
+   reads as a single cell. Tightened internal padding too. The frame
+   around the listbox plus the row separators already provide visual
+   structure. */
+.editable-grid entry,
+.editable-grid entry > text {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  outline: none;
+  min-height: 0;
+  padding: 2px 4px;
+}
+
+.editable-grid entry:focus-within {
+  /* Subtle focus indicator that doesn't expand the row vertically. */
+  background-color: alpha(@accent_color, .12);
+}
+
+/* Vertical separator between columns: any entry that follows another
+   entry within the same row gets a 1px left border. The selector only
+   matches inside actual ListBoxRows, so the empty area below the last
+   row stays clean. */
+.editable-grid entry + entry {
+  border-left: 1px solid alpha(currentColor, .15);
+}
+
 @keyframes lutris-launch-bounce {
   0%   { transform: scale(1.0); }
   50%  { transform: scale(0.9); }

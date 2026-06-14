@@ -362,12 +362,18 @@ already moved to. Remaining holdouts:
 - `lutris/gui/config/widget_generator.py` — the file list in the
   installer-script file-picker widget (`_generate_files()`).
 - `lutris/gui/widgets/common.py` — `PathCompleter`'s suggestion
-  `ListStore`, and the 2-column `TreeView` inside `EditableGrid`.
+  `ListStore`.
 - `lutris/gui/widgets/searchable_entrybox.py` — the `ListStore` that
   backs the `EntryCompletion` above; will go away with that swap.
 
 Each is small and self-contained. Swap when convenient or when GTK 5
 removes the API; no urgency until then.
+
+`EditableGrid` (in `widgets/common.py`) used to be a 2-column editable
+`TreeView`; it now uses a `Gtk.ListBox` of rows, each row holding one
+`Gtk.Entry` per column and a small per-row delete button. CSS in
+`share/lutris/ui/lutris.css` strips the entry borders and adds a
+column separator so the rows still read as a tabular grid.
 
 ### `Gtk.StyleContext.add_provider_for_display` / `remove_provider_for_display`
 
