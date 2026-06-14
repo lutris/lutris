@@ -377,15 +377,6 @@ deprecated, but these two static methods are the only documented way
 to scope a `Gtk.CssProvider` to an entire display in GTK 4 — there is
 no documented successor yet. Keep using them until GTK provides one.
 
-### `Gtk.Dialog` (as a type annotation)
-
-`lutris/gui/dialogs/__init__.py` still annotates several `on_response`
-handler signatures with `Gtk.Dialog`, even though the concrete dialog
-classes were rewritten as plain `Gtk.Window` subclasses (see the
-`Gtk.MessageDialog`-replacement comment at line 352). Cosmetic only;
-the handlers run fine. Update annotations the next time those classes
-are touched.
-
 ## Factory-Item Snapshot Caching
 
 `Gtk.Widget.queue_draw()` in GTK 4 invalidates a single widget's snapshot,

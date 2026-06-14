@@ -14,7 +14,14 @@ from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemConfigBox
 from lutris.gui.config.game_info_box import GameInfoBox
 from lutris.gui.config.widget_generator import WidgetWarningMessageBox
-from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog, display_error
+from lutris.gui.dialogs import (
+    Dialog,
+    DirectoryDialog,
+    ErrorDialog,
+    QuestionDialog,
+    SavableModelessDialog,
+    display_error,
+)
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.dialogs.move_game import MoveDialog
 from lutris.gui.widgets.common import KeyValueDropDown
@@ -354,7 +361,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self._build_runner_tab()
         self._build_system_tab()
 
-    def on_response(self, _widget: Gtk.Dialog, response: Gtk.ResponseType) -> None:
+    def on_response(self, _widget: Dialog, response: Gtk.ResponseType) -> None:
         if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
             # Reload the config to clean out any changes we may have made
             if self.game:
