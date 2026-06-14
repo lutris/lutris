@@ -362,23 +362,23 @@ isn't worth carrying for the duration of the GTK 4 cycle. When
 Deprecated in GTK 4.10. The replacement story is the
 `Gtk.ColumnView` / `Gtk.ListView` + `Gio.ListStore` +
 `Gtk.SignalListItemFactory` stack — which the main game list and grid
-already moved to. Remaining holdouts:
+already moved to. The only remaining `Gtk.ListStore` users live
+underneath `Gtk.EntryCompletion`:
 
-- `lutris/gui/config/widget_generator.py` — the file list in the
-  installer-script file-picker widget (`_generate_files()`).
-- `lutris/gui/widgets/searchable_entrybox.py` and
-  `lutris/gui/widgets/common.py` — `Gtk.ListStore` backing the
-  `Gtk.EntryCompletion` autocomplete; both go away when the
-  `EntryCompletion` swap lands.
+- `lutris/gui/widgets/searchable_entrybox.py` (service-search dropdown)
+- `lutris/gui/widgets/common.py` (`FileChooserEntry` path completion)
 
-Each is small and self-contained. Swap when convenient or when GTK 5
-removes the API; no urgency until then.
+Both `ListStore`s go away when the `EntryCompletion` swap lands; until
+then they're harmless deprecation noise.
 
-`EditableGrid` (in `widgets/common.py`) used to be a 2-column editable
-`TreeView`; it now uses a `Gtk.ListBox` of rows, each row holding one
-`Gtk.Entry` per column and a small per-row delete button. CSS in
-`share/lutris/ui/lutris.css` strips the entry borders and adds a
-column separator so the rows still read as a tabular grid.
+`EditableGrid` (in `widgets/common.py`) and the multiple-file picker
+in `widget_generator.py` (`_generate_multiple_file()`) both used to be
+`Gtk.TreeView`s. They now use a shared pattern: a `Gtk.ListBox` of
+rows where each row is a `Gtk.Entry` plus a small per-row delete
+button, wrapped in a `Gtk.Frame`. CSS in
+`share/lutris/ui/lutris.css` (scoped to the `.editable-grid` class)
+strips entry borders/padding/radius and tightens row padding so the
+rows still read as a clean tabular list.
 
 ### `Gtk.StyleContext.add_provider_for_display` / `remove_provider_for_display`
 
