@@ -7,7 +7,7 @@ from gettext import gettext as _
 from inspect import Parameter, signature
 from typing import TYPE_CHECKING, Any
 
-from gi.repository import Gdk, Gio, GLib, Gtk  # type: ignore
+from gi.repository import Gio, GLib, Gtk  # type: ignore
 
 from lutris.config import LutrisConfig
 from lutris.gui.widgets import NotificationSource
@@ -605,17 +605,63 @@ class WidgetGenerator(ABC):
     def _generate_command_line(self, option, value, default):
         return self._generate_file(option, value, default, shell_quoting=True)
 
-    # TreeView
     def _generate_multiple_file(self, option, value, default):
         """Generate a multiple file selector."""
+
+        option_key = option["option"]
+        label_text = option["label"]
+        # entries holds the canonical state: one Gtk.Entry per row, in
+        # display order. fire_changed() and the add-files dedupe both
+        # read it; add_row() appends to it; on_remove() removes from it.
+        entries = []
+
+        def current_files():
+            return [e.get_text().strip() for e in entries]
+
+        def fire_changed():
+            self.changed.fire(option_key, current_files())
+
+        def add_row(filename: str) -> None:
+            row = Gtk.ListBoxRow()
+            row.set_activatable(False)
+            row_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+            row_box.set_margin_top(2)
+            row_box.set_margin_bottom(2)
+            row_box.set_margin_start(6)
+            row_box.set_margin_end(6)
+
+            entry = Gtk.Entry()
+            entry.set_text(filename)
+            entry.set_hexpand(True)
+            entry.connect("changed", lambda _e: fire_changed())
+            row_box.append(entry)
+
+            delete_button = Gtk.Button.new_from_icon_name("list-remove-symbolic")
+            delete_button.add_css_class("reset-button")
+            delete_button.set_valign(Gtk.Align.CENTER)
+            delete_button.set_halign(Gtk.Align.CENTER)
+            delete_button.set_has_frame(False)
+            delete_button.set_tooltip_text(_("Remove this file"))
+
+            def on_remove(_button: Gtk.Button) -> None:
+                files_listbox.remove(row)
+                entries.remove(entry)
+                fire_changed()
+
+            delete_button.connect("clicked", on_remove)
+            row_box.append(delete_button)
+
+            row.set_child(row_box)
+            files_listbox.append(row)
+            entries.append(entry)
 
         def on_add_files_clicked(_widget):
             """Create and run multi-file chooser dialog."""
             dialog = Gtk.FileDialog()
             dialog.set_title(_("Select files"))
 
-            files = [row[0] for row in files_list_store]
-            first_file_dir = os.path.dirname(files[0]) if files else None
+            existing = current_files()
+            first_file_dir = os.path.dirname(existing[0]) if existing else None
             initial = first_file_dir or self.default_directory
             if initial:
                 dialog.set_initial_folder(Gio.File.new_for_path(initial))
@@ -625,71 +671,66 @@ class WidgetGenerator(ABC):
                     gfiles = _dialog.open_multiple_finish(async_result)
                 except GLib.Error:
                     return
+                added_any = False
                 for i in range(gfiles.get_n_items()):
                     gfile = gfiles.get_item(i)
                     filename = gfile.get_path()
-                    if filename and filename not in files:
-                        files_list_store.append([filename])
-                        files.append(filename)
-                self.changed.fire(option_key, files)
+                    if filename and filename not in current_files():
+                        add_row(filename)
+                        added_any = True
+                if added_any:
+                    fire_changed()
 
             dialog.open_multiple(None, None, on_finish)
 
-        def on_files_treeview_keypress(_controller, keyval, _keycode, _state):
-            """Action triggered when a row is deleted from the filechooser."""
-            if keyval == Gdk.KEY_Delete:
-                treeview = _controller.get_widget()
-                selection = treeview.get_selection()
-                (model, treepaths) = selection.get_selected_rows()
-                for treepath in treepaths:
-                    treeiter = model.get_iter(treepath)
-                    model.remove(treeiter)
-
-                    files = [row[0] for row in files_list_store]
-                    self.changed.fire(option_key, files)
-
-        option_key = option["option"]
-        label = option["label"]
-
-        files_list_store = Gtk.ListStore(str)
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        label = Label(label + ":")
-        label.set_halign(Gtk.Align.START)
-        label.set_margin_bottom(5)
-        button = Gtk.Button(label=_("Add Files"))
-        button.connect("clicked", on_add_files_clicked)
-        button.set_margin_start(10)
-
         if not value:
             value = default
-
         if value:
             if isinstance(value, str):
-                files = [value]
+                initial_files = [value]
             else:
-                files = value
+                initial_files = list(value)
         else:
-            files = []
-        for filename in files:
-            files_list_store.append([filename])
-        cell_renderer = Gtk.CellRendererText()
-        files_treeview = Gtk.TreeView(model=files_list_store)
-        files_column = Gtk.TreeViewColumn(_("Files"), cell_renderer, text=0)
-        files_treeview.append_column(files_column)
-        key_controller = Gtk.EventControllerKey()
-        key_controller.connect("key-pressed", on_files_treeview_keypress)
-        files_treeview.add_controller(key_controller)
-        treeview_scroll = Gtk.ScrolledWindow()
-        treeview_scroll.set_min_content_height(130)
-        treeview_scroll.set_margin_start(10)
-        treeview_scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        treeview_scroll.set_child(files_treeview)
+            initial_files = []
 
-        vbox.append(label)
-        treeview_scroll.set_hexpand(True)
-        treeview_scroll.set_vexpand(True)
-        vbox.append(treeview_scroll)
-        vbox.append(button)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox.add_css_class("editable-grid")
+        header_label = Label(label_text + ":")
+        header_label.set_halign(Gtk.Align.START)
+        header_label.set_margin_bottom(5)
+
+        files_listbox = Gtk.ListBox()
+        files_listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        files_listbox.set_show_separators(True)
+
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_min_content_height(130)
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scrolled.set_child(files_listbox)
+
+        # Frame gives the listbox a visible border (especially when empty),
+        # matching the EditableGrid styling.
+        frame = Gtk.Frame()
+        frame.set_margin_start(10)
+        frame.set_hexpand(True)
+        frame.set_vexpand(True)
+        frame.set_child(scrolled)
+
+        for filename in initial_files:
+            add_row(filename)
+
+        add_button = Gtk.Button(label=_("Add Files"))
+        add_button.set_size_request(80, -1)
+        add_button.connect("clicked", on_add_files_clicked)
+
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        button_box.set_halign(Gtk.Align.END)
+        button_box.set_margin_top(6)
+        button_box.append(add_button)
+
+        vbox.append(header_label)
+        vbox.append(frame)
+        vbox.append(button_box)
         return self.build_option_widget(option, vbox, no_label=True)
 
     # FileChooserEntry
