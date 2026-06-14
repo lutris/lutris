@@ -341,16 +341,21 @@ isn't surprised.
 
 ### `Gtk.EntryCompletion`
 
-Used by `lutris/gui/widgets/searchable_entrybox.py` for the autocomplete
-dropdown under service-search entries (GOG, itch.io, Steam, etc.). The
-intended replacement, `Gtk.SuggestionEntry`, hasn't been merged into
-GTK and is slated for GTK 5.
+Used in two places for autocompletion dropdowns under a `Gtk.Entry`:
+
+- `lutris/gui/widgets/searchable_entrybox.py` — service-search entries
+  (GOG, itch.io, Steam, etc.).
+- `lutris/gui/widgets/common.py` (`FileChooserEntry`) — directory
+  suggestions as the user types a path.
+
+The intended replacement, `Gtk.SuggestionEntry`, hasn't been merged
+into GTK and is slated for GTK 5.
 
 A hand-rolled replacement was attempted (non-autohiding `Gtk.Popover`
 with a `Gtk.FilterListModel`-backed `Gtk.ListView`); it works, but the
 focus dance required to keep typing alive while the popover is visible
 isn't worth carrying for the duration of the GTK 4 cycle. When
-`Gtk.SuggestionEntry` lands, swap `SearchableEntrybox` over to it.
+`Gtk.SuggestionEntry` lands, swap both call sites over to it.
 
 ### `Gtk.TreeView` / `Gtk.ListStore` / `Gtk.CellRendererText`
 
@@ -361,10 +366,10 @@ already moved to. Remaining holdouts:
 
 - `lutris/gui/config/widget_generator.py` — the file list in the
   installer-script file-picker widget (`_generate_files()`).
-- `lutris/gui/widgets/common.py` — `PathCompleter`'s suggestion
-  `ListStore`.
-- `lutris/gui/widgets/searchable_entrybox.py` — the `ListStore` that
-  backs the `EntryCompletion` above; will go away with that swap.
+- `lutris/gui/widgets/searchable_entrybox.py` and
+  `lutris/gui/widgets/common.py` — `Gtk.ListStore` backing the
+  `Gtk.EntryCompletion` autocomplete; both go away when the
+  `EntryCompletion` swap lands.
 
 Each is small and self-contained. Swap when convenient or when GTK 5
 removes the API; no urgency until then.
