@@ -1129,8 +1129,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_service_games_loaded(self, service):
         """Request a view update when service games are loaded"""
-        if self.service and service.id == self.service.id:
-            self.update_store()
+        self.update_store()
 
     def on_categories_updated(self):
         self.update_store()
