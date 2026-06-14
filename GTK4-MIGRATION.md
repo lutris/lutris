@@ -331,19 +331,60 @@ This avoids the GTK 3 pattern of connecting to `destroy` on every window to
 remove stale dict entries, which is fragile under GTK 4 where windows
 participate in `Gtk.Application`'s lifecycle automatically.
 
-## Gtk.EntryCompletion
+## Deprecated APIs Still In Use
 
-`Gtk.EntryCompletion` is deprecated in GTK 4 but still ships and still
-works. Its intended replacement, `Gtk.SuggestionEntry`, has not yet
-landed — it is slated for GTK 5. Until then, widgets that need an
-autocomplete dropdown under a `Gtk.Entry` (we have one,
-`SearchableEntrybox`) keep using `Gtk.EntryCompletion` as-is.
+A handful of GTK 4 APIs we depend on are flagged deprecated in the
+current GTK 4 docs. None have user-visible consequences today, all
+continue to ship and work, but each will eventually need a swap. They
+are catalogued here so the next person to touch one of these files
+isn't surprised.
+
+### `Gtk.EntryCompletion`
+
+Used by `lutris/gui/widgets/searchable_entrybox.py` for the autocomplete
+dropdown under service-search entries (GOG, itch.io, Steam, etc.). The
+intended replacement, `Gtk.SuggestionEntry`, hasn't been merged into
+GTK and is slated for GTK 5.
 
 A hand-rolled replacement was attempted (non-autohiding `Gtk.Popover`
 with a `Gtk.FilterListModel`-backed `Gtk.ListView`); it works, but the
 focus dance required to keep typing alive while the popover is visible
 isn't worth carrying for the duration of the GTK 4 cycle. When
 `Gtk.SuggestionEntry` lands, swap `SearchableEntrybox` over to it.
+
+### `Gtk.TreeView` / `Gtk.ListStore` / `Gtk.CellRendererText`
+
+Deprecated in GTK 4.10. The replacement story is the
+`Gtk.ColumnView` / `Gtk.ListView` + `Gio.ListStore` +
+`Gtk.SignalListItemFactory` stack — which the main game list and grid
+already moved to. Remaining holdouts:
+
+- `lutris/gui/config/widget_generator.py` — the file list in the
+  installer-script file-picker widget (`_generate_files()`).
+- `lutris/gui/widgets/common.py` — `PathCompleter`'s suggestion
+  `ListStore`, and the 2-column `TreeView` inside `EditableGrid`.
+- `lutris/gui/widgets/searchable_entrybox.py` — the `ListStore` that
+  backs the `EntryCompletion` above; will go away with that swap.
+
+Each is small and self-contained. Swap when convenient or when GTK 5
+removes the API; no urgency until then.
+
+### `Gtk.StyleContext.add_provider_for_display` / `remove_provider_for_display`
+
+Used in `lutris/style_manager.py` and `lutris/gui/application.py`
+to install our CSS at display scope. `Gtk.StyleContext` the class is
+deprecated, but these two static methods are the only documented way
+to scope a `Gtk.CssProvider` to an entire display in GTK 4 — there is
+no documented successor yet. Keep using them until GTK provides one.
+
+### `Gtk.Dialog` (as a type annotation)
+
+`lutris/gui/dialogs/__init__.py` still annotates several `on_response`
+handler signatures with `Gtk.Dialog`, even though the concrete dialog
+classes were rewritten as plain `Gtk.Window` subclasses (see the
+`Gtk.MessageDialog`-replacement comment at line 352). Cosmetic only;
+the handlers run fine. Update annotations the next time those classes
+are touched.
 
 ## Factory-Item Snapshot Caching
 
