@@ -68,3 +68,17 @@ cases, but two situations remain:
 
 Workaround: click the dialog's title bar once, or click the existing
 window via the taskbar, to give it focus.
+
+### Editable dropdowns in the config dialog look awkward
+
+In a few places — most visibly in the Game Configuration dialog — the
+GTK 3 build used an editable combobox: a dropdown menu that also let
+you type a custom value if none of the suggestions fit. GTK 4 dropped
+that widget entirely, and there is no built-in replacement.
+
+We've worked around it by placing a dropdown and a separate text entry
+side by side: picking from the dropdown copies its value into the
+entry, and the entry still accepts free-form text. It works, but the
+result is visually clunkier than the GTK 3 single-widget version. We
+will tighten this up if a suitable combined widget appears in a future
+GTK release.
