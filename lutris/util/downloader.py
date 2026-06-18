@@ -1,3 +1,4 @@
+import abc
 import bisect
 import os
 import threading
@@ -37,12 +38,73 @@ class DownloadStallError(Exception):
         super().__init__("Download stalled: %.1f B/s for %.1f seconds" % (throughput, duration))
 
 
-class Downloader:
-    """Non-blocking downloader.
+class StallMonitor:
+    """Tracks throughput for a single download stream and detects stalls.
+
+    A monitor holds a mutable throughput window (the time and byte count at
+    which the current window opened). This state is *not* safe to share
+    between threads: each stream — including each parallel worker in
+    GOGDownloader — must use its own StallMonitor, otherwise one stream's
+    byte counter pollutes another's window and produces nonsensical
+    (even negative) throughput readings.
+    """
+
+    def __init__(self, low_speed_limit: int, low_speed_time: int) -> None:
+        self.low_speed_limit = low_speed_limit  # bytes/second
+        self.low_speed_time = low_speed_time  # seconds below threshold before triggering
+        self.window_start: float | None = None  # monotonic time when speed first dropped
+        self.bytes_at_window_start: int = 0  # stream bytes when the window opened
+
+    def check(self, bytes_received_total: int) -> None:
+        """Check if the stream has stalled and raise DownloadStallError if so.
+
+        Tracks a rolling throughput window. When throughput drops below
+        ``low_speed_limit`` for longer than ``low_speed_time``, raises
+        DownloadStallError to trigger a retry.
+
+        Args:
+            bytes_received_total: Total bytes received so far on *this*
+                stream. Must come from a counter owned by the calling
+                stream, never a value shared across workers.
+        """
+        now = get_time()
+
+        if self.window_start is None:
+            # Not currently in a stall window — start one
+            self.window_start = now
+            self.bytes_at_window_start = bytes_received_total
+            return
+
+        elapsed = now - self.window_start
+        if elapsed <= 0:
+            return
+
+        bytes_in_window = bytes_received_total - self.bytes_at_window_start
+        throughput = bytes_in_window / elapsed
+
+        if throughput >= self.low_speed_limit:
+            # Speed is good — reset the window
+            self.window_start = now
+            self.bytes_at_window_start = bytes_received_total
+            return
+
+        # Speed is below threshold — check if we've exceeded the time limit
+        if elapsed >= self.low_speed_time:
+            raise DownloadStallError(throughput=throughput, duration=elapsed)
+
+
+class BaseDownloader(abc.ABC):
+    """Non-blocking downloader framework — the public interface.
 
     Do start() then check_progress() at regular intervals.
     Download is done when check_progress() returns 1.0.
     Stop with cancel().
+
+    This base owns everything that is independent of *how* the bytes are
+    fetched: the state machine, progress/speed statistics, the retry loop,
+    and stall-detection configuration. Concrete subclasses (SimpleDownloader,
+    GOGDownloader) implement the actual transfer in async_download() and
+    release any transfer-specific resources in _release_resources().
     """
 
     (INIT, DOWNLOADING, CANCELLED, ERROR, COMPLETED) = list(range(5))
@@ -89,66 +151,33 @@ class Downloader:
         self.last_speeds = []
         self.speed_check_time = 0
         self.time_left_check_time = 0
-        self.file_pointer = None
         self.progress_event = threading.Event()
-
-        # Stall detection state
-        self._stall_start: float | None = None  # monotonic time when speed first dropped
-        self._stall_bytes_at_start: int = 0  # downloaded_size when stall window started
-
-    def _reset_stall_state(self) -> None:
-        """Reset stall detection tracking (call at start of each download attempt)."""
-        self._stall_start = None
-        self._stall_bytes_at_start = 0
-
-    def _check_stall(self, bytes_received_total: int) -> None:
-        """Check if download has stalled and raise DownloadStallError if so.
-
-        Tracks a rolling throughput window. When throughput drops below
-        LOW_SPEED_LIMIT for longer than LOW_SPEED_TIME, raises
-        DownloadStallError to trigger a retry.
-
-        Args:
-            bytes_received_total: Total bytes received so far in this
-                download stream (not self.downloaded_size, which may be
-                shared across workers).
-        """
-        now = get_time()
-
-        if self._stall_start is None:
-            # Not currently in a stall window — start one
-            self._stall_start = now
-            self._stall_bytes_at_start = bytes_received_total
-            return
-
-        elapsed = now - self._stall_start
-        if elapsed <= 0:
-            return
-
-        bytes_in_window = bytes_received_total - self._stall_bytes_at_start
-        throughput = bytes_in_window / elapsed
-
-        if throughput >= self.LOW_SPEED_LIMIT:
-            # Speed is good — reset the window
-            self._stall_start = now
-            self._stall_bytes_at_start = bytes_received_total
-            return
-
-        # Speed is below threshold — check if we've exceeded the time limit
-        if elapsed >= self.LOW_SPEED_TIME:
-            raise DownloadStallError(throughput=throughput, duration=elapsed)
 
     def __repr__(self):
         return "downloader for %s" % self.url
 
+    @property
+    def _log_name(self) -> str:
+        """Identifier used in lifecycle log lines.
+
+        Subclasses can override to surface details (e.g. GOG's worker count)
+        so log-grepping for a given download mode keeps working."""
+        return self.url
+
+    def _new_stall_monitor(self) -> StallMonitor:
+        """Create a fresh stall monitor for a single download stream.
+
+        Each stream must own its monitor — see StallMonitor — so this is a
+        factory rather than shared state on the downloader.
+        """
+        return StallMonitor(self.LOW_SPEED_LIMIT, self.LOW_SPEED_TIME)
+
     def start(self):
-        """Start download job."""
-        logger.debug("⬇ %s", self.url)
+        """Start the download on a background thread."""
+        logger.debug("⬇ %s", self._log_name)
         self.state = self.DOWNLOADING
         self.last_check_time = get_time()
-        if self.overwrite and os.path.isfile(self.dest):
-            os.remove(self.dest)
-        self.file_pointer = open(self.dest, "wb")  # pylint: disable=consider-using-with
+        self._prepare_destination()
         self.thread = jobs.AsyncCall(self.async_download, None)
         self.stop_request = self.thread.stop_request
 
@@ -167,7 +196,6 @@ class Downloader:
         self.last_speeds = []
         self.speed_check_time = 0
         self.time_left_check_time = 0
-        self.file_pointer = None
 
     def check_progress(self, blocking=False):
         """Append last downloaded chunk to dest file and store stats.
@@ -182,7 +210,7 @@ class Downloader:
             self.get_stats()
         return self.progress_fraction
 
-    def join(self, progress_callback: Callable[["Downloader"], None] | None = None) -> bool:
+    def join(self, progress_callback: Callable[["BaseDownloader"], None] | None = None) -> bool:
         """Blocks waiting for the download to complete.
 
         'progress_callback' is invoked repeatedly as the download
@@ -200,18 +228,145 @@ class Downloader:
 
     def cancel(self):
         """Request download stop and remove destination file."""
-        logger.debug("❌ %s", self.url)
+        logger.debug("❌ %s", self._log_name)
         self.state = self.CANCELLED
         if self.stop_request:
             self.stop_request.set()
-        if self.file_pointer:
-            self.file_pointer.close()
-            self.file_pointer = None
+        self._release_resources()
+        # The user gave up on this download — drop any resumable state too.
+        self._discard_persistent_state()
         if os.path.isfile(self.dest):
             os.remove(self.dest)
 
-    def async_download(self):
-        """Execute download with stall detection and retry logic.
+    # ------------------------------------------------------------------
+    # Transfer hooks — implemented by concrete downloaders
+    # ------------------------------------------------------------------
+
+    @abc.abstractmethod
+    def _prepare_destination(self) -> None:
+        """Prepare the destination before the transfer thread starts.
+
+        Called on the calling thread from start(). Subclasses set up whatever
+        the transfer needs (e.g. opening the output file)."""
+
+    @abc.abstractmethod
+    def async_download(self) -> None:
+        """Run the transfer to completion on the background thread.
+
+        Implementations must drive the download, then call
+        on_download_completed() on success or on_download_failed() on error."""
+
+    def _release_resources(self) -> None:  # noqa: B027
+        """Release transient transfer resources (e.g. an open file handle).
+
+        Called on every terminal path — completion, failure, and cancel. The
+        default does nothing; subclasses override when they hold resources."""
+
+    def _discard_persistent_state(self) -> None:  # noqa: B027
+        """Drop on-disk state that would let the download resume later.
+
+        Called only on completion and cancel — NOT on failure, where the state
+        is deliberately kept so the next attempt can resume. The default does
+        nothing; subclasses with resumable progress override it."""
+
+    def on_download_failed(self, error: Exception):
+        # Cancelling closes the file, which can result in an
+        # error. If so, we just remain cancelled.
+        if self.state != self.CANCELLED:
+            self.state = self.ERROR
+            self.error = error
+        # Keep any resumable progress: the next attempt should resume, not
+        # restart. Only release the transient handles.
+        self._release_resources()
+
+    def on_download_completed(self):
+        if self.state == self.CANCELLED:
+            return
+
+        logger.debug("Finished downloading %s", self._log_name)
+        if not self.downloaded_size:
+            logger.warning("Downloaded file is empty")
+
+        if not self.full_size:
+            self.progress_fraction = 1.0
+            self.progress_percentage = 100
+        self.state = self.COMPLETED
+        self._release_resources()
+        # Download is complete — the resumable state is no longer needed.
+        self._discard_persistent_state()
+
+    def get_stats(self):
+        """Calculate and store download stats."""
+        self.average_speed = self.get_speed()
+        self.time_left = self.get_average_time_left()
+        self.last_check_time = get_time()
+        self.last_size = self.downloaded_size
+
+        if self.full_size:
+            self.progress_fraction = float(self.downloaded_size) / float(self.full_size)
+            self.progress_percentage = self.progress_fraction * 100
+
+    def get_speed(self):
+        """Return the average speed of the download so far."""
+        elapsed_time = get_time() - self.last_check_time
+        if elapsed_time > 0:
+            chunk_size = self.downloaded_size - self.last_size
+            speed = chunk_size / elapsed_time or 1
+            # insert in sorted order, so we can omit the least and
+            # greatest value later
+            bisect.insort(self.last_speeds, speed)
+
+        # Until we get the first sample, just return our default
+        if not self.last_speeds:
+            return self.average_speed
+
+        if get_time() - self.speed_check_time < 1:  # Minimum delay
+            return self.average_speed
+
+        while len(self.last_speeds) > 20:
+            self.last_speeds.pop(0)
+
+        if len(self.last_speeds) > 7:
+            # Skip extreme values
+            samples = self.last_speeds[1:-1]
+        else:
+            samples = self.last_speeds[:]
+
+        average_speed = sum(samples) / len(samples)
+
+        self.speed_check_time = get_time()
+        return average_speed
+
+    def get_average_time_left(self) -> str:
+        """Return average download time left as string."""
+        if not self.full_size:
+            return "???"
+
+        elapsed_time = get_time() - self.time_left_check_time
+        if elapsed_time < 1:  # Minimum delay
+            return self.time_left
+
+        average_time_left = (self.full_size - self.downloaded_size) / self.average_speed
+        minutes, seconds = divmod(average_time_left, 60)
+        hours, minutes = divmod(minutes, 60)
+        self.time_left_check_time = get_time()
+        return "%d:%02d:%02d" % (hours, minutes, seconds)
+
+
+class SimpleDownloader(BaseDownloader):
+    """Single-connection downloader: fetches the whole file in one stream."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.file_pointer = None
+
+    def _prepare_destination(self) -> None:
+        if self.overwrite and os.path.isfile(self.dest):
+            os.remove(self.dest)
+        self.file_pointer = open(self.dest, "wb")  # pylint: disable=consider-using-with
+
+    def async_download(self) -> None:
+        """Run the single-stream transfer with stall detection and retries.
 
         Retries up to RETRY_ATTEMPTS times on stalls and transient errors.
         Non-retryable errors (HTTP 4xx except 408/429) fail immediately.
@@ -278,7 +433,19 @@ class Downloader:
             logger.error("Download failed after %d attempts: %s", self.RETRY_ATTEMPTS, last_error)
             self.on_download_failed(last_error)
 
-    def _do_download(self):
+    @staticmethod
+    def _is_retryable_http_error(error: requests.HTTPError) -> bool:
+        """Check if an HTTP error is transient and worth retrying.
+
+        Retries on server errors (5xx), timeouts (408), and rate limits (429).
+        Client errors like 404, 403 are not retried.
+        """
+        if error.response is None:
+            return True  # No response means connection-level failure
+        status = error.response.status_code
+        return status >= 500 or status in (408, 429)
+
+    def _do_download(self) -> None:
         """Perform a single download attempt with stall detection."""
         headers = requests.utils.default_headers()
         headers["User-Agent"] = "Lutris/%s" % __version__
@@ -297,7 +464,8 @@ class Downloader:
         self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
         self.progress_event.set()
 
-        self._reset_stall_state()
+        # A fresh stall monitor per attempt — see StallMonitor.
+        stall_monitor = self._new_stall_monitor()
         stream_bytes = 0
 
         for chunk in response.iter_content(chunk_size=self.chunk_size):
@@ -309,110 +477,17 @@ class Downloader:
                 stream_bytes += len(chunk)
                 self.downloaded_size += len(chunk)
                 self.file_pointer.write(chunk)
-                self._check_stall(stream_bytes)
+                stall_monitor.check(stream_bytes)
             self.progress_event.set()
 
-    def _prepare_retry(self):
-        """Prepare state for a retry attempt.
-
-        Resets stall tracking and restarts the file from the beginning.
-        """
-        self._reset_stall_state()
+    def _prepare_retry(self) -> None:
+        """Restart the file from the beginning for a retry attempt."""
         self.downloaded_size = 0
         if self.file_pointer:
             self.file_pointer.close()
         self.file_pointer = open(self.dest, "wb")  # pylint: disable=consider-using-with
 
-    @staticmethod
-    def _is_retryable_http_error(error: requests.HTTPError) -> bool:
-        """Check if an HTTP error is transient and worth retrying.
-
-        Retries on server errors (5xx), timeouts (408), and rate limits (429).
-        Client errors like 404, 403 are not retried.
-        """
-        if error.response is None:
-            return True  # No response means connection-level failure
-        status = error.response.status_code
-        return status >= 500 or status in (408, 429)
-
-    def on_download_failed(self, error: Exception):
-        # Cancelling closes the file, which can result in an
-        # error. If so, we just remain cancelled.
-        if self.state != self.CANCELLED:
-            self.state = self.ERROR
-            self.error = error
+    def _release_resources(self) -> None:
         if self.file_pointer:
             self.file_pointer.close()
             self.file_pointer = None
-
-    def on_download_completed(self):
-        if self.state == self.CANCELLED:
-            return
-
-        logger.debug("Finished downloading %s", self.url)
-        if not self.downloaded_size:
-            logger.warning("Downloaded file is empty")
-
-        if not self.full_size:
-            self.progress_fraction = 1.0
-            self.progress_percentage = 100
-        self.state = self.COMPLETED
-        self.file_pointer.close()
-        self.file_pointer = None
-
-    def get_stats(self):
-        """Calculate and store download stats."""
-        self.average_speed = self.get_speed()
-        self.time_left = self.get_average_time_left()
-        self.last_check_time = get_time()
-        self.last_size = self.downloaded_size
-
-        if self.full_size:
-            self.progress_fraction = float(self.downloaded_size) / float(self.full_size)
-            self.progress_percentage = self.progress_fraction * 100
-
-    def get_speed(self):
-        """Return the average speed of the download so far."""
-        elapsed_time = get_time() - self.last_check_time
-        if elapsed_time > 0:
-            chunk_size = self.downloaded_size - self.last_size
-            speed = chunk_size / elapsed_time or 1
-            # insert in sorted order, so we can omit the least and
-            # greatest value later
-            bisect.insort(self.last_speeds, speed)
-
-        # Until we get the first sample, just return our default
-        if not self.last_speeds:
-            return self.average_speed
-
-        if get_time() - self.speed_check_time < 1:  # Minimum delay
-            return self.average_speed
-
-        while len(self.last_speeds) > 20:
-            self.last_speeds.pop(0)
-
-        if len(self.last_speeds) > 7:
-            # Skip extreme values
-            samples = self.last_speeds[1:-1]
-        else:
-            samples = self.last_speeds[:]
-
-        average_speed = sum(samples) / len(samples)
-
-        self.speed_check_time = get_time()
-        return average_speed
-
-    def get_average_time_left(self) -> str:
-        """Return average download time left as string."""
-        if not self.full_size:
-            return "???"
-
-        elapsed_time = get_time() - self.time_left_check_time
-        if elapsed_time < 1:  # Minimum delay
-            return self.time_left
-
-        average_time_left = (self.full_size - self.downloaded_size) / self.average_speed
-        minutes, seconds = divmod(average_time_left, 60)
-        hours, minutes = divmod(minutes, 60)
-        self.time_left_check_time = get_time()
-        return "%d:%02d:%02d" % (hours, minutes, seconds)

@@ -16,7 +16,7 @@ from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog, ModelessDialog, display_error
 from lutris.gui.widgets.stock_icon_image import StockIconImage
 from lutris.util import jobs, system
-from lutris.util.downloader import Downloader
+from lutris.util.downloader import SimpleDownloader
 from lutris.util.extract import extract_archive
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
@@ -369,7 +369,7 @@ class RunnerInstallDialog(ModelessDialog):
         if not url:
             ErrorDialog(_("Version %s is no longer available") % version, parent=self)
             return
-        downloader = Downloader(url, dest_path, overwrite=True)
+        downloader = SimpleDownloader(url, dest_path, overwrite=True)
         schedule_repeating_at_idle(self.get_progress, downloader, row, interval_seconds=0.1)
         self.installing[version] = downloader
         downloader.start()

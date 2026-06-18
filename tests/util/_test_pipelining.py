@@ -3,7 +3,6 @@
 import os
 import queue
 import threading
-import time
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -162,6 +161,14 @@ class TestGOGDownloaderStallDetection:
         with open(dest, "wb") as f:
             f.truncate(1000)
 
+        # Controllable monotonic clock. The test advances it explicitly, so
+        # the result does not depend on how many times StallMonitor samples
+        # the clock per check.
+        now = [0.0]
+
+        def fake_time():
+            return now[0]
+
         # Create a mock response that simulates a stall then success
         call_count = [0]
 
@@ -171,11 +178,15 @@ class TestGOGDownloaderStallDetection:
             mock_response.status_code = 206
 
             if call_count[0] == 1:
-                # First attempt: simulate stall by manipulating stall state
+                # First attempt: the first chunk opens the worker's stall
+                # window at t=0; we then advance the clock well past
+                # LOW_SPEED_TIME before the second chunk, so its near-zero
+                # throughput registers as a stall.
                 def slow_iter(chunk_size=None):
-                    dl._stall_start = time.monotonic() - 35  # 35 seconds ago
-                    dl._stall_bytes_at_start = 0
-                    yield b"x"  # Tiny chunk triggers stall check
+                    now[0] = 0.0
+                    yield b"x"
+                    now[0] = dl.LOW_SPEED_TIME + 5.0
+                    yield b"x"
 
                 mock_response.iter_content = slow_iter
             else:
@@ -192,7 +203,9 @@ class TestGOGDownloaderStallDetection:
         headers = dl._build_request_headers()
 
         with patch.object(dl._write_queue, "put"):
-            dl._download_range("https://example.com/file.bin", headers, 0, 999)
+            with patch("lutris.util.downloader.get_time", fake_time):
+                with patch("lutris.util.gog_downloader.time.sleep", MagicMock()):
+                    dl._download_range("https://example.com/file.bin", headers, 0, 999)
 
         # Verify retry occurred
         assert call_count[0] >= 2
