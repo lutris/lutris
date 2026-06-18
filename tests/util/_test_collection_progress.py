@@ -219,7 +219,7 @@ class TestInit:
 
 class TestCreateDownloader:
     @patch("lutris.gui.widgets.download_collection_progress_box.create_cache_lock")
-    @patch("lutris.gui.widgets.download_collection_progress_box.Downloader")
+    @patch("lutris.gui.widgets.download_collection_progress_box.SimpleDownloader")
     @patch("lutris.gui.widgets.download_collection_progress_box.os.path.exists", return_value=False)
     def test_creates_downloader_with_correct_args(self, mock_exists, MockDL, mock_lock):
         box = DownloadCollectionProgressBox.__new__(DownloadCollectionProgressBox)
@@ -236,7 +236,7 @@ class TestCreateDownloader:
         assert f.tmp_file == "/tmp/dl/f.bin.tmp"
 
     @patch("lutris.gui.widgets.download_collection_progress_box.create_cache_lock")
-    @patch("lutris.gui.widgets.download_collection_progress_box.Downloader")
+    @patch("lutris.gui.widgets.download_collection_progress_box.SimpleDownloader")
     @patch("lutris.gui.widgets.download_collection_progress_box.os.path.exists", return_value=True)
     @patch("lutris.gui.widgets.download_collection_progress_box.os.remove")
     def test_removes_existing_tmp_file(self, mock_remove, mock_exists, MockDL, mock_lock):
@@ -265,7 +265,7 @@ class TestCreateDownloader:
         f = _make_file(dest="/tmp/dl/f.bin")
         # Simulate no downloader_class → use default Downloader which will fail
         with patch(
-            "lutris.gui.widgets.download_collection_progress_box.Downloader",
+            "lutris.gui.widgets.download_collection_progress_box.SimpleDownloader",
             side_effect=RuntimeError("oops"),
         ):
             result = box._create_downloader(f)

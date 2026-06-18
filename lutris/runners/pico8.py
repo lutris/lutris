@@ -12,7 +12,7 @@ from lutris.database.games import get_game_by_field
 from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.downloader import Downloader
+from lutris.util.downloader import BaseDownloader, SimpleDownloader
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
 
@@ -168,7 +168,7 @@ class pico8(Runner):
                         os.remove(cartPath + ".download")
                     downloadCompleted = True
 
-                dl = Downloader(
+                dl = SimpleDownloader(
                     downloadUrl,
                     cartPath + ".download",
                     True,
@@ -178,7 +178,7 @@ class pico8(Runner):
 
                 # Wait for download to complete or continue if it exists (to work in offline mode)
                 while not os.path.exists(cartPath):
-                    if downloadCompleted or dl.state == Downloader.ERROR:
+                    if downloadCompleted or dl.state == BaseDownloader.ERROR:
                         logger.error("Could not download cartridge from %s", downloadUrl)
                         return False
                     sleep(0.1)
@@ -193,7 +193,7 @@ class pico8(Runner):
             if not os.path.exists(enginePath):
                 downloadUrl = "https://www.lexaloffle.com/bbs/" + self.runner_config.get("engine") + ".js"
                 system.create_folder(os.path.dirname(enginePath))
-                dl = Downloader(downloadUrl, enginePath, True)
+                dl = SimpleDownloader(downloadUrl, enginePath, True)
                 dl.start()
                 dl.join()
 

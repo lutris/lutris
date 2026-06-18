@@ -260,29 +260,29 @@ class TestDownloaderChunkSize:
     """Test that the Downloader uses the new chunk size."""
 
     def test_default_chunk_size(self):
-        from lutris.util.downloader import DEFAULT_CHUNK_SIZE, Downloader
+        from lutris.util.downloader import DEFAULT_CHUNK_SIZE, SimpleDownloader
 
-        d = Downloader("http://example.com/test", "/tmp/test")
+        d = SimpleDownloader("http://example.com/test", "/tmp/test")
         assert d.chunk_size == DEFAULT_CHUNK_SIZE
         assert d.chunk_size == 524288  # 512KB
 
     def test_custom_chunk_size(self):
-        from lutris.util.downloader import Downloader
+        from lutris.util.downloader import SimpleDownloader
 
-        d = Downloader("http://example.com/test", "/tmp/test", chunk_size=1024)
+        d = SimpleDownloader("http://example.com/test", "/tmp/test", chunk_size=1024)
         assert d.chunk_size == 1024
 
     def test_session_parameter(self):
         import requests
 
-        from lutris.util.downloader import Downloader
+        from lutris.util.downloader import SimpleDownloader
 
         session = requests.Session()
-        d = Downloader("http://example.com/test", "/tmp/test", session=session)
+        d = SimpleDownloader("http://example.com/test", "/tmp/test", session=session)
         assert d.session is session
 
     def test_no_session_by_default(self):
-        from lutris.util.downloader import Downloader
+        from lutris.util.downloader import SimpleDownloader
 
-        d = Downloader("http://example.com/test", "/tmp/test")
+        d = SimpleDownloader("http://example.com/test", "/tmp/test")
         assert d.session is None
