@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from gettext import gettext as _
 from typing import Optional
 
+from lutris.config import LutrisConfig
 from lutris.exceptions import MissingGameExecutableError, UnavailableRunnerError
 from lutris.monitored_command import MonitoredCommand
 from lutris.runners import NonInstallableRunnerError
@@ -185,7 +186,7 @@ class steam(Runner):
     # /proc once. Kept well below HEARTBEAT_DELAY so each beat re-scans.
     _REAPER_CACHE_TTL = 1.0
 
-    def __init__(self, config=None):
+    def __init__(self, config: LutrisConfig | None = None) -> None:
         super().__init__(config)
         # Cache for the resolved appmanifest path so beat() doesn't re-walk
         # every steamapps dir on each heartbeat (see _get_cached_appmanifest).
