@@ -1,162 +1,163 @@
-import os
 import json
-
-import pytest
+import os
+import tempfile
+from unittest import TestCase
+from unittest.mock import patch
 
 from lutris import cache
 
 
-def test_get_installer_cache_entries(monkeypatch, tmp_path):
-    cache_root = tmp_path / "installer"
-    game_cache = cache_root / "some-game" / "gog"
-    game_cache.mkdir(parents=True)
-    installer = game_cache / "setup.exe"
-    installer.write_bytes(b"installer")
-    (game_cache / "setup.exe.cache_lock").write_text("{}", encoding="utf-8")
+class TestInstallerCache(TestCase):
+    def test_get_installer_cache_entries(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_root = os.path.join(tmpdir, "installer")
+            game_cache = os.path.join(cache_root, "some-game", "gog")
+            os.makedirs(game_cache)
+            installer = os.path.join(game_cache, "setup.exe")
+            with open(installer, "wb") as installer_file:
+                installer_file.write(b"installer")
+            with open(os.path.join(game_cache, "setup.exe.cache_lock"), "w", encoding="utf-8") as lock_file:
+                lock_file.write("{}")
 
-    monkeypatch.setattr(cache, "get_cache_path", lambda: str(cache_root))
+            with patch.object(cache, "get_cache_path", return_value=cache_root):
+                entries = cache.get_installer_cache_entries()
 
-    entries = cache.get_installer_cache_entries()
+            self.assertEqual(
+                entries,
+                [
+                    {
+                        "name": "some-game",
+                        "path": os.path.join(cache_root, "some-game"),
+                        "size": len(b"installer"),
+                        "file_count": 1,
+                    }
+                ],
+            )
 
-    assert entries == [
-        {
-            "name": "some-game",
-            "path": str(cache_root / "some-game"),
-            "size": len(b"installer"),
-            "file_count": 1,
-        }
-    ]
+    def test_delete_installer_cache_entry_refuses_outside_cache(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_root = os.path.join(tmpdir, "installer")
+            os.makedirs(cache_root)
+            outside = os.path.join(tmpdir, "outside")
+            os.makedirs(outside)
 
+            with patch.object(cache, "get_cache_path", return_value=cache_root), self.assertRaises(ValueError):
+                cache.delete_installer_cache_entry(outside)
 
-def test_delete_installer_cache_entry_refuses_outside_cache(monkeypatch, tmp_path):
-    cache_root = tmp_path / "installer"
-    cache_root.mkdir()
-    outside = tmp_path / "outside"
-    outside.mkdir()
+            self.assertTrue(os.path.isdir(outside))
 
-    monkeypatch.setattr(cache, "get_cache_path", lambda: str(cache_root))
+    def test_delete_installer_cache_entry_refuses_symlink(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_root = os.path.join(tmpdir, "installer")
+            os.makedirs(cache_root)
+            target = os.path.join(tmpdir, "target")
+            os.makedirs(target)
+            link = os.path.join(cache_root, "linked-cache")
+            os.symlink(target, link)
 
-    with pytest.raises(ValueError):
-        cache.delete_installer_cache_entry(str(outside))
+            with patch.object(cache, "get_cache_path", return_value=cache_root), self.assertRaises(ValueError):
+                cache.delete_installer_cache_entry(link)
 
-    assert os.path.isdir(outside)
+            self.assertTrue(os.path.islink(link))
+            self.assertTrue(os.path.isdir(target))
 
+    def test_delete_installer_cache_entry_refuses_nested_path(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_root = os.path.join(tmpdir, "installer")
+            nested = os.path.join(cache_root, "game", "gog")
+            os.makedirs(nested)
 
-def test_delete_installer_cache_entry_refuses_symlink(monkeypatch, tmp_path):
-    cache_root = tmp_path / "installer"
-    cache_root.mkdir()
-    target = tmp_path / "target"
-    target.mkdir()
-    link = cache_root / "linked-cache"
-    link.symlink_to(target)
+            with patch.object(cache, "get_cache_path", return_value=cache_root), self.assertRaises(ValueError):
+                cache.delete_installer_cache_entry(nested)
 
-    monkeypatch.setattr(cache, "get_cache_path", lambda: str(cache_root))
+            self.assertTrue(os.path.isdir(nested))
 
-    with pytest.raises(ValueError):
-        cache.delete_installer_cache_entry(str(link))
+    def test_get_incomplete_installer_cache_entries(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_root = os.path.join(tmpdir, "installer")
+            download_dir = os.path.join(cache_root, "game", "gog")
+            os.makedirs(download_dir)
+            tmp_file = os.path.join(download_dir, "setup.exe.tmp")
+            with open(tmp_file, "wb") as partial_file:
+                partial_file.write(b"partial")
+            progress_file = os.path.join(download_dir, "setup.exe.progress")
+            with open(progress_file, "w", encoding="utf-8") as progress:
+                progress.write("{}")
 
-    assert link.is_symlink()
-    assert os.path.isdir(target)
+            with patch.object(cache, "get_cache_path", return_value=cache_root):
+                entries = cache.get_incomplete_installer_cache_entries()
 
+            self.assertEqual([entry["path"] for entry in entries], [progress_file, tmp_file])
+            self.assertEqual([entry["size"] for entry in entries], [2, len(b"partial")])
 
-def test_delete_installer_cache_entry_refuses_nested_path(monkeypatch, tmp_path):
-    cache_root = tmp_path / "installer"
-    nested = cache_root / "game" / "gog"
-    nested.mkdir(parents=True)
+    def test_get_incomplete_installer_cache_entries_includes_orphaned_downloading_lock(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_root = os.path.join(tmpdir, "installer")
+            download_dir = os.path.join(cache_root, "game", "gog")
+            os.makedirs(download_dir)
+            lock_file = os.path.join(download_dir, "setup.exe.cache_lock")
+            with open(lock_file, "w", encoding="utf-8") as lock:
+                json.dump({"state": "downloading"}, lock)
 
-    monkeypatch.setattr(cache, "get_cache_path", lambda: str(cache_root))
+            with patch.object(cache, "get_cache_path", return_value=cache_root):
+                entries = cache.get_incomplete_installer_cache_entries()
 
-    with pytest.raises(ValueError):
-        cache.delete_installer_cache_entry(str(nested))
+            self.assertEqual(len(entries), 1)
+            self.assertEqual(entries[0]["path"], lock_file)
 
-    assert os.path.isdir(nested)
+    def test_get_incomplete_installer_cache_entries_ignores_lock_with_final_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_root = os.path.join(tmpdir, "installer")
+            download_dir = os.path.join(cache_root, "game", "gog")
+            os.makedirs(download_dir)
+            final_file = os.path.join(download_dir, "setup.exe")
+            with open(final_file, "wb") as setup:
+                setup.write(b"complete")
+            lock_file = os.path.join(download_dir, "setup.exe.cache_lock")
+            with open(lock_file, "w", encoding="utf-8") as lock:
+                json.dump({"state": "downloading"}, lock)
 
+            with patch.object(cache, "get_cache_path", return_value=cache_root):
+                self.assertEqual(cache.get_incomplete_installer_cache_entries(), [])
 
-def test_get_incomplete_installer_cache_entries(monkeypatch, tmp_path):
-    cache_root = tmp_path / "installer"
-    download_dir = cache_root / "game" / "gog"
-    download_dir.mkdir(parents=True)
-    tmp_file = download_dir / "setup.exe.tmp"
-    tmp_file.write_bytes(b"partial")
-    progress_file = download_dir / "setup.exe.progress"
-    progress_file.write_text("{}", encoding="utf-8")
+    def test_delete_incomplete_installer_cache_entries(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_root = os.path.join(tmpdir, "installer")
+            os.makedirs(cache_root)
+            tmp_file = os.path.join(cache_root, "setup.exe.tmp")
+            with open(tmp_file, "wb") as partial_file:
+                partial_file.write(b"partial")
 
-    monkeypatch.setattr(cache, "get_cache_path", lambda: str(cache_root))
+            with patch.object(cache, "get_cache_path", return_value=cache_root):
+                cache.delete_incomplete_installer_cache_entries([tmp_file])
 
-    entries = cache.get_incomplete_installer_cache_entries()
+            self.assertFalse(os.path.exists(tmp_file))
 
-    assert [entry["path"] for entry in entries] == [str(progress_file), str(tmp_file)]
-    assert [entry["size"] for entry in entries] == [2, len(b"partial")]
+    def test_delete_incomplete_installer_cache_entries_refuses_outside_cache(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_root = os.path.join(tmpdir, "installer")
+            os.makedirs(cache_root)
+            outside = os.path.join(tmpdir, "setup.exe.tmp")
+            with open(outside, "wb") as partial_file:
+                partial_file.write(b"partial")
 
+            with patch.object(cache, "get_cache_path", return_value=cache_root), self.assertRaises(ValueError):
+                cache.delete_incomplete_installer_cache_entries([outside])
 
-def test_get_incomplete_installer_cache_entries_includes_orphaned_downloading_lock(monkeypatch, tmp_path):
-    cache_root = tmp_path / "installer"
-    download_dir = cache_root / "game" / "gog"
-    download_dir.mkdir(parents=True)
-    lock_file = download_dir / "setup.exe.cache_lock"
-    lock_file.write_text(json.dumps({"state": "downloading"}), encoding="utf-8")
+            self.assertTrue(os.path.exists(outside))
 
-    monkeypatch.setattr(cache, "get_cache_path", lambda: str(cache_root))
+    def test_delete_incomplete_installer_cache_entries_refuses_symlink(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_root = os.path.join(tmpdir, "installer")
+            os.makedirs(cache_root)
+            target = os.path.join(tmpdir, "target.tmp")
+            with open(target, "wb") as partial_file:
+                partial_file.write(b"partial")
+            link = os.path.join(cache_root, "setup.exe.tmp")
+            os.symlink(target, link)
 
-    entries = cache.get_incomplete_installer_cache_entries()
+            with patch.object(cache, "get_cache_path", return_value=cache_root), self.assertRaises(ValueError):
+                cache.delete_incomplete_installer_cache_entries([link])
 
-    assert len(entries) == 1
-    assert entries[0]["path"] == str(lock_file)
-
-
-def test_get_incomplete_installer_cache_entries_ignores_lock_with_final_file(monkeypatch, tmp_path):
-    cache_root = tmp_path / "installer"
-    download_dir = cache_root / "game" / "gog"
-    download_dir.mkdir(parents=True)
-    final_file = download_dir / "setup.exe"
-    final_file.write_bytes(b"complete")
-    lock_file = download_dir / "setup.exe.cache_lock"
-    lock_file.write_text(json.dumps({"state": "downloading"}), encoding="utf-8")
-
-    monkeypatch.setattr(cache, "get_cache_path", lambda: str(cache_root))
-
-    assert cache.get_incomplete_installer_cache_entries() == []
-
-
-def test_delete_incomplete_installer_cache_entries(monkeypatch, tmp_path):
-    cache_root = tmp_path / "installer"
-    cache_root.mkdir()
-    tmp_file = cache_root / "setup.exe.tmp"
-    tmp_file.write_bytes(b"partial")
-
-    monkeypatch.setattr(cache, "get_cache_path", lambda: str(cache_root))
-
-    cache.delete_incomplete_installer_cache_entries([str(tmp_file)])
-
-    assert not tmp_file.exists()
-
-
-def test_delete_incomplete_installer_cache_entries_refuses_outside_cache(monkeypatch, tmp_path):
-    cache_root = tmp_path / "installer"
-    cache_root.mkdir()
-    outside = tmp_path / "setup.exe.tmp"
-    outside.write_bytes(b"partial")
-
-    monkeypatch.setattr(cache, "get_cache_path", lambda: str(cache_root))
-
-    with pytest.raises(ValueError):
-        cache.delete_incomplete_installer_cache_entries([str(outside)])
-
-    assert outside.exists()
-
-
-def test_delete_incomplete_installer_cache_entries_refuses_symlink(monkeypatch, tmp_path):
-    cache_root = tmp_path / "installer"
-    cache_root.mkdir()
-    target = tmp_path / "target.tmp"
-    target.write_bytes(b"partial")
-    link = cache_root / "setup.exe.tmp"
-    link.symlink_to(target)
-
-    monkeypatch.setattr(cache, "get_cache_path", lambda: str(cache_root))
-
-    with pytest.raises(ValueError):
-        cache.delete_incomplete_installer_cache_entries([str(link)])
-
-    assert link.is_symlink()
-    assert target.exists()
+            self.assertTrue(os.path.islink(link))
+            self.assertTrue(os.path.exists(target))

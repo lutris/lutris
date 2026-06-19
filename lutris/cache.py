@@ -25,13 +25,13 @@ def get_cache_path(create: bool = False) -> str:
     return settings.INSTALLER_CACHE_DIR
 
 
-def get_installer_cache_entries() -> list[dict]:
+def get_installer_cache_entries() -> list[dict[str, object]]:
     """Return cached installer folders with their size and file count."""
     cache_path = get_cache_path()
     if not os.path.isdir(cache_path):
         return []
 
-    entries = []
+    entries: list[dict[str, object]] = []
     for name in sorted(os.listdir(cache_path)):
         path = os.path.join(cache_path, name)
         if not os.path.isdir(path):
@@ -68,13 +68,13 @@ def delete_installer_cache_entry(path: str) -> None:
         shutil.rmtree(path)
 
 
-def get_incomplete_installer_cache_entries() -> list[dict]:
+def get_incomplete_installer_cache_entries() -> list[dict[str, object]]:
     """Return incomplete installer download artifacts in the installer cache."""
     cache_path = get_cache_path()
     if not os.path.isdir(cache_path):
         return []
 
-    entries = []
+    entries: list[dict[str, object]] = []
     seen_paths = set()
     for root, _dirs, files in os.walk(cache_path):
         for filename in sorted(files):

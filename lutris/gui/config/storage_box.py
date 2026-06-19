@@ -323,7 +323,9 @@ class StorageBox(BaseConfigBox):
         list_box = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
         if entries:
             for entry in entries:
-                list_box.add(Gtk.ListBoxRow(child=self.get_incomplete_download_row(entry), visible=True, activatable=False))
+                list_box.add(
+                    Gtk.ListBoxRow(child=self.get_incomplete_download_row(entry), visible=True, activatable=False)
+                )
         else:
             empty_label = Label()
             empty_label.set_markup("<i>%s</i>" % _("No incomplete downloads found."))
