@@ -9,7 +9,7 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.dialogs.download import DownloadDialog
 from lutris.services import SERVICES
-from lutris.util.downloader import Downloader
+from lutris.util.downloader import BaseDownloader, SimpleDownloader
 
 if TYPE_CHECKING:
     from lutris.config import LaunchConfigDict
@@ -104,7 +104,7 @@ class InstallUIDelegate(Delegate):
 
         The default is to download with no UI, and no option to cancel.
         """
-        downloader = Downloader(url, destination, overwrite=True)
+        downloader = SimpleDownloader(url, destination, overwrite=True)
         downloader.start()
         return downloader.join()
 
@@ -158,7 +158,7 @@ class DialogInstallUIDelegate(InstallUIDelegate):
     def download_install_file(self, url: str, destination: str) -> bool:
         dialog = DownloadDialog(url, destination, parent=self)
         dialog.run()
-        return dialog.downloader.state == Downloader.COMPLETED
+        return dialog.downloader.state == BaseDownloader.COMPLETED
 
 
 class DialogLaunchUIDelegate(LaunchUIDelegate):

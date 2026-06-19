@@ -52,6 +52,26 @@ class TestPersonnalGameArchive(DatabaseTester):
         self.assertEqual(len(game_list), 1)
         self.assertEqual(game_list[0]["name"], "installed_game")
 
+    def test_exclude_service_includes_null_service_games(self):
+        games_db.add_game(name="manual_game", runner="Linux")
+        games_db.add_game(name="steam_game", runner="Linux", service="steam")
+        games_db.add_game(name="gog_game", runner="Linux", service="gog")
+        game_list = games_db.get_games(excludes={"service": {"steam"}})
+        game_names = {g["name"] for g in game_list}
+        self.assertIn("manual_game", game_names)
+        self.assertIn("gog_game", game_names)
+        self.assertNotIn("steam_game", game_names)
+
+    def test_exclude_multiple_services_includes_null_service_games(self):
+        games_db.add_game(name="manual_game", runner="Linux")
+        games_db.add_game(name="steam_game", runner="Linux", service="steam")
+        games_db.add_game(name="gog_game", runner="Linux", service="gog")
+        game_list = games_db.get_games(excludes={"service": {"steam", "gog"}})
+        game_names = {g["name"] for g in game_list}
+        self.assertIn("manual_game", game_names)
+        self.assertNotIn("steam_game", game_names)
+        self.assertNotIn("gog_game", game_names)
+
     def test_game_with_same_slug_is_updated(self):
         games_db.add_game(name="some game", runner="linux")
         game = games_db.get_game_by_field("some-game", "slug")

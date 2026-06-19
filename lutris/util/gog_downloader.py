@@ -4,8 +4,8 @@ Uses HTTP Range requests to download different byte ranges of a file
 simultaneously across multiple threads, significantly improving download
 speeds for large GOG installer files.
 
-This downloader is a drop-in replacement for the standard Downloader class,
-maintaining API compatibility with DownloadProgressBox and
+This downloader shares the BaseDownloader public interface with
+SimpleDownloader, maintaining API compatibility with DownloadProgressBox and
 DownloadCollectionProgressBox.
 """
 
@@ -20,13 +20,12 @@ import requests
 from requests.adapters import HTTPAdapter
 
 from lutris import __version__
-from lutris.util import jobs
 from lutris.util.download_progress import DownloadProgress
-from lutris.util.downloader import DEFAULT_CHUNK_SIZE, Downloader, get_time
+from lutris.util.downloader import DEFAULT_CHUNK_SIZE, BaseDownloader
 from lutris.util.log import logger
 
 
-class GOGDownloader(Downloader):
+class GOGDownloader(BaseDownloader):
     """Multi-connection parallel downloader optimized for GOG CDN downloads.
 
     Downloads large files using multiple simultaneous HTTP Range requests,
@@ -34,8 +33,8 @@ class GOGDownloader(Downloader):
     single-stream download if the server doesn't support Range requests
     or the file is too small to benefit from parallelism.
 
-    Designed to be API-compatible with Downloader so it works seamlessly
-    with DownloadProgressBox and DownloadCollectionProgressBox.
+    Shares the BaseDownloader public interface with SimpleDownloader so it
+    works seamlessly with DownloadProgressBox and DownloadCollectionProgressBox.
     """
 
     DEFAULT_WORKERS = 4
@@ -82,18 +81,18 @@ class GOGDownloader(Downloader):
     def __repr__(self):
         return "GOG parallel downloader (%d workers) for %s" % (self.num_workers, self.url)
 
-    def start(self):
-        """Start parallel download job.
+    @property
+    def _log_name(self) -> str:
+        return "GOG parallel (%d workers): %s" % (self.num_workers, self.url)
+
+    def _prepare_destination(self) -> None:
+        """Detect resumable progress, or clear stale files for a fresh start.
 
         If a previous download was interrupted (hibernate, crash, network
-        error), the progress file and partial destination file are detected
-        and the download resumes from the last completed byte ranges
+        error), the progress file and partial destination file are detected so
+        async_download() can resume from the last completed byte ranges
         instead of starting over.
         """
-        logger.debug("⬇ GOG parallel (%d workers): %s", self.num_workers, self.url)
-        self.state = self.DOWNLOADING
-        self.last_check_time = get_time()
-
         # Check for resumable progress before deleting anything
         can_resume = False
         if os.path.isfile(self.dest):
@@ -116,42 +115,13 @@ class GOGDownloader(Downloader):
             if os.path.isfile(progress_path):
                 os.remove(progress_path)
 
-        # Workers manage their own file I/O - no shared file_pointer needed
-        self.file_pointer = None
-        self.thread = jobs.AsyncCall(self.async_download, None)
-        self.stop_request = self.thread.stop_request
+    def _discard_persistent_state(self) -> None:
+        """Remove the progress sidecar file.
 
-    def cancel(self):
-        """Request download stop and remove destination file.
-
-        Explicit user cancellation removes both the partial file and
-        the progress file so the next attempt starts fresh.
-        """
-        logger.debug("❌ GOG parallel: %s", self.url)
-        self.state = self.CANCELLED
-        if self.stop_request:
-            self.stop_request.set()
-        # No shared file_pointer to close - workers handle their own
-        if os.path.isfile(self.dest):
-            os.remove(self.dest)
-        # Clean up progress file on explicit cancel
-        if self._progress:
-            self._progress.cleanup()
-            self._progress = None
-
-    def on_download_completed(self):
-        """Mark download as complete and clean up progress file."""
-        if self.state == self.CANCELLED:
-            return
-        logger.debug("✅ GOG parallel download finished: %s", self.url)
-        if not self.downloaded_size:
-            logger.warning("Downloaded file is empty")
-        if not self.full_size:
-            self.progress_fraction = 1.0
-            self.progress_percentage = 100
-        self.state = self.COMPLETED
-        # No shared file_pointer to close
-        # Remove progress file — download is complete
+        Workers manage their own file I/O, so there is no shared file handle to
+        release. The progress file is resumable state, so the base only calls
+        this on completion and cancel — on failure it is kept for the next
+        attempt to resume from."""
         if self._progress:
             self._progress.cleanup()
             self._progress = None
@@ -437,8 +407,11 @@ class GOGDownloader(Downloader):
                     self._write_from_full_response(response, start, end)
                     return
 
-                # Normal 206 Partial Content response — enqueue for writer
-                self._reset_stall_state()
+                # Normal 206 Partial Content response — enqueue for writer.
+                # Each worker keeps its own stall monitor: the shared
+                # instance-level window would be clobbered by sibling
+                # workers feeding their own byte counters into it.
+                stall_monitor = self._new_stall_monitor()
                 stream_bytes = 0
                 current_offset = start
                 range_size = end - start + 1
@@ -456,7 +429,7 @@ class GOGDownloader(Downloader):
                         range_end_marker = end if is_last_chunk else None
                         self._write_queue.put((current_offset, chunk, start, range_end_marker))
                         current_offset += len(chunk)
-                        self._check_stall(stream_bytes)
+                        stall_monitor.check(stream_bytes)
 
                 return  # Success
 
@@ -488,6 +461,7 @@ class GOGDownloader(Downloader):
         current_offset = start
         range_size = end - start + 1
         enqueued_bytes = 0
+        stall_monitor = self._new_stall_monitor()
 
         for chunk in response.iter_content(chunk_size=self.chunk_size):
             if self.stop_request and self.stop_request.is_set():
@@ -517,6 +491,7 @@ class GOGDownloader(Downloader):
                 is_last = enqueued_bytes >= range_size
                 self._write_queue.put((current_offset, data, start, end if is_last else None))
                 current_offset += len(data)
+                stall_monitor.check(enqueued_bytes)
 
             bytes_read += len(chunk)
             if bytes_read >= end + 1:
