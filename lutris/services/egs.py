@@ -63,7 +63,7 @@ class DieselGameMedia(ServiceMedia):
     def get_media_url(self, details: dict[str, Any]) -> str | None:
         for image in details.get("keyImages", []):
             if image["type"] == self.api_field:
-                return f'{image["url"]}?w={self.remote_size[0]}&resize=1&h={self.remote_size[1]}'
+                return f"{image['url']}?w={self.remote_size[0]}&resize=1&h={self.remote_size[1]}"
         return None
 
 
@@ -245,7 +245,11 @@ class EpicGamesStoreService(OnlineService):
         authorization_code: Optional[str] = None,
     ) -> None:
         if exchange_code:
-            params: dict[str, str] = {"grant_type": "exchange_code", "exchange_code": exchange_code, "token_type": "eg1"}
+            params: dict[str, str] = {
+                "grant_type": "exchange_code",
+                "exchange_code": exchange_code,
+                "token_type": "eg1",
+            }
         elif authorization_code:
             params = {"grant_type": "authorization_code", "code": authorization_code, "token_type": "eg1"}
         else:
@@ -349,9 +353,7 @@ class EpicGamesStoreService(OnlineService):
 
     def get_library(self) -> list[dict[str, Any]]:
         self.resume_session()
-        response = self.session.get(
-            f"{self.library_url}/library/api/public/items", params={"includeMetadata": "true"}
-        )
+        response = self.session.get(f"{self.library_url}/library/api/public/items", params={"includeMetadata": "true"})
         response.raise_for_status()
         res_data = response.json()
         records: list[dict[str, Any]] = res_data["records"]
@@ -504,9 +506,7 @@ class EpicGamesStoreService(OnlineService):
         egs_prefix = egs_config.game_config.get("prefix")
 
         if not egs_exe or not egs_prefix:
-            raise RuntimeError(
-                f"EGS game '{egs_db_game.get('id')}' is missing 'exe' or 'prefix' in its configuration."
-            )
+            raise RuntimeError(f"EGS game '{egs_db_game.get('id')}' is missing 'exe' or 'prefix' in its configuration.")
 
         if not os.path.isabs(egs_exe):
             egs_exe = os.path.join(egs_prefix, egs_exe)
