@@ -371,8 +371,7 @@ class StorageBox(BaseConfigBox):
             {
                 "parent": self.get_toplevel(),
                 "title": _("Delete incomplete downloads?"),
-                "question": _("Delete %d incomplete download artifact(s)?")
-                % len(self.incomplete_download_entries),
+                "question": _("Delete %d incomplete download artifact(s)?") % len(self.incomplete_download_entries),
             }
         )
         if dlg.result != Gtk.ResponseType.YES:
