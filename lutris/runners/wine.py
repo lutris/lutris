@@ -230,8 +230,7 @@ def _get_wine_wayland_warning(_option_key: str, config: LutrisConfig) -> str | N
         if not is_winewayland_available(runner_version):
             if _is_proton_config(config):
                 return _("Your Proton version does not support winewayland graphics driver")
-            else:
-                return _("Your Wine version does not support winewayland graphics driver")
+            return _("Your Wine version does not support winewayland graphics driver")
 
     return None
 
@@ -1441,8 +1440,7 @@ class wine(Runner):
             uuid_pids = set(pid for pid in candidate_pids if Process(pid).environ.get("LUTRIS_GAME_UUID") == game_uuid)
 
             return (folder_pids & uuid_pids) | gamescope_pids
-        else:
-            return super().filter_game_pids(candidate_pids, game_uuid, game_folder)
+        return super().filter_game_pids(candidate_pids, game_uuid, game_folder)
 
     def force_stop_game(self, game_pids: Iterable[int]) -> None:
         """Kill WINE with kindness, or at least with -k. This seems to leave a process

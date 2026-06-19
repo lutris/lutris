@@ -12,7 +12,7 @@ def _get_last_content_log(steam_data_dir: str) -> list[str]:
     path = os.path.join(steam_data_dir, "logs/content_log.txt")
     log = []
     try:
-        with open(path, "r", encoding="utf-8") as logfile:
+        with open(path, encoding="utf-8") as logfile:
             line = logfile.readline()
             while line:
                 # Strip old logs
@@ -22,7 +22,7 @@ def _get_last_content_log(steam_data_dir: str) -> list[str]:
                 else:
                     log.append(line)
                     line = logfile.readline()
-    except IOError:
+    except OSError:
         return []
     return log
 

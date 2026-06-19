@@ -30,8 +30,8 @@ class RetroConfig:
         """Load the configuration from file"""
         self._config = []
         if not os.path.isfile(self.config_path):
-            raise OSError("Specified config file {} does not exist".format(self.config_path))
-        with open(self.config_path, "r", encoding="utf-8") as config_file:
+            raise OSError(f"Specified config file {self.config_path} does not exist")
+        with open(self.config_path, encoding="utf-8") as config_file:
             for line in config_file.readlines():
                 if not line:
                     continue
@@ -49,7 +49,7 @@ class RetroConfig:
     def save(self):
         with open(self.config_path, "w", encoding="utf-8") as config_file:
             for key, value in self.config:
-                config_file.write('{} = "{}"\n'.format(key, value))
+                config_file.write(f'{key} = "{value}"\n')
 
     def serialize_value(self, value):
         for k, v in self.value_map.items():

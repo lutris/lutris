@@ -79,7 +79,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             self._config = None
             self.game_data = {}
 
-    def __lt__(self, other: "Runner") -> bool:
+    def __lt__(self, other: Runner) -> bool:
         return bool(self.name < other.name)
 
     @property
@@ -249,7 +249,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             if os.path.isfile(runner_executable):
                 return runner_executable
         if not self.runner_executable_path:
-            raise MisconfigurationError("runner_executable not set for {}".format(self.name))
+            raise MisconfigurationError(f"runner_executable not set for {self.name}")
 
         exe = os.path.join(settings.RUNNER_DIR, self.runner_executable_path)
         if not os.path.isfile(exe):
@@ -315,7 +315,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if sdl_gamecontrollerconfig:
             path = os.path.expanduser(sdl_gamecontrollerconfig)
             if system.path_exists(path):
-                with open(path, "r", encoding="utf-8") as controllerdb_file:
+                with open(path, encoding="utf-8") as controllerdb_file:
                     sdl_gamecontrollerconfig = controllerdb_file.read()
             env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
 
@@ -363,7 +363,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     def finish_env(self, env: dict[str, str], game: Game) -> None:
         """This is called by the Game after setting up the environment to allow the runner
         to make final adjustments, which may be based on the environment so far."""
-        return None
+        return
 
     def get_runtime_env(self) -> dict[str, str]:
         """Return runtime environment variables.
@@ -465,7 +465,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         return path
 
-    def attach_log_handlers(self, monitored_command: MonitoredCommand, game: "Game") -> None:
+    def attach_log_handlers(self, monitored_command: MonitoredCommand, game: Game) -> None:
         """Hook for runners to install extra log handlers on the game's
         MonitoredCommand just before it starts. The default implementation
         does nothing; subclasses may append callables to
@@ -598,7 +598,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     def adjust_installer_runner_config(self, installer_runner_config: dict[str, Any]) -> None:
         """This is called during installation to let to run fix up in the runner's section of
         the confliguration before it is saved. This method should modify the dict given."""
-        return None
+        return
 
     def get_runner_version(self, version: str | None = None) -> RunnerVersionDict | None:
         """Get the appropriate version for a runner, as with get_default_runner_version(),
@@ -631,8 +631,7 @@ class Runner:  # pylint: disable=too-many-public-methods
                 raise RunnerInstallationError(
                     _("The '%s' version of the '%s' runner can't be downloaded." % (version, self.name))
                 )
-            else:
-                raise RunnerInstallationError(_("The the '%s' runner can't be downloaded." % self.name))
+            raise RunnerInstallationError(_("The the '%s' runner can't be downloaded." % self.name))
 
         if "wine" in self.name:
             opts["merge_single"] = True

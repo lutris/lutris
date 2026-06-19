@@ -535,7 +535,7 @@ class OnlineService(BaseService):
         """Load cookies from disk"""
         if not system.path_exists(self.cookies_path):
             logger.warning("No cookies found in %s, please authenticate first", self.cookies_path)
-            return
+            return None
         cookiejar = WebkitCookieJar(self.cookies_path)
         cookiejar.load()
         return cookiejar

@@ -395,7 +395,7 @@ class DBusScreenSaverInhibitor:
                 logger.warning("Failed to inhibit screensaver via D-Bus, falling back to GTK: %s", ex)
 
         # GTK fallback
-        app: "LutrisApplication" = Gio.Application.get_default()
+        app: LutrisApplication = Gio.Application.get_default()
 
         window = app.window
         flags = Gtk.ApplicationInhibitFlags.SUSPEND | Gtk.ApplicationInhibitFlags.IDLE
@@ -422,7 +422,7 @@ class DBusScreenSaverInhibitor:
                 logger.warning("Failed to uninhibit screensaver via D-Bus: %s", ex)
 
         # GTK fallback
-        app: "LutrisApplication" = Gio.Application.get_default()
+        app: LutrisApplication = Gio.Application.get_default()
         app.uninhibit(cookie)
 
 

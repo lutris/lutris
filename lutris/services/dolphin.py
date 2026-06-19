@@ -32,7 +32,7 @@ class DolphinService(BaseService):
 
     def load(self):
         if not system.path_exists(DOLPHIN_GAME_CACHE_FILE):
-            return
+            return None
         cache_reader = DolphinCacheReader()
         dolphin_games = [DolphinGame.new_from_cache(game) for game in cache_reader.get_games()]
         for game in dolphin_games:

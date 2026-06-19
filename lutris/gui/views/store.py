@@ -108,7 +108,7 @@ class GameStore(GObject.Object):
 
     def get_row_by_id(self, game_id):
         if not game_id:
-            return
+            return None
         path = self.get_path_by_id(game_id)
         if path is not None:
             return self.store[path]

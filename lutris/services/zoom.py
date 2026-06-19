@@ -153,7 +153,7 @@ class ZoomService(OnlineService):
         """Return the user's library of Zoom games"""
         if system.path_exists(self.cache_path):
             logger.debug("Returning cached Zoom library")
-            with open(self.cache_path, "r", encoding="utf-8") as zoom_cache:
+            with open(self.cache_path, encoding="utf-8") as zoom_cache:
                 return json.load(zoom_cache)
 
         url = f"{self.api_url}/li/games"
@@ -212,8 +212,7 @@ class ZoomService(OnlineService):
         platforms = details["operating_systems"]
         if "linux" in platforms:
             return self._generate_installer("linux", db_game)
-        else:
-            return self._generate_installer("wine", db_game)
+        return self._generate_installer("wine", db_game)
 
     def generate_installers(self, db_game: dict[str, Any]) -> list[dict]:
         details = json.loads(db_game["details"])

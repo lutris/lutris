@@ -311,8 +311,7 @@ class Game:
         we'll use the game path as a fallback."""
         if self.has_runner and self.runner.has_working_dir:
             return self.runner.working_dir or self.resolve_game_path()
-        else:
-            return self.resolve_game_path()
+        return self.resolve_game_path()
 
     @property
     def game_config_id(self) -> str:
@@ -1261,7 +1260,7 @@ def import_game(file_path: str, dest_dir: str) -> None:
     with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         lutris_config = json.load(config_file)
     old_dir = lutris_config["directory"]
-    with open(os.path.join(game_dir, game_config), "r", encoding="utf-8") as config_file:
+    with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         config_data = config_file.read()
     config_data = config_data.replace(old_dir, game_dir)
     with open(os.path.join(game_dir, game_config), "w", encoding="utf-8") as config_file:

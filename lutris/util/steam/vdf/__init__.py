@@ -249,8 +249,7 @@ def _dump_gen(data: dict[str, Any], pretty: bool = False, escaped: bool = True, 
 
         if isinstance(value, dict):
             yield '%s"%s"\n%s{\n' % (line_indent, key, line_indent)
-            for chunk in _dump_gen(value, pretty, escaped, level + 1):
-                yield chunk
+            yield from _dump_gen(value, pretty, escaped, level + 1)
             yield "%s}\n" % line_indent
         else:
             if escaped and isinstance(value, string_type):
@@ -416,8 +415,7 @@ def _binary_dump_gen(obj: dict[str, Any], level: int = 0, alt_format: bool = Fal
 
         if isinstance(value, dict):
             yield BIN_NONE + key + BIN_NONE
-            for chunk in _binary_dump_gen(value, level + 1, alt_format=alt_format):
-                yield chunk
+            yield from _binary_dump_gen(value, level + 1, alt_format=alt_format)
         elif isinstance(value, UINT_64):
             yield BIN_UINT64 + key + BIN_NONE + uint64.pack(value)
         elif isinstance(value, INT_64):

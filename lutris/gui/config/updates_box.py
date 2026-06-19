@@ -84,7 +84,7 @@ class UpdatesBox(BaseConfigBox):
         application = Gio.Application.get_default()
         if not application or not application.window:
             logger.error("No application or window found, how does this happen?")
-            return
+            return None
         return application.window
 
     def on_runtime_update_clicked(self, _widget):

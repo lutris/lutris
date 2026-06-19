@@ -6,7 +6,7 @@ import yaml
 from lutris.util.ubisoft.consts import UBISOFT_CONFIGURATIONS_BLACKLISTED_NAMES
 
 
-class UbisoftParser(object):
+class UbisoftParser:
     def __init__(self):
         self.configuration_raw = None
         self.ownership_raw = None
@@ -121,8 +121,7 @@ class UbisoftParser(object):
 
             launch_id_2 = self._convert_data(launch_id_2)
             return launch_id, launch_id_2, record_size + tmp_size + 1
-        else:
-            return None, None, None
+        return None, None, None
 
     def _parse_configuration(self):
         configuration_content = self.configuration_raw

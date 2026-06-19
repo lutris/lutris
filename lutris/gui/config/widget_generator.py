@@ -146,8 +146,7 @@ class WidgetGenerator(ABC):
 
             self.option_container = option_container
             return option_container
-        else:
-            return None
+        return None
 
     def generate_widget(self, option: dict[str, Any], wrapper: Gtk.Box | None = None) -> Gtk.Widget | None:
         """This creates a wrapper box and a label and widget within it according to the options dict
@@ -249,8 +248,7 @@ class WidgetGenerator(ABC):
                 option_container.pack_start(widget, False, False, 0)
 
             return option_container
-        else:
-            return wrapper
+        return wrapper
 
     def build_option_widget(
         self, option: dict[str, Any], widget: Gtk.Widget | None, no_label: bool = False, expand: bool = True
@@ -355,16 +353,14 @@ class WidgetGenerator(ABC):
             the string 'False' is True!"""
             if to_convert is None:
                 return None
-            elif isinstance(to_convert, str):
+            if isinstance(to_convert, str):
                 text = to_convert.casefold().strip()
                 if text == "true":
                     return True
-                elif text == "false":
+                if text == "false":
                     return False
-                else:
-                    return None
-            else:
-                return bool(to_convert)
+                return None
+            return bool(to_convert)
 
         option_key = option["option"]
 
@@ -810,15 +806,15 @@ class WidgetGenerator(ABC):
 
             if argcount >= argsneeded:  # enough declared args?
                 return value(option_key, *self.callback_args, **self.callback_kwargs)
-            elif any(p.kind == Parameter.VAR_POSITIONAL for p in sig.parameters.values()):  # unlimited args via *args?
+            if any(p.kind == Parameter.VAR_POSITIONAL for p in sig.parameters.values()):  # unlimited args via *args?
                 return value(option_key, *self.callback_args, **self.callback_kwargs)
-            elif argcount == 0:  # no args?
+            if argcount == 0:  # no args?
                 return value(**self.callback_kwargs)
-            else:  # any other number of args
-                args = list(self.callback_args)
-                args.insert(0, option_key)
-                args = args[:argcount]
-                return value(*args, **self.callback_kwargs)
+            # any other number of args
+            args = list(self.callback_args)
+            args.insert(0, option_key)
+            args = args[:argcount]
+            return value(*args, **self.callback_kwargs)
 
         return value
 

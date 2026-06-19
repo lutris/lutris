@@ -445,8 +445,8 @@ class mednafen(Runner):
 
         # Construct the controlls options
         for button in layout[machine]:
-            controls.append("-{}.input.{}.{}".format(machine, gamepad, button))
-            controls.append("joystick {} {}".format(joy_ids[0], map_code[button]))
+            controls.append(f"-{machine}.input.{gamepad}.{button}")
+            controls.append(f"joystick {joy_ids[0]} {map_code[button]}")
         return controls
 
     def play(self):

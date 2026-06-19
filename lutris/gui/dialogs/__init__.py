@@ -295,8 +295,7 @@ class ErrorDialog(Gtk.MessageDialog):
         def get_message_markup(err: BaseException | str) -> str:
             if isinstance(err, LutrisError):
                 return err.message_markup or gtk_safe(str(err))
-            else:
-                return gtk_safe(str(err))
+            return gtk_safe(str(err))
 
         if isinstance(error, builtins.BaseException):
             if secondary_markup:

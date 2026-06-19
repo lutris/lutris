@@ -164,15 +164,14 @@ class ItchIoService(OnlineService):
         if not os.path.exists(self.api_key_path):
             return None
 
-        with open(self.api_key_path, "r") as key_file:
+        with open(self.api_key_path) as key_file:
             return key_file.read()
 
     def get_headers(self):
         api_key = self.load_api_key()
         if api_key:
             return {"Authorization": f"Bearer {api_key}"}
-        else:
-            return {}
+        return {}
 
     def is_connected(self):
         """Check if service is connected and can call the API"""
@@ -189,7 +188,7 @@ class ItchIoService(OnlineService):
         """Load the user's itch.io library"""
         if not self.is_connected():
             logger.error("User not connected to itch.io")
-            return
+            return None
 
         library = self.get_games()
         games = []
@@ -205,9 +204,9 @@ class ItchIoService(OnlineService):
 
     def make_api_request(self, path, query=None):
         """Make API request"""
-        url = "{}/{}".format(self.api_url, path)
+        url = f"{self.api_url}/{path}"
         if query is not None and isinstance(query, dict):
-            url += "?{}".format(urlencode(query, quote_via=quote_plus))
+            url += f"?{urlencode(query, quote_via=quote_plus)}"
         try:
             request = Request(
                 url,
@@ -271,7 +270,7 @@ class ItchIoService(OnlineService):
         url = "{}/{}".format(self.api_url, f"uploads/{upload_id}/download")
         if dl_key is not None:
             query = {"download_key_id": dl_key}
-            url += "?{}".format(urlencode(query, quote_via=quote_plus))
+            url += f"?{urlencode(query, quote_via=quote_plus)}"
         return url
 
     def get_game_cache(self, appid):
@@ -293,7 +292,7 @@ class ItchIoService(OnlineService):
         fresh_data = True
 
         if (not force_load) and os.path.exists(self.key_cache_file):
-            with open(self.key_cache_file, "r", encoding="utf-8") as key_file:
+            with open(self.key_cache_file, encoding="utf-8") as key_file:
                 owned_keys = json.load(key_file)
             fresh_data = False
         else:
@@ -352,7 +351,7 @@ class ItchIoService(OnlineService):
             collection_cache_path = self.get_collection_cache(collection["id"])
 
             if (not force_load) and os.path.exists(collection_cache_path):
-                with open(collection_cache_path, "r", encoding="utf-8") as key_file:
+                with open(collection_cache_path, encoding="utf-8") as key_file:
                     collection = json.load(key_file)
                 fresh_data = False
             else:
@@ -387,7 +386,7 @@ class ItchIoService(OnlineService):
                         and game.get("min_price", 0) > 0
                         and os.path.exists(game_cache_path)
                     ):
-                        with open(game_cache_path, "r", encoding="utf-8") as key_file:
+                        with open(game_cache_path, encoding="utf-8") as key_file:
                             cached_game = json.load(key_file)
                             if "download_key_id" in cached_game:
                                 game["download_key_id"] = cached_game["download_key_id"]
@@ -408,7 +407,7 @@ class ItchIoService(OnlineService):
     def get_collection_list(self, force_load=False):
         collections = []
         if (not force_load) and os.path.exists(self.collection_list_cache_file):
-            with open(self.collection_list_cache_file, "r", encoding="utf-8") as key_file:
+            with open(self.collection_list_cache_file, encoding="utf-8") as key_file:
                 collections = json.load(key_file)
         else:
             collections = self.fetch_collections().get("collections", [])
@@ -449,25 +448,25 @@ class ItchIoService(OnlineService):
         game = {}
 
         if os.path.exists(game_filename):
-            with open(game_filename, "r", encoding="utf-8") as game_file:
+            with open(game_filename, encoding="utf-8") as game_file:
                 game = json.load(game_file)
         else:
             try:
                 game = self.fetch_game(appid).get("game", {})
                 self._cache_games([game])
             except HTTPError:
-                return
+                return None
 
         traits = game.get("traits", [])
         if "can_be_bought" not in traits:
             # If game can not be bought it can not have a key
-            return
+            return None
         if "download_key_id" in game:
             # Return cached key
             return game["download_key_id"]
         if not game.get("min_price", 0):
             # We have no key but the game can be played for free
-            return
+            return None
 
         # Reload whole key library to check if a key was added
         library = self.get_owned_games(True)
@@ -475,7 +474,7 @@ class ItchIoService(OnlineService):
 
         if "download_key_id" in game:
             return game["download_key_id"]
-        return
+        return None
 
     def get_extras(self, appid):
         """Return a list of bonus content for itch.io game."""
@@ -655,7 +654,7 @@ class ItchIoService(OnlineService):
                 if upload:
                     ts = self._rfc3999_to_timestamp(upload.get("updated_at", 0))
                     if int(info.get("date", 0)) >= ts:
-                        return
+                        return None
                     info["date"] = int(datetime.datetime.now().timestamp())
 
         # Skip time based checks if we already know it's outdated

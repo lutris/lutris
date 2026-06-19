@@ -86,7 +86,7 @@ def get_lutris_directory_settings(directory: str) -> dict[str, str]:
         path = os.path.join(directory, "lutris.json")
         try:
             if os.path.isfile(path):
-                with open(path, "r", encoding="utf-8") as f:
+                with open(path, encoding="utf-8") as f:
                     json_data = json.load(f)
                     if not isinstance(json_data, dict):
                         logger.error("'%s' does not contain a dict, and will be ignored.", path)

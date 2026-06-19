@@ -363,7 +363,7 @@ def wineexec(
 
     executable, _args, working_dir = get_real_executable(executable, working_dir)
     if _args:
-        args = '{} "{}"'.format(_args[0], _args[1])
+        args = f'{_args[0]} "{_args[1]}"'
 
     wineenv = {"WINEARCH": arch}
     if winetricks_wine and winetricks_wine is not wine_path and not proton.is_proton_path(wine_path):

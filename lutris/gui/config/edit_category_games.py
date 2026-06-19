@@ -82,8 +82,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
     def _get_game(self, game_id: str) -> Game:
         if game_id in self.category_games:
             return self.category_games[game_id]
-        else:
-            return Game(game_id)
+        return Game(game_id)
 
     def on_save(self, _button: Gtk.Button) -> None:
         """Save game info and destroy widget."""

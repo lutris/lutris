@@ -111,7 +111,7 @@ def _execute(
     existing_env = get_environment()
     if env:
         if not quiet:
-            logger.debug(" ".join("{}={}".format(k, v) for k, v in env.items()))
+            logger.debug(" ".join(f"{k}={v}" for k, v in env.items()))
         env = {k: v for k, v in env.items() if v is not None}
         existing_env.update(env)
 
@@ -171,7 +171,7 @@ def spawn(
     existing_env = get_environment()
     if env:
         if not quiet:
-            logger.debug(" ".join("{}={}".format(k, v) for k, v in env.items()))
+            logger.debug(" ".join(f"{k}={v}" for k, v in env.items()))
         env = {k: v for k, v in env.items() if v is not None}
         existing_env.update(env)
 
@@ -215,7 +215,7 @@ def get_md5_hash(filename: str) -> bool | str:
     try:
         with open(filename, "rb") as _file:
             _hash = read_file_md5(_file)
-    except IOError:
+    except OSError:
         logger.warning("Error reading %s", filename)
         return False
     return _hash
@@ -346,7 +346,7 @@ def substitute(string_template: str, variables: dict[str, str]) -> str:
     # Replace the dashes with underscores in the mapping and template
     variables = dict((k.replace("-", "_"), v) for k, v in variables.items())
     for identifier in identifiers:
-        string_template = string_template.replace("${}".format(identifier), "${}".format(identifier.replace("-", "_")))
+        string_template = string_template.replace(f"${identifier}", "${}".format(identifier.replace("-", "_")))
 
     template = string.Template(string_template)
     if string_template in list(variables.keys()):

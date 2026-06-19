@@ -68,7 +68,7 @@ class LogWindow(GObject.Object):
         )
         log_path = file_dialog.filename
         if not log_path:
-            return None
+            return
 
         text = self.buffer.get_text(self.buffer.get_start_iter(), self.buffer.get_end_iter(), True)
         with open(log_path, "w", encoding="utf-8") as log_file:

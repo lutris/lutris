@@ -147,7 +147,7 @@ class HumbleBundleService(OnlineService):
             raise
         except HTTPError:
             logger.error("Failed to request %s", url)
-            return
+            return None
         return request.json
 
     def order_path(self, gamekey):
@@ -259,7 +259,7 @@ class HumbleBundleService(OnlineService):
         download = [d for d in downloads if d["platform"] == platform][0]
         url = pick_download_url_from_download_info(download)
         if not url:
-            return
+            return None
         return url.split("?")[0].split("/")[-1]
 
     @staticmethod
@@ -356,7 +356,7 @@ def pick_download_url_from_download_info(download_info):
     """
     if not download_info["download_struct"]:
         logger.warning("No downloads found")
-        return
+        return None
 
     def humble_sort(download):
         name = download["name"]
@@ -387,7 +387,7 @@ def get_humble_download_link(humbleid, runner):
     downloads = service.get_downloads(humbleid, platform)
     if not downloads:
         logger.error("Game %s for %s not found in the Humble Bundle library", humbleid, platform)
-        return
+        return None
     logger.info("Found %s download for %s", len(downloads), humbleid)
     download = downloads[0]
     logger.info("Reloading order %s", download["product"]["human_name"])

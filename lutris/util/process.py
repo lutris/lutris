@@ -21,10 +21,10 @@ class Process:
             raise ValueError("'%s' is not a valid pid" % pid) from err
 
     def __repr__(self):
-        return "Process {}".format(self.pid)
+        return f"Process {self.pid}"
 
     def __str__(self):
-        return "{} ({}:{})".format(self.name, self.pid, self.state)
+        return f"{self.name} ({self.pid}:{self.state})"
 
     def _read_content(self, file_path):
         """Return the contents from a file in /proc"""
@@ -39,7 +39,7 @@ class Process:
         return content.strip("\x00")
 
     def get_stat(self, parsed=True):
-        stat_filename = "/proc/{}/stat".format(self.pid)
+        stat_filename = f"/proc/{self.pid}/stat"
         try:
             with open(stat_filename, encoding="utf-8", errors="replace") as stat_file:
                 _stat = stat_file.readline()
@@ -51,7 +51,7 @@ class Process:
 
     def get_thread_ids(self):
         """Return a list of thread ids opened by process."""
-        basedir = "/proc/{}/task/".format(self.pid)
+        basedir = f"/proc/{self.pid}/task/"
         if os.path.isdir(basedir):
             try:
                 return os.listdir(basedir)
@@ -62,7 +62,7 @@ class Process:
 
     def get_children_pids_of_thread(self, tid):
         """Return pids of child processes opened by thread `tid` of process."""
-        children_path = "/proc/{}/task/{}/children".format(self.pid, tid)
+        children_path = f"/proc/{self.pid}/task/{tid}/children"
         try:
             with open(children_path, encoding="utf-8", errors="replace") as children_file:
                 children_content = children_file.read()
@@ -93,7 +93,7 @@ class Process:
     @property
     def cmdline(self):
         """Return command line used to run the process `pid`."""
-        cmdline_path = "/proc/{}/cmdline".format(self.pid)
+        cmdline_path = f"/proc/{self.pid}/cmdline"
         _cmdline_content = self._read_content(cmdline_path)
         if _cmdline_content:
             return _cmdline_content.replace("\x00", " ").replace("\\", "/")
@@ -107,7 +107,7 @@ class Process:
     @property
     def environ(self):
         """Return the process' environment variables"""
-        environ_path = "/proc/{}/environ".format(self.pid)
+        environ_path = f"/proc/{self.pid}/environ"
         _environ_text = self._read_content(environ_path)
         if not _environ_text or "=" not in _environ_text:
             return {}

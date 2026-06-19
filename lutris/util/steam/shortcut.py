@@ -87,7 +87,7 @@ def is_steam_game(game: "Game") -> bool:
 def create_shortcut(game: "Game", launch_config_name: str, standalone: bool = False) -> None:
     if is_steam_game(game):
         logger.warning("Not updating shortcut for Steam game")
-        return None
+        return
     logger.info("Creating Steam shortcut for %s", game)
     shortcut_path = get_shortcuts_vdf_path()
     if os.path.exists(shortcut_path):
@@ -111,13 +111,13 @@ def remove_shortcut(game: "Game") -> None:
     logger.info("Removing Steam shortcut for %s", game)
     shortcut_path = get_shortcuts_vdf_path()
     if not shortcut_path or not os.path.exists(shortcut_path):
-        return None
+        return
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())["shortcuts"].values()
     other_shortcuts = [s for s in shortcuts if not matches_id(s, game)]
     # Quit early if no shortcut is removed
     if len(shortcuts) == len(other_shortcuts):
-        return None
+        return
     updated_shortcuts = {"shortcuts": {str(index): elem for index, elem in enumerate(other_shortcuts)}}
     with open(shortcut_path, "wb") as shortcut_file:
         shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
@@ -207,7 +207,7 @@ def is_flatpak_lutris() -> bool:
 def set_artwork(game: "Game") -> None:
     config_path = get_config_path()
     if not config_path:
-        return None
+        return
     artwork_path = os.path.join(config_path, "grid")
     if not os.path.exists(artwork_path):
         os.makedirs(artwork_path)
@@ -216,10 +216,10 @@ def set_artwork(game: "Game") -> None:
     source_banner = resources.get_banner_path(game.slug)
     source_icon = resources.get_icon_path(game.slug)
     assets = [
-        ("grid horizontal", source_banner, os.path.join(artwork_path, "{}.jpg".format(shortcut_id))),
-        ("grid vertical", source_cover, os.path.join(artwork_path, "{}p.jpg".format(shortcut_id))),
-        ("hero", source_banner, os.path.join(artwork_path, "{}_hero.jpg".format(shortcut_id))),
-        ("icon", source_icon, os.path.join(artwork_path, "{}_icon.jpg".format(shortcut_id))),
+        ("grid horizontal", source_banner, os.path.join(artwork_path, f"{shortcut_id}.jpg")),
+        ("grid vertical", source_cover, os.path.join(artwork_path, f"{shortcut_id}p.jpg")),
+        ("hero", source_banner, os.path.join(artwork_path, f"{shortcut_id}_hero.jpg")),
+        ("icon", source_icon, os.path.join(artwork_path, f"{shortcut_id}_icon.jpg")),
     ]
     for name, source, target in assets:
         if not system.path_exists(target, exclude_empty=True):

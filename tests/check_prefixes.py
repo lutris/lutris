@@ -21,13 +21,13 @@ def get_registries():
 
 
 def check_registry(registry_path):
-    with open(registry_path, "r") as registry_file:
+    with open(registry_path) as registry_file:
         original_content = registry_file.read()
 
     try:
         wine_registry = WineRegistry(registry_path)
     except:
-        sys.stderr.write("Error parsing {}\n".format(registry_path))
+        sys.stderr.write(f"Error parsing {registry_path}\n")
         raise
     content = wine_registry.render()
     if content != original_content:
@@ -35,7 +35,7 @@ def check_registry(registry_path):
         with open(wrong_path, "w") as wrong_reg:
             wrong_reg.write(content)
 
-        print("Content of parsed registry doesn't match: {}".format(registry_path))
+        print(f"Content of parsed registry doesn't match: {registry_path}")
         subprocess.call(["meld", registry_path, wrong_path])
         sys.exit(2)
 
@@ -43,4 +43,4 @@ def check_registry(registry_path):
 registries = get_registries()
 for registry in registries:
     check_registry(registry)
-print("All {} registry files validated!".format(len(registries)))
+print(f"All {len(registries)} registry files validated!")

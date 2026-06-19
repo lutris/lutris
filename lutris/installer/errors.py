@@ -22,8 +22,7 @@ class ScriptingError(LutrisError):
     def wrap(error: BaseException) -> "ScriptingError":
         if isinstance(error, LutrisError):
             return ScriptingError(error.message, message_markup=error.message_markup)
-        else:
-            return ScriptingError(str(error))
+        return ScriptingError(str(error))
 
     def __str__(self):
         if self.faulty_data is None:

@@ -156,10 +156,10 @@ class ServiceMedia:
     def download(self, slug, url):
         """Downloads the banner if not present"""
         if not url:
-            return
+            return None
         cache_path = os.path.join(self.dest_path, self.get_filename(slug))
         if system.path_exists(cache_path, exclude_empty=True):
-            return
+            return None
         if system.path_exists(cache_path):
             cache_stats = os.stat(cache_path)
             # Empty files have a life time between 1 and 2 weeks, retry them after

@@ -69,12 +69,12 @@ def get_games_where(**conditions: Any) -> list[DbGameDict]:
         if extra_conditions:
             extra_condition = extra_conditions[0]
             if extra_condition == "lessthan":
-                condition_fields.append("{} < ?".format(field))
+                condition_fields.append(f"{field} < ?")
                 condition_values.append(value)
             if extra_condition == "isnull":
                 condition_fields.append("{} is {} null".format(field, "" if value else "not"))
             if extra_condition == "not":
-                condition_fields.append("{} != ?".format(field))
+                condition_fields.append(f"{field} != ?")
                 condition_values.append(value)
             if extra_condition == "in":
                 if not hasattr(value, "__iter__"):
@@ -85,7 +85,7 @@ def get_games_where(**conditions: Any) -> list[DbGameDict]:
                     condition_fields.append("{} in ({})".format(field, ", ".join("?" * len(value)) or ""))
                     condition_values = list(chain(condition_values, value))
         else:
-            condition_fields.append("{} = ?".format(field))
+            condition_fields.append(f"{field} = ?")
             condition_values.append(value)
     condition = " AND ".join(condition_fields)
     if condition:

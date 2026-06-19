@@ -137,7 +137,7 @@ class GameJoltService(OnlineService):
         """Load the user's GameJolt library"""
         if not self.is_connected():
             logger.error("User not connected to GameJolt")
-            return
+            return None
 
         games = self._get_library_games()
         result = []

@@ -19,7 +19,7 @@ SystemConfigDict: TypeAlias = dict[str, Any]
 
 def make_game_config_id(game_slug: str) -> str:
     """Return an unique config id to avoid clashes between multiple games"""
-    return "{}-{}".format(game_slug, int(time.time()))
+    return f"{game_slug}-{int(time.time())}"
 
 
 def write_game_config(game_slug: str, config: dict[str, Any]) -> str:

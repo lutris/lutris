@@ -83,7 +83,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if initial:
             return initial
         if not self.service:
-            return
+            return None
         service_id = None
         if self.service.id == "steam":
             service_id = installer.get("steamid") or installer.get("service_id")
@@ -96,7 +96,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             service_id = game_config.get("itchid") or installer.get("itchid") or installer.get("service_id")
         if service_id:
             return service_id
-        return
+        return None
 
     def _get_discord_id_from_api(self):
         """Fetch the discord_id from the Lutris API if available."""

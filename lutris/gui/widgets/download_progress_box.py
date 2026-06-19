@@ -96,7 +96,7 @@ class DownloadProgressBox(Gtk.Box):
         except RuntimeError as ex:
             display_error(ex, parent=self.get_toplevel())
             self.emit("cancel")
-            return None
+            return
 
         create_cache_lock(self.dest, CacheState.DOWNLOADING)
         schedule_repeating_at_idle(self._progress, interval_seconds=0.5)
@@ -159,5 +159,5 @@ class DownloadProgressBox(Gtk.Box):
         return True
 
     def _set_text(self, text):
-        markup = "<span size='10000'>{}</span>".format(gtk_safe(text))
+        markup = f"<span size='10000'>{gtk_safe(text)}</span>"
         self.progress_label.set_markup(markup)

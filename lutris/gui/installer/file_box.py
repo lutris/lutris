@@ -209,7 +209,7 @@ class InstallerFileBox(Gtk.VBox):
         if self.provider in ("pga", "user") and self.is_ready:
             self.emit("file-available")
             self.cache_file()
-            return
+            return None
         if self.start_func:
             return self.start_func()
 

@@ -10,12 +10,12 @@ SUPPORTED_CACHE_VERSION = 24
 
 def get_hex_string(string):
     """Return the hexadecimal representation of a string"""
-    return " ".join("{:02x}".format(c) for c in string)
+    return " ".join(f"{c:02x}" for c in string)
 
 
 def get_word_len(string):
     """Return the length of a string as specified in the Dolphin format"""
-    return int("0x" + "".join("{:02x}".format(c) for c in string[::-1]), 0)
+    return int("0x" + "".join(f"{c:02x}" for c in string[::-1]), 0)
 
 
 # https://github.com/dolphin-emu/dolphin/blob/90a994f93780ef8a7cccfc02e00576692e0f2839/Source/Core/UICommon/GameFile.h#L140

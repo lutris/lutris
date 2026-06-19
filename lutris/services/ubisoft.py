@@ -53,10 +53,10 @@ class UbisoftCover(ServiceMedia):
         if url.startswith("http"):
             return super().download(slug, url)
         if not url.endswith(".jpg"):
-            return
+            return None
         ubi_game = get_game_by_field("ubisoft-connect", "slug")
         if not ubi_game:
-            return
+            return None
         base_dir = ubi_game["directory"]
         asset_file = os.path.join(
             base_dir, "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache/assets", url
@@ -183,7 +183,7 @@ class UbisoftConnectService(OnlineService):
         except RuntimeError as ex:
             logger.error("Failed to authorize with API: %s. Re-login required." % ex)
             AsyncCall(self.logout, lambda _result, _error: self.login())
-            return
+            return None
         response = self.client.get_club_titles()
         games = response["data"]["viewer"]["ownedGames"].get("nodes", [])
         ubi_games = []
@@ -234,7 +234,7 @@ class UbisoftConnectService(OnlineService):
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game and existing_game["installed"] == 1:
             logger.debug("Ubisoft Connect game %s installed in Lutris", app_name)
-            return
+            return None
         logger.debug("Installing Ubisoft Connect game %s", app_name)
         game_config = LutrisConfig(game_config_id=ubisoft_connect["configpath"]).game_level
         details = json.loads(game["details"])

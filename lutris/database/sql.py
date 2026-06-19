@@ -15,7 +15,7 @@ DBUpdateDict: TypeAlias = dict[str, Any]
 DBParams: TypeAlias = Sequence[Any]
 
 
-class db_cursor(object):
+class db_cursor:
     def __init__(self, db_path: str):
         self.db_path = db_path
         self.db_conn: sqlite3.Connection = None
@@ -60,7 +60,7 @@ def db_insert(db_path: str, table: str, fields: DBUpdateDict) -> int:
     with db_cursor(db_path) as cursor:
         cursor_execute(
             cursor,
-            "insert into {0}({1}) values ({2})".format(table, columns, placeholders),
+            f"insert into {table}({columns}) values ({placeholders})",
             field_values,
         )
         inserted_id = cursor.lastrowid
@@ -78,14 +78,14 @@ def db_update(db_path: str, table: str, updated_fields: DBUpdateDict, conditions
     condition_value = tuple(conditions.values())
 
     with db_cursor(db_path) as cursor:
-        query = "UPDATE {0} SET {1} WHERE {2}".format(table, columns, condition_field)
+        query = f"UPDATE {table} SET {columns} WHERE {condition_field}"
         result = cursor_execute(cursor, query, field_values + condition_value)
     return result
 
 
 def db_delete(db_path: str, table: str, field: str, value: Any) -> None:
     with db_cursor(db_path) as cursor:
-        cursor_execute(cursor, "delete from {0} where {1}=?".format(table, field), (value,))
+        cursor_execute(cursor, f"delete from {table} where {field}=?", (value,))
 
 
 def db_select(
@@ -168,13 +168,10 @@ def _create_filter(field: str, value: Any, params: list[Any], negate: bool = Fal
         if negate:
             if also_null:
                 return f"{field} IS NOT NULL"
-            else:
-                return "1 = 1"
-        else:
-            if also_null:
-                return f"{field} IS NULL"
-            else:
-                return "1 = 0"
+            return "1 = 1"
+        if also_null:
+            return f"{field} IS NULL"
+        return "1 = 0"
 
     if len(values) == 1:
         params.append(values[0])
@@ -191,12 +188,10 @@ def _create_filter(field: str, value: Any, params: list[Any], negate: bool = Fal
     if also_null:
         if negate:
             return f"({field} IS NOT NULL AND {sql})"
-        else:
-            return f"({field} IS NULL OR {sql})"
-    else:
-        if negate:
-            return f"({field} IS NULL OR {sql})"
-        return sql
+        return f"({field} IS NULL OR {sql})"
+    if negate:
+        return f"({field} IS NULL OR {sql})"
+    return sql
 
 
 def filtered_query(

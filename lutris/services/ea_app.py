@@ -37,8 +37,7 @@ class EAAppGames:
     def iter_installed_games(self):
         if not os.path.exists(self.ea_games_path):
             return
-        for game_folder in os.listdir(self.ea_games_path):
-            yield game_folder
+        yield from os.listdir(self.ea_games_path)
 
     def get_installed_games_content_ids(self):
         installed_game_ids = []
@@ -506,11 +505,11 @@ class EAAppService(OnlineService):
         service_game = ServiceGameCollection.get_game("ea_app", offer_id)
         if not service_game:
             logger.error("Aborting install, %s is not present in the game library.", offer_id)
-            return
+            return None
         lutris_game_id = slugify(service_game["name"]) + "-" + self.id
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
-            return
+            return None
         game_config = LutrisConfig(game_config_id=ea_game["configpath"]).game_level
         game_config["game"]["args"] = get_launch_arguments(",".join(content_ids))
         configpath = write_game_config(lutris_game_id, game_config)

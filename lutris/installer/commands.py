@@ -378,7 +378,7 @@ class CommandsMixin:
         filename = self._substitute(data["file"])
         logger.debug("Substituting variables for file %s", filename)
         tmp_filename = filename + ".tmp"
-        with open(filename, "r", encoding="utf-8") as source_file:
+        with open(filename, encoding="utf-8") as source_file:
             with open(tmp_filename, "w", encoding="utf-8") as dest_file:
                 line = "."
                 while line:

@@ -479,19 +479,18 @@ class GOGDownloader(BaseDownloader):
                 # Before our range, skip
                 bytes_read += len(chunk)
                 continue
-            elif chunk_start >= end + 1:
+            if chunk_start >= end + 1:
                 # Past our range, done
                 break
-            else:
-                # Calculate the slice of this chunk we need
-                slice_start = max(0, start - chunk_start)
-                slice_end = min(len(chunk), end + 1 - chunk_start)
-                data = chunk[slice_start:slice_end]
-                enqueued_bytes += len(data)
-                is_last = enqueued_bytes >= range_size
-                self._write_queue.put((current_offset, data, start, end if is_last else None))
-                current_offset += len(data)
-                stall_monitor.check(enqueued_bytes)
+            # Calculate the slice of this chunk we need
+            slice_start = max(0, start - chunk_start)
+            slice_end = min(len(chunk), end + 1 - chunk_start)
+            data = chunk[slice_start:slice_end]
+            enqueued_bytes += len(data)
+            is_last = enqueued_bytes >= range_size
+            self._write_queue.put((current_offset, data, start, end if is_last else None))
+            current_offset += len(data)
+            stall_monitor.check(enqueued_bytes)
 
             bytes_read += len(chunk)
             if bytes_read >= end + 1:

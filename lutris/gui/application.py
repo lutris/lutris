@@ -398,9 +398,9 @@ class LutrisApplication(Gtk.Application):
             return window_inst
         if issubclass(window_class, Gtk.Dialog):
             if "parent" in kwargs or not self.window:
-                window_inst: "GtkWindowType" = window_class(**kwargs)
+                window_inst: GtkWindowType = window_class(**kwargs)
             else:
-                window_inst: "GtkWindowType" = window_class(parent=self.window, **kwargs)
+                window_inst: GtkWindowType = window_class(parent=self.window, **kwargs)
             window_inst.set_application(self)
         else:
             window_inst = window_class(application=self, **kwargs)

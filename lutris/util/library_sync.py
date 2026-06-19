@@ -47,7 +47,7 @@ class LibrarySyncer:
         """Return a request object and ensures authentication to the Lutris API"""
         credentials = read_api_key()
         if not credentials:
-            return
+            return None
         url = LIBRARY_URL
         if since:
             url += "?since=%s" % since
@@ -175,7 +175,7 @@ class LibrarySyncer:
                 request.post(data=json.dumps(local_library_updates).encode())
             except http.HTTPError as ex:
                 logger.error("Could not send local library to server: %s", ex)
-                return None
+                return
             library_keys = set()
             duplicate_keys = set()
             library_map = {}
@@ -226,7 +226,7 @@ class LibrarySyncer:
         """Task to delete a game entry from the remote library"""
         request = self._get_request()
         if not request:
-            return
+            return None
         try:
             request.delete(data=json.dumps(self._db_games_to_api(games)).encode())
         except http.HTTPError as ex:

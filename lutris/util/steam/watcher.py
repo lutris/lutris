@@ -34,6 +34,6 @@ class SteamWatcher:
     ) -> None:
         path = _file.get_path()
         if path is None or not path.endswith(".acf"):
-            return None
+            return
         if self.callback:
             self.callback(event_type, path)

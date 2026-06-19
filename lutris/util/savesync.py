@@ -153,19 +153,19 @@ def create_dirs(client, path):
 def get_webdav_client():
     if not WEBDAV_AVAILABLE:
         logger.error("Python package 'webdav4' not installed.")
-        return
+        return None
     webdav_host = settings.read_setting("webdav_host")
     if not webdav_host:
         logger.error("No remote host set (webdav_host)")
-        return
+        return None
     webdav_user = settings.read_setting("webdav_user")
     if not webdav_user:
         logger.error("No remote username set (webdav_user)")
-        return
+        return None
     webdav_pass = settings.read_setting("webdav_pass")
     if not webdav_pass:
         logger.error("No remote password set (webdav_pass)")
-        return
+        return None
     return Client(webdav_host, auth=(webdav_user, webdav_pass), timeout=50)
 
 
@@ -235,7 +235,7 @@ def upload_save(game, sections=None):
 
 
 def load_save_info(save_info_path):
-    with open(save_info_path, "r", encoding="utf-8") as save_info_file:
+    with open(save_info_path, encoding="utf-8") as save_info_file:
         save_info = json.load(save_info_file)
     return save_info
 

@@ -26,7 +26,7 @@ class MameIni:
 
     def read(self):
         """Reads the content of the ini file"""
-        with open(self.ini_path, "r", encoding="utf-8") as ini_file:
+        with open(self.ini_path, encoding="utf-8") as ini_file:
             for line in ini_file.readlines():
                 self.lines.append(line)
                 config_key, config_value = self.parse(line)

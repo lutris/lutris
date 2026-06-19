@@ -156,11 +156,11 @@ class BattleNetService(BaseService):
         service_game = ServiceGameCollection.get_game("battlenet", app_id)
         if not service_game:
             logger.error("Aborting install, %s is not present in the game library.", app_id)
-            return
+            return None
         lutris_game_id = service_game["slug"] + "-" + self.id
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
-            return
+            return None
         game_config = LutrisConfig(game_config_id=bnet_game["configpath"]).game_level
         product_code = PRODUCT_CODES.get(game.ngdp, game.ngdp)
         game_config["game"]["args"] = '--exec="launch %s"' % product_code

@@ -96,7 +96,7 @@ def get_outputs() -> list[Output]:
                 if rotate.startswith("("):  # Screen not rotated, no need to include
                     rotate = "normal"
                 _, x_pos, y_pos = geometry.split("+")
-                position = "{x_pos}x{y_pos}".format(x_pos=x_pos, y_pos=y_pos)
+                position = f"{x_pos}x{y_pos}"
                 name = candidate_name
             except ValueError as ex:
                 logger.error(

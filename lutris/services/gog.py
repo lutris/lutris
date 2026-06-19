@@ -249,7 +249,7 @@ class GOGService(OnlineService):
         """Return the user's library of GOG games"""
         if system.path_exists(self.cache_path):
             logger.debug("Returning cached GOG library")
-            with open(self.cache_path, "r", encoding="utf-8") as gog_cache:
+            with open(self.cache_path, encoding="utf-8") as gog_cache:
                 return json.load(gog_cache)
 
         total_pages = 1
@@ -292,7 +292,7 @@ class GOGService(OnlineService):
         if not product_id:
             raise ValueError("Missing product ID")
         logger.info("Getting game details for %s", product_id)
-        url = "{}/products/{}?expand=downloads&locale={}".format(self.api_url, product_id, self.locale)
+        url = f"{self.api_url}/products/{product_id}?expand=downloads&locale={self.locale}"
         return self.make_api_request(url)
 
     def get_download_info(self, downlink: str) -> list[dict]:
@@ -584,8 +584,7 @@ class GOGService(OnlineService):
         platforms = [platform.casefold() for platform, is_supported in details["worksOn"].items() if is_supported]
         if "linux" in platforms:
             return self._generate_depot_installer(slug, "linux", db_game)
-        else:
-            return self._generate_depot_installer(slug, "wine", db_game)
+        return self._generate_depot_installer(slug, "wine", db_game)
 
     def generate_installers(self, db_game: dict[str, Any]) -> list[dict]:
         details = json.loads(db_game["details"])
@@ -684,7 +683,7 @@ class GOGService(OnlineService):
 
     def get_games_owned(self) -> dict:
         """Return IDs of games owned by user"""
-        url = "{}/user/data/games".format(self.embed_url)
+        url = f"{self.embed_url}/user/data/games"
         return self.make_api_request(url)
 
     def get_dlc_installers(self, db_game: dict) -> list[dict]:

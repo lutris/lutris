@@ -13,11 +13,11 @@ from lutris.util.log import logger
 def dosexec(config_file=None, executable=None, args=None, close_on_exit=True, working_dir=None):
     """Execute Dosbox with given config_file."""
     if config_file:
-        run_with = "config {}".format(config_file)
+        run_with = f"config {config_file}"
         if not working_dir:
             working_dir = os.path.dirname(config_file)
     elif executable:
-        run_with = "executable {}".format(executable)
+        run_with = f"executable {executable}"
         if not working_dir:
             working_dir = os.path.dirname(executable)
     else:
@@ -31,7 +31,7 @@ def dosexec(config_file=None, executable=None, args=None, close_on_exit=True, wo
         command += ["-conf", config_file]
     if executable:
         if not system.path_exists(executable):
-            raise OSError("Can't find file {}".format(executable))
+            raise OSError(f"Can't find file {executable}")
         command += [executable]
     if args:
         command += args.split()
@@ -45,6 +45,6 @@ def makeconfig(path, drives, commands):
     with open(path, "w", encoding="utf-8") as config_file:
         config_file.write("[autoexec]\n")
         for drive in drives:
-            config_file.write('mount {} "{}"\n'.format(drive, drives[drive]))
+            config_file.write(f'mount {drive} "{drives[drive]}"\n')
         for command in commands:
-            config_file.write("{}\n".format(command))
+            config_file.write(f"{command}\n")

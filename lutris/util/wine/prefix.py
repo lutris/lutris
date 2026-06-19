@@ -35,7 +35,7 @@ def find_prefix(path):
     dir_path = path
     if not dir_path:
         logger.info("No path given, unable to guess prefix location")
-        return
+        return None
     dir_path = os.path.expanduser(dir_path)
     while dir_path != "/" and dir_path:
         dir_path = os.path.dirname(dir_path)
@@ -109,13 +109,13 @@ class WinePrefixManager:
             return os.path.join(self.path, "user.reg")
         if key.startswith(self.hklm_prefix):
             return os.path.join(self.path, "system.reg")
-        raise ValueError("Unsupported key '{}'".format(key))
+        raise ValueError(f"Unsupported key '{key}'")
 
     def get_key_path(self, key):
         for prefix in (self.hkcu_prefix, self.hklm_prefix):
             if key.startswith(prefix):
                 return key[len(prefix) + 1 :]
-        raise ValueError("The key {} is currently not supported by WinePrefixManager".format(key))
+        raise ValueError(f"The key {key} is currently not supported by WinePrefixManager")
 
     def get_registry_key(self, key, subkey):
         registry = WineRegistry(self.get_registry_path(key))
@@ -229,7 +229,7 @@ class WinePrefixManager:
             # save the setting in the new form.
             obsolete_path = os.path.join(self.path, ".lutris_destkop_integration")
             if os.path.isfile(obsolete_path):
-                with open(obsolete_path, "r", encoding="utf-8") as f:
+                with open(obsolete_path, encoding="utf-8") as f:
                     desktop_dir = f.read()
                 self._set_desktop_integration_assignment(desktop_dir)
                 os.unlink(obsolete_path)
@@ -287,7 +287,7 @@ class WinePrefixManager:
         obsolete_path = os.path.join(self.path, ".lutris_dpi_assignment")
         try:
             if os.path.isfile(obsolete_path):
-                with open(obsolete_path, "r", encoding="utf-8") as f:
+                with open(obsolete_path, encoding="utf-8") as f:
                     dpi_assigned = int(f.read())
                 set_lutris_directory_settings(self.path, int(dpi_assigned))
                 os.unlink(obsolete_path)
@@ -371,8 +371,8 @@ class WinePrefixManager:
             # Although, those devices aren't returned by `get_joypads`
             # A better way would be to read /dev/input files directly.
             if "HARPOON RGB" in joypad_name:
-                self.set_registry_key(key, "{} (js)".format(joypad_name), "disabled")
-                self.set_registry_key(key, "{} (event)".format(joypad_name), "disabled")
+                self.set_registry_key(key, f"{joypad_name} (js)", "disabled")
+                self.set_registry_key(key, f"{joypad_name} (event)", "disabled")
 
         # This part of the code below avoids having 2 joystick interfaces
         # showing up simulatenously. It is not sure if it's still needed

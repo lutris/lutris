@@ -88,7 +88,7 @@ class DownloadProgress:
         if not os.path.exists(self.progress_path):
             return False
         try:
-            with open(self.progress_path, "r", encoding="utf-8") as f:
+            with open(self.progress_path, encoding="utf-8") as f:
                 self._data = json.load(f)
             required = ("url", "file_size", "total_ranges", "completed_ranges")
             if not all(k in self._data for k in required):

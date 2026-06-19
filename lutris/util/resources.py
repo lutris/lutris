@@ -12,9 +12,9 @@ def get_icon_path(game_slug: str) -> str:
 
 def get_banner_path(game_slug: str) -> str:
     """Return the absolute path for a game_slug banner"""
-    return os.path.join(settings.BANNER_PATH, "{}.jpg".format(game_slug))
+    return os.path.join(settings.BANNER_PATH, f"{game_slug}.jpg")
 
 
 def get_cover_path(game_slug: str) -> str:
     """Return the absolute path for a game_slug coverart"""
-    return os.path.join(settings.COVERART_PATH, "{}.jpg".format(game_slug))
+    return os.path.join(settings.COVERART_PATH, f"{game_slug}.jpg")

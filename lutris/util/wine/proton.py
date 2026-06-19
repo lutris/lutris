@@ -251,7 +251,7 @@ def get_game_id(game, env) -> str:
     if not os.path.exists(games_path):
         return DEFAULT_GAMEID
 
-    with open(games_path, "r", encoding="utf-8") as games_file:
+    with open(games_path, encoding="utf-8") as games_file:
         umu_games = json.load(games_file)
 
     for umu_game in umu_games:

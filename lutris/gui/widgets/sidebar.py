@@ -364,7 +364,7 @@ class SidebarHeader(Gtk.ListBoxRow):
             halign=Gtk.Align.START,
             hexpand=True,
             use_markup=True,
-            label="<b>{}</b>".format(name),
+            label=f"<b>{name}</b>",
         )
 
         self.arrow = Gtk.Image.new_from_icon_name("pan-down-symbolic", Gtk.IconSize.MENU)

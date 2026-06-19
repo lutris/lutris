@@ -160,7 +160,7 @@ class AmazonService(OnlineService):
         """Load the user game library from the Amazon API"""
         if not self.is_connected():
             logger.error("User not connected to Amazon")
-            return
+            return None
         games = [AmazonGame.new_from_amazon_game(game) for game in self.get_library()]
         for game in games:
             game.save()
@@ -178,7 +178,7 @@ class AmazonService(OnlineService):
         if not os.path.exists(self.user_path):
             raise AuthenticationError(_("No Amazon user data available, please log in again"))
 
-        with open(self.user_path, "r", encoding="utf-8") as user_file:
+        with open(self.user_path, encoding="utf-8") as user_file:
             user_data = json.load(user_file)
 
         return user_data
@@ -341,7 +341,7 @@ class AmazonService(OnlineService):
         """Return the user's library of Amazon games"""
         if system.path_exists(self.cache_path):
             logger.debug("Returning cached Amazon library")
-            with open(self.cache_path, "r", encoding="utf-8") as amazon_cache:
+            with open(self.cache_path, encoding="utf-8") as amazon_cache:
                 return json.load(amazon_cache)
 
         access_token = self.get_access_token()

@@ -424,5 +424,5 @@ class DownloadCollectionProgressBox(Gtk.Box):
         self.cancel_button.set_sensitive(False)
 
     def _set_text(self, text):
-        markup = "<span size='10000'>{}</span>".format(gtk_safe(text))
+        markup = f"<span size='10000'>{gtk_safe(text)}</span>"
         self.progress_label.set_markup(markup)

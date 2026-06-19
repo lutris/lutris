@@ -36,15 +36,15 @@ class EvilConfigParser(RawConfigParser):  # pylint: disable=too-many-ancestors
 
     def write(self, fp, space_around_delimiters=True):
         for section in self._sections:
-            fp.write("[{}]\n".format(section).encode("utf-8"))
+            fp.write(f"[{section}]\n".encode())
             for key, value in list(self._sections[section].items()):
                 if key == "__name__":
                     continue
                 if (value is not None) or (self._optcre == self.OPTCRE):
                     # Duplicated keys writing support inside
                     key = "=".join((key, str(value).replace("\n", "\n%s=" % key)))
-                fp.write("{}\n".format(key).encode("utf-8"))
-            fp.write("\n".encode("utf-8"))
+                fp.write(f"{key}\n".encode())
+            fp.write(b"\n")
 
 
 class MultiOrderedDict(OrderedDict):

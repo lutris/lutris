@@ -69,7 +69,7 @@ def update_cache_lock(file_path: str, state: CacheState) -> None:
     try:
         lock_data = {}
         if os.path.exists(lock_file):
-            with open(lock_file, "r", encoding="utf-8") as f:
+            with open(lock_file, encoding="utf-8") as f:
                 lock_data = json.load(f)
         lock_data["state"] = state.value
         lock_data["updated_at"] = time.time()
@@ -92,7 +92,7 @@ def get_cache_state(file_path: str) -> CacheState | None:
     if not os.path.exists(lock_file):
         return None
     try:
-        with open(lock_file, "r", encoding="utf-8") as f:
+        with open(lock_file, encoding="utf-8") as f:
             lock_data = json.load(f)
         return CacheState(lock_data.get("state", "downloading"))
     except (OSError, json.JSONDecodeError, ValueError) as ex:
@@ -165,7 +165,7 @@ def is_safe_to_delete(file_path: str) -> bool:
     if state == CacheState.FAILED:
         lock_file = _lock_path(file_path)
         try:
-            with open(lock_file, "r", encoding="utf-8") as f:
+            with open(lock_file, encoding="utf-8") as f:
                 lock_data = json.load(f)
             updated_at = lock_data.get("updated_at", 0)
             days_old = (time.time() - updated_at) / 86400

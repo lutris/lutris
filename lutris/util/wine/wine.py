@@ -66,7 +66,7 @@ def detect_prefix_arch(prefix_path: str) -> str:
 
     prefix_path = os.path.expanduser(prefix_path)
     registry_path = os.path.join(prefix_path, "system.reg")
-    with open(registry_path, "r", encoding="utf-8") as registry:
+    with open(registry_path, encoding="utf-8") as registry:
         for _line_no in range(5):
             line = registry.readline()
             if "win64" in line:
@@ -179,10 +179,9 @@ def get_runner_files_dir_for_version(version: str) -> str | None:
         return None
     if version in WINE_PATHS:
         return None
-    elif proton.is_proton_version(version):
+    if proton.is_proton_version(version):
         return os.path.join(WINE_DIR, version, "files")
-    else:
-        return os.path.join(WINE_DIR, version)
+    return os.path.join(WINE_DIR, version)
 
 
 def get_wine_path_for_version(version: str, config: dict | None = None) -> str:

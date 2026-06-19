@@ -93,7 +93,7 @@ def get_runtime_versions() -> RuntimeVersionsDict:
     if it is missing or stale."""
     if not system.path_exists(settings.RUNTIME_VERSIONS_PATH):
         return {}
-    with open(settings.RUNTIME_VERSIONS_PATH, mode="r", encoding="utf-8") as runtime_file:
+    with open(settings.RUNTIME_VERSIONS_PATH, encoding="utf-8") as runtime_file:
         return cast(RuntimeVersionsDict, json.load(runtime_file))
 
 
@@ -101,7 +101,7 @@ def read_api_key() -> dict[str, str] | None:
     """Read the API token from disk"""
     if not system.path_exists(API_KEY_FILE_PATH):
         return None
-    with open(API_KEY_FILE_PATH, "r", encoding="utf-8") as token_file:
+    with open(API_KEY_FILE_PATH, encoding="utf-8") as token_file:
         api_string = token_file.read()
     try:
         username, token = api_string.split(":")
@@ -192,7 +192,7 @@ def get_runners(runner_name: str) -> RunnerDict:
 
 def download_runner_versions(runner_name: str) -> list[RunnerVersionDict]:
     try:
-        request = Request("{}/api/runners/{}".format(settings.SITE_URL, runner_name))
+        request = Request(f"{settings.SITE_URL}/api/runners/{runner_name}")
         runner_info = request.get().json
         if not runner_info:
             logger.error("Failed to get runner information")
@@ -229,7 +229,7 @@ def format_version_architecture(base_version: str, arch: str | None = None) -> s
         return base_version
 
     if arch:
-        return "{}-{}".format(base_version, arch)
+        return f"{base_version}-{arch}"
 
     return base_version
 
@@ -344,7 +344,7 @@ def get_game_api_page(game_slugs: Collection[str] | None, page: int | str = 1) -
     """
     url = settings.SITE_URL + "/api/games"
     if int(page) > 1:
-        url += "?page={}".format(page)
+        url += f"?page={page}"
     if not game_slugs:
         return {}
     payload = json.dumps({"games": game_slugs, "page": page}).encode("utf-8")
@@ -355,7 +355,7 @@ def get_game_service_api_page(service: str, appids: Collection[str] | None, page
     """Get matching Lutris games from a list of appids from a given service"""
     url = settings.SITE_URL + "/api/games/service/%s" % service
     if int(page) > 1:
-        url += "?page={}".format(page)
+        url += f"?page={page}"
     if not appids:
         return {}
     payload = json.dumps({"appids": appids}).encode("utf-8")

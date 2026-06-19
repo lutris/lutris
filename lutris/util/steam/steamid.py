@@ -162,7 +162,7 @@ class SteamID:
         if match:
             if match.group("path") not in TYPE_URL_PATH_MAP[LETTER_TYPE_MAP[match.group("type")]]:
                 warnings.warn(
-                    "Community URL ({}) path doesn't match type character".format(url.path),
+                    f"Community URL ({url.path}) path doesn't match type character",
                     stacklevel=2,
                 )
             steamid = int(match.group("steamid"))
@@ -180,7 +180,7 @@ class SteamID:
                 account_number = (steamid - instance - 0x0170000000000000) / 2
                 account_type = TYPE_CLAN
             return cls(account_number, instance, account_type, universe)
-        raise SteamIDError("Invalid Steam community URL ({})".format(url))
+        raise SteamIDError(f"Invalid Steam community URL ({url})")
 
     @classmethod
     def from_steamid64(
@@ -220,18 +220,18 @@ class SteamID:
             return cls(0, 0, TYPE_INVALID, 0)
         match = TEXTUAL_ID_REGEX.match(steam_id)
         if not match:
-            raise SteamIDError("ID '{}' doesn't match format {}".format(steam_id, TEXTUAL_ID_REGEX.pattern))
+            raise SteamIDError(f"ID '{steam_id}' doesn't match format {TEXTUAL_ID_REGEX.pattern}")
         return cls(int(match.group("Z")), int(match.group("Y")), account_type, int(match.group("X")))
 
     def __init__(self, account_number: int, instance: int, account_type: int, universe: int):
         if universe not in UNIVERSES:
-            raise SteamIDError("Invalid universe {}".format(universe))
+            raise SteamIDError(f"Invalid universe {universe}")
         if account_type not in ACCOUNT_TYPES:
-            raise SteamIDError("Invalid type {}".format(account_type))
+            raise SteamIDError(f"Invalid type {account_type}")
         if account_number < 0 or account_number > (2**32) - 1:
-            raise SteamIDError("Account number ({}) out of range".format(account_number))
+            raise SteamIDError(f"Account number ({account_number}) out of range")
         if instance not in [1, 0]:
-            raise SteamIDError("Expected instance to be 1 or 0, got {}".format(instance))
+            raise SteamIDError(f"Expected instance to be 1 or 0, got {instance}")
         self.account_number = int(account_number)  # Z
         self.instance = instance  # Y
         self.account_type = account_type
@@ -262,7 +262,7 @@ class SteamID:
             return "STEAM_ID_PENDING"
         if self.account_type == TYPE_INVALID:
             return "UNKNOWN"
-        return "STEAM_{}:{}:{}".format(self.universe, self.instance, self.account_number)
+        return f"STEAM_{self.universe}:{self.instance}:{self.account_number}"
 
     def __int__(self) -> int:
         """The 64 bit representation of the SteamID
@@ -283,7 +283,7 @@ class SteamID:
             return (self.account_number * 2) + 0x0110000100000000 + self.instance
         if self.account_type == TYPE_CLAN:
             return (self.account_number * 2) + 0x0170000000000000 + self.instance
-        raise SteamIDError("Cannot create 64-bit identifier for SteamID with type {}".format(self.type_name))
+        raise SteamIDError(f"Cannot create 64-bit identifier for SteamID with type {self.type_name}")
 
     def __eq__(self, other: object) -> bool | NotImplementedType:
         if not isinstance(other, SteamID):
@@ -313,11 +313,9 @@ class SteamID:
         """
 
         try:
-            return "[{}:1:{}]".format(TYPE_LETTER_MAP[self.account_type], self.get_32_bit_community_id())
+            return f"[{TYPE_LETTER_MAP[self.account_type]}:1:{self.get_32_bit_community_id()}]"
         except KeyError as ex:
-            raise SteamIDError(
-                "Cannot create 32-bit indentifier for SteamID with type {}".format(self.type_name)
-            ) from ex
+            raise SteamIDError(f"Cannot create 32-bit indentifier for SteamID with type {self.type_name}") from ex
 
     def get_32_bit_community_id(self) -> int:
         return (self.account_number * 2) + self.instance
@@ -347,4 +345,4 @@ class SteamID:
                 self.base_community_url, "/".join((TYPE_URL_PATH_MAP[self.account_type][0], path_func()))
             )
         except KeyError as ex:
-            raise SteamIDError("Cannot generate community URL for type {}".format(self.type_name)) from ex
+            raise SteamIDError(f"Cannot generate community URL for type {self.type_name}") from ex

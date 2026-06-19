@@ -66,8 +66,7 @@ class AsyncCall(threading.Thread):
 
             disconnecter = callback_target.call_when_destroyed(unhook)
             return fire
-        else:
-            return callback
+        return callback
 
     def target(self, *a: Any, **kw: Any) -> None:
         result = None

@@ -204,9 +204,9 @@ def _decompress_gz(file_path: str, dest_path: str):
 
 def _extract_7zip(path: str, dest: str, archive_type: str | None = None) -> None:
     _7zip_path = _get_7zip_path()
-    command = [_7zip_path, "x", path, "-o{}".format(dest), "-aoa"]
+    command = [_7zip_path, "x", path, f"-o{dest}", "-aoa"]
     if archive_type and archive_type != "auto":
-        command.append("-t{}".format(archive_type))
+        command.append(f"-t{archive_type}")
     subprocess.call(command)
 
 
@@ -290,14 +290,14 @@ def _extract_deb(archive: str, dest: str) -> None:
 
     control_file_exts = [".gz", ".xz", ".zst", ""]
     for extension in control_file_exts:
-        control_tar_path = os.path.join(dest, "control.tar{}".format(extension))
+        control_tar_path = os.path.join(dest, f"control.tar{extension}")
         if os.path.exists(control_tar_path):
             shutil.move(control_tar_path, debian_folder)
             break
 
     data_file_exts = [".gz", ".xz", ".zst", ".bz2", ".lzma", ""]
     for extension in data_file_exts:
-        data_tar_path = os.path.join(dest, "data.tar{}".format(extension))
+        data_tar_path = os.path.join(dest, f"data.tar{extension}")
         if os.path.exists(data_tar_path):
             extract_archive(data_tar_path, dest)
             os.remove(data_tar_path)

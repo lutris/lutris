@@ -83,7 +83,7 @@ def get_nvidia_dll_path():
     """
     libglx_path = get_nvidia_glx_path()
     if not libglx_path:
-        return
+        return None
     nvidia_wine_dir = os.path.join(os.path.dirname(libglx_path), "nvidia/wine")
     if os.path.exists(os.path.join(nvidia_wine_dir, "nvngx.dll")):
         return nvidia_wine_dir

@@ -459,13 +459,13 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         if self.is_view_sort_sensitive:
             if self.view_sorting == "name":
                 return {COL_NAME, COL_SORTNAME}
-            elif self.view_sorting == "year":
+            if self.view_sorting == "year":
                 return {COL_YEAR}
-            elif self.view_sorting == "lastplayed":
+            if self.view_sorting == "lastplayed":
                 return {COL_LASTPLAYED, COL_LASTPLAYED_TEXT}
-            elif self.view_sorting == "installed_at":
+            if self.view_sorting == "installed_at":
                 return {COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT}
-            elif self.view_sorting == "playtime":
+            if self.view_sorting == "playtime":
                 return {COL_PLAYTIME, COL_PLAYTIME_TEXT}
 
         return set()
@@ -519,12 +519,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                     # Years can take many forms! We'll try to convert as best we can.
                     if isinstance(value, datetime):
                         return int(value.year)
-                    else:
-                        try:
-                            return int(value)
-                        except ValueError:
-                            as_date = datetime.strptime(str(value), "%Y-%m-%d")
-                            return int(as_date.year)
+                    try:
+                        return int(value)
+                    except ValueError:
+                        as_date = datetime.strptime(str(value), "%Y-%m-%d")
+                        return int(as_date.year)
                 else:
                     return float(value)
             except ValueError:
@@ -647,7 +646,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             return self.service
         if not service_name:
             self.service = None
-            return
+            return None
         try:
             self.service = services.SERVICES[service_name]()
         except KeyError:

@@ -69,7 +69,7 @@ class Request:
         if headers is None:
             headers = {}
         if not isinstance(headers, dict):
-            raise TypeError("HTTP headers needs to be a dict ({})".format(headers))
+            raise TypeError(f"HTTP headers needs to be a dict ({headers})")
         self.headers.update(headers)
         if cookies:
             cookie_processor = urllib.request.HTTPCookieProcessor(cookies)
@@ -96,7 +96,7 @@ class Request:
 
     @property
     def user_agent(self) -> str:
-        return "{} {}".format(PROJECT, VERSION)
+        return f"{PROJECT} {VERSION}"
 
     @property
     def redacted_url(self) -> str:

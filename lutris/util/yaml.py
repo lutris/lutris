@@ -15,7 +15,7 @@ def read_yaml_from_file(filename: str) -> dict[str, Any]:
     """Read filename and return parsed yaml"""
     if not path_exists(filename):
         return {}
-    with open(filename, "r", encoding="utf-8") as yaml_file:
+    with open(filename, encoding="utf-8") as yaml_file:
         try:
             yaml_content = yaml.safe_load(yaml_file) or {}
         except (ScannerError, ParserError):

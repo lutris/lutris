@@ -350,11 +350,11 @@ class EpicGamesStoreService(OnlineService):
         service_game = ServiceGameCollection.get_game("egs", app_name)
         if not service_game:
             logger.error("Aborting install, %s is not present in the game library.", app_name)
-            return
+            return None
         lutris_game_id = slugify(service_game["name"]) + "-" + self.id
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
-            return
+            return None
         details = json.loads(service_game.get("details") or "{}")
         namespace = details.get("namespace")
         catalog_item_id = details.get("catalogItemId")

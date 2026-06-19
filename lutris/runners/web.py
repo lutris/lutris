@@ -229,7 +229,7 @@ class web(Runner):
         ]:
             if self.runner_config.get(key):
                 converted_opt_name = key.replace("_", "-")
-                command.append("--{option}".format(option=converted_opt_name))
+                command.append(f"--{converted_opt_name}")
 
         if self.runner_config.get("window_size"):
             command.append("--window-size")

@@ -92,7 +92,7 @@ class SteamService(BaseService):
         steamid = get_active_steamid64()
         if not steamid:
             logger.error("Unable to find SteamID from Steam config")
-            return
+            return None
         steam_games = get_steam_library(steamid)
         if not steam_games:
             raise RuntimeError(_("Failed to load games. Check that your profile is set to public during the sync."))
@@ -123,18 +123,18 @@ class SteamService(BaseService):
     def install_from_steam(self, manifest):
         """Create a new Lutris game based on an existing Steam install"""
         if not manifest.is_installed():
-            return
+            return None
         appid = manifest.steamid
         if appid in self.excluded_appids:
-            return
+            return None
         try:
             service_game = ServiceGameCollection.get_game(self.id, appid)
             if not service_game:
-                return
+                return None
             lutris_game_id = "%s-%s" % (self.id, appid)
             existing_game = get_game_by_field(lutris_game_id, "installer_slug")
             if existing_game:
-                return
+                return None
             game_config = LutrisConfig().game_level
             game_config["game"]["appid"] = appid
             configpath = write_game_config(lutris_game_id, game_config)

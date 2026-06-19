@@ -61,8 +61,7 @@ def get_widget_window(widget: Gtk.Widget | None) -> Gtk.Window | None:
     like get_toplevel()."""
     if widget:
         return cast(Gtk.Window, widget.get_ancestor(Gtk.Window))
-    else:
-        return None
+    return None
 
 
 TChildWidget = TypeVar("TChildWidget", bound=Gtk.Widget)
@@ -75,10 +74,8 @@ def get_widget_children(widget: Gtk.Widget | None, child_type: type[TChildWidget
     if isinstance(widget, Gtk.Container):
         if child_type:
             return [w for w in widget.get_children() if isinstance(w, child_type)]
-        else:
-            return list(cast(Iterable[TChildWidget], widget.get_children()))
-    else:
-        return []
+        return list(cast(Iterable[TChildWidget], widget.get_children()))
+    return []
 
 
 def open_uri(uri: str) -> None:

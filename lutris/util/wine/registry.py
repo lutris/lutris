@@ -43,7 +43,7 @@ class WindowsFileTime:
         self.timestamp = timestamp
 
     def __repr__(self):
-        return "<{}>: {}".format(self.__class__.__name__, self.timestamp)
+        return f"<{self.__class__.__name__}>: {self.timestamp}"
 
     @classmethod
     def from_hex(cls, hexvalue):
@@ -51,7 +51,7 @@ class WindowsFileTime:
         return WindowsFileTime(timestamp)
 
     def to_hex(self):
-        return "{:x}".format(self.timestamp)
+        return f"{self.timestamp:x}"
 
     @classmethod
     def from_unix_timestamp(cls, timestamp):
@@ -100,7 +100,7 @@ class WineRegistry:
         """Return an array of the unprocessed contents of a registry file"""
         if not system.path_exists(reg_filename):
             return []
-        with open(reg_filename, "r", encoding="utf-8") as reg_file:
+        with open(reg_filename, encoding="utf-8") as reg_file:
             try:
                 registry_content = reg_file.readlines()
             except Exception:  # pylint: disable=broad-except
@@ -137,9 +137,9 @@ class WineRegistry:
                 self.arch = line.split("=")[1]
 
     def render(self):
-        content = "{}{}\n".format(self.version_header, self.version)
-        content += "{}{}\n\n".format(self.relative_to_header, self.relative_to)
-        content += "#arch={}\n".format(self.arch)
+        content = f"{self.version_header}{self.version}\n"
+        content += f"{self.relative_to_header}{self.relative_to}\n\n"
+        content += f"#arch={self.arch}\n"
         for key in self.keys:
             content += "\n"
             content += self.keys[key].render()
@@ -163,7 +163,7 @@ class WineRegistry:
         key = self.keys.get(path)
         if key:
             return key.get_subkey(subkey)
-        return
+        return None
 
     def set_value(self, path, subkey, value):
         key = self.keys.get(path)
@@ -192,10 +192,10 @@ class WineRegistry:
     def get_unix_path(self, windows_path):
         windows_path = windows_path.replace("\\", "/")
         if not self.prefix_path:
-            return
+            return None
         drives_path = os.path.join(self.prefix_path, "dosdevices")
         if not system.path_exists(drives_path):
-            return
+            return None
         letter, relpath = windows_path.split(":", 1)
         relpath = relpath.strip("/")
         drive_link = os.path.join(drives_path, letter.lower() + ":")
@@ -203,7 +203,7 @@ class WineRegistry:
             drive_path = os.readlink(drive_link)
         except FileNotFoundError:
             logger.error("Unable to read link for %s", drive_link)
-            return
+            return None
 
         if not os.path.isabs(drive_path):
             drive_path = os.path.join(drives_path, drive_path)
@@ -234,10 +234,10 @@ class WineRegistryKey:
         if len(ts_parts) == 1:
             self.timestamp = int(ts_parts[0])
         else:
-            self.timestamp = float("{}.{}".format(ts_parts[0], ts_parts[1]))
+            self.timestamp = float(f"{ts_parts[0]}.{ts_parts[1]}")
 
     def __str__(self):
-        return "{0} {1}".format(self.raw_name, self.raw_timestamp)
+        return f"{self.raw_name} {self.raw_timestamp}"
 
     def parse(self, line):
         """Parse a registry line, populating meta and subkeys"""
@@ -266,29 +266,29 @@ class WineRegistryKey:
         except StopIteration:
             logger.warning("Should this be happening?")
             return
-        self.subkeys[last_subkey] += "\n{}".format(line)
+        self.subkeys[last_subkey] += f"\n{line}"
 
     def render(self):
         """Return the content of the key in the wine .reg format"""
         content = self.raw_name + " " + self.raw_timestamp + "\n"
         for key, value in self.metas.items():
             if value is None:
-                content += "#{}\n".format(key)
+                content += f"#{key}\n"
             else:
-                content += "#{}={}\n".format(key, value)
+                content += f"#{key}={value}\n"
         for key, value in self.subkeys.items():
             if key == "default":
                 key = "@"
             else:
-                key = '"{}"'.format(key)
-            content += "{}={}\n".format(key, value)
+                key = f'"{key}"'
+            content += f"{key}={value}\n"
         return content
 
     def render_value(self, value):
         if isinstance(value, int):
-            return "dword:{:08x}".format(value)
+            return f"dword:{value:08x}"
         if isinstance(value, str):
-            return '"{}"'.format(value)
+            return f'"{value}"'
         raise NotImplementedError("TODO")
 
     @staticmethod
@@ -324,7 +324,7 @@ class WineRegistryKey:
             key = parts[0]
             value = None
         else:
-            raise ValueError("Invalid meta line '{}'".format(meta_line))
+            raise ValueError(f"Invalid meta line '{meta_line}'")
         self.metas[key] = value
 
     def get_meta(self, name):

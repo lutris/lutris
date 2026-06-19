@@ -23,7 +23,7 @@ def get_gog_config(gog_game_path):
     config_files = glob.glob(os.path.join(gog_game_path, "goggame-*.info"))
     if not config_files:
         logger.error("No config file found in %s", gog_game_path)
-        return
+        return None
     gog_config_path = config_files[0]
     with open(gog_config_path, encoding="utf-8") as gog_config_file:
         gog_config = json.loads(gog_config_file.read())
@@ -51,7 +51,7 @@ def get_game_config(task, gog_game_path):
 
     config = {}
     if "path" not in task:
-        return
+        return None
 
     config["exe"] = resolve_path(task["path"])
     if task.get("workingDir"):

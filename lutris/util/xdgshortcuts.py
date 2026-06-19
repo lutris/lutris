@@ -46,14 +46,14 @@ def get_xdg_basename(game_slug: str, game_id: str, base_dir: str | None = None) 
         # When base dir is provided, lookup possible combinations
         # and return the first match
         for path in [
-            "net.lutris.{}-{}.desktop".format(game_slug, game_id),
-            "{}-{}.desktop".format(game_slug, game_id),
-            "{}.desktop".format(game_slug),
+            f"net.lutris.{game_slug}-{game_id}.desktop",
+            f"{game_slug}-{game_id}.desktop",
+            f"{game_slug}.desktop",
         ]:
             if system.path_exists(os.path.join(base_dir, path)):
                 return path
 
-    return "net.lutris.{}-{}.desktop".format(game_slug, game_id)
+    return f"net.lutris.{game_slug}-{game_id}.desktop"
 
 
 def create_launcher(

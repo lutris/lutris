@@ -126,7 +126,7 @@ class MonitoredCommand:
     def set_log_buffer(self, log_buffer: "Gtk.TextBuffer | None") -> None:
         """Attach a TextBuffer to this command enables the buffer handler"""
         if not log_buffer:
-            return None
+            return
         self.log_buffer = log_buffer
         if self.log_handler_buffer not in self.log_handlers:
             self.log_handlers.append(self.log_handler_buffer)
@@ -192,7 +192,7 @@ class MonitoredCommand:
 
         if not self.game_process:
             logger.error("No game process available")
-            return None
+            return
 
         GLib.child_watch_add(self.game_process.pid, self.on_stop)  # type: ignore
 
@@ -222,7 +222,7 @@ class MonitoredCommand:
     def log_handler_stdout(self, line: str) -> None:
         """Add the line to this command's stdout attribute"""
         if not self.log_filter(line):
-            return None
+            return
         self._stdout.write(line)
 
     def log_handler_buffer(self, line: str) -> None:
@@ -232,7 +232,7 @@ class MonitoredCommand:
     def log_handler_console_output(self, line: str) -> None:
         """Print the line to stdout"""
         if not self.log_filter(line):
-            return None
+            return
         with contextlib.suppress(BlockingIOError):
             sys.stdout.write(line)
             sys.stdout.flush()

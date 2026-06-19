@@ -1,7 +1,7 @@
 line-length = 120
 
 [lint]
-select = ["A", "ARG", "B", "E", "F", "I", "W", "PERF", "RUF"]
+select = ["A", "ARG", "B", "E", "F", "I", "W", "PERF", "RUF", "UP", "RET"]
 ignore = [
     # Ignores that is not worth/too hard to fix
     "RUF001", #  String contains ambiguous `！` (FULLWIDTH EXCLAMATION MARK). Did you mean `!` (EXCLAMATION MARK)? - used ,mostly on tests
@@ -28,6 +28,16 @@ ignore = [
     "ARG004", # Unused static method argument: `x`
     "B020", # Loop control variable `upstream_runners` overrides iterable it iterates
     "B018", # Found useless expression. Either assign it to a variable or remove it
+    # UP rules that require --unsafe-fixes or a newer Python target
+    "UP031", # Use format specifiers instead of percent format - gated behind --unsafe-fixes
+    "UP006", # Use `type` instead of `Type` for annotation - requires Python 3.9+
+    "UP007", # Use `X | Y` for union annotation - requires Python 3.10+
+    "UP035", # `typing` members deprecated - some still needed for Python 3.10 compat
+    # RET rules excluded as unsafe or too opinionated
+    "RET503", # Missing explicit `return` - can change behaviour
+    "RET504", # Unnecessary assignment before `return` - intermediate variable may be intentional
+    # UP037 — keep quoted annotations; some types are conditionally imported under TYPE_CHECKING
+    "UP037", # Remove quotes from type annotation - breaks forward references to conditional imports
 ]
 fixable = ["ALL"]
 unfixable = []

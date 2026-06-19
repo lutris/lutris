@@ -183,10 +183,10 @@ class vice(Runner):
         option_prefix = self.get_option_prefix(machine)
 
         if self.runner_config.get("fullscreen"):
-            params.append("-{}full".format(option_prefix))
+            params.append(f"-{option_prefix}full")
 
         if self.runner_config.get("double"):
-            params.append("-{}dsize".format(option_prefix))
+            params.append(f"-{option_prefix}dsize")
 
         if self.runner_config.get("renderer"):
             params.append("-sdl2renderer")
@@ -201,7 +201,7 @@ class vice(Runner):
 
         if self.runner_config.get("joy"):
             for dev in range(self.get_joydevs(machine)):
-                params += ["-joydev{}".format(dev + 1), "4"]
+                params += [f"-joydev{dev + 1}", "4"]
 
         params.extend(self.get_rom_args(machine, rom))
         return {"command": params}

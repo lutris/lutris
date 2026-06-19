@@ -274,8 +274,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
     def get_setting(self, option_key: str, default: Any) -> Any:
         if option_key in self.config:
             return self.config.get(option_key)
-        else:
-            return default
+        return default
 
     def update_option_container(self, option, container: Gtk.Container, wrapper: Gtk.Container) -> None:
         super().update_option_container(option, container, wrapper)
@@ -348,7 +347,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
                 if self.parent.filter:
                     return _("No options match '%s'") % self.parent.filter
-                elif any(c.lutris_advanced_hidden for c in self.option_containers.values()):  # type:ignore[attr-defined]
+                if any(c.lutris_advanced_hidden for c in self.option_containers.values()):  # type:ignore[attr-defined]
                     return _("Only advanced options available")
 
             return _("No options available")

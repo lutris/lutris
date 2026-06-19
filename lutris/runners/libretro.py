@@ -259,7 +259,7 @@ class libretro(Runner):
         game_core = self.game_config.get("core")
         if not game_core:
             logger.warning("Game don't have a core set")
-            return
+            return None
         for core in get_libretro_cores():
             if core[1] == game_core and core[2] in self.platform_dict:
                 return self.platform_dict[core[2]]
@@ -269,7 +269,7 @@ class libretro(Runner):
     def get_core_path(self, core):
         """Return the path of a core from libretro's runner only"""
         lutris_cores_folder = get_default_config_path("cores")
-        core_filename = "{}_libretro.so".format(core)
+        core_filename = f"{core}_libretro.so"
         lutris_core = os.path.join(lutris_cores_folder, core_filename)
         return lutris_core
 
@@ -433,7 +433,7 @@ class libretro(Runner):
         if verbose:
             parameters.append("--verbose")
 
-        parameters.append("--config={}".format(self.get_config_file()))
+        parameters.append(f"--config={self.get_config_file()}")
         return parameters
 
     def play(self):
@@ -443,7 +443,7 @@ class libretro(Runner):
         core = self.game_config.get("core")
         if not core:
             raise GameConfigError(_("No core has been selected for this game"))
-        command.append("--libretro={}".format(self.get_core_path(core)))
+        command.append(f"--libretro={self.get_core_path(core)}")
 
         # Main file
         file = self.game_config.get("main_file")

@@ -56,7 +56,7 @@ class TestCreate:
         ranges = [(0, 49), (50, 99)]
         progress.create("https://cdn.gog.com/game.bin", 100, ranges)
 
-        with open(progress.progress_path, "r") as f:
+        with open(progress.progress_path) as f:
             data = json.load(f)
         assert data["url"] == "https://cdn.gog.com/game.bin"
         assert data["file_size"] == 100

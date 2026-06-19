@@ -79,7 +79,7 @@ def _get_mount_points() -> list[str]:
     mount_points = []
 
     try:
-        with open("/proc/mounts", "r", encoding="utf-8") as f:
+        with open("/proc/mounts", encoding="utf-8") as f:
             for line in f:
                 parts = line.split()
                 if len(parts) < 3:
@@ -337,7 +337,7 @@ def _get_gog_game_info(install_folder: str, provider_id: str) -> dict | None:
 def _load_gog_info_file(info_file: str) -> dict | None:
     """Load and parse a goggame-*.info JSON file"""
     try:
-        with open(info_file, "r", encoding="utf-8") as f:
+        with open(info_file, encoding="utf-8") as f:
             return json.load(f)
     except (json.JSONDecodeError, OSError, FileNotFoundError):
         return None
@@ -369,7 +369,7 @@ def _extract_gog_primary_task(info: dict) -> dict | None:
 def _parse_playtron_info(filepath: str) -> dict | None:
     """Parse a playtron_info_v3.json file"""
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             return json.load(f)
     except (json.JSONDecodeError, OSError) as ex:
         logger.warning("Failed to parse %s: %s", filepath, ex)

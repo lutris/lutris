@@ -12,7 +12,7 @@ class DataclassJSONEncoder(json.JSONEncoder):
 
 
 @dc.dataclass
-class WebsiteAuthData(object):
+class WebsiteAuthData:
     cookie_jar: requests.cookies.RequestsCookieJar
     access_token: str
     region: str
@@ -40,14 +40,14 @@ class RegionalGameInfo:
 
 
 @dc.dataclass
-class ConfigGameInfo(object):
+class ConfigGameInfo:
     uid: str
     uninstall_tag: str | None
     last_played: str | None
 
 
 @dc.dataclass
-class ProductDbInfo(object):
+class ProductDbInfo:
     uninstall_tag: str
     ngdp: str = ""
     install_path: str = ""
@@ -61,11 +61,11 @@ class Singleton(type):
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
 
 
-class _Blizzard(object, metaclass=Singleton):
+class _Blizzard(metaclass=Singleton):
     TITLE_ID_MAP = {
         21297: RegionalGameInfo("s1", True),
         21298: RegionalGameInfo("s2", True),

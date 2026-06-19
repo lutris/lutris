@@ -82,10 +82,7 @@ def validate_custom_cache_path(cache_path: str) -> tuple[bool, str | None]:
             return True, _(
                 "The cache path '%s' does not exist, but its parent does so it will be created when needed."
             ) % cache_path
-        else:
-            return False, _(
-                "The cache path %s does not exist, nor does its parent, so it won't be created."
-            ) % cache_path
+        return False, _("The cache path %s does not exist, nor does its parent, so it won't be created.") % cache_path
 
     return True, None
 

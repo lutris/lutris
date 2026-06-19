@@ -118,7 +118,7 @@ class reicast(Runner):
 
         config_path = os.path.expanduser("~/.reicast/emu.cfg")
         if system.path_exists(config_path):
-            with open(config_path, "r", encoding="utf-8") as config_file:
+            with open(config_path, encoding="utf-8") as config_file:
                 parser.read_file(config_file)
 
         for section in config:
@@ -142,7 +142,7 @@ class reicast(Runner):
         for index in range(1, 5):
             config_string = "device_id_%d" % index
             joy_id = self.runner_config.get(config_string) or "-1"
-            reicast_config["input"]["evdev_{}".format(config_string)] = joy_id
+            reicast_config["input"][f"evdev_{config_string}"] = joy_id
             if index > 1 and joy_id != "-1":
                 players += 1
         reicast_config["players"]["nb"] = players

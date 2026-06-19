@@ -65,7 +65,7 @@ def read_user_config() -> dict[str, Any] | None:
     config_filename = search_in_steam_dirs("config/loginusers.vdf")
     if not config_filename or not system.path_exists(config_filename):
         return None
-    with open(config_filename, "r", encoding="utf-8") as steam_config_file:
+    with open(config_filename, encoding="utf-8") as steam_config_file:
         config: dict[str, Any] = vdf_parse(steam_config_file, {})
     return config
 
@@ -75,7 +75,7 @@ def get_config_value(config: dict[str, Any], key: str) -> Any:
     keymap = {k.lower(): k for k in config.keys()}
     if key not in keymap:
         logger.warning("Config key %s not found in %s", key, ", ".join(list(config.keys())))
-        return
+        return None
     return config[keymap[key.lower()]]
 
 
@@ -138,8 +138,8 @@ def get_steam_library(steamid: str) -> list[dict[str, Any]]:
     steam_games_url = (
         "https://api.steampowered.com/"
         "IPlayerService/GetOwnedGames/v0001/"
-        "?key={}&steamid={}&format=json&include_appinfo=1"
-        "&include_played_free_games=1".format(settings.STEAM_API_KEY, steamid)
+        f"?key={settings.STEAM_API_KEY}&steamid={steamid}&format=json&include_appinfo=1"
+        "&include_played_free_games=1"
     )
     response = requests.get(steam_games_url, timeout=30)
     if response.status_code > 400:
@@ -176,7 +176,7 @@ def read_config(steam_data_dir: str | None) -> dict[str, Any] | None:
     config_filename = os.path.join(steam_data_dir, "config/config.vdf")
     if not system.path_exists(config_filename):
         return None
-    with open(config_filename, "r", encoding="utf-8") as steam_config_file:
+    with open(config_filename, encoding="utf-8") as steam_config_file:
         config = vdf_parse(steam_config_file, {})
     try:
         return dict(get_entry_case_insensitive(config, ["InstallConfigStore", "Software", "Valve", "Steam"]))
@@ -201,7 +201,7 @@ def read_library_folders(steam_data_dir: str | None) -> dict[str, Any] | None:
     library_filename = os.path.join(steam_data_dir, "config/libraryfolders.vdf")
     if not system.path_exists(library_filename):
         return None
-    with open(library_filename, "r", encoding="utf-8") as steam_library_file:
+    with open(library_filename, encoding="utf-8") as steam_library_file:
         library = vdf_parse(steam_library_file, {})
         # The contentstatsid key is unused and causes problems when looking for library paths.
         library["libraryfolders"].pop("contentstatsid", None)

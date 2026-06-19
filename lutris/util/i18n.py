@@ -19,7 +19,7 @@ def get_user_locale():
     user_locale, _user_encoding = locale.getlocale()
     if not user_locale:
         logger.error("Unable to get locale")
-        return
+        return None
     return user_locale
 
 
