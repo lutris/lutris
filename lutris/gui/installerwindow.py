@@ -73,6 +73,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.selected_extras = []
         self.install_in_progress = False
         self.install_complete = False
+        self.download_only = False
+        self.use_cached_installer_files = True
         self.interpreter = None
         self.installation_kind = installation_kind
         self.continue_handler = None
@@ -132,6 +134,11 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.cache_button.is_available = lambda: not self.interpreter or bool(self.interpreter.installer.script_files)
 
         self.source_button = self.add_menu_button(_("View installer source"), self.on_source_clicked)
+        self.download_only_button = self.add_end_button(
+            _("Download only"),
+            self.on_files_download_only_confirmed,
+            tooltip=_("Download installer files to the cache without installing the game."),
+        )
 
         # Pre-create some UI bits we need to refer to in several places.
         # (We lazy allocate more of it, but these are a pain.)
@@ -309,6 +316,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.stack.add_named_factory("spinner", self.create_spinner_page)
         self.stack.add_named_factory("log", self.create_log_page)
         self.stack.add_named_factory("error", self.create_error_page)
+        self.stack.add_named_factory("download_only_complete", self.create_download_only_complete_page)
         self.stack.add_named_factory("nothing", lambda *x: Gtk.Box())
 
     def load_first_page(self) -> None:
@@ -683,9 +691,62 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self.launch_installer_commands()
             return
 
+        self.use_cached_installer_files = self.ask_use_cached_installer_files()
+
         logger.debug("Game files prepared.")
-        self.installer_files_box.load_installer(self.interpreter.installer)
+        self.installer_files_box.load_installer(
+            self.interpreter.installer, use_cached_files=self.use_cached_installer_files
+        )
         self.stack.navigate_to_page(self.present_installer_files_page)
+
+    def ask_use_cached_installer_files(self):
+        """Ask whether to use cached installer files when all required files are present."""
+        if not self.interpreter or not self.interpreter.installer.files:
+            return True
+
+        if not self.supports_download_only_installer_cache:
+            return True
+
+        if not all(installer_file.has_valid_cache for installer_file in self.interpreter.installer.files):
+            return True
+
+        locations = {os.path.dirname(path) for path in self.get_cached_installer_file_paths()}
+        if len(locations) == 1:
+            location_text = _("Location: %s") % next(iter(locations))
+        else:
+            location_text = _("Locations:\n%s") % "\n".join(sorted(locations))
+
+        dlg = QuestionDialog(
+            {
+                "parent": self,
+                "title": _("Cached installer found"),
+                "question": _(
+                    "Cached installer files were found for this game.\n\n"
+                    "Would you like to install using the cached installer?"
+                ),
+                "widgets": [Gtk.Label(label=location_text, selectable=True, wrap=True, visible=True)],
+            }
+        )
+        return dlg.result == Gtk.ResponseType.YES
+
+    @property
+    def supports_download_only_installer_cache(self):
+        """Return whether this installer supports the GOG download-only cache flow."""
+        return bool(
+            self.installation_kind == InstallationKind.INSTALL
+            and self.interpreter
+            and self.interpreter.installer.service
+            and self.interpreter.installer.service.id == "gog"
+        )
+
+    def get_cached_installer_file_paths(self):
+        if not self.interpreter:
+            return []
+
+        paths = []
+        for installer_file in self.interpreter.installer.files:
+            paths.extend(installer_file.get_dest_files_by_id().values())
+        return [path for path in paths if path]
 
     def create_installer_files_page(self):
         return Gtk.ScrolledWindow(
@@ -720,6 +781,15 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         """Call this when the user confirms the install files
         This will start the downloads.
         """
+        self.download_only = False
+        self.start_installer_file_downloads()
+
+    def on_files_download_only_confirmed(self, _button):
+        """Download installer files and stop before launching the installer."""
+        self.download_only = True
+        self.start_installer_file_downloads()
+
+    def start_installer_file_downloads(self):
         try:
             self.installer_files_box.start_all()
             self.stack.jump_to_page(self.present_downloading_files_page)
@@ -730,10 +800,69 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         """All files are available, continue the install"""
         logger.info("All files are available, continuing install")
         self.interpreter.game_files = widget.get_game_files()
+        if self.download_only:
+            GLib.idle_add(self.load_download_only_complete_page)
+            return
         # Idle-add here to ensure that the launch occurs after
         # on_files_confirmed(), since they can race when no actual
         # download is required.
         GLib.idle_add(self.launch_installer_commands)
+
+    def load_download_only_complete_page(self):
+        logger.info("Installer files downloaded; skipping installation")
+        self.install_complete = True
+        self.stack.jump_to_page(self.present_download_only_complete_page)
+        self.stack.discard_navigation()
+        self.cancel_button.grab_focus()
+
+    def create_download_only_complete_page(self):
+        box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=12,
+            halign=Gtk.Align.CENTER,
+            valign=Gtk.Align.START,
+        )
+        box.set_margin_top(36)
+
+        explanation = MarkupLabel(
+            _(
+                "The installer files are cached locally and can be reused by Lutris "
+                "for a later offline installation."
+            )
+        )
+        box.pack_start(explanation, False, False, 0)
+
+        self.download_only_location_label = Gtk.Label(
+            selectable=True,
+            use_markup=True,
+            wrap=True,
+            justify=Gtk.Justification.CENTER,
+        )
+        self.download_only_location_label.set_alignment(0.5, 0)
+        box.pack_start(self.download_only_location_label, False, False, 0)
+
+        return box
+
+    def present_download_only_complete_page(self):
+        self.set_status(_("Installer files downloaded to the cache."))
+        self.stack.present_page("download_only_complete")
+        self.download_only_location_label.set_markup(self.get_download_only_location_markup())
+        self.display_cancel_button()
+
+    def get_download_only_location_markup(self):
+        locations = set()
+        if self.interpreter and self.interpreter.game_files:
+            locations = {os.path.dirname(path) for path in self.interpreter.game_files.values() if path}
+
+        if not locations and self.interpreter:
+            locations = {self.interpreter.cache_path}
+
+        if len(locations) == 1:
+            location = next(iter(locations))
+            return _("Location: <tt>%s</tt>") % gtk_safe(location)
+
+        location_list = "\n".join("<tt>%s</tt>" % gtk_safe(location) for location in sorted(locations))
+        return _("Locations:\n%s") % location_list
 
     def launch_installer_commands(self):
         logger.info("Launching installer commands")
@@ -1095,8 +1224,12 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def display_install_button(self, handler, sensitive=True):
         """Displays the continue button, but labels it 'Install'."""
+        extra_buttons = [self.source_button]
+        if self.supports_download_only_installer_cache and self.interpreter.installer.files:
+            self.download_only_button.set_sensitive(sensitive)
+            extra_buttons.append(self.download_only_button)
         self.display_continue_button(
-            handler, continue_button_label=_("_Install"), sensitive=sensitive, extra_buttons=[self.source_button]
+            handler, continue_button_label=_("_Install"), sensitive=sensitive, extra_buttons=extra_buttons
         )
 
     def display_cancel_button(self, extra_buttons=None):
@@ -1122,7 +1255,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         self.cancel_button.set_sensitive(cancel_sensitive)
 
-        all_buttons = [self.cache_button, self.source_button, self.continue_button]
+        all_buttons = [self.cache_button, self.source_button, self.continue_button, self.download_only_button]
 
         for b in all_buttons:
             available = not hasattr(b, "is_available") or b.is_available()

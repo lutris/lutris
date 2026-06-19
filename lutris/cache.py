@@ -2,12 +2,15 @@
 
 import os
 import shutil
+import time
 from gettext import gettext as _
 from urllib.parse import urlparse
 
 from lutris import settings
 from lutris.util.log import logger
 from lutris.util.system import merge_folders, path_contains
+
+INCOMPLETE_CACHE_SUFFIXES = (".tmp", ".progress")
 
 
 def get_cache_path(create: bool = False) -> str:
@@ -20,6 +23,111 @@ def get_cache_path(create: bool = False) -> str:
             return cache_path
 
     return settings.INSTALLER_CACHE_DIR
+
+
+def get_installer_cache_entries() -> list[dict]:
+    """Return cached installer folders with their size and file count."""
+    cache_path = get_cache_path()
+    if not os.path.isdir(cache_path):
+        return []
+
+    entries = []
+    for name in sorted(os.listdir(cache_path)):
+        path = os.path.join(cache_path, name)
+        if not os.path.isdir(path):
+            continue
+
+        size = 0
+        file_count = 0
+        for root, _dirs, files in os.walk(path):
+            for filename in files:
+                if filename.endswith(".cache_lock"):
+                    continue
+                file_path = os.path.join(root, filename)
+                try:
+                    size += os.path.getsize(file_path)
+                    file_count += 1
+                except OSError:
+                    pass
+
+        entries.append({"name": name, "path": path, "size": size, "file_count": file_count})
+
+    return entries
+
+
+def delete_installer_cache_entry(path: str) -> None:
+    """Delete one installer cache entry."""
+    cache_path = get_cache_path()
+    if os.path.islink(path):
+        raise ValueError("Refusing to delete symlinked installer cache path: %s" % path)
+    if not path_contains(cache_path, path, resolve_symlinks=True):
+        raise ValueError("Refusing to delete path outside installer cache: %s" % path)
+    if os.path.dirname(os.path.realpath(path)) != os.path.realpath(cache_path):
+        raise ValueError("Refusing to delete nested path inside installer cache: %s" % path)
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+
+
+def get_incomplete_installer_cache_entries() -> list[dict]:
+    """Return incomplete installer download artifacts in the installer cache."""
+    cache_path = get_cache_path()
+    if not os.path.isdir(cache_path):
+        return []
+
+    entries = []
+    seen_paths = set()
+    for root, _dirs, files in os.walk(cache_path):
+        for filename in sorted(files):
+            file_path = os.path.join(root, filename)
+            if file_path in seen_paths:
+                continue
+
+            kind = None
+            if filename.endswith(INCOMPLETE_CACHE_SUFFIXES):
+                kind = _("Temporary download")
+            elif filename.endswith(".cache_lock") and _is_orphaned_downloading_lock(file_path):
+                kind = _("Stale download lock")
+
+            if not kind:
+                continue
+
+            try:
+                size = os.path.getsize(file_path)
+                modified_at = os.path.getmtime(file_path)
+            except OSError:
+                size = 0
+                modified_at = time.time()
+
+            seen_paths.add(file_path)
+            entries.append({"path": file_path, "size": size, "kind": kind, "modified_at": modified_at})
+
+    return entries
+
+
+def _is_orphaned_downloading_lock(lock_path: str) -> bool:
+    """Return True if a cache lock belongs to an incomplete abandoned download."""
+    data_path = lock_path[: -len(".cache_lock")]
+    if os.path.exists(data_path):
+        return False
+
+    try:
+        from lutris.util.download_cache import CacheState, get_cache_state
+
+        return get_cache_state(data_path) == CacheState.DOWNLOADING
+    except Exception:
+        return False
+
+
+def delete_incomplete_installer_cache_entries(paths: list[str]) -> None:
+    """Delete incomplete installer download artifacts."""
+    cache_path = get_cache_path()
+    for path in paths:
+        if os.path.islink(path):
+            raise ValueError("Refusing to delete symlinked incomplete cache path: %s" % path)
+        if not path_contains(cache_path, path, resolve_symlinks=True):
+            raise ValueError("Refusing to delete path outside installer cache: %s" % path)
+        if os.path.isfile(path):
+            os.remove(path)
 
 
 def get_url_cache_path(url: str, file_id: str, game_slug: str, prepare: bool = False) -> str:
