@@ -825,10 +825,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         box.set_margin_top(36)
 
         explanation = MarkupLabel(
-            _(
-                "The installer files are cached locally and can be reused by Lutris "
-                "for a later offline installation."
-            )
+            _("The installer files are cached locally and can be reused by Lutris for a later offline installation.")
         )
         box.pack_start(explanation, False, False, 0)
 
