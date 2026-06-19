@@ -1000,6 +1000,16 @@ class Game:
         runs_only_prelaunch = False
         if self.prelaunch_executor and self.prelaunch_executor.is_running and self.prelaunch_executor.game_process:
             runs_only_prelaunch = game_pids == {self.prelaunch_executor.game_process.pid}
+
+        # Some runners (e.g. Steam) launch the game out-of-process via a
+        # non-blocking handoff: game_thread exits within seconds and there is a
+        # brief window before the game's own process tree appears. Let the
+        # runner keep the monitor alive across that window and for the whole
+        # game lifetime, so beat() doesn't quit (or kill the game as "orphans")
+        # prematurely. Returns False for normal runners (unchanged behaviour).
+        if not runs_only_prelaunch and self.runner.keep_game_alive(game_pids, self.game_thread.is_running):
+            return True
+
         if runs_only_prelaunch or (not self.game_thread.is_running and not game_pids):
             logger.debug("Game thread stopped")
             self.on_game_quit()
