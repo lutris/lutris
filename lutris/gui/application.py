@@ -494,157 +494,14 @@ class LutrisApplication(Gtk.Application):
         else:
             dest_dir = None
 
-        if option := options.lookup_value("output-script"):
-            searchstring = option.get_string()
-            export_script_game = (
-                games_db.get_game_by_field(searchstring, "id")
-                or games_db.get_game_by_field(searchstring, "slug")
-                or games_db.get_game_by_field(searchstring, "installer_slug")
-            )
-
-            if not export_script_game or not export_script_game["id"]:
-                logger.warning(
-                    "No valid game (%s) provided to generate the script. Use the -l option to find suitable games!",
-                    searchstring,
-                )
-                return 1
-            generate_script(logger, self.launch_ui_delegate, export_script_game, f"{export_script_game['slug']}.sh")
-            return 0
-
-        # List game
-        if options.contains("list-games"):
-            game_list = games_db.get_games(filters=({"installed": 1} if options.contains("installed") else None))
-            if options.contains("json"):
-                self.print_game_json(command_line, game_list)
-            else:
-                self.print_game_list(command_line, game_list)
-            return 0
-
-        # List specified service games
-        if option := options.lookup_value("list-service-games"):
-            service = option.get_string()
-            game_list = games_db.get_games(filters={"installed": 1, "service": service})
-            service_game_list = ServiceGameCollection.get_for_service(service)
-            for db_game in service_game_list:
-                db_game["installed"] = any(("service_id", db_game["appid"]) in item.items() for item in game_list)
-            if options.contains("installed"):
-                service_game_list = [d for d in service_game_list if d["installed"]]
-            if options.contains("json"):
-                self.print_service_game_json(command_line, service_game_list)
-            else:
-                self.print_service_game_list(command_line, service_game_list)
-            return 0
-
-        # List all service games
-        if options.contains("list-all-service-games"):
-            game_list = games_db.get_games(filters={"installed": 1})
-            service_game_list = ServiceGameCollection.get_service_games()
-            for db_game in service_game_list:
-                db_game["installed"] = any(
-                    ("service_id", db_game["appid"]) in item.items()
-                    for item in game_list
-                    if item["service"] == db_game["service"]
-                )
-            if options.contains("installed"):
-                service_game_list = [d for d in service_game_list if d["installed"]]
-            if options.contains("json"):
-                self.print_service_game_json(command_line, service_game_list)
-            else:
-                self.print_service_game_list(command_line, service_game_list)
-            return 0
-
-        # List Steam games
-        if options.contains("list-steam-games"):
-            self.print_steam_list(command_line)
-            return 0
-
-        # List Steam folders
-        if options.contains("list-steam-folders"):
-            self.print_steam_folders(command_line)
-            return 0
-
-        # List Runners
-        if options.contains("list-runners"):
-            self.print_runners()
-            return 0
-
-        # List Wine Runners
-        if options.contains("list-wine-versions"):
-            self.print_wine_runners()
-            return 0
-
-        # install Runner
-        if option := options.lookup_value("install-runner"):
-            runner = option.get_string()
-            self.install_runner(runner)
-            return 0
-
-        # Uninstall Runner
-        if option := options.lookup_value("uninstall-runner"):
-            runner = option.get_string()
-            self.uninstall_runner(runner)
-            return 0
-
-        if option := options.lookup_value("export"):
-            slug = option.get_string()
-            if not dest_dir:
-                print("No destination dir given")
-            else:
-                export_game(slug, dest_dir)
-            return 0
-
-        if option := options.lookup_value("import"):
-            filepath = option.get_string()
-            if not dest_dir:
-                print("No destination dir given")
-            else:
-                import_game(filepath, dest_dir)
-            return 0
-
-        if LUTRIS_EXPERIMENTAL_FEATURES_ENABLED:
-
-            def get_game_match(slug: str) -> Game | None:
-                # First look for an exact match
-                games = games_db.get_games_by_slug(slug)
-                if not games:
-                    # Then look for matches
-                    games = games_db.get_games(searches={"slug": slug})
-                if len(games) > 1:
-                    self._print(
-                        command_line,
-                        "Multiple games matching %s: %s" % (slug, ",".join(game["slug"] for game in games)),
-                    )
-                    return None
-                if not games:
-                    self._print(command_line, "No matching game for %s" % slug)
-                    return None
-                return Game(games[0]["id"])
-
-            if option := options.lookup_value("save-stats"):
-                game = get_game_match(option.get_string())
-                if game:
-                    show_save_stats(game, output_format="json" if options.contains("json") else "text")
-                return 0
-            if option := options.lookup_value("save-upload"):
-                game = get_game_match(option.get_string())
-                if game:
-                    upload_save(game)
-                return 0
-            if option := options.lookup_value("save-check"):
-                game = get_game_match(option.get_string())
-                if game:
-                    save_check(game)
-                return 0
-
-        # Execute command in Lutris context
-        if option := options.lookup_value("exec"):
-            command = option.get_string()
-            self.execute_command(command)
-            return 0
-
-        if options.contains("submit-issue"):
-            IssueReportWindow(application=self)
-            return 0
+        # Text-only CLI commands that handle a single option and exit. Each
+        # handler returns an exit code when it owns the current invocation, or
+        # None to let the next handler (and ultimately the URL/launch flow
+        # below) run. Order is significant and preserved from the original
+        # if-chain.
+        exit_code = self._run_cli_command(command_line, options, dest_dir)
+        if exit_code is not None:
+            return exit_code
 
         url = options.lookup_value(GLib.OPTION_REMAINING)
         try:
@@ -800,6 +657,246 @@ class LutrisApplication(Gtk.Application):
             # If the Lutris GUI is started by itself, don't quit it when a game stops
             self.quit_on_game_exit = False
         return 0
+
+    def _run_cli_command(
+        self,
+        command_line: Gio.ApplicationCommandLine,
+        options: GLib.VariantDict,
+        dest_dir: str | None,
+    ) -> int | None:
+        """Dispatch the text-only CLI commands in their original order.
+
+        Returns the exit code for whichever command owns this invocation, or
+        None if none of them apply (so do_command_line falls through to the
+        URL/launch flow). The handlers are tried in the same order as the
+        original if-chain, which is load-bearing.
+        """
+        handlers: list[Callable[[Gio.ApplicationCommandLine, GLib.VariantDict, str | None], int | None]] = [
+            self._cli_output_script,
+            self._cli_list_games,
+            self._cli_list_service_games,
+            self._cli_list_all_service_games,
+            self._cli_list_steam_games,
+            self._cli_list_steam_folders,
+            self._cli_list_runners,
+            self._cli_list_wine_versions,
+            self._cli_install_runner,
+            self._cli_uninstall_runner,
+            self._cli_export,
+            self._cli_import,
+            self._cli_save_commands,
+            self._cli_exec,
+            self._cli_submit_issue,
+        ]
+        for handler in handlers:
+            exit_code = handler(command_line, options, dest_dir)
+            if exit_code is not None:
+                return exit_code
+        return None
+
+    def _cli_output_script(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if option := options.lookup_value("output-script"):
+            searchstring = option.get_string()
+            export_script_game = (
+                games_db.get_game_by_field(searchstring, "id")
+                or games_db.get_game_by_field(searchstring, "slug")
+                or games_db.get_game_by_field(searchstring, "installer_slug")
+            )
+
+            if not export_script_game or not export_script_game["id"]:
+                logger.warning(
+                    "No valid game (%s) provided to generate the script. Use the -l option to find suitable games!",
+                    searchstring,
+                )
+                return 1
+            generate_script(logger, self.launch_ui_delegate, export_script_game, f"{export_script_game['slug']}.sh")
+            return 0
+        return None
+
+    def _cli_list_games(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if options.contains("list-games"):
+            game_list = games_db.get_games(filters=({"installed": 1} if options.contains("installed") else None))
+            if options.contains("json"):
+                self.print_game_json(command_line, game_list)
+            else:
+                self.print_game_list(command_line, game_list)
+            return 0
+        return None
+
+    def _cli_list_service_games(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if option := options.lookup_value("list-service-games"):
+            service = option.get_string()
+            game_list = games_db.get_games(filters={"installed": 1, "service": service})
+            service_game_list = ServiceGameCollection.get_for_service(service)
+            for db_game in service_game_list:
+                db_game["installed"] = any(("service_id", db_game["appid"]) in item.items() for item in game_list)
+            if options.contains("installed"):
+                service_game_list = [d for d in service_game_list if d["installed"]]
+            if options.contains("json"):
+                self.print_service_game_json(command_line, service_game_list)
+            else:
+                self.print_service_game_list(command_line, service_game_list)
+            return 0
+        return None
+
+    def _cli_list_all_service_games(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if options.contains("list-all-service-games"):
+            game_list = games_db.get_games(filters={"installed": 1})
+            service_game_list = ServiceGameCollection.get_service_games()
+            for db_game in service_game_list:
+                db_game["installed"] = any(
+                    ("service_id", db_game["appid"]) in item.items()
+                    for item in game_list
+                    if item["service"] == db_game["service"]
+                )
+            if options.contains("installed"):
+                service_game_list = [d for d in service_game_list if d["installed"]]
+            if options.contains("json"):
+                self.print_service_game_json(command_line, service_game_list)
+            else:
+                self.print_service_game_list(command_line, service_game_list)
+            return 0
+        return None
+
+    def _cli_list_steam_games(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if options.contains("list-steam-games"):
+            self.print_steam_list(command_line)
+            return 0
+        return None
+
+    def _cli_list_steam_folders(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if options.contains("list-steam-folders"):
+            self.print_steam_folders(command_line)
+            return 0
+        return None
+
+    def _cli_list_runners(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if options.contains("list-runners"):
+            self.print_runners()
+            return 0
+        return None
+
+    def _cli_list_wine_versions(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if options.contains("list-wine-versions"):
+            self.print_wine_runners()
+            return 0
+        return None
+
+    def _cli_install_runner(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if option := options.lookup_value("install-runner"):
+            runner = option.get_string()
+            self.install_runner(runner)
+            return 0
+        return None
+
+    def _cli_uninstall_runner(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if option := options.lookup_value("uninstall-runner"):
+            runner = option.get_string()
+            self.uninstall_runner(runner)
+            return 0
+        return None
+
+    def _cli_export(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if option := options.lookup_value("export"):
+            slug = option.get_string()
+            if not dest_dir:
+                print("No destination dir given")
+            else:
+                export_game(slug, dest_dir)
+            return 0
+        return None
+
+    def _cli_import(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if option := options.lookup_value("import"):
+            filepath = option.get_string()
+            if not dest_dir:
+                print("No destination dir given")
+            else:
+                import_game(filepath, dest_dir)
+            return 0
+        return None
+
+    def _cli_save_commands(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if not LUTRIS_EXPERIMENTAL_FEATURES_ENABLED:
+            return None
+
+        def get_game_match(slug: str) -> Game | None:
+            # First look for an exact match
+            games = games_db.get_games_by_slug(slug)
+            if not games:
+                # Then look for matches
+                games = games_db.get_games(searches={"slug": slug})
+            if len(games) > 1:
+                self._print(
+                    command_line,
+                    "Multiple games matching %s: %s" % (slug, ",".join(game["slug"] for game in games)),
+                )
+                return None
+            if not games:
+                self._print(command_line, "No matching game for %s" % slug)
+                return None
+            return Game(games[0]["id"])
+
+        if option := options.lookup_value("save-stats"):
+            game = get_game_match(option.get_string())
+            if game:
+                show_save_stats(game, output_format="json" if options.contains("json") else "text")
+            return 0
+        if option := options.lookup_value("save-upload"):
+            game = get_game_match(option.get_string())
+            if game:
+                upload_save(game)
+            return 0
+        if option := options.lookup_value("save-check"):
+            game = get_game_match(option.get_string())
+            if game:
+                save_check(game)
+            return 0
+        return None
+
+    def _cli_exec(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        # Execute command in Lutris context
+        if option := options.lookup_value("exec"):
+            command = option.get_string()
+            self.execute_command(command)
+            return 0
+        return None
+
+    def _cli_submit_issue(
+        self, command_line: Gio.ApplicationCommandLine, options: GLib.VariantDict, dest_dir: str | None
+    ) -> int | None:
+        if options.contains("submit-issue"):
+            IssueReportWindow(application=self)
+            return 0
+        return None
 
     def on_settings_changed(self, setting_key: str, new_value: Any, section: str) -> bool:
         if section == "lutris":
