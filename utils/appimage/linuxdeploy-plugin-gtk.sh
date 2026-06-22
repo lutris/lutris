@@ -3,7 +3,13 @@
 # Vendored from https://github.com/linuxdeploy/linuxdeploy-plugin-gtk
 # Pinned commit: 3b67a1d1 (2023-10-01) — upstream is currently dormant.
 # License: MIT, see linuxdeploy-plugin-gtk.LICENSE alongside this file.
-
+#
+# Modifications from upstream (search for "LUTRIS-MOD" to find each):
+#   * Do not hardcode the bundled GTK_THEME to Adwaita in the AppRun
+#     hook. Upstream forces "Adwaita:light/dark" with a comment that
+#     custom themes are "broken"; in practice this means Lutris in our
+#     AppImage ignores the user's host GTK theme entirely. Drop the
+#     override unless the user explicitly opts in via APPIMAGE_GTK_THEME.
 
 # GTK3 environment variables: https://developer.gnome.org/gtk3/stable/gtk-running.html
 # GTK4 environment variables: https://developer.gnome.org/gtk4/stable/gtk-running.html
@@ -231,20 +237,15 @@ mkdir -p "$HOOKSDIR"
 cat > "$HOOKFILE" <<\EOF
 #! /usr/bin/env bash
 
-COLOR_SCHEME="$(dbus-send --session --dest=org.freedesktop.portal.Desktop --type=method_call --print-reply --reply-timeout=1000 /org/freedesktop/portal/desktop org.freedesktop.portal.Settings.Read 'string:org.freedesktop.appearance' 'string:color-scheme' 2> /dev/null | tail -n1 | cut -b35- | cut -d' ' -f2 || printf '')"
-if [ -z "$COLOR_SCHEME" ]; then
-    COLOR_SCHEME="$(gsettings get org.gnome.desktop.interface color-scheme 2> /dev/null || printf '')"
-fi
-case "$COLOR_SCHEME" in
-    "1"|"'prefer-dark'")  GTK_THEME_VARIANT="dark";;
-    "2"|"'prefer-light'") GTK_THEME_VARIANT="light";;
-    *)                    GTK_THEME_VARIANT="light";;
-esac
-APPIMAGE_GTK_THEME="${APPIMAGE_GTK_THEME:-"Adwaita:$GTK_THEME_VARIANT"}" # Allow user to override theme (discouraged)
-
 export APPDIR="${APPDIR:-"$(dirname "$(realpath "$0")")"}" # Workaround to run extracted AppImage
 export GTK_DATA_PREFIX="$APPDIR"
-export GTK_THEME="$APPIMAGE_GTK_THEME" # Custom themes are broken
+# LUTRIS-MOD: only export GTK_THEME when the caller explicitly opted in
+# via APPIMAGE_GTK_THEME. Upstream hardcodes "Adwaita:light/dark" here
+# with the comment "Custom themes are broken", which ignores the host's
+# actual theme. Letting GTK_THEME fall through preserves system theming.
+if [ -n "${APPIMAGE_GTK_THEME:-}" ]; then
+    export GTK_THEME="$APPIMAGE_GTK_THEME"
+fi
 export GDK_BACKEND=x11 # Crash with Wayland backend on Wayland
 export XDG_DATA_DIRS="$APPDIR/usr/share:/usr/share:$XDG_DATA_DIRS" # g_get_system_data_dirs() from GLib
 EOF
