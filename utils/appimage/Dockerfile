@@ -65,11 +65,14 @@ RUN python3 -m pip install --no-cache-dir 'meson>=0.63.3'
 RUN python3 -m pip install --no-cache-dir pycairo
 
 # linuxdeploy + plugin-gtk handle library/typelib bundling and GTK env setup.
+# linuxdeploy-plugin-gtk is vendored from the repo (see the matching
+# .sh and .LICENSE files in this directory) because its upstream is
+# dormant; pinning a known-good copy keeps builds reproducible and lets
+# us patch known issues (e.g. forced Adwaita theme) without a fork.
 WORKDIR /opt/tools
+COPY linuxdeploy-plugin-gtk.sh /opt/tools/linuxdeploy-plugin-gtk.sh
 RUN curl -fsSL -o linuxdeploy-x86_64.AppImage \
     https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage \
- && curl -fsSL -o linuxdeploy-plugin-gtk.sh \
-    https://raw.githubusercontent.com/linuxdeploy/linuxdeploy-plugin-gtk/master/linuxdeploy-plugin-gtk.sh \
  && curl -fsSL -o appimagetool-x86_64.AppImage \
     https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage \
  && chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-gtk.sh appimagetool-x86_64.AppImage
