@@ -19,6 +19,11 @@ STEAM_DATA_DIRS = (
     "~/.local/share/Steam",
     "~/snap/steam/common/.local/share/Steam",
     "~/.steam/steam",
+    # Flatpak Steam (com.valvesoftware.Steam). Current builds keep everything
+    # under the app's sandboxed HOME at .local/share/Steam; older builds used
+    # data/steam. Both are listed so either layout is detected.
+    "~/.var/app/com.valvesoftware.Steam/.local/share/Steam",
+    "~/.var/app/com.valvesoftware.Steam/.local/share/steam",
     "~/.var/app/com.valvesoftware.Steam/data/steam",
     "~/.var/app/com.valvesoftware.Steam/data/Steam",
     "/usr/share/steam",
