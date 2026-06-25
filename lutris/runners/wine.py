@@ -23,7 +23,6 @@ from lutris.exceptions import (
 from lutris.game import Game
 from lutris.gui.dialogs import FileDialog
 from lutris.gui.dialogs.missing_deps import MissingWineDepsDialog
-from lutris.util.system_packages import check_wine_dependencies
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix,
     delete_registry_key,
@@ -45,6 +44,7 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.process import Process
 from lutris.util.strings import split_arguments
+from lutris.util.system_packages import check_wine_dependencies
 from lutris.util.wine import proton
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
