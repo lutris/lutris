@@ -22,7 +22,7 @@ from lutris.exceptions import (
 )
 from lutris.game import Game
 from lutris.gui.dialogs import FileDialog
-from lutris.gui.dialogs.missing_deps import MissingWineDepsDialog
+from lutris.gui.dialogs.missing_deps import MissingWineDepsDialog, MissingWineRunnerDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix,
     delete_registry_key,
@@ -44,7 +44,7 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.process import Process
 from lutris.util.strings import split_arguments
-from lutris.util.system_packages import check_wine_dependencies
+from lutris.util.system_packages import check_wine_dependencies, check_wine_staging_runner
 from lutris.util.wine import proton
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
@@ -1134,6 +1134,12 @@ class wine(Runner):
         dep_info = check_wine_dependencies()
         if dep_info:
             dialog = MissingWineDepsDialog(dep_info)
+            dialog.run_and_wait()
+
+        current_version = self.runner_config.get("version") or ""
+        runner_info = check_wine_staging_runner(current_version=current_version)
+        if runner_info:
+            dialog = MissingWineRunnerDialog(runner_info)
             dialog.run_and_wait()
 
         prefix_path = self.prefix_path
