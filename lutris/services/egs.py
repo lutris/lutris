@@ -38,22 +38,22 @@ class DieselGameMedia(ServiceMedia):
         game_box_path = os.path.join(self.dest_path, filename)
         logo_path = os.path.join(EGS_LOGO_PATH, filename.replace(".jpg", ".png"))
         has_logo = os.path.exists(logo_path)
-        thumb_image = Image.open(game_box_path)
+        thumb_image = Image.open(game_box_path)  # type: ignore[union-attr]
         thumb_image = thumb_image.convert("RGBA")
         thumb_image = thumbnail_image(thumb_image, self.remote_size)
         if has_logo:
-            logo_image = Image.open(logo_path)
+            logo_image = Image.open(logo_path)  # type: ignore[union-attr]
             logo_image = logo_image.convert("RGBA")
             logo_width, logo_height = logo_image.size
             if logo_width > self.min_logo_x:
                 logo_image = logo_image.resize(
                     (self.min_logo_x, int(logo_height * (self.min_logo_x / logo_width))),
-                    resample=Image.Resampling.BICUBIC,
+                    resample=Image.Resampling.BICUBIC,  # type: ignore[union-attr]
                 )
             elif logo_height > self.min_logo_y:
                 logo_image = logo_image.resize(
                     (int(logo_width * (self.min_logo_y / logo_height)), self.min_logo_y),
-                    resample=Image.Resampling.BICUBIC,
+                    resample=Image.Resampling.BICUBIC,  # type: ignore[union-attr]
                 )
             thumb_image = paste_overlay(thumb_image, logo_image)
         thumb_path = os.path.join(self.dest_path, filename)
@@ -496,7 +496,7 @@ class EpicGamesStoreService(OnlineService):
         sync_media(installed_slugs)
         logger.debug("All EGS games imported")
 
-    def generate_installer(self, db_game: dict[str, Any], egs_db_game: dict[str, Any]) -> dict[str, Any]:
+    def generate_installer(self, db_game: dict[str, Any], egs_db_game: dict[str, Any]) -> dict[str, Any]:  # type: ignore[override]
         egs_game = Game(egs_db_game["id"])
         egs_config = egs_game.config
         if not egs_config or not egs_config.game_config:
@@ -553,7 +553,7 @@ class EpicGamesStoreService(OnlineService):
     def get_installed_runner_name(self, db_game: dict[str, Any]) -> str:
         return self.runner
 
-    def install(self, db_game: dict[str, Any]) -> None:
+    def install(self, db_game: dict[str, Any]) -> None:  # type: ignore[override]
         egs_game = get_game_by_field(self.client_installer, "slug")
         application = Gio.Application.get_default()
         if not egs_game or not egs_game.get("installed"):
