@@ -320,7 +320,7 @@ class EpicGamesStoreService(OnlineService):
                     "includeMainGameDetails": True,
                     "country": "US",
                     "locale": "en",
-                },
+                },  # type: ignore[arg-type]
             )
             if response.status_code >= 500:
                 response.raise_for_status()
@@ -556,6 +556,7 @@ class EpicGamesStoreService(OnlineService):
     def install(self, db_game: dict[str, Any]) -> None:  # type: ignore[override]
         egs_game = get_game_by_field(self.client_installer, "slug")
         application = Gio.Application.get_default()
+        assert application is not None
         if not egs_game or not egs_game.get("installed"):
             logger.warning("EGS (%s) not installed", self.client_installer)
             application.show_lutris_installer_window(game_slug=self.client_installer)
