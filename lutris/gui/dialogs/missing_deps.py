@@ -41,7 +41,6 @@ class MissingWineDepsDialog(Gtk.Dialog):
         content.set_spacing(12)
 
         gpu = self.dep_info["gpu_vendor"].upper()
-        pm = self.dep_info["package_manager"]
         missing = self.dep_info["missing"]
         install_cmd = " ".join(["sudo"] + self.dep_info["install_command"])
 
@@ -104,7 +103,6 @@ class MissingWineDepsDialog(Gtk.Dialog):
         self.connect("response", self._on_response)
 
     def _on_copy_command(self, entry: Gtk.Entry, icon_pos, event) -> None:
-        clipboard = Gtk.Clipboard.get(entry.get_display().get_app_launch_context() or entry.get_clipboard(None))
         entry.select_region(0, -1)
         entry.copy_clipboard()
 
@@ -156,7 +154,7 @@ class MissingWineDepsDialog(Gtk.Dialog):
             if result.returncode == 0:
                 return True, _("Packages installed successfully.")
             stderr = result.stderr.decode(errors="replace").strip()
-            if "incorrect password" in stderr.lower() or result.returncode == 1 and not stderr:
+            if "incorrect password" in stderr.lower() or (result.returncode == 1 and not stderr):
                 return False, _("Incorrect password. Please try again.")
             return False, _("Install failed:\n") + stderr[-500:]
         except subprocess.TimeoutExpired:
