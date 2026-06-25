@@ -5,19 +5,12 @@ identifies the appropriate package manager for the current distro, and
 builds the exact install command needed to resolve missing dependencies.
 """
 
-import json
-import os
 import shutil
-import urllib.request
 from typing import Optional
 
 from lutris.util.graphics import drivers
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-
-KRON4EK_RELEASES_API = "https://api.github.com/repos/Kron4ek/Wine-Builds/releases/latest"
-KRON4EK_DOWNLOAD_BASE = "https://github.com/Kron4ek/Wine-Builds/releases/download"
-WINE_RUNNERS_DIR = os.path.expanduser("~/.local/share/lutris/runners/wine")
 
 # Maps distro ID (from /etc/os-release) to package manager
 DISTRO_PACKAGE_MANAGERS: dict[str, str] = {
@@ -271,52 +264,3 @@ def check_wine_dependencies() -> Optional[dict]:
         "missing": missing,
         "install_command": install_command,
     }
-
-
-def _has_staging_runner() -> bool:
-    """Return True if any wine-staging runner is already installed locally."""
-    if not os.path.exists(WINE_RUNNERS_DIR):
-        return False
-    for entry in os.listdir(WINE_RUNNERS_DIR):
-        if "staging" in entry.lower():
-            return True
-    return False
-
-
-def check_wine_staging_runner(current_version: Optional[str] = None) -> Optional[dict]:
-    """Check whether a Wine Staging runner is available.
-
-    If the game is already configured to use a staging, GE, or Proton runner,
-    or if any staging runner is already installed, returns None.  Otherwise
-    fetches the latest Kron4ek wine-staging release and returns install info.
-
-    Returns:
-        None if no action is needed.
-        dict with keys:
-            'version'     — runner directory name, e.g. 'wine-11.11-staging-amd64'
-            'url'         — tarball download URL
-            'runner_dir'  — destination parent directory for extraction
-    """
-    if current_version:
-        cv = current_version.lower()
-        if any(kw in cv for kw in ("staging", "ge", "proton", "tkg")):
-            return None
-
-    if _has_staging_runner():
-        return None
-
-    try:
-        req = urllib.request.Request(KRON4EK_RELEASES_API, headers={"User-Agent": "lutris-game-manager"})
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            data = json.loads(resp.read())
-        tag = data["tag_name"]
-        filename = f"wine-{tag}-staging-amd64.tar.xz"
-        url = f"{KRON4EK_DOWNLOAD_BASE}/{tag}/{filename}"
-        return {
-            "version": f"wine-{tag}-staging-amd64",
-            "url": url,
-            "runner_dir": WINE_RUNNERS_DIR,
-        }
-    except Exception as ex:  # pylint: disable=broad-except
-        logger.warning("Could not fetch Wine Staging release info: %s", ex)
-        return None
