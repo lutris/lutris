@@ -559,9 +559,9 @@ class EpicGamesStoreService(OnlineService):
         assert application is not None
         if not egs_game or not egs_game.get("installed"):
             logger.warning("EGS (%s) not installed", self.client_installer)
-            application.show_lutris_installer_window(game_slug=self.client_installer)
+            application.show_lutris_installer_window(game_slug=self.client_installer)  # type: ignore[attr-defined]
         else:
-            application.show_installer_window(
+            application.show_installer_window(  # type: ignore[attr-defined]
                 [self.generate_installer(db_game, egs_game)], service=self, appid=db_game["appid"]
             )
 
