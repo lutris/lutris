@@ -22,6 +22,8 @@ from lutris.exceptions import (
 )
 from lutris.game import Game
 from lutris.gui.dialogs import FileDialog
+from lutris.gui.dialogs.missing_deps import MissingWineDepsDialog
+from lutris.util.system_packages import check_wine_dependencies
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix,
     delete_registry_key,
@@ -1129,6 +1131,11 @@ class wine(Runner):
             monitored_command.log_handlers.append(proton.UmuLaunchStatusParser(game))
 
     def prelaunch(self):
+        dep_info = check_wine_dependencies()
+        if dep_info:
+            dialog = MissingWineDepsDialog(dep_info)
+            dialog.run_and_wait()
+
         prefix_path = self.prefix_path
         if prefix_path:
             if os.path.islink(prefix_path) and not os.path.exists(prefix_path):
