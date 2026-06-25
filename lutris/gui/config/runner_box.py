@@ -63,25 +63,56 @@ class RunnerBox(Gtk.Box):
         self.action_alignment.add(self.get_action_button())
         self.pack_start(self.action_alignment, False, False, 0)
 
+    # Fixed width for all action buttons so they don't shift the configure button beside them.
+    ACTION_BUTTON_WIDTH = 36
+
+    def _make_action_button(self, icon_name, callback):
+        """Create a circular icon button wired to a callback."""
+        button = Gtk.Button.new_from_icon_name(icon_name, Gtk.IconSize.BUTTON)
+        button.get_style_context().add_class("circular")
+        button.set_size_request(self.ACTION_BUTTON_WIDTH, -1)
+        button.connect("clicked", callback)
+        button.show()
+        return button
+
     def get_action_button(self):
-        """Return a install or remove button"""
+        """Return an install or remove button"""
         if self.runner.multiple_versions:
-            _button = Gtk.Button.new_from_icon_name("system-software-install-symbolic", Gtk.IconSize.BUTTON)
-            _button.get_style_context().add_class("circular")
-            _button.connect("clicked", self.on_versions_clicked)
-        else:
-            if self.runner.can_uninstall():
-                _button = Gtk.Button.new_from_icon_name("edit-delete-symbolic", Gtk.IconSize.BUTTON)
-                _button.get_style_context().add_class("circular")
-                _button.connect("clicked", self.on_remove_clicked)
-                _button.set_sensitive(self.runner.can_uninstall())
-            else:
-                _button = Gtk.Button.new_from_icon_name("system-software-install-symbolic", Gtk.IconSize.BUTTON)
-                _button.get_style_context().add_class("circular")
-                _button.connect("clicked", self.on_install_clicked)
-                _button.set_sensitive(not self.runner.is_installed(flatpak_allowed=False))
-        _button.show()
-        return _button
+            return self._make_action_button("system-software-install-symbolic", self.on_versions_clicked)
+        if self.runner.can_uninstall():
+            return self._make_action_button("edit-delete-symbolic", self.on_remove_clicked)
+        if self.runner.is_suppressed():
+            return self._make_action_button("system-software-install-symbolic", self.on_unsuppress_clicked)
+        if self.runner.is_installed(suppress_allowed=False, flatpak_allowed=False):
+            # Installed externally via system PATH (e.g. linux, system wine) — offer to suppress
+            return self._make_action_button("edit-delete-symbolic", self.on_suppress_clicked)
+        if self.runner.is_installed(suppress_allowed=False):
+            # Only installed via Flatpak — offer install (internal) or suppress via popover
+            return self._get_flatpak_popover_button()
+        return self._make_action_button("system-software-install-symbolic", self.on_install_clicked)
+
+    def _get_flatpak_popover_button(self):
+        """Return a menu button with a popover offering to install the internal
+        version or to suppress (hide) the Flatpak-only runner."""
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+        vbox.set_border_width(6)
+        vbox.set_spacing(3)
+
+        install_btn = Gtk.ModelButton(visible=True, text=_("Install Lutris version"))
+        install_btn.connect("clicked", self.on_install_clicked)
+        vbox.pack_start(install_btn, False, False, 0)
+
+        suppress_btn = Gtk.ModelButton(visible=True, text=_("Hide Flatpak version"))
+        suppress_btn.connect("clicked", self.on_suppress_clicked)
+        vbox.pack_start(suppress_btn, False, False, 0)
+
+        popover = Gtk.Popover(child=vbox)
+
+        menu_button = Gtk.MenuButton(visible=True)
+        menu_button.set_image(Gtk.Image.new_from_icon_name("open-menu-symbolic", Gtk.IconSize.BUTTON))
+        menu_button.set_size_request(self.ACTION_BUTTON_WIDTH, -1)
+        menu_button.set_popover(popover)
+        return menu_button
 
     def on_versions_clicked(self, widget):
         window = self.get_toplevel()
@@ -94,7 +125,7 @@ class RunnerBox(Gtk.Box):
         logger.debug("Install of %s requested", self.runner)
         self.runner.install(self.get_toplevel())
 
-        if self.runner.is_installed():
+        if self.runner.is_installed(suppress_allowed=False):
             self.emit("runner-installed")
 
     def on_configure_clicked(self, widget):
@@ -116,6 +147,25 @@ class RunnerBox(Gtk.Box):
                 self.emit("runner-removed")
 
             self.runner.uninstall(on_runner_uninstalled)
+
+    def on_suppress_clicked(self, widget):
+        dialog = QuestionDialog(
+            {
+                "parent": self.get_toplevel(),
+                "title": _("Do you want to hide %s?") % self.runner.human_name,
+                "question": _(
+                    "<b>%s</b> is installed outside of Lutris and cannot be removed here.\nHide it from Lutris instead?"
+                )
+                % self.runner.human_name,
+            }
+        )
+        if Gtk.ResponseType.YES == dialog.result:
+            self.runner.suppress()
+            self.emit("runner-removed")
+
+    def on_unsuppress_clicked(self, widget):
+        self.runner.unsuppress()
+        self.emit("runner-installed")
 
     def on_runner_installed(self, widget):
         """Called after the runnner is installed"""

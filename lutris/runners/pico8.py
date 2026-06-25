@@ -131,14 +131,14 @@ class pico8(Runner):
     def get_run_data(self):
         return {"command": self.launch_args, "env": self.get_env(os_env=False)}
 
-    def is_installed(self, flatpak_allowed: bool = True) -> bool:
+    def check_installed(self, **kwargs) -> bool:
         """Checks if pico8 runner is installed and if the pico8 executable available."""
         if self.is_native and system.path_exists(self.runner_config.get("runner_executable")):
             return True
         return system.path_exists(os.path.join(settings.RUNNER_DIR, "pico8/web/player.html"))
 
     def prelaunch(self):
-        if not self.game_config.get("main_file") and self.is_installed():
+        if not self.game_config.get("main_file") and self.is_installed(suppress_allowed=False):
             return True
         if os.path.exists(os.path.join(settings.RUNNER_DIR, "pico8/cartridges", "tmp.p8.png")):
             os.remove(os.path.join(settings.RUNNER_DIR, "pico8/cartridges", "tmp.p8.png"))
