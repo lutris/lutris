@@ -47,8 +47,11 @@ class MissingWineDepsDialog(Gtk.Dialog):
         # Header
         header = Gtk.Label(visible=True)
         header.set_markup(
-            _("<b>Missing packages detected for your %s GPU</b>\n"
-              "The following system packages are required for Wine and DXVK to work correctly:") % gpu
+            _(
+                "<b>Missing packages detected for your %s GPU</b>\n"
+                "The following system packages are required for Wine and DXVK to work correctly:"
+            )
+            % gpu
         )
         header.set_line_wrap(True)
         header.set_xalign(0)
@@ -170,9 +173,7 @@ class MissingWineDepsDialog(Gtk.Dialog):
 
         if error:
             logger.error("Dependency install error: %s", error)
-            self._status_label.set_markup(
-                _("<span foreground='red'>An error occurred: %s</span>") % str(error)
-            )
+            self._status_label.set_markup(_("<span foreground='red'>An error occurred: %s</span>") % str(error))
             self._install_button.set_sensitive(True)
             self._password_entry.set_sensitive(True)
             return
@@ -181,15 +182,11 @@ class MissingWineDepsDialog(Gtk.Dialog):
         self.install_succeeded = success
 
         if success:
-            self._status_label.set_markup(
-                _("<span foreground='green'>✓ %s</span>") % message
-            )
+            self._status_label.set_markup(_("<span foreground='green'>✓ %s</span>") % message)
             # Auto-close after a short delay so user can see the success message
             GLib.timeout_add(1500, self.destroy)
         else:
-            self._status_label.set_markup(
-                _("<span foreground='red'>%s</span>") % message
-            )
+            self._status_label.set_markup(_("<span foreground='red'>%s</span>") % message)
             self._install_button.set_sensitive(True)
             self._password_entry.set_sensitive(True)
             self._password_entry.set_text("")
