@@ -12,39 +12,6 @@ from lutris.util.graphics import drivers
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
-# Maps distro ID (from /etc/os-release) to package manager
-DISTRO_PACKAGE_MANAGERS: dict[str, str] = {
-    # Debian/Ubuntu family
-    "ubuntu": "apt",
-    "debian": "apt",
-    "pop-os": "apt",
-    "pop": "apt",
-    "linuxmint": "apt",
-    "elementary": "apt",
-    "zorin": "apt",
-    "kali": "apt",
-    "parrot": "apt",
-    # Arch family
-    "arch": "pacman",
-    "manjaro": "pacman",
-    "endeavouros": "pacman",
-    "cachyos": "pacman",
-    "garuda": "pacman",
-    "artix": "pacman",
-    "arcolinux": "pacman",
-    # Fedora/RHEL family
-    "fedora": "dnf",
-    "rhel": "dnf",
-    "centos": "dnf",
-    "nobara": "dnf",
-    "rocky": "dnf",
-    "alma": "dnf",
-    # openSUSE
-    "opensuse-leap": "zypper",
-    "opensuse-tumbleweed": "zypper",
-    "suse": "zypper",
-}
-
 # Required packages per package manager per GPU vendor.
 # These are the packages users most commonly lack when Wine/DXVK fails.
 WINE_REQUIRED_PACKAGES: dict[str, dict[str, list[str]]] = {
@@ -136,21 +103,10 @@ INSTALL_COMMANDS: dict[str, list[str]] = {
 
 
 def get_package_manager() -> Optional[str]:
-    """Detect the system package manager from distro ID.
-
-    Falls back to probing for known package manager binaries if the distro
-    ID is not in our map, so uncommon distros still get a best-effort result.
-    """
-    dist_info = LINUX_SYSTEM.get_dist_info()
-    if dist_info and dist_info != "unknown":
-        distro_id = dist_info[0].lower().replace(" ", "-") if isinstance(dist_info, tuple) else ""
-        if distro_id in DISTRO_PACKAGE_MANAGERS:
-            return DISTRO_PACKAGE_MANAGERS[distro_id]
-
-    # Fallback: probe for binaries directly
+    """Detect the system package manager by probing for known binaries."""
     for binary, manager in [("apt-get", "apt"), ("pacman", "pacman"), ("dnf", "dnf"), ("zypper", "zypper")]:
         if shutil.which(binary):
-            logger.debug("Detected package manager '%s' via binary probe", manager)
+            logger.debug("Detected package manager '%s'", manager)
             return manager
 
     logger.warning("Could not detect a supported package manager")
