@@ -1,5 +1,6 @@
 """Dialog for detecting and installing missing Wine/DXVK system dependencies."""
 
+import shutil
 import subprocess
 from gettext import gettext as _
 from typing import Optional
@@ -12,7 +13,7 @@ from lutris.util.log import logger
 
 class MissingWineDepsDialog(Gtk.Dialog):
     """Informs the user of missing system packages required for Wine games,
-    offers to install them inline with a password prompt, and reports the result.
+    offers to install them via pkexec, and reports the result.
 
     Usage:
         dialog = MissingWineDepsDialog(dep_info, parent=window)
@@ -42,7 +43,7 @@ class MissingWineDepsDialog(Gtk.Dialog):
 
         gpu = self.dep_info["gpu_vendor"].upper()
         missing = self.dep_info["missing"]
-        install_cmd = " ".join(["sudo"] + self.dep_info["install_command"])
+        install_cmd = " ".join(["pkexec"] + self.dep_info["install_command"])
 
         # Header
         header = Gtk.Label(visible=True)
@@ -75,17 +76,6 @@ class MissingWineDepsDialog(Gtk.Dialog):
         cmd_box.connect("icon-press", self._on_copy_command)
         content.pack_start(cmd_box, False, False, 0)
 
-        # Password entry
-        pw_label = Gtk.Label(label=_("Enter your sudo password to install now:"), visible=True)
-        pw_label.set_xalign(0)
-        content.pack_start(pw_label, False, False, 0)
-
-        self._password_entry = Gtk.Entry(visible=True)
-        self._password_entry.set_visibility(False)
-        self._password_entry.set_placeholder_text(_("Password"))
-        self._password_entry.set_activates_default(True)
-        content.pack_start(self._password_entry, False, False, 0)
-
         # Status label (shown during/after install)
         self._status_label = Gtk.Label(label="", visible=True)
         self._status_label.set_xalign(0)
@@ -114,16 +104,10 @@ class MissingWineDepsDialog(Gtk.Dialog):
             self.destroy()
             return
 
-        password = self._password_entry.get_text()
-        if not password:
-            self._status_label.set_markup(_("<span foreground='red'>Please enter your password.</span>"))
-            return
+        self._start_install()
 
-        self._start_install(password)
-
-    def _start_install(self, password: str) -> None:
+    def _start_install(self) -> None:
         self._install_button.set_sensitive(False)
-        self._password_entry.set_sensitive(False)
         self._progress.set_visible(True)
         self._status_label.set_markup(_("<i>Installing packages…</i>"))
 
@@ -132,7 +116,6 @@ class MissingWineDepsDialog(Gtk.Dialog):
         self._install_call = AsyncCall(
             self._run_install,
             self._on_install_complete,
-            password,
         )
         self._install_call.start()
 
@@ -140,23 +123,23 @@ class MissingWineDepsDialog(Gtk.Dialog):
         self._progress.pulse()
         return True
 
-    def _run_install(self, password: str) -> tuple[bool, str]:
-        """Run the install command with sudo -S (reads password from stdin).
+    def _run_install(self) -> tuple[bool, str]:
+        """Run the install command via pkexec, which handles authentication natively.
         Returns (success, output_message).
         """
-        cmd = ["sudo", "-S"] + self.dep_info["install_command"]
+        if not shutil.which("pkexec"):
+            return False, _("pkexec not found. Run the install command manually.")
+
+        cmd = ["pkexec"] + self.dep_info["install_command"]
         try:
-            result = subprocess.run(
-                cmd,
-                input=(password + "\n").encode(),
-                capture_output=True,
-                timeout=300,
-            )
+            result = subprocess.run(cmd, capture_output=True, timeout=300)
             if result.returncode == 0:
                 return True, _("Packages installed successfully.")
+            if result.returncode == 126:
+                return False, _("Authentication cancelled.")
+            if result.returncode == 127:
+                return False, _("Authentication failed.")
             stderr = result.stderr.decode(errors="replace").strip()
-            if "incorrect password" in stderr.lower() or (result.returncode == 1 and not stderr):
-                return False, _("Incorrect password. Please try again.")
             return False, _("Install failed:\n") + stderr[-500:]
         except subprocess.TimeoutExpired:
             return False, _("Install timed out after 5 minutes.")
@@ -173,7 +156,6 @@ class MissingWineDepsDialog(Gtk.Dialog):
             logger.error("Dependency install error: %s", error)
             self._status_label.set_markup(_("<span foreground='red'>An error occurred: %s</span>") % str(error))
             self._install_button.set_sensitive(True)
-            self._password_entry.set_sensitive(True)
             return
 
         success, message = result
@@ -181,14 +163,10 @@ class MissingWineDepsDialog(Gtk.Dialog):
 
         if success:
             self._status_label.set_markup(_("<span foreground='green'>✓ %s</span>") % message)
-            # Auto-close after a short delay so user can see the success message
             GLib.timeout_add(1500, self.destroy)
         else:
             self._status_label.set_markup(_("<span foreground='red'>%s</span>") % message)
             self._install_button.set_sensitive(True)
-            self._password_entry.set_sensitive(True)
-            self._password_entry.set_text("")
-            self._password_entry.grab_focus()
 
     def run_and_wait(self) -> bool:
         """Show the dialog and block until it is dismissed.
