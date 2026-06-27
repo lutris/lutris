@@ -12,8 +12,11 @@ from lutris.util.graphics import drivers
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
-# Required packages per package manager per GPU vendor.
-# These are the packages users most commonly lack when Wine/DXVK fails.
+# Runtime libraries that Wine prebuilt runners expect to find on the host system.
+# These are NOT Wine's own package dependencies — Lutris downloads Wine as a binary
+# and bypasses the package manager, so these system libs never get auto-installed.
+# We check for the most common sources of silent Wine launch failures: Vulkan/DXVK
+# drivers and GnuTLS (required for any HTTPS connection from within Wine).
 WINE_REQUIRED_PACKAGES: dict[str, dict[str, list[str]]] = {
     "apt": {
         "amd": [
@@ -22,17 +25,20 @@ WINE_REQUIRED_PACKAGES: dict[str, dict[str, list[str]]] = {
             "mesa-vulkan-drivers",
             "mesa-vulkan-drivers:i386",
             "libgl1-mesa-dri:i386",
+            "libgnutls30:i386",
         ],
         "nvidia": [
             "libvulkan1",
             "libvulkan1:i386",
             "nvidia-driver-libs:i386",
+            "libgnutls30:i386",
         ],
         "intel": [
             "libvulkan1",
             "libvulkan1:i386",
             "mesa-vulkan-drivers",
             "mesa-vulkan-drivers:i386",
+            "libgnutls30:i386",
         ],
     },
     "pacman": {
@@ -41,18 +47,21 @@ WINE_REQUIRED_PACKAGES: dict[str, dict[str, list[str]]] = {
             "lib32-vulkan-radeon",
             "vulkan-icd-loader",
             "lib32-vulkan-icd-loader",
+            "lib32-gnutls",
         ],
         "nvidia": [
             "nvidia-utils",
             "lib32-nvidia-utils",
             "vulkan-icd-loader",
             "lib32-vulkan-icd-loader",
+            "lib32-gnutls",
         ],
         "intel": [
             "vulkan-intel",
             "lib32-vulkan-intel",
             "vulkan-icd-loader",
             "lib32-vulkan-icd-loader",
+            "lib32-gnutls",
         ],
     },
     "dnf": {
@@ -61,16 +70,19 @@ WINE_REQUIRED_PACKAGES: dict[str, dict[str, list[str]]] = {
             "mesa-vulkan-drivers.i686",
             "vulkan-loader",
             "vulkan-loader.i686",
+            "gnutls.i686",
         ],
         "nvidia": [
             "vulkan-loader",
             "vulkan-loader.i686",
+            "gnutls.i686",
         ],
         "intel": [
             "mesa-vulkan-drivers",
             "mesa-vulkan-drivers.i686",
             "vulkan-loader",
             "vulkan-loader.i686",
+            "gnutls.i686",
         ],
     },
     "zypper": {
@@ -79,16 +91,19 @@ WINE_REQUIRED_PACKAGES: dict[str, dict[str, list[str]]] = {
             "libvulkan_radeon-32bit",
             "libvulkan1",
             "libvulkan1-32bit",
+            "libgnutls30-32bit",
         ],
         "nvidia": [
             "libvulkan1",
             "libvulkan1-32bit",
+            "libgnutls30-32bit",
         ],
         "intel": [
             "libvulkan_intel",
             "libvulkan_intel-32bit",
             "libvulkan1",
             "libvulkan1-32bit",
+            "libgnutls30-32bit",
         ],
     },
 }

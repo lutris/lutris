@@ -20,6 +20,7 @@ from lutris.exceptions import (
     SymlinkNotUsableError,
     UnspecifiedVersionError,
 )
+from gi.repository import Gio
 from lutris.game import Game
 from lutris.gui.dialogs import FileDialog
 from lutris.gui.dialogs.missing_deps import MissingWineDepsDialog
@@ -1133,7 +1134,9 @@ class wine(Runner):
     def prelaunch(self):
         dep_info = check_wine_dependencies()
         if dep_info:
-            dialog = MissingWineDepsDialog(dep_info)
+            application = Gio.Application.get_default()
+            parent = application.window if application else None
+            dialog = MissingWineDepsDialog(dep_info, parent=parent)
             dialog.run_and_wait()
 
         prefix_path = self.prefix_path

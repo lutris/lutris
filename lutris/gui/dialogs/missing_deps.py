@@ -117,8 +117,6 @@ class MissingWineDepsDialog(Gtk.Dialog):
         password = self._password_entry.get_text()
         if not password:
             self._status_label.set_markup(_("<span foreground='red'>Please enter your password.</span>"))
-            # Stop dialog from closing
-            GLib.idle_add(lambda: self.run())
             return
 
         self._start_install(password)
@@ -196,5 +194,7 @@ class MissingWineDepsDialog(Gtk.Dialog):
         """Show the dialog and block until it is dismissed.
         Returns True if packages were successfully installed, False otherwise.
         """
-        self.run()
+        loop = GLib.MainLoop()
+        self.connect("destroy", lambda _: loop.quit())
+        loop.run()
         return self.install_succeeded
