@@ -369,11 +369,30 @@ def _split_arguments(args: str, closing_quot: str = "", quotations: list[str] | 
         return []
 
 
-def split_arguments(args: str) -> list[str]:
-    """Wrapper around shlex.split that is more tolerant of errors"""
+def _split_arguments_keep_quotes(args: str) -> list[str]:
+    """Split args into tokens, grouping by quotes but keeping quotes in the output.
+
+    Used for Windows/Wine args where quoted values like INI="path with spaces"
+    must be passed to Wine intact so the Windows program receives the quotes
+    in its command-line string. POSIX shlex strips quotes, breaking this pattern.
+    """
+    import re
+
+    return re.findall(r"""(?:[^\s"']+|"[^"]*"|'[^']*')+""", args)
+
+
+def split_arguments(args: str, keep_quotes: bool = False) -> list[str]:
+    """Split a command-line argument string into a list of tokens.
+
+    By default uses POSIX shlex semantics (quotes group but are stripped),
+    which is correct for Linux-native programs. Pass keep_quotes=True for
+    Wine/Windows runners where quotes must survive into the Windows command line.
+    """
     if not args:
         # shlex.split seems to hangs when passed the None value
         return []
+    if keep_quotes:
+        return _split_arguments_keep_quotes(args)
     return _split_arguments(args)
 
 

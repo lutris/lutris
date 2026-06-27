@@ -183,6 +183,66 @@ class TestUnpackDependencies(TestCase):
         self.assertEqual(dependencies, ["quake", "quake-1", ("quake-steam", "quake-gog", "quake-humble")])
 
 
+class TestSplitArguments(TestCase):
+    """Tests for split_arguments — both POSIX (default) and Wine (keep_quotes) modes."""
+
+    # --- default POSIX mode ---
+
+    def test_simple_args_no_quotes(self):
+        self.assertEqual(strings.split_arguments("--fullscreen --windowed"), ["--fullscreen", "--windowed"])
+
+    def test_empty_string(self):
+        self.assertEqual(strings.split_arguments(""), [])
+
+    def test_none_equivalent(self):
+        self.assertEqual(strings.split_arguments(None), [])
+
+    def test_posix_strips_double_quotes(self):
+        # POSIX: quotes group and are stripped — correct for Linux-native programs
+        self.assertEqual(strings.split_arguments('--config "/path/with spaces"'), ["--config", "/path/with spaces"])
+
+    def test_posix_strips_single_quotes(self):
+        self.assertEqual(strings.split_arguments("--name 'my game'"), ["--name", "my game"])
+
+    # --- keep_quotes=True (Wine) mode ---
+
+    def test_keep_quotes_simple_args_unchanged(self):
+        # No quotes → same result in both modes
+        self.assertEqual(
+            strings.split_arguments("--fullscreen --windowed", keep_quotes=True),
+            ["--fullscreen", "--windowed"],
+        )
+
+    def test_keep_quotes_preserves_double_quotes_on_value(self):
+        # Windows-style: INI="path with spaces" must survive into the Wine command line
+        result = strings.split_arguments('INI="C:\\GOG Games\\game.ini"', keep_quotes=True)
+        self.assertEqual(result, ['INI="C:\\GOG Games\\game.ini"'])
+
+    def test_keep_quotes_groups_space_within_quotes(self):
+        # The quoted section is one token despite containing spaces
+        result = strings.split_arguments('"C:\\My Games\\game.exe" --fullscreen', keep_quotes=True)
+        self.assertEqual(result, ['"C:\\My Games\\game.exe"', "--fullscreen"])
+
+    def test_keep_quotes_multiple_windows_args(self):
+        # The original bug: multiple key="value with spaces" args were being merged or mangled
+        args = 'INI="C:\\GOG Games\\TNM\\TNM.ini" USERINI="C:\\GOG Games\\TNM\\TNMUser.ini" log=TNM.log'
+        result = strings.split_arguments(args, keep_quotes=True)
+        self.assertEqual(result, [
+            'INI="C:\\GOG Games\\TNM\\TNM.ini"',
+            'USERINI="C:\\GOG Games\\TNM\\TNMUser.ini"',
+            "log=TNM.log",
+        ])
+
+    def test_keep_quotes_mixed_prefix_and_quoted_value(self):
+        # Key=value where only the value is quoted — common Windows pattern
+        result = strings.split_arguments('--config="my settings.cfg" --verbose', keep_quotes=True)
+        self.assertEqual(result, ['--config="my settings.cfg"', "--verbose"])
+
+    def test_keep_quotes_single_quotes_preserved(self):
+        result = strings.split_arguments("--name 'my game'", keep_quotes=True)
+        self.assertEqual(result, ["--name", "'my game'"])
+
+
 class TestSubstitute(TestCase):
     def test_can_sub_game_files_with_dashes_in_key(self):
         replacements = {"steam-data": "/tmp"}

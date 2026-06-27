@@ -421,7 +421,7 @@ def wineexec(
         command_parameters.append(wine_path)
     if executable:
         command_parameters.append(executable)
-    command_parameters += split_arguments(args)
+    command_parameters += split_arguments(args, keep_quotes=True)
 
     runner.prelaunch()
 

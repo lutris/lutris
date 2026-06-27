@@ -1414,7 +1414,7 @@ class wine(Runner):
             command = command + args
 
         if arguments:
-            for arg in split_arguments(arguments):
+            for arg in split_arguments(arguments, keep_quotes=True):
                 command.append(arg)
         launch_info["command"] = command
         return launch_info
