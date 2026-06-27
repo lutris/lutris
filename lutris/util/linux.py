@@ -217,7 +217,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         if self.is_flatpak():
             host_distro = distro.LinuxDistribution(root_dir="/run/host")
             return host_distro.name(), host_distro.version(), host_distro.codename()
-        return distro.linux_distribution()
+        return distro.name(), distro.version(), distro.codename()
 
     @staticmethod
     def get_arch() -> str | None:
@@ -530,7 +530,7 @@ def gather_system_info_dict() -> dict[str, Any]:
     system_info_readable = {}
     # Add system information
     system_dict = {}
-    system_dict["OS"] = " ".join(system_info["dist"])
+    system_dict["OS"] = " ".join(x for x in system_info["dist"] if x)
     system_dict["Arch"] = system_info["arch"]
     system_dict["Kernel"] = system_info["kernel"]
     system_dict["Lutris Version"] = settings.VERSION
