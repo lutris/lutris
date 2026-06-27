@@ -1,6 +1,6 @@
 lutris (0.5.23) jammy; urgency=medium
 
-  * Add GOG depot-based downloads via gogdl integration
+  * Add GOG depot-based downloads, DLC installs, and incremental updates via gogdl integration
   * Add GOG cloud save synchronization
   * Add GameJolt as a game source
   * Add store page URLs for GOG, Steam, itch.io, Humble Bundle, Flathub, ZOOM Platform, and GameJolt
@@ -9,6 +9,8 @@ lutris (0.5.23) jammy; urgency=medium
   * Replace google-protobuf dependency with custom decoder for Battle.net
   * Improve Humble Bundle authentication and error handling
   * Improve EA App auth handling and logo compositing
+  * Add "Kill all Wine processes" menu option
+  * Enable DXVK-Sarek on Proton runners when Vulkan < 1.3
   * Add sorting and filtering to Uncategorized, Missing, and Running views
   * Lazy-load libretro cores and MAME systems to avoid UI stalls
   * Defer GPU detection and library checks to speed up application startup
@@ -21,6 +23,7 @@ lutris (0.5.23) jammy; urgency=medium
   * Use cover art for grid view and banners for list view by default
   * Performance improvements for large game libraries
   * Added Swedish (sv) translation
+  * Added Galician (gl_ES) translation
   * Updated pt_BR translation
 
  -- Mathieu Comandon <mathieucomandon@gmail.com>  Sat, 15 Mar 2026 21:00:00 -0800
