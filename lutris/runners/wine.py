@@ -7,6 +7,8 @@ from collections.abc import Iterable
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any
 
+from gi.repository import Gio
+
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
 from lutris.config import LutrisConfig
@@ -20,7 +22,6 @@ from lutris.exceptions import (
     SymlinkNotUsableError,
     UnspecifiedVersionError,
 )
-from gi.repository import Gio
 from lutris.game import Game
 from lutris.gui.dialogs import FileDialog
 from lutris.gui.dialogs.missing_deps import MissingWineDepsDialog
