@@ -72,7 +72,8 @@ class TestStringUtils(TestCase):
             'foo <a href="http://lutris.net">http://lutris.net</a> bar',
         )
         self.assertEqual(
-            strings.gtk_safe_urls("http://lutris.net"), '<a href="http://lutris.net">http://lutris.net</a>'
+            strings.gtk_safe_urls("http://lutris.net"),
+            '<a href="http://lutris.net">http://lutris.net</a>',
         )
         text = "foo http://lutris.net bar http://strycore.com"
         expected = (
@@ -115,7 +116,9 @@ class TestStringUtils(TestCase):
 
 class TestVersionSort(TestCase):
     def test_parse_version(self):
-        self.assertEqual(wine.parse_wine_version("3.6-staging"), ([3, 6], "-staging", ""))
+        self.assertEqual(
+            wine.parse_wine_version("3.6-staging"), ([3, 6], "-staging", "")
+        )
 
     def test_versions_are_correctly_sorted(self):
         versions = ["1.8", "1.7.4", "1.9.1", "1.9.10", "1.9.4"]
@@ -127,7 +130,16 @@ class TestVersionSort(TestCase):
         self.assertEqual(versions[4], "1.9.10")
 
     def test_version_sorting_supports_extra_strings(self):
-        versions = ["1.8", "1.8-staging", "1.7.4", "1.9.1", "1.9.10-staging", "1.9.10", "1.9.4", "staging-1.9.4"]
+        versions = [
+            "1.8",
+            "1.8-staging",
+            "1.7.4",
+            "1.9.1",
+            "1.9.10-staging",
+            "1.9.10",
+            "1.9.4",
+            "staging-1.9.4",
+        ]
         versions = wine.version_sort(versions)
         self.assertEqual(versions[0], "1.7.4")
         self.assertEqual(versions[1], "1.8")
@@ -175,12 +187,18 @@ class TestUnpackDependencies(TestCase):
     def test_dependency_options(self):
         string = "quake,  quake-1,quake-steam | quake-gog|quake-humble   "
         dependencies = strings.unpack_dependencies(string)
-        self.assertEqual(dependencies, ["quake", "quake-1", ("quake-steam", "quake-gog", "quake-humble")])
+        self.assertEqual(
+            dependencies,
+            ["quake", "quake-1", ("quake-steam", "quake-gog", "quake-humble")],
+        )
 
     def test_strips_extra_commas(self):
         string = ", , , ,, ,,,,quake,  quake-1,quake-steam | quake-gog|quake-humble |||| , |, | ,|,| ,  "
         dependencies = strings.unpack_dependencies(string)
-        self.assertEqual(dependencies, ["quake", "quake-1", ("quake-steam", "quake-gog", "quake-humble")])
+        self.assertEqual(
+            dependencies,
+            ["quake", "quake-1", ("quake-steam", "quake-gog", "quake-humble")],
+        )
 
 
 class TestSplitArguments(TestCase):
@@ -189,7 +207,10 @@ class TestSplitArguments(TestCase):
     # --- default POSIX mode ---
 
     def test_simple_args_no_quotes(self):
-        self.assertEqual(strings.split_arguments("--fullscreen --windowed"), ["--fullscreen", "--windowed"])
+        self.assertEqual(
+            strings.split_arguments("--fullscreen --windowed"),
+            ["--fullscreen", "--windowed"],
+        )
 
     def test_empty_string(self):
         self.assertEqual(strings.split_arguments(""), [])
@@ -199,10 +220,15 @@ class TestSplitArguments(TestCase):
 
     def test_posix_strips_double_quotes(self):
         # POSIX: quotes group and are stripped — correct for Linux-native programs
-        self.assertEqual(strings.split_arguments('--config "/path/with spaces"'), ["--config", "/path/with spaces"])
+        self.assertEqual(
+            strings.split_arguments('--config "/path/with spaces"'),
+            ["--config", "/path/with spaces"],
+        )
 
     def test_posix_strips_single_quotes(self):
-        self.assertEqual(strings.split_arguments("--name 'my game'"), ["--name", "my game"])
+        self.assertEqual(
+            strings.split_arguments("--name 'my game'"), ["--name", "my game"]
+        )
 
     # --- keep_quotes=True (Wine) mode ---
 
@@ -215,27 +241,36 @@ class TestSplitArguments(TestCase):
 
     def test_keep_quotes_preserves_double_quotes_on_value(self):
         # Windows-style: INI="path with spaces" must survive into the Wine command line
-        result = strings.split_arguments('INI="C:\\GOG Games\\game.ini"', keep_quotes=True)
+        result = strings.split_arguments(
+            'INI="C:\\GOG Games\\game.ini"', keep_quotes=True
+        )
         self.assertEqual(result, ['INI="C:\\GOG Games\\game.ini"'])
 
     def test_keep_quotes_groups_space_within_quotes(self):
         # The quoted section is one token despite containing spaces
-        result = strings.split_arguments('"C:\\My Games\\game.exe" --fullscreen', keep_quotes=True)
+        result = strings.split_arguments(
+            '"C:\\My Games\\game.exe" --fullscreen', keep_quotes=True
+        )
         self.assertEqual(result, ['"C:\\My Games\\game.exe"', "--fullscreen"])
 
     def test_keep_quotes_multiple_windows_args(self):
         # The original bug: multiple key="value with spaces" args were being merged or mangled
         args = 'INI="C:\\GOG Games\\TNM\\TNM.ini" USERINI="C:\\GOG Games\\TNM\\TNMUser.ini" log=TNM.log'
         result = strings.split_arguments(args, keep_quotes=True)
-        self.assertEqual(result, [
-            'INI="C:\\GOG Games\\TNM\\TNM.ini"',
-            'USERINI="C:\\GOG Games\\TNM\\TNMUser.ini"',
-            "log=TNM.log",
-        ])
+        self.assertEqual(
+            result,
+            [
+                'INI="C:\\GOG Games\\TNM\\TNM.ini"',
+                'USERINI="C:\\GOG Games\\TNM\\TNMUser.ini"',
+                "log=TNM.log",
+            ],
+        )
 
     def test_keep_quotes_mixed_prefix_and_quoted_value(self):
         # Key=value where only the value is quoted — common Windows pattern
-        result = strings.split_arguments('--config="my settings.cfg" --verbose', keep_quotes=True)
+        result = strings.split_arguments(
+            '--config="my settings.cfg" --verbose', keep_quotes=True
+        )
         self.assertEqual(result, ['--config="my settings.cfg"', "--verbose"])
 
     def test_keep_quotes_single_quotes_preserved(self):
@@ -246,4 +281,6 @@ class TestSplitArguments(TestCase):
 class TestSubstitute(TestCase):
     def test_can_sub_game_files_with_dashes_in_key(self):
         replacements = {"steam-data": "/tmp"}
-        self.assertEqual(system.substitute("--path=$steam-data", replacements), "--path=/tmp")
+        self.assertEqual(
+            system.substitute("--path=$steam-data", replacements), "--path=/tmp"
+        )
