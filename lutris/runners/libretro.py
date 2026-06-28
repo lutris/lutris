@@ -276,7 +276,9 @@ class libretro(Runner):
     def get_version(self, use_default=True):
         return self.game_config["core"]
 
-    def is_installed(self, flatpak_allowed: bool = True, core=None) -> bool:
+    def is_installed(
+        self, flatpak_allowed: bool = True, version: str | None = None, fallback: bool = True, core=None
+    ) -> bool:
         if not core and self.has_explicit_config and self.game_config.get("core"):
             core = self.game_config["core"]
         if not core or self.runner_config.get("runner_executable"):

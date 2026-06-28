@@ -575,7 +575,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             return self.is_installed()
         return False
 
-    def is_installed(self, flatpak_allowed: bool = True) -> bool:
+    def is_installed(self, flatpak_allowed: bool = True, version: str | None = None, fallback: bool = True) -> bool:
         """Return whether the runner is installed"""
         try:
             # Don't care where the exe is, only if we can find it.
@@ -698,7 +698,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     def can_uninstall(self) -> bool:
         return os.path.isdir(self.directory)
 
-    def uninstall(self, uninstall_callback: Callable[[], None] | None = None) -> None:
+    def uninstall(self, uninstall_callback: Callable[[], None] | None = None, version: str | None = None) -> None:
         runner_path = self.directory
         if os.path.isdir(runner_path):
             system.remove_folder(runner_path, completion_function=uninstall_callback)
