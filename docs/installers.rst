@@ -801,6 +801,54 @@ selected is French, the "$INPUT_LANG" alias would be available in
 following directives and would correspond to "fr". "$INPUT" would work as well,
 up until the next input directive.
 
+Displaying a directory picker
+-----------------------------
+
+The ``input_dir`` directive allows the user to select a path to a directory, it works
+similarly to ``insert_disc`` minus the autodetect disc option. Like in ``insert_disc``,
+the `requires` paremeter specifies a file or directory that must be present in the target
+directory, but here it's optional.
+
+You can set a custom message using the `message` parameter.
+
+The directory selected will be available with the ``$INPUT_DIR`` alias. If need be, you can
+add an ``id`` parameter to the directive which will make the selected value available with
+``$INPUT_<id>`` with "<id>" being the id you specified. The id must contain only
+numbers, letters and underscores.
+
+Example::
+
+    - input_dir:
+        id: modfolder
+        message: Select the path to the mod
+
+Displaying a text input field
+-----------------------------
+
+The ``input_text`` directive allows the user to write a line of text that can be later used
+by the install script. This can be used for asking for a CD-KEY when a game's installer is
+uncooperative or other information that can't be known ahead of time.
+
+You can set the label above the input field using the `label` parameter, and the placeholder
+text with the `placeholder` paramenter.
+
+The resulting text will be available with the ``$INPUT_TEXT`` alias. If need be, you can
+add an ``id`` parameter to the directive which will make the selected value available with
+``$INPUT_<id>`` with "<id>" being the id you specified. The id must contain only
+numbers, letters and underscores.
+
+``input_text`` does not offer any text validation, any validation must be done manually in a
+later ``execute`` directive.
+
+Example::
+
+    - input_text:
+        id: cdkey
+        message: Enter the CD-KEY in ALL CAPS with dashes (-)
+        placeholder: 0000-1111-2222-3333
+
+
+
 Example scripts
 ===============
 
