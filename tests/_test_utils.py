@@ -116,9 +116,7 @@ class TestStringUtils(TestCase):
 
 class TestVersionSort(TestCase):
     def test_parse_version(self):
-        self.assertEqual(
-            wine.parse_wine_version("3.6-staging"), ([3, 6], "-staging", "")
-        )
+        self.assertEqual(wine.parse_wine_version("3.6-staging"), ([3, 6], "-staging", ""))
 
     def test_versions_are_correctly_sorted(self):
         versions = ["1.8", "1.7.4", "1.9.1", "1.9.10", "1.9.4"]
@@ -226,9 +224,7 @@ class TestSplitArguments(TestCase):
         )
 
     def test_posix_strips_single_quotes(self):
-        self.assertEqual(
-            strings.split_arguments("--name 'my game'"), ["--name", "my game"]
-        )
+        self.assertEqual(strings.split_arguments("--name 'my game'"), ["--name", "my game"])
 
     # --- keep_quotes=True (Wine) mode ---
 
@@ -241,16 +237,12 @@ class TestSplitArguments(TestCase):
 
     def test_keep_quotes_preserves_double_quotes_on_value(self):
         # Windows-style: INI="path with spaces" must survive into the Wine command line
-        result = strings.split_arguments(
-            'INI="C:\\GOG Games\\game.ini"', keep_quotes=True
-        )
+        result = strings.split_arguments('INI="C:\\GOG Games\\game.ini"', keep_quotes=True)
         self.assertEqual(result, ['INI="C:\\GOG Games\\game.ini"'])
 
     def test_keep_quotes_groups_space_within_quotes(self):
         # The quoted section is one token despite containing spaces
-        result = strings.split_arguments(
-            '"C:\\My Games\\game.exe" --fullscreen', keep_quotes=True
-        )
+        result = strings.split_arguments('"C:\\My Games\\game.exe" --fullscreen', keep_quotes=True)
         self.assertEqual(result, ['"C:\\My Games\\game.exe"', "--fullscreen"])
 
     def test_keep_quotes_multiple_windows_args(self):
@@ -268,9 +260,7 @@ class TestSplitArguments(TestCase):
 
     def test_keep_quotes_mixed_prefix_and_quoted_value(self):
         # Key=value where only the value is quoted — common Windows pattern
-        result = strings.split_arguments(
-            '--config="my settings.cfg" --verbose', keep_quotes=True
-        )
+        result = strings.split_arguments('--config="my settings.cfg" --verbose', keep_quotes=True)
         self.assertEqual(result, ['--config="my settings.cfg"', "--verbose"])
 
     def test_keep_quotes_single_quotes_preserved(self):
@@ -281,6 +271,4 @@ class TestSplitArguments(TestCase):
 class TestSubstitute(TestCase):
     def test_can_sub_game_files_with_dashes_in_key(self):
         replacements = {"steam-data": "/tmp"}
-        self.assertEqual(
-            system.substitute("--path=$steam-data", replacements), "--path=/tmp"
-        )
+        self.assertEqual(system.substitute("--path=$steam-data", replacements), "--path=/tmp")
