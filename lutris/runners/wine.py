@@ -66,6 +66,7 @@ from lutris.util.wine.wine import (
     is_esync_limit_set,
     is_fsync_supported,
     is_gstreamer_build,
+    is_ntsync_supported,
     is_winewayland_available,
 )
 
@@ -202,6 +203,16 @@ def _get_fsync_warning(_option_key: str, config: LutrisConfig) -> str | None:
         fsync_supported = is_fsync_supported()
         if not fsync_supported:
             return _("<b>Warning</b> Your kernel is not patched for fsync.")
+    return None
+
+
+def _get_ntsync_warning(_option_key: str, config: LutrisConfig) -> str | None:
+    if config.runner_config.get("ntsync"):
+        if not is_ntsync_supported():
+            return _(
+                "<b>Warning</b> Your kernel does not have the ntsync module loaded "
+                "(/dev/ntsync not found). Requires Linux 6.14+."
+            )
     return None
 
 
@@ -482,6 +493,20 @@ class wine(Runner):
                 "This will increase performance in applications "
                 "that take advantage of multi-core processors. "
                 "Requires kernel 5.16 or above."
+            ),
+        },
+        {
+            "option": "ntsync",
+            "label": _("Enable NTsync"),
+            "type": "bool",
+            "default": is_ntsync_supported,
+            "warning": _get_ntsync_warning,
+            "active": True,
+            "help": _(
+                "Enable NT synchronization primitives (ntsync). "
+                "A faster, more accurate alternative to fsync that matches "
+                "Windows synchronization behavior more closely. "
+                "Requires Linux 6.14+ with the ntsync module loaded."
             ),
         },
         {
@@ -1287,6 +1312,9 @@ class wine(Runner):
         # Proton uses an env-var with the opposite sense!
         if "PROTON_NO_FSYNC" not in env and not self.runner_config.get("fsync"):
             env["PROTON_NO_FSYNC"] = "1"
+
+        if "PROTON_ENABLE_NTSYNC" not in env:
+            env["PROTON_ENABLE_NTSYNC"] = "1" if self.runner_config.get("ntsync") else "0"
 
         if self.runner_config.get("fsr"):
             env["WINE_FULLSCREEN_FSR"] = "1"
