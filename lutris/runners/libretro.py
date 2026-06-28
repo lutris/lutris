@@ -361,6 +361,13 @@ class libretro(Runner):
             retro_config.save()
         else:
             retro_config = RetroConfig(config_file)
+            # Always keep the cores path aligned with where Lutris installs them,
+            # even when loading an existing config (e.g. one created by a standalone
+            # RetroArch installation that may point to a different directory).
+            lutris_cores_dir = get_default_config_path("cores")
+            if retro_config.get("libretro_directory") != lutris_cores_dir:
+                retro_config["libretro_directory"] = lutris_cores_dir
+                retro_config.save()
 
         core = self.game_config.get("core")
         info_file = os.path.join(RETROARCH_DIR, f"info/{core}_libretro.info")
