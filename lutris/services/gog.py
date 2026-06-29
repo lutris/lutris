@@ -295,8 +295,8 @@ class GOGService(OnlineService):
             except:
                 logger.debug("FAILED")
                 supported_os = [{"operatingSystem": {"name": "windows"}}]
-            for os in supported_os:
-                os_name = os["operatingSystem"]["name"]
+            for cur_os in supported_os:
+                os_name = cur_os["operatingSystem"]["name"]
                 if os_name == "windows":
                     product["worksOn"]["Windows"] = True
                 elif os_name == "linux":
