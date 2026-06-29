@@ -281,28 +281,36 @@ class GOGService(OnlineService):
             params["search"] = search
         url = self.embed_url + "/account/getFilteredProducts?" + urlencode(params)
         result = self.make_request(url)
-        # begin hack
-        # all of this works around the fact that the worksOn tag in the product
-        # json is currently broken.
-        # retrieving this info may fail for games that are in your inventory,
+        # HACK:
+        # All of this works around the fact that the worksOn tag in the product
+        # JSON is currently broken, where a game apparently "worksOn" nothing. So
+        # we fall back to GOG's API for the games on sales.
+        #
+        # Retrieving this info may fail for games that are in your inventory,
         # but no longer available from the store. In that case we fake it.
         for product in result["products"]:
-            if product["worksOn"]["Windows"] or product["worksOn"]["Linux"] or product["worksOn"]["Mac"]:
-                continue
+            worksOn = product["worksOn"]
+            if worksOn.get("Windows") or worksOn.get("Linux") or worksOn.get("Mac"):
+                continue  # If the game works on any platform, that'll do.
+
             try:
                 info = self.make_request("https://api.gog.com/v2/games/" + str(product["id"]))
                 supported_os = info["_embedded"]["supportedOperatingSystems"]
-            except:
-                logger.debug("FAILED")
+            except Exception as ex:
+                logger.exception(
+                    "Unable to retreive corrected OS support from GOG, falling back to 'Windows only': %s", ex
+                )
                 supported_os = [{"operatingSystem": {"name": "windows"}}]
+
             for cur_os in supported_os:
-                os_name = cur_os["operatingSystem"]["name"]
-                if os_name == "windows":
-                    product["worksOn"]["Windows"] = True
-                elif os_name == "linux":
-                    product["worksOn"]["Linux"] = True
-                elif os_name == "osx":
-                    product["worksOn"]["Mac"] = True
+                os_name = cur_os["operatingSystem"].get("name")
+                match os_name:
+                    case "windows":
+                        worksOn["Windows"] = True
+                    case "linux":
+                        worksOn["Linux"] = True
+                    case "osx":
+                        worksOn["Mac"] = True
         # end hack
         return result
 
