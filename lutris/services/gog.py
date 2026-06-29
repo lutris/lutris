@@ -280,7 +280,31 @@ class GOGService(OnlineService):
         if search:
             params["search"] = search
         url = self.embed_url + "/account/getFilteredProducts?" + urlencode(params)
-        return self.make_request(url)
+        result = self.make_request(url)
+        # begin hack
+        # all of this works around the fact that the worksOn tag in the product
+        # json is currently broken.
+        # retrieving this info may fail for games that are in your inventory,
+        # but no longer available from the store. In that case we fake it.
+        for product in result["products"]:
+            if product["worksOn"]["Windows"] or product["worksOn"]["Linux"] or product["worksOn"]["Mac"]:
+                continue
+            try:
+                info = self.make_request("https://api.gog.com/v2/games/" + str(product["id"]))
+                supported_os = info["_embedded"]["supportedOperatingSystems"]
+            except:
+                logger.debug("FAILED")
+                supported_os = [{"operatingSystem": {"name": "windows"}}]
+            for os in supported_os:
+                os_name = os["operatingSystem"]["name"]
+                if os_name == "windows":
+                    product["worksOn"]["Windows"] = True
+                elif os_name == "linux":
+                    product["worksOn"]["Linux"] = True
+                elif os_name == "osx":
+                    product["worksOn"]["Mac"] = True
+        # end hack
+        return result
 
     def get_game_dlcs(self, product_id: str) -> list[dict]:
         """Return the list of DLC products for a game"""
