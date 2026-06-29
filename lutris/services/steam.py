@@ -96,8 +96,24 @@ class SteamService(BaseService):
         steam_games = get_steam_library(steamid)
         if not steam_games:
             raise RuntimeError(_("Failed to load games. Check that your profile is set to public during the sync."))
+
+        # The Steam API omits F2P games that have never been launched and titles
+        # with "Profile Features Limited" status. Supplement from local .acf
+        # manifests so these appear in the library after a sync.
+        api_appids = {str(g["appid"]) for g in steam_games}
+        for steamapps_path in get_steamapps_dirs():
+            for appmanifest_file in get_appmanifests(steamapps_path):
+                app_manifest_path = os.path.join(steamapps_path, appmanifest_file)
+                try:
+                    manifest = AppManifest(app_manifest_path)
+                    if manifest.steamid not in api_appids and manifest.steamid not in self.excluded_appids:
+                        steam_games.append({"appid": manifest.steamid, "name": manifest.name, "playtime_forever": 0})
+                        api_appids.add(manifest.steamid)
+                except Exception as ex:
+                    logger.error("Failed to read app manifest %s: %s", app_manifest_path, ex)
+
         for steam_game in steam_games:
-            if steam_game["appid"] in self.excluded_appids:
+            if str(steam_game["appid"]) in self.excluded_appids:
                 continue
             game = self.game_class.new_from_steam_game(steam_game)
             game.save()
