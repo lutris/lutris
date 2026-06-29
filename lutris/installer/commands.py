@@ -447,7 +447,10 @@ class CommandsMixin:
     def _monitor_task(self, command):
         if not command.is_running:
             logger.debug("Return code: %s", command.return_code)
-            if command.return_code not in (str(command.accepted_return_code), "0"):
+            if command.accepted_return_code != "*" and command.return_code not in (
+                str(command.accepted_return_code),
+                "0",
+            ):
                 raise ScriptingError(_("Command exited with code %s") % command.return_code)
 
             self._iter_commands()
