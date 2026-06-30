@@ -22,7 +22,7 @@ class InstallerFilesBox(Gtk.ListBox):
         self.installer_files_boxes = {}
         self._file_queue = []
 
-    def load_installer(self, installer):
+    def load_installer(self, installer, use_cached_files=True):
         self.stop_all()
 
         self.installer = installer
@@ -35,7 +35,7 @@ class InstallerFilesBox(Gtk.ListBox):
             child.destroy()
 
         for installer_file in installer.files:
-            installer_file_box = InstallerFileBox(installer_file)
+            installer_file_box = InstallerFileBox(installer_file, use_cached_file=use_cached_files)
             installer_file_box.connect("file-ready", self.on_file_ready)
             installer_file_box.connect("file-unready", self.on_file_unready)
             installer_file_box.connect("file-available", self.on_file_available)
