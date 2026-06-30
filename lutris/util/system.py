@@ -8,7 +8,7 @@ import stat
 import string
 import subprocess
 import zipfile
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from gettext import gettext as _
 from pathlib import Path
 from typing import IO
@@ -186,11 +186,32 @@ def spawn(
 
 
 def read_process_output(
-    command: Sequence[str], timeout: int = 5, env: Mapping[str, str] | None = None, error_result: str | None = ""
+    command: Sequence[str],
+    timeout: int = 5,
+    env: Mapping[str, str] | None = None,
+    error_result: str | None = "",
+    stderr_handler: Callable[[str], None] | None = None,
 ) -> str:
     """Return the output of a command as a string; if 'error_result' is not None,
-    returns that on errors. If it is, raises an exception instead."""
+    returns that on errors. If it is, raises an exception instead.
+
+    When 'stderr_handler' is given, the command's stderr is captured and passed
+    to it as a string instead of being inherited by this process; use this to
+    inspect (and selectively log) noisy output from tools like vulkaninfo."""
     try:
+        if stderr_handler is not None:
+            completed = subprocess.run(
+                command,
+                timeout=timeout,
+                env=env,
+                encoding="utf-8",
+                errors="ignore",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True,
+            )
+            stderr_handler(completed.stderr)
+            return completed.stdout.strip()
         return subprocess.check_output(command, timeout=timeout, env=env, encoding="utf-8", errors="ignore").strip()
     except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as ex:
         logger.error("%s command failed: %s", command, ex)
