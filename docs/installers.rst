@@ -975,7 +975,9 @@ the user to be connected to GOG in Lutris.
 
 Parameters:
 
-- ``game_id``: the GOG product ID (required). Can be looked up on
+- ``game_id``: the GOG product ID. Defaults to the installer's ``gogid``, so
+  you normally only set it once; an explicit value still wins (for instance to
+  download a DLC). Product IDs can be looked up on
   https://www.gogdb.org/products
 - ``platform``: ``windows`` or ``linux`` (defaults to the installer's runner).
 - ``lang``: language code (defaults to the system locale).
@@ -1003,7 +1005,6 @@ III Arena::
         exe: quake3e-vulkan.x64
       installer:
       - gogdl_setup:
-          game_id: 1441704920
           platform: windows
       - merge:
           src: $GAMEDIR/Quake III
