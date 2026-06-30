@@ -299,6 +299,12 @@ class CommandsMixin:
                 self.game_files[params["src"]] = os.path.join(dst, os.path.basename(src))
             return
         self._killable_process(system.merge_folders, src, dst)
+        # Optionally drop the source tree once its contents have been merged.
+        # Useful when the source is throwaway scaffolding (e.g. the
+        # installDirectory subfolder a gogdl depot download creates) that
+        # would otherwise duplicate the merged data.
+        if params.get("remove_source") and os.path.isdir(src):
+            self._killable_process(shutil.rmtree, src)
 
     def copy(self, params):
         """Alias for merge"""
@@ -749,7 +755,9 @@ class CommandsMixin:
         """Download and set up a GOG game via depot/CDN using heroic-gogdl.
 
         Params:
-            game_id: GOG product ID
+            game_id: GOG product ID (defaults to the installer's resolved
+                gogid, so scripts only need to set it once; an explicit value
+                still wins, e.g. for downloading a DLC)
             platform: "windows" or "linux" (default: based on runner)
             lang: language code (default: system locale)
             dlcs: "all", "none", or comma-separated DLC IDs (optional)
@@ -759,9 +767,14 @@ class CommandsMixin:
                 as missing)
             command: "download" | "update" | "repair" (default: "download")
         """
-        self._check_required_params("game_id", data, "gogdl_setup")
+        game_id = data.get("game_id") or self.installer.service_appid
+        if not game_id:
+            raise ScriptingError(
+                _("gogdl_setup requires a game_id, or a gogid set on the installer."),
+                data,
+            )
 
-        game_id = str(data["game_id"])
+        game_id = str(game_id)
         command = data.get("command", "download")
         platform = data.get("platform")
         lang = data.get("lang")
@@ -887,7 +900,14 @@ class CommandsMixin:
                 if os.path.isfile(start_sh):
                     lutris_config["exe"] = start_sh
                     system.make_executable(start_sh)
-            self.installer.script["game"].update(lutris_config)
+            # Don't clobber config the script set explicitly: a community
+            # installer may ship its own engine (e.g. a native source port
+            # run over GOG game data), in which case its exe must win over the
+            # Windows exe detected from goggame-*.info. Auto-generated GOG
+            # installers leave these unset, so detection still fills them in.
+            game_config = self.installer.script["game"]
+            for key, value in lutris_config.items():
+                game_config.setdefault(key, value)
 
     def _configure_dosbox_from_depot(self, install_path, gog_config):
         """Configure a DOSBox game from depot download using playTasks args.
