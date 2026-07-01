@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Top-level wrapper for the Lutris AppImage proof-of-concept build.
+# Top-level wrapper for the Lutris AppImage build.
 #
 # Builds (or reuses) the Docker image defined by ./Dockerfile, then runs
 # the in-container build script with the repo mounted at /src. The
